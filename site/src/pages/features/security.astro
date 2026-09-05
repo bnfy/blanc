@@ -69,6 +69,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>DNS you can encrypt — or hand to your VPN.</h3><p>Blanc can send DNS lookups over an encrypted connection (DoH) to Cloudflare, Quad9, Mullvad, or a provider you name — or stay out of the way and leave DNS to your system or VPN. Encryption hides your lookups from the network in transit; it does not hide the sites themselves, and it makes the resolver a party you choose to trust. Automatic mode upgrades opportunistically and is not a guarantee.</p></article>
     </div>
   </section>
+  <section class="feature-copy-grid" aria-labelledby="security-login-title">
+    <div><p class="section-kicker">your existing password manager</p><h2 id="security-login-title">Fill a login when you ask.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Optional 1Password fill on macOS.</h3><p>Use matching Login items from your installed 1Password desktop app and account. Blanc’s narrow SDK integration is off by default, and credential lookup and fill require your explicit action. It is not automatic fill, an extension runtime, or a Blanc password store.</p></article>
+      <article><h3>A local hint, before any lookup.</h3><p>A small hint can appear when the visible page has a current-password field. It uses bounded structure-only metadata, never field values or page text, and makes no request to 1Password. Settings can explicitly verify your saved 1Password account identifier.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-calls-title">
+    <div><p class="section-kicker">calls and permissions</p><h2 id="security-calls-title">See when your microphone or camera is in use.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Access you can see and stop.</h3><p>The Island shows microphone and camera use across the window’s tabs and popups. Open the indicator’s popover to see the active surfaces and stop their access. Closing a capturing tab ends its access immediately.</p></article>
+      <article><h3>A choice for choppy call playback.</h3><p>Call audio buffering offers Automatic, Stable, and Resilient receive-buffer modes for WebRTC calls. Stable targets about 400 ms; Resilient targets about one second. Extra buffering trades conversational responsiveness for more tolerance of choppy playback. It cannot guarantee a fix for network, source, Bluetooth, driver, or hardware faults.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-recovery-title">
+    <div><p class="section-kicker">when something goes wrong</p><h2 id="security-recovery-title">A clearer explanation and a choice about recovery.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Certificate failures get their own explanation.</h3><p>Blanc shows a dedicated certificate-failure surface with site-trust details, so a connection problem does not disappear into a generic navigation error.</p></article>
+      <article><h3>Restore tabs or start fresh.</h3><p>After an unclean shutdown, Blanc offers explicit recovery choices. Recovery runs locally and does not upload browsing data.</p></article>
+      <article><h3>Diagnostics you choose to share.</h3><p>Settings → Export diagnostics creates a local file for troubleshooting. Review it before sharing it with support; exporting does not send it anywhere.</p></article>
+    </div>
+  </section>
   <section class="security-baseline" aria-labelledby="security-baseline-title">
     <div class="security-baseline-copy">
       <p class="section-kicker">documented practice</p>

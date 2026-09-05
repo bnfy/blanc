@@ -3,6 +3,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 const QUESTIONS = [
   {
+    id: 'start-page-data',
+    q: 'What stays local on the start page?',
+    a: [
+      'Blanc offers Ledger, Billboard, Shelf, Tally, and Mahjong. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.',
+      'Mahjong’s eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. The start-page layout preference itself can sync through Personal’s optional Profile Sync.',
+      'If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move once per app session, without browsing data or game state. Private-tab feature activity is excluded.',
+    ],
+  },
+  {
+    id: 'bookmark-import',
+    q: 'Can I bring bookmarks from another browser?',
+    a: [
+      'Yes. First-run setup can look for installed browsers. You can also open Favorites, choose Look for other browsers, select a detected profile, and use Import from browser. Import HTML… accepts an exported bookmarks file.',
+      'Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Profile Sync.',
+    ],
+  },
+  {
     q: 'Is Blanc open source?',
     a: [
       'Yes. Blanc is released under the MIT License.',
@@ -65,7 +82,7 @@ const QUESTIONS = [
 ---
 <BaseLayout
   title="Straight answers about Blanc Browser"
-  description="Honest answers about Blanc Browser: source availability, Electron memory, telemetry, Patron pricing, and extension support."
+  description="Honest answers about Blanc Browser: start-page data, bookmark imports, open source, Electron memory, usage measurement, Patron, and extension support."
   path="/faq"
   page="faq"
   header="solid"
@@ -80,8 +97,8 @@ const QUESTIONS = [
     </header>
 
     <div class="faq-page-list">
-      {QUESTIONS.map(({ q, a }) => (
-        <section class="faq-page-item">
+      {QUESTIONS.map(({ q, a, id }) => (
+        <section class="faq-page-item" id={id}>
           <h2>{q}</h2>
           <div>{a.map((paragraph) => <p>{paragraph}</p>)}</div>
         </section>

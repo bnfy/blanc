@@ -10,6 +10,8 @@ export const menus = [
     groups: [
       { title: 'Interface', links: [
         { href: '/features/island', label: 'The island', description: 'One small island. The whole browser.' },
+        { href: '/features/start-page', label: 'Start Page', description: 'Five ways to begin. One of them is Mahjong.' },
+        { href: '/features/glance', label: 'Glance', description: 'Keep a reference beside the page you’re using.' },
         { href: '/features/vertical-tabs', label: 'Vertical tabs', description: 'A tab rail when you want one. The island either way.' },
         { href: '/features/tab-groups', label: 'Tab groups', description: 'Keep the tabs you need. Tuck away the rest.' },
         { href: '/features/quiet-tabs', label: 'Quiet tabs', description: 'Tabs you are not using give their memory back.' },
@@ -21,11 +23,14 @@ export const menus = [
       ] },
       { title: 'Workflow', links: [
         { href: '/features/command-palette', label: 'Command palette', description: 'One shortcut to move through your whole session.' },
+        { href: '/features/reopen-closed-tabs', label: 'Reopen Closed Tabs', description: 'Get the tab back, not just its address.' },
+        { href: '/features/profiles', label: 'Profiles & Windows', description: 'Separate browsing identities. Keep every window independent.' },
         { href: '/features/sync', label: 'Sync', description: 'Your open tabs, on your other devices.' },
+        { href: '/features/workspaces', label: 'Named Workspaces', description: 'Save a whole window. Return to it by name.' },
       ] },
     ],
     spotlight: { kind: 'image', image: '/feature-island.png', alt: 'The Blanc island resting over a web page', kicker: 'Start here', title: 'One small island. The whole browser.', copy: 'Back, forward, tabs, search and commands in one floating pill.', href: '/features/island', cta: 'See the island' },
-    foot: { note: 'Nine features. No account, no AI, no extension store.', label: 'All features', href: '/features' },
+    foot: { note: 'Fourteen guides. No account, no AI, no extension store.', label: 'All features', href: '/features' },
   },
   {
     key: 'company',

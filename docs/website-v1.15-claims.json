@@ -1,0 +1,2539 @@
+{
+  "schemaVersion": 1,
+  "publicRelease": "v1.15.0",
+  "sourceSha": "d0c2304c7cef12a6fa0d66c559aebb1198a86434",
+  "websiteBaseline": "6fc13523198920f6c9ed8d6e88c2d13abdff3f3a",
+  "scope": "New and changed website wording for the v1.15 expansion, including editorial benefit headings. Whitespace is normalized; markup is removed. Existing unchanged copy and the historical Blanc 1.0 announcement are not republished as v1.15 claims by this ledger.",
+  "releaseEvidence": "docs/release-incidents/2026-09-02-v1.15.0.md",
+  "evidenceResolution": "Every evidence path below is at the immutable publicRelease tag, not the website working tree. Qualifications apply to each entry via its evidenceGroups and must travel with the relevant capability on the destination guide.",
+  "prohibitedClaims": [
+    "AI organization or automatic semantic grouping",
+    "Cloud-synced Mahjong, Billboard data, or Named Workspaces",
+    "Automatic login filling",
+    "Exact recovery of every closed tab"
+  ],
+  "evidenceGroups": {
+    "startPage": {
+      "evidence": [
+        "src/main/settings.js",
+        "src/main/top-sites.js",
+        "src/renderer/pages/newtab.js",
+        "src/renderer/pages/mahjong-engine.js",
+        "src/renderer/pages/mahjong-state.js",
+        "test/unit/newtab-top-sites.test.js",
+        "test/unit/mahjong-state.test.js"
+      ],
+      "qualification": "Mahjong state, records and streaks and Billboard ranking/artwork/hidden choices are device-local, not cloud-synced. Only the layout preference can Personal-sync. Private activity is excluded; optional measurement counts fixed feature events, not game state. Boards have a solution when dealt, not after every choice."
+    },
+    "glance": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/glance-layout.js",
+        "src/renderer/overlay.js",
+        "test/unit/glance-layout.test.js"
+      ],
+      "qualification": "Explicit current-window/current-profile tab selection. Temporary relationship and divider; never restored or synced. Narrow windows stack. Underlying tabs retain ordinary behavior; quiet pages reload."
+    },
+    "workspaces": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/workspaces.js",
+        "src/main/workspaces-model.js",
+        "src/main/session-workspace.js",
+        "test/unit/workspaces-patron-entry.test.js",
+        "test/unit/workspaces-scratch-guard.test.js"
+      ],
+      "qualification": "User-directed and device-local/profile-scoped, not AI organization or cross-device sync. Active Patron is required to create/save a new workspace. Existing sets remain openable, switchable, auto-updated, renameable and removable after lapse. Private tabs are excluded; tab setup is not every page’s running state."
+    },
+    "profiles": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/local-profile-model.js",
+        "src/main/local-profiles.js",
+        "src/main/profile-sessions.js",
+        "src/main/profile-deletions.js",
+        "test/unit/profile-deletions.test.js",
+        "test/unit/local-profile-model.test.js"
+      ],
+      "qualification": "Personal is permanent and is the only sync identity. Named identities isolate browsing data, not OS users or password-protected vaults. Device settings/Patron/block totals are shared. Deletion removes the profile’s browsing data and workspaces, not downloaded files."
+    },
+    "reopening": {
+      "evidence": [
+        "src/main/closed-tabs.js",
+        "src/main/main.js",
+        "src/renderer/overlay.js",
+        "test/unit/closed-tabs.test.js",
+        "test/unit/closed-tabs-ui.test.js"
+      ],
+      "qualification": "At most one eligible live page per window for about 30 seconds; later safe-snapshot/URL fallback may reload. Per-window maximum 25 entries and one-hour lifetime, not permanent history. Private tabs are excluded; no exact recovery guarantee or promise to resubmit forms."
+    },
+    "security": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/permissions.js",
+        "src/main/capture-state.js",
+        "src/main/onepassword-broker.js",
+        "src/main/onepassword-policy.js",
+        "src/main/diagnostics-export.js",
+        "test/unit/webrtc-audio-buffer.test.js",
+        "test/unit/session-recovery.test.js",
+        "test/unit/onepassword-policy.test.js"
+      ],
+      "qualification": "1Password requires macOS, the installed app/account and explicit lookup/fill; no automatic filling or general extensions. Buffering targets trade latency for tolerance, not guaranteed audio repair. Recovery/diagnostics are local; the user chooses whether to share an export. No absolute safety claim."
+    },
+    "importing": {
+      "evidence": [
+        "src/main/browser-data-import.js",
+        "src/main/bookmark-import.js",
+        "src/renderer/pages/newtab.js",
+        "test/unit/browser-data-import.test.js",
+        "test/unit/bookmark-import.test.js"
+      ],
+      "qualification": "Imports bookmarks into Favorites on-device, not passwords/cookies/whole sessions. Browser detection depends on available installed profiles. Favorites sync requires separate Personal Profile Sync opt-in."
+    },
+    "foundations": {
+      "evidence": [
+        "src/main/main.js",
+        "src/main/settings.js",
+        "src/main/tab-sleep.js",
+        "src/renderer/overlay.js",
+        "test/unit/public-truth.test.js"
+      ],
+      "qualification": "Public desktop v1.15.0 only. No AI or automatic semantic organization. Plus makes a regular ungrouped tab. Four app icons are macOS/free. Quiet eligible tabs release renderer memory and reload; this is not a CPU/battery/perfect-state promise. Sync is opt-in, Personal-only and remote tabs are read-only."
+    }
+  },
+  "claims": [
+    {
+      "id": "website-115-001",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your familiar sites. Or a fresh board.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-002",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose from five start-page layouts: Ledger, Billboard, Shelf, Tally, and Mahjong. Jump to the sites you visit often, pick up a group of tabs, or take a moment to play.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-003",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Billboard. Your regular sites, drawn from local history. Private tabs are excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-004",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Mahjong. Eight boards, a rotating Daily deal, and records that stay on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-005",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Keep a reference in view.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-006",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose another open tab for Glance and read it beside your main page. Resize the split or close the temporary view when you are done.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-007",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Undo the tab you meant to keep.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-008",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Pick a tab or group from Recently Closed. Eligible pages can briefly return without a reload; private tabs are never recorded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-009",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Give each browsing identity its own space.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-010",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Local profiles separate logins, Favorites, and history. Open independent windows for the things you want to keep apart.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-011",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc’s Billboard start page with its clock and local frequently visited sites.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-012",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "The layered Turtle board in Classic mode, with 72 pairs and game controls, in Blanc’s Mahjong start page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-013",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Your familiar sites. Or a fresh Mahjong board.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-014",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard brings frequent sites from local history; Mahjong offers eight boards, Daily deals, and device-local records.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-015",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose another tab from this window for a temporary reference beside your main page. Resize, swap, or close the view; Glance is never restored or synced.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-016",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc Blocker stops ads and known trackers at the browser level. Its shield shows blocked requests and connection details, with a switch for the current site.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-017",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Private pages do not enter Blanc history, session restore, sync, or Recently Closed. Files you choose to download remain on disk.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-018",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Command or Control L finds open tabs, Favorites, history, and Named Groups. Type / to discover and run browser commands.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-019",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring back the tab you meant to keep.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-020",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Pick a tab or group from this window’s Recently Closed list. Eligible pages can briefly return without a reload; recovery has time limits and excludes private tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-021",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "You create Named Groups and choose the tabs that belong in each. Keep the active group close and fold other groups away in the command panel.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-022",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Named Workspaces save a window’s tabs and groups and keep that set up to date as you browse. Active Patrons can create and save them; existing workspaces stay usable if membership ends.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-023",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Use a resizable left rail when a persistent tab overview helps. The Island remains the address and command surface.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Free up memory without closing the tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-025",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Eligible inactive tabs release renderer memory and reload when you return. Choose the delay; tabs with protected activity or uncertain eligibility stay awake.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-026",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "separate browsing identities",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-027",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Keep work logins apart from personal browsing.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-028",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Local profiles separate cookies, site data, Favorites, history, download metadata, and remembered permissions. Open independent windows, with device preferences and Patron shared.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-029",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "on your other devices",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-030",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Find a tab you left on another machine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-031",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "From Personal, opt-in sync shows what each device has open. The list is end-to-end encrypted and read-only; opening a remote tab creates a local tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-032",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "See the protections behind the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-033",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Sandboxed pages, signed releases, explicit site permissions, device-bound Touch ID passkeys, and optional user-invoked 1Password fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-034",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Smaller details that matter.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-035",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Bring your Favorites.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-036",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "First-run setup helps you choose a default browser and save your privacy choices. Import bookmarks from a detected browser profile or an HTML file in Favorites. How importing works.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-037",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Keep calls under your control.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-038",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "See microphone and camera use from the Island and stop access from its popover. Call audio buffering offers Automatic, Stable, and Resilient receive-buffer choices, with extra delay in exchange for more tolerance of choppy playback. Read the call controls.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-039",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose how to recover.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-040",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "After an unclean shutdown, choose whether to restore tabs or start fresh. Settings can export local diagnostics for you to review before sharing. Recovery and diagnostics.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-041",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Make the everyday controls yours.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-042",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "The Island’s Plus opens a regular, ungrouped tab with its address field focused. macOS offers Sunrise, Sunrise Dark, Paper, and Ink icons without a Patron subscription. Explore the details.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-043",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A start page you can choose",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-044",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Five layouts include Billboard’s local frequent sites and Mahjong with eight boards, Daily deals, and device-local records. Explore the Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-045",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Glance puts another open tab beside your main page. Local profiles and independent windows keep browsing identities separate.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-046",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A way back after a close",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-047",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Recently Closed lets you reopen ordinary tabs or groups within a bounded, per-window undo history. Pages may reload.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-048",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Your bookmarks, brought along",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-049",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "First-run setup helps with default-browser and privacy choices. In Favorites, import from a detected browser profile or an HTML bookmarks file. Imports happen on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-050",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Optional Named Workspaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-051",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc Patron lets you create and save named sets of tabs and groups. Existing workspaces remain usable after membership lapses; they stay on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-052",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Honest answers about Blanc Browser: start-page data, bookmark imports, open source, Electron memory, usage measurement, Patron, and extension support.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-053",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "What stays local on the start page?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-054",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Blanc offers Ledger, Billboard, Shelf, Tally, and Mahjong. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-055",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Mahjong’s eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. The start-page layout preference itself can sync through Personal’s optional Profile Sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-056",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move once per app session, without browsing data or game state. Private-tab feature activity is excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-057",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Can I bring bookmarks from another browser?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-058",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Yes. First-run setup can look for installed browsers. You can also open Favorites, choose Look for other browsers, select a detected profile, and use Import from browser. Import HTML… accepts an exported bookmarks file.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-059",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Profile Sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-060",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "current product captures",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-061",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "More of the browser, ready to show.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-062",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Captured from the signed public v1.15.0 macOS app with an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-063",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Choose a starting point. Open a new tab and try the five footer layouts. In Mahjong, try a Daily board and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-064",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Keep a reference in view. Open two ordinary tabs, press Cmd/Ctrl+Shift+G, and pick one for Glance. Resize the divider and try Make main.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-065",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Undo a close. Close an ordinary tab or named group, then pick it in Recently Closed or press Cmd/Ctrl+Shift+T. Recovery is bounded and may reload the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-066",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Separate identities and sets. Create a named local profile in Settings. With active Patron, save a tab/group set through /workspace and switch to another Named Workspace.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-067",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard uses local frequent sites; Mahjong includes eight boards, rotating Daily deals, and device-local records.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-068",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Glance temporarily displays another tab from the current window beside the main page, with resize, swap, change, and close controls.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-069",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Local profiles and independent windows separate browsing contexts. Patron adds creation of device-local Named Workspaces for saved sets of tabs and groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-070",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Recently Closed is a bounded per-window undo history for ordinary tabs and groups. Eligible pages can briefly return without reloading; private tabs are excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-071",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Five ways to begin. One of them is Mahjong.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-072",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Go straight to a familiar site, pick up a group of tabs, or take a moment with a game. Choose the start page that suits the way you want to begin.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-073",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Billboard puts frequently visited sites within reach. Sample browsing data shown.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-074",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A different starting point, whenever you want.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-075",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A large clock, your weekly blocked-request total, frequently visited sites, and your named groups. Billboard is the default; change layouts from the start-page footer or Settings → General.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-076",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A simple list of Favorites and named groups. When you opt into sharing tabs, Ledger also shows tabs from your other devices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-077",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Favorites as tiles, with named groups and a weekly blocking total underneath.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-078",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Favorites and groups beside a day-by-day chart of blocked requests this week.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-079",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A playable Mahjong solitaire table in your new tab, with Classic and Burst modes. Hide the footer while you play, then bring it back to change layouts.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-080",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your regular sites, a click away.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-081",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Built from your own visits",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-082",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Billboard ranks ordinary browsing history on this device. Its site icons come from locally cached artwork; drawing the row makes no new request to those sites or a favicon service.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-083",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Hide a tile without erasing a visit",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-084",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Remove a site from Billboard when you do not want it there. That choice stays local and does not delete its history. Private tabs neither contribute to nor receive the history-derived row.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-085",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "a little room to play",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-086",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Eight boards. A different Daily deal.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-087",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A board with a solution",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-088",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Turtle, Arch, Peaks, Pyramid, Fortress, Butterfly, Bridge, and Cross are solvable by construction when dealt. The Daily deal rotates across all eight; your choices during play can still leave you needing a hint, Undo, or Shuffle.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-089",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Play at your own pace",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-090",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose Classic or Burst, with scoring, timed combos and automatic clears in Burst. Hints, sound controls, Undo, and Shuffle are built in. Shuffle itself can be undone, including after a Burst rescue.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-091",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Keep a record of your progress",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-092",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "The Records sheet keeps boards cleared, best Classic times and Burst scores, and current and longest Daily streaks on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-093",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Continue an unfinished board",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-094",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Blanc remembers your last board, mode, and deal choice. A new Mahjong tab can offer to continue an unfinished game from another tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-095",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Mahjong — Turtle / Classic",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-096",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your game and frequent sites stay on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-097",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. The layout preference itself can sync through Personal’s optional Profile Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-098",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Make room for the way you browse.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-099",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Start Page Layouts and Mahjong | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-100",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf, Tally, or Mahjong in Blanc. Find frequent sites from local history, or play eight boards with Daily deals and local records.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-101",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Blanc’s Billboard start page with a large clock, local frequent sites, and named groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-102",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "The billboard layout in public Blanc v1.15.0.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-103",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "The ledger layout in public Blanc v1.15.0.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-104",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "The shelf layout in public Blanc v1.15.0.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-105",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "The tally layout in public Blanc v1.15.0.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-106",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "The layered Turtle board in Classic mode in public Blanc v1.15.0.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-107",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Keep a reference beside the page you’re using.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-108",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-109",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The main page and reference share one window. You choose the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-110",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "choose your reference",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-111",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Bring another open tab into view.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-112",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Press ⌘⇧G on macOS or Ctrl+Shift+G on Windows and Linux, or choose View → Open Glance. Pick a tab from the current window; the picker stays within its local profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-113",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Give each page the room it needs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-114",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-115",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Change, swap, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-116",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-117",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "A temporary view for the task in front of you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-118",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Both visible pages stay available",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-119",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-120",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Keep the choice local",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-121",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The picker uses tabs from this window and profile. It does not search history, Favorites, remote tabs, or another window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-122",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-123",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Make room for the way you browse.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-124",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance: Browse Two Pages Side by Side | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-125",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Keep a reference tab beside your main page with Blanc Glance. Choose a local tab, resize the split, swap pages, or close the temporary view.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-126",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Two pages displayed together in the signed Blanc app, with Glance’s reference controls visible.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-127",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Save a whole window. Return to it by name.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-128",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "When a project takes more than one tab, keep its setup ready to return to. Named Workspaces save a window’s tabs and groups under a name you choose.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-129",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Switch between saved sets from the Island’s workspace control. Named Workspaces is a Patron feature.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-130",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Name it once. Keep it up to date as you browse.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-131",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Save this window or start a new set",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-132",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Open the workspace control in the command panel or type /workspace. Active Patrons can save the current window or create a blank named workspace.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-133",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Return without rebuilding the set",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-134",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "A bound workspace automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a workspace already open elsewhere brings that window forward.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-135",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "You decide what belongs together",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-136",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Create groups and assign tabs yourself. Blanc saves those choices; it does not detect tasks or organize tabs by meaning.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-137",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Support Blanc and keep your saved workspaces.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-138",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Available on every desktop platform",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-139",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Named Workspaces is included with Blanc Patron on macOS, Windows, and Linux. Creating or saving a new workspace requires an active subscription.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-140",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Existing workspaces remain yours",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-141",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing them continue to work.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-142",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Keep private browsing separate",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-143",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Private tabs are excluded from saved workspaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-144",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Saved on this device, within this profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-145",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Named Workspaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a workspace preserves its tab setup, not every page’s running state.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-146",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Make room for the way you browse.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-147",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Named Workspaces with Blanc Patron | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-148",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Save a window’s tabs and groups as a Named Workspace with Blanc Patron. Switch sets in place and return after relaunch, with everything stored locally.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-149",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Blanc’s workspace switcher listing saved named workspaces.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-150",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Separate browsing identities. Keep every window independent.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-151",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-152",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Create and manage local profile windows in Settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-153",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Sign into the same site in different profiles.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-154",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Personal is permanent and keeps your existing Blanc data. In Settings, name another profile and choose Create profile window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-155",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Keep browsing data separate",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-156",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Named profiles isolate cookies, site data, Favorites, history, download metadata, and remembered permissions. Their ordinary and private sessions are separate from other profiles.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-157",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Open more than one window",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-158",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Each native window owns its tabs, groups, Island panel, and Recently Closed list. Saved windows return to their associated profile after relaunch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-159",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "The Studio profile opens its own window without Personal’s tabs or Favorites. Device-level preferences and blocking totals remain shared.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-160",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "A profile is a browsing identity on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-161",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Device preferences stay consistent",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-162",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Appearance, network and privacy preferences, usage-measurement choices, and Patron status remain shared across the device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-163",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Sync belongs to Personal",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-164",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Profile Sync is available only to Personal. Creating a named profile does not create another synced identity.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-165",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved workspaces. Files you downloaded remain on disk; Personal cannot be deleted.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-166",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Separate site data, not separate operating-system users.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-167",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Profiles separate browsing identities inside Blanc. They are not password-protected vaults or a security boundary against someone who can use your device account. Named profile data stays on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-168",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Make room for the way you browse.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-169",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Local Profiles and Multiple Windows | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-170",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Separate cookies, site data, Favorites, history, and permissions with Blanc’s local profiles. Use independent windows, with no account required.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-171",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Blanc Settings showing Personal and a separate named local profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-172",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "A separate Studio profile window with an empty tab set and no Personal Favorites.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-173",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Get the tab back, not just its address.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-174",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Closed the wrong tab? Blanc keeps a short, local undo history for each window, so you can pick the tab or group you meant to bring back.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-175",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Recently Closed lets you pick a tab or bring back a group in one action.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-176",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Pick the one you meant.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-177",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Use the shortcut or the panel",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-178",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Press ⌘⇧T on macOS or Ctrl+Shift+T on Windows and Linux, type /reopen, or open the Island panel and choose an entry from Recently Closed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-179",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Bring a group back together",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-180",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Closing a named group records one undo entry. Reopen it to restore its ordinary tabs together, including its name, member order, and pins.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-181",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Keep each window’s history independent",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-182",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Reopening in one window uses that window’s list. Use Forget for one entry or Clear all to remove the list.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-183",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "a short second chance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-184",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Some pages can return without a reload.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-185",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "At most one eligible closed page per window can retain the same page for about 30 seconds. Reopening it during that time can preserve things such as scroll position and text you were typing without fetching the page again.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-186",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "After that, it may reload",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-187",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "A still-recent entry falls back to a safe navigation snapshot or its URL. Page state is not guaranteed, and Blanc never silently resubmits a form. Loading, recording, quiet, and other ineligible pages do not receive the same-page recovery window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-188",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "An undo buffer with limits",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-189",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Recently Closed holds up to 25 entries per window, and entries expire after one hour. It lives only in memory and ends when the app quits.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-190",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Private tabs never enter Recently Closed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-191",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-192",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Make room for the way you browse.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-193",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Reopen Closed Tabs and Groups | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-194",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Reopen a recently closed tab or an entire group in Blanc. Eligible pages can return without reloading briefly; private tabs are always excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-195",
+      "source": "site/src/pages/features/reopen-closed-tabs.astro",
+      "exactWording": "Blanc’s command panel with a recently closed tab and a named group available to reopen.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-196",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "little everyday choices",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-197",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "Get to a new page with one click.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-198",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "A Plus that puts you straight into the address field.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-199",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "The resting Island’s Plus opens one regular, ungrouped tab and focuses its address field. It sits beside the slash-command keycap. In vertical-tabs mode, use the rail’s New tab control instead.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-200",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "Choose the icon you want to keep in your Dock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-201",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "On macOS, Settings offers Sunrise, Sunrise Dark, Paper, and Ink. All four app-icon choices are free; no Patron subscription is required.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-202",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "Choose what a new tab looks like.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-203",
+      "source": "site/src/pages/features/island.astro",
+      "exactWording": "Try a list of Favorites, local frequent sites, or a Mahjong board. Explore the five Start Page layouts.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-204",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "your existing password manager",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-205",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Fill a login when you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-206",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Optional 1Password fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-207",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Use matching Login items from your installed 1Password desktop app and account. Blanc’s narrow SDK integration is off by default, and credential lookup and fill require your explicit action. It is not automatic fill, an extension runtime, or a Blanc password store.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-208",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A local hint, before any lookup.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-209",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A small hint can appear when the visible page has a current-password field. It uses bounded structure-only metadata, never field values or page text, and makes no request to 1Password. Settings can explicitly verify your saved 1Password account identifier.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-210",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "calls and permissions",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-211",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "See when your microphone or camera is in use.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-212",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Access you can see and stop.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-213",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "The Island shows microphone and camera use across the window’s tabs and popups. Open the indicator’s popover to see the active surfaces and stop their access. Closing a capturing tab ends its access immediately.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-214",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A choice for choppy call playback.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-215",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Call audio buffering offers Automatic, Stable, and Resilient receive-buffer modes for WebRTC calls. Stable targets about 400 ms; Resilient targets about one second. Extra buffering trades conversational responsiveness for more tolerance of choppy playback. It cannot guarantee a fix for network, source, Bluetooth, driver, or hardware faults.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-216",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "when something goes wrong",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-217",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A clearer explanation and a choice about recovery.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-218",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Certificate failures get their own explanation.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-219",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc shows a dedicated certificate-failure surface with site-trust details, so a connection problem does not disappear into a generic navigation error.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-220",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Restore tabs or start fresh.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-221",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "After an unclean shutdown, Blanc offers explicit recovery choices. Recovery runs locally and does not upload browsing data.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-222",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Diagnostics you choose to share.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-223",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Settings → Export diagnostics creates a local file for troubleshooting. Review it before sharing it with support; exporting does not send it anywhere.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-224",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Sync belongs to Personal.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-225",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Profile Sync is available only to Personal. Named local profiles and independent windows let you separate browsing identities on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-226",
+      "source": "site/src/pages/features/command-palette.astro",
+      "exactWording": "Reach the tab you just closed or the set you saved.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-227",
+      "source": "site/src/pages/features/command-palette.astro",
+      "exactWording": "Use Recently Closed to pick a tab or group, or Named Workspaces to switch saved sets.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-228",
+      "source": "site/src/data/navigation.mjs",
+      "exactWording": "Fourteen guides. No account, no AI, no extension store.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-229",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "A clock and frequent sites derived from local browsing history.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-230",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Turtle in Classic mode, one of eight solvable-by-construction boards in the start page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-231",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Two ordinary tabs sharing one window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-232",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "The switcher with saved sets of tabs and groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-233",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Settings with Personal and a separate named profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-234",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "A recently closed tab and a group, ready to reopen.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-235",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Ledger, Billboard, Shelf, Tally, and Mahjong; Billboard frequent sites stay local",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-236",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Eight boards, rotating Daily deals, local records and streaks, cross-tab continuation, and undoable Shuffle",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-237",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "A temporary reference pane using tabs from the current window and profile",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-238",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Local browsing identities with independent windows; Profile Sync is Personal-only",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-239",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Per-window recovery for ordinary tabs and groups; time-limited, memory-only, and may reload",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-240",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Patron creation of device-local, profile-scoped saved tab and group sets; existing sets remain usable after membership lapses",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}

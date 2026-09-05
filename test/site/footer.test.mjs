@@ -5,6 +5,7 @@ import { mkdir } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
 
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
+const linkTab = process.env.BLANC_SITE_BROWSER === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab';
 const endpoint = 'https://blanc-newsletter.bnfy-441.workers.dev/subscribe';
 const screenshotDir = process.env.BLANC_FOOTER_SCREENSHOTS;
 let browser;
@@ -142,7 +143,7 @@ test('footer keyboard focus, hover, and zoom preserve usable controls', async ()
         assert.equal(await controls.nth(index).evaluate(el => el === document.activeElement), true);
         const outline = await controls.nth(index).evaluate(el => getComputedStyle(el).outlineStyle);
         assert.notEqual(outline, 'none');
-        await page.keyboard.press('Tab');
+        await page.keyboard.press(linkTab);
       }
     }
     // Recreate 200% browser zoom: 1440 physical pixels become a 720px CSS viewport.

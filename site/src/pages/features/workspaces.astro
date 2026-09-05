@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Named Workspaces with Blanc Patron | Blanc Browser"
+  description="Save a window’s tabs and groups as a Named Workspace with Blanc Patron. Switch sets in place and return after relaunch, with everything stored locally."
+  path="/features/workspaces"
+  page="feature-workspaces"
+  current="features"
+  ogImage="/feature-workspaces.png"
+  ogImageAlt="Blanc’s workspace switcher listing saved named workspaces."
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Named Workspaces","item":"https://blancbrowser.com/features/workspaces"}]}
+  </script>
+<main class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">named workspaces</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="workspaces-title">
+    <p class="section-kicker">Blanc Patron</p>
+    <h1 id="workspaces-title">Save a whole window. Return to it by name.</h1>
+    <p>When a project takes more than one tab, keep its setup ready to return to. Named Workspaces save a window’s tabs and groups under a name you choose.</p>
+  </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/workspaces.png" aria-label="View full Named Workspaces capture"><img src="/feature-captures/workspaces.png" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc’s workspace switcher listing saved named workspaces." /></a>
+    <figcaption>Switch between saved sets from the Island’s workspace control. Named Workspaces is a Patron feature.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="workspaces-section-0">
+    <div><p class="section-kicker">your sets of tabs</p><h2 id="workspaces-section-0">Name it once. Keep it up to date as you browse.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Save this window or start a new set</h3><p>Open the workspace control in the command panel or type /workspace. Active Patrons can save the current window or create a blank named workspace.</p></article>
+      <article><h3>Return without rebuilding the set</h3><p>A bound workspace automatically saves its tabs and groups as you browse and returns after relaunch. Switching replaces the current window’s set; a workspace already open elsewhere brings that window forward.</p></article>
+      <article><h3>You decide what belongs together</h3><p>Create groups and assign tabs yourself. Blanc saves those choices; it does not detect tasks or organize tabs by meaning.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="workspaces-section-1">
+    <div><p class="section-kicker">part of Patron</p><h2 id="workspaces-section-1">Support Blanc and keep your saved workspaces.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Available on every desktop platform</h3><p>Named Workspaces is included with Blanc Patron on macOS, Windows, and Linux. Creating or saving a new workspace requires an active subscription.</p></article>
+      <article><h3>Existing workspaces remain yours</h3><p>If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing them continue to work.</p></article>
+      <article><h3>Keep private browsing separate</h3><p>Private tabs are excluded from saved workspaces. When a switch would discard private tabs or an unsaved window, Blanc asks you to make an explicit choice.</p></article>
+    </div>
+  </section>
+  <aside class="truth-note" aria-labelledby="workspaces-note-title">
+    <p class="section-kicker">good to know</p><h2 id="workspaces-note-title">Saved on this device, within this profile.</h2>
+    <p>Named Workspaces are device-local and profile-scoped. They do not sync across devices or move tabs between local profiles. Saving a workspace preserves its tab setup, not every page’s running state.</p>
+    <a class="text-link" href="/#home-patron-title" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="related-feature">Explore Blanc Patron <span aria-hidden="true">↗</span></a>
+  </aside>
+  <section class="feature-close" aria-labelledby="workspaces-close-title">
+    <p class="section-kicker">ready when you are</p><h2 id="workspaces-close-title">Make room for the way you browse.</h2>
+    <a class="cta" href="/download" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="feature-close">download blanc</a>
+  </section>
+</main>
+</BaseLayout>
