@@ -186,6 +186,17 @@ jobs:
           }
           $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
+      - name: Verify installed browser registration and uninstall cleanup
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $product = node -p "require('./package.json').productName"
+          ./scripts/verify-windows-browser-registration.ps1 `
+            -Installer "dist/$product-Setup-$version.exe" `
+            -ProductName $product `
+            -Version $version `
+            -ProgId 'BlancURL'
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         shell: bash
@@ -271,6 +282,20 @@ jobs:
           for f in "dist/$PRODUCT_NAME-$VERSION.AppImage" "dist/latest-linux.yml"; do
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
+
+      - name: Verify packaged desktop browser registration
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          APPIMAGE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
+          EXTRACT_DIR="$RUNNER_TEMP/blanc-appimage-registration"
+          mkdir -p "$EXTRACT_DIR"
+          chmod +x "$APPIMAGE"
+          cd "$EXTRACT_DIR"
+          "$APPIMAGE" --appimage-extract >/dev/null
+          DESKTOP_ENTRY=$(find squashfs-root -type f -name '*.desktop' -print -quit)
+          [ -n "$DESKTOP_ENTRY" ] || { echo "AppImage desktop entry missing" >&2; exit 1; }
+          node "$GITHUB_WORKSPACE/scripts/verify-linux-desktop-entry.js" "$DESKTOP_ENTRY"
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar

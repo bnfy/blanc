@@ -84,7 +84,9 @@ cap** are identical; only where the bytes land and how you re-open them differ.
 **Why:** Each OS has its own default-browser mechanism and URI-hand-off model.
 
 - **Desktop:** `handOffToOs()` for `mailto:`/`tel:`/`facetime:`/`sms:`; OS default
-  registration via the packaged app.
+  registration via the packaged app (macOS LaunchServices, the Windows Default
+  Programs registry contract written by the installer, and the Linux desktop
+  entry's `WebBrowser` category and HTTP(S) scheme-handler types).
 - **iOS:** default-browser **entitlement** + universal-link/URI handling; hand-off
   via `UIApplication.open`.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.

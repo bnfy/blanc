@@ -147,7 +147,7 @@
       "target": [
         "AppImage"
       ],
-      "category": "Network"
+      "category": "Network;WebBrowser"
     }
   }
 }
