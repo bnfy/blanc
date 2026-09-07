@@ -28,7 +28,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Permissions & auth | `permissions-and-auth.feature` | F13, F20 |
 | Internal pages | `internal-pages.feature` | F16 |
 | Supporter & session | `supporter-and-session.feature` | F17, F18 |
-| Platform services | `platform-services.feature` | F21, F22, F23, F24 |
+| Platform services | `platform-services.feature` | F21, F22, F23, F24, F38 |
 | Tab sync | `sync.feature` | F27 |
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
@@ -54,7 +54,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F2-5 | Reopen-closed history is workspace-local | D11 | ✅ | ➖ | ➖ |
 | F2-6 | Closing a group is one undo step | — | ✅ | ⬜ | ⬜ |
 | F3-1 | `/group` creates + moves | — | ✅ | ⬜ | ⬜ |
-| F3-2 | Pill's dots render only active group | — | ✅ | ⬜ | ⬜ |
+| F3-2 | Pill shows pins + active section + global remainder | — | ✅ | ⬜ | ⬜ |
 | F3-3 | Collapse tucks tabs away | — | ✅ | ⬜ | ⬜ |
 | F3-4 | Last tab prunes group | — | ✅ | ⬜ | ⬜ |
 | F3-5 | Grouped pin stays in group | — | ✅ | ⬜ | ⬜ |
@@ -90,7 +90,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F12-9 | Site controls follow their opening control | — | ✅ | ⬜ | ⬜ |
 | F13-1 | Geolocation prompt + deny persists | — | ✅ | ⬜ | ⬜ |
 | F14-1 | Invalid search engine rejected | — | ✅ | ⬜ | ⬜ |
-| F14-2 | Unlicensed supporter icon → default | D5 | ✅ | ⬜ | ⬜ |
+| F14-2 | Retired app icon → default | — | ✅ | ⬜ | ⬜ |
 | F14-3 | Exception hostnames normalized | — | ✅ | ⬜ | ⬜ |
 | F14-4 | Search-suggestion opt-out stays device-local | — | ✅ | ⬜ | ⬜ |
 | F15-1 | Dark recolors chrome + page live | — | ✅ | ⬜ | ⬜ |
@@ -98,8 +98,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F16-1 | Newtab ledger contents | — | ✅ | ⬜ | ⬜ |
 | F16-2 | Internal nav stays in scheme | — | ✅ | ⬜ | ⬜ |
 | F16-3 | Privileged chrome rejects web navigation | D11 | ✅ | ➖ | ➖ |
-| F17-1 | Supporter unlock enables colorways | D6 | ✅ | ⬜ | ⬜ |
-| F17-2 | Non-supporter locked + fallback | — | ✅ | ⬜ | ⬜ |
+| F17-1 | Current app icon applies | D6 | ✅ | ⬜ | ⬜ |
+| F17-2 | Patron cannot restore retired icon | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
 | F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
 | F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
@@ -151,6 +151,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
+| F35-3 | Mahjong layout embeds a playable deal | — | ✅ | ⬜ | ⬜ |
+| F35-4 | Hidden embedded Mahjong timer stays paused | — | ✅ | ⬜ | ⬜ |
+| F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
+| F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
@@ -158,6 +162,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
+| F38-1 | Explicit matching macOS 1Password fill stays bounded and transient | D26 | ⬜ | ➖ | ➖ |
 | F39-1 | A selected browser profile exposes its verified open-tab session | D22 | ✅ | ⬜ | ⬜ |
 | F39-2 | Apply preserves source order, duplicates, pins, and quiet state | — | ✅ | ⬜ | ⬜ |
 | F39-3 | Source groups seed editable Named Groups without placeholders | — | ⬜ | ⬜ | ⬜ |
@@ -180,7 +185,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, `F30–F37`, and `F39` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F39` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised
@@ -189,5 +194,5 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
   iOS per D13 — see
   [`../blocking-backends.md`](../blocking-backends.md)). D15, D17, and D18 do
   not yet have discrete Gherkin assertions.
-- Mobile-gained / platform-specific outcomes (F22, F24, F28) correctly carry
+- Mobile-gained / platform-specific outcomes (F22, F24, F28, F38) correctly carry
   platform tags rather than `@all`.

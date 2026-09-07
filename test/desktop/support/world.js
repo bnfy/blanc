@@ -49,6 +49,12 @@ class BlancWorld {
   secureFixtureUrl(name) {
     return `${ctx.secureFixturesBase}/site/${encodeURIComponent(name)}`;
   }
+
+  /** HTTPS served with a separate self-signed key that is deliberately not
+   * present in Chromium's per-run SPKI allowlist. */
+  untrustedFixtureUrl(name) {
+    return `${ctx.untrustedFixturesBase}/site/${encodeURIComponent(name)}`;
+  }
 }
 
 setWorldConstructor(BlancWorld);

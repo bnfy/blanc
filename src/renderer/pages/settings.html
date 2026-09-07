@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
   <title>Settings</title>
-  <link rel="icon" href="icon.svg" />
+  <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="sheet">
@@ -23,6 +23,7 @@
         <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
         <a href="#group-sync" data-group="sync">Sync</a>
+        <a href="#group-diagnostics" data-group="diagnostics">Diagnostics</a>
         <a href="#group-patron" data-group="patron">Patron</a>
         <a href="#group-help" data-group="help">Help</a>
       </nav>
@@ -53,6 +54,7 @@
                 <option value="billboard">billboard</option>
                 <option value="shelf">shelf</option>
                 <option value="tally">tally</option>
+                <option value="mahjong">mahjong</option>
               </select>
             </div>
 
@@ -80,15 +82,14 @@
               </select>
             </div>
 
+
             <div class="setting" id="appIconSetting">
               <div class="label">
                 <span>App icon</span>
                 <span class="hint" id="appIconHint">Choose the Blanc icon shown by your system</span>
               </div>
               <div class="icon-scroller">
-                <button id="appIconPrev" class="icon-caret" type="button" aria-label="Scroll colorways left"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M7.5 2 3.5 6l4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon"></div>
-                <button id="appIconNext" class="icon-caret" type="button" aria-label="Scroll colorways right"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M4.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
               </div>
             </div>
 
@@ -170,11 +171,24 @@
             <div class="setting">
               <div class="label">
                 <span>IP address in video calls</span>
-                <span class="hint">Video and voice calls in your browser can reveal your real IP address, even on a VPN. Standard is right for almost everyone.</span>
+                <span class="hint">Standard limits calls to your default network route. If a call stutters or won't connect, try Compatibility; it can reveal local network addresses to the site. Strict is for application-proxy users.</span>
               </div>
               <select id="webrtcPolicy">
                 <option value="standard">Standard (recommended)</option>
+                <option value="compatibility">Compatibility — widest call support, less IP privacy</option>
                 <option value="strict">Strict — stronger for proxy users, but can break some video calls</option>
+              </select>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>Call audio</span>
+                <span class="hint">Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it.</span>
+              </div>
+              <select id="webrtcAudioBuffer">
+                <option value="automatic">Automatic (lowest latency)</option>
+                <option value="stable">Stable — smoother playback, about 400 ms buffer</option>
+                <option value="resilient">Resilient — high stability, about 1 second buffer</option>
               </select>
             </div>
 
@@ -202,6 +216,42 @@
               <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
             </div>
 
+            <div class="group-subsection" id="onePasswordSettings" hidden>
+              <h3 class="section-title">1Password</h3>
+              <p class="section-hint">
+                Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask.
+              </p>
+              <div class="setting">
+                <div class="label">
+                  <span id="onePasswordAppLabel">1Password app</span>
+                  <span class="hint" id="onePasswordAppHint"></span>
+                </div>
+                <button id="onePasswordOpenApp" type="button" hidden>Open 1Password</button>
+              </div>
+              <div class="setting">
+                <div class="label">
+                  <span id="onePasswordEnabledLabel">Fill logins from 1Password</span>
+                  <span class="hint" id="onePasswordEnabledHint">In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs</span>
+                </div>
+                <label class="toggle">
+                  <input id="onePasswordEnabled" type="checkbox" aria-labelledby="onePasswordEnabledLabel" aria-describedby="onePasswordEnabledHint" />
+                  <span class="track"></span>
+                </label>
+              </div>
+              <div class="setting">
+                <div class="label">
+                  <span id="onePasswordAccountLabel">1Password account</span>
+                  <span class="hint" id="onePasswordAccountHint">The email address you sign in to 1Password with. An account ID also works. Stored only on this device.</span>
+                </div>
+                <div class="toolbar-row">
+                  <input id="onePasswordAccount" type="text" maxlength="200" autocomplete="off" spellcheck="false" placeholder="you@example.com" aria-labelledby="onePasswordAccountLabel" aria-describedby="onePasswordAccountHint" />
+                  <button id="onePasswordVerify" type="button">Verify</button>
+                </div>
+              </div>
+              <p class="section-hint"><span id="onePasswordVerifyState" role="status"></span></p>
+              <p class="section-hint">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P.</p>
+            </div>
+
             <div class="group-subsection">
               <h3 class="section-title">Ad-block exceptions</h3>
               <p class="section-hint">
@@ -225,7 +275,7 @@
             <div class="setting">
               <div class="label">
                 <span>Help improve Blanc</span>
-                <span class="hint">Counts active users so we can see how Blanc is growing. On launch, sends the app version, your OS and its major version (like &ldquo;macOS 26&rdquo;), and a random id for this install (used only to avoid counting one device twice, and stored on our side only as a one-way hash). No browsing data, no account, no way to identify you. Turn this off to stop sending it.</span>
+                <span class="hint">Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. The install id is stored on our side only as a one-way hash. Turn this off to stop sending it.</span>
               </div>
               <label class="toggle">
                 <input id="usagePing" type="checkbox" />
@@ -280,17 +330,30 @@
           </div>
         </section>
 
+        <section class="settings-group" id="group-diagnostics">
+          <h2 class="group-title">Diagnostics</h2>
+          <div class="settings-card">
+            <p class="section-hint">
+              Blanc keeps a local, 50-event crash ledger with timestamps, process type, and failure reason. It never includes URLs, page titles, history, profile names, account data, identifiers, quiet-tab state, or closed-tab state, and nothing is sent automatically.
+            </p>
+            <p class="section-hint" id="diagnosticsSummary" role="status">Checking local crash history…</p>
+            <div class="toolbar-row">
+              <button id="diagnosticsExport">Export diagnostics…</button>
+              <button id="diagnosticsClear" class="danger">Clear crash history</button>
+              <span id="diagnosticsStatus" class="section-hint" role="status"></span>
+            </div>
+          </div>
+        </section>
+
         <section class="settings-group" id="group-patron">
           <h2 class="group-title" id="patronTitle">Blanc Patron</h2>
           <div class="settings-card">
             <p class="section-hint">
-              Blanc Patron unlocks Named Workspaces on every platform, and on macOS three
-              extra Dock colorways — ember, plum, and gold. A one-time founding license
-              activates once, with no further contact. A monthly or annual subscription
-              checks in with Polar about once a day — your license key and activation id
-              only, never browsing data — to confirm it’s still active. On a lapse,
-              existing workspaces stay available while creating new ones pauses; on macOS,
-              colorways quietly revert to Paper.
+              Blanc Patron unlocks Named Workspaces on every platform. A one-time founding
+              license activates once, with no further contact. A monthly or annual subscription
+              checks in with Polar about once a day — your license key and activation id only,
+              never browsing data — to confirm it’s still active. On a lapse, existing
+              workspaces stay available while creating new ones pauses.
             </p>
             <div class="toolbar-row" id="patronCheckoutRow">
               <a id="patronCheckout" class="patron-checkout" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf">Become a Patron — $4/month or $30/year</a>
@@ -323,6 +386,7 @@
     </div>
   </div>
   <script src="sheet.js"></script>
+  <script src="settings-verify-model.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

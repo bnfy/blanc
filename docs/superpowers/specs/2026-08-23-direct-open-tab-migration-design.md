@@ -1,7 +1,9 @@
 # Bring Your Tabs (F39) — direct open-tab migration
 
 **Date:** 2026-08-23
-**Status:** Corrected implementation complete; packaged/platform verification in progress
+**Status:** Corrected implementation complete; macOS packaged verification passed; Windows/Linux
+packaged verification deferred by the product owner (see
+`docs/release-incidents/2026-09-07-f39-platform-verification-deferral.md`)
 **Supersedes:** `2026-08-23-ai-assisted-tab-migration-design.md`
 **Related:** F30 Favorites import, F36 first-run onboarding, F37 Named Workspaces
 

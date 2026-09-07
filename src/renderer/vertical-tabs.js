@@ -139,6 +139,15 @@
     queuedPreviewWidth = null;
   }
 
+  function faviconFallbackLabel(tab) {
+    try {
+      const host = new URL(tab?.url || '').hostname.replace(/^www\./i, '');
+      return Array.from(host)[0]?.toUpperCase() || '•';
+    } catch {
+      return '•';
+    }
+  }
+
   function faviconFor(tab) {
     const favicon = document.createElement('span');
     favicon.className = `favicon vertical-tab-favicon${tab.isLoading ? ' loading' : ''}`;
@@ -149,6 +158,9 @@
     } else if (tab.favicon) {
       favicon.classList.add('has-icon');
       favicon.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+    } else {
+      favicon.classList.add('fallback');
+      favicon.textContent = faviconFallbackLabel(tab);
     }
     return favicon;
   }

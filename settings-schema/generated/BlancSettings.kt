@@ -16,11 +16,18 @@ enum class BlancThemePreference(val id: String) {
     DARK("dark");
 }
 
-enum class BlancNewtabLayout(val id: String) { LEDGER("ledger"), BILLBOARD("billboard"), SHELF("shelf"), TALLY("tally") }
+enum class BlancNewtabLayout(val id: String) { LEDGER("ledger"), BILLBOARD("billboard"), SHELF("shelf"), TALLY("tally"), MAHJONG("mahjong") }
 
 enum class BlancWebrtcPolicy(val id: String) {
     STANDARD("standard"),
+    COMPATIBILITY("compatibility"),
     STRICT("strict");
+}
+
+enum class BlancWebrtcAudioBuffer(val id: String) {
+    AUTOMATIC("automatic"),
+    STABLE("stable"),
+    RESILIENT("resilient");
 }
 
 enum class BlancSecureDns(val id: String) {
@@ -35,17 +42,10 @@ enum class BlancSecureDns(val id: String) {
 enum class BlancTabSleepDelay(val id: String) { OFF("off"), M30("30m"), H1("1h"), H6("6h") }
 
 enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: Boolean) {
+    SUNRISE("sunrise", "Sunrise", false),
+    SUNRISE_DARK("sunrise-dark", "Sunrise Dark", false),
     PAPER("paper", "Paper", false),
-    INK("ink", "Ink", false),
-    GRAPHITE("graphite", "Graphite", false),
-    DEFAULT("default", "Evergreen", false),
-    MIDNIGHT("midnight", "Midnight", false),
-    CREAM("cream", "Cream", false),
-    FOREST("forest", "Forest", false),
-    SAGE("sage", "Sage", false),
-    EMBER("ember", "Ember", true),
-    PLUM("plum", "Plum", true),
-    GOLD("gold", "Gold", true);
+    INK("ink", "Ink", false);
 }
 
 object BlancSettingsDefaults {
@@ -54,11 +54,12 @@ object BlancSettingsDefaults {
     const val adblockEnabled = true
     const val homePage = ""
     val theme = BlancThemePreference.SYSTEM
-    val newtabLayout = BlancNewtabLayout.LEDGER
+    val newtabLayout = BlancNewtabLayout.BILLBOARD
     val webrtcPolicy = BlancWebrtcPolicy.STANDARD
+    val webrtcAudioBuffer = BlancWebrtcAudioBuffer.AUTOMATIC
     val secureDns = BlancSecureDns.AUTO
     const val secureDnsTemplate = ""
-    val appIcon = BlancAppIcon.PAPER
+    val appIcon = BlancAppIcon.SUNRISE
     const val usagePing = true
     val tabSleep = BlancTabSleepDelay.H1
     // adblockExceptions defaults to emptyList(); supporter defaults to null (structural).

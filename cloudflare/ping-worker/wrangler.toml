@@ -2,9 +2,21 @@ name = "blanc-ping"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
 
+# Load-bearing: declaring `routes` below disables the workers.dev route by
+# default, and blanc-ping.bnfy-441.workers.dev is where every shipped
+# install's telemetry ping (and the stats digest) points. Never remove.
+workers_dev = true
+
 # Created by `wrangler kv namespace create PINGS` — paste the returned id below.
 kv_namespaces = [
   { binding = "PINGS", id = "2c71bddea5b842d49fee1c972b70e8d9" }
+]
+
+# blancbrowser.com is a Pages project; these routes carve /dl/* out of it so
+# download clicks are counted at the edge (no JS, no ad-blocker exposure).
+routes = [
+  { pattern = "blancbrowser.com/dl/*", zone_name = "blancbrowser.com" },
+  { pattern = "www.blancbrowser.com/dl/*", zone_name = "blancbrowser.com" }
 ]
 
 [vars]
@@ -12,9 +24,11 @@ kv_namespaces = [
 # rule and billing notification because KV counters are not strongly atomic.
 PING_DAILY_LIMIT = "250000"
 
-# STATS_TOKEN and INSTALL_HASH_SECRET are secrets, not vars — set them with:
+# STATS_TOKEN, INSTALL_HASH_SECRET, and OPENAI_CONVERSIONS_API_KEY are secrets,
+# not vars — set them with:
 #   wrangler secret put STATS_TOKEN
 #   wrangler secret put INSTALL_HASH_SECRET
+#   wrangler secret put OPENAI_CONVERSIONS_API_KEY
 # INSTALL_HASH_SECRET keys the HMAC applied to install ids before storage/GA
 # forwarding; unset means unique-install counting is skipped (fail closed).
 

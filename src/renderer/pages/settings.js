@@ -1,9 +1,16 @@
 (async () => {
-  const { settings, searchEngines, appIcons, supporterIcons, capabilities } =
+  const {
+    settings,
+    searchEngines,
+    appIcons,
+    capabilities,
+    onePasswordAvailable,
+  } =
     await window.bowserPages.settings.get();
 
-  // Desktop sends no `capabilities` field → every feature is supported and this
-  // file behaves exactly as before. A platform that DOES send the list (iOS)
+  // Electron desktop sends no `capabilities` field; its main process separately
+  // reports whether the macOS-only 1Password bridge is available. A platform
+  // that DOES send the capabilities list (iOS)
   // gets each unsupported feature skipped ENTIRELY — no child getElementById, no
   // bridge call to an unimplemented method, no listener — then its control is
   // removed. Guarding (not merely removing) matters because several sections
@@ -28,7 +35,7 @@
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
-  newtabLayout.value = settings.newtabLayout ?? 'ledger';
+  newtabLayout.value = settings.newtabLayout ?? 'billboard';
   searchEngine.value = settings.searchEngine;
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
@@ -88,6 +95,16 @@
     document.getElementById('webrtcPolicy')?.closest('.setting')?.remove();
   }
 
+  // --- WebRTC audio receive buffer ---
+  if (supports('webrtcAudioBuffer')) {
+    const webrtcAudioBuffer = document.getElementById('webrtcAudioBuffer');
+    webrtcAudioBuffer.value = settings.webrtcAudioBuffer ?? 'automatic';
+    webrtcAudioBuffer.addEventListener('change', () =>
+      window.bowserPages.settings.set({ webrtcAudioBuffer: webrtcAudioBuffer.value }));
+  } else {
+    document.getElementById('webrtcAudioBuffer')?.closest('.setting')?.remove();
+  }
+
   // --- Encrypted DNS (DoH) ---
   if (supports('secureDns')) {
     const secureDns = document.getElementById('secureDns');
@@ -145,6 +162,89 @@
     document.getElementById('secureDnsCustomRow')?.remove();
   }
 
+  // --- 1Password desktop-app bridge (macOS-only, device-local, opt-in) ---
+  if (onePasswordAvailable === true && supports('onePassword')) {
+    document.getElementById('onePasswordSettings').hidden = false;
+    const onePasswordEnabled = document.getElementById('onePasswordEnabled');
+    const onePasswordAccount = document.getElementById('onePasswordAccount');
+    const verifyButton = document.getElementById('onePasswordVerify');
+    const verifyState = document.getElementById('onePasswordVerifyState');
+    const appHint = document.getElementById('onePasswordAppHint');
+    const openAppButton = document.getElementById('onePasswordOpenApp');
+    const model = window.blancVerifyModel;
+    // Settings-local status strings — not capsule copy (that lives in
+    // fill-status-copy.js); these describe the Verify action itself.
+    const VERIFY_ERRORS = {
+      'account-not-found': 'Account not found — check your 1Password email address and try again.',
+      'not-authorized': '1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.',
+      'session-expired': 'Authorization expired — try again.',
+      'desktop-unavailable': '1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.',
+      'timed-out': '1Password timed out — try again when the app is ready.',
+      'broker-stopped': 'The 1Password helper stopped — try again.',
+      'sdk-error': '1Password couldn’t complete the check — try again.',
+    };
+    let verify = model.onFieldInput(model.createVerifyModel(), settings.onePasswordAccount ?? '');
+    verify = { ...verify, token: 0 }; // the seed edit is not a user supersession
+    const renderVerify = () => {
+      const projection = model.view(verify);
+      verifyButton.disabled = projection.buttonDisabled;
+      if (projection.normalizeFieldTo !== null) onePasswordAccount.value = projection.normalizeFieldTo;
+      verifyState.textContent = projection.phase === 'pending' ? 'Checking with 1Password…'
+        : projection.phase === 'connected' ? 'Connected.'
+          : projection.phase === 'error' ? (VERIFY_ERRORS[projection.kind] ?? VERIFY_ERRORS['sdk-error'])
+            : '';
+    };
+    onePasswordEnabled.checked = settings.onePasswordEnabled ?? false;
+    onePasswordAccount.value = settings.onePasswordAccount ?? '';
+    onePasswordAccount.disabled = !onePasswordEnabled.checked;
+    renderVerify();
+    onePasswordEnabled.addEventListener('change', async () => {
+      onePasswordAccount.disabled = !onePasswordEnabled.checked;
+      await window.bowserPages.settings.set({
+        onePasswordEnabled: onePasswordEnabled.checked,
+      });
+      if (onePasswordEnabled.checked && !onePasswordAccount.value.trim()) {
+        onePasswordAccount.focus();
+      }
+    });
+    onePasswordAccount.addEventListener('input', () => {
+      verify = model.onFieldInput(verify, onePasswordAccount.value);
+      renderVerify();
+    });
+    onePasswordAccount.addEventListener('change', async () => {
+      const next = await window.bowserPages.settings.set({
+        onePasswordAccount: onePasswordAccount.value,
+      });
+      onePasswordAccount.value = next.onePasswordAccount ?? '';
+    });
+    verifyButton.addEventListener('click', async () => {
+      const before = verify;
+      verify = model.onVerifyClick(verify);
+      if (verify === before) return; // empty field or already pending
+      renderVerify();
+      const token = verify.token;
+      // Verify persists first main-side (onepassword-verify-flow.js) and
+      // echoes the normalized probed value; a stale reply means another
+      // window changed the stored account mid-flight and is dropped.
+      const reply = await window.bowserPages.settings.onePasswordVerify(onePasswordAccount.value)
+        .catch(() => ({ ok: false, kind: 'sdk-error', account: onePasswordAccount.value.trim() }));
+      verify = model.onReply(verify, { ...reply, token });
+      renderVerify();
+    });
+    // App presence is a soft hint — Verify above is the authoritative check.
+    window.bowserPages.settings.onePasswordStatus().then(({ appDetected }) => {
+      appHint.textContent = appDetected
+        ? 'Installed on this Mac.'
+        : 'Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works.';
+      openAppButton.hidden = !appDetected;
+    }).catch(() => { appHint.textContent = ''; });
+    openAppButton.addEventListener('click', () => {
+      window.bowserPages.settings.openOnePasswordApp().catch(() => {});
+    });
+  } else {
+    document.getElementById('onePasswordSettings')?.remove();
+  }
+
   // --- Usage ping ---
   if (supports('usagePing')) {
     const usagePing = document.getElementById('usagePing');
@@ -192,19 +292,17 @@
   }
 
   // --- App icon colorways (macOS Dock only) ---
-  // These four bindings stay in IIFE scope unconditionally because the Patron
-  // section below reads `patronActive` and calls `renderAppIconGrid`. The
-  // function/const definitions are inert until called; only the executable tail
-  // (render vs. remove) is gated.
+  // The bindings stay in IIFE scope unconditionally because only the executable
+  // tail (render vs. remove) is gated by the platform capability below.
   const appIconSetting = document.getElementById('appIconSetting');
   // `patronActive` is the durable projection field; `supporterActive` is only a
   // temporary alias to the same boolean (see pages.js's clientSettings()).
   let patronActive = settings.patronActive ?? false;
   const appIconGrid = document.getElementById('appIconGrid');
   // Tracked directly rather than re-derived from the DOM on every render —
-  // ids/labels come from main (settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS)
+  // ids/labels come from main (settings.js APP_ICON_LABELS)
   // so there's one source of truth instead of a hand-typed second copy.
-  let selectedIcon = settings.appIcon ?? 'paper';
+  let selectedIcon = settings.appIcon ?? 'sunrise';
 
   const selectAppIcon = (id) => {
     selectedIcon = id;
@@ -216,14 +314,10 @@
 
   function renderAppIconGrid() {
     appIconGrid.replaceChildren();
-    const entries = [
-      ...Object.entries(appIcons).map(([id, label]) => [id, label, false]),
-      ...Object.entries(supporterIcons).map(([id, label]) => [id, label, !patronActive]),
-    ];
-    for (const [id, label, locked] of entries) {
+    for (const [id, label] of Object.entries(appIcons)) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = locked ? 'icon-swatch locked' : 'icon-swatch';
+      btn.className = 'icon-swatch';
       btn.dataset.icon = id;
       btn.setAttribute('role', 'radio');
       const img = document.createElement('img');
@@ -232,39 +326,13 @@
       const name = document.createElement('span');
       name.textContent = label;
       btn.append(img, name);
-      if (locked) {
-        const tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.textContent = 'patron';
-        btn.append(tag);
-        // A locked tile points at the Patron section instead of
-        // silently failing (main would reject the id anyway).
-        btn.addEventListener('click', () => {
-          document.getElementById('patronTitle').scrollIntoView({ behavior: 'smooth' });
-          document.getElementById('patronKey').focus({ preventScroll: true });
-        });
-      } else {
-        btn.addEventListener('click', async () => {
-          await window.bowserPages.settings.set({ appIcon: id });
-          selectAppIcon(id);
-        });
-      }
+      btn.addEventListener('click', async () => {
+        await window.bowserPages.settings.set({ appIcon: id });
+        selectAppIcon(id);
+      });
       appIconGrid.append(btn);
     }
     selectAppIcon(selectedIcon);
-    updateIconCarets();
-  }
-
-  // The scroller hides its scrollbar; these carets are the only visible
-  // affordance, so they dim out at either end of the scroll range.
-  const iconPrev = document.getElementById('appIconPrev');
-  const iconNext = document.getElementById('appIconNext');
-  const CARET_SCROLL_STEP = 3 * (58 + 14); // three tiles per click
-
-  function updateIconCarets() {
-    const max = appIconGrid.scrollWidth - appIconGrid.clientWidth;
-    iconPrev.disabled = appIconGrid.scrollLeft <= 1;
-    iconNext.disabled = appIconGrid.scrollLeft >= max - 1;
   }
 
   const appIconPlatform = navigator.platform;
@@ -274,12 +342,6 @@
   } else {
     document.getElementById('appIconHint').textContent =
       'Follows macOS Icon & Widget Style; Finder keeps Paper';
-    iconPrev.addEventListener('click', () =>
-      appIconGrid.scrollBy({ left: -CARET_SCROLL_STEP, behavior: 'smooth' }));
-    iconNext.addEventListener('click', () =>
-      appIconGrid.scrollBy({ left: CARET_SCROLL_STEP, behavior: 'smooth' }));
-    appIconGrid.addEventListener('scroll', updateIconCarets);
-    window.addEventListener('resize', updateIconCarets);
     renderAppIconGrid();
   }
 
@@ -336,7 +398,6 @@
         // was at page load, and renderPatronState() shows it only when set.
         patronActive = true;
         renderPatronState();
-        if (navigator.platform.startsWith('Mac')) renderAppIconGrid();
       } else {
         patronStatus.textContent = result.message;
       }
@@ -716,6 +777,45 @@
     })();
   } else {
     document.getElementById('group-sync')?.remove();
+  }
+
+  // --- Device-local crash ledger / explicit export ---
+  if (window.bowserPages?.diagnostics) {
+    const summary = document.getElementById('diagnosticsSummary');
+    const status = document.getElementById('diagnosticsStatus');
+    const exportButton = document.getElementById('diagnosticsExport');
+    const clearButton = document.getElementById('diagnosticsClear');
+
+    function renderDiagnostics(value) {
+      const count = Number.isInteger(value?.count) ? value.count : 0;
+      summary.textContent = count === 0
+        ? 'No crashes have been recorded on this device.'
+        : `${count} crash ${count === 1 ? 'event' : 'events'} recorded on this device.`;
+      clearButton.disabled = count === 0;
+    }
+
+    exportButton.addEventListener('click', async () => {
+      exportButton.disabled = true;
+      status.textContent = 'Preparing report…';
+      const result = await window.bowserPages.diagnostics.export();
+      exportButton.disabled = false;
+      status.textContent = result.ok
+        ? 'Saved.'
+        : (result.cancelled ? 'Export canceled.' : 'Couldn’t save diagnostics.');
+    });
+
+    clearButton.addEventListener('click', async () => {
+      if (!confirm('Clear Blanc’s local crash history?')) return;
+      const result = await window.bowserPages.diagnostics.clear();
+      status.textContent = result.ok ? 'Crash history cleared.' : 'Couldn’t clear crash history.';
+      renderDiagnostics(result);
+    });
+
+    window.bowserPages.diagnostics.status().then(renderDiagnostics).catch(() => {
+      summary.textContent = 'Couldn’t read local crash history.';
+    });
+  } else {
+    document.getElementById('group-diagnostics')?.remove();
   }
 
   // --- Settings sidebar: scroll-spy + click-to-scroll ---

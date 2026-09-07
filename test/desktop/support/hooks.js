@@ -17,6 +17,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 let userDataDir;
 let fixturesHandle;
 let secureFixturesHandle;
+let untrustedFixturesHandle;
 let secureSpkiHash = null;
 let browserHomeDir;
 let savedClipboard = null;
@@ -66,7 +67,7 @@ async function launchApp() {
       // Both names map to loopback at the resolver, so scheme-classified
       // pages load offline: the connection model reads HOSTNAMES, and every
       // plain fixtures-server URL is 127.0.0.1 (i.e. 'local', never 'http').
-      '--host-resolver-rules=MAP insecure.test 127.0.0.1, MAP secure.test 127.0.0.1',
+      '--host-resolver-rules=MAP insecure.test 127.0.0.1, MAP secure.test 127.0.0.1, MAP badcert.test 127.0.0.1',
       // Trust EXACTLY the throwaway per-run fixture cert, by SPKI hash —
       // Chromium's scoped testing flag, not a blanket ignore. Every other
       // certificate error keeps its normal handling.
@@ -123,6 +124,23 @@ BeforeAll({ timeout: 120_000 }, async () => {
     cert: fs.readFileSync(certPath),
   });
   ctx.secureFixturesBase = `https://secure.test:${secureFixturesHandle.port}`;
+
+  // A second key is intentionally absent from the SPKI allowlist above. It
+  // exercises Chromium's real certificate rejection and Blanc's interstitial
+  // without any production-only fixture seam.
+  const badCertDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-untrusted-cert-'));
+  const badKeyPath = path.join(badCertDir, 'key.pem');
+  const badCertPath = path.join(badCertDir, 'cert.pem');
+  execFileSync('openssl', [
+    'req', '-x509', '-newkey', 'rsa:2048', '-keyout', badKeyPath, '-out', badCertPath,
+    '-days', '2', '-nodes', '-subj', '/CN=badcert.test',
+    '-addext', 'subjectAltName=DNS:badcert.test',
+  ], { stdio: 'pipe' });
+  untrustedFixturesHandle = await fixtures.startSecure({
+    key: fs.readFileSync(badKeyPath),
+    cert: fs.readFileSync(badCertPath),
+  });
+  ctx.untrustedFixturesBase = `https://badcert.test:${untrustedFixturesHandle.port}`;
 
   // Isolated, throwaway profile so no prior session/history/settings leaks in.
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
@@ -290,6 +308,8 @@ Before(async function () {
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
+  ctx.groupMembers = null;
+  ctx.standalonePinnedTabId = null;
   await callTestHook(ctx.app, 'reset');
 });
 
@@ -310,6 +330,7 @@ AfterAll(async () => {
   ctx.relaunch = null;
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
+  if (untrustedFixturesHandle) await untrustedFixturesHandle.close();
   if (userDataDir) fs.rmSync(userDataDir, { recursive: true, force: true });
   if (browserHomeDir) fs.rmSync(browserHomeDir, { recursive: true, force: true });
   if (closeFailure) throw closeFailure;

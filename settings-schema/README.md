@@ -1,8 +1,8 @@
 # Settings schema (substrate S5)
 
 One source of truth for Blanc's settings schema — keys, defaults, and the
-enumerations (search engines, appearance themes, app-icon colorways free +
-supporter). This is [substrate S5](../spec/shared-substrate.md#s5-settings-schema--validation)
+enumerations (search engines, appearance themes, and app-icon colorways). This
+is [substrate S5](../spec/shared-substrate.md#s5-settings-schema--validation)
 made real: the desktop `src/main/settings.js` is **guarded** against drifting from
 here, and the mobile Swift/Kotlin enums + defaults are **generated** from here, so
 the key/enum/default set is never hand-copied into two more languages.
@@ -34,8 +34,8 @@ engine, or one platform accepting an icon id another rejects).
 ## What is checked
 
 `settings:check` parses the stable structures out of `settings.js`
-(`SEARCH_ENGINES`, `THEMES`, `APP_ICON_LABELS`, `SUPPORTER_ICON_LABELS`,
-`DEFAULTS`) and compares ids, labels, and default values to `schema.json`. It also
+(`SEARCH_ENGINES`, `THEMES`, `APP_ICON_LABELS`, `DEFAULTS`) and compares ids,
+labels, and default values to `schema.json`. It also
 flags any `DEFAULTS` key that is neither a schema setting nor in `schema.json`'s
 `internalDefaults` allowlist (desktop-only keys not synced to mobile, e.g. the
 sync clock `_syncMeta`) — so a new user-facing setting can't be added on desktop

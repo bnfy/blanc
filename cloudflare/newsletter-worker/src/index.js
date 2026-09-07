@@ -3,11 +3,17 @@
 // through Resend; the verified subscriber list remains in Blanc's own KV.
 
 const MAX_EMAIL_LENGTH = 254;
+const MAX_NAME_LENGTH = 100;
+const MAX_PROFILE_URL_LENGTH = 500;
+const MAX_INTRODUCTION_LENGTH = 1200;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
 const ALLOWED_ORIGINS = new Set([
   'https://blancbrowser.com',
   'http://localhost:4321',
+  'http://localhost:4322',
+  'http://127.0.0.1:4321',
+  'http://127.0.0.1:4322',
 ]);
 const SUBSCRIBE_RATE_LIMIT = 6;
 const EMAIL_RETRY_TTL = 10 * 60;
@@ -57,11 +63,11 @@ function randomToken() {
   return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 }
 
-async function ipRateLimited(env, ip) {
+async function ipRateLimited(env, ip, scope = 'subscribe', limit = SUBSCRIBE_RATE_LIMIT) {
   if (!ip) return true;
-  const key = `ip:${ip}:${Math.floor(Date.now() / 60000)}`;
+  const key = `ip:${scope}:${ip}:${Math.floor(Date.now() / 60000)}`;
   const count = Number.parseInt((await env.SUBSCRIBERS.get(key)) ?? '0', 10);
-  if (count >= SUBSCRIBE_RATE_LIMIT) return true;
+  if (count >= limit) return true;
   await env.SUBSCRIBERS.put(key, String(count + 1), { expirationTtl: 120 });
   return false;
 }
@@ -150,6 +156,153 @@ async function handleSubscribe(request, env, cors) {
   await env.SUBSCRIBERS.put(sentKey, '1', { expirationTtl: EMAIL_RETRY_TTL });
   await env.SUBSCRIBERS.delete(`hp:${email}`);
   return json({ ok: true, confirmationRequired: true }, 202, cors);
+}
+
+function normalizedLine(value, maxLength) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxLength + 1);
+}
+
+function validProfileUrl(value) {
+  if (!value || value.length > MAX_PROFILE_URL_LENGTH) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isNativeFormRequest(request) {
+  return request.headers.get('Content-Type')?.split(';', 1)[0].trim().toLowerCase() ===
+    'application/x-www-form-urlencoded';
+}
+
+async function applicationBody(request) {
+  const type = request.headers.get('Content-Type')?.split(';', 1)[0].trim().toLowerCase();
+  if (type === 'application/json') return request.json();
+  if (type === 'application/x-www-form-urlencoded') {
+    return Object.fromEntries(new URLSearchParams(await request.text()));
+  }
+  throw new TypeError('unsupported content type');
+}
+
+function applicationResult(request, cors, status, message, payload) {
+  if (!isNativeFormRequest(request)) return json(payload, status, cors);
+  return new Response(
+    `<!doctype html><meta charset="utf-8"><title>${status < 400 ? 'Application received' : 'Application not sent'}</title><h1>${status < 400 ? 'Application received' : 'Application not sent'}</h1><p>${message}</p><p><a href="https://blancbrowser.com/ambassadors#apply">Return to the ambassador page</a></p>`,
+    {
+      status,
+      headers: {
+        ...cors,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Content-Security-Policy': "default-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'",
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'no-referrer',
+      },
+    }
+  );
+}
+
+async function ambassadorRateLimit(env, ip) {
+  if (!ip || typeof env.AMBASSADOR_RATE_LIMITER?.limit !== 'function') return 'unavailable';
+  try {
+    const { success } = await env.AMBASSADOR_RATE_LIMITER.limit({ key: ip });
+    return success ? 'allowed' : 'limited';
+  } catch {
+    return 'unavailable';
+  }
+}
+
+async function handleAmbassadorApplication(request, env, cors) {
+  if (!env.RESEND_API_KEY || !env.NEWSLETTER_FROM || !env.AMBASSADOR_TO) {
+    return applicationResult(
+      request, cors, 503, 'The form is temporarily unavailable. Please try again later.',
+      { error: 'service unavailable' }
+    );
+  }
+  const limitState = await ambassadorRateLimit(env, request.headers.get('CF-Connecting-IP'));
+  if (limitState === 'limited') return applicationResult(
+    request, cors, 429, 'Please wait a minute and try again.', { error: 'rate-limited' }
+  );
+  if (limitState === 'unavailable') return applicationResult(
+    request, cors, 503, 'The form is temporarily unavailable. Please try again later.',
+    { error: 'service unavailable' }
+  );
+
+  let body;
+  try { body = await applicationBody(request); }
+  catch {
+    return applicationResult(
+      request, cors, 400, 'The application could not be read. Please return and try again.',
+      { error: 'bad request' }
+    );
+  }
+  if (!body || typeof body !== 'object') return applicationResult(
+    request, cors, 400, 'The application could not be read. Please return and try again.',
+    { error: 'bad request' }
+  );
+
+  // Never report success for an application we did not deliver. The page
+  // clears browser-autofill false positives on a trusted submit; a remaining
+  // value is rejected so an applicant cannot receive a false confirmation.
+  if (typeof body.blancCheck === 'string' && body.blancCheck.trim() !== '') {
+    return applicationResult(
+      request, cors, 400, 'An automatic form filler changed an extra field. Please return and try again.',
+      { error: 'spam check' }
+    );
+  }
+
+  const name = normalizedLine(body.name, MAX_NAME_LENGTH);
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const profileUrl = normalizedLine(body.profileUrl, MAX_PROFILE_URL_LENGTH);
+  const introduction = typeof body.introduction === 'string' ? body.introduction.trim() : '';
+  if (
+    !name || name.length > MAX_NAME_LENGTH ||
+    email.length > MAX_EMAIL_LENGTH || !EMAIL_RE.test(email) ||
+    !validProfileUrl(profileUrl) ||
+    introduction.length < 20 || introduction.length > MAX_INTRODUCTION_LENGTH
+  ) return applicationResult(
+    request, cors, 400, 'One or more details need another look. Please return and try again.',
+    { error: 'invalid application' }
+  );
+
+  const idempotencyHash = await sha256([email, profileUrl, introduction].join('\n'));
+  let delivered = false;
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': `blanc-ambassador-${idempotencyHash}`,
+      },
+      body: JSON.stringify({
+        from: env.NEWSLETTER_FROM,
+        to: [env.AMBASSADOR_TO],
+        reply_to: email,
+        subject: 'New Blanc ambassador application',
+        text: [
+          `Name: ${name}`,
+          `Email: ${email}`,
+          `Creator profile: ${profileUrl}`,
+          '',
+          introduction,
+        ].join('\n'),
+      }),
+    });
+    delivered = response.ok;
+  } catch { /* fail closed below */ }
+  return delivered
+    ? applicationResult(
+      request, cors, 202, 'Thank you. We will review your work and reply if the pilot looks like a fit.',
+      { ok: true }
+    )
+    : applicationResult(
+      request, cors, 503, 'The application could not be delivered. Please return and try again later.',
+      { error: 'service unavailable' }
+    );
 }
 
 const htmlResult = (title, message) => new Response(
@@ -256,6 +409,12 @@ export default {
       if (!cors) return json({ error: 'origin denied' }, 403);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
       if (request.method === 'POST') return handleSubscribe(request, env, cors);
+    }
+    if (url.pathname === '/ambassador-apply') {
+      const cors = allowedCors(request);
+      if (!cors) return json({ error: 'origin denied' }, 403);
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      if (request.method === 'POST') return handleAmbassadorApplication(request, env, cors);
     }
     if (url.pathname === '/subscribers' || url.pathname === '/subscriber') {
       if (!authorized(request, env)) return new Response('unauthorized', { status: 401 });

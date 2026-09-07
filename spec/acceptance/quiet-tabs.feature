@@ -59,6 +59,14 @@ Feature: Quiet Tabs
     Then the panel stays open and explains that no tab can be quieted
 
   @F31-5 @F31 @desktop @D8
+  Scenario: A directly represented quiet Island dot wakes and activates its tab
+    Given a background tab on a quietable page
+    When I quiet that background tab
+    Then the quiet tab remains a direct Island dot without quiet styling
+    When I click that quiet Island dot
+    Then the quiet tab wakes and becomes active
+
+  @F31-5 @F31 @desktop @D8
   Scenario: Quiet is visible and included in accessible names
     Given a background tab on a quietable page
     When I quiet that background tab

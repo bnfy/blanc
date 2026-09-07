@@ -24,7 +24,7 @@ preload's drag-region guard changes.
 tabs, which swaps in a page with no drag regions — that confound made an earlier run
 read 33/33 pass when the real number was 0/14.
 
-Page coordinates are offset by the 64px chrome strip: window y = page y + 64.
+Page coordinates are offset by the 68px chrome strip: window y = page y + 68.
 
 ## Expected
 

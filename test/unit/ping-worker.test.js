@@ -51,7 +51,7 @@ function fakeKV({ pageSize = Infinity, emptyPageOnCall = 0 } = {}) {
 
 // Runs one ping and resolves after the KV writes AND the waitUntil'd GA
 // forward settle, capturing any GA fetch bodies.
-async function ping(env, body) {
+async function ping(env, body, pathname = '/ping') {
   const gaCalls = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, init) => {
@@ -62,7 +62,7 @@ async function ping(env, body) {
   const ctx = { waitUntil: (p) => waited.push(p) };
   try {
     const res = await worker.fetch(
-      new Request('https://ping.test/ping', {
+      new Request(`https://ping.test${pathname}`, {
         method: 'POST',
         headers: { 'CF-Connecting-IP': '203.0.113.10', 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -76,7 +76,92 @@ async function ping(env, body) {
   }
 }
 
+const usageEvent = (env, body) => ping(env, body, '/event');
+
 const PING_BODY = { installId: RAW_ID, sessionId: 42, version: '0.15.2', platform: 'darwin', arch: 'arm64' };
+
+test('Mahjong play counts events and active installs without storing the raw id', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga' };
+  const { res, gaCalls } = await usageEvent(env, { ...PING_BODY, event: 'mahjong_play' });
+  assert.equal(res.status, 204);
+  assert.equal(env.PINGS.map.get('usage:mahjong-play:total'), '1');
+  assert.equal(
+    [...env.PINGS.map.entries()].find(([key]) => key.startsWith('usage:mahjong-play:active:day:'))[1],
+    '1',
+  );
+  assert.equal(gaCalls[0].body.events[0].name, 'mahjong_play');
+  for (const key of env.PINGS.map.keys()) {
+    assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
+  }
+});
+
+test('usage replay dedupes by install, session, and fixed metric', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga' };
+  const first = await usageEvent(env, { ...PING_BODY, event: 'mahjong_play' });
+  const replay = await usageEvent(env, { ...PING_BODY, event: 'mahjong_play' });
+  const nextSession = await usageEvent(env, {
+    ...PING_BODY, sessionId: 43, event: 'mahjong_play',
+  });
+  assert.equal(first.gaCalls.length, 1);
+  assert.equal(replay.gaCalls.length, 0);
+  assert.equal(nextSession.gaCalls.length, 1);
+  assert.equal(env.PINGS.map.get('usage:mahjong-play:total'), '2');
+  assert.equal(
+    [...env.PINGS.map.entries()].find(([key]) => key.startsWith('usage:mahjong-play:active:day:'))[1],
+    '1',
+  );
+});
+
+test('new-tab layouts use separate allowlisted counters and appear in stats', async () => {
+  const env = {
+    PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga', STATS_TOKEN: 't',
+  };
+  const ledger = await usageEvent(env, {
+    ...PING_BODY, event: 'newtab_layout', layout: 'ledger',
+  });
+  const shelf = await usageEvent(env, {
+    ...PING_BODY, event: 'newtab_layout', layout: 'shelf',
+  });
+  assert.equal(ledger.gaCalls[0].body.events[0].params.layout, 'ledger');
+  assert.equal(shelf.gaCalls[0].body.events[0].params.layout, 'shelf');
+
+  const res = await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} },
+  );
+  const stats = await res.json();
+  assert.equal(stats.productUsage.newtabLayouts.ledger.events.total, 1);
+  assert.equal(stats.productUsage.newtabLayouts.shelf.events.total, 1);
+  assert.equal(stats.productUsage.newtabLayouts.billboard.events.total, 0);
+  assert.equal(Object.values(stats.productUsage.newtabLayouts.ledger.activeUsers.daily)[0], 1);
+});
+
+test('unknown usage events and layout values are rejected without usage writes', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  assert.equal((await usageEvent(env, { ...PING_BODY, event: 'anything' })).res.status, 400);
+  assert.equal((await usageEvent(env, {
+    ...PING_BODY, sessionId: 43, event: 'newtab_layout', layout: 'anything',
+  })).res.status, 400);
+  assert.equal((await usageEvent(env, {
+    ...PING_BODY, sessionId: 44, event: 'newtab_layout',
+  })).res.status, 400);
+  assert.equal([...env.PINGS.map.keys()].filter((key) => key.startsWith('usage:')).length, 0);
+});
+
+test('usage without a hashing secret keeps aggregates but skips uniques and GA', async () => {
+  const env = { PINGS: fakeKV(), GA_API_SECRET: 'ga' };
+  const { res, gaCalls } = await usageEvent(env, { ...PING_BODY, event: 'mahjong_play' });
+  assert.equal(res.status, 204);
+  assert.equal(gaCalls.length, 0);
+  assert.equal(env.PINGS.map.get('usage:mahjong-play:total'), '1');
+  assert.equal(
+    [...env.PINGS.map.keys()].filter((key) =>
+      key.startsWith('usage:mahjong-play:active:') ||
+      key.startsWith('usage:mahjong-play:seen:') ||
+      key.startsWith('usage:mahjong-play:event:')).length,
+    0,
+  );
+});
 
 test('the raw install id never reaches storage — only the keyed hash does', async () => {
   const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };

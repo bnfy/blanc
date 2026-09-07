@@ -1,5 +1,6 @@
 const { JsonStore } = require('./store');
 const { app } = require('electron');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { isValidDohTemplate, reconcileSecureDnsWrite, coerceSecureDnsRead } = require('./network-privacy');
@@ -22,45 +23,46 @@ const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
-const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
+const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
+// Unix milliseconds beyond this point are corrupted sync metadata, not a
+// plausible device clock. The bound also leaves ample safe-integer headroom
+// for the Lamport increment applied after a future-dated write is observed.
+const MAX_SYNC_TIMESTAMP = Date.UTC(3000, 0, 1);
 
 // Network-privacy enums (bare arrays, like THEMES — build.mjs parses them by name).
-const WEBRTC_POLICIES = ['standard', 'strict'];
+const WEBRTC_POLICIES = ['standard', 'compatibility', 'strict'];
+// WebRTC audio playout policy. Stable targets 400 ms and Resilient 1000 ms in
+// the receiver jitter buffer; Automatic leaves Chromium's tradeoff untouched.
+const WEBRTC_AUDIO_BUFFERS = ['automatic', 'stable', 'resilient'];
 const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'custom'];
 const FIRST_RUN_VERSION = 1;
+// One deliberate reset for the release that establishes Sunrise + Billboard
+// as Blanc's new presentation defaults. Existing profiles without this marker
+// are reset once; choices made afterward survive every later update.
+const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes tabLayout, verticalTabsWidth, appIcon, and searchSuggestions
+// excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
+// device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
 
-// App icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
-// here is also the tile order Settings renders. 'default' is the original
-// green colorway — the id (and file name) is frozen for saved settings,
-// only the label moved on when Paper became the default.
+// App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
+// is also the tile order Settings renders.
 const APP_ICON_LABELS = {
+  sunrise: 'Sunrise',
+  'sunrise-dark': 'Sunrise Dark',
   paper: 'Paper',
   ink: 'Ink',
-  graphite: 'Graphite',
-  default: 'Evergreen',
-  midnight: 'Midnight',
-  cream: 'Cream',
-  forest: 'Forest',
-  sage: 'Sage',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 
-// Supporter-only colorways — same geometry, unlocked by a Polar license
-// key (see main/supporter.js). Gated at validation time, not render time.
-const SUPPORTER_ICON_LABELS = { ember: 'Ember', plum: 'Plum', gold: 'Gold' };
-const SUPPORTER_ICONS = Object.keys(SUPPORTER_ICON_LABELS);
-
 // A selectable id without a packaged native stack would silently fall back to
-// Paper on macOS 26+, so fail fast during startup if the two sources drift.
-const missingNativeAppIcons = [...APP_ICONS, ...SUPPORTER_ICONS]
+// Sunrise on macOS 26+, so fail fast during startup if the two sources drift.
+const missingNativeAppIcons = APP_ICONS
   .filter((id) => !APP_ICON_ASSETS[id]);
 if (missingNativeAppIcons.length) {
   throw new Error(`Missing native app-icon assets: ${missingNativeAppIcons.join(', ')}`);
@@ -90,7 +92,7 @@ const DEFAULTS = {
   theme: 'system',
   // How blanc://newtab arranges itself — the shipped ledger plus three
   // alternatives from the design system's "New tab v2" handoff.
-  newtabLayout: 'ledger',
+  newtabLayout: 'billboard',
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Preferred rail width. The live layout may temporarily cap it to preserve
@@ -98,13 +100,22 @@ const DEFAULTS = {
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
-  appIcon: 'paper',
+  appIcon: 'sunrise',
+  // Device-local migration marker; never user-writable or Profile Synced.
+  presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
   // Network privacy (device-local — deliberately NOT in SYNCED_KEYS).
   webrtcPolicy: 'standard',
+  // Call playback continuity (device-local — deliberately NOT in SYNCED_KEYS).
+  webrtcAudioBuffer: 'automatic',
   secureDns: 'auto',
   secureDnsTemplate: '',
+  // Optional, device-local bridge to the user's installed 1Password app.
+  // Off until explicitly enabled. The account name/id is routing metadata,
+  // never a password or service-account token, and never Profile Synced.
+  onePasswordEnabled: false,
+  onePasswordAccount: '',
   // Anonymous "app launched" ping — see main/telemetry.js. On by default
   // (opt-out in Settings); no browsing data, only version/OS plus a random
   // per-install id used solely to count distinct active users.
@@ -125,10 +136,45 @@ const DEFAULTS = {
   // Written only by setPatron() (the activation/validation flow), never by
   // the generic setSettings() path. See patron-model.js for the state machine.
   patron: null,
-  // Per-key last-write timestamps for sync's LWW merge; only SYNCED_KEYS are
-  // ever stamped or transmitted. See exportForSync/mergeFromSync.
+  // Per-key last-write timestamps and equal-clock tie-breakers for sync's LWW
+  // merge; only SYNCED_KEYS are ever stamped or transmitted. See
+  // exportForSync/mergeFromSync.
   _syncMeta: {},
+  // UUID tie-breakers make equal timestamp writes converge across devices.
+  // Kept separate so older clients can continue reading the numeric meta map.
+  _syncTieBreakers: {},
 };
+
+function validSyncTimestamp(value) {
+  return Number.isSafeInteger(value) && value >= 0 && value < MAX_SYNC_TIMESTAMP;
+}
+
+// A device clock can be ahead of this one. Once we have observed that
+// device's per-key timestamp, a later LOCAL choice must advance beyond it or
+// the same remote value will win again on every pull until wall time catches
+// up. Treat the saved timestamp as a Lamport-clock floor while retaining
+// Date.now() for ordinary cross-device ordering.
+function nextSyncWriteTimestamp(previous, now = Date.now()) {
+  const observed = validSyncTimestamp(previous) ? previous : 0;
+  return Math.max(now, observed + 1);
+}
+
+function normalizeSyncTieBreaker(value) {
+  return typeof value === 'string' && value.length <= 128 ? value : '';
+}
+
+function canonicalSyncValue(value) {
+  return JSON.stringify(value);
+}
+
+// Smaller tokens win so a missing token from an older Blanc version remains
+// authoritative on an equal-clock conflict. If both tokens are legacy (or a
+// copied profile duplicated one), the value itself supplies a final stable
+// ordering. This makes the merge commutative instead of "local wins ties".
+function remoteWinsSyncTie(remoteTie, localTie, remoteValue, localValue) {
+  if (remoteTie !== localTie) return remoteTie < localTie;
+  return canonicalSyncValue(remoteValue) < canonicalSyncValue(localValue);
+}
 
 let store = null;
 let existingProfileHint = null;
@@ -152,6 +198,9 @@ function ensureStore() {
     const hasOnboardingMarker =
       storedSettings &&
       Object.prototype.hasOwnProperty.call(storedSettings, 'onboardingVersion');
+    const storedPresentationResetVersion = Number.isInteger(
+      storedSettings?.presentationDefaultsResetVersion,
+    ) ? storedSettings.presentationDefaultsResetVersion : 0;
     store = new JsonStore('settings', DEFAULTS);
     // Profiles created before the first-run card already made their privacy
     // choices through Settings (or accepted the then-current defaults).
@@ -169,6 +218,26 @@ function ensureStore() {
       // launch from mistaking that interrupted first run for a legacy profile.
       store.flush();
     }
+    if (
+      profileAlreadyExisted &&
+      storedPresentationResetVersion < PRESENTATION_DEFAULTS_RESET_VERSION
+    ) {
+      const resetAt = Date.now();
+      store.updateAndFlush((data) => {
+        data.appIcon = DEFAULTS.appIcon;
+        data.newtabLayout = DEFAULTS.newtabLayout;
+        data.presentationDefaultsResetVersion = PRESENTATION_DEFAULTS_RESET_VERSION;
+        // newtabLayout is synced. Give this deliberate local reset a fresh
+        // clock so an older remote preference cannot immediately undo it.
+        data._syncMeta ??= {};
+        data._syncMeta.newtabLayout = nextSyncWriteTimestamp(
+          data._syncMeta.newtabLayout,
+          resetAt,
+        );
+        data._syncTieBreakers ??= {};
+        data._syncTieBreakers.newtabLayout = crypto.randomUUID();
+      });
+    }
     // A legacy settings.json carrying only `supporter` gains the equivalent
     // `patron` record on next launch. Mutates the persisted store directly
     // (not a getSettings() copy) so the migration survives every future
@@ -183,8 +252,8 @@ function ensureStore() {
 }
 
 // The appIcon read back is sanitized the same way setSettings() validates
-// writes — a stale/hand-edited supporter icon id with no active license
-// must never reach a renderer or applyAppIcon() as if it were still valid.
+// writes — a stale/hand-edited retired id must never reach a renderer or
+// applyAppIcon() as if it were still valid.
 function getSettings() {
   const data = { ...ensureStore().data };
   if (typeof data.searchSuggestions !== 'boolean') {
@@ -196,6 +265,16 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!WEBRTC_POLICIES.includes(data.webrtcPolicy)) data.webrtcPolicy = DEFAULTS.webrtcPolicy;
+  if (!WEBRTC_AUDIO_BUFFERS.includes(data.webrtcAudioBuffer)) {
+    data.webrtcAudioBuffer = DEFAULTS.webrtcAudioBuffer;
+  }
+  if (typeof data.onePasswordEnabled !== 'boolean') {
+    data.onePasswordEnabled = DEFAULTS.onePasswordEnabled;
+  }
+  if (typeof data.onePasswordAccount !== 'string' || data.onePasswordAccount.length > 200) {
+    data.onePasswordAccount = DEFAULTS.onePasswordAccount;
+  }
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
@@ -207,7 +286,7 @@ function getSettings() {
 }
 
 function isAppIconAllowed(id) {
-  return APP_ICONS.includes(id) || (SUPPORTER_ICONS.includes(id) && isPatronActive());
+  return APP_ICONS.includes(id);
 }
 
 /** Validate a partial settings patch against the whitelist, returning only
@@ -236,6 +315,9 @@ function sanitize(partial) {
     clean.verticalTabsWidth = normalizeVerticalTabsWidth(partial.verticalTabsWidth);
   }
   if (WEBRTC_POLICIES.includes(partial.webrtcPolicy)) clean.webrtcPolicy = partial.webrtcPolicy;
+  if (WEBRTC_AUDIO_BUFFERS.includes(partial.webrtcAudioBuffer)) {
+    clean.webrtcAudioBuffer = partial.webrtcAudioBuffer;
+  }
   if (SECURE_DNS_OPTIONS.includes(partial.secureDns)) clean.secureDns = partial.secureDns;
   if (typeof partial.secureDnsTemplate === 'string') {
     // Accept only an empty string or a valid template. An invalid value is DROPPED
@@ -243,6 +325,12 @@ function sanitize(partial) {
     // cross-field guard in setSettings then decides the secureDns transition.
     const t = partial.secureDnsTemplate.trim();
     if (t === '' || isValidDohTemplate(t)) clean.secureDnsTemplate = t;
+  }
+  if (typeof partial.onePasswordEnabled === 'boolean') {
+    clean.onePasswordEnabled = partial.onePasswordEnabled;
+  }
+  if (typeof partial.onePasswordAccount === 'string') {
+    clean.onePasswordAccount = partial.onePasswordAccount.trim().slice(0, 200);
   }
   if (isAppIconAllowed(partial.appIcon)) clean.appIcon = partial.appIcon;
   if (Array.isArray(partial.adblockExceptions)) {
@@ -275,7 +363,13 @@ function setSettings(partial) {
   s.update((data) => {
     Object.assign(data, clean);
     data._syncMeta ??= {};
-    for (const k of Object.keys(clean)) if (SYNCED_KEYS.includes(k)) data._syncMeta[k] = now;
+    data._syncTieBreakers ??= {};
+    for (const k of Object.keys(clean)) {
+      if (SYNCED_KEYS.includes(k)) {
+        data._syncMeta[k] = nextSyncWriteTimestamp(data._syncMeta[k], now);
+        data._syncTieBreakers[k] = crypto.randomUUID();
+      }
+    }
   });
   for (const fn of listeners) fn(getSettings());
   return getSettings();
@@ -359,30 +453,54 @@ function getPatronRecord() {
   return ensureStore().data.patron;
 }
 
-// Snapshot the synced keys plus their per-key timestamps for the sync engine
-// to encrypt. Only SYNCED_KEYS cross the wire — supporter, tabLayout, appIcon,
-// searchSuggestions, usagePing, and _syncMeta's non-synced entries never leave.
+// Snapshot the synced keys plus their per-key clocks for the sync engine to
+// encrypt. Only SYNCED_KEYS cross the wire — supporter, tabLayout, appIcon,
+// searchSuggestions, usagePing, and unrelated internal entries never leave.
 function exportForSync() {
   const d = ensureStore().data;
-  const values = {}, meta = {};
+  const values = {}, meta = {}, tieBreakers = {};
   for (const k of SYNCED_KEYS) {
     if (d[k] !== undefined) values[k] = d[k];
-    if (d._syncMeta?.[k]) meta[k] = d._syncMeta[k];
+    if (validSyncTimestamp(d._syncMeta?.[k]) && d._syncMeta[k] > 0) {
+      meta[k] = d._syncMeta[k];
+      const tieBreaker = normalizeSyncTieBreaker(d._syncTieBreakers?.[k]);
+      if (tieBreaker) tieBreakers[k] = tieBreaker;
+    }
   }
-  return { values, meta };
+  return { values, meta, tieBreakers };
 }
 
-// Adopt any remote key whose last-write timestamp beats ours (per-key LWW).
-// Values route through sanitize() — a tampered blob can't inject unvalidated
-// settings — and meta is stamped to the REMOTE time so ordering is preserved
-// across devices rather than reset to now.
+// Adopt any remote key whose per-key LWW clock beats ours. Values route through
+// sanitize() — a tampered blob can't inject unvalidated settings — and the
+// remote timestamp/tie-breaker are retained so ordering stays convergent.
 function mergeFromSync(remote) {
   const s = ensureStore();
   const winners = {};
   for (const k of SYNCED_KEYS) {
-    const rt = remote.meta?.[k] ?? 0;
-    const lt = s.data._syncMeta?.[k] ?? 0;
-    if (rt > lt && remote.values?.[k] !== undefined) winners[k] = rt;
+    const rt = remote.meta?.[k];
+    if (!validSyncTimestamp(rt) || rt === 0 || remote.values?.[k] === undefined) continue;
+    const storedLocalTimestamp = s.data._syncMeta?.[k];
+    const lt = validSyncTimestamp(storedLocalTimestamp) ? storedLocalTimestamp : 0;
+    const remoteTie = normalizeSyncTieBreaker(remote.tieBreakers?.[k]);
+    const localTie = normalizeSyncTieBreaker(s.data._syncTieBreakers?.[k]);
+    if (rt > lt) {
+      winners[k] = { timestamp: rt, tieBreaker: remoteTie };
+      continue;
+    }
+    if (rt !== lt) continue;
+
+    // Only a valid setting participates in an equal-clock tie. A strictly
+    // newer unknown enum still advances the clock below, preserving the
+    // mixed-version loop protection, but invalid peers cannot win a tie.
+    const remoteClean = sanitize({ [k]: remote.values[k] });
+    if (!Object.prototype.hasOwnProperty.call(remoteClean, k)) continue;
+    const localClean = sanitize({ [k]: s.data[k] });
+    const localValue = Object.prototype.hasOwnProperty.call(localClean, k)
+      ? localClean[k]
+      : DEFAULTS[k];
+    if (remoteWinsSyncTie(remoteTie, localTie, remoteClean[k], localValue)) {
+      winners[k] = { timestamp: rt, tieBreaker: remoteTie };
+    }
   }
   const keys = Object.keys(winners);
   if (!keys.length) return;
@@ -390,10 +508,14 @@ function mergeFromSync(remote) {
   s.update((data) => {
     Object.assign(data, clean);
     data._syncMeta ??= {};
+    data._syncTieBreakers ??= {};
     // Advance the clock for EVERY conceded key — including ones sanitize
     // rejected (e.g. an enum value a newer app version introduced) — so a
     // value we can't apply can't re-win every sync and loop forever.
-    for (const k of keys) data._syncMeta[k] = winners[k];
+    for (const k of keys) {
+      data._syncMeta[k] = winners[k].timestamp;
+      data._syncTieBreakers[k] = winners[k].tieBreaker;
+    }
   });
   // Notify (→ app re-applies theme/adblock) only when something was adopted.
   if (Object.keys(clean).length) for (const fn of listeners) fn(getSettings());
@@ -410,10 +532,9 @@ module.exports = {
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,
   TAB_SLEEP_DELAYS,
+  PRESENTATION_DEFAULTS_RESET_VERSION,
   APP_ICONS,
   APP_ICON_LABELS,
-  SUPPORTER_ICONS,
-  SUPPORTER_ICON_LABELS,
   getSettings,
   setExistingProfileHint,
   setSettings,

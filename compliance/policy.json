@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "runtimeAllowedLicenseExpressions": [
+    "BlueOak-1.0.0",
+    "CC-BY-SA-3.0-or-later",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "MPL-2.0 AND CC-BY-SA-3.0-or-later",
+    "OFL-1.1",
+    "Python-2.0"
+  ],
+  "metadataOverrides": {},
+  "licenseFileFallbacks": {
+    "@1password/sdk@0.5.0": {
+      "license": "MIT",
+      "evidence": "compliance/evidence/onepassword-sdk-0.5.0-LICENSE.txt",
+      "reason": "The published 0.5.0 npm package declares MIT and links to LICENSE from its README, but its files allowlist omits the license file."
+    },
+    "@1password/sdk-core@0.5.0": {
+      "license": "MIT",
+      "evidence": "compliance/evidence/onepassword-sdk-0.5.0-LICENSE.txt",
+      "reason": "The sdk-core 0.5.0 package is released with the parent 1Password SDK under MIT but its npm files allowlist omits the license file."
+    },
+    "lazy-val@1.0.5": {
+      "license": "MIT",
+      "evidence": "compliance/evidence/lazy-val-1.0.5-LICENSE.txt",
+      "reason": "lazy-val 1.0.5 declares MIT and its author in package.json but publishes no license file."
+    }
+  },
+  "assets": [
+    {
+      "id": "inter-font",
+      "name": "Inter Latin webfont",
+      "type": "file",
+      "file": "src/renderer/pages/inter-latin.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/inter-OFL.txt",
+      "homepage": "https://github.com/rsms/inter"
+    },
+    {
+      "id": "jetbrains-mono-font",
+      "name": "JetBrains Mono Latin webfont",
+      "type": "file",
+      "file": "src/renderer/pages/jetbrains-mono-latin.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/jetbrains-mono-OFL.txt",
+      "homepage": "https://github.com/JetBrains/JetBrainsMono"
+    },
+    {
+      "id": "easylist-data",
+      "name": "EasyList",
+      "type": "data",
+      "file": "adblock/sources/easylist.txt",
+      "license": "CC-BY-SA-3.0-or-later",
+      "homepage": "https://easylist.to/",
+      "attribution": "The EasyList authors (https://easylist.to/)",
+      "licenseUrl": "https://easylist.to/pages/licence.html"
+    },
+    {
+      "id": "easyprivacy-data",
+      "name": "EasyPrivacy",
+      "type": "data",
+      "file": "adblock/sources/easyprivacy.txt",
+      "license": "CC-BY-SA-3.0-or-later",
+      "homepage": "https://easylist.to/",
+      "attribution": "The EasyList authors (https://easylist.to/)",
+      "licenseUrl": "https://easylist.to/pages/licence.html"
+    },
+    {
+      "id": "ghostery-resources",
+      "name": "Ghostery adblocker resources",
+      "type": "data",
+      "file": "adblock/sources/ghostery-resources.json",
+      "license": "MPL-2.0",
+      "homepage": "https://github.com/ghostery/adblocker"
+    },
+    {
+      "id": "blanc-adblock-seed",
+      "name": "Blanc compiled blocker seed",
+      "type": "data",
+      "file": "src/main/assets/adblock-engine-seed.bin",
+      "manifest": "src/main/assets/adblock-engine-seed.json",
+      "license": "MPL-2.0 AND CC-BY-SA-3.0-or-later",
+      "dependsOn": [
+        "easylist-data",
+        "easyprivacy-data",
+        "ghostery-resources",
+        "npm:@ghostery/adblocker-electron"
+      ]
+    }
+  ]
+}

@@ -26,6 +26,19 @@ const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev
 
 let store = null;
 let keyProtectionError = null;
+// Session/icon sync must not run until main has restored the real tab set and
+// registered snapshot providers — except consent-off retractions, which are
+// safe and required without a live snapshot (spec §3 / §5).
+let tabStateReady = false;
+function setTabStateReady(ready) {
+  tabStateReady = !!ready;
+}
+function tabSyncStoreReady(name) {
+  if (name !== 'session' && name !== 'icons') return true;
+  // Sharing disabled: publish the retraction even before restore finishes.
+  if (!ensureStore().data.syncTabs) return true;
+  return tabStateReady;
+}
 function ensureStore() {
   if (store) return store;
   store = new JsonStore('sync', {
@@ -369,6 +382,11 @@ async function syncNow(names = null) {
   if (suspended || !d.enabled || !d.accountId || !d.protectedKey) {
     return { ok: false, message: keyProtectionError || 'Sync is off.' };
   }
+  // Palette open / Sync Now / scheduled session churn can fire before restore
+  // finishes. Skip only the tab-dependent stores; Favorites/settings still run.
+  if (names && names.length > 0 && names.every((name) => !tabSyncStoreReady(name))) {
+    return { ok: true };
+  }
   if (syncing) { // coalesce concurrent triggers
     pendingNames = pendingNames === undefined ? names : unionNames(pendingNames, names);
     return { ok: true };
@@ -395,8 +413,15 @@ async function syncNow(names = null) {
     const gen = syncGen;
     const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
     let firstError = null, stranded = false, ranRequiredStore = false;
+    // A readiness skip of session (required) must not look like a full refresh:
+    // Favorites/settings alone must not clear lastError or advance lastSyncedAt.
+    let skippedRequiredSelected = false;
     for (const desc of STORES) {
       if (names && !names.includes(desc.name)) continue;
+      if (!tabSyncStoreReady(desc.name)) {
+        if (!desc.optional) skippedRequiredSelected = true;
+        continue;
+      }
       if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
       if (!desc.optional) ranRequiredStore = true;
       try {
@@ -421,10 +446,14 @@ async function syncNow(names = null) {
     // A stranded pass stamps nothing: its results belong to a dead generation.
     // Cosmetic-only passes must not erase a real required-store error or make
     // lastSyncedAt imply that Favorites/settings/session were refreshed.
+    // Partial pre-restore passes (session gated) also must not stamp success.
     if (!stranded && ranRequiredStore) {
       ensureStore().update((s) => {
         if (firstError) s.lastError = describe(firstError);
-        else { s.lastError = null; s.lastSyncedAt = Date.now(); }
+        else if (!skippedRequiredSelected) {
+          s.lastError = null;
+          s.lastSyncedAt = Date.now();
+        }
       });
     }
     if (pendingNames !== undefined) {
@@ -503,6 +532,7 @@ let lastSessionRefresh = 0;
  * is a background freshness path, not a user-initiated sync. */
 function refreshSession() {
   if (!isDefaultLocalProfile()) return;
+  if (!tabStateReady) return;
   const d = ensureStore().data;
   if (!d.enabled) return;
   const now = Date.now();
@@ -514,6 +544,7 @@ function refreshSession() {
 /** A generation-bound capture run. Favicon rasterization is asynchronous,
  * so credentials/consent must still match before its result enters a store. */
 function iconCaptureRun() {
+  if (!tabStateReady) return null;
   const d = ensureStore().data;
   if (!d.enabled || !d.syncTabs) return null;
   const gen = syncGen;
@@ -602,6 +633,7 @@ module.exports = {
   syncNow,
   status,
   setSyncTabs,
+  setTabStateReady,
   refreshSession,
   listRemoteDevices,
   captureTabIcon,

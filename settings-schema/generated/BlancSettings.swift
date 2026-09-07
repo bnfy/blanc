@@ -24,11 +24,18 @@ public enum BlancThemePreference: String, CaseIterable {
     case dark
 }
 
-public enum BlancNewtabLayout: String, CaseIterable { case ledger, billboard, shelf, tally }
+public enum BlancNewtabLayout: String, CaseIterable { case ledger, billboard, shelf, tally, mahjong }
 
 public enum BlancWebrtcPolicy: String, CaseIterable {
     case standard
+    case compatibility
     case strict
+}
+
+public enum BlancWebrtcAudioBuffer: String, CaseIterable {
+    case automatic
+    case stable
+    case resilient
 }
 
 public enum BlancSecureDns: String, CaseIterable {
@@ -43,35 +50,20 @@ public enum BlancSecureDns: String, CaseIterable {
 public enum BlancTabSleepDelay: String, CaseIterable { case off, m30 = "30m", h1 = "1h", h6 = "6h" }
 
 public enum BlancAppIcon: String, CaseIterable {
+    case sunrise
+    case sunriseDark
     case paper
     case ink
-    case graphite
-    case `default`
-    case midnight
-    case cream
-    case forest
-    case sage
-    case ember
-    case plum
-    case gold
     public var label: String {
         switch self {
+        case .sunrise: return "Sunrise"
+        case .sunriseDark: return "Sunrise Dark"
         case .paper: return "Paper"
         case .ink: return "Ink"
-        case .graphite: return "Graphite"
-        case .`default`: return "Evergreen"
-        case .midnight: return "Midnight"
-        case .cream: return "Cream"
-        case .forest: return "Forest"
-        case .sage: return "Sage"
-        case .ember: return "Ember"
-        case .plum: return "Plum"
-        case .gold: return "Gold"
         }
     }
     public var isSupporterOnly: Bool {
         switch self {
-        case .ember, .plum, .gold: return true
         default: return false
         }
     }
@@ -83,11 +75,12 @@ public struct BlancSettingsDefaults {
     public static let adblockEnabled: Bool = true
     public static let homePage: String = ""
     public static let theme: BlancThemePreference = .system
-    public static let newtabLayout: BlancNewtabLayout = .ledger
+    public static let newtabLayout: BlancNewtabLayout = .billboard
     public static let webrtcPolicy: BlancWebrtcPolicy = .standard
+    public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .automatic
     public static let secureDns: BlancSecureDns = .auto
     public static let secureDnsTemplate: String = ""
-    public static let appIcon: BlancAppIcon = .paper
+    public static let appIcon: BlancAppIcon = .sunrise
     public static let usagePing: Bool = true
     public static let tabSleep: BlancTabSleepDelay = .h1
     // adblockExceptions defaults to []; supporter defaults to nil (structural).

@@ -3,10 +3,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title={"Blanc Browser Security — Private by Architecture"}
-  description={"How Blanc is built for privacy: sandboxed pages, pinned network-level blocking, no extension runtime, protected encrypted sync, signed releases, and documented network choices."}
+  description={"See how Blanc uses sandboxed pages, network-level ad and tracker blocking, encrypted sync, signed releases, and explicit privacy controls."}
   path="/features/security"
   page="feature-security"
-  current="features"
+  current="security"
   ogDescription={"Sandboxed pages, built-in blocking, encrypted sync, and privacy that is structural, not bolted on."}
 >
   <script type="application/ld+json" is:inline slot="head">
@@ -17,7 +17,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">security</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="security-title"><p class="section-kicker">the quiet parts</p><h1 id="security-title">Private by architecture.</h1><p>Blanc&rsquo;s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure" data-page-tone="github" role="img" aria-label="Blanc's floating Island over the GitHub website, showing the current domain github.com next to a shield count of two blocked items.">
+    <div class="demo-stage island-figure" data-page-tone="github" role="img" aria-label="Blanc's floating island over the GitHub website, showing the current domain github.com next to a shield count of two blocked items.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
       <picture>
         <source media="(max-width: 560px)" srcset="/shots/mobile/github.jpg">
@@ -32,6 +32,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <div class="dots"><span></span><span class="cur"></span><span></span></div>
           <span class="pill-fav" style="background-image:url('/favicons/github.com.ico')"></span>
           <span class="domain">github.com</span>
+          <span class="pill-shortcuts"><span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span></span>
           <span class="shield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count">2</span></span>
           <span class="psep"></span>
           <div class="pacts">
@@ -42,7 +43,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
       </div>
     </div>
-    <figcaption>The shield on the Island is the visible edge of blocking that runs inside the browser itself.</figcaption>
+    <figcaption>The shield on the island is the visible edge of blocking that runs inside the browser itself.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="security-runs-title">
     <div><p class="section-kicker">what runs, and what does not</p><h2 id="security-runs-title">The browser itself is the security layer.</h2></div>
@@ -58,7 +59,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>Sync the server cannot read.</h3><p>Sync is off by default. Favorites, eligible settings, and optional <a href="/features/sync">open-tab snapshots</a> are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.</p></article>
       <article><h3>Passkeys live in the Secure Enclave.</h3><p>On a Mac with Touch ID, Blanc creates device-bound passkeys inside Apple&rsquo;s Secure Enclave. The private key never leaves the chip, and Blanc is signed with an Apple-issued Developer ID and provisioned to hold its own keychain access group. macOS only for now.</p></article>
       <article><h3>Permissions ask first.</h3><p>Camera, microphone, location, notifications — each request raises a Blanc prompt, and each decision is remembered for that site. Decisions made in a private tab are never written to disk.</p></article>
-      <article><h3>The usage ping waits for your choice.</h3><p>A fresh profile presents the usage ping on, but sends nothing until you save the choice and lets you turn it off before continuing. If left enabled, a packaged launch sends the narrow pseudonymous payload listed in the <a href="/privacy">privacy policy</a>—never URLs, searches, or page content. The choice stays device-local and can be switched off at any time.</p></article>
+      <article><h3>Usage measurement waits for your choice.</h3><p>A fresh profile presents usage measurement on, but sends nothing until you save the choice and lets you turn it off before continuing. If left enabled, packaged builds count launches and a fixed allowlist of local feature actions using the narrow pseudonymous payload listed in the <a href="/privacy">privacy policy</a>—never URLs, searches, page content, game state, or private-tab feature activity. The choice stays device-local and can be switched off at any time.</p></article>
     </div>
   </section>
   <section class="feature-copy-grid" aria-labelledby="security-network-title">
@@ -67,6 +68,41 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>WebRTC stays in its lane.</h3><p>WebRTC can reveal network addresses that sidestep a proxy. Blanc limits it to your default connection by default, and an optional &ldquo;disable direct UDP&rdquo; mode blocks a specific direct-UDP path around an application proxy. It is not a promise of anonymity — it reduces one well-known proxy-bypass risk.</p></article>
       <article><h3>DNS you can encrypt — or hand to your VPN.</h3><p>Blanc can send DNS lookups over an encrypted connection (DoH) to Cloudflare, Quad9, Mullvad, or a provider you name — or stay out of the way and leave DNS to your system or VPN. Encryption hides your lookups from the network in transit; it does not hide the sites themselves, and it makes the resolver a party you choose to trust. Automatic mode upgrades opportunistically and is not a guarantee.</p></article>
     </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-login-title">
+    <div><p class="section-kicker">your existing password manager</p><h2 id="security-login-title">Fill a login when you ask.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Optional 1Password fill on macOS.</h3><p>Use matching Login items from your installed 1Password desktop app and account. Blanc’s narrow SDK integration is off by default, and credential lookup and fill require your explicit action. It is not automatic fill, an extension runtime, or a Blanc password store.</p></article>
+      <article><h3>A local hint, before any lookup.</h3><p>A small hint can appear when the visible page has a current-password field. It uses bounded structure-only metadata, never field values or page text, and makes no request to 1Password. Settings can explicitly verify your saved 1Password account identifier.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-calls-title">
+    <div><p class="section-kicker">calls and permissions</p><h2 id="security-calls-title">See when your microphone or camera is in use.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Access you can see and stop.</h3><p>The Island shows microphone and camera use across the window’s tabs and popups. Open the indicator’s popover to see the active surfaces and stop their access. Closing a capturing tab ends its access immediately.</p></article>
+      <article><h3>A choice for choppy call playback.</h3><p>Call audio buffering offers Automatic, Stable, and Resilient receive-buffer modes for WebRTC calls. Stable targets about 400 ms; Resilient targets about one second. Extra buffering trades conversational responsiveness for more tolerance of choppy playback. It cannot guarantee a fix for network, source, Bluetooth, driver, or hardware faults.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-recovery-title">
+    <div><p class="section-kicker">when something goes wrong</p><h2 id="security-recovery-title">A clearer explanation and a choice about recovery.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Certificate failures get their own explanation.</h3><p>Blanc shows a dedicated certificate-failure surface with site-trust details, so a connection problem does not disappear into a generic navigation error.</p></article>
+      <article><h3>Restore tabs or start fresh.</h3><p>After an unclean shutdown, Blanc offers explicit recovery choices. Recovery runs locally and does not upload browsing data.</p></article>
+      <article><h3>Diagnostics you choose to share.</h3><p>Settings → Export diagnostics creates a local file for troubleshooting. Review it before sharing it with support; exporting does not send it anywhere.</p></article>
+    </div>
+  </section>
+  <section class="security-baseline" aria-labelledby="security-baseline-title">
+    <div class="security-baseline-copy">
+      <p class="section-kicker">documented practice</p>
+      <h2 id="security-baseline-title">A public security baseline.</h2>
+      <p>Blanc&rsquo;s current OpenSSF self-assessment records all 24 Baseline controls as met. The public record covers how the project handles source, changes, dependencies, vulnerability reports, build provenance, and releases.</p>
+      <a class="text-link" href="https://www.bestpractices.dev/en/projects/14451/baseline-1" target="_blank" rel="noopener">Read the OpenSSF assessment <span aria-hidden="true">↗</span></a>
+    </div>
+    <a class="security-baseline-proof" href="https://www.bestpractices.dev/en/projects/14451/baseline-1" target="_blank" rel="noopener" aria-label="View Blanc's OpenSSF Baseline Level 1 self-assessment">
+      <img src="/openssf-baseline.svg" width="213" height="20" loading="lazy" decoding="async" alt="OpenSSF Baseline version 2026.08.28, Level 1" />
+      <span class="security-baseline-score" aria-hidden="true">24 / 24</span>
+      <span class="security-baseline-label" aria-hidden="true">baseline controls documented</span>
+    </a>
   </section>
   <section class="feature-copy-grid" aria-labelledby="security-verify-title">
     <div><p class="section-kicker">verify a release</p><h2 id="security-verify-title">Check that a download is really ours.</h2></div>

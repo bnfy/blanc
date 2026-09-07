@@ -1,0 +1,119 @@
+{
+  "date": "2026-08-29",
+  "asOf": "2026-08-29T17:37:59.047Z",
+  "timezone": "America/New_York",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "audience": {
+    "x": {
+      "starting": 7,
+      "current": 7,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "threads": {
+      "starting": 21,
+      "current": 21,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "instagram": {
+      "starting": 105,
+      "current": 105,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "facebook": {
+      "starting": 9,
+      "current": 9,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "tiktok": {
+      "starting": 27,
+      "current": 27,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "substack": {
+      "starting": 1,
+      "current": 1,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "subscribers",
+      "note": "A 12:32 ET surface briefly displayed 2; a later verified dashboard returned to 1, so no durable gain is claimed."
+    }
+  },
+  "ownedContentSignals": {
+    "x": {
+      "quietTabsViews": "3-8, inconsistent across X surfaces",
+      "quietTabsEngagement": 0
+    },
+    "threads": {
+      "recentProfileViews": 12700,
+      "quietTabsVisibleInteractions": 0,
+      "weeklyViews": 12307,
+      "weeklyReplies": 177,
+      "weeklyNewFollowers": 18
+    },
+    "instagram": {
+      "quietTabsReelViews": 389,
+      "quietTabsReelViewers": 98,
+      "quietTabsReelNonFollowerPercent": 96.3,
+      "quietTabsReelLikes": 2,
+      "quietTabsReelProfileActivity": 0,
+      "quietTabsReelFollows": 0
+    },
+    "facebook": {
+      "freshPostLevelDeltaAvailable": false,
+      "twentyEightDayPageVisits": 101,
+      "twentyEightDayNetFollows": 11
+    },
+    "tiktok": {
+      "sevenDayVideoViews": 396,
+      "sevenDayProfileViews": 12,
+      "sevenDayLikes": 9,
+      "sevenDayComments": 0,
+      "sevenDayShares": 0,
+      "sevenDayNetFollowers": 12,
+      "forYouTrafficPercent": 97.8
+    },
+    "substack": {
+      "sevenDayViews": 136,
+      "latestArticleViews": 2,
+      "latestArticleOpenPercent": 50
+    }
+  },
+  "downloads": {
+    "baselinePackageAssetRequests": 137,
+    "currentPackageAssetRequests": 138,
+    "aggregateDelta": 1,
+    "deltaByPlatform": {
+      "mac": 0,
+      "windows": 1,
+      "linux": 0
+    },
+    "attributedToSocial": false
+  },
+  "conversionDiagnosis": {
+    "x": "Distribution is the immediate constraint.",
+    "threads": "Conversation reach exists; profile-to-follow conversion remains below the daily target.",
+    "instagram": "Non-follower reach did not produce profile activity or follows on the strongest current Reel.",
+    "facebook": "Historical reach is not producing enough current page visits.",
+    "tiktok": "For You distribution exists, but current content produces little comment or share behavior.",
+    "substack": "Views are not producing durable subscriber growth."
+  },
+  "measurementGaps": [
+    "No authorized local read path for the /dl/<platform> redirect counters.",
+    "X and Substack profile destinations are untagged.",
+    "Instagram and Facebook profile destinations remain unverified.",
+    "TikTok exposes no dependable clickable website field.",
+    "Several current platform surfaces do not expose fresh post-level or profile-visit data in the web UI."
+  ],
+  "nextApprovedDistributionUnit": "marketing/social/first-wave-reply-card-2026-08-29.md",
+  "publicActionsAuthorized": false
+}

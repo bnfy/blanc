@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+    <defs>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="18" stdDeviation="26" flood-color="#000" flood-opacity="0.14"/>
+      </filter>
+      <style>
+        text { font-family: "Inter Variable", Inter, Arial, sans-serif; fill: #0e0e0e; }
+        .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+        .hero { font-size: 104px; font-weight: 500; letter-spacing: -3.6px; text-anchor: middle; }
+        .sub { font-size: 31px; font-weight: 400; letter-spacing: -0.4px; text-anchor: middle; }
+      </style>
+    </defs>
+    <rect width="1080" height="1350" fill="#ffffff"/>
+    <line x1="60" y1="82" x2="1020" y2="82" stroke="#dedede"/>
+    <text x="60" y="56" class="mono" font-size="17" letter-spacing="3" fill="#6b6b6b" style="fill:#6b6b6b">BLANC / QUIET TABS</text>
+    <text x="1020" y="56" text-anchor="end" class="mono" font-size="17" fill="#6b6b6b" style="fill:#6b6b6b">2 / 4</text>
+    
+    <text x="540" y="270" class="hero">
+      <tspan x="540">Free up memory</tspan><tspan x="540" dy="114">without closing tabs.</tspan>
+    </text>
+    <text x="540" y="590" class="sub" fill="#6b6b6b" style="fill:#6b6b6b">
+      <tspan x="540">Blanc unloads eligible inactive pages.</tspan><tspan x="540" dy="46">Their tabs stay in place and reload when you return.</tspan>
+    </text>
+    <g transform="translate(60 790)">
+      <rect width="960" height="285" rx="34" fill="#f7f7f7" stroke="#dedede" stroke-width="2"/>
+      <text x="38" y="58" class="mono" font-size="19" fill="#6b6b6b" style="fill:#6b6b6b">AFTER THE PAGE UNLOADS</text>
+      <circle cx="88" cy="142" r="25" fill="none" stroke="#0e0e0e" stroke-width="3"/><circle cx="88" cy="142" r="9" fill="#0e0e0e"/>
+      <line x1="145" y1="125" x2="570" y2="125" stroke="#0e0e0e" stroke-width="7" stroke-linecap="round"/>
+      <line x1="145" y1="159" x2="448" y2="159" stroke="#dedede" stroke-width="7" stroke-linecap="round"/>
+      <path d="M704 141h112m-22-23 22 23-22 23" fill="none" stroke="#0e0e0e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="870" y="149" text-anchor="middle" class="mono" font-size="19">RELOAD</text>
+      <text x="38" y="247" class="mono" font-size="19" fill="#6b6b6b" style="fill:#6b6b6b">SAME TAB. FRESH PAGE.</text>
+    </g>
+    <text x="60" y="1188" class="mono" font-size="20" fill="#6b6b6b" style="fill:#6b6b6b">Returning reloads the page. Exact live state is not promised.</text>
+  
+  </svg>

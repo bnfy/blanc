@@ -1,7 +1,8 @@
 @tabs
 Feature: Tabs and tab groups
   Tab lifecycle and the named-group model. Groups have names not colors, exist
-  only while non-empty, and the pill renders only the active group.
+  only while non-empty, and the pill shows standalone pins plus the active
+  section while accounting for every other tab in its global remainder.
 
   @F2-1 @F2 @all
   Scenario: Reopen closed tab restores the last-closed URL
@@ -65,13 +66,16 @@ Feature: Tabs and tab groups
     And the active tab is in "work"
 
   @F3-2 @F3 @all
-  Scenario: The pill's dots render only the active group
-    Given a group "work" with 2 tabs
+  Scenario: The pill shows standalone pins, the active section, and every omitted tab
+    Given a standalone pinned tab
+    And a group "work" with 2 tabs
     And a group "play" with 3 tabs
-    When the active tab is in "work"
-    Then the island shows 2 group dots
-    When the active tab is in "play"
-    Then the island shows 3 group dots
+    When I activate a tab in group "work"
+    Then the island shows 3 direct tab dots
+    And the island shows 3 more tabs
+    When I activate a tab in group "play"
+    Then the island shows 4 direct tab dots
+    And the island shows 2 more tabs
 
   @F3-3 @F3 @all
   Scenario: Collapsing a group tucks its tabs away in the panel

@@ -1,7 +1,7 @@
 # Tab-import on-device embedding benchmark (Task 15)
 
-**Date:** 2026-08-23  
-**Machine:** macOS arm64, Node v22.17.0 (Apple Silicon dev host, 10 cores)  
+**Date:** 2026-08-23
+**Machine:** macOS arm64, Node v22.17.0 (Apple Silicon dev host, 10 cores)
 **Harness:** `node scripts/tab-import-embedding-benchmark.mjs`
 
 ## Ship decision

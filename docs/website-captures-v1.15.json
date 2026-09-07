@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.15.0",
+  "sourceSha": "d0c2304c7cef12a6fa0d66c559aebb1198a86434",
+  "captureDate": "2026-09-04",
+  "timezone": "America/New_York",
+  "source": {
+    "artifact": "Blanc-1.15.0-arm64.dmg",
+    "sha256": "0b0cccc5504ed5b40d68864667f73453f91ba672092d299812124c8ddc46e57d",
+    "app": "Unchanged signed Blanc.app from the public DMG, mounted read-only",
+    "teamId": "XYGUCY4498",
+    "verification": "Strict deep codesign verification and Gatekeeper accepted Notarized Developer ID outside the filesystem sandbox.",
+    "releaseEvidence": "docs/release-incidents/2026-09-02-v1.15.0.md"
+  },
+  "settings": {
+    "theme": "light",
+    "usagePing": false,
+    "searchSuggestions": false,
+    "tabSleep": "off",
+    "secureDns": "off",
+    "profile": "Isolated disposable user-data directory; sample Personal and Studio identities",
+    "sync": "not configured",
+    "patron": "No active entitlement added",
+    "sampleData": "Four Favorites (MDN, GitHub, Hacker News, The Verge); six frequent-site history fixtures (also Notion and YouTube); named groups research/reading; seeded total 328, daily fixtures 32/81/55/69/91/0/0. Later genuine sample-site requests can increment local totals. Never a benchmark."
+  },
+  "method": "Native macOS window capture using screencapture -x -o -l for the isolated app PID, 2560×1600 pixels. Uniformly resized to 1440×900 using the existing local capture harness. Native transparent corners retained; no app controls or states retouched. Playwright/CDP invokes shipped UI/preload actions, never patches app code.",
+  "reproducibility": "Layout/seed/fixture content is controlled. Clock, capture time and live website content remain truthful at capture time, not painted over or frozen in the UI.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/billboard.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "1d6e7f5172590aa41b4b63c6b4b38a00680f44144fd10a4c075594b282f235d9",
+      "capturedAt": "2026-09-05T02:29:07.370Z",
+      "state": "Billboard with six locally derived frequent sites; sample history and named groups research/reading; 328 sample blocked requests.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/glance.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "d75b889696e76e8552b167e1296d47c5b621eedf39f410fce5611fa393a5f5f8",
+      "capturedAt": "2026-09-05T02:37:27.349Z",
+      "state": "FAQ as main page and About as reference; two ordinary tabs in one Personal window. Pages loaded from blancbrowser.com; website measurement prompts declined. Make main, Change, Close and divider visible.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/ledger.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "194988a29211f92cc765d8f10e5e910ad3a4fb4a90d6199982f019279ee91d6b",
+      "capturedAt": "2026-09-05T02:24:41.216Z",
+      "state": "Ledger with four controlled Favorites and two named groups; no remote tabs or sync configured.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/mahjong.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4abb3c546305805cdf14e8431c155277774b4baad3b1ce2e89e7dce149b8091c",
+      "capturedAt": "2026-09-05T02:34:52.306Z",
+      "state": "Turtle / Classic, random seed 931422097, layout revision 1; 144 tiles, 72 pairs, 0:00; no moves or assists. Owner-selected replacement for Fortress.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/profile-window.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "a7be3568ca3b23dca1adef7cded751c7b914f41cee469544d74761231a9391d2",
+      "capturedAt": "2026-09-05T02:29:21.918Z",
+      "state": "Separate Studio profile window opened from Settings; its own fresh tab without Personal Favorites or tab groups. Shared device preferences and sample block total.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/profiles.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "90bec8db451f53714f7454e2f4c03b9e6b9c214430ac89cacf5247dbdccb05ca",
+      "capturedAt": "2026-09-05T02:29:08.757Z",
+      "state": "Settings Profiles section, permanent Personal identity and named Studio profile. Neutral Start Page behind the utility sheet.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/reopen-closed-tabs.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "5a70301094d94bc293d899a9829e497b5a3c556fc8dbfcab849a2e2eaeafb1e9",
+      "capturedAt": "2026-09-05T02:37:50.200Z",
+      "state": "Expanded Recently Closed showing GitHub (one tab) and reading (two-tab group), created by actual close actions in the isolated app. Panel is displayed after the live 30-second recovery period; image makes no exact-state recovery claim.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/shelf.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "1fff5bbc9ae030ba22d21c72e82e77df1e4ab0b929a461b0e0814e550719db12",
+      "capturedAt": "2026-09-05T02:24:42.704Z",
+      "state": "Shelf with four Favorite cards, two named groups and sample weekly blocking total.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/tally.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "81ae53a81d41b8b85529c747a033f9df7ac6e9f493a5de3249f9a8c338556648",
+      "capturedAt": "2026-09-05T02:24:44.191Z",
+      "state": "Tally with four Favorites, two named groups and a seeded day-by-day blocked-request chart.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/workspaces.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "11d00ebd5847760569e701fa789e8bd09ceef964c5b2bbf066812dc48a8502f6",
+      "capturedAt": "2026-09-05T02:31:35.913Z",
+      "state": "Saved fixture sets Research desk and Weekend reading, two tabs/group per set. No Patron entitlement was forged: existing sets visible with Renew Patron to create another; creation controls unavailable.",
+      "evidence": [
+        "v1.15.0:src/main/main.js",
+        "v1.15.0:src/renderer/pages/newtab.js",
+        "docs/website-v1.15-claims.json"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}

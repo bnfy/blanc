@@ -60,6 +60,7 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 }));
 
 const sync = require('../../src/main/sync');
+sync.setTabStateReady(true);
 
 test.after(async () => {
   await sync.disable();

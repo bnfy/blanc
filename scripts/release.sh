@@ -16,7 +16,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.8.2}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.15.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -220,6 +220,7 @@ RELEASE_SOURCES=(
   tokens
   copy
   adblock
+  compliance
   docs/press
   docs/grants
   README.md
@@ -245,6 +246,7 @@ fi
 
 echo "==> Installing locked dependencies and running the press verification gate"
 npm ci
+npm ci --prefix site
 npm run release:verify:press
 
 echo "==> Preflighting the macOS identity and provisioning profile"
@@ -275,6 +277,12 @@ $HAS_MAC_ARM64 && node scripts/verify-packaged-adblock.js \
   "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
 $HAS_MAC_X64 && node scripts/verify-packaged-adblock.js \
   "dist/mac/Blanc.app/Contents/Resources/app.asar"
+
+echo "==> Verifying packaged compliance payloads"
+$HAS_MAC_ARM64 && node scripts/verify-packaged-compliance.js \
+  "dist/mac-arm64/Blanc.app/Contents/Resources"
+$HAS_MAC_X64 && node scripts/verify-packaged-compliance.js \
+  "dist/mac/Blanc.app/Contents/Resources"
 
 MAC_ASSETS=("dist/latest-mac.yml")
 if $HAS_MAC_ARM64; then
@@ -404,8 +412,7 @@ node scripts/verify-release-manifest.mjs \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
-npm sbom --package-lock-only --sbom-format cyclonedx --sbom-type application \
-  > "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
+cp compliance/runtime-sbom.cdx.json "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."

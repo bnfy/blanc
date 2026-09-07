@@ -165,6 +165,12 @@ test('stall watchdog arms only for a fresh in-flight download', () => {
     alreadyDownloaded: true,
   }), false, 'a cached previous-session download already raised update-downloaded');
 
+  assert.equal(shouldArmDownloadStallWatchdog(available, {
+    alreadyDownloading: false,
+    alreadyDownloaded: false,
+    verificationInProgress: true,
+  }), false, 'a repeated check cannot reinterpret signature verification as a fresh download');
+
   assert.equal(shouldArmDownloadStallWatchdog(
     { isUpdateAvailable: false, cancellationToken: token },
     { alreadyDownloading: false, alreadyDownloaded: false },

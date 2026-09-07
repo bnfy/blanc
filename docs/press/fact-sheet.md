@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: August 20, 2026
+Last updated: September 2, 2026
 
 ## The short version
 
@@ -20,10 +20,10 @@ an AI assistant or an extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public baseline | [1.8.2](https://github.com/bnfy/blanc/releases/tag/v1.8.2) |
+| Current public baseline | [1.15.0](https://github.com/bnfy/blanc/releases/tag/v1.15.0) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
-| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform and three cosmetic app-icon colorways on macOS. Founding supporters from the earlier one-time purchase keep their benefits permanently |
+| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
 | Browser engine | Chromium through Electron |
 | Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
 | Blocking | Reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release; browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets |
@@ -85,9 +85,12 @@ produced it is `bench/memory/` in the repository.
 - Search suggestions can send eligible typed prefixes to the selected search
   provider. They are skipped for private tabs, pasted or dropped text,
   URL-like/local input, and sensitive-looking values, and can be disabled.
-- The optional usage ping contains a random install ID, a random per-launch
-  session ID, version, platform, architecture, and coarse OS major. It contains no URLs,
-  searches, history, or page content and can be disabled in Settings.
+- Optional usage measurement contains a random install ID, a random per-launch
+  session ID, version, platform, architecture, and coarse OS major. It counts
+  launches plus a fixed allowlist: the first real Mahjong move and which of the
+  five start-page layouts render, at most once each per app session. It contains
+  no URLs, searches, history, page content, game state, or private-tab feature
+  activity and can be disabled in Settings.
 - Private tabs use a separate, non-persistent in-memory browser session and stay
   out of Blanc history, session restore, and reopen-closed.
 - Profile Sync encrypts data on the device before upload. Open-tab sharing is

@@ -129,16 +129,21 @@ function createDownloadStallWatchdog({
 function shouldArmDownloadStallWatchdog(result, {
   alreadyDownloading = false,
   alreadyDownloaded = false,
+  verificationInProgress = false,
 } = {}) {
   // alreadyDownloaded covers a cached installer from a previous session:
   // electron-updater emits update-downloaded during checkForUpdates() *before*
   // that promise resolves, so arming here would watch a transfer that is already
   // done and false-trigger a stall after DOWNLOAD_STALL_MS of silence.
+  // verificationInProgress covers repeated manual checks after the bytes finish:
+  // those checks can return a cancellation token even though PowerShell is now
+  // validating the installer and no more download-progress events can arrive.
   return Boolean(
     result?.isUpdateAvailable
     && result.cancellationToken
     && !alreadyDownloading
-    && !alreadyDownloaded,
+    && !alreadyDownloaded
+    && !verificationInProgress
   );
 }
 

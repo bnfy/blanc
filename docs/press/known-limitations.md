@@ -56,10 +56,11 @@ the release candidate with them in view.
 
 ## Privacy and network behavior
 
-- Blanc does not claim zero telemetry. The optional usage ping is presented on
+- Blanc does not claim zero telemetry. Optional usage measurement is presented on
   during fresh-profile setup, cannot send before that choice is saved, and can
   be turned off before continuing or later in Settings. It contains only the
-  fields in the privacy policy and fact sheet.
+  launch and fixed feature fields in the privacy policy and fact sheet; private
+  tabs never send feature-use events.
 - Search suggestions are presented on during fresh-profile setup. If left on,
   eligible typed prefixes may be sent to the selected search provider.
 - Update metadata, optional sync, supporter activation, favicon capture, and

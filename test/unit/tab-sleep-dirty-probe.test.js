@@ -41,3 +41,10 @@ test('an edited text control still protects the tab', () => {
   });
   assert.equal(result.dirty, true);
 });
+
+test('a persisted checkbox aligned with its default is not unsaved work', () => {
+  const result = runProbe({
+    inputs: [{ type: 'checkbox', checked: true, defaultChecked: true }],
+  });
+  assert.equal(result.dirty, false);
+});

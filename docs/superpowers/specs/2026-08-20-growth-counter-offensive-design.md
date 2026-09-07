@@ -1,5 +1,18 @@
 # Growth counter-offensive — firing the five channels Blanc never fired
 
+> **Superseded (2026-08-30) — licensing only.** The licence decisions recorded
+> in this document are historical. Blanc adopted the MIT License on 2026-08-30,
+> reversing the 2026-08-20 decision to remain `UNLICENSED`. The original text
+> below is preserved unchanged as a record of what was decided at the time; it
+> is no longer an accurate statement of Blanc's licensing. For current terms see
+> `LICENSE`, `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
+
+> **Calendar supersession (2026-08-30).** The owner moved the operational
+> launch sequence one week later. The original proposed calendar below remains
+> as historical design context; execution now follows the implementation plan:
+> September 7 baseline/listings, September 8 Show HN, September 9 eligible
+> Reddit communities, and September 10 Product Hunt.
+
 **Date:** 2026-08-20
 **Status:** Approved 2026-08-20 (brainstorming). Ready for implementation planning.
 **Related:** [Press outreach plan](../../press-outreach-plan.md) (research July 11, 2026),
@@ -123,26 +136,29 @@ worth running at all.
 
 Ordered by external clock, not by convenience.
 
-1. **Create the AlternativeTo account immediately.** Its submission FAQ requires
-   seven days of account age before the account may suggest an app. This is the
-   only item with a hard external lead time, and missing it removes a channel
-   from launch week entirely.
-2. **Restore measurement.** GA4 has been unreadable for several days — the
+1. **Submit AlternativeTo immediately.** Its current FAQ requires email
+   verification, not account age. The real lead time is editorial review: paid
+   priority review is normally 1–2 business days and can take longer when busy.
+2. **Verify Product Hunt posting access immediately.** Product Hunt requires a
+   personal account. Its current first-party guidance says a new account
+   normally waits one week before it can post, while subscribing to the
+   newsletter can grant immediate access. Do not discover this gate on Thursday.
+3. **Restore measurement.** GA4 has been unreadable for several days — the
    Claude in Chrome extension reports zero connected browsers — so site→download
    conversion is currently invisible. Reconnect it, and *independently* tag every
    channel URL with `?ref=` so per-channel attribution survives even if GA4 stays
    flaky. Launching the biggest traffic event in Blanc's history without
    measurement wastes it twice: no read on which channel worked, and no baseline
    for the next attempt.
-3. **Complete Google Ads advertiser verification.** Due **2026-09-02**; delivery
+4. **Complete Google Ads advertiser verification.** Due **2026-09-02**; delivery
    stops if it lapses. It must be finished before launch week, not during it.
-4. **Run one real production Patron purchase** on a packaged build. Clears the
+5. **Run one real production Patron purchase** on a packaged build. Clears the
    Named Workspaces gate and proves the checkout before traffic arrives.
-5. **Release v1.8.0** with Named Workspaces, then **soak at least 48 hours**
+6. **Release v1.8.0** with Named Workspaces, then **soak at least 48 hours**
    before launch day, so the launch rides a build that has survived a weekend
    rather than one that is hours old.
 
-### Phase 1 — Assets, built during the freeze
+### Phase 1 — Initial assets, refreshed after backlog cleanup when release-bound
 
 - **A 20-second Island demo** (rest → ⌘L → tab switch → blocked count), already
   called for by the outreach plan. One asset, reused across every channel.
@@ -153,14 +169,25 @@ Ordered by external clock, not by convenience.
   stated limits is the currency HN trades in, and it is the direct answer to the
   Electron objection.
 
-### Phase 2 — Launch week, sequenced cheap → expensive
+### Phase 2 — Launch week, sequenced evergreen → argumentative → showcase
+
+**Calendar decision, 2026-08-30:** the owner moved Show HN to Tuesday,
+September 8 so selected backlog work can be resolved first. Product work may
+merge only during the bounded cleanup window; the final launch release, assets,
+copy, platform evidence, and fresh soak must be complete before this phase.
 
 | Day | Channel | Rationale |
 |---|---|---|
-| Mon | AlternativeTo + BetaList listings | Zero-risk, permanent long-tail SEO. Lands even if every other channel flops. |
+| Mon | AlternativeTo + BetaList listings | Permanent long-tail groundwork. AlternativeTo is already approved; BetaList now requires a paid owner-selected plan. |
 | Tue AM ET | **Show HN** | Highest ceiling and highest hostility. Fired first because its criticism is free market research. |
 | Wed | Reddit founder posts | Rewritten using the objections HN actually raised, in communities whose rules permit self-promotion. |
 | Thu 00:01 PT | **Product Hunt** | Copy now battle-tested by two days of live argument. |
+
+**External-policy correction, 2026-08-30:** BetaList's current first-party
+[support page](https://betalist.com/support) says every submission is paid and
+there is no free option. Current plans, prices, and timelines appear at the end
+of its authenticated submission form. The original zero-risk/free assumption
+is retired; Task 11 treats BetaList as an explicit owner budget decision.
 
 The ordering is the central design decision. Show HN and Product Hunt are both
 effectively one-shot cards. Firing them on the same untested narrative risks
@@ -211,10 +238,13 @@ Falsifiable, and checked against the existing `downloads-history.jsonl` and
 | Launch happens but is unmeasured | GA4 reconnected *and* `?ref=` tagging as an independent fallback |
 | AlternativeTo unavailable at launch | Account created at the very start of Phase 0 to clear the 7-day age requirement |
 
-## Proposed calendar
+## Owner-approved calendar
 
-- **Aug 20–28** — Phase 0 and Phase 1. Ads verification complete before Sep 2.
-- **Aug 31 – Sep 3** — launch week, feature freeze in effect.
+- **Aug 20–Sep 4** — Phase 0, Phase 1, and bounded backlog cleanup; final
+  product merges stop September 3 at noon ET and the immutable launch release
+  is due September 4 at 3:00 p.m. ET.
+- **Sep 7–10** — launch week, feature freeze in effect; Show HN is Tuesday,
+  September 8.
 - **Oct 1** — retention checkpoint on the September cohort.
 
 ## Out of scope

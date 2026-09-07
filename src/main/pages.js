@@ -10,21 +10,22 @@ const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
+const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const supporter = require('./supporter');
 const patron = require('./patron');
 const sync = require('./sync');
 const telemetry = require('./telemetry');
+const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
-const { UTILITY_PAGES } = require('./utility-pages');
+const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
+const { developmentBrandAssetPath } = require('./development-brand-preview');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth', 'shortcuts', 'tab-import']);
-
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
@@ -40,6 +41,10 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
+  const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
+  const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
+  const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
   // Test runs may point discovery at a throwaway synthetic home, but only in
   // an unpackaged BLANC_TEST process. Production always uses the real OS home.
   const testBrowserHome =
@@ -61,7 +66,15 @@ function setupPages(hooks = {}) {
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
     const name = pathname === '/' ? `${host}.html` : path.basename(pathname);
     if (!/^[\w.-]+$/.test(name)) return new Response('Bad request', { status: 400 });
-    return net.fetch(pathToFileURL(path.join(PAGES_DIR, name)).toString());
+    const defaultPath = path.join(PAGES_DIR, name);
+    const resource = developmentBrandAssetPath({
+      name,
+      defaultPath,
+      brandMarkPath: developmentBrandMarkPath,
+      dockIconPath: developmentDockIconPath,
+      darkDockIconPath: developmentDarkDockIconPath,
+    });
+    return net.fetch(pathToFileURL(resource).toString());
   };
 
   // The top-level `protocol` module binds only to the default session, so a
@@ -96,6 +109,21 @@ function setupPages(hooks = {}) {
       }
       const run = hooks.runInPageRuntime ?? ((_event, work) => work());
       return run(event, () => fn(...args));
+    });
+  };
+  const handleEvent = (channel, hosts, fn) => {
+    const expectedHosts = new Set(Array.isArray(hosts) ? hosts : [hosts]);
+    ipcMain.handle(channel, (event, ...args) => {
+      const trusted = isTrustedPagesEvent(event, {
+        hosts: expectedHosts,
+        sessions: expectedSessions,
+        ownsSender: hooks.pageSurfaces?.owns ?? (() => false),
+      });
+      if (!trusted) {
+        throw new Error(`${channel}: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
+      }
+      const run = hooks.runInPageRuntime ?? ((_event, work) => work());
+      return run(event, () => fn(event, ...args));
     });
   };
 
@@ -238,9 +266,19 @@ function setupPages(hooks = {}) {
     // Strip both entitlement records out of `rest` (the renderer sees only
     // derived booleans). `patron:` is aliased to `_patron` so it does not
     // shadow the module-level `patron` (the network module) inside this scope.
-    const { supporter: record, patron: _patron, _syncMeta, ...rest } = settings.getSettings();
+    const {
+      supporter: record,
+      patron: _patron,
+      _syncMeta,
+      _syncTieBreakers,
+      onePasswordEnabled,
+      onePasswordAccount,
+      presentationDefaultsResetVersion,
+      ...rest
+    } = settings.getSettings();
     return {
       ...rest,
+      ...(onePasswordAvailable() ? { onePasswordEnabled, onePasswordAccount } : {}),
       patronActive: settings.isPatronActive(),
       supporterActive: settings.isPatronActive(), // temporary alias until Phase 4 renames renderer refs
       supporterActivatedAt: record?.activatedAt ?? null,
@@ -249,20 +287,43 @@ function setupPages(hooks = {}) {
 
   handle('pages:settings:get', 'settings', () => ({
     settings: clientSettings(),
+    onePasswordAvailable: onePasswordAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
-    supporterIcons: settings.SUPPORTER_ICON_LABELS,
   }));
   handle('pages:settings:set', 'settings', (partial) => {
-    settings.setSettings(partial ?? {});
+    const next = partial && typeof partial === 'object' ? { ...partial } : {};
+    if (!onePasswordAvailable()) {
+      delete next.onePasswordEnabled;
+      delete next.onePasswordAccount;
+    }
+    settings.setSettings(next);
     // Echo the persisted non-secret projection so the renderer can reflect the
     // actual stored state (e.g. a rejected strict-custom DNS transition). Never
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
   });
   handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
+  if (onePasswordAvailable()) {
+    // App presence is a HINT (movable installs false-negative); Verify is
+    // the authoritative check. The verify flow persists first and replies
+    // only exact shapes — see onepassword-verify-flow.js.
+    handle('pages:settings:onepassword-status', 'settings', () => ({
+      appDetected: hooks.onePasswordAppDetected?.() === true,
+    }));
+    handle('pages:settings:onepassword-verify', 'settings', (account) => runOnePasswordVerify({
+      account: typeof account === 'string' ? account : '',
+      saveAccount: (raw) => settings.setSettings({ onePasswordAccount: raw }).onePasswordAccount,
+      readStoredAccount: () => settings.getSettings().onePasswordAccount,
+      brokerVerify: (probed) => hooks.onePasswordVerify(probed),
+    }));
+    handle('pages:settings:open-onepassword-app', 'settings', () => {
+      hooks.openOnePasswordApp?.();
+      return true;
+    });
+  }
 
   // Local-profile identity and destructive confirmation stay in main. The
   // renderer receives only opaque ids, display names, and result messages.
@@ -297,8 +358,11 @@ function setupPages(hooks = {}) {
 
   // Start page (the ledger new tab): tab groups + the weekly blocked
   // counter live in main.js, reached through hooks rather than a module.
-  handle('pages:start:data', 'newtab', () => ({
+  handleEvent('pages:start:data', 'newtab', (event) => ({
     groups: hooks.startPage?.groups() ?? [],
+    // Derived on demand from the active local profile's history. Private
+    // newtabs receive an empty list from the main-owned hook.
+    topSites: hooks.startPage?.topSites?.(event.sender) ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
     // Raw per-day counts drive the tally caption ("busiest day friday");
     // the bar heights are normalized in main so the rule stays unit-tested.
@@ -313,6 +377,14 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
   }));
+  // Billboard asks for another bounded page only when local dismissals consume
+  // the initial candidate set. The hidden-hostname list stays in page storage
+  // and never crosses IPC.
+  handleEvent('pages:start:top-sites', 'newtab', (event, options) =>
+    hooks.startPage?.topSites?.(
+      event.sender,
+      options && typeof options === 'object' ? options : {},
+    ) ?? []);
   // The footer layout switcher. The value is enum-validated by setSettings,
   // so an unknown name is a no-op rather than an error.
   handle(
@@ -320,6 +392,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
   );
+  handleEvent('pages:start:layout-used', 'newtab', (event, name) => {
+    if (!settings.NEWTAB_LAYOUTS.includes(name)) return false;
+    return hooks.telemetry?.newtabLayoutUsed?.(event.sender, name) === true;
+  });
   handle(
     'pages:start:focus-group',
     'newtab',
@@ -349,10 +425,22 @@ function setupPages(hooks = {}) {
     () => hooks.startPage?.continueWithoutAdblock?.(),
   );
   handle(
+    'pages:start:recover-session',
+    'newtab',
+    (choice) => hooks.startPage?.recoverSession?.(String(choice ?? '')),
+  );
+  handle(
     'pages:start:privacy-complete',
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
+
+  // Standalone games invoke from their exact top-level document. The embedded
+  // game has no preload authority; it posts a fixed signal to newtab.js, which
+  // verifies the frame source + origin before the trusted top-level newtab
+  // invokes this same argument-free channel.
+  handleEvent('pages:mahjong:played', ['mahjong', 'newtab'], (event) =>
+    hooks.telemetry?.mahjongPlayed?.(event.sender) === true);
 
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
   // canSet: a dev run must never register the bare Electron binary as a
@@ -396,6 +484,13 @@ function setupPages(hooks = {}) {
   // Privacy reset for the usage ping's per-install id (see telemetry.js) —
   // from the next ping on, this install counts as brand new.
   handle('pages:telemetry:reset-install-id', 'settings', () => telemetry.resetInstallId());
+
+  // This device-local ledger excludes browsing state and leaves main only
+  // through an explicit native save dialog opened from Settings.
+  handle('pages:diagnostics:status', 'settings', () => diagnostics.status());
+  handle('pages:diagnostics:export', 'settings', () =>
+    diagnostics.exportReport(hooks.getMainWindow?.()));
+  handle('pages:diagnostics:clear', 'settings', () => diagnostics.clear());
 
   // The settings page promises "cookies, cache & site data" — clear both.
   handle('pages:clear-browsing-data', 'settings', () => {

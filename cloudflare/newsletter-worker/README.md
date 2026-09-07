@@ -2,7 +2,9 @@
 
 Consent-first newsletter enrollment for `blancbrowser.com`. An address is not
 a subscriber until its owner follows a one-time confirmation link delivered by
-Resend.
+Resend. The same Worker also delivers short ambassador applications to Blanc's
+support inbox without adding applicants to the newsletter or retaining an
+application database.
 
 ## Data and abuse controls
 
@@ -24,6 +26,23 @@ Resend.
   cooldown keys use an HMAC of the address and expire after ten minutes.
 - Missing mail or token secrets make enrollment return 503. There is no
   consent-bypassing fallback.
+
+## Ambassador applications
+
+- `POST /ambassador-apply` accepts JSON from the interactive page or a native
+  form-encoded POST fallback. Both carry a name, email address, HTTPS
+  creator-profile URL, short introduction, and hidden honeypot, and both are
+  accepted only from the same allowed site origins as the newsletter form.
+- Valid applications are sent through Resend to the fixed `AMBASSADOR_TO`
+  address. The applicant's address is included in the delivered application
+  and used as its reply-to address.
+- Applications are not written to Workers KV and do not create newsletter
+  subscriptions. Resend and the receiving support mailbox process the message
+  for delivery and review.
+- The endpoint uses a separate Cloudflare rate-limiting binding. A honeypot
+  submission is rejected rather than receiving a false delivery confirmation.
+- Missing mail configuration or failed delivery returns 503; there is no
+  mail-client or silent-storage fallback.
 
 The export includes an unsubscribe URL for every confirmed address and a
 separate `quarantined` review list. Any release-notes sending process must use
@@ -62,9 +81,10 @@ op run --env-file=../.env.1password -- npm run deploy
 ```
 
 After deploy, test from `https://blancbrowser.com`, confirm delivery, follow the
-link, export the record, and follow its unsubscribe URL. A release must not
-publish the revised newsletter/privacy claims until this end-to-end check
-passes in production.
+link, export the record, and follow its unsubscribe URL. Also submit a test
+ambassador application and confirm it reaches `AMBASSADOR_TO`. A release must
+not publish the revised newsletter or application/privacy claims until these
+end-to-end checks pass in production.
 
 ## Export confirmed subscribers
 

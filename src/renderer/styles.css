@@ -22,6 +22,7 @@
   --bg: #ffffff;
   --surface: #f7f7f7;
   --surface-raised: #ffffff;
+  --island-resting-surface: rgba(255,255,255,.94);
   --border: #dedede;
   --text: #0e0e0e;
   --text-dim: #6b6b6b;
@@ -34,20 +35,21 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  /* The island is the one shadowed chrome element. The full popover shadow
-     is reserved for the overlay states (panel/palette/find), which render
-     over the page and can't clip; the resting pill wears the fitted pill
-     shadow, which fades out entirely inside the 64px strip — a shadow
-     crossing the strip/page seam would be sliced off at the boundary. */
+  /* The full popover shadow is reserved for overlay states. The resting
+     island copies the website nav's shorter material shadow exactly and fits
+     it inside the 68px strip; --shadow-pill remains the favicon-peek shadow. */
   --shadow-popover: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12);
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
+  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  --island-resting-height: 44px;
+  --island-resting-radius: 17px;
   --island-panel-radius: 18px;
-  --strip-h: 64px;
+  --strip-h: 68px;
   --radius: 6px;
   /* The resting pill's proportional scale-up (see #islandPill). Lives here so
      counter-scaled children (#pillDomain's font, #pillFavicon's pixel-grid
-     snap) stay coupled to the one factor. Keep in step with --strip-h
-     (56 × zoom ≈ 64). */
+     snap) stay coupled to the one factor. Fixed outer geometry below is also
+     counter-scaled so the rendered island remains exactly 44px × 17px. */
   --pill-zoom: 1.15;
 }
 
@@ -56,6 +58,7 @@
     --bg: #0e0e0e;
     --surface: #171717;
     --surface-raised: #1f1f1f;
+    --island-resting-surface: rgba(31,31,31,.94);
     --border: #2e2e2e;
     --text: #f5f5f5;
     --text-dim: #9c9c9c;
@@ -73,6 +76,7 @@
   --bg: #0a0a0a;
   --surface: #131313;
   --surface-raised: #191919;
+  --island-resting-surface: rgba(25,25,25,.94);
   --border: #333333;
   --text: #f5f5f5;
   --text-dim: #9c9c9c;
@@ -383,6 +387,7 @@ button svg {
   background: var(--bg);
   border-right: none;
   color: var(--text);
+  font-family: var(--font-ui);
 }
 
 .vertical-tabs-rail[hidden] {
@@ -524,7 +529,7 @@ body.mac .vertical-tabs-toolbar {
   align-items: center;
   gap: 7px;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 500;
   line-height: 1;
@@ -543,7 +548,7 @@ body.mac .vertical-tabs-toolbar {
   padding: 0 7px;
   border-radius: var(--radius);
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   text-align: left;
 }
@@ -698,7 +703,7 @@ body.mac .vertical-tabs-toolbar {
   max-width: 50px;
   overflow: hidden;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -816,7 +821,7 @@ body.mac .vertical-tabs-toolbar {
   padding: 0 10px;
   border-radius: var(--radius);
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   text-align: left;
 }
@@ -859,23 +864,29 @@ body.mac .vertical-tabs-toolbar {
   align-items: center;
   gap: 10px;
   margin-top: 10px;
-  padding: 4px 14px;
+  height: calc(var(--island-resting-height) / var(--pill-zoom));
+  padding: 0 14px;
   /* Scale the whole resting pill — and every element inside it (buttons,
      favicon, domain, dots, shield, the dot favicon-peek) — up proportionally
      in one place. `zoom` reflows (so the pill genuinely grows and its box
      drives layout) and re-rasterizes text crisp, unlike `transform: scale`.
-     Kept in lockstep with `--strip-h` (56 × 1.15 ≈ 64) so the band grows with
-     it and the web view below drops to match. Only the collapsed pill scales;
-     the expanded panel is a separate overlay surface. */
+     Its fixed height and radius are counter-scaled below so zoom preserves
+     the canonical rendered geometry. Only the collapsed pill scales; the
+     expanded panel is a separate overlay surface. */
   zoom: var(--pill-zoom);
+  position: relative;
+  isolation: isolate;
   /* Clear the macOS traffic lights / window controls on narrow windows.
      `100vw` resolves against the unscaled viewport, but `zoom` then multiplies
      the used length — so divide by the zoom to keep the real 170px clearance
      (without this the pill renders 1.15× wider and runs under the controls). */
   max-width: calc((100vw - 170px) / var(--pill-zoom));
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  background: transparent;
+  /* Keep the one-pixel border in layout while the visible material moves to
+     ::after. The resting pill has no transform, which keeps the URL and
+     glyphs as crisp as the website until the unified proximity response. */
+  border: 1px solid transparent;
+  border-radius: calc(var(--island-resting-radius) / var(--pill-zoom));
   white-space: nowrap;
   cursor: pointer;
 
@@ -887,37 +898,50 @@ body.mac .vertical-tabs-toolbar {
      the lean plus larger magnitudes displaced edge buttons by up to ~15px
      during approach and caused mis-clicks, so the motion is vertical-only now.
 
-     THE RISE IS LOAD-BEARING, not decoration. The shadow below fades to
-     nothing exactly at the strip's bottom edge — there is no headroom at all
-     (see the --shadow-pill note in tokens/layout.css). Scaling would clip it
-     twice: the box grows downward AND the shadow stretches with it. The rise
-     out-runs both, so the shadow's bottom edge actually pulls UP as you
-     approach. Shrink the rise or grow the scale and the shadow starts getting
-     sliced again — test/unit/island-proximity.test.js fails if you do.
+     The rise remains load-bearing: it out-runs the face and shadow growth, so
+     the website shadow stays fully visible above the webpage boundary at
+     every proximity value. The shadow itself never changes; the copied stack
+     is the single authority for the island's material treatment.
 
-     The shadow deepens by DARKNESS only; its offset, blur and spread never
-     change. Growing its size is what would clip, and a denser shadow reads as
-     "closer to the surface" anyway. */
+     The entire island grows together: face, URL, dots, shield, and trailing
+     controls. Keep the resting transform at `none` so the idle layer stays
+     pixel-sharp; renderer.js adds `.proximity-active` only while the cursor is
+     near enough for the unified rise/grow response. */
   transform-origin: 50% 0%;
+  transform: none;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#islandPill::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--island-resting-surface);
+  border: 1px solid var(--border);
+  border-radius: inherit;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-island-resting);
+}
+
+#islandPill.proximity-active {
   transform:
     translateY(calc(-2px * var(--island-k, 0)))
     scale(calc(1 + 0.02 * var(--island-k, 0)));
-  box-shadow:
-    var(--shadow-pill),
-    0 2px 16px -3px rgba(14, 14, 14, calc(0.07 * var(--island-k, 0)));
-  transition:
-    transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dot clusters: one cluster per tab group (group order), ungrouped tabs
-   trail. The active tab's cluster is full-strength; others dim. */
+/* Direct tab targets: globally reachable standalone pins, then the active
+   section. A small extra gap is the only distinction between those sets; all
+   dots keep the same one-dot/one-tab visual and interaction contract. */
 #pillDots {
   display: flex;
   gap: 10px;
   align-items: center;
   flex: 0 0 auto;
 }
+.island-dot.dot-section-start { margin-left: 4px; }
 
 .pill-overflow {
   font-family: var(--font-mono);
@@ -950,6 +974,7 @@ body.mac .vertical-tabs-toolbar {
    `display: none`; restore it (higher specificity) so the contextual
    downloads button can hide itself. */
 .pill-btn[hidden] { display: none; }
+:root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 .pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }
 .pill-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
@@ -1126,25 +1151,66 @@ body.mac .vertical-tabs-toolbar {
   }
 }
 
-/* The "/" chip — a real button that opens the panel showing the command
-   list. Mono because the slash palette it opens is mono. A bare "/" cannot
-   say what it does, so clicking it shows you instead. */
+/* Quiet shortcut keycaps sit beside the domain. Slash opens the command list;
+   Plus creates a tab. Their shared outline keeps both secondary to the URL
+   and leaves Reload/Favorite/Close as the untouched trailing action cluster. */
+.pill-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: calc(4px / var(--pill-zoom));
+  flex: 0 0 auto;
+}
+/* The vertical rail already owns New tab. Once a real page also hides Slash,
+   collapse their wrapper so the Island does not retain an empty flex item
+   (and the parent's inter-item gap) ahead of the trailing separator. */
+:root[data-tab-layout="vertical"] .pill-shortcuts:has(#pillSlash[hidden]) {
+  display: none;
+}
+.pill-slash,
+.pill-shortcut {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: calc(5px / var(--pill-zoom));
+  color: var(--text-dim);
+  background: transparent;
+  flex: 0 0 auto;
+  cursor: pointer;
+  position: relative;
+}
 .pill-slash {
   font-family: var(--font-mono);
   font-size: calc(10px / var(--pill-zoom));
-  line-height: calc(15px / var(--pill-zoom));
-  color: var(--text-dim);
-  background: transparent;
+  line-height: 1;
+}
+.pill-slash::before,
+.pill-shortcut::before {
+  content: '';
+  position: absolute;
+  width: calc(18px / var(--pill-zoom));
+  height: calc(17px / var(--pill-zoom));
   border: 1px solid var(--border);
   border-radius: calc(5px / var(--pill-zoom));
-  padding: 0 calc(5px / var(--pill-zoom));
-  flex: 0 0 auto;
-  cursor: pointer;
+  pointer-events: none;
 }
-.pill-slash:hover { color: var(--accent); border-color: var(--accent); }
+.pill-shortcut svg {
+  width: calc(11px / var(--pill-zoom));
+  height: calc(11px / var(--pill-zoom));
+  /* Same --text-dim ink as Slash; the tiny weight correction compensates for
+     SVG stroke antialiasing so the two glyphs read equally dark at Retina. */
+  stroke-width: 1.5;
+}
+.pill-slash:hover,
+.pill-shortcut:hover { color: var(--accent); background: transparent; }
+.pill-slash:hover::before,
+.pill-shortcut:hover::before { border-color: var(--accent); }
 .pill-slash[hidden] { display: none; }
 
-[data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
+[data-theme="private"] #islandPill::after { border: 1px dashed var(--text-dim); }
 
 /* Quick exit chips — clicking one closes the tab. Shared geometry; the
    private chip keeps the dashed accent treatment that marks the mode, while
@@ -1259,6 +1325,31 @@ body.mac .vertical-tabs-toolbar {
 
 /* Live-capture chip: same anatomy as the shield, but the one pill state
    that earns an alarm color (--danger) — steady, no pulse, no count. */
+/* Ambient 1Password fill hint — same chip family as the capture chip, but
+   quiet (text-dim) rather than danger: it is an invitation, not an alarm. */
+.fill-hint-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.fill-hint-chip:hover,
+.fill-hint-chip:focus-visible { color: var(--text); }
+.fill-hint-chip[hidden] { display: none; }
+.fill-hint-chip svg {
+  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+}
+
 .capture-chip {
   appearance: none;
   display: inline-flex;
@@ -1329,7 +1420,82 @@ button.insecure-badge {
   stroke-linejoin: round;
 }
 
-/* Site favicon slot: neutral square fallback, spinner while loading. */
+.site-info-button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+}
+.site-info-button:hover,
+.site-info-button:focus-visible,
+.site-info-button[aria-expanded="true"] { color: var(--text); background: var(--surface-raised); }
+.site-info-button.insecure,
+.site-info-button.certificate-error { color: var(--danger); }
+.site-info-button[hidden] { display: none; }
+.site-info-button svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.site-info-card {
+  margin: 6px 8px 2px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+.site-info-head { display: flex; align-items: flex-start; gap: 10px; }
+.site-info-state {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.site-info-card.insecure .site-info-state,
+.site-info-card.certificate-error .site-info-state { background: var(--danger); }
+.site-info-card.local .site-info-state { background: var(--text-dim); }
+.site-info-title { font-size: 13px; font-weight: 600; }
+.site-info-origin {
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+.site-info-summary { margin: 12px 0 0; color: var(--text-dim); font-size: 12px; line-height: 1.45; }
+.site-info-details { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--border); }
+.site-info-details > div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding: 3px 0;
+}
+.site-info-details dt { color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; }
+.site-info-details dd { margin: 0; overflow-wrap: anywhere; font-size: 11.5px; }
+.site-info-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.site-info-protection { align-self: center; color: var(--text-dim); font-size: 11px; }
+.site-info-settings { color: var(--accent); background: transparent; border: none; font-size: 11px; }
+
+/* Site favicon slot: domain initial fallback, spinner while loading. */
 .favicon {
   width: 14px;
   height: 14px;
@@ -1337,19 +1503,30 @@ button.insecure-badge {
   border-radius: 2px;
   background: var(--border);
 }
+.favicon.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
+}
 .favicon.has-icon {
   background-color: transparent;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 }
-/* Internal pages wear the Blanc mark tinted by the theme's text color.
-   Chromium rasterizes SVG images in a fixed light scheme (prefers-color-scheme
-   never reaches them), so the SVG is used as a mask and colored here. */
+/* Internal-page rows use the simplified monochrome Sunrise silhouette. The
+   Island hides this mark in the selected development treatment; keeping the
+   source here prevents a missing preview environment variable from reviving
+   the retired B. */
 .favicon.internal {
   background: var(--text);
-  -webkit-mask: url("pages/icon.svg") center / contain no-repeat;
-  mask: url("pages/icon.svg") center / contain no-repeat;
+  -webkit-mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+  mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
 }
 .favicon.loading {
   background: transparent;
@@ -1360,13 +1537,18 @@ button.insecure-badge {
 }
 /* Pixel-grid snap for the pill's favicon: under the pill's zoom the base
    14px box lands on a fractional 16.09px, and the internal pages' Blanc
-   mark — fine line art whose strokes are already sub-pixel at this size —
+   mark — detailed artwork whose edges are already sub-pixel at this size —
    rasterizes visibly mushy off the integer grid. Pre-divide so the
    post-zoom box is exactly 16px. (Pill only: the overlay panel's .favicon
    rows aren't zoomed and stay on the plain 14px.) */
 #pillFavicon {
   width: calc(16px / var(--pill-zoom));
   height: calc(16px / var(--pill-zoom));
+}
+/* Internal pages already read as Blanc through the chrome itself. Repeating
+   the app mark in the resting Island adds noise, so this slot stays empty. */
+#islandPill #pillFavicon.internal {
+  display: none;
 }
 
 /* Hover/focus peek: an otherwise-anonymous tab dot blooms into a disc showing
@@ -1407,6 +1589,11 @@ button.insecure-badge {
   background-color: var(--surface-raised);
   background-size: 12px 12px;
 }
+.dot-peek.fallback {
+  background-color: var(--surface-raised);
+  color: var(--text-dim);
+  font-size: 9px;
+}
 .dot-peek.internal {
   background: var(--surface-raised);
   -webkit-mask: none;
@@ -1417,8 +1604,12 @@ button.insecure-badge {
   position: absolute;
   inset: 3px;
   background: var(--text);
-  -webkit-mask: url("pages/icon.svg") center / contain no-repeat;
-  mask: url("pages/icon.svg") center / contain no-repeat;
+  -webkit-mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+  mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+}
+/* Keep internal tabs anonymous when their dot blooms inside the Island too. */
+#islandPill .dot-peek.internal::after {
+  display: none;
 }
 /* A loading tab's peek carries `loading` too (setFavicon adds it), and
    `.favicon.loading` (0,2,0) would otherwise win — turning the disc into a
@@ -1694,13 +1885,13 @@ body[data-glance-purpose="change"] .glance-picker {
 #addressInput {
   flex: 1 1 auto;
   min-width: 0;
-  height: 28px;
+  height: 36px;
   padding: 0 12px;
   font-family: var(--font-ui);
   font-size: 12.5px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 14px;
   color: var(--text);
 }
 #addressInput::placeholder { color: var(--text-dim); }
@@ -2691,9 +2882,11 @@ body[data-glance-purpose="change"] .glance-picker {
    only paints the top band, and anything near the island competes with it.
    Still deliberately SUBORDINATE styling: flat surface, hairline border,
    small radius, no popover shadow. The island stays the only capsule. */
+html:has(> body.permission-surface),
+body.permission-surface { background: transparent; }
+
 .permission-surface {
   margin: 0;
-  background: transparent;
   overflow: hidden;
   display: flex;
   align-items: flex-end;
@@ -2838,6 +3031,88 @@ body[data-glance-purpose="change"] .glance-picker {
 #permBlockBtn { border: 1px solid var(--border); color: var(--text-dim); }
 #permBlockBtn:hover { color: var(--text); background: var(--surface); }
 
+/* --- 1Password fill capsule (fill-status.html, fourth chrome document) ---
+   Same bottom-center bar family as #permissionBar: the view is transparent
+   and the capsule draws its own surface. Fixed-kind copy only. */
+html:has(> body.fill-status-surface),
+body.fill-status-surface { background: transparent; }
+
+.fill-status-surface {
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100vh;
+}
+.fill-capsule {
+  max-width: calc(100vw - 24px);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 5px 4px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.fill-capsule[hidden] { display: none; }
+/* Title above body: instructions must stay readable, never ellipsize into
+   "Add the account name from t…" (live-gate finding, 2026-08-29). The body
+   wraps to at most two lines; the view height budgets for it. */
+.fill-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.fill-title { font-size: 12.5px; color: var(--text); white-space: nowrap; }
+.fill-body {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-dim);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.fill-body[hidden] { display: none; }
+.fill-capsule button {
+  height: 26px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+#fillPrimaryBtn { background: var(--accent); color: var(--bg); }
+#fillCancelBtn { border: 1px solid var(--border); color: var(--text-dim); }
+#fillCancelBtn:hover { color: var(--text); background: var(--surface); }
+/* Cancel is auto-focused on every decision, so the app-wide 2px focus ring
+   would sit heavy on the capsule at every open (owner preference: no thick
+   focus rings). A hairline ring keeps keyboard focus visible without the
+   double-border look. */
+.fill-capsule button:focus-visible {
+  outline: 1px solid var(--text-dim);
+  outline-offset: 0;
+}
+#fillNoticeDismiss {
+  padding: 0;
+  width: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+#fillNoticeDismiss:hover { color: var(--text); }
+#fillNoticeDismiss svg {
+  width: 14px; height: 14px; fill: none; stroke: currentColor;
+  stroke-width: 1.4; stroke-linecap: round;
+}
+.fill-success .fill-title { color: var(--accent); }
+
 @media (prefers-reduced-motion: reduce) {
   .island-dot,
   .island-dot.loading { transition: none; animation: none; }
@@ -2868,6 +3143,7 @@ body[data-glance-purpose="change"] .glance-picker {
      the inverted glyph all remain. */
   .dl-done-disc { animation: none; }
   /* The proximity reaction is entirely decorative — off, not just instant. */
-  #islandPill { transform: none; transition: none; box-shadow: var(--shadow-pill); }
+  #islandPill,
+  #islandPill.proximity-active { transform: none; transition: none; }
   #strip { transition: none; }
 }

@@ -31,7 +31,9 @@
           <svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>
         </button>
         <span id="pillDomain">new tab</span>
-        <button id="pillSlash" class="pill-slash" type="button" title="Commands (/)" aria-label="Commands (/)" hidden>/</button>
+        <span id="pillShortcuts" class="pill-shortcuts">
+          <button id="pillSlash" class="pill-slash" type="button" title="Commands (/)" aria-label="Commands (/)" hidden>/</button>
+        </span>
         <button id="pillPrivateChip" title="Leave private mode — closes this tab" hidden>private
           <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
         </button>
@@ -47,6 +49,9 @@
             <rect x="2.2" y="4.6" width="8.2" height="6.8" rx="1.6"/>
             <path d="M10.4 7.2l3.4-1.8v5.2l-3.4-1.8z"/>
           </svg>
+        </button>
+        <button id="pillFillHint" class="fill-hint-chip" type="button" title="Fill login from 1Password (⌥⌘P)" aria-label="Fill login from 1Password (⌥⌘P)" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="6.4" r="3.1"/><path d="M8.3 8.7 13.2 13.6M10.9 11.3l1.7-1.7M12.7 13.1l1.3-1.3"/></svg>
         </button>
         <button id="pillShield" class="shield" aria-expanded="false" hidden>
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg>

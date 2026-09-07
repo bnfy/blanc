@@ -11,7 +11,8 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { app, Menu, clipboard } = require('electron');
+const path = require('node:path');
+const { app, Menu, clipboard, nativeImage } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -103,6 +104,7 @@ function install(refs) {
     isSessionPersistenceReady,
     getRailActivationSerial,
     normalizeAddressInput,
+    probeOnePasswordPackage,
     pasteAndGo,
     handoffProtocols,
     openInternalPage,
@@ -136,6 +138,9 @@ function install(refs) {
     runSleepSweep,
     sleepBackgroundTabsNow,
     getPermissionPrompts,
+    showFillStatusForTest,
+    fillStatusState,
+    readFillStatusDom,
     setSleepThresholdOverride,
     getSleepSnapshots,
     getClosedEntries,
@@ -622,11 +627,73 @@ function install(refs) {
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
+    async seedBillboardHistory() {
+      const current = tabs.get(getActiveTabId());
+      await current?.view?.webContents?.session.clearStorageData({
+        origin: 'blanc://newtab',
+        storages: ['localstorage'],
+      });
+      for (const [url, title] of [
+        ['https://youtube.com/watch?v=one', 'YouTube – videos worth watching'],
+        ['https://cnet.com/article/one', 'CNET – technology news and reviews'],
+        ['https://youtube.com/watch?v=two', 'YouTube – videos worth watching'],
+        ['https://scrollapp.co/', 'Scroll – creative work, beautifully organized'],
+        ['https://cnet.com/article/two', 'CNET – technology news and reviews'],
+        ['https://youtube.com/watch?v=three', 'YouTube – videos worth watching'],
+        ['https://developer.mozilla.org/docs', 'MDN Web Docs'],
+        ['https://nintendo.com/', 'Nintendo – Official Site'],
+        ['https://blancbrowser.com/', 'Blanc Browser – browse without the baggage'],
+      ]) history.addVisit(url, title);
+      for (const [url, file] of [
+        ['https://youtube.com/', ['favicons', 'youtube.com.ico']],
+        ['https://cnet.com/', ['favicons', 'cnet.com.ico']],
+        ['https://scrollapp.co/', ['favicons', 'scrollapp.co.ico']],
+        ['https://developer.mozilla.org/', ['favicons', 'developer.mozilla.org.ico']],
+        ['https://nintendo.com/', ['favicons', 'nintendo.com.ico']],
+        ['https://blancbrowser.com/', ['favicon-32x32.png']],
+      ]) {
+        const source = path.join(app.getAppPath(), 'site', 'public', ...file);
+        const png = nativeImage.createFromPath(source)
+          .resize({ width: 32, height: 32, quality: 'best' })
+          .toPNG();
+        history.cacheSiteIcon(url, `data:image/png;base64,${png.toString('base64')}`);
+      }
+      return history.listTopSites({ limit: 6 });
+    },
+    seedBillboardOverflowHistory() {
+      history.clearHistory();
+      // Different visit counts make the sixty-host order deterministic even
+      // when this tight fixture loop produces identical Date.now() values.
+      for (let index = 0; index < 60; index++) {
+        const key = `site-${String(index).padStart(2, '0')}.example`;
+        for (let visit = 0; visit < 60 - index; visit++) {
+          history.addVisit(`https://${key}/${visit}`, `Site ${index}`);
+        }
+      }
+      return history.listTopSites({ limit: 48 }).map((site) => site.key);
+    },
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
+    // ---- 1Password fill capsule + hint (macOS-only; null off-platform) ----
+    setOnePasswordConfig(enabled, account) {
+      settings.setSettings({ onePasswordEnabled: !!enabled, onePasswordAccount: String(account ?? '') });
+      return settings.getSettings().onePasswordEnabled;
+    },
+    showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
+    fillStatusState() { return fillStatusState?.() ?? null; },
+    readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },
+
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
+    async probeOnePasswordUtilityProcess() {
+      const result = await probeOnePasswordPackage();
+      return {
+        ...result,
+        processCount: app.getAppMetrics()
+          .filter((metric) => metric.name === 'Blanc Credential Broker').length,
+      };
+    },
     // The REAL handler body from main.js, not a copy of it — a mirror here
     // would keep the suite green even with the shipping handler reverted to
     // the bare global toggle this whole change exists to fix.
@@ -651,9 +718,393 @@ function install(refs) {
         layout: document.body.dataset.layout ?? null,
         active: document.querySelector('[data-layout-pick].active')?.dataset.layoutPick ?? null,
         // The active layout root is the one whose computed display isn't none.
-        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
+        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally', 'Mahjong']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    async readStartPageFontUsage() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const page = await tab.view.webContents.executeJavaScript(`(() => {
+        const selectors = [
+          '.ledger-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
+          '.bb-blocked', '.shelf-date', '.shelf-label', '.shelf-count',
+          '.tally-count', '.tally-caption', '.ledger-footer', '.ob-step-label',
+          '.ob-commands'
+        ];
+        return {
+          samples: selectors.map((selector) => ({
+            selector,
+            family: getComputedStyle(document.querySelector(selector)).fontFamily,
+          })),
+          jetbrains: [...document.querySelectorAll('body, body *')]
+            .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
+        };
+      })()`);
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return { page, mahjong: null };
+      // Tile faces (character numerals and wind badge letters inside the
+      // tile SVGs) are game artwork and deliberately keep JetBrains Mono;
+      // the Inter rule covers the game's UI text only. Report the faces
+      // separately so the step can assert both halves of that contract.
+      const mahjong = await frame.executeJavaScript(`(() => {
+        const selectors = ['.mj-meter-label', '.mj-timer', '.mj-dock-action', '.mj-overline'];
+        const isTileFace = (element) => element.closest('.mj-face') !== null;
+        const monoElements = [...document.querySelectorAll('body, body *')]
+          .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'));
+        return {
+          samples: selectors.map((selector) => ({
+            selector,
+            family: getComputedStyle(document.querySelector(selector)).fontFamily,
+          })),
+          jetbrains: monoElements
+            .filter((element) => !isTileFace(element))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
+          tileFaceMono: monoElements.filter(isTileFace).length,
+        };
+      })()`);
+      return { page, mahjong };
+    },
+    async readStartPageLayoutFit() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const audit = `(() => {
+        scrollTo(0, 0);
+        const root = document.documentElement;
+        const body = document.body;
+        const describe = (element) => {
+          if (element.id) return '#' + element.id;
+          const classes = [...element.classList].slice(0, 3);
+          return element.tagName.toLowerCase() + (classes.length ? '.' + classes.join('.') : '');
+        };
+        const visible = (element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' &&
+            rect.width > 0 && rect.height > 0;
+        };
+        const hasDirectText = (element) => [...element.childNodes]
+          .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+        const ignored = (element) => element.matches(
+          '.page-sr-only, .mj-sr-only, .mj-skip, [data-dock-label], [aria-hidden="true"], ' +
+          '.fav .name, .shelf-tile .name, .shelf-tile .host, .shelf-date, .bb-fav .label'
+        );
+        const text = [...body.querySelectorAll('*')]
+          .filter((element) => visible(element) && hasDirectText(element) && !ignored(element));
+        const horizontalText = text.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.left < -1 || rect.right > innerWidth + 1;
+        }).map(describe);
+        const unreachableText = text.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          const documentBottom = Math.max(root.scrollHeight, body.scrollHeight);
+          return rect.top < -1 || rect.bottom + scrollY > documentBottom + 1;
+        }).map(describe);
+        const clippedText = text.filter((element) => {
+          const style = getComputedStyle(element);
+          const clipsX = style.overflowX === 'hidden' || style.overflowX === 'clip';
+          const clipsY = style.overflowY === 'hidden' || style.overflowY === 'clip';
+          return (clipsX && element.scrollWidth > element.clientWidth + 1) ||
+            (clipsY && element.scrollHeight > element.clientHeight + 1);
+        }).map(describe);
+        const surfaces = [...body.querySelectorAll('main, .ledger-footer')]
+          .filter(visible)
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left < -1 || rect.right > innerWidth + 1;
+          })
+          .map(describe);
+        return {
+          layout: body.dataset.layout ?? null,
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          clientWidth: root.clientWidth,
+          scrollWidth: root.scrollWidth,
+          horizontalText,
+          unreachableText,
+          clippedText,
+          surfaces,
+        };
+      })()`;
+      const page = await tab.view.webContents.executeJavaScript(audit);
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      const mahjong = frame ? await frame.executeJavaScript(audit) : null;
+      return { page, mahjong };
+    },
+    readBillboardSites() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        sites: [...document.querySelectorAll('#bbFavorites .bb-site')].map((item) => ({
+          key: item.dataset.siteKey,
+          href: item.querySelector('.bb-fav')?.href ?? null,
+          label: item.querySelector('.label')?.textContent ?? null,
+          hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
+          dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+        })),
+        hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
+      }))()`);
+    },
+    hideBillboardSite(key) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const item = [...document.querySelectorAll('#bbFavorites .bb-site')]
+          .find((candidate) => candidate.dataset.siteKey === ${JSON.stringify(String(key))});
+        const button = item?.querySelector('.bb-site-dismiss');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    setBillboardHidden(keys) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      const bounded = Array.isArray(keys) ? keys.slice(0, 200).map(String) : [];
+      return tab.view.webContents.executeJavaScript(`(() => {
+        localStorage.setItem(
+          'blanc.billboard.hidden-top-sites.v1',
+          ${JSON.stringify(JSON.stringify(bounded))}
+        );
+        return true;
+      })()`);
+    },
+    async readMahjongEmbedDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(() => {
+          const tileRect = document.querySelector('.mj-tile:not([hidden])')?.getBoundingClientRect();
+          const frameRect = document.querySelector('.mj-board-frame')?.getBoundingClientRect();
+          const wrapRect = document.getElementById('mjBoardWrap')?.getBoundingClientRect();
+          const boardRect = document.getElementById('mjBoard')?.getBoundingClientRect();
+          const dockRect = document.querySelector('.mj-dock')?.getBoundingClientRect();
+          const dockButtons = [...document.querySelectorAll('.mj-dock > button')]
+            .map((button) => button.getBoundingClientRect());
+          const firstDockButton = dockButtons[0];
+          const secondDockButton = dockButtons[1];
+          return {
+            url: location.href,
+            tileCount: document.querySelectorAll('.mj-tile').length,
+            freeTileCount: document.querySelectorAll('.mj-tile:not([data-blocked])').length,
+            timer: document.getElementById('mjTimer')?.textContent ?? null,
+            mode: document.querySelector('.mj')?.dataset.mode ?? null,
+            layout: document.querySelector('.mj')?.dataset.layout ?? null,
+            tileWidth: tileRect?.width ?? 0,
+            tileHeight: tileRect?.height ?? 0,
+            boardFrameHeight: frameRect?.height ?? 0,
+            boardWrapWidth: wrapRect?.width ?? 0,
+            boardCenterDeltaX: boardRect && frameRect
+              ? Math.abs((boardRect.left + boardRect.right - frameRect.left - frameRect.right) / 2)
+              : Infinity,
+            boardFrameLeft: frameRect?.left ?? 0,
+            boardFrameRight: frameRect?.right ?? 0,
+            boardFrameTop: frameRect?.top ?? 0,
+            boardFrameBottom: frameRect?.bottom ?? 0,
+            dockLeft: dockRect?.left ?? 0,
+            dockRight: dockRect?.right ?? 0,
+            dockTop: dockRect?.top ?? 0,
+            dockBottom: dockRect?.bottom ?? 0,
+            dockButtonWidth: firstDockButton?.width ?? 0,
+            dockButtonHeight: firstDockButton?.height ?? 0,
+            dockButtonCount: dockButtons.length,
+            dockButtonGap: firstDockButton && secondDockButton
+              ? secondDockButton.top - firstDockButton.bottom
+              : 0,
+            viewportWidth: innerWidth,
+            viewportHeight: innerHeight,
+          };
+        })()`);
+      } catch {
+        return null;
+      }
+    },
+    async readMahjongCompletionGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const card = document.getElementById('mjWin');
+          const wrap = document.getElementById('mjBoardWrap');
+          const time = document.getElementById('mjWinTime');
+          const best = document.getElementById('mjWinBest');
+          const lastAction = document.getElementById('mjWinBoards');
+          if (!card || !wrap || !time || !best || !lastAction) return null;
+          const wasHidden = card.hidden;
+          const previousTime = time.textContent;
+          const previousBest = best.textContent;
+          const previousScrollTop = card.scrollTop;
+          try {
+            // Use the longest realistic Tray labels so containment reflects
+            // the completed UI rather than its shorter dormant markup.
+            time.textContent = '14,400 points · 9999:59';
+            best.textContent = 'best 14,400 · 9999:59';
+            card.hidden = false;
+            card.scrollTop = 0;
+            void card.offsetWidth;
+            await new Promise((resolve) => setTimeout(resolve, 320));
+            const cardRect = card.getBoundingClientRect();
+            const wrapRect = wrap.getBoundingClientRect();
+            const initialActionRect = lastAction.getBoundingClientRect();
+            const actionInitiallyVisible =
+              initialActionRect.top >= cardRect.top - 1 &&
+              initialActionRect.bottom <= cardRect.bottom + 1;
+            if (!actionInitiallyVisible) {
+              card.scrollTop = card.scrollHeight;
+              await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+            }
+            const actionRect = lastAction.getBoundingClientRect();
+            const bodyRect = document.body.getBoundingClientRect();
+            const cardStyle = getComputedStyle(card);
+            return {
+              card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
+              wrap: { left: wrapRect.left, top: wrapRect.top, right: wrapRect.right, bottom: wrapRect.bottom },
+              body: { left: bodyRect.left, top: bodyRect.top, right: bodyRect.right, bottom: bodyRect.bottom },
+              viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
+              centerDeltaX: Math.abs((cardRect.left + cardRect.right - innerWidth) / 2),
+              centerDeltaY: Math.abs((cardRect.top + cardRect.bottom - innerHeight) / 2),
+              documentClientWidth: document.documentElement.clientWidth,
+              bodyClientWidth: document.body.clientWidth,
+              bodyScrollWidth: document.body.scrollWidth,
+              computedLeft: cardStyle.left,
+              clientHeight: card.clientHeight,
+              scrollHeight: card.scrollHeight,
+              scrollTop: card.scrollTop,
+              overflowY: cardStyle.overflowY,
+              actionInitiallyVisible,
+              actionVisibleAfterScroll:
+                actionRect.top >= cardRect.top - 1 && actionRect.bottom <= cardRect.bottom + 1,
+              viewportWidth: innerWidth,
+              viewportHeight: innerHeight,
+            };
+          } finally {
+            card.hidden = wasHidden;
+            card.scrollTop = previousScrollTop;
+            time.textContent = previousTime;
+            best.textContent = previousBest;
+          }
+        })()`);
+      } catch {
+        return null;
+      }
+    },
+    async setNewtabZoomFactor(factor) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const applied = Math.min(3, Math.max(0.5, Number(factor) || 1));
+      tab.view.webContents.setZoomFactor(applied);
+      return tab.view.webContents.getZoomFactor();
+    },
+    async newtabZoomFactor() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.getZoomFactor();
+    },
+    async readMahjongRecordsGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const sheet = document.getElementById('mjRecordsSheet');
+          const card = sheet?.querySelector('.mj-records-card');
+          const trigger = document.getElementById('mjRecords');
+          if (!sheet || !card || !trigger || typeof openRecords !== 'function' || typeof closeRecords !== 'function') return null;
+          if (!sheet.hidden) closeRecords();
+          openRecords();
+          await new Promise((resolve) => setTimeout(resolve, 320));
+          const cardRect = card.getBoundingClientRect();
+          const measured = {
+            card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
+            viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
+            scrollWidth: card.scrollWidth,
+            clientWidth: card.clientWidth,
+            overflowY: getComputedStyle(card).overflowY,
+            rowCount: document.querySelectorAll('#mjRecordsRows tr').length,
+            viewportWidth: innerWidth,
+            viewportHeight: innerHeight,
+            zoomFactor: outerWidth ? outerWidth / innerWidth : 1,
+          };
+          closeRecords();
+          await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+          measured.focusReturned = document.activeElement === trigger;
+          return measured;
+        })()`);
+      } catch {
+        return null;
+      }
+    },
+    async clickMahjongFreeTile() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return false;
+      try {
+        return await frame.executeJavaScript(`(() => {
+          const tile = document.querySelector('.mj-tile:not([data-blocked]):not([hidden])');
+          if (!tile) return false;
+          tile.click();
+          return true;
+        })()`);
+      } catch {
+        return false;
+      }
+    },
+    async rapidUndoMahjongMatch() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          const free = [...document.querySelectorAll('.mj-tile:not([data-blocked]):not([hidden])')];
+          let pair = null;
+          for (let first = 0; first < free.length && !pair; first += 1) {
+            const firstName = free[first].getAttribute('aria-label')?.split(',')[0];
+            for (let second = first + 1; second < free.length; second += 1) {
+              const secondName = free[second].getAttribute('aria-label')?.split(',')[0];
+              if (firstName && firstName === secondName) {
+                pair = [free[first], free[second]];
+                break;
+              }
+            }
+          }
+          if (!pair) return { matched: false };
+          pair[0].click();
+          pair[1].click();
+          await sleep(50);
+          document.getElementById('mjUndo')?.click();
+          await sleep(900);
+          return {
+            matched: true,
+            score: document.getElementById('mjScore')?.textContent ?? null,
+            live: document.getElementById('mjLive')?.textContent ?? null,
+            transientCount: document.querySelectorAll(
+              '.mj-tile-flight, .mj-score-flight, .mj-tray-burst'
+            ).length,
+            comboFxClass: document.getElementById('mjComboFx')?.className ?? null,
+          };
+        })()`);
+      } catch {
+        return null;
+      }
     },
     clickNewtabLayoutSwitcher(name) {
       const tab = tabs.get(getActiveTabId());
@@ -916,7 +1367,7 @@ function install(refs) {
       // acceptance binding exercises the real field-read path, not a copy.
       return readAddressFieldText(wc);
     },
-    addressMenu({ fieldText }) {
+    async addressMenu({ fieldText }) {
       return buildAddressMenu({
         // In the real event Blink reports all-true flags for a focused,
         // populated input; the flag→enabled mapping is unit-tested.
@@ -924,7 +1375,7 @@ function install(refs) {
           canUndo: true, canRedo: true, canCut: true, canCopy: true,
           canPaste: true, canDelete: true, canSelectAll: true,
         },
-        clipboardText: clipboard.readText(),
+        clipboardText: await clipboard.readText(),
         fieldText,
       });
     },
@@ -1147,16 +1598,34 @@ function install(refs) {
         };
       })()`);
     },
-    async quietChromeState(title, id) {
+    async islandDotsState() {
       const chrome = getChromeWebContents();
       if (!chrome) return null;
       return chrome.executeJavaScript(`(() => {
-        const dot = [...document.querySelectorAll('.island-dot')]
-          .find((candidate) => candidate.title === ${JSON.stringify(String(title))});
+        const overflow = document.querySelector('.pill-overflow');
+        return {
+          directCount: document.querySelectorAll('.island-dot').length,
+          directIds: [...document.querySelectorAll('.island-dot')]
+            .map((dot) => dot.dataset.tabId),
+          directTitles: [...document.querySelectorAll('.island-dot')]
+            .map((dot) => dot.title),
+          overflowText: overflow?.textContent ?? '',
+          overflowLabel: overflow?.getAttribute('aria-label') ?? '',
+        };
+      })()`);
+    },
+    async quietChromeState(id) {
+      const chrome = getChromeWebContents();
+      if (!chrome) return null;
+      return chrome.executeJavaScript(`(() => {
+        const dot = document.querySelector(
+          '.island-dot[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
+        );
         const row = document.querySelector(
           '.vertical-tab-row[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
         );
         return {
+          dotPresent: !!dot,
           dotQuiet: !!dot?.classList.contains('asleep'),
           dotPrivate: !!dot?.classList.contains('private'),
           dotLabel: dot?.getAttribute('aria-label') ?? '',
@@ -1164,6 +1633,18 @@ function install(refs) {
           railPrivate: !!row?.classList.contains('private'),
           railLabel: row?.querySelector('.vertical-tab-primary')?.getAttribute('aria-label') ?? '',
         };
+      })()`);
+    },
+    async clickIslandDot(id) {
+      const chrome = getChromeWebContents();
+      if (!chrome) return false;
+      return chrome.executeJavaScript(`(() => {
+        const dot = document.querySelector(
+          '.island-dot[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
+        );
+        if (!dot || dot.getClientRects().length === 0) return false;
+        dot.click();
+        return true;
       })()`);
     },
     async quietRowDimStyles(id) {
@@ -1770,10 +2251,12 @@ function install(refs) {
         homePage: '',
         theme: 'system',
         tabLayout: 'island',
-        newtabLayout: 'ledger',
+        newtabLayout: 'billboard',
         verticalTabsWidth: 248,
-        appIcon: 'paper',
+        appIcon: 'sunrise',
         adblockExceptions: [],
+        onePasswordEnabled: false,
+        onePasswordAccount: '',
         tabSleep: '1h',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not

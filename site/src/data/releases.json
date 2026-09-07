@@ -1,5 +1,901 @@
 [
   {
+    "tag": "v1.15.0",
+    "version": "1.15.0",
+    "name": "1.15.0",
+    "publishedAt": "2026-09-03T01:12:36.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.15.0",
+    "anchor": "v1-15-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Five more Mahjong boards."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Pyramid, Fortress, Butterfly, Bridge, and Cross join Turtle, Arch, and Peaks. Every deal is still solvable by construction, and the Daily deal now rotates through all eight layouts."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A Records sheet"
+                  },
+                  {
+                    "type": "text",
+                    "value": " opens from a new dock control or the R key. It shows boards cleared, your current and longest daily streak, dailies cleared, the best Classic time and Burst score for each board, and the last four weeks of dailies. Everything stays on this device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Pick up where you left off."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A fresh Mahjong tab starts with your last layout, mode, and deal choice, and offers to continue an unfinished board from another tab instead of silently dealing a new one."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Shuffle can be undone."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Shuffle records the board it replaced, so Undo restores it exactly, including from the Burst rescue dialog."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tile faces keep JetBrains Mono."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Character numerals and wind badges return to the bundled monospace at its full ExtraBold weight, while the game's meters and sheets stay in Inter."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Notices float as lacquer pills"
+                  },
+                  {
+                    "type": "text",
+                    "value": " inside the table instead of loose text along its edge, and the desktop control rail now sizes itself to the embedded table so all six controls always fit."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The first clear of a board reads \"first clear\" rather than \"new record\", hints survive arrow-key navigation, Daily layout cards read as disabled, the dead-end notice offers Shuffle, and the daily result appears in the Boards sheet and on the completion card."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong completion totals are counted exactly once, even when a storage write or an old-event prune fails."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.14.0",
+    "version": "1.14.0",
+    "name": "1.14.0",
+    "publishedAt": "2026-09-02T21:36:12.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.14.0",
+    "anchor": "v1-14-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Faster new tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " add a quiet Plus shortcut beside the Island's slash-command keycap. It opens one regular, ungrouped tab and puts the address field immediately in focus."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A calmer resting Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " adopts the website navigation's compact 44px geometry, material surface, and shorter shadow while keeping the existing controls and unified proximity response."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Inter vertical tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " replace the remaining monospaced labels across the rail, including section headings, groups, private markers, and the New tab row."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Vertical-tabs mode no longer reserves an empty shortcut gap when both Island keycaps are hidden on a page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.13.0",
+    "version": "1.13.0",
+    "name": "1.13.0",
+    "publishedAt": "2026-09-02T18:55:29.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.13.0",
+    "anchor": "v1-13-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Frequently visited sites"
+                  },
+                  {
+                    "type": "text",
+                    "value": " make Billboard useful automatically from local browsing history. Ranking and favicon artwork stay on the device, private tabs receive no history-derived row, and each tile can be hidden without deleting history."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Inter start pages"
+                  },
+                  {
+                    "type": "text",
+                    "value": " replace the remaining monospaced typography across Ledger, Billboard, Shelf, Tally, Mahjong, onboarding, and the shared footer."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise branding"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now carries across Blanc's supported platforms and public brand surfaces, with a Windows-specific icon treatment for clearer small taskbar sizes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Simpler macOS icon choices"
+                  },
+                  {
+                    "type": "text",
+                    "value": " retain Sunrise, Sunrise Dark, Paper, and Ink while retiring the other legacy variants."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "One-time presentation reset"
+                  },
+                  {
+                    "type": "text",
+                    "value": " moves every existing profile to Sunrise and Billboard for this release. Users can change either setting afterward, and those choices remain preserved across future updates."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A populated Billboard remains readable and scrollable at Blanc's minimum supported window size instead of pushing its date above the viewport."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.12.0",
+    "version": "1.12.0",
+    "name": "1.12.0",
+    "publishedAt": "2026-09-02T03:16:49.000Z",
+    "humanDate": "September 1, 2026",
+    "machineDate": "2026-09-01",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.12.0",
+    "anchor": "v1-12-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Call audio buffering"
+                  },
+                  {
+                    "type": "text",
+                    "value": " adds Automatic, Stable, and Resilient receive-buffer choices for WebRTC calls. Stable targets about 400 ms for smoother speech, while Resilient targets about 1 second for severe crackling or chopped audio at the cost of slower conversation."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise app icon"
+                  },
+                  {
+                    "type": "text",
+                    "value": " becomes Blanc's default on macOS, with an appearance-aware light variant and a separately selectable Sunrise Dark variant."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Billboard start page"
+                  },
+                  {
+                    "type": "text",
+                    "value": " becomes the default layout for new profiles. Existing layout choices remain unchanged."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reopening Blanc from the Dock after closing every browser window no longer leaves a blank macOS window."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Electron is updated from 44.1.0 to 44.1.1."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.11.1",
+    "version": "1.11.1",
+    "name": "1.11.1",
+    "publishedAt": "2026-09-01T01:51:06.000Z",
+    "humanDate": "August 31, 2026",
+    "machineDate": "2026-08-31",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.11.1",
+    "anchor": "v1-11-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, approving a website's microphone or camera request now also asks for the required system-level access before capture begins. This restores live microphone input for ChatGPT voice and other approved media sites."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's capture indicator now turns on only after both the website permission and the native macOS permission have been granted."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.11.0",
+    "version": "1.11.0",
+    "name": "1.11.0",
+    "publishedAt": "2026-08-31T19:34:52.000Z",
+    "humanDate": "August 31, 2026",
+    "machineDate": "2026-08-31",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.11.0",
+    "anchor": "v1-11-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong is now available as a complete start-page layout. Fresh Mahjong tables begin with the deterministic Daily Peaks board in Burst mode, with scoring, timed combos, automatic clears, hints, shuffle, undo, records, sound controls, and a footer that can be hidden while playing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Local crash diagnostics can now be exported from Settings, and an unclean shutdown offers explicit recovery choices without sending browsing data anywhere."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Certificate failures now use a dedicated Blanc surface with clearer site-trust information instead of falling through to a generic navigation error."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong has a more visual, responsive game experience: clearer rack tiles, dimensional score feedback, board-to-rack movement, stronger match and hint effects, polished dialogs and controls, reduced-motion fallbacks, and layouts that adapt cleanly to smaller windows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's revised B mark now appears consistently across the desktop app, app-icon variants, internal pages, website, favicons, press assets, and social media artwork included in the repository."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The desktop blocker now ships with a verified precompiled seed for faster initialization while retaining the same bundled, hash-pinned filter inputs and fail-closed package checks."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc is now distributed under the MIT License, with generated dependency notices, packaged compliance checks, and a CycloneDX software bill of materials for releases."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "When optional usage measurement is enabled, packaged builds can record one bounded Mahjong-use event and the fixed start-page layouts rendered during an app session. These events contain no URLs, searches, page content, custom text, or game state and are never sent from private tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Electron has been updated to 44.1.0."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong completion actions remain reachable at Blanc's minimum window size, Daily acceptance respects the selected layout, and Undo or Shuffle can no longer leave stale motion or score feedback behind."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows update verification now releases installer handles reliably and avoids rearming the download watchdog while signature verification is in progress."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.10.0",
+    "version": "1.10.0",
+    "name": "1.10.0",
+    "publishedAt": "2026-08-29T18:58:24.000Z",
+    "humanDate": "August 29, 2026",
+    "machineDate": "2026-08-29",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.10.0",
+    "anchor": "v1-10-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, the optional 1Password integration can now show a small key hint when the active page declares a visible current-password field. The bounded local check reads form structure only, never field values or page text, and does not contact 1Password. Filling still begins only when you explicitly choose the hint, use "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "View → Fill Login from 1Password"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Option-Command-P"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or run "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/1password"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The 1Password section in Settings now includes "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Verify"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which saves the entered sign-in email or account ID and confirms the connection through the installed 1Password app."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "1Password setup decisions, errors, and success feedback now appear in a Blanc-styled in-app capsule instead of stock dialogs. When several Login items match, the native picker opens beside the detected login field."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "1Password setup copy now leads with the email address used to sign in to 1Password while continuing to accept an account ID."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "1Password fill attempts now withdraw cleanly when you navigate, switch tabs, open another Blanc surface, or dismiss an authorization prompt, preventing late results from appearing over or filling a page you have left."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The fill capsule now preserves keyboard cancellation, accessible status announcements, and success-message timing while hovered or focused."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.9.1",
+    "version": "1.9.1",
+    "name": "1.9.1",
+    "publishedAt": "2026-08-26T04:29:03.000Z",
+    "humanDate": "August 26, 2026",
+    "machineDate": "2026-08-26",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.9.1",
+    "anchor": "v1-9-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Synced tabs no longer lose their favicons during startup. Blanc now waits for the restored tab snapshot before publishing tab and icon state, while still publishing removals immediately when tab sharing is explicitly turned off."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Sites with unusual favicon setups are handled more reliably, including pages that provide app or touch artwork, large source images, or PNG files served with a generic content type. When a site has no usable image, Blanc shows a domain initial instead of an anonymous gray square."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Permission prompts keep their surrounding surface transparent instead of briefly painting an opaque rectangle over the page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.9.0",
+    "version": "1.9.0",
+    "name": "1.9.0",
+    "publishedAt": "2026-08-25T04:09:19.000Z",
+    "humanDate": "August 25, 2026",
+    "machineDate": "2026-08-25",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.9.0",
+    "anchor": "v1-9-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, Blanc can now fill a login from the installed 1Password app when you explicitly ask it to. Enable the device-local option in Settings, then use Option-Command-P, View → Fill Login from 1Password, or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/1password"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Blanc never fills automatically, and Windows and Linux do not expose the integration."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's app icons now use a stronger, more legible mark across macOS, Windows, Linux, iOS, the start page, Settings colorways, and exported artwork."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The browser engine has been updated to Electron 44 and its current Chromium release."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Quiet tabs remain represented in the Island's tab dots, preserving their normal order and click-to-wake behavior while using a calm dimmed treatment."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.8.2",
     "version": "1.8.2",
     "name": "1.8.2",

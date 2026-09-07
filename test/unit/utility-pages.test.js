@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { UTILITY_PAGES, isUtilityUrl } = require('../../src/main/utility-pages');
+const { KNOWN_PAGES, UTILITY_PAGES, isUtilityUrl } = require('../../src/main/utility-pages');
 
 test('isUtilityUrl: utility hosts match, with paths and queries', () => {
   assert.equal(isUtilityUrl('blanc://bookmarks/'), true);
@@ -28,4 +28,13 @@ test('isUtilityUrl: non-utility internal pages and other schemes do not match', 
 test('UTILITY_PAGES is exactly the six sheet pages', () => {
   assert.deepEqual([...UTILITY_PAGES].sort(),
     ['bookmarks', 'downloads', 'history', 'settings', 'shortcuts', 'tab-import']);
+});
+
+test('mahjong is a known page but never a utility page', () => {
+  assert.ok(KNOWN_PAGES.has('mahjong'));
+  assert.equal(UTILITY_PAGES.has('mahjong'), false);
+  assert.equal(isUtilityUrl('blanc://mahjong/'), false);
+  assert.equal(isUtilityUrl('blanc://mahjong/?private=1'), false);
+  // Every utility page is also a known page — the two sets must not drift.
+  for (const page of UTILITY_PAGES) assert.ok(KNOWN_PAGES.has(page));
 });

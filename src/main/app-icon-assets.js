@@ -2,10 +2,26 @@
 // `scripts/after-pack-app-icons.js` compiles these into one Assets.car; the
 // runtime selects the named icon stack without flattening it, so macOS remains
 // free to render Default, Dark, Clear, or Tinted (including the user's tint).
-// Keep ids aligned with settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS.
+// Keep ids aligned with settings.js APP_ICON_LABELS.
 module.exports = {
-  paper: {
+  sunrise: {
     nativeName: 'Icon',
+    background: '#F7F0E5',
+    darkBackground: '#1C1A16',
+    imageName: 'sunrise-mark.png',
+    preserveColor: true,
+    layerName: 'Sunrise',
+  },
+  'sunrise-dark': {
+    nativeName: 'SunriseDark',
+    background: '#1C1A16',
+    darkBackground: '#1C1A16',
+    imageName: 'sunrise-mark.png',
+    preserveColor: true,
+    layerName: 'Sunrise',
+  },
+  paper: {
+    nativeName: 'Paper',
     background: '#FFFFFF',
     foreground: '#0E0E0E',
     darkForeground: '#F4F4F4',
@@ -15,59 +31,5 @@ module.exports = {
     background: '#0D0D0D',
     foreground: '#F4F4F4',
     darkForeground: '#F4F4F4',
-  },
-  graphite: {
-    nativeName: 'Graphite',
-    background: '#626262',
-    foreground: '#F4F4F4',
-    darkForeground: '#F4F4F4',
-  },
-  default: {
-    nativeName: 'Evergreen',
-    background: '#2F4639',
-    foreground: '#F4F4F1',
-    darkForeground: '#F4F4F1',
-  },
-  midnight: {
-    nativeName: 'Midnight',
-    background: '#141815',
-    foreground: '#44604F',
-    darkForeground: '#6B9080',
-  },
-  cream: {
-    nativeName: 'Cream',
-    background: '#F7F5EE',
-    foreground: '#2F4639',
-    darkForeground: '#F7F5EE',
-  },
-  forest: {
-    nativeName: 'Forest',
-    background: '#1F251F',
-    foreground: '#6B9080',
-    darkForeground: '#6B9080',
-  },
-  sage: {
-    nativeName: 'Sage',
-    background: '#6B9080',
-    foreground: '#FFFFFF',
-    darkForeground: '#FFFFFF',
-  },
-  ember: {
-    nativeName: 'Ember',
-    background: '#824C3B',
-    foreground: '#F6EDE4',
-    darkForeground: '#F6EDE4',
-  },
-  plum: {
-    nativeName: 'Plum',
-    background: '#4A3B52',
-    foreground: '#E6DFEE',
-    darkForeground: '#E6DFEE',
-  },
-  gold: {
-    nativeName: 'Gold',
-    background: '#201B10',
-    foreground: '#C2A566',
-    darkForeground: '#C2A566',
   },
 };

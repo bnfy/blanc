@@ -1,12 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import '@fontsource-variable/newsreader/opsz-italic.css';
 import BrandMark from '../components/BrandMark.astro';
 import PressIslandDemo from '../components/PressIslandDemo.astro';
 import MemoryChart from '../components/MemoryChart.astro';
 import slashCommandCopy from '../../../copy/slash-commands.json';
 import releaseData from '../data/releases.json';
+import { version } from '../../../package.json';
 
-const VERSION = '1.8.2';
+const VERSION = version;
 const TAG = `v${VERSION}`;
 /* Wherever this page states a version and a date together, the date is that
    version's own ship date — read from the generated changelog data rather than
@@ -40,9 +42,25 @@ const RELEASE_URL = `${RELEASE_BASE}/tag/${TAG}`;
 const MAC_REVIEW_URL = `${RELEASE_BASE}/download/${TAG}/Blanc-${VERSION}-arm64.dmg`;
 const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
 const DOWNLOAD_OPTIONS_URL = '/download#download-options';
-const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%201.0%20press%20request';
+const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%20press%20request';
 
 const proofPoints = [
+  {
+    label: 'Five Start Page layouts',
+    detail: 'Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard uses local frequent sites; Mahjong includes eight boards, rotating Daily deals, and device-local records.',
+  },
+  {
+    label: 'A reference beside your page',
+    detail: 'Glance temporarily displays another tab from the current window beside the main page, with resize, swap, change, and close controls.',
+  },
+  {
+    label: 'Separate identities and saved sets',
+    detail: 'Local profiles and independent windows separate browsing contexts. Patron adds creation of device-local Named Workspaces for saved sets of tabs and groups.',
+  },
+  {
+    label: 'A second chance after closing',
+    detail: 'Recently Closed is a bounded per-window undo history for ordinary tabs and groups. Eligible pages can briefly return without reloading; private tabs are excluded.',
+  },
   {
     label: 'Built-in network blocking',
     detail: 'Blanc stops ads, trackers, and fingerprinting requests at the network layer—no extension required.',
@@ -66,26 +84,29 @@ const proofPoints = [
 ];
 
 const comparison = [
-  ['Always on screen', 'Tab strip + toolbar', 'Chat or agent surface', 'One Island, expanded on demand'],
+  ['Always on screen', 'Tab strip + toolbar', 'Chat or agent surface', 'One island, expanded on demand'],
   ['Who drives', 'You navigate', 'Software may act for you', 'You stay in control'],
   ['Cost model', 'Varies by vendor', 'Often subscription access', 'Free browser + optional Patron support'],
   ['Ad and tracker protection', 'Often added by extension', 'Not usually the focus', 'Built into the network layer'],
   ['Default experience', 'Controls surround the page', 'An agent joins the task', 'The website stays center stage'],
 ];
 
-const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entry);
+const slashCommands = slashCommandCopy.commands.map((entry) => ({
+  ...(entry.doc ?? entry),
+  platforms: entry.platforms,
+}));
 ---
 <BaseLayout
-  title="Blanc Press Kit — Independent Browser Launch"
-  description="Press materials for Blanc, the free independent browser that replaces browser clutter with one compact Island and puts websites back at center stage."
+  title="Blanc Browser Press Kit — Screenshots, Facts, and Review Assets"
+  description="Download current Blanc Browser screenshots, product facts, release verification links, benchmark data, and press contact information."
   path="/press"
   page="press"
   header="legal"
   analytics={false}
-  ogTitle="Blanc replaces browser clutter with one small Island"
+  ogTitle="Blanc replaces browser clutter with one small island"
   ogDescription="No permanent tab row, no required account, and no built-in AI agent. Blanc is free for macOS, Windows, and Linux."
-  ogImage="/press/blanc-1.0-launch-card-v3.png"
-  ogImageAlt={`Blanc ${VERSION} press kit: the browser in one small Island.`}
+  ogImage="/press/blanc-press-card.png"
+  ogImageAlt="Blanc press kit: the browser in one small island."
 >
 <main class="press-page">
   <header class="press-masthead">
@@ -98,9 +119,9 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
 
   <section class="press-hero" aria-labelledby="press-title">
     <div class="press-hero-copy">
-      <p class="section-kicker">Blanc {VERSION} · independent browser</p>
-      <h1 id="press-title">Blanc replaces browser clutter with one small Island.</h1>
-      <p>No permanent tab row, no required account, and no AI assistant competing for attention. Open the Island when you need it; give the rest of the window back to the web.</p>
+      <p class="section-kicker">Blanc press kit · independent browser</p>
+      <h1 id="press-title">Blanc replaces browser clutter with one small island.</h1>
+      <p>No permanent tab row, no required account, and no AI assistant competing for attention. Open the island when you need it; give the rest of the window back to the web.</p>
       <div class="press-actions" aria-label="Press actions">
         <a class="press-primary-action" href={DOWNLOAD_OPTIONS_URL}>download Blanc to review</a>
         <a class="press-secondary-action" href="#announcement">read the launch story <span aria-hidden="true">→</span></a>
@@ -108,7 +129,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       </div>
     </div>
     <dl class="press-release-meta">
-      <div><dt>release</dt><dd>Blanc {VERSION}</dd></div>
+      <div><dt>current release</dt><dd>Blanc {RELEASE_VERSION}</dd></div>
       <div><dt>date</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
       <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
       <div><dt>release files</dt><dd>macOS: DMG + ZIP · Windows: EXE · Linux: AppImage</dd></div>
@@ -118,10 +139,10 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
   <section class="press-product" id="product" aria-labelledby="press-product-title">
     <div class="press-product-heading">
       <div>
-        <p class="section-kicker">try the Island</p>
+        <p class="section-kicker">try the island</p>
         <h2 id="press-product-title">Open it when you need it. Get it out of the way when you don’t.</h2>
       </div>
-      <p>Use this enlarged recreation exactly as a reader would: open the Island, search, switch tabs, choose a named group, then press Escape and let the website take over again.</p>
+      <p>Use this enlarged recreation exactly as a reader would: open the island, search, switch tabs, choose a named group, then press Escape and let the website take over again.</p>
     </div>
 
     <PressIslandDemo />
@@ -150,7 +171,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
             <th scope="col"><span class="sr-only">Dimension</span></th>
             <th scope="col">Traditional browser</th>
             <th scope="col">Agent browser</th>
-            <th scope="col">Blanc {VERSION}</th>
+            <th scope="col">Blanc</th>
           </tr>
         </thead>
         <tbody>
@@ -159,7 +180,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
               <th scope="row">{dimension}</th>
               <td data-label="Traditional browser">{traditional}</td>
               <td data-label="Agent browser">{agent}</td>
-              <td data-label={`Blanc ${VERSION}`}>{blanc}</td>
+              <td data-label="Blanc">{blanc}</td>
             </tr>
           ))}
         </tbody>
@@ -179,7 +200,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
     <div class="press-newsroom-heading">
       <div>
         <p class="section-kicker">press assets</p>
-        <h2 id="press-newsroom-title">Make the Island the lead image.</h2>
+        <h2 id="press-newsroom-title">Make the island the lead image.</h2>
       </div>
       <p>Download high-resolution product imagery, launch artwork, and the Blanc mark. Each visual shows the real interface without turning another website’s brand into the story.</p>
     </div>
@@ -187,22 +208,22 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
     <div class="press-asset-showcase">
       <figure class="press-primary-asset">
         <a href="/press/blanc-island-product-capture-v2.png" download>
-          <img src="/press/blanc-island-product-capture-v2.png" width="2784" height="1824" alt="A high-resolution Blanc window showing the expanded Island above an original brand-neutral photograph of a sunlit reading room." />
+          <img src="/press/blanc-island-product-capture-v2.png" width="2784" height="1824" alt="A high-resolution Blanc window showing the expanded island above an original brand-neutral photograph of a sunlit reading room." />
         </a>
         <figcaption>
-          <span><strong>Primary product capture</strong> Lead with the expanded Island over original, brand-neutral editorial photography.</span>
+          <span><strong>Primary product capture</strong> Lead with the expanded island over original, brand-neutral editorial photography.</span>
           <a href="/press/blanc-island-product-capture-v2.png" download>download PNG · 2784 × 1824</a>
         </figcaption>
       </figure>
 
       <div class="press-secondary-assets">
         <figure class="press-launch-card">
-          <a href="/press/blanc-1.0-launch-card-v3.png" download>
-            <img src="/press/blanc-1.0-launch-card-v3.png" width="2400" height="1260" alt={`Blanc ${VERSION} launch card with the Blanc mark, the statement 'The browser in one small Island,' and the brand-neutral Island product capture.`} />
+          <a href="/press/blanc-press-card.png" download>
+            <img src="/press/blanc-press-card.png" width="2400" height="1260" alt="Blanc press card with the Blanc mark, the statement 'The browser in one small island,' and the brand-neutral island product capture." />
           </a>
           <figcaption>
-            <span><strong>Launch card</strong> Ready for social posts, newsletters, and story previews.</span>
-            <a href="/press/blanc-1.0-launch-card-v3.png" download>download PNG · 2400 × 1260</a>
+            <span><strong>Press card</strong> Ready for social posts, newsletters, and story previews.</span>
+            <a href="/press/blanc-press-card.png" download>download PNG · 2400 × 1260</a>
           </figcaption>
         </figure>
 
@@ -227,7 +248,23 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       </div>
     </aside>
 
-    <p class="press-assets-contact">Need a different crop, background, or product state? <a href={PRESS_REQUEST_URL}>Ask Anthony J. Loria directly.</a></p>
+    <p class="press-assets-contact">Need a different crop, background, or product state? <!--email_off--><a href={PRESS_REQUEST_URL}>Ask Anthony J. Loria directly.</a><!--/email_off--></p>
+  </section>
+
+  <section class="press-newsroom" aria-labelledby="press-feature-captures-title">
+    <div class="press-newsroom-heading"><div><p class="section-kicker">current product captures</p><h2 id="press-feature-captures-title">More of the browser, ready to show.</h2></div><p>Captured from the signed public v1.15.0 macOS app with an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.</p></div>
+    <div class="layout-gallery press-feature-gallery">
+      {[
+        ['billboard', 'Billboard', 'A clock and frequent sites derived from local browsing history.'],
+        ['mahjong', 'Mahjong', 'Turtle in Classic mode, one of eight solvable-by-construction boards in the start page.'],
+        ['glance', 'Glance', 'Two ordinary tabs sharing one window.'],
+        ['workspaces', 'Named Workspaces', 'The switcher with saved sets of tabs and groups.'],
+        ['profiles', 'Local profiles', 'Settings with Personal and a separate named profile.'],
+        ['reopen-closed-tabs', 'Recently Closed', 'A recently closed tab and a group, ready to reopen.'],
+      ].map(([slug, title, description]) => (
+        <figure><a href={`/feature-captures/${slug}.png`} download><img src={`/feature-captures/${slug}.png`} width="1440" height="900" loading="lazy" decoding="async" alt={description} /></a><figcaption><strong>{title}.</strong> {description} <a href={`/feature-captures/${slug}.png`} download>Download PNG · 1440 × 900</a></figcaption></figure>
+      ))}
+    </div>
   </section>
 
   <section class="press-announcement" id="announcement" aria-labelledby="press-announcement-title">
@@ -240,7 +277,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <p class="press-announcement-dateline"><span>New York · August 2, 2026</span><span>For immediate release</span></p>
       <p class="press-announcement-lead">Bananify today released Blanc 1.0, a free independent browser for macOS, Windows, and Linux built around one simple conviction: the website should be the main event.</p>
       <p>Bananify founder Anthony J. Loria created Blanc after watching the browser itself become increasingly difficult to ignore. Permanent controls, crowded tab rows, sidebars, recommendations, AI assistants, and a growing list of extras now compete with the reason people opened the browser in the first place.</p>
-      <p>Blanc takes the opposite approach. Navigation, tabs, named groups, and commands gather inside one small Island that expands only when called. Finish the task and the Island gets out of the way, leaving the page—not the browser—at center stage.</p>
+      <p>Blanc takes the opposite approach. Navigation, tabs, named groups, and commands gather inside one small island that expands only when called. Finish the task and the island gets out of the way, leaving the page—not the browser—at center stage.</p>
       <p class="press-announcement-manifesto">No more crowded tab-row anxiety. Every open tab stays within reach without occupying the top of every window all day.</p>
       <p>The result is a throwback in spirit, not capability: the direct, open feeling of the earlier web paired with protections people now expect. Blanc blocks ads, trackers, and fingerprinting requests at the network layer. Private tabs stay out of history and are not restored later. Sync is optional and end-to-end encrypted.</p>
       <p>At a time when fewer companies control more of people&rsquo;s data and attention, Blanc makes a deliberately different trade: no required account, no extension marketplace, and no built-in assistant acting while you browse.</p>
@@ -260,7 +297,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
     <div>
       <p class="section-kicker">fact sheet</p>
       <h2 id="press-facts-title">Blanc, at a glance.</h2>
-      <p>Blanc is a free independent browser from Bananify that replaces the permanent tab strip and toolbar with one expandable Island, leaving the page at center stage.</p>
+      <p>Blanc is a free independent browser from Bananify that replaces the permanent tab strip and toolbar with one expandable island, leaving the page at center stage.</p>
     </div>
     <div class="press-fact-groups">
       <!-- "current release", not "launch": these rows track whatever version is
@@ -278,12 +315,18 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <section class="press-fact-group" aria-labelledby="press-facts-product">
         <h3 id="press-facts-product">product</h3>
         <dl class="press-fact-grid">
-          <div><dt>primary interface</dt><dd>One Island for navigation, tabs, groups, and commands</dd></div>
+          <div><dt>primary interface</dt><dd>One island for navigation, tabs, groups, and commands</dd></div>
           <div><dt>engine</dt><dd>Chromium through Electron</dd></div>
           <div><dt>blocking</dt><dd>Built into the network layer; no extension required</dd></div>
           <div><dt>private tabs</dt><dd>Excluded from history, recently closed tabs, and the next launch</dd></div>
           <div><dt>account</dt><dd>Not required</dd></div>
           <div><dt>sync</dt><dd>Optional and end-to-end encrypted</dd></div>
+          <div><dt>start page</dt><dd>Ledger, Billboard, Shelf, Tally, and Mahjong; Billboard frequent sites stay local</dd></div>
+          <div><dt>Mahjong</dt><dd>Eight boards, rotating Daily deals, local records and streaks, cross-tab continuation, and undoable Shuffle</dd></div>
+          <div><dt>Glance</dt><dd>A temporary reference pane using tabs from the current window and profile</dd></div>
+          <div><dt>profiles and windows</dt><dd>Local browsing identities with independent windows; Profile Sync is Personal-only</dd></div>
+          <div><dt>Recently Closed</dt><dd>Per-window recovery for ordinary tabs and groups; time-limited, memory-only, and may reload</dd></div>
+          <div><dt>Named Workspaces</dt><dd>Patron creation of device-local, profile-scoped saved tab and group sets; existing sets remain usable after membership lapses</dd></div>
           <div><dt>built-in AI agent</dt><dd>None</dd></div>
           <div><dt>extension marketplace</dt><dd>Not supported</dd></div>
         </dl>
@@ -295,7 +338,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
           <div><dt>publisher</dt><dd>Bananify</dd></div>
           <div><dt>creator</dt><dd>Anthony J. Loria</dd></div>
           <div><dt>price</dt><dd>Free; all core browsing features included</dd></div>
-          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; three macOS Dock colorways and named workspaces on every platform</dd></div>
+          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; named workspaces on every platform</dd></div>
         </dl>
       </section>
     </div>
@@ -321,7 +364,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
               {slashCommands.map((entry) => (
                 <div>
                   <dt><code>{entry.command}</code></dt>
-                  <dd>{entry.hint}</dd>
+                  <dd>{entry.hint}{entry.platforms?.includes('macos') ? ' · macOS only' : ''}</dd>
                 </div>
               ))}
             </dl>
@@ -331,6 +374,10 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <li><span>02</span><p><strong>Organize a real project.</strong> Open a few related tabs and type <code>/group research</code>. Use <code>/pin</code> for a tab you need nearby, <code>/ungroup</code> to pull one out, or <code>/close-group</code> when the task is finished.</p></li>
       <li><span>03</span><p><strong>Handle everyday browsing.</strong> Try <code>/new</code>, <code>/private</code>, and <code>/find</code>. Type <code>/save reading</code> to add the current page to a Favorites folder named “reading.”</p></li>
       <li><span>04</span><p><strong>Control Blanc without menu hunting.</strong> Use <code>/block-ads</code> to toggle blocking, <code>/allow-ads</code> to exempt the current site, <code>/theme dark</code> to change appearance, and <code>/settings</code> to see every device-level choice.</p></li>
+      <li><span>05</span><p><strong>Choose a starting point.</strong> Open a new tab and try the five footer layouts. In <a href="/features/start-page">Mahjong</a>, try a Daily board and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.</p></li>
+      <li><span>06</span><p><strong>Keep a reference in view.</strong> Open two ordinary tabs, press Cmd/Ctrl+Shift+G, and pick one for <a href="/features/glance">Glance</a>. Resize the divider and try Make main.</p></li>
+      <li><span>07</span><p><strong>Undo a close.</strong> Close an ordinary tab or named group, then pick it in Recently Closed or press Cmd/Ctrl+Shift+T. <a href="/features/reopen-closed-tabs">Recovery is bounded</a> and may reload the page.</p></li>
+      <li><span>08</span><p><strong>Separate identities and sets.</strong> Create a <a href="/features/profiles">named local profile</a> in Settings. With active Patron, save a tab/group set through <code>/workspace</code> and switch to another <a href="/features/workspaces">Named Workspace</a>.</p></li>
     </ol>
   </section>
 
@@ -340,21 +387,21 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <h2 id="press-boundaries-title">What Blanc deliberately leaves out.</h2>
     </div>
     <div class="press-boundary-grid">
-      <p><strong>No extension marketplace.</strong> Ad and tracker blocking is built in, but third-party extensions—including password-manager extensions—are unavailable.</p>
+      <p><strong>No extension marketplace.</strong> Ad and tracker blocking is built in, but third-party extensions remain unavailable. Optional macOS 1Password login fill is a narrow, user-invoked SDK bridge to the installed 1Password app—not an extension runtime or a Blanc password store.</p>
       <p><strong>No built-in agent.</strong> Blanc does not place an assistant between you and the websites you choose to visit.</p>
-      <p><strong>No growth-at-all-costs business model.</strong> Anthony J. Loria builds Blanc independently through Bananify. The browser is free; an optional Blanc Patron subscription funds the work and adds three macOS Dock colorways plus named workspaces on every platform.</p>
+      <p><strong>No growth-at-all-costs business model.</strong> Anthony J. Loria builds Blanc independently through Bananify. The browser is free; an optional Blanc Patron subscription funds the work and adds named workspaces on every platform.</p>
     </div>
   </aside>
 
   <section class="press-contact" aria-labelledby="press-contact-title">
     <p class="section-kicker">get the launch story</p>
     <h2 id="press-contact-title">Talk directly to the person who built Blanc.</h2>
-    <p><strong>Anthony J. Loria</strong><br />Creator of Blanc · Bananify<br /><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a></p>
+    <p><strong>Anthony J. Loria</strong><br />Creator of Blanc · Bananify<br /><!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--></p>
     <p>Request an interview, fact-check a claim, troubleshoot a review build, or ask for a custom product capture. Every press inquiry reaches Anthony J. Loria directly.</p>
     <div class="press-contact-links">
       <a href={RELEASE_URL}>release notes</a>
       <a href={CHECKSUM_URL}>SHA-256 manifest</a>
-      <a href={PRESS_REQUEST_URL}>request press files</a>
+      <!--email_off--><a href={PRESS_REQUEST_URL}>request press files</a><!--/email_off-->
     </div>
   </section>
 </main>

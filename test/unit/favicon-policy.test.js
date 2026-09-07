@@ -281,6 +281,30 @@ test('document-ready supplies the declared favicon when Chromium emitted no icon
   ]);
 });
 
+test('document-ready falls through a broken ordinary icon to touch artwork', async () => {
+  const tab = { id: 'fallbacks', url: 'https://example.com/', favicon: null, faviconSource: null };
+  const calls = [];
+  await updateFaviconAfterDomReady(tab, {
+    executeJavaScript: async () => [
+      { href: 'https://example.com/broken.png', rel: 'icon', sizes: '32x32', type: 'image/png' },
+      { href: 'https://example.com/touch.png', rel: 'apple-touch-icon', sizes: '180x180', type: 'image/png' },
+    ],
+  }, {
+    setTabFavicon: async (record, source) => {
+      calls.push(source);
+      if (source.endsWith('/touch.png')) {
+        record.faviconSource = source;
+        record.favicon = 'data:image/png;base64,working';
+      }
+      return true;
+    },
+  });
+  assert.deepEqual(calls, [
+    'https://example.com/broken.png',
+    'https://example.com/touch.png',
+  ]);
+});
+
 test('declared page favicon fallback is bounded and failure-safe', async () => {
   assert.deepEqual(await declaredPageFavicons({ executeJavaScript: async () => ['https://example.com/icon.png'] }), [
     'https://example.com/icon.png',

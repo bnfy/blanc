@@ -72,6 +72,7 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 }));
 
 const sync = require('../../src/main/sync');
+sync.setTabStateReady(true);
 
 test('an in-flight trigger runs one follow-up pass after releasing the guard', async () => {
   const first = sync.syncNow(['session']);

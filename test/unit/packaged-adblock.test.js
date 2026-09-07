@@ -7,24 +7,26 @@ const path = require('node:path');
 const test = require('node:test');
 const { createPackage } = require('@electron/asar');
 const {
+  FILES,
   archiveMemberPath,
   verifyPackagedAdblock,
 } = require('../../scripts/verify-packaged-adblock');
 
 const ROOT = path.resolve(__dirname, '../..');
-const SOURCE_DIR = path.join(ROOT, 'adblock/sources');
-
 async function fixture({ crlf = false } = {}) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-packaged-adblock-'));
-  const input = path.join(temp, 'input/adblock/sources');
-  fs.mkdirSync(input, { recursive: true });
-  for (const file of ['pinned.json', 'easylist.txt', 'easyprivacy.txt']) {
-    let bytes = fs.readFileSync(path.join(SOURCE_DIR, file));
-    if (crlf) bytes = Buffer.from(bytes.toString('utf8').replaceAll('\n', '\r\n'));
-    fs.writeFileSync(path.join(input, file), bytes);
+  const input = path.join(temp, 'input');
+  for (const relative of FILES) {
+    const target = path.join(input, relative);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    let bytes = fs.readFileSync(path.join(ROOT, relative));
+    if (crlf && relative.endsWith('easylist.txt')) {
+      bytes = Buffer.from(bytes.toString('utf8').replaceAll('\n', '\r\n'));
+    }
+    fs.writeFileSync(target, bytes);
   }
   const asarPath = path.join(temp, 'app.asar');
-  await createPackage(path.join(temp, 'input'), asarPath);
+  await createPackage(input, asarPath);
   return { asarPath, temp };
 }
 

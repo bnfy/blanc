@@ -1,0 +1,108 @@
+// Locally synthesized Mahjong cues. AudioContext is created lazily on the
+// first user-triggered cue; there are no audio assets, network requests, or
+// startup sounds. The factory is exported for Node unit tests.
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'mahjong.sound';
+  // [start offset, frequency, duration, peak gain, oscillator type]
+  const CUES = Object.freeze({
+    select: [[0, 190, 0.035, 0.07, 'triangle']],
+    tray: [[0, 245, 0.045, 0.08, 'triangle'], [0.028, 305, 0.055, 0.07, 'sine']],
+    pair: [[0, 220, 0.055, 0.13, 'triangle'], [0.045, 330, 0.07, 0.11, 'triangle']],
+    comboStep: [[0, 392, 0.07, 0.085, 'triangle'], [0.052, 523.25, 0.1, 0.085, 'sine'], [0.108, 659.25, 0.13, 0.075, 'sine']],
+    comboFlowing: [[0, 392, 0.1, 0.09, 'triangle'], [0.07, 523.25, 0.14, 0.09, 'sine'], [0.14, 659.25, 0.18, 0.09, 'sine'], [0.22, 783.99, 0.22, 0.075, 'sine']],
+    comboBrilliant: [[0, 392, 0.12, 0.09, 'triangle'], [0.06, 523.25, 0.15, 0.09, 'sine'], [0.12, 659.25, 0.19, 0.095, 'sine'], [0.19, 783.99, 0.24, 0.085, 'sine'], [0.28, 1046.5, 0.28, 0.07, 'sine']],
+    comboMasterful: [[0, 329.63, 0.14, 0.085, 'triangle'], [0.05, 440, 0.16, 0.09, 'triangle'], [0.1, 523.25, 0.2, 0.095, 'sine'], [0.17, 659.25, 0.24, 0.09, 'sine'], [0.25, 880, 0.3, 0.08, 'sine'], [0.34, 1174.66, 0.34, 0.07, 'sine']],
+    autoClear: [[0, 698.46, 0.12, 0.08, 'sine'], [0.055, 987.77, 0.18, 0.075, 'sine'], [0.12, 1318.51, 0.22, 0.07, 'sine']],
+    blocked: [[0, 105, 0.06, 0.08, 'triangle']],
+    undo: [[0, 330, 0.055, 0.09, 'triangle'], [0.045, 220, 0.07, 0.09, 'triangle']],
+    hint: [[0, 520, 0.08, 0.07, 'sine'], [0.07, 660, 0.1, 0.07, 'sine']],
+    deal: [[0, 170, 0.04, 0.08, 'triangle'], [0.035, 210, 0.04, 0.08, 'triangle'], [0.07, 255, 0.055, 0.08, 'triangle']],
+    shuffle: [[0, 170, 0.045, 0.07, 'triangle'], [0.04, 245, 0.05, 0.08, 'triangle'], [0.08, 205, 0.05, 0.08, 'triangle'], [0.12, 295, 0.075, 0.09, 'triangle']],
+    rescue: [[0, 146.83, 0.16, 0.09, 'sine'], [0.105, 110, 0.24, 0.08, 'triangle']],
+    win: [[0, 392, 0.24, 0.1, 'sine'], [0.12, 523.25, 0.28, 0.1, 'sine'], [0.24, 659.25, 0.36, 0.11, 'sine']],
+    toggle: [[0, 440, 0.08, 0.08, 'sine']],
+  });
+
+  function createMahjongSound({ AudioContextClass, storage } = {}) {
+    let context = null;
+    let enabled = true;
+    try { enabled = storage?.getItem(STORAGE_KEY) !== 'off'; } catch { /* default on */ }
+
+    function ensureContext() {
+      if (!AudioContextClass) return null;
+      try {
+        if (context?.state === 'closed') context = null;
+        if (!context) context = new AudioContextClass();
+        if (context.state === 'suspended') {
+          Promise.resolve(context.resume()).catch(() => {});
+        }
+        return context;
+      } catch {
+        return null;
+      }
+    }
+
+    function discardContext() {
+      const discarded = context;
+      context = null;
+      if (!discarded || discarded.state === 'closed') return;
+      try { Promise.resolve(discarded.close()).catch(() => {}); } catch { /* already gone */ }
+    }
+
+    function play(name, { semitones = 0 } = {}) {
+      const cue = CUES[name];
+      if (!enabled || !cue) return false;
+      const transpose = Number.isFinite(semitones)
+        ? Math.pow(2, Math.max(-12, Math.min(12, semitones)) / 12)
+        : 1;
+      const audio = ensureContext();
+      if (!audio) return false;
+
+      try {
+        const now = audio.currentTime;
+        for (const [offset, frequency, duration, peak, type] of cue) {
+          const start = now + offset;
+          const oscillator = audio.createOscillator();
+          const gain = audio.createGain();
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(frequency * transpose, start);
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.exponentialRampToValueAtTime(peak, start + 0.006);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+          oscillator.connect(gain);
+          gain.connect(audio.destination);
+          oscillator.start(start);
+          oscillator.stop(start + duration + 0.01);
+        }
+        return true;
+      } catch {
+        // Audio is optional: a partially failed graph must never interrupt a
+        // game interaction or leave scheduled nodes around for a later cue.
+        discardContext();
+        return false;
+      }
+    }
+
+    function setEnabled(next) {
+      enabled = !!next;
+      try { storage?.setItem(STORAGE_KEY, enabled ? 'on' : 'off'); } catch { /* session only */ }
+      // Closing rather than suspending cancels scheduled tails and avoids an
+      // asynchronous off/on race that can leave an enabled context paused.
+      if (!enabled) discardContext();
+      return enabled;
+    }
+
+    return { isEnabled: () => enabled, setEnabled, play };
+  }
+
+  const exports = { CUES, STORAGE_KEY, createMahjongSound };
+  if (typeof module !== 'undefined' && module.exports) module.exports = exports;
+  else {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let storage;
+    try { storage = window.localStorage; } catch { /* preference stays in memory */ }
+    window.MahjongSound = createMahjongSound({ AudioContextClass, storage });
+  }
+})();

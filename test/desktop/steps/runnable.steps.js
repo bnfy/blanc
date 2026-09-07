@@ -41,6 +41,25 @@ Given('a group {string} with 1 tab', async function (name) {
   await this.call('groupActiveByName', name);
 });
 
+Given('a standalone pinned tab', async function () {
+  // reset() already provides one loose blank tab. Reuse it so the scenario's
+  // declared topology is exact rather than silently carrying an extra tab.
+  const id = (await this.state()).activeTabId;
+  assert.ok(id, 'the reset window should start with an active tab');
+  await this.call('pinTab', id);
+  ctx.standalonePinnedTabId = id;
+});
+
+Given('a group {string} with {int} tabs', async function (name, count) {
+  ctx.groupMembers ??= {};
+  ctx.groupMembers[name] = [];
+  for (let index = 1; index <= count; index += 1) {
+    const id = await openNamed(this, `${name}-${index}`);
+    await this.call('groupTabByName', id, name);
+    ctx.groupMembers[name].push(id);
+  }
+});
+
 Given('history has at least one entry', async function () { await this.call('seedHistory'); });
 
 Given('there is no active supporter license', async function () { await this.call('clearSupporter'); });
@@ -63,6 +82,13 @@ When('I close that tab', async function () {
 });
 
 When('I reopen the last closed tab', async function () { await this.call('reopenClosed'); });
+
+When('I activate a tab in group {string}', async function (name) {
+  const id = ctx.groupMembers?.[name]?.[0];
+  assert.ok(id, `group ${name} should have a test member`);
+  await this.call('activateTab', id);
+  await this.waitForState((state) => state.activeTabId === id);
+});
 
 // ---- F2-6: group close is one undo step ----
 
@@ -237,6 +263,17 @@ Then('{string} is marked pinned', async function (name) {
   const s = await this.state();
   const t = s.tabs.find((x) => x.id === ctx.tabByName[name]);
   assert.ok(t && t.pinned === true, `${name} should be pinned`);
+});
+
+Then('the island shows {int} direct tab dots', async function (count) {
+  const dots = await this.call('islandDotsState');
+  assert.strictEqual(dots.directCount, count, JSON.stringify(dots));
+});
+
+Then('the island shows {int} more tabs', async function (count) {
+  const dots = await this.call('islandDotsState');
+  assert.strictEqual(dots.overflowText, `+${count}`, JSON.stringify(dots));
+  assert.match(dots.overflowLabel, new RegExp(`^${count} more tabs? — open the list$`));
 });
 
 Then('{string} is shown inside the group {string}', async function (tabName, groupName) {

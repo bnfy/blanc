@@ -17,9 +17,20 @@ function pageBody(req) {
       `const key='acceptance-load-count';` +
       `sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key)||0)+1));` +
       `</script>`;
+  // 1Password ambient-hint fixtures (F38): a login form variant selected by
+  // ?loginform= — authoritative hints, contradicted/invisible must not.
+  const loginVariant = /[?&]loginform=([a-z]+)/.exec(raw)?.[1];
+  const loginForm = loginVariant === 'authoritative'
+    ? '<form><input type="text" autocomplete="username"><input type="password" autocomplete="current-password"></form>'
+    : loginVariant === 'contradicted'
+      ? '<form><input type="password" autocomplete="current-password new-password"></form>'
+      : loginVariant === 'invisible'
+        ? '<form><input type="password" autocomplete="current-password" style="opacity:0"></form>'
+        : '';
   return (
     `<!doctype html><html><head><meta charset="utf-8"><title>${name}</title></head>` +
     `<body><h1>${name}</h1><p>widget widget widget</p>` +
+    loginForm +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +
     `<input id="acceptance-check" type="checkbox" aria-label="Unsaved checkbox">` +
     `<form id="acceptance-post" method="post"><button type="submit">Post</button></form>` +

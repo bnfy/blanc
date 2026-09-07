@@ -263,6 +263,14 @@ When('I show the vertical tab rail and panel', async function () {
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel', 'panel to open');
 });
 
+When('I click that quiet Island dot', async function () {
+  assert.equal(
+    await this.call('clickIslandDot', this.quietCandidateId),
+    true,
+    'the quiet tab should have a visible direct Island dot'
+  );
+});
+
 When('I choose the quiet delay {word}', async function (delay) {
   this.selectedDelay = delay;
   await this.call('setTabSleep', delay);
@@ -365,8 +373,22 @@ Then('the panel stays open and explains that no tab can be quieted', async funct
   assert.equal(notice.role, 'status');
 });
 
+Then('the quiet tab remains a direct Island dot without quiet styling', async function () {
+  const chrome = await this.call('quietChromeState', this.quietCandidateId);
+  assert.equal(chrome.dotPresent, true);
+  assert.equal(chrome.dotQuiet, false);
+  assert.doesNotMatch(chrome.dotLabel.toLowerCase(), /,\s*quiet/);
+});
+
+Then('the quiet tab wakes and becomes active', async function () {
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === this.quietCandidateId);
+    return state.activeTabId === this.quietCandidateId && tab?.asleep === false;
+  });
+});
+
 Then('the panel and rail expose a distinct quiet state', async function () {
-  const chrome = await this.call('quietChromeState', this.quietCandidateTitle, this.quietCandidateId);
+  const chrome = await this.call('quietChromeState', this.quietCandidateId);
   // The state is appended to an accessible name as ", quiet". Match THAT, not a
   // bare /quiet/ — the fixture tab is titled "quietable", whose substring would
   // give a false positive/negative on the bare pattern.

@@ -97,20 +97,21 @@ platform that allows it.
 
 ---
 
-## D5 — Supporter monetization rails
-**Features:** F17, F14 (`supporter`)
+## D5 — Patron monetization rails
+**Features:** F17, F14 (`patron`)
 **Why:** App Store and Play require their own in-app billing for digital unlocks;
 the desktop Polar.sh flow cannot be used in-app on mobile (and would violate store
 policy).
 
-- **Desktop:** Polar.sh one-time license, activated against Polar's API.
+- **Desktop:** Polar monthly/annual subscription, with earlier founding licenses
+  honored permanently.
 - **iOS:** **StoreKit / In-App Purchase** (Apple's cut applies).
 - **Android:** **Google Play Billing.**
 
-**Parity contract:** the unlock is a **one-time purchase** that flips
-`supporterActive` and unlocks the same 3 colorways; once unlocked it is
-**trusted-forever, offline-OK, cosmetic-only** (no revalidation/DRM) on every
-platform. Renderers only ever see the derived boolean, never a key.
+**Parity contract:** Patron unlocks creation of Named Workspaces on every
+platform. Existing workspaces remain available after a subscription lapses;
+founding licenses retain permanent access. App-icon colorways are not a Patron
+benefit. Renderers only ever see the derived boolean, never a key.
 
 **Cross-honor (decided 2026-07-07):** a purchase on **either** platform unlocks the
 other (not independent). The activation *mechanism* is non-trivial and deferred to
@@ -121,8 +122,7 @@ Blanc has no cross-platform account. Favour activation-time-only checks to prese
 the trusted-forever/offline-OK posture after unlock. See
 [the iOS port roadmap](../docs/superpowers/specs/2026-07-07-ios-port-roadmap-design.md) §5.5.
 
-**Status:** Accepted; **cross-honor both ways** — direction decided 2026-07-07,
-activation mechanism TBD @ iOS M13.
+**Status:** Accepted; mobile activation mechanism TBD @ iOS M13.
 
 ---
 
@@ -241,7 +241,7 @@ is platform-native.
 **Why:** Desktop uses resizable native windows with window controls and a strip + overlay;
 mobile is a single full-screen surface with system insets.
 
-- **Desktop:** one independent workspace per `BrowserWindow`, each with a 64px
+- **Desktop:** one independent workspace per `BrowserWindow`, each with a 68px
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
@@ -390,11 +390,13 @@ whatever layer that platform provides.
 
 ---
 
-## D18 — WebRTC IP-handling control (F26)
+## D18 — WebRTC IP-handling and receiver-buffer controls (F26)
 **Features:** F26
-**Why:** WebRTC IP-policy control depends on the engine.
+**Why:** WebRTC IP-policy and receiver-buffer controls depend on the engine.
 
-- **Desktop:** `webContents.setWebRTCIPHandlingPolicy` (standard + disable-direct-UDP).
+- **Desktop:** `webContents.setWebRTCIPHandlingPolicy` (standard + compatibility +
+  disable-direct-UDP), plus `RTCRtpReceiver.jitterBufferTarget` for the Stable
+  and Resilient call-audio modes.
 - **Android:** WebView WebRTC IP-handling support to be assessed at port time.
 - **iOS:** WKWebView exposes no WebRTC IP-handling policy; iOS contract downgrades
   to **platform default behavior, documented** (no in-app control).
@@ -416,7 +418,7 @@ content area and fight the platform's native navigation model.
   resetting to 248px. Its width is directly adjustable and device-local; a
   narrow window temporarily caps the rendered rail to preserve at least 392px
   for the page without overwriting the saved preference. The page pane keeps a
-  64px sampled-color safe-area gutter for the floating Island, which remains
+  68px sampled-color safe-area gutter for the floating Island, which remains
   the sole address, search, and command surface. The rail is another
   presentation of the canonical tab/group model.
 - **iOS:** no reserved rail. Use the native full-screen tab overview while
@@ -569,3 +571,35 @@ no platform silently expands Profile Sync’s approved data scope.
 **Tagging:** desktop local-profile scenarios tag `@D25`.
 
 **Status:** Accepted 2026-08-14.
+
+## D26 — macOS 1Password SDK bridge vs. other platforms
+**Features:** F38, F24
+
+**Why:** Desktop Blanc cannot participate in third-party credential providers'
+browser allowlists, but 1Password's user-authorized SDK provides a separate,
+explicit way to retrieve a matching Login item from the installed desktop app.
+Mobile web views already participate in the operating system's credential
+provider surface (F24), where adding a second Blanc-specific picker would be
+duplicative and less native.
+
+- **macOS:** an off-by-default, explicit Fill command uses the installed
+  1Password desktop app and the user's configured account. Blanc applies the
+  item's saved-website policy, offers a bounded native chooser, and fills only
+  the revalidated active login form. It never becomes a credential store.
+- **Windows/Linux:** F38 is N/A for its first production release. The setting,
+  commands, shortcuts, preload method, and IPC handler are absent, and the
+  credential broker cannot start. A future expansion requires a new review and
+  signed live-account validation on each added platform.
+- **iOS/Android:** F38 is N/A. Use F24's system AutoFill/Credential Manager
+  surface, through which 1Password and other installed providers participate.
+
+**Parity contract that still holds:** credentials are offered only through a
+user-controlled provider surface, fill only into the intended login page, and
+are never added to Blanc persistence, Profile Sync, telemetry, or browsing
+records. The provider-specific setup and picker are platform-native.
+
+**Tagging:** the macOS SDK scenario tags `@macos @D26`; the mobile
+system-provider scenario remains `@D12`.
+
+**Status:** macOS-only first release accepted by the product owner 2026-08-24;
+the signed macOS live matrix is complete.

@@ -73,6 +73,18 @@ test('source PNG guard rejects alternate formats and dimension bombs before deco
   );
 });
 
+test('source PNG guard accepts bounded oversized site artwork like NFL favicon', () => {
+  const nfl = Buffer.from(PNG_A.slice(m.PNG_DATA_PREFIX.length), 'base64');
+  nfl.writeUInt32BE(2000, 16);
+  nfl.writeUInt32BE(2000, 20);
+  assert.equal(m.validSourcePngBytes(nfl), nfl);
+
+  const tooManyPixels = Buffer.from(nfl);
+  tooManyPixels.writeUInt32BE(2049, 16);
+  tooManyPixels.writeUInt32BE(2049, 20);
+  assert.equal(m.validSourcePngBytes(tooManyPixels), null);
+});
+
 test('a bounded generic .ico response is sniffed only after its container validates', () => {
   const source = 'https://appstoreconnect.apple.com/favicon.ico';
   assert.equal(m.validSourceIcoBytes(ICO_BYTES), ICO_BYTES);
@@ -88,9 +100,24 @@ test('a bounded generic .ico response is sniffed only after its container valida
   assert.equal(m.faviconResponseMediaType('application/octet-stream', source, corrupt), null);
   assert.equal(
     m.canReadFaviconResponse('application/octet-stream', 'https://example.com/icon.png'),
-    false,
+    true,
+    'generic candidates are read under the byte ceiling, then signature-checked',
   );
   assert.equal(m.canReadFaviconResponse('text/html', source), false);
+});
+
+test('a generic response may prove itself to be PNG regardless of URL suffix', () => {
+  const source = 'https://cdn.example/opaque-icon-id';
+  const bytes = Buffer.from(PNG_A.slice(m.PNG_DATA_PREFIX.length), 'base64');
+  assert.equal(m.canReadFaviconResponse('application/octet-stream', source), true);
+  assert.equal(
+    m.faviconResponseMediaType('application/octet-stream', source, bytes),
+    'image/png',
+  );
+  assert.equal(
+    m.faviconResponseMediaType('application/octet-stream', source, Buffer.from('not an image')),
+    null,
+  );
 });
 
 test('image media type detection accepts real favicon MIME types and rejects others', () => {

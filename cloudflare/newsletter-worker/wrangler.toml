@@ -7,6 +7,14 @@ kv_namespaces = [
   { binding = "SUBSCRIBERS", id = "17fe04a02a7a4418b9097e0dd6ede5b9" }
 ]
 
+[[ratelimits]]
+name = "AMBASSADOR_RATE_LIMITER"
+namespace_id = "120260902"
+
+  [ratelimits.simple]
+  limit = 4
+  period = 60
+
 # ADMIN_TOKEN, NEWSLETTER_TOKEN_SECRET, and RESEND_API_KEY are secrets; see
 # README.md for the 1Password-backed setup. ADMIN_TOKEN gates GET /subscribers
 # (export) and DELETE /subscriber (removal). Without it those endpoints refuse
@@ -16,6 +24,7 @@ kv_namespaces = [
 
 [vars]
 NEWSLETTER_FROM = "Blanc <release-notes@updates.blancbrowser.com>"
+AMBASSADOR_TO = "support@blancbrowser.com"
 
 # Workers Logs — keeps a searchable history of invocations/exceptions in the
 # dashboard, so a runtime 500 can be diagnosed after the fact instead of

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="title desc">
+  <title id="title">Try the browser. Tell the truth.</title>
+  <desc id="desc">A monochrome Blanc Ambassador pilot graphic inviting creators to try the browser without scripted praise or a posting obligation during the trial.</desc>
+  <rect width="1080" height="1350" fill="#ffffff"/>
+
+  <g fill="#0e0e0e">
+    <text x="86" y="94" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" font-weight="600" letter-spacing="4">BLANC / AMBASSADOR PILOT</text>
+    <line x1="86" y1="126" x2="994" y2="126" stroke="#dedede" stroke-width="2"/>
+
+    <text x="540" y="294" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif" font-size="108" font-weight="600" letter-spacing="-4">
+      <tspan x="540" dy="0">Try the browser.</tspan>
+      <tspan x="540" dy="112">Tell the truth.</tspan>
+    </text>
+
+    <text x="540" y="538" text-anchor="middle" fill="#6b6b6b" font-family="Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif" font-size="36" font-weight="400" letter-spacing="-0.6">
+      <tspan x="540" dy="0">A small creator program for people with</tspan>
+      <tspan x="540" dy="48">an actual point of view.</tspan>
+    </text>
+  </g>
+
+  <rect x="70" y="694" width="940" height="462" rx="30" fill="#0e0e0e"/>
+  <g fill="#f5f5f5">
+    <text x="124" y="766" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" font-weight="600" letter-spacing="4">THE AGREEMENT</text>
+    <text x="124" y="874" font-family="Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif" font-size="76" font-weight="600" letter-spacing="-2.8">
+      <tspan x="124" dy="0">Your opinion</tspan>
+      <tspan x="124" dy="78">stays yours.</tspan>
+    </text>
+    <g font-family="Inter, -apple-system, BlinkMacSystemFont, Helvetica Neue, Arial, sans-serif" font-size="34" font-weight="400">
+      <text x="124" y="1028">No scripted praise.</text>
+      <text x="124" y="1080">No posting obligation during the trial.</text>
+      <text x="124" y="1132">Clear criticism is welcome.</text>
+    </g>
+  </g>
+
+  <g fill="#0e0e0e">
+    <text x="540" y="1246" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="28" font-weight="600">blancbrowser.com/ambassadors</text>
+  </g>
+</svg>

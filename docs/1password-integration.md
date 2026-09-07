@@ -1,0 +1,264 @@
+# 1Password login fill
+
+Status: macOS-only production candidate for the build after v1.8.2. The
+product-owner risk decision is recorded in
+[`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
+independent, is not affiliated with or endorsed by 1Password, and remains
+subject to 1Password's SDK terms. Windows and Linux do not expose its setting,
+menu item, keyboard shortcut, slash command, preload method, or IPC handler,
+and cannot create the credential broker.
+
+## User setup
+
+1. On macOS, install the current 1Password desktop app and sign into the account
+   to use.
+2. In 1Password, open **Settings → Developer** and turn on **Integrate with
+   1Password SDKs**.
+3. In Blanc, open **Settings → Privacy & Security → 1Password**, turn on
+   **Fill logins from 1Password**, and enter the email address you sign in to
+   1Password with (an account ID also works). Use **Verify** to confirm it on
+   the spot.
+4. On a website login form, choose **View → Fill Login from 1Password**, press
+   **⌥⌘P** on macOS, or run **/1password** from the Island.
+5. Approve Blanc Browser in the 1Password desktop prompt. If several Login
+   items match, choose one from the native menu.
+
+Blanc never fills automatically. The setting and account identifier stay on
+this device and are excluded from Profile Sync.
+
+## Security boundary
+
+- The page is inspected without credentials before the SDK is contacted.
+- The platform capability gate runs before any client or UI construction.
+  Windows and Linux fail closed without creating a 1Password client or utility
+  process.
+- `@1password/sdk` is pinned exactly and loads only on macOS in
+  `src/main/onepassword-broker.js`, an Electron utility process named **Blanc
+  Credential Broker**.
+- On macOS that process alone uses `Blanc Helper (Plugin).app`. It retains
+  Electron's required `allow-jit` and `allow-unsigned-executable-memory`, and
+  only that helper adds `disable-library-validation` so it can load 1Password's
+  separately signed native bridge. Signed-build verification fails if any
+  required Plugin entitlement is missing or if the library-validation exception
+  appears on Blanc or an ordinary helper.
+- The SDK authorization may cover the approved account. Blanc calls only
+  vault/item list and item read operations. Overview metadata is matched in the
+  broker and the native picker is bounded to ten candidates. Because SDK 0.5.0
+  exposes no field-projection read, a multiple-match flow opens only that bounded
+  candidate set inside the broker, projects each built-in username for the native
+  picker, and immediately drops the full items. Passwords, notes, and custom
+  fields never leave the helper during selection. The chosen item is read again,
+  and only its built-in username and/or password required by the page leaves the
+  broker for filling. The broker binds the picker snapshot to the item's SDK
+  version and aborts without credentials if the item changes before selection.
+- Projected candidate usernames and the selected credential cross only the
+  broker→main utility-process channel, are never sent through renderer IPC, and
+  are never written to disk, Profile Sync, logs, telemetry, or crash reporting.
+  Only the selected credential is injected into the dedicated isolated world.
+- The exact runtime, tab, navigation epoch, URL, document time origin, and DOM
+  element identities are revalidated after every prompt and before injection.
+  Signup/new-password, ambiguous, hidden, search, and newsletter fields fail
+  closed. A heuristic current-password target requires an extra native prompt
+  before SDK authorization.
+- Disabling the feature or changing the account stops the broker immediately.
+  Otherwise its credential-free SDK client is discarded after ten minutes of
+  inactivity, matching 1Password's documented authorization window.
+- **Ambient hint (structure only).** While the feature is enabled and
+  configured, Blanc runs a bounded isolated-world check on the active tab's
+  page (on load, same-document navigation, and activation, with one delayed
+  recheck) asking a single yes/no question: does the page declare a visible
+  `autocomplete="current-password"` field without a contradicting
+  `new-password` token? The check reads form structure only — never values,
+  text, or content — returns a boolean, never contacts the SDK or broker,
+  and can never surface an error. Its only output is the island's key-glyph
+  affordance; clicking that runs the same explicit fill as ⌥⌘P. Every probe
+  is bound to the tab's navigation epoch, live-renderer identity, and its
+  scheduling generation, so navigations, quieting, disabling, or an account
+  change discard in-flight results. The hint is never persisted or synced.
+- **Fill capsule (credential-free by construction).** In-flow prompts,
+  errors, and confirmations render in a dedicated `blanc-chrome://`
+  fill-status view with its own narrow preload (no `browserAPI`). The
+  renderer receives only a fixed message-kind identifier and a request id;
+  all copy is bundled in the document, and replies are fixed verbs validated
+  against the sender, the request id, and the kind's verb set. No
+  vault-derived, page-derived, or free-form string ever crosses to a
+  renderer — strictly less data than the native dialogs previously showed.
+  The multiple-match picker remains a native menu; candidate usernames still
+  never cross renderer IPC.
+- **Whole-flow invalidation.** Every working-surface transition (island
+  overlay, utility sheet, Glance, permission-prompt arrival, tab switch)
+  advances a per-window generation captured by the fill flow after its own
+  setup cleanup. Any transition — even one opened and closed entirely inside
+  a broker wait — aborts the flow at its next checkpoint, silently; genuine
+  page changes keep their notice, and broker errors are never shown for a
+  page or surface the user has already left. The picker anchors at the login
+  field's live position, re-read under the fill's nonce immediately before
+  the menu opens.
+
+## Release gates
+
+- `npm run substrate:check`, `npm run test:unit`,
+  `npm run test:acceptance:dry`, `npm run test:acceptance:desktop`, and
+  `npm run test:onepassword:utility` pass.
+- Production dependency audit is clean at high severity.
+- A signed unpacked macOS build proves the Plugin helper is the sole
+  library-validation exception, retains all three required Plugin runtime
+  entitlements, and the package contains SDK 0.5.0 plus its bundled MIT notice.
+- On a real installed 1Password account on macOS, verify one exact-domain login, one
+  AnywhereOnWebsite subdomain login, multiple matching Login items, cancellation,
+  `Never`, signup refusal, navigation/tab-switch cancellation, and private-tab
+  behavior. For the UX surfaces added after v1.9.1, additionally verify: the
+  picker anchors at the login field's current position, including after
+  scrolling the page during the DesktopAuth wait; summoning ⌘L or a utility
+  sheet during the broker wait aborts the flow with nothing filled; each
+  capsule shape (setup nudges, heuristic confirmation, persistent errors,
+  auto-dismissing success); Settings Verify success, wrong-account failure,
+  and DesktopAuth cancel; the ambient hint on a real login page, an SPA, and
+  a non-login page; and a permission prompt taking precedence over a pending
+  capsule. The multiple-match gate must confirm that distinct built-in usernames
+  appear as the primary picker labels with the item title and vault beneath them,
+  and that entries without a username retain the title/vault fallback. With the
+  picker open on disposable items, change the selected item in 1Password before
+  choosing it; Blanc must report that the Login item changed and fill nothing.
+- The redacted field-contract fixture follows [1Password's documented Login IDs](https://www.1password.dev/sdks/manage-items)
+  (`username` and `password`); confirm those exact fields in a live DesktopAuth
+  response during the real-account macOS gate before calling the contract proven.
+- Windows and Linux artifacts must still pass their existing fuse/signature/
+  packaged-payload gates, and their native smoke test must prove the 1Password
+  broker is unavailable. A release requires the ordinary explicit owner
+  go-ahead; preparing this feature does not itself authorize tagging/publishing.
+
+### macOS signed-candidate evidence — 2026-08-23
+
+The fresh signed and notarized unpacked `dist/mac-arm64/Blanc.app` passed strict
+nested-signature verification and the repository's DER entitlement verifier.
+Its packaged controller and Settings surfaces contain the current **Integrate
+with 1Password SDKs** copy. The live Plugin helper remained running after
+repeated DesktopAuth reads. Disabling the Blanc setting stopped that helper;
+enabling it again created a fresh helper process.
+
+Using three disposable Login items in the real account's Dev vault and a
+loopback-only form that never submitted data:
+
+- **PASS:** Exact Host filled the Login built-ins `username` and `password`.
+- **PASS:** Fill Anywhere on This Website matched a parent-domain item on a
+  subdomain, including the effective port.
+- **PASS:** two matching items produced the bounded native metadata picker;
+  only the selected item was then revealed and filled.
+- **PASS:** picker cancellation left both fields empty.
+- **PASS:** an isolated Never item produced **No matching login** and left both
+  fields empty. A broad Anywhere item was temporarily narrowed during this
+  case so it could not independently match the Never host, then restored.
+- **PASS:** switching tabs and navigating while the picker was pending canceled
+  the flow; the original and replacement documents remained empty.
+- **PASS:** explicit fill worked in a private tab, and signup/new-password fields
+  were refused before any item selection.
+- **PASS:** locking 1Password revoked the cached SDK grant and produced a fresh
+  **1Password Access Requested** DesktopAuth dialog. Canceling it produced a
+  clean Blanc authorization error, left both fields empty, and an immediate
+  retry produced a new authorization dialog rather than a stuck broker.
+
+The supported reset is to lock the account: 1Password's
+[SDK integration security model](https://www.1password.dev/sdks/desktop-app-integrations)
+states that locking the desktop app immediately revokes every existing SDK
+authorization. The signed macOS functional gate is closed.
+
+### macOS signed-candidate evidence, UX overhaul — 2026-08-29
+
+The signed (unnotarized, locally built) `dist/mac-arm64/Blanc.app` at
+`a1f7ad5` passed after-sign verification (pinned certificate, embedded
+profile, Plugin-only library-validation exception) and was driven over CDP on
+a scratch profile against the operator's real 1Password account, with the
+loopback fixture server and four fresh disposable Dev-vault Login items. The
+operator supplied every DesktopAuth decision and native-menu interaction.
+
+- **PASS:** Settings Verify — wrong email produced the inline error; the
+  correct email produced DesktopAuth then **Connected**. Persist-first was
+  observed end-to-end: a wrong value left saved by a Verify test made the
+  next fill fail closed with **Account not found** and the corrected
+  email-first copy.
+- **PASS:** single-match AnywhereOnWebsite fill on `parent.localhost`,
+  followed by the polite auto-dismissing success capsule (`role=status`).
+- **PASS:** one-way subdomain match on `child.parent.localhost`, port
+  included.
+- **PASS:** the multiple-match native picker opened **anchored at the
+  password field** (operator: "right at the password field and not up top
+  near the island like it used to"); choosing the second item revealed and
+  filled exactly that item; a later Escape left both fields empty.
+- **PASS:** signup refusal (`/signup`) returned no-form before any SDK
+  contact, with the persistent `role=alert` error capsule and ✕ dismissal.
+- **PASS:** ambient hint — shown on the fixture login page and on the real
+  `github.com/login`; absent on the signup page (new-password contradiction)
+  and cleared on a non-login page; absent while unconfigured.
+- **PASS:** permission precedence — a page microphone request cleared the
+  persistent fill capsule and presented the permission bar.
+- **PASS:** setup capsules — full two-line body with the revised email-first
+  copy, unwrapped buttons, hairline focus ring on the auto-focused Cancel
+  (screenshot reviewed); Open Settings verb honored.
+- **PASS:** lock cycle — locking 1Password forced a fresh DesktopAuth;
+  summoning ⌘L during the wait then cancelling the prompt aborted the flow
+  **silently** with nothing filled (the rejected-await revalidation);
+  an immediate retry produced a fresh prompt (a second cancel produced the
+  clean not-authorized capsule, no stuck helper); approval then filled.
+
+Findings, all fixed during the gate at `a1f7ad5`: the account field's
+"account name or account ID" phrasing confused the operator (email-first copy
+now everywhere), the capsule body ellipsized mid-instruction with wrapping
+button labels (two-line body, nowrap buttons, taller view), and the thick
+focus ring on the auto-focused Cancel (hairline ring).
+
+Deferred with rationale: the ExactDomain and Never tier cases were not
+re-proven — the operator's real `localhost` dev Logins match every
+`*.localhost` fixture host as descendants (by-design AnywhereOnWebsite
+matching), confounding those cases; the matching engine is untouched by this
+release and its tiers, including Never, remain covered by the 2026-08-23
+evidence above. Private-tab fill likewise unchanged and not re-run. Future
+gates should use fixture hosts that are not `localhost` descendants.
+
+### macOS-only release decision — 2026-08-24
+
+The product owner selected a macOS-only first release after Parallels repeatedly
+hung during attempted Windows validation. This is a platform boundary, not a
+waiver: Windows and Linux expose no 1Password surface and cannot start the
+broker. Their ordinary artifact checks remain required, with an automated native
+assertion that this feature is unavailable. Expanding support later requires an
+explicit code, test, security, documentation, and live-account review.
+
+### Future Windows/Linux enablement harness
+
+If cross-platform support is reconsidered, run the candidate and this
+loopback-only fixture server on the same test machine:
+
+```sh
+npm run test:onepassword:live-server
+```
+
+The server binds only `127.0.0.1`, accepts GET/HEAD only, never submits forms,
+and never logs requests or field values. Chromium resolves the `.localhost`
+test names to loopback. Keep the terminal open and create disposable Dev-vault
+Login items for these URLs, using the server's printed port (default `48765`):
+
+| Item | Stored website | Autofill behavior |
+| --- | --- | --- |
+| Exact | `http://exact.localhost:48765/login` | ExactDomain |
+| Anywhere | `http://parent.localhost:48765/login` | AnywhereOnWebsite |
+| Never | `http://never.localhost:48765/login` | Never |
+| Second match | `http://exact.localhost:48765/login` | ExactDomain |
+
+Use `http://child.parent.localhost:48765/login` for the one-way subdomain case
+and `http://exact.localhost:48765/signup` for signup refusal. The login page has
+a **Navigate during Fill** link and a local field-state indicator; its Sign in
+button is inert. For the fresh-authorization case, lock 1Password immediately
+before invoking Fill, cancel the prompt, confirm both fields remain empty, then
+retry and confirm the prompt returns and the broker is usable.
+
+## Frozen names for the first release
+
+The user-facing feature name is **1Password login fill**. The device-local keys
+remain `onePasswordEnabled` and `onePasswordAccount`; broker methods remain
+`find-logins`, `reveal-credential`, and `probe-package`, joined (first release
+after v1.9.1) by `verify-account` — an addition, never a rename — which
+performs authorization plus one discarded vault list and returns only
+ok/error-kind for the Settings Verify button; `vaultId` and `itemId` remain
+opaque SDK identifiers. Renaming any of these after release requires an
+explicit settings/protocol migration rather than an incidental cleanup.

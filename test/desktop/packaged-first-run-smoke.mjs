@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,7 +9,11 @@ import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 const adblockManifest = JSON.parse(
   fs.readFileSync(path.resolve('adblock/sources/pinned.json'), 'utf8')
 );
-const adblockCacheFile = `adblock-engine.v3.${adblockManifest.combinedSha256.slice(0, 16)}.bin`;
+const adblockCacheId = createHash('sha256')
+  .update(`${adblockManifest.combinedSha256}:${adblockManifest.ghosteryResources.sha256}`)
+  .digest('hex')
+  .slice(0, 16);
+const adblockCacheFile = `adblock-engine.v4.${adblockCacheId}.bin`;
 
 const defaultExecutable = process.platform === 'darwin'
   ? path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc')

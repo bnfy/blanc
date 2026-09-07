@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Release to GitHub, or build a private signed validation artifact"
+        description: "Release to GitHub, or build private validation artifacts"
         required: true
         default: release
         type: choice
@@ -32,14 +32,18 @@ on:
           - linux
 
 permissions:
-  contents: write
-  id-token: write
-  attestations: write
+  contents: read
 
 jobs:
   windows:
     if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
     runs-on: windows-latest
+    # Release uploads and provenance require these grants. Keep them local
+    # to the publishing jobs instead of inherited by future jobs.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -50,6 +54,12 @@ jobs:
           node-version: 22
 
       - run: npm ci
+
+      - name: Verify dependency compliance inputs
+        run: npm run compliance:check
+
+      - name: Verify 1Password macOS-only boundary
+        run: npm run test:onepassword:utility
 
       - name: Verify tag matches package version
         if: ${{ inputs.mode == 'release' }}
@@ -120,11 +130,21 @@ jobs:
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
 
+      - name: Verify packaged compliance payload
+        run: node scripts/verify-packaged-compliance.js dist/win-unpacked/resources
+
       - name: Verify hardened Electron fuses
         shell: bash
         run: |
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
+
+      - name: Verify packaged microphone and camera permissions and live tracks
+        shell: pwsh
+        run: |
+          $product = node -p "require('./package.json').productName"
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path "dist/win-unpacked/$product.exe").Path
+          node test/desktop/packaged-media-smoke.mjs
 
       - name: Verify Authenticode signature
         shell: pwsh
@@ -193,7 +213,7 @@ jobs:
 
       - name: Upload private signed Windows validation artifact
         if: ${{ inputs.mode == 'validation' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Blanc-Windows-${{ github.run_id }}-validation
           if-no-files-found: error
@@ -205,12 +225,16 @@ jobs:
             dist/latest.yml
 
   linux:
-    if: ${{ inputs.mode == 'release' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -218,7 +242,14 @@ jobs:
 
       - run: npm ci
 
+      - name: Verify dependency compliance inputs
+        run: npm run compliance:check
+
+      - name: Verify 1Password macOS-only boundary
+        run: xvfb-run -a npm run test:onepassword:utility
+
       - name: Verify tag matches package version
+        if: ${{ inputs.mode == 'release' }}
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
@@ -244,12 +275,28 @@ jobs:
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar
 
+      - name: Verify packaged compliance payload
+        run: node scripts/verify-packaged-compliance.js dist/linux-unpacked/resources
+
       - name: Verify hardened Electron fuses
         run: |
           EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
           node scripts/verify-electron-fuses.mjs "dist/linux-unpacked/$EXECUTABLE"
 
+      - name: Install AppImage smoke runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libfuse2 xvfb
+
+      - name: Verify packaged microphone and camera permissions and live tracks
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            xvfb-run -a node test/desktop/packaged-media-smoke.mjs
+
       - name: Upload to release
+        if: ${{ inputs.mode == 'release' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -261,8 +308,20 @@ jobs:
             --repo "${{ github.repository }}"
 
       - name: Attest Linux release artifacts
+        if: ${{ inputs.mode == 'release' }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
+            dist/Blanc-*.AppImage
+            dist/latest-linux.yml
+
+      - name: Upload private Linux validation artifact
+        if: ${{ inputs.mode == 'validation' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Linux-${{ github.run_id }}-validation
+          if-no-files-found: error
+          retention-days: 3
+          path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml

@@ -1,61 +1,74 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.8.2",
+  "version": "1.15.1",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
   "scripts": {
+    "postinstall": "node adblock/seed.mjs --prepare",
     "start": "electron .",
-    "predist": "npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
+    "predist": "npm run brand:check && npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
     "dist": "electron-builder",
-    "predist:dir": "npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
+    "predist:dir": "npm run brand:check && npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
     "dist:dir": "electron-builder --dir",
     "release": "scripts/release.sh",
     "site:changelog": "node scripts/generate-site-changelog.mjs",
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
     "site:dev": "npm --prefix site run dev",
-    "site:build": "npm --prefix site run build",
-    "site:deploy": "npm --prefix site run build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",
+    "site:build": "npm run brand:check && npm --prefix site run build",
+    "site:deploy": "npm run site:build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",
     "test:unit": "node --test test/unit/*.test.js",
     "test:oauth:desktop": "node --test test/oauth/desktop.test.js",
     "test:oauth:live": "node scripts/oauth-canary.js",
     "test:acceptance:dry": "cucumber-js -c test/desktop/cucumber.mjs -p dry",
     "test:acceptance:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable",
+    "test:onepassword:utility": "node test/desktop/onepassword-utility-smoke.mjs",
+    "test:onepassword:live-server": "node scripts/onepassword-live-gate-server.mjs",
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
+    "test:mahjong-telemetry": "node test/desktop/mahjong-telemetry-relay-smoke.mjs",
     "test:cold-launch": "node test/desktop/cold-launch-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
     "test:packaged:regressions": "node test/desktop/release-regressions-smoke.mjs",
+    "test:packaged:native-media": "node test/desktop/packaged-native-media-smoke.mjs",
+    "test:packaged:native-camera": "node test/desktop/packaged-native-media-smoke.mjs --media=camera",
     "test:packaged:favicons-live": "node test/desktop/packaged-live-favicons-smoke.mjs",
+    "test:packaged:update-staging": "node test/desktop/packaged-update-staging-smoke.mjs",
+    "update:staging:prepare": "node scripts/prepare-staging-update-feed.mjs",
+    "compliance:build": "node scripts/generate-compliance.mjs",
+    "compliance:check": "node scripts/generate-compliance.mjs --check",
     "bench:memory": "node bench/memory/run.js",
     "release:security": "npm audit --omit=dev --audit-level=high",
     "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:cold-launch && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "icons:windows:build": "node scripts/build-windows-icons.js",
     "icons:windows:check": "node scripts/build-windows-icons.js --check",
-    "adblock:build": "node adblock/build.mjs",
-    "adblock:check": "node adblock/build.mjs --check",
+    "brand:build": "node scripts/build-brand-assets.js",
+    "brand:check": "node scripts/build-brand-assets.js --check",
+    "adblock:build": "node adblock/build.mjs && node adblock/seed.mjs",
+    "adblock:check": "node adblock/build.mjs --check && node adblock/seed.mjs --check",
     "tokens:build": "node tokens/build.mjs",
     "tokens:check": "node tokens/build.mjs --check",
     "settings:build": "node settings-schema/build.mjs",
     "settings:check": "node settings-schema/build.mjs --check",
     "copy:build": "node copy/build.mjs",
     "copy:check": "node copy/build.mjs --check",
-    "substrate:check": "npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check"
+    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check && npm run compliance:check"
   },
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "devDependencies": {
     "@cucumber/cucumber": "^13.2.1",
-    "@electron/asar": "3.4.1",
+    "@electron/asar": "4.3.0",
     "@ghostery/adblocker": "^2.18.2",
-    "electron": "^43.4.1",
+    "electron": "^44.2.0",
     "electron-builder": "^26.15.3",
     "playwright": "^1.62.1",
     "sharp": "^0.35.3"
   },
   "dependencies": {
+    "@1password/sdk": "0.5.0",
     "@ghostery/adblocker-electron": "^2.18.2",
     "electron-updater": "^6.8.9"
   },
@@ -94,7 +107,10 @@
     "files": [
       "src/**/*",
       "adblock/sources/**/*",
-      "package.json"
+      "package.json",
+      "LICENSE",
+      "THIRD-PARTY-NOTICES.md",
+      "ASSET-LICENSE.md"
     ],
     "afterPack": "scripts/after-pack-app-icons.js",
     "afterSign": "scripts/after-sign-verify.js",
@@ -102,13 +118,15 @@
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,
+      "sign": "scripts/sign-mac.js",
       "identity": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.inherit.plist",
       "provisioningProfile": "build/embedded.provisionprofile",
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
-        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone."
+        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
+        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera."
       },
       "target": [
         "dmg",
@@ -116,7 +134,7 @@
       ]
     },
     "win": {
-      "icon": "build/windows-icons/icon-paper.ico",
+      "icon": "build/windows-icons/icon-sunrise.ico",
       "target": [
         "nsis"
       ]
@@ -125,6 +143,7 @@
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "linux": {
+      "icon": "build/icon.png",
       "target": [
         "AppImage"
       ],

@@ -1,9 +1,13 @@
 # Historical: retired 1Password fill spike
 
-> **Retired August 12, 2026.** Blanc no longer contains `src/main/onepassword.js`,
-> `@1password/sdk`, the runtime enablement flag, or the macOS library-validation
-> entitlement. The instructions below apply only to an old experimental branch
-> and must not be used as current product documentation.
+> **Retired August 12, 2026.** Blanc no longer contains this spike's
+> `src/main/onepassword.js`, environment-only runtime switch, logging behavior,
+> or broad signing approach. The instructions below apply only to an old
+> experimental branch and must not be used as current product documentation.
+>
+> The replacement production integration is documented in
+> [`1password-integration.md`](1password-integration.md); it does not use the
+> environment-gated setup described below.
 
 How to run Blanc's built-in 1Password fill on this branch (`feature/1password-fill`). This is the spike implementation — dev/personal use only; see [`1password-legal-inquiry.md`](1password-legal-inquiry.md) before anything ships.
 
@@ -20,7 +24,7 @@ npm install          # only if `npm start` later reports a missing @1password/sd
 ## 2. One-time 1Password app setup
 
 - 1Password 8 desktop app installed in `/Applications`, signed in, and **unlocked**.
-- **Settings → Developer** → enable the SDK / "Integrate with other apps" toggle (label varies by app version — it's the Developer setting that lets external apps connect through the SDK). `DesktopAuth` can't connect without it.
+- **Settings → Developer** → enable **Integrate with 1Password SDKs**. `DesktopAuth` can't connect without it.
 - **Settings → Security → Touch ID** enabled (for the approval prompt).
 
 ## 3. Find your account identifier

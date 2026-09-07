@@ -8,31 +8,14 @@ import { chromium } from 'playwright';
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST_ROOT = path.join(SITE_ROOT, 'dist');
 const OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-island-product-capture-v2.png');
-const LAUNCH_OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-1.0-launch-card-v3.png');
+const LAUNCH_OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-press-card.png');
 
 function dataUrl(file, mimeType) {
   return `data:${mimeType};base64,${fs.readFileSync(file).toString('base64')}`;
 }
 
-/* The card renders whatever the Island looks like today, so the version and
-   date printed on it are the current release's — not the launch's. They come
-   from the same two sources the press page uses, so a release moves the card,
-   the fact sheet and the changelog together instead of one at a time. The
-   file name keeps its 1.0 in it deliberately: that is a stable public URL,
-   not a claim about the build. */
-const VERSION = JSON.parse(
-  fs.readFileSync(path.join(SITE_ROOT, '..', 'package.json'), 'utf8')
-).version;
-const RELEASES = JSON.parse(
-  fs.readFileSync(path.join(SITE_ROOT, 'src/data/releases.json'), 'utf8')
-);
-const CURRENT_RELEASE = (RELEASES.releases ?? RELEASES).find((entry) => entry.tag === `v${VERSION}`);
-if (!CURRENT_RELEASE) {
-  throw new Error(
-    `render-press-primary-capture: releases.json has no entry for v${VERSION}. ` +
-    'Run `npm run site:changelog` first — the card would otherwise print a blank date.'
-  );
-}
+/* The press card is an evergreen social-preview asset. Release-specific facts
+   stay in the press page and changelog rather than being burned into a PNG. */
 
 function serve(root) {
   return new Promise((resolve) => {
@@ -185,6 +168,7 @@ try {
   const brandMark = dataUrl(path.join(SITE_ROOT, 'public/favicon.svg'), 'image/svg+xml');
   const inter = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), 'font/woff2');
   const mono = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2'), 'font/woff2');
+  const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2'), 'font/woff2');
   await page.setViewportSize({ width: 2400, height: 1260 });
   await page.setContent(`<!doctype html>
     <html lang="en">
@@ -193,13 +177,14 @@ try {
         <style>
           @font-face { font-family: Inter; src: url('${inter}') format('woff2'); font-weight: 100 900; }
           @font-face { font-family: 'JetBrains Mono'; src: url('${mono}') format('woff2'); font-weight: 500; }
+          @font-face { font-family: Newsreader; src: url('${newsreader}') format('woff2-variations'); font-weight: 200 800; }
           * { box-sizing: border-box; }
           html, body { width: 2400px; height: 1260px; margin: 0; overflow: hidden; background: #fbfbfa; }
           body { color: #0e0e0e; font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
           .card { position: relative; width: 100%; height: 100%; background: #fbfbfa; }
           .brand { position: absolute; top: 82px; left: 104px; display: flex; align-items: center; gap: 28px; color: #666; font: 500 25px/1 'JetBrains Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; }
           .brand img { width: 48px; height: 64px; object-fit: contain; }
-          h1 { position: absolute; top: 252px; left: 94px; width: 690px; margin: 0; font-size: 116px; font-weight: 600; letter-spacing: -0.055em; line-height: 0.98; }
+          h1 { position: absolute; top: 246px; left: 94px; width: 720px; margin: 0; font-family: Newsreader, serif; font-size: 122px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.0; font-optical-sizing: auto; }
           .meta { position: absolute; left: 96px; bottom: 92px; display: grid; gap: 24px; color: #151515; font: 500 25px/1 'JetBrains Mono', monospace; letter-spacing: 0.04em; text-transform: uppercase; }
           .platforms { color: #777; }
           .frame { position: absolute; top: 116px; right: 86px; width: 1420px; height: 1020px; overflow: hidden; border: 1px solid #d7d7d4; border-radius: 26px; background: #050505; box-shadow: 0 30px 80px rgba(14, 14, 14, 0.12); }
@@ -209,11 +194,11 @@ try {
       </head>
       <body>
         <main class="card">
-          <div class="brand"><img src="${brandMark}" alt="" /><span>Blanc ${VERSION}&nbsp; · &nbsp;Press</span></div>
-          <h1>The browser<br />in one small<br />Island.</h1>
-          <div class="meta"><span>${CURRENT_RELEASE.humanDate}</span><span class="platforms">macOS · Windows · Linux</span></div>
+          <div class="brand"><img src="${brandMark}" alt="" /><span>Blanc&nbsp; · &nbsp;Press</span></div>
+          <h1>The browser<br />in one small<br />island.</h1>
+          <div class="meta"><span class="platforms">macOS · Windows · Linux</span></div>
           <figure class="frame"><img src="${productCapture}" alt="" /></figure>
-          <div class="caption">The Island, shown at editorial scale</div>
+          <div class="caption">The island, shown at editorial scale</div>
         </main>
       </body>
     </html>`, { waitUntil: 'load' });

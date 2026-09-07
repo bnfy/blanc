@@ -6,8 +6,10 @@ Group organization. Applying creates quiet tabs/groups only and never writes Fav
 
 **Design source:** `docs/superpowers/specs/2026-08-23-direct-open-tab-migration-design.md`
 
-**Status:** Corrected implementation complete; verification in progress. F39 remains `PLANNED`
-until packaged/platform evidence passes.
+**Status:** Corrected implementation complete; macOS packaged verification passed. Windows/Linux
+packaged verification is explicitly deferred by the product owner because Parallels Desktop could
+not provide reliable test environments. F39 remains `PLANNED` until those platform cells have real
+evidence. See `docs/release-incidents/2026-09-07-f39-platform-verification-deferral.md`.
 
 ## Non-negotiable corrections
 
@@ -177,7 +179,10 @@ Create `src/main/chromium-session.js` with no Electron dependency.
     quiet-tab confirmation, then was dismissed before apply. No imported tabs or
     Favorites were created.
 - [ ] Windows: prove locked-current-file quit/retry behavior and read after browser exit.
+  - Deferred 2026-09-07 with product-owner approval; Parallels Desktop was too unreliable to
+    produce trustworthy packaged evidence.
 - [ ] Linux: prove installed Chromium-family cleartext session read.
+  - Deferred 2026-09-07 with product-owner approval for the same environment limitation.
 - [x] Capture visual QA for Source, Tabs, Organize, Review at desktop and narrow sheet sizes.
 - [x] Update `design-qa.md` with reference-vs-live comparisons and final pass.
 

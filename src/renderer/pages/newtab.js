@@ -1,5 +1,45 @@
 const isPrivate = new URLSearchParams(location.search).has('private');
 const isMac = navigator.platform.startsWith('Mac');
+const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
+const MAX_HIDDEN_TOP_SITES = 200;
+const TOP_SITES_PAGE_SIZE = 48;
+
+function readHiddenTopSites() {
+  if (isPrivate) return new Set();
+  try {
+    const saved = JSON.parse(localStorage.getItem(TOP_SITES_HIDDEN_KEY) || '[]');
+    return new Set(
+      (Array.isArray(saved) ? saved : [])
+        // Main owns hostname parsing. A bounded string is enough here: saved
+        // values can only suppress an exact key that main later supplies.
+        .filter((key) => typeof key === 'string' && key.length > 0 && key.length <= 255)
+        .slice(-MAX_HIDDEN_TOP_SITES),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+const hiddenTopSites = readHiddenTopSites();
+let topSitesExhausted = isPrivate;
+let topSitesLoad = null;
+let topSitesReady = false;
+let topSitesOffset = 0;
+
+function rememberHiddenTopSite(key) {
+  if (isPrivate || typeof key !== 'string' || !key) return;
+  hiddenTopSites.delete(key);
+  hiddenTopSites.add(key);
+  while (hiddenTopSites.size > MAX_HIDDEN_TOP_SITES) {
+    hiddenTopSites.delete(hiddenTopSites.values().next().value);
+  }
+  try {
+    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+  } catch {
+    // Storage may be unavailable; the in-memory dismissal still lasts for
+    // this page without falling back to any main-process or network store.
+  }
+}
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
 // and the ledger's margin copy explains the deal instead of stats.
@@ -27,16 +67,36 @@ const startupMessage = document.getElementById('startupMessage');
 const startupActions = document.getElementById('startupActions');
 const startupRetry = document.getElementById('startupRetry');
 const startupContinue = document.getElementById('startupContinue');
-function renderLaunchStatus({ startup, privacy } = {}) {
+const recoveryActions = document.getElementById('recoveryActions');
+const recoveryRestore = document.getElementById('recoveryRestore');
+const recoveryFresh = document.getElementById('recoveryFresh');
+const recoveryError = document.getElementById('recoveryError');
+function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   if (isPrivate) {
     startupCard.hidden = true;
     return;
   }
 
-  const showStartup = startup?.phase === 'initializing' || startup?.phase === 'failed';
+  const showRecovery = recovery?.required === true;
+  const showStartup = !showRecovery &&
+    (startup?.phase === 'initializing' || startup?.phase === 'failed');
   const startupWasHidden = startupCard.hidden;
-  startupCard.hidden = !showStartup;
-  if (showStartup) {
+  startupCard.hidden = !(showRecovery || showStartup);
+  startupActions.hidden = true;
+  recoveryActions.hidden = true;
+  recoveryError.hidden = true;
+  if (showRecovery) {
+    const tabs = Number.isInteger(recovery.tabCount) ? recovery.tabCount : 0;
+    const windows = Number.isInteger(recovery.windowCount) ? recovery.windowCount : 0;
+    startupTitle.textContent = 'Pick up where you left off?';
+    startupMessage.textContent = `Blanc did not close normally. Restore ${tabs} ${tabs === 1 ? 'tab' : 'tabs'} across ${windows} ${windows === 1 ? 'window' : 'windows'}, or start with a clean Personal window. No saved website will open until you choose.`;
+    recoveryActions.hidden = false;
+    if (recovery.error) {
+      recoveryError.textContent = recovery.error;
+      recoveryError.hidden = false;
+    }
+    if (startupWasHidden) recoveryRestore.focus();
+  } else if (showStartup) {
     const failed = startup.phase === 'failed';
     startupTitle.textContent = failed
       ? 'Blocking could not start.'
@@ -53,7 +113,10 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   // First-run onboarding replaced the privacy card outright (privacy is its
   // step 5, migration its step 2). It waits out the startup card and needs
   // the onboarding projection from start.data() before it will open.
-  window.blancOnboarding?.maybeShow({ startup, privacy }, state.onboarding);
+  window.blancOnboarding?.maybeShow({
+    startup: showRecovery ? { phase: 'initializing' } : startup,
+    privacy,
+  }, state.onboarding);
 }
 
 // Quiet, understated Patron callout — one per start-page layout (ledger,
@@ -86,6 +149,20 @@ startupContinue.addEventListener('click', async () => {
     startupContinue.disabled = false;
   }
 });
+
+async function chooseRecovery(choice) {
+  recoveryRestore.disabled = true;
+  recoveryFresh.disabled = true;
+  try {
+    const result = await window.bowserPages?.start.recoverSession(choice);
+    if (result?.recovery) renderLaunchStatus({ recovery: result.recovery });
+  } finally {
+    recoveryRestore.disabled = false;
+    recoveryFresh.disabled = false;
+  }
+}
+recoveryRestore.addEventListener('click', () => chooseRecovery('restore'));
+recoveryFresh.addEventListener('click', () => chooseRecovery('fresh'));
 
 window.bowserPages?.appVersion().then((version) => {
   document.getElementById('version').textContent = `v${version}`;
@@ -239,12 +316,13 @@ function renderRemote(remoteDevices) {
 // only when their layout is first shown — so the cache is cleared whenever a
 // feed changes, or a layout drawn from stale data would never redraw.
 const state = {
-  layout: 'ledger',
+  layout: 'billboard',
   groups: [],
   blockedThisWeek: 0,
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
   blockedBarHeights: [0, 0, 0, 0, 0, 0, 0],
   favorites: [],
+  topSites: [],
   onboarding: null,
 };
 const rendered = new Set();
@@ -288,18 +366,50 @@ function renderBillboard() {
   // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
-  favs.hidden = !state.favorites.length;
-  for (const b of state.favorites.slice(0, 6)) {
-    const item = document.createElement('a');
-    item.className = 'bb-fav';
-    item.href = b.url;
+  const sites = isPrivate
+    ? []
+    : state.topSites.filter((site) => !hiddenTopSites.has(site.key)).slice(0, 6);
+  favs.hidden = !sites.length;
+  for (const site of sites) {
+    const item = document.createElement('div');
+    item.className = 'bb-site';
+    item.dataset.siteKey = site.key;
+    const link = document.createElement('a');
+    link.className = 'bb-fav';
+    link.href = site.url;
     const tile = document.createElement('span');
     tile.className = 'tile';
-    decorateTile(tile, b);
+    decorateTile(tile, site);
     const label = document.createElement('span');
     label.className = 'label';
-    label.textContent = shortLabel(b.url, b.title);
-    item.append(tile, label);
+    label.textContent = (site.title || hostOf(site.url) || 'Untitled site').trim();
+    label.title = label.textContent;
+    link.setAttribute('aria-label', `Open ${label.textContent}`);
+    link.append(tile, label);
+
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'bb-site-dismiss';
+    dismiss.title = `Hide ${label.textContent}`;
+    dismiss.setAttribute('aria-label', `Hide ${label.textContent} from Billboard`);
+    const closeIcon = document.createElement('img');
+    closeIcon.src = 'close.svg';
+    closeIcon.alt = '';
+    closeIcon.draggable = false;
+    dismiss.appendChild(closeIcon);
+    dismiss.addEventListener('click', () => {
+      const index = [...favs.children].indexOf(item);
+      rememberHiddenTopSite(site.key);
+      renderBillboard();
+      document.getElementById('bbTopSitesStatus').textContent =
+        `${label.textContent} hidden from Billboard.`;
+      const next = favs.children[Math.min(index, favs.children.length - 1)]
+        ?.querySelector('.bb-fav, .bb-site-dismiss');
+      next?.focus();
+      fillBillboardSites().catch(() => {});
+    });
+
+    item.append(link, dismiss);
     favs.appendChild(item);
   }
 
@@ -307,6 +417,40 @@ function renderBillboard() {
   groups.replaceChildren();
   groups.hidden = !state.groups.length;
   for (const g of state.groups) groups.appendChild(groupChip(g));
+}
+
+function visibleBillboardSites() {
+  return state.topSites.filter((site) => !hiddenTopSites.has(site.key));
+}
+
+async function fillBillboardSites() {
+  if (
+    isPrivate ||
+    !topSitesReady ||
+    topSitesExhausted ||
+    visibleBillboardSites().length >= 6 ||
+    typeof window.bowserPages?.start?.topSites !== 'function'
+  ) return;
+  if (topSitesLoad) return topSitesLoad;
+
+  const offset = topSitesOffset;
+  topSitesLoad = window.bowserPages.start.topSites({
+    offset,
+    limit: TOP_SITES_PAGE_SIZE,
+  }).then((sites) => {
+    const next = Array.isArray(sites) ? sites : [];
+    topSitesOffset += next.length;
+    const known = new Set(state.topSites.map((site) => site.key));
+    state.topSites.push(...next.filter((site) => !known.has(site.key)));
+    if (next.length < TOP_SITES_PAGE_SIZE) topSitesExhausted = true;
+  }).finally(() => {
+    topSitesLoad = null;
+  });
+  await topSitesLoad;
+  renderBillboard();
+  if (visibleBillboardSites().length < 6 && !topSitesExhausted) {
+    await fillBillboardSites();
+  }
 }
 
 function renderShelf() {
@@ -413,9 +557,131 @@ function stopClock() {
   clockTimer = null;
 }
 
+// The mahjong layout embeds the real game page — one implementation and one
+// independently restorable instance. The opaque id lives on the parent URL
+// so Blanc's ordinary session persistence restores embedded boards after a
+// relaunch; the deal itself never enters the URL.
+function freshMahjongGameId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function setMahjongGameId(id) {
+  const url = new URL(location.href);
+  url.searchParams.set('game', id);
+  history.replaceState(history.state, '', url);
+  return id;
+}
+
+function mahjongGameId() {
+  const existing = new URLSearchParams(location.search).get('game');
+  return existing || setMahjongGameId(freshMahjongGameId());
+}
+
+function renderMahjongEmbed() {
+  const frame = document.getElementById('mahjongFrame');
+  if (frame.getAttribute('src')) return;
+  const url = new URL('blanc://mahjong/');
+  if (isPrivate) url.searchParams.set('private', '1');
+  url.searchParams.set('game', mahjongGameId());
+  frame.src = url.href;
+}
+
+function notifyMahjongActivity() {
+  if (!mahjongFrame.getAttribute('src') || !mahjongFrame.contentWindow) return;
+  mahjongFrame.contentWindow.postMessage({
+    type: 'blanc:mahjong-active',
+    active: state.layout === 'mahjong',
+  }, 'blanc://mahjong');
+}
+
+// A WebContentsView preload deliberately does not run in child frames. Relay
+// the game's one fixed signal through this trusted top-level document only
+// when it comes from the exact managed iframe and its internal origin.
+const mahjongFrame = document.getElementById('mahjongFrame');
+mahjongFrame.addEventListener('load', notifyMahjongActivity);
+window.addEventListener('message', (event) => {
+  if (
+    event.origin !== 'blanc://mahjong' ||
+    event.source !== mahjongFrame.contentWindow ||
+    (event.data !== 'blanc:mahjong-played' && event.data?.type !== 'blanc:mahjong-game-id')
+  ) return;
+  if (event.data === 'blanc:mahjong-played') {
+    window.bowserPages.start.mahjongPlayed().catch(() => {});
+    return;
+  }
+  // A duplicated live game forks itself before saving. Mirror that new id
+  // onto the parent URL so the fork survives a full Blanc restart.
+  if (event.data?.type === 'blanc:mahjong-game-id' &&
+      typeof event.data.id === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(event.data.id)) {
+    setMahjongGameId(event.data.id);
+  }
+});
+
+// The switcher's "new" badge retires once the layout has been tried on this
+// device. localStorage is a per-viewer convenience here — absent or blocked
+// storage just means the badge stays, never an error.
+const MAHJONG_SEEN_KEY = 'mahjongLayoutSeen';
+const MAHJONG_FOOTER_KEY = 'mahjongFooterHidden';
+const mahjongFooterToggle = document.getElementById('mahjongFooterToggle');
+const mahjongFooterToggleLabel = document.getElementById('mahjongFooterToggleLabel');
+let mahjongFooterHidden = false;
+let mahjongFooterTransition = null;
+try { mahjongFooterHidden = localStorage.getItem(MAHJONG_FOOTER_KEY) === '1'; } catch { /* visible is the safe default */ }
+
+function paintMahjongFooter() {
+  document.body.dataset.mahjongFooter = mahjongFooterHidden ? 'hidden' : 'visible';
+  mahjongFooterToggle.hidden = state.layout !== 'mahjong';
+  mahjongFooterToggle.setAttribute('aria-expanded', String(!mahjongFooterHidden));
+  const label = mahjongFooterHidden ? 'show footer' : 'hide footer';
+  mahjongFooterToggle.setAttribute('aria-label', label);
+  mahjongFooterToggle.title = label;
+  mahjongFooterToggleLabel.textContent = label;
+}
+
+function syncMahjongFooter({ animate = false } = {}) {
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (!animate || reducedMotion || typeof document.startViewTransition !== 'function') {
+    paintMahjongFooter();
+    return;
+  }
+  mahjongFooterTransition?.skipTransition();
+  document.documentElement.classList.add('is-mahjong-footer-transitioning');
+  const transition = document.startViewTransition(paintMahjongFooter);
+  mahjongFooterTransition = transition;
+  transition.finished.catch(() => {}).finally(() => {
+    if (mahjongFooterTransition !== transition) return;
+    mahjongFooterTransition = null;
+    document.documentElement.classList.remove('is-mahjong-footer-transitioning');
+  });
+}
+
+mahjongFooterToggle.addEventListener('click', () => {
+  mahjongFooterHidden = !mahjongFooterHidden;
+  try { localStorage.setItem(MAHJONG_FOOTER_KEY, mahjongFooterHidden ? '1' : '0'); } catch { /* keep the in-memory choice */ }
+  syncMahjongFooter({ animate: true });
+});
+
+function syncMahjongBadge() {
+  try {
+    if (localStorage.getItem(MAHJONG_SEEN_KEY)) {
+      document.getElementById('mahjongNewBadge').hidden = true;
+    }
+  } catch { /* badge stays */ }
+}
+syncMahjongBadge();
+
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
+  window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
+  syncMahjongFooter();
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
     button.classList.toggle('active', button.dataset.layoutPick === name);
   }
@@ -424,9 +690,16 @@ function applyLayout(name) {
     if (name === 'billboard') renderBillboard();
     if (name === 'shelf') renderShelf();
     if (name === 'tally') renderTally();
+    if (name === 'mahjong') renderMahjongEmbed();
     rendered.add(name);
   }
+  if (name === 'mahjong') {
+    try { localStorage.setItem(MAHJONG_SEEN_KEY, '1'); } catch { /* badge stays */ }
+    syncMahjongBadge();
+  }
+  notifyMahjongActivity();
   if (name === 'billboard') startClock();
+  if (name === 'billboard') fillBillboardSites().catch(() => {});
 }
 
 for (const button of document.querySelectorAll('[data-layout-pick]')) {
@@ -449,14 +722,18 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 
 const dataReady = window.bowserPages?.start.data().then((data) => {
   Object.assign(state, {
-    layout: data.layout ?? 'ledger',
+    layout: data.layout ?? 'billboard',
     groups: data.groups,
     blockedThisWeek: data.blockedThisWeek,
     blockedByDay: data.blockedByDay ?? state.blockedByDay,
     blockedBarHeights: data.blockedBarHeights ?? state.blockedBarHeights,
+    topSites: data.topSites ?? [],
     onboarding: data.onboarding ?? null,
   });
-  renderLaunchStatus({ startup: data.startup, privacy: data.privacy });
+  topSitesReady = true;
+  topSitesOffset = state.topSites.length;
+  topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
+  renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =

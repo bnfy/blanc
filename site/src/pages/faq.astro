@@ -3,11 +3,28 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 const QUESTIONS = [
   {
+    id: 'start-page-data',
+    q: 'What stays local on the start page?',
+    a: [
+      'Blanc offers Ledger, Billboard, Shelf, Tally, and Mahjong. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.',
+      'Mahjong’s eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. The start-page layout preference itself can sync through Personal’s optional Profile Sync.',
+      'If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move once per app session, without browsing data or game state. Private-tab feature activity is excluded.',
+    ],
+  },
+  {
+    id: 'bookmark-import',
+    q: 'Can I bring bookmarks from another browser?',
+    a: [
+      'Yes. First-run setup can look for installed browsers. You can also open Favorites, choose Look for other browsers, select a detected profile, and use Import from browser. Import HTML… accepts an exported bookmarks file.',
+      'Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Profile Sync.',
+    ],
+  },
+  {
     q: 'Is Blanc open source?',
     a: [
-      'No — but the source is public, and those are two different things worth separating.',
-      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what the launch ping sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
-      'The code is not openly licensed. package.json says UNLICENSED, so it carries no open-source grant. GitHub’s terms permit users to fork public repositories within the service, but Blanc grants no licence to modify the code, redistribute it, or publish your own builds. The accurate term is source-available, not open source.',
+      'Yes. Blanc is released under the MIT License.',
+      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what usage measurement sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
+      'The MIT licence covers Blanc’s own code: you may modify it, redistribute it, and publish your own builds. Publishing a build carries two conditions MIT does not cover. The bundled EasyList and EasyPrivacy filter lists are redistributed under CC BY-SA 3.0 or later, which requires attribution to The EasyList authors and carries share-alike terms on the redistributed lists and Blanc’s derived filter data. And the Blanc name and logo are trademarks that a copyright licence does not convey — publish under your own name and mark, not as Blanc.',
       'Published macOS releases are signed and notarized, and published Windows releases carry a timestamped Authenticode signature checked at release time. The checksum manifest is signed with Sigstore under a verified OIDC identity, while Windows and Linux CI artifacts carry GitHub provenance attestations. Those records authenticate published artifacts; they do not make a local build reproducible.',
     ],
   },
@@ -22,8 +39,8 @@ const QUESTIONS = [
   {
     q: 'Does Blanc phone home?',
     a: [
-      'Packaged builds send one launch ping, and you can turn it off. Its six fields are a random install ID, a session ID, app version, platform, architecture, and OS version coarsened to a major number. It contains no page, URL, search, or history data, and it is not joined to other Blanc data.',
-      'On a fresh profile, the choice is presented during first-run setup and must be saved before a ping can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
+      'Packaged builds can send a launch event plus bounded, once-per-app-session counts for the first real Mahjong move and each start-page layout that actually renders. Every event carries a random install ID, session ID, app version, platform, architecture, and coarse OS major; layout events add only one fixed layout name. It contains no page, URL, search, history, game-state, or custom-text data, and feature-use events are excluded from private tabs.',
+      'On a fresh profile, the choice is presented during first-run setup and must be saved before an event can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
       'The install ID lives in a device-local file and is never synced. Profile Sync never carries it.',
     ],
   },
@@ -31,7 +48,7 @@ const QUESTIONS = [
     q: 'Why does a free browser have a subscription?',
     a: [
       'Blanc Patron is $30 a year or $4 a month, and it is optional. Everything that makes Blanc a browser is free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys.',
-      'On macOS, Patron unlocks three extra Dock colorways. On every platform, it adds the ability to save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses, so your own data is never held hostage.',
+      'On every platform, Patron adds the ability to save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses, so your own data is never held hostage.',
       'Patron exists because Blanc has no ad business and no investors, and an independent browser needs a way to pay for itself that is not selling the people using it. Nothing that was free has moved behind payment.',
     ],
   },
@@ -40,6 +57,19 @@ const QUESTIONS = [
     a: [
       'It is deliberate, not a roadmap gap. Blanc previously included an extension runtime, but it caused native crashes, required an unsandboxed chrome window, and imposed a licensing constraint on the project.',
       'The feature most people want extensions for is blocking, and that is built into Blanc at the network layer instead — below the extension system and outside Manifest V3’s rule caps.',
+      'On macOS, Blanc can optionally fill matching Login items through the installed 1Password desktop app, but that is a narrow, user-invoked SDK integration—not an extension runtime or a Blanc password store.',
+    ],
+  },
+  {
+    q: "Why is there no built-in VPN?",
+    a: [
+      "Running a VPN means becoming a service business with your traffic in the middle — done honestly it takes audits, infrastructure, and a support organization; done halfway it is a proxy wearing a trench coat. Blanc’s privacy work goes where the browser actually is: blocking at the network layer, sandboxing every page, and shipping no third-party extension runtime. It can also stop WebRTC from opening direct UDP paths around an application proxy, and its encrypted-DNS setting can defer DNS to your system or VPN resolver instead of choosing a browser-level provider. If you already use a VPN you trust, Blanc runs under it like any other app on your device.",
+    ],
+  },
+  {
+    q: "Does Blanc have AI features?",
+    a: [
+      "No. There is no assistant, no sidebar copilot, no summarizer reading the page over your shoulder — and none planned as an upsell. Blanc is a browser: it renders the web, blocks the noise, and stays out of the way. Any AI you want to use is a website away; it just won’t be bundled into the chrome.",
     ],
   },
   {
@@ -52,7 +82,7 @@ const QUESTIONS = [
 ---
 <BaseLayout
   title="Straight answers about Blanc Browser"
-  description="Honest answers about Blanc Browser: source availability, Electron memory, telemetry, Patron pricing, and extension support."
+  description="Honest answers about Blanc Browser: start-page data, bookmark imports, open source, Electron memory, usage measurement, Patron, and extension support."
   path="/faq"
   page="faq"
   header="solid"
@@ -67,8 +97,8 @@ const QUESTIONS = [
     </header>
 
     <div class="faq-page-list">
-      {QUESTIONS.map(({ q, a }) => (
-        <section class="faq-page-item">
+      {QUESTIONS.map(({ q, a, id }) => (
+        <section class="faq-page-item" id={id}>
           <h2>{q}</h2>
           <div>{a.map((paragraph) => <p>{paragraph}</p>)}</div>
         </section>

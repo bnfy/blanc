@@ -45,7 +45,9 @@ against `doc ?? hint`.
 
 Same posture as `tokens/` and `settings-schema/`: the desktop copies are
 load-bearing renderer code a headless build can't exercise, and drift *prevention*
-is the point. Mobile resources (new) are fully generated.
+is the point. Mobile resources (new) are fully generated. A command with a
+`platforms` allowlist remains in the relevant desktop catalog but is omitted
+from mobile resources; `/1password` is currently `macos` only.
 
 ## Verification
 

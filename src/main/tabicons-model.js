@@ -18,8 +18,13 @@ const ICON_SIZES = new Set([LEGACY_ICON_SIZE, ICON_SIZE]);
 // The independent 256 KiB account budget below still bounds aggregate data.
 const MAX_ICON_DATA = 8192;
 const MAX_SOURCE_BYTES = 256 * 1024;
-const MAX_SOURCE_DIMENSION = 1024;
-const MAX_SOURCE_PIXELS = 512 * 512;
+// Some production sites use app artwork as their only desktop favicon. NFL,
+// for example, declares a compressed 2000x2000 PNG. Keep a decoded-pixel
+// ceiling (rather than trusting the much smaller compressed byte count), but
+// make it large enough for that real-world class of icon: at most 4M pixels,
+// or 16 MiB as RGBA, with an independent long-edge guard.
+const MAX_SOURCE_DIMENSION = 4096;
+const MAX_SOURCE_PIXELS = 2048 * 2048;
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const PNG_DATA_PREFIX = 'data:image/png;base64,';
 const GENERIC_BINARY_MEDIA_TYPE = 'application/octet-stream';
@@ -179,20 +184,29 @@ function isIcoUrl(source) {
 }
 
 /** Whether a response is worth reading under the existing byte ceiling.
- * Generic binary is allowed only for a conventional `.ico` URL; callers must
- * still pass the completed bytes through faviconResponseMediaType below. */
-function canReadFaviconResponse(contentType, source) {
+ * Generic page-designated candidates are read, but callers must still prove
+ * their completed PNG/ICO bytes through faviconResponseMediaType below. */
+function canReadFaviconResponse(contentType, _source) {
   const type = normalizedMediaType(contentType);
   return isImageMediaType(type) ||
-    (type === GENERIC_BINARY_MEDIA_TYPE && isIcoUrl(source));
+    // A page-designated favicon is already a bounded, isolated request. Read
+    // generic responses so the completed bytes can prove a PNG signature (or
+    // a valid ICO container) instead of rejecting honest icons solely because
+    // their CDN supplied a generic label.
+    type === GENERIC_BINARY_MEDIA_TYPE;
 }
 
 /** Resolve the inert media type used for decoding after a bounded read.
- * Honest image/* labels retain their existing path. A generic `.ico` response
- * is promoted only when its bytes pass validSourceIcoBytes. */
+ * Honest image/* labels retain their existing path. Generic responses are
+ * promoted only after a valid PNG signature, or a valid ICO container when
+ * the conventional `.ico` suffix supplies that format hint. */
 function faviconResponseMediaType(contentType, source, bytes) {
   const type = normalizedMediaType(contentType);
   if (isImageMediaType(type)) return type;
+  if (
+    type === GENERIC_BINARY_MEDIA_TYPE &&
+    validSourcePngBytes(bytes)
+  ) return 'image/png';
   if (
     type === GENERIC_BINARY_MEDIA_TYPE &&
     isIcoUrl(source) &&

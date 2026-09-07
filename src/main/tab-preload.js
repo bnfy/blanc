@@ -30,11 +30,15 @@ if (window.location.protocol === 'blanc:') {
       },
       start: {
         data: () => invoke('pages:start:data'),
+        topSites: (options) => invoke('pages:start:top-sites', options),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         setLayout: (name) => invoke('pages:start:set-layout', name),
+        layoutUsed: (name) => invoke('pages:start:layout-used', name),
+        mahjongPlayed: () => invoke('pages:mahjong:played'),
         openIsland: (char) => invoke('pages:start:open-island', char),
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
+        recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
         defaultBrowser: () => invoke('pages:default-browser:get'),
         setDefaultBrowser: () => invoke('pages:default-browser:set'),
@@ -46,6 +50,10 @@ if (window.location.protocol === 'blanc:') {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
         },
       },
+    };
+  } else if (host === 'mahjong') {
+    api = {
+      mahjong: { played: () => invoke('pages:mahjong:played') },
     };
   } else if (host === 'bookmarks') {
     api = {
@@ -119,6 +127,9 @@ if (window.location.protocol === 'blanc:') {
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
         welcomeTour: () => invoke('pages:settings:welcome-tour'),
+        onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
+        onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),
+        openOnePasswordApp: () => invoke('pages:settings:open-onepassword-app'),
       },
       profiles: {
         list: () => invoke('pages:profiles:list'),
@@ -137,6 +148,11 @@ if (window.location.protocol === 'blanc:') {
       },
       clearBrowsingData: () => invoke('pages:clear-browsing-data'),
       resetInstallId: () => invoke('pages:telemetry:reset-install-id'),
+      diagnostics: {
+        status: () => invoke('pages:diagnostics:status'),
+        export: () => invoke('pages:diagnostics:export'),
+        clear: () => invoke('pages:diagnostics:clear'),
+      },
     };
   }
 

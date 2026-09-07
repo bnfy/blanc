@@ -95,6 +95,7 @@ test('cosmetic icon churn never postpones the primary session timer', (t) => {
   });
 
   const sync = require('../../src/main/sync');
+  sync.setTabStateReady(true);
   sync.init();
   assert.equal(typeof tabChanged, 'function');
   assert.equal(typeof iconChanged, 'function');

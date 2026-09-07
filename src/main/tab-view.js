@@ -96,7 +96,8 @@ function initTabView(injected) {
     'isUtilityUrl', 'handOffToOs', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
     'onMainFrameCommit', 'noteWakeSuppressed', 'notePopupChild',
-    'registerPopupCaptureSurface', 'clearTabCaptureState',
+    'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
+    'sanitizeCertificate', 'certificateErrorQuery',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -148,7 +149,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     isUtilityUrl, handOffToOs, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
     onMainFrameCommit, noteWakeSuppressed, notePopupChild,
-    registerPopupCaptureSurface, clearTabCaptureState,
+    registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
+    sanitizeCertificate, certificateErrorQuery,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
@@ -248,6 +250,11 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate-in-page', boundToTab((_e, url, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
+    // A same-document navigation of the active tab replaces what a fill
+    // message was about — dismiss it (runtime-scoped; optional dep), and
+    // re-probe the new route for the ambient hint.
+    if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
+    if (isMainFrame) deps.onFillHintInPageNavigation?.(tab);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
     broadcastTabs();
@@ -255,7 +262,17 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('did-start-navigation', boundToTab((_e, url, _isInPlace, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (isMainFrame) tab.navEpoch++;
+    if (isMainFrame) {
+      tab.navEpoch++;
+      if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
+    }
+    // Main-frame navigation of the active tab dismisses a visible fill
+    // message immediately — a decision must not stay actionable, nor an
+    // error notice persist, over the successor page (same posture as the
+    // shield dismissal below).
+    if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
+    // The outgoing document's hint is stale the moment navigation starts.
+    if (isMainFrame) deps.onFillHintNavigationStart?.(tab);
     if (
       isMainFrame
       && owner.overlayMode === 'shield'
@@ -268,6 +285,13 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.once('did-finish-load', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
+  }));
+  // PERSISTENT load listener for the ambient hint — the `.once` above fires
+  // only for the WebContents' first document; later full-page navigations
+  // would clear the hint at did-start-navigation and never re-probe.
+  wc.on('did-finish-load', boundToTab(() => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    deps.onFillHintLoad?.(tab);
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
@@ -298,8 +322,28 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || errorCode === -3 || !validatedURL) return;
     if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
-    const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
+    const q = tab.certificateError
+      ? certificateErrorQuery(tab.certificateError, {
+          url: validatedURL,
+          code: errorCode,
+          desc: errorDescription,
+        })
+      : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+  }));
+  // Chromium remains authoritative. Capture only bounded presentation data
+  // for top-level failures and always reject; subframe failures stay denied
+  // without replacing the visible page.
+  wc.on('certificate-error', boundToTab((_event, failedUrl, error, certificate, callback, isMainFrame) => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return callback(false);
+    if (isMainFrame) {
+      tab.certificateError = {
+        url: failedUrl,
+        error,
+        certificate: sanitizeCertificate(certificate),
+      };
+    }
+    callback(false);
   }));
   // Adopted window.open children can die outside closeTab. A sleeping tab
   // deliberately destroys its own view, so it must not prune the tab record.
@@ -313,6 +357,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     // error page's commit — that loadURL can itself fail (spec §3.2).
     clearTabCaptureState(tab);
     if (details.reason === 'clean-exit') return;
+    recordRendererCrash('tab', details);
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
   }));

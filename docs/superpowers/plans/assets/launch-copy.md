@@ -1,4 +1,4 @@
-# Blanc v1.8.2 launch copy pack
+# Blanc v1.15.0 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -7,30 +7,104 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
+**Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
+September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
+September 10. A bounded backlog-cleanup window now precedes the launch freeze.
+**FINAL RELEASE SELECTION 2026-09-03:** v1.15.0 is the launch release. Its
+publication, all native-platform gates, public Linux launch/render check, and
+adjacent macOS and Windows updater handoffs are complete. The release-bound
+demo and Product Hunt stills were recaptured from that installed packaged
+build. If a regression forces a replacement release, this pack becomes
+non-publishable until every release-bound fact and asset is rebaselined and the
+fresh launch soak restarts.
+
+**Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
+v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
+incident. That confirmation closes the earlier evidence gap; it does not waive
+the asset merge, final freeze, or fresh soak. Do not publish this pack until
+the runbook's remaining launch gates are cleared.
+
+**Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
+v1.15.0, published from `d0c2304`. It carries the optional macOS 1Password
+ambient login hint and Settings account verification while keeping credential
+lookup and fill explicit. It also carries WebRTC receive-buffer controls,
+Electron 44.1.1, device-local frequently visited Billboard sites, Inter across
+every start-page template, Sunrise branding on all platforms, and four macOS
+icon choices. The resting Island now uses the compact website-inspired
+geometry and material treatment, includes a quiet one-click regular-tab
+shortcut beside the slash keycap, and keeps its unified proximity response;
+the vertical rail uses Inter. Mahjong now has eight layouts, a deterministic
+Daily rotation across all eight, device-local records and streaks, unfinished-
+game continuation across tabs, and undoable Shuffle. It resets every profile
+once to Sunrise and Billboard, then preserves later user changes. The
+authenticated public v1.15.0 Linux launch/render check passed, and the adjacent
+v1.14.0 -> v1.15.0 macOS and Windows updater handoffs both passed. Complete
+release evidence is recorded in
+`docs/release-incidents/2026-09-02-v1.15.0.md`. Do not use UI or claims from
+later work on `main`.
+
 ## Frozen facts
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.8.2 |
+| Current public release | v1.15.0 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
 | Patron boundary | Creating a Named Workspace requires active Patron. Renaming and removing an existing workspace continue after a lapse |
-| Other Patron benefits | Three extra macOS Dock colorways; Named Workspaces on every platform |
-| Source status | Source-available, not open source; `UNLICENSED`; GitHub permits an in-service fork, but Blanc grants no right to modify, redistribute, or publish builds |
-| Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
+| Other Patron benefits | Named Workspaces on every platform |
+| Source status | Open source under the MIT License (adopted 2026-08-30); modification, redistribution, and third-party builds are permitted. Publishing a build carries the bundled filter lists' CC BY-SA 3.0+ attribution/share-alike terms, and the Blanc name and logo stay reserved as trademarks |
+| Telemetry | Packaged builds can send one launch event plus bounded, once-per-app-session events for the first real Mahjong move and each start-page layout that renders. Every event carries a random install ID, random session ID, version, platform, architecture, and coarse OS major; layout events add one fixed layout name. Fresh profiles save the presented choice before anything can send; feature-use events exclude private tabs |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
+| macOS 1Password boundary | Optional and device-local. A small hint may use bounded structure-only metadata from a visible current-password field, without field values, page text, or a 1Password request. Settings can explicitly verify a saved account identifier. Credential lookup and fill remain user-invoked; Blanc does not fill automatically or store credentials. It is not an extension runtime |
+| Repository/build boundary | The v1.15.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
 | Channel | URL |
 |---|---|
 | Show HN | https://github.com/bnfy/blanc |
-| Reddit | https://blancbrowser.com/?ref=reddit |
+| Reddit | https://blancbrowser.com |
 | Product Hunt | https://blancbrowser.com/?ref=ph |
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
+
+Packaged-v1.15.0 launch media:
+
+| Form | URL |
+|---|---|
+| Approved launch overview | https://www.youtube.com/watch?v=xqUFMUcCjT0 |
+| Existing short MP4 | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.mp4 |
+| Existing short GIF | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.gif |
+
+The existing short files were captured on September 3 from the installed packaged public
+v1.15.0 macOS app in an isolated local profile with telemetry and search
+suggestions disabled. The 22-second export is 1920×1200, 30 fps H.264, and
+BT.709; the 960×600 GIF is below 8 MiB. It shows the resting Island, `⌘L`
+expansion, a live `git` Quick Switcher filter, tab-dot switching, The Verge's
+live blocker count and popover, and a final resting hold. They remain the README
+demo and were not deleted or replaced.
+
+The approved 42-second launch overview was recorded on September 4 from the
+same installed packaged public release in a dedicated local capture profile.
+It uses the live Blanc site and public GitHub repository as backdrops and shows
+the Quick Switcher and slash commands, an explicitly named tab group, Glance
+with Make main, the real one-request blocker count and site controls, real
+Explore/Build Named Workspace switching with a persistent `Patron` label, and
+one legal Mahjong match. It is a 1920×1200, 30 fps H.264 BT.709 export with no
+audio stream and a 42.000-second duration. Captions occupy a reserved lower
+margin; the two Inter secondary lines are 38 px beneath 62 px Newsreader
+captions. Anthony approved that revision on September 4.
+
+The replacement was uploaded as a new unlisted YouTube video with no copyright
+issues, and its embedding was verified both on a referrer-bearing test page and
+inside the unpublished Product Hunt draft. YouTube custom-thumbnail upload is
+unavailable until the channel completes phone verification, so the matching
+homepage-backed poster remains in the owner's local review output; no account
+verification was attempted. The cleanest homepage-backed frame among YouTube's
+three generated choices was selected instead. The former unlisted YouTube video
+remains intact.
 
 ## Show HN — owner writes every public word
 
@@ -51,7 +125,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.8.2 hotfix.
+   announce the incremental v1.15.0 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -74,8 +148,12 @@ Write these ideas in Anthony's natural words:
   licensing constraint.
 - The honest limitation: Electron. Point to the measured method and raw data;
   do not turn a single-session benchmark into a universal claim.
-- What it is not: no mobile version; no extension support; source-available,
-  not open source.
+- What it is not: no mobile version; no extension support.
+- Narrow exception to the extension boundary: packaged macOS v1.15.0 may show
+  a small local hint for a visible current-password field and can verify a
+  saved account identifier in Settings. A matching Login item is requested
+  from the installed 1Password app only when the user asks to fill; it is not
+  automatic fill, an extension runtime, or a Blanc-owned credential store.
 - Money, unprompted: the browser is free. Patron is $4/month or $30/year.
   Creating a Named Workspace requires active Patron; existing workspaces remain
   renameable and removable after a lapse.
@@ -104,18 +182,23 @@ These are facts to answer from, not sentences to paste.
 - `npm install && npm start` runs the checked-out source.
 - A local build demonstrates that source; it does not prove a published binary
   is byte-for-byte identical.
-- `UNLICENSED`: no Blanc grant to modify, redistribute, or publish builds.
+- MIT License: modification, redistribution, and third-party builds are granted.
+- Publishing a build still carries the filter lists' CC BY-SA 3.0+ terms, and the
+  Blanc name and logo are reserved trademarks.
 - GitHub's terms permit an in-service fork of a public repository.
 - Signing, notarization, checksums, Sigstore, and CI provenance authenticate the
   release records; they do not make the build reproducible.
 
 **Telemetry**
 
-- Packaged builds only; one launch ping; opt-out.
-- Six fields: install ID, session ID, version, platform, architecture, coarse OS
-  major.
-- No URLs, searches, history, or page content.
-- A fresh profile saves the presented choice before any ping can send.
+- Packaged builds only; one launch event plus bounded, once-per-app-session
+  events for the first real Mahjong move and each rendered start-page layout;
+  opt-out.
+- Six common fields: install ID, session ID, version, platform, architecture,
+  coarse OS major. Layout events add one fixed layout name.
+- No URLs, searches, history, page content, game state, or custom text;
+  feature-use events exclude private tabs.
+- A fresh profile saves the presented choice before anything can send.
 - The Worker HMACs the install ID before storage.
 
 **Patron**
@@ -123,7 +206,7 @@ These are facts to answer from, not sentences to paste.
 - $4/month or $30/year, plus applicable taxes.
 - Core browsing remains free: blocking, encrypted sync, private tabs, groups,
   quiet tabs, and passkeys.
-- Patron adds three macOS Dock colorways and Named Workspaces on every platform.
+- Patron adds Named Workspaces on every platform.
 - Only workspace creation requires an active subscription; rename and removal
   continue after a lapse.
 - Earlier one-time founding supporters keep their benefits permanently.
@@ -138,12 +221,38 @@ These are facts to answer from, not sentences to paste.
 
 ## Reddit
 
-Candidate communities are not a posting list. Re-check each community's current
-self-promotion, flair, account-history, and link rules on posting day. Post only
-where the rules allow it, from the owner's personal account, and do not
-cross-post identical text. Revise these drafts after the Show HN objection log.
+Candidate communities are not a posting list. The owner must re-open each
+community's live rules on posting day, use a personal account, disclose that he
+built Blanc, and never manufacture karma, comments, account history, or
+moderator access to clear a gate. Use the clean `https://blancbrowser.com` URL:
+several candidate communities prohibit affiliate, referral, invite, shortened,
+or redirecting links, and Reddit's HTTP referrer is enough for aggregate source
+measurement. Do not cross-post identical text. Revise any eligible draft after
+the Show HN objection log.
 
-### Browser community draft
+Current eligibility matrix (re-check immediately before posting):
+
+| Community | Launch status | Hard gate |
+|---|---|---|
+| r/browsers | Candidate | Re-open the [live rules](https://www.reddit.com/r/browsers/about/rules). Use the clean official URL; no affiliate/referral or invite link, and the post must be a substantive founder post rather than an FAQ/how-to link drop. |
+| r/macapps | Conditional | The personal account must already have at least 10 local karma, complete the community's “Read the Rules” approval, be outside the once-per-developer 30-day cooldown, and qualify for the main feed through the current trust or transparency path. A main-feed post must use the open-source `[OS]` title prefix, the correct live pricing flair, founder disclosure, and Problem/Comparison/Pricing format. If the account does not qualify for the main feed, use the current App Pile megathread only if its rules permit it; otherwise skip. See the [live rules](https://www.reddit.com/r/macapps/about/rules), [current trust-path and PCP policy](https://www.reddit.com/r/macapps/comments/1ryaeex/), and [post-approval instructions](https://www.reddit.com/r/macapps/comments/1smg62t/). |
+| r/windows | Skip unless already approved | Software promotion requires prior moderator permission plus the green-check user flair, and the [live rules](https://www.reddit.com/r/windows/about/rules) currently say new applicants are not being accepted. Do not apply, modmail, or post unless the owner's account already holds that permission and flair. |
+| r/linux | Conditional | The personal account must already satisfy the [live rules](https://www.reddit.com/r/linux/about/rules): no more than 10% of its posts may be the owner's own content, Blanc must be directly relevant to Linux/open source, the owner must make a genuine reply to a related story before posting, use the direct official source, and stay to engage. If the existing participation ratio fails, skip rather than creating activity to qualify. |
+
+**Known pre-launch mention:** a third-party user opened an
+[r/browsers discussion about Blanc](https://www.reddit.com/r/browsers/comments/1vj0og9/has_anyone_heard_of_blanc_browser/)
+on 2026-08-08 after seeing an Instagram ad. It is not the owner's founder post,
+does not complete the Reddit launch task, and its traffic or engagement must not
+be attributed to the launch. Its comments are still useful objection evidence:
+some readers questioned whether the project was AI/vibe-coded, whether the
+repository history was enough to trust, and whether Blanc should be framed as
+an Arc replacement. Address those themes with concrete release evidence and
+candid product boundaries. On posting day, also decide whether a new founder
+post so soon after that discussion would be welcome under the live r/browsers
+rules; skip if the answer is ambiguous. Do not revive or commandeer the old
+thread as a substitute launch.
+
+### Browser community draft — candidate after same-day rule check
 
 **Title**
 
@@ -166,25 +275,24 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > licensing constraint. If a particular extension is essential to you, Blanc
 > probably isn't the right browser.
 >
-> Other candid limitations: it is Electron, there is no mobile version, and it
-> is source-available rather than open source. The code is readable and forkable
-> on GitHub, but `UNLICENSED` grants no right to redistribute it or publish your
-> own builds.
+> Other candid limitations: it is Electron, and there is no mobile version. The
+> code is open source under the MIT License, so it is readable, forkable, and
+> yours to build on.
 >
-> The browser is free. Optional Patron is $4/month or $30/year and adds three
-> macOS Dock colorways plus Named Workspaces on every platform. Creating a named
+> The browser is free. Optional Patron is $4/month or $30/year and adds Named
+> Workspaces on every platform. Creating a named
 > workspace requires Patron; renaming and removing one you already have keeps
 > working after a lapse.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > Happy to answer the skeptical version of any of this.
 
-### macOS community draft
+### macOS community draft — conditional, rewrite into live PCP format
 
 **Title**
 
-> I made a minimal macOS browser around one floating command surface
+> [OS] I made a minimal macOS browser around one floating command surface
 
 **Body**
 
@@ -200,17 +308,17 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > extension runtime; I removed the one I had after native crashes and the
 > security/licensing compromises it required.
 >
-> Blanc is free and source-available rather than open source. Optional Patron
-> ($4/month or $30/year) adds three Dock colorways and the ability to create
+> Blanc is free and open source under the MIT License. Optional Patron
+> ($4/month or $30/year) adds the ability to create
 > Named Workspaces. Existing workspaces remain renameable and removable if the
 > subscription lapses.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > I would especially value feedback on whether the Island still exposes enough
 > state when several tabs are open.
 
-### Windows community draft
+### Windows community draft — hold; do not post without existing approval
 
 **Title**
 
@@ -229,18 +337,18 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > caused native crashes, forced the browser chrome out of its sandbox, and
 > introduced a licensing constraint.
 >
-> The Windows release uses a timestamped Authenticode-signed installer and has a
-> tested in-app update handoff. The app is free; the source is public but
-> `UNLICENSED`. Optional Patron ($4/month or $30/year) adds Named Workspaces on
+> The Windows release uses a timestamped Authenticode-signed installer. The app
+> is free and the source is open source under the MIT
+> License. Optional Patron ($4/month or $30/year) adds Named Workspaces on
 > Windows, while existing workspaces remain renameable and removable after a
 > lapse.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > If you try it, I would like to know where the Island feels clearer—or less
 > clear—than a conventional toolbar.
 
-### Linux community draft
+### Linux community draft — conditional on existing participation eligibility
 
 **Title**
 
@@ -259,24 +367,54 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > it also means Blanc is not a fit if your workflow depends on an extension.
 >
 > Linux ships as an x86_64 AppImage. The application source is public for
-> inspection but is `UNLICENSED`, so this is source-available rather than open
-> source. The browser is free; optional Patron ($4/month or $30/year) adds Named
+> inspection and open source under the MIT
+> License. The browser is free; optional Patron ($4/month or $30/year) adds Named
 > Workspaces, with rename and removal preserved after a lapse.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > I am interested in practical AppImage and desktop-integration feedback across
 > distributions.
 
 ## Product Hunt
 
+**Account gate:** use the owner's personal account and confirm it can reach the
+submission form before Thursday, September 10. Product Hunt's current
+[posting-access guide](https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post)
+says company accounts cannot post and newly created personal accounts normally
+wait one week; newsletter subscription can grant immediate access.
+
 Product Hunt's current form allows a 260-character description, recommends a
 240×240 square thumbnail, requires at least two gallery images for the gallery
 to appear, recommends 1270×760 gallery images, and supports gallery video only
 through a full YouTube URL. Upload the final demo to YouTube as public or
-unlisted—not private—and verify the full URL before scheduling. Re-check the
+unlisted—not private—at least 12 hours before the final preview when possible;
+Product Hunt warns that new YouTube uploads may need about 12 hours before they
+can be integrated. Verify the full URL in the preview, then use **Schedule
+Launch** for **Thursday, September 10, 2026**; Product Hunt says its 24-hour PST
+period puts scheduled posts live at **12:01 a.m. PST**. Re-check the
 [official posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 when creating the draft.
+
+Prepared release-backed media:
+
+- Thumbnail: `product-hunt/thumbnail-240x240.png`
+- Gallery still 1: `product-hunt/island-resting-1270x760.png`
+- Gallery still 2: `product-hunt/quick-switcher-1270x760.png`
+
+The two stills were recaptured on September 4 from packaged v1.15.0 over the
+live Blanc homepage, replacing the Example Domain video frames. They satisfy
+the guide's two-image gallery floor. Their exact provenance is in
+`product-hunt/README.md`.
+The demo is uploaded as unlisted at
+`https://www.youtube.com/watch?v=xqUFMUcCjT0`; embedded playback was verified in
+the unpublished Product Hunt draft on September 4. Product Hunt resolved the
+player to `youtube-nocookie.com/embed/xqUFMUcCjT0`, displayed the correct title,
+and reported a 42-second duration. The draft is saved at
+`https://www.producthunt.com/products/blanc-3?launch=blanc-3`. On September 4,
+Anthony authorized scheduling and the live picker confirmed **September 10 at
+12:01 a.m. PT (3:01 a.m. ET)**; the Pre-Launch Dashboard then reported
+`Scheduled` with the matching countdown.
 
 **Name**
 
@@ -291,15 +429,15 @@ when creating the draft.
 > Paid (with a free plan)
 
 This is more candid than `Free`: core browsing is free, but Named Workspace
-creation and cosmetic colorways are paid benefits.
+creation is a paid benefit.
 
-**Tagline** — 51 characters
+**Tagline** — 22 characters; owner-confirmed website wording, September 4
 
-> A minimal desktop browser with built-in ad blocking
+> A little less browser.
 
 **Description** — 244 characters, within the current 260-character limit
 
-> Blanc is a free desktop browser for macOS, Windows and Linux. Its floating Island replaces the tab strip and toolbar, while ad and tracker blocking runs at the network layer. Optional Patron adds Named Workspaces and three macOS Dock colorways.
+> Blanc is a free desktop browser for macOS, Windows and Linux. Its floating Island replaces the tab strip and toolbar, while ad and tracker blocking runs at the network layer. Optional Patron adds Named Workspaces.
 
 **Suggested topics**
 
@@ -325,25 +463,27 @@ Use only topics that exist in the live form and genuinely fit.
 > shipped one, then removed it after native crashes and the sandboxing and
 > licensing compromises it required.
 >
-> Blanc 1.8 added Named Workspaces, which save a window's tabs and groups. The
-> browser is free. Optional Patron is $4/month or $30/year and adds workspace
-> creation on every platform plus three macOS Dock colorways. Existing
+> Named Workspaces save a window's tabs and groups. The browser is free.
+> Optional Patron is $4/month or $30/year and adds workspace
+> creation on every platform. Existing
 > workspaces remain renameable and removable after a subscription lapses.
 >
-> It is Electron, source-available rather than open source, and intentionally
+> It is Electron, open source under the MIT License, and intentionally
 > has no mobile or extension support. I would love feedback on the Island and on
 > where this narrower browser is—or is not—useful for you.
 
 **Gallery order**
 
-1. Island demo through a verified full YouTube URL.
-2. 1270×760 Island resting-state image.
-3. 1270×760 expanded command palette/quick-switcher image.
-4. 1270×760 Named Workspaces image with a visible `Patron` label in its caption.
+1. Approved 42-second launch overview through its verified full YouTube URL.
+2. `product-hunt/island-resting-1270x760.png`.
+3. `product-hunt/quick-switcher-1270x760.png`.
+4. Optional: a packaged-v1.15.0 Named Workspaces capture with a visible
+   `Patron` label in its caption. Omit it rather than substituting a mockup,
+   development build, or unlabeled paid feature.
 
 ## AlternativeTo
 
-**Status:** submitted; priority review paid; approval pending.
+**Status:** approved August 25; public signed-out browser check passed August 27.
 
 **Listing:** https://alternativeto.net/software/blanc/
 
@@ -367,10 +507,11 @@ free, while Named Workspace creation is paid.
 > quiet background tabs that release memory, private tabs, end-to-end encrypted
 > sync, and Touch ID passkeys on macOS.
 >
-> Blanc is free. The source is publicly available on GitHub but is not released
-> under an open-source licence. Optional Patron ($30/year or $4/month) adds three
-> macOS Dock colorways and the ability to create Named Workspaces on every
-> platform. Existing workspaces remain renameable and removable after a lapse.
+> Blanc is free and open source under the MIT License. The bundled filter lists
+> retain their CC BY-SA terms, and the Blanc name and logo remain reserved
+> trademarks. Optional Patron ($30/year or $4/month) adds the ability to create
+> Named Workspaces on every platform.
+> Existing workspaces remain renameable and removable after a lapse.
 
 Do not put URLs, email addresses, or phone numbers in the description.
 
@@ -384,6 +525,13 @@ Do not put URLs, email addresses, or phone numbers in the description.
 - Zen Browser
 
 ## BetaList
+
+**Submission gate:** pending owner payment decision. BetaList's current
+[first-party support page](https://betalist.com/support) says all submissions
+are paid and there is no free option. Review the live plans, prices, and
+timelines in the authenticated form after the pre-launch baseline; do not infer
+or freeze a price from an earlier plan. If the owner declines, record the
+channel as not submitted rather than calling it fired.
 
 **Name**
 
@@ -403,8 +551,7 @@ Do not put URLs, email addresses, or phone numbers in the description.
 > tab strip and toolbar with one floating pill. Ad and tracker blocking runs at
 > the browser session's network layer instead of as an extension, so it does not
 > use Manifest V3's extension rule budget. No account is required for ordinary
-> browsing. Optional Patron adds Named Workspace creation and three macOS Dock
-> colorways.
+> browsing. Optional Patron adds Named Workspace creation.
 
 ## Reusable replies for Reddit and Product Hunt
 
@@ -422,26 +569,34 @@ drop a full defense where one sentence would do.
 
 ### “Is it open source?”
 
-> No. It is source-available, not open source. The whole application is readable
-> in the public repo and the checked-out source can be run locally, but
-> `package.json` is `UNLICENSED`: Blanc grants no right to modify, redistribute,
-> or publish builds. A local build demonstrates the checked-out source; it does
-> not prove a published binary is byte-for-byte identical.
+> Yes, under the MIT License. The whole application is readable in the public
+> repo, the checked-out source runs locally, and you may modify it, redistribute
+> it, and publish your own builds. Two conditions ride along: the bundled
+> EasyList and EasyPrivacy filter lists are redistributed under CC BY-SA 3.0 or
+> later, which requires attribution to The EasyList authors and carries
+> share-alike terms on the redistributed lists and Blanc's derived filter data;
+> and the Blanc name and logo are trademarks a
+> copyright licence does not convey, so publish under your own mark. A local
+> build demonstrates the checked-out source; it does not prove a published binary
+> is byte-for-byte identical.
 
 ### “What telemetry does it send?”
 
-> Packaged builds send one launch ping, and it can be turned off. The six fields
-> are a random install ID, random session ID, version, platform, architecture,
-> and coarse OS major. There are no URLs, searches, history, or page contents. A
-> fresh profile saves the presented choice before a ping can send. The complete
-> description is at https://blancbrowser.com/faq.
+> Packaged builds can send one launch event plus bounded, once-per-app-session
+> events for the first real Mahjong move and each start-page layout that
+> actually renders. Every event carries a random install ID, random session ID,
+> version, platform, architecture, and coarse OS major; layout events add one
+> fixed layout name. There are no URLs, searches, history, page contents, game
+> state, or custom text, and feature-use events exclude private tabs. A fresh
+> profile saves the presented choice before anything can send. It can be turned
+> off. The complete description is at https://blancbrowser.com/faq.
 
 ### “What is actually paid?”
 
 > Patron is optional at $4/month or $30/year. Core browsing—including blocking,
 > encrypted sync, private tabs, tab groups, quiet tabs, and passkeys—is free.
-> Patron adds three macOS Dock colorways and Named Workspace creation on every
-> platform. Existing workspaces remain renameable and removable after a lapse.
+> Patron adds Named Workspace creation on every platform. Existing workspaces
+> remain renameable and removable after a lapse.
 
 ### “Why no extensions?”
 
@@ -449,20 +604,43 @@ drop a full defense where one sentence would do.
 > after native crashes, an unsandboxed-chrome requirement, and a licensing
 > constraint. Blocking is built into the browser at the network layer, but if a
 > particular extension is essential, Blanc genuinely is not the right browser.
+> On macOS there is one narrow exception: an explicit Fill gesture can ask the
+> installed 1Password app for a matching Login item. It is opt-in, never fills
+> automatically, and does not add a general extension runtime.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.8.2.
+- [ ] `package.json` and the latest public release both still say v1.15.0.
+- [ ] The README still links the v1.15.0 tag as the exact source snapshot for
+  the current public binaries, and any newer `main` work is excluded from copy.
+- [ ] The latest `launch-freeze-start` row records the final `origin/main`
+  anchor, launch release tag, and release SHA; since that dynamic anchor,
+  `origin/main` contains only launch evidence/copy/guard changes and no
+  product/runtime, dependency, packaging, release-workflow, or feature-spec
+  merge.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
 - [ ] Named Workspace creation still requires Patron; rename/removal still work
   after a lapse.
-- [ ] The telemetry payload remains exactly six fields.
+- [ ] Telemetry remains limited to the six common fields plus the bounded
+  fixed event/layout fields described above; no URL, search, history, page,
+  game-state, custom-text, or private-tab feature-use data is sent.
 - [ ] `npm run test:unit` passes, including
   `test/unit/public-truth.test.js`.
-- [ ] The final Island demo URL works without authentication.
-- [ ] Product Hunt's full YouTube URL is not private and appears in the preview.
-- [ ] Each Reddit community's live rules permit the planned post format.
+- [ ] The Island demo has been recaptured from the final packaged launch
+  release, resolves from immutable URLs without authentication, and no launch
+  post references the retired v1.9.1 or historical v1.10.0 pair.
+- [ ] The Product Hunt thumbnail is 240×240 and both final-release gallery
+  stills are 1270×760; the stills render without private data or UI newer than
+  the selected launch release.
+- [ ] The owner's personal Product Hunt account can reach the submission form.
+- [ ] Product Hunt's full YouTube URL is not private, has had processing time,
+  and appears in the preview with both stills before **Schedule Launch**.
+- [x] Product Hunt's live form displayed **September 10, 2026** before
+      scheduling; the dashboard now reports `Scheduled` for 12:01 a.m. PT
+      (3:01 a.m. ET). If an earlier channel slips, reschedule Product Hunt too.
+- [ ] Each Reddit community's live rules and the eligibility matrix permit the
+      planned post format; every ineligible candidate is explicitly skipped.
 - [ ] The HN account is eligible under the current Show HN restriction.
 - [ ] Anthony writes the HN title, first comment, and replies himself without
   agent drafting or editing.

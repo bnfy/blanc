@@ -30,6 +30,7 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
   ]);
   const sandbox = {
     sleepSnapshots: new Map(),
+    fillHintScheduler: null,
     sleepTeardownInProgress: true,
     tabs,
     forgetTabWebContentsIds: () => {},
@@ -75,6 +76,7 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
   ]);
   const sandbox = {
     sleepSnapshots: new Map(),
+    fillHintScheduler: null,
     sleepTeardownInProgress: false,
     tabs,
     forgetTabWebContentsIds: () => {},
@@ -124,6 +126,7 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
   const sandbox = {
     sleepSnapshots: snapshots,
     sleepTeardownInProgress: false,
+    fillHintScheduler: null,
     tabs,
     forgetTabWebContentsIds: () => {},
     cancelPermissionPromptsForTab: () => {},

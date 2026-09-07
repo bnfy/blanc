@@ -1,29 +1,24 @@
 #!/usr/bin/env node
-// Build Blanc's one fixed Windows application icon.
-//
-// The shared 1024px PNGs intentionally include macOS-style breathing room:
-// their visible tile is 824px wide inside the canvas. Windows scales the full
-// canvas into its taskbar slot, making that layout look materially smaller than
-// native Windows apps. Each ICO therefore trims the shared transparent margin,
-// uses the full native icon canvas, and embeds raster frames for the
-// taskbar/display scaling sizes Windows commonly requests.
+// Build Blanc's fixed Sunrise application icon for Windows. Windows gets the
+// freestanding canonical mark rather than the macOS square tile. Its three
+// shortest reflection lines are omitted before the artwork is uniformly
+// scaled, preserving the original sun, horizon, rays, and their proportions.
+// The ICO embeds raster frames for the sizes Windows commonly asks for instead
+// of relying on Electron to downsample one large PNG at runtime.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
 
 const ROOT = path.join(__dirname, '..');
-const SOURCE_ICON = path.join(ROOT, 'build/icon.png');
+const SOURCE_ICON = path.join(ROOT, 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
 const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
-const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-paper.ico');
+const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
+// The two widest reflection lines end at y=783 in the canonical 1024px source.
+// Cropping at 784 removes only the three shorter lines below them.
+const WINDOWS_SOURCE_CROP_HEIGHT = 784;
 const WINDOWS_VISIBLE_SCALE = 1;
-// The full Paper tile now matches Windows' native taskbar footprint, but the
-// shared macOS composition leaves its mark visually smaller than neighboring
-// Windows glyphs. Scale only that central region; macOS keeps its source art.
-const WINDOWS_MARK_SCALE = 1.1;
-// Bounds inside the trimmed 824px Paper tile, including an 8px white guard
-// around the 391x522 mark so resampling preserves its antialiased edge.
-const WINDOWS_MARK_REGION = { left: 233, top: 143, width: 407, height: 538 };
+const WINDOWS_PIXEL_DELTA_TOLERANCE = 3;
 
 function createIco(frames) {
   const headerSize = 6;
@@ -50,58 +45,116 @@ function createIco(frames) {
   return Buffer.concat([header, ...frames.map(({ png }) => png)]);
 }
 
+function icoFrames(ico) {
+  if (!ico || ico.length < 6 || ico.readUInt16LE(0) !== 0 || ico.readUInt16LE(2) !== 1) return null;
+  const count = ico.readUInt16LE(4);
+  if (!count || ico.length < 6 + (count * 16)) return null;
+  const frames = [];
+  for (let index = 0; index < count; index += 1) {
+    const entryOffset = 6 + (index * 16);
+    const width = ico.readUInt8(entryOffset) || 256;
+    const height = ico.readUInt8(entryOffset + 1) || 256;
+    const byteLength = ico.readUInt32LE(entryOffset + 8);
+    const imageOffset = ico.readUInt32LE(entryOffset + 12);
+    if (width !== height || !byteLength || imageOffset + byteLength > ico.length) return null;
+    frames.push({ size: width, png: ico.subarray(imageOffset, imageOffset + byteLength) });
+  }
+  return frames;
+}
+
+async function sameIcoPixels(actual, expected, { reportDifference = false } = {}) {
+  const actualFrames = icoFrames(actual);
+  const expectedFrames = icoFrames(expected);
+  if (!actualFrames || !expectedFrames || actualFrames.length !== expectedFrames.length) return false;
+
+  let worstDifference = { size: 0, maxDelta: 0 };
+  for (let index = 0; index < expectedFrames.length; index += 1) {
+    const actualFrame = actualFrames[index];
+    const expectedFrame = expectedFrames[index];
+    if (actualFrame.size !== expectedFrame.size) return false;
+    const [actualImage, expectedImage] = await Promise.all([
+      sharp(actualFrame.png).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+      sharp(expectedFrame.png).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+    ]);
+    if (actualImage.info.width !== expectedImage.info.width
+      || actualImage.info.height !== expectedImage.info.height
+      || actualImage.info.channels !== expectedImage.info.channels
+      || actualImage.data.length !== expectedImage.data.length) return false;
+    let maxDelta = 0;
+    for (let offset = 0; offset < actualImage.data.length; offset += 4) {
+      const actualAlpha = actualImage.data[offset + 3];
+      const expectedAlpha = expectedImage.data[offset + 3];
+      maxDelta = Math.max(maxDelta, Math.abs(actualAlpha - expectedAlpha));
+      for (let channel = 0; channel < 3; channel += 1) {
+        const actualPremultiplied = Math.round((actualImage.data[offset + channel] * actualAlpha) / 255);
+        const expectedPremultiplied = Math.round((expectedImage.data[offset + channel] * expectedAlpha) / 255);
+        maxDelta = Math.max(maxDelta, Math.abs(actualPremultiplied - expectedPremultiplied));
+      }
+    }
+    if (maxDelta > worstDifference.maxDelta) {
+      worstDifference = { size: actualFrame.size, maxDelta };
+    }
+  }
+  if (worstDifference.maxDelta > WINDOWS_PIXEL_DELTA_TOLERANCE) {
+    if (reportDifference) {
+      console.error(`Windows icon frame ${worstDifference.size}px differs by up to ${worstDifference.maxDelta} visible channel values.`);
+    }
+    return false;
+  }
+  return true;
+}
+
 async function createFrame(trimmedSource, size) {
   const visibleSize = Math.max(1, Math.round(size * WINDOWS_VISIBLE_SCALE));
   const horizontalMargin = size - visibleSize;
   const verticalMargin = size - visibleSize;
-  return sharp(trimmedSource)
-    .resize(visibleSize, visibleSize, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
-    .extend({
-      left: Math.floor(horizontalMargin / 2),
-      right: Math.ceil(horizontalMargin / 2),
-      top: Math.floor(verticalMargin / 2),
-      bottom: Math.ceil(verticalMargin / 2),
+  const resized = await sharp(trimmedSource)
+    .resize(visibleSize, visibleSize, {
+      fit: 'contain',
+      kernel: sharp.kernel.lanczos3,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
-}
 
-async function enlargeWindowsMark(trimmedSource, tileSize) {
-  const region = WINDOWS_MARK_REGION;
-  const width = Math.round(region.width * WINDOWS_MARK_SCALE);
-  const height = Math.round(region.height * WINDOWS_MARK_SCALE);
-  const left = Math.round(region.left + ((region.width - width) / 2));
-  const top = Math.round(region.top + ((region.height - height) / 2));
-  const enlarged = await sharp(trimmedSource)
-    .extract(region)
-    .resize(width, height, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
-    .png()
-    .toBuffer();
-
-  if (left < 0 || top < 0 || left + width > tileSize || top + height > tileSize) {
-    throw new Error('Windows mark enlargement exceeds the Paper tile');
-  }
-  return sharp(trimmedSource)
-    .composite([{ input: enlarged, left, top }])
-    .png()
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{
+      input: resized,
+      left: Math.floor(horizontalMargin / 2),
+      top: Math.floor(verticalMargin / 2),
+    }])
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
 }
 
 async function createWindowsIcon() {
   const metadata = await sharp(SOURCE_ICON).metadata();
-  if (metadata.width !== metadata.height || !metadata.hasAlpha) {
-    throw new Error(`${path.relative(ROOT, SOURCE_ICON)} must be a square PNG with alpha`);
+  if (metadata.width !== metadata.height) {
+    throw new Error(`${path.relative(ROOT, SOURCE_ICON)} must be a square PNG`);
   }
 
-  const { data: trimmedSource, info } = await sharp(SOURCE_ICON)
-    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  const croppedSource = await sharp(SOURCE_ICON)
+    .extract({
+      left: 0,
+      top: 0,
+      width: metadata.width,
+      height: WINDOWS_SOURCE_CROP_HEIGHT,
+    })
     .png()
-    .toBuffer({ resolveWithObject: true });
-  if (info.width !== info.height) {
-    throw new Error(`${path.relative(ROOT, SOURCE_ICON)} has non-square visible bounds`);
-  }
-  const windowsSource = await enlargeWindowsMark(trimmedSource, info.width);
+    .toBuffer();
+
+  const windowsSource = await sharp(croppedSource)
+    .ensureAlpha()
+    .trim()
+    .png()
+    .toBuffer();
 
   const frames = [];
   for (const size of ICON_SIZES) {
@@ -116,7 +169,9 @@ async function main() {
 
   const expected = await createWindowsIcon();
   const actual = await fs.readFile(OUTPUT_ICON).catch(() => null);
-  if (check && (!actual || !actual.equals(expected))) {
+  const current = actual && (actual.equals(expected)
+    || await sameIcoPixels(actual, expected, { reportDifference: check }));
+  if (check && !current) {
     throw new Error(
       `Windows app icon is missing or stale:\n  ${path.relative(ROOT, OUTPUT_ICON)}\n`
       + 'Run npm run icons:windows:build and commit the generated ICO files.'
@@ -126,7 +181,7 @@ async function main() {
     await fs.writeFile(OUTPUT_ICON, expected);
     console.log(`wrote ${path.relative(ROOT, OUTPUT_ICON)}`);
   }
-  if (check) console.log('Windows app icon is current (fixed Paper icon).');
+  if (check) console.log('Windows app icon is current (fixed Sunrise icon).');
 }
 
 if (require.main === module) {
@@ -138,7 +193,10 @@ if (require.main === module) {
 
 module.exports = {
   ICON_SIZES,
-  WINDOWS_MARK_SCALE,
+  SOURCE_ICON,
+  WINDOWS_PIXEL_DELTA_TOLERANCE,
+  WINDOWS_SOURCE_CROP_HEIGHT,
   WINDOWS_VISIBLE_SCALE,
   createIco,
+  sameIcoPixels,
 };

@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Reopen Closed Tabs and Groups | Blanc Browser"
+  description="Reopen a recently closed tab or an entire group in Blanc. Eligible pages can return without reloading briefly; private tabs are always excluded."
+  path="/features/reopen-closed-tabs"
+  page="feature-reopen-closed-tabs"
+  current="features"
+  ogImage="/feature-reopen-closed-tabs.png"
+  ogImageAlt="Blanc’s command panel with a recently closed tab and a named group available to reopen."
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Reopen Closed Tabs","item":"https://blancbrowser.com/features/reopen-closed-tabs"}]}
+  </script>
+<main class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">reopen closed tabs</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="reopen-closed-tabs-title">
+    <p class="section-kicker">reopen closed tabs</p>
+    <h1 id="reopen-closed-tabs-title">Get the tab back, not just its address.</h1>
+    <p>Closed the wrong tab? Blanc keeps a short, local undo history for each window, so you can pick the tab or group you meant to bring back.</p>
+  </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/reopen-closed-tabs.png" aria-label="View full Reopen Closed Tabs capture"><img src="/feature-captures/reopen-closed-tabs.png" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc’s command panel with a recently closed tab and a named group available to reopen." /></a>
+    <figcaption>Recently Closed lets you pick a tab or bring back a group in one action.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="reopen-closed-tabs-section-0">
+    <div><p class="section-kicker">undo a close</p><h2 id="reopen-closed-tabs-section-0">Pick the one you meant.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Use the shortcut or the panel</h3><p>Press ⌘⇧T on macOS or Ctrl+Shift+T on Windows and Linux, type /reopen, or open the Island panel and choose an entry from Recently Closed.</p></article>
+      <article><h3>Bring a group back together</h3><p>Closing a named group records one undo entry. Reopen it to restore its ordinary tabs together, including its name, member order, and pins.</p></article>
+      <article><h3>Keep each window’s history independent</h3><p>Reopening in one window uses that window’s list. Use Forget for one entry or Clear all to remove the list.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="reopen-closed-tabs-section-1">
+    <div><p class="section-kicker">a short second chance</p><h2 id="reopen-closed-tabs-section-1">Some pages can return without a reload.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>For about 30 seconds</h3><p>At most one eligible closed page per window can retain the same page for about 30 seconds. Reopening it during that time can preserve things such as scroll position and text you were typing without fetching the page again.</p></article>
+      <article><h3>After that, it may reload</h3><p>A still-recent entry falls back to a safe navigation snapshot or its URL. Page state is not guaranteed, and Blanc never silently resubmits a form. Loading, recording, quiet, and other ineligible pages do not receive the same-page recovery window.</p></article>
+      <article><h3>An undo buffer with limits</h3><p>Recently Closed holds up to 25 entries per window, and entries expire after one hour. It lives only in memory and ends when the app quits.</p></article>
+    </div>
+  </section>
+  <aside class="truth-note" aria-labelledby="reopen-closed-tabs-note-title">
+    <p class="section-kicker">good to know</p><h2 id="reopen-closed-tabs-note-title">Private tabs never enter Recently Closed.</h2>
+    <p>Closed-tab recovery is not a permanent archive or a promise to recover every tab exactly. Private tabs are never recorded, and closed-tab snapshots never go to disk or sync.</p>
+    <a class="text-link" href="/features/private-tabs" data-track="feature_cta_click" data-feature="reopen-closed-tabs" data-cta-position="related-feature">Read about private tabs <span aria-hidden="true">↗</span></a>
+  </aside>
+  <section class="feature-close" aria-labelledby="reopen-closed-tabs-close-title">
+    <p class="section-kicker">ready when you are</p><h2 id="reopen-closed-tabs-close-title">Make room for the way you browse.</h2>
+    <a class="cta" href="/download" data-track="feature_cta_click" data-feature="reopen-closed-tabs" data-cta-position="feature-close">download blanc</a>
+  </section>
+</main>
+</BaseLayout>

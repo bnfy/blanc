@@ -123,21 +123,31 @@ const queryReaders = new WeakMap();
  */
 function mediaQueryState(session, rawUrl, mediaType) {
   if (mediaType !== 'audio' && mediaType !== 'video') return null;
-  const read = session ? queryReaders.get(session) : null;
-  if (!read) return null;
+  const reader = session ? queryReaders.get(session) : null;
+  if (!reader) return null;
   const origin = normalizedOrigin(rawUrl);
   // Origins that can never be prompted (file://, internal schemes) are
   // truthfully denied — the request handler would deny them promptlessly.
   if (!origin) return 'denied';
-  const decision = storedDecision(read(), origin, 'media', mediaType);
-  if (decision === 'allow') return 'granted';
+  const decision = storedDecision(reader.readDecisions(), origin, 'media', mediaType);
+  const nativeState = reader.nativeMediaAccessState(mediaType);
+  if (nativeState === 'denied' || nativeState === 'restricted') return 'denied';
+  if (decision === 'allow') {
+    if (nativeState === 'not-determined' || nativeState === 'unknown') return 'prompt';
+    return 'granted';
+  }
   if (decision === 'deny') return 'denied';
   return 'prompt';
 }
 
 function setupPermissionPolicy(
   session,
-  { persistDecisions = true, profileId = DEFAULT_PROFILE_ID } = {}
+  {
+    persistDecisions = true,
+    profileId = DEFAULT_PROFILE_ID,
+    requestNativeMediaAccess = async () => true,
+    nativeMediaAccessState = () => null,
+  } = {}
 ) {
   // Incognito/private sessions use this in-memory map. Normal browsing keeps
   // using site-permissions.json and remains manageable from Settings.
@@ -146,7 +156,15 @@ function setupPermissionPolicy(
     profileId,
     () => persistDecisions ? ensureStore().data.decisions : ephemeralDecisions
   );
-  queryReaders.set(session, readDecisions);
+  const readNativeMediaAccessState = typeof nativeMediaAccessState === 'function'
+    ? nativeMediaAccessState
+    : () => null;
+  const hasNativeMediaAccessLayer = (mediaTypes) =>
+    mediaTypes.some((mediaType) => readNativeMediaAccessState(mediaType) !== null);
+  queryReaders.set(session, {
+    readDecisions,
+    nativeMediaAccessState: readNativeMediaAccessState,
+  });
   const saveDecision = (origin, permission, mediaTypes, allow) => withLocalProfile(profileId, () => {
     if (persistDecisions) {
       ensureStore().update((d) => rememberDecision(d.decisions, origin, permission, mediaTypes, allow));
@@ -173,6 +191,15 @@ function setupPermissionPolicy(
       storedDecision(readDecisions(), origin, permission, mediaType));
     if (saved.some((decision) => decision === 'deny')) return callback(false);
     if (saved.every((decision) => decision === 'allow')) {
+      let nativeAllowed = true;
+      if (permission === 'media' && mediaTypes.length && hasNativeMediaAccessLayer(mediaTypes)) {
+        try { nativeAllowed = await requestNativeMediaAccess(mediaTypes); }
+        catch { nativeAllowed = false; }
+        // TCC is process-wide and may have changed while its native prompt was
+        // open. Refresh retained PermissionStatus objects from ground truth.
+        notifyDecisionChange(session, origin, mediaTypes);
+      }
+      if (!nativeAllowed || wc?.isDestroyed?.() || heldRequester(wc)) return callback(false);
       notifyCaptureGrant(wc, permission, mediaTypes, details);
       return callback(true);
     }
@@ -189,8 +216,17 @@ function setupPermissionPolicy(
     // (private-permissions.test.js, permissions-query-state.test.js).
     if (wc?.isDestroyed?.() || heldRequester(wc)) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
-    if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
-    callback(allow);
+    if (!allow) return callback(false);
+
+    let nativeAllowed = true;
+    if (permission === 'media' && mediaTypes.length && hasNativeMediaAccessLayer(mediaTypes)) {
+      try { nativeAllowed = await requestNativeMediaAccess(mediaTypes); }
+      catch { nativeAllowed = false; }
+      notifyDecisionChange(session, origin, mediaTypes);
+    }
+    if (!nativeAllowed || wc?.isDestroyed?.() || heldRequester(wc)) return callback(false);
+    notifyCaptureGrant(wc, permission, mediaTypes, details);
+    callback(true);
     })
   );
 
@@ -206,7 +242,10 @@ function setupPermissionPolicy(
     const mediaType = permission === 'media' && ['audio', 'video'].includes(details?.mediaType)
       ? details.mediaType
       : null;
-    return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
+    const allowed = storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
+    if (!allowed || permission !== 'media' || !mediaType) return allowed;
+    const nativeState = readNativeMediaAccessState(mediaType);
+    return nativeState === null || nativeState === 'granted';
     })
   );
 

@@ -7,6 +7,13 @@
   <true/>
   <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
   <true/>
+  <!-- Web media remains subject to Blanc's per-site prompt and macOS TCC.
+       These only let the hardened runtime reach the native devices after
+       both decisions allow it. -->
+  <key>com.apple.security.device.audio-input</key>
+  <true/>
+  <key>com.apple.security.device.camera</key>
+  <true/>
   <!-- Touch ID passkeys (Secure Enclave). keychain-access-groups is a
        restricted entitlement: it only launches when the embedded Developer ID
        provisioning profile (build.mac.provisioningProfile) authorizes it, and

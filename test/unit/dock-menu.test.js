@@ -31,7 +31,15 @@ test('installDockMenu is a no-op off macOS and returns an inert handle', () => {
 
 function fakeDarwin(actions) {
   const templates = [];
-  const Menu = { buildFromTemplate: (t) => { templates.push(t); return { __t: t }; } };
+  const Menu = {
+    buildFromTemplate: (t) => {
+      templates.push(t);
+      return {
+        __t: t,
+        getMenuItemById: (id) => t.find((item) => item.id === id) ?? null,
+      };
+    },
+  };
   const menus = [];
   const app = { dock: { setMenu: (m) => menus.push(m) } };
   const handle = installDockMenu({ app, Menu, nativeImage: null, actions, platform: 'darwin' });
@@ -47,24 +55,33 @@ test('installDockMenu wires each item click to its action on macOS', () => {
   };
   const { handle, templates } = fakeDarwin(actions);
   handle.update({ label: 'Docs' }); // adds the active-tab line
-  const t = templates[templates.length - 1];
+  const t = templates[0];
   t.find((i) => i.label === 'Docs').click();
   t.find((i) => i.label === 'New Window').click();
   t.find((i) => i.label === 'New Private Window').click();
   assert.deepEqual(hits, ['focus', 'w', 'p']);
 });
 
-test('update rebuilds only when the visible content changes', () => {
-  const { handle, menus } = fakeDarwin({});
-  assert.equal(menus.length, 1); // initial install (no active tab)
+test('update mutates one stable menu instead of replacing it under AppKit', () => {
+  const { handle, menus, templates } = fakeDarwin({});
+  assert.equal(menus.length, 1); // installed once for the app lifetime
+  const activeItem = templates[0].find((item) => item.id === 'active-tab');
+  const separator = templates[0].find((item) => item.id === 'active-tab-separator');
+  assert.equal(activeItem.visible, false);
+  assert.equal(separator.visible, false);
   handle.update({ label: 'A' });
-  assert.equal(menus.length, 2); // label appeared
+  assert.equal(menus.length, 1);
+  assert.equal(activeItem.label, 'A');
+  assert.equal(activeItem.visible, true);
+  assert.equal(separator.visible, true);
   handle.update({ label: 'A' });
-  assert.equal(menus.length, 2); // identical → skipped
+  assert.equal(menus.length, 1);
   handle.update({ label: 'A', iconDataUrl: 'data:image/png;base64,AAA' });
-  assert.equal(menus.length, 3); // favicon changed → rebuilt
+  assert.equal(menus.length, 1);
   handle.update(null);
-  assert.equal(menus.length, 4); // back to no active tab
+  assert.equal(menus.length, 1);
+  assert.equal(activeItem.visible, false);
+  assert.equal(separator.visible, false);
   handle.update(null);
-  assert.equal(menus.length, 4); // still none → skipped
+  assert.equal(menus.length, 1);
 });

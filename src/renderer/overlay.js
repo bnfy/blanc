@@ -12,7 +12,7 @@
   const panelAnchor = document.getElementById('panelAnchor');
   const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
-  const panelInsecure = document.getElementById('panelInsecure');
+  const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
   const backBtn = document.getElementById('backBtn');
@@ -92,6 +92,7 @@
   // The address input's value is only ours to overwrite while untouched;
   // once the user types, incoming tab updates must not clobber it.
   let inputTouched = false;
+  let siteInfoOpen = false;
   let findLastQuery = null;
   // Quick Switcher corpora, refreshed each time the panel opens.
   let favorites = [];
@@ -189,6 +190,9 @@
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
+    secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
+    insecure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>',
+    local: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.25"/><circle cx="8" cy="8" r="1.5"/></svg>',
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
@@ -261,17 +265,30 @@
 
   // `base` kept for parity with renderer.js's twin (the dot-peek reuses it
   // there); the overlay only ever needs the default. Keep the two in sync.
+  function faviconFallbackLabel(tab) {
+    try {
+      const host = new URL(tab?.url || '').hostname.replace(/^www\./i, '');
+      return Array.from(host)[0]?.toUpperCase() || '•';
+    } catch {
+      return '•';
+    }
+  }
+
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
     el.style.backgroundImage = '';
+    el.textContent = '';
     if (!tab || tab.isLoading) return;
     if (tab.url.startsWith('blanc://')) {
-      // Blanc mark via CSS mask so it follows the theme — the pages' own SVG
-      // favicon always rasterizes light-scheme (see .favicon.internal).
+      // CSS supplies the reviewed internal-page artwork consistently across
+      // the resting pill, glance picker, overlay rows, and dot peeks.
       el.classList.add('internal');
     } else if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+    } else {
+      el.classList.add('fallback');
+      el.textContent = faviconFallbackLabel(tab);
     }
   }
 
@@ -448,8 +465,17 @@
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
-    // Same single source as the pill badge and the popover row.
-    panelInsecure.hidden = tab?.connection !== 'http';
+    const siteInfo = tab?.siteInfo;
+    const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
+    panelSiteInfo.hidden = !visible;
+    panelSiteInfo.className = `site-info-button ${siteInfo?.state ?? ''}`;
+    panelSiteInfo.innerHTML = siteInfo?.state === 'insecure' || siteInfo?.state === 'certificate-error'
+      ? ICONS.insecure
+      : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
+    panelSiteInfo.title = siteInfo?.title ?? 'Site information';
+    panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? 'Site information');
+    panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
+    if (!visible) siteInfoOpen = false;
 
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.title = verticalTabsActive
@@ -1411,6 +1437,9 @@
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
+    { cmd: '/1password', hint: 'Fill a login from 1Password',
+      available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
+      run: () => window.browserAPI.fillLoginFromOnePassword() },
     { cmd: '/theme', hint: 'Cycle appearance, or choose system / light / dark', run: (input) => {
       const requested = (input ?? '').replace(/^\/theme\s*/, '').trim();
       window.browserAPI.cycleTheme(requested || null);
@@ -1773,7 +1802,10 @@
       leading.innerHTML = ICONS.search;
     } else {
       leading = document.createElement('span');
-      setFavicon(leading, result.tab ?? null);
+      // History entries do not carry a full tab record. Preserve the shared
+      // favicon path with a URL-shaped fallback so they receive a domain
+      // initial instead of reverting to the anonymous gray slot.
+      setFavicon(leading, result.tab ?? { url: result.url || '' });
     }
 
     const title = document.createElement('span');
@@ -1843,6 +1875,79 @@
     else if (pending.select) pending.input.select();
   }
 
+  function renderSiteInfo() {
+    const info = activeTab()?.siteInfo;
+    if (!info || ['internal', 'neutral'].includes(info.state)) {
+      siteInfoOpen = false;
+      return renderList();
+    }
+    const card = document.createElement('section');
+    card.className = `site-info-card ${info.state}`;
+    card.setAttribute('aria-label', 'Site information');
+    const head = document.createElement('div');
+    head.className = 'site-info-head';
+    const stateDot = document.createElement('span');
+    stateDot.className = 'site-info-state';
+    stateDot.setAttribute('aria-hidden', 'true');
+    const copy = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'site-info-title';
+    title.textContent = info.title;
+    const origin = document.createElement('div');
+    origin.className = 'site-info-origin';
+    origin.textContent = info.origin || info.host || 'local page';
+    copy.append(title, origin);
+    head.append(stateDot, copy);
+    const summary = document.createElement('p');
+    summary.className = 'site-info-summary';
+    summary.textContent = info.summary;
+    card.append(head, summary);
+
+    if (info.certificate) {
+      const details = document.createElement('dl');
+      details.className = 'site-info-details';
+      const add = (label, value) => {
+        if (!value) return;
+        const row = document.createElement('div');
+        const dt = document.createElement('dt');
+        const dd = document.createElement('dd');
+        dt.textContent = label;
+        dd.textContent = value;
+        row.append(dt, dd);
+        details.append(row);
+      };
+      add('Certificate for', info.certificate.subject);
+      add('Issued by', info.certificate.issuer);
+      add('Valid from', info.certificate.validFrom ? new Date(info.certificate.validFrom).toLocaleDateString() : null);
+      add('Valid until', info.certificate.validTo ? new Date(info.certificate.validTo).toLocaleDateString() : null);
+      add('Fingerprint', info.certificate.fingerprint);
+      if (details.children.length) card.append(details);
+    }
+
+    const footer = document.createElement('div');
+    footer.className = 'site-info-actions';
+    const blocked = Number(info.blockedCount) || 0;
+    const protection = document.createElement('span');
+    protection.className = 'site-info-protection';
+    protection.textContent = blocked
+      ? `Blanc blocked ${blocked} ${blocked === 1 ? 'request' : 'requests'}`
+      : 'No blocked requests on this page';
+    const settingsButton = document.createElement('button');
+    settingsButton.type = 'button';
+    settingsButton.className = 'site-info-settings';
+    settingsButton.textContent = 'Privacy settings';
+    settingsButton.addEventListener('click', () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openPage('settings');
+    });
+    footer.append(protection, settingsButton);
+    card.append(footer);
+    islandList.replaceChildren(card);
+    islandHint.textContent = info.state === 'certificate-error'
+      ? 'Blanc did not offer a bypass'
+      : 'connection details are supplied by Chromium';
+  }
+
   function renderList() {
     if (pointerHeld) {
       renderQueued = true;
@@ -1856,10 +1961,13 @@
     visibleCommands = [];
     visibleResults = [];
 
-    if (inputTouched && value.startsWith('/')) {
+    if (siteInfoOpen) {
+      renderSiteInfo();
+    } else if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
-      visibleCommands = COMMANDS.filter((c) => c.cmd.startsWith(slashWord) || slashWord === '/');
+      visibleCommands = COMMANDS.filter((c) =>
+        c.available !== false && (c.cmd.startsWith(slashWord) || slashWord === '/'));
       islandList.replaceChildren(
         ...(visibleCommands.length
           ? visibleCommands.map((c, i) => commandRow(c, i === 0))
@@ -1954,11 +2062,13 @@
 
     focusPendingEditor();
 
-    islandHint.textContent = activeTab()?.private
-      ? 'private · nothing here is saved to history'
-      : state.groups.length
-        ? `/group moves this tab · ${modKey}1–9 jumps between sections`
-        : `${modKey}L summons · / for commands`;
+    if (!siteInfoOpen) {
+      islandHint.textContent = activeTab()?.private
+        ? 'private · nothing here is saved to history'
+        : state.groups.length
+          ? `/group moves this tab · ${modKey}1–9 jumps between sections`
+          : `${modKey}L summons · / for commands`;
+    }
   }
 
   function renderPanel() {
@@ -2043,6 +2153,7 @@
 
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
+        siteInfoOpen = false;
         pendingGroupTabId = null;
         clearWorkspacePopoverEditors();
         pendingScratchGuard = null;
@@ -2278,9 +2389,9 @@
     // Scaling warps the corners: a round corner under a non-uniform scale
     // renders as an ellipse, and no amount of pre-compensating the radius
     // holds it steady, because the radius interpolates linearly while the
-    // scale does not. The panel's resting corner (18px) and the pill's
-    // (half its height, ~19px) are nearly the same, so the corner should
-    // barely move at all — and with real width and height it doesn't.
+    // scale does not. The panel moves from the resting island's canonical
+    // 17px corner to its own 18px corner, so the corner barely moves at all —
+    // and with real width and height it doesn't.
     //
     // It also means the contents are revealed rather than squashed, so they
     // never rubber out on the way in.
@@ -2295,7 +2406,7 @@
     islandPanel.classList.add('morph-start');
     islandPanel.style.width = `${pillRect.width.toFixed(1)}px`;
     islandPanel.style.height = `${pillRect.height.toFixed(1)}px`;
-    islandPanel.style.borderRadius = `${(pillRect.height / 2).toFixed(1)}px`;
+    islandPanel.style.borderRadius = 'var(--island-resting-radius)';
     islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
     islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
 
@@ -2361,7 +2472,7 @@
       const centreShift = (pill.x + pill.width / 2) - (box.left + box.width / 2);
       islandPanel.style.width = `${pill.width.toFixed(1)}px`;
       islandPanel.style.height = `${pill.height.toFixed(1)}px`;
-      islandPanel.style.borderRadius = `${(pill.height / 2).toFixed(1)}px`;
+      islandPanel.style.borderRadius = 'var(--island-resting-radius)';
       islandPanel.style.setProperty('--morph-x', `${centreShift.toFixed(2)}px`);
       islandPanel.style.setProperty('--morph-y', `${(pill.y - box.top).toFixed(2)}px`);
     });
@@ -2404,6 +2515,7 @@
     shieldPop.hidden = true;
     glancePickerEl.hidden = true;
     inputTouched = false;
+    siteInfoOpen = false;
     commandResultGeneration += 1;
     commandNotice = '';
     addressInputComposing = false;
@@ -2468,6 +2580,12 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  panelSiteInfo.addEventListener('click', () => {
+    if (panelSiteInfo.hidden) return;
+    siteInfoOpen = !siteInfoOpen;
+    panelSiteInfo.setAttribute('aria-expanded', String(siteInfoOpen));
+    renderList();
+  });
 
   // --- Footer action bar (static: new tab / private launchers + quick pages) ---
   // These moved out of the scrollable list so they stay put while it shows
@@ -2535,6 +2653,7 @@
     renderList();
   });
   addressInput.addEventListener('input', (e) => {
+    siteInfoOpen = false;
     inputTouched = true;
     commandResultGeneration += 1;
     commandNotice = '';
@@ -2677,6 +2796,7 @@
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {
+        siteInfoOpen = false;
         selectedResultIndex = -1;
         closeWorkspaceSwitcher();
         scheduleSearchSuggestions();

@@ -109,7 +109,7 @@ function calculateChromeLayout({
     railWidth,
     // Unlike the page pane, the vertical rail owns the complete left edge.
     // Its chrome background extends behind the macOS traffic-light safe area
-    // while website content retains the sampled 64px gutter below the Island.
+    // while website content retains the sampled 68px gutter below the Island.
     railBounds: {
       x: 0,
       y: 0,

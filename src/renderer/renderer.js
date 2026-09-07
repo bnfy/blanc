@@ -30,6 +30,7 @@
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillSlash = document.getElementById('pillSlash');
+  const pillFillHint = document.getElementById('pillFillHint');
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
   const pillCapture = document.getElementById('pillCapture');
@@ -87,6 +88,7 @@
   const PILL_ICONS = {
     back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
     forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
+    plus: '<svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg>',
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
     // Deliberately NOT an ✕ (which is what most browsers use for stop): the
     // pill's trailing cluster already ends in the close-tab ✕, so a loading
@@ -125,6 +127,14 @@
   const forwardBtn = pillButton('forward', 'Forward', () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
   pillNav.append(backBtn, forwardBtn);
 
+  const newTabShortcut = window.browserAPI.platform === 'darwin' ? '⌘T' : 'Ctrl+T';
+  const newTabBtn = pillButton('plus', `New tab (${newTabShortcut})`, () => {
+    window.browserAPI.createTab(null, { focusAddress: true });
+  });
+  newTabBtn.id = 'pillNewTab';
+  newTabBtn.classList.add('pill-shortcut');
+  newTabBtn.setAttribute('aria-label', 'New tab');
+  pillSlash.after(newTabBtn);
   const reloadBtn = pillButton('reload', 'Reload', () => {
     const t = activeTab();
     if (!t) return;
@@ -339,17 +349,33 @@
     pillSlash.hidden = next !== 'placeholder';
   }
 
+  function faviconFallbackLabel(tab) {
+    try {
+      const host = new URL(tab?.url || '').hostname.replace(/^www\./i, '');
+      return Array.from(host)[0]?.toUpperCase() || '•';
+    } catch {
+      return '•';
+    }
+  }
+
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
     el.style.backgroundImage = '';
+    el.textContent = '';
     if (!tab || tab.isLoading) return;
     if (tab.url.startsWith('blanc://')) {
-      // Blanc mark via CSS mask so it follows the theme — the pages' own SVG
-      // favicon always rasterizes light-scheme (see .favicon.internal).
+      // CSS supplies the reviewed internal-page artwork consistently across
+      // the resting pill, glance picker, overlay rows, and dot peeks.
       el.classList.add('internal');
     } else if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+    } else {
+      // A site with no usable image still gets a recognizable identity instead
+      // of the old anonymous gray box. The real favicon replaces this on the
+      // next tabs:updated broadcast if a later candidate succeeds.
+      el.classList.add('fallback');
+      el.textContent = faviconFallbackLabel(tab);
     }
   }
 
@@ -477,37 +503,73 @@
 
   const DOT_CAP = 8;
 
-  /** Dots for the pill: the ACTIVE tab's group only (null groupId = the
-   * complete ungrouped set). Pins lead their group or ungrouped set; the
-   * standalone pinned shelf remains in the panel as well. Capped at
-   * DOT_CAP with a trailing "+k" that opens the panel; the window slides only
-   * when needed to keep the active dot visible. The pill deliberately does
-   * NOT map other groups — that lives in ⌘L. */
-  /** The windowed dot set: which tabs get a dot, and how many overflow into
-   * the trailing "+k". Shared by the node builder and the render-skip
-   * signature so the two never disagree. */
-  function activeGroupMembers() {
+  /** The resting Island is current context, not a false total-tab map:
+   * standalone pins stay globally reachable, followed by the active section
+   * (named group, loose tabs, or the pinned shelf itself). Every node remains
+   * one real tab. A window-wide +N accounts for everything not directly shown.
+   *
+   * Eight is a hard total budget. When pins + the active section exceed it,
+   * retain the active tab, then as many standalone pins as fit, then use the
+   * remaining slots for an active-containing window of the current section.
+   * Quiet state is deliberately irrelevant: discarding a renderer must not
+   * make its tab disappear, move, or churn the dot DOM. */
+  function islandTabPresentation() {
     const tab = activeTab();
-    if (!tab) return { shown: [], hidden: 0 };
-    const g = tab.groupId ?? null;
-    const members = state.tabs
-      .filter((t) => (t.groupId ?? null) === g)
-      .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-    if (members.length <= DOT_CAP) return { shown: members, hidden: 0 };
+    if (!tab) return { pinned: [], section: [], shown: [], hidden: 0 };
 
-    const activeIdx = Math.max(0, members.indexOf(tab));
-    const start = activeIdx < DOT_CAP ? 0 : Math.min(activeIdx - (DOT_CAP - 1), members.length - DOT_CAP);
-    return { shown: members.slice(start, start + DOT_CAP), hidden: members.length - DOT_CAP };
+    const standalonePins = state.tabs.filter((t) => t.pinned && !t.groupId);
+    const activeIsStandalonePin = tab.pinned && !tab.groupId;
+
+    const activeWindow = (members, capacity) => {
+      if (members.length <= capacity) return members;
+      const activeIdx = Math.max(0, members.indexOf(tab));
+      const start = activeIdx < capacity
+        ? 0
+        : Math.min(activeIdx - (capacity - 1), members.length - capacity);
+      return members.slice(start, start + capacity);
+    };
+
+    // The pinned shelf is already the active section in this case. Return it
+    // as one set so no artificial section gap or duplicate active dot appears.
+    if (activeIsStandalonePin) {
+      const pinned = activeWindow(standalonePins, DOT_CAP);
+      return {
+        pinned,
+        section: [],
+        shown: pinned,
+        hidden: Math.max(0, state.tabs.length - pinned.length),
+      };
+    }
+
+    // Reserve one slot for the active tab before applying pinned-first
+    // priority. Any additional standalone pins remain included in +N.
+    const pinned = standalonePins.slice(0, Math.max(0, DOT_CAP - 1));
+    const sectionMembers = tab.groupId
+      ? state.tabs
+        .filter((t) => t.groupId === tab.groupId)
+        .sort((a, b) => Number(b.pinned) - Number(a.pinned))
+      : state.tabs.filter((t) => !t.groupId && !t.pinned);
+    const section = activeWindow(sectionMembers, DOT_CAP - pinned.length);
+    const shown = [...pinned, ...section];
+    return {
+      pinned,
+      section,
+      shown,
+      hidden: Math.max(0, state.tabs.length - shown.length),
+    };
   }
 
-  function activeGroupDots() {
-    const { shown, hidden } = activeGroupMembers();
-    const nodes = shown.map(tabDot);
+  function islandDots() {
+    const { pinned, section, hidden } = islandTabPresentation();
+    const pinnedNodes = pinned.map(tabDot);
+    const sectionNodes = section.map(tabDot);
+    if (pinnedNodes.length && sectionNodes.length) sectionNodes[0].classList.add('dot-section-start');
+    const nodes = [...pinnedNodes, ...sectionNodes];
     if (hidden > 0) {
       const more = document.createElement('button');
       more.className = 'pill-overflow';
       more.textContent = `+${hidden}`;
-      more.title = `${hidden} more ${hidden === 1 ? 'tab' : 'tabs'} in this group — open the list`;
+      more.title = `${hidden} more ${hidden === 1 ? 'tab' : 'tabs'} — open the list`;
       more.setAttribute('aria-label', more.title);
       more.addEventListener('click', (e) => { e.stopPropagation(); window.browserAPI.openIsland(); });
       nodes.push(more);
@@ -520,8 +582,11 @@
    * only bump blocked counts, and rebuilding the row on each would restart a
    * hovered peek's reveal and drop keyboard focus off a focused dot. */
   function dotsSignature() {
-    const { shown, hidden } = activeGroupMembers();
+    const { pinned, shown, hidden } = islandTabPresentation();
     return JSON.stringify({
+      // The first active-section dot gains spacing after the pinned set, so a
+      // pin/group move can change the DOM even if the visible ids do not.
+      pinnedCount: pinned.length,
       shown: shown.map((t) => ({
         id: t.id,
         active: t.id === state.activeTabId,
@@ -544,6 +609,9 @@
 
   function tabDot(t) {
     const dot = document.createElement('button');
+    // Stable identity lets trusted chrome tests and future focus restoration
+    // address a dot without relying on page titles, which are not unique.
+    dot.dataset.tabId = t.id;
     dot.className =
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
@@ -601,7 +669,7 @@
     const dotsSig = dotsSignature();
     if (dotsSig !== lastDotsSig) {
       lastDotsSig = dotsSig;
-      pillDots.replaceChildren(...activeGroupDots());
+      pillDots.replaceChildren(...islandDots());
     }
 
     setFavicon(pillFavicon, tab);
@@ -609,7 +677,11 @@
 
     // tab.connection is main's single derivation (null while loading, so the
     // old page's security state can't linger under a "Loading…" domain).
-    pillInsecure.hidden = tab?.connection !== 'http';
+    const securityWarning = tab?.siteInfo?.state === 'insecure' ||
+      tab?.siteInfo?.state === 'certificate-error';
+    pillInsecure.hidden = !securityWarning;
+    pillInsecure.title = tab?.siteInfo?.title ?? 'Connection is not secure';
+    pillInsecure.setAttribute('aria-label', `${pillInsecure.title}. Open site controls.`);
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has
@@ -618,6 +690,13 @@
     // the private chip already closes the tab, and two adjacent ✕ chips doing
     // the same thing is noise.
     pillSourceChip.hidden = !viewSourceTarget(tab?.url) || !!tab?.private;
+
+    // Fill-hint chip (spec §5): the active tab declared an authoritative
+    // login form and 1Password fill is configured. Click = the normal
+    // explicit fill — an invitation, never an action. Gated on the API
+    // existing so Windows/Linux never surface it.
+    pillFillHint.hidden = !(tab?.fillHint === true
+      && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
 
     // Shield chip: state fully derived in main (shield-model.js) and shipped
     // on the broadcast — the strip only renders. Always present on a page
@@ -678,10 +757,19 @@
     window.browserAPI.openShieldPopover({ right: r.right, trigger: 'shield' });
   });
 
+  pillFillHint.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.browserAPI.fillLoginFromOnePassword?.();
+  });
+
   // The not-secure badge is the popover's second door — same room, anchored
   // under whichever control was clicked. Enter/Space come free (real button).
   pillInsecure.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (activeTab()?.siteInfo?.state === 'certificate-error') {
+      window.browserAPI.openIsland();
+      return;
+    }
     const r = pillInsecure.getBoundingClientRect();
     window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
   });
@@ -880,6 +968,8 @@
   requestAnimationFrame(reportIslandRect);
 
   window.browserAPI.onIslandProximity(({ k }) => {
-    islandPill.style.setProperty('--island-k', String(k ?? 0));
+    const next = Number(k) || 0;
+    islandPill.style.setProperty('--island-k', String(next));
+    islandPill.classList.toggle('proximity-active', next > 0);
   });
 })();
