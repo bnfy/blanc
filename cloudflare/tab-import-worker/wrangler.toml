@@ -1,0 +1,22 @@
+name = "blanc-tab-import"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = false
+
+[[routes]]
+pattern = "tabs.blancbrowser.com"
+custom_domain = true
+
+[[durable_objects.bindings]]
+name = "HANDOFFS"
+class_name = "TabHandoff"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITS"
+class_name = "TabImportRateLimit"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TabHandoff", "TabImportRateLimit"]
+
+# Set OPENAI_APPS_CHALLENGE with `wrangler secret put` during submission.

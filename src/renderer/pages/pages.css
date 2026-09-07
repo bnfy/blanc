@@ -2055,15 +2055,23 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-groups .group-chip { padding: 7px 16px; }
 .bb-groups .group-chip .chip-name { font-size: 12.5px; }
 
-/* At the minimum desktop height, a populated two-row Billboard is taller
-   than its viewport. Centering that stack makes its first rows unreachable;
-   anchor it instead and reserve a scrollable lane above the fixed footer. */
-@media (max-height: 520px) {
+/* The migration entry adds a row to a populated two-row Billboard. At short
+   desktop heights that stack exceeds the viewport; centering it would make
+   its first rows unreachable. Put it and its footer in document flow so every
+   row remains reachable, including at the minimum desktop size. */
+@media (max-height: 640px) {
+  body[data-layout="billboard"] { padding: 0; }
   .billboard {
+    position: relative;
+    inset: auto;
+    flex: 1 0 auto;
     justify-content: flex-start;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: 16px 24px 80px;
+    padding: 16px 24px 24px;
+  }
+  .billboard > * { flex-shrink: 0; }
+  body[data-layout="billboard"] .ledger-footer {
+    position: static;
+    margin: 0 24px 24px;
   }
   .bb-clock-row { margin-top: 8px; }
   .bb-blocked { margin-top: 10px; }

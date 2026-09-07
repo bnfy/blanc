@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "blanc-tab-import": {
+      "type": "http",
+      "url": "https://tabs.blancbrowser.com/mcp"
+    }
+  }
+}

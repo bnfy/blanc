@@ -1,0 +1,45 @@
+/* One-time open-tab handoff. The main process projects domains rather than
+   full URLs; this renderer treats every source string as plain text. */
+.tab-handoff-page { padding-bottom: 24px; }
+.tab-handoff-page .page-nav > span {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tab-handoff-summary {
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: -8px 0 16px;
+}
+.tab-handoff-list {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.tab-handoff-row + .tab-handoff-row { border-top: 1px solid var(--border); }
+.tab-handoff-row:hover { background: var(--surface); }
+.tab-handoff-active { white-space: nowrap; }
+.tab-handoff-error {
+  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  line-height: 1.45;
+}
+.tab-handoff-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+button.tab-handoff-primary {
+  color: var(--surface-raised);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+button.tab-handoff-primary:hover { color: var(--bg); filter: brightness(1.05); }
+.tab-handoff-actions button:disabled { cursor: default; opacity: 0.55; }

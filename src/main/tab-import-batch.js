@@ -1,4 +1,4 @@
-// Pure helpers for F39 quiet-tab batch insertion and group resolution.
+// Shared quiet-tab batch insertion and group resolution for both import paths.
 const crypto = require('node:crypto');
 const { normalizeGroupName } = require('./tab-import-apply');
 

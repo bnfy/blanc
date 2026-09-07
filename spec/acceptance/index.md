@@ -39,7 +39,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Start page layouts | `newtab-layouts.feature` | F35 |
 | First-run onboarding | `onboarding.feature` | F36 (F30, D22) |
 | Blank-tab affordance | `blank-tab-affordance.feature` | F37 |
-| Tab migration | `tab-migration.feature` | F39 (D22) |
+| Certificate safety | `site-certificate-safety.feature` | F39 |
+| Tab migration | `tab-migration.feature` | F40 (D22) |
 
 ## Grid
 
@@ -163,21 +164,22 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
 | F38-1 | Explicit matching macOS 1Password fill stays bounded and transient | D26 | ⬜ | ➖ | ➖ |
-| F39-1 | A selected browser profile exposes its verified open-tab session | D22 | ✅ | ⬜ | ⬜ |
-| F39-2 | Apply preserves source order, duplicates, pins, and quiet state | — | ✅ | ⬜ | ⬜ |
-| F39-3 | Source groups seed editable Named Groups without placeholders | — | ⬜ | ⬜ | ⬜ |
-| F39-4 | Source data is not read before explicit selection | D22 | ✅ | ⬜ | ⬜ |
-| F39-5 | The utility renderer receives no full URLs or source paths | D22 | ✅ | ➖ | ➖ |
-| F39-6 | A failed tab batch leaves tabs, groups, and Favorites unchanged | — | ⬜ | ⬜ | ⬜ |
-| F39-7 | A quit prompt appears only after recoverability preflight | D22 | ✅ | ⬜ | ⬜ |
-| F39-8 | A reviewed name matching an existing group merges | — | ✅ | ⬜ | ⬜ |
-| F39-9 | A stale or differently owned session cannot apply | D22 | ✅ | ➖ | ➖ |
-| F39-10 | Post-quit import requires the exact newest complete session | D22 | ✅ | ⬜ | ⬜ |
-| F39-11 | Both onboarding paths reach the same migration sheet | D22 | ✅ | ⬜ | ⬜ |
-| F39-12 | Encrypted or malformed sessions fail without credential access | D22 | ⬜ | ➖ | ➖ |
-| F39-13 | Workspace save stays separate from migration | — | ⬜ | ➖ | ➖ |
-| F39-14 | Cancel destroys the ephemeral migration session | — | ✅ | ⬜ | ⬜ |
-| F39-15 | A 500-candidate import keeps one live imported tab | — | ✅ | ➖ | ➖ |
+| F39-1 | Invalid certificates are rejected without a bypass | — | ✅ | ➖ | ➖ |
+| F40-1 | A selected browser profile exposes its verified open-tab session | D22 | ✅ | ⬜ | ⬜ |
+| F40-2 | Apply preserves source order, duplicates, pins, and quiet state | — | ✅ | ⬜ | ⬜ |
+| F40-3 | Source groups seed editable Named Groups without placeholders | — | ⬜ | ⬜ | ⬜ |
+| F40-4 | Source data is not read before explicit selection | D22 | ✅ | ⬜ | ⬜ |
+| F40-5 | The utility renderer receives no full URLs or source paths | D22 | ✅ | ➖ | ➖ |
+| F40-6 | A failed tab batch leaves tabs, groups, and Favorites unchanged | — | ⬜ | ⬜ | ⬜ |
+| F40-7 | A quit prompt appears only after recoverability preflight | D22 | ✅ | ⬜ | ⬜ |
+| F40-8 | A reviewed name matching an existing group merges | — | ✅ | ⬜ | ⬜ |
+| F40-9 | A stale or differently owned session cannot apply | D22 | ✅ | ➖ | ➖ |
+| F40-10 | Post-quit import requires the exact newest complete session | D22 | ✅ | ⬜ | ⬜ |
+| F40-11 | Both onboarding paths reach the same migration sheet | D22 | ✅ | ⬜ | ⬜ |
+| F40-12 | Encrypted or malformed sessions fail without credential access | D22 | ⬜ | ➖ | ➖ |
+| F40-13 | Workspace save stays separate from migration | — | ⬜ | ➖ | ➖ |
+| F40-14 | Cancel destroys the ephemeral migration session | — | ✅ | ⬜ | ⬜ |
+| F40-15 | A 500-candidate import keeps one live imported tab | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -185,7 +187,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, and `F30–F39` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F40` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised

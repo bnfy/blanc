@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Open browser tabs in Blanc"
+  description="Complete a private, one-time handoff of selected browser tabs to Blanc."
+  path="/import-tabs"
+  header="legal"
+  analytics={false}
+  social="none"
+  robots="noindex,nofollow"
+>
+  <script is:inline slot="head">
+    (() => {
+      const fragment = new URLSearchParams(location.hash.slice(1));
+      const id = fragment.get('id') || '';
+      const key = fragment.get('key') || '';
+      const keys = [...fragment.keys()];
+      const valid = keys.length === 3
+        && ['v', 'id', 'key'].every((name) => fragment.getAll(name).length === 1)
+        && fragment.get('v') === '1'
+        && /^[A-Za-z0-9_-]{22}$/.test(id)
+        && /^[A-Za-z0-9_-]{43}$/.test(key);
+      const launchUrl = valid
+        ? `blanc-import://tabs?v=1&id=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}`
+        : null;
+
+      // Remove the capability from the visible address and browser history before
+      // any page code runs. Fragments are never part of the HTTP request.
+      history.replaceState(null, '', `${location.pathname}${location.search}`);
+
+      addEventListener('DOMContentLoaded', () => {
+        const status = document.querySelector('[data-import-status]');
+        const button = document.querySelector('[data-open-blanc]');
+        const fallback = document.querySelector('[data-import-fallback]');
+        if (!launchUrl) {
+          status.textContent = 'This handoff link is incomplete or invalid.';
+          button.hidden = true;
+          fallback.hidden = false;
+          return;
+        }
+
+        const openBlanc = () => { location.href = launchUrl; };
+        button.addEventListener('click', openBlanc);
+        openBlanc();
+        setTimeout(() => {
+          status.textContent = 'If Blanc did not open, install or update it, then try again.';
+          fallback.hidden = false;
+        }, 1200);
+      }, { once: true });
+    })();
+  </script>
+
+  <main class="tab-handoff-landing">
+    <section class="tab-handoff-card" aria-labelledby="tab-handoff-title">
+      <p class="eyebrow">one-time handoff</p>
+      <h1 id="tab-handoff-title">Opening your tabs in Blanc</h1>
+      <p class="tab-handoff-status" data-import-status aria-live="polite">Blanc should ask you to review the tabs before opening them.</p>
+      <button class="cta" type="button" data-open-blanc>Open in Blanc</button>
+      <div class="tab-handoff-fallback" data-import-fallback hidden>
+        <p>This handoff needs a compatible version of the Blanc desktop app. The link expires ten minutes after it was created and works once.</p>
+        <a href="/download">Download Blanc</a>
+      </div>
+      <p class="tab-handoff-privacy">The link contains only an opaque one-time ID and decryption key. Your tab details never appear in the address.</p>
+    </section>
+  </main>
+</BaseLayout>

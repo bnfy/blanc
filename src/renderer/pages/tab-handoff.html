@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
+  <title>Import tabs</title>
+  <link rel="icon" type="image/png" href="icon-sunrise.png" />
+  <link rel="stylesheet" href="pages.css" />
+  <link rel="stylesheet" href="tab-handoff.css" />
+</head>
+<body class="sheet">
+  <div class="page tab-handoff-page">
+    <nav class="page-nav" aria-label="Tab handoff"><span>one-time handoff</span></nav>
+    <h1>Bring these tabs to Blanc?</h1>
+    <p id="summary" class="tab-handoff-summary">Checking the handoff…</p>
+    <div id="error" class="tab-handoff-error" role="alert" hidden></div>
+    <div id="list" class="row-list tab-handoff-list" aria-label="Tabs to import" hidden></div>
+    <p id="skipped" class="hint" hidden></p>
+    <div class="tab-handoff-actions">
+      <button id="cancel" type="button">Cancel</button>
+      <button id="accept" type="button" class="tab-handoff-primary" disabled>Open in new window</button>
+    </div>
+  </div>
+  <script src="sheet.js"></script>
+  <script src="tab-handoff.js"></script>
+</body>
+</html>

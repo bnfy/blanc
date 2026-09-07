@@ -6,7 +6,8 @@ import sharp from 'sharp';
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
 const SITE_ORIGIN = 'https://blancbrowser.com';
-const NO_SOCIAL_ROUTES = new Set(['/privacy', '/terms']);
+const NO_SOCIAL_ROUTES = new Set(['/privacy', '/terms', '/import-tabs']);
+const NOINDEX_ROUTES = new Set(['/import-tabs']);
 const OG_ASPECT_RATIO = 1200 / 630;
 const VERSIONED_SOCIAL_ASSET = /(?:^|[-_/])v?\d+\.\d+(?:\.\d+)?(?=[-_.\/]|$)/i;
 const htmlFiles = [];
@@ -98,7 +99,11 @@ for (const file of htmlFiles) {
   if (hasUnprotectedMailto || hasUnprotectedVisibleEmail) {
     errors.push(`${route}: email address is not protected from Cloudflare email-address rewriting`);
   }
-  if (!/\bindex\b/i.test(robots) || /\bnoindex\b/i.test(robots)) errors.push(`${route}: page is not indexable`);
+  if (NOINDEX_ROUTES.has(route)) {
+    if (!/\bnoindex\b/i.test(robots)) errors.push(`${route}: utility page must be noindex`);
+  } else if (!/\bindex\b/i.test(robots) || /\bnoindex\b/i.test(robots)) {
+    errors.push(`${route}: page is not indexable`);
+  }
   if (!NO_SOCIAL_ROUTES.has(route)) {
     const missingSocialFields = [
       ['og:title', ogTitle],
@@ -230,7 +235,10 @@ const sitemap = await readFile(new URL('../dist/sitemap.xml', import.meta.url), 
 const sitemapRoutes = new Set(
   [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]).pathname.replace(/\/$/, '') || '/')
 );
-for (const route of routes) if (!sitemapRoutes.has(route)) errors.push(`${route}: missing from sitemap.xml`);
+for (const route of routes) {
+  if (!NOINDEX_ROUTES.has(route) && !sitemapRoutes.has(route)) errors.push(`${route}: missing from sitemap.xml`);
+  if (NOINDEX_ROUTES.has(route) && sitemapRoutes.has(route)) errors.push(`${route}: noindex utility page appears in sitemap.xml`);
+}
 for (const route of sitemapRoutes) if (!routes.has(route)) errors.push(`sitemap.xml points to missing route ${route}`);
 
 const robots = await readFile(new URL('../dist/robots.txt', import.meta.url), 'utf8');

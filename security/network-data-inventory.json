@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-08-24",
+  "reviewedAt": "2026-09-07",
   "principles": {
     "freshProfileNetworkChoices": "must-be-saved-before-first-send",
     "blockerInputs": "bundled-and-hash-verified",
     "privateDownloadMetadata": "memory-only",
-    "remoteFaviconPersistence": "fixed-size-png-only"
+    "remoteFaviconPersistence": "fixed-size-png-only",
+    "tabHandoffRelay": "ciphertext-only-one-time-ten-minute-expiry"
   },
   "flows": [
     {
@@ -69,6 +70,36 @@
       "code": ["src/main/sync.js", "src/main/sync-crypto.js", "cloudflare/sync-worker/src/index.js"]
     },
     {
+      "id": "tab-handoff-chatgpt",
+      "surface": "ChatGPT plugin",
+      "trigger": "user explicitly asks to import one selected supported browser window",
+      "default": "off",
+      "recipient": "OpenAI connected-browser processing followed by Blanc Cloudflare Worker",
+      "data": ["selected HTTP(S) tab URLs", "bounded titles", "source order", "active-tab status", "ordinary edge request metadata"],
+      "retentionByBlanc": "plaintext and generated key only during request validation and encryption; relay stores ciphertext until claim or authenticated expiry, then only a used-ID marker until that original expiry (at most ten minutes); request bodies are not intentionally logged",
+      "code": ["plugins/blanc-tab-import/skills/import-open-tabs/SKILL.md", "cloudflare/tab-import-worker/src/index.js", "cloudflare/tab-import-worker/src/model.js"]
+    },
+    {
+      "id": "tab-handoff-companion",
+      "surface": "Firefox or Safari companion",
+      "trigger": "user selects eligible tabs from the current non-private window and chooses Open in Blanc",
+      "default": "off",
+      "recipient": "Blanc Cloudflare Worker",
+      "data": ["AES-256-GCM ciphertext", "expiry", "ordinary edge request metadata"],
+      "retentionByBlanc": "ciphertext until the first successful claim or authenticated expiry; a used-ID marker remains only until that original expiry (at most ten minutes); the key remains in the source browser and launch-link fragment",
+      "code": ["extensions/blanc-tab-import/web-extension/handoff.mjs", "extensions/blanc-tab-import/web-extension/popup.js", "cloudflare/tab-import-worker/src/index.js"]
+    },
+    {
+      "id": "tab-handoff-desktop-claim",
+      "surface": "desktop",
+      "trigger": "user opens a valid blanc-import capability URL",
+      "default": "off",
+      "recipient": "Blanc Cloudflare Worker",
+      "data": ["opaque 128-bit handoff ID", "ordinary network metadata"],
+      "retentionByBlanc": "claimed ciphertext is replaced atomically by an expiry-only used-ID marker until the original expiry; decrypted tab metadata remains only in memory until accept or cancel, then accepted URLs enter ordinary local session state",
+      "code": ["src/main/tab-import-handoff.js", "src/main/main.js", "src/renderer/pages/tab-handoff.js"]
+    },
+    {
       "id": "favicon-sanitization",
       "surface": "desktop",
       "trigger": "a non-private page supplies a remote icon for browser chrome",
@@ -113,10 +144,10 @@
       "surface": "desktop",
       "trigger": "user explicitly selects, reviews, or applies a source in Bring Your Tabs",
       "default": "off; no source is read until explicit selection",
-      "recipient": "Blanc main process only; no network recipient",
-      "data": ["opaque session and candidate identifiers", "sanitized titles, hostnames, and folder labels", "on-device embedding matrix when semantic suggestions are enabled"],
-      "retentionByBlanc": "memory-only import session for at most 15 minutes; destroyed on cancel, apply, window close, profile deletion, or quit; never sent over the network",
-      "channels": ["pages:tab-import:sources", "pages:tab-import:open-source", "pages:tab-import:open-file", "pages:tab-import:select-folder", "pages:tab-import:set-selection", "pages:tab-import:suggest-folders", "pages:tab-import:suggest-embed", "pages:tab-import:submit-embeddings", "pages:tab-import:apply", "pages:tab-import:cancel"],
+      "recipient": "Blanc main process and bounded utility renderer projection; no network recipient",
+      "data": ["opaque session and candidate identifiers", "sanitized titles and hostnames", "source window and group labels", "selection and reviewed group assignments"],
+      "retentionByBlanc": "memory-only import session for at most 15 minutes; destroyed on cancel, apply, window close, profile deletion, or quit; accepted tabs enter ordinary local session state; never sent to the handoff relay",
+      "channels": ["pages:tab-import:sources", "pages:tab-import:open-source", "pages:tab-import:set-selection", "pages:tab-import:suggest-source-groups", "pages:tab-import:suggest-embed", "pages:tab-import:submit-embeddings", "pages:tab-import:apply", "pages:tab-import:cancel"],
       "code": ["src/main/browser-data-import.js", "src/main/pages.js", "src/main/tab-preload.js"]
     },
     {

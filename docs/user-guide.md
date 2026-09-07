@@ -56,6 +56,35 @@ download records. `/clear` clears browsing history. To remove cookies and
 cached site data, use **Clear cookies, cache & site data** in Settings;
 clearing this data signs you out of sites.
 
+### Preview: bring tabs from another browser (not in public v1.15.0)
+
+Two complementary entry paths are in development. **Bring Your Tabs** starts
+inside Blanc and reads a selected Chromium profile's saved session on the
+device. It is the main migration and organization experience: users can select
+tabs, preserve eligible source groups and pins, and edit Named Groups before
+applying the import transactionally. In a development build, open it with
+`/bring-tabs`, the start-page **Bring Your Tabs** link, or onboarding's
+**Bring your open tabs…** action. It adds the selected tabs to that window;
+it does not change the source browser or add Favorites.
+
+The **one-time handoff** starts in ChatGPT or a Firefox/Safari toolbar. It copies
+the live metadata from one current source window without reading browser profile
+files, lets the user select up to 100 eligible tabs, and then shows a simpler
+authoritative review at `blanc://tab-handoff/` before creating a new scratch
+window in the focused profile. It reuses Bring Your Tabs' transactional quiet-tab
+batch creation, so only the source-active tab wakes initially.
+
+The handoff transfers only URL, title, order, and active-tab status. Private
+tabs, browser-internal pages, cookies, logins, page contents, history, form
+state, back stacks, groups, pins, and favicons do not transfer on this path.
+Canceling a claimed handoff discards it; repeat the source-browser flow to try
+again. Do not use either workflow until the release notes for a public Blanc
+version explicitly say it shipped.
+
+Opening one import screen in place of the other cancels the previous review.
+For a canceled handoff, create a new link from the source browser; for a canceled
+local migration, select the browser profile again.
+
 ## Private browsing, blocking, and permissions
 
 Use `/private` or `Cmd/Ctrl+Shift+N` to open a private tab. Private tabs use

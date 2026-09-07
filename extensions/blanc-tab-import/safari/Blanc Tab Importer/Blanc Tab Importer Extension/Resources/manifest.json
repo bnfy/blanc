@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Blanc Tab Importer",
+  "version": "0.1.0",
+  "description": "Copy selected tabs from the current window into a new Blanc window.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open tabs in Blanc",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "permissions": [
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://tabs.blancbrowser.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; connect-src https://tabs.blancbrowser.com; img-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+  }
+}

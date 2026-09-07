@@ -974,6 +974,58 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 }
 
 /* ---------- download ---------- */
+.tab-handoff-landing {
+  min-height: calc(100vh - 180px);
+  display: grid;
+  place-items: center;
+  padding: 96px 24px;
+}
+.tab-handoff-card {
+  width: min(100%, 620px);
+  padding: clamp(32px, 6vw, 64px);
+  border: 1px solid var(--site-border);
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--site-bg) 92%, white);
+  text-align: center;
+  box-shadow: 0 24px 80px rgb(69 51 24 / 8%);
+}
+.tab-handoff-card h1 {
+  margin: 0;
+  font-family: var(--site-font-display);
+  font-size: clamp(36px, 5.5vw, 56px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.tab-handoff-status {
+  max-width: 44ch;
+  margin: 20px auto 28px;
+  color: var(--site-text-dim);
+  line-height: 1.65;
+}
+.tab-handoff-fallback {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--site-border);
+  color: var(--site-text-dim);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.tab-handoff-fallback a,
+.tab-handoff-privacy a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.tab-handoff-privacy {
+  max-width: 52ch;
+  margin: 28px auto 0;
+  color: var(--site-text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
 .download-page { max-width: 1180px; margin: 0 auto; padding: 112px 24px 88px; }
 .download-hero { max-width: 740px; margin: 0 auto; text-align: center; }
 .download-hero > p:last-child { max-width: 48ch; margin: 20px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
