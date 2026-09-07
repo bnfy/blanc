@@ -27,6 +27,7 @@ export async function launchPackagedOverCdp({
   env = process.env,
   timeoutMs = 20_000,
   launchViaOpen = false,
+  openUrls = [],
 }) {
   if (launchViaOpen && process.platform !== 'darwin') {
     throw new Error('LaunchServices packaged launch is macOS-only.');
@@ -44,7 +45,9 @@ export async function launchPackagedOverCdp({
     : null;
   const command = launchViaOpen ? '/usr/bin/open' : executablePath;
   const commandArgs = launchViaOpen
-    ? ['-n', '-W', path.resolve(appPath), '--args', `--remote-debugging-port=${port}`, ...args]
+    ? openUrls.length
+      ? ['-n', '-W', '-a', path.resolve(appPath), ...openUrls, '--args', `--remote-debugging-port=${port}`, ...args]
+      : ['-n', '-W', path.resolve(appPath), '--args', `--remote-debugging-port=${port}`, ...args]
     : ['--remote-debugging-port=0', ...args];
   const child = spawn(command, commandArgs, { env, stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
@@ -112,11 +115,24 @@ export async function launchPackagedOverCdp({
         // terminating Electron. Send the protocol's explicit close command so
         // a LaunchServices smoke never strands a second signed Blanc process.
         try {
-          const session = await browser.newBrowserCDPSession();
-          await session.send('Browser.close');
+          await Promise.race([
+            (async () => {
+              const session = await browser.newBrowserCDPSession();
+              await session.send('Browser.close');
+            })(),
+            delay(1_000),
+          ]);
         } catch {}
-        await browser.close().catch(() => {});
+        // Once Browser.close terminates Electron, Playwright can lose the
+        // transport before browser.close observes its response. Do not let a
+        // disconnected CDP client leave an otherwise completed smoke at an
+        // unsettled top-level await.
+        await Promise.race([
+          browser.close().catch(() => {}),
+          delay(1_000),
+        ]);
         for (let i = 0; i < 50 && !exited; i += 1) await delay(100);
+        if (!exited) throw new Error(`packaged LaunchServices app would not exit\n${output}`);
         return;
       }
       await browser.close().catch(() => {});

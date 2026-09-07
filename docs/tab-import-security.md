@@ -1,6 +1,6 @@
 # One-time tab handoff security model
 
-Status: implemented in the working tree; not released or deployed.
+Status: implemented on PR #305; not merged, released, or deployed.
 
 ## Relationship to Bring Your Tabs
 
@@ -123,8 +123,8 @@ The incremental patch preserves main's dependency/security updates, Mahjong
 fixes, release records, migration design documents, and existing screenshots.
 Both import paths retain separate data-inventory entries. It reuses the existing
 `dismissUtilitySheet: false` activation option for late chrome readiness instead
-of adding a competing preservation flag. No deploy, signing, submission, push,
-or release is part of this verification.
+of adding a competing preservation flag. That reconciliation verification did
+not deploy, sign, submit, push, or release the integration.
 
 The local SQLite-backed check is now reproducible with `npm run test:runtime`
 in `cloudflare/tab-import-worker`. Its five passing tests exercise the actual
@@ -160,10 +160,29 @@ runtime also verified upload, concurrent claims, desktop v2 decryption, and
 restage rejection. These checks do not establish signed or packaged release
 acceptance; no deployment, signing, submission, or public release was performed.
 
+PR #305 packaged follow-up verification (September 7, 2026): private validation
+run 34161683726 passed the Linux AppImage and signed Windows NSIS builds,
+packaged blocker/compliance payloads, hardened fuses, live-media checks, and the
+exact Windows publisher/timestamp gate. Validation mode uploaded short-lived
+workflow artifacts only; it did not create or modify a GitHub Release. A local
+macOS arm64 directory build passed the signing preflight, deep strict signature
+verification, embedded-profile/entitlement checks, and packaged-resource check.
+Its Info.plist retained the existing HTTP/HTTPS handler and added `blanc-import`
+as a separate URL type.
+
+`npm run test:packaged:tab-handoff-protocol` then launched that signed local app
+through LaunchServices with a synthetic handoff URL. The production relay host
+was resolver-pinned to loopback, so the run contacted no production handoff
+record. Blanc accepted the cold-start `open-url`, rendered only
+`blanc://tab-handoff/`, reported the expected offline retrieval error, and never
+navigated an ordinary tab to `blanc-import:`. This is macOS packaged protocol
+acceptance for the local candidate, not notarization or release evidence.
+
 Before public availability, verify the deployed Worker and domain challenge,
-custom-protocol delivery from packaged macOS, Windows, and Linux builds,
-AMO-signed Firefox output, and the separately signed and notarized Safari
-containing app plus its independently hosted update metadata. The compatible
-desktop version must be public before the plugin or companions. Those steps
-remain subject to Blanc's immutable release, signing, updater-handoff,
-packaged-payload, and dated-evidence process.
+custom-protocol delivery from packaged Windows and Linux builds, AMO-signed
+Firefox output, and the separately signed and notarized Safari containing app
+plus its independently hosted update metadata. Repeat macOS protocol acceptance
+against the final notarized release artifact. The compatible desktop version
+must be public before the plugin or companions. Those steps remain subject to
+Blanc's immutable release, signing, updater-handoff, packaged-payload, and
+dated-evidence process.
