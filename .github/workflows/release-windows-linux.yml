@@ -239,12 +239,17 @@ jobs:
   capture-smoke:
     if: ${{ inputs.mode == 'capture-smoke' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 360
     permissions:
       contents: read
       actions: read
       attestations: read
     steps:
+      - name: Wait for the selected runtime build
+        run: gh run watch "$BLANC_RUNTIME_RUN_ID" --repo "$GITHUB_REPOSITORY" --interval 60
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BLANC_RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
