@@ -95,14 +95,24 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
   };
 
   const gdm = navigator.mediaDevices.getDisplayMedia?.bind(navigator.mediaDevices);
+  let displayRequestPending = false;
   if (gdm) navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints, ...rest) {
+    // Rejected overlapping calls have no native grant to settle. Prevent
+    // them from emitting a rejection against the in-flight request.
+    if (displayRequestPending) return Promise.reject(new DOMException('A screen-sharing request is already pending.', 'InvalidStateError'));
     const scopes = ['display', ...(constraints?.audio ? ['systemAudio'] : [])];
-    return gdm(constraints, ...rest).then((stream) => {
+    displayRequestPending = true;
+    let request;
+    try { request = gdm(constraints, ...rest); }
+    catch (error) { displayRequestPending = false; throw error; }
+    return request.then((stream) => {
+      displayRequestPending = false;
       for (const track of stream.getTracks()) register(track, track.kind === 'audio' ? 'systemAudio' : 'display');
       snapshot();
       emit({ type: 'settlement', outcome: 'resolved', scopes });
       return stream;
     }, (err) => {
+      displayRequestPending = false;
       emit({ type: 'settlement', outcome: 'rejected', scopes });
       throw err;
     });

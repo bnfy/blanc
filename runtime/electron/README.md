@@ -50,6 +50,9 @@ Run the deny-only routing fixture against each newly built runtime:
 
 ```sh
 BLANC_PROBE_EXECUTABLE=/absolute/path/to/patched/electron npm run test:display-capture:routing
+# Then exercise Blanc's native frame-bound permission and selection controller.
+# It denies at source delivery; no actual source is enumerated or captured.
+BLANC_PROBE_POLICY=patched BLANC_PROBE_EXECUTABLE=/absolute/path/to/patched/electron npm run test:display-capture:routing
 ```
 
 A passing routing probe alone does **not** establish successful capture. Native
@@ -57,6 +60,12 @@ source selection, actual video and computer-audio samples, cancellation,
 permission recovery, frame/window teardown, microphone/camera preservation,
 long-running capture, packaged signing/fuses, and real meeting sites remain
 separate gates. See the dated screen-sharing incident for current evidence.
+
+Display requests from embedded frames currently fail before consent. The
+session preload only observes main-frame track lifetimes; allowing embedded
+requests without native lifecycle events would leave captures and owner locks
+untracked. Open a meeting as its own page to request sharing. Native subframe
+lifecycle support remains a compatibility follow-up, not a passed gate.
 
 For every Electron update, rebase and review the patch, update every pin and
 hash, rebuild all target archives, and repeat the routing and capture gates.

@@ -229,3 +229,49 @@ runtime tests passed **12 tests, zero failures**. Picker UI smoke passed again
 with synthetic sources, including a 12-source viewport and visible footer.
 The local macOS patched runtime is compiling with four jobs; no patched binary
 or successful screen/computer-audio capture has yet been validated.
+
+## Review fixes and local disk cleanup
+
+The September 7 review found request-overlap, embedded-frame lifecycle, and
+Linux audio-consumer cleanup defects. The candidate now serializes pending
+display calls without emitting settlements for local overlap rejections, and
+reject notifications cannot dispose active shares or pending consent. A
+native permission denial for an active-share retry therefore leaves the
+original share intact.
+
+Embedded-frame display requests are now denied before reserving the window.
+This is a deliberate compatibility limit while the session preload observes
+only main frames; embedded meeting pages must be opened as their own page to
+share. Native subframe completion/destruction support is still required before
+that restriction can be lifted. It is not marked as a successful iframe gate.
+
+Linux audio is disposed independently when its final audio track ends, even
+while screen video continues. The bridge also continues checking native
+consumer lifetime after startup, so loss of the audio consumer stops the
+monitor without depending on a page report.
+
+After the owner reported disk consumption, the local Electron build was
+stopped and its approximately 38 GB disposable source/build tree was removed,
+along with the downloaded stock runtime and its archive. Source changes,
+patches, tests, and small diagnostic logs were preserved. Local native
+compilation remains incomplete; it must not be restarted without an agreed
+build-capacity plan. No native capture or release gate is implied by these
+source-level fixes.
+
+Verification after these fixes: **1,466 unit tests passed, zero failures**;
+JavaScript syntax and `git diff --check` passed. Free space increased from
+71 GiB before cleanup to 109 GiB afterward. No local native build is running.
+
+Owner-observed Mac smoke checks passed using installed stock Electron 44.1.1:
+synthetic-source picker selection/audio opt-in/cancellation, all six denial
+routing cases with the system-picker setting on/off, and Blanc cold-launch
+new-tab/focus behavior. An optional `BLANC_SMOKE_WATCH=1` paces the checks.
+The picker and pre-native-picker consent windows were then centered explicitly
+in the requesting display's work area; macOS uses a positioned child instead
+of a title-bar sheet, with owner interaction disabled until dismissal.
+The visible rerun verified both dialog sizes within one display coordinate
+unit of center, no button focus outlines, and owner restoration after Cancel
+and abort. Keyboard focus uses a subtle background change; the owner requested
+removing the initially added underline. A fixture
+startup race exposed by this rerun was fixed with an explicit readiness signal.
+These remain UI and denial checks; actual native sharing is still unverified.

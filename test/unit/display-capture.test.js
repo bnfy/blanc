@@ -7,6 +7,7 @@ const details = { captureApi: 'get-display-media', videoRequested: true, audioRe
 function harness(overrides = {}) {
   const wc = new EventEmitter();
   const frame = { processId: 11, routingId: 7 };
+  wc.mainFrame = frame;
   const events = [];
   let valid = true;
   const context = { wc, frame, origin: 'https://meet.example', ownerKey: 'window1', valid: () => valid };
@@ -111,4 +112,46 @@ test('consent timeout returns denial and removes requester listeners', async () 
   const keepAlive = setTimeout(() => {}, 100);
   try { assert.equal(await h.request(), false); } finally { clearTimeout(keepAlive); }
   assert.equal(h.wc.listenerCount('destroyed'), 0);
+});
+
+test('rejected retries cannot dispose active sharing or pending consent', async () => {
+  const h = harness();
+  await h.request(); await h.select();
+  h.controller.settle(h.wc, h.frame, 'resolved');
+  assert.equal(await h.request(), false);
+  h.controller.settle(h.wc, h.frame, 'rejected');
+  assert.equal(h.events.includes('dispose'), false);
+  assert.equal(await h.request(), false);
+  h.controller.dispose();
+  const pending = harness({ choose: () => new Promise(() => {}) });
+  const request = pending.request();
+  assert.equal(await pending.request(), false);
+  pending.controller.settle(pending.wc, pending.frame, 'rejected');
+  assert.equal(pending.wc.listenerCount('destroyed'), 1);
+  pending.controller.dispose();
+  assert.equal(await request, false);
+});
+
+test('unobservable iframe requests do not reserve their owner window', async () => {
+  const h = harness();
+  h.wc.mainFrame = { processId: 11, routingId: 8 };
+  assert.equal(await h.request(), false);
+  assert.deepEqual(h.events, []);
+  h.wc.mainFrame = h.frame;
+  assert.equal(await h.request(), true);
+  h.controller.dispose();
+});
+
+test('audio ends independently while screen video and its controller remain active', async () => {
+  const h = harness();
+  await h.request(); await h.select();
+  h.controller.report(h.wc, h.frame, { displayLive: 1, systemAudioLive: 1 });
+  h.controller.settle(h.wc, h.frame, 'resolved');
+  h.controller.report(h.wc, h.frame, { displayLive: 1, systemAudioLive: 0 });
+  assert.equal(h.events.filter((event) => event === 'dispose').length, 1);
+  assert.equal(await h.request(), false, 'screen still owns its frame');
+  h.controller.report(h.wc, h.frame, { displayLive: 0, systemAudioLive: 0 });
+  assert.equal(h.events.filter((event) => event === 'dispose').length, 1);
+  assert.equal(await h.request(), true);
+  h.controller.dispose();
 });

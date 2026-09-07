@@ -23,5 +23,9 @@ footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; 
 footer button { padding: 10px 18px; border-radius: 999px; border: 1px solid #8886; font: inherit; color: inherit; background: transparent; cursor: pointer; }
 #share { background: light-dark(#2e3427, #dbe2ce); color: light-dark(white, #20251c); }
 button:disabled { opacity: .4; cursor: default; }
-button:focus-visible, input:focus-visible { outline: 3px solid #879660; outline-offset: 3px; }
+button:focus { outline: none; }
+footer button:focus-visible { background: light-dark(#e8e9e1, #30322b); }
+#share:focus-visible { background: light-dark(#454d39, #c2ceb0); }
+.source:focus-visible { background: light-dark(#e2e3da, #34362f); }
+input:focus-visible { outline: 1px solid #879660; outline-offset: 2px; }
 [hidden] { display: none !important; }

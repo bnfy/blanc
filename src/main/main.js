@@ -7093,7 +7093,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       };
       return { wc, frame, window: owner.window, ownerKey: owner.id, origin, valid };
     },
-    choose: createDisplayPicker({ BrowserWindow, ipcMain, desktopCapturer, partition: CHROME_PARTITION }),
+    choose: createDisplayPicker({ BrowserWindow, ipcMain, desktopCapturer, screen: require('electron').screen, partition: CHROME_PARTITION }),
     acquireAudio: createDisplayAudio({ app, WebContentsView, ipcMain, partition: CHROME_PARTITION,
       onFailure: (message) => dialog.showMessageBox({ type: 'error', title: 'Computer audio', message }).catch(() => {}) }),
     onError: displayError,
@@ -7228,7 +7228,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         audioLive: payload.audioLive, videoLive: payload.videoLive,
         displayLive: payload.displayLive, systemAudioLive: payload.systemAudioLive,
       });
-      if (payload.displayLive === 0 && payload.systemAudioLive === 0) displayCapture?.stopped(event.sender, frame);
+      displayCapture?.report(event.sender, frame, {
+        displayLive: payload.displayLive, systemAudioLive: payload.systemAudioLive,
+      });
     } else return;
     refreshCaptureProjection(surface);
   });

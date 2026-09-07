@@ -34,6 +34,7 @@ function makeWorld() {
       },
     },
     JSON,
+    DOMException,
   };
   world.window = {
     addEventListener: (name, fn) => listeners.set(name, fn),
@@ -47,10 +48,23 @@ function makeWorld() {
     gum: (constraints) => world.navigator.mediaDevices.getUserMedia(constraints),
     gdm: (constraints) => world.navigator.mediaDevices.getDisplayMedia(constraints),
     stopRequest: (scope) => listeners.get('blanc:capture-stop-request')({ detail: scope }),
-  };
+};
 }
 
 const last = (arr) => arr[arr.length - 1];
+
+test('overlapping display requests reject without settling the original request', async () => {
+  const w = makeWorld();
+  let resolve;
+  w.setNext(new Promise((done) => { resolve = done; }));
+  const first = w.gdm({ video: true });
+  await assert.rejects(w.gdm({ video: true }), { name: 'InvalidStateError' });
+  assert.equal(w.events.length, 0, 'overlap has no native grant to settle');
+  resolve(new w.FakeStream([new w.FakeTrack('video')]));
+  await first;
+  assert.equal(w.events.filter((event) => event.detail.type === 'settlement').length, 1);
+  assert.equal(last(w.events).detail.outcome, 'resolved');
+});
 
 test('resolved gUM emits the live snapshot BEFORE its settlement (no off-flicker)', async () => {
   // Order matters: main confirms the anchor on settlement, after which counts

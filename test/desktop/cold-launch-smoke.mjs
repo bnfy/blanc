@@ -26,6 +26,7 @@ import path from 'node:path';
 import process from 'node:process';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { watchStep } from './smoke-watch.mjs';
 
 const { callTestHook } = testHookCall;
 const { waitForValue } = poll;
@@ -108,6 +109,7 @@ try {
   );
   assert.equal(focusOf(focus, CHROME_INDEX_URL), false, 'the island must not hold focus at cold launch');
 
+  await watchStep(app, 'Cold launch passed: one new tab; page has keyboard focus');
   console.log(`cold-launch-smoke OK on ${process.platform}`);
 } finally {
   await app.close();

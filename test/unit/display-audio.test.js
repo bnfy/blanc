@@ -46,6 +46,10 @@ test('Linux bridge stays muted and bounds delivery until its own worklet acknowl
   assert.equal(resumed, 0);
   ipcMain.emit('display-audio:ack', { sender: wc, senderFrame: frame }, id);
   assert.equal(resumed, 1);
+  captured = false;
+  interval();
+  assert.equal(killed, 1, 'loss of the native audio consumer stops the helper without a page report');
+  assert.equal(dead, true);
   abort.abort();
   assert.equal(killed, 1); assert.equal(dead, true); assert.equal(ipcMain.listenerCount('display-audio:ack'), 0);
   audio.dispose(); assert.equal(killed, 1);

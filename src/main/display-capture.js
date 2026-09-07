@@ -34,7 +34,10 @@ function createDisplayCaptureController({ resolveContext, choose, acquireAudio,
     // Missing metadata on stock Electron deliberately remains a denial.
     if (details?.captureApi !== 'get-display-media' || details.videoRequested !== true) return false;
     const context = resolveContext(wc, details);
-    if (!context || !context.valid() || !trustedDisplayOrigin(context.origin)) return false;
+    // Session capture instrumentation runs only in the main frame. Refuse
+    // embedded callers before reserving the owner until native lifecycle
+    // observation can replace that instrumentation for subframes.
+    if (!context || context.frame !== wc.mainFrame || !context.valid() || !trustedDisplayOrigin(context.origin)) return false;
     const key = frameKey(context.frame);
     if (pendingOwners.has(context.ownerKey) || records.has(key)) return false;
     const record = { key, context, id: ++serial, abort: new AbortController(), listeners: [],
@@ -104,11 +107,30 @@ function createDisplayCaptureController({ resolveContext, choose, acquireAudio,
   function settle(wc, frame, outcome) {
     const record = frame && records.get(frameKey(frame));
     if (!record || record.context.wc !== wc) return;
-    if (outcome === 'rejected') { dispose(record); return; }
+    // Rejected retries must not cancel an existing active share or its
+    // pending consent. The preload serializes the native selection phase.
+    if (outcome === 'rejected') {
+      if (record.phase === 'selection' || record.phase === 'granted') dispose(record);
+      return;
+    }
     if (outcome !== 'resolved' || record.phase === 'consent') return;
     record.phase = 'active';
     if (pendingOwners.get(record.context.ownerKey) === record) pendingOwners.delete(record.context.ownerKey);
     onPending(record.context, false);
+    if (record.lastReport) report(wc, frame, record.lastReport);
+  }
+
+  function report(wc, frame, counts) {
+    const record = frame && records.get(frameKey(frame));
+    if (!record || record.context.wc !== wc || record.phase === 'consent'
+        || !Number.isSafeInteger(counts?.displayLive) || counts.displayLive < 0
+        || !Number.isSafeInteger(counts?.systemAudioLive) || counts.systemAudioLive < 0) return;
+    record.lastReport = counts;
+    // The first snapshot arrives before its settlement. Defer teardown until
+    // that settlement, then handle audio independently of screen video.
+    if (record.phase !== 'active') return;
+    if (counts.systemAudioLive === 0) { record.audio?.dispose(); record.audio = null; }
+    if (counts.displayLive === 0 && counts.systemAudioLive === 0) dispose(record);
   }
 
   function stopped(wc, frame) {
@@ -121,7 +143,7 @@ function createDisplayCaptureController({ resolveContext, choose, acquireAudio,
   function stopAudio(wc) {
     for (const record of records.values()) if (record.context.wc === wc) record.audio?.dispose();
   }
-  return { requestPermission, select, settle, stopped, cancelContents, stopAudio, nativePicker,
+  return { requestPermission, select, settle, report, stopped, cancelContents, stopAudio, nativePicker,
     dispose: () => { for (const record of records.values()) dispose(record); } };
 }
 

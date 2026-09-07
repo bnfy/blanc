@@ -63,8 +63,14 @@ function createDisplayAudio({ app, WebContentsView, ipcMain, partition, onFailur
       // independent permanent output mute also covers connection/stop races.
       timer = setInterval(() => {
         if (disposed) return;
+        if (child) {
+          // Native audio-consumer lifetime is the backstop when page reports
+          // are missing. Keep checking after startup, including iframe/track
+          // teardown, and stop reading the monitor as soon as capture ends.
+          if (!wc.isBeingCaptured()) dispose();
+          return;
+        }
         if (wc.isBeingCaptured()) {
-          clearInterval(timer);
           child = spawn(executable, [], { stdio: ['ignore', 'pipe', 'pipe'] });
           const fail = () => {
             if (!disposed) { dispose(); onFailure?.('Computer audio stopped. Check your output device and share again.'); }
