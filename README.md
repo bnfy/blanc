@@ -37,8 +37,10 @@ surface, so Blanc treats runtime configuration, permissions, dependencies,
 and release integrity as explicit controls:
 
 - Public web tabs run with Chromium sandboxing enabled, Node integration
-  disabled, and context isolation enabled. Ordinary sites receive no
-  privileged Blanc bridge.
+  disabled, and context isolation enabled. Blanc-owned pages such as Settings
+  and History use a narrow internal connection to the app. Regular websites
+  do not get that connection, which helps keep a malicious or compromised site
+  from reaching tabs, history, settings, or browser controls.
 - Permissions deny by default. Camera, microphone, location, and notifications
   require per-site decisions; screen capture and other unhandled permissions
   are refused.
