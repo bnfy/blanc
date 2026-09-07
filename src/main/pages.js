@@ -213,6 +213,7 @@ function setupPages(hooks = {}) {
       supporter: record,
       patron: _patron,
       _syncMeta,
+      _syncTieBreakers,
       onePasswordEnabled,
       onePasswordAccount,
       presentationDefaultsResetVersion,
