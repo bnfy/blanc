@@ -1,6 +1,6 @@
 # One-time tab handoff security model
 
-Status: implemented on PR #305; not merged, released, or deployed.
+Status: implemented on PR #305; release and deployment remain pending.
 
 ## Relationship to Bring Your Tabs
 
