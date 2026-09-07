@@ -15,7 +15,9 @@ async function openMigration(world) {
   assert.equal(await world.call('clickBrowserFind'), true);
   return waitForValue(
     () => world.call('readBrowserImportDom'),
-    (dom) => dom?.options?.length === 1 && dom.buttonHidden === false,
+    (dom) =>
+      dom?.options?.some((option) => option.label === 'Google Chrome — Acceptance profile') &&
+      dom.buttonHidden === false,
     'detected browser profile to render on Favorites'
   );
 }
@@ -36,8 +38,9 @@ async function importProfile(world, expectedCount, statusPattern = /Imported 3 f
 
 Given('a detected browser profile is offered on the Favorites page', async function () {
   const dom = await openMigration(this);
-  assert.equal(dom.options[0].label, 'Google Chrome — Acceptance profile');
-  assert.match(dom.options[0].value, /^[A-Za-z0-9_-]{24}$/);
+  const source = dom.options.find((option) => option.label === 'Google Chrome — Acceptance profile');
+  assert.ok(source, 'the existing F30 acceptance profile should remain discoverable');
+  assert.match(source.value, /^[A-Za-z0-9_-]{24}$/);
   assert.equal(JSON.stringify(dom).includes('blanc-browser-home-'), false);
 });
 
@@ -119,11 +122,12 @@ Then('browser Favorites migration is offered before browsing', async function ()
   assert.equal(await this.call('clickFirstRunMigrationFind'), true);
   const dom = await waitForValue(
     () => this.call('readFirstRunMigrationDom'),
-    (value) => value?.options?.length === 2 && value.findHidden === true,
+    (value) => value?.options?.length === 3 && value.findHidden === true,
     'first-run browser migration sources to render'
   );
   assert.deepEqual(dom.options, [
     'Google Chrome — Acceptance profile',
+    'Google Chrome — Tab migration fixture',
     'From a bookmarks file (HTML)…',
   ]);
 });

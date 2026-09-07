@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; worker-src 'self';" />
+  <title>Bring Your Tabs</title>
+  <link rel="icon" href="icon.svg" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body class="sheet">
+  <div class="page tab-import-page">
+    <nav class="page-nav">
+      <a href="blanc://bookmarks/">Favorites</a>
+      <a href="blanc://settings/">Settings</a>
+    </nav>
+    <header class="tab-import-header">
+      <h1>Bring your tabs</h1>
+      <p id="tabImportStepProgress" aria-live="polite">Step 1 of 4</p>
+    </header>
+    <p id="tabImportStatus" class="section-hint tab-import-status" role="status" aria-live="polite"></p>
+    <section class="tab-import-panel" data-step-panel="source" aria-labelledby="tabImportSourceTitle">
+      <h2 id="tabImportSourceTitle" class="section-title tab-import-panel-title">Choose a browser</h2>
+      <div id="tabImportBrowserList" class="tab-import-browser-list" role="radiogroup" aria-label="Browsers"></div>
+      <div id="tabImportSourceRecovery" class="tab-import-source-recovery" hidden></div>
+      <div id="tabImportProfileSection" class="tab-import-profile-section" hidden>
+        <div class="tab-import-profile-head">
+          <h3 id="tabImportProfileTitle" class="tab-import-profile-title">Choose a profile</h3>
+        </div>
+        <div id="tabImportSourceList" class="tab-import-source-list"></div>
+      </div>
+    </section>
+    <section class="tab-import-panel" data-step-panel="tabs" hidden aria-labelledby="tabImportTabsTitle">
+      <h2 id="tabImportTabsTitle" class="section-title tab-import-panel-title">Choose tabs</h2>
+      <div class="tab-import-preview-toolbar">
+        <div class="tab-import-selection-actions">
+          <button id="tabImportSelectAll" type="button" class="tab-import-secondary">Select all</button>
+          <button id="tabImportSelectNone" type="button" class="tab-import-secondary">Select none</button>
+        </div>
+        <span id="tabImportSelectedCount" class="tab-import-badge"></span>
+      </div>
+      <div id="tabImportTabsList" class="tab-import-tabs-list"></div>
+      <div class="tab-import-panel-actions">
+        <button id="tabImportBackToSource" type="button" class="tab-import-secondary">Back to source</button>
+        <button id="tabImportContinueToOrganize" type="button" class="tab-import-primary">Organize selected tabs</button>
+      </div>
+    </section>
+    <section class="tab-import-panel" data-step-panel="organize" hidden aria-labelledby="tabImportOrganizeTitle">
+      <h2 id="tabImportOrganizeTitle" class="section-title tab-import-panel-title">Organize tabs</h2>
+      <form id="tabImportNewGroupForm" class="tab-import-new-group-form" aria-label="Create a Named Group">
+        <input id="tabImportNewGroupName" type="text" maxlength="40" placeholder="new group name" aria-label="New group name" />
+        <button type="submit" class="tab-import-secondary">Create</button>
+      </form>
+      <div id="tabImportOrganizeBoard" class="tab-import-review-board"></div>
+      <div class="tab-import-panel-actions">
+        <button id="tabImportBackToTabs" type="button" class="tab-import-secondary">Back to tabs</button>
+        <button id="tabImportContinueToReview" type="button" class="tab-import-primary" disabled>Review import</button>
+      </div>
+    </section>
+    <section class="tab-import-panel" data-step-panel="review" hidden aria-labelledby="tabImportReviewTitle">
+      <h2 id="tabImportReviewTitle" class="section-title tab-import-panel-title">Review import</h2>
+      <div id="tabImportReviewSummary" class="tab-import-final-summary"></div>
+      <p class="tab-import-final-note">Only the first tab wakes. Your source browser and Favorites stay unchanged.</p>
+      <div class="tab-import-panel-actions">
+        <button id="tabImportBackToOrganize" type="button" class="tab-import-secondary">Back to organize</button>
+        <button id="tabImportApplyBtn" type="button" class="tab-import-primary" disabled>Open tabs in Blanc</button>
+      </div>
+    </section>
+  </div>
+  <script src="sheet.js"></script>
+  <script src="tab-import-open-tabs.js"></script>
+</body>
+</html>

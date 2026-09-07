@@ -18,6 +18,7 @@
     <div class="page-head">
       <h1>Favorites</h1>
       <div class="import-actions">
+        <button id="bringTabsBtn" type="button">Bring open tabs…</button>
         <button id="browserFindBtn" type="button">Look for other browsers</button>
         <span id="browserSourceWrap" hidden>
           <select id="browserSource" aria-label="Browser profile"></select>
@@ -26,6 +27,7 @@
         <button id="importBtn" type="button">Import HTML…</button>
       </div>
     </div>
+    <p id="browserImportGuidance" class="section-hint import-guidance" hidden></p>
     <p id="importStatus" class="section-hint" role="status"></p>
     <div id="list" class="row-list"></div>
   </div>
