@@ -1491,7 +1491,9 @@
 .mj-win {
   position: fixed;
   z-index: 40;
-  inset: 50% auto auto 50%;
+  /* Viewport units keep the card centered even when the page's vertical
+     scrollbar briefly changes the fixed-position containing block width. */
+  inset: 50% auto auto 50vw;
   transform: translate(-50%, -50%);
   width: min(520px, calc(100% - 28px));
   max-height: calc(100% - 28px);
