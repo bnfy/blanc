@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "test:runtime": "node --test test/runtime.test.mjs",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "wrangler": "^4.36.0"
+    "wrangler": "4.129.1"
   }
 }

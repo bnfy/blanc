@@ -72,3 +72,32 @@ jobs:
       - run: npm ci
       - name: Google OAuth compatibility contract
         run: xvfb-run -a npm run test:oauth:desktop
+
+  tab-handoff:
+    # Separate from deployment/signing: use the real local Workers runtime,
+    # synthetic tab metadata, and an isolated Electron profile. No credentials.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            cloudflare/tab-import-worker/package-lock.json
+            extensions/blanc-tab-import/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix cloudflare/tab-import-worker
+      - run: npm ci --prefix extensions/blanc-tab-import
+      - name: SQLite-backed one-time handoff and desktop decryption
+        run: npm run test:runtime --prefix cloudflare/tab-import-worker
+      - name: Firefox manifest and archive
+        run: |
+          npm run lint:firefox --prefix extensions/blanc-tab-import
+          npm run build:firefox --prefix extensions/blanc-tab-import
+      - name: Both import screens coexist in Electron
+        run: xvfb-run -a npm run test:tab-handoff

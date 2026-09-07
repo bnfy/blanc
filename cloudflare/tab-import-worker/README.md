@@ -30,5 +30,19 @@ Run `npm install` and `npm run dev` in this directory. A packaged Blanc build
 always uses `https://tabs.blancbrowser.com`; an unpackaged `BLANC_TEST=1` run
 may set `BLANC_TEST_TAB_IMPORT_RELAY` to a loopback origin for acceptance.
 
+Run `npm ci` then `npm run test:runtime` for a repeatable local integration
+check. It builds this Wrangler configuration and uses real SQLite-backed
+Durable Objects, not the unit suite's storage mock. It verifies both companion
+encryptors, the MCP HTTP path, desktop decryption, concurrent staging/claiming,
+used-marker persistence across object eviction, actual expiry-alarm cleanup,
+ID/expiry authentication, and legacy/oversized/expired-upload rejection.
+The runtime and storage are isolated and disposed after the run. Only synthetic
+`.test` URLs are used; no production relay, account, or deployment credentials
+are needed. Wrangler is pinned because this check uses its test-harness API.
+
+The `tab-handoff` parity CI job runs this check, Firefox validation/build, and
+the combined Electron migration/handoff smoke. It does not replace the signed
+companions or packaged cross-platform custom-protocol release gates.
+
 Deployment, DNS, OpenAI registration, and the verification secret are release
 operations and are intentionally not performed by repository tests.

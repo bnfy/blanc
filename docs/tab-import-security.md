@@ -126,6 +126,14 @@ Both import paths retain separate data-inventory entries. It reuses the existing
 of adding a competing preservation flag. No deploy, signing, submission, push,
 or release is part of this verification.
 
+The local SQLite-backed check is now reproducible with `npm run test:runtime`
+in `cloudflare/tab-import-worker`. Its five passing tests exercise the actual
+Wrangler bundle and migrations, including concurrent staging/claims, object
+eviction, real expiry-alarm cleanup, companion/MCP encryption, and desktop
+authentication. The `tab-handoff` parity job runs it alongside Firefox checks
+and the Electron handoff smoke without deployment or signing credentials.
+Local success does not by itself establish hosted CI or packaged acceptance.
+
 Pre-merge verification (`c3a3eb44`, September 7, 2026): all 1,559 unit tests and all
 141 runnable macOS Electron scenarios (865 steps) passed on the reconciled tree.
 The local Electron scenarios cover
