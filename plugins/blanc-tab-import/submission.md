@@ -11,12 +11,15 @@ public.
 - Terms: `https://blancbrowser.com/terms`
 - Support: `https://blancbrowser.com/faq` and `support@blancbrowser.com`
 - Domain challenge: `https://tabs.blancbrowser.com/.well-known/openai-apps-challenge`
+- Connector artwork: `assets/sunrise-mark.png`, the canonical full Sunrise
+  logo mark used by the plugin manifest for its composer icon and light/dark
+  listing logo
 - Test prompts: `submission-test-prompts.md`
 - Minimum Blanc version: set to the first public version whose release evidence
   passes packaged `blanc-import` acceptance on macOS, Windows, and Linux.
 
-The submission must use the deployed tool schema and annotations verbatim,
-confirm that request-body logging is disabled, and add the real registered
-`plugin_asdk_app_…` identifier only after OpenAI creates it. The plugin and
-companions must remain unpublished until the compatible desktop release is
-public.
+The submission must use the deployed tool schema, annotations, and Sunrise
+artwork verbatim, confirm that request-body logging is disabled, and add the
+real registered `plugin_asdk_app_…` identifier only after OpenAI creates it.
+The plugin and companions must remain unpublished until the compatible desktop
+release is public.

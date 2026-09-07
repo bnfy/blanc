@@ -94,3 +94,15 @@ test('landing page keeps metadata out of URLs and clears the fragment before lau
   const headers = read('site/public/_headers');
   assert.match(headers, /\/import-tabs\*[\s\S]*Cache-Control: no-store[\s\S]*Referrer-Policy: no-referrer[\s\S]*X-Robots-Tag: noindex, nofollow/);
 });
+
+test('ChatGPT connector uses the canonical Sunrise logo mark', () => {
+  const manifest = JSON.parse(read('plugins/blanc-tab-import/.codex-plugin/plugin.json'));
+  const asset = './assets/sunrise-mark.png';
+  assert.equal(manifest.interface.composerIcon, asset);
+  assert.equal(manifest.interface.logo, asset);
+  assert.equal(manifest.interface.logoDark, asset);
+  assert.deepEqual(
+    fs.readFileSync(path.join(ROOT, 'plugins/blanc-tab-import/assets/sunrise-mark.png')),
+    fs.readFileSync(path.join(ROOT, 'site/public/sunrise-hero-mark.png')),
+  );
+});

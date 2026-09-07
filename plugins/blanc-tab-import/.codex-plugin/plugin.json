@@ -28,6 +28,9 @@
       "Copy my selected tabs into Blanc.",
       "Create a Blanc handoff for these tabs."
     ],
-    "brandColor": "#C88A2B"
+    "brandColor": "#C88A2B",
+    "composerIcon": "./assets/sunrise-mark.png",
+    "logo": "./assets/sunrise-mark.png",
+    "logoDark": "./assets/sunrise-mark.png"
   }
 }
