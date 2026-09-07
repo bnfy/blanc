@@ -17,6 +17,8 @@ test('packaged Blanc registers a separate tab-import protocol', () => {
 });
 
 test('packaged platform validation invokes each installed tab-import handler', () => {
+  const main = read('src/main/main.js');
+  assert.match(main, /registerWindowsTabImportProtocol\(app\)/);
   const smoke = read('test/desktop/packaged-tab-handoff-protocol-smoke.mjs');
   assert.match(smoke, /process\.platform === 'darwin'/);
   assert.match(smoke, /HKEY_CURRENT_USER\\\\Software\\\\Classes\\\\blanc-import/);
