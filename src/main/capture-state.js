@@ -51,10 +51,10 @@ function applySettlement(record, { origin, isMainFrame, outcome, scopes }) {
 }
 
 function applyFrameReport(record, frameKey, { origin, isMainFrame, audioLive, videoLive, displayLive, systemAudioLive }) {
-  const audio = Math.max(0, audioLive | 0);
-  const video = Math.max(0, videoLive | 0);
   const authorized = (scope) => record.anchors.some((anchor) => anchor.origin === origin
     && anchor.isMainFrame === (isMainFrame !== false) && anchor.scopes.includes(scope));
+  const audio = authorized('audio') ? Math.max(0, audioLive | 0) : 0;
+  const video = authorized('video') ? Math.max(0, videoLive | 0) : 0;
   const display = authorized('display') ? Math.max(0, displayLive | 0) : 0;
   const systemAudio = authorized('systemAudio') ? Math.max(0, systemAudioLive | 0) : 0;
   if (audio === 0 && video === 0 && display === 0 && systemAudio === 0) record.frames.delete(frameKey);

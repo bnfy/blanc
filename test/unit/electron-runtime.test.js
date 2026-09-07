@@ -5,8 +5,27 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const { verifyRuntime } = require('../../scripts/verify-electron-runtime');
 const sourceRoot = path.resolve(__dirname, '../..');
+test('Windows-style checkout preserves byte-verified native source inputs', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-native-eol-'));
+  const files = ['runtime/electron/patches/0001-capture-api-metadata.patch', 'runtime/linux-audio/monitor.c'];
+  const git = (...args) => execFileSync('git', ['-c', 'core.autocrlf=true', ...args], { cwd: root, stdio: 'pipe' });
+  try {
+    git('init');
+    for (const file of ['.gitattributes', ...files]) {
+      fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+      fs.copyFileSync(path.join(sourceRoot, file), path.join(root, file));
+    }
+    git('add', '.');
+    for (const file of files) fs.unlinkSync(path.join(root, file));
+    git('checkout-index', '--all', '--force');
+    for (const file of files) {
+      assert.deepEqual(fs.readFileSync(path.join(root, file)), fs.readFileSync(path.join(sourceRoot, file)), file);
+    }
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
 test('packaging rejects stock, stale, altered, and wrong-target runtime inputs', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-runtime-test-'));
   try {

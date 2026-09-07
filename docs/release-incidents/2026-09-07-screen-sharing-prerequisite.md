@@ -1,6 +1,6 @@
 # Screen-sharing prerequisite — September 7, 2026
 
-Status: **implementation blocked at the runtime authorization gate; no release**.
+Status: **candidate implemented; patched native builds and capture validation in progress; no release**.
 This record does not claim screen sharing or computer audio works in Blanc.
 
 ## Owner decisions
@@ -204,3 +204,28 @@ confirmation, meeting sites, 30-minute capture, native CI artifact transport,
 three-platform packaged builds/signing, affected-machine approval, immutable
 release, adjacent updater handoffs, final media refresh, and the fresh launch
 soak. The former launch dates remain on hold. No release has been published.
+
+## Native CI and lifecycle follow-up
+
+The owner explicitly approved pushing candidate `60045dd` to the verified public
+`bnfy/blanc` repository and running Windows/Linux runtime checks. The branch was
+pushed and [runtime run 34136580900](https://github.com/bnfy/blanc/actions/runs/34136580900)
+was dispatched at that exact commit, in runtime-only mode. No GitHub Release or
+public updater metadata was created. The workflow builds and separately attests
+the archive and build record; app validation/release jobs now require this
+authenticated input. Successful transport and packaging remain unverified.
+
+Windows reported 4 CPUs and 146.8 GiB free, then failed before source sync:
+Git's CRLF checkout conversion changed the pinned patch hash. Explicit LF
+attributes now cover runtime patches and the byte-verified Linux helper source.
+The driver also disables autocrlf for upstream source operations. A regression
+test checks actual checkout bytes with `core.autocrlf=true`. The initial Linux
+job continues independently; native build success is not yet established.
+
+The full unit suite passed **1,461 tests, zero failures** after capture reports
+were constrained to native-granted scopes and Linux bridge lifecycle coverage
+was added. The subsequent Windows checkout regression and relevant capture/
+runtime tests passed **12 tests, zero failures**. Picker UI smoke passed again
+with synthetic sources, including a 12-source viewport and visible footer.
+The local macOS patched runtime is compiling with four jobs; no patched binary
+or successful screen/computer-audio capture has yet been validated.

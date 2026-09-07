@@ -6,3 +6,5 @@
 /compliance/*.json text eol=lf
 /compliance/*.txt text eol=lf
 /compliance/evidence/*.txt text eol=lf
+/runtime/electron/patches/*.patch text eol=lf
+/runtime/linux-audio/*.c text eol=lf

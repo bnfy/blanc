@@ -76,3 +76,15 @@ test('grants and clearRecord bump generation (the Stop-timeout token)', () => {
   assert.equal(r.anchors.length, 0);
   assert.equal(r.frames.size, 0);
 });
+
+
+test('track reports cannot introduce scopes that the native permission grant did not authorize', () => {
+  const r = createCaptureRecord();
+  applyGrant(r, { ...MAIN, scopes: ['display'] });
+  applyFrameReport(r, 'main', { ...MAIN, displayLive: 1, systemAudioLive: 1, audioLive: 1, videoLive: 1 });
+  applySettlement(r, { ...MAIN, outcome: 'resolved', scopes: ['display', 'systemAudio'] });
+  assert.deepEqual(projection(r), { audio: false, video: false, display: true, systemAudio: false });
+  applyFrameReport(r, 'foreign', { ...IFRAME, audioLive: 1, displayLive: 1 });
+  applyFrameReport(r, 'main', { ...MAIN, displayLive: 0 });
+  assert.deepEqual(projection(r), { audio: false, video: false, display: false, systemAudio: false });
+});

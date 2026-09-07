@@ -78,6 +78,12 @@ def main():
     depot = root / 'depot_tools'
     env = dict(os.environ)
     env.update(DEPOT_TOOLS_UPDATE='0', DEPOT_TOOLS_WIN_TOOLCHAIN='0', GIT_LFS_SKIP_SMUDGE='1')
+    # Native source verification compares exact bytes. Keep upstream checkouts
+    # at their committed LF bytes even on Windows hosts with autocrlf enabled.
+    config_count = int(env.get('GIT_CONFIG_COUNT', '0'))
+    env['GIT_CONFIG_COUNT'] = str(config_count + 1)
+    env[f'GIT_CONFIG_KEY_{config_count}'] = 'core.autocrlf'
+    env[f'GIT_CONFIG_VALUE_{config_count}'] = 'false'
     env['PATH'] = str(depot) + os.pathsep + env.get('PATH', '')
     if args.stage == 'sync':
         if not (root / 'src').exists() and shutil.disk_usage(root).free < 80 * 1024**3:
@@ -105,15 +111,15 @@ def main():
     for patch in LOCK['patches']:
         patch_path = HERE / patch['file']
         applied = subprocess.run(['git', 'apply', '--reverse', '--check', patch_path],
-                                 cwd=source, capture_output=True).returncode == 0
+                                 cwd=source, env=env, capture_output=True).returncode == 0
         if not applied:
-            run(['git', 'apply', '--check', patch_path], source)
-            run(['git', 'apply', patch_path], source)
+            run(['git', 'apply', '--check', patch_path], source, env)
+            run(['git', 'apply', patch_path], source, env)
     if args.stage == 'sync':
         print('Pinned source synced and capture patch applied; binary not yet built.', flush=True)
         return
     # Require precisely the reviewed diff, not an arbitrary modified runtime.
-    changed = subprocess.check_output(['git', 'diff', 'HEAD', '--name-only'], cwd=source, text=True).splitlines()
+    changed = subprocess.check_output(['git', 'diff', 'HEAD', '--name-only'], cwd=source, env=env, text=True).splitlines()
     if changed != ['shell/browser/web_contents_permission_helper.cc']:
         raise RuntimeError('Unexpected runtime source changes')
     # Reverse the patch in memory and compare to the pinned source. Matching
@@ -124,7 +130,7 @@ def main():
         check_path.parent.mkdir(parents=True)
         check_path.write_bytes(original)
         for patch in LOCK['patches']:
-            run(['git', 'apply', HERE / patch['file']], Path(check))
+            run(['git', 'apply', HERE / patch['file']], Path(check), env)
         if check_path.read_bytes() != (source / 'shell/browser/web_contents_permission_helper.cc').read_bytes():
             raise RuntimeError('Runtime source differs from the exact approved patch')
     if not (depot / 'python3_bin_reldir.txt').exists():
