@@ -178,11 +178,25 @@ record. Blanc accepted the cold-start `open-url`, rendered only
 navigated an ordinary tab to `blanc-import:`. This is macOS packaged protocol
 acceptance for the local candidate, not notarization or release evidence.
 
+Installed-protocol validation run 34163183471 then passed on both native CI
+platforms. The Windows test silently installed the Authenticode-signed NSIS
+candidate, launched the installed executable, verified its per-user
+`blanc-import` registry command, invoked the synthetic URI through Windows, and
+observed the offline handoff sheet in the original instance. This gate exposed
+and fixed a real omission: `build.protocols` did not create the Windows handler,
+so packaged Windows now calls Electron's protocol-client registration on
+startup. Development, macOS, and Linux do not take that registry-only path.
+The Linux test verified the AppImage's embedded
+`x-scheme-handler/blanc-import` declaration, installed a derived desktop entry
+inside an isolated XDG directory, invoked it through `xdg-open`, and observed
+the same sheet. Both asserted that no ordinary tab received the custom scheme.
+The run again uploaded only three-day validation artifacts and touched no
+GitHub Release.
+
 Before public availability, verify the deployed Worker and domain challenge,
-custom-protocol delivery from packaged Windows and Linux builds, AMO-signed
-Firefox output, and the separately signed and notarized Safari containing app
-plus its independently hosted update metadata. Repeat macOS protocol acceptance
-against the final notarized release artifact. The compatible desktop version
-must be public before the plugin or companions. Those steps remain subject to
-Blanc's immutable release, signing, updater-handoff, packaged-payload, and
-dated-evidence process.
+AMO-signed Firefox output, and the separately signed and notarized Safari
+containing app plus its independently hosted update metadata. Repeat all three
+packaged protocol checks against the final release artifacts, including the
+notarized macOS app. The compatible desktop version must be public before the
+plugin or companions. Those steps remain subject to Blanc's immutable release,
+signing, updater-handoff, packaged-payload, and dated-evidence process.
