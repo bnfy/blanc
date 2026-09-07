@@ -2941,14 +2941,16 @@ body.permission-surface { background: transparent; }
   /* Keep the trailing control clear of the scrollport edge. This also leaves
      room for its keyboard treatment without clipping it. */
   padding: 0 4px 0 1px;
-  max-height: 220px; /* 5 rows * 44px — beyond that the list scrolls */
+  max-height: 380px; /* 5 rows * 76px — beyond that the list scrolls */
   overflow-y: auto;
 }
 .capture-pop-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 44px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  height: 76px;
+  padding-bottom: 8px;
 }
 /* The jump target is a real button (a11y: no controls nested in controls);
    it carries the row's hover affordance. */
@@ -2960,9 +2962,9 @@ body.permission-surface { background: transparent; }
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   min-width: 0;
-  height: 100%;
+  height: 32px;
   padding: 0 6px;
   border-radius: 8px;
   cursor: pointer;

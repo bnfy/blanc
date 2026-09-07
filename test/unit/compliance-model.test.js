@@ -28,8 +28,8 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 39);
-  assert.ok(refs.has('pkg:npm/electron@44.1.1'));
+  assert.equal(sbom.components.length, 41);
+  assert.ok(refs.has('pkg:npm/electron@44.2.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk-core@0.5.0'));
   assert.ok(refs.has('asset:inter-font'));
@@ -42,7 +42,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.equal([...refs].some((ref) => ref.includes('electron-builder@')), false);
 
   const root = sbom.dependencies.find((item) => item.ref.startsWith('application:runtime:'));
-  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.1.1'));
+  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.2.0'));
   assert.ok(root.dependsOn.includes('asset:blanc-adblock-seed'));
   const seed = sbom.dependencies.find((item) => item.ref === 'asset:blanc-adblock-seed');
   assert.deepEqual(seed.dependsOn, [
@@ -78,7 +78,9 @@ test('missing license metadata and a disallowed shipped license fail closed', ()
 
 test('runtime license policy selects EasyList CC BY-SA and contains no strong-copyleft npm package', () => {
   const generated = createComplianceArtifacts();
-  const expressions = generated.runtime.sbom.components.flatMap((component) =>
+  const systemPulse = generated.runtime.sbom.components.find((component) => component['bom-ref'] === 'system:linux:libpulse');
+  assert.deepEqual(systemPulse.licenses, [{ license: { id: 'LGPL-2.1-or-later' } }]);
+  const expressions = generated.runtime.sbom.components.filter((component) => component !== systemPulse).flatMap((component) =>
     component.licenses.map((choice) => choice.expression || choice.license.id));
   for (const expression of expressions) {
     assert.ok(
@@ -184,7 +186,7 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 39);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 41);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 

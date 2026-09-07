@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; font-src 'self';">
+<title>Share your screen</title><link rel="stylesheet" href="display-picker.css">
+<script src="display-picker.js" defer></script></head>
+<body><main><h1>Share your screen</h1><p id="origin"></p>
+<p id="explanation">Choose the screen or window this site can see.</p>
+<div id="sources" role="radiogroup" aria-label="Screens and windows"></div>
+<label id="audioLabel" hidden><input id="audio" type="checkbox"> Share computer audio</label>
+<p id="audioNote" hidden>Computer audio can include sounds from other applications, even when sharing one window.</p>
+<footer><button id="cancel" type="button">Cancel</button><button id="share" type="button" disabled>Share</button></footer>
+</main></body></html>

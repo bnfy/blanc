@@ -7629,14 +7629,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron@44.1.1",
+      "bom-ref": "pkg:npm/electron@44.2.0",
       "name": "electron",
-      "version": "44.1.1",
+      "version": "44.2.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "376582ab6b1b3a4a9082f5c9631da54ba5223bc6c5f98afaeedac39d2e8929ad96c5309142c0231a5e7b494b5d5bd87aaf93e576e0458c8871860777773bf586"
+          "content": "a0ad6272385aa69df1b1467270ef5665a2e67778499c0ee27a86c2e26a5db4ed6910df8f3c65a90379b5320cf3b9cd70cd20f659a8b8cdc1f8c9fa4626ac4530"
         }
       ],
       "licenses": [
@@ -7646,7 +7646,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.1.1",
+      "purl": "pkg:npm/electron@44.2.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -7668,7 +7668,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.1.1.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.2.0.tgz"
         }
       ]
     },
@@ -18206,7 +18206,7 @@
         "pkg:npm/%40ghostery/adblocker@2.18.2",
         "pkg:npm/electron-builder@26.15.3",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.1.1",
+        "pkg:npm/electron@44.2.0",
         "pkg:npm/playwright@1.62.1",
         "pkg:npm/sharp@0.35.3"
       ]
@@ -19280,7 +19280,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.1.1",
+      "ref": "pkg:npm/electron@44.2.0",
       "dependsOn": [
         "pkg:npm/%40electron-internal/extract-zip@1.0.4",
         "pkg:npm/%40electron/get@5.0.0",

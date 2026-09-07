@@ -1,7 +1,11 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, webFrameMain, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { createDisplayCaptureController, trustedDisplayOrigin } = require('./display-capture');
+const { createDisplayPicker } = require('./display-picker');
+const { createDisplayAudio } = require('./display-audio');
+let displayCapture = null;
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 
 // Electron's default uncaught-exception path raises a native modal dialog,
@@ -2953,23 +2957,29 @@ function resolveCaptureSurface(surfaceId) {
     ? { kind: 'tab', tab, record: tab.captureRecord, wc } : null;
 }
 
-function stopCaptureSurface(surfaceId) {
+function stopCaptureSurface(surfaceId, scope = 'all') {
+  if (!['all', 'display', 'devices'].includes(scope)) return;
   const surface = resolveCaptureSurface(surfaceId);
   if (!surface) return;
   // Token the timeout on the record's generation: if this capture clears
   // and a NEW call starts inside the window (grant bumps generation), the
   // stale timer must not reload the new call out from under the user.
   const generation = surface.record.generation;
+  if (scope !== 'devices') displayCapture?.stopAudio(surface.wc);
   for (const frame of surface.wc.mainFrame.framesInSubtree) {
-    try { frame.send('capture:stop'); } catch {}
+    try { frame.send('capture:stop', scope); } catch {}
   }
   // The chip stays lit until truth clears it: a confirmed stop arrives as
-  // ordinary zero snapshots; an uninstrumented surface gets reloaded and
-  // clears on the reload's main-frame commit (spec §5).
+  // ordinary zero snapshots. An unconfirmed selective stop exposes an
+  // explicit Stop all fallback; only that action may reload the call.
   setTimeout(() => {
     if (surface.record.generation !== generation) return;
     const p = captureProjection(surface.record);
-    if ((p.audio || p.video) && !surface.wc.isDestroyed()) surface.wc.reload();
+    const remains = scope === 'display' ? p.display || p.systemAudio
+      : scope === 'devices' ? p.audio || p.video : p.audio || p.video || p.display || p.systemAudio;
+    if (!remains || surface.wc.isDestroyed()) return;
+    if (scope === 'all') surface.wc.reload();
+    else { surface.record.stopFailed = true; scheduleCaptureBroadcast(surface); }
   }, CAPTURE_STOP_TIMEOUT_MS);
 }
 
@@ -3032,12 +3042,14 @@ function refreshCaptureProjection(surface) {
   const p = captureProjection(surface.record);
   if (surface.kind === 'tab') {
     surface.tab.capture = p;
-    surface.tab.capturing = p.audio || p.video;
+    surface.tab.capturing = p.audio || p.video || !!p.display || !!p.systemAudio || !!surface.tab.displayPending;
   }
   scheduleCaptureBroadcast(surface);
 }
 
 function clearCaptureState(surface) {
+  const wc = surface.wc ?? liveContents(surface.tab);
+  if (wc) displayCapture?.cancelContents(wc);
   clearCaptureRecord(surface.record);
   refreshCaptureProjection(surface);
 }
@@ -3049,10 +3061,12 @@ const captureHostOf = (url) => { try { return new URL(url).host; } catch { retur
 function captureBroadcastState(serialized) {
   const rows = [];
   for (const row of serialized) {
-    if (row.capture?.audio || row.capture?.video) {
+    if (row.capture?.audio || row.capture?.video || row.capture?.display || row.capture?.systemAudio) {
       rows.push({
         surfaceId: row.id, host: captureHostOf(row.url), kind: 'tab',
         audio: !!row.capture.audio, video: !!row.capture.video,
+        display: !!row.capture.display, systemAudio: !!row.capture.systemAudio,
+        stopFailed: !!tabs.get(row.id)?.captureRecord?.stopFailed,
       });
     }
   }
@@ -3060,16 +3074,19 @@ function captureBroadcastState(serialized) {
     if (windowRuntimes.runtimeForAuxiliaryContent(wcId) !== rt()) continue;
     if (popup.wc.isDestroyed()) continue;
     const p = captureProjection(popup.record);
-    if (!p.audio && !p.video) continue;
+    if (!p.audio && !p.video && !p.display && !p.systemAudio) continue;
     rows.push({
       surfaceId: `popup:${wcId}`, host: captureHostOf(popup.wc.getURL()), kind: 'popup',
-      audio: p.audio, video: p.video,
+      audio: p.audio, video: p.video, display: !!p.display, systemAudio: !!p.systemAudio,
+      stopFailed: !!popup.record.stopFailed,
     });
   }
   return {
     captureChip: {
       audio: rows.some((row) => row.audio),
       video: rows.some((row) => row.video),
+      display: rows.some((row) => row.display),
+      systemAudio: rows.some((row) => row.systemAudio),
     },
     capturePopover: { rows },
   };
@@ -3080,13 +3097,13 @@ function captureRowCount() {
   let count = 0;
   for (const tabId of rt().tabOrder) {
     const tab = tabs.get(tabId);
-    if (tab.capture?.audio || tab.capture?.video) count += 1;
+    if (tab.capture?.audio || tab.capture?.video || tab.capture?.display || tab.capture?.systemAudio) count += 1;
   }
   for (const [wcId, popup] of popupCaptures) {
     if (windowRuntimes.runtimeForAuxiliaryContent(wcId) !== rt()) continue;
     if (popup.wc.isDestroyed()) continue;
     const p = captureProjection(popup.record);
-    if (p.audio || p.video) count += 1;
+    if (p.audio || p.video || p.display || p.systemAudio) count += 1;
   }
   return count;
 }
@@ -5574,7 +5591,7 @@ function registerIpcHandlers() {
     broadcastTabs(); // fresh state.capturePopover before the overlay renders
     showOverlay('capture');
   });
-  chromeOn('chrome:capture-stop', (_e, surfaceId) => stopCaptureSurface(surfaceId));
+  chromeOn('chrome:capture-stop', (_e, surfaceId, scope) => stopCaptureSurface(surfaceId, scope));
   chromeOn('chrome:capture-focus', (_e, surfaceId) => {
     hideOverlay({ refocusContent: false });
     focusCaptureSurface(surfaceId);
@@ -7048,13 +7065,65 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
+  const displayError = (context, error) => {
+    if (!context.window.isDestroyed()) dialog.showMessageBox(context.window, {
+      type: 'error', title: 'Screen sharing', message: 'Screen sharing could not start.',
+      detail: 'Check screen-recording permission and your audio output device, then try again.',
+    }).catch(() => {});
+  };
+  displayCapture = createDisplayCaptureController({
+    nativePicker: process.platform === 'darwin' && Number(require('os').release().split('.')[0]) >= 24,
+    resolveContext(wc, details) {
+      if (!wc || wc.isDestroyed() || heldWebContents.has(wc.id)
+          || !Number.isInteger(details.requestingProcessId) || !Number.isInteger(details.requestingFrameId)) return null;
+      let frame;
+      try { frame = webFrameMain.fromId(details.requestingProcessId, details.requestingFrameId); } catch { return null; }
+      if (!frame || webContents.fromFrame(frame) !== wc) return null;
+      const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : windowRuntimes.runtimeForAuxiliaryContent(wc.id);
+      const origin = trustedDisplayOrigin(frame.url);
+      if (!owner?.window || owner.window.isDestroyed() || !origin
+          || trustedDisplayOrigin(details.securityOrigin) !== origin) return null;
+      const valid = () => {
+        try { return !wc.isDestroyed() && !owner.window.isDestroyed() && !heldWebContents.has(wc.id)
+          && webFrameMain.fromId(details.requestingProcessId, details.requestingFrameId) === frame
+          && trustedDisplayOrigin(frame.url) === origin
+          && (tab ? liveContents(tab) === wc && windowRuntimes.runtimeForTab(tab.id) === owner
+            : windowRuntimes.runtimeForAuxiliaryContent(wc.id) === owner); } catch { return false; }
+      };
+      return { wc, frame, window: owner.window, ownerKey: owner.id, origin, valid };
+    },
+    choose: createDisplayPicker({ BrowserWindow, ipcMain, desktopCapturer, partition: CHROME_PARTITION }),
+    acquireAudio: createDisplayAudio({ app, WebContentsView, ipcMain, partition: CHROME_PARTITION,
+      onFailure: (message) => dialog.showMessageBox({ type: 'error', title: 'Computer audio', message }).catch(() => {}) }),
+    onError: displayError,
+    onPending(context, pending) {
+      const tab = tabs.get(tabIdByWebContentsId.get(context.wc.id));
+      if (tab) {
+        tab.displayPending = pending;
+        const surface = captureSurfaceForSender(context.wc);
+        if (surface) refreshCaptureProjection(surface);
+        else tab.capturing = pending;
+      }
+    },
+    onGrant(context, scopes) {
+      const surface = ensureCaptureSurfaceForSender(context.wc);
+      if (!surface) throw new Error('Capture owner closed');
+      applyGrant(surface.record, { scopes, origin: context.origin, isMainFrame: context.frame === context.wc.mainFrame });
+      refreshCaptureProjection(surface);
+    },
+  });
+  app.once('before-quit', () => displayCapture.dispose());
+
   setupPermissionPolicy(ses, {
     profileId: DEFAULT_PROFILE_ID,
+    displayCapture,
     ...nativeMediaPermissionOptions,
   });
   setupPermissionPolicy(privateSes, {
     persistDecisions: false,
     profileId: DEFAULT_PROFILE_ID,
+    displayCapture,
     ...nativeMediaPermissionOptions,
   });
   let permissionPromptCounter = 0;
@@ -7149,6 +7218,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (payload.type === 'settlement'
         && (payload.outcome === 'resolved' || payload.outcome === 'rejected')
         && Array.isArray(payload.scopes)) {
+      if (payload.scopes.includes('display')) displayCapture?.settle(event.sender, frame, payload.outcome);
       applySettlement(surface.record, {
         origin, isMainFrame, outcome: payload.outcome, scopes: payload.scopes,
       });
@@ -7156,7 +7226,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       applyFrameReport(surface.record, frame.frameToken ?? `${event.sender.id}:main`, {
         origin, isMainFrame,
         audioLive: payload.audioLive, videoLive: payload.videoLive,
+        displayLive: payload.displayLive, systemAudioLive: payload.systemAudioLive,
       });
+      if (payload.displayLive === 0 && payload.systemAudioLive === 0) displayCapture?.stopped(event.sender, frame);
     } else return;
     refreshCaptureProjection(surface);
   });
@@ -7423,11 +7495,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     installClientHintFallback(targetSessions);
     setupPermissionPolicy(owned.normal, {
       profileId: owned.profileId,
+      displayCapture,
       ...nativeMediaPermissionOptions,
     });
     setupPermissionPolicy(owned.private, {
       persistDecisions: false,
       profileId: owned.profileId,
+      displayCapture,
       ...nativeMediaPermissionOptions,
     });
     setupDownloads(owned.normal, broadcastDownloadsActivity, {

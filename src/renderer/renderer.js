@@ -35,6 +35,8 @@
   const pillShieldCount = document.getElementById('pillShieldCount');
   const pillCapture = document.getElementById('pillCapture');
   const pillCaptureMic = document.getElementById('pillCaptureMic');
+  const pillCaptureDisplay = document.getElementById('pillCaptureDisplay');
+  const pillCaptureSystemAudio = document.getElementById('pillCaptureSystemAudio');
   const pillCaptureCam = document.getElementById('pillCaptureCam');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
@@ -712,13 +714,15 @@
     // Capture chip: WINDOW-WIDE — lit while any tab or popup captures
     // (spec §6.1), unlike every per-active-tab neighbour in the pill.
     const cap = state.captureChip ?? { audio: false, video: false };
-    pillCapture.hidden = !cap.audio && !cap.video;
+    pillCapture.hidden = !cap.audio && !cap.video && !cap.display && !cap.systemAudio;
     // toggleAttribute, not .hidden — SVGElement has no hidden IDL property,
     // so the property form silently does nothing on these glyphs.
     pillCaptureMic.toggleAttribute('hidden', !cap.audio);
     pillCaptureCam.toggleAttribute('hidden', !cap.video);
-    const capTitle = cap.audio && cap.video ? 'camera & microphone in use'
-      : cap.video ? 'camera in use' : 'microphone in use';
+    pillCaptureDisplay.toggleAttribute('hidden', !cap.display);
+    pillCaptureSystemAudio.toggleAttribute('hidden', !cap.systemAudio);
+    const capTitle = [cap.display && 'screen sharing', cap.systemAudio && 'computer audio',
+      cap.video && 'camera', cap.audio && 'microphone'].filter(Boolean).join(', ') + ' in use';
     pillCapture.title = `${capTitle} — open capture controls`;
     pillCapture.setAttribute('aria-label', `${capTitle} — open capture controls`);
 

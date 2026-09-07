@@ -54,7 +54,9 @@
     "settings:check": "node settings-schema/build.mjs --check",
     "copy:build": "node copy/build.mjs",
     "copy:check": "node copy/build.mjs --check",
-    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check && npm run compliance:check"
+    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check && npm run compliance:check",
+    "build:linux-audio": "node scripts/build-linux-audio.mjs",
+    "test:display-picker": "node test/desktop/display-picker-smoke.mjs"
   },
   "author": "",
   "license": "MIT",
@@ -63,7 +65,7 @@
     "@cucumber/cucumber": "^13.2.1",
     "@electron/asar": "4.3.0",
     "@ghostery/adblocker": "^2.18.2",
-    "electron": "^44.1.1",
+    "electron": "44.2.0",
     "electron-builder": "^26.15.3",
     "playwright": "^1.62.1",
     "sharp": "^0.35.3"
@@ -111,7 +113,10 @@
       "package.json",
       "LICENSE",
       "THIRD-PARTY-NOTICES.md",
-      "ASSET-LICENSE.md"
+      "ASSET-LICENSE.md",
+      "runtime/electron/source.json",
+      "runtime/electron/patches/**/*",
+      "runtime/linux-audio/monitor.c"
     ],
     "afterPack": "scripts/after-pack-app-icons.js",
     "afterSign": "scripts/after-sign-verify.js",
@@ -127,7 +132,8 @@
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
-        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera."
+        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
+        "NSAudioCaptureUsageDescription": "Blanc shares computer audio with websites only when you choose to share it."
       },
       "target": [
         "dmg",
@@ -148,7 +154,26 @@
       "target": [
         "AppImage"
       ],
-      "category": "Network"
-    }
+      "category": "Network",
+      "extraResources": [
+        {
+          "from": "native/linux/audio-monitor",
+          "to": "audio-monitor"
+        },
+        {
+          "from": "native/linux/audio-monitor.json",
+          "to": "audio-monitor.json"
+        }
+      ]
+    },
+    "electronVersion": "44.2.0",
+    "electronDist": ".runtime/electron.zip",
+    "beforePack": "scripts/verify-electron-runtime.js",
+    "extraResources": [
+      {
+        "from": ".runtime/blanc-runtime-build.json",
+        "to": "blanc-runtime-build.json"
+      }
+    ]
   }
 }

@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const { createRequire } = require('node:module');
 const path = require('node:path');
 
-function harness({ persistDecisions = false, profileId = 'personal', decisions = {} } = {}) {
+function harness({ persistDecisions = false, profileId = 'personal', decisions = {}, displayCapture = null } = {}) {
   const filename = path.resolve(__dirname, '../../src/main/permissions.js');
   const realRequire = createRequire(filename);
   const writes = [];
@@ -30,14 +30,14 @@ function harness({ persistDecisions = false, profileId = 'personal', decisions =
   policy.setPermissionPrompter(async () => { prompts++; return true; });
   policy.setCaptureGrantObserver((grant) => grants.push(grant));
   policy.setupPermissionPolicy(session, {
-    persistDecisions, profileId,
+    persistDecisions, profileId, displayCapture,
     nativeMediaAccessState: () => 'granted',
     requestNativeMediaAccess: async () => { nativeCalls++; return true; },
   });
   return {
     session, writes, grants,
-    request: (mediaTypes) => new Promise((resolve) => session.request({ id: 1 }, 'media', resolve, {
-      requestingUrl: 'https://meeting.example/room', mediaTypes,
+    request: (mediaTypes, extra = {}) => new Promise((resolve) => session.request({ id: 1, session }, 'media', resolve, {
+      requestingUrl: 'https://meeting.example/room', mediaTypes, ...extra,
     })),
     counts: () => ({ prompts, nativeCalls }),
   };
@@ -72,4 +72,19 @@ test('explicit microphone/camera requests still prompt, remember per-device, and
   assert.equal(await h.request([]), false);
   assert.equal(h.session.check(null, 'media', 'https://meeting.example', { mediaType: 'audio' }), true);
   assert.equal(h.session.check(null, 'media', 'https://meeting.example', { mediaType: 'video' }), true);
+});
+
+
+test('patched display requests bypass remembered device grants; mixed legacy capture always denies', async () => {
+  let displayRequests = 0;
+  const h = harness({ persistDecisions: true, decisions: { 'https://meeting.example|media': 'allow' },
+    displayCapture: { requestPermission: async () => { displayRequests++; return true; }, select() {} } });
+  assert.equal(await h.request([], { captureApi: 'get-display-media' }), true);
+  for (const mediaTypes of [[], ['audio'], ['video'], ['audio', 'video']]) {
+    assert.equal(await h.request(mediaTypes, { captureApi: 'legacy-display' }), false);
+  }
+  assert.equal(await h.request(['audio'], { captureApi: 'future-unknown' }), false);
+  assert.equal(displayRequests, 1);
+  assert.deepEqual(h.counts(), { prompts: 0, nativeCalls: 0 });
+  assert.equal(h.writes.length, 0);
 });

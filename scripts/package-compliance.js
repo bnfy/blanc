@@ -48,39 +48,23 @@ async function firstFile(candidates) {
 }
 
 async function extractElectronLegalArchive(context) {
-  const electronPackage = require('../node_modules/electron/package.json');
-  const checksums = require('../node_modules/electron/checksums.json');
+  const { verifyRuntime } = require('./verify-electron-runtime');
   const { Arch } = require('builder-util');
-  const arch = Arch[context.arch] || process.arch;
-  const platform = context.electronPlatformName;
-  if (!['darwin', 'win32', 'linux'].includes(platform) || !arch) {
-    throw new Error(`package-compliance: unsupported Electron legal archive target ${platform}/${arch}`);
-  }
-  const [{ downloadArtifact }, { extract }] = await Promise.all([
-    import('@electron/get'),
-    import('@electron-internal/extract-zip'),
-  ]);
-  const archive = await downloadArtifact({
-    version: electronPackage.version,
-    artifactName: 'electron',
-    platform,
-    arch,
-    checksums,
-  });
+  verifyRuntime({ root: ROOT, platform: context.electronPlatformName, arch: Arch[context.arch] || process.arch });
+  const { extract } = await import('@electron-internal/extract-zip');
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-electron-legal-'));
-  await extract(archive, { dir: directory });
+  try { await extract(path.join(ROOT, '.runtime/electron.zip'), { dir: directory }); }
+  catch (error) { await fs.rm(directory, { recursive: true, force: true }); throw error; }
   return directory;
 }
 
 async function copyElectronLegalFiles(context, resources) {
-  const electronPackageDir = path.join(ROOT, 'node_modules/electron');
   const records = [
     {
       target: 'LICENSE.electron.txt',
       sources: [
         path.join(resources, 'LICENSE.electron.txt'),
         path.join(context.appOutDir, 'LICENSE.electron.txt'),
-        path.join(electronPackageDir, 'LICENSE'),
       ],
     },
     {
@@ -88,7 +72,6 @@ async function copyElectronLegalFiles(context, resources) {
       sources: [
         path.join(resources, 'LICENSES.chromium.html'),
         path.join(context.appOutDir, 'LICENSES.chromium.html'),
-        path.join(electronPackageDir, 'LICENSES.chromium.html'),
       ],
     },
   ];

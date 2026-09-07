@@ -2232,14 +2232,16 @@
       // Enter/Space handling for free.
       const li = document.createElement('li');
       li.className = 'capture-pop-row';
-      const scopeLabel = row.audio && row.video ? 'camera & microphone in use'
-        : row.video ? 'camera in use' : 'microphone in use';
+      const scopeLabel = [row.display && 'screen sharing', row.systemAudio && 'computer audio',
+        row.video && 'camera', row.audio && 'microphone'].filter(Boolean).join(', ') + ' in use';
       const hostLabel = row.host || 'popup window';
       const go = document.createElement('button');
       go.className = 'capture-pop-go';
       go.setAttribute('aria-label', `${hostLabel} — ${scopeLabel}; go to it`);
       const glyphs = document.createElement('span');
       glyphs.className = 'capture-pop-glyphs';
+      if (row.display) glyphs.append(captureGlyph([['rect', { x: 2, y: 2, width: 12, height: 9, rx: 1 }], ['path', { d: 'M8 11v3M5 14h6' }]]));
+      if (row.systemAudio) glyphs.append(captureGlyph([['path', { d: 'M2 6h3l4-3v10l-4-3H2zM11 5a5 5 0 0 1 0 6' }]]));
       if (row.audio) glyphs.append(captureGlyph(MIC_SHAPES));
       if (row.video) glyphs.append(captureGlyph(CAM_SHAPES));
       const host = document.createElement('span');
@@ -2247,12 +2249,18 @@
       host.textContent = hostLabel;
       go.append(glyphs, host);
       go.addEventListener('click', () => window.browserAPI.captureFocus(row.surfaceId));
-      const stop = document.createElement('button');
-      stop.className = 'capture-pop-stop';
-      stop.textContent = 'stop';
-      stop.setAttribute('aria-label', `stop — ${hostLabel} ${scopeLabel}`);
-      stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId));
-      li.append(go, stop);
+      li.append(go);
+      const addStop = (label, scope) => {
+        const stop = document.createElement('button');
+        stop.className = 'capture-pop-stop';
+        stop.textContent = label;
+        stop.setAttribute('aria-label', `${label} — ${hostLabel}`);
+        stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId, scope));
+        li.append(stop);
+      };
+      if (row.display || row.systemAudio) addStop('stop sharing', 'display');
+      if (row.audio || row.video) addStop('stop devices', 'devices');
+      if (row.stopFailed) addStop('stop all (reload)', 'all');
       return li;
     }));
   }

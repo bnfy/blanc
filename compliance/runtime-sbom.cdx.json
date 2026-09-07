@@ -226,6 +226,36 @@
     },
     {
       "type": "library",
+      "bom-ref": "blanc:linux:audio-monitor",
+      "name": "Blanc output monitor",
+      "version": "1.15.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f7726fd91c827b752ea08ce0fc3e3fd2ded5ef279c685803c5c927d199bbd98"
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:platform",
+          "value": "linux"
+        },
+        {
+          "name": "blanc:source",
+          "value": "runtime/linux-audio/monitor.c"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%401password/sdk-core@0.5.0",
       "name": "@1password/sdk-core",
       "version": "0.5.0",
@@ -1036,16 +1066,10 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.1.1",
+      "bom-ref": "pkg:npm/electron@44.2.0",
       "name": "electron",
-      "version": "44.1.1",
+      "version": "44.2.0",
       "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "376582ab6b1b3a4a9082f5c9631da54ba5223bc6c5f98afaeedac39d2e8929ad96c5309142c0231a5e7b494b5d5bd87aaf93e576e0458c8871860777773bf586"
-        }
-      ],
       "licenses": [
         {
           "license": {
@@ -1053,21 +1077,33 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.1.1",
+      "purl": "pkg:npm/electron@44.2.0",
       "properties": [
         {
+          "name": "blanc:captureProtocol",
+          "value": "1"
+        },
+        {
           "name": "blanc:declaration",
-          "value": "devDependency used as the packaged application framework"
+          "value": "Patched framework built from pinned upstream source; archive hash in blanc-runtime-build.json"
         },
         {
           "name": "blanc:distributedRuntime",
           "value": "true"
+        },
+        {
+          "name": "blanc:patches",
+          "value": "748d089337810e75005a3d4294effdfba1edbe5f5347d1af276a7abd33d54e50"
+        },
+        {
+          "name": "blanc:sourceCommit",
+          "value": "aa650d74597c652878629df0038a50485e156a09"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.1.1.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.2.0.tgz"
         }
       ]
     },
@@ -1700,6 +1736,33 @@
           "url": "https://registry.npmjs.org/universalify/-/universalify-2.0.1.tgz"
         }
       ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "system:linux:libpulse",
+      "name": "libpulse",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-or-later"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:distribution",
+          "value": "Not bundled; dynamically linked from the user system"
+        },
+        {
+          "name": "blanc:platform",
+          "value": "linux"
+        },
+        {
+          "name": "blanc:systemProvided",
+          "value": "true"
+        }
+      ]
     }
   ],
   "dependencies": [
@@ -1709,10 +1772,11 @@
         "asset:blanc-adblock-seed",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
+        "blanc:linux:audio-monitor",
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.1.1"
+        "pkg:npm/electron@44.2.0"
       ]
     },
     {
@@ -1743,6 +1807,12 @@
     {
       "ref": "asset:jetbrains-mono-font",
       "dependsOn": []
+    },
+    {
+      "ref": "blanc:linux:audio-monitor",
+      "dependsOn": [
+        "system:linux:libpulse"
+      ]
     },
     {
       "ref": "pkg:npm/%401password/sdk-core@0.5.0",
@@ -1856,7 +1926,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.1.1",
+      "ref": "pkg:npm/electron@44.2.0",
       "dependsOn": []
     },
     {
@@ -1924,6 +1994,10 @@
     },
     {
       "ref": "pkg:npm/universalify@2.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "system:linux:libpulse",
       "dependsOn": []
     }
   ]

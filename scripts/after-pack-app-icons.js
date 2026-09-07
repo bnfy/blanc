@@ -81,6 +81,10 @@ module.exports = async function afterPackAppIcons(context) {
   verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
   await packageCompliance(context);
   verifyPackagedCompliance(resourcesDir);
+  if (context.electronPlatformName === 'linux') {
+    require('./verify-electron-runtime').verifyLinuxAudio({ root: context.packager.projectDir,
+      arch: require('builder-util').Arch[context.arch], resources: resourcesDir });
+  }
 
   if (context.electronPlatformName !== 'darwin') return;
 

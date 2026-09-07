@@ -41,9 +41,15 @@ RUNTIME NPM COMPONENTS
 
 EMBEDDED FRAMEWORK
 
-- Electron 44.1.1 — MIT — https://github.com/electron/electron
+- Electron 44.2.0 — MIT — https://github.com/electron/electron
   Electron embeds Chromium, Node.js, V8, and other upstream work. LICENSE.electron.txt and
-  LICENSES.chromium.html are copied beside this notice in every packaged application.
+  LICENSES.chromium.html are copied from the exact patched runtime archive into each package.
+  Source commit and patch hashes: runtime/electron/source.json; native archive: blanc-runtime-build.json.
+
+LINUX COMPUTER AUDIO
+- Blanc output monitor — MIT — source included at runtime/linux-audio/monitor.c.
+- libpulse — LGPL-2.1-or-later — https://www.freedesktop.org/wiki/Software/PulseAudio/
+  Loaded dynamically from the Linux system; not bundled. Its license remains separate from Blanc.
 
 BUNDLED ASSETS AND DATA
 

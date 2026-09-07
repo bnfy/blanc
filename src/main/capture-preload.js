@@ -16,7 +16,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
   if (navigator.__blancCapturePatched) return;
   Object.defineProperty(navigator, '__blancCapturePatched', { value: true });
 
-  const registered = new Set();
+  const registered = new Map();
 
   const emit = (payload) => {
     try {
@@ -29,17 +29,21 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
   const snapshot = () => {
     let audioLive = 0;
     let videoLive = 0;
-    for (const track of registered) {
+    let displayLive = 0;
+    let systemAudioLive = 0;
+    for (const [track, scope] of registered) {
       if (track.readyState !== 'live') continue;
-      if (track.kind === 'audio') audioLive += 1;
-      else if (track.kind === 'video') videoLive += 1;
+      if (scope === 'audio') audioLive += 1;
+      else if (scope === 'video') videoLive += 1;
+      else if (scope === 'display') displayLive += 1;
+      else if (scope === 'systemAudio') systemAudioLive += 1;
     }
-    emit({ type: 'snapshot', audioLive, videoLive });
+    emit({ type: 'snapshot', audioLive, videoLive, displayLive, systemAudioLive });
   };
 
-  const register = (track) => {
+  const register = (track, scope = track?.kind) => {
     if (!track || registered.has(track)) return;
-    registered.add(track);
+    registered.set(track, scope);
     try { track.addEventListener('ended', snapshot); } catch {}
   };
 
@@ -60,15 +64,17 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
   const trackClone = MediaStreamTrack.prototype.clone;
   MediaStreamTrack.prototype.clone = function clone(...args) {
     const copy = trackClone.apply(this, args);
-    if (registered.has(this)) { register(copy); snapshot(); }
+    if (registered.has(this)) { register(copy, registered.get(this)); snapshot(); }
     return copy;
   };
   const streamClone = MediaStream.prototype.clone;
   MediaStream.prototype.clone = function clone(...args) {
     const copy = streamClone.apply(this, args);
-    let tracked = false;
-    for (const track of this.getTracks()) if (registered.has(track)) tracked = true;
-    if (tracked) { for (const track of copy.getTracks()) register(track); snapshot(); }
+    const originals = this.getTracks();
+    copy.getTracks().forEach((track, index) => {
+      if (registered.has(originals[index])) register(track, registered.get(originals[index]));
+    });
+    snapshot();
     return copy;
   };
 
@@ -88,13 +94,33 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
     });
   };
 
-  window.addEventListener('blanc:capture-stop-request', () => {
-    for (const track of registered) { try { track.stop(); } catch {} }
+  const gdm = navigator.mediaDevices.getDisplayMedia?.bind(navigator.mediaDevices);
+  if (gdm) navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints, ...rest) {
+    const scopes = ['display', ...(constraints?.audio ? ['systemAudio'] : [])];
+    return gdm(constraints, ...rest).then((stream) => {
+      for (const track of stream.getTracks()) register(track, track.kind === 'audio' ? 'systemAudio' : 'display');
+      snapshot();
+      emit({ type: 'settlement', outcome: 'resolved', scopes });
+      return stream;
+    }, (err) => {
+      emit({ type: 'settlement', outcome: 'rejected', scopes });
+      throw err;
+    });
+  };
+
+  window.addEventListener('blanc:capture-stop-request', (event) => {
+    const onlyDisplay = event.detail === 'display';
+    const onlyDevices = event.detail === 'devices';
+    for (const [track, scope] of registered) {
+      const display = scope === 'display' || scope === 'systemAudio';
+      if ((onlyDisplay && !display) || (onlyDevices && display)) continue;
+      try { track.stop(); } catch {}
+    }
     snapshot();
   });
 
   window.addEventListener('pagehide', () => {
-    emit({ type: 'snapshot', audioLive: 0, videoLive: 0 });
+    emit({ type: 'snapshot', audioLive: 0, videoLive: 0, displayLive: 0, systemAudioLive: 0 });
   });
 
   // Truthful permissions.query for mic/camera (preflight compatibility).
@@ -207,8 +233,8 @@ if (process.isMainFrame) {
     if (typeof event.detail !== 'string' || event.detail.length > 512) return;
     ipcRenderer.send('capture:report', event.detail);
   });
-  ipcRenderer.on('capture:stop', () => {
-    window.dispatchEvent(new CustomEvent('blanc:capture-stop-request'));
+  ipcRenderer.on('capture:stop', (_event, scope) => {
+    window.dispatchEvent(new CustomEvent('blanc:capture-stop-request', { detail: scope }));
   });
   ipcRenderer.on('capture:permission-changed', (_event, payload) => {
     const mediaType = payload?.mediaType;

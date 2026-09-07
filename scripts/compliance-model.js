@@ -256,11 +256,19 @@ function electronComponent(model, policy) {
     entry,
     license: entry.license,
   });
+  const runtimeSource = readJson('runtime/electron/source.json');
+  if (entry.version !== runtimeSource.electronVersion) throw new Error('Electron dependency and patched runtime version differ');
+  // The npm tarball hash describes its installer wrapper, not the patched
+  // framework. The exact native archive hash ships in blanc-runtime-build.json.
+  delete component.hashes;
   component.type = 'framework';
   component.scope = 'required';
   component.properties = componentProperties({
     distributedRuntime: true,
-    declaration: 'devDependency used as the packaged application framework',
+    declaration: 'Patched framework built from pinned upstream source; archive hash in blanc-runtime-build.json',
+    sourceCommit: runtimeSource.electronCommit,
+    captureProtocol: String(runtimeSource.captureProtocol),
+    patches: runtimeSource.patches.map((patch) => patch.sha256).join(','),
   });
   return component;
 }
@@ -321,6 +329,17 @@ function runtimeSbom(model, policy) {
   const electron = electronComponent(model, policy);
   components.push(electron);
   dependencies.set(electron['bom-ref'], new Set());
+  const monitorRef = 'blanc:linux:audio-monitor';
+  const pulseRef = 'system:linux:libpulse';
+  components.push({ type: 'library', 'bom-ref': monitorRef, name: 'Blanc output monitor',
+    version: model.pkg.version, scope: 'optional', licenses: [{ license: { id: 'MIT' } }],
+    hashes: [{ alg: 'SHA-256', content: crypto.createHash('sha256').update(readRegularFile('runtime/linux-audio/monitor.c')).digest('hex') }],
+    properties: componentProperties({ platform: 'linux', source: 'runtime/linux-audio/monitor.c' }) });
+  components.push({ type: 'library', 'bom-ref': pulseRef, name: 'libpulse', scope: 'optional',
+    licenses: [{ license: { id: 'LGPL-2.1-or-later' } }],
+    properties: componentProperties({ platform: 'linux', systemProvided: true, distribution: 'Not bundled; dynamically linked from the user system' }) });
+  dependencies.set(monitorRef, new Set([pulseRef]));
+  dependencies.set(pulseRef, new Set());
 
   const assets = assetComponents(policy);
   for (const component of assets) {
@@ -343,7 +362,7 @@ function runtimeSbom(model, policy) {
   }
 
   const rootRef = `application:runtime:${model.pkg.name}@${model.pkg.version}`;
-  const rootDeps = new Set([electron['bom-ref'], 'asset:inter-font', 'asset:jetbrains-mono-font', 'asset:blanc-adblock-seed']);
+  const rootDeps = new Set([electron['bom-ref'], monitorRef, 'asset:inter-font', 'asset:jetbrains-mono-font', 'asset:blanc-adblock-seed']);
   for (const name of closure.directNames) {
     const lockPath = resolveDependencyPath(model.lock.packages, '', name);
     rootDeps.add(model.byPath.get(lockPath).component['bom-ref']);
@@ -391,7 +410,13 @@ function notices(runtime, policy, application) {
     '',
     `- Electron ${runtime.electron.version} — MIT — https://github.com/electron/electron`,
     '  Electron embeds Chromium, Node.js, V8, and other upstream work. LICENSE.electron.txt and',
-    '  LICENSES.chromium.html are copied beside this notice in every packaged application.',
+    '  LICENSES.chromium.html are copied from the exact patched runtime archive into each package.',
+    '  Source commit and patch hashes: runtime/electron/source.json; native archive: blanc-runtime-build.json.',
+    '',
+    'LINUX COMPUTER AUDIO',
+    '- Blanc output monitor — MIT — source included at runtime/linux-audio/monitor.c.',
+    '- libpulse — LGPL-2.1-or-later — https://www.freedesktop.org/wiki/Software/PulseAudio/',
+    '  Loaded dynamically from the Linux system; not bundled. Its license remains separate from Blanc.',
     '',
     'BUNDLED ASSETS AND DATA',
     ''

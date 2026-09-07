@@ -30,6 +30,16 @@ const SHARED_ASSETS = new Set([
   '/pages/type-to-open.js',
 ]);
 const HOST_ASSETS = new Map([
+  ['display-audio', new Map([
+    ['/', 'display-audio.html'],
+    ['/display-audio.js', 'display-audio.js'],
+    ['/display-audio-worklet.js', 'display-audio-worklet.js'],
+  ])],
+  ['display', new Map([
+    ['/', 'display-picker.html'],
+    ['/display-picker.js', 'display-picker.js'],
+    ['/display-picker.css', 'display-picker.css'],
+  ])],
   ['index', new Map([
     ['/', 'index.html'],
     ['/renderer.js', 'renderer.js'],

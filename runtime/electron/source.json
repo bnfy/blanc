@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "electronVersion": "44.2.0",
+  "electronCommit": "aa650d74597c652878629df0038a50485e156a09",
+  "depotToolsCommit": "69a652ea05e450f84620f56957a801923186fda5",
+  "patches": [
+    {
+      "file": "patches/0001-capture-api-metadata.patch",
+      "sha256": "748d089337810e75005a3d4294effdfba1edbe5f5347d1af276a7abd33d54e50"
+    }
+  ],
+  "gnArgs": "import(\"//electron/build/args/release.gn\")\nsymbol_level = 0\nuse_remoteexec = false\n",
+  "captureProtocol": 1,
+  "chromiumCommit": "0d89dfa2dd7c1ec4b8a14b9f303f887bb63b6174"
+}

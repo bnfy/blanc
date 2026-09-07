@@ -141,3 +141,66 @@ BLANC_PROBE_EXECUTABLE=/absolute/path/to/electron \
 BLANC_PROBE_REPORT=/absolute/path/to/report.json \
   npm run test:display-capture:routing
 ```
+
+## Owner-approved patched runtime and implementation checkpoint
+
+The owner subsequently approved maintaining a patched Electron runtime and
+confirmed that Windows and Linux testing is available only through Parallels
+Desktop. The two-option decision above is resolved in favor of the pinned
+patched runtime. This is implementation approval, not a platform-gate waiver
+or permission to describe incomplete capture as working.
+
+Work continues in isolated branch `codex/screen-sharing`, leaving the original
+checkout's unrelated marketing edits untouched. The candidate now contains:
+
+- A browser-derived API/frame-bound display controller, fresh picker consent,
+  cancellation and navigation teardown, and legacy/mixed-request rejection.
+- macOS native-picker consent and a screen/window picker for custom-source
+  platforms. No tab-source option is exposed in the product.
+- Computer-audio opt-in; native loopback on supported macOS/Windows paths and
+  an output-monitor helper for Linux's PulseAudio-compatible service.
+- A permanently muted, sandboxed audio bridge with one bounded IPC chunk in
+  flight and a bounded stereo worklet buffer. Actual browser delivery remains
+  unverified; these measures do not substitute for the native audio gate.
+- Separate display/computer-audio indicators and selective Stop sharing and
+  Stop devices controls. If a selective stop cannot be confirmed, an explicit
+  Stop all (reload) fallback appears; it is not invoked automatically.
+- Pinned Electron 44.2.0 source/build inputs, an exact-patch verifier, native
+  archive staging and fail-closed packaging, source/binary/architecture checks
+  for the Linux helper, and updated framework/native-component provenance.
+
+Fresh verification at this checkpoint:
+
+- Full unit suite: **1,457 passed, zero failures**.
+- Substrate checks: passed, including regenerated compliance/SBOM checks.
+- Real desktop cold-launch/focus check: passed on stock Electron/macOS arm64.
+- Real picker-window smoke: passed on stock Electron 44.2.0 with **synthetic
+  sources only**. Tested explicit selection, audio initially unchecked, native
+  consent copy, Cancel, and requesting-owner abort.
+- Stock Electron 44.2.0 with Blanc's deny policy: standard/legacy capture
+  remained denied without a device prompt; real camera intent still reached
+  the device prompter. This is fail-closed evidence, not working screen capture.
+- Native C helper compiled with `-Wall -Wextra -Werror` in Ubuntu 24.04 ARM64
+  under Parallels. Isolated generated-audio tests passed with both PipeWire
+  1.0.5's PulseAudio service and standalone PulseAudio 16.1. At 48 kHz stereo,
+  the output tone was present, a separate simulated default-microphone tone
+  was absent, and changing the default output terminated the monitor.
+  PipeWire amplitudes: output 0.29679, other source 0.00004. PulseAudio:
+  output 0.30000, other source 0.00000. No microphone or desktop audio was
+  recorded; generated fixture tones and in-memory analysis were used.
+
+The local Electron source sync initially failed because Git LFS was missing.
+Git LFS 3.8.0 was installed. A retry attempted an unnecessarily broad Chromium
+fetch; pinning the exact Chromium commit resolved that step. Upstream patches,
+PGO inputs, and build-tool hooks are progressing. The custom binary has not yet
+been compiled or validated at this checkpoint. Disk usage is guarded with a
+20 GiB reserve; Windows/Linux VMs share this Mac's physical disk, so their
+virtual disk sizes do not represent additional build capacity.
+
+**Still pending:** patched-runtime compilation, native successful-capture
+routing, actual end-to-end video and computer audio, Linux broker delivery,
+Windows VM testing, permission recovery, iframe behavior, selective-stop native
+confirmation, meeting sites, 30-minute capture, native CI artifact transport,
+three-platform packaged builds/signing, affected-machine approval, immutable
+release, adjacent updater handoffs, final media refresh, and the fresh launch
+soak. The former launch dates remain on hold. No release has been published.

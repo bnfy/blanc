@@ -157,7 +157,7 @@ function calculateShieldBounds({ windowWidth, stripHeight, anchorRight }) {
 }
 
 const CAPTURE_POPOVER_WIDTH = SHIELD_POPOVER_WIDTH;
-const CAPTURE_ROW_HEIGHT = 44;
+const CAPTURE_ROW_HEIGHT = 76;
 const CAPTURE_POPOVER_CHROME = 56; // header + card padding
 const CAPTURE_POPOVER_MAX_ROWS = 5;
 

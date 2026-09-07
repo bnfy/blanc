@@ -143,6 +143,7 @@ function mediaQueryState(session, rawUrl, mediaType) {
 function setupPermissionPolicy(
   session,
   {
+    displayCapture = null,
     persistDecisions = true,
     profileId = DEFAULT_PROFILE_ID,
     requestNativeMediaAccess = async () => true,
@@ -179,6 +180,14 @@ function setupPermissionPolicy(
   session.setPermissionRequestHandler((wc, permission, callback, details) =>
     withLocalProfile(profileId, async () => {
     if (heldRequester(wc)) return callback(false);
+    if (permission === 'media' && details?.captureApi === 'legacy-display') return callback(false);
+    if (permission === 'media' && details?.captureApi === 'get-display-media') {
+      let allowed = false;
+      try { allowed = !!displayCapture && wc?.session === session
+        && await displayCapture.requestPermission(wc, details); } catch {}
+      return callback(allowed);
+    }
+    if (permission === 'media' && details?.captureApi && details.captureApi !== 'get-user-media') return callback(false);
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
@@ -261,11 +270,12 @@ function setupPermissionPolicy(
     })
   );
 
-  // Screen capture remains unavailable until source-bound consent can be
-  // implemented on a runtime that distinguishes standard and legacy capture.
-  // This handler alone cannot block legacy chromeMediaSource capture; the
-  // unscoped-media rejection above is also required.
-  session.setDisplayMediaRequestHandler((_request, callback) => callback({}));
+  // Stock runtimes still deny unscoped requests above. The approved runtime
+  // supplies browser-derived API/frame metadata before source selection.
+  session.setDisplayMediaRequestHandler(displayCapture
+    ? (request, callback) => displayCapture.select(request, callback)
+    : (_request, callback) => callback({}),
+  { useSystemPicker: displayCapture?.nativePicker === true });
 }
 
 module.exports = {

@@ -1,4 +1,6 @@
 node_modules/
+.runtime/
+native/linux/audio-monitor
 # Rebuilt from pinned sources during npm install/ci; its manifest stays tracked.
 /src/main/assets/adblock-engine-seed.bin
 dist/
@@ -23,3 +25,5 @@ bench/memory/results/
 .astro/
 site/.parity/
 site/.parity-shots/
+native/linux/audio-monitor.json
+__pycache__/

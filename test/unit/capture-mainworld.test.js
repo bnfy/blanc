@@ -27,6 +27,7 @@ function makeWorld() {
     MediaStream: FakeStream,
     navigator: {
       mediaDevices: {
+        getDisplayMedia: () => (nextStream instanceof Error ? Promise.reject(nextStream) : Promise.resolve(nextStream)),
         getUserMedia: () => (nextStream instanceof Error
           ? Promise.reject(nextStream)
           : Promise.resolve(nextStream)),
@@ -44,7 +45,8 @@ function makeWorld() {
     events, world, FakeTrack, FakeStream,
     setNext: (v) => { nextStream = v; },
     gum: (constraints) => world.navigator.mediaDevices.getUserMedia(constraints),
-    stopRequest: () => listeners.get('blanc:capture-stop-request')({}),
+    gdm: (constraints) => world.navigator.mediaDevices.getDisplayMedia(constraints),
+    stopRequest: (scope) => listeners.get('blanc:capture-stop-request')({ detail: scope }),
   };
 }
 
@@ -58,7 +60,7 @@ test('resolved gUM emits the live snapshot BEFORE its settlement (no off-flicker
   w.setNext(new w.FakeStream([new w.FakeTrack('audio')]));
   await w.gum({ audio: true });
   assert.deepEqual(w.events[w.events.length - 2].detail,
-    { type: 'snapshot', audioLive: 1, videoLive: 0 });
+    { type: 'snapshot', audioLive: 1, videoLive: 0, displayLive: 0, systemAudioLive: 0 });
   assert.deepEqual(last(w.events).detail,
     { type: 'settlement', outcome: 'resolved', scopes: ['audio'] });
 });
@@ -77,7 +79,7 @@ test('track.stop() is observed even though it fires no ended event', async () =>
   w.setNext(new w.FakeStream([track]));
   const stream = await w.gum({ audio: true });
   stream.getTracks()[0].stop();
-  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 0, videoLive: 0 });
+  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 0, videoLive: 0, displayLive: 0, systemAudioLive: 0 });
 });
 
 test('cloned tracks stay counted; stopping the original is not enough', async () => {
@@ -87,9 +89,9 @@ test('cloned tracks stay counted; stopping the original is not enough', async ()
   const stream = await w.gum({ audio: true });
   const clone = stream.getTracks()[0].clone();
   stream.getTracks()[0].stop();
-  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 1, videoLive: 0 });
+  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 1, videoLive: 0, displayLive: 0, systemAudioLive: 0 });
   clone.stop();
-  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 0, videoLive: 0 });
+  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 0, videoLive: 0, displayLive: 0, systemAudioLive: 0 });
 });
 
 test('stop-request stops every registered track and reports zero', async () => {
@@ -97,5 +99,35 @@ test('stop-request stops every registered track and reports zero', async () => {
   w.setNext(new w.FakeStream([new w.FakeTrack('audio'), new w.FakeTrack('video')]));
   await w.gum({ audio: true, video: true });
   w.stopRequest();
-  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 0, videoLive: 0 });
+  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 0, videoLive: 0, displayLive: 0, systemAudioLive: 0 });
+});
+
+
+test('Stop sharing stops display clones and computer audio while preserving microphone/camera', async () => {
+  const w = makeWorld();
+  const mic = new w.FakeTrack('audio'); const camera = new w.FakeTrack('video');
+  w.setNext(new w.FakeStream([mic, camera]));
+  await w.gum({ audio: true, video: true });
+  const video = new w.FakeTrack('video'); const systemAudio = new w.FakeTrack('audio');
+  w.setNext(new w.FakeStream([video, systemAudio]));
+  const stream = await w.gdm({ video: true, audio: true });
+  const clone = video.clone(); const streamClone = stream.clone();
+  assert.equal(w.events.at(-1).detail.displayLive, 3);
+  w.stopRequest('display');
+  for (const track of [video, systemAudio, clone, ...streamClone.getTracks()]) assert.equal(track.readyState, 'ended');
+  assert.equal(mic.readyState, 'live'); assert.equal(camera.readyState, 'live');
+  assert.deepEqual(last(w.events).detail, { type: 'snapshot', audioLive: 1, videoLive: 1, displayLive: 0, systemAudioLive: 0 });
+});
+
+test('Stop devices preserves screen sharing; display rejection is reported separately', async () => {
+  const w = makeWorld();
+  const mic = new w.FakeTrack('audio');
+  w.setNext(new w.FakeStream([mic])); await w.gum({ audio: true });
+  const display = new w.FakeTrack('video');
+  w.setNext(new w.FakeStream([display])); await w.gdm({ video: true });
+  w.stopRequest('devices');
+  assert.equal(mic.readyState, 'ended'); assert.equal(display.readyState, 'live');
+  w.setNext(new Error('NotAllowedError'));
+  await assert.rejects(w.gdm({ audio: true }));
+  assert.deepEqual(last(w.events).detail, { type: 'settlement', outcome: 'rejected', scopes: ['display', 'systemAudio'] });
 });

@@ -98,7 +98,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
-  captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
+  captureStop: (surfaceId, scope) => ipcRenderer.send('chrome:capture-stop', surfaceId, scope),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: (reason) => ipcRenderer.send('overlay:close', reason),
