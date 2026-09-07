@@ -1,5 +1,5 @@
 name: Release Windows & Linux
-run-name: ${{ inputs.mode == 'validation' && 'Validate' || 'Release' }} ${{ inputs.mode == 'validation' && github.ref_name || inputs.tag }} (${{ inputs.platform }})
+run-name: ${{ inputs.mode == 'runtime' && 'Build capture runtime' || inputs.mode == 'validation' && 'Validate' || 'Release' }} ${{ inputs.mode != 'release' && github.ref_name || inputs.tag }} (${{ inputs.platform }})
 
 # electron-builder's Windows (NSIS) and Linux (AppImage) targets are built
 # here rather than locally, since `scripts/release.sh` runs on a macOS dev
@@ -11,13 +11,17 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Release to GitHub, or build private validation artifacts"
+        description: "Release, private app validation, or patched runtime build"
         required: true
         default: release
         type: choice
         options:
           - release
           - validation
+          - runtime
+      runtime_run_id:
+        description: "Successful private patched-runtime build run (required for app builds)"
+        required: false
       tag:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
@@ -36,12 +40,13 @@ permissions:
 
 jobs:
   windows:
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
+    if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
     # Release uploads and provenance require these grants. Keep them local
     # to the publishing jobs instead of inherited by future jobs.
     permissions:
       contents: write
+      actions: read
       id-token: write
       attestations: write
     steps:
@@ -54,6 +59,12 @@ jobs:
           node-version: 22
 
       - run: npm ci
+
+      - name: Verify and stage patched native runtime
+        run: node scripts/stage-ci-runtime.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BLANC_RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
 
       - name: Verify dependency compliance inputs
         run: npm run compliance:check
@@ -229,6 +240,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
       id-token: write
       attestations: write
     steps:
@@ -241,6 +253,12 @@ jobs:
           node-version: 22
 
       - run: npm ci
+
+      - name: Verify and stage patched native runtime
+        run: node scripts/stage-ci-runtime.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BLANC_RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
 
       - name: Verify dependency compliance inputs
         run: npm run compliance:check
@@ -258,6 +276,12 @@ jobs:
             echo "Tag/version mismatch: $RELEASE_TAG vs package $VERSION" >&2
             exit 1
           }
+
+      - name: Build Linux audio helper
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpulse-dev pkg-config
+          npm run build:linux-audio
 
       - name: Build
         run: npx electron-builder --linux --publish never
@@ -325,3 +349,53 @@ jobs:
           path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
+
+  # Raw patched Electron archives are private build inputs, not Blanc releases.
+  # This mode has no signing secrets, release mutation, or updater metadata.
+  capture-runtime:
+    if: ${{ inputs.mode == 'runtime' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.platform == 'windows' && '["windows-latest"]' || inputs.platform == 'linux' && '["ubuntu-latest"]' || '["windows-latest","ubuntu-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Report native build capacity
+        shell: bash
+        run: |
+          python -c "import os,platform,shutil; print(platform.platform()); print('CPU:',os.cpu_count()); print('Free GiB:',round(shutil.disk_usage(os.environ['RUNNER_TEMP']).free / 1024**3, 1))"
+      - name: Sync pinned runtime source
+        shell: bash
+        run: python runtime/electron/build.py --root "$RUNNER_TEMP/blanc-capture-runtime" --stage sync --jobs 4
+      - name: Install Linux native build dependencies
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: sudo "$RUNNER_TEMP/blanc-capture-runtime/src/build/install-build-deps.sh" --no-prompt --no-chromeos-fonts
+      - name: Compile and package patched runtime
+        shell: bash
+        run: python runtime/electron/build.py --root "$RUNNER_TEMP/blanc-capture-runtime" --stage package --jobs 4
+      - name: Attest patched runtime archive
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/blanc-capture-runtime/src/out/BlancRelease/dist.zip
+            ${{ runner.temp }}/blanc-capture-runtime/src/out/BlancRelease/blanc-runtime-build.json
+      - name: Upload private runtime build input
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Electron-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/blanc-capture-runtime/src/out/BlancRelease/dist.zip
+            ${{ runner.temp }}/blanc-capture-runtime/src/out/BlancRelease/blanc-runtime-build.json
+          retention-days: 3
+          if-no-files-found: error

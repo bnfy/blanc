@@ -2258,9 +2258,11 @@
         stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId, scope));
         li.append(stop);
       };
-      if (row.display || row.systemAudio) addStop('stop sharing', 'display');
-      if (row.audio || row.video) addStop('stop devices', 'devices');
       if (row.stopFailed) addStop('stop all (reload)', 'all');
+      else {
+        if (row.display || row.systemAudio) addStop('stop sharing', 'display');
+        if (row.audio || row.video) addStop('stop devices', 'devices');
+      }
       return li;
     }));
   }

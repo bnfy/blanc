@@ -62,5 +62,28 @@ For every Electron update, rebase and review the patch, update every pin and
 hash, rebuild all target archives, and repeat the routing and capture gates.
 Never reuse another platform's archive, alter immutable public releases, or
 claim stock Electron provides this custom API. Native CI artifact transport,
-three-platform build capacity, and the release handoff must be completed before
+three-platform build capacity, and the release handoff must be validated before
 this candidate can replace the public launch release.
+
+
+The existing `release-windows-linux.yml` has a separate `runtime` mode that
+builds raw Electron inputs on standard GitHub-hosted Windows/Linux runners. It
+has no signing secrets or release/upload-metadata steps. Its archive and build
+record are separately attested and retained as Actions artifacts for three days.
+The source-sync free-space guard also applies to these runners; a runner that
+cannot fit the source must fail before proceeding, not weaken that guard.
+
+App `validation` and `release` modes require `runtime_run_id`. They download
+only the exact platform artifact from that run, verify both attestations against
+the canonical repository/workflow and source SHA, verify local source/patch
+pins and the archive hash, then stage it. The local release script requires
+`BLANC_RUNTIME_RUN_ID` and checks the selected native inputs before signing or
+creating a tag, then passes that same ID to its native workflow dispatch.
+All existing app signing, fuse, packaged-media, manifest, updater, and owner
+confirmation gates still apply. The runtime mode is not an app release gate.
+
+The driver disables automatic LFS smudging so optional upstream test/model
+assets remain their committed pointer files, as they do in ordinary Git
+checkouts without a configured LFS filter. The source files used by the runtime
+build remain at the pinned revisions. It normalizes packed refs for upstream GN
+and compiles the changed permission helper before the rest of the distribution.

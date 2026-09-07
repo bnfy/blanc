@@ -4,9 +4,10 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const hash = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
-function verifyRuntime({ root, platform, arch }) {
+function verifyRuntime({ root, platform, arch, archive = path.join(root, '.runtime/electron.zip'),
+  recordPath = path.join(root, '.runtime/blanc-runtime-build.json') }) {
   const lock = JSON.parse(fs.readFileSync(path.join(root, 'runtime/electron/source.json'), 'utf8'));
-  const record = JSON.parse(fs.readFileSync(path.join(root, '.runtime/blanc-runtime-build.json'), 'utf8'));
+  const record = JSON.parse(fs.readFileSync(recordPath, 'utf8'));
   for (const key of Object.keys(lock)) {
     if (JSON.stringify(record[key]) !== JSON.stringify(lock[key])) throw new Error(`Runtime source mismatch: ${key}`);
   }
@@ -15,7 +16,6 @@ function verifyRuntime({ root, platform, arch }) {
   for (const patch of lock.patches) {
     if (hash(path.join(root, 'runtime/electron', patch.file)) !== patch.sha256) throw new Error('Runtime patch has changed');
   }
-  const archive = path.join(root, '.runtime/electron.zip');
   if (!/^[a-f0-9]{64}$/.test(record.archiveSha256) || hash(archive) !== record.archiveSha256) {
     throw new Error('Runtime archive is missing or differs from its build record');
   }

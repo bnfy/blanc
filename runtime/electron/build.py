@@ -77,7 +77,7 @@ def main():
             raise RuntimeError('Pinned runtime patch hash mismatch')
     depot = root / 'depot_tools'
     env = dict(os.environ)
-    env.update(DEPOT_TOOLS_UPDATE='0', DEPOT_TOOLS_WIN_TOOLCHAIN='0')
+    env.update(DEPOT_TOOLS_UPDATE='0', DEPOT_TOOLS_WIN_TOOLCHAIN='0', GIT_LFS_SKIP_SMUDGE='1')
     env['PATH'] = str(depot) + os.pathsep + env.get('PATH', '')
     if args.stage == 'sync':
         if not (root / 'src').exists() and shutil.disk_usage(root).free < 80 * 1024**3:
@@ -133,12 +133,19 @@ def main():
         else:
             env['DEPOT_TOOLS_BOOTSTRAP_PYTHON3'] = '1'
             run([depot / 'ensure_bootstrap'], depot, env)
+    # Upstream GN registers packed-refs as an input even in a fresh shallow clone.
+    run(['git', 'pack-refs', '--all'], source)
     out = root / 'src' / 'out' / 'BlancRelease'
     out.mkdir(parents=True, exist_ok=True)
     (out / 'args.gn').write_text(LOCK['gnArgs'])
     gn = 'gn.bat' if sys.platform == 'win32' else 'gn'
     ninja = 'autoninja.bat' if sys.platform == 'win32' else 'autoninja'
     run([depot / gn, 'gen', out], root / 'src', env)
+    # Compile the authorization patch early so errors do not surface only
+    # after the rest of Chromium has finished its first full build.
+    run([depot / ninja, '-C', out, '-j', args.jobs,
+         'obj/electron/electron_lib/web_contents_permission_helper' +
+         ('.obj' if sys.platform == 'win32' else '.o')], root / 'src', env)
     target = 'electron:electron_dist_zip' if args.stage == 'package' else 'electron'
     run([depot / ninja, '-C', out, '-j', args.jobs, target], root / 'src', env)
     if args.stage == 'package':

@@ -22,6 +22,9 @@ try {
   let page = await open(false);
   assert.equal(await page.locator('#share').isDisabled(), true);
   assert.equal(await page.locator('#audio').isChecked(), false);
+  const footer = await page.locator('footer').boundingBox();
+  assert.ok(footer.y + footer.height <= await page.evaluate(() => innerHeight), 'picker footer remains in view with many sources');
+  await page.screenshot({ path: path.join(os.tmpdir(), 'blanc-display-picker-ui.png') });
   await page.getByRole('radio', { name: 'Test window' }).click();
   await page.locator('#audio').check();
   await page.locator('#share').click();

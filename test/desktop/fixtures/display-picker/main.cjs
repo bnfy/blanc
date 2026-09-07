@@ -10,7 +10,8 @@ app.whenReady().then(async () => {
   await parent.loadURL('data:text/html,<h1>Blanc picker test</h1><p>Only synthetic sources are used.</p>');
   const choose = createDisplayPicker({ BrowserWindow, ipcMain, partition,
     desktopCapturer: { getSources: async () => [{ id: 'screen:fixture', name: 'Test screen', thumbnail: nativeImage.createEmpty() },
-      { id: 'window:fixture', name: 'Test window', thumbnail: nativeImage.createEmpty() }] } });
+      { id: 'window:fixture', name: 'Test window', thumbnail: nativeImage.createEmpty() },
+      ...Array.from({ length: 10 }, (_, i) => ({ id: `window:${i}`, name: `Synthetic window ${i}`, thumbnail: nativeImage.createEmpty() }))] } });
   globalThis.__pickerTest = {
     open(nativePicker = false) {
       const abort = new AbortController();

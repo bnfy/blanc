@@ -21,14 +21,20 @@
     for (const source of data.sources) {
       const button = document.createElement('button');
       button.className = 'source'; button.type = 'button';
+      button.tabIndex = root.children.length === 0 ? 0 : -1;
       button.setAttribute('role', 'radio'); button.setAttribute('aria-checked', 'false');
-      const img = document.createElement('img'); img.alt = '';
-      if (source.thumbnail.startsWith('data:image/')) img.src = source.thumbnail;
+      const preview = document.createElement('div'); preview.className = 'preview';
+      if (/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(source.thumbnail)) {
+        const img = document.createElement('img'); img.alt = ''; img.src = source.thumbnail; preview.append(img);
+      } else preview.textContent = 'Preview unavailable';
       const name = document.createElement('span'); name.textContent = source.name;
-      button.append(img, name);
+      button.append(preview, name);
       button.onclick = () => {
         selected = source.key;
-        for (const sibling of root.children) sibling.setAttribute('aria-checked', String(sibling === button));
+        for (const sibling of root.children) {
+          sibling.setAttribute('aria-checked', String(sibling === button));
+          sibling.tabIndex = sibling === button ? 0 : -1;
+        }
         share.disabled = false;
       };
       button.onkeydown = (event) => {

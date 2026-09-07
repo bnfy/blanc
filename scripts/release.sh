@@ -161,6 +161,10 @@ esac
 }
 
 command -v gh >/dev/null || { echo "gh CLI not found." >&2; exit 1; }
+# Authenticate existing native runtime inputs before creating an immutable tag
+# or starting a signed build. This never stages over the local macOS archive.
+if $HAS_WINDOWS; then node scripts/stage-ci-runtime.mjs --verify-only --platform=win32; fi
+if $HAS_LINUX; then node scripts/stage-ci-runtime.mjs --verify-only --platform=linux; fi
 command -v op >/dev/null || {
   echo "1Password CLI is required; refusing an unnotarized release build." >&2
   exit 1
@@ -378,6 +382,7 @@ if [ -n "$WORKFLOW_PLATFORM" ]; then
   gh workflow run release-windows-linux.yml \
     --repo "$REPO" \
     -f mode=release \
+    -f runtime_run_id="$BLANC_RUNTIME_RUN_ID" \
     -f tag="$TAG" \
     -f platform="$WORKFLOW_PLATFORM"
 
