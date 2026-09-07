@@ -523,11 +523,14 @@ test('completion results promote the score and separate time from Burst performa
   assert.match(html, /class="mj-win-particles" src="mahjong-combo-particles\.png"/);
   assert.match(html, /class="mj-win-glint" src="mahjong-combo-glint\.png"/);
   assert.match(controller, /win\.dataset\.mode = isBurst \? 'burst' : 'classic'/);
-  assert.match(controller, /getElementById\('mjWinScore'\)\.textContent = isBurst[\s\S]*game\.score\.toLocaleString\(\)[\s\S]*: time/);
+  assert.match(controller, /renderWinScore\(document\.getElementById\('mjWinScore'\), \{ isBurst, score: game\.score, time \}\)/);
+  assert.match(controller, /new Intl\.NumberFormat\(\)\.formatToParts\(score\)/);
+  assert.match(controller, /separator\.className = 'mj-win-score-separator'/);
   assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
   assert.match(controller, /record\.classList\.toggle\('is-record', game\._outcome === 'record' \|\| game\._outcome === 'first'\)/);
   assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*radial-gradient[^}]*box-shadow:/);
   assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(46px, 6\.2vw, 64px\)[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-win-score-separator\s*\{[^}]*-webkit-text-fill-color:\s*#f3deb0;[^}]*text-shadow:\s*0 3px 8px/);
   assert.match(styles, /\.mj-win-stats\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@keyframes mj-win-particles/);
   assert.match(styles, /@keyframes mj-win-glint/);

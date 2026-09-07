@@ -1247,6 +1247,26 @@ function recordCompletion() {
   return Boolean(updated);
 }
 
+function renderWinScore(target, { isBurst, score, time }) {
+  if (!isBurst) {
+    target.textContent = time;
+    return;
+  }
+
+  target.replaceChildren();
+  for (const part of new Intl.NumberFormat().formatToParts(score)) {
+    if (part.type !== 'group') {
+      target.append(part.value);
+      continue;
+    }
+
+    const separator = document.createElement('span');
+    separator.className = 'mj-win-score-separator';
+    separator.textContent = part.value;
+    target.append(separator);
+  }
+}
+
 function showWin() {
   const best = bestForGame();
   const win = document.getElementById('mjWin');
@@ -1254,9 +1274,7 @@ function showWin() {
   const time = formatMs(game.elapsedMs);
   const label = isBurst ? `${game.score.toLocaleString()} points. ${time}` : time;
   win.dataset.mode = isBurst ? 'burst' : 'classic';
-  document.getElementById('mjWinScore').textContent = isBurst
-    ? game.score.toLocaleString()
-    : time;
+  renderWinScore(document.getElementById('mjWinScore'), { isBurst, score: game.score, time });
   document.getElementById('mjWinUnit').textContent = isBurst ? 'points' : 'clear time';
   document.getElementById('mjWinTime').textContent = time;
   const record = document.getElementById('mjWinBest');
