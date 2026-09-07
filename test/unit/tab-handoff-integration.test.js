@@ -16,6 +16,25 @@ test('packaged Blanc registers a separate tab-import protocol', () => {
   assert.equal(pkg.build.appId, 'me.bnfy.bowser');
 });
 
+test('packaged platform validation invokes each installed tab-import handler', () => {
+  const smoke = read('test/desktop/packaged-tab-handoff-protocol-smoke.mjs');
+  assert.match(smoke, /process\.platform === 'darwin'/);
+  assert.match(smoke, /HKEY_CURRENT_USER\\\\Software\\\\Classes\\\\blanc-import/);
+  assert.match(smoke, /x-scheme-handler\/blanc-import/);
+  assert.match(smoke, /xdg-open/);
+  assert.match(smoke, /blanc:\/\/tab-handoff\//);
+  assert.match(smoke, /startsWith\('blanc-import:'\)/);
+
+  const workflow = read('.github/workflows/release-windows-linux.yml');
+  assert.equal(
+    workflow.match(/name: Verify installed blanc-import protocol/g)?.length,
+    2,
+    'both native jobs must run installed protocol acceptance',
+  );
+  assert.match(workflow, /Start-Process -FilePath \$installer -ArgumentList '\/S'/);
+  assert.match(workflow, /dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol/);
+});
+
 test('tab-handoff utility bridge exposes only inspection, accept, and cancel', () => {
   const preload = read('src/main/tab-preload.js');
   const branch = preload.slice(preload.indexOf("host === 'tab-handoff'"), preload.indexOf("host === 'tab-handoff'") + 580);

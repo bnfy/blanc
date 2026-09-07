@@ -186,6 +186,39 @@ jobs:
           }
           $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
+      - name: Verify installed blanc-import protocol
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $product = node -p "require('./package.json').productName"
+          $installer = (Resolve-Path "dist/$product-Setup-$version.exe").Path
+          $install = Start-Process -FilePath $installer -ArgumentList '/S' -Wait -PassThru
+          if ($install.ExitCode -ne 0) {
+            throw "Silent protocol-test install failed with exit code $($install.ExitCode)."
+          }
+          $protocolKey = Get-Item 'Registry::HKEY_CURRENT_USER\Software\Classes\blanc-import\shell\open\command'
+          $protocolCommand = [string]$protocolKey.GetValue('')
+          if ($protocolCommand -notmatch '^"([^"]+)"') {
+            throw "Installed blanc-import command does not begin with a quoted executable: $protocolCommand"
+          }
+          $installedExecutable = $Matches[1]
+          $installedRoot = Split-Path -Parent $installedExecutable
+          $uninstaller = Join-Path $installedRoot "Uninstall $product.exe"
+          try {
+            if (-not (Test-Path $installedExecutable)) {
+              throw "Installed protocol-test executable missing: $installedExecutable"
+            }
+            $env:BLANC_PACKAGED_EXECUTABLE = $installedExecutable
+            npm run test:packaged:tab-handoff-protocol
+            if ($LASTEXITCODE -ne 0) {
+              throw "Installed blanc-import protocol smoke failed."
+            }
+          } finally {
+            if (Test-Path $uninstaller) {
+              Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait
+            }
+          }
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         shell: bash
@@ -286,7 +319,7 @@ jobs:
       - name: Install AppImage smoke runtime
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libfuse2 xvfb
+          sudo apt-get install --yes dbus-x11 desktop-file-utils libfuse2 xdg-utils xvfb
 
       - name: Verify packaged microphone and camera permissions and live tracks
         run: |
@@ -294,6 +327,13 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             xvfb-run -a node test/desktop/packaged-media-smoke.mjs
+
+      - name: Verify installed blanc-import protocol
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
 
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
