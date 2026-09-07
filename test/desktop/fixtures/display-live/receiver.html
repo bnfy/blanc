@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8"><title>Blanc WebRTC receiver</title>
+<style>body{font:18px system-ui;padding:20px}video{width:100%;max-height:65vh}button{padding:12px}</style>
+<h1>Separate WebRTC receiver</h1><button id="ready">Enable receiving meters</button>
+<video autoplay muted playsinline></video><pre id="metrics">Waiting for a real stream</pre>
+<script>
+window.measurements = { redFrames: 0, blueFrames: 0, rms: 0, peakHz: 0, width: 0, height: 0 };
+window.probePoint = { x: 0.25, y: 0.75 };
+const video = document.querySelector('video');
+const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
+const paint = canvas.getContext('2d', { willReadFrequently: true });
+document.querySelector('#ready').onclick = async () => {
+  window.audioContext = new AudioContext(); await audioContext.resume();
+  document.querySelector('#ready').disabled = true;
+};
+window.acceptOffer = async (offer) => {
+  window.peer = new RTCPeerConnection({ iceServers: [] });
+  const received = new MediaStream();
+  video.srcObject = received;
+  peer.ontrack = ({ track }) => {
+    received.addTrack(track);
+    if (track.kind === 'audio') {
+      window.analyser = audioContext.createAnalyser(); analyser.fftSize = 4096; analyser.smoothingTimeConstant = 0;
+      const silent = audioContext.createGain(); silent.gain.value = 0;
+      audioContext.createMediaStreamSource(new MediaStream([track])).connect(analyser);
+      analyser.connect(silent).connect(audioContext.destination);
+    }
+  };
+  await peer.setRemoteDescription(offer);
+  await peer.setLocalDescription(await peer.createAnswer());
+  if (peer.iceGatheringState !== 'complete') await new Promise((resolve) => peer.addEventListener('icegatheringstatechange', () => { if (peer.iceGatheringState === 'complete') resolve(); }));
+  return peer.localDescription.toJSON();
+};
+setInterval(() => {
+  if (video.videoWidth) {
+    measurements.width = video.videoWidth; measurements.height = video.videoHeight;
+    paint.drawImage(video, video.videoWidth * probePoint.x, video.videoHeight * probePoint.y, 1, 1, 0, 0, 1, 1);
+    const [r, g, b] = paint.getImageData(0, 0, 1, 1).data;
+    if (r > 140 && r > b * 2 && g < 110) measurements.redFrames++;
+    if (b > 140 && b > r * 2 && g < 110) measurements.blueFrames++;
+  }
+  if (window.analyser) {
+    const samples = new Float32Array(analyser.fftSize); analyser.getFloatTimeDomainData(samples);
+    measurements.rms = Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / samples.length);
+    const bins = new Float32Array(analyser.frequencyBinCount); analyser.getFloatFrequencyData(bins);
+    let peak = 1; for (let i = 2; i < bins.length; i++) if (bins[i] > bins[peak]) peak = i;
+    measurements.peakHz = peak * audioContext.sampleRate / analyser.fftSize;
+  }
+  document.querySelector('#metrics').textContent = JSON.stringify(measurements, null, 2);
+}, 100);
+</script>

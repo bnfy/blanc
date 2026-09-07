@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>Blanc generated capture source</title>
+<style>body{margin:0;color:white;font:24px system-ui;padding:30px}button{padding:12px}small{display:block;margin-top:20px}</style>
+<h1>Generated capture source</h1><button id="tone">Play 880 Hz test tone</button>
+<small>Generated pixels and tone only. No microphone is used.</small><p id="counter"></p>
+<script>
+let tick = 0;
+setInterval(() => {
+  document.body.style.background = ++tick % 2 ? 'rgb(220,35,35)' : 'rgb(30,45,220)';
+  document.querySelector('#counter').textContent = `Frame pattern ${tick}`;
+}, 400);
+document.querySelector('#tone').onclick = async () => {
+  const context = new AudioContext(); await context.resume();
+  const oscillator = context.createOscillator(); oscillator.frequency.value = 880;
+  const gain = context.createGain(); gain.gain.value = 0.08;
+  oscillator.connect(gain).connect(context.destination); oscillator.start();
+  document.querySelector('#tone').disabled = true;
+  document.querySelector('#tone').textContent = '880 Hz tone is playing';
+  window.toneContext = context;
+};
+</script>

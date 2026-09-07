@@ -91,6 +91,22 @@ creating a tag, then passes that same ID to its native workflow dispatch.
 All existing app signing, fuse, packaged-media, manifest, updater, and owner
 confirmation gates still apply. The runtime mode is not an app release gate.
 
+Runtime staging requires the selected platform's job to have succeeded at the
+exact workflow source revision. An independent platform's failure does not
+invalidate a successful job's archive; both files still require attestations,
+the source/patch lock, and the archive digest. Incomplete or cancelled runs
+remain ineligible, and the current run attempt's jobs are checked explicitly.
+
+`mode=capture-smoke`, `platform=linux`, and `runtime_run_id=<completed-run>`
+run the real Linux/X11 demonstration remotely. The test launches Blanc with
+the patched runtime, captures a generated window and the real virtual desktop,
+routes actual PulseAudio output through the production monitor/bridge, and
+sends both tracks over WebRTC to a separate receiving page. It requires
+changing decoded pixels, the generated 880 Hz tone, and audio-only/full-stop
+cleanup. Results and generated-content screenshots are retained for three days;
+captured PCM is never saved. This development-runtime proof does not replace
+packaged signing, affected-machine, meeting-site, or sustained-capture gates.
+
 The driver disables automatic LFS smudging so optional upstream test/model
 assets remain their committed pointer files, as they do in ordinary Git
 checkouts without a configured LFS filter. The source files used by the runtime

@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>Blanc real sharing sender</title>
+<style>body{font:20px system-ui;padding:30px}button{padding:14px;margin:8px}video{width:90%;max-height:65vh}</style>
+<h1>Real screen/audio sharing</h1><p>Choose the generated source and enable computer audio.</p>
+<button id="share">Share screen and audio</button><button id="stop-audio">Stop computer audio only</button><button id="stop">Stop sharing</button>
+<p id="status">idle</p><video muted autoplay playsinline></video>
+<script>
+window.captureState = 'idle';
+document.querySelector('#share').onclick = async () => {
+  window.captureState = 'pending';
+  try {
+    window.sharedStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    document.querySelector('video').srcObject = sharedStream;
+    window.captureState = 'shared';
+  } catch (error) { window.captureState = `rejected:${error.name}`; }
+  document.querySelector('#status').textContent = window.captureState;
+};
+document.querySelector('#stop-audio').onclick = () => sharedStream.getAudioTracks().forEach((track) => track.stop());
+document.querySelector('#stop').onclick = () => sharedStream.getTracks().forEach((track) => track.stop());
+window.makeOffer = async () => {
+  window.peer = new RTCPeerConnection({ iceServers: [] });
+  sharedStream.getTracks().forEach((track) => peer.addTrack(track, sharedStream));
+  await peer.setLocalDescription(await peer.createOffer());
+  if (peer.iceGatheringState !== 'complete') await new Promise((resolve) => peer.addEventListener('icegatheringstatechange', () => { if (peer.iceGatheringState === 'complete') resolve(); }));
+  return peer.localDescription.toJSON();
+};
+</script>

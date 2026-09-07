@@ -23,7 +23,9 @@ function gh(args, capture = false) {
   return result.stdout;
 }
 const run = JSON.parse(gh(['api', `repos/${repo}/actions/runs/${runId}`], true));
-validateRuntimeRun(run, { repo, workflow });
+const jobPage = JSON.parse(gh(['api', `repos/${repo}/actions/runs/${runId}/attempts/${run.run_attempt}/jobs?per_page=100`], true));
+if (jobPage.total_count !== jobPage.jobs?.length) throw new Error('Runtime job listing is incomplete.');
+validateRuntimeRun(run, { repo, workflow, jobs: jobPage.jobs, platform });
 const stage = path.join(root, '.runtime');
 fs.mkdirSync(stage, { recursive: true });
 const download = fs.mkdtempSync(path.join(stage, `native-${platform}-`));
