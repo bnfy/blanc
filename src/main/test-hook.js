@@ -746,16 +746,23 @@ function install(refs) {
               await new Promise((resolve) => requestAnimationFrame(() => resolve()));
             }
             const actionRect = lastAction.getBoundingClientRect();
+            const bodyRect = document.body.getBoundingClientRect();
+            const cardStyle = getComputedStyle(card);
             return {
               card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
               wrap: { left: wrapRect.left, top: wrapRect.top, right: wrapRect.right, bottom: wrapRect.bottom },
+              body: { left: bodyRect.left, top: bodyRect.top, right: bodyRect.right, bottom: bodyRect.bottom },
               viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
               centerDeltaX: Math.abs((cardRect.left + cardRect.right - innerWidth) / 2),
               centerDeltaY: Math.abs((cardRect.top + cardRect.bottom - innerHeight) / 2),
+              documentClientWidth: document.documentElement.clientWidth,
+              bodyClientWidth: document.body.clientWidth,
+              bodyScrollWidth: document.body.scrollWidth,
+              computedLeft: cardStyle.left,
               clientHeight: card.clientHeight,
               scrollHeight: card.scrollHeight,
               scrollTop: card.scrollTop,
-              overflowY: getComputedStyle(card).overflowY,
+              overflowY: cardStyle.overflowY,
               actionInitiallyVisible,
               actionVisibleAfterScroll:
                 actionRect.top >= cardRect.top - 1 && actionRect.bottom <= cardRect.bottom + 1,

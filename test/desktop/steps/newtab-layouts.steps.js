@@ -226,7 +226,10 @@ Then('the embedded mahjong game is ready', async function () {
   assert.ok(game.dockButtonGap >= 13.5, `dock controls are too close (${game.dockButtonGap}px)`);
   const completion = await this.call('readMahjongCompletionGeometry');
   assert.ok(completion, 'completion geometry should be measurable');
-  assert.ok(completion.centerDeltaX <= 1, `completion x center drifted ${completion.centerDeltaX}px`);
+  assert.ok(
+    completion.centerDeltaX <= 1,
+    `completion x center drifted ${completion.centerDeltaX}px: ${JSON.stringify(completion)}`
+  );
   assert.ok(
     completion.centerDeltaY <= 1,
     `completion y center drifted ${completion.centerDeltaY}px: ${JSON.stringify(completion)}`
