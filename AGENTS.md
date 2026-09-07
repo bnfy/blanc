@@ -2,6 +2,17 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+**Launch override — owner decision September 7, 2026:** prepare a replacement
+launch release with cross-platform screen/window sharing and computer audio.
+This supersedes the September 7–10 launch calendar below; September 8 Show HN
+is no longer scheduled. New dates remain unset until the replacement completes
+all native/release gates, release-backed assets, and a fresh verified soak of
+at least 48 hours. This does not waive affected-machine confirmation or authorize
+publishing an unverified candidate. Implementation encountered an Electron
+permission-routing prerequisite; see
+`docs/release-incidents/2026-09-07-screen-sharing-prerequisite.md` before enabling
+display capture. Public v1.15.0 remains the current shipped baseline.
+
 ## What this is
 
 Blanc — a minimal Electron browser shell: custom-drawn "Island" chrome (a single floating command pill replacing the traditional tab strip + toolbar, per the Bowser Design System's Island Chrome handoff) with ad/tracker blocking wired in at the network layer, independent of Chrome's extension store and Manifest V3's `declarativeNetRequest` limits. Plus favorites, history, downloads, settings, slash commands, a Quick Switcher, private tabs, an explicit permission policy, and packaging config.

@@ -1,5 +1,14 @@
 # Blanc v1.15.0 launch copy pack
 
+**HOLD — owner decision September 7, 2026:** the owner selected a replacement
+launch release with screen/window sharing and computer audio on all desktop
+platforms. September 8 Show HN and the remaining September 7–10 launch schedule
+are superseded; replacement dates are unset. This v1.15.0 pack is now historical
+and non-publishable until release facts and assets are refreshed from the fully
+verified replacement and its fresh soak of at least 48 hours completes. The
+runtime prerequisite is recorded in
+`../../../release-incidents/2026-09-07-screen-sharing-prerequisite.md`.
+
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
 

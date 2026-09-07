@@ -182,6 +182,17 @@ function setupPermissionPolicy(
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
+    // Electron 44 reports both getDisplayMedia and legacy chromeMediaSource
+    // capture as `media` with no device scopes. Legacy desktop capture does
+    // NOT pass through setDisplayMediaRequestHandler, so even a fresh generic
+    // "microphone" prompt could authorize a screen without a source picker.
+    // Only explicit device requests may enter the mic/camera decision store.
+    if (permission === 'media' && (!Array.isArray(details?.mediaTypes)
+        || details.mediaTypes.length === 0
+        || details.mediaTypes.some((type) => type !== 'audio' && type !== 'video'))) {
+      return callback(false);
+    }
+
     const origin = normalizedOrigin(details.requestingUrl);
     if (!origin) return callback(false);
 
@@ -237,6 +248,7 @@ function setupPermissionPolicy(
     if (heldRequester(wc)) return false;
     if (AUTO_ALLOWED.has(permission)) return true;
     if (!PROMPTED.has(permission)) return false;
+    if (permission === 'media' && !['audio', 'video'].includes(details?.mediaType)) return false;
     const origin = normalizedOrigin(requestingOrigin);
     if (!origin) return false;
     const mediaType = permission === 'media' && ['audio', 'video'].includes(details?.mediaType)
@@ -249,7 +261,10 @@ function setupPermissionPolicy(
     })
   );
 
-  // Screen capture: still deny by never providing a stream (no picker UI yet).
+  // Screen capture remains unavailable until source-bound consent can be
+  // implemented on a runtime that distinguishes standard and legacy capture.
+  // This handler alone cannot block legacy chromeMediaSource capture; the
+  // unscoped-media rejection above is also required.
   session.setDisplayMediaRequestHandler((_request, callback) => callback({}));
 }
 

@@ -19,6 +19,7 @@
     "site:build": "npm run brand:check && npm --prefix site run build",
     "site:deploy": "npm run site:build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",
     "test:unit": "node --test test/unit/*.test.js",
+    "test:display-capture:routing": "node test/desktop/display-capture-routing-smoke.mjs",
     "test:oauth:desktop": "node --test test/oauth/desktop.test.js",
     "test:oauth:live": "node scripts/oauth-canary.js",
     "test:acceptance:dry": "cucumber-js -c test/desktop/cucumber.mjs -p dry",

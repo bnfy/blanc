@@ -1,0 +1,131 @@
+{
+  "platform": "darwin",
+  "arch": "arm64",
+  "osRelease": "27.0.0",
+  "observations": [
+    {
+      "useSystemPicker": false,
+      "mode": "display",
+      "result": "NotAllowedError",
+      "electron": "44.1.1",
+      "chrome": "152.0.7977.65",
+      "requests": [
+        {
+          "permission": "media",
+          "details": {
+            "isMainFrame": true,
+            "mediaTypes": [],
+            "requestingUrl": "<probe-origin>",
+            "securityOrigin": "<probe-origin>"
+          }
+        }
+      ],
+      "checks": [],
+      "selections": []
+    },
+    {
+      "useSystemPicker": false,
+      "mode": "legacy",
+      "result": "NotAllowedError",
+      "electron": "44.1.1",
+      "chrome": "152.0.7977.65",
+      "requests": [
+        {
+          "permission": "media",
+          "details": {
+            "isMainFrame": true,
+            "mediaTypes": [],
+            "requestingUrl": "<probe-origin>",
+            "securityOrigin": "<probe-origin>"
+          }
+        }
+      ],
+      "checks": [],
+      "selections": []
+    },
+    {
+      "useSystemPicker": false,
+      "mode": "camera",
+      "result": "NotAllowedError",
+      "electron": "44.1.1",
+      "chrome": "152.0.7977.65",
+      "requests": [
+        {
+          "permission": "media",
+          "details": {
+            "isMainFrame": true,
+            "mediaTypes": [
+              "video"
+            ],
+            "requestingUrl": "<probe-origin>",
+            "securityOrigin": "<probe-origin>"
+          }
+        }
+      ],
+      "checks": [],
+      "selections": []
+    },
+    {
+      "useSystemPicker": true,
+      "mode": "display",
+      "result": "NotAllowedError",
+      "electron": "44.1.1",
+      "chrome": "152.0.7977.65",
+      "requests": [
+        {
+          "permission": "media",
+          "details": {
+            "isMainFrame": true,
+            "mediaTypes": [],
+            "requestingUrl": "<probe-origin>",
+            "securityOrigin": "<probe-origin>"
+          }
+        }
+      ],
+      "checks": [],
+      "selections": []
+    },
+    {
+      "useSystemPicker": true,
+      "mode": "legacy",
+      "result": "NotAllowedError",
+      "electron": "44.1.1",
+      "chrome": "152.0.7977.65",
+      "requests": [
+        {
+          "permission": "media",
+          "details": {
+            "isMainFrame": true,
+            "mediaTypes": [],
+            "requestingUrl": "<probe-origin>",
+            "securityOrigin": "<probe-origin>"
+          }
+        }
+      ],
+      "checks": [],
+      "selections": []
+    },
+    {
+      "useSystemPicker": true,
+      "mode": "camera",
+      "result": "NotAllowedError",
+      "electron": "44.1.1",
+      "chrome": "152.0.7977.65",
+      "requests": [
+        {
+          "permission": "media",
+          "details": {
+            "isMainFrame": true,
+            "mediaTypes": [
+              "video"
+            ],
+            "requestingUrl": "<probe-origin>",
+            "securityOrigin": "<probe-origin>"
+          }
+        }
+      ],
+      "checks": [],
+      "selections": []
+    }
+  ]
+}
