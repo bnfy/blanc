@@ -1,5 +1,6 @@
 const { JsonStore } = require('./store');
 const { app } = require('electron');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { isValidDohTemplate, reconcileSecureDnsWrite, coerceSecureDnsRead } = require('./network-privacy');
@@ -25,6 +26,10 @@ const TAB_LAYOUTS = ['island', 'vertical'];
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
+// Unix milliseconds beyond this point are corrupted sync metadata, not a
+// plausible device clock. The bound also leaves ample safe-integer headroom
+// for the Lamport increment applied after a future-dated write is observed.
+const MAX_SYNC_TIMESTAMP = Date.UTC(3000, 0, 1);
 
 // Network-privacy enums (bare arrays, like THEMES — build.mjs parses them by name).
 const WEBRTC_POLICIES = ['standard', 'compatibility', 'strict'];
@@ -131,10 +136,45 @@ const DEFAULTS = {
   // Written only by setPatron() (the activation/validation flow), never by
   // the generic setSettings() path. See patron-model.js for the state machine.
   patron: null,
-  // Per-key last-write timestamps for sync's LWW merge; only SYNCED_KEYS are
-  // ever stamped or transmitted. See exportForSync/mergeFromSync.
+  // Per-key last-write timestamps and equal-clock tie-breakers for sync's LWW
+  // merge; only SYNCED_KEYS are ever stamped or transmitted. See
+  // exportForSync/mergeFromSync.
   _syncMeta: {},
+  // UUID tie-breakers make equal timestamp writes converge across devices.
+  // Kept separate so older clients can continue reading the numeric meta map.
+  _syncTieBreakers: {},
 };
+
+function validSyncTimestamp(value) {
+  return Number.isSafeInteger(value) && value >= 0 && value < MAX_SYNC_TIMESTAMP;
+}
+
+// A device clock can be ahead of this one. Once we have observed that
+// device's per-key timestamp, a later LOCAL choice must advance beyond it or
+// the same remote value will win again on every pull until wall time catches
+// up. Treat the saved timestamp as a Lamport-clock floor while retaining
+// Date.now() for ordinary cross-device ordering.
+function nextSyncWriteTimestamp(previous, now = Date.now()) {
+  const observed = validSyncTimestamp(previous) ? previous : 0;
+  return Math.max(now, observed + 1);
+}
+
+function normalizeSyncTieBreaker(value) {
+  return typeof value === 'string' && value.length <= 128 ? value : '';
+}
+
+function canonicalSyncValue(value) {
+  return JSON.stringify(value);
+}
+
+// Smaller tokens win so a missing token from an older Blanc version remains
+// authoritative on an equal-clock conflict. If both tokens are legacy (or a
+// copied profile duplicated one), the value itself supplies a final stable
+// ordering. This makes the merge commutative instead of "local wins ties".
+function remoteWinsSyncTie(remoteTie, localTie, remoteValue, localValue) {
+  if (remoteTie !== localTie) return remoteTie < localTie;
+  return canonicalSyncValue(remoteValue) < canonicalSyncValue(localValue);
+}
 
 let store = null;
 let existingProfileHint = null;
@@ -190,7 +230,12 @@ function ensureStore() {
         // newtabLayout is synced. Give this deliberate local reset a fresh
         // clock so an older remote preference cannot immediately undo it.
         data._syncMeta ??= {};
-        data._syncMeta.newtabLayout = resetAt;
+        data._syncMeta.newtabLayout = nextSyncWriteTimestamp(
+          data._syncMeta.newtabLayout,
+          resetAt,
+        );
+        data._syncTieBreakers ??= {};
+        data._syncTieBreakers.newtabLayout = crypto.randomUUID();
       });
     }
     // A legacy settings.json carrying only `supporter` gains the equivalent
@@ -318,7 +363,13 @@ function setSettings(partial) {
   s.update((data) => {
     Object.assign(data, clean);
     data._syncMeta ??= {};
-    for (const k of Object.keys(clean)) if (SYNCED_KEYS.includes(k)) data._syncMeta[k] = now;
+    data._syncTieBreakers ??= {};
+    for (const k of Object.keys(clean)) {
+      if (SYNCED_KEYS.includes(k)) {
+        data._syncMeta[k] = nextSyncWriteTimestamp(data._syncMeta[k], now);
+        data._syncTieBreakers[k] = crypto.randomUUID();
+      }
+    }
   });
   for (const fn of listeners) fn(getSettings());
   return getSettings();
@@ -402,30 +453,54 @@ function getPatronRecord() {
   return ensureStore().data.patron;
 }
 
-// Snapshot the synced keys plus their per-key timestamps for the sync engine
-// to encrypt. Only SYNCED_KEYS cross the wire — supporter, tabLayout, appIcon,
-// searchSuggestions, usagePing, and _syncMeta's non-synced entries never leave.
+// Snapshot the synced keys plus their per-key clocks for the sync engine to
+// encrypt. Only SYNCED_KEYS cross the wire — supporter, tabLayout, appIcon,
+// searchSuggestions, usagePing, and unrelated internal entries never leave.
 function exportForSync() {
   const d = ensureStore().data;
-  const values = {}, meta = {};
+  const values = {}, meta = {}, tieBreakers = {};
   for (const k of SYNCED_KEYS) {
     if (d[k] !== undefined) values[k] = d[k];
-    if (d._syncMeta?.[k]) meta[k] = d._syncMeta[k];
+    if (validSyncTimestamp(d._syncMeta?.[k]) && d._syncMeta[k] > 0) {
+      meta[k] = d._syncMeta[k];
+      const tieBreaker = normalizeSyncTieBreaker(d._syncTieBreakers?.[k]);
+      if (tieBreaker) tieBreakers[k] = tieBreaker;
+    }
   }
-  return { values, meta };
+  return { values, meta, tieBreakers };
 }
 
-// Adopt any remote key whose last-write timestamp beats ours (per-key LWW).
-// Values route through sanitize() — a tampered blob can't inject unvalidated
-// settings — and meta is stamped to the REMOTE time so ordering is preserved
-// across devices rather than reset to now.
+// Adopt any remote key whose per-key LWW clock beats ours. Values route through
+// sanitize() — a tampered blob can't inject unvalidated settings — and the
+// remote timestamp/tie-breaker are retained so ordering stays convergent.
 function mergeFromSync(remote) {
   const s = ensureStore();
   const winners = {};
   for (const k of SYNCED_KEYS) {
-    const rt = remote.meta?.[k] ?? 0;
-    const lt = s.data._syncMeta?.[k] ?? 0;
-    if (rt > lt && remote.values?.[k] !== undefined) winners[k] = rt;
+    const rt = remote.meta?.[k];
+    if (!validSyncTimestamp(rt) || rt === 0 || remote.values?.[k] === undefined) continue;
+    const storedLocalTimestamp = s.data._syncMeta?.[k];
+    const lt = validSyncTimestamp(storedLocalTimestamp) ? storedLocalTimestamp : 0;
+    const remoteTie = normalizeSyncTieBreaker(remote.tieBreakers?.[k]);
+    const localTie = normalizeSyncTieBreaker(s.data._syncTieBreakers?.[k]);
+    if (rt > lt) {
+      winners[k] = { timestamp: rt, tieBreaker: remoteTie };
+      continue;
+    }
+    if (rt !== lt) continue;
+
+    // Only a valid setting participates in an equal-clock tie. A strictly
+    // newer unknown enum still advances the clock below, preserving the
+    // mixed-version loop protection, but invalid peers cannot win a tie.
+    const remoteClean = sanitize({ [k]: remote.values[k] });
+    if (!Object.prototype.hasOwnProperty.call(remoteClean, k)) continue;
+    const localClean = sanitize({ [k]: s.data[k] });
+    const localValue = Object.prototype.hasOwnProperty.call(localClean, k)
+      ? localClean[k]
+      : DEFAULTS[k];
+    if (remoteWinsSyncTie(remoteTie, localTie, remoteClean[k], localValue)) {
+      winners[k] = { timestamp: rt, tieBreaker: remoteTie };
+    }
   }
   const keys = Object.keys(winners);
   if (!keys.length) return;
@@ -433,10 +508,14 @@ function mergeFromSync(remote) {
   s.update((data) => {
     Object.assign(data, clean);
     data._syncMeta ??= {};
+    data._syncTieBreakers ??= {};
     // Advance the clock for EVERY conceded key — including ones sanitize
     // rejected (e.g. an enum value a newer app version introduced) — so a
     // value we can't apply can't re-win every sync and loop forever.
-    for (const k of keys) data._syncMeta[k] = winners[k];
+    for (const k of keys) {
+      data._syncMeta[k] = winners[k].timestamp;
+      data._syncTieBreakers[k] = winners[k].tieBreaker;
+    }
   });
   // Notify (→ app re-applies theme/adblock) only when something was adopted.
   if (Object.keys(clean).length) for (const fn of listeners) fn(getSettings());

@@ -60,11 +60,12 @@ test('a new profile requires first-run while a legacy settings file is promoted'
 test('the Sunrise and Billboard release reset runs once, then preserves later choices', () => {
   const upgradeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-presentation-reset-'));
   const settingsFile = path.join(upgradeDir, 'settings.json');
+  const remoteTimestamp = Date.now() + 60_000;
   fs.writeFileSync(settingsFile, JSON.stringify({
     onboardingVersion: 1,
     appIcon: 'ink',
     newtabLayout: 'mahjong',
-    _syncMeta: { newtabLayout: 10 },
+    _syncMeta: { newtabLayout: remoteTimestamp },
   }));
 
   let settings = loadSettings(upgradeDir, true);
@@ -75,7 +76,7 @@ test('the Sunrise and Billboard release reset runs once, then preserves later ch
     current.presentationDefaultsResetVersion,
     settings.PRESENTATION_DEFAULTS_RESET_VERSION,
   );
-  assert.ok(current._syncMeta.newtabLayout > 10);
+  assert.ok(current._syncMeta.newtabLayout > remoteTimestamp);
 
   const persisted = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
   persisted.appIcon = 'ink';
