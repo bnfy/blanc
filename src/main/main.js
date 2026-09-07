@@ -154,6 +154,7 @@ const {
   tabImportClaimUrl,
   tabImportUrlsFromArgv,
 } = require('./tab-import-handoff');
+const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
   trimSnapshot,
@@ -1126,6 +1127,11 @@ settings.setExistingProfileHint(
     fs.existsSync(path.join(app.getPath('userData'), name))
   )
 );
+
+const tabImportProtocolRegistration = registerWindowsTabImportProtocol(app);
+if (tabImportProtocolRegistration.attempted && !tabImportProtocolRegistration.registered) {
+  console.warn('[tab-handoff] could not register blanc-import as a Windows protocol client');
+}
 
 // One production instance per profile: a second launch defers to the first.
 // The unpackaged acceptance harness already has a unique userData directory;

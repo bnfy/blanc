@@ -196,12 +196,14 @@ jobs:
           if ($install.ExitCode -ne 0) {
             throw "Silent protocol-test install failed with exit code $($install.ExitCode)."
           }
-          $protocolKey = Get-Item 'Registry::HKEY_CURRENT_USER\Software\Classes\blanc-import\shell\open\command'
-          $protocolCommand = [string]$protocolKey.GetValue('')
-          if ($protocolCommand -notmatch '^"([^"]+)"') {
-            throw "Installed blanc-import command does not begin with a quoted executable: $protocolCommand"
+          $programsRoot = Join-Path $env:LOCALAPPDATA 'Programs'
+          $installedExecutables = @(
+            Get-ChildItem -Path $programsRoot -Filter "$product.exe" -File -Recurse
+          )
+          if ($installedExecutables.Count -ne 1) {
+            throw "Expected one installed $product executable, found $($installedExecutables.Count)."
           }
-          $installedExecutable = $Matches[1]
+          $installedExecutable = $installedExecutables[0].FullName
           $installedRoot = Split-Path -Parent $installedExecutable
           $uninstaller = Join-Path $installedRoot "Uninstall $product.exe"
           try {

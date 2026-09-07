@@ -56,8 +56,6 @@ const readTabs = async (app) => {
   return chrome.evaluate(() => window.browserAPI.getAllTabs());
 };
 
-const quoteDesktopExec = (value) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-
 const configureLinuxProtocol = async (env) => {
   const extractDir = path.join(runtimeRoot, 'appimage-extract');
   fs.mkdirSync(extractDir, { recursive: true });
@@ -74,10 +72,15 @@ const configureLinuxProtocol = async (env) => {
 
   const applicationsDir = path.join(env.XDG_DATA_HOME, 'applications');
   fs.mkdirSync(applicationsDir, { recursive: true });
+  // Ubuntu's generic xdg-open backend does not parse a quoted executable in
+  // Exec= consistently. Point a no-space test-local symlink at the exact
+  // AppImage instead of weakening the test with shell evaluation.
+  const registeredExecutable = path.join(runtimeRoot, 'Blanc.AppImage');
+  fs.symlinkSync(executablePath, registeredExecutable);
   const registeredName = 'me.bnfy.blanc-tab-handoff-test.desktop';
   const registered = desktop
     .replace(/^Name=.*$/m, 'Name=Blanc Tab Handoff Protocol Test')
-    .replace(/^Exec=.*$/m, `Exec=${quoteDesktopExec(executablePath)} %U`);
+    .replace(/^Exec=.*$/m, `Exec=${registeredExecutable} %U`);
   fs.writeFileSync(path.join(applicationsDir, registeredName), registered);
   await execFileAsync('update-desktop-database', [applicationsDir], { env });
   await execFileAsync(
