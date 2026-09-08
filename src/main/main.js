@@ -171,6 +171,7 @@ const {
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
+  mayDiscardRenderer,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
@@ -247,7 +248,7 @@ const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } 
 const { buildHintProbeScript, configTransition, createFillHintScheduler } = require('./fill-hint');
 const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
+  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -1742,7 +1743,7 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   // and Glance, which can make the tab visible during it.
   if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
       || tab.navEpoch !== navEpoch || tab.isLoading
-      || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
+      || !tab.sleeping || !mayDiscardRenderer(tab) || liveContents(tab) !== wc
       // A mid-probe Move-Tab-to-New-Window re-homes the tab; the active/glance
       // checks above read the runtime that STARTED this sleep, so they would
       // miss a tab that is now the destination window's visible page.
@@ -1818,7 +1819,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
   // the visible Glance reference while an earlier candidate's probe awaited.
   if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
       || tab.navEpoch !== epochAtProbe
-      || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)
+      || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
       // that started this sleep no longer owns a tab moved mid-probe.
       || windowRuntimes.runtimeForTab(id) !== rt()) return false;
@@ -2026,7 +2027,7 @@ function parkTabView(tab, entry) {
   if (!wc) return false;
   // Final synchronous guard, same shape as sleepTab's: capture state can
   // change between eligibility selection and this call (§5.1a).
-  if (tab.capturing || (tab.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  if (!mayParkTabView(tab)) return false;
   const owner = rt();
   const view = tab.view;
   // Registry FIRST, then strip, then firewall: no instant exists in which a
@@ -8009,6 +8010,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   }
 
   displayCaptureRegistry = createBrokerRegistry();
+  displayCaptureRegistry.onChange(() => {
+    for (const tab of tabs.values()) {
+      tab.displayShareBlocking = displayCaptureRegistry.tabHasBlockingShare(tab.id) === true;
+    }
+  });
   const displayCaptureAuthority = createHelperAuthority();
   const displayCaptureHelperSession = createHelperSession({
     sessionFactory: session,

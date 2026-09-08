@@ -68,7 +68,7 @@ function sleepCandidates(tabList, options) {
     if (!tab?.id || tab.id === activeTabId) return;
     if (visibleTabIds.has(tab.id)) return;
     if (tab.asleep || tab.sleeping || tab.waking || tab.isLoading) return;
-    if (tab.audible || tab.muted || tab.usedMedia || tab.capturing || tab.pinned) return;
+    if (tab.audible || tab.muted || tab.usedMedia || tab.capturing || tab.displayShareBlocking || tab.pinned) return;
     if (tab.adopted || tab.restorableCommit !== true || tab.deepScrolled) return;
     if (permissionPendingTabIds.has(tab.id)) return;
     if ((popupChildCounts.get(tab.id) ?? 0) !== 0) return;
@@ -135,8 +135,13 @@ function trimSnapshot(entries, index, options = {}) {
   return { entries: out, index: activeIndex, droppedPageState };
 }
 
+function mayDiscardRenderer(tab) {
+  return tab?.displayShareBlocking !== true && tab?.capturing !== true;
+}
+
 module.exports = {
   sleepCandidates,
+  mayDiscardRenderer,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,

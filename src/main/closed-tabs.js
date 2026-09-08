@@ -34,12 +34,19 @@ function holdEligibility(tab, {
   if (!hasSnapshot) return 'url';
   const anchorCount = tab.captureRecord?.anchors?.length ?? 0;
   const demoted =
-    tab.capturing || anchorCount > 0        // grant truth, not the projection (§5.1a)
+    tab.capturing || tab.displayShareBlocking === true || anchorCount > 0        // grant truth, not the projection (§5.1a)
     || promptPending                        // prompt-bearing closes are Tier 1 (§5.1b)
     || tab.isLoading                        // an in-flight navigation can't be frozen (§3.4)
     || tab.asleep || tab.sleeping || tab.waking
     || tab.adopted || openerAlive || hasManagedChild || popupChildCount > 0; // §5.6
   return demoted ? 'snapshot' : 'hold';
+}
+
+function mayParkTabView(tab) {
+  if (tab?.displayShareBlocking === true) return false;
+  if (tab?.capturing) return false;
+  if ((tab?.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  return true;
 }
 
 /**
@@ -188,6 +195,7 @@ function projectEntries(entries) {
 
 module.exports = {
   holdEligibility,
+  mayParkTabView,
   sanitizeSnapshot,
   buildTabEntry,
   buildGroupEntry,

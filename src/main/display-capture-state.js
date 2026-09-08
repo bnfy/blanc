@@ -4,8 +4,14 @@ function createBrokerRegistry() {
   const byRequest = new Map();
   const byShare = new Map();
   const pendingByTab = new Map();
+  const listeners = new Set();
   let seq = 0;
   const nextId = (prefix) => `${prefix}-${++seq}`;
+  const notify = () => {
+    for (const fn of listeners) {
+      try { fn(); } catch {}
+    }
+  };
 
   const project = (rec) => ({
     shareId: rec.shareId,
@@ -49,6 +55,7 @@ function createBrokerRegistry() {
     byRequest.set(requestId, rec);
     byShare.set(shareId, rec);
     pendingByTab.set(tabId, requestId);
+    notify();
     return { requestId };
   }
 
@@ -62,6 +69,7 @@ function createBrokerRegistry() {
     byRequest.delete(rec.requestId);
     byShare.delete(rec.shareId);
     if (pendingByTab.get(rec.tabId) === rec.requestId) pendingByTab.delete(rec.tabId);
+    notify();
   }
 
   function invalidateGeneration(webContentsId, documentGeneration) {
@@ -86,6 +94,7 @@ function createBrokerRegistry() {
     rec.surfaceKind = surfaceKind ?? null;
     rec.computerAudio = rec.audioRequested === true && computerAudioApproved === true;
     pendingByTab.delete(rec.tabId);
+    notify();
     return project(rec);
   }
 
@@ -107,6 +116,7 @@ function createBrokerRegistry() {
     if (releasedKind === 'audio') rec.computerAudio = false;
     const shareEnded = remaining.length === 0;
     if (shareEnded) drop(rec);
+    else notify();
     return { releasedKind, shareEnded };
   }
 
@@ -141,6 +151,10 @@ function createBrokerRegistry() {
     stopShare,
     tabHasBlockingShare,
     listShares,
+    onChange(fn) {
+      if (typeof fn === 'function') listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
   };
 }
 
