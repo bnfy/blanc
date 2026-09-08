@@ -57,6 +57,21 @@ function discardLateStream(shareId, stream, pc) {
   markNativeSettled(shareId);
 }
 
+function logHelper(event, detail = {}) {
+  try {
+    helper.signal({
+      type: 'diag',
+      event,
+      ...detail,
+    });
+  } catch {}
+  try {
+    console.error(`[display-capture-helper] ${event}`, JSON.stringify(detail));
+  } catch {
+    console.error(`[display-capture-helper] ${event}`);
+  }
+}
+
 async function acquire(job) {
   const shareId = job?.shareId;
   if (!shareId) {
@@ -70,9 +85,28 @@ async function acquire(job) {
   }
   if (prior?.stream || prior?.pc) teardown(shareId);
   remember(shareId, { cancelled: false, stream: null, pc: null, acquiring: true });
-  const stream = await navigator.mediaDevices.getDisplayMedia({
-    video: true,
-    audio: job.computerAudio === true,
+  logHelper('getDisplayMedia-start', {
+    shareId,
+    computerAudio: job.computerAudio === true,
+  });
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: job.computerAudio === true,
+    });
+  } catch (err) {
+    logHelper('getDisplayMedia-throw', {
+      shareId,
+      name: err?.name || null,
+      message: typeof err?.message === 'string' ? err.message.slice(0, 120) : null,
+    });
+    throw err;
+  }
+  logHelper('getDisplayMedia-ok', {
+    shareId,
+    video: stream.getVideoTracks().map((t) => `${t.readyState}:${t.muted}`).join(','),
+    audio: stream.getAudioTracks().map((t) => `${t.readyState}:${t.muted}`).join(','),
   });
   if (sessions.get(shareId)?.cancelled) {
     discardLateStream(shareId, stream);

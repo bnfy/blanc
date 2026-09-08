@@ -52,6 +52,7 @@ const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy')
 const {
   mergeDisabledFeatures,
   captureDisabledFeatures,
+  applyLinuxCaptureOzone,
 } = require('./display-capture-flags');
 const {
   WEBRTC_AUDIO_BUFFER_GET_CHANNEL,
@@ -1436,6 +1437,8 @@ app.commandLine.appendSwitch(
     ...captureDisabledFeatures(process.platform),
   ])
 );
+// Before ready: Wayland sessions must not fall through to X11 ozone/capture.
+applyLinuxCaptureOzone(app.commandLine);
 
 // Override client-hints branding at the Chromium level via CDP so both HTTP
 // Sec-CH-UA headers AND navigator.userAgentData.brands report Chrome.

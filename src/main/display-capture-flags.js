@@ -22,5 +22,32 @@ function mergeDisabledFeatures(existing, extras) {
   return parts.join(',');
 }
 
-module.exports = { mergeDisabledFeatures, MAC_CATAP_LOOPBACK_FEATURE,
-  LINUX_INPUT_VOLUME_FEATURE, captureDisabledFeatures };
+// Packaged AppImages often inherit DISPLAY from XWayland while the session is
+// Wayland. Chromium then picks the X11 ozone path and desktop capture dies
+// with shared_x_display "Unable to open display". Prefer Wayland whenever the
+// session already says so, unless the operator pinned ozone-platform.
+function shouldPreferWaylandOzone(platform, env = process.env, hasOzonePlatform = false) {
+  if (platform !== 'linux' || hasOzonePlatform) return false;
+  return env.XDG_SESSION_TYPE === 'wayland' || !!env.WAYLAND_DISPLAY;
+}
+
+function applyLinuxCaptureOzone(commandLine, {
+  platform = process.platform,
+  env = process.env,
+} = {}) {
+  const hasOzone = typeof commandLine?.hasSwitch === 'function'
+    ? commandLine.hasSwitch('ozone-platform')
+    : !!commandLine?.getSwitchValue?.('ozone-platform');
+  if (!shouldPreferWaylandOzone(platform, env, hasOzone)) return false;
+  commandLine.appendSwitch('ozone-platform', 'wayland');
+  return true;
+}
+
+module.exports = {
+  mergeDisabledFeatures,
+  MAC_CATAP_LOOPBACK_FEATURE,
+  LINUX_INPUT_VOLUME_FEATURE,
+  captureDisabledFeatures,
+  shouldPreferWaylandOzone,
+  applyLinuxCaptureOzone,
+};

@@ -26,6 +26,25 @@ function pageErrorNameForReason(reason) {
   return 'AbortError';
 }
 
+/** Temporary gate-diagnosis logging; keep messages structured and free of SDP/PII. */
+function logCapture(event, detail = {}) {
+  try {
+    const safe = {};
+    for (const [key, value] of Object.entries(detail || {})) {
+      if (value == null) continue;
+      if (typeof value === 'string' && value.length > 120) {
+        safe[key] = `${value.slice(0, 120)}…`;
+        continue;
+      }
+      if (key === 'sdp' || key === 'offer' || key === 'candidate') continue;
+      safe[key] = value;
+    }
+    console.error(`[display-capture] ${event}`, JSON.stringify(safe));
+  } catch {
+    console.error(`[display-capture] ${event}`);
+  }
+}
+
 function createHelperAuthority() {
   const tokens = new WeakSet();
 
@@ -121,6 +140,13 @@ function installDisplayCaptureBroker({
     clearTimeout(wait.timer);
     pending.delete(requestId);
     hidePicker?.(requestId);
+    logCapture('fail-pending', {
+      requestId,
+      shareId: wait.shareId,
+      errorName,
+      reason: extra.reason || null,
+      alreadyResolved: wait.resolved === true,
+    });
     if (wait.resolved === true) {
       try {
         wait.event?.sender?.send?.('display-capture:abort', {
@@ -207,14 +233,25 @@ function installDisplayCaptureBroker({
     const generation = ++captureGeneration;
     activeCaptureGrant = { shareId, source, computerAudio, generation };
     nativeArmed.add(shareId);
+    logCapture('install-handler', {
+      shareId,
+      computerAudio: computerAudio === true,
+      sourceId: typeof source?.id === 'string' ? source.id : null,
+    });
     helperSession.setDisplayMediaRequestHandler((_request, callback) => {
       const live = activeCaptureGrant;
       if (!live || live.shareId !== shareId || live.generation !== generation) {
+        logCapture('handler-stale-deny', { shareId, generation });
         callback({});
         settleNativeAcquire(shareId);
         return;
       }
       activeCaptureGrant = null;
+      logCapture('handler-grant', {
+        shareId,
+        computerAudio: live.computerAudio === true,
+        sourceId: typeof live.source?.id === 'string' ? live.source.id : null,
+      });
       callback({
         video: live.source,
         ...(live.computerAudio ? { audio: 'loopback' } : {}),
@@ -248,6 +285,14 @@ function installDisplayCaptureBroker({
     const rec = registry.listShares().find((row) => row.shareId === shareId);
     const job = helperJobs.get(shareId);
     const hadPending = rec && pending.has(rec.requestId);
+    logCapture('stop-share', {
+      shareId,
+      reason,
+      requestId: rec?.requestId || null,
+      hadPending: !!hadPending,
+      computerAudio: job?.computerAudio === true,
+      pageErrorName: pageErrorNameForReason(reason),
+    });
     registry.stopShare(shareId);
     if (helperWc && !helperWc.isDestroyed?.()) {
       helperWc.send('display-capture-helper:signal', { type: 'stop', shareId, reason });
@@ -505,7 +550,25 @@ function installDisplayCaptureBroker({
     if (!authority.isAuthorizedHelperSender(event.sender, CHROME_DISPLAY_CAPTURE_HELPER_URL)) return;
     const shareId = payload?.shareId;
     const job = helperJobs.get(shareId);
+    if (payload?.type === 'diag') {
+      logCapture(`helper-diag:${payload.event || 'unknown'}`, {
+        shareId,
+        name: payload?.name || null,
+        message: typeof payload?.message === 'string' ? payload.message : null,
+        computerAudio: payload?.computerAudio,
+        video: payload?.video || null,
+        audio: payload?.audio || null,
+      });
+      return;
+    }
     if (payload?.type === 'ended' || payload?.type === 'error') {
+      logCapture('helper-signal', {
+        type: payload?.type,
+        shareId,
+        name: payload?.name || null,
+        reason: payload?.reason || null,
+        message: typeof payload?.message === 'string' ? payload.message : null,
+      });
       if (shareId) {
         stopShareNow(shareId, payload?.reason || payload?.name || 'helper');
         settleNativeAcquire(shareId);
@@ -513,6 +576,12 @@ function installDisplayCaptureBroker({
       return;
     }
     if (payload?.type !== 'offer') return;
+    logCapture('helper-offer', {
+      shareId,
+      video: payload.tracks?.video === true,
+      audio: payload.tracks?.audio === true,
+      computerAudio: job?.computerAudio === true,
+    });
     if (!job) {
       if (shareId && helperWc && !helperWc.isDestroyed?.()) {
         helperWc.send('display-capture-helper:signal', { type: 'stop', shareId, reason: 'late' });
@@ -606,5 +675,7 @@ module.exports = {
   createHelperSession,
   attachHelperWindow,
   installDisplayCaptureBroker,
+  pageErrorNameForReason,
+  logCapture,
   isAuthorizedHelperSender: (wc, url, authority) => authority.isAuthorizedHelperSender(wc, url),
 };

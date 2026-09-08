@@ -285,9 +285,10 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         });
         const tracks = [];
         const requiredAudio = result.computerAudio === true;
-        const trackIsUsable = (track) => (
-          !!track && track.readyState === 'live' && track.muted !== true
-        );
+        // Live is enough to return the stream to the site. Remote WebRTC tracks
+        // can remain muted until the first decoded frame; blocking on unmute
+        // hung packaged Meet/local shares while the helper was already sending.
+        const trackIsLive = (track) => !!track && track.readyState === 'live';
         const got = new Promise((resolve, reject) => {
           let settled = false;
           const finish = (err) => {
@@ -307,10 +308,10 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
           };
           const tryReady = () => {
             const video = tracks.find((item) => item.kind === 'video');
-            if (!trackIsUsable(video)) return;
+            if (!trackIsLive(video)) return;
             if (requiredAudio) {
               const audio = tracks.find((item) => item.kind === 'audio');
-              if (!trackIsUsable(audio)) return;
+              if (!trackIsLive(audio)) return;
             }
             finish();
           };
@@ -322,7 +323,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
             emitBridge('blanc:display-capture-track-added', { shareId: result.shareId, kind, trackKey });
             tracks.push(event.track);
             const maybeReady = () => {
-              if (trackIsUsable(event.track)) {
+              if (trackIsLive(event.track)) {
                 emitBridge('blanc:display-capture-track-ready', { shareId: result.shareId, kind, trackKey });
               }
               tryReady();

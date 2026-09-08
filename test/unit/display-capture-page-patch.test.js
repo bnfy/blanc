@@ -127,7 +127,7 @@ test('video false is TypeError before any broker request', async () => {
   assert.equal(w.events.some((item) => item.type === 'blanc:display-capture-request'), false);
 });
 
-test('muted ontrack registers a consumer but does not emit track-ready', async () => {
+test('muted live ontrack still emits track-ready so startup can clear', async () => {
   const w = makeWorld({ computerAudio: true, emitAudioImmediately: false, mutedVideo: true });
   const pending = w.gdm({ video: true, audio: true });
   await new Promise((resolve) => setImmediate(resolve));
@@ -135,15 +135,14 @@ test('muted ontrack registers a consumer but does not emit track-ready', async (
   const added = w.events.filter((item) => item.type === 'blanc:display-capture-track-added');
   const ready = w.events.filter((item) => item.type === 'blanc:display-capture-track-ready');
   assert.ok(added.some((item) => JSON.parse(item.detail).kind === 'video'));
-  assert.equal(ready.length, 0);
-  w.unmuteVideo();
-  await new Promise((resolve) => setImmediate(resolve));
-  const readyAfter = w.events.filter((item) => item.type === 'blanc:display-capture-track-ready');
-  assert.ok(readyAfter.some((item) => JSON.parse(item.detail).kind === 'video'));
-  pending.then(() => {});
+  assert.ok(ready.some((item) => JSON.parse(item.detail).kind === 'video'));
+  w.emitAudio();
+  const stream = await pending;
+  assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
+  assert.ok(stream.getTracks().some((track) => track.kind === 'audio'));
 });
 
-test('approved computer audio waits for a live unmuted audio track', async () => {
+test('approved computer audio waits for a live audio track', async () => {
   const w = makeWorld({ computerAudio: true, emitAudioImmediately: false });
   let settled = false;
   const pending = w.gdm({ video: true, audio: true }).then((stream) => {
