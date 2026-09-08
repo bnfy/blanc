@@ -50,6 +50,10 @@ const {
 } = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
+  mergeDisabledFeatures,
+  MAC_CATAP_LOOPBACK_FEATURE,
+} = require('./display-capture-flags');
+const {
   WEBRTC_AUDIO_BUFFER_GET_CHANNEL,
   sendWebrtcAudioBufferMode,
 } = require('./webrtc-audio-buffer');
@@ -1392,10 +1396,12 @@ function chromeLikeUserAgent(ua) {
 // the same low-entropy UA shape as desktop Chrome.
 app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 
-// Hide the FedCM API. Must happen before app 'ready', and silently no-ops
-// if Chromium ever retires the "FedCm" feature name (an Electron bump that
-// brings back Google-login 400s should recheck here first — also see the
-// CDP client-hints override and onBeforeSendHeaders fallback below). Chromium ships
+// Hide the FedCM API (and on macOS disable Catap loopback so display-share
+// can use the older Screen & System Audio Recording path). Must happen
+// before app 'ready'. Silently no-ops if Chromium retires a feature name
+// (an Electron bump that brings back Google-login 400s should recheck here
+// first — also see the CDP client-hints override and onBeforeSendHeaders
+// fallback below). Chromium ships
 // the JS surface (IdentityCredential) but Electron has no account-chooser
 // UI behind it, so FedCM calls can only ever fail with "Error retrieving
 // a token". Google Identity Services feature-detects the API, commits to
@@ -1409,7 +1415,10 @@ app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 const priorDisabledFeatures = app.commandLine.getSwitchValue('disable-features');
 app.commandLine.appendSwitch(
   'disable-features',
-  priorDisabledFeatures ? `${priorDisabledFeatures},FedCm` : 'FedCm'
+  mergeDisabledFeatures(priorDisabledFeatures, [
+    'FedCm',
+    ...(process.platform === 'darwin' ? [MAC_CATAP_LOOPBACK_FEATURE] : []),
+  ])
 );
 
 // Override client-hints branding at the Chromium level via CDP so both HTTP
