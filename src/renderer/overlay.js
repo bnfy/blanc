@@ -30,6 +30,7 @@
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const capturePop = document.getElementById('capturePop');
+  const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
   const CONNECTION_LABEL = {
     https: 'Connection · Uses HTTPS',
@@ -2244,7 +2245,7 @@
       (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
     } else if (next === 'capture') {
       renderCapturePop();
-      capturePopRows.querySelector('.capture-pop-stop')?.focus();
+      capturePopRows.querySelector('.capture-pop-stop, .display-share-stop')?.focus();
     }
   }
 
@@ -2277,7 +2278,9 @@
   // itself when the list empties).
   function renderCapturePop() {
     const rows = state.capturePopover?.rows ?? [];
-    capturePopRows.replaceChildren(...rows.map((row) => {
+    const shares = state.displayShares ?? [];
+    capturePopHead.textContent = rows.length === 0 && shares.length > 0 ? 'sharing' : 'in use';
+    const micItems = rows.map((row) => {
       // Two REAL sibling buttons in a plain list item — a role=button row
       // wrapping the Stop button would be an invalid accessibility tree
       // (no interactive content inside a button), and native buttons get
@@ -2306,7 +2309,37 @@
       stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId));
       li.append(go, stop);
       return li;
-    }));
+    });
+    const shareItems = shares.map((row) => {
+      const li = document.createElement('li');
+      li.className = 'display-share-row';
+      const surface = row.surfaceLabel || 'this screen';
+      const titleText = row.pending ? 'Sharing…' : `Sharing ${surface}`;
+      const audioText = row.computerAudio ? 'Computer audio on' : 'Computer audio off';
+      const go = document.createElement('button');
+      go.type = 'button';
+      go.className = 'display-share-go';
+      go.setAttribute('aria-label', `${titleText}. ${audioText}. Go to tab`);
+      const title = document.createElement('span');
+      title.className = 'display-share-title';
+      title.textContent = titleText;
+      const audio = document.createElement('span');
+      audio.className = 'display-share-audio';
+      audio.textContent = audioText;
+      go.append(title, audio);
+      go.addEventListener('click', () => {
+        if (row.tabId) window.browserAPI.switchTab(row.tabId);
+      });
+      const stop = document.createElement('button');
+      stop.type = 'button';
+      stop.className = 'display-share-stop';
+      stop.textContent = 'Stop sharing';
+      stop.setAttribute('aria-label', `Stop sharing ${surface}`);
+      stop.addEventListener('click', () => window.browserAPI.stopDisplayShare(row.shareId));
+      li.append(go, stop);
+      return li;
+    });
+    capturePopRows.replaceChildren(...micItems, ...shareItems);
   }
 
   // Renders from the last tabs:updated broadcast — main recomputes

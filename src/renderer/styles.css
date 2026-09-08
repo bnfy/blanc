@@ -3011,6 +3011,62 @@ body.permission-surface { background: transparent; }
   color: var(--danger);
   background: color-mix(in srgb, var(--danger) 8%, transparent);
 }
+.display-share-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.display-share-go {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+}
+.display-share-go:hover { background: var(--accent-dim); }
+.display-share-title,
+.display-share-audio {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  text-decoration: none;
+}
+.display-share-title {
+  font-size: 12.5px;
+  color: var(--text);
+}
+.display-share-audio {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.display-share-stop {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+.display-share-stop:hover { border-color: var(--danger); color: var(--danger); }
 #permissionBar[hidden] { display: none; }
 
 #permissionText {

@@ -236,3 +236,29 @@ test('cancel during acquisition stops a late helper offer', async (t) => {
   assert.equal((await pending).reason, 'cancel');
   assert.equal(authority.isAuthorizedHelperSender(helperWc, CHROME_DISPLAY_CAPTURE_HELPER_URL), true);
 });
+
+test('strip or overlay Stop ends only the named share; other chrome cannot', (t) => {
+  const { ipcMain, registry } = install(t);
+  registry.beginRequest({
+    tabId: 1, webContentsId: 1, frameId: 1,
+    origin: 'https://a.example', documentGeneration: 1, audioRequested: false,
+  });
+  registry.beginRequest({
+    tabId: 2, webContentsId: 2, frameId: 1,
+    origin: 'https://b.example', documentGeneration: 1, audioRequested: false,
+  });
+  const idA = registry.listShares().find((row) => row.origin === 'https://a.example').shareId;
+  const idB = registry.listShares().find((row) => row.origin === 'https://b.example').shareId;
+  ipcMain.emit('display-capture:stop', {
+    sender: { getURL: () => 'blanc-chrome://permission/' },
+  }, { shareId: idA });
+  assert.equal(registry.listShares().length, 2);
+  ipcMain.emit('display-capture:stop', {
+    sender: { getURL: () => 'blanc-chrome://index/' },
+  }, { shareId: idA });
+  const afterStrip = registry.listShares();
+  assert.equal(afterStrip.length, 1);
+  assert.equal(afterStrip[0].shareId, idB);
+  ipcMain.emit('display-capture:stop', overlayEvent(), { shareId: idB });
+  assert.equal(registry.listShares().length, 0);
+});

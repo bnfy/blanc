@@ -1,6 +1,9 @@
 'use strict';
 
-const { CHROME_DISPLAY_CAPTURE_HELPER_URL } = require('./chrome-protocol');
+const {
+  CHROME_DISPLAY_CAPTURE_HELPER_URL,
+  CHROME_INDEX_URL,
+} = require('./chrome-protocol');
 
 const HELPER_PARTITION = 'blanc-display-capture-helper';
 
@@ -349,11 +352,14 @@ function installDisplayCaptureBroker({
   });
 
   ipcMain.on('display-capture:stop', (event, payload) => {
-    if (!isOverlaySender?.(event) && event?.sender !== helperWc) {
-      const url = (() => { try { return event.sender.getURL(); } catch { return ''; } })();
-      if (!url.startsWith('blanc-chrome://')) return;
+    const url = (() => { try { return event.sender.getURL(); } catch { return ''; } })();
+    const trusted = event?.sender === helperWc
+      || isOverlaySender?.(event)
+      || url === CHROME_INDEX_URL;
+    if (!trusted) return;
+    if (typeof payload?.shareId === 'string' && payload.shareId) {
+      stopShareNow(payload.shareId, 'stop');
     }
-    if (payload?.shareId) stopShareNow(payload.shareId, 'stop');
   });
 
   return {
@@ -376,6 +382,7 @@ function installDisplayCaptureBroker({
       if (row) stopShareNow(row.shareId, 'timeout');
       else failPending(requestId, 'AbortError', { reason: 'timeout' });
     },
+    stopShare(shareId) { stopShareNow(shareId, 'stop'); },
     resolvePicker,
   };
 }

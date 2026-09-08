@@ -36,6 +36,7 @@
   const pillCapture = document.getElementById('pillCapture');
   const pillCaptureMic = document.getElementById('pillCaptureMic');
   const pillCaptureCam = document.getElementById('pillCaptureCam');
+  const pillDisplayShare = document.getElementById('pillDisplayShare');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
@@ -722,6 +723,18 @@
     pillCapture.title = `${capTitle} — open capture controls`;
     pillCapture.setAttribute('aria-label', `${capTitle} — open capture controls`);
 
+    // Display-share chip: WINDOW-WIDE — pending picker or active share on
+    // any tab in this window, including a backgrounded sharing tab.
+    const shares = state.displayShares ?? [];
+    pillDisplayShare.hidden = shares.length === 0;
+    const shareTitle = shares.length === 1
+      ? (shares[0].pending
+        ? 'Choosing what to share'
+        : `Sharing ${shares[0].surfaceLabel || 'this screen'}`)
+      : `${shares.length} screen shares`;
+    pillDisplayShare.title = `${shareTitle} — open share controls`;
+    pillDisplayShare.setAttribute('aria-label', `${shareTitle} — open share controls`);
+
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
@@ -777,6 +790,12 @@
   pillCapture.addEventListener('click', (e) => {
     e.stopPropagation();
     const r = pillCapture.getBoundingClientRect();
+    window.browserAPI.openCapturePopover({ right: r.right });
+  });
+
+  pillDisplayShare.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillDisplayShare.getBoundingClientRect();
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
@@ -908,8 +927,11 @@
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
+    pillDisplayShare.setAttribute('aria-expanded', String(mode === 'capture'));
     glanceChange.setAttribute('aria-expanded', String(mode === 'glance'));
-    if (restoreTrigger === 'capture') pillCapture.focus();
+    if (restoreTrigger === 'capture') {
+      (pillDisplayShare.hidden ? pillCapture : pillDisplayShare).focus();
+    }
     if (restoreTrigger === 'glance-change') glanceChange.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
     // focus() here lands in a focused document and paints the ring.

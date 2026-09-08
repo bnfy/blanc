@@ -76,6 +76,7 @@ const {
 const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
 const { parseDisplayMediaOptions } = require('./display-capture-constraints');
 const { createBrokerRegistry } = require('./display-capture-state');
+const { projectDisplayShares } = require('./display-capture-indicator');
 const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
 const {
   createHelperAuthority,
@@ -3919,6 +3920,11 @@ function captureRowCount() {
     const p = captureProjection(popup.record);
     if (p.audio || p.video) count += 1;
   }
+  if (displayCaptureRegistry) {
+    count += projectDisplayShares(displayCaptureRegistry.listShares(), {
+      tabIds: rt().tabOrder,
+    }).length;
+  }
   return count;
 }
 
@@ -3955,6 +3961,9 @@ function currentTabsPayload() {
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
+    displayShares: projectDisplayShares(displayCaptureRegistry?.listShares() ?? [], {
+      tabIds: runtime.tabOrder,
+    }),
     ...widthMetrics,
   };
 }
@@ -7842,6 +7851,7 @@ function broadcastWebrtcAudioBufferToBrowsingContents() {
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 let displayCaptureRegistry = null;
+let displayCaptureBroker = null;
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   profileSessionRegistry = createProfileSessionRegistry({
@@ -8014,6 +8024,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     for (const tab of tabs.values()) {
       tab.displayShareBlocking = displayCaptureRegistry.tabHasBlockingShare(tab.id) === true;
     }
+    forEachWindowRuntime(() => {
+      scheduleBroadcastTabs();
+      if (rt().overlayMode !== 'capture') return;
+      if (captureRowCount() === 0) hideOverlay({ refocusContent: false });
+      else if (rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+    }, { liveOnly: true });
   });
   const displayCaptureAuthority = createHelperAuthority();
   const displayCaptureHelperSession = createHelperSession({
@@ -8034,7 +8050,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     lockPrivilegedNavigation,
     authority: displayCaptureAuthority,
   });
-  installDisplayCaptureBroker({
+  displayCaptureBroker = installDisplayCaptureBroker({
     ipcMain,
     registry: displayCaptureRegistry,
     evaluateAdmission,
