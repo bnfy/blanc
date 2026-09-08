@@ -12,4 +12,7 @@ resolves to a string and `app` is undefined.
 unset ELECTRON_RUN_AS_NODE
 node_modules/electron/dist/Electron.app/Contents/MacOS/Electron \
   experiments/display-capture-broker/admission-probe
+unset ELECTRON_RUN_AS_NODE
+node_modules/electron/dist/Electron.app/Contents/MacOS/Electron \
+  experiments/display-capture-broker/audio-probe
 ```
