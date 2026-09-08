@@ -12,6 +12,18 @@ test('macOS package declares microphone and camera usage descriptions', () => {
   const info = pkg.build?.mac?.extendInfo ?? {};
   assert.match(info.NSMicrophoneUsageDescription ?? '', /microphone/i);
   assert.match(info.NSCameraUsageDescription ?? '', /camera/i);
+  assert.equal(
+    info.NSAudioCaptureUsageDescription,
+    'Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.'
+  );
+});
+
+test('display-capture stub picker cannot arm in a packaged build', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  assert.match(
+    main,
+    /stubPicker:\s*!app\.isPackaged && process\.env\.BLANC_DISPLAY_CAPTURE_STUB === '1'/
+  );
 });
 
 test('hardened main and helper processes carry native media entitlements', () => {

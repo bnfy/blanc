@@ -137,7 +137,8 @@
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
-        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera."
+        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
+        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source."
       },
       "target": [
         "dmg",
