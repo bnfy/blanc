@@ -1,4 +1,4 @@
-// Pure apply planning for F39 Bring Your Tabs. This module resolves opaque
+// Pure apply planning for F40 Bring Your Tabs. This module resolves opaque
 // candidate membership into preview-ordered tab specs;
 // Electron-owned mutation remains in main.js.
 const { validFavicon } = require('./bookmark-validate');

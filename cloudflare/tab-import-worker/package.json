@@ -1,0 +1,13 @@
+{
+  "name": "blanc-tab-import-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test:runtime": "node --test test/runtime.test.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.129.1"
+  }
+}

@@ -788,7 +788,7 @@ From the desktop `DEFAULTS`:
   with its explicit-discovery rule intact: no other browser's profile is read
   until the person asks to look, and the universal bookmarks-file import is
   offered from the start. The import step also offers **Bring your open tabs…**
-  as a separate F39 handoff before or after F30 Favorites import. F39 does not
+  as a separate F40 handoff before or after F30 Favorites import. F40 does not
   depend on completing a Favorites import first.
 - Ad-blocking and theme choices apply live during the flow through the same
   validated settings paths as Settings itself; the default-browser step uses
@@ -802,7 +802,7 @@ From the desktop `DEFAULTS`:
   [`acceptance/onboarding.feature`](./acceptance/onboarding.feature) shows the
   walkthrough to a fresh profile once, proves skip records the privacy
   choices, never re-asks a completed profile, and verifies the import step
-  reads nothing before the explicit ask. F39's onboarding handoff is covered by
+  reads nothing before the explicit ask. F40's onboarding handoff is covered by
   [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature).
 
 ## F37 — The blank tab shows where to type
@@ -864,7 +864,16 @@ From the desktop `DEFAULTS`:
   a real installed 1Password desktop app on macOS. Windows and Linux must prove
   the feature is unavailable and cannot start its broker.
 
-## F39 — Bring Your Tabs (direct open-tab migration)
+## F39 — Certificate safety
+
+- Invalid certificates are rejected with a safety interstitial and certificate
+  problem details. No certificate bypass is offered.
+- **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
+
+## F40 — Bring Your Tabs (direct open-tab migration)
+
+PR #205 originally used F39 for migration. F40 resolves its collision with the
+existing certificate-safety scenario; historical PR evidence retains its old IDs.
 
 - A person explicitly chooses a supported Chromium-family browser profile.
   Blanc reads that profile's newest restorable open-tab session only after the

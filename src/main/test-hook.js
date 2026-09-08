@@ -149,6 +149,10 @@ function install(refs) {
     getTabImportSessionProjection,
     applyTabImportFromRuntime,
     getTabStateBroadcastCount,
+    getTabHandoffTestState,
+    queueTabHandoffForTest,
+    acceptTabHandoffForTest,
+    cancelTabHandoffForTest,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -2122,6 +2126,10 @@ function install(refs) {
     chromeUrl() { return getChromeUrl(); },
     persistedSessionData() { return persistedSessionData(); },
     serializedTabsPayload() { return serializedTabsPayload(); },
+    tabHandoffState() { return getTabHandoffTestState(); },
+    queueTabHandoff(url) { return queueTabHandoffForTest(String(url)); },
+    acceptTabHandoff() { return acceptTabHandoffForTest(); },
+    cancelTabHandoff() { return cancelTabHandoffForTest(); },
     sessionSyncSnapshot() {
       return syncSnapshot(getTabOrder().map((id) => tabs.get(id)), getGroups());
     },
@@ -2201,18 +2209,17 @@ function install(refs) {
     async reset() {
       clearFocusObservation();
       activeTabImportFixtureName = null;
-      for (const runtime of windowRuntimeSnapshots()) {
-        if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
-      }
-      await new Promise((resolve) => setImmediate(resolve));
-      // Close named-profile windows before asking the deletion workflow to
-      // clear their sessions. Driving deletion against a still-visible test
-      // window can leave Electron waiting for a native hide event that the
-      // headless acceptance host never delivers.
+      // Keep the current deletion lifecycle authoritative: it settles native
+      // visibility and closes profile windows before clearing their sessions.
+      // Pre-closing them here races asynchronous native/view teardown.
       for (const profile of localProfileSnapshots()) {
         if (profile.id === 'default') continue;
         await deleteNamedLocalProfile(profile.id, profile.name);
       }
+      for (const runtime of windowRuntimeSnapshots()) {
+        if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
+      }
+      await new Promise((resolve) => setImmediate(resolve));
       // Do not let a scenario inherit retained page state. Quiet imported tabs
       // are viewless and have no snapshot, so waking hundreds of them merely to
       // delete them makes the stress scenario's cleanup slower than the product

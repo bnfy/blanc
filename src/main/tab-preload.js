@@ -55,6 +55,15 @@ if (window.location.protocol === 'blanc:') {
     api = {
       mahjong: { played: () => invoke('pages:mahjong:played') },
     };
+  } else if (host === 'tab-handoff') {
+    api = {
+      surface,
+      tabHandoff: {
+        get: () => invoke('pages:tab-handoff:get'),
+        accept: () => invoke('pages:tab-handoff:accept'),
+        cancel: () => invoke('pages:tab-handoff:cancel'),
+      },
+    };
   } else if (host === 'bookmarks') {
     api = {
       surface,

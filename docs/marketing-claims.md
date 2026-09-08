@@ -129,6 +129,19 @@ These boundaries are verified for the v1.15.0 public release:
 - **AI:** Blanc ships no AI assistant or agent browser. It does not understand
   assignments, detect semantic task boundaries, automatically organize tabs
   by meaning, or isolate automated browsing work from a person's session.
+- **Bring Your Tabs and open-tab handoff:** Neither capability is available in
+  public v1.15.0. They are complementary, not interchangeable. Bring Your Tabs
+  starts inside Blanc, reads a user-selected Chromium profile's saved session
+  locally, supports selection and Named Group editing, and can preserve eligible
+  source groups and pins. The one-time handoff starts in ChatGPT or the
+  Firefox/Safari companion and copies only URL, title, order, and active-tab
+  status from one live source window into a new scratch window. It has a
+  100-tab limit and a simpler review screen; it does not transfer groups or
+  pins. After both are release-backed, copy must preserve those distinctions,
+  excluded private/internal tabs, and the fact that OpenAI processes selected
+  metadata on the ChatGPT path while Firefox/Safari encrypt locally. Do not call
+  either path account sync, migration of sessions or logins, an automatic
+  import, or an AI browser feature.
 
 Canonical evidence locations include `src/main/main.js`,
 `src/renderer/overlay.js`, `src/main/tab-sleep.js`, the matching public release

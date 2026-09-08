@@ -29,18 +29,19 @@ const MANIFEST = [
   '/faq',
 ];
 
+const UNLISTED = new Set(['/import-tabs']);
+
 const SITE = 'https://blancbrowser.com';
 
 export function GET() {
   // Discover the real pages and assert the manifest matches them exactly —
   // adding or removing a page without updating MANIFEST fails the build.
-  const unlisted = new Set();
   const discovered = Object.keys(import.meta.glob('./**/*.astro'))
     .map((file) => file
       .replace(/^\.\//, '/')
       .replace(/\.astro$/, '')
       .replace(/\/index$/, '/'))
-    .filter((route) => !unlisted.has(route));
+    .filter((route) => !UNLISTED.has(route));
   const manifestSet = new Set(MANIFEST);
   const discoveredSet = new Set(discovered);
   const missingFromManifest = discovered.filter((p) => !manifestSet.has(p));

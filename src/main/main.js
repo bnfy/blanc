@@ -144,6 +144,18 @@ const {
 const { filterRestoredSession, restoreTargetId } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
+  MAX_TAB_IMPORT_ENVELOPE_BYTES,
+  MAX_TAB_IMPORT_TABS,
+  TAB_IMPORT_RELAY_ORIGIN,
+  decryptTabHandoffEnvelope,
+  parseTabImportUrl,
+  readBoundedResponseBytes,
+  sanitizeTabHandoff,
+  tabImportClaimUrl,
+  tabImportUrlsFromArgv,
+} = require('./tab-import-handoff');
+const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
+const {
   sleepCandidates,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
@@ -300,10 +312,22 @@ const rt = currentRuntime;
 primaryRuntime = windowRuntimes.createRuntime({ id: PRIMARY_WINDOW_ID });
 focusedRuntime = primaryRuntime;
 
-// F39 import state is main-process-only. Selecting a profile reads its bounded
+// F40 import state is main-process-only. Selecting a profile reads its bounded
 // restorable open-tab session once; exact URLs never cross the page bridge.
 const tabImportSessions = createTabImportSessionStore();
 const tabImportSourceReaders = new Map(); // sessionId -> owner + reader + generation
+const tabImportSourceRequests = new Map(); // runtimeId -> current async source-read identity
+
+function beginTabImportSourceRead() {
+  const runtime = rt();
+  const request = {};
+  const generation = runtime.surfaceGeneration;
+  tabImportSourceRequests.set(runtime.id, request);
+  return () => tabImportSourceRequests.get(runtime.id) === request &&
+    runtime.surfaceGeneration === generation &&
+    !!runtime.window && !runtime.window.isDestroyed() &&
+    sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-import/');
+}
 
 function tabImportOwner() {
   return { runtimeId: rt().id, profileId: rt().profileId };
@@ -318,6 +342,7 @@ function forgetTabImportSource(sessionId) {
 }
 
 function forgetTabImportForRuntime(runtimeId, reason = 'runtime-destroyed') {
+  tabImportSourceRequests.delete(runtimeId);
   for (const [sessionId, record] of tabImportSourceReaders) {
     if (record.runtimeId === runtimeId) tabImportSourceReaders.delete(sessionId);
   }
@@ -536,6 +561,224 @@ function ownedTabImportSession(sessionId) {
   };
 }
 
+function tabImportRelayOrigin() {
+  // Acceptance may point at a throwaway loopback relay. Packaged builds are
+  // permanently pinned to the production origin regardless of environment.
+  if (acceptanceTestMode && process.env.BLANC_TEST_TAB_IMPORT_RELAY) {
+    try {
+      const candidate = new URL(process.env.BLANC_TEST_TAB_IMPORT_RELAY);
+      if (candidate.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(candidate.hostname)) {
+        return candidate.origin;
+      }
+    } catch {}
+  }
+  return TAB_IMPORT_RELAY_ORIGIN;
+}
+
+function tabHandoffRuntime() {
+  const preferred = focusedRuntime ?? primaryRuntime;
+  if (preferred?.window && !preferred.window.isDestroyed()) return preferred;
+  return windowRuntimes.all().find((runtime) => runtime.window && !runtime.window.isDestroyed())
+    ?? primaryRuntime;
+}
+
+function focusPendingTabHandoff() {
+  const runtime = pendingTabHandoff
+    ? windowRuntimes.all().find((candidate) => candidate.id === pendingTabHandoff.runtimeId)
+    : null;
+  if (!runtime?.window || runtime.window.isDestroyed()) return false;
+  withWindowRuntime(runtime, () => {
+    if (!sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-handoff/')) {
+      showUtilityPage('blanc://tab-handoff/');
+    }
+    bringExternalWindowToFront(app, runtime.window);
+    liveUtilitySheet(runtime)?.wc.focus();
+  });
+  return true;
+}
+
+function tabHandoffErrorMessage(code) {
+  if (code === 'invalid-expiry') return 'This handoff has expired or your device clock is incorrect. Check the clock and create a new handoff.';
+  if (code === 'too-many-tabs') return 'This handoff has more than 100 tabs. Select a smaller set and try again.';
+  if (code === 'empty') return 'This handoff has no eligible web tabs.';
+  if (code === 'multiple-active-tabs') return 'The source browser reported more than one active tab.';
+  if (code === 'decryption-failed' || code === 'invalid-envelope' || code === 'invalid-payload') {
+    return 'Blanc could not verify this handoff. It may have been changed or opened with the wrong link.';
+  }
+  if (code === 'unavailable') return 'This handoff has expired, was already used, or is unavailable.';
+  if (code === 'offline') return 'Blanc could not reach the tab handoff service. Check your connection and try again.';
+  return 'Blanc could not import these tabs.';
+}
+
+async function claimTabHandoff(parsed) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await net.fetch(tabImportClaimUrl(parsed.id, tabImportRelayOrigin()), {
+      method: 'POST',
+      redirect: 'error',
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error('unavailable');
+    const maxResponseBytes = Math.ceil(MAX_TAB_IMPORT_ENVELOPE_BYTES * 4 / 3) + 2048;
+    const bytes = await readBoundedResponseBytes(response, maxResponseBytes);
+    let envelope;
+    try { envelope = JSON.parse(bytes.toString('utf8')); } catch { throw new Error('invalid-envelope'); }
+    return await decryptTabHandoffEnvelope(envelope, parsed.key, parsed.id);
+  } catch (error) {
+    if (controller.signal.aborted || error?.name === 'AbortError') throw new Error('offline');
+    if (['unavailable', 'invalid-envelope', 'decryption-failed', 'invalid-payload', 'invalid-expiry'].includes(error?.message)) throw error;
+    throw new Error('offline');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function processTabHandoff(url) {
+  const parsed = parseTabImportUrl(url);
+  if (!parsed || tabHandoffClaimInFlight) return false;
+  const runtime = tabHandoffRuntime();
+  if (!runtime?.window || runtime.window.isDestroyed()) {
+    pendingTabHandoffUrls.splice(0, 0, url);
+    return false;
+  }
+  const profile = localProfiles.getLocalProfile(runtime.profileId)
+    ?? localProfiles.getLocalProfile(DEFAULT_PROFILE_ID);
+  const loadingImport = {
+    state: 'loading',
+    runtimeId: runtime.id,
+    profileId: profile?.id ?? DEFAULT_PROFILE_ID,
+    profileName: profile?.name ?? 'Personal',
+  };
+  const requestId = Symbol('tab-handoff-request');
+  activeTabHandoffRequest = requestId;
+  pendingTabHandoff = loadingImport;
+  tabHandoffClaimInFlight = true;
+  try {
+    refreshTabHandoffSheet(runtime);
+    const raw = await claimTabHandoff(parsed);
+    const clean = sanitizeTabHandoff(raw);
+    if (!clean.ok) throw new Error(clean.error);
+    // Escape/Cancel while the claim was in flight permanently discards its
+    // eventual result. The relay record is already one-time at this point.
+    if (activeTabHandoffRequest !== requestId || pendingTabHandoff !== loadingImport) return false;
+    pendingTabHandoff = {
+      state: 'ready',
+      runtimeId: runtime.id,
+      profileId: profile?.id ?? DEFAULT_PROFILE_ID,
+      profileName: profile?.name ?? 'Personal',
+      payload: clean.value,
+      skippedCount: clean.skippedCount,
+    };
+  } catch (error) {
+    if (activeTabHandoffRequest !== requestId || pendingTabHandoff !== loadingImport) return false;
+    pendingTabHandoff = {
+      state: 'error',
+      runtimeId: runtime.id,
+      profileId: profile?.id ?? DEFAULT_PROFILE_ID,
+      profileName: profile?.name ?? 'Personal',
+      error: error?.message ?? 'failed',
+      message: tabHandoffErrorMessage(error?.message),
+    };
+  } finally {
+    if (activeTabHandoffRequest === requestId) {
+      activeTabHandoffRequest = null;
+      tabHandoffClaimInFlight = false;
+      // A dismissed retrieval owns no sheet. Its one queued replacement is
+      // started only after this retrieval settles, never concurrently.
+      if (pendingTabHandoff?.state === 'waiting') {
+        const replacement = pendingTabHandoff.url;
+        pendingTabHandoff = null;
+        pendingTabHandoffUrls.push(replacement);
+      }
+      flushTabHandoffs();
+    }
+  }
+  // A replacement may already be loading. Never repaint the old request.
+  if (pendingTabHandoff?.runtimeId === runtime.id
+    && ['ready', 'error'].includes(pendingTabHandoff.state)) refreshTabHandoffSheet(runtime);
+  return true;
+}
+
+function refreshTabHandoffSheet(runtime) {
+  if (runtime.window && !runtime.window.isDestroyed()) {
+    withWindowRuntime(runtime, () => {
+      if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-handoff/')) {
+        hideUtilitySheet({ refocusContent: false, discardTabHandoff: false });
+      }
+      showUtilityPage('blanc://tab-handoff/');
+      bringExternalWindowToFront(app, runtime.window);
+    });
+  }
+}
+
+function queueTabHandoff(url) {
+  if (!parseTabImportUrl(url)) return false;
+  if (['ready', 'waiting', 'loading'].includes(pendingTabHandoff?.state)) {
+    focusPendingTabHandoff();
+    return true;
+  }
+  const runtime = tabHandoffRuntime();
+  if (!tabHandoffsFlushable || !runtime?.window || runtime.window.isDestroyed()) {
+    if (!pendingTabHandoffUrls.length) pendingTabHandoffUrls.push(url);
+    return true;
+  }
+  if (pendingTabHandoff?.state === 'error') pendingTabHandoff = null;
+  if (tabHandoffClaimInFlight) {
+    // A link may already be queued while every window was closed. It keeps
+    // its slot when a window reopens; a later invocation must not replace it.
+    const replacement = pendingTabHandoffUrls.shift() ?? url;
+    pendingTabHandoff = { state: 'waiting', runtimeId: runtime.id, url: replacement };
+    try { refreshTabHandoffSheet(runtime); }
+    catch {
+      pendingTabHandoff = null;
+      // Preserve the link if the native sheet could not be constructed.
+      if (!pendingTabHandoffUrls.length) pendingTabHandoffUrls.push(replacement);
+    }
+    return true;
+  }
+  processTabHandoff(url).catch(() => {});
+  return true;
+}
+
+function flushTabHandoffs() {
+  if (!tabHandoffsFlushable) return;
+  const url = pendingTabHandoffUrls.shift();
+  pendingTabHandoffUrls.length = 0;
+  if (url) queueTabHandoff(url);
+}
+
+function pendingTabHandoffProjection() {
+  if (!pendingTabHandoff || pendingTabHandoff.runtimeId !== rt().id) return { state: 'empty' };
+  if (pendingTabHandoff.state === 'waiting') return { state: 'waiting' };
+  if (pendingTabHandoff.state === 'loading') return { state: 'loading' };
+  if (pendingTabHandoff.state === 'error') {
+    return { state: 'error', message: pendingTabHandoff.message };
+  }
+  const handoff = pendingTabHandoff.payload;
+  return {
+    state: 'ready',
+    sourceBrowser: handoff.sourceBrowser,
+    profileName: pendingTabHandoff.profileName,
+    skippedCount: pendingTabHandoff.skippedCount,
+    tabs: handoff.tabs.map((tab) => ({
+      title: tab.title,
+      domain: new URL(tab.url).hostname,
+      active: tab.active,
+    })),
+  };
+}
+
+function cancelPendingTabHandoff() {
+  if (pendingTabHandoff?.runtimeId === rt().id) pendingTabHandoff = null;
+  hideUtilitySheet();
+  return { ok: true };
+}
+
 function destroyQuietTabRecord(id) {
   const tab = tabs.get(id);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
@@ -608,6 +851,9 @@ function createQuietTabsBatch(runtime, tabSpecs, { insertAt } = {}) {
         tabIdByCandidateId,
         createdGroupIds: [...rollback.createdGroupIds],
       };
+    } catch {
+      rollbackQuietTabBatch(rollback);
+      return { error: 'invalid-tab' };
     } finally {
       tabCreationBatchDepth -= 1;
     }
@@ -882,6 +1128,11 @@ settings.setExistingProfileHint(
   )
 );
 
+const tabImportProtocolRegistration = registerWindowsTabImportProtocol(app);
+if (tabImportProtocolRegistration.attempted && !tabImportProtocolRegistration.registered) {
+  console.warn('[tab-handoff] could not register blanc-import as a Windows protocol client');
+}
+
 // One production instance per profile: a second launch defers to the first.
 // The unpackaged acceptance harness already has a unique userData directory;
 // do not let a running installed Blanc make isolated test launches impossible.
@@ -894,6 +1145,7 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
     const runtime = focusedRuntime ?? primaryRuntime;
     withWindowRuntime(runtime, () => {
       openExternalUrls(urlsFromArgv(commandLine));
+      for (const url of tabImportUrlsFromArgv(commandLine)) queueTabHandoff(url);
       if (rt().window && !rt().window.isDestroyed()) {
         bringExternalWindowToFront(app, rt().window);
       }
@@ -929,6 +1181,11 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
 // the command line, at startup or through 'second-instance'.
 const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
+const pendingTabHandoffUrls = [];
+let tabHandoffsFlushable = false;
+let pendingTabHandoff = null;
+let tabHandoffClaimInFlight = false;
+let activeTabHandoffRequest = null;
 
 // While enabled blocking is compiling its lists, main-frame HTTP(S)
 // navigations are held here. Local blanc:// chrome remains available, so an
@@ -1082,9 +1339,27 @@ function flushExternalUrls() {
   openExternalUrls(pendingExternalUrls.splice(0));
 }
 
+function acceptPendingTabHandoff() {
+  if (pendingTabHandoff?.state !== 'ready' || pendingTabHandoff.runtimeId !== rt().id) {
+    return { ok: false, error: 'unavailable' };
+  }
+  const accepted = pendingTabHandoff;
+  pendingTabHandoff = null;
+  hideUtilitySheet({ refocusContent: false });
+  const result = openTabHandoffWindow({
+    profileId: accepted.profileId,
+    handoffTabs: accepted.payload.tabs,
+  });
+  return result;
+}
+
 app.on('open-url', (event, url) => {
   event.preventDefault();
-  withWindowRuntime(focusedRuntime ?? primaryRuntime, () => openExternalUrl(url));
+  const runtime = focusedRuntime ?? primaryRuntime;
+  withWindowRuntime(runtime, () => {
+    if (queueTabHandoff(url)) return;
+    if (urlsFromArgv([url]).length) openExternalUrl(url);
+  });
 });
 
 // Must happen before app 'ready'.
@@ -2893,6 +3168,7 @@ function createUtilitySheet() {
   wc.on('will-navigate', bindWindowRuntime(runtime, (event, targetUrl) => {
     if (runtime.utilitySheetView !== view) return event.preventDefault();
     if (isUtilityUrl(targetUrl)) {
+      if (!sameUtilityPage(runtime.utilitySheetUrl, targetUrl)) discardUtilityImportState(runtime);
       runtime.utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
       runtime.utilitySheetEscapeArmed = false; // document is about to be replaced
       return;
@@ -2924,6 +3200,7 @@ function showUtilityPage(url) {
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
   if (runtime.utilitySheetUrl && sheet && sameUtilityPage(runtime.utilitySheetUrl, url)) return hideUtilitySheet();
+  if (runtime.utilitySheetUrl) discardUtilityImportState(runtime);
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
   if (!sheet) {
@@ -2950,14 +3227,23 @@ function showUtilityPage(url) {
   sheet.wc.focus();
 }
 
-function hideUtilitySheet({ refocusContent = true } = {}) {
+function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
+  if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-import/')) {
+    forgetTabImportForRuntime(runtime.id, 'cancel');
+  }
+  if (
+    discardTabHandoff &&
+    sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-handoff/') &&
+    pendingTabHandoff?.runtimeId === runtime.id
+  ) {
+    pendingTabHandoff = null;
+  }
+}
+
+function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = {}) {
   const runtime = rt();
   if (!runtime.utilitySheetUrl) return;
-  try {
-    if (new URL(runtime.utilitySheetUrl).host === 'tab-import') {
-      forgetTabImportForRuntime(runtime.id, 'cancel');
-    }
-  } catch { /* ignore malformed sheet URLs */ }
+  discardUtilityImportState(runtime, { discardTabHandoff });
   bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;
@@ -6855,7 +7141,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     getIsQuitting: () => isQuitting,
     ensureStartTab,
     createStartTab: () => createTab(newTabUrl()),
-    activateTab: (id) => setActiveTab(id),
+    // Chrome can finish after a new window has already opened a utility
+    // sheet (notably the tab-handoff review). This is a same-tab native-view
+    // reattachment, not a user switch, so it must not dismiss that sheet.
+    activateTab: (id) => setActiveTab(id, { dismissUtilitySheet: false }),
     flushExternalUrls,
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
@@ -6870,6 +7159,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // case too, where no view exists), then destroy the capsule view.
     fillStatusSurface?.invalidatePending(runtime.id);
     liveViewContents(runtime.fillStatusView)?.close();
+    if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
       // Named Workspaces: a real (non-primary) window close is a real,
@@ -6966,6 +7256,69 @@ function focusDockActiveWindow() {
   }
   focusedRuntime = primaryRuntime;
   setFocusedLocalProfile(primaryRuntime.profileId);
+}
+
+function openTabHandoffWindow({ profileId: requestedProfileId, handoffTabs } = {}) {
+  if (!Array.isArray(handoffTabs) || !handoffTabs.length
+    || handoffTabs.length > MAX_TAB_IMPORT_TABS) {
+    return { ok: false, error: 'invalid-handoff' };
+  }
+  const profileId = localProfiles.getLocalProfile(requestedProfileId)?.id
+    ?? DEFAULT_PROFILE_ID;
+  if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+    return { ok: false, error: 'profile-unavailable' };
+  }
+
+  const runtime = windowRuntimes.createRuntime({
+    id: createWindowRuntimeId(),
+    profileId,
+  });
+  createMainWindow(runtime);
+
+  const result = withWindowRuntime(runtime, () => {
+    const tabSpecs = handoffTabs.map((tab, index) => ({
+      candidateId: `handoff-${index}`,
+      url: tab.url,
+      title: tab.title,
+      favicon: null,
+      groupName: null,
+      pinned: false,
+    }));
+    const priorPersistenceSuspended = sessionPersistenceSuspended;
+    let batch;
+    let activeTabId = null;
+    sessionPersistenceSuspended = true;
+    tabStateBroadcastSuppressionDepth += 1;
+    try {
+      batch = createQuietTabsBatch(runtime, tabSpecs, { insertAt: 0 });
+      if (batch.error) return { ok: false, error: batch.error };
+      const activeIndex = handoffTabs.findIndex((tab) => tab.active === true);
+      activeTabId = batch.tabIds[activeIndex >= 0 ? activeIndex : 0] ?? null;
+      if (!activeTabId) return { ok: false, error: 'invalid-handoff' };
+      setActiveTab(activeTabId, { focusContent: true });
+      if (rt().activeTabId !== activeTabId || !liveContents(tabs.get(activeTabId))) {
+        return { ok: false, error: 'activation-failed' };
+      }
+    } finally {
+      tabStateBroadcastSuppressionDepth -= 1;
+      sessionPersistenceSuspended = priorPersistenceSuspended;
+    }
+
+    focusedRuntime = runtime;
+    setFocusedLocalProfile(runtime.profileId);
+    runtime.window.show();
+    runtime.window.focus();
+    // The batch itself emitted no state or persistence churn. This is the
+    // single completed-window publication and session write.
+    broadcastTabs();
+    buildMenu(runtime);
+    return { ok: true, runtimeId: runtime.id, tabIds: batch.tabIds };
+  });
+
+  if (!result?.ok && runtime.window && !runtime.window.isDestroyed()) {
+    runtime.window.destroy();
+  }
+  return result ?? { ok: false, error: 'unavailable' };
 }
 
 function openNewWindow(options = {}) {
@@ -7826,7 +8179,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         });
       },
     },
+    tabHandoff: {
+      get: () => pendingTabHandoffProjection(),
+      accept: () => acceptPendingTabHandoff(),
+      cancel: () => cancelPendingTabHandoff(),
+    },
     tabImport: {
+      beginSourceRead: beginTabImportSourceRead,
       openSource: openTabImportSource,
       loadCandidates: loadTabImportCandidates,
       setSelection: setTabImportSelection,
@@ -8116,6 +8475,54 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getTabImportSessionProjection: currentTabImportAcceptanceProjection,
       applyTabImportFromRuntime: applyTabImportAcceptanceFromRuntime,
       getTabStateBroadcastCount: () => acceptanceTabStateBroadcastCount,
+      getTabHandoffTestState: () => {
+        const owner = pendingTabHandoff
+          ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
+          : null;
+        const pending = owner
+          ? withWindowRuntime(owner, pendingTabHandoffProjection)
+          : { state: 'empty' };
+        return {
+          pending,
+          claimInFlight: tabHandoffClaimInFlight,
+          flushable: tabHandoffsFlushable,
+          windows: windowRuntimes.all().map((runtime) => ({
+            id: runtime.id,
+            profileId: runtime.profileId,
+            activeTabId: runtime.activeTabId,
+            tabs: runtime.tabOrder.map((id) => {
+              const tab = tabs.get(id);
+              if (!tab) return null;
+              return {
+                id,
+                url: tab.url,
+                title: tab.title,
+                active: id === runtime.activeTabId,
+                asleep: !!tab.asleep,
+                live: !!liveContents(tab),
+                private: !!tab.private,
+                pinned: !!tab.pinned,
+                groupId: tab.groupId ?? null,
+              };
+            }).filter(Boolean),
+          })),
+        };
+      },
+      queueTabHandoffForTest: queueTabHandoff,
+      acceptTabHandoffForTest: () => {
+        const owner = pendingTabHandoff
+          ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
+          : null;
+        return owner
+          ? withWindowRuntime(owner, acceptPendingTabHandoff)
+          : { ok: false, error: 'unavailable' };
+      },
+      cancelTabHandoffForTest: () => {
+        const owner = pendingTabHandoff
+          ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
+          : null;
+        return owner ? withWindowRuntime(owner, cancelPendingTabHandoff) : { ok: true };
+      },
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;
@@ -8571,7 +8978,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
     pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
+    pendingTabHandoffUrls.push(...tabImportUrlsFromArgv(process.argv.slice(1)));
     withWindowRuntime(focusedRuntime, flushExternalUrls);
+    tabHandoffsFlushable = true;
+    withWindowRuntime(focusedRuntime, flushTabHandoffs);
     maybeSendLaunchPing();
 
     // Patron subscription revalidation — off the critical path, after the
@@ -8655,6 +9065,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     setFocusedLocalProfile(primaryRuntime.profileId);
     refreshDockMenu();
     withWindowRuntime(primaryRuntime, refocusAddressBarIfWanted);
+    withWindowRuntime(primaryRuntime, flushTabHandoffs);
   });
 }));
 

@@ -1,4 +1,4 @@
-// Ephemeral main-process store for F39 Bring Your Tabs import sessions.
+// Ephemeral main-process store for F40 Bring Your Tabs import sessions.
 // No Electron — safe under node --test.
 const crypto = require('node:crypto');
 

@@ -134,6 +134,15 @@ function setupPages(hooks = {}) {
     hooks.utilitySheet.setEscapeArmed?.(!!armed);
   });
 
+  // The relay review is a distinct surface from Bring Your Tabs. The latter
+  // owns blanc://tab-import/ and its richer local-session organizer.
+  handle('pages:tab-handoff:get', 'tab-handoff', () =>
+    hooks.tabHandoff?.get?.() ?? { state: 'empty' });
+  handle('pages:tab-handoff:accept', 'tab-handoff', () =>
+    hooks.tabHandoff?.accept?.() ?? { ok: false, error: 'unavailable' });
+  handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
+    hooks.tabHandoff?.cancel?.() ?? { ok: true });
+
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
@@ -179,10 +188,12 @@ function setupPages(hooks = {}) {
   // main; the sheet receives only the opaque candidate projection.
   handle('pages:tab-import:sources', 'tab-import', () => browserImport.listOpenTabSources());
   handle('pages:tab-import:open-source', 'tab-import', async (id, options = {}) => {
+    const isCurrent = hooks.tabImport?.beginSourceRead?.() ?? (() => false);
     const sourceId = String(id ?? '');
     const read = await browserImport.readOpenTabs(sourceId, {
       afterQuit: options?.afterQuit === true,
     });
+    if (!isCurrent()) return { error: 'session-unavailable' };
     if (read.error) {
       return {
         error: read.error,
