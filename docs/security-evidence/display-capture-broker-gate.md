@@ -17,14 +17,14 @@ Renew the whole matrix if capture or packaging changes.
 | Field | Value |
 | --- | --- |
 | Blanc version | 1.15.0 (candidate package; not a public release bump) |
-| Candidate commit SHA | `83112e08689eb6a532d43fead24911618846510d` (fix over `a2343b91`) |
+| Candidate commit SHA | **`cb8e7956ced7f4a727382b8a2a7df120f4622a77`** (Meet-share facade over `83112e08`). Prior FAIL freeze `83112e08` remains not release-ready. |
 | Electron | 44.1.1 |
 | Chromium | Electron 44.1.1 stock (not recompiled) |
-| macOS artifact + SHA-256 | `Blanc-1.15.0-arm64.dmg` → `538f30ce5a46f00cca7b615b1da57bff8ed077c80800d489bb64886c88603593` (prior FAIL DMG `4770a4a7…` superseded) |
-| Windows installer + SHA-256 | `Blanc-Setup-1.15.0.exe` → `c0efaa63763094830b73a29a1b0ef25dd42ea4327ff7afadc99d121adefe8dfb` @ `83112e08`, private run 34250513362 |
-| Linux AppImage + SHA-256 | x86-64 still `21774662…` from `a2343b91`. **Meet candidate:** arm64 `Blanc-1.15.0-arm64.AppImage` → `b789d23d0a2944c0d4fcf92322c309872a874ca20272655b40a2f2dcf6d4aa02` @ `83112e08` (Sigstore verified) |
+| macOS artifact + SHA-256 | `Blanc-1.15.0-arm64.dmg` → `88a7e5c90cd7e2d0dc2e395292c6959e98704b372ce9ea0d94145de55703a828` (**AUTHENTICATED**; prior FAIL `538f30ce…` @ `83112e08` superseded for Meet) |
+| Windows installer + SHA-256 | `Blanc-Setup-1.15.0.exe` → `c9bef2a1fa4ee060882f2cd92f9b7d095324aec31bb7bfe45dd9da1ab2176084` @ run **34255443283** (**AUTHENTICATED**) |
+| Linux AppImage + SHA-256 | Meet candidate arm64 `Blanc-1.15.0-arm64.AppImage` → `3bf811060a587ebbdba3a3dc8022e239d1047b28d9131febb51bfd0ef9be13e9` (built; **Sigstore pending**). x86-64 from same validation run under `linux-x64-validation/`. |
 
-Companion freeze record: `docs/security-evidence/display-capture-broker-candidate-83112e08-2026-09-08.md`.
+Companion freeze record: `docs/security-evidence/display-capture-broker-candidate-cb8e7956-2026-09-08.md`. Historical FAIL: `display-capture-broker-candidate-83112e08-2026-09-08.md`.
 
 ## Artifact authentication (prerequisite)
 
@@ -33,10 +33,10 @@ row is invalid.
 
 | Platform | Required verification | Command + summary | Status |
 | --- | --- | --- | --- |
-| macOS | Native signature + Gatekeeper assessment + stapled notarization ticket on `Blanc.app` (same class as `docs/release-verification.md`) | Private notarized rebuild @ `83112e08`; DMG `538f30ce…`; deep/strict codesign; `spctl` Notarized Developer ID; stapler OK | **AUTHENTICATED** |
-| Windows | Timestamped Authenticode; exact publisher; installer hash binding | Private validation run 34250513362 @ `83112e08`; downloaded `c0efaa63…` matches signature JSON; Valid exact Bananify Creative publisher and Microsoft timestamp | **AUTHENTICATED** |
-| Linux (x86-64 AppImage) | Authenticated checksum manifest (`SHA256SUMS` + Sigstore/`cosign verify-blob` against the pinned identity/issuer) | Private validation x86-64 AppImage @ `a2343b91`; `shasum` + `cosign verify-blob` → Verified OK | **AUTHENTICATED** (x86-64; Meet not proven on ARM guest) |
-| Linux (arm64 AppImage) | Same class for arm64 Meet candidate | Native aarch64 AppImage from `83112e08` (`b789d23d…`); AppImage + metadata `shasum` OK; bundle written; independent `cosign verify-blob` **Verified OK**, identity `anthony@bnfy.me`, issuer `https://github.com/login/oauth` | **AUTHENTICATED** |
+| macOS | Native signature + Gatekeeper assessment + stapled notarization ticket on `Blanc.app` (same class as `docs/release-verification.md`) | Private notarized rebuild @ `cb8e7956`; DMG `88a7e5c9…`; deep/strict codesign; `spctl` Notarized Developer ID; stapler OK (Xcode-beta) | **AUTHENTICATED** |
+| Windows | Timestamped Authenticode; exact publisher; installer hash binding | Private validation run 34255443283 @ `cb8e7956`; downloaded `c9bef2a1…` matches signature JSON; Valid exact Bananify Creative publisher and Microsoft timestamp | **AUTHENTICATED** |
+| Linux (x86-64 AppImage) | Authenticated checksum manifest (`SHA256SUMS` + Sigstore/`cosign verify-blob` against the pinned identity/issuer) | Validation artifact from run 34255443283 @ `cb8e7956` (Meet guest is arm64) | **DOWNLOADED** (Meet path is arm64) |
+| Linux (arm64 AppImage) | Same class for arm64 Meet candidate | Guest AppImage `3bf81106…` @ `cb8e7956`; SHA256SUMS present; **cosign sign-blob pending OIDC** | **BUILT — Sigstore PENDING** |
 
 ## Conference matrix (after authentication)
 
@@ -46,9 +46,9 @@ tone. Nonzero energy measured only inside Blanc is insufficient.
 
 | Platform | OS/arch | Conference app | Linux display/audio stack | Receiver video | Receiver system audio | Cancel denies | Per-share Stop (incl. background tab) | Second share preserved | Mic+camera survive Stop | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| macOS | macOS arm64 (host) | Google Meet `wza-fnfj-khj` | n/a | FAIL | NOT PROVEN | PASS | Failed-share cleanup only | NOT RUN | Controls remain on | **FAIL** on `538f30ce…` @ `83112e08` (window + entire-screen + audio; local 195-frame proof; conference integration — missing relayed `displaySurface` + early muted/0×0 resolve). **Candidate not release-ready.** See `display-capture-broker-gate-2026-09-08-macos-83112e08.md` |
-| Windows | Windows 11 (Parallels) | Google Meet | n/a | RETEST | RETEST | RETEST | RETEST | RETEST | RETEST | **INSTALLED** authenticated `c0efaa63…` @ `83112e08` (`LOCALAPPDATA\Programs\Blanc`); Meet launched for owner Present — conference cell still **RETEST REQUIRED** |
-| Linux | Ubuntu 24.04.3 ARM64 Wayland / PipeWire | Google Meet `wza-fnfj-khj` | Wayland + Pulse/PipeWire | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | — | **PRESENTATION NOT RUN** (`b789d23d…` arm64 @ `83112e08`; joined + ozone=wayland; Present pending native interaction) |
+| macOS | macOS arm64 (host) | Google Meet `wza-fnfj-khj` | n/a | RETEST | RETEST | RETEST | RETEST | RETEST | RETEST | **RETEST REQUIRED** on authenticated `88a7e5c9…` @ `cb8e7956` (`/Applications/BlancCaptureCandidateCb8e.app`). Prior FAIL on `538f30ce…` @ `83112e08` does not clear this candidate. |
+| Windows | Windows 11 (Parallels) | Google Meet | n/a | RETEST | RETEST | RETEST | RETEST | RETEST | RETEST | **RETEST REQUIRED** on authenticated `c9bef2a1…` @ `cb8e7956` (install + Present). Prior installers do not clear this SHA. |
+| Linux | Ubuntu 24.04.3 ARM64 Wayland / PipeWire | Google Meet `wza-fnfj-khj` | Wayland + Pulse/PipeWire | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | — | **RETEST REQUIRED** on arm64 `3bf81106…` @ `cb8e7956` after Sigstore completes |
 
 Windows/Linux guests in Parallels qualify only for those guest configurations.
 One service per platform satisfies the conference minimum.
