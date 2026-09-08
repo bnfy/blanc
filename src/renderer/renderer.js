@@ -930,7 +930,8 @@
     pillDisplayShare.setAttribute('aria-expanded', String(mode === 'capture'));
     glanceChange.setAttribute('aria-expanded', String(mode === 'glance'));
     if (restoreTrigger === 'capture') {
-      (pillDisplayShare.hidden ? pillCapture : pillDisplayShare).focus();
+      if (!pillCapture.hidden) pillCapture.focus();
+      else pillDisplayShare.focus();
     }
     if (restoreTrigger === 'glance-change') glanceChange.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
