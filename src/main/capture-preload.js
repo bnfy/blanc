@@ -231,7 +231,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
       pendingShare.delete(payload.id);
       resolve(payload);
     });
-    const wrapTrack = (track, shareId, kind, trackKey) => {
+    const wrapTrack = (track, shareId, kind, trackKey, displaySurface) => {
       const share = activeShares.get(shareId);
       share?.tracks.add(track);
       const stop = track.stop.bind(track);
@@ -247,13 +247,34 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
       const clone = track.clone.bind(track);
       track.clone = function cloneBrokered() {
         const nextKey = 't-' + (nextTrackKey++);
-        const copy = wrapTrack(clone(), shareId, kind, nextKey);
+        const copy = wrapTrack(clone(), shareId, kind, nextKey, displaySurface);
         emitBridge('blanc:display-capture-track-added', { shareId, kind, trackKey: nextKey });
-        if (copy.readyState === 'live' && copy.muted !== true) {
+        if (copy.readyState === 'live') {
           emitBridge('blanc:display-capture-track-ready', { shareId, kind, trackKey: nextKey });
         }
         return copy;
       };
+      // Relayed WebRTC tracks omit native capture metadata. Meet/Teams read
+      // displaySurface after getDisplayMedia; expose the picker enum only.
+      if (kind === 'video' && typeof displaySurface === 'string' && displaySurface) {
+        const mergeSurface = (base) => {
+          const out = base && typeof base === 'object' ? { ...base } : {};
+          out.displaySurface = displaySurface;
+          return out;
+        };
+        try {
+          const getSettings = track.getSettings?.bind(track);
+          track.getSettings = () => mergeSurface(getSettings ? getSettings() : {});
+        } catch {}
+        try {
+          const getConstraints = track.getConstraints?.bind(track);
+          track.getConstraints = () => mergeSurface(getConstraints ? getConstraints() : {});
+        } catch {}
+        try {
+          const getCapabilities = track.getCapabilities?.bind(track);
+          track.getCapabilities = () => mergeSurface(getCapabilities ? getCapabilities() : {});
+        } catch {}
+      }
       return track;
     };
     navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(options) {
@@ -285,18 +306,44 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         });
         const tracks = [];
         const requiredAudio = result.computerAudio === true;
-        // Live is enough to return the stream to the site. Remote WebRTC tracks
-        // can remain muted until the first decoded frame; blocking on unmute
-        // hung packaged Meet/local shares while the helper was already sending.
+        const displaySurface = typeof result.displaySurface === 'string' && result.displaySurface
+          ? result.displaySurface
+          : 'monitor';
+        // Live clears the broker startup timeout. Prefer unmuted video with
+        // non-zero dimensions before resolving to the site (Meet inspects
+        // settings immediately), but never block past a short deadline —
+        // unbounded unmute waits hung packaged Mac shares while the helper
+        // was already sending.
+        const PUBLISH_WAIT_MS = 2000;
         const trackIsLive = (track) => !!track && track.readyState === 'live';
+        const videoHasDimensions = (track) => {
+          try {
+            const settings = track.getSettings?.() || {};
+            return Number(settings.width) > 0 && Number(settings.height) > 0;
+          } catch {
+            return false;
+          }
+        };
+        const videoIsPublishable = (track) => (
+          trackIsLive(track) && track.muted !== true && videoHasDimensions(track)
+        );
         const got = new Promise((resolve, reject) => {
           let settled = false;
+          let publishTimer = null;
+          let deadlineArmed = false;
           const finish = (err) => {
             if (settled) return;
             settled = true;
+            if (publishTimer) {
+              try { clearTimeout(publishTimer); } catch {}
+              publishTimer = null;
+            }
             try { window.removeEventListener('blanc:display-capture-abort', onAbort); } catch {}
             if (err) reject(err);
             else resolve();
+          };
+          const failLost = () => {
+            finish(new DOMException('AbortError', 'AbortError'));
           };
           const onAbort = (event) => {
             if (typeof event.detail !== 'string') return;
@@ -306,20 +353,69 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
               finish(new DOMException(payload.reason || 'AbortError', 'AbortError'));
             }
           };
-          const tryReady = () => {
+          const requiredTracksLive = () => {
             const video = tracks.find((item) => item.kind === 'video');
-            if (!trackIsLive(video)) return;
+            if (!trackIsLive(video)) return false;
             if (requiredAudio) {
               const audio = tracks.find((item) => item.kind === 'audio');
-              if (!trackIsLive(audio)) return;
+              if (!trackIsLive(audio)) return false;
             }
-            finish();
+            return true;
+          };
+          // A required track that already arrived and then ended is lost —
+          // do not keep waiting for siblings (that hung when audio died first).
+          const requiredTrackLost = () => {
+            const video = tracks.find((item) => item.kind === 'video');
+            if (video && !trackIsLive(video)) return true;
+            if (requiredAudio) {
+              const audio = tracks.find((item) => item.kind === 'audio');
+              if (audio && !trackIsLive(audio)) return true;
+            }
+            return false;
+          };
+          const tryReady = () => {
+            if (requiredTrackLost()) {
+              failLost();
+              return;
+            }
+            if (!requiredTracksLive()) return;
+            const video = tracks.find((item) => item.kind === 'video');
+            if (videoIsPublishable(video)) {
+              finish();
+              return;
+            }
+            // Dimensions often arrive after unmute with no second event — poll
+            // until publishable or the short deadline, then resolve live-only.
+            // If any required track ends while waiting, reject (do not hang).
+            if (!deadlineArmed) {
+              deadlineArmed = true;
+              const startedAt = Date.now();
+              const tick = () => {
+                if (settled) return;
+                if (requiredTrackLost()) {
+                  failLost();
+                  return;
+                }
+                const liveVideo = tracks.find((item) => item.kind === 'video');
+                if (requiredTracksLive() && videoIsPublishable(liveVideo)) {
+                  finish();
+                  return;
+                }
+                if (Date.now() - startedAt >= PUBLISH_WAIT_MS) {
+                  if (requiredTracksLive()) finish();
+                  else failLost();
+                  return;
+                }
+                publishTimer = setTimeout(tick, 50);
+              };
+              publishTimer = setTimeout(tick, 50);
+            }
           };
           window.addEventListener('blanc:display-capture-abort', onAbort);
           pc.ontrack = (event) => {
             const kind = event.track.kind;
             const trackKey = 't-' + (nextTrackKey++);
-            wrapTrack(event.track, result.shareId, kind, trackKey);
+            wrapTrack(event.track, result.shareId, kind, trackKey, displaySurface);
             emitBridge('blanc:display-capture-track-added', { shareId: result.shareId, kind, trackKey });
             tracks.push(event.track);
             const maybeReady = () => {
@@ -329,6 +425,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
               tryReady();
             };
             try { event.track.addEventListener('unmute', maybeReady); } catch {}
+            try { event.track.addEventListener('ended', maybeReady); } catch {}
             maybeReady();
           };
         });

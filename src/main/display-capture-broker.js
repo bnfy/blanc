@@ -615,11 +615,18 @@ function installDisplayCaptureBroker({
     }
     if (pendingWait.resolved !== true) {
       pendingWait.resolved = true;
+      const kind = registry.getShare?.(shareId)?.surfaceKind;
+      // W3C displaySurface for the page track facade. Enum only — never the
+      // chrome-only surface title. screen → monitor; window stays window.
+      const displaySurface = kind === 'window' ? 'window'
+        : kind === 'browser' ? 'browser'
+          : 'monitor';
       pendingWait.resolve({
         ok: true,
         shareId,
         offer: filtered.sdp,
         computerAudio: job.computerAudio,
+        displaySurface,
       });
     }
     releaseAcquireAndNative(shareId);

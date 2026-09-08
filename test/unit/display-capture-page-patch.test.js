@@ -4,7 +4,15 @@ const test = require('node:test');
 const vm = require('node:vm');
 const { CAPTURE_MAINWORLD_SOURCE } = require('../../src/main/capture-mainworld');
 
-function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVideo = false } = {}) {
+function makeWorld({
+  computerAudio = false,
+  emitAudioImmediately = true,
+  emitVideoImmediately = true,
+  mutedVideo = false,
+  displaySurface = 'monitor',
+  unmuteWidth = 1280,
+  unmuteHeight = 720,
+} = {}) {
   const events = [];
   const listeners = new Map();
   const pcs = [];
@@ -13,10 +21,22 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
       this.kind = kind;
       this.readyState = 'live';
       this.muted = muted;
+      this._width = muted ? 0 : 1280;
+      this._height = muted ? 0 : 720;
       this.handlers = new Map();
     }
-    stop() { this.readyState = 'ended'; }
-    clone() { return new FakeTrack(this.kind); }
+    stop() {
+      this.readyState = 'ended';
+    }
+    clone() {
+      const copy = new FakeTrack(this.kind, { muted: this.muted });
+      copy._width = this._width;
+      copy._height = this._height;
+      return copy;
+    }
+    getSettings() { return { width: this._width, height: this._height }; }
+    getConstraints() { return {}; }
+    getCapabilities() { return {}; }
     addEventListener(name, fn) { this.handlers.set(name, fn); }
     dispatchEvent(event) { this.handlers.get(event.type)?.(event); }
   }
@@ -38,16 +58,41 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
       this.ontrack?.({ track });
       return track;
     }
+    emitVideo() {
+      this._video = new FakeTrack('video', { muted: mutedVideo });
+      this.ontrack?.({ track: this._video });
+      return this._video;
+    }
     unmuteVideo() {
       const video = this._video;
       if (!video) return;
       video.muted = false;
+      video._width = unmuteWidth;
+      video._height = unmuteHeight;
       video.handlers.get('unmute')?.();
+    }
+    setVideoDimensions(width, height) {
+      const video = this._video;
+      if (!video) return;
+      video._width = width;
+      video._height = height;
+    }
+    endVideo() {
+      const video = this._video;
+      if (!video) return;
+      // Remote end: readyState flips without going through the wrapped stop().
+      video.readyState = 'ended';
+      video.handlers.get('ended')?.();
+    }
+    endAudio() {
+      const audio = this._audio;
+      if (!audio) return;
+      audio.readyState = 'ended';
+      audio.handlers.get('ended')?.();
     }
     async setRemoteDescription() {
       queueMicrotask(() => {
-        this._video = new FakeTrack('video', { muted: mutedVideo });
-        this.ontrack?.({ track: this._video });
+        if (emitVideoImmediately) this.emitVideo();
         if (emitAudioImmediately) this.emitAudio();
       });
     }
@@ -66,6 +111,8 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
     navigator: { mediaDevices: { getUserMedia: () => Promise.reject(new Error('unused')) } },
     JSON,
     Event,
+    setTimeout,
+    clearTimeout,
   };
   world.window = {
     addEventListener: (name, fn) => {
@@ -90,6 +137,7 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
         shareId: 'share-1',
         offer: 'v=0',
         computerAudio,
+        displaySurface,
       }),
     }));
   });
@@ -98,8 +146,12 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
     world,
     gdm: (options) => world.navigator.mediaDevices.getDisplayMedia(options),
     emitAudio: () => pcs[pcs.length - 1]?.emitAudio(),
+    emitVideo: () => pcs[pcs.length - 1]?.emitVideo(),
     pcs,
     unmuteVideo: () => pcs[pcs.length - 1]?.unmuteVideo(),
+    setVideoDimensions: (width, height) => pcs[pcs.length - 1]?.setVideoDimensions(width, height),
+    endVideo: () => pcs[pcs.length - 1]?.endVideo(),
+    endAudio: () => pcs[pcs.length - 1]?.endAudio(),
     stopped: () => events.filter((item) => item.type === 'blanc:display-capture-track-stopped')
       .map((item) => JSON.parse(item.detail)),
   };
@@ -137,9 +189,143 @@ test('muted live ontrack still emits track-ready so startup can clear', async ()
   assert.ok(added.some((item) => JSON.parse(item.detail).kind === 'video'));
   assert.ok(ready.some((item) => JSON.parse(item.detail).kind === 'video'));
   w.emitAudio();
+  w.unmuteVideo();
   const stream = await pending;
   assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
   assert.ok(stream.getTracks().some((track) => track.kind === 'audio'));
+});
+
+test('relayed video getSettings reports displaySurface from picker enum', async () => {
+  const w = makeWorld({ displaySurface: 'window' });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getTracks().find((track) => track.kind === 'video');
+  assert.equal(video.getSettings().displaySurface, 'window');
+  assert.equal(video.getConstraints().displaySurface, 'window');
+  assert.equal(video.getCapabilities().displaySurface, 'window');
+  assert.equal(video.clone().getSettings().displaySurface, 'window');
+});
+
+test('muted live video still resolves after publish wait deadline', async () => {
+  const w = makeWorld({ computerAudio: false, mutedVideo: true });
+  const started = Date.now();
+  const stream = await w.gdm({ video: true });
+  const elapsed = Date.now() - started;
+  assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
+  assert.ok(elapsed >= 1900, `expected ~2s publish wait, got ${elapsed}ms`);
+  assert.ok(elapsed < 4000, `publish wait should not hang unboundedly (${elapsed}ms)`);
+});
+
+test('unmute plus dimensions can resolve before the publish deadline', async () => {
+  const w = makeWorld({ computerAudio: false, mutedVideo: true });
+  const pending = w.gdm({ video: true });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  const started = Date.now();
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  w.unmuteVideo();
+  const stream = await pending;
+  const elapsed = Date.now() - started;
+  assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
+  assert.equal(stream.getTracks().find((t) => t.kind === 'video').getSettings().displaySurface, 'monitor');
+  assert.ok(elapsed < 1500, `expected early resolve after unmute, got ${elapsed}ms`);
+});
+
+test('video ending during publish wait rejects instead of hanging', async () => {
+  const w = makeWorld({ computerAudio: false, mutedVideo: true });
+  const pending = w.gdm({ video: true });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.ok(w.pcs[0]?._video, 'expected muted live video while waiting');
+  const started = Date.now();
+  w.endVideo();
+  await assert.rejects(
+    Promise.race([
+      pending,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('still pending after hang window')), 2200)),
+    ]),
+    (err) => err && err.name === 'AbortError',
+  );
+  const elapsed = Date.now() - started;
+  assert.ok(elapsed < 500, `expected immediate reject after ended, got ${elapsed}ms`);
+});
+
+test('required audio ending before video arrives rejects instead of hanging', async () => {
+  const w = makeWorld({
+    computerAudio: true,
+    emitAudioImmediately: false,
+    emitVideoImmediately: false,
+  });
+  const pending = w.gdm({ video: true, audio: true });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  w.emitAudio();
+  await new Promise((resolve) => setImmediate(resolve));
+  const readyKinds = w.events
+    .filter((item) => item.type === 'blanc:display-capture-track-ready')
+    .map((item) => JSON.parse(item.detail).kind);
+  assert.deepEqual(readyKinds, ['audio']);
+  // Attach before ending audio — rejection is synchronous with the ended handler.
+  const expectAbort = assert.rejects(pending, (err) => err && err.name === 'AbortError');
+  const started = Date.now();
+  w.endAudio();
+  w.emitVideo();
+  await new Promise((resolve) => setImmediate(resolve));
+  const readyAfter = w.events
+    .filter((item) => item.type === 'blanc:display-capture-track-ready')
+    .map((item) => JSON.parse(item.detail).kind);
+  assert.ok(readyAfter.includes('video'), 'video track-ready still emits so main can clear startup');
+  await expectAbort;
+  const elapsed = Date.now() - started;
+  assert.ok(elapsed < 500, `expected immediate reject after required audio lost, got ${elapsed}ms`);
+});
+
+test('unmuted video with zero height is not publishable until height is non-zero', async () => {
+  const w = makeWorld({
+    computerAudio: false,
+    mutedVideo: true,
+    unmuteWidth: 1280,
+    unmuteHeight: 0,
+  });
+  const pending = w.gdm({ video: true });
+  let settled = false;
+  const tracked = pending.then((stream) => {
+    settled = true;
+    return stream;
+  }, (err) => {
+    settled = true;
+    throw err;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  w.unmuteVideo();
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  assert.equal(settled, false, '1280×0 must not resolve as publishable');
+  w.setVideoDimensions(1280, 720);
+  // Poll notices dimension changes without a dedicated event.
+  const stream = await tracked;
+  assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
+  assert.equal(stream.getTracks().find((t) => t.kind === 'video').getSettings().height, 720);
+});
+
+test('unmuted video with zero width is not publishable', async () => {
+  const w = makeWorld({
+    computerAudio: false,
+    mutedVideo: true,
+    unmuteWidth: 0,
+    unmuteHeight: 720,
+  });
+  const pending = w.gdm({ video: true });
+  let settled = false;
+  pending.then(() => { settled = true; }, () => { settled = true; });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  w.unmuteVideo();
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  assert.equal(settled, false, '0×720 must not resolve as publishable');
+  // Let the live-only deadline resolve so the suite does not leak a pending gdm.
+  const stream = await pending;
+  assert.equal(settled, true);
+  assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
 });
 
 test('approved computer audio waits for a live audio track', async () => {

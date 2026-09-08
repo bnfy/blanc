@@ -222,6 +222,33 @@ test('relay timeout without tracks rejects', async (t) => {
   assert.equal((await pending).reason, 'timeout');
 });
 
+test('helper offer resolves page with displaySurface from surfaceKind', async (t) => {
+  const { ipcMain, helperWc, registry, pending } = await startApproved(t);
+  const shareId = registry.listShares()[0].shareId;
+  ipcMain.emit('display-capture-helper:signal', { sender: helperWc }, helperOffer(shareId));
+  const result = await pending;
+  assert.equal(result.ok, true);
+  assert.equal(result.displaySurface, 'monitor');
+});
+
+test('window surfaceKind maps to window displaySurface', async (t) => {
+  const ctx = install(t);
+  const pending = ctx.ipcMain.invoke('display-capture:request', pageEvent(), goodFacts);
+  await Promise.resolve();
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: 'req-1',
+    sourceId: 'window:1:0',
+    computerAudioApproved: false,
+    surfaceLabel: 'Safari',
+    surfaceKind: 'window',
+  });
+  const shareId = ctx.registry.listShares()[0].shareId;
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareId));
+  const result = await pending;
+  assert.equal(result.ok, true);
+  assert.equal(result.displaySurface, 'window');
+});
+
 test('cancel during acquisition stops a late helper offer', async (t) => {
   const { ipcMain, helperWc, broker, authority, pending } = await startApproved(t);
   broker.cancelAcquisition('req-1');
