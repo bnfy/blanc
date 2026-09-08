@@ -280,6 +280,11 @@ function installDisplayCaptureBroker({
     }
   });
 
+  ipcMain.on('display-capture:track-added', (_event, payload) => {
+    if (!payload?.shareId || !payload?.trackKey) return;
+    registry.addConsumer(payload.shareId, { kind: payload.kind, trackKey: payload.trackKey });
+  });
+
   ipcMain.on('display-capture:track-stopped', (_event, payload) => {
     if (!payload?.shareId || !payload?.trackKey) return;
     const result = registry.removeConsumer(payload.shareId, {
