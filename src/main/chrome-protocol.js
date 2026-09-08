@@ -12,6 +12,7 @@ const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
+const CHROME_DISPLAY_CAPTURE_HELPER_URL = `${CHROME_SCHEME}://display-capture-helper/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 
 // Chrome is intentionally much smaller than the internal-pages surface. Each
@@ -47,6 +48,10 @@ const HOST_ASSETS = new Map([
     ['/', 'fill-status.html'],
     ['/fill-status.js', 'fill-status.js'],
     ['/fill-status-copy.js', 'fill-status-copy.js'],
+  ])],
+  ['display-capture-helper', new Map([
+    ['/', 'display-capture-helper.html'],
+    ['/display-capture-helper.js', 'display-capture-helper.js'],
   ])],
 ]);
 
@@ -101,6 +106,7 @@ module.exports = {
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
   createChromeProtocolHandler,
   setupChromeProtocol,

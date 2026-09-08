@@ -8,6 +8,7 @@ const {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
 } = require('../../src/main/chrome-protocol');
 
@@ -55,6 +56,22 @@ test('fill-status host serves its document, script, copy, and shared styles only
   assert.equal(chromeResourcePath('blanc-chrome://fill-status/../preload.js'), null);
   // The capsule's copy module belongs to the fill-status host alone.
   assert.equal(chromeResourcePath('blanc-chrome://index/fill-status-copy.js'), null);
+});
+
+test('display-capture-helper host serves only its document and script', () => {
+  assert.equal(CHROME_DISPLAY_CAPTURE_HELPER_URL, 'blanc-chrome://display-capture-helper/');
+  assert.equal(
+    chromeResourcePath(CHROME_DISPLAY_CAPTURE_HELPER_URL),
+    path.join(renderer, 'display-capture-helper.html'),
+  );
+  assert.equal(
+    chromeResourcePath('blanc-chrome://display-capture-helper/display-capture-helper.js'),
+    path.join(renderer, 'display-capture-helper.js'),
+  );
+  assert.equal(chromeResourcePath('blanc-chrome://display-capture-helper/renderer.js'), null);
+  assert.equal(chromeResourcePath('blanc-chrome://display-capture-helper/../preload.js'), null);
+  assert.equal(chromeResourcePath('blanc-chrome://display-capture-helper/?x=1'), null);
+  assert.equal(chromeResourcePath('blanc-chrome://index/display-capture-helper.js'), null);
 });
 
 test('chrome protocol rejects cross-host scripts and path tricks', () => {
