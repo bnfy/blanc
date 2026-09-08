@@ -349,6 +349,21 @@ test('startup timeout stays armed until usable page tracks arrive', async (t) =>
   assert.equal(ctx.registry.listShares().length, 0);
 });
 
+test('trusted Stop notifies an active page after its startup wait was cleared', async (t) => {
+  const ctx = await startApproved(t);
+  const aborted = [];
+  ctx.event.sender.send = (channel, payload) => aborted.push({ channel, payload });
+  const shareId = ctx.registry.listShares()[0].shareId;
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareId));
+  await ctx.pending;
+  for (const kind of ['video', 'audio']) {
+    ctx.ipcMain.emit('display-capture:track-ready', ctx.event, { shareId, kind });
+  }
+  ctx.broker.stopShare(shareId);
+  assert.deepEqual(aborted, [{ channel: 'display-capture:abort', payload: { shareId, reason: 'stop' } }]);
+  assert.equal(ctx.registry.listShares().length, 0);
+});
+
 test('video-only page tracks do not satisfy an approved-audio share', async (t) => {
   const ctx = await startApproved(t, { timeoutMs: 40 });
   const shareId = ctx.registry.listShares()[0].shareId;
@@ -750,4 +765,21 @@ test('strip or overlay Stop ends only the named share; other chrome cannot', (t)
   assert.equal(afterStrip[0].shareId, idB);
   ipcMain.emit('display-capture:stop', overlayEvent(), { shareId: idB });
   assert.equal(registry.listShares().length, 0);
+});
+
+test('helper OverconstrainedError reaches the page as OverconstrainedError', async (t) => {
+  const { ipcMain, helperWc, registry, pending } = await startApproved(t);
+  const shareId = registry.listShares()[0].shareId;
+  ipcMain.emit('display-capture-helper:signal', { sender: helperWc }, {
+    type: 'error',
+    shareId,
+    name: 'OverconstrainedError',
+    message: 'Constraints could not be satisfied.',
+  });
+  const result = await pending;
+  assert.equal(result.ok, false);
+  assert.equal(result.errorName, 'OverconstrainedError');
+  assert.equal(result.reason, 'OverconstrainedError');
+  assert.equal(registry.listShares().length, 0);
+  assert.ok(helperWc.sends.some((item) => item.payload?.type === 'stop'));
 });

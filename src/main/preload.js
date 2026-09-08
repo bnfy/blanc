@@ -101,6 +101,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   stopDisplayShare: (shareId) => ipcRenderer.send('display-capture:stop', { shareId }),
+  resolveDisplayPicker: (choice) => ipcRenderer.send('display-capture:picker-resolve', choice),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: (reason) => ipcRenderer.send('overlay:close', reason),
   /** Keep main's Escape handler in sync with the footer workspace popover so

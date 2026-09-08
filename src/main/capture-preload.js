@@ -204,9 +204,24 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
     let nextTrackKey = 1;
     let nextRequestId = 1;
     const pendingShare = new Map();
+    const activeShares = new Map();
     const emitBridge = (name, payload) => {
       window.dispatchEvent(new CustomEvent(name, { detail: JSON.stringify(payload) }));
     };
+    window.addEventListener('blanc:display-capture-abort', (event) => {
+      if (typeof event.detail !== 'string') return;
+      let payload;
+      try { payload = JSON.parse(event.detail); } catch { return; }
+      const share = activeShares.get(payload?.shareId);
+      if (!share) return;
+      activeShares.delete(payload.shareId);
+      share.pc.close();
+      for (const track of share.tracks) {
+        const wasLive = track.readyState === 'live';
+        track.stop();
+        if (wasLive) track.dispatchEvent?.(new Event('ended'));
+      }
+    });
     window.addEventListener('blanc:display-capture-result', (event) => {
       if (typeof event.detail !== 'string') return;
       let payload;
@@ -217,10 +232,17 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
       resolve(payload);
     });
     const wrapTrack = (track, shareId, kind, trackKey) => {
+      const share = activeShares.get(shareId);
+      share?.tracks.add(track);
       const stop = track.stop.bind(track);
       track.stop = function stopBrokered() {
         stop();
+        share?.tracks.delete(track);
         emitBridge('blanc:display-capture-track-stopped', { shareId, kind, trackKey });
+        if (share && share.tracks.size === 0) {
+          share.pc.close();
+          activeShares.delete(shareId);
+        }
       };
       const clone = track.clone.bind(track);
       track.clone = function cloneBrokered() {
@@ -255,6 +277,12 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
           throw err;
         }
         const pc = new RTCPeerConnection({ iceServers: [] });
+        activeShares.set(result.shareId, { pc, tracks: new Set() });
+        pc.addEventListener('connectionstatechange', () => {
+          if (pc.connectionState === 'failed') {
+            emitBridge('blanc:display-capture-signal', { shareId: result.shareId, type: 'failed' });
+          }
+        });
         const tracks = [];
         const requiredAudio = result.computerAudio === true;
         const trackIsUsable = (track) => (
@@ -303,22 +331,33 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
             maybeReady();
           };
         });
-        await pc.setRemoteDescription({ type: 'offer', sdp: result.offer });
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        if (pc.iceGatheringState !== 'complete') {
-          await new Promise((resolve) => {
-            pc.addEventListener('icegatheringstatechange', () => {
-              if (pc.iceGatheringState === 'complete') resolve();
+        const negotiate = async () => {
+          await pc.setRemoteDescription({ type: 'offer', sdp: result.offer });
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          if (pc.iceGatheringState !== 'complete') {
+            await new Promise((resolve) => {
+              pc.addEventListener('icegatheringstatechange', () => {
+                if (pc.iceGatheringState === 'complete') resolve();
+              });
             });
+          }
+          emitBridge('blanc:display-capture-signal', {
+            shareId: result.shareId,
+            type: 'answer',
+            sdp: pc.localDescription.sdp,
           });
+        };
+        try {
+          // Abort must also reject while SDP/ICE setup is still waiting.
+          await Promise.all([negotiate(), got]);
+        } catch (error) {
+          pc.close();
+          for (const track of tracks) track.stop();
+          activeShares.delete(result.shareId);
+          emitBridge('blanc:display-capture-signal', { shareId: result.shareId, type: 'failed' });
+          throw error;
         }
-        emitBridge('blanc:display-capture-signal', {
-          shareId: result.shareId,
-          type: 'answer',
-          sdp: pc.localDescription.sdp,
-        });
-        await got;
         return new MediaStream(tracks);
       });
     };

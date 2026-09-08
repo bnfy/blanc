@@ -63,6 +63,25 @@ renderer kill. Both count as no stream; say which occurred.
 
 ## Early helper audio (feasibility, not this gate)
 
-Windows/Linux receiver-measured helper system-audio energy remains a Task 4
-blocker for Island picker lock-in. Record those results in the dated audio
-probe files, not as a substitute for the rows above.
+On 2026-09-08 the owner approved the Linux-only disable of
+`WebRtcAllowInputVolumeAdjustment` and broker/Island picker integration after
+the recorded guest tone-follow and analog-input listening checks. Windows
+also has receiver-energy feasibility evidence. Those records permit product
+integration; they do not replace any packaged conference cell above.
+
+Unpackaged Mac/Windows/Linux product smokes (Island picker / Linux portal,
+Cancel, live A/V tracks, independent Stop) are recorded in
+`experiments/display-capture-broker/product-smoke/result.md`. They do not
+authenticate a candidate or satisfy any conference cell. Live tracks are not
+audible system-audio proof.
+
+**Next before merge/release:** freeze a reviewed candidate commit → build and
+authenticate platform packages → one real Meet/Teams/Zoom pass per OS (remote
+moving screen + audible system audio, Cancel/Stop, legacy denial, mic/camera
+coexistence). No conference cell may be marked PASS without that artifact-bound
+evidence.
+
+The Linux flag affects microphone APM input-volume recommendations throughout
+the process. Linux packaged proof must include simultaneous mic, camera, and
+system audio, and independent sharing Stop. No additional speech probe is
+required on the already-tested guest merely because envelope correlation varies.

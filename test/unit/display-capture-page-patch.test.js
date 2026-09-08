@@ -18,6 +18,7 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
     stop() { this.readyState = 'ended'; }
     clone() { return new FakeTrack(this.kind); }
     addEventListener(name, fn) { this.handlers.set(name, fn); }
+    dispatchEvent(event) { this.handlers.get(event.type)?.(event); }
   }
   class FakeStream {
     constructor(tracks) { this.tracks = tracks; }
@@ -53,6 +54,7 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
     async createAnswer() { return { type: 'answer', sdp: 'v=0' }; }
     async setLocalDescription() {}
     addEventListener() {}
+    close() { this.connectionState = 'closed'; }
   }
   const world = {
     window: null,
@@ -63,6 +65,7 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
     RTCPeerConnection: FakePC,
     navigator: { mediaDevices: { getUserMedia: () => Promise.reject(new Error('unused')) } },
     JSON,
+    Event,
   };
   world.window = {
     addEventListener: (name, fn) => {
@@ -95,11 +98,28 @@ function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVi
     world,
     gdm: (options) => world.navigator.mediaDevices.getDisplayMedia(options),
     emitAudio: () => pcs[pcs.length - 1]?.emitAudio(),
+    pcs,
     unmuteVideo: () => pcs[pcs.length - 1]?.unmuteVideo(),
     stopped: () => events.filter((item) => item.type === 'blanc:display-capture-track-stopped')
       .map((item) => JSON.parse(item.detail)),
   };
 }
+
+test('trusted abort after readiness ends the original and its clones and closes relay', async () => {
+  const w = makeWorld();
+  const stream = await w.gdm({ video: true });
+  const track = stream.getTracks()[0];
+  const clone = track.clone();
+  let ended = 0;
+  clone.addEventListener('ended', () => { ended++; });
+  w.world.window.dispatchEvent(new w.world.CustomEvent('blanc:display-capture-abort', {
+    detail: JSON.stringify({ shareId: 'share-1', reason: 'stop' }),
+  }));
+  assert.equal(track.readyState, 'ended');
+  assert.equal(clone.readyState, 'ended');
+  assert.equal(ended, 1);
+  assert.equal(w.pcs[0].connectionState, 'closed');
+});
 
 test('video false is TypeError before any broker request', async () => {
   const w = makeWorld();

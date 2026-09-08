@@ -37,10 +37,13 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
   class FakePC {
     constructor() {
       this.iceGatheringState = 'complete';
+      this.connectionState = 'new';
+      this.iceConnectionState = 'new';
       this.localDescription = { sdp: 'v=0' };
       this.tracks = [];
       this.closed = false;
       this.remote = null;
+      this.listeners = new Map();
       peers.push(this);
     }
     addTrack(track) { this.tracks.push(track); }
@@ -49,7 +52,18 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
     async setRemoteDescription(desc) { this.remote = desc; }
     async addIceCandidate() {}
     close() { this.closed = true; }
-    addEventListener() {}
+    addEventListener(name, fn) {
+      this.listeners.set(name, [...(this.listeners.get(name) || []), fn]);
+    }
+    emit(name) {
+      for (const fn of this.listeners.get(name) || []) fn();
+    }
+    failTransport() {
+      this.connectionState = 'failed';
+      this.iceConnectionState = 'failed';
+      this.emit('connectionstatechange');
+      this.emit('iceconnectionstatechange');
+    }
   }
   const world = {
     window: {
@@ -214,4 +228,25 @@ test('video release stops only that share video track', async () => {
   assert.equal(a.tracks.find((track) => track.kind === 'video').readyState, 'ended');
   assert.equal(a.tracks.find((track) => track.kind === 'audio').readyState, 'live');
   assert.equal(b.tracks.every((track) => track.readyState === 'live'), true);
+});
+
+test('helper tears down capture on transport failure without page notification', async () => {
+  const helper = loadHelper();
+  helper.authorize({ shareId: 'share-a', computerAudio: true });
+  await helper.waitForOffer('share-a');
+  const peer = helper.peers.find((item) => item.tracks.some((track) => track.shareId === 'share-a'));
+  assert.ok(peer);
+  // No page-side `failed` signal — the trusted helper must observe this itself.
+  peer.failTransport();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(peer.closed, true);
+  assert.equal(peer.tracks.every((track) => track.readyState === 'ended'), true);
+  assert.ok(helper.signals.some((item) => (
+    item.type === 'error'
+    && item.shareId === 'share-a'
+    && (item.reason === 'relay-failed' || item.name === 'AbortError')
+  )));
+  assert.ok(helper.signals.some((item) => (
+    item.type === 'stopped' && item.shareId === 'share-a' && item.nativeSettled === true
+  )));
 });

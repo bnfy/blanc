@@ -7,6 +7,25 @@ const {
 
 const HELPER_PARTITION = 'blanc-display-capture-helper';
 
+// Page-facing getDisplayMedia names the helper may surface. Unknown reasons
+// stay AbortError so callers never see free-form strings as error names.
+const CAPTURE_DOM_ERROR_NAMES = new Set([
+  'NotAllowedError',
+  'AbortError',
+  'NotReadableError',
+  'OverconstrainedError',
+  'InvalidStateError',
+  'NotFoundError',
+  'SecurityError',
+  'TypeError',
+]);
+
+function pageErrorNameForReason(reason) {
+  if (reason === 'cancel') return 'NotAllowedError';
+  if (CAPTURE_DOM_ERROR_NAMES.has(reason)) return reason;
+  return 'AbortError';
+}
+
 function createHelperAuthority() {
   const tokens = new WeakSet();
 
@@ -79,6 +98,7 @@ function installDisplayCaptureBroker({
   isOverlaySender,
   isPackaged = true,
   stubPicker = false,
+  handlePickerIpc = true,
   timeoutMs = 30_000,
 } = {}) {
   const pending = new Map();
@@ -226,11 +246,17 @@ function installDisplayCaptureBroker({
 
   const stopShareNow = (shareId, reason) => {
     const rec = registry.listShares().find((row) => row.shareId === shareId);
+    const job = helperJobs.get(shareId);
+    const hadPending = rec && pending.has(rec.requestId);
     registry.stopShare(shareId);
     if (helperWc && !helperWc.isDestroyed?.()) {
       helperWc.send('display-capture-helper:signal', { type: 'stop', shareId, reason });
     }
-    if (rec?.requestId) failPending(rec.requestId, 'AbortError', { reason });
+    if (rec?.requestId) failPending(rec.requestId,
+      pageErrorNameForReason(reason), { reason });
+    if (rec && job?.wait?.resolved && !hadPending) {
+      try { job.wait.event.sender.send('display-capture:abort', { shareId, reason }); } catch {}
+    }
     helperJobs.delete(shareId);
     startupReady.delete(shareId);
     revokeCaptureHandler(shareId);
@@ -337,8 +363,8 @@ function installDisplayCaptureBroker({
     });
   });
 
-  const resolvePicker = async (_event, payload) => {
-    if (!isOverlaySender?.(_event)) return;
+  const resolvePicker = async (_event, payload, portalSource = null) => {
+    if (!isOverlaySender?.(_event, payload?.requestId)) return;
     const requestId = payload?.requestId;
     const wait = pending.get(requestId);
     if (!wait || wait.cancelled) return;
@@ -381,7 +407,8 @@ function installDisplayCaptureBroker({
           if (helperSession?.setDisplayMediaRequestHandler && desktopCapturer?.getSources) {
             let sources = [];
             try {
-              sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
+              sources = portalSource ? [portalSource]
+                : await desktopCapturer.getSources({ types: ['screen', 'window'] });
             } catch {
               stopShareNow(approved.shareId, 'no-source');
               return;
@@ -417,11 +444,14 @@ function installDisplayCaptureBroker({
     });
   };
 
-  ipcMain.on('display-capture:picker-resolve', resolvePicker);
+  if (handlePickerIpc) {
+    ipcMain.on('display-capture:picker-resolve', (event, payload) => resolvePicker(event, payload));
+  }
 
   ipcMain.on('display-capture:signal', (event, payload) => {
     const shareId = payload?.shareId;
     if (!pageOwnsShare(event, shareId)) return;
+    if (payload.type === 'failed') { stopShareNow(shareId, 'relay-failed'); return; }
     if (payload?.type === 'candidate' || payload?.sdp || payload?.candidate) {
       const raw = payload.sdp || payload.candidate || payload.line;
       const filtered = filterSignaling(raw, { localAddresses: localAddresses() });

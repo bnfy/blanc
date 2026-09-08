@@ -18,12 +18,13 @@ test('macOS package declares microphone and camera usage descriptions', () => {
   );
 });
 
-test('display-capture stub picker cannot arm in a packaged build', () => {
+test('product startup always uses the real display-capture picker', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
   assert.match(
     main,
-    /stubPicker:\s*!app\.isPackaged && process\.env\.BLANC_DISPLAY_CAPTURE_STUB === '1'/
+    /stubPicker:\s*false/
   );
+  assert.doesNotMatch(main, /process\.env\.BLANC_DISPLAY_CAPTURE_STUB/);
 });
 
 test('hardened main and helper processes carry native media entitlements', () => {

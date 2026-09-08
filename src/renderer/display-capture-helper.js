@@ -71,7 +71,7 @@ async function acquire(job) {
   if (prior?.stream || prior?.pc) teardown(shareId);
   remember(shareId, { cancelled: false, stream: null, pc: null, acquiring: true });
   const stream = await navigator.mediaDevices.getDisplayMedia({
-    video: job.videoConstraints || true,
+    video: true,
     audio: job.computerAudio === true,
   });
   if (sessions.get(shareId)?.cancelled) {
@@ -109,6 +109,28 @@ async function acquire(job) {
     return;
   }
   remember(shareId, { stream, pc, cancelled: false, acquiring: false });
+  let relayFailed = false;
+  const failRelay = () => {
+    if (relayFailed) return;
+    const live = sessions.get(shareId);
+    if (!live || live.cancelled || live.pc !== pc) return;
+    relayFailed = true;
+    helper.signal({
+      type: 'error',
+      shareId,
+      name: 'AbortError',
+      message: 'relay-failed',
+      reason: 'relay-failed',
+    });
+    teardown(shareId);
+    markNativeSettled(shareId);
+  };
+  pc.addEventListener('connectionstatechange', () => {
+    if (pc.connectionState === 'failed') failRelay();
+  });
+  pc.addEventListener('iceconnectionstatechange', () => {
+    if (pc.iceConnectionState === 'failed') failRelay();
+  });
   for (const track of stream.getTracks()) {
     pc.addTrack(track, stream);
     track.addEventListener('ended', () => {
@@ -142,6 +164,77 @@ helper.onAuthorize((job) => {
     markNativeSettled(job.shareId);
   });
 });
+
+window.__probeIceSnapshot = async (shareId) => {
+  const session = shareId
+    ? sessions.get(shareId)
+    : [...sessions.values()].find((item) => item?.pc);
+  const pc = session?.pc;
+  if (!pc) return { error: 'no-pc' };
+  const stats = await pc.getStats();
+  const byId = new Map();
+  const locals = [];
+  const remotes = [];
+  const pairs = [];
+  const transports = [];
+  for (const report of stats.values()) {
+    byId.set(report.id, report);
+    if (report.type === 'local-candidate') {
+      locals.push({
+        id: report.id,
+        address: report.address || report.ip || null,
+        port: report.port || null,
+        type: report.candidateType,
+        protocol: report.protocol,
+      });
+    }
+    if (report.type === 'remote-candidate') {
+      remotes.push({
+        id: report.id,
+        address: report.address || report.ip || null,
+        port: report.port || null,
+        type: report.candidateType,
+        protocol: report.protocol,
+      });
+    }
+    if (report.type === 'candidate-pair') {
+      pairs.push({
+        id: report.id,
+        state: report.state,
+        nominated: report.nominated === true,
+        selected: report.selected === true,
+        localCandidateId: report.localCandidateId,
+        remoteCandidateId: report.remoteCandidateId,
+        bytesSent: report.bytesSent,
+        bytesReceived: report.bytesReceived,
+      });
+    }
+    if (report.type === 'transport') {
+      transports.push({
+        id: report.id,
+        selectedCandidatePairId: report.selectedCandidatePairId || null,
+      });
+    }
+  }
+  const selectedPairId = transports.find((item) => item.selectedCandidatePairId)?.selectedCandidatePairId || null;
+  const pair = selectedPairId ? pairs.find((item) => item.id === selectedPairId) || null : null;
+  return {
+    source: 'transport.selectedCandidatePairId',
+    selectedPairId,
+    iceConnectionState: pc.iceConnectionState,
+    iceGatheringState: pc.iceGatheringState,
+    connectionState: pc.connectionState,
+    selected: pair ? {
+      pair,
+      local: locals.find((item) => item.id === pair.localCandidateId) || null,
+      remote: remotes.find((item) => item.id === pair.remoteCandidateId) || null,
+    } : null,
+    transports,
+    locals,
+    remotes,
+    pairs,
+  };
+};
 
 helper.onSignal(async (msg) => {
   if (!msg || !msg.shareId) return;
