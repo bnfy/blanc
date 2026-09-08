@@ -141,6 +141,19 @@ function createBrokerRegistry() {
     return [...byShare.values()].map(project);
   }
 
+  function getShare(shareId) {
+    const rec = byShare.get(shareId);
+    if (!rec) return null;
+    return {
+      ...project(rec),
+      webContentsId: rec.webContentsId,
+      frameId: rec.frameId,
+      documentGeneration: rec.documentGeneration,
+      audioRequested: rec.audioRequested === true,
+      consumerKinds: [...rec.consumers.values()],
+    };
+  }
+
   return {
     beginRequest,
     admit,
@@ -151,6 +164,7 @@ function createBrokerRegistry() {
     stopShare,
     tabHasBlockingShare,
     listShares,
+    getShare,
     onChange(fn) {
       if (typeof fn === 'function') listeners.add(fn);
       return () => listeners.delete(fn);

@@ -227,6 +227,9 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         const nextKey = 't-' + (nextTrackKey++);
         const copy = wrapTrack(clone(), shareId, kind, nextKey);
         emitBridge('blanc:display-capture-track-added', { shareId, kind, trackKey: nextKey });
+        if (copy.readyState === 'live' && copy.muted !== true) {
+          emitBridge('blanc:display-capture-track-ready', { shareId, kind, trackKey: nextKey });
+        }
         return copy;
       };
       return track;
@@ -253,14 +256,51 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         }
         const pc = new RTCPeerConnection({ iceServers: [] });
         const tracks = [];
-        const got = new Promise((resolve) => {
+        const requiredAudio = result.computerAudio === true;
+        const trackIsUsable = (track) => (
+          !!track && track.readyState === 'live' && track.muted !== true
+        );
+        const got = new Promise((resolve, reject) => {
+          let settled = false;
+          const finish = (err) => {
+            if (settled) return;
+            settled = true;
+            try { window.removeEventListener('blanc:display-capture-abort', onAbort); } catch {}
+            if (err) reject(err);
+            else resolve();
+          };
+          const onAbort = (event) => {
+            if (typeof event.detail !== 'string') return;
+            let payload;
+            try { payload = JSON.parse(event.detail); } catch { return; }
+            if (payload && payload.shareId === result.shareId) {
+              finish(new DOMException(payload.reason || 'AbortError', 'AbortError'));
+            }
+          };
+          const tryReady = () => {
+            const video = tracks.find((item) => item.kind === 'video');
+            if (!trackIsUsable(video)) return;
+            if (requiredAudio) {
+              const audio = tracks.find((item) => item.kind === 'audio');
+              if (!trackIsUsable(audio)) return;
+            }
+            finish();
+          };
+          window.addEventListener('blanc:display-capture-abort', onAbort);
           pc.ontrack = (event) => {
             const kind = event.track.kind;
             const trackKey = 't-' + (nextTrackKey++);
             wrapTrack(event.track, result.shareId, kind, trackKey);
             emitBridge('blanc:display-capture-track-added', { shareId: result.shareId, kind, trackKey });
             tracks.push(event.track);
-            if (tracks.some((item) => item.kind === 'video')) resolve();
+            const maybeReady = () => {
+              if (trackIsUsable(event.track)) {
+                emitBridge('blanc:display-capture-track-ready', { shareId: result.shareId, kind, trackKey });
+              }
+              tryReady();
+            };
+            try { event.track.addEventListener('unmute', maybeReady); } catch {}
+            maybeReady();
           };
         });
         await pc.setRemoteDescription({ type: 'offer', sdp: result.offer });
@@ -331,36 +371,12 @@ if (process.isMainFrame) {
     } catch {}
     return null;
   };
-  const readMainWorldPolicy = async () => {
-    try {
-      const value = await webFrame.executeJavaScript(
-        `(() => {
-          try {
-            if (document.permissionsPolicy && typeof document.permissionsPolicy.allowsFeature === 'function') {
-              return document.permissionsPolicy.allowsFeature('display-capture') === true;
-            }
-            if (document.featurePolicy && typeof document.featurePolicy.allowsFeature === 'function') {
-              return document.featurePolicy.allowsFeature('display-capture') === true;
-            }
-          } catch {}
-          return null;
-        })()`,
-        false
-      );
-      return value === true || value === false ? value : null;
-    } catch {
-      return null;
-    }
-  };
   window.addEventListener('blanc:display-capture-request', async (event) => {
     if (typeof event.detail !== 'string' || event.detail.length > 2048) return;
     let payload;
     try { payload = JSON.parse(event.detail); } catch { return; }
     if (!Number.isInteger(payload?.id)) return;
-    let displayCaptureAllowed = readIsolatedPolicy();
-    if (displayCaptureAllowed !== true && displayCaptureAllowed !== false) {
-      displayCaptureAllowed = await readMainWorldPolicy();
-    }
+    const displayCaptureAllowed = readIsolatedPolicy();
     let result = { id: payload.id, ok: false, errorName: 'NotAllowedError', reason: 'policy' };
     if (displayCaptureAllowed === true) {
       try {
@@ -380,6 +396,12 @@ if (process.isMainFrame) {
       detail: JSON.stringify(result),
     }));
   });
+  ipcRenderer.on('display-capture:abort', (_event, payload) => {
+    if (!payload || typeof payload.shareId !== 'string') return;
+    window.dispatchEvent(new CustomEvent('blanc:display-capture-abort', {
+      detail: JSON.stringify({ shareId: payload.shareId, reason: payload.reason || 'AbortError' }),
+    }));
+  });
   window.addEventListener('blanc:display-capture-signal', (event) => {
     if (typeof event.detail !== 'string' || event.detail.length > 65536) return;
     let payload;
@@ -397,6 +419,12 @@ if (process.isMainFrame) {
     let payload;
     try { payload = JSON.parse(event.detail); } catch { return; }
     ipcRenderer.send('display-capture:track-added', payload);
+  });
+  window.addEventListener('blanc:display-capture-track-ready', (event) => {
+    if (typeof event.detail !== 'string' || event.detail.length > 512) return;
+    let payload;
+    try { payload = JSON.parse(event.detail); } catch { return; }
+    ipcRenderer.send('display-capture:track-ready', payload);
   });
   webFrame.executeJavaScript(CAPTURE_MAINWORLD_SOURCE).catch(() => {});
 }

@@ -99,6 +99,24 @@ test('stopShare releases every consumer', () => {
   assert.equal(reg.tabHasBlockingShare(1), false);
 });
 
+test('getShare exposes owner binding for a live share', () => {
+  const reg = createBrokerRegistry();
+  const { requestId } = start(reg, { tabId: 3, webContentsId: 30, frameId: 9, documentGeneration: 4 });
+  assert.equal(reg.getShare('missing'), null);
+  reg.admit(requestId);
+  const approved = reg.approve(requestId, {
+    sourceId: 'screen:1:0',
+    computerAudioApproved: true,
+    surfaceLabel: 'Entire screen',
+    surfaceKind: 'screen',
+  });
+  const row = reg.getShare(approved.shareId);
+  assert.equal(row.webContentsId, 30);
+  assert.equal(row.frameId, 9);
+  assert.equal(row.documentGeneration, 4);
+  assert.equal(row.requestId, requestId);
+});
+
 test('tabHasBlockingShare is true for pending and active', () => {
   const reg = createBrokerRegistry();
   const { requestId } = start(reg);

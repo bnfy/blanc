@@ -4,11 +4,17 @@ const test = require('node:test');
 const vm = require('node:vm');
 const { CAPTURE_MAINWORLD_SOURCE } = require('../../src/main/capture-mainworld');
 
-function makeWorld() {
+function makeWorld({ computerAudio = false, emitAudioImmediately = true, mutedVideo = false } = {}) {
   const events = [];
   const listeners = new Map();
+  const pcs = [];
   class FakeTrack {
-    constructor(kind) { this.kind = kind; this.readyState = 'live'; this.handlers = new Map(); }
+    constructor(kind, { muted = false } = {}) {
+      this.kind = kind;
+      this.readyState = 'live';
+      this.muted = muted;
+      this.handlers = new Map();
+    }
     stop() { this.readyState = 'ended'; }
     clone() { return new FakeTrack(this.kind); }
     addEventListener(name, fn) { this.handlers.set(name, fn); }
@@ -18,11 +24,30 @@ function makeWorld() {
     getTracks() { return this.tracks; }
   }
   class FakePC {
-    constructor() { this.ontrack = null; this.iceGatheringState = 'complete'; this.localDescription = { sdp: 'v=0' }; }
+    constructor() {
+      this.ontrack = null;
+      this.iceGatheringState = 'complete';
+      this.localDescription = { sdp: 'v=0' };
+      this._audio = null;
+      pcs.push(this);
+    }
+    emitAudio() {
+      const track = new FakeTrack('audio');
+      this._audio = track;
+      this.ontrack?.({ track });
+      return track;
+    }
+    unmuteVideo() {
+      const video = this._video;
+      if (!video) return;
+      video.muted = false;
+      video.handlers.get('unmute')?.();
+    }
     async setRemoteDescription() {
       queueMicrotask(() => {
-        this.ontrack?.({ track: new FakeTrack('video') });
-        this.ontrack?.({ track: new FakeTrack('audio') });
+        this._video = new FakeTrack('video', { muted: mutedVideo });
+        this.ontrack?.({ track: this._video });
+        if (emitAudioImmediately) this.emitAudio();
       });
     }
     async createAnswer() { return { type: 'answer', sdp: 'v=0' }; }
@@ -43,6 +68,9 @@ function makeWorld() {
     addEventListener: (name, fn) => {
       listeners.set(name, [...(listeners.get(name) || []), fn]);
     },
+    removeEventListener: (name, fn) => {
+      listeners.set(name, (listeners.get(name) || []).filter((item) => item !== fn));
+    },
     dispatchEvent: (ev) => {
       events.push({ type: ev.type, detail: ev.detail });
       for (const fn of listeners.get(ev.type) || []) fn(ev);
@@ -58,6 +86,7 @@ function makeWorld() {
         ok: true,
         shareId: 'share-1',
         offer: 'v=0',
+        computerAudio,
       }),
     }));
   });
@@ -65,6 +94,8 @@ function makeWorld() {
     events,
     world,
     gdm: (options) => world.navigator.mediaDevices.getDisplayMedia(options),
+    emitAudio: () => pcs[pcs.length - 1]?.emitAudio(),
+    unmuteVideo: () => pcs[pcs.length - 1]?.unmuteVideo(),
     stopped: () => events.filter((item) => item.type === 'blanc:display-capture-track-stopped')
       .map((item) => JSON.parse(item.detail)),
   };
@@ -74,6 +105,38 @@ test('video false is TypeError before any broker request', async () => {
   const w = makeWorld();
   await assert.rejects(() => w.gdm({ video: false }), (err) => err && err.name === 'TypeError');
   assert.equal(w.events.some((item) => item.type === 'blanc:display-capture-request'), false);
+});
+
+test('muted ontrack registers a consumer but does not emit track-ready', async () => {
+  const w = makeWorld({ computerAudio: true, emitAudioImmediately: false, mutedVideo: true });
+  const pending = w.gdm({ video: true, audio: true });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  const added = w.events.filter((item) => item.type === 'blanc:display-capture-track-added');
+  const ready = w.events.filter((item) => item.type === 'blanc:display-capture-track-ready');
+  assert.ok(added.some((item) => JSON.parse(item.detail).kind === 'video'));
+  assert.equal(ready.length, 0);
+  w.unmuteVideo();
+  await new Promise((resolve) => setImmediate(resolve));
+  const readyAfter = w.events.filter((item) => item.type === 'blanc:display-capture-track-ready');
+  assert.ok(readyAfter.some((item) => JSON.parse(item.detail).kind === 'video'));
+  pending.then(() => {});
+});
+
+test('approved computer audio waits for a live unmuted audio track', async () => {
+  const w = makeWorld({ computerAudio: true, emitAudioImmediately: false });
+  let settled = false;
+  const pending = w.gdm({ video: true, audio: true }).then((stream) => {
+    settled = true;
+    return stream;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(settled, false);
+  w.emitAudio();
+  const stream = await pending;
+  assert.equal(settled, true);
+  assert.ok(stream.getTracks().some((track) => track.kind === 'audio'));
 });
 
 test('clone increments consumers; stopping one clone does not emit the sibling key', async () => {

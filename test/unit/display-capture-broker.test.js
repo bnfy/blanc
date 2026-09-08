@@ -40,10 +40,10 @@ function fakeHelper() {
   return wc;
 }
 
-function pageEvent() {
+function pageEvent(id = 7, frameId = 1) {
   return {
-    sender: { id: 7, getURL: () => 'https://meet.example/', on() {} },
-    senderFrame: { frameTreeNodeId: 1, on() {} },
+    sender: { id, getURL: () => `https://tab-${id}.example/`, on() {} },
+    senderFrame: { frameTreeNodeId: frameId, on() {} },
   };
 }
 
@@ -235,6 +235,495 @@ test('cancel during acquisition stops a late helper offer', async (t) => {
   assert.ok(helperWc.sends.some((item) => item.payload?.type === 'stop'));
   assert.equal((await pending).reason, 'cancel');
   assert.equal(authority.isAuthorizedHelperSender(helperWc, CHROME_DISPLAY_CAPTURE_HELPER_URL), true);
+});
+
+function localCandidate() {
+  return 'a=candidate:1 1 UDP 2122260223 192.168.1.20 59999 typ host';
+}
+
+function helperOffer(shareId) {
+  return {
+    type: 'offer',
+    shareId,
+    sdp: `v=0\r\n${localCandidate()}\r\n`,
+    tracks: { video: true, audio: true },
+  };
+}
+
+test('unrelated sender cannot forward ICE or release another share audio', async (t) => {
+  const ctx = install(t, {
+    readTrustedFacts: (event) => ({
+      documentFocused: true,
+      documentVisible: true,
+      frameAlive: true,
+      tabId: event.sender.id,
+      webContentsId: event.sender.id,
+      frameId: event.senderFrame.frameTreeNodeId,
+      origin: `https://tab-${event.sender.id}.example`,
+      documentGeneration: 1,
+    }),
+  });
+  const owner = pageEvent(7);
+  const other = pageEvent(99);
+  const pending = ctx.ipcMain.invoke('display-capture:request', owner, goodFacts);
+  await Promise.resolve();
+  const share = ctx.registry.listShares()[0];
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: share.requestId,
+    sourceId: 'screen:1:0',
+    computerAudioApproved: true,
+    surfaceLabel: 'A',
+    surfaceKind: 'screen',
+  });
+  ctx.helperWc.sends.length = 0;
+  ctx.ipcMain.emit('display-capture:signal', other, {
+    shareId: share.shareId,
+    type: 'candidate',
+    candidate: localCandidate(),
+  });
+  assert.equal(ctx.helperWc.sends.length, 0);
+
+  ctx.registry.addConsumer(share.shareId, { kind: 'video', trackKey: 'v1' });
+  ctx.registry.addConsumer(share.shareId, { kind: 'audio', trackKey: 'a1' });
+  ctx.ipcMain.emit('display-capture:track-stopped', other, {
+    shareId: share.shareId,
+    kind: 'audio',
+    trackKey: 'a1',
+  });
+  assert.equal(ctx.registry.getShare(share.shareId).computerAudio, true);
+  assert.equal(ctx.helperWc.sends.some((item) => item.payload?.type === 'release'), false);
+
+  ctx.ipcMain.emit('display-capture:track-added', other, {
+    shareId: share.shareId,
+    kind: 'audio',
+    trackKey: 'forged',
+  });
+  ctx.ipcMain.emit('display-capture:track-stopped', other, {
+    shareId: share.shareId,
+    kind: 'audio',
+    trackKey: 'forged',
+  });
+  assert.equal(ctx.registry.getShare(share.shareId).computerAudio, true);
+  pending.then(() => {});
+});
+
+test('missing selected source is rejected instead of sharing the first source', async (t) => {
+  let lastHandler = null;
+  const ctx = install(t, {
+    helperSession: {
+      setDisplayMediaRequestHandler(fn) { lastHandler = fn; },
+    },
+    desktopCapturer: {
+      async getSources() {
+        return [{ id: 'screen:first', name: 'First' }, { id: 'screen:second', name: 'Second' }];
+      },
+    },
+  });
+  const pending = ctx.ipcMain.invoke('display-capture:request', pageEvent(), goodFacts);
+  await Promise.resolve();
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: 'req-1',
+    sourceId: 'screen:missing',
+    computerAudioApproved: true,
+    surfaceLabel: 'Missing',
+    surfaceKind: 'screen',
+  });
+  assert.equal(
+    ctx.helperWc.sends.some((item) => item.channel === 'display-capture-helper:authorize'),
+    false
+  );
+  if (lastHandler) {
+    let granted = null;
+    lastHandler({}, (payload) => { granted = payload; });
+    assert.ok(!granted?.video);
+  }
+  assert.equal((await pending).reason, 'no-source');
+});
+
+test('startup timeout stays armed until usable page tracks arrive', async (t) => {
+  const ctx = await startApproved(t, { timeoutMs: 40 });
+  const shareId = ctx.registry.listShares()[0].shareId;
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareId));
+  assert.equal((await ctx.pending).ok, true);
+  await new Promise((resolve) => setTimeout(resolve, 70));
+  assert.equal(ctx.registry.listShares().length, 0);
+});
+
+test('video-only page tracks do not satisfy an approved-audio share', async (t) => {
+  const ctx = await startApproved(t, { timeoutMs: 40 });
+  const shareId = ctx.registry.listShares()[0].shareId;
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareId));
+  await ctx.pending;
+  ctx.ipcMain.emit('display-capture:track-added', ctx.event, {
+    shareId, kind: 'video', trackKey: 'v1',
+  });
+  await new Promise((resolve) => setTimeout(resolve, 70));
+  assert.equal(ctx.registry.listShares().length, 0);
+});
+
+test('muted track-added does not clear the startup timeout', async (t) => {
+  const ctx = await startApproved(t, { timeoutMs: 40 });
+  const shareId = ctx.registry.listShares()[0].shareId;
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareId));
+  await ctx.pending;
+  ctx.ipcMain.emit('display-capture:track-added', ctx.event, {
+    shareId, kind: 'video', trackKey: 'v1', muted: true,
+  });
+  ctx.ipcMain.emit('display-capture:track-added', ctx.event, {
+    shareId, kind: 'audio', trackKey: 'a1', muted: true,
+  });
+  await new Promise((resolve) => setTimeout(resolve, 70));
+  assert.equal(ctx.registry.listShares().length, 0);
+});
+
+test('required page tracks from the owner clear the startup timeout', async (t) => {
+  const ctx = await startApproved(t, { timeoutMs: 40 });
+  const shareId = ctx.registry.listShares()[0].shareId;
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareId));
+  await ctx.pending;
+  ctx.ipcMain.emit('display-capture:track-added', ctx.event, {
+    shareId, kind: 'video', trackKey: 'v1',
+  });
+  ctx.ipcMain.emit('display-capture:track-added', ctx.event, {
+    shareId, kind: 'audio', trackKey: 'a1',
+  });
+  ctx.ipcMain.emit('display-capture:track-ready', ctx.event, {
+    shareId, kind: 'video', trackKey: 'v1',
+  });
+  ctx.ipcMain.emit('display-capture:track-ready', ctx.event, {
+    shareId, kind: 'audio', trackKey: 'a1',
+  });
+  await new Promise((resolve) => setTimeout(resolve, 70));
+  assert.equal(ctx.registry.listShares().length, 1);
+});
+
+test('second capture cannot replace an in-flight display-media handler', async (t) => {
+  let releaseFirstSources;
+  let sourceCalls = 0;
+  let currentHandler = null;
+  const factsFor = (event) => ({
+    documentFocused: true,
+    documentVisible: true,
+    frameAlive: true,
+    tabId: event.sender.id,
+    webContentsId: event.sender.id,
+    frameId: event.senderFrame.frameTreeNodeId,
+    origin: `https://tab-${event.sender.id}.example`,
+    documentGeneration: 1,
+  });
+  const ctx = install(t, {
+    readTrustedFacts: factsFor,
+    helperSession: {
+      setDisplayMediaRequestHandler(fn) { currentHandler = fn; },
+    },
+    desktopCapturer: {
+      async getSources() {
+        sourceCalls += 1;
+        if (sourceCalls === 1) {
+          await new Promise((resolve) => { releaseFirstSources = resolve; });
+        }
+        return [
+          { id: 'screen:a', name: 'A' },
+          { id: 'screen:b', name: 'B' },
+        ];
+      },
+    },
+  });
+  const pendingA = ctx.ipcMain.invoke('display-capture:request', pageEvent(7), goodFacts);
+  await Promise.resolve();
+  const shareA = ctx.registry.listShares().find((row) => row.origin === 'https://tab-7.example');
+  const pickerA = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareA.requestId,
+    sourceId: 'screen:a',
+    computerAudioApproved: true,
+    surfaceLabel: 'A',
+    surfaceKind: 'screen',
+  });
+  const pendingB = ctx.ipcMain.invoke('display-capture:request', pageEvent(8), goodFacts);
+  await Promise.resolve();
+  const shareB = ctx.registry.listShares().find((row) => row.origin === 'https://tab-8.example');
+  const pickerB = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareB.requestId,
+    sourceId: 'screen:b',
+    computerAudioApproved: true,
+    surfaceLabel: 'B',
+    surfaceKind: 'screen',
+  });
+  releaseFirstSources();
+  await pickerA;
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  const authorizes = () => ctx.helperWc.sends.filter((item) => item.channel === 'display-capture-helper:authorize');
+  assert.equal(sourceCalls, 1);
+  assert.equal(authorizes().length, 1);
+  assert.equal(authorizes()[0].payload.sourceId, 'screen:a');
+  let granted = null;
+  currentHandler({}, (payload) => { granted = payload; });
+  assert.equal(granted.video.id, 'screen:a');
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, helperOffer(shareA.shareId));
+  await pickerB;
+  assert.equal(authorizes().length, 2);
+  assert.equal(authorizes()[1].payload.sourceId, 'screen:b');
+  granted = null;
+  currentHandler({}, (payload) => { granted = payload; });
+  assert.equal(granted.video.id, 'screen:b');
+  pendingA.then(() => {});
+  pendingB.then(() => {});
+});
+
+test('cancel after authorization revokes the handler and holds the next share', async (t) => {
+  let currentHandler = null;
+  let sourceCalls = 0;
+  const factsFor = (event) => ({
+    documentFocused: true,
+    documentVisible: true,
+    frameAlive: true,
+    tabId: event.sender.id,
+    webContentsId: event.sender.id,
+    frameId: event.senderFrame.frameTreeNodeId,
+    origin: `https://tab-${event.sender.id}.example`,
+    documentGeneration: 1,
+  });
+  const ctx = install(t, {
+    readTrustedFacts: factsFor,
+    helperSession: {
+      setDisplayMediaRequestHandler(fn) { currentHandler = fn; },
+    },
+    desktopCapturer: {
+      async getSources() {
+        sourceCalls += 1;
+        return [
+          { id: 'screen:a', name: 'A' },
+          { id: 'screen:b', name: 'B' },
+        ];
+      },
+    },
+  });
+  const pendingA = ctx.ipcMain.invoke('display-capture:request', pageEvent(7), goodFacts);
+  await Promise.resolve();
+  const shareA = ctx.registry.listShares().find((row) => row.origin === 'https://tab-7.example');
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareA.requestId,
+    sourceId: 'screen:a',
+    computerAudioApproved: true,
+    surfaceLabel: 'A',
+    surfaceKind: 'screen',
+  });
+  const leftoverHandler = currentHandler;
+  const pendingB = ctx.ipcMain.invoke('display-capture:request', pageEvent(8), goodFacts);
+  await Promise.resolve();
+  const shareB = ctx.registry.listShares().find((row) => row.origin === 'https://tab-8.example');
+  const pickerB = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareB.requestId,
+    sourceId: 'screen:b',
+    computerAudioApproved: true,
+    surfaceLabel: 'B',
+    surfaceKind: 'screen',
+  });
+  const authorizes = () => ctx.helperWc.sends.filter((item) => item.channel === 'display-capture-helper:authorize');
+  assert.equal(authorizes().length, 1);
+  ctx.broker.cancelAcquisition(shareA.requestId);
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal((await pendingA).reason, 'cancel');
+  assert.equal(authorizes().length, 1);
+  assert.equal(sourceCalls, 1);
+  let granted = { video: 'unset' };
+  leftoverHandler({}, (payload) => { granted = payload; });
+  assert.ok(!granted?.video, 'cancelled handler must not grant its source');
+  if (currentHandler && currentHandler !== leftoverHandler) {
+    granted = { video: 'unset' };
+    currentHandler({}, (payload) => { granted = payload; });
+    assert.ok(!granted?.video, 'revoked handler must not grant a source');
+  }
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  await pickerB;
+  assert.equal(authorizes().length, 2);
+  assert.equal(authorizes()[1].payload.sourceId, 'screen:b');
+  granted = null;
+  currentHandler({}, (payload) => { granted = payload; });
+  assert.equal(granted.video.id, 'screen:b');
+  pendingB.then(() => {});
+});
+
+test('early helper stopped keeps the queue while A capture is still pending', async (t) => {
+  let currentHandler = null;
+  let sourceCalls = 0;
+  const factsFor = (event) => ({
+    documentFocused: true,
+    documentVisible: true,
+    frameAlive: true,
+    tabId: event.sender.id,
+    webContentsId: event.sender.id,
+    frameId: event.senderFrame.frameTreeNodeId,
+    origin: `https://tab-${event.sender.id}.example`,
+    documentGeneration: 1,
+  });
+  const ctx = install(t, {
+    readTrustedFacts: factsFor,
+    helperSession: {
+      setDisplayMediaRequestHandler(fn) { currentHandler = fn; },
+    },
+    desktopCapturer: {
+      async getSources() {
+        sourceCalls += 1;
+        return [
+          { id: 'screen:a', name: 'A' },
+          { id: 'screen:b', name: 'B' },
+        ];
+      },
+    },
+  });
+  const pendingA = ctx.ipcMain.invoke('display-capture:request', pageEvent(7), goodFacts);
+  await Promise.resolve();
+  const shareA = ctx.registry.listShares().find((row) => row.origin === 'https://tab-7.example');
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareA.requestId,
+    sourceId: 'screen:a',
+    computerAudioApproved: true,
+    surfaceLabel: 'A',
+    surfaceKind: 'screen',
+  });
+  const pendingB = ctx.ipcMain.invoke('display-capture:request', pageEvent(8), goodFacts);
+  await Promise.resolve();
+  const shareB = ctx.registry.listShares().find((row) => row.origin === 'https://tab-8.example');
+  const pickerB = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareB.requestId,
+    sourceId: 'screen:b',
+    computerAudioApproved: true,
+    surfaceLabel: 'B',
+    surfaceKind: 'screen',
+  });
+  const authorizes = () => ctx.helperWc.sends.filter((item) => item.channel === 'display-capture-helper:authorize');
+  ctx.broker.cancelAcquisition(shareA.requestId);
+  ctx.ipcMain.emit('display-capture-helper:stopped', { sender: ctx.helperWc }, {
+    shareId: shareA.shareId,
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal((await pendingA).reason, 'cancel');
+  assert.equal(authorizes().length, 1, 'early stopped must not authorize the queued share');
+  assert.equal(sourceCalls, 1);
+  ctx.ipcMain.emit('display-capture-helper:stopped', { sender: ctx.helperWc }, {
+    shareId: shareA.shareId,
+    nativeSettled: true,
+  });
+  await pickerB;
+  assert.equal(authorizes().length, 2);
+  assert.equal(authorizes()[1].payload.sourceId, 'screen:b');
+  let granted = null;
+  currentHandler({}, (payload) => { granted = payload; });
+  assert.equal(granted.video.id, 'screen:b');
+  pendingB.then(() => {});
+});
+
+test('cancelled capture rejection releases the queue for the next share', async (t) => {
+  let currentHandler = null;
+  let sourceCalls = 0;
+  const factsFor = (event) => ({
+    documentFocused: true,
+    documentVisible: true,
+    frameAlive: true,
+    tabId: event.sender.id,
+    webContentsId: event.sender.id,
+    frameId: event.senderFrame.frameTreeNodeId,
+    origin: `https://tab-${event.sender.id}.example`,
+    documentGeneration: 1,
+  });
+  const ctx = install(t, {
+    readTrustedFacts: factsFor,
+    helperSession: {
+      setDisplayMediaRequestHandler(fn) { currentHandler = fn; },
+    },
+    desktopCapturer: {
+      async getSources() {
+        sourceCalls += 1;
+        return [
+          { id: 'screen:a', name: 'A' },
+          { id: 'screen:b', name: 'B' },
+        ];
+      },
+    },
+  });
+  const pendingA = ctx.ipcMain.invoke('display-capture:request', pageEvent(7), goodFacts);
+  await Promise.resolve();
+  const shareA = ctx.registry.listShares().find((row) => row.origin === 'https://tab-7.example');
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareA.requestId,
+    sourceId: 'screen:a',
+    computerAudioApproved: true,
+    surfaceLabel: 'A',
+    surfaceKind: 'screen',
+  });
+  const pendingB = ctx.ipcMain.invoke('display-capture:request', pageEvent(8), goodFacts);
+  await Promise.resolve();
+  const shareB = ctx.registry.listShares().find((row) => row.origin === 'https://tab-8.example');
+  const pickerB = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareB.requestId,
+    sourceId: 'screen:b',
+    computerAudioApproved: true,
+    surfaceLabel: 'B',
+    surfaceKind: 'screen',
+  });
+  const authorizes = () => ctx.helperWc.sends.filter((item) => item.channel === 'display-capture-helper:authorize');
+  ctx.broker.cancelAcquisition(shareA.requestId);
+  ctx.ipcMain.emit('display-capture-helper:signal', { sender: ctx.helperWc }, {
+    type: 'error',
+    shareId: shareA.shareId,
+    name: 'NotAllowedError',
+    message: 'denied',
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal((await pendingA).reason, 'cancel');
+  for (let i = 0; i < 20; i += 1) {
+    if (authorizes().length === 2) break;
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  assert.equal(authorizes().length, 2, 'helper error must settle the cancelled acquire');
+  await pickerB;
+  assert.equal(authorizes()[1].payload.sourceId, 'screen:b');
+  assert.equal(sourceCalls, 2);
+  let granted = null;
+  currentHandler({}, (payload) => { granted = payload; });
+  assert.equal(granted.video.id, 'screen:b');
+  pendingB.then(() => {});
+});
+
+test('cancelled selection is revalidated after getSources', async (t) => {
+  let releaseSources;
+  const ctx = install(t, {
+    helperSession: {
+      setDisplayMediaRequestHandler() {},
+    },
+    desktopCapturer: {
+      async getSources() {
+        await new Promise((resolve) => { releaseSources = resolve; });
+        return [{ id: 'screen:1:0', name: 'Screen' }];
+      },
+    },
+  });
+  const pending = ctx.ipcMain.invoke('display-capture:request', pageEvent(), goodFacts);
+  await Promise.resolve();
+  const picking = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: 'req-1',
+    sourceId: 'screen:1:0',
+    computerAudioApproved: true,
+    surfaceLabel: 'Screen',
+    surfaceKind: 'screen',
+  });
+  for (let i = 0; i < 20 && typeof releaseSources !== 'function'; i += 1) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  ctx.broker.cancelAcquisition('req-1');
+  releaseSources();
+  await picking;
+  assert.equal(
+    ctx.helperWc.sends.some((item) => item.channel === 'display-capture-helper:authorize'),
+    false
+  );
+  assert.equal((await pending).reason, 'cancel');
 });
 
 test('strip or overlay Stop ends only the named share; other chrome cannot', (t) => {

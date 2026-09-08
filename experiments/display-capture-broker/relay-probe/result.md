@@ -18,9 +18,10 @@
 - Public SDP (c= + a=candidate 8.8.8.8) accepted: false reason=remote
 - Payloads that would have been sent to helper.addIceCandidate / setRemoteDescription: 0
 
-A dropped-candidate log is supporting only. Confinement is the filter refusing
-off-machine IPs before they reach the helper peer connection, plus the
-legitimate relay above staying connected on same-machine ICE.
+A dropped-candidate log is supporting only. These rows record **filter
+results**, not transport-level confinement. `helperStats.ice` was null, so
+this run did **not** observe helper selected-candidate / packet destination
+after a page-injected public ICE candidate. Task 8 step 6 remains NOT PROVEN.
 
 ```json
 {

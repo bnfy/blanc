@@ -101,7 +101,127 @@ function installDisplayCaptureBroker({
     clearTimeout(wait.timer);
     pending.delete(requestId);
     hidePicker?.(requestId);
+    if (wait.resolved === true) {
+      try {
+        wait.event?.sender?.send?.('display-capture:abort', {
+          shareId: wait.shareId,
+          reason: extra.reason || errorName,
+        });
+      } catch {}
+      return;
+    }
+    wait.resolved = true;
     wait.resolve({ ok: false, errorName, ...extra });
+  };
+
+  const pageOwnsShare = (event, shareId) => {
+    if (typeof shareId !== 'string' || !shareId || !event?.sender) return false;
+    const rec = registry.getShare?.(shareId);
+    if (!rec) return false;
+    const wait = pending.get(rec.requestId) || helperJobs.get(shareId)?.wait;
+    if (wait?.event?.sender && event.sender !== wait.event.sender) return false;
+    if (rec.webContentsId != null && event.sender.id != null && event.sender.id !== rec.webContentsId) {
+      return false;
+    }
+    const frameId = event.senderFrame?.frameTreeNodeId;
+    if (rec.frameId != null && frameId !== rec.frameId) return false;
+    if (rec.documentGeneration != null) {
+      const bound = wait?.trusted?.documentGeneration;
+      if (bound != null && bound !== rec.documentGeneration) return false;
+      try {
+        const facts = readTrustedFacts?.(event);
+        if (facts && facts.documentGeneration != null && facts.documentGeneration !== rec.documentGeneration) {
+          return false;
+        }
+      } catch {}
+    }
+    return true;
+  };
+
+  const startupReady = new Map();
+  const acquireHolds = new Map();
+  const nativeArmed = new Set();
+  const cancelledNative = new Set();
+  let activeCaptureGrant = null;
+  let captureGeneration = 0;
+
+  const releaseAcquire = (shareId) => {
+    const resolve = acquireHolds.get(shareId);
+    if (!resolve) return;
+    acquireHolds.delete(shareId);
+    resolve();
+  };
+
+  const holdAcquire = (shareId) => new Promise((resolve) => {
+    acquireHolds.set(shareId, resolve);
+  });
+
+  const settleNativeAcquire = (shareId) => {
+    nativeArmed.delete(shareId);
+    if (!cancelledNative.has(shareId)) return;
+    cancelledNative.delete(shareId);
+    releaseAcquire(shareId);
+  };
+
+  const releaseAcquireAndNative = (shareId) => {
+    nativeArmed.delete(shareId);
+    cancelledNative.delete(shareId);
+    releaseAcquire(shareId);
+  };
+
+  const denyDisplayMedia = (_request, callback) => {
+    callback({});
+    for (const shareId of [...cancelledNative]) settleNativeAcquire(shareId);
+  };
+
+  const revokeCaptureHandler = (shareId) => {
+    if (activeCaptureGrant && shareId && activeCaptureGrant.shareId !== shareId) return;
+    captureGeneration += 1;
+    activeCaptureGrant = null;
+    if (helperSession?.setDisplayMediaRequestHandler) {
+      helperSession.setDisplayMediaRequestHandler(denyDisplayMedia);
+    }
+  };
+
+  const installCaptureHandler = ({ shareId, source, computerAudio }) => {
+    const generation = ++captureGeneration;
+    activeCaptureGrant = { shareId, source, computerAudio, generation };
+    nativeArmed.add(shareId);
+    helperSession.setDisplayMediaRequestHandler((_request, callback) => {
+      const live = activeCaptureGrant;
+      if (!live || live.shareId !== shareId || live.generation !== generation) {
+        callback({});
+        settleNativeAcquire(shareId);
+        return;
+      }
+      activeCaptureGrant = null;
+      callback({
+        video: live.source,
+        ...(live.computerAudio ? { audio: 'loopback' } : {}),
+      });
+      if (helperSession?.setDisplayMediaRequestHandler) {
+        helperSession.setDisplayMediaRequestHandler(denyDisplayMedia);
+      }
+    });
+  };
+
+  const requiredPageTracksReady = (shareId) => {
+    const rec = registry.getShare?.(shareId);
+    const job = helperJobs.get(shareId);
+    if (!rec || !job) return false;
+    const kinds = startupReady.get(shareId) || new Set();
+    if (!kinds.has('video')) return false;
+    if (job.computerAudio === true && !kinds.has('audio')) return false;
+    return true;
+  };
+
+  const clearStartupOnceReady = (shareId) => {
+    if (!requiredPageTracksReady(shareId)) return;
+    const rec = registry.getShare(shareId);
+    const wait = pending.get(rec?.requestId);
+    if (!wait) return;
+    clearTimeout(wait.timer);
+    pending.delete(rec.requestId);
   };
 
   const stopShareNow = (shareId, reason) => {
@@ -112,6 +232,13 @@ function installDisplayCaptureBroker({
     }
     if (rec?.requestId) failPending(rec.requestId, 'AbortError', { reason });
     helperJobs.delete(shareId);
+    startupReady.delete(shareId);
+    revokeCaptureHandler(shareId);
+    if (reason !== 'helper-gone' && nativeArmed.has(shareId)) {
+      cancelledNative.add(shareId);
+      return rec;
+    }
+    releaseAcquireAndNative(shareId);
     return rec;
   };
 
@@ -233,37 +360,68 @@ function installDisplayCaptureBroker({
       videoConstraints: wait.parsed.videoConstraints,
     };
     helperJobs.set(approved.shareId, { ...job, wait });
-    await enqueueAcquire(async () => {
-      const current = pending.get(requestId);
-      if (!current || current.cancelled) {
-        if (helperWc && !helperWc.isDestroyed?.()) {
-          helperWc.send('display-capture-helper:signal', { type: 'stop', shareId: approved.shareId, reason: 'cancel' });
+    await new Promise((resolveSetup) => {
+      enqueueAcquire(async () => {
+        let held = null;
+        try {
+          const stillPending = () => {
+            const current = pending.get(requestId);
+            return !!(current && current.cancelled !== true);
+          };
+          if (!stillPending()) {
+            if (helperWc && !helperWc.isDestroyed?.()) {
+              helperWc.send('display-capture-helper:signal', { type: 'stop', shareId: approved.shareId, reason: 'cancel' });
+            }
+            return;
+          }
+          if (typeof payload.sourceId !== 'string' || !payload.sourceId) {
+            stopShareNow(approved.shareId, 'no-source');
+            return;
+          }
+          if (helperSession?.setDisplayMediaRequestHandler && desktopCapturer?.getSources) {
+            let sources = [];
+            try {
+              sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
+            } catch {
+              stopShareNow(approved.shareId, 'no-source');
+              return;
+            }
+            if (!stillPending()) {
+              stopShareNow(approved.shareId, 'cancel');
+              return;
+            }
+            const source = sources.find((item) => item.id === payload.sourceId);
+            if (!source) {
+              stopShareNow(approved.shareId, 'no-source');
+              return;
+            }
+            installCaptureHandler({
+              shareId: approved.shareId,
+              source,
+              computerAudio: approved.computerAudio,
+            });
+          }
+          if (!stillPending()) {
+            stopShareNow(approved.shareId, 'cancel');
+            return;
+          }
+          if (helperWc && !helperWc.isDestroyed?.()) {
+            held = holdAcquire(approved.shareId);
+            helperWc.send('display-capture-helper:authorize', job);
+          }
+        } finally {
+          resolveSetup();
         }
-        return;
-      }
-      if (helperSession?.setDisplayMediaRequestHandler && desktopCapturer?.getSources) {
-        const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
-        const source = sources.find((item) => item.id === payload.sourceId) || sources[0];
-        helperSession.setDisplayMediaRequestHandler((_request, callback) => {
-          callback({
-            video: source,
-            ...(approved.computerAudio ? { audio: 'loopback' } : {}),
-          });
-        });
-      }
-      if (helperWc && !helperWc.isDestroyed?.()) {
-        helperWc.send('display-capture-helper:authorize', job);
-      }
+        if (held) await held;
+      });
     });
   };
 
   ipcMain.on('display-capture:picker-resolve', resolvePicker);
 
   ipcMain.on('display-capture:signal', (event, payload) => {
-    const wait = [...pending.values()].find((item) => item.event.sender === event.sender)
-      || [...helperJobs.values()].find((item) => item.wait?.event.sender === event.sender);
-    const shareId = payload?.shareId || wait?.shareId;
-    if (!shareId) return;
+    const shareId = payload?.shareId;
+    if (!pageOwnsShare(event, shareId)) return;
     if (payload?.type === 'candidate' || payload?.sdp || payload?.candidate) {
       const raw = payload.sdp || payload.candidate || payload.line;
       const filtered = filterSignaling(raw, { localAddresses: localAddresses() });
@@ -283,13 +441,21 @@ function installDisplayCaptureBroker({
     }
   });
 
-  ipcMain.on('display-capture:track-added', (_event, payload) => {
-    if (!payload?.shareId || !payload?.trackKey) return;
+  ipcMain.on('display-capture:track-added', (event, payload) => {
+    if (!pageOwnsShare(event, payload?.shareId) || !payload?.trackKey) return;
     registry.addConsumer(payload.shareId, { kind: payload.kind, trackKey: payload.trackKey });
   });
 
-  ipcMain.on('display-capture:track-stopped', (_event, payload) => {
-    if (!payload?.shareId || !payload?.trackKey) return;
+  ipcMain.on('display-capture:track-ready', (event, payload) => {
+    if (!pageOwnsShare(event, payload?.shareId)) return;
+    if (payload?.kind !== 'video' && payload?.kind !== 'audio') return;
+    if (!startupReady.has(payload.shareId)) startupReady.set(payload.shareId, new Set());
+    startupReady.get(payload.shareId).add(payload.kind);
+    clearStartupOnceReady(payload.shareId);
+  });
+
+  ipcMain.on('display-capture:track-stopped', (event, payload) => {
+    if (!pageOwnsShare(event, payload?.shareId) || !payload?.trackKey) return;
     const result = registry.removeConsumer(payload.shareId, {
       kind: payload.kind,
       trackKey: payload.trackKey,
@@ -310,7 +476,10 @@ function installDisplayCaptureBroker({
     const shareId = payload?.shareId;
     const job = helperJobs.get(shareId);
     if (payload?.type === 'ended' || payload?.type === 'error') {
-      if (shareId) stopShareNow(shareId, payload?.reason || payload?.name || 'helper');
+      if (shareId) {
+        stopShareNow(shareId, payload?.reason || payload?.name || 'helper');
+        settleNativeAcquire(shareId);
+      }
       return;
     }
     if (payload?.type !== 'offer') return;
@@ -318,6 +487,7 @@ function installDisplayCaptureBroker({
       if (shareId && helperWc && !helperWc.isDestroyed?.()) {
         helperWc.send('display-capture-helper:signal', { type: 'stop', shareId, reason: 'late' });
       }
+      if (shareId) releaseAcquireAndNative(shareId);
       return;
     }
     const found = [...pending.entries()].find(([, v]) => v.shareId === shareId);
@@ -326,6 +496,9 @@ function installDisplayCaptureBroker({
     if (!pendingWait || pendingWait.cancelled) {
       helperWc.send('display-capture-helper:signal', { type: 'stop', shareId, reason: 'late' });
       registry.stopShare(shareId);
+      helperJobs.delete(shareId);
+      startupReady.delete(shareId);
+      releaseAcquireAndNative(shareId);
       return;
     }
     if (payload.tracks?.video !== true) {
@@ -341,14 +514,24 @@ function installDisplayCaptureBroker({
       stopShareNow(shareId, 'ice');
       return;
     }
-    clearTimeout(pendingWait.timer);
-    pending.delete(requestId);
-    pendingWait.resolve({
-      ok: true,
-      shareId,
-      offer: filtered.sdp,
-      computerAudio: job.computerAudio,
-    });
+    if (pendingWait.resolved !== true) {
+      pendingWait.resolved = true;
+      pendingWait.resolve({
+        ok: true,
+        shareId,
+        offer: filtered.sdp,
+        computerAudio: job.computerAudio,
+      });
+    }
+    releaseAcquireAndNative(shareId);
+  });
+
+  ipcMain.on('display-capture-helper:stopped', (event, payload) => {
+    if (!authority.isAuthorizedHelperSender(event.sender, CHROME_DISPLAY_CAPTURE_HELPER_URL)) return;
+    const shareId = payload?.shareId;
+    if (typeof shareId !== 'string' || !shareId) return;
+    if (payload.nativeSettled !== true) return;
+    settleNativeAcquire(shareId);
   });
 
   ipcMain.on('display-capture:stop', (event, payload) => {
