@@ -68,4 +68,15 @@ function filterSignaling(sdpOrCandidate, { localAddresses } = {}) {
   return { ok: true, sdp: kept.join('\n') };
 }
 
-module.exports = { filterSignaling, MAX_SIGNAL_BYTES };
+function collectLocalAddresses() {
+  const os = require('node:os');
+  const out = new Set(['127.0.0.1', '::1']);
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const entry of list || []) {
+      if (entry?.address) out.add(entry.address);
+    }
+  }
+  return out;
+}
+
+module.exports = { filterSignaling, MAX_SIGNAL_BYTES, collectLocalAddresses };

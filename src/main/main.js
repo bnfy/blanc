@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -73,6 +73,16 @@ const {
   CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
+const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
+const { parseDisplayMediaOptions } = require('./display-capture-constraints');
+const { createBrokerRegistry } = require('./display-capture-state');
+const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
+const {
+  createHelperAuthority,
+  createHelperSession,
+  attachHelperWindow,
+  installDisplayCaptureBroker,
+} = require('./display-capture-broker');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
@@ -7830,6 +7840,7 @@ function broadcastWebrtcAudioBufferToBrowsingContents() {
 // every settings write, and clearing the cache mid-session isn't free.
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
+let displayCaptureRegistry = null;
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   profileSessionRegistry = createProfileSessionRegistry({
@@ -7996,6 +8007,80 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!wc) return null;
     return tabs.get(tabIdByWebContentsId.get(wc.id)) ?? null;
   }
+
+  displayCaptureRegistry = createBrokerRegistry();
+  const displayCaptureAuthority = createHelperAuthority();
+  const displayCaptureHelperSession = createHelperSession({
+    sessionFactory: session,
+    setupChromeProtocol,
+    net,
+  });
+  displayCaptureHelperSession.setPermissionRequestHandler((_wc, permission, callback) => {
+    callback(permission === 'media' || permission === 'display-capture');
+  });
+  displayCaptureHelperSession.setPermissionCheckHandler((_wc, permission) => (
+    permission === 'media' || permission === 'display-capture'
+  ));
+  const displayCaptureHelperWindow = attachHelperWindow({
+    BrowserWindow,
+    session: displayCaptureHelperSession,
+    preloadPath: path.join(__dirname, 'display-capture-helper-preload.js'),
+    lockPrivilegedNavigation,
+    authority: displayCaptureAuthority,
+  });
+  installDisplayCaptureBroker({
+    ipcMain,
+    registry: displayCaptureRegistry,
+    evaluateAdmission,
+    parseDisplayMediaOptions,
+    filterSignaling,
+    collectLocalAddresses,
+    helperWc: displayCaptureHelperWindow.webContents,
+    helperSession: displayCaptureHelperSession,
+    desktopCapturer,
+    showPicker: () => {},
+    hidePicker: () => {},
+    authority: displayCaptureAuthority,
+    isPackaged: app.isPackaged,
+    stubPicker: !app.isPackaged && process.env.BLANC_DISPLAY_CAPTURE_STUB === '1',
+    isOverlaySender: (event) => {
+      try { return event.sender.getURL() === CHROME_OVERLAY_URL; } catch { return false; }
+    },
+    readTrustedFacts: (event) => {
+      const wc = event.sender;
+      const tab = tabForWebContents(wc);
+      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+      const win = owner?.window;
+      const frame = event.senderFrame || wc?.mainFrame;
+      let frameVisible = null;
+      try {
+        frameVisible = typeof frame?.visibilityState === 'string'
+          ? frame.visibilityState === 'visible'
+          : null;
+      } catch {
+        frameVisible = null;
+      }
+      const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
+      return {
+        documentFocused: wc?.isFocused?.() === true,
+        documentVisible: evaluateDocumentVisible({
+          windowVisible: win?.isVisible?.() === true,
+          windowMinimized: win?.isMinimized?.() === true,
+          tabAttached,
+          frameVisible: frameVisible === true,
+        }),
+        frameAlive: !!(frame && frame !== null),
+        tabId: tab?.id ?? null,
+        webContentsId: wc?.id ?? null,
+        frameId: frame?.frameTreeNodeId ?? frame?.routingId ?? null,
+        origin: (() => {
+          try { return new URL(wc.getURL()).origin; } catch { return null; }
+        })(),
+        documentGeneration: 1,
+        sources: [],
+      };
+    },
+  });
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
   // transient no-window moment can't permanently block a site.
