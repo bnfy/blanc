@@ -13,6 +13,7 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
   const shareQueue = [];
   const streams = [];
   let releaseGum;
+  let lastGumOptions;
   class FakeTrack {
     constructor(kind, shareId) {
       this.kind = kind;
@@ -65,6 +66,20 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
       this.emit('iceconnectionstatechange');
     }
   }
+  async function nextStream() {
+    if (deferGum) {
+      await new Promise((resolve, reject) => {
+        releaseGum = rejectGum
+          ? () => reject(Object.assign(new Error('denied'), { name: 'NotAllowedError' }))
+          : resolve;
+      });
+    } else if (rejectGum) {
+      throw Object.assign(new Error('denied'), { name: 'NotAllowedError' });
+    }
+    const stream = new FakeStream(shareQueue.shift());
+    streams.push(stream);
+    return stream;
+  }
   const world = {
     window: {
       blancDisplayCaptureHelper: {
@@ -77,20 +92,13 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
     },
     navigator: {
       mediaDevices: {
+        async getUserMedia(options) {
+          lastGumOptions = options;
+          return nextStream();
+        },
         async getDisplayMedia(options) {
           world.lastGdmOptions = options;
-          if (deferGum) {
-            await new Promise((resolve, reject) => {
-              releaseGum = rejectGum
-                ? () => reject(Object.assign(new Error('denied'), { name: 'NotAllowedError' }))
-                : resolve;
-            });
-          } else if (rejectGum) {
-            throw Object.assign(new Error('denied'), { name: 'NotAllowedError' });
-          }
-          const stream = new FakeStream(shareQueue.shift());
-          streams.push(stream);
-          return stream;
+          return nextStream();
         },
       },
     },
@@ -121,11 +129,62 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
     streams,
     peers,
     get lastGdmOptions() { return world.lastGdmOptions; },
+    get lastGumOptions() { return lastGumOptions; },
     streamsOf(shareId) {
       return peers.filter((peer) => peer.tracks.some((track) => track.shareId === shareId));
     },
   };
 }
+
+test('helper consumes a portal-selected desktop source without getDisplayMedia', async () => {
+  const helper = loadHelper();
+  helper.authorize({
+    shareId: 'share-a',
+    sourceId: 'window:1:0:s',
+    captureMethod: 'desktop-source',
+    computerAudio: true,
+  });
+  await helper.waitForOffer('share-a');
+  assert.equal(helper.lastGdmOptions, undefined);
+  assert.equal(helper.lastGumOptions.video.mandatory.chromeMediaSource, 'desktop');
+  assert.equal(helper.lastGumOptions.video.mandatory.chromeMediaSourceId, 'window:1:0:s');
+  assert.equal(helper.lastGumOptions.audio.mandatory.chromeMediaSource, 'desktop');
+  assert.equal(helper.lastGumOptions.audio.mandatory.chromeMediaSourceId, 'window:1:0:s');
+});
+
+test('portal-selected video-only capture does not request loopback audio', async () => {
+  const helper = loadHelper();
+  helper.authorize({
+    shareId: 'share-a',
+    sourceId: 'window:1:0:s',
+    captureMethod: 'desktop-source',
+    computerAudio: false,
+  });
+  await helper.waitForOffer('share-a');
+  assert.equal(helper.lastGumOptions.audio, false);
+});
+
+test('stop during pending portal-source capture discards its late stream', async () => {
+  const helper = loadHelper({ deferGum: true });
+  helper.authorize({
+    shareId: 'share-a',
+    sourceId: 'window:1:0:s',
+    captureMethod: 'desktop-source',
+    computerAudio: true,
+  });
+  await helper.signal({ type: 'stop', shareId: 'share-a' });
+  assert.equal(helper.signals.some((item) => item.type === 'stopped'), false);
+  helper.releaseGum();
+  for (let i = 0; i < 20; i += 1) {
+    if (helper.signals.some((item) => item.type === 'stopped' && item.nativeSettled === true)) break;
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  assert.equal(helper.signals.some((item) => item.type === 'offer'), false);
+  assert.ok(helper.signals.some((item) => (
+    item.type === 'stopped' && item.shareId === 'share-a' && item.nativeSettled === true
+  )));
+  assert.equal(helper.streams[0].getTracks().every((track) => track.readyState === 'ended'), true);
+});
 
 test('helper requests boolean audio true by default for system audio', async () => {
   const helper = loadHelper();

@@ -69,6 +69,33 @@ function helperCaptureAudioConstraint(job) {
   return true;
 }
 
+function desktopSourceConstraints(job) {
+  const sourceId = typeof job?.sourceId === 'string' ? job.sourceId : '';
+  if (!sourceId) {
+    const error = new Error('desktop source required');
+    error.name = 'NotFoundError';
+    throw error;
+  }
+  const mandatory = {
+    chromeMediaSource: 'desktop',
+    chromeMediaSourceId: sourceId,
+  };
+  return {
+    video: { mandatory: { ...mandatory } },
+    audio: job.computerAudio === true ? { mandatory: { ...mandatory } } : false,
+  };
+}
+
+function acquireNativeStream(job) {
+  if (job?.captureMethod === 'desktop-source') {
+    return navigator.mediaDevices.getUserMedia(desktopSourceConstraints(job));
+  }
+  return navigator.mediaDevices.getDisplayMedia({
+    video: true,
+    audio: helperCaptureAudioConstraint(job),
+  });
+}
+
 function logHelper(event, detail = {}) {
   try {
     helper.signal({
@@ -97,8 +124,11 @@ async function acquire(job) {
   }
   if (prior?.stream || prior?.pc) teardown(shareId);
   remember(shareId, { cancelled: false, stream: null, pc: null, acquiring: true });
-  const requestedAudio = helperCaptureAudioConstraint(job);
-  logHelper('getDisplayMedia-start', {
+  const captureMethod = job.captureMethod === 'desktop-source' ? 'getUserMedia' : 'getDisplayMedia';
+  const requestedAudio = captureMethod === 'getDisplayMedia'
+    ? helperCaptureAudioConstraint(job)
+    : job.computerAudio === true;
+  logHelper(`${captureMethod}-start`, {
     shareId,
     computerAudio: job.computerAudio === true,
     systemAudioProcessing: job.systemAudioProcessing === 'off' ? 'off' : 'default',
@@ -106,19 +136,16 @@ async function acquire(job) {
   });
   let stream;
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: requestedAudio,
-    });
+    stream = await acquireNativeStream(job);
   } catch (err) {
-    logHelper('getDisplayMedia-throw', {
+    logHelper(`${captureMethod}-throw`, {
       shareId,
       name: err?.name || null,
       message: typeof err?.message === 'string' ? err.message.slice(0, 120) : null,
     });
     throw err;
   }
-  logHelper('getDisplayMedia-ok', {
+  logHelper(`${captureMethod}-ok`, {
     shareId,
     video: stream.getVideoTracks().map((t) => `${t.readyState}:${t.muted}`).join(','),
     audio: stream.getAudioTracks().map((t) => `${t.readyState}:${t.muted}`).join(','),

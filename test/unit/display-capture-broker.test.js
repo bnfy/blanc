@@ -196,6 +196,91 @@ test('authorize job passes systemAudioProcessing off from env', async (t) => {
   assert.equal(job.systemAudioProcessing, 'off');
 });
 
+test('portal source authorizes one-source helper capture without a display-media handler', async (t) => {
+  let handlerInstalls = 0;
+  let sourceCalls = 0;
+  const portalSource = { id: 'window:1:0:s', name: '' };
+  const ctx = install(t, {
+    helperSession: {
+      setDisplayMediaRequestHandler() { handlerInstalls += 1; },
+    },
+    desktopCapturer: {
+      async getSources() { sourceCalls += 1; return [portalSource]; },
+    },
+  });
+  const pending = ctx.ipcMain.invoke('display-capture:request', pageEvent(), goodFacts);
+  await Promise.resolve();
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: 'req-1',
+    sourceId: portalSource.id,
+    computerAudioApproved: true,
+    surfaceLabel: 'Screen',
+    surfaceKind: 'window',
+  }, portalSource);
+  const job = ctx.helperWc.sends.find((item) => (
+    item.channel === 'display-capture-helper:authorize'
+  ))?.payload;
+  assert.equal(job.captureMethod, 'desktop-source');
+  assert.equal(job.sourceId, portalSource.id);
+  assert.equal(sourceCalls, 0);
+  assert.equal(handlerInstalls, 0);
+  pending.then(() => {});
+});
+
+test('cancelled portal-source capture holds the next share until native settlement', async (t) => {
+  const factsFor = (event) => ({
+    documentFocused: true,
+    documentVisible: true,
+    frameAlive: true,
+    tabId: event.sender.id,
+    webContentsId: event.sender.id,
+    frameId: event.senderFrame.frameTreeNodeId,
+    origin: `https://tab-${event.sender.id}.example`,
+    documentGeneration: 1,
+  });
+  const ctx = install(t, {
+    readTrustedFacts: factsFor,
+    helperSession: { setDisplayMediaRequestHandler() {} },
+  });
+  const pendingA = ctx.ipcMain.invoke('display-capture:request', pageEvent(7), goodFacts);
+  await Promise.resolve();
+  const shareA = ctx.registry.listShares().find((row) => row.origin === 'https://tab-7.example');
+  await ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareA.requestId,
+    sourceId: 'window:a',
+    computerAudioApproved: true,
+    surfaceLabel: 'A',
+    surfaceKind: 'window',
+  }, { id: 'window:a', name: 'A' });
+
+  const pendingB = ctx.ipcMain.invoke('display-capture:request', pageEvent(8), goodFacts);
+  await Promise.resolve();
+  const shareB = ctx.registry.listShares().find((row) => row.origin === 'https://tab-8.example');
+  const pickerB = ctx.broker.resolvePicker(overlayEvent(), {
+    requestId: shareB.requestId,
+    sourceId: 'window:b',
+    computerAudioApproved: true,
+    surfaceLabel: 'B',
+    surfaceKind: 'window',
+  }, { id: 'window:b', name: 'B' });
+  const authorizes = () => ctx.helperWc.sends.filter((item) => (
+    item.channel === 'display-capture-helper:authorize'
+  ));
+  assert.equal(authorizes().length, 1);
+  ctx.broker.cancelAcquisition(shareA.requestId);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal((await pendingA).reason, 'cancel');
+  assert.equal(authorizes().length, 1, 'next portal source must remain queued');
+  ctx.ipcMain.emit('display-capture-helper:stopped', { sender: ctx.helperWc }, {
+    shareId: shareA.shareId,
+    nativeSettled: true,
+  });
+  await pickerB;
+  assert.equal(authorizes().length, 2);
+  assert.equal(authorizes()[1].payload.sourceId, 'window:b');
+  pendingB.then(() => {});
+});
+
 test('navigation ends the share and stops helper tracks', async (t) => {
   const { helperWc, broker, registry, pending } = await startApproved(t);
   broker.noteNavigation('share-2');

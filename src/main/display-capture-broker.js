@@ -428,6 +428,7 @@ function installDisplayCaptureBroker({
     const job = {
       shareId: approved.shareId,
       sourceId: payload.sourceId,
+      captureMethod: portalSource ? 'desktop-source' : 'display-media',
       computerAudio: approved.computerAudio,
       systemAudioProcessing: helperSystemAudioProcessingMode(),
       videoConstraints: wait.parsed.videoConstraints,
@@ -451,11 +452,19 @@ function installDisplayCaptureBroker({
             stopShareNow(approved.shareId, 'no-source');
             return;
           }
-          if (helperSession?.setDisplayMediaRequestHandler && desktopCapturer?.getSources) {
+          if (portalSource) {
+            if (portalSource.id !== payload.sourceId) {
+              stopShareNow(approved.shareId, 'no-source');
+              return;
+            }
+            // PipeWire already obtained consent and returned this opaque source
+            // through the system portal. Consuming it with desktop getUserMedia
+            // avoids opening a second portal in the privileged helper.
+            nativeArmed.add(approved.shareId);
+          } else if (helperSession?.setDisplayMediaRequestHandler && desktopCapturer?.getSources) {
             let sources = [];
             try {
-              sources = portalSource ? [portalSource]
-                : await desktopCapturer.getSources({ types: ['screen', 'window'] });
+              sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
             } catch {
               stopShareNow(approved.shareId, 'no-source');
               return;
