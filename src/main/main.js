@@ -79,6 +79,7 @@ const { parseDisplayMediaOptions } = require('./display-capture-constraints');
 const { createBrokerRegistry } = require('./display-capture-state');
 const { projectDisplayShares } = require('./display-capture-indicator');
 const { createDisplayCapturePicker } = require('./display-capture-picker');
+const { showOverlayView, hideOverlayView } = require('./overlay-view-lifecycle');
 const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
 const {
   createHelperAuthority,
@@ -2979,7 +2980,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   // (Re-)adding moves the overlay to the top of the child-view stack.
   // Stack order: tab < fill capsule < overlay < permission prompt.
   restackFillStatusView();
-  rt().window.contentView.addChildView(rt().overlayView);
+  showOverlayView(rt().window, rt().overlayView);
   restackPermissionView();
   if (rt().overlayExitTimer) {
     clearTimeout(rt().overlayExitTimer);
@@ -3064,11 +3065,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
         // Re-check: a new overlay may have opened while this was retracting,
         // in which case the view is legitimately on screen again.
         if (!rt().overlayMode && hasLiveWindow() && rt().overlayView) {
-          rt().window.contentView.removeChildView(rt().overlayView);
+          hideOverlayView(rt().window, rt().overlayView);
         }
       }), OVERLAY_RETRACT_MS);
     } else {
-      rt().window.contentView.removeChildView(rt().overlayView);
+      hideOverlayView(rt().window, rt().overlayView);
     }
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
