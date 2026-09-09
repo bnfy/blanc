@@ -180,6 +180,22 @@ async function startApproved(t, extras) {
   return { ...ctx, event, pending };
 }
 
+test('authorize job default systemAudioProcessing is default', async (t) => {
+  delete process.env.BLANC_HELPER_SYSTEM_AUDIO_PROCESSING;
+  const ctx = await startApproved(t);
+  const job = ctx.helperWc.sends.find((item) => item.channel === 'display-capture-helper:authorize')?.payload;
+  assert.equal(job.computerAudio, true);
+  assert.equal(job.systemAudioProcessing, 'default');
+});
+
+test('authorize job passes systemAudioProcessing off from env', async (t) => {
+  process.env.BLANC_HELPER_SYSTEM_AUDIO_PROCESSING = 'off';
+  t.after(() => { delete process.env.BLANC_HELPER_SYSTEM_AUDIO_PROCESSING; });
+  const ctx = await startApproved(t);
+  const job = ctx.helperWc.sends.find((item) => item.channel === 'display-capture-helper:authorize')?.payload;
+  assert.equal(job.systemAudioProcessing, 'off');
+});
+
 test('navigation ends the share and stops helper tracks', async (t) => {
   const { helperWc, broker, registry, pending } = await startApproved(t);
   broker.noteNavigation('share-2');

@@ -4,6 +4,7 @@ const {
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   CHROME_INDEX_URL,
 } = require('./chrome-protocol');
+const { helperSystemAudioProcessingMode } = require('./display-capture-helper-audio');
 
 const HELPER_PARTITION = 'blanc-display-capture-helper';
 
@@ -428,6 +429,7 @@ function installDisplayCaptureBroker({
       shareId: approved.shareId,
       sourceId: payload.sourceId,
       computerAudio: approved.computerAudio,
+      systemAudioProcessing: helperSystemAudioProcessingMode(),
       videoConstraints: wait.parsed.videoConstraints,
     };
     helperJobs.set(approved.shareId, { ...job, wait });
@@ -546,6 +548,47 @@ function installDisplayCaptureBroker({
     if (result.shareEnded) helperJobs.delete(payload.shareId);
   });
 
+  // Page-side Meet-boundary diagnostics (handoff identity + short energy peak).
+  // Enums/peaks only — never raw media or SDP.
+  ipcMain.on('display-capture:page-diag', (event, payload) => {
+    if (!pageOwnsShare(event, payload?.shareId)) return;
+    const eventName = typeof payload?.event === 'string' ? payload.event : 'unknown';
+    if (eventName !== 'audio-handoff' && eventName !== 'audio-energy' && eventName !== 'energy-probe') return;
+    logCapture(`page-diag:${eventName}`, {
+      shareId: payload.shareId,
+      label: payload.label,
+      readyState: payload.readyState,
+      muted: payload.muted,
+      enabled: payload.enabled,
+      contentHint: payload.contentHint,
+      echoCancellation: payload.echoCancellation,
+      autoGainControl: payload.autoGainControl,
+      noiseSuppression: payload.noiseSuppression,
+      sampleRate: payload.sampleRate,
+      channelCount: payload.channelCount,
+      displaySurface: payload.displaySurface,
+      computerAudio: payload.computerAudio,
+      peak: typeof payload.peak === 'number' ? payload.peak : undefined,
+      pagePeak: typeof payload.pagePeak === 'number' ? payload.pagePeak : undefined,
+      pageError: payload.pageError,
+      meetOutboundCount: payload.meetOutboundCount,
+      meetOutboundInputPeakMax: typeof payload.meetOutboundInputPeakMax === 'number'
+        ? payload.meetOutboundInputPeakMax
+        : undefined,
+      meetOutboundRtpBytesDeltaMax: typeof payload.meetOutboundRtpBytesDeltaMax === 'number'
+        ? payload.meetOutboundRtpBytesDeltaMax
+        : undefined,
+      meetOutboundRtpPacketsDeltaMax: typeof payload.meetOutboundRtpPacketsDeltaMax === 'number'
+        ? payload.meetOutboundRtpPacketsDeltaMax
+        : undefined,
+      audibleEnergy: payload.audibleEnergy,
+      outboundAttribution: payload.outboundAttribution,
+      sampleStartedAt: payload.sampleStartedAt,
+      sampleEndedAt: payload.sampleEndedAt,
+      sitePcCount: payload.sitePcCount,
+    });
+  });
+
   ipcMain.on('display-capture-helper:signal', (event, payload) => {
     if (!authority.isAuthorizedHelperSender(event.sender, CHROME_DISPLAY_CAPTURE_HELPER_URL)) return;
     const shareId = payload?.shareId;
@@ -558,6 +601,17 @@ function installDisplayCaptureBroker({
         computerAudio: payload?.computerAudio,
         video: payload?.video || null,
         audio: payload?.audio || null,
+        // audio-track identity (Meet system-audio boundary)
+        label: payload?.label,
+        readyState: payload?.readyState,
+        muted: payload?.muted,
+        enabled: payload?.enabled,
+        contentHint: payload?.contentHint,
+        echoCancellation: payload?.echoCancellation,
+        autoGainControl: payload?.autoGainControl,
+        noiseSuppression: payload?.noiseSuppression,
+        sampleRate: payload?.sampleRate,
+        channelCount: payload?.channelCount,
       });
       return;
     }

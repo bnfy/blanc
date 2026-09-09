@@ -57,6 +57,18 @@ function discardLateStream(shareId, stream, pc) {
   markNativeSettled(shareId);
 }
 
+function helperCaptureAudioConstraint(job) {
+  if (job?.computerAudio !== true) return false;
+  if (job.systemAudioProcessing === 'off') {
+    return {
+      echoCancellation: false,
+      autoGainControl: false,
+      noiseSuppression: false,
+    };
+  }
+  return true;
+}
+
 function logHelper(event, detail = {}) {
   try {
     helper.signal({
@@ -85,15 +97,18 @@ async function acquire(job) {
   }
   if (prior?.stream || prior?.pc) teardown(shareId);
   remember(shareId, { cancelled: false, stream: null, pc: null, acquiring: true });
+  const requestedAudio = helperCaptureAudioConstraint(job);
   logHelper('getDisplayMedia-start', {
     shareId,
     computerAudio: job.computerAudio === true,
+    systemAudioProcessing: job.systemAudioProcessing === 'off' ? 'off' : 'default',
+    requestedAudio,
   });
   let stream;
   try {
     stream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
-      audio: job.computerAudio === true,
+      audio: requestedAudio,
     });
   } catch (err) {
     logHelper('getDisplayMedia-throw', {
@@ -108,6 +123,29 @@ async function acquire(job) {
     video: stream.getVideoTracks().map((t) => `${t.readyState}:${t.muted}`).join(','),
     audio: stream.getAudioTracks().map((t) => `${t.readyState}:${t.muted}`).join(','),
   });
+  // Structured audio identity for Meet system-audio failures: confirm loopback
+  // ("System Audio") vs a mic-shaped track, and surface settings enums only.
+  for (const track of stream.getAudioTracks()) {
+    let settings = null;
+    try { settings = track.getSettings?.() || null; } catch { settings = null; }
+    logHelper('audio-track', {
+      shareId,
+      requestedProcessing: job.systemAudioProcessing === 'off' ? 'off' : 'default',
+      label: typeof track.label === 'string' ? track.label.slice(0, 80) : null,
+      id: typeof track.id === 'string' ? track.id.slice(0, 40) : null,
+      readyState: track.readyState,
+      muted: track.muted === true,
+      enabled: track.enabled !== false,
+      contentHint: typeof track.contentHint === 'string' ? track.contentHint : null,
+      deviceId: typeof settings?.deviceId === 'string' ? settings.deviceId.slice(0, 40) : null,
+      groupId: typeof settings?.groupId === 'string' ? settings.groupId.slice(0, 40) : null,
+      sampleRate: settings?.sampleRate ?? null,
+      channelCount: settings?.channelCount ?? null,
+      echoCancellation: settings?.echoCancellation ?? null,
+      autoGainControl: settings?.autoGainControl ?? null,
+      noiseSuppression: settings?.noiseSuppression ?? null,
+    });
+  }
   if (sessions.get(shareId)?.cancelled) {
     discardLateStream(shareId, stream);
     return;
@@ -267,6 +305,42 @@ window.__probeIceSnapshot = async (shareId) => {
     locals,
     remotes,
     pairs,
+  };
+};
+
+// Diagnostic only: peak over the first live helper capture audio track.
+window.__probeAudioEnergy = async (ms = 400) => {
+  const session = [...sessions.values()].find((item) => item?.stream);
+  const stream = session?.stream;
+  if (!stream) return { error: 'no-stream' };
+  const track = stream.getAudioTracks().find((item) => item.readyState === 'live');
+  if (!track) return { error: 'no-live-audio' };
+  const tmp = new MediaStream([track]);
+  const ctx = new AudioContext();
+  const source = ctx.createMediaStreamSource(tmp);
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+  const buf = new Float32Array(analyser.fftSize);
+  let peak = 0;
+  const started = Date.now();
+  while (Date.now() - started < ms) {
+    analyser.getFloatTimeDomainData(buf);
+    for (const sample of buf) peak = Math.max(peak, Math.abs(sample));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  try { await ctx.close(); } catch {}
+  let settings = null;
+  try { settings = track.getSettings?.() || null; } catch {}
+  return {
+    peak,
+    label: typeof track.label === 'string' ? track.label : null,
+    muted: track.muted === true,
+    enabled: track.enabled !== false,
+    readyState: track.readyState,
+    echoCancellation: settings?.echoCancellation ?? null,
+    autoGainControl: settings?.autoGainControl ?? null,
+    noiseSuppression: settings?.noiseSuppression ?? null,
   };
 };
 

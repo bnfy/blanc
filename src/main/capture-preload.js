@@ -205,8 +205,372 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
     let nextRequestId = 1;
     const pendingShare = new Map();
     const activeShares = new Map();
+    // Diagnostic: tracks returned from brokered getDisplayMedia (and clones).
+    const brokeredAudioTracks = new WeakSet();
+    const sitePeerConnections = new Set();
     const emitBridge = (name, payload) => {
       window.dispatchEvent(new CustomEvent(name, { detail: JSON.stringify(payload) }));
+    };
+    const stopAudioPlayout = (share) => {
+      const playout = share?.audioPlayout;
+      if (!playout) return;
+      share.audioPlayout = null;
+      playout.cancel?.();
+      try { playout.element?.pause(); } catch {}
+      try { if (playout.element) playout.element.srcObject = null; } catch {}
+      try { playout.element?.remove(); } catch {}
+      // This internal clone is not a page consumer or permission grant.
+      try { if (playout.track) trackStop.call(playout.track); } catch {}
+    };
+    const startAudioPlayout = (share, track) => {
+      const playout = { element: null, track: null, cancel: null };
+      share.audioPlayout = playout;
+      return new Promise((resolve, reject) => {
+        let settled = false;
+        const finish = (error) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          if (error) reject(error);
+          else resolve();
+        };
+        // Main's track-ready timeout can clear before media playback starts.
+        const timer = setTimeout(() => {
+          finish(new DOMException('Receiver audio playback timed out', 'AbortError'));
+        }, 5000);
+        playout.cancel = () => finish(new DOMException('Share ended', 'AbortError'));
+        try {
+          // Chromium may receive RTP but discard it without starting audio
+          // playout. An attached muted media element starts this receive path;
+          // a zero-gain WebAudio graph did not in the packaged diagnostic.
+          // A native clone keeps it alive if the page stops the original while
+          // retaining another clone, without counting this sink as a consumer.
+          playout.track = trackClone.call(track);
+          const element = document.createElement('audio');
+          playout.element = element;
+          element.muted = true;
+          element.defaultMuted = true;
+          element.volume = 0;
+          element.hidden = true;
+          element.tabIndex = -1;
+          element.setAttribute('aria-hidden', 'true');
+          element.setAttribute('playsinline', '');
+          element.srcObject = new MediaStream([playout.track]);
+          document.documentElement.appendChild(element);
+          Promise.resolve(element.play()).then(() => finish(), () => {
+            finish(new DOMException('Receiver audio playback failed', 'NotReadableError'));
+          });
+        } catch {
+          finish(new DOMException('Receiver audio playback failed', 'NotReadableError'));
+        }
+      });
+    };
+    const markBrokeredAudio = (track) => {
+      if (track && track.kind === 'audio') brokeredAudioTracks.add(track);
+    };
+    const trackIdentity = (track) => {
+      let settings = null;
+      try { settings = track.getSettings?.() || null; } catch {}
+      return {
+        label: typeof track.label === 'string' ? track.label.slice(0, 80) : null,
+        muted: track.muted === true,
+        enabled: track.enabled !== false,
+        readyState: track.readyState,
+        echoCancellation: settings?.echoCancellation ?? null,
+        autoGainControl: settings?.autoGainControl ?? null,
+        noiseSuppression: settings?.noiseSuppression ?? null,
+      };
+    };
+    // Single-track peak (handoff async only). Multi-track probes use
+    // sampleTracksParallel so windows share one clock.
+    const sampleTrackPeak = async (track, ms) => {
+      const [row] = await sampleTracksParallel([{ role: 'track', track }], ms);
+      if (!row) return { error: 'no-track' };
+      if (row.error) return { error: row.error, readyState: track?.readyState || null };
+      return {
+        peak: row.peak,
+        sampleStartedAt: row.sampleStartedAt,
+        sampleEndedAt: row.sampleEndedAt,
+        ...trackIdentity(track),
+      };
+    };
+    const sampleTracksParallel = async (items, ms) => {
+      const duration = Math.max(50, Math.min(Number(ms) || 400, 2000));
+      if (typeof AudioContext !== 'function') {
+        return items.map((item) => ({
+          role: item.role,
+          error: 'no-AudioContext',
+          sampleStartedAt: null,
+          sampleEndedAt: null,
+        }));
+      }
+      const sessions = [];
+      for (const item of items) {
+        const track = item.track;
+        if (!track || track.readyState !== 'live') {
+          sessions.push({
+            role: item.role,
+            item,
+            error: 'no-live-audio',
+            analyser: null,
+            ctx: null,
+            buf: null,
+            peak: 0,
+          });
+          continue;
+        }
+        try {
+          const tmp = new MediaStream([track]);
+          const ctx = new AudioContext();
+          const source = ctx.createMediaStreamSource(tmp);
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 2048;
+          source.connect(analyser);
+          sessions.push({
+            role: item.role,
+            item,
+            error: null,
+            analyser,
+            ctx,
+            buf: new Float32Array(analyser.fftSize),
+            peak: 0,
+          });
+        } catch (err) {
+          sessions.push({
+            role: item.role,
+            item,
+            error: String(err && err.name || err),
+            analyser: null,
+            ctx: null,
+            buf: null,
+            peak: 0,
+          });
+        }
+      }
+      const sampleStartedAt = Date.now();
+      const live = sessions.filter((s) => s.analyser);
+      if (live.length) {
+        const deadline = sampleStartedAt + duration;
+        while (Date.now() < deadline) {
+          for (const session of live) {
+            session.analyser.getFloatTimeDomainData(session.buf);
+            for (let i = 0; i < session.buf.length; i += 1) {
+              const v = session.buf[i];
+              if (v > session.peak) session.peak = v;
+              else if (-v > session.peak) session.peak = -v;
+            }
+          }
+          await new Promise((r) => setTimeout(r, 20));
+        }
+      }
+      const sampleEndedAt = Date.now();
+      for (const session of sessions) {
+        try { await session.ctx?.close(); } catch {}
+      }
+      return sessions.map((session) => {
+        if (session.error) {
+          return {
+            role: session.role,
+            index: session.item.index,
+            error: session.error,
+            sampleStartedAt,
+            sampleEndedAt,
+          };
+        }
+        return {
+          role: session.role,
+          index: session.item.index,
+          peak: session.peak,
+          sampleStartedAt,
+          sampleEndedAt,
+          ...trackIdentity(session.item.track),
+        };
+      });
+    };
+    const snapshotBrokeredSenderRtp = async (sender) => {
+      if (!sender || typeof sender.getStats !== 'function') return null;
+      try {
+        const stats = await sender.getStats();
+        for (const report of stats.values()) {
+          const kind = report.kind || report.mediaType;
+          if (report.type !== 'outbound-rtp') continue;
+          if (kind && kind !== 'audio') continue;
+          // RTCOutboundRtpStreamStats: bytesSent/packetsSent only.
+          // totalAudioEnergy/audioLevel belong to audio-source / inbound
+          // stats — never invent them here as transmitted-audio proof.
+          return {
+            statsId: report.id || null,
+            ssrc: report.ssrc ?? null,
+            bytesSent: report.bytesSent ?? null,
+            packetsSent: report.packetsSent ?? null,
+          };
+        }
+      } catch {}
+      return null;
+    };
+    // Register site PeerConnections so Meet outbound senders can be probed.
+    try {
+      const NativePC = window.RTCPeerConnection;
+      if (typeof NativePC === 'function' && !NativePC.__blancCaptureEnergyPatched) {
+        window.RTCPeerConnection = class BlancCaptureEnergyPC extends NativePC {
+          constructor(...args) {
+            super(...args);
+            sitePeerConnections.add(this);
+            try {
+              this.addEventListener('connectionstatechange', () => {
+                if (this.connectionState === 'closed') sitePeerConnections.delete(this);
+              });
+            } catch {}
+          }
+        };
+        window.RTCPeerConnection.__blancCaptureEnergyPatched = true;
+      }
+    } catch {}
+    // Packaged Meet triple probe: page-received broker track + Meet outbound
+    // brokered senders. Analyser windows run in parallel on one clock.
+    // sender.track peaks are sender-*input* only. Bound outbound-rtp
+    // bytes/packets deltas are transmission *activity*, not audible proof.
+    // Audible end-to-end remains the receiver listening check.
+    window.__blancCaptureEnergyProbe = async (ms = 400) => {
+      const duration = Math.max(50, Math.min(Number(ms) || 400, 2000));
+      let pageTrack = null;
+      for (const share of activeShares.values()) {
+        for (const track of share.tracks) {
+          if (track.kind === 'audio' && track.readyState === 'live') {
+            pageTrack = track;
+            break;
+          }
+        }
+        if (pageTrack) break;
+      }
+      const brokeredSenders = [];
+      const audioSenders = [];
+      for (const pc of [...sitePeerConnections]) {
+        let connectionState = null;
+        try { connectionState = pc.connectionState; } catch { continue; }
+        if (connectionState === 'closed') {
+          sitePeerConnections.delete(pc);
+          continue;
+        }
+        try {
+          for (const sender of pc.getSenders()) {
+            const track = sender.track;
+            if (!track || track.kind !== 'audio') continue;
+            audioSenders.push({ pc, sender, track, connectionState });
+            if (!brokeredAudioTracks.has(track)) continue;
+            brokeredSenders.push({ pc, sender, track, connectionState });
+          }
+        } catch {}
+      }
+      const senderAttachment = {
+        sitePcCount: sitePeerConnections.size,
+        audioSenderCount: audioSenders.length,
+        brokeredSenderCount: audioSenders.filter((row) => brokeredAudioTracks.has(row.track)).length,
+        otherAudioSenderCount: audioSenders.filter((row) => !brokeredAudioTracks.has(row.track)).length,
+        brokeredExactMatchCount: pageTrack
+          ? audioSenders.filter((row) => row.track === pageTrack).length
+          : 0,
+      };
+
+      let outboundAttribution = 'inconclusive-no-brokered-sender';
+      if (brokeredSenders.length > 0) outboundAttribution = 'brokered-sender-matched';
+
+      const rtpBefore = [];
+      for (const row of brokeredSenders) {
+        rtpBefore.push(await snapshotBrokeredSenderRtp(row.sender));
+      }
+
+      const parallelItems = [];
+      if (pageTrack) parallelItems.push({ role: 'page', track: pageTrack });
+      for (let i = 0; i < brokeredSenders.length; i += 1) {
+        parallelItems.push({ role: 'meet-outbound-input', track: brokeredSenders[i].track, index: i });
+      }
+      const parallel = await sampleTracksParallel(parallelItems, duration);
+
+      const rtpAfter = [];
+      for (const row of brokeredSenders) {
+        rtpAfter.push(await snapshotBrokeredSenderRtp(row.sender));
+      }
+
+      const pageSample = parallel.find((row) => row.role === 'page') || (
+        pageTrack ? null : { error: 'no-page-share-audio', activeShares: activeShares.size }
+      );
+      const page = pageSample || { error: 'no-page-share-audio', activeShares: activeShares.size };
+
+      const meetOutboundBrokered = brokeredSenders.map((row, i) => {
+        const input = parallel.find((s) => s.role === 'meet-outbound-input' && s.index === i)
+          || { error: 'missing-sample' };
+        const before = rtpBefore[i];
+        const after = rtpAfter[i];
+        let rtpDelta = null;
+        let rtpBound = false;
+        if (before && after) {
+          rtpBound = true;
+          const num = (a, b) => (typeof a === 'number' && typeof b === 'number' ? b - a : null);
+          rtpDelta = {
+            statsId: after.statsId,
+            ssrc: after.ssrc,
+            bytesSent: num(before.bytesSent, after.bytesSent),
+            packetsSent: num(before.packetsSent, after.packetsSent),
+            // Audible energy is not an outbound-rtp field; leave unknown.
+            audibleEnergy: 'unknown',
+            before,
+            after,
+          };
+        }
+        return {
+          connectionState: row.connectionState,
+          // Analyser on sender.track = input to the sender, not proof of encode/send.
+          senderInput: input,
+          rtpDelta,
+          rtpBound,
+        };
+      });
+
+      if (brokeredSenders.length > 0 && meetOutboundBrokered.every((row) => !row.rtpBound)) {
+        outboundAttribution = 'inconclusive-no-rtp-for-brokered-sender';
+      }
+
+      const result = {
+        page,
+        meetOutboundBrokered,
+        senderAttachment,
+        outboundAttribution,
+        sampleWindowMs: duration,
+        sampleStartedAt: parallel[0]?.sampleStartedAt ?? null,
+        sampleEndedAt: parallel[0]?.sampleEndedAt ?? null,
+        sitePcCount: sitePeerConnections.size,
+        activeShareCount: activeShares.size,
+        // End-to-end audible audio is not decided by this probe.
+        audibleEndToEnd: 'receiver-listening',
+      };
+      try {
+        const inputPeaks = meetOutboundBrokered
+          .map((row) => row.senderInput?.peak)
+          .filter((v) => typeof v === 'number');
+        const bytesDeltas = meetOutboundBrokered
+          .map((row) => row.rtpDelta?.bytesSent)
+          .filter((v) => typeof v === 'number');
+        const packetsDeltas = meetOutboundBrokered
+          .map((row) => row.rtpDelta?.packetsSent)
+          .filter((v) => typeof v === 'number');
+        emitBridge('blanc:display-capture-page-diag', {
+          event: 'energy-probe',
+          pagePeak: typeof page.peak === 'number' ? page.peak : null,
+          pageError: page.error || null,
+          meetOutboundCount: meetOutboundBrokered.length,
+          meetOutboundInputPeakMax: inputPeaks.length ? Math.max(...inputPeaks) : null,
+          meetOutboundRtpBytesDeltaMax: bytesDeltas.length ? Math.max(...bytesDeltas) : null,
+          meetOutboundRtpPacketsDeltaMax: packetsDeltas.length ? Math.max(...packetsDeltas) : null,
+          audibleEnergy: 'unknown',
+          outboundAttribution,
+          senderAttachment,
+          sampleStartedAt: result.sampleStartedAt,
+          sampleEndedAt: result.sampleEndedAt,
+          sitePcCount: sitePeerConnections.size,
+        });
+      } catch {}
+      return result;
     };
     window.addEventListener('blanc:display-capture-abort', (event) => {
       if (typeof event.detail !== 'string') return;
@@ -215,6 +579,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
       const share = activeShares.get(payload?.shareId);
       if (!share) return;
       activeShares.delete(payload.shareId);
+      stopAudioPlayout(share);
       share.pc.close();
       for (const track of share.tracks) {
         const wasLive = track.readyState === 'live';
@@ -234,15 +599,23 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
     const wrapTrack = (track, shareId, kind, trackKey, displaySurface) => {
       const share = activeShares.get(shareId);
       share?.tracks.add(track);
-      const stop = track.stop.bind(track);
-      track.stop = function stopBrokered() {
-        stop();
+      if (kind === 'audio') markBrokeredAudio(track);
+      const releaseConsumer = () => {
         share?.tracks.delete(track);
-        emitBridge('blanc:display-capture-track-stopped', { shareId, kind, trackKey });
+        if (share && ![...share.tracks].some((item) => item.kind === 'audio' && item.readyState === 'live')) {
+          stopAudioPlayout(share);
+        }
         if (share && share.tracks.size === 0) {
           share.pc.close();
           activeShares.delete(shareId);
         }
+      };
+      try { track.addEventListener('ended', releaseConsumer); } catch {}
+      const stop = track.stop.bind(track);
+      track.stop = function stopBrokered() {
+        stop();
+        releaseConsumer();
+        emitBridge('blanc:display-capture-track-stopped', { shareId, kind, trackKey });
       };
       const clone = track.clone.bind(track);
       track.clone = function cloneBrokered() {
@@ -298,7 +671,8 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
           throw err;
         }
         const pc = new RTCPeerConnection({ iceServers: [] });
-        activeShares.set(result.shareId, { pc, tracks: new Set() });
+        const share = { pc, tracks: new Set(), audioPlayout: null };
+        activeShares.set(result.shareId, share);
         pc.addEventListener('connectionstatechange', () => {
           if (pc.connectionState === 'failed') {
             emitBridge('blanc:display-capture-signal', { shareId: result.shareId, type: 'failed' });
@@ -306,6 +680,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         });
         const tracks = [];
         const requiredAudio = result.computerAudio === true;
+        let audioPlayoutReady = !requiredAudio;
         const displaySurface = typeof result.displaySurface === 'string' && result.displaySurface
           ? result.displaySurface
           : 'monitor';
@@ -378,7 +753,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
               failLost();
               return;
             }
-            if (!requiredTracksLive()) return;
+            if (!requiredTracksLive() || !audioPlayoutReady) return;
             const video = tracks.find((item) => item.kind === 'video');
             if (videoIsPublishable(video)) {
               finish();
@@ -413,6 +788,11 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
           };
           window.addEventListener('blanc:display-capture-abort', onAbort);
           pc.ontrack = (event) => {
+            // An already-queued event must not recreate a sink after teardown.
+            if (activeShares.get(result.shareId) !== share) {
+              try { trackStop.call(event.track); } catch {}
+              return;
+            }
             const kind = event.track.kind;
             const trackKey = 't-' + (nextTrackKey++);
             wrapTrack(event.track, result.shareId, kind, trackKey, displaySurface);
@@ -426,6 +806,12 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
             };
             try { event.track.addEventListener('unmute', maybeReady); } catch {}
             try { event.track.addEventListener('ended', maybeReady); } catch {}
+            if (kind === 'audio' && requiredAudio && !share.audioPlayout) {
+              startAudioPlayout(share, event.track).then(() => {
+                audioPlayoutReady = true;
+                tryReady();
+              }, (error) => finish(error));
+            }
             maybeReady();
           };
         });
@@ -450,12 +836,49 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
           // Abort must also reject while SDP/ICE setup is still waiting.
           await Promise.all([negotiate(), got]);
         } catch (error) {
+          stopAudioPlayout(share);
           pc.close();
           for (const track of tracks) track.stop();
           activeShares.delete(result.shareId);
           emitBridge('blanc:display-capture-signal', { shareId: result.shareId, type: 'failed' });
           throw error;
         }
+        // Meet-boundary diagnostics only: page-received audio identity at
+        // handoff. Async energy must not delay resolve (Meet inspects immediately).
+        try {
+          for (const track of tracks) {
+            if (track.kind !== 'audio') continue;
+            let settings = null;
+            try { settings = track.getSettings?.() || null; } catch { settings = null; }
+            emitBridge('blanc:display-capture-page-diag', {
+              event: 'audio-handoff',
+              shareId: result.shareId,
+              label: typeof track.label === 'string' ? track.label.slice(0, 80) : null,
+              readyState: track.readyState,
+              muted: track.muted === true,
+              enabled: track.enabled !== false,
+              contentHint: typeof track.contentHint === 'string' ? track.contentHint : null,
+              echoCancellation: settings?.echoCancellation ?? null,
+              autoGainControl: settings?.autoGainControl ?? null,
+              noiseSuppression: settings?.noiseSuppression ?? null,
+              sampleRate: settings?.sampleRate ?? null,
+              channelCount: settings?.channelCount ?? null,
+              displaySurface: displaySurface,
+              computerAudio: requiredAudio,
+            });
+            void sampleTrackPeak(track, 400).then((sample) => {
+              if (sample.error) return;
+              emitBridge('blanc:display-capture-page-diag', {
+                event: 'audio-energy',
+                shareId: result.shareId,
+                peak: sample.peak,
+                readyState: track.readyState,
+                muted: track.muted === true,
+                enabled: track.enabled !== false,
+              });
+            });
+          }
+        } catch {}
         return new MediaStream(tracks);
       });
     };
@@ -562,6 +985,12 @@ if (process.isMainFrame) {
     let payload;
     try { payload = JSON.parse(event.detail); } catch { return; }
     ipcRenderer.send('display-capture:track-ready', payload);
+  });
+  window.addEventListener('blanc:display-capture-page-diag', (event) => {
+    if (typeof event.detail !== 'string' || event.detail.length > 2048) return;
+    let payload;
+    try { payload = JSON.parse(event.detail); } catch { return; }
+    ipcRenderer.send('display-capture:page-diag', payload);
   });
   webFrame.executeJavaScript(CAPTURE_MAINWORLD_SOURCE).catch(() => {});
 }

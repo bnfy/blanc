@@ -77,7 +77,8 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
     },
     navigator: {
       mediaDevices: {
-        async getDisplayMedia() {
+        async getDisplayMedia(options) {
+          world.lastGdmOptions = options;
           if (deferGum) {
             await new Promise((resolve, reject) => {
               releaseGum = rejectGum
@@ -119,11 +120,48 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
     signals,
     streams,
     peers,
+    get lastGdmOptions() { return world.lastGdmOptions; },
     streamsOf(shareId) {
       return peers.filter((peer) => peer.tracks.some((track) => track.shareId === shareId));
     },
   };
 }
+
+test('helper requests boolean audio true by default for system audio', async () => {
+  const helper = loadHelper();
+  helper.authorize({ shareId: 'share-a', computerAudio: true });
+  await helper.waitForOffer('share-a');
+  assert.equal(helper.lastGdmOptions.video, true);
+  assert.equal(helper.lastGdmOptions.audio, true);
+});
+
+test('helper requests APM off only for system audio when processing is off', async () => {
+  const helper = loadHelper();
+  helper.authorize({
+    shareId: 'share-a',
+    computerAudio: true,
+    systemAudioProcessing: 'off',
+  });
+  await helper.waitForOffer('share-a');
+  assert.equal(helper.lastGdmOptions.video, true);
+  const audio = helper.lastGdmOptions.audio;
+  assert.equal(typeof audio, 'object');
+  assert.equal(audio.echoCancellation, false);
+  assert.equal(audio.autoGainControl, false);
+  assert.equal(audio.noiseSuppression, false);
+});
+
+test('helper does not request APM-off audio when computer audio is off', async () => {
+  const helper = loadHelper();
+  helper.authorize({
+    shareId: 'share-a',
+    computerAudio: false,
+    systemAudioProcessing: 'off',
+  });
+  await helper.waitForOffer('share-a');
+  assert.equal(helper.lastGdmOptions.video, true);
+  assert.equal(helper.lastGdmOptions.audio, false);
+});
 
 test('second acquisition keeps the first share live', async () => {
   const helper = loadHelper();
