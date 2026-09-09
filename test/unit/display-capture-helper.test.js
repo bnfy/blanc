@@ -22,6 +22,14 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
       this.endedHandlers = [];
     }
     stop() { this.readyState = 'ended'; }
+    getSettings() {
+      if (this.kind !== 'video') return {};
+      return { width: 1280, height: 720, frameRate: 30, deviceId: 'dev', groupId: 'grp' };
+    }
+    getCapabilities() {
+      if (this.kind !== 'video') return {};
+      return { width: { min: 1, max: 1280 }, height: { min: 1, max: 720 }, deviceId: 'dev' };
+    }
     addEventListener(name, fn) {
       if (name === 'ended') this.endedHandlers.push(fn);
     }
@@ -135,6 +143,20 @@ function loadHelper({ deferGum = false, rejectGum = false } = {}) {
     },
   };
 }
+
+test('helper offer includes native video adapter snapshot', async () => {
+  const helper = loadHelper();
+  helper.authorize({
+    shareId: 'share-1',
+    sourceId: 'screen:0:0',
+    computerAudio: true,
+  });
+  await helper.waitForOffer('share-1');
+  const offer = helper.signals.find((item) => item.type === 'offer' && item.shareId === 'share-1');
+  assert.equal(offer.videoAdapter.settings.width, 1280);
+  assert.equal(offer.videoAdapter.settings.deviceId, 'dev');
+  assert.equal(offer.videoAdapter.capabilities.width.max, 1280);
+});
 
 test('helper consumes a portal-selected desktop source without getDisplayMedia', async () => {
   const helper = loadHelper();

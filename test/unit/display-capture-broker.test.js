@@ -330,6 +330,10 @@ test('helper offer resolves page with displaySurface from surfaceKind', async (t
   const result = await pending;
   assert.equal(result.ok, true);
   assert.equal(result.displaySurface, 'monitor');
+  assert.equal(result.videoAdapter.settings.width, 1024);
+  assert.equal(result.videoAdapter.settings.deviceId, undefined);
+  assert.equal(result.videoAdapter.capabilities.deviceId, undefined);
+  assert.equal(result.videoAdapter.capabilities.width.max, 1024);
 });
 
 test('window surfaceKind maps to window displaySurface', async (t) => {
@@ -369,12 +373,27 @@ function localCandidate() {
   return 'a=candidate:1 1 UDP 2122260223 192.168.1.20 59999 typ host';
 }
 
-function helperOffer(shareId) {
+function helperOffer(shareId, videoAdapter) {
   return {
     type: 'offer',
     shareId,
     sdp: `v=0\r\n${localCandidate()}\r\n`,
     tracks: { video: true, audio: true },
+    videoAdapter: videoAdapter || {
+      settings: {
+        width: 1024,
+        height: 768,
+        frameRate: 30,
+        deviceId: 'helper-secret',
+        groupId: 'helper-group',
+      },
+      capabilities: {
+        width: { min: 1, max: 1024 },
+        height: { min: 1, max: 768 },
+        frameRate: { min: 0, max: 30 },
+        deviceId: 'helper-secret',
+      },
+    },
   };
 }
 

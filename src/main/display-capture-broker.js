@@ -5,6 +5,10 @@ const {
   CHROME_INDEX_URL,
 } = require('./chrome-protocol');
 const { helperSystemAudioProcessingMode } = require('./display-capture-helper-audio');
+const {
+  sanitizeAdapterSnapshot,
+  buildAdapterCapabilities,
+} = require('./display-capture-adapter-constraints');
 
 const HELPER_PARTITION = 'blanc-display-capture-helper';
 
@@ -684,12 +688,22 @@ function installDisplayCaptureBroker({
       const displaySurface = kind === 'window' ? 'window'
         : kind === 'browser' ? 'browser'
           : 'monitor';
+      const cleaned = sanitizeAdapterSnapshot(payload.videoAdapter);
+      const adapterSettings = cleaned.settings;
+      const hasSize = Number(adapterSettings.width) > 0 && Number(adapterSettings.height) > 0;
+      const videoAdapter = hasSize
+        ? {
+          settings: adapterSettings,
+          capabilities: buildAdapterCapabilities(adapterSettings),
+        }
+        : null;
       pendingWait.resolve({
         ok: true,
         shareId,
         offer: filtered.sdp,
         computerAudio: job.computerAudio,
         displaySurface,
+        videoAdapter,
       });
     }
     releaseAcquireAndNative(shareId);

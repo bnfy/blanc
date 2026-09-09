@@ -252,6 +252,13 @@ async function acquire(job) {
       video: stream.getVideoTracks().some((track) => track.readyState === 'live'),
       audio: stream.getAudioTracks().some((track) => track.readyState === 'live'),
     },
+    videoAdapter: (() => {
+      let settings = null;
+      let capabilities = null;
+      try { settings = video.getSettings?.() || null; } catch { settings = null; }
+      try { capabilities = video.getCapabilities?.() || null; } catch { capabilities = null; }
+      return { settings, capabilities };
+    })(),
   });
 }
 

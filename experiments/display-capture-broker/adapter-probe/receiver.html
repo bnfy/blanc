@@ -1,0 +1,115 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>adapter receiver</title>
+<body>
+<p>Visible receiver for background-producer checks.</p>
+<video id="v" muted playsinline autoplay style="width:320px;height:240px;background:#111"></video>
+<script>
+window.__remoteTrack = null;
+window.__answerReady = null;
+window.__trackReady = null;
+
+window.__acceptOffer = async (offer) => {
+  const pc = new RTCPeerConnection({ iceServers: [] });
+  window.__pc = pc;
+  window.__trackReady = new Promise((resolve) => {
+    pc.ontrack = (event) => {
+      window.__remoteTrack = event.track;
+      const video = document.getElementById('v');
+      video.srcObject = new MediaStream([event.track]);
+      video.play().catch(() => {});
+      resolve(true);
+    };
+  });
+  await pc.setRemoteDescription(offer);
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  await new Promise((resolve) => {
+    if (pc.iceGatheringState === 'complete') return resolve();
+    pc.addEventListener('icegatheringstatechange', () => {
+      if (pc.iceGatheringState === 'complete') resolve();
+    });
+    setTimeout(resolve, 2000);
+  });
+  window.__answer = { type: pc.localDescription.type, sdp: pc.localDescription.sdp };
+  window.__answerReady = true;
+};
+
+window.__waitAnswer = async () => {
+  const start = Date.now();
+  while (!window.__answerReady) {
+    if (Date.now() - start > 10000) throw new Error('answer-timeout');
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  return window.__answer;
+};
+
+window.__waitRemoteTrack = async () => {
+  const start = Date.now();
+  while (!window.__remoteTrack) {
+    if (Date.now() - start > 10000) throw new Error('track-timeout');
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  if (window.__trackReady) await window.__trackReady;
+  return true;
+};
+
+window.__sampleRemote = async (ms) => {
+  const track = window.__remoteTrack;
+  if (!track) return { error: 'no-track' };
+  const video = document.getElementById('v');
+  if (!video.srcObject) {
+    video.srcObject = new MediaStream([track]);
+    await video.play().catch(() => {});
+  }
+  const started = performance.now();
+  const stamps = [];
+  let lastW = 0;
+  let lastH = 0;
+  await new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      const onFrame = (_now, meta) => {
+        stamps.push(performance.now());
+        lastW = meta?.width || video.videoWidth;
+        lastH = meta?.height || video.videoHeight;
+        if (performance.now() - started >= ms) {
+          clearTimeout(timer);
+          resolve();
+          return;
+        }
+        video.requestVideoFrameCallback(onFrame);
+      };
+      video.requestVideoFrameCallback(onFrame);
+    } else {
+      const tick = () => {
+        if (video.videoWidth > 0) {
+          stamps.push(performance.now());
+          lastW = video.videoWidth;
+          lastH = video.videoHeight;
+        }
+        if (performance.now() - started >= ms) {
+          clearTimeout(timer);
+          resolve();
+          return;
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+  });
+  const intervals = [];
+  for (let i = 1; i < stamps.length; i++) intervals.push(stamps[i] - stamps[i - 1]);
+  const medianIntervalMs = intervals.length
+    ? Math.round(intervals.slice().sort((a, b) => a - b)[Math.floor(intervals.length / 2)])
+    : null;
+  return {
+    frames: stamps.length,
+    width: lastW,
+    height: lastH,
+    elapsedMs: Math.round(performance.now() - started),
+    medianIntervalMs,
+  };
+};
+</script>
+</body>

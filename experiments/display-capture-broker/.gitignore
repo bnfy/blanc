@@ -1,2 +1,7 @@
 **/.probe-profile/
+**/.rate-up-profile/
+**/.bg-webrtc-diag-profile/
+**/.ended-event-profile/
+**/.end-diag-profile/
+**/adapter-probe/result.json
 **/*.log

@@ -12,11 +12,22 @@ function makeWorld({
   displaySurface = 'monitor',
   unmuteWidth = 1280,
   unmuteHeight = 720,
+  sourceWidth = 1280,
+  sourceHeight = 720,
+  sourceFrameRate = 30,
+  canvasAdapter = false,
   audioPlay = () => Promise.resolve(),
 } = {}) {
   const events = [];
   const listeners = new Map();
   const pcs = [];
+  class OverconstrainedError extends Error {
+    constructor(constraint, message) {
+      super(message || constraint || 'OverconstrainedError');
+      this.name = 'OverconstrainedError';
+      this.constraint = constraint;
+    }
+  }
   class FakeTrack {
     constructor(kind, { muted = false } = {}) {
       this.kind = kind;
@@ -24,8 +35,9 @@ function makeWorld({
       this.readyState = 'live';
       this.muted = muted;
       this.__probeAmp = kind === 'audio' ? 0.25 : 0;
-      this._width = muted ? 0 : 1280;
-      this._height = muted ? 0 : 720;
+      this._width = muted ? 0 : unmuteWidth;
+      this._height = muted ? 0 : unmuteHeight;
+      this._frameRate = sourceFrameRate;
       this.handlers = new Map();
     }
     stop() {
@@ -35,21 +47,63 @@ function makeWorld({
       const copy = new FakeTrack(this.kind, { muted: this.muted });
       copy._width = this._width;
       copy._height = this._height;
+      copy._frameRate = this._frameRate;
       copy.__probeAmp = this.__probeAmp;
       return copy;
     }
-    getSettings() { return { width: this._width, height: this._height }; }
+    // Native-like raw clone used by MediaStream.clone (does not call instance clone()).
+    _rawClone() {
+      const copy = new FakeTrack(this.kind, { muted: this.muted });
+      copy._width = this._width;
+      copy._height = this._height;
+      copy._frameRate = this._frameRate;
+      copy.__probeAmp = this.__probeAmp;
+      return copy;
+    }
+    getSettings() {
+      return { width: this._width, height: this._height, frameRate: this._frameRate };
+    }
     getConstraints() { return {}; }
     getCapabilities() { return {}; }
+    async applyConstraints() {
+      throw new OverconstrainedError('width', 'width');
+    }
     addEventListener(name, fn) {
       const prior = this.handlers.get(name);
       this.handlers.set(name, (...args) => { prior?.(...args); fn(...args); });
     }
     dispatchEvent(event) { this.handlers.get(event.type)?.(event); }
   }
+  FakeTrack.prototype.getSettings = function getSettings() {
+    return { width: this._width, height: this._height, frameRate: this._frameRate };
+  };
+  FakeTrack.prototype.applyConstraints = async function applyConstraints(constraints) {
+    // CanvasCaptureMediaStreamTrack retimes via native applyConstraints on the
+    // retained track (MediaStreamTrack.prototype.applyConstraints.call(...)).
+    // Chromium can lower frameRate below the captureStream ceiling but cannot raise it.
+    if (this._canvas && constraints && constraints.frameRate != null) {
+      const fr = constraints.frameRate;
+      const rate = typeof fr === 'object' && fr
+        ? Number(fr.exact ?? fr.ideal ?? fr.max)
+        : Number(fr);
+      if (!(rate > 0)) throw new OverconstrainedError('frameRate');
+      const ceiling = Number(this._rateCeiling ?? this._canvas._rateCeiling) || 0;
+      if (ceiling > 0 && rate > ceiling) throw new OverconstrainedError('frameRate');
+      this._frameRate = rate;
+      this._canvas.captureRate = rate;
+      return;
+    }
+    throw new OverconstrainedError('width', 'width');
+  };
   class FakeStream {
     constructor(tracks) { this.tracks = tracks; }
     getTracks() { return this.tracks; }
+    getVideoTracks() { return this.tracks.filter((track) => track.kind === 'video'); }
+    getAudioTracks() { return this.tracks.filter((track) => track.kind === 'audio'); }
+    // Mimic Chromium: stream.clone creates new track objects without calling track.clone().
+    clone() {
+      return new FakeStream(this.tracks.map((track) => track._rawClone()));
+    }
   }
   class FakePC {
     constructor() {
@@ -151,6 +205,7 @@ function makeWorld({
     window: null,
     CustomEvent: class { constructor(name, opts) { this.type = name; this.detail = opts?.detail; } },
     DOMException: class extends Error { constructor(message, name) { super(message); this.name = name; } },
+    OverconstrainedError,
     MediaStreamTrack: FakeTrack,
     MediaStream: FakeStream,
     RTCPeerConnection: FakePC,
@@ -160,11 +215,40 @@ function makeWorld({
     setTimeout,
     clearTimeout,
     Date,
+    Promise,
   };
   const audioSampleLog = [];
   class FakeAudioContext {
     constructor() {
       this.state = 'running';
+      this.sampleRate = 48000;
+      this.destination = {};
+      this._processors = [];
+      world.__audioProcessors.push(this);
+    }
+    createGain() {
+      return { gain: { value: 0 }, connect() {} };
+    }
+    createBuffer() {
+      return {};
+    }
+    createBufferSource() {
+      return {
+        buffer: null,
+        loop: false,
+        connect() {},
+        start() {},
+        stop() {},
+      };
+    }
+    createScriptProcessor() {
+      const node = {
+        onaudioprocess: null,
+        connect() {},
+        disconnect() {},
+      };
+      this._processors.push(node);
+      return node;
     }
     createMediaStreamSource(stream) {
       const track = stream.getTracks()[0];
@@ -189,15 +273,75 @@ function makeWorld({
         },
       };
     }
+    async resume() {
+      this.state = 'running';
+    }
     async close() {
       this.state = 'closed';
     }
   }
+  world.__audioProcessors = [];
   world.AudioContext = FakeAudioContext;
   const audioElements = [];
   const allAudioElements = [];
+  const canvases = [];
+  world.__canvases = canvases;
+  // Queue rAF so tests can drain the canvas pump without a live event loop.
+  world.__raf = [];
+  let rafId = 0;
+  world.requestAnimationFrame = (fn) => {
+    world.__raf.push(fn);
+    return ++rafId;
+  };
+  world.cancelAnimationFrame = () => {};
+  world.tickRaf = () => {
+    const queued = world.__raf.splice(0, world.__raf.length);
+    for (const fn of queued) {
+      try { fn(Date.now()); } catch {}
+    }
+  };
+  world.tickAudio = () => {
+    for (const ctx of world.__audioProcessors) {
+      for (const node of ctx._processors) {
+        try { node.onaudioprocess?.({}); } catch {}
+      }
+    }
+  };
   world.document = {
     createElement(kind) {
+      if (canvasAdapter && kind === 'video') {
+        return {
+          readyState: 2,
+          muted: true,
+          playsInline: true,
+          srcObject: null,
+          play() { return Promise.resolve(); },
+          pause() {},
+        };
+      }
+      if (canvasAdapter && kind === 'canvas') {
+        const canvas = {
+          width: 0,
+          height: 0,
+          captureRate: null,
+          output: null,
+          getContext() { return { drawImage() {} }; },
+          captureStream(rate) {
+            this.captureRate = rate;
+            this._rateCeiling = rate;
+            const track = new FakeTrack('video');
+            track._width = this.width || sourceWidth;
+            track._height = this.height || sourceHeight;
+            track._frameRate = rate;
+            track._rateCeiling = rate;
+            track._canvas = this;
+            this.output = track;
+            return new FakeStream([track]);
+          },
+        };
+        canvases.push(canvas);
+        return canvas;
+      }
       assert.equal(kind, 'audio');
       const element = {
         srcObject: null,
@@ -250,6 +394,22 @@ function makeWorld({
         offer: 'v=0',
         computerAudio,
         displaySurface,
+        videoAdapter: {
+          settings: {
+            width: sourceWidth,
+            height: sourceHeight,
+            frameRate: sourceFrameRate,
+            deviceId: 'helper-device',
+            groupId: 'helper-group',
+          },
+          capabilities: {
+            width: { min: 1, max: sourceWidth },
+            height: { min: 1, max: sourceHeight },
+            frameRate: { min: 0, max: sourceFrameRate },
+            deviceId: 'helper-device',
+            groupId: 'helper-group',
+          },
+        },
       }),
     }));
   });
@@ -315,19 +475,34 @@ test('relayed video getSettings reports displaySurface from picker enum', async 
   const stream = await w.gdm({ video: true });
   const video = stream.getTracks().find((track) => track.kind === 'video');
   assert.equal(video.getSettings().displaySurface, 'window');
-  assert.equal(video.getConstraints().displaySurface, 'window');
   assert.equal(video.getCapabilities().displaySurface, 'window');
   assert.equal(video.clone().getSettings().displaySurface, 'window');
 });
 
-test('muted live video still resolves after publish wait deadline', async () => {
-  const w = makeWorld({ computerAudio: false, mutedVideo: true });
-  const started = Date.now();
-  const stream = await w.gdm({ video: true });
-  const elapsed = Date.now() - started;
-  assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
-  assert.ok(elapsed >= 1900, `expected ~2s publish wait, got ${elapsed}ms`);
-  assert.ok(elapsed < 4000, `publish wait should not hang unboundedly (${elapsed}ms)`);
+test('dimensionless video times out instead of publishing and releases audio playout', async () => {
+  const w = makeWorld({ computerAudio: true, mutedVideo: true });
+  await assert.rejects(w.gdm({ video: true, audio: true }), { name: 'NotReadableError' });
+  assert.equal(w.pcs[0].connectionState, 'closed');
+  assert.equal(w.pcs[0]._video.readyState, 'ended');
+  assert.equal(w.pcs[0]._audio.readyState, 'ended');
+  assert.equal(w.audioElements.length, 0);
+  assert.ok(w.events.some((event) => event.type === 'blanc:display-capture-signal'
+    && JSON.parse(event.detail).type === 'failed'));
+});
+
+test('video becoming usable after two seconds is not published early', async () => {
+  const w = makeWorld({ mutedVideo: true });
+  let settled = false;
+  const pending = w.gdm({ video: true }).then(stream => { settled = true; return stream; });
+  await new Promise(resolve => setTimeout(resolve, 2200));
+  const publishedEarly = settled;
+  w.unmuteVideo();
+  const stream = await pending;
+  assert.equal(publishedEarly, false, 'the two-second fallback must not hand Meet dimensionless video');
+  const video = stream.getTracks().find(track => track.kind === 'video');
+  assert.equal(video.muted, false);
+  assert.equal(video.getSettings().width, 1280);
+  assert.equal(video.getSettings().height, 720);
 });
 
 test('unmute plus dimensions can resolve before the publish deadline', async () => {
@@ -440,7 +615,7 @@ test('unmuted video with zero width is not publishable', async () => {
   w.unmuteVideo();
   await new Promise((resolve) => setTimeout(resolve, 150));
   assert.equal(settled, false, '0×720 must not resolve as publishable');
-  // Let the live-only deadline resolve so the suite does not leak a pending gdm.
+  w.setVideoDimensions(1280, 720);
   const stream = await pending;
   assert.equal(settled, true);
   assert.ok(stream.getTracks().some((track) => track.kind === 'video'));
@@ -702,4 +877,199 @@ test('natural audio end releases receiver sink without stopping video', async ()
   const video = stream.getTracks().find((t) => t.kind === 'video');
   assert.equal(video.readyState, 'live');
   video.stop();
+});
+
+test('adapter capabilities exclude native identifiers and describe real support', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768, sourceFrameRate: 30 });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getVideoTracks()[0];
+  const caps = video.getCapabilities();
+  assert.equal(caps.deviceId, undefined);
+  assert.equal(caps.groupId, undefined);
+  assert.equal(caps.width.max, 1024);
+  assert.equal(caps.height.max, 768);
+  assert.equal(caps.displaySurface, 'monitor');
+  const settings = video.getSettings();
+  assert.equal(settings.deviceId, undefined);
+  assert.equal(settings.groupId, undefined);
+  assert.equal(settings.width, 1024);
+  assert.equal(settings.height, 768);
+  assert.equal(Object.keys(video.getConstraints()).length, 0);
+});
+
+test('Meet-like max constraints succeed on adapter video', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getVideoTracks()[0];
+  await video.applyConstraints({
+    width: { max: 1920 },
+    height: { max: 1080 },
+    frameRate: { min: 0, ideal: 30 },
+  });
+  assert.equal(video.getSettings().width, 1024);
+  assert.equal(video.getSettings().height, 768);
+  assert.equal(video.getConstraints().width.max, 1920);
+});
+
+test('impossible required constraints reject with constraint name and keep prior config', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getVideoTracks()[0];
+  await video.applyConstraints({ width: { exact: 640 }, height: { exact: 480 } });
+  await assert.rejects(
+    () => video.applyConstraints({ width: { min: 1920 } }),
+    (err) => err && err.name === 'OverconstrainedError' && err.constraint === 'width',
+  );
+  assert.equal(video.getSettings().width, 640);
+  assert.equal(video.getSettings().height, 480);
+  assert.equal(video.getConstraints().width.exact, 640);
+});
+
+test('track.clone consumers constrain independently and inherit accepted constraints', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getVideoTracks()[0];
+  await video.applyConstraints({ width: { exact: 800 }, height: { exact: 600 } });
+  const clone = video.clone();
+  assert.notEqual(clone.__blancAdapterConsumer.pipeline, video.__blancAdapterConsumer.pipeline);
+  assert.equal(clone.getSettings().width, 800);
+  assert.equal(clone.getConstraints().width.exact, 800);
+  await clone.applyConstraints({ width: { exact: 640 }, height: { exact: 480 } });
+  assert.equal(clone.getSettings().width, 640);
+  assert.equal(video.getSettings().width, 800);
+});
+
+test('MediaStream.clone consumers constrain independently and inherit accepted constraints', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getVideoTracks()[0];
+  await video.applyConstraints({ width: { exact: 800 }, height: { exact: 600 } });
+  const copy = stream.clone();
+  const clonedVideo = copy.getVideoTracks()[0];
+  assert.notEqual(clonedVideo, video);
+  assert.notEqual(clonedVideo.__blancAdapterConsumer.pipeline, video.__blancAdapterConsumer.pipeline);
+  assert.equal(clonedVideo.getSettings().width, 800);
+  assert.equal(clonedVideo.getConstraints().width.exact, 800);
+  await clonedVideo.applyConstraints({ width: { exact: 320 }, height: { exact: 240 } });
+  assert.equal(clonedVideo.getSettings().width, 320);
+  assert.equal(video.getSettings().width, 800);
+  const stoppedBefore = w.stopped().length;
+  clonedVideo.stop();
+  assert.equal(w.stopped().length, stoppedBefore + 1);
+  assert.equal(video.readyState, 'live');
+});
+
+test('stopping a MediaStream clone leaves the original canvas output live', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const stream = await w.gdm({ video: true });
+  stream.clone().getVideoTracks()[0].stop();
+  assert.equal(stream.getVideoTracks()[0].readyState, 'live');
+});
+
+test('frameRate constraints reconfigure the physical canvas capture rate', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768, sourceFrameRate: 30 });
+  const track = (await w.gdm({ video: true })).getVideoTracks()[0];
+  await track.applyConstraints({ frameRate: { exact: 15 } });
+  assert.equal(track.getSettings().frameRate, 15);
+  assert.equal(w.world.__canvases[0].captureRate, 15);
+  assert.equal(w.world.MediaStreamTrack.prototype.getSettings.call(track).frameRate, 15);
+});
+
+test('remote relay ending ends the dependent canvas output', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const track = (await w.gdm({ video: true })).getVideoTracks()[0];
+  w.endVideo();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(track.readyState, 'ended');
+});
+
+test('silent relay readyState end is observed by the canvas pump', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const track = (await w.gdm({ video: true })).getVideoTracks()[0];
+  const relay = track.__blancAdapterConsumer.relayTrack;
+  // Chromium captureStream.stop(): readyState flips, 'ended' does not fire.
+  relay.readyState = 'ended';
+  w.world.tickAudio();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(track.readyState, 'ended');
+});
+
+test('clone frameRate apply retimes the retained native canvas track', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768, sourceFrameRate: 30 });
+  const original = (await w.gdm({ video: true })).getVideoTracks()[0];
+  await original.applyConstraints({ frameRate: { exact: 15 } });
+  const copy = original.clone();
+  await copy.applyConstraints({ frameRate: { exact: 30 } });
+  assert.equal(copy.getSettings().frameRate, 30);
+  assert.equal(copy.__blancAdapterConsumer.pipeline.getCaptureRate(), 30);
+  assert.equal(w.world.MediaStreamTrack.prototype.getSettings.call(copy).frameRate, 30);
+  assert.equal(original.getSettings().frameRate, 15);
+  assert.equal(original.__blancAdapterConsumer.pipeline.getCaptureRate(), 15);
+});
+
+test('without canvas, required resize is OverconstrainedError and settings stay real', async () => {
+  const w = makeWorld({ canvasAdapter: false, unmuteWidth: 1280, unmuteHeight: 720, sourceWidth: 1280, sourceHeight: 720 });
+  const track = (await w.gdm({ video: true })).getVideoTracks()[0];
+  await assert.rejects(
+    () => track.applyConstraints({ width: { exact: 640 }, height: { exact: 360 } }),
+    (err) => err && err.name === 'OverconstrainedError',
+  );
+  const actual = w.world.MediaStreamTrack.prototype.getSettings.call(track);
+  assert.equal(track.getSettings().width, actual.width);
+  assert.equal(track.getSettings().width, 1280);
+});
+
+test('silent source end closes every per-consumer AudioContext', async () => {
+  const w = makeWorld({ canvasAdapter: true, emitAudioImmediately: false });
+  const track = (await w.gdm({ video: true })).getVideoTracks()[0];
+  track.__blancAdapterConsumer.relayTrack.readyState = 'ended';
+  w.world.tickAudio();
+  assert.equal(track.readyState, 'ended');
+  assert.deepEqual(w.world.__audioProcessors.map((ctx) => ctx.state), ['closed']);
+});
+
+test('Stop settles an in-flight native apply before native completion', async () => {
+  const w = makeWorld({ canvasAdapter: true, emitAudioImmediately: false });
+  const track = (await w.gdm({ video: true })).getVideoTracks()[0];
+  let entered;
+  const nativeStarted = new Promise((resolve) => { entered = resolve; });
+  let release;
+  const nativeGate = new Promise((resolve) => { release = resolve; });
+  const proto = w.world.MediaStreamTrack.prototype;
+  const oldApply = proto.applyConstraints;
+  proto.applyConstraints = async function applyConstraints(constraints) {
+    entered();
+    await nativeGate;
+    return oldApply.call(this, constraints);
+  };
+  let outcome = 'pending';
+  const pending = track.applyConstraints({ frameRate: { exact: 15 } })
+    .then(() => { outcome = 'resolved'; }, (error) => { outcome = error.name; });
+  await nativeStarted;
+  track.stop();
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  const outcomeAtStop = outcome;
+  release();
+  await pending;
+  assert.equal(outcomeAtStop, 'AbortError', 'Stop still waits for the native apply promise');
+});
+
+test('Stop aborts pending applyConstraints and late completion does not revive config', async () => {
+  const w = makeWorld({ canvasAdapter: true, sourceWidth: 1024, sourceHeight: 768 });
+  const stream = await w.gdm({ video: true });
+  const video = stream.getVideoTracks()[0];
+  await video.applyConstraints({ width: { exact: 640 }, height: { exact: 480 } });
+  let releaseGate;
+  const gate = new Promise((resolve) => { releaseGate = resolve; });
+  video.__adapterDelay = () => gate;
+  const pending = video.applyConstraints({ width: { exact: 320 }, height: { exact: 240 } });
+  const rejected = assert.rejects(pending, { name: 'AbortError' });
+  w.world.window.dispatchEvent(new w.world.CustomEvent('blanc:display-capture-abort', {
+    detail: JSON.stringify({ shareId: 'share-1', reason: 'stop' }),
+  }));
+  await rejected;
+  releaseGate();
+  await new Promise((r) => setImmediate(r));
+  assert.equal(video.readyState, 'ended');
+  assert.equal(video.getSettings().width, 640);
 });
