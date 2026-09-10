@@ -8,7 +8,7 @@ const moduleApi = require('../../src/main/display-capture-adapter-constraints');
 
 function loadInlineApi() {
   const preload = fs.readFileSync(
-    path.join(__dirname, '../../src/main/capture-preload.js'),
+    path.join(__dirname, '../../src/main/capture-preload-linux.js'),
     'utf8',
   );
   const match = preload.match(/\/\/ >>> adapter-constraints\n([\s\S]*?)\n  \/\/ <<< adapter-constraints/);

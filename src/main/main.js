@@ -81,12 +81,14 @@ const { projectDisplayShares } = require('./display-capture-indicator');
 const { createDisplayCapturePicker } = require('./display-capture-picker');
 const { showOverlayView, hideOverlayView } = require('./overlay-view-lifecycle');
 const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
+const { captureRuntimeForPlatform } = require('./capture-platform');
+const CAPTURE_RUNTIME = captureRuntimeForPlatform();
 const {
   createHelperAuthority,
   createHelperSession,
   attachHelperWindow,
   installDisplayCaptureBroker,
-} = require('./display-capture-broker');
+} = require('./' + CAPTURE_RUNTIME.broker);
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
@@ -7941,7 +7943,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // stay unconfirmable and fail toward stuck-on, never silently-off.
       browsingSession.registerPreloadScript({
         type: 'frame',
-        filePath: path.join(__dirname, 'capture-preload.js'),
+        filePath: path.join(__dirname, CAPTURE_RUNTIME.preload),
       });
     }
   };

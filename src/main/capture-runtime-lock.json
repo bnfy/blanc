@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "baselines": {
+    "darwin": "fda425eb",
+    "win32": "c26127eb",
+    "linux": "c26127eb"
+  },
+  "files": {
+    "src/main/capture-preload-playout.js": "63b7ecc1eec07d5b6e1ee61fded120471d8e9f94f91501cb82a44821ac602e46",
+    "src/main/capture-preload.js": "4096ec7549f3954d281c0be3f64ef2d8ffe14d0ea267cdbe934ab03e62ef9000",
+    "src/main/display-capture-broker-playout.js": "07f205ceda6a24d2d6774f8ec2c82eb3ebf5ce9e9d070aa03a2db2523c31487e",
+    "src/main/display-capture-broker.js": "46228b61a18720fcd908ca09e9f10355b036eec2180397c95e2cd991c6bd500f",
+    "src/renderer/display-capture-helper-playout.js": "7ed0bc4108a7a709e73fe1dc410501f62434fd06f5ebb2acc99770df4278e1b4",
+    "src/renderer/display-capture-helper.js": "60b4686765ea56fe40dea5d3b0096024ee9a92988c8d898730cfa4140c632554",
+    "src/main/capture-preload-linux.js": "4096ec7549f3954d281c0be3f64ef2d8ffe14d0ea267cdbe934ab03e62ef9000",
+    "src/main/display-capture-broker-linux.js": "46228b61a18720fcd908ca09e9f10355b036eec2180397c95e2cd991c6bd500f",
+    "src/renderer/display-capture-helper-linux.js": "60b4686765ea56fe40dea5d3b0096024ee9a92988c8d898730cfa4140c632554"
+  },
+  "sharedFiles": {
+    "src/main/display-capture-state.js": "f9853abcfab6cefcc7ec79c7784285309fefdb6c2ead750c8f1bef8b14e26151",
+    "src/main/display-capture-admission.js": "5759afd7c87c9062a7845dd30034573312349e6cdaa41b0a672603e92619f91e",
+    "src/main/display-capture-constraints.js": "feaebdd9d3bbda0959c28f6a5f73d3c3747ce3e47e40f2352128535ff063cf41",
+    "src/main/display-capture-ice.js": "cfbfb1e7bcbade283912d8042ffb166092bf24c6b4ce1f27910a4a71ee3ef911",
+    "src/main/display-capture-picker.js": "8103ef1394e45b39f5d21bef8d8badf4fa9f6d34a81616b8ab2ebfba83eb9ed8",
+    "src/main/display-capture-flags.js": "2cf46ac4479b58e62564313c632cd3560c50cd446036e6b3f1b374f4c8b6706f",
+    "src/main/display-capture-helper-audio.js": "1848b2b3950895ea06ed959bf484e675fbd88ab547ef0283e8af3b6822ae4c7a",
+    "src/main/display-capture-helper-preload.js": "6ab1571b504e8955a2090f3091ecb873678c397ea9593ebd74ca75d0b2d309d5",
+    "src/main/display-capture-indicator.js": "4e3b057e9f21075ed4b319541be4f0add6aca8195961d92e6118e1079111eeb4",
+    "src/main/capture-state.js": "cb38bc434bc608c023935474c66acecc067e240052215b1775d26a041c0f92a1",
+    "src/main/permission-decisions.js": "31d7de7e75685ea194055e9b455dd678a30fe2df549c2f7cfe151437a2eeecaf",
+    "src/main/permissions.js": "9a7ab75ac32998ab9b95d416225d202750bc722e1d42c1f0e6026fc864b74032",
+    "src/renderer/display-capture-helper.html": "0bdcd6a55a32ca21214c6c84858aac8197eb5b07780df447a36d3230b6356129",
+    "src/main/overlay-view-lifecycle.js": "5a22d093b358c5ab1b2832b5748e0aed9fa721e4a6ff2ca3a67d0366df2627a5"
+  }
+}

@@ -13,6 +13,7 @@ const {
 } = require('../../src/main/chrome-protocol');
 
 const renderer = path.resolve(__dirname, '../../src/renderer');
+const { captureRuntimeForPlatform } = require('../../src/main/capture-platform');
 
 test('chrome protocol exposes only the reviewed resources for each host', () => {
   assert.equal(CHROME_PARTITION, 'blanc-chrome');
@@ -66,7 +67,7 @@ test('display-capture-helper host serves only its document and script', () => {
   );
   assert.equal(
     chromeResourcePath('blanc-chrome://display-capture-helper/display-capture-helper.js'),
-    path.join(renderer, 'display-capture-helper.js'),
+    path.join(renderer, captureRuntimeForPlatform().helper),
   );
   assert.equal(chromeResourcePath('blanc-chrome://display-capture-helper/renderer.js'), null);
   assert.equal(chromeResourcePath('blanc-chrome://display-capture-helper/../preload.js'), null);

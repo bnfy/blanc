@@ -22,7 +22,10 @@ const { app, BrowserWindow } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { CAPTURE_MAINWORLD_SOURCE } = require('../../../src/main/capture-mainworld');
+const { captureMainworldSourceForPlatform } = require('../../../src/main/capture-mainworld');
+// Exercise the Linux adapter bytes on the local engine. This is mechanism
+// coverage, never a Linux native or macOS conference gate.
+const CAPTURE_MAINWORLD_SOURCE = captureMainworldSourceForPlatform('linux');
 
 const RESULT = path.join(__dirname, 'result.json');
 const PROFILE = path.join(__dirname, '.probe-profile');

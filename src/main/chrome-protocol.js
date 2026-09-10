@@ -3,6 +3,7 @@
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
+const { captureRuntimeForPlatform } = require('./capture-platform');
 
 const CHROME_SCHEME = 'blanc-chrome';
 // No `persist:` prefix: privileged UI state lives in an in-memory session that
@@ -55,7 +56,7 @@ const HOST_ASSETS = new Map([
   ])],
 ]);
 
-function chromeResourcePath(rawUrl) {
+function chromeResourcePath(rawUrl, platform = process.platform) {
   let parsed;
   try {
     parsed = new URL(rawUrl);
@@ -76,6 +77,9 @@ function chromeResourcePath(rawUrl) {
   const relative = hostAssets.get(parsed.pathname)
     ?? (SHARED_ASSETS.has(parsed.pathname) ? parsed.pathname.slice(1) : null);
   if (!relative) return null;
+  if (parsed.hostname === 'display-capture-helper' && relative === 'display-capture-helper.js') {
+    return path.join(RENDERER_DIR, captureRuntimeForPlatform(platform).helper);
+  }
   return path.join(RENDERER_DIR, relative);
 }
 
