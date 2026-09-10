@@ -1,8 +1,10 @@
 # External-link window activation — September 9, 2026
 
-Local implementation on `codex/fix-external-link-activation`, based on
-`c3a3eb44`. This is a signed local candidate, not a published release or an
-installation over the owner's existing Blanc.
+The original signed local candidate was built from `dc1b4b21`, based on
+`c3a3eb44`. It was not published or installed over the owner's existing Blanc.
+For the pull request, only the two activation-fix commits were rebased onto
+`1198878d` on `main` (version 1.15.1, Electron 44.2.0). The signed-candidate
+evidence below refers to the original base, not the rebased PR head.
 
 ## Change
 
@@ -21,7 +23,22 @@ separate app activation event. App activation preserves the last focused
 runtime instead of resetting it to primary. Chrome readiness no longer releases
 the startup URL gate before session restore and the blocker decision.
 
-## Evidence
+## PR validation after rebase
+
+Base: `1198878d`; Electron 44.2.0, with dependencies installed from the current
+lockfile. The main-process conflict resolution reapplied only the activation
+hunks and preserved upstream tab-handoff behavior.
+
+- Full unit suite: **1,609 passed, zero failed**.
+- Electron external-link lifecycle smoke: **passed**, including delayed-chrome
+  hide/minimize cancellation, cold startup, windowless reopening, profile
+  routing, and second-instance batches.
+- Shared tab-handoff smoke: **passed** on macOS.
+- The first lifecycle run could not establish the combined hidden/minimized
+  precondition. The test now waits for native minimization before hiding the
+  app, matching the packaged smoke's sequence; the complete rerun passed.
+
+## Original candidate evidence
 
 Host: macOS 27.0, build 26A5425a; Electron 44.1.1; macOS arm64.
 
@@ -66,8 +83,9 @@ Host: macOS 27.0, build 26A5425a; Electron 44.1.1; macOS arm64.
   all eight hardened fuses, packaged blocker byte checks, and packaged compliance
   checks. Deep strict codesign verification passed outside the sandbox.
 
-Candidate: `dist/mac-arm64/Blanc.app` (local package version remains 1.15.0).
-The packaged main process files were byte-compared with this working tree.
+Original candidate: `dist/mac-arm64/Blanc.app` (local package version 1.15.0).
+The packaged main process files were byte-compared with source at `dc1b4b21`.
+This artifact predates the PR rebase and does not certify the rebased head.
 
 `app.asar` SHA-256:
 `2574141de087a814702cc03edd1a044dd6ac04aa8cf168a73000555cf3c231f0`
@@ -87,4 +105,5 @@ The rebuilt artifact's complete background-only LaunchServices repeat also
 remains pending after the Terminal interruption described above.
 
 Do not merge, tag, or publish a release until the affected-Mac confirmation is
-recorded. The ordinary release protocol remains applicable.
+recorded against a fresh signed candidate from the rebased PR head. The ordinary
+release protocol remains applicable.

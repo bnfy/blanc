@@ -41,11 +41,14 @@ try {
   }, url);
   if (process.platform === 'darwin') {
     for (const mode of ['hidden', 'minimized', 'hidden-minimized']) {
-      await app.evaluate(({ app, BrowserWindow }, mode) => {
-        const window = BrowserWindow.getAllWindows()[0];
-        if (mode.includes('minimized')) window.minimize();
-        if (mode.includes('hidden')) app.hide();
-      }, mode);
+      if (mode.includes('minimized')) {
+        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].minimize());
+        // Hiding during the native minimize animation can cancel that
+        // transition. Establish each precondition before requesting the next.
+        await waitForValue(() => app.evaluate(({ BrowserWindow }) =>
+          BrowserWindow.getAllWindows()[0].isMinimized()), Boolean, 'native minimize completed');
+      }
+      if (mode.includes('hidden')) await app.evaluate(({ app }) => app.hide());
       await waitForValue(() => app.evaluate(({ app, BrowserWindow }) => ({
         hidden: app.isHidden(), minimized: BrowserWindow.getAllWindows()[0].isMinimized(),
       })), (s) => (!mode.includes('hidden') || s.hidden)
