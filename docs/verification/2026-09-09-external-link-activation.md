@@ -104,6 +104,9 @@ remain pending; no claim is made that these manual cases passed.
 The rebuilt artifact's complete background-only LaunchServices repeat also
 remains pending after the Terminal interruption described above.
 
-Do not merge, tag, or publish a release until the affected-Mac confirmation is
-recorded against a fresh signed candidate from the rebased PR head. The ordinary
-release protocol remains applicable.
+The owner subsequently authorized squash merge with these checks deferred for
+merging, as recorded in the
+[dated verification deferral](../release-incidents/2026-09-09-external-link-activation-verification-deferral.md).
+Before tagging or publishing a release, record the affected-Mac confirmation
+against a fresh signed candidate from the merged source. The ordinary release
+protocol remains applicable.
