@@ -79,9 +79,10 @@ function createDockReopenLifecycle({
         liveContents,
       });
       if (!id && ensureStartTab) id = createStartTab();
-      if (!id) return null;
-      runtime.activeTabId = null; // force activation to perform a fresh attach
-      activateTab(id);
+      if (id) {
+        runtime.activeTabId = null; // force activation to perform a fresh attach
+        activateTab(id);
+      }
       flushExternalUrls();
       return id;
     },

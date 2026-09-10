@@ -183,6 +183,18 @@ test('Dock reopen creates and activates a start tab when no document is reusable
   assert.deepEqual(activated, ['start']);
 });
 
+test('chrome readiness flushes pending handoffs even without a reusable tab', () => {
+  let flushes = 0;
+  const runtime = { activeTabId: null };
+  const lifecycle = createDockReopenLifecycle({
+    runtime, tabs: new Map(), liveContents: () => null,
+    activateTab() { assert.fail('there is no existing tab to activate'); },
+    flushExternalUrls() { flushes += 1; },
+  });
+  assert.equal(lifecycle.onChromeReady(), null);
+  assert.equal(flushes, 1);
+});
+
 test('main installs both handlers from the tested Dock-reopen lifecycle', () => {
   const fs = require('node:fs');
   const path = require('node:path');

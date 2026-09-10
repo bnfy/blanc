@@ -29,6 +29,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     profileId,
     closing: false,
     window: null,
+    chromeReady: false,
     tabOrder: [],
     activeTabId: null,
     groups: [],
@@ -174,6 +175,7 @@ function detachWindow(runtime) {
     if (owner === runtime) auxiliaryOwner.delete(wcId);
   }
   runtime.window = null;
+  runtime.chromeReady = false;
   runtime.overlayView = null;
   runtime.overlayMode = null;
   runtime.workspaceSwitcherOpen = false;
