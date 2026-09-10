@@ -1,98 +1,69 @@
-# Display-capture broker gate
+# Display-capture broker release disposition — 2026-09-10
 
-Checklist template for the packaged conference matrix in
-`docs/superpowers/specs/2026-09-07-display-capture-broker-design.md` §8.
+This is the current release record for the display-capture broker. Earlier
+candidate files remain historical evidence; their FAIL and NOT RUN results are
+not promoted to PASS here.
 
-Do not mark a cell PASS without a dated, artifact-bound run on that exact
-candidate. Probe results and unpackaged stubs do not satisfy this gate.
-Conference passes do not count until authentication on that candidate is
-recorded.
+## Selected source
 
-Fill a dated companion file per platform after a real run, for example
-`docs/security-evidence/display-capture-broker-gate-YYYY-MM-DD-<platform>.md`.
-Renew the whole matrix if capture or packaging changes.
+The release source is the current `main` integration plus the platform lock
+introduced by `419c7294efe8076948c4f883647c508106e94d0e`:
 
-## Candidate identity (required before any conference cell)
+| Platform | Selected capture runtime | Acceptance basis |
+| --- | --- | --- |
+| macOS | Exact Playout capture trio from `fda425eb`, selected through the platform lock | Notarized private `419c7294` package; owner accepted moving video, clean system audio, no loop, background Stop, independent share, and mic/camera continuity |
+| Windows | Original `c26127eb` capture trio | Authenticated private installer; owner accepted the recorded completed cells and explicitly waived the remaining Parallels-blocked cells |
+| Linux | Byte-identical `c26127eb` capture trio in Linux-only files | Authenticated arm64 AppImage; receiver, controls, coexistence, independent-share, and denial matrix passed; owner waived the remaining live transport replay |
 
-| Field | Value |
-| --- | --- |
-| Blanc version | 1.15.0 (candidate package; not a public release bump) |
-| Candidate commit SHA | **`cb8e7956ced7f4a727382b8a2a7df120f4622a77`** (Meet-share facade over `83112e08`). Prior FAIL freeze `83112e08` remains not release-ready. |
-| Electron | 44.1.1 |
-| Chromium | Electron 44.1.1 stock (not recompiled) |
-| macOS artifact + SHA-256 | `Blanc-1.15.0-arm64.dmg` → `88a7e5c90cd7e2d0dc2e395292c6959e98704b372ce9ea0d94145de55703a828` (**AUTHENTICATED**; prior FAIL `538f30ce…` @ `83112e08` superseded for Meet) |
-| Windows installer + SHA-256 | `Blanc-Setup-1.15.0.exe` → `c9bef2a1fa4ee060882f2cd92f9b7d095324aec31bb7bfe45dd9da1ab2176084` @ run **34255443283** (**AUTHENTICATED**) |
-| Linux AppImage + SHA-256 | Meet candidate arm64 `Blanc-1.15.0-arm64.AppImage` → `3bf811060a587ebbdba3a3dc8022e239d1047b28d9131febb51bfd0ef9be13e9` (built; **Sigstore pending**). x86-64 from same validation run under `linux-x64-validation/`. |
+`src/main/capture-runtime-lock.json` pins the nine platform runtime files and
+the shared capture boundary. The packaged `afterPack` check must reject drift.
+Do not reunify the platform files or update their hashes merely to make a check
+pass. Any change to a pinned file requires a new impact decision naming the
+affected platform.
 
-Companion freeze record: `docs/security-evidence/display-capture-broker-candidate-cb8e7956-2026-09-08.md`. Historical FAIL: `display-capture-broker-candidate-83112e08-2026-09-08.md`.
+## Artifact-bound evidence
 
-## Artifact authentication (prerequisite)
-
-Record the command and a short output summary. A conference cell without this
-row is invalid.
-
-| Platform | Required verification | Command + summary | Status |
+| Platform | Artifact | Completed evidence | Deliberately incomplete |
 | --- | --- | --- | --- |
-| macOS | Native signature + Gatekeeper assessment + stapled notarization ticket on `Blanc.app` (same class as `docs/release-verification.md`) | Private notarized rebuild @ `cb8e7956`; DMG `88a7e5c9…`; deep/strict codesign; `spctl` Notarized Developer ID; stapler OK (Xcode-beta) | **AUTHENTICATED** |
-| Windows | Timestamped Authenticode; exact publisher; installer hash binding | Private validation run 34255443283 @ `cb8e7956`; downloaded `c9bef2a1…` matches signature JSON; Valid exact Bananify Creative publisher and Microsoft timestamp | **AUTHENTICATED** |
-| Linux (x86-64 AppImage) | Authenticated checksum manifest (`SHA256SUMS` + Sigstore/`cosign verify-blob` against the pinned identity/issuer) | Validation artifact from run 34255443283 @ `cb8e7956` (Meet guest is arm64) | **DOWNLOADED** (Meet path is arm64) |
-| Linux (arm64 AppImage) | Same class for arm64 Meet candidate | Guest AppImage `3bf81106…` @ `cb8e7956`; SHA256SUMS present; **cosign sign-blob pending OIDC** | **BUILT — Sigstore PENDING** |
+| macOS | `Blanc-1.15.0-arm64.dmg`, SHA-256 `80979771102d758a7a0f0f0be49376b70b4e754b1a42539710e3533e4a63fc53`, source `419c7294` | Developer ID, notarization, Gatekeeper, stapler, hardened fuses, cold launch, Meet receiver video and system audio, clean/no-loop observation, background Stop, independent second share, mic/camera during sharing and after Stop | Cancel and the Personal/named/private negative matrix were not rerun on this exact package |
+| Windows | `Blanc-Setup-1.15.0.exe`, SHA-256 `20837e7b7c606c978c679ce722ef2aa9e83a728088dc502191fd0e35909e43cd`, source `c26127eb` | Authenticode identity/timestamp, install/launch, receiver system audio with muted mic, Cancel, background Stop | Mic/camera after Stop was blocked by Parallels media; live SDP/ICE tampering and bare-metal conference coverage were not run |
+| Linux | `Blanc-1.15.0-arm64.AppImage`, SHA-256 `b35616f0c3b6ac631f9e6bd10c11e626a0a70668605a08f517ec917834dc31dd`, source `c26127eb` | Authenticated manifest, receiver video/audio, Cancel, background Stop, mic/camera coexistence, independent second share, Personal/named/private denial matrix | Live-share SDP/ICE tampering was not rerun on this AppImage |
 
-## Conference matrix (after authentication)
+The Mac details are in
+`display-capture-broker-candidate-419c7294-2026-09-10.md`. The source lock and
+packaging checks are in `display-capture-platform-lock-2026-09-10.md`.
 
-Receiver-side proof: a second person or second machine sees moving screen
-**and** hears system audio. Mute the sharer microphone. Play a known desktop
-tone. Nonzero energy measured only inside Blanc is insufficient.
+## Owner disposition
 
-| Platform | OS/arch | Conference app | Linux display/audio stack | Receiver video | Receiver system audio | Cancel denies | Per-share Stop (incl. background tab) | Second share preserved | Mic+camera survive Stop | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| macOS | macOS arm64 (host) | Google Meet `wza-fnfj-khj` | n/a | RETEST | RETEST | RETEST | RETEST | RETEST | RETEST | **RETEST REQUIRED** on authenticated `88a7e5c9…` @ `cb8e7956` (`/Applications/BlancCaptureCandidateCb8e.app`). Prior FAIL on `538f30ce…` @ `83112e08` does not clear this candidate. |
-| Windows | Windows 11 (Parallels) | Google Meet | n/a | RETEST | RETEST | RETEST | RETEST | RETEST | RETEST | **RETEST REQUIRED** on authenticated `c9bef2a1…` @ `cb8e7956` (install + Present). Prior installers do not clear this SHA. |
-| Linux | Ubuntu 24.04.3 ARM64 Wayland / PipeWire | Google Meet `wza-fnfj-khj` | Wayland + Pulse/PipeWire | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | — | **RETEST REQUIRED** on arm64 `3bf81106…` @ `cb8e7956` after Sigstore completes |
+On 2026-09-10 the owner directed that Windows and Linux ship as-is and that
+post-release user reports be triaged. The accepted risk is:
 
-Windows/Linux guests in Parallels qualify only for those guest configurations.
-One service per platform satisfies the conference minimum.
+- Windows microphone/camera continuity is not proven on `c26127eb` because the
+  Parallels guest media devices failed; live transport tampering and bare-metal
+  conference coverage were not run.
+- Linux live-share transport confinement was not repeated on the final arm64
+  AppImage. The same boundary has prior Mac transport evidence, but that is not
+  same-artifact proof.
 
-## Negative matrix (same verified artifacts)
+These rows remain incomplete rather than being labeled PASS. The Mac owner
+acceptance likewise does not relabel its unperformed Cancel or negative-matrix
+rows.
 
-Record graceful `NotAllowedError` / `InvalidStateError` / `AbortError` versus
-renderer kill. Both count as no stream; say which occurred.
+## Release handoff
 
-| Session | Wrapper-bypass / unscoped `getDisplayMedia` / legacy no-source-ID `chromeMediaSource` | Mixed desktop + device `getUserMedia` with remembered mic/camera | Forged/no-activation IPC | Off-machine ICE/SDP | Status |
-| --- | --- | --- | --- | --- | --- |
-| Personal | | | | | NOT RUN |
-| Named profile | | | | | NOT RUN |
-| Private | | | | | NOT RUN |
+Capture acceptance is closed unless a pinned runtime or shared capture-boundary
+file changes. The remaining work is ordinary release integration and
+publication:
 
-## Early helper audio (feasibility, not this gate)
+1. Review and merge the clean current-`main` integration.
+2. Build versioned release artifacts through `scripts/release.sh`; public
+   `v1.15.0` is immutable, so private `1.15.0` candidates are evidence inputs,
+   not publishable release assets.
+3. Require the normal macOS signing/notarization, Windows Authenticode, Linux
+   authenticated manifest, hardened-fuse, packaged-payload, SBOM, provenance,
+   and logged-out download checks.
+4. Complete the adjacent public updater handoffs and the release/site incident
+   record. A directly launched installer is not an updater-handoff test.
 
-On 2026-09-08 the owner approved the Linux-only disable of
-`WebRtcAllowInputVolumeAdjustment` and broker/Island picker integration after
-the recorded guest tone-follow and analog-input listening checks. Windows
-also has receiver-energy feasibility evidence. Those records permit product
-integration; they do not replace any packaged conference cell above.
-
-Unpackaged Mac/Windows/Linux product smokes (Island picker / Linux portal,
-Cancel, live A/V tracks, independent Stop) are recorded in
-`experiments/display-capture-broker/product-smoke/result.md`. They do not
-authenticate a candidate or satisfy any conference cell. Live tracks are not
-audible system-audio proof.
-
-**Next before merge/release:** All three `83112e08` artifacts are authenticated.
-macOS Meet is **FAIL** after muted-track readiness fix: local packaged video
-works (195 decoded frames); Meet still rejects window and entire-screen shares
-with computer audio (conference integration). Linux Present is still not run.
-Windows Meet on this candidate is blocked on guest install (Parallels).
-Historical Windows PASS on `134f8ce1…` does not clear `c0efaa63…`. Temporary
-diagnostics stopped; no product change or waiver. Complete Mac conference
-diagnosis/fix, Linux Present, Windows install+retest, and the negative
-matrix before merge/release (or record an explicit written waiver).
-
-Prior `a2343b91` FAIL companions remain historical:
-`display-capture-broker-gate-2026-09-08-macos-meet.md`,
-`display-capture-broker-gate-2026-09-08-linux-meet.md`.
-
-The Linux flag affects microphone APM input-volume recommendations throughout
-the process. Linux packaged proof must include simultaneous mic, camera, and
-system audio, and independent sharing Stop. No additional speech probe is
-required on the already-tested guest merely because envelope correlation varies.
+No additional Meet campaign is scheduled by this record. A release artifact
+that fails the platform-lock or ordinary packaged checks stops the release.

@@ -1,10 +1,11 @@
-# Capture platform isolation — source repair, not new conference evidence
+# Capture platform isolation and accepted Mac package
 
 Owner subsequently authorized freezing this reviewed source and a **Mac-only
-private notarized build** on 2026-09-10. The source-review observations below
-remain historical; package identity and authentication belong in a separate
-candidate record. This authorization does not include a Windows/Linux build,
-merge, public release, or promotion of conference evidence.
+private notarized build** on 2026-09-10. That package passed authentication,
+cold launch, and the owner-driven Meet checks recorded in
+`display-capture-broker-candidate-419c7294-2026-09-10.md`. The source-review
+observations below remain the reason the platform files are intentionally
+separate.
 
 The owner requires the working Windows and Linux candidates to stay as-is.
 This work changes no installed app, performs no guest tests, and builds no
@@ -58,7 +59,7 @@ dependency locks and placing the manifest inside the existing `src/**/*`
 packaged tree. `git diff --check` passed. Temporary baseline test copies were
 removed; no dependency installation, package, or native test was run.
 
-No conference result is promoted. Mac Playout's existing PASS remains tied
-to that original package; a future restored Mac package still needs Mac
-verification. Windows/Linux owner waivers and historical evidence remain
-as recorded. No freeze, rebuild, merge, or release is performed here.
+The private `419c7294` Mac package is now the accepted Mac evidence source.
+Windows/Linux owner waivers and artifact-bound evidence remain as recorded in
+`display-capture-broker-gate.md`. This source record itself performs no merge
+or public release.
