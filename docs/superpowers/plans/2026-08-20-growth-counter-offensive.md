@@ -32,9 +32,8 @@
 - Blanc v1.16.0 is the current public baseline. It was published from
   `233c807cde4e27cb15813b3be146749e6e51725b` at
   `2026-09-10T19:34:24Z`; native packages, the authenticated manifest, public
-  AppImage launch, and Windows/Linux DNS gates passed. The owner confirmed its
-  adjacent v1.15.0 → v1.16.0 macOS updater handoff succeeded; Windows remains
-  pending.
+  AppImage launch, and Windows/Linux DNS gates passed. The owner confirmed both
+  adjacent v1.15.0 → v1.16.0 macOS and Windows updater handoffs succeeded.
 - v1.16.0 ships Bring Your Tabs and its live-tab handoff, secure screen and
   system-audio sharing, the Electron 44.2.0 runtime update, and the other
   changes recorded in `docs/release-incidents/2026-09-10-v1.16.0.md`.
