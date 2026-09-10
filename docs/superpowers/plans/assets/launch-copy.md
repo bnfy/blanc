@@ -1,4 +1,4 @@
-# Blanc v1.15.0 launch copy pack
+# Blanc launch copy pack — replacement release pending
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -7,16 +7,14 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
-September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
-September 10. A bounded backlog-cleanup window now precedes the launch freeze.
-**FINAL RELEASE SELECTION 2026-09-03:** v1.15.0 is the launch release. Its
-publication, all native-platform gates, public Linux launch/render check, and
-adjacent macOS and Windows updater handoffs are complete. The release-bound
-demo and Product Hunt stills were recaptured from that installed packaged
-build. If a regression forces a replacement release, this pack becomes
-non-publishable until every release-bound fact and asset is rebaselined and the
-fresh launch soak restarts.
+**Schedule realignment — OWNER DECISION 2026-09-09:** Show HN is Tuesday,
+September 15, Reddit is Wednesday, September 16, and Product Hunt is Thursday,
+September 17. Monday, September 14 remains the baseline-and-listings day. The
+September 7–10 sequence did not start: no launch baseline or Show HN outcome
+was recorded. Product changes after the v1.15.0 freeze require a replacement
+release, so this pack is **not publishable** until every release-bound fact and
+asset is rebaselined and the replacement release completes a fresh 48-hour
+soak.
 
 **Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
 v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
@@ -24,10 +22,12 @@ incident. That confirmation closes the earlier evidence gap; it does not waive
 the asset merge, final freeze, or fresh soak. Do not publish this pack until
 the runbook's remaining launch gates are cleared.
 
-**Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
-v1.15.0, published from `d0c2304`. It carries the optional macOS 1Password
-ambient login hint and Settings account verification while keeping credential
-lookup and fill explicit. It also carries WebRTC receive-buffer controls,
+**Superseded release lock — REBASELINED 2026-09-02:** The current text and
+media describe packaged public v1.15.0, published from `d0c2304`. They remain
+historical inputs, not approved launch material. The replacement release must
+be selected and verified before this section is rewritten. v1.15.0 carries the
+optional macOS 1Password ambient login hint and Settings account verification
+while keeping credential lookup and fill explicit. It also carries WebRTC receive-buffer controls,
 Electron 44.1.1, device-local frequently visited Billboard sites, Inter across
 every start-page template, Sunrise branding on all platforms, and four macOS
 icon choices. The resting Island now uses the compact website-inspired
@@ -379,7 +379,7 @@ thread as a substitute launch.
 ## Product Hunt
 
 **Account gate:** use the owner's personal account and confirm it can reach the
-submission form before Thursday, September 10. Product Hunt's current
+submission form before Thursday, September 17. Product Hunt's current
 [posting-access guide](https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post)
 says company accounts cannot post and newly created personal accounts normally
 wait one week; newsletter subscription can grant immediate access.
@@ -391,7 +391,7 @@ through a full YouTube URL. Upload the final demo to YouTube as public or
 unlisted—not private—at least 12 hours before the final preview when possible;
 Product Hunt warns that new YouTube uploads may need about 12 hours before they
 can be integrated. Verify the full URL in the preview, then use **Schedule
-Launch** for **Thursday, September 10, 2026**; Product Hunt says its 24-hour PST
+Launch** for **Thursday, September 17, 2026**; Product Hunt says its 24-hour PST
 period puts scheduled posts live at **12:01 a.m. PST**. Re-check the
 [official posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 when creating the draft.
@@ -412,9 +412,11 @@ the unpublished Product Hunt draft on September 4. Product Hunt resolved the
 player to `youtube-nocookie.com/embed/xqUFMUcCjT0`, displayed the correct title,
 and reported a 42-second duration. The draft is saved at
 `https://www.producthunt.com/products/blanc-3?launch=blanc-3`. On September 4,
-Anthony authorized scheduling and the live picker confirmed **September 10 at
-12:01 a.m. PT (3:01 a.m. ET)**; the Pre-Launch Dashboard then reported
-`Scheduled` with the matching countdown.
+Anthony originally authorized scheduling for September 10, but that date is
+superseded. Anthony saved the replacement date on September 9, and the live
+editor now reports `Scheduled` for **September 17 at 12:01 a.m. PDT
+(3:01 a.m. EDT)**. The schedule remains contingent on the replacement release
+and fresh 48-hour soak clearing before launch week.
 
 **Name**
 
@@ -636,9 +638,9 @@ drop a full defense where one sentence would do.
 - [ ] The owner's personal Product Hunt account can reach the submission form.
 - [ ] Product Hunt's full YouTube URL is not private, has had processing time,
   and appears in the preview with both stills before **Schedule Launch**.
-- [x] Product Hunt's live form displayed **September 10, 2026** before
-      scheduling; the dashboard now reports `Scheduled` for 12:01 a.m. PT
-      (3:01 a.m. ET). If an earlier channel slips, reschedule Product Hunt too.
+- [x] Product Hunt's live editor reports `Scheduled` for **September 17, 2026**
+      at 12:01 a.m. PDT (3:01 a.m. EDT). The superseded September 10 schedule
+      does not count.
 - [ ] Each Reddit community's live rules and the eligibility matrix permit the
       planned post format; every ineligible candidate is explicitly skipped.
 - [ ] The HN account is eligible under the current Show HN restriction.

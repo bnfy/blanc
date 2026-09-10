@@ -200,25 +200,26 @@ not, decide whether the ad is an audience-building campaign or a download
 campaign; do not blend the two objectives. No budget, audience, objective, or
 creative change occurs without approval.
 
-## Launch runway: September 2–10
+## Launch runway: realigned through September 17
 
 - **September 2–3 — conversion foundation:** measure the active Meta test,
   verify each profile's follow promise and pinned/featured entry point, and
   prepare the first creator invitations.
-- **September 4 — final-release proof:** after the final launch release and its
-  evidence are complete, publish one release-backed trust unit about the real
-  build, platform support, open-source status, or privacy boundaries. Do not
-  recapture release-bound product media before the final release is selected.
-- **September 5–6 — founder reason:** publish why Blanc exists and the specific
+- **September 9–11 — replacement-release proof:** after the final launch
+  release and its evidence are complete, publish one release-backed trust unit
+  about the real build, platform support, open-source status, or privacy
+  boundaries. Do not recapture release-bound product media before the final
+  release is selected.
+- **September 12–13 — founder reason:** publish why Blanc exists and the specific
   browser tension it is trying to resolve. Pair it with an audience question
   that can produce useful replies.
-- **September 7 — listings:** publish native proof tied to the listings rather
+- **September 14 — listings:** publish native proof tied to the listings rather
   than a generic launch countdown.
-- **September 8 — Show HN:** make the founder/build story the primary owned
+- **September 15 — Show HN:** make the founder/build story the primary owned
   unit; use social replies to carry qualified people into that conversation.
-- **September 9 — Reddit:** adapt the evidence and tone to the selected
+- **September 16 — Reddit:** adapt the evidence and tone to the selected
   communities; do not paste launch copy unchanged.
-- **September 10 — Product Hunt:** concentrate social proof, creator reactions,
+- **September 17 — Product Hunt:** concentrate social proof, creator reactions,
   and a clear invitation to try the final release.
 
 The launch schedule does not waive the release, claim, approval, or platform

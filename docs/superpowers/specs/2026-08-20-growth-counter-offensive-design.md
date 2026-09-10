@@ -224,7 +224,7 @@ Falsifiable, and checked against the existing `downloads-history.jsonl` and
   `valid:true` rows measured so far (+16, +6, +18, +5). Measured on
   `valid:true` rows only, since auto-update pulls contaminate release-day
   deltas.
-- **The October 1 retention read is statistically meaningful for the first
+- **The October 8 retention read is statistically meaningful for the first
   time.**
 
 ## Risks and mitigations
@@ -240,17 +240,21 @@ Falsifiable, and checked against the existing `downloads-history.jsonl` and
 
 ## Owner-approved calendar
 
-- **Aug 20–Sep 4** — Phase 0, Phase 1, and bounded backlog cleanup; final
-  product merges stop September 3 at noon ET and the immutable launch release
-  is due September 4 at 3:00 p.m. ET.
-- **Sep 7–10** — launch week, feature freeze in effect; Show HN is Tuesday,
-  September 8.
-- **Oct 1** — retention checkpoint on the September cohort.
+The owner realigned the unstarted September 7–10 sequence on September 9 after
+post-freeze product work required a replacement immutable release.
+
+- **Sep 9–11** — bounded cleanup and replacement-release proof; final product
+  merges stop September 10 at noon ET and the fully proved launch release plus
+  release-bound assets are due September 11 at 3:00 p.m. ET.
+- **Sep 14–17** — launch week, feature freeze in effect; Show HN is Tuesday,
+  September 15.
+- **Oct 8** — retention checkpoint on the September cohort.
 
 ## Out of scope
 
 - Telemetry changes of any kind (considered, declined).
-- Open-sourcing any component (considered, declined).
+- Licensing changes during launch execution. The earlier decision not to open
+  source Blanc was superseded by the owner-approved MIT baseline on August 30.
 - Retention A/B experiments (statistically unsupportable at current n).
 - A second press wave. The July 11 outreach plan's press targets drew zero
   replies from 16 contacts on Aug 2; re-running it is not this cycle's work.

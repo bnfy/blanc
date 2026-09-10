@@ -7,12 +7,15 @@
 > MIT rule in Global Constraints and the terms in `LICENSE`,
 > `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
 
-> **Owner reschedule (2026-08-30).** The official launch sequence now runs
-> Monday, September 7 through Thursday, September 10, with Show HN on
-> **Tuesday, September 8, 2026**. The previous August 31–September 3 calendar
-> and the `0de37a1` pre-launch merge-freeze anchor are retired. A bounded
-> backlog-cleanup window precedes a new release-backed freeze; the reschedule
-> itself does not authorize a merge, release, or evidence waiver.
+> **Owner realignment (2026-09-09).** The September 7–10 sequence did not
+> start: no launch baseline or Show HN submission was recorded, and product
+> work merged after the v1.15.0 freeze. The official replacement sequence is
+> Monday, September 14 through Thursday, September 17, with Show HN on
+> **Tuesday, September 15, 2026**. Product/runtime merges stop Thursday,
+> September 10 at noon ET; the final release and release-bound assets must be
+> fully proved by Friday, September 11 at 3:00 p.m. ET. The old `c7e9496`
+> freeze row is superseded. This realignment does not authorize a merge,
+> release, or evidence waiver.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -24,7 +27,23 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — September 3, 2026
+## Execution status — September 9, 2026
+
+- v1.15.0 remains the latest public release, but it is no longer a valid
+  launch release. Product/runtime, dependency, package-metadata, packaging,
+  and release-workflow changes have merged after its `d0c2304` tag.
+- `origin/main` is at `9bc3b2a` and declares v1.15.1, but no public v1.15.1
+  release exists. Bring Your Tabs and its live-tab handoff are also on `main`.
+  The selected screen-sharing candidate remains open and requires its native
+  evidence before merge and release.
+- No September 7 launch baseline or September 8 Show HN outcome was recorded.
+  Reddit and Product Hunt therefore move with the full sequence; none of the
+  September 7–10 launch days may fire independently.
+- The replacement final release must be published and fully proved by Friday,
+  September 11 at 3:00 p.m. ET. Its refreshed launch assets and new freeze
+  record start a fresh uninterrupted soak of at least 48 hours.
+
+## Superseded execution status — September 3, 2026
 
 - Blanc v1.15.0 is the current public baseline. It was published from
   `d0c2304` at `2026-09-03T01:12:36Z`; publication, the authenticated manifest,
@@ -37,7 +56,7 @@
   v1.13.0 macOS and Windows **Restart Now** handoffs. The v1.13.0 incident now
   records those owner-attested passes. The v1.11.1 Windows handoff remains a
   separately recorded owner waiver, not a tested pass.
-- v1.15.0 is the selected launch release. Task 8's 22-second Island demo and
+- v1.15.0 was the selected launch release. Task 8's 22-second Island demo and
   Product Hunt stills were recaptured on September 3 from the installed
   packaged public build in an isolated local profile, then exported in
   `f6be585`. Any replacement release makes those assets stale and restarts the
@@ -85,17 +104,18 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship one proven launch release as-is.** No telemetry or feature changes
-  during launch week; Patron stays in the launch narrative. v1.15.0 is the
-  public baseline, and any later product/runtime, dependency,
-  packaging, or release-workflow merge during backlog cleanup requires a new
-  immutable launch release. Never describe newer `main` behavior as shipped.
-- **The backlog-cleanup window is open only before the new freeze.** PRs #238
-  and #205 and the held dependency PRs may be reviewed in this window, but this
-  reschedule is not merge approval. Apply their ordinary tests, platform gates,
-  issue-specific evidence, and the required explicit affected-machine owner
-  confirmation. Close dead ideas instead of merging them merely to reduce a
-  count.
-- **Finish the release train with the launch release by Friday, September 4 at
+  during launch week; Patron stays in the launch narrative. v1.15.0 remains
+  the public baseline, but post-tag product/runtime, dependency, package,
+  packaging, and release-workflow changes already require a new immutable
+  launch release. Never describe newer `main` behavior as shipped.
+- **The backlog-cleanup window is open only before the new freeze.** Bring Your
+  Tabs and its live-tab handoff are already on `main`. Screen-sharing PR #302 is
+  the selected remaining candidate and must complete its ordinary tests,
+  native-platform gates, issue-specific evidence, and explicit affected-machine
+  owner confirmation. Held dependency and draft/conflicting PRs are not
+  implicitly approved. Close dead ideas instead of merging them merely to
+  reduce a count.
+- **Finish the release train with the launch release by Friday, September 11 at
   3:00 p.m. ET.** The owner expects more than one post-v1.10.0 release. Every
   published version is immutable and must complete its publication,
   macOS/Windows/Linux, manifest, download, and incident-record evidence. Every
@@ -103,17 +123,17 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
   an intermediate version does not prove the real update chain. Only the final
   selected launch release must complete the launch's fresh ≥48-hour soak, and
   any later replacement restarts that clock. The Friday cutoff leaves a full
-  extra day before Monday's baseline. Missing it moves the launch again; it
+  weekend buffer before Monday's baseline. Missing it moves the launch again; it
   never shortens or waives the soak.
 - **Freeze the final launch state through the Show HN post.** After the release
   and its release-bound copy/assets are committed, append a
   `launch-freeze-start` record containing the exact `origin/main` anchor,
   release tag, and release-tag SHA to the launch log. From that point until Show
   HN is live, `origin/main` may advance only for launch evidence, launch copy,
-  and their regression guards. The old `0de37a1` anchor is historical and must
-  not be reused.
+  and their regression guards. The old `0de37a1` and `c7e9496` anchors are
+  historical and must not be reused.
 - **Channel order is not negotiable:** evergreen listings → Show HN → Reddit → Product Hunt.
-- **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
+- **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is October 8.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
 - **Site deploys use `npm run site:deploy`** (includes the mandatory `--branch=main`). After deploying, confirm Wrangler reports `Environment: Production`, `Branch: main`, and the expected source SHA.
 - **Never hand-edit `site/src/data/releases.json`** — it is generated by `npm run site:changelog`.
@@ -1513,11 +1533,12 @@ git commit -m "docs: launch copy pack for the growth counter-offensive"
 
 ## Phase 1.5 — backlog cleanup and pre-launch release train
 
-The owner moved Show HN to Tuesday, September 8 so selected product work can be
-resolved before the launch freeze. This is a quality window, not a permission
-shortcut or a requirement to merge every open PR.
+The owner moved Show HN to Tuesday, September 15 after the September 7–10
+sequence was invalidated. Selected product work must be resolved before the
+replacement launch freeze. This is a quality window, not a permission shortcut
+or a requirement to merge every open PR.
 
-> **Product freeze recorded September 3, 2026.** The first post-cutoff audit at
+> **Superseded product freeze recorded September 3, 2026.** The first post-cutoff audit at
 > 1:53 p.m. ET found `origin/main` at
 > `3068b65c2f3d19822b52555b5a1a8e81589e0aca`, with no commit after the
 > Thursday noon ET cutoff. That SHA is the product-freeze candidate. The latest
@@ -1536,23 +1557,24 @@ shortcut or a requirement to merge every open PR.
 
 - [x] **Step 1: Select the backlog that actually belongs in the launch release**
 
-Review #192–#197 / PR #238, #205, and the held dependency PRs against their
-current issue bodies, merge gates, security boundaries, and platform impact.
-Close work the owner no longer wants. For platform-sensitive changes, obtain
-the owner's explicit affected-machine confirmation before merging. Do not
-convert the scheduling decision into implicit approval for any individual PR.
+The selected state is `main` through PR #305 plus screen-sharing PR #302.
+Every other open dependency, draft, or conflicting PR remains outside the
+launch release unless the owner makes a new explicit selection. PR #302 still
+must satisfy its issue-specific and native-platform gates, including the
+owner's explicit affected-machine confirmation, before merge. Do not convert
+the scheduling decision into implicit approval for any other PR.
 
-- [x] **Step 2: End product merges by Thursday, September 3 at noon ET**
+- [ ] **Step 2: End product merges by Thursday, September 10 at noon ET**
 
 After the selected backlog is merged, product/runtime, dependencies, package
 metadata, packaging, release workflows, and feature specs stop moving. If the
 selected work is not merge-ready by the cutoff, leave it open and move on; do
 not consume the release-verification buffer trying to make the count zero.
 
-- [x] **Step 3: Publish and prove each immutable pre-launch release, ending with
-      the launch release by Friday, September 4 at 3:00 p.m. ET**
+- [ ] **Step 3: Publish and prove each immutable pre-launch release, ending with
+      the launch release by Friday, September 11 at 3:00 p.m. ET**
 
-The selected v1.15.0 release's own evidence is complete. The owner explicitly
+The superseded v1.15.0 release's own evidence is complete. The owner explicitly
 confirmed both v1.12.0 → v1.13.0 **Restart Now** handoffs on September 3,
 closing the remaining confirmation gap. The v1.11.1 Windows transition retains
 its documented owner waiver and must never be described as a tested pass.
@@ -1573,7 +1595,7 @@ publication and platform evidence still must be truthful and complete. Any
 known regression stops the train. The final selected launch release starts the
 only soak that can clear Task 11, and any subsequent release restarts it.
 
-Missing the Friday cutoff moves all four launch days again.
+Missing the Friday, September 11 cutoff moves all four launch days again.
 
 - [ ] **Step 4: Refresh every release-bound launch artifact**
 
@@ -1607,7 +1629,7 @@ release_tag = os.environ['LAUNCH_RELEASE_TAG']
 row = {
     'date': datetime.datetime.now(datetime.timezone.utc).date().isoformat(),
     'event': 'launch-freeze-start',
-    'launchDate': '2026-09-08',
+    'launchDate': '2026-09-15',
     'anchor': anchor,
     'releaseTag': release_tag,
     'releaseSha': release_sha,
@@ -1631,21 +1653,21 @@ release restarts the clock. Do not shorten this gate to recover calendar time.
 
 ## Phase 2 — Launch week (feature freeze in effect)
 
-The owner moved the official launch one week later on August 30. The fixed
-launch calendar is now:
+The owner realigned the official launch again on September 9. The fixed launch
+calendar is now:
 
 | Date | Task |
 |---|---|
-| Monday, September 7, 2026, after 3:00 p.m. ET | Task 11 — post-soak baseline, then evergreen listings |
-| Tuesday, September 8, 2026, early US Eastern | Task 12 — Show HN |
-| Wednesday, September 9, 2026 | Task 13 — eligible Reddit communities |
-| Thursday, September 10, 2026 | Task 14 — Product Hunt; select this date in **Schedule Launch** |
+| Monday, September 14, 2026, after 3:00 p.m. ET | Task 11 — post-soak baseline, then evergreen listings |
+| Tuesday, September 15, 2026, early US Eastern | Task 12 — Show HN |
+| Wednesday, September 16, 2026 | Task 13 — eligible Reddit communities |
+| Thursday, September 17, 2026 | Task 14 — Product Hunt; select this date in **Schedule Launch** |
 
 If any dependency slips, move that task and every downstream task. Do not
 compress two launch channels into one day or select a different Product Hunt
 date merely to preserve the weekday labels.
 
-### Task 11: Monday, September 7 — baseline, then evergreen listings
+### Task 11: Monday, September 14 — baseline, then evergreen listings
 
 **Owner:** `owner` — posting under an account.
 
@@ -1821,7 +1843,7 @@ A silent rejection is a channel you believe you fired and did not.
 
 ---
 
-### Task 12: Tuesday, September 8 — Show HN
+### Task 12: Tuesday, September 15 — Show HN
 
 **Owner:** `owner` — must post and engage personally. **An agent must not post to Hacker News.**
 
@@ -1843,7 +1865,7 @@ form. A clean result means every post-anchor change is launch-only. Any
 unreleased product/runtime or dependency merge stops the submission until the
 release/copy boundary is reconciled.
 
-- [ ] **Step 1: Post early morning US Eastern on Tuesday, September 8**
+- [ ] **Step 1: Post early morning US Eastern on Tuesday, September 15**
 
 **Submit the URL only. HN does not accept a URL and body text together.**
 
@@ -1915,7 +1937,7 @@ and the retrospective must not claim otherwise.
 
 ---
 
-### Task 13: Wednesday, September 9 — Reddit
+### Task 13: Wednesday, September 16 — Reddit
 
 **Owner:** `owner` — posting under a personal identity.
 
@@ -1968,7 +1990,7 @@ echo '{"date":"YYYY-MM-DD","channel":"reddit","preExistingMentions":["r/browsers
 
 ---
 
-### Task 14: Thursday, September 10 — Product Hunt
+### Task 14: Thursday, September 17 — Product Hunt
 
 **Owner:** `owner` — posting and engaging.
 
@@ -2000,18 +2022,23 @@ full URL into the draft and verify the rendered preview. Upload the prepared
 gallery's two-image floor. A Named Workspaces still is optional and must be
 omitted unless it is a release-backed capture labeled as a Patron feature.
 
-- [ ] **Step 3: Schedule the Thursday, September 10 launch**
+- [x] **Step 3: Schedule the Thursday, September 17 launch**
 
 Use **Schedule Launch**, not a manual launch-night action. Product Hunt's
 current [scheduling guide](https://help.producthunt.com/en/articles/2724119-how-to-schedule-a-post)
 allows selecting a date within 30 days, and its
 [posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 says the site operates in 24-hour **PST** periods and scheduled posts go live at
-**12:01 a.m. PST** on the selected day. Select **September 10, 2026** in the live
+**12:01 a.m. PST** on the selected day. Select **September 17, 2026** in the live
 form. Before scheduling, verify that exact displayed date, the full YouTube
 preview, both stills, the thumbnail, the pricing tag, and the final
 objection-informed copy. If Tasks 12 or 13 slipped, move Product Hunt too; do not
 schedule the old date with stale objection handling.
+
+Confirmed in the live Product Hunt editor on September 9: `Scheduled` for
+**September 17, 2026 at 12:01 a.m. PDT (3:01 a.m. EDT)**. The schedule remains
+contingent on the replacement release, release-bound asset refresh, and fresh
+48-hour soak clearing before launch week.
 
 - [ ] **Step 4: Engage all day**
 
@@ -2046,8 +2073,8 @@ be. Compute it, over an explicit window, from `valid:true` rows only:
 python3 - <<'CALC'
 import json, pathlib, statistics
 HIST = pathlib.Path.home() / '.claude/scheduled-tasks/blanc-daily-analytics/downloads-history.jsonl'
-WINDOW_START = '2026-09-14'   # first Monday AFTER launch week ends; set explicitly
-WINDOW_END   = '2026-09-27'   # 14 inclusive calendar days
+WINDOW_START = '2026-09-21'   # first Monday AFTER launch week ends; set explicitly
+WINDOW_END   = '2026-10-04'   # 14 inclusive calendar days
 
 rows = []
 for line in HIST.read_text().splitlines():
@@ -2082,12 +2109,12 @@ Only `valid:true` rows count; release-day deltas are contaminated by
 auto-update pulls. If the window contains fewer than five valid days, say so
 rather than reporting a mean that rests on two numbers.
 
-- [ ] **Step 3: On Oct 1, read the September cohort**
+- [ ] **Step 3: On October 8, read the September cohort**
 
 Success criteria from the spec:
 - September cohort **≥ 3× July's 27** (i.e. ≥ 81)
 - Clean-day downloads sustained **above 11.25/day** two weeks post-launch
-- The Oct 1 retention read is statistically meaningful for the first time
+- The October 8 retention read is statistically meaningful for the first time
 
 - [ ] **Step 4: Write the retrospective**
 
@@ -2151,22 +2178,22 @@ PHASE 1 — launch assets
   Task 10 Copy pack committed
 
 PHASE 1.5 — backlog cleanup + release reset
-  Resolve selected backlog by Thu Sep 3 noon ET
-  Publish/prove each immutable release; final launch release by Fri Sep 4 15:00 ET
+  Resolve selected backlog by Thu Sep 10 noon ET
+  Publish/prove each immutable release; final launch release by Fri Sep 11 15:00 ET
   Refresh release-bound assets and record the new freeze anchor
   Complete a fresh ≥48h soak
 
 PHASE 2 — launch week
-  Task 11 Mon Sep 7  baseline FIRST, then listings
+  Task 11 Mon Sep 14 baseline FIRST, then listings
                (requires Tasks 1–10 + complete Phase 1.5 release/freeze/soak evidence)
      ▼
-  Task 12 Tue Sep 8  Show HN  (URL only; body as first comment)
+  Task 12 Tue Sep 15 Show HN  (URL only; body as first comment)
      ▼
-  Task 13 Wed Sep 9  Reddit   (revised with Tuesday's objections)
+  Task 13 Wed Sep 16 Reddit   (revised with Tuesday's objections)
      ▼
-  Task 14 Thu Sep 10 Product Hunt (revised with both days')
+  Task 14 Thu Sep 17 Product Hunt (revised with both days')
      ▼
-  Task 15      Measure + Oct 1 checkpoint
+  Task 15      Measure + Oct 8 checkpoint
 ```
 
 **Why Tasks 5 and 6 precede launch.** Task 5's corrections are live because the
@@ -2201,7 +2228,7 @@ prerequisite because v1.10.0 is already public.
   posting any channel. **Pending:** Phase 1.5 must record the replacement anchor,
   release tag/SHA, refreshed copy/assets, and soak evidence before this becomes
   satisfied.
-- **Task 1 approved but listing not visible logged out on Monday, September 7**
+- **Task 1 approved but listing not visible logged out on Monday, September 14**
   → that channel does not fire. This is *not* a reason to move the launch week.
 
 **Licence decision:** resolved in Global Constraints. Use MIT/open-source
