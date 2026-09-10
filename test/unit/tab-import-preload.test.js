@@ -62,3 +62,14 @@ test('other internal hosts never receive tab-import capabilities', () => {
   assert.equal('tabImport' in bookmarks, false);
   assert.equal(loadForHost('tab-import', 'https:').exposed, null);
 });
+
+test('handoff preload forwards an optional destination without exposing other capabilities', async () => {
+  const loaded = loadForHost('tab-handoff');
+  assert.deepEqual(Object.keys(loaded.exposed.api.tabHandoff).sort(), ['accept', 'cancel', 'get']);
+  await loaded.exposed.api.tabHandoff.accept();
+  await loaded.exposed.api.tabHandoff.accept('new-window');
+  assert.deepEqual(loaded.invocations, [
+    ['pages:tab-handoff:accept', undefined],
+    ['pages:tab-handoff:accept', 'new-window'],
+  ]);
+});

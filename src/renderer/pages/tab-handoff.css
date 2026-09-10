@@ -30,6 +30,12 @@
   padding: 12px;
   line-height: 1.45;
 }
+.tab-handoff-destination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
 .tab-handoff-actions {
   display: flex;
   justify-content: flex-end;

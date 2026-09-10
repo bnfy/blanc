@@ -1,6 +1,6 @@
 ---
 name: import-open-tabs
-description: Copy the current Chrome, Edge, Brave, Opera, or Vivaldi window into a new Blanc window through a private one-time handoff. Use when a user asks to open, move, copy, or import their current browser tabs into Blanc.
+description: Copy the current Chrome, Edge, Brave, Opera, or Vivaldi window into the current Blanc window through a private one-time handoff, with a new window available as an explicit choice in Blanc. Use when a user asks to open, move, copy, or import their current browser tabs into Blanc.
 ---
 
 # Import open tabs into Blanc

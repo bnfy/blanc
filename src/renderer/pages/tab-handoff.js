@@ -7,6 +7,19 @@ const list = document.getElementById('list');
 const skipped = document.getElementById('skipped');
 const accept = document.getElementById('accept');
 const cancel = document.getElementById('cancel');
+const newWindow = document.getElementById('newWindow');
+let readyData = null;
+
+function updateDestination() {
+  accept.textContent = newWindow.checked ? 'Open in new window' : 'Open in this window';
+  if (!readyData) return;
+  const source = SOURCE_LABELS[readyData.sourceBrowser] || 'your other browser';
+  const count = readyData.tabs.length;
+  const destination = newWindow.checked
+    ? `a new ${readyData.profileName || 'Personal'} window`
+    : `this ${readyData.profileName || 'Personal'} window`;
+  summary.textContent = `${count} ${count === 1 ? 'tab' : 'tabs'} from ${source} will open in ${destination}. Only the selected imported tab loads now; the rest start quiet.`;
+}
 
 const SOURCE_LABELS = {
   chrome: 'Chrome',
@@ -25,6 +38,7 @@ function showError(message) {
   list.hidden = true;
   skipped.hidden = true;
   accept.disabled = true;
+  newWindow.disabled = true;
 }
 
 function render(data) {
@@ -40,9 +54,8 @@ function render(data) {
     showError(data?.message);
     return;
   }
-  const source = SOURCE_LABELS[data.sourceBrowser] || 'your other browser';
-  const count = data.tabs.length;
-  summary.textContent = `${count} ${count === 1 ? 'tab' : 'tabs'} from ${source} will open in a new ${data.profileName || 'Personal'} window. Only the selected tab loads now; the rest start quiet.`;
+  readyData = data;
+  updateDestination();
   list.replaceChildren();
   for (const tab of data.tabs) {
     const row = document.createElement('div');
@@ -73,19 +86,32 @@ function render(data) {
     skipped.hidden = false;
   }
   accept.disabled = false;
+  newWindow.disabled = false;
 }
+
+newWindow.addEventListener('change', updateDestination);
 
 accept.addEventListener('click', async () => {
   accept.disabled = true;
   cancel.disabled = true;
+  newWindow.disabled = true;
+  error.hidden = true;
   accept.textContent = 'Opening…';
   try {
-    const result = await api.accept();
-    if (!result?.ok) showError('This handoff is no longer available.');
+    const result = await api.accept(newWindow.checked ? 'new-window' : 'current-window');
+    if (!result?.ok) {
+      if (result?.retryable) {
+        error.textContent = 'Blanc could not open these tabs. Your existing tabs are unchanged. Try again.';
+        error.hidden = false;
+        accept.disabled = false;
+        newWindow.disabled = false;
+      } else showError('This handoff is no longer available.');
+    }
   } catch {
     showError('Blanc could not open this tab set. Try the handoff again.');
   } finally {
     cancel.disabled = false;
+    updateDestination();
   }
 });
 

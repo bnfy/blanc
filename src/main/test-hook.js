@@ -2128,7 +2128,7 @@ function install(refs) {
     serializedTabsPayload() { return serializedTabsPayload(); },
     tabHandoffState() { return getTabHandoffTestState(); },
     queueTabHandoff(url) { return queueTabHandoffForTest(String(url)); },
-    acceptTabHandoff() { return acceptTabHandoffForTest(); },
+    acceptTabHandoff(destination) { return acceptTabHandoffForTest(destination); },
     cancelTabHandoff() { return cancelTabHandoffForTest(); },
     sessionSyncSnapshot() {
       return syncSnapshot(getTabOrder().map((id) => tabs.get(id)), getGroups());

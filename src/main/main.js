@@ -1339,17 +1339,24 @@ function flushExternalUrls() {
   openExternalUrls(pendingExternalUrls.splice(0));
 }
 
-function acceptPendingTabHandoff() {
+function acceptPendingTabHandoff(destination = 'current-window') {
+  if (!['current-window', 'new-window'].includes(destination)) {
+    return { ok: false, error: 'invalid-destination' };
+  }
   if (pendingTabHandoff?.state !== 'ready' || pendingTabHandoff.runtimeId !== rt().id) {
     return { ok: false, error: 'unavailable' };
   }
   const accepted = pendingTabHandoff;
-  pendingTabHandoff = null;
-  hideUtilitySheet({ refocusContent: false });
   const result = openTabHandoffWindow({
+    destination,
+    reviewRuntime: rt(),
     profileId: accepted.profileId,
     handoffTabs: accepted.payload.tabs,
   });
+  if (result.ok) {
+    pendingTabHandoff = null;
+    hideUtilitySheet({ refocusContent: false });
+  }
   return result;
 }
 
@@ -7258,22 +7265,35 @@ function focusDockActiveWindow() {
   setFocusedLocalProfile(primaryRuntime.profileId);
 }
 
-function openTabHandoffWindow({ profileId: requestedProfileId, handoffTabs } = {}) {
+/** Import into the review window, or an explicitly requested scratch window,
+ * through the same transactional quiet-tab batch
+ * seam used by Bring Your Tabs. The relay supplies no groups, pins, or
+ * favicons; source order remains authoritative and its active row wakes. */
+function openTabHandoffWindow({
+  profileId: requestedProfileId, handoffTabs, reviewRuntime,
+  destination = 'current-window',
+} = {}) {
+  if (!['current-window', 'new-window'].includes(destination)) {
+    return { ok: false, error: 'invalid-destination' };
+  }
   if (!Array.isArray(handoffTabs) || !handoffTabs.length
     || handoffTabs.length > MAX_TAB_IMPORT_TABS) {
     return { ok: false, error: 'invalid-handoff' };
   }
-  const profileId = localProfiles.getLocalProfile(requestedProfileId)?.id
-    ?? DEFAULT_PROFILE_ID;
-  if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+  const profileId = localProfiles.getLocalProfile(requestedProfileId)?.id;
+  if (!profileId || profileDeletions.hasPendingProfileDeletion(profileId)) {
     return { ok: false, error: 'profile-unavailable' };
   }
-
-  const runtime = windowRuntimes.createRuntime({
+  if (!reviewRuntime?.window || reviewRuntime.window.isDestroyed()
+    || reviewRuntime.profileId !== profileId) {
+    return { ok: false, error: 'unavailable' };
+  }
+  const createdWindow = destination === 'new-window';
+  const runtime = createdWindow ? windowRuntimes.createRuntime({
     id: createWindowRuntimeId(),
     profileId,
-  });
-  createMainWindow(runtime);
+  }) : reviewRuntime;
+  if (createdWindow) createMainWindow(runtime);
 
   const result = withWindowRuntime(runtime, () => {
     const tabSpecs = handoffTabs.map((tab, index) => ({
@@ -7285,20 +7305,40 @@ function openTabHandoffWindow({ profileId: requestedProfileId, handoffTabs } = {
       pinned: false,
     }));
     const priorPersistenceSuspended = sessionPersistenceSuspended;
+    const priorTabOrder = [...runtime.tabOrder];
+    const priorActiveTabId = runtime.activeTabId;
+    const priorActivationHistory = [...runtime.activationHistory];
+    const priorLastActiveByCluster = new Map(runtime.lastActiveByCluster);
     let batch;
     let activeTabId = null;
     sessionPersistenceSuspended = true;
     tabStateBroadcastSuppressionDepth += 1;
     try {
-      batch = createQuietTabsBatch(runtime, tabSpecs, { insertAt: 0 });
-      if (batch.error) return { ok: false, error: batch.error };
+      batch = createQuietTabsBatch(runtime, tabSpecs, { insertAt: priorTabOrder.length });
+      if (batch.error) throw new Error(batch.error);
       const activeIndex = handoffTabs.findIndex((tab) => tab.active === true);
       activeTabId = batch.tabIds[activeIndex >= 0 ? activeIndex : 0] ?? null;
-      if (!activeTabId) return { ok: false, error: 'invalid-handoff' };
-      setActiveTab(activeTabId, { focusContent: true });
+      if (!activeTabId) throw new Error('invalid-handoff');
+      setActiveTab(activeTabId, { focusContent: true, dismissUtilitySheet: false });
       if (rt().activeTabId !== activeTabId || !liveContents(tabs.get(activeTabId))) {
-        return { ok: false, error: 'activation-failed' };
+        throw new Error('activation-failed');
       }
+    } catch {
+      // The selected import may already own a live view. Close through the
+      // normal disposal path without creating undo entries or replacement tabs.
+      for (const id of batch?.tabIds ?? []) {
+        closeTab(id, { record: false, selectReplacement: false });
+      }
+      runtime.tabOrder = priorTabOrder;
+      if (priorActiveTabId && tabs.has(priorActiveTabId)) {
+        // Force reattachment even if activation threw after detaching the old view.
+        runtime.activeTabId = null;
+        setActiveTab(priorActiveTabId, { focusContent: false, dismissUtilitySheet: false });
+      }
+      runtime.activationHistory = priorActivationHistory;
+      runtime.lastActiveByCluster = priorLastActiveByCluster;
+      liveUtilitySheet(reviewRuntime)?.wc.focus();
+      return { ok: false, error: batch?.error ?? 'activation-failed', retryable: true };
     } finally {
       tabStateBroadcastSuppressionDepth -= 1;
       sessionPersistenceSuspended = priorPersistenceSuspended;
@@ -7315,7 +7355,7 @@ function openTabHandoffWindow({ profileId: requestedProfileId, handoffTabs } = {
     return { ok: true, runtimeId: runtime.id, tabIds: batch.tabIds };
   });
 
-  if (!result?.ok && runtime.window && !runtime.window.isDestroyed()) {
+  if (!result?.ok && createdWindow && runtime.window && !runtime.window.isDestroyed()) {
     runtime.window.destroy();
   }
   return result ?? { ok: false, error: 'unavailable' };
@@ -8181,7 +8221,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     tabHandoff: {
       get: () => pendingTabHandoffProjection(),
-      accept: () => acceptPendingTabHandoff(),
+      accept: (destination) => acceptPendingTabHandoff(destination),
       cancel: () => cancelPendingTabHandoff(),
     },
     tabImport: {
@@ -8509,12 +8549,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       queueTabHandoffForTest: queueTabHandoff,
-      acceptTabHandoffForTest: () => {
+      acceptTabHandoffForTest: (destination) => {
         const owner = pendingTabHandoff
           ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
           : null;
         return owner
-          ? withWindowRuntime(owner, acceptPendingTabHandoff)
+          ? withWindowRuntime(owner, () => acceptPendingTabHandoff(destination))
           : { ok: false, error: 'unavailable' };
       },
       cancelTabHandoffForTest: () => {
