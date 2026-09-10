@@ -10918,14 +10918,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/js-yaml@4.3.1",
+      "bom-ref": "pkg:npm/js-yaml@4.3.2",
       "name": "js-yaml",
-      "version": "4.3.1",
+      "version": "4.3.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "098e9cac6ab7d77317f06930bc1eedce0a7df6f8d0c58d7efb9cb5d3f04a37f1947c7a9668e19030d66406fa92cec64a5a4fe28f01e55b3ce42ee96c18786359"
+          "content": "48534ebd227e0e07fff409fdd38631f828129483c2908a5aa38aa8e7596979edb94c845e8dd1f7ae1478119306a0dc77fd33f73bec335ae893165e2ca9b96dcc"
         }
       ],
       "licenses": [
@@ -10935,7 +10935,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/js-yaml@4.3.1",
+      "purl": "pkg:npm/js-yaml@4.3.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -10957,7 +10957,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz"
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz"
         }
       ]
     },
@@ -18869,7 +18869,7 @@
         "pkg:npm/hosted-git-info@4.1.0",
         "pkg:npm/isbinaryfile@5.0.7",
         "pkg:npm/jiti@2.7.0",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/json5@2.2.3",
         "pkg:npm/lazy-val@1.0.5",
         "pkg:npm/minimatch@10.2.5",
@@ -18993,7 +18993,7 @@
         "pkg:npm/fs-extra@10.1.0",
         "pkg:npm/http-proxy-agent@7.0.2",
         "pkg:npm/https-proxy-agent@7.0.6",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/sanitize-filename@1.6.4",
         "pkg:npm/source-map-support@0.5.21",
         "pkg:npm/stat-mode@1.0.0",
@@ -19185,7 +19185,7 @@
         "pkg:npm/app-builder-lib@26.15.3",
         "pkg:npm/builder-util@26.15.3",
         "pkg:npm/fs-extra@10.1.0",
-        "pkg:npm/js-yaml@4.3.1"
+        "pkg:npm/js-yaml@4.3.2"
       ]
     },
     {
@@ -19260,7 +19260,7 @@
       "dependsOn": [
         "pkg:npm/builder-util-runtime@9.7.0",
         "pkg:npm/fs-extra@10.1.0",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/lazy-val@1.0.5",
         "pkg:npm/lodash.escaperegexp@4.1.2",
         "pkg:npm/lodash.isequal@4.5.0",
@@ -19704,7 +19704,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/js-yaml@4.3.1",
+      "ref": "pkg:npm/js-yaml@4.3.2",
       "dependsOn": [
         "pkg:npm/argparse@2.0.1"
       ]
