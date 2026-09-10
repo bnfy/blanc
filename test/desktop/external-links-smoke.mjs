@@ -70,6 +70,72 @@ try {
     await deliver(`${origin}/closed`);
     const after = await selected(`${origin}/closed`);
     assert.equal(after.tabs.length, before.tabs.length + 1);
+
+    // Hold only the recreated chrome document so a later user hide/minimize
+    // deterministically lands between delivery and native-window readiness.
+    await app.evaluate(({ session, net }, root) => {
+      const require = process.getBuiltinModule('module').createRequire(`${root}/package.json`);
+      const { createChromeProtocolHandler } = require('./src/main/chrome-protocol');
+      const original = createChromeProtocolHandler({ net });
+      const chrome = session.fromPartition('blanc-chrome');
+      chrome.protocol.unhandle('blanc-chrome');
+      chrome.protocol.handle('blanc-chrome', async (request) => {
+        if (request.url === 'blanc-chrome://index/') {
+          await new Promise((resolve) => { globalThis.releaseExternalLinkChrome = resolve; });
+        }
+        return original(request);
+      });
+    }, path.resolve('.'));
+    try {
+      for (const mode of ['hidden', 'minimized']) {
+        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
+        await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length),
+          (count) => count === 0, 'close before delayed chrome');
+        const before = await read();
+        const url = `${origin}/cancel-during-chrome-${mode}`;
+        await deliver(url);
+        await waitForValue(() => app.evaluate(() => !!globalThis.releaseExternalLinkChrome),
+          Boolean, 'chrome request held');
+        assert.equal((await read()).tabs.length, before.tabs.length, 'URL waits for chrome readiness');
+        await app.evaluate(({ app, BrowserWindow }, mode) => {
+          if (mode === 'hidden') app.hide();
+          else BrowserWindow.getAllWindows()[0].minimize();
+        }, mode);
+        const nativeState = () => app.evaluate(({ app, BrowserWindow }) => ({
+          hidden: app.isHidden(), minimized: BrowserWindow.getAllWindows()[0].isMinimized(),
+        }));
+        await waitForValue(nativeState, (s) => mode === 'hidden' ? s.hidden : s.minimized,
+          `user ${mode} during initialization`);
+        await app.evaluate(() => {
+          globalThis.releaseExternalLinkChrome();
+          delete globalThis.releaseExternalLinkChrome;
+        });
+        const after = await waitForValue(read, (state) => state.tabs.some((tab) => tab.url === url),
+          'canceled activation still delivers the URL');
+        assert.equal(after.tabs.length, before.tabs.length + 1);
+        assert.equal(after.activeTabId, before.activeTabId, 'Canceled handoff must not change selection');
+        await new Promise((resolve) => setTimeout(resolve, 2_200));
+        const state = await nativeState();
+        assert.equal(mode === 'hidden' ? state.hidden : state.minimized, true,
+          'Chrome readiness and later callbacks must respect the newer user action');
+        console.log(`external-links cancel during chrome ${mode} PASS`);
+        // A fresh link, including one delivered while already hidden or
+        // minimized, grants new permission to reveal the receiving window.
+        await deliver(`${url}/new-handoff`);
+        await selected(`${url}/new-handoff`);
+        await waitForValue(nativeState, (s) => !s.hidden && !s.minimized, 'new handoff restores normally');
+      }
+    } finally {
+      await app.evaluate(({ session, net }, root) => {
+        globalThis.releaseExternalLinkChrome?.();
+        delete globalThis.releaseExternalLinkChrome;
+        const require = process.getBuiltinModule('module').createRequire(`${root}/package.json`);
+        const { setupChromeProtocol } = require('./src/main/chrome-protocol');
+        const chrome = session.fromPartition('blanc-chrome');
+        chrome.protocol.unhandle('blanc-chrome');
+        setupChromeProtocol({ session: chrome, net });
+      }, path.resolve('.'));
+    }
   }
   const profile = await callTestHook(app, 'createProfileWindow', ['External links work']);
   assert.equal(profile.ok, true);
@@ -89,7 +155,7 @@ try {
   const batchReceiver = final.find((rt) => rt.id === receiver.id);
   assert.equal(batchReceiver.tabs.filter((tab) => tab.url === `${origin}/batch-a`).length, 1);
   assert.equal(batchReceiver.tabs.filter((tab) => tab.url === `${origin}/batch-b`).length, 1);
-  console.log('external-links-smoke PASS: cold launch, hidden/minimized restore, windowless reopen, profile routing, second-instance batch');
+  console.log('external-links-smoke PASS: cold launch, hidden/minimized restore, readiness cancellation, windowless reopen, profile routing, second-instance batch');
 } finally {
   if (app) await app.close();
   await new Promise((resolve) => server.close(resolve));

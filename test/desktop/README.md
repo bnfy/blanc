@@ -120,7 +120,10 @@ groups, by what they additionally need:
 
 `npm run test:external-links` exercises the real Electron lifecycle in a
 throwaway development profile, including startup, hidden/minimized windows,
-windowless reopen, profile selection, and second-instance URL batches.
+windowless reopen, profile selection, and second-instance URL batches. It also
+holds a recreated chrome document until after a user hide/minimize, checking
+that readiness delivers the link once without undoing that action, and that a
+fresh handoff restores normally.
 
 Run `npm run test:packaged:external-links` against a signed candidate on an
 interactive macOS desktop. Set `BLANC_PACKAGED_EXECUTABLE` to its absolute

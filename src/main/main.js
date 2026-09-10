@@ -1182,6 +1182,7 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
 // the command line, at startup or through 'second-instance'.
 let externalUrlsFlushable = false;
 const externalUrlHandoff = createExternalUrlHandoff({
+  application: app,
   isReady: () => externalUrlsFlushable,
   isQuitting: () => isQuitting,
   getRuntime: resolveExternalRuntime,

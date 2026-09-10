@@ -2,18 +2,22 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const { EventEmitter } = require('node:events');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const { createExternalUrlHandoff } = require('../../src/main/external-url-handoff');
 const { externalWindowRuntime } = require('../../src/main/window-activation');
 
 function harness({ ready = true, chromeReady = true } = {}) {
-  const primary = { profileId: 'personal', chromeReady, window: { isDestroyed: () => false } };
-  const work = { profileId: 'work', chromeReady, window: { isDestroyed: () => false } };
+  const makeWindow = () => Object.assign(new EventEmitter(), { isDestroyed: () => false });
+  const primary = { profileId: 'personal', chromeReady, window: makeWindow() };
+  const work = { profileId: 'work', chromeReady, window: makeWindow() };
   const runtimes = [primary, work];
-  const state = { ready, quitting: false, focused: primary, current: null };
+  const state = { ready, quitting: false, hidden: false, focused: primary, current: null };
+  const application = Object.assign(new EventEmitter(), { isHidden: () => state.hidden });
   const created = [], activated = [], revealed = [], rebuilt = [];
   const handler = createExternalUrlHandoff({
+    application,
     isReady: () => state.ready,
     isQuitting: () => state.quitting,
     getRuntime: (preferred) => externalWindowRuntime(runtimes, preferred ?? state.focused, primary, state.focused),
@@ -21,7 +25,7 @@ function harness({ ready = true, chromeReady = true } = {}) {
       if (runtime.window) return;
       rebuilt.push(runtime);
       runtime.chromeReady = false;
-      runtime.window = { isDestroyed: () => false };
+      runtime.window = makeWindow();
     },
     isWindowReady: (runtime) => runtime.chromeReady,
     withRuntime(runtime, fn) { state.current = runtime; try { fn(); } finally { state.current = null; } },
@@ -33,8 +37,111 @@ function harness({ ready = true, chromeReady = true } = {}) {
     activateTab(id) { activated.push(id); },
     revealWindow(window) { revealed.push(window); },
   });
-  return { handler, primary, work, runtimes, state, created, activated, revealed, rebuilt };
+  const noListeners = () => {
+    assert.deepEqual(application.eventNames(), []);
+    for (const runtime of runtimes) assert.deepEqual(runtime.window?.eventNames() ?? [], []);
+  };
+  return { handler, application, primary, work, runtimes, state, created, activated, revealed, rebuilt, noListeners };
 }
+
+for (const event of ['hide', 'minimize']) {
+  test(`${event} during chrome initialization preserves every URL without reactivation`, () => {
+    const f = harness();
+    f.runtimes.splice(1);
+    f.primary.window = null;
+    f.handler.open(['https://one.test/', 'https://two.test/']);
+    f.primary.window.emit(event);
+    // Cancellation stays effective even if native state changes again.
+    f.primary.window.emit('restore');
+    f.primary.chromeReady = true;
+    f.handler.flush();
+    f.handler.flush();
+    assert.deepEqual(f.created.map((tab) => tab.url), ['https://one.test/', 'https://two.test/']);
+    assert.deepEqual(f.activated, []);
+    assert.deepEqual(f.revealed, []);
+    f.noListeners();
+  });
+}
+
+test('hiding an already inactive app while chrome loads cancels reveal without a resign event', () => {
+  const f = harness({ chromeReady: false });
+  f.handler.open(['https://example.test/']);
+  f.state.hidden = true;
+  f.primary.chromeReady = true;
+  f.handler.flush();
+  assert.equal(f.created.length, 1);
+  assert.deepEqual(f.revealed, []);
+  assert.deepEqual(f.activated, []);
+  f.noListeners();
+});
+
+test('a handoff received while already hidden still reveals after readiness', () => {
+  const f = harness({ chromeReady: false });
+  f.state.hidden = true;
+  f.handler.open(['https://example.test/']);
+  f.primary.chromeReady = true;
+  f.handler.flush();
+  assert.deepEqual(f.activated, [1]);
+  assert.deepEqual(f.revealed, [f.primary.window]);
+  f.noListeners();
+});
+
+test('another explicit handoff renews activation after an earlier minimize', () => {
+  const f = harness({ chromeReady: false });
+  f.handler.open(['https://old.test/']);
+  f.primary.window.emit('minimize');
+  f.handler.open(['https://new.test/']);
+  f.primary.chromeReady = true;
+  f.handler.flush();
+  assert.equal(f.created.length, 2);
+  assert.deepEqual(f.activated, [2]);
+  assert.equal(f.revealed.length, 1);
+  f.noListeners();
+});
+
+for (const event of ['did-resign-active', 'before-quit', 'will-quit']) {
+  test(`${event} removes queued activation listeners immediately`, () => {
+    const f = harness({ chromeReady: false });
+    f.handler.open(['https://example.test/']);
+    assert.equal(f.primary.window.listenerCount('minimize'), 1);
+    f.application.emit(event);
+    f.noListeners();
+    if (event.includes('quit')) f.state.quitting = true;
+    f.primary.chromeReady = true;
+    f.handler.flush();
+    assert.equal(f.created.length, f.state.quitting ? 0 : 1);
+    assert.deepEqual(f.revealed, []);
+  });
+}
+
+test('closing the queued target removes its listeners and keeps fallback delivery in the background', () => {
+  const f = harness({ chromeReady: false });
+  f.state.focused = f.work;
+  f.handler.open(['https://example.test/']);
+  f.work.window.emit('closed');
+  f.noListeners();
+  f.runtimes.splice(1);
+  f.state.focused = f.primary;
+  f.primary.chromeReady = true;
+  f.handler.flush();
+  assert.equal(f.created[0].profileId, 'personal');
+  assert.deepEqual(f.revealed, []);
+});
+
+test('superseding a queued target removes its listeners without canceling the new request', () => {
+  const f = harness({ chromeReady: false });
+  f.handler.open(['https://old.test/']);
+  f.state.focused = f.work;
+  f.handler.open(['https://new.test/']);
+  assert.deepEqual(f.primary.window.eventNames(), []);
+  assert.equal(f.work.window.listenerCount('minimize'), 1);
+  f.primary.window.emit('minimize');
+  f.work.chromeReady = true;
+  f.handler.flush();
+  assert.deepEqual(f.created.map((tab) => tab.url), ['https://new.test/']);
+  assert.deepEqual(f.revealed, [f.work.window]);
+  f.noListeners();
+});
 
 test('cold handoffs wait for startup release and target the restored profile', () => {
   const f = harness({ ready: false });
