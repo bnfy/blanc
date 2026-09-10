@@ -46,17 +46,19 @@ function writeToneWav(file, seconds = 4, freq = 880) {
 }
 
 function startTone() {
-  if (process.platform === 'darwin') {
-    return spawn('zsh', ['-c', 'while true; do afplay "$1"; done', 'blanc-audio-probe', TONE], { stdio: 'ignore', detached: true });
-  }
   if (process.platform === 'win32') {
     return spawn(
       'powershell',
-      ['-NoProfile', '-Command', 'while ($true) { (New-Object Media.SoundPlayer $env:BLANC_AUDIO_PROBE_TONE).PlaySync() }'],
-      { stdio: 'ignore', env: { ...process.env, BLANC_AUDIO_PROBE_TONE: TONE } }
+      ['-NoProfile', '-File', path.join(__dirname, 'play-tone-loop.ps1'), TONE],
+      { stdio: 'ignore' }
     );
   }
-  return spawn('sh', ['-c', 'while true; do aplay "$1"; done', 'blanc-audio-probe', TONE], { stdio: 'ignore' });
+  const player = process.platform === 'darwin' ? 'afplay' : 'aplay';
+  return spawn(
+    process.execPath,
+    [path.join(__dirname, 'play-tone-loop.cjs'), player, TONE],
+    { stdio: 'ignore', detached: process.platform === 'darwin' }
+  );
 }
 
 function startServer() {
