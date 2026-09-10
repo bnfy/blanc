@@ -1,5 +1,150 @@
 [
   {
+    "tag": "v1.16.0",
+    "version": "1.16.0",
+    "name": "1.16.0",
+    "publishedAt": "2026-09-10T19:34:24.000Z",
+    "humanDate": "September 10, 2026",
+    "machineDate": "2026-09-10",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.16.0",
+    "anchor": "v1-16-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "New",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Share your screen and system audio."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When a website asks to present, Blanc opens its own centered confirmation before any capture begins. Choose a screen or window, decide whether to include computer audio, and stop each active share from the Island even when its tab is in the background. Linux continues from Blanc's confirmation to the system sharing chooser."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Bring Your Tabs opens in the current window."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Import open tabs from a supported browser through Blanc's private handoff, review the proposed organization, and add them to the window you are already using."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Security",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium's actively exploited V8 vulnerability is patched."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc now runs on Electron 44.2.0, which carries the upstream fix for CVE-2026-85046. The flaw allowed a malicious page to execute code inside Chromium's renderer sandbox; it was not itself a sandbox escape. Update promptly."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated "
+                  },
+                  {
+                    "type": "code",
+                    "value": "js-yaml"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to 4.3.2 to prevent excessive CPU use from malicious YAML merge input (GHSA-2883-xcg3-v3hh)."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Screen sharing keeps website sessions deny-closed and grants capture only through a trusted Blanc helper after explicit approval. Direct and legacy desktop-capture paths remain blocked."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Links handed to Blanc from another app now restore and foreground the browser reliably."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Thousands separators on the Mahjong Burst completion score now render cleanly instead of inheriting the score's dimensional text effect."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Profile settings now converge correctly during sync."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.15.0",
     "version": "1.15.0",
     "name": "1.15.0",

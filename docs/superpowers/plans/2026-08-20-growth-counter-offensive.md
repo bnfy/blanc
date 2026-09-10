@@ -29,18 +29,20 @@
 
 ## Execution status — September 10, 2026
 
-- v1.15.0 remains the latest public release, but it is no longer a valid
-  launch release. Product/runtime, dependency, package-metadata, packaging,
-  and release-workflow changes have merged after its `d0c2304` tag.
-- `origin/main` is at `233c807` and declares v1.16.0, but the latest public
-  release is still v1.15.0. Bring Your Tabs, its live-tab handoff, secure screen
-  and system-audio sharing, and the v1.16.0 release preparation are on `main`.
+- Blanc v1.16.0 is the current public baseline. It was published from
+  `233c807cde4e27cb15813b3be146749e6e51725b` at
+  `2026-09-10T19:34:24Z`; native packages, the authenticated manifest, public
+  AppImage launch, and Windows/Linux DNS gates passed. Its adjacent v1.15.0 →
+  v1.16.0 macOS and Windows updater handoffs remain pending.
+- v1.16.0 ships Bring Your Tabs and its live-tab handoff, secure screen and
+  system-audio sharing, the Electron 44.2.0 runtime update, and the other
+  changes recorded in `docs/release-incidents/2026-09-10-v1.16.0.md`.
 - No September 7 launch baseline or September 8 Show HN outcome was recorded.
   Reddit and Product Hunt therefore move with the full sequence; none of the
   September 7–10 launch days may fire independently.
-- The replacement final release must be published and fully proved by Friday,
-  September 11 at 3:00 p.m. ET. Its refreshed launch assets and new freeze
-  record start a fresh uninterrupted soak of at least 48 hours.
+- Selecting v1.16.0 as the replacement final launch release still requires its
+  refreshed launch assets, adjacent updater handoffs, a new freeze record, and
+  a fresh uninterrupted soak of at least 48 hours.
 - The noon product cutoff was missed. PR #308 merged at 2:27 p.m. ET, PR #313
   at 2:45 p.m. ET, and PR #314 at 3:00 p.m. ET. The September 14–17 sequence is
   stopped until the owner explicitly accepts the observed late freeze candidate
@@ -974,7 +976,7 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.15.0 — not a Cloudflare preview URL.
+changelog and the homepage show 1.16.0 — not a Cloudflare preview URL.
 
 - [x] **Step 10: Record the current v1.9.1 soak clock**
 
