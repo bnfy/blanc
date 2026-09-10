@@ -30,7 +30,19 @@
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const capturePop = document.getElementById('capturePop');
+  const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
+  const displayShareBackdrop = document.getElementById('displayShareBackdrop');
+  const displaySharePicker = document.getElementById('displaySharePicker');
+  const displayShareOrigin = document.getElementById('displayShareOrigin');
+  const displayShareStatus = document.getElementById('displayShareStatus');
+  const displayShareSources = document.getElementById('displayShareSources');
+  const displayShareAudioLabel = document.getElementById('displayShareAudioLabel');
+  const displayShareAudio = document.getElementById('displayShareAudio');
+  const displayShareCancel = document.getElementById('displayShareCancel');
+  const displayShareAllow = document.getElementById('displayShareAllow');
+  let displayShareModel = null;
+  let displayShareSelection = null;
   const CONNECTION_LABEL = {
     https: 'Connection · Uses HTTPS',
     http: 'Connection · Not encrypted',
@@ -2131,6 +2143,67 @@
     }, 200);
   }
 
+  function renderDisplayShare(model) {
+    const fresh = displayShareModel?.requestId !== model?.requestId;
+    displayShareModel = model;
+    if (fresh) { displayShareSelection = null; displayShareAudio.checked = false; }
+    displayShareOrigin.textContent = model.origin;
+    displayShareAudioLabel.hidden = !model.audioRequested;
+    displayShareAudio.disabled = model.loading;
+    displayShareStatus.textContent = model.loading
+      ? (model.portal ? 'Choose what to share in the system dialog.' : 'Finding screens and windows…')
+      : model.portal ? 'Continue to choose a screen or window. Your system may open its own sharing dialog.'
+        : 'Choose a screen or window to share with this site.';
+    displayShareAllow.textContent = model.portal ? 'Continue' : 'Share';
+    displayShareAllow.disabled = model.loading || (!model.portal && !displayShareSelection);
+    displayShareSources.replaceChildren(...model.sources.map((source) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'display-share-source';
+      button.setAttribute('aria-pressed', String(source.id === displayShareSelection));
+      if (source.thumbnailDataURL.startsWith('data:image/png;base64,')) {
+        const thumbnail = document.createElement('img');
+        thumbnail.src = source.thumbnailDataURL;
+        thumbnail.alt = '';
+        button.append(thumbnail);
+      }
+      const name = document.createElement('span');
+      name.textContent = source.name;
+      button.append(name);
+      button.addEventListener('click', () => {
+        displayShareSelection = source.id;
+        for (const item of displayShareSources.children) item.setAttribute('aria-pressed', String(item === button));
+        displayShareAllow.disabled = false;
+      });
+      return button;
+    }));
+    if (fresh) displayShareCancel.focus();
+  }
+  displayShareCancel.addEventListener('click', () => window.browserAPI.closeOverlay('cancel'));
+  displayShareBackdrop.addEventListener('mousedown', (event) => {
+    if (event.target === displayShareBackdrop) window.browserAPI.closeOverlay('cancel');
+  });
+  displayShareAllow.addEventListener('click', () => {
+    if (!displayShareModel || displayShareAllow.disabled) return;
+    displayShareAllow.disabled = true;
+    window.browserAPI.resolveDisplayPicker({
+      requestId: displayShareModel.requestId,
+      sourceId: displayShareSelection,
+      computerAudioApproved: displayShareModel.audioRequested && displayShareAudio.checked,
+    });
+  });
+  displaySharePicker.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const controls = [...displaySharePicker.querySelectorAll('button:not(:disabled), input:not(:disabled)')]
+      .filter((item) => item.getClientRects().length > 0);
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first?.focus();
+    }
+  });
+
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
   function applyMode(next, prefill, purpose) {
@@ -2149,6 +2222,8 @@
     findBar.hidden = next !== 'find';
     shieldPop.hidden = next !== 'shield';
     capturePop.hidden = next !== 'capture';
+    displayShareBackdrop.hidden = next !== 'display-share';
+    if (next !== 'display-share') displayShareModel = null;
     glancePickerEl.hidden = next !== 'glance';
 
     if (next === 'panel' || next === 'palette') {
@@ -2242,9 +2317,11 @@
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
+    } else if (next === 'display-share') {
+      renderDisplayShare(purpose);
     } else if (next === 'capture') {
       renderCapturePop();
-      capturePopRows.querySelector('.capture-pop-stop')?.focus();
+      capturePopRows.querySelector('.capture-pop-stop, .display-share-stop')?.focus();
     }
   }
 
@@ -2277,7 +2354,9 @@
   // itself when the list empties).
   function renderCapturePop() {
     const rows = state.capturePopover?.rows ?? [];
-    capturePopRows.replaceChildren(...rows.map((row) => {
+    const shares = state.displayShares ?? [];
+    capturePopHead.textContent = rows.length === 0 && shares.length > 0 ? 'sharing' : 'in use';
+    const micItems = rows.map((row) => {
       // Two REAL sibling buttons in a plain list item — a role=button row
       // wrapping the Stop button would be an invalid accessibility tree
       // (no interactive content inside a button), and native buttons get
@@ -2306,7 +2385,37 @@
       stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId));
       li.append(go, stop);
       return li;
-    }));
+    });
+    const shareItems = shares.map((row) => {
+      const li = document.createElement('li');
+      li.className = 'display-share-row';
+      const surface = row.surfaceLabel || 'this screen';
+      const titleText = row.pending ? 'Sharing…' : `Sharing ${surface}`;
+      const audioText = row.computerAudio ? 'Computer audio on' : 'Computer audio off';
+      const go = document.createElement('button');
+      go.type = 'button';
+      go.className = 'display-share-go';
+      go.setAttribute('aria-label', `${titleText}. ${audioText}. Go to tab`);
+      const title = document.createElement('span');
+      title.className = 'display-share-title';
+      title.textContent = titleText;
+      const audio = document.createElement('span');
+      audio.className = 'display-share-audio';
+      audio.textContent = audioText;
+      go.append(title, audio);
+      go.addEventListener('click', () => {
+        if (row.tabId) window.browserAPI.switchTab(row.tabId);
+      });
+      const stop = document.createElement('button');
+      stop.type = 'button';
+      stop.className = 'display-share-stop';
+      stop.textContent = 'Stop sharing';
+      stop.setAttribute('aria-label', `Stop sharing ${surface}`);
+      stop.addEventListener('click', () => window.browserAPI.stopDisplayShare(row.shareId));
+      li.append(go, stop);
+      return li;
+    });
+    capturePopRows.replaceChildren(...micItems, ...shareItems);
   }
 
   // Renders from the last tabs:updated broadcast — main recomputes

@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
+  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS,
   CLOSED_ENTRY_TTL_MS, MAX_CLOSED_ENTRIES,
 } = require('../../src/main/closed-tabs');
@@ -32,6 +32,7 @@ test('eligibility: hold only for a clean, snapshot-bearing, family-free tab', ()
 
 test('eligibility: every Tier 1 demotion condition', () => {
   const opts = { hasSnapshot: true };
+  assert.equal(holdEligibility(baseTab({ capturing: false, displayShareBlocking: true }), opts), 'snapshot');
   assert.equal(holdEligibility(baseTab({ capturing: true }), opts), 'snapshot');
   // grant anchors are truth even when the capturing projection reads false (§5.1a)
   assert.equal(holdEligibility(baseTab({ captureRecord: { anchors: [{}] } }), opts), 'snapshot');
@@ -43,6 +44,13 @@ test('eligibility: every Tier 1 demotion condition', () => {
   assert.equal(holdEligibility(baseTab(), { ...opts, openerAlive: true }), 'snapshot');
   assert.equal(holdEligibility(baseTab(), { ...opts, hasManagedChild: true }), 'snapshot');
   assert.equal(holdEligibility(baseTab(), { ...opts, popupChildCount: 1 }), 'snapshot');
+});
+
+test('mayParkTabView refuses displayShareBlocking even when capturing is false', () => {
+  const tab = baseTab({ capturing: false, displayShareBlocking: false });
+  assert.equal(mayParkTabView(tab), true);
+  tab.displayShareBlocking = true;
+  assert.equal(mayParkTabView(tab), false);
 });
 
 test('sanitizeSnapshot strips active pageState for a non-restorable commit', () => {

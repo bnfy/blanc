@@ -3,6 +3,7 @@
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
+const { captureRuntimeForPlatform } = require('./capture-platform');
 
 const CHROME_SCHEME = 'blanc-chrome';
 // No `persist:` prefix: privileged UI state lives in an in-memory session that
@@ -12,6 +13,7 @@ const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
+const CHROME_DISPLAY_CAPTURE_HELPER_URL = `${CHROME_SCHEME}://display-capture-helper/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 
 // Chrome is intentionally much smaller than the internal-pages surface. Each
@@ -48,9 +50,13 @@ const HOST_ASSETS = new Map([
     ['/fill-status.js', 'fill-status.js'],
     ['/fill-status-copy.js', 'fill-status-copy.js'],
   ])],
+  ['display-capture-helper', new Map([
+    ['/', 'display-capture-helper.html'],
+    ['/display-capture-helper.js', 'display-capture-helper.js'],
+  ])],
 ]);
 
-function chromeResourcePath(rawUrl) {
+function chromeResourcePath(rawUrl, platform = process.platform) {
   let parsed;
   try {
     parsed = new URL(rawUrl);
@@ -71,6 +77,9 @@ function chromeResourcePath(rawUrl) {
   const relative = hostAssets.get(parsed.pathname)
     ?? (SHARED_ASSETS.has(parsed.pathname) ? parsed.pathname.slice(1) : null);
   if (!relative) return null;
+  if (parsed.hostname === 'display-capture-helper' && relative === 'display-capture-helper.js') {
+    return path.join(RENDERER_DIR, captureRuntimeForPlatform(platform).helper);
+  }
   return path.join(RENDERER_DIR, relative);
 }
 
@@ -101,6 +110,7 @@ module.exports = {
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
   createChromeProtocolHandler,
   setupChromeProtocol,

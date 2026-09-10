@@ -8,6 +8,22 @@
 </head>
 <body class="overlay-body">
   <div id="backdrop" hidden></div>
+  <div id="displayShareBackdrop" hidden>
+    <section id="displaySharePicker" class="display-share-picker" role="dialog" aria-modal="true"
+      aria-labelledby="displayShareTitle" aria-describedby="displayShareOrigin displayShareStatus">
+      <header><h2 id="displayShareTitle">Share your screen</h2>
+        <p id="displayShareOrigin"></p></header>
+      <p id="displayShareStatus" role="status"></p>
+      <div id="displayShareSources" class="display-share-sources" aria-label="Screens and windows"></div>
+      <label id="displayShareAudioLabel" class="display-share-audio">
+        <input id="displayShareAudio" type="checkbox" /> Share computer audio
+      </label>
+      <footer>
+        <button id="displayShareCancel" type="button">Cancel</button>
+        <button id="displayShareAllow" type="button" class="display-share-allow" disabled>Share</button>
+      </footer>
+    </section>
+  </div>
   <div id="panelAnchor" hidden>
     <div id="islandPanel">
       <div class="panel-row">
@@ -147,7 +163,7 @@
     <button id="shieldPopSettings" class="shield-pop-footer">blocking settings →</button>
   </div>
   <section id="capturePop" class="capture-pop" hidden>
-    <header class="capture-pop-head">in use</header>
+    <header id="capturePopHead" class="capture-pop-head">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>
   </section>
   <script src="overlay.js"></script>

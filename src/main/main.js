@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -50,6 +50,11 @@ const {
 } = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
+  mergeDisabledFeatures,
+  captureDisabledFeatures,
+  applyLinuxCaptureOzone,
+} = require('./display-capture-flags');
+const {
   WEBRTC_AUDIO_BUFFER_GET_CHANNEL,
   sendWebrtcAudioBufferMode,
 } = require('./webrtc-audio-buffer');
@@ -69,6 +74,21 @@ const {
   CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
+const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
+const { parseDisplayMediaOptions } = require('./display-capture-constraints');
+const { createBrokerRegistry } = require('./display-capture-state');
+const { projectDisplayShares } = require('./display-capture-indicator');
+const { createDisplayCapturePicker } = require('./display-capture-picker');
+const { showOverlayView, hideOverlayView } = require('./overlay-view-lifecycle');
+const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
+const { captureRuntimeForPlatform } = require('./capture-platform');
+const CAPTURE_RUNTIME = captureRuntimeForPlatform();
+const {
+  createHelperAuthority,
+  createHelperSession,
+  attachHelperWindow,
+  installDisplayCaptureBroker,
+} = require('./' + CAPTURE_RUNTIME.broker);
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
@@ -157,6 +177,7 @@ const {
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
+  mayDiscardRenderer,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
@@ -233,7 +254,7 @@ const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } 
 const { buildHintProbeScript, configTransition, createFillHintScheduler } = require('./fill-hint');
 const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
+  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -1392,10 +1413,15 @@ function chromeLikeUserAgent(ua) {
 // the same low-entropy UA shape as desktop Chrome.
 app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 
-// Hide the FedCM API. Must happen before app 'ready', and silently no-ops
-// if Chromium ever retires the "FedCm" feature name (an Electron bump that
-// brings back Google-login 400s should recheck here first — also see the
-// CDP client-hints override and onBeforeSendHeaders fallback below). Chromium ships
+// Hide the FedCM API (and on macOS disable Catap loopback so display-share
+// can use the older Screen & System Audio Recording path). Must happen
+// Linux additionally disables WebRTC input-volume adjustment to avoid the
+// measured loopback monitor attenuation. This also affects page microphones;
+// simultaneous microphone/camera/system-audio remains a packaged release gate.
+// before app 'ready'. Silently no-ops if Chromium retires a feature name
+// (an Electron bump that brings back Google-login 400s should recheck here
+// first — also see the CDP client-hints override and onBeforeSendHeaders
+// fallback below). Chromium ships
 // the JS surface (IdentityCredential) but Electron has no account-chooser
 // UI behind it, so FedCM calls can only ever fail with "Error retrieving
 // a token". Google Identity Services feature-detects the API, commits to
@@ -1409,8 +1435,13 @@ app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 const priorDisabledFeatures = app.commandLine.getSwitchValue('disable-features');
 app.commandLine.appendSwitch(
   'disable-features',
-  priorDisabledFeatures ? `${priorDisabledFeatures},FedCm` : 'FedCm'
+  mergeDisabledFeatures(priorDisabledFeatures, [
+    'FedCm',
+    ...captureDisabledFeatures(process.platform),
+  ])
 );
+// Before ready: Wayland sessions must not fall through to X11 ozone/capture.
+applyLinuxCaptureOzone(app.commandLine);
 
 // Override client-hints branding at the Chromium level via CDP so both HTTP
 // Sec-CH-UA headers AND navigator.userAgentData.brands report Chrome.
@@ -1723,7 +1754,7 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   // and Glance, which can make the tab visible during it.
   if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
       || tab.navEpoch !== navEpoch || tab.isLoading
-      || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
+      || !tab.sleeping || !mayDiscardRenderer(tab) || liveContents(tab) !== wc
       // A mid-probe Move-Tab-to-New-Window re-homes the tab; the active/glance
       // checks above read the runtime that STARTED this sleep, so they would
       // miss a tab that is now the destination window's visible page.
@@ -1799,7 +1830,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
   // the visible Glance reference while an earlier candidate's probe awaited.
   if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
       || tab.navEpoch !== epochAtProbe
-      || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)
+      || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
       // that started this sleep no longer owns a tab moved mid-probe.
       || windowRuntimes.runtimeForTab(id) !== rt()) return false;
@@ -2007,7 +2038,7 @@ function parkTabView(tab, entry) {
   if (!wc) return false;
   // Final synchronous guard, same shape as sleepTab's: capture state can
   // change between eligibility selection and this call (§5.1a).
-  if (tab.capturing || (tab.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  if (!mayParkTabView(tab)) return false;
   const owner = rt();
   const view = tab.view;
   // Registry FIRST, then strip, then firewall: no instant exists in which a
@@ -2550,6 +2581,10 @@ function currentTabBounds(tab) {
 function overlayBounds() {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
+  if (rt().overlayMode === 'display-share') {
+    const { width, height } = rt().window.getContentBounds();
+    return { x: 0, y: 0, width, height };
+  }
   if (rt().overlayMode === 'find') {
     if (!glance) return layout.findBounds;
     const width = Math.min(560, glance.primary.width);
@@ -2847,7 +2882,7 @@ function createOverlay() {
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
     if (acceptanceTestMode) return;
-    if (!rt().overlayMode || rt().overlayMode === 'find') return;
+    if (!rt().overlayMode || rt().overlayMode === 'find' || rt().overlayMode === 'display-share') return;
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
@@ -2930,6 +2965,10 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  if (rt().overlayMode === 'display-share'
+      && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
+    hideOverlay({ refocusContent: false, reason: 'cancel' });
+  }
   bumpSurfaceGeneration();
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
@@ -2943,7 +2982,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   // (Re-)adding moves the overlay to the top of the child-view stack.
   // Stack order: tab < fill capsule < overlay < permission prompt.
   restackFillStatusView();
-  rt().window.contentView.addChildView(rt().overlayView);
+  showOverlayView(rt().window, rt().overlayView);
   restackPermissionView();
   if (rt().overlayExitTimer) {
     clearTimeout(rt().overlayExitTimer);
@@ -3000,6 +3039,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
+  if (closingMode === 'display-share' && reason !== 'display-share-resolved') {
+    displayCapturePicker?.cancel(closingPurpose?.requestId);
+  }
   rt().workspaceSwitcherOpen = false;
   rt().shieldAnchorRight = null;
   rt().captureAnchorRight = null;
@@ -3025,11 +3067,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
         // Re-check: a new overlay may have opened while this was retracting,
         // in which case the view is legitimately on screen again.
         if (!rt().overlayMode && hasLiveWindow() && rt().overlayView) {
-          rt().window.contentView.removeChildView(rt().overlayView);
+          hideOverlayView(rt().window, rt().overlayView);
         }
       }), OVERLAY_RETRACT_MS);
     } else {
-      rt().window.contentView.removeChildView(rt().overlayView);
+      hideOverlayView(rt().window, rt().overlayView);
     }
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
@@ -3899,6 +3941,11 @@ function captureRowCount() {
     const p = captureProjection(popup.record);
     if (p.audio || p.video) count += 1;
   }
+  if (displayCaptureRegistry) {
+    count += projectDisplayShares(displayCaptureRegistry.listShares(), {
+      tabIds: rt().tabOrder,
+    }).length;
+  }
   return count;
 }
 
@@ -3935,6 +3982,9 @@ function currentTabsPayload() {
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
+    displayShares: projectDisplayShares(displayCaptureRegistry?.listShares() ?? [], {
+      tabIds: runtime.tabOrder,
+    }),
     ...widthMetrics,
   };
 }
@@ -7821,6 +7871,9 @@ function broadcastWebrtcAudioBufferToBrowsingContents() {
 // every settings write, and clearing the cache mid-session isn't free.
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
+let displayCaptureRegistry = null;
+let displayCaptureBroker = null;
+let displayCapturePicker = null;
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   profileSessionRegistry = createProfileSessionRegistry({
@@ -7890,7 +7943,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // stay unconfirmable and fail toward stuck-on, never silently-off.
       browsingSession.registerPreloadScript({
         type: 'frame',
-        filePath: path.join(__dirname, 'capture-preload.js'),
+        filePath: path.join(__dirname, CAPTURE_RUNTIME.preload),
       });
     }
   };
@@ -7987,6 +8040,135 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!wc) return null;
     return tabs.get(tabIdByWebContentsId.get(wc.id)) ?? null;
   }
+
+  displayCaptureRegistry = createBrokerRegistry();
+  displayCaptureRegistry.onChange(() => {
+    for (const tab of tabs.values()) {
+      tab.displayShareBlocking = displayCaptureRegistry.tabHasBlockingShare(tab.id) === true;
+    }
+    forEachWindowRuntime(() => {
+      scheduleBroadcastTabs();
+      if (rt().overlayMode !== 'capture') return;
+      if (captureRowCount() === 0) hideOverlay({ refocusContent: false });
+      else if (rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+    }, { liveOnly: true });
+  });
+  const displayCaptureAuthority = createHelperAuthority();
+  const displayCaptureHelperSession = createHelperSession({
+    sessionFactory: session,
+    setupChromeProtocol,
+    net,
+  });
+  displayCaptureHelperSession.setPermissionRequestHandler((_wc, permission, callback) => {
+    callback(permission === 'media' || permission === 'display-capture');
+  });
+  displayCaptureHelperSession.setPermissionCheckHandler((_wc, permission) => (
+    permission === 'media' || permission === 'display-capture'
+  ));
+  const displayCaptureHelperWindow = attachHelperWindow({
+    BrowserWindow,
+    session: displayCaptureHelperSession,
+    preloadPath: path.join(__dirname, 'display-capture-helper-preload.js'),
+    lockPrivilegedNavigation,
+    authority: displayCaptureAuthority,
+  });
+  const pickerOwner = (requestId) => {
+    const row = displayCaptureRegistry.listShares().find((item) => item.requestId === requestId);
+    return row ? windowRuntimes.runtimeForTab(row.tabId) : null;
+  };
+  const pickerSender = (event, owner) => {
+    try {
+      return !!owner && owner.overlayView?.webContents === event.sender
+        && event.senderFrame === event.sender.mainFrame
+        && event.sender.getURL() === CHROME_OVERLAY_URL;
+    } catch { return false; }
+  };
+  displayCapturePicker = createDisplayCapturePicker({
+    platform: process.platform, desktopCapturer, ownerForRequest: pickerOwner,
+    portalSelection: process.platform === 'linux' && (
+      app.commandLine.getSwitchValue('ozone-platform') === 'wayland'
+      || (!app.commandLine.getSwitchValue('ozone-platform')
+        && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY))
+    ),
+    isOwnerSender: pickerSender,
+    present: (owner, model) => withWindowRuntime(owner, () => {
+      if (!hasLiveWindow() || !rt().overlayView) {
+        displayCapturePicker.cancel(model.requestId);
+        return;
+      }
+      showOverlay('display-share', { purpose: model });
+    }),
+    dismiss: (owner, requestId) => withWindowRuntime(owner, () => {
+      if (rt().overlayMode === 'display-share' && rt().overlayPurpose?.requestId === requestId) {
+        hideOverlay({ refocusContent: false, reason: 'display-share-resolved' });
+      }
+    }),
+    onCancel: (requestId) => displayCaptureBroker?.cancelAcquisition(requestId),
+    onChoose: (event, choice, source) => displayCaptureBroker.resolvePicker(event, choice, source),
+  });
+  ipcMain.on('display-capture:picker-resolve', (event, payload) => {
+    displayCapturePicker.resolve(event, payload).catch(() => {
+      // Only a live, owned picker may be cancelled by this sender.
+      if (pickerSender(event, pickerOwner(payload?.requestId))) {
+        displayCapturePicker.cancel(payload.requestId);
+      }
+    });
+  });
+  displayCaptureBroker = installDisplayCaptureBroker({
+    ipcMain,
+    registry: displayCaptureRegistry,
+    evaluateAdmission,
+    parseDisplayMediaOptions,
+    filterSignaling,
+    collectLocalAddresses,
+    helperWc: displayCaptureHelperWindow.webContents,
+    helperSession: displayCaptureHelperSession,
+    desktopCapturer,
+    showPicker: (id, model) => displayCapturePicker.show(id, model),
+    hidePicker: (id) => displayCapturePicker.hide(id),
+    handlePickerIpc: false,
+    authority: displayCaptureAuthority,
+    isPackaged: app.isPackaged,
+    stubPicker: false,
+    isOverlaySender: (event, requestId) => pickerSender(event,
+      requestId ? pickerOwner(requestId) : windowRuntimes.runtimeForChromeWebContentsId(event.sender.id)),
+    readTrustedFacts: (event) => {
+      const wc = event.sender;
+      const tab = tabForWebContents(wc);
+      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+      const win = owner?.window;
+      const frame = event.senderFrame || wc?.mainFrame;
+      let frameVisible = null;
+      try {
+        frameVisible = typeof frame?.visibilityState === 'string'
+          ? frame.visibilityState === 'visible'
+          : null;
+      } catch {
+        frameVisible = null;
+      }
+      const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
+      return {
+        documentFocused: win?.isFocused?.() === true && wc?.isFocused?.() === true,
+        documentVisible: evaluateDocumentVisible({
+          windowVisible: win?.isVisible?.() === true,
+          windowMinimized: win?.isMinimized?.() === true,
+          tabAttached,
+          frameVisible: frameVisible === true,
+        }),
+        // Subframes remain unsupported until preload reach and policy are proven.
+        frameAlive: !!tab && frame === wc?.mainFrame
+          && frame?.isDestroyed?.() === false && frame.detached === false,
+        tabId: tab?.id ?? null,
+        webContentsId: wc?.id ?? null,
+        frameId: frame?.frameTreeNodeId ?? frame?.routingId ?? null,
+        origin: (() => {
+          try { return new URL(frame.url).origin; } catch { return null; }
+        })(),
+        documentGeneration: frame ? `${frame.processId}:${frame.routingId}` : null,
+        sources: [],
+      };
+    },
+  });
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
   // transient no-window moment can't permanently block a site.

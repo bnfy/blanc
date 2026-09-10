@@ -14,4 +14,8 @@ test('the packaged macOS app declares its microphone purpose', () => {
   // Without these keys macOS refuses to show system device consent, even once
   // Blanc has allowed a website's getUserMedia request.
   assert.equal(info.NSMicrophoneUsageDescription, 'Blanc allows websites you approve to use your microphone.');
+  assert.equal(
+    info.NSAudioCaptureUsageDescription,
+    'Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.'
+  );
 });

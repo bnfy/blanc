@@ -10,6 +10,7 @@ const APP_ICON_ASSETS = require('../src/main/app-icon-assets');
 const { verifyPackagedAdblock } = require('./verify-packaged-adblock');
 const { packageCompliance } = require('./package-compliance');
 const { verifyPackagedCompliance } = require('./verify-packaged-compliance');
+const { verifyPackagedCaptureRuntime } = require('./verify-packaged-capture-runtime');
 
 function iconComposerColor(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex);
@@ -79,6 +80,7 @@ module.exports = async function afterPackAppIcons(context) {
     )
     : path.join(context.appOutDir, 'resources');
   verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
+  verifyPackagedCaptureRuntime(path.join(resourcesDir, 'app.asar'), context.electronPlatformName);
   await packageCompliance(context);
   verifyPackagedCompliance(resourcesDir);
 
