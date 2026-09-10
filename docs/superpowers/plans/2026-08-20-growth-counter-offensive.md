@@ -27,21 +27,25 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — September 9, 2026
+## Execution status — September 10, 2026
 
 - v1.15.0 remains the latest public release, but it is no longer a valid
   launch release. Product/runtime, dependency, package-metadata, packaging,
   and release-workflow changes have merged after its `d0c2304` tag.
-- `origin/main` is at `9bc3b2a` and declares v1.15.1, but no public v1.15.1
-  release exists. Bring Your Tabs and its live-tab handoff are also on `main`.
-  The selected screen-sharing candidate remains open and requires its native
-  evidence before merge and release.
+- `origin/main` is at `233c807` and declares v1.16.0, but the latest public
+  release is still v1.15.0. Bring Your Tabs, its live-tab handoff, secure screen
+  and system-audio sharing, and the v1.16.0 release preparation are on `main`.
 - No September 7 launch baseline or September 8 Show HN outcome was recorded.
   Reddit and Product Hunt therefore move with the full sequence; none of the
   September 7–10 launch days may fire independently.
 - The replacement final release must be published and fully proved by Friday,
   September 11 at 3:00 p.m. ET. Its refreshed launch assets and new freeze
   record start a fresh uninterrupted soak of at least 48 hours.
+- The noon product cutoff was missed. PR #308 merged at 2:27 p.m. ET, PR #313
+  at 2:45 p.m. ET, and PR #314 at 3:00 p.m. ET. The September 14–17 sequence is
+  stopped until the owner explicitly accepts the observed late freeze candidate
+  or moves all four launch days; the timing breach itself is not an evidence
+  waiver.
 
 ## Superseded execution status — September 3, 2026
 
@@ -108,13 +112,11 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
   the public baseline, but post-tag product/runtime, dependency, package,
   packaging, and release-workflow changes already require a new immutable
   launch release. Never describe newer `main` behavior as shipped.
-- **The backlog-cleanup window is open only before the new freeze.** Bring Your
-  Tabs and its live-tab handoff are already on `main`. Screen-sharing PR #302 is
-  the selected remaining candidate and must complete its ordinary tests,
-  native-platform gates, issue-specific evidence, and explicit affected-machine
-  owner confirmation. Held dependency and draft/conflicting PRs are not
-  implicitly approved. Close dead ideas instead of merging them merely to
-  reduce a count.
+- **The backlog-cleanup window closed at the missed noon cutoff.** Bring Your
+  Tabs, its live-tab handoff, and secure screen and system-audio sharing from PR
+  #308 are on `main`. The older PR #302 and every held dependency,
+  draft/conflicting, or unselected PR remain outside the freeze candidate.
+  Close dead ideas instead of merging them merely to reduce a count.
 - **Finish the release train with the launch release by Friday, September 11 at
   3:00 p.m. ET.** The owner expects more than one post-v1.10.0 release. Every
   published version is immutable and must complete its publication,
@@ -1555,14 +1557,25 @@ or a requirement to merge every open PR.
 > final release selection, release-bound asset refresh, private freeze row, and
 > fresh ≥48-hour soak remain required.
 
+> **Post-cutoff audit recorded September 10, 2026.** At 3:01 p.m. ET,
+> `origin/main` was
+> `233c807cde4e27cb15813b3be146749e6e51725b`. Screen-sharing PR #308 merged at
+> 2:27 p.m. ET, v1.16.0 preparation PR #313 at 2:45 p.m. ET, and dependency
+> update PR #314 at 3:00 p.m. ET—all after the noon product cutoff. That exact
+> SHA is the observed product-freeze candidate, but it is not an automatic
+> waiver or a `launch-freeze-start` anchor. The September 14–17 sequence is
+> stopped until the owner explicitly accepts the late candidate and v1.16.0
+> completes every release, asset, and soak gate, or moves all four launch days.
+> No later product/runtime, dependency, package-metadata, packaging, or
+> release-workflow merge may join this candidate.
+
 - [x] **Step 1: Select the backlog that actually belongs in the launch release**
 
-The selected state is `main` through PR #305 plus screen-sharing PR #302.
-Every other open dependency, draft, or conflicting PR remains outside the
-launch release unless the owner makes a new explicit selection. PR #302 still
-must satisfy its issue-specific and native-platform gates, including the
-owner's explicit affected-machine confirmation, before merge. Do not convert
-the scheduling decision into implicit approval for any other PR.
+The selected state is `main` through PR #314, including screen and system-audio
+sharing from PR #308. Every other open dependency, draft, or conflicting PR,
+including the older screen-sharing PR #302, remains outside the launch release
+unless the owner makes a new explicit selection. Do not convert the scheduling
+decision into implicit approval for any other PR.
 
 - [ ] **Step 2: End product merges by Thursday, September 10 at noon ET**
 
