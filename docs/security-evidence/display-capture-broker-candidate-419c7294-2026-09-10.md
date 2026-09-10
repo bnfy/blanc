@@ -4,6 +4,10 @@ This record binds the accepted Mac conference behavior to the private package
 built from `419c7294efe8076948c4f883647c508106e94d0e`. It does not publish a
 release or convert unperformed checks into PASS results.
 
+The private package used Electron 44.1.1. The current release branch retains
+Electron 44.2.0 for the CVE-2026-85046 Chromium security fix; this record does
+not claim that the conference was rerun on that updated runtime.
+
 ## Source and package
 
 - Parent: `c26127ebcc86f97914f443072d98b0977a516383`.

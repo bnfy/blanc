@@ -51,9 +51,16 @@ rows.
 
 ## Release handoff
 
-Capture acceptance is closed unless a pinned runtime or shared capture-boundary
-file changes. The remaining work is ordinary release integration and
-publication:
+The private conference packages used Electron 44.1.1. Current `main` uses
+Electron 44.2.0 for the CVE-2026-85046 Chromium fix and must not be downgraded.
+No exact-44.2.0 conference rerun is claimed by this record. Before publication,
+the owner must explicitly accept carrying the artifact-bound conference evidence
+forward to the security-updated runtime or request a final-package conference
+smoke. That is the only remaining display-capture evidence decision.
+
+Otherwise, capture acceptance is closed unless a pinned runtime or shared
+capture-boundary file changes. The remaining work is ordinary release
+integration and publication:
 
 1. Review and merge the clean current-`main` integration.
 2. Build versioned release artifacts through `scripts/release.sh`; public
