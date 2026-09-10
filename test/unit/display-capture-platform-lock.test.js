@@ -62,3 +62,17 @@ test('shared permission, relay, and capture dependencies cannot change silently'
     assert.equal(hash, expected, `${file} changed; review the impact on all platforms`);
   }
 });
+
+test('locked capture runtime bytes keep LF endings on every platform checkout', () => {
+  const lock = require('../../src/main/capture-runtime-lock.json');
+  const attributes = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8').split(/\r?\n/);
+  for (const file of [...Object.keys(lock.files), ...Object.keys(lock.sharedFiles)]) {
+    assert.ok(attributes.includes(`/${file} text eol=lf`), `${file} must be pinned to LF in .gitattributes`);
+  }
+
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/release-windows-linux.yml'), 'utf8');
+  const windowsJob = workflow.slice(workflow.indexOf('  windows:'), workflow.indexOf('\n  linux:'));
+  const normalization = windowsJob.indexOf('git config --global core.autocrlf false');
+  const checkout = windowsJob.indexOf('actions/checkout@');
+  assert.ok(normalization >= 0 && normalization < checkout, 'Windows must disable CRLF conversion before checkout');
+});
