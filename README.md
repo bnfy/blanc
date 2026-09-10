@@ -42,8 +42,9 @@ and release integrity as explicit controls:
   do not get that connection, which helps keep a malicious or compromised site
   from reaching tabs, history, settings, or browser controls.
 - Permissions deny by default. Camera, microphone, location, and notifications
-  require per-site decisions; screen capture and other unhandled permissions
-  are refused.
+  require per-site decisions. Screen sharing starts only through Blanc's
+  trusted confirmation and capture helper; direct and legacy capture paths and
+  other unhandled permissions remain refused.
 - Published macOS builds are signed and notarized, and Windows installers are
   timestamp-signed. The current release includes a Sigstore-authenticated
   checksum manifest, a CycloneDX SBOM, and provenance evidence.
@@ -56,13 +57,13 @@ self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
 The evidence and limits for the current release are recorded in the
-[v1.15.0 release report](docs/release-incidents/2026-09-02-v1.15.0.md).
+[v1.16.0 release report](docs/release-incidents/2026-09-10-v1.16.0.md).
 
-> **Current release:** v1.15.0 expands Mahjong to eight layouts, rotates the
-> Daily board across them, adds device-local records and streaks, resumes
-> unfinished play across tabs, and makes Shuffle undoable. Use the
-> [v1.15.0 tag](https://github.com/bnfy/blanc/tree/v1.15.0) for the exact source
-> snapshot associated with the public binaries.
+> **Current release:** v1.16.0 adds trusted screen and system-audio sharing,
+> opens one-time tab handoffs in the current window, restores reliable
+> external-link foregrounding, and updates Electron and `js-yaml` for security
+> fixes. Use the [v1.16.0 tag](https://github.com/bnfy/blanc/tree/v1.16.0) for
+> the exact source snapshot associated with the public binaries.
 
 ## Source and license
 
@@ -267,9 +268,11 @@ to Blanc's chrome documents and is independently sender-checked.
 
 **Permissions:** deny-by-default. Camera, microphone, geolocation, and
 notifications surface a per-site Allow/Block prompt in the chrome; the
-decision is remembered per origin and manageable in Settings. Everything
-else (screen capture, MIDI, etc.) is refused outright; fullscreen, pointer
-lock, and sanitized clipboard writes are allowed.
+decision is remembered per origin and manageable in Settings. Screen sharing
+uses a dedicated Blanc confirmation and helper session, while direct and
+legacy desktop-capture paths remain denied. Other unhandled permissions such
+as MIDI are refused; fullscreen, pointer lock, and sanitized clipboard writes
+are allowed.
 
 **Ad blocking:** `adblock.js` attaches a `@ghostery/adblocker-electron`
 engine to `session.defaultSession` once at startup, covering every tab.
