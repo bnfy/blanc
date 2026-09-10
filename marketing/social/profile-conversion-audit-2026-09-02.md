@@ -66,7 +66,7 @@ only one follower and negligible post distribution.
 | "Blanc's blocker is built into the browser, not installed as an extension" | `AGENTS.md` documents network-layer blocking independent of the Chrome extension store; the public v1.12.0 baseline retains the packaged blocker | Verified |
 | "Turn it off per site when needed" | The shipped Island shield popover exposes per-site blocking control and reload behavior | Verified |
 | "open-source desktop browser" | The current MIT baseline and `ASSET-LICENSE.md` carve-outs are recorded in `AGENTS.md` | Verified, provided no blanket-MIT claim is added |
-| "We launch next week" | Official September 7–10 launch schedule in `AGENTS.md` | Verified as of September 2; remove after launch week |
+| "We launch next week" | Official September 14–17 launch schedule in `AGENTS.md` | Reverify against the current date before use; remove after launch week |
 
 The creative itself says "built-in ad blocking, one click away" and shows the
 real current UI in full color. It makes no claim that every ad or tracker is

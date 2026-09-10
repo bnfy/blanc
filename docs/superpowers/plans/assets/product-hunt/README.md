@@ -1,7 +1,10 @@
 # Product Hunt media provenance
 
-These files are launch media for packaged public Blanc v1.15.0. They contain
-no mockup, development-build UI, or behavior from post-release `main`.
+These files were produced as launch media for packaged public Blanc v1.15.0.
+Post-freeze product changes now require a replacement release, so the files are
+historical inputs and must not be published until every visible behavior and
+claim is reverified—or the affected media is recaptured—from the final launch
+release.
 
 - `thumbnail-240x240.png` is a 240×240 Lanczos export of the production
   `site/public/logo.png` mark.
@@ -39,9 +42,11 @@ secondary labels on September 4.
 YouTube reported no copyright issues and published the replacement as
 unlisted. Product Hunt saved only the video-field change; its draft player
 resolved to `youtube-nocookie.com/embed/xqUFMUcCjT0`, showed the correct title,
-and reported 42 seconds. Anthony authorized scheduling on September 4; the live
-picker confirmed September 10 at 12:01 a.m. PT (3:01 a.m. ET), and the
-Pre-Launch Dashboard then reported `Scheduled` with the matching countdown.
+and reported 42 seconds. Anthony authorized the original schedule on September
+4; the September 10 date is superseded. Anthony saved the replacement date on
+September 9, and the live editor reports `Scheduled` for September 17 at
+12:01 a.m. PDT (3:01 a.m. EDT). That schedule remains contingent on the final
+release and fresh 48-hour soak clearing before launch week.
 YouTube requires phone verification before this channel can upload the matching
 custom poster, so no verification or credential flow was attempted. The cleanest homepage-backed
 frame among YouTube's three generated choices was selected instead; the exact
