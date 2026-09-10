@@ -45,6 +45,13 @@ jobs:
       id-token: write
       attestations: write
     steps:
+      # The capture runtime lock hashes repository bytes. Windows Git's
+      # default CRLF conversion changes those bytes before electron-builder's
+      # afterPack verification, so disable it before checkout.
+      - name: Preserve repository line endings
+        shell: bash
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
