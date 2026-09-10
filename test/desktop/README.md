@@ -52,6 +52,8 @@ npm run test:acceptance:desktop      # execute the runnable scenarios against th
 xvfb-run -a npm run test:acceptance:desktop   # ...on a headless Linux/CI box
 
 npm run test:packaged:regressions    # deterministic signed-build release regressions
+npm run test:external-links          # isolated Electron URL/window lifecycle
+npm run test:packaged:external-links # interactive macOS LaunchServices + native foreground gate
 node test/desktop/packaged-media-smoke.mjs  # cross-platform packaged site grants + live fake audio/video tracks
 npm run test:packaged:native-media   # macOS-only real device/TCC check; records no audio
 npm run test:packaged:native-camera  # macOS-only real camera/TCC check; records/uploads no frames
@@ -113,6 +115,33 @@ groups, by what they additionally need:
    navigations.
 3. **OS-level behaviour** — OS URI hand-off, telemetry ping capture, the desktop
    updater. Need process/network mocking.
+
+### External-link activation gate (macOS)
+
+`npm run test:external-links` exercises the real Electron lifecycle in a
+throwaway development profile, including startup, hidden/minimized windows,
+windowless reopen, profile selection, and second-instance URL batches. It also
+holds a recreated chrome document until after a user hide/minimize, checking
+that readiness delivers the link once without undoing that action, and that a
+fresh handoff restores normally.
+
+Run `npm run test:packaged:external-links` against a signed candidate on an
+interactive macOS desktop. Set `BLANC_PACKAGED_EXECUTABLE` to its absolute
+executable path when it is outside `dist/mac-arm64`. Quit other Blanc instances
+first and leave focus to the test while it runs: it alternates Finder and the
+isolated candidate without changing the default browser or your saved profile.
+It uses real LaunchServices URL delivery and checks the selected tab plus
+AppKit's frontmost PID and WindowServer's onscreen browser window. Hidden and
+minimized cases repeat ten times each; background, combined hidden/minimized,
+closed-window, and background reload behavior are checked as well.
+Repeat with `npm run test:packaged:external-links -- --background-delivery`
+to check activation when LaunchServices only delivers the URL and does not
+bring the app forward on the test's behalf.
+
+Before release, separately record an actual email-link click on the affected
+Mac and a handoff from another desktop/full-screen Space. Neither synthetic
+Electron events nor a renderer's `document.hasFocus()` substitute for that
+evidence. This interactive gate is separate from unattended release tests.
 
 ### Deliberate proxies
 

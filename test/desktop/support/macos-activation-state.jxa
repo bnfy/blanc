@@ -1,0 +1,37 @@
+// Run with osascript -l JavaScript. AppKit/WindowServer observations require a
+// logged-in desktop, but no accessibility scripting or screen-recording grant.
+ObjC.import('AppKit');
+ObjC.import('CoreGraphics');
+
+function run(argv) {
+  const [action, rawPid] = argv;
+  const pid = Number(rawPid);
+  const workspace = $.NSWorkspace.sharedWorkspace;
+  const apps = workspace.runningApplications;
+  const inventory = [];
+  for (let i = 0; i < apps.count; i++) {
+    const app = apps.objectAtIndex(i);
+    inventory.push({
+      pid: Number(app.processIdentifier),
+      bundleId: ObjC.unwrap(app.bundleIdentifier) || null,
+      path: ObjC.unwrap(app.bundleURL.path) || null,
+    });
+  }
+  if (action === 'inventory') return JSON.stringify(inventory);
+  if (!inventory.some((app) => app.pid === pid)) throw new Error('Target process is not running');
+  const target = $.NSRunningApplication.runningApplicationWithProcessIdentifier(pid);
+  if (action === 'hide') target.hide;
+  if (action === 'activate') target.activateWithOptions(2);
+  if (!['hide', 'activate', 'state'].includes(action)) throw new Error('Unknown action');
+  const windows = ObjC.deepUnwrap(ObjC.castRefToObject($.CGWindowListCopyWindowInfo(1, 0)));
+  return JSON.stringify({
+    pid,
+    hidden: Boolean(target.hidden),
+    active: Boolean(target.active),
+    frontmostPid: Number(workspace.frontmostApplication.processIdentifier),
+    windows: windows.filter((window) => window.kCGWindowOwnerPID === pid
+      && window.kCGWindowLayer === 0
+      && window.kCGWindowBounds.Width >= 640 && window.kCGWindowBounds.Height >= 480)
+      .map((window) => ({ id: window.kCGWindowNumber, bounds: window.kCGWindowBounds })),
+  });
+}

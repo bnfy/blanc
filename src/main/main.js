@@ -207,8 +207,9 @@ const {
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
-const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
-const { bringExternalWindowToFront } = require('./window-activation');
+const { webUrlsFromArgv } = require('./startup-urls');
+const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
+const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
@@ -1142,11 +1143,11 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
 } else {
   diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
-    const runtime = focusedRuntime ?? primaryRuntime;
+    const runtime = resolveExternalRuntime();
     withWindowRuntime(runtime, () => {
       openExternalUrls(urlsFromArgv(commandLine));
       for (const url of tabImportUrlsFromArgv(commandLine)) queueTabHandoff(url);
-      if (rt().window && !rt().window.isDestroyed()) {
+      if (!urlsFromArgv(commandLine).length && rt().window && !rt().window.isDestroyed()) {
         bringExternalWindowToFront(app, rt().window);
       }
     });
@@ -1179,8 +1180,20 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
 // delivers them via 'open-url' (which can fire before 'ready' — those queue
 // until the window and session restore are up); Windows/Linux pass them on
 // the command line, at startup or through 'second-instance'.
-const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
+const externalUrlHandoff = createExternalUrlHandoff({
+  application: app,
+  isReady: () => externalUrlsFlushable,
+  isQuitting: () => isQuitting,
+  getRuntime: resolveExternalRuntime,
+  ensureWindow: (runtime) => createMainWindow(runtime, { ensureStartTab: true }),
+  isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
+    && runtime.window && !runtime.window.isDestroyed(),
+  withRuntime: withWindowRuntime,
+  createTab: (url) => createTab(url),
+  activateTab: (id) => setActiveTab(id),
+  revealWindow: (window) => bringExternalWindowToFront(app, window),
+});
 const pendingTabHandoffUrls = [];
 let tabHandoffsFlushable = false;
 let pendingTabHandoff = null;
@@ -1276,22 +1289,12 @@ function maybeSendProductUsage(wc, report) {
 // page, even when its renderer is sandboxed.
 const urlsFromArgv = webUrlsFromArgv;
 
-function openExternalUrl(url, { activate = true } = {}) {
-  if (!externalUrlsFlushable || !hasLiveWindow()) {
-    pendingExternalUrls.push(url);
-    return;
-  }
-  const id = createTab(url);
-  if (activate) {
-    setActiveTab(id);
-    bringExternalWindowToFront(app, rt().window);
-  }
+function resolveExternalRuntime(preferred = focusedRuntime) {
+  return externalWindowRuntime(windowRuntimes.all(), preferred ?? focusedRuntime, primaryRuntime, focusedRuntime);
 }
 
 function openExternalUrls(urls) {
-  for (const entry of externalUrlActivationPlan(urls)) {
-    openExternalUrl(entry.url, { activate: entry.activate });
-  }
+  externalUrlHandoff.open(urls);
 }
 
 // Protocols handed off to the OS instead of navigated — a mailto: click
@@ -1335,8 +1338,7 @@ function handOffToOs(url, { trusted = false } = {}) {
 }
 
 function flushExternalUrls() {
-  externalUrlsFlushable = true;
-  openExternalUrls(pendingExternalUrls.splice(0));
+  externalUrlHandoff.flush();
 }
 
 function acceptPendingTabHandoff(destination = 'current-window') {
@@ -1362,10 +1364,10 @@ function acceptPendingTabHandoff(destination = 'current-window') {
 
 app.on('open-url', (event, url) => {
   event.preventDefault();
-  const runtime = focusedRuntime ?? primaryRuntime;
+  const runtime = resolveExternalRuntime();
   withWindowRuntime(runtime, () => {
     if (queueTabHandoff(url)) return;
-    if (urlsFromArgv([url]).length) openExternalUrl(url);
+    openExternalUrls([url]);
   });
 });
 
@@ -7076,6 +7078,7 @@ function profileWindowTitle(profile) {
 function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
+  runtime.chromeReady = false;
   installProfileSessionPolicies(runtime.profileId);
   const localProfile = localProfiles.getLocalProfile(runtime.profileId);
   // Packaged Windows builds inherit the multi-resolution icon embedded in
@@ -7212,7 +7215,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   // First launch has no activeTabId yet — app.whenReady handles that one.
   rt().window.webContents.once('did-finish-load', bindWindowRuntime(
     runtime,
-    dockReopenLifecycle.onChromeReady
+    () => {
+      runtime.chromeReady = true;
+      dockReopenLifecycle.onChromeReady();
+    }
   ));
   return runtime;
 }
@@ -9017,8 +9023,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
-    pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
+    openExternalUrls(urlsFromArgv(process.argv.slice(1)));
     pendingTabHandoffUrls.push(...tabImportUrlsFromArgv(process.argv.slice(1)));
+    externalUrlsFlushable = true;
     withWindowRuntime(focusedRuntime, flushExternalUrls);
     tabHandoffsFlushable = true;
     withWindowRuntime(focusedRuntime, flushTabHandoffs);
@@ -9098,14 +9105,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupAutoUpdater();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow(primaryRuntime, { ensureStartTab: true });
-    }
-    focusedRuntime = primaryRuntime;
-    setFocusedLocalProfile(primaryRuntime.profileId);
+    if (isQuitting) return;
+    const runtime = resolveExternalRuntime();
+    createMainWindow(runtime, { ensureStartTab: true });
+    focusedRuntime = runtime;
+    setFocusedLocalProfile(runtime.profileId);
     refreshDockMenu();
-    withWindowRuntime(primaryRuntime, refocusAddressBarIfWanted);
-    withWindowRuntime(primaryRuntime, flushTabHandoffs);
+    withWindowRuntime(runtime, refocusAddressBarIfWanted);
+    withWindowRuntime(runtime, flushExternalUrls);
+    withWindowRuntime(runtime, flushTabHandoffs);
   });
 }));
 

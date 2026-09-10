@@ -30,6 +30,8 @@
     "test:tab-handoff": "node test/desktop/tab-handoff-smoke.mjs",
     "test:packaged:tab-handoff-protocol": "node test/desktop/packaged-tab-handoff-protocol-smoke.mjs",
     "test:cold-launch": "node test/desktop/cold-launch-smoke.mjs",
+    "test:external-links": "node test/desktop/external-links-smoke.mjs",
+    "test:packaged:external-links": "node test/desktop/packaged-external-links-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
     "test:packaged:regressions": "node test/desktop/release-regressions-smoke.mjs",
