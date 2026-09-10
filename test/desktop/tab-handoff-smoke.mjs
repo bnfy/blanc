@@ -60,6 +60,13 @@ const closeServer = () => new Promise((resolve) => {
   server.close(resolve);
 });
 const deepLinkFor = (handoff) => `blanc-import://tabs?v=1&id=${handoff.id}&key=${handoff.key}`;
+// Page titles and wake completion can change independently while another
+// window imports; ownership, order, selection, and membership must not.
+const windowIdentity = (window) => ({
+  id: window.id, profileId: window.profileId, activeTabId: window.activeTabId,
+  tabs: window.tabs.map(({ id, url, private: isPrivate, pinned, groupId }) =>
+    ({ id, url, private: isPrivate, pinned, groupId })),
+});
 
 let app;
 try {
@@ -138,6 +145,9 @@ try {
   );
   assert.equal(ready.pending.sourceBrowser, 'safari');
   assert.equal(ready.pending.profileName, 'Personal');
+  const originalWindow = ready.windows[0];
+  const originalTabs = originalWindow.tabs;
+  assert.ok(originalTabs.length > 0, 'cold-start blank tab is retained');
   assert.deepEqual(ready.pending.tabs.map((tab) => [tab.title, tab.domain, tab.active]), [
     ['One', '127.0.0.1', false],
     ['Two', '127.0.0.1', true],
@@ -152,20 +162,26 @@ try {
 
   const accepted = await callTestHook(app, 'acceptTabHandoff');
   assert.equal(accepted.ok, true);
+  assert.equal(accepted.runtimeId, originalWindow.id);
+  assert.equal((await callTestHook(app, 'acceptTabHandoff')).ok, false, 'accept is one-shot');
   const imported = await waitForValue(
     () => callTestHook(app, 'tabHandoffState'),
     (state) => state.windows.find((window) => window.id === accepted.runtimeId)
-      ?.tabs.every((tab) => tab.active ? tab.live && !tab.asleep : !tab.live && tab.asleep),
+      ?.tabs.filter((tab) => accepted.tabIds.includes(tab.id))
+      .every((tab) => tab.active ? tab.live && !tab.asleep : !tab.live && tab.asleep),
     'one live imported tab and quiet background tabs',
     10_000,
   );
   const importedWindow = imported.windows.find((window) => window.id === accepted.runtimeId);
-  assert.deepEqual(importedWindow.tabs.map((tab) => tab.url), [
+  assert.equal(imported.windows.length, ready.windows.length);
+  assert.deepEqual(importedWindow.tabs.slice(0, originalTabs.length).map((tab) => tab.id), originalTabs.map((tab) => tab.id));
+  const importedTabs = importedWindow.tabs.filter((tab) => accepted.tabIds.includes(tab.id));
+  assert.deepEqual(importedTabs.map((tab) => tab.url), [
     `${relayOrigin}/page/one#keep`,
     `${relayOrigin}/page/two`,
     `${relayOrigin}/page/three`,
   ]);
-  assert.equal(importedWindow.tabs.filter((tab) => tab.live).length, 1);
+  assert.equal(importedTabs.filter((tab) => tab.live).length, 1);
   assert.equal(importedWindow.tabs.find((tab) => tab.active)?.url, `${relayOrigin}/page/two`);
   assert.equal(importedWindow.tabs.every((tab) => !tab.private && !tab.pinned && tab.groupId === null), true);
   assert.equal(pageLoads.get('/page/two'), 1);
@@ -175,7 +191,7 @@ try {
   const session = await callTestHook(app, 'persistedSessionData');
   const persisted = session.windows.find((window) => window.id === accepted.runtimeId);
   assert.deepEqual(persisted.urls, importedWindow.tabs.map((tab) => tab.url));
-  assert.equal(persisted.activeIndex, 1);
+  assert.equal(persisted.activeIndex, originalTabs.length + 1);
 
   // Retrying the still-valid second link after the first review completes is
   // claimable, and Cancel removes it without opening another window.
@@ -259,7 +275,7 @@ try {
 
   // Both entry paths coexist in one running app. Replacing either review
   // cancels only that review; the richer local flow still preserves pins and
-  // source groups, while handoff continues to open an isolated scratch window.
+  // source groups, while the handoff appends ungrouped tabs to that window.
   await callTestHook(app, 'focusWindow');
   const stagedLocal = await callTestHook(app, 'applyTabImportFixture', ['merge-existing', { stage: 'review' }]);
   assert.equal(stagedLocal.ok, true);
@@ -289,13 +305,65 @@ try {
   const secondAccepted = await callTestHook(app, 'acceptTabHandoff');
   assert.equal(secondAccepted.ok, true);
   const afterBoth = await callTestHook(app, 'tabHandoffState');
-  const separateWindow = afterBoth.windows.find((window) => window.id === secondAccepted.runtimeId);
-  assert.equal(separateWindow.tabs.length, 1);
-  assert.equal(separateWindow.tabs[0].groupId, null);
-  assert.equal(separateWindow.tabs[0].pinned, false);
+  assert.equal(secondAccepted.runtimeId, originalWindow.id);
+  const mergedWindow = afterBoth.windows.find((window) => window.id === secondAccepted.runtimeId);
+  const appended = mergedWindow.tabs.at(-1);
+  assert.equal(appended.groupId, null);
+  assert.equal(appended.pinned, false);
   const localAfter = await callTestHook(app, 'state');
-  assert.deepEqual(localAfter.tabOrder, localState.tabOrder);
+  assert.deepEqual(localAfter.tabOrder, [...localState.tabOrder, ...secondAccepted.tabIds]);
   assert.deepEqual(localAfter.groups, localState.groups);
+  assert.equal(mergedWindow.tabs.find((tab) => tab.id === localTabs[0].id).pinned, true);
+
+  // A named-profile review owns its destination even after another window
+  // gains focus. Exercise the actual page/preload/IPC acceptance bridge.
+  const named = await callTestHook(app, 'createProfileWindow', ['Handoff test']);
+  assert.equal(named.ok, true);
+  const namedHandoff = await makeHandoff('named-current');
+  await callTestHook(app, 'queueTabHandoff', [deepLinkFor(namedHandoff)]);
+  const namedReady = await waitForValue(() => callTestHook(app, 'tabHandoffState'),
+    (state) => state.pending.state === 'ready', 'named-profile review');
+  assert.equal(namedReady.pending.profileName, 'Handoff test');
+  const reviewContentsId = await waitForValue(() => app.evaluate(({ BrowserWindow }) => {
+    const window = BrowserWindow.getAllWindows().find((win) => win.getTitle().includes('Handoff test'));
+    return window?.contentView.children.find((view) => view.webContents?.getURL() === 'blanc://tab-handoff/')?.webContents.id;
+  }), Boolean, 'named profile review document');
+  const reviewDom = (script) => app.evaluate(({ webContents }, { id, script }) =>
+    webContents.fromId(id).executeJavaScript(script), { id: reviewContentsId, script });
+  await waitForValue(() => reviewDom('!document.getElementById("accept").disabled'), Boolean, 'review ready for acceptance');
+  assert.equal(await reviewDom('document.getElementById("newWindow").checked'), false);
+  assert.equal(await reviewDom('document.getElementById("accept").textContent'), 'Open in this window');
+  await reviewDom('document.getElementById("newWindow").click()');
+  assert.equal(await reviewDom('document.getElementById("accept").textContent'), 'Open in new window');
+  assert.match(await reviewDom('document.getElementById("summary").textContent'), /a new Handoff test window/);
+  await reviewDom('document.getElementById("newWindow").click()');
+  await callTestHook(app, 'focusWindow');
+  const namedAccepted = await reviewDom('window.bowserPages.tabHandoff.accept()');
+  assert.equal(namedAccepted.ok, true);
+  assert.equal(namedAccepted.runtimeId, named.runtimeId);
+  const namedAfter = await callTestHook(app, 'tabHandoffState');
+  assert.equal(namedAfter.windows.length, namedReady.windows.length);
+  assert.equal(namedAfter.windows.find((window) => window.id === named.runtimeId).tabs.at(-1).url,
+    `${relayOrigin}/page/named-current`);
+  assert.deepEqual(windowIdentity(namedAfter.windows.find((window) => window.id === originalWindow.id)),
+    windowIdentity(namedReady.windows.find((window) => window.id === originalWindow.id)));
+
+  const explicitNew = await makeHandoff('explicit-new');
+  await callTestHook(app, 'queueTabHandoff', [deepLinkFor(explicitNew)]);
+  const beforeNew = await waitForValue(() => callTestHook(app, 'tabHandoffState'),
+    (state) => state.pending.state === 'ready', 'explicit new-window review');
+  assert.equal((await callTestHook(app, 'acceptTabHandoff', ['unexpected'])).error, 'invalid-destination');
+  assert.equal((await callTestHook(app, 'tabHandoffState')).pending.state, 'ready');
+  const newAccepted = await callTestHook(app, 'acceptTabHandoff', ['new-window']);
+  assert.equal(newAccepted.ok, true);
+  assert.notEqual(newAccepted.runtimeId, named.runtimeId);
+  const afterNew = await callTestHook(app, 'tabHandoffState');
+  assert.equal(afterNew.windows.length, beforeNew.windows.length + 1);
+  const newWindow = afterNew.windows.find((window) => window.id === newAccepted.runtimeId);
+  assert.equal(newWindow.profileId, named.profile.id);
+  assert.deepEqual(newWindow.tabs.map((tab) => tab.url), [`${relayOrigin}/page/explicit-new`]);
+  assert.deepEqual(afterNew.windows.filter((window) => window.id !== newAccepted.runtimeId).map(windowIdentity),
+    beforeNew.windows.map(windowIdentity));
 
   await closeServer();
   assert.equal(await callTestHook(app, 'queueTabHandoff', [deepLinkFor(unrelatedKey)]), true);

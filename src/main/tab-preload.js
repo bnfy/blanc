@@ -60,7 +60,7 @@ if (window.location.protocol === 'blanc:') {
       surface,
       tabHandoff: {
         get: () => invoke('pages:tab-handoff:get'),
-        accept: () => invoke('pages:tab-handoff:accept'),
+        accept: (destination) => invoke('pages:tab-handoff:accept', destination),
         cancel: () => invoke('pages:tab-handoff:cancel'),
       },
     };

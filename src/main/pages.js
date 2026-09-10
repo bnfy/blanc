@@ -138,8 +138,8 @@ function setupPages(hooks = {}) {
   // owns blanc://tab-import/ and its richer local-session organizer.
   handle('pages:tab-handoff:get', 'tab-handoff', () =>
     hooks.tabHandoff?.get?.() ?? { state: 'empty' });
-  handle('pages:tab-handoff:accept', 'tab-handoff', () =>
-    hooks.tabHandoff?.accept?.() ?? { ok: false, error: 'unavailable' });
+  handle('pages:tab-handoff:accept', 'tab-handoff', (destination) =>
+    hooks.tabHandoff?.accept?.(destination) ?? { ok: false, error: 'unavailable' });
   handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
