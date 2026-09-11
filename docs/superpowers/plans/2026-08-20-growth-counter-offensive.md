@@ -48,6 +48,14 @@
   stopped until the owner explicitly accepts the observed late freeze candidate
   or moves all four launch days; the timing breach itself is not an evidence
   waiver.
+- **Accepted September 10, 2026 at 9:03 p.m. ET.** The owner explicitly
+  accepted `233c807` as the launch release candidate and selected v1.16.0 as
+  the final launch release. The private `launch-freeze-start` row anchors the
+  freeze at `origin/main` `5e0b4b8a8e18b4a99aef764159961c41b5cb6698`
+  (releaseTag `v1.16.0`, releaseSha `233c807…`) and starts the fresh soak at
+  `2026-09-11T01:03:21Z`, ending `2026-09-13T01:03:21Z`. The September 14–17
+  sequence is live again subject to that soak, the v1.16.0 media refresh, and
+  Task 11.
 
 ## Superseded execution status — September 3, 2026
 
@@ -1571,6 +1579,20 @@ or a requirement to merge every open PR.
 > No later product/runtime, dependency, package-metadata, packaging, or
 > release-workflow merge may join this candidate.
 
+> **Launch release accepted September 10, 2026.** At 9:03 p.m. ET the owner
+> explicitly accepted the late candidate and selected **v1.16.0** (release
+> source `233c807cde4e27cb15813b3be146749e6e51725b`, published
+> `2026-09-10T19:34:24Z`) as the final launch release. The private
+> `launch-freeze-start` row records anchor `origin/main`
+> `5e0b4b8a8e18b4a99aef764159961c41b5cb6698`, `soakStartsAt`
+> `2026-09-11T01:03:21Z`, `soakEndsAt` `2026-09-13T01:03:21Z`, and the
+> `SHA256SUMS` manifest hash. The six commits between the release source and
+> the anchor (PRs #315–#320) are release/launch evidence records; PR #316 adds
+> `.gitattributes` `eol=lf` entries and a CI `core.autocrlf` step and changes
+> no shipped bytes. The acceptance is not a waiver of the remaining gates: the
+> v1.16.0 release-bound demo and stills refresh, the recorded clean soak, and
+> Task 11 still precede Monday, September 14.
+
 - [x] **Step 1: Select the backlog that actually belongs in the launch release**
 
 The selected state is `main` through PR #314, including screen and system-audio
@@ -1719,8 +1741,9 @@ cat "$LAUNCH_LOG"
   all required macOS/Windows/Linux, updater, manifest, and download gates passed
 - [ ] Phase 1.5 — README, copy pack, demo/stills, FAQ facts, and baseline tag
   refreshed for that exact launch release
-- [ ] Phase 1.5 — `launch-freeze-start` row records the final `origin/main`
-  anchor, release tag, and release SHA
+- [x] Phase 1.5 — `launch-freeze-start` row records the final `origin/main`
+  anchor, release tag, and release SHA (recorded September 10, 2026, 9:03 p.m.
+  ET: anchor `5e0b4b8a`, `v1.16.0`, `233c807`)
 - [ ] Phase 1.5 — fresh ≥48-hour soak elapsed and recorded for the selected
   launch release
 

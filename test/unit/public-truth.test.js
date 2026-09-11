@@ -278,6 +278,8 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /old `0de37a1` and `c7e9496` anchors are\s+historical and must not be reused/i);
   assert.match(plan, /Post-cutoff audit recorded September 10, 2026[\s\S]{0,250}`233c807cde4e27cb15813b3be146749e6e51725b`[\s\S]{0,500}after the noon product cutoff/i);
   assert.match(plan, /screen and system-audio\s+sharing from PR #308[\s\S]{0,300}older screen-sharing PR #302[\s\S]{0,200}outside the launch release/i);
+  assert.match(plan, /Launch release accepted September 10, 2026[\s\S]{0,300}v1\.16\.0[\s\S]{0,200}233c807cde4e27cb15813b3be146749e6e51725b[\s\S]{0,400}5e0b4b8a8e18b4a99aef764159961c41b5cb6698[\s\S]{0,200}2026-09-11T01:03:21Z[\s\S]{0,100}2026-09-13T01:03:21Z/);
+  assert.match(plan, /not a waiver of the remaining gates[\s\S]{0,200}demo and stills refresh[\s\S]{0,200}Task 11/i);
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
   assert.match(plan, /launch-freeze-start[\s\S]{0,500}anchor[\s\S]{0,200}releaseTag[\s\S]{0,100}releaseSha/);
   assert.match(copy, /launch-freeze-start[\s\S]{0,300}dynamic anchor[\s\S]{0,300}no\s+product\/runtime/i);
