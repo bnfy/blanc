@@ -34,6 +34,7 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -2119,17 +2120,21 @@ function commitWake(tab, generation) {
   return true;
 }
 
-async function failWake(tab, generation) {
+async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
   if (wc) {
-    const q = new URLSearchParams({
-      url: tab.url ?? '',
-      code: 'wake-failed',
-      desc: 'The page could not be reloaded',
-      title: tab.title ?? '',
-    });
-    await wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    let destination = chromeWebStoreErrorPageUrl(failedUrl ?? '', 'wake-failed');
+    if (!destination) {
+      const q = new URLSearchParams({
+        url: failedUrl ?? '',
+        code: 'wake-failed',
+        desc: 'The page could not be reloaded',
+        title: tab.title ?? '',
+      });
+      destination = `blanc://error/?${q}`;
+    }
+    await wc.loadURL(destination).catch(() => {});
   }
   if (tab.wakeGeneration !== generation) return false;
   tab.asleep = false;
@@ -2244,7 +2249,9 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     // Exactly one fallback, only after restore rejects. A rejected plain load
     // gets its error page, not an unbounded retry loop.
     const canFallBack = !navigateTo && !!snapshot?.entries.length;
-    if (!canFallBack) return failWake(tab, generation);
+    if (!canFallBack) {
+      return failWake(tab, generation, { failedUrl: navigateTo ?? tab.url });
+    }
     const live = liveContents(tab);
     if (!live) return failWake(tab, generation);
     try {

@@ -5,6 +5,7 @@ const test = require('node:test');
 const {
   isChromeWebStoreUrl,
   shouldBlockChromeWebStoreRequest,
+  chromeWebStoreErrorPageUrl,
   createBeforeRequestPolicy,
 } = require('../../src/main/chrome-web-store-guard');
 
@@ -38,6 +39,21 @@ test('the guard blocks Web Store documents but leaves non-document resources alo
       url: 'https://chromewebstore.google.com/detail/example/abc',
     }), false);
   }
+});
+
+test('the guarded error URL is shared by ordinary failures and quiet-tab wake failures', () => {
+  const source = 'https://chromewebstore.google.com/detail/example/abc';
+  const direct = new URL(chromeWebStoreErrorPageUrl(source, -3));
+  assert.equal(direct.protocol, 'blanc:');
+  assert.equal(direct.hostname, 'error');
+  assert.equal(direct.searchParams.get('kind'), 'chrome-web-store');
+  assert.equal(direct.searchParams.get('url'), source);
+  assert.equal(direct.searchParams.get('code'), '-3');
+
+  const wake = new URL(chromeWebStoreErrorPageUrl(source, 'wake-failed'));
+  assert.equal(wake.searchParams.get('kind'), 'chrome-web-store');
+  assert.equal(wake.searchParams.get('code'), 'wake-failed');
+  assert.equal(chromeWebStoreErrorPageUrl('https://example.com/', -3), null);
 });
 
 test('the Web Store guard outranks blocker state and site exceptions', () => {

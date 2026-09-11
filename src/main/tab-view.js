@@ -24,7 +24,7 @@ const {
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { isChromeWebStoreUrl } = require('./chrome-web-store-guard');
+const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
 
@@ -322,13 +322,9 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
-    if (isChromeWebStoreUrl(validatedURL)) {
-      const q = new URLSearchParams({
-        kind: 'chrome-web-store',
-        url: validatedURL,
-        code: String(errorCode),
-      });
-      wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    const guardedErrorUrl = chromeWebStoreErrorPageUrl(validatedURL, errorCode);
+    if (guardedErrorUrl) {
+      wc.loadURL(guardedErrorUrl).catch(() => {});
       return;
     }
     if (errorCode === -3) return;
