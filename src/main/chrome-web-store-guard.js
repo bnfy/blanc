@@ -19,6 +19,16 @@ function shouldBlockChromeWebStoreRequest(details) {
     && isChromeWebStoreUrl(details?.url);
 }
 
+function chromeWebStoreErrorPageUrl(value, code) {
+  if (!isChromeWebStoreUrl(value)) return null;
+  const query = new URLSearchParams({
+    kind: 'chrome-web-store',
+    url: value,
+    code: String(code),
+  });
+  return `blanc://error/?${query}`;
+}
+
 /**
  * Own the session's single onBeforeRequest listener. The Web Store crash guard
  * always wins; ordinary requests delegate to the blocker only while it is on.
@@ -41,5 +51,6 @@ module.exports = {
   CHROME_WEB_STORE_HOST,
   isChromeWebStoreUrl,
   shouldBlockChromeWebStoreRequest,
+  chromeWebStoreErrorPageUrl,
   createBeforeRequestPolicy,
 };

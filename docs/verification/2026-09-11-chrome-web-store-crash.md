@@ -45,8 +45,9 @@ Chrome Web Store page no longer exposes the unsupported API.
   delegation.
 - `npm run test:web-store-guard` launches Electron 44.3.0 with an isolated
   profile and Blanc Blocker disabled, navigates the active tab to a Chrome Web
-  Store detail URL, observes the local explanation page, and confirms the
-  browser process remains alive with no uncaught main-process exception.
+  Store detail URL, then repeats from a saved session whose selected Store tab
+  is born quiet. Both paths must show the local explanation page, hide Retry,
+  and keep the browser process alive with no uncaught main-process exception.
 - The smoke is part of `release:verify:press` so a future release cannot omit
   this gate while the workaround remains.
 
