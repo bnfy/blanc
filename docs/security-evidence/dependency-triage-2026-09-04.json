@@ -1,0 +1,226 @@
+{
+  "date": "2026-09-04",
+  "baseCommit": "188b4ed4269a6aa0b65e438f84494b46330485ee",
+  "releaseLockIdentical": true,
+  "changedLockEntries": [
+    "node_modules/@electron/universal/node_modules/brace-expansion",
+    "node_modules/@xmldom/xmldom",
+    "node_modules/brace-expansion",
+    "node_modules/dir-compare/node_modules/brace-expansion",
+    "node_modules/fast-uri",
+    "node_modules/filelist/node_modules/brace-expansion",
+    "node_modules/glob/node_modules/brace-expansion",
+    "node_modules/node-gyp/node_modules/undici",
+    "node_modules/tar"
+  ],
+  "advisories": [
+    {
+      "id": "GHSA-6gmq-8vp8-gcm6",
+      "summary": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+      "source": "https://github.com/xmldom/xmldom/security/advisories/GHSA-6gmq-8vp8-gcm6",
+      "before": [
+        {
+          "path": "node_modules/@xmldom/xmldom",
+          "version": "0.8.13",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-mh99-v99m-4gvg",
+      "summary": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+      "source": "https://github.com/juliangruber/brace-expansion/security/advisories/GHSA-mh99-v99m-4gvg",
+      "before": [
+        {
+          "path": "node_modules/@electron/universal/node_modules/brace-expansion",
+          "version": "2.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/brace-expansion",
+          "version": "5.0.7",
+          "dev": true
+        },
+        {
+          "path": "node_modules/dir-compare/node_modules/brace-expansion",
+          "version": "1.1.16",
+          "dev": true
+        },
+        {
+          "path": "node_modules/filelist/node_modules/brace-expansion",
+          "version": "2.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/glob/node_modules/brace-expansion",
+          "version": "1.1.16",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-rgw5-rvv9-x895",
+      "summary": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+      "source": "https://github.com/juliangruber/brace-expansion/security/advisories/GHSA-rgw5-rvv9-x895",
+      "before": [
+        {
+          "path": "node_modules/@electron/universal/node_modules/brace-expansion",
+          "version": "2.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/brace-expansion",
+          "version": "5.0.7",
+          "dev": true
+        },
+        {
+          "path": "node_modules/dir-compare/node_modules/brace-expansion",
+          "version": "1.1.16",
+          "dev": true
+        },
+        {
+          "path": "node_modules/filelist/node_modules/brace-expansion",
+          "version": "2.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/glob/node_modules/brace-expansion",
+          "version": "1.1.16",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-5jgf-p345-68v8",
+      "summary": "fast-uri vulnerable to host confusion via skipped IDN canonicalization on scheme-relative references",
+      "source": "https://github.com/fastify/fast-uri/security/advisories/GHSA-5jgf-p345-68v8",
+      "before": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.4",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-7p8r-x3mc-p8w7",
+      "summary": "fast-uri vulnerable to host confusion via backslash authority introducer",
+      "source": "https://github.com/fastify/fast-uri/security/advisories/GHSA-7p8r-x3mc-p8w7",
+      "before": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.4",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-f65p-4m7j-42xc",
+      "summary": "fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization",
+      "source": "https://github.com/fastify/fast-uri/security/advisories/GHSA-f65p-4m7j-42xc",
+      "before": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.4",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-fph4-wmhf-6fwf",
+      "summary": "fast-uri vulnerable to server-side request forgery via repeated hostname percent-decoding",
+      "source": "https://github.com/fastify/fast-uri/security/advisories/GHSA-fph4-wmhf-6fwf",
+      "before": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.4",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-jqff-g426-hqxp",
+      "summary": "fast-uri vulnerable to host confusion via percent-encoded scheme normalization",
+      "source": "https://github.com/fastify/fast-uri/security/advisories/GHSA-jqff-g426-hqxp",
+      "before": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.4",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-r292-9mhp-454m",
+      "summary": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
+      "source": "https://github.com/isaacs/node-tar/security/advisories/GHSA-r292-9mhp-454m",
+      "before": [
+        {
+          "path": "node_modules/tar",
+          "version": "7.5.19",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-8xcm-r25x-g524",
+      "summary": "undici vulnerable to downstream response desynchronization via retry interceptor",
+      "source": "https://github.com/nodejs/undici/security/advisories/GHSA-8xcm-r25x-g524",
+      "before": [
+        {
+          "path": "node_modules/node-gyp/node_modules/undici",
+          "version": "6.27.0",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-m8rv-5g2x-5cg5",
+      "summary": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+      "source": "https://github.com/nodejs/undici/security/advisories/GHSA-m8rv-5g2x-5cg5",
+      "before": [
+        {
+          "path": "node_modules/node-gyp/node_modules/undici",
+          "version": "6.27.0",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    },
+    {
+      "id": "GHSA-v3r7-h72x-cjcm",
+      "summary": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+      "source": "https://github.com/nodejs/undici/security/advisories/GHSA-v3r7-h72x-cjcm",
+      "before": [
+        {
+          "path": "node_modules/node-gyp/node_modules/undici",
+          "version": "6.27.0",
+          "dev": true
+        }
+      ],
+      "after": [],
+      "site": []
+    }
+  ]
+}
