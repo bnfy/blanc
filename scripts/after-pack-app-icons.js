@@ -27,9 +27,9 @@ function createIconDocument({
   darkBackground = background,
   foreground,
   darkForeground = foreground,
-  imageName = 'blanc-mark.svg',
-  preserveColor = false,
-  layerName = 'Blanc mark',
+  imageName = 'sunrise-mark.png',
+  preserveColor = true,
+  layerName = 'Sunrise',
 }) {
   const layer = {
     ...(!preserveColor ? {
@@ -100,7 +100,7 @@ module.exports = async function afterPackAppIcons(context) {
       const iconDir = path.join(workDir, `${definition.nativeName}.icon`);
       const assetsDir = path.join(iconDir, 'Assets');
       await fs.mkdir(assetsDir, { recursive: true });
-      const imageName = definition.imageName ?? 'blanc-mark.svg';
+      const imageName = definition.imageName ?? 'sunrise-mark.png';
       await fs.copyFile(
         path.join(sourceIcon, 'Assets', imageName),
         path.join(assetsDir, imageName),

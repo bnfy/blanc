@@ -10,6 +10,9 @@ const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
 const SUNRISE_SOURCE = path.join(ROOT, 'src/renderer/pages/mahjong-wind-east.png');
 const PLATFORM_ICON_SOURCE = path.join(ROOT, 'assets/sunrise-app-icon.png');
 const PAGES_DIR = path.join(ROOT, 'src/renderer/pages');
+// Historical artwork/export inputs only. package.json excludes these B icons
+// from the app payload; Settings and the native catalog expose Sunrise only.
+// Mahjong's heritage tile artwork is separate and deliberately stays shipped.
 const MONOGRAM_ICON_IDS = [
   'paper', 'ink', 'graphite', 'default', 'midnight', 'cream',
   'forest', 'sage', 'ember', 'plum', 'gold',

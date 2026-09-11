@@ -23,7 +23,6 @@ const RENDERER_DIR = path.join(__dirname, '../renderer');
 const SHARED_ASSETS = new Set([
   '/styles.css',
   '/panel-left.svg',
-  '/pages/icon.svg',
   '/pages/sunrise-favicon-mark.png',
   '/pages/inter-latin.woff2',
   '/pages/jetbrains-mono-latin.woff2',

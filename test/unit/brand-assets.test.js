@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const sharp = require('sharp');
+const { FileMatcher } = require('app-builder-lib/out/fileMatcher');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const NEW_GEOMETRY = 'M232.18,150.8';
@@ -12,6 +13,30 @@ const ICON_IDS = ['sunrise', 'sunrise-dark', 'paper', 'ink'];
 function source(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
+
+test('packaged UI excludes retired B app icons and keeps Sunrise and Mahjong tiles', () => {
+  const pkg = JSON.parse(source('package.json'));
+  const filter = new FileMatcher(ROOT, '/unused', (value) => value, pkg.build.files).createFilter();
+  const pages = path.join(ROOT, 'src/renderer/pages');
+  const icons = fs.readdirSync(pages).filter((name) => /^icon-.*\.png$/.test(name));
+  for (const name of ['icon.svg', ...icons]) {
+    const file = path.join(pages, name);
+    const current = ['icon-sunrise.png', 'icon-sunrise-dark.png'].includes(name);
+    assert.equal(filter(file, fs.statSync(file)), current, `${name}: shipped only for current Sunrise variants`);
+  }
+  for (const name of fs.readdirSync(pages).filter((name) => name.startsWith('mahjong-'))) {
+    const file = path.join(pages, name);
+    assert.equal(filter(file, fs.statSync(file)), true, `${name}: heritage tile artwork remains packaged`);
+  }
+});
+
+test('UI code does not reference retired monogram assets or embed their geometry', () => {
+  const renderer = path.join(ROOT, 'src/renderer');
+  const retired = /(?:icon-(?:paper|ink|graphite|default|midnight|cream|forest|sage|ember|plum|gold)\.png|icon\.svg|ob-blanc-mark|M232\.18,150\.8|M153\.05,123\.49)/;
+  for (const file of fs.readdirSync(renderer, { recursive: true }).filter((name) => /\.(?:html|css|js)$/.test(name))) {
+    assert.doesNotMatch(fs.readFileSync(path.join(renderer, file), 'utf8'), retired, file);
+  }
+});
 
 async function boundsOf(input, predicate) {
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -34,7 +59,7 @@ async function boundsOf(input, predicate) {
   };
 }
 
-test('the supplied Mahjong-inspired mark is the canonical brand source', () => {
+test('the supplied B mark remains available as heritage source artwork', () => {
   const canonical = source('assets/blanc-mark.svg');
   assert.match(canonical, /viewBox="0 0 290\.91 344"/);
   assert.match(canonical, new RegExp(NEW_GEOMETRY.replace('.', '\\.')));
@@ -46,7 +71,7 @@ test('the supplied Mahjong-inspired mark is the canonical brand source', () => {
   assert.match(pkg.scripts['substrate:check'], /brand:check/);
 });
 
-test('every active vector surface uses the new geometry as transparent cutouts', () => {
+test('archived monogram vectors preserve their supplied geometry as transparent cutouts', () => {
   const generated = [
     'src/renderer/pages/icon.svg',
     'build/app-icons/Icon.icon/Assets/blanc-mark.svg',
@@ -60,11 +85,13 @@ test('every active vector surface uses the new geometry as transparent cutouts',
   }
 
   const onboarding = source('src/renderer/pages/newtab.html');
-  assert.equal((onboarding.match(/class="ob-blanc-mark"/g) ?? []).length, 2);
+  assert.doesNotMatch(onboarding, /ob-blanc-mark|icon\.svg/);
+  assert.equal((onboarding.match(/srcset="icon-sunrise-dark\.png"/g) ?? []).length, 2);
+  assert.equal((onboarding.match(/src="icon-sunrise\.png"/g) ?? []).length, 2);
   assert.doesNotMatch(onboarding, new RegExp(OLD_GEOMETRY.replace('.', '\\.')));
 });
 
-test('all app icon variants and platform copies use their canonical identity sources', async () => {
+test('current and archived icon artwork retain their canonical identity sources', async () => {
   for (const id of ICON_IDS) {
     assert.equal(fs.existsSync(path.join(ROOT, `src/renderer/pages/icon-${id}.png`)), true, id);
     assert.equal(fs.existsSync(path.join(ROOT, `export/app-icons-1024-square/icon-${id}-1024.png`)), true, `${id} export`);
