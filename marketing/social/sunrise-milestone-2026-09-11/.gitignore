@@ -1,0 +1,11 @@
+# Only approved, non-numerical campaign deliverables belong in the public repository.
+*
+!.gitignore
+!README.md
+!general-review.md
+!general-review-v2.html
+!general-review-v2-1080x1350.png
+!render-general.mjs
+!approved-publication.json
+!approved-tiktok-1080x1920.mp4
+!approved-tiktok-preview.png
