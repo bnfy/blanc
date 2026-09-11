@@ -31,7 +31,7 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
   );
   const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
   const version = readme.match(/\*\*Current release:\*\* v(\d+\.\d+\.\d+)/)?.[1];
-  const mediaVersion = provenance.match(/packaged public Blanc v(\d+\.\d+\.\d+)/)?.[1];
+  const mediaVersion = provenance.match(/packaged public Blanc\s+v(\d+\.\d+\.\d+)/)?.[1];
 
   assert.ok(version, 'README must declare the public release behind launch media');
   assert.ok(mediaVersion, 'launch media must name the packaged public release it depicts');
@@ -45,12 +45,14 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
     assert.match(copy, /this pack is \*\*not publishable\*\*/);
   }
   assert.match(provenance, /\.\.\/island-demo\.mp4/);
-  assert.ok(
-    copy.includes('| Approved launch overview | https://www.youtube.com/watch?v=xqUFMUcCjT0 |')
+  assert.match(
+    copy,
+    /\| Current v1\.16\.0 overview \| https:\/\/www\.youtube\.com\/watch\?v=X5pAN07iuks \|/
   );
-  assert.ok(provenance.includes('`https://www.youtube.com/watch?v=xqUFMUcCjT0`'));
-  assert.ok(provenance.includes('`youtube-nocookie.com/embed/xqUFMUcCjT0`'));
-  assert.match(provenance, /September 17 at\s+12:01 a\.m\. PDT \(3:01 a\.m\. EDT\)/);
+  assert.match(provenance, /current launch media was captured from installed packaged public Blanc\s+v1\.16\.0/i);
+  assert.ok(provenance.includes('`https://www.youtube.com/watch?v=X5pAN07iuks`'));
+  assert.ok(provenance.includes('`youtube-nocookie.com/embed/X5pAN07iuks`'));
+  assert.match(provenance, /September 17 at\s+12:01 a\.m\. PDT\s+\(3:01 a\.m\. EDT\)/);
   assert.match(provenance, /live editor reports `Scheduled`/);
   assert.notDeepEqual(
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'island-resting-1270x760.png')),
