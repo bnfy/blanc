@@ -258,7 +258,7 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.ok(match, 'README must declare the current release');
   const version = match[1];
 
-  assert.ok(copy.startsWith('# Blanc launch copy pack — replacement release pending'));
+  assert.ok(copy.startsWith(`# Blanc launch copy pack — v${version} final-release refresh`));
   assert.ok(copy.includes(`| Current public release | v${version} |`));
   assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
   assert.match(copy, /Blanc is free and open source under the MIT License/);
@@ -277,6 +277,9 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /1vj0og9[\s\S]{0,500}not a founder launch[\s\S]{0,500}skip r\/browsers/i);
   assert.match(plan, /old `0de37a1` and `c7e9496` anchors are\s+historical and must not be reused/i);
   assert.match(plan, /Post-cutoff audit recorded September 10, 2026[\s\S]{0,250}`233c807cde4e27cb15813b3be146749e6e51725b`[\s\S]{0,500}after the noon product cutoff/i);
+  assert.match(plan, /owner[\s\S]{0,120}explicitly accepted[\s\S]{0,180}`233c807`[\s\S]{0,180}final launch release/i);
+  assert.match(copy, /Final release lock — ACCEPTED 2026-09-10/);
+  assert.match(copy, /2026-09-12T19:34:24Z/);
   assert.match(plan, /screen and system-audio\s+sharing from PR #308[\s\S]{0,300}older screen-sharing PR #302[\s\S]{0,200}outside the launch release/i);
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
   assert.match(plan, /launch-freeze-start[\s\S]{0,500}anchor[\s\S]{0,200}releaseTag[\s\S]{0,100}releaseSha/);

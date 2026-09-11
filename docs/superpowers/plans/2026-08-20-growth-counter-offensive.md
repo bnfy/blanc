@@ -7,15 +7,19 @@
 > MIT rule in Global Constraints and the terms in `LICENSE`,
 > `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
 
-> **Owner realignment (2026-09-09).** The September 7–10 sequence did not
+> **Owner realignment and final-release acceptance (2026-09-10).** The September 7–10 sequence did not
 > start: no launch baseline or Show HN submission was recorded, and product
 > work merged after the v1.15.0 freeze. The official replacement sequence is
 > Monday, September 14 through Thursday, September 17, with Show HN on
-> **Tuesday, September 15, 2026**. Product/runtime merges stop Thursday,
-> September 10 at noon ET; the final release and release-bound assets must be
-> fully proved by Friday, September 11 at 3:00 p.m. ET. The old `c7e9496`
-> freeze row is superseded. This realignment does not authorize a merge,
-> release, or evidence waiver.
+> **Tuesday, September 15, 2026**. Product/runtime merges were due to stop
+> Thursday, September 10 at noon ET. The owner explicitly accepted the late
+> `233c807` candidate as the final launch release after v1.16.0 completed its
+> release evidence. The complete final-release state, including refreshed
+> assets/copy and the new freeze anchor, remains due Friday, September 11 at 3:00 p.m. ET.
+> Its release-bound assets must still be refreshed, the new freeze
+> recorded, and the fresh 48-hour soak completed. The old `c7e9496` freeze row
+> is superseded. This acceptance does not waive any other merge, release,
+> asset, or evidence gate.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -40,14 +44,15 @@
 - No September 7 launch baseline or September 8 Show HN outcome was recorded.
   Reddit and Product Hunt therefore move with the full sequence; none of the
   September 7–10 launch days may fire independently.
-- Selecting v1.16.0 as the replacement final launch release still requires its
-  refreshed launch assets, adjacent updater handoffs, a new freeze record, and
-  a fresh uninterrupted soak of at least 48 hours.
+- The owner explicitly accepted v1.16.0 and `233c807` as the late final launch
+  release on September 10. Its adjacent updater handoffs are complete. The
+  remaining gates are refreshed release-bound assets/copy, a new freeze record,
+  and the uninterrupted soak through at least `2026-09-12T19:34:24Z`.
 - The noon product cutoff was missed. PR #308 merged at 2:27 p.m. ET, PR #313
   at 2:45 p.m. ET, and PR #314 at 3:00 p.m. ET. The September 14–17 sequence is
-  stopped until the owner explicitly accepts the observed late freeze candidate
-  or moves all four launch days; the timing breach itself is not an evidence
-  waiver.
+  a recorded timing breach. The owner's explicit acceptance reactivates the
+  September 14–17 sequence for this exact candidate only; it is not a general
+  timing or evidence waiver.
 
 ## Superseded execution status — September 3, 2026
 
@@ -110,10 +115,9 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship one proven launch release as-is.** No telemetry or feature changes
-  during launch week; Patron stays in the launch narrative. v1.15.0 remains
-  the public baseline, but post-tag product/runtime, dependency, package,
-  packaging, and release-workflow changes already require a new immutable
-  launch release. Never describe newer `main` behavior as shipped.
+  during launch week; Patron stays in the launch narrative. v1.16.0 at
+  `233c807cde4e27cb15813b3be146749e6e51725b` is the accepted final launch
+  release. Never describe newer `main` behavior as shipped.
 - **The backlog-cleanup window closed at the missed noon cutoff.** Bring Your
   Tabs, its live-tab handoff, and secure screen and system-audio sharing from PR
   #308 are on `main`. The older PR #302 and every held dependency,
@@ -1037,7 +1041,18 @@ If any upgrade check fails, the launch week moves.
 
 ---
 
-## Phase 1 — Assets (v1.15.0 launch set complete)
+## Phase 1 — Assets (v1.16.0 refresh ready for merge)
+
+> **v1.16.0 supersession (2026-09-10).** The completed v1.15.0 work recorded
+> below is historical. The current launch deliverable is a 42-second silent,
+> captioned overview captured from installed packaged public v1.16.0, plus a
+> homepage-backed poster and two v1.16.0 gallery stills. The local overview and
+> poster passed format, action, transition, caption, Product Hunt-size, and
+> small-screen inspection and received owner approval on September 10. The new
+> unlisted video is https://www.youtube.com/watch?v=X5pAN07iuks; Product Hunt
+> confirmed the URL was saved. The README MP4/GIF and provenance are refreshed.
+> Uploading the new gallery stills and checking the rendered player remain
+> pending; the old video is retained only as historical media.
 
 ### Task 8: Cut the 20-second Island demo
 
@@ -1564,10 +1579,11 @@ or a requirement to merge every open PR.
 > `233c807cde4e27cb15813b3be146749e6e51725b`. Screen-sharing PR #308 merged at
 > 2:27 p.m. ET, v1.16.0 preparation PR #313 at 2:45 p.m. ET, and dependency
 > update PR #314 at 3:00 p.m. ET—all after the noon product cutoff. That exact
-> SHA is the observed product-freeze candidate, but it is not an automatic
-> waiver or a `launch-freeze-start` anchor. The September 14–17 sequence is
-> stopped until the owner explicitly accepts the late candidate and v1.16.0
-> completes every release, asset, and soak gate, or moves all four launch days.
+> SHA is the observed product-freeze candidate. On September 10 the owner
+> explicitly accepted it as the final launch release after v1.16.0 completed
+> every release and adjacent-updater gate. That acceptance is not the later
+> `launch-freeze-start` anchor: refreshed release-bound assets, their merge,
+> the private freeze row, and the uninterrupted 48-hour soak remain required.
 > No later product/runtime, dependency, package-metadata, packaging, or
 > release-workflow merge may join this candidate.
 
@@ -1579,14 +1595,14 @@ including the older screen-sharing PR #302, remains outside the launch release
 unless the owner makes a new explicit selection. Do not convert the scheduling
 decision into implicit approval for any other PR.
 
-- [ ] **Step 2: End product merges by Thursday, September 10 at noon ET**
+- [x] **Step 2: End product merges; record and accept the missed September 10 noon cutoff**
 
-After the selected backlog is merged, product/runtime, dependencies, package
-metadata, packaging, release workflows, and feature specs stop moving. If the
-selected work is not merge-ready by the cutoff, leave it open and move on; do
-not consume the release-verification buffer trying to make the count zero.
+The cutoff was missed by PRs #308, #313, and #314. The owner explicitly
+accepted their exact `233c807` result on September 10. Product/runtime,
+dependencies, package metadata, packaging, release workflows, and feature
+specs are frozen there; the acceptance does not admit any later backlog work.
 
-- [ ] **Step 3: Publish and prove each immutable pre-launch release, ending with
+- [x] **Step 3: Publish and prove each immutable pre-launch release, ending with
       the launch release by Friday, September 11 at 3:00 p.m. ET**
 
 The superseded v1.15.0 release's own evidence is complete. The owner explicitly
@@ -1612,6 +1628,13 @@ only soak that can clear Task 11, and any subsequent release restarts it.
 
 Missing the Friday, September 11 cutoff moves all four launch days again.
 
+v1.16.0 was published from `233c807cde4e27cb15813b3be146749e6e51725b`
+at `2026-09-10T19:34:24Z`. Every native-platform, authenticated-manifest,
+public-download, site, AppImage launch/render, DNS, and adjacent v1.15.0 →
+v1.16.0 macOS/Windows updater gate passed. The owner accepted it as the final
+launch release on September 10. Its 48-hour release soak ends no earlier than
+`2026-09-12T19:34:24Z` if it remains public and stable.
+
 - [ ] **Step 4: Refresh every release-bound launch artifact**
 
 Regenerate the README release boundary, launch copy pack, packaged Island demo,
@@ -1619,10 +1642,13 @@ Product Hunt stills, download-baseline tag, FAQ facts, and release evidence for
 the selected public release. An old v1.10.0 asset may remain only when its exact
 behavior and visible version are still truthful for the selected release.
 
-Progress on September 3: the v1.15.0 demo and Product Hunt stills were exported
-in `f6be585`; the copy pack, provenance, and regression guards are being
-rebaselined in the same launch-only change. Check this step only after that
-change is merged and the remaining README/FAQ/baseline references are verified.
+Progress on September 10: the Product Hunt stills were recaptured from the
+installed packaged public v1.16.0 app over the live Blanc homepage. The
+overview video is owner-approved and uploaded to YouTube; Product Hunt saved
+its URL. The README short demo, copy, provenance, and regression guards are
+refreshed in this launch-only change. Check this step only after the change
+is merged, the new Product Hunt stills are uploaded, and the
+remaining README/FAQ/baseline references are verified.
 
 - [ ] **Step 5: Record the new freeze state after the release and refreshed
       assets are on `origin/main`**
@@ -1710,12 +1736,14 @@ cat "$LAUNCH_LOG"
   post-update trust checks passed
 - [x] Task 7 — v1.9.1 → v1.10.0 Windows updater handoff passed
 - [x] Task 7 — authenticated public v1.10.0 Linux AppImage launch/render passed
-- [x] Task 8 — packaged-v1.15.0 demo exported and README assets replaced
+- [ ] Task 8 — v1.16.0 gallery stills recaptured; 42-second overview and poster
+  owner-approved overview uploaded, README demo and provenance refreshed;
+  repository merge and Product Hunt gallery upload remain pending
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
-- [ ] Phase 1.5 — selected backlog resolved; unselected work remains open or is
+- [x] Phase 1.5 — selected backlog resolved; unselected work remains open or is
   explicitly closed, not rushed into the release
-- [ ] Phase 1.5 — immutable launch release published by the Friday cutoff and
+- [x] Phase 1.5 — immutable launch release published by the Friday cutoff and
   all required macOS/Windows/Linux, updater, manifest, and download gates passed
 - [ ] Phase 1.5 — README, copy pack, demo/stills, FAQ facts, and baseline tag
   refreshed for that exact launch release
@@ -2032,7 +2060,7 @@ Upload Task 8's final export as public or unlisted (never private). Its current
 warns that a newly uploaded video may need about **12 hours** before Product
 Hunt can integrate it, so do not leave the upload for launch night. Paste the
 full URL into the draft and verify the rendered preview. Upload the prepared
-240×240 thumbnail and both 1270×760 packaged-v1.15.0 stills from
+240×240 thumbnail and both 1270×760 packaged-v1.16.0 stills from
 `docs/superpowers/plans/assets/product-hunt/`; those two images satisfy the
 gallery's two-image floor. A Named Workspaces still is optional and must be
 omitted unless it is a release-backed capture labeled as a Patron feature.
@@ -2180,17 +2208,16 @@ PHASE 0 — prep, in this order
   Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
   Task 6  README refreshed and merged             (the HN landing page)
 
-RELEASE PUBLISHED — platform evidence complete; soak pending
-  Task 7  v1.10.0 published Aug 29 14:58 ET
-          v1.9.1 → v1.10.0 macOS updater handoff + trust checks PASS
-          v1.10.0 Linux public AppImage launch/render PASS
-          v1.9.1 → v1.10.0 Windows updater handoff PASS
-          48h soak PENDING — ends Aug 31 14:58 ET
+FINAL RELEASE PUBLISHED — platform and adjacent-updater evidence complete
+  v1.16.0 published Sep 10 15:34:24 ET from 233c807
+          macOS/Windows/Linux + authenticated-manifest gates PASS
+          v1.15.0 → v1.16.0 macOS and Windows updater handoffs PASS
+          launch soak PENDING — ends Sep 12 15:34:24 ET
 
 PHASE 1 — launch assets
-  Task 8  Packaged-v1.15.0 demo and gallery stills exported
+  Task 8  v1.16.0 overview approved/uploaded; demo and stills ready for merge
   Task 9  Newsletter capture verified
-  Task 10 Copy pack committed
+  Task 10 Copy pack v1.16.0 refresh in progress
 
 PHASE 1.5 — backlog cleanup + release reset
   Resolve selected backlog by Thu Sep 10 noon ET
@@ -2222,8 +2249,8 @@ prerequisite because v1.10.0 is already public.
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`;
-  Task 8's packaged-v1.15.0 demo replacement is complete in `f6be585` and must
-  merge with its updated provenance before the launch freeze starts.
+  the v1.16.0 README-demo replacement and updated provenance must still merge
+  before the launch freeze starts.
 - **Selected launch release soak or evidence not cleared** — either <48h elapsed
   or current platform evidence missing → the launch week moves unless the owner
   explicitly waives the remaining evidence after the risk is stated and records
@@ -2234,10 +2261,10 @@ prerequisite because v1.10.0 is already public.
   start Task 11. **Currently satisfied:** verification is in `Completed tasks`
   and the campaign is serving; recheck before the Monday baseline.
 - **Task 8 demo incomplete or stale for the selected release** → do not start
-  Task 11. The current 20.50-second MP4 and sub-8-MiB GIF were captured from
-  packaged public v1.10.0 and committed in `0cc0c57`; keep them as historical
-  inputs during the release train and recapture them from the final selected
-  launch release before Task 11.
+  Task 11. The v1.16.0 gallery stills and local 42-second overview/poster are
+  release-backed and owner-approved. The README demo, YouTube URL, provenance,
+  and launch-copy refresh must merge before the new freeze anchor is recorded.
+  Product Hunt gallery upload and rendered-player validation remain pending.
 - **Unreleased feature work reaches `main` after the new freeze anchor** → stop and re-audit
   the README, demo, copy pack, and public binary/repository boundary before
   posting any channel. **Pending:** Phase 1.5 must record the replacement anchor,

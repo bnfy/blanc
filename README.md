@@ -26,9 +26,9 @@ blocker count close at hand, then expands when you need more.
 
 ## Watch Blanc in action
 
-[![Watch Blanc Browser — A little less browser. (v1.15.0)](https://i.ytimg.com/vi/xqUFMUcCjT0/maxresdefault.jpg)](https://www.youtube.com/watch?v=xqUFMUcCjT0)
+[![Watch Blanc Browser — A little less browser. (v1.16.0)](https://i.ytimg.com/vi/X5pAN07iuks/maxresdefault.jpg)](https://www.youtube.com/watch?v=X5pAN07iuks)
 
-[Watch the 42-second v1.15.0 Product Hunt tour on YouTube.](https://www.youtube.com/watch?v=xqUFMUcCjT0)
+[Watch the 42-second v1.16.0 Product Hunt tour on YouTube.](https://www.youtube.com/watch?v=X5pAN07iuks)
 
 ## Security and trust
 
