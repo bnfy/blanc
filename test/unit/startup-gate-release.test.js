@@ -21,8 +21,9 @@ test('the gate-release function and liveContents are still liftable', () => {
 });
 
 /** Run the real function over controlled tabs, navigation, and wake queues. */
-function load({ tabList, queued, deferredWakes = [] }) {
+function load({ tabList, queued, deferredWakes = [], blockerAttached = true, sessions = [] }) {
   const woken = [];
+  const guarded = [];
   const sandbox = {
     tabs: new Map(tabList.map((tab, index) => [`t${index}`, tab])),
     startupQueuedNavigations: new Map(queued),
@@ -32,13 +33,14 @@ function load({ tabList, queued, deferredWakes = [] }) {
       woken.push(id);
       return Promise.resolve(false);
     },
+    installNavigationCrashGuard: (session) => guarded.push(session),
   };
   vm.runInNewContext(
     `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
     sandbox
   );
-  sandbox.__fn([], { blockerAttached: true });
-  return { woken, pendingWakes: sandbox.pendingWakes };
+  sandbox.__fn(sessions, { blockerAttached });
+  return { guarded, woken, pendingWakes: sandbox.pendingWakes };
 }
 
 const liveTab = (wcId, loaded) => ({
@@ -74,6 +76,17 @@ test('deferred wakes drain before ordinary startup navigations replay', () => {
   const result = load({ tabList: [], queued: [], deferredWakes: ['quiet-a', 'quiet-b'] });
   assert.deepEqual(result.woken, ['quiet-a', 'quiet-b']);
   assert.equal(result.pendingWakes.size, 0);
+});
+
+test('continuing without the blocker replaces the startup gate with the crash guard', () => {
+  const sessions = [{ id: 'normal' }, { id: 'private' }];
+  const result = load({
+    tabList: [],
+    queued: [],
+    blockerAttached: false,
+    sessions,
+  });
+  assert.deepEqual(result.guarded, sessions);
 });
 
 test('profile sync starts only after the complete saved tab set is restored', () => {
