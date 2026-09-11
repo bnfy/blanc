@@ -145,6 +145,8 @@ Task-by-task plan: `docs/superpowers/plans/2026-09-11-ios-duo-phase1-adaptive-sk
 
 ### Phase 2: The Island on the vertical axis (M2/M3 rework, two to three weeks)
 
+Task-by-task plan: `docs/superpowers/plans/2026-09-11-ios-duo-phase2-vertical-island.md` (drafted 2026-09-11; depends on Phase 1).
+
 **Files:**
 - Create: `ios/Blanc/Blanc/IslandReadout.swift`, `ios/Blanc/Blanc/IslandActions.swift`, `ios/Blanc/Blanc/TabDots.swift`
 - Modify: `ios/Blanc/Blanc/ContentView.swift` (compose by `LayoutPosture`), `ios/Blanc/Blanc/PaletteSheet.swift`
