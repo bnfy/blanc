@@ -8989,16 +8989,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const startupTabIds = new Map();
   const startupRuntimes = [];
   const savedStartupRuntimes = [];
+  const savedByRuntime = new Map();
   const chromeReadyPromises = [];
   const createStartupRuntime = (saved, { savedWorkspace = true } = {}) => {
     const existing = windowRuntimes.all().find((runtime) => runtime.id === saved.id);
-    const runtime = saved.id === PRIMARY_WINDOW_ID
+    let runtime = saved.id === PRIMARY_WINDOW_ID
       ? primaryRuntime
       : (existing ?? windowRuntimes.createRuntime({ id: saved.id, profileId: saved.profileId }));
-    // The primary runtime exists before session.json is read so early app
-    // callbacks always have an owner. At this point it owns no tabs or native
-    // window yet, so adopting its persisted profile is the one safe identity
-    // initialization point.
+    // Dock reopening during recovery can already have populated Personal.
+    // Keep that runtime's tabs, sessions, and callbacks in their own profile;
+    // restore a different saved identity into a separate native window.
+    if (runtime === primaryRuntime && runtime.profileId !== saved.profileId
+      && (runtime.window || runtime.tabOrder.length || runtime.closedEntries.length)) {
+      runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: saved.profileId });
+    }
+    // Only an unused primary may adopt its persisted identity at startup.
     if (runtime === primaryRuntime) runtime.profileId = saved.profileId;
     createMainWindow(runtime);
     withWindowRuntime(runtime, () => {
@@ -9006,15 +9011,42 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       startupTabIds.set(runtime.id, createTab(NEW_TAB_URL));
     });
     startupRuntimes.push(runtime);
-    if (savedWorkspace) savedStartupRuntimes.push(runtime);
+    if (savedWorkspace) {
+      savedStartupRuntimes.push(runtime);
+      savedByRuntime.set(runtime, saved);
+    }
     chromeReadyPromises.push(new Promise((resolve) => {
-      runtime.window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+      const window = runtime.window;
+      const chromeContents = window.webContents;
+      const cleanup = () => {
+        chromeContents.removeListener('did-finish-load', onChromeReady);
+        window.removeListener('closed', onClosed);
+      };
+      const onClosed = () => {
+        cleanup();
+        // Settling is cancellation for a discarded window, not readiness.
+        // releaseStartup rechecks runtime registration before restoring tabs.
+        resolve();
+      };
+      const onChromeReady = bindWindowRuntime(runtime, () => {
+        cleanup();
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) {
           setActiveTab(startupTabId, { focusContent: true });
         }
         resolve();
-      }));
+      });
+      // Dock activation can recreate primary while the recovery decision is
+      // still pending. Reusing that loaded window must not wait for a second
+      // did-finish-load: no navigation will emit it, and recovery would hang
+      // after dismissing its prompt, leaving saved tabs and OS links queued.
+      if (runtime.chromeReady) onChromeReady();
+      else {
+        chromeContents.once('did-finish-load', onChromeReady);
+        // A dismissed recovery host must not leave its readiness promise
+        // pending forever if it closes before its first load completes.
+        window.once('closed', onClosed);
+      }
     }));
     return runtime;
   };
@@ -9023,10 +9055,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   } else {
     for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
   }
-  let savedById = new Map(savedWindows.map((saved) => [saved.id, saved]));
   focusedRuntime = recoveryRequired
     ? startupRuntimes[0]
-    : (savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+    : (savedStartupRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
       ?? savedStartupRuntimes.at(-1)
       ?? primaryRuntime);
   setFocusedLocalProfile(focusedRuntime.profileId);
@@ -9058,7 +9089,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }
       savedWindows.splice(0, savedWindows.length, fresh);
       restoredActiveWindowId = PRIMARY_WINDOW_ID;
-      savedById = new Map([[PRIMARY_WINDOW_ID, fresh]]);
     }
 
     if (!diagnostics.resolveSessionRecovery()) {
@@ -9096,12 +9126,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     startupReleased = true;
     if (recoveryChoice) {
       for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
-      focusedRuntime = savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+      focusedRuntime = savedStartupRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
         ?? savedStartupRuntimes.at(-1)
         ?? primaryRuntime;
       setFocusedLocalProfile(focusedRuntime.profileId);
     }
     await Promise.all(chromeReadyPromises);
+    // A saved secondary can close before its chrome (or another window's)
+    // finishes loading. Its close handler discarded the runtime and its tabs;
+    // never resurrect it from the startup inventory. A dock-closed primary
+    // stays registered and retains a quiet workspace for the next activation.
+    const registeredRuntimes = new Set(windowRuntimes.all());
+    const restorableRuntimes = savedStartupRuntimes.filter((runtime) => registeredRuntimes.has(runtime));
+    focusedRuntime = restorableRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
+      ?? restorableRuntimes.at(-1)
+      ?? primaryRuntime;
+    setFocusedLocalProfile(focusedRuntime.profileId);
 
     if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
       // “Continue without blocking” is an explicit effective-state change,
@@ -9120,8 +9160,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
-    for (const runtime of savedStartupRuntimes) {
-      const saved = savedById.get(runtime.id);
+    for (const runtime of restorableRuntimes) {
+      const saved = savedByRuntime.get(runtime);
       if (!saved) continue;
       withWindowRuntime(runtime, () => {
         // Lazy restore: every saved tab is a labelled record with no renderer.
@@ -9150,7 +9190,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!target) return;
         // Activate first, then close the startup tab. The inverse briefly wakes
         // the wrong quiet tab and doubles renderer memory during restore.
-        setActiveTab(target, { focusContent: true });
+        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
+        else runtime.activeTabId = target;
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
       });
