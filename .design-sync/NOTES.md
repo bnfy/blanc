@@ -382,33 +382,45 @@ and found nothing). Owner approved the full scope + the push after render proof.
 - Pushed as plan_bee811dfe403446a_e97afb2cfd05, 13 files + sentinel fenced first
   and re-armed last. Verified: `tokens/layout.css` round-trips byte-identical.
 
-### Repo fix made alongside (NOT a DS push, NOT yet committed): pages.css `--shadow-pill` was undefined
+### Finding only, NOT fixed: pages.css `--shadow-pill` is undefined for internal pages
 `pages.css` referenced `var(--shadow-pill)` twice — `.ob-tile-blanc` and
 `.ob-minipill`, both first-run onboarding — but `tokens.json` scoped the token to
 `chrome` only, `pages.css` `:root` never declared it, and internal pages never load
 `styles.css`. With no fallback the declaration was invalid at computed-value time,
 so both elements painted **no shadow at all**. Present since 0fea28e (#140,
 2026-08-16); unrelated to this drift window, found while rewriting the layout.css
-shadow comment. Fixed by adding `pages` to the token's consumers and declaring it
-in `pages.css` `:root` (exact `tokens.json` value — the checker compares strings, so
-the unspaced `rgba(255,255,255,0.65)` form is required). Proved with a positive
-control: the pre-fix stylesheet computes `box-shadow: none` on both elements, the
-fixed one resolves all six layers. `npm run substrate:check` and 1770 unit tests pass.
+shadow comment. Confirmed with a positive control: the stylesheet computes
+`box-shadow: none` on both elements, and adding the token to `pages.css` `:root`
+(plus `pages` to its `tokens.json` consumers) resolves all six layers.
 
-**Left UNCOMMITTED in the shared checkout, deliberately.** A concurrent session was
-mid-edit on `src/renderer/pages/pages.css` (its own `#startupCard` recovery rules,
-alongside uncommitted `main.js`/`newtab.html`/`package.json` and two new
-`test/desktop/*-smoke.mjs` files), so that file carries two unrelated hunks and could
-not be staged wholesale. `tokens.json` and `pages.css` must land in the SAME commit
-or `tokens:check` fails both ways (the checker flags a token in the source that the
-CSS lacks, and a token in the CSS the source lacks), so splitting them was not an
-option either. The three files — `tokens/tokens.json`, `tokens/generated/tokens.css`,
-and the `:root` hunk of `pages.css` — are in the working tree awaiting the owner.
+**A fix was written, then REVERTED on the owner's instruction — see the standing
+rule below.** The app is byte-identical to before this sync. Anyone picking this up
+later: the two halves must land in ONE commit or `tokens:check` fails both ways (it
+flags a token the source has and the CSS lacks, and vice versa), and `pages.css`
+needs the exact unspaced `rgba(255,255,255,0.65)` form because the checker compares
+strings, not colours.
 
-**Still open / deliberately not done:** the onboarding `.ob-minipill` now draws a
-999px capsule wearing `--shadow-pill` — it illustrates the RESTING ISLAND, which is
-no longer either of those things. Restoring its shadow was a bug fix; restyling it
-to the 44/17 island material is a design change and needs the owner's call. The
+## STANDING RULE (owner, 2026-09-11): /design-sync never changes the app
+
+This mode is a ONE-WAY mirror: the app is the source of truth and the Design System
+is what gets updated. Do not edit app code during a sync — not a token, not a
+stylesheet, not a "bug fix" — even when a repo change is approved earlier in the
+same conversation, and even when the defect is real and provable. Anything found in
+the app gets WRITTEN DOWN here and handed to the owner as a separate decision; it
+never rides along with a sync.
+
+The `--shadow-pill` fix above is the case that produced this rule: it was a genuine
+bug with a verified positive control, and it still changed what the app renders
+(onboarding tiles gaining a shadow they had not been drawing), which is a design
+change. Restoring intended behaviour is not a licence to alter shipped appearance.
+The fix and its `tokens.json`/`tokens/generated` half were reverted; only this record
+remains. The same rule retires the `.ob-minipill` restyle floated below — do not act
+on it, just leave it documented.
+
+**Still open / deliberately not done:** the onboarding `.ob-minipill` draws a 999px
+capsule asking for `--shadow-pill` — it illustrates the RESTING ISLAND, which is no
+longer either of those things (and, per the finding above, it gets no shadow at all).
+Restyling it to the 44/17 island material is the owner's call, not a sync's. The
 display-share PICKER dialog stays unmodeled (transient in-flow UI, same class as the
 fill-status capsule and the Patron gate). PORT-CHECKLIST's two older gaps —
 capture-controls popover, retinted theme icons — are still open.
