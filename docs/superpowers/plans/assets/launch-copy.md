@@ -252,6 +252,18 @@ post so soon after that discussion would be welcome under the live r/browsers
 rules; skip if the answer is ambiguous. Do not revive or commandeer the old
 thread as a substitute launch.
 
+**Owned subreddit — DECISION 2026-09-11: reserve, do not launch.** Reserve
+`r/blancbrowser` under the owner's personal account so nobody squats the name,
+set it to private or restricted, and leave it empty. Do not announce it, link
+to it from any launch channel, seed it with posts, or invite users during the
+September 14–17 sequence. An empty founder-run subreddit advertises the small
+install base, competes with the existing-community posts above for the one
+week that matters, and invites the manufactured-activity behaviour this
+section forbids. Reddit sends readers to posts in communities they already
+read, not to new subreddits. Revisit an official community only after the
+October 8 retention checkpoint, and prefer GitHub Discussions on the
+open-source repository as the first home for recurring inbound questions.
+
 ### Browser community draft — candidate after same-day rule check
 
 **Title**
