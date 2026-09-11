@@ -1,5 +1,74 @@
 [
   {
+    "tag": "v1.16.2",
+    "version": "1.16.2",
+    "name": "1.16.2",
+    "publishedAt": "2026-09-11T21:24:34.000Z",
+    "humanDate": "September 11, 2026",
+    "machineDate": "2026-09-11",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.16.2",
+    "anchor": "v1-16-2",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Opening or restoring a Chrome Web Store page no longer crashes Blanc. Until Electron ships its upstream correction, Blanc shows a local explanation page before the affected site can trigger the native crash."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Restored Chrome Web Store tabs now recover safely without preventing the rest of the saved session from opening."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The macOS About panel now displays a distinct build number instead of repeating the public version."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Known limitation",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Chrome Web Store pages are temporarily unavailable inside Blanc. Use another browser to browse the store until Blanc can adopt Electron's upstream fix."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.16.1",
     "version": "1.16.1",
     "name": "1.16.1",
