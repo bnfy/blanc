@@ -61,6 +61,8 @@ overwritten** — a headless build can't visually re-verify chrome CSS, and drif
 prevention is the substrate's actual purpose; flipping `styles.css`/`pages.css` to
 be emitted from the source (the reference `tokens.css` shows the output) is a
 mechanical follow-up once an app-run can confirm it. See `tokens/README.md`.
+Since 2026-09-11 a token may target the virtual `mobile` consumer (Swift/Kotlin
+only, no CSS guard); the iPhone Duo Island geometry (D27) is the first group.
 
 ---
 
@@ -81,12 +83,14 @@ is the most common silent parity failure and the easiest to prevent.
 `generated/{SlashCommands.strings,slash_commands.xml}`, and `npm run copy:check`
 guards **both** desktop copies (`overlay.js` command table and
 `pages/shortcuts.js` reference list — hand-synced today) against drift. Same
-guard-not-overwrite posture as S2/S5. Still open (same pattern): settings field
-labels, newtab ledger copy, empty states, permission-prompt text, and — first
-in line, because iPhone Duo's vertical toolbar requires a title for every
-Island action (D27) — the **island-action titles** (reload, stop, favorite,
-unfavorite, close tab, downloads, new tab, tabs), guarded against the desktop
-action-cluster labels the same way slash commands are. Note the
+guard-not-overwrite posture as S2/S5. **Second slice built 2026-09-11:** the
+**island-action titles** (reload, stop, favorite, unfavorite, close tab,
+downloads, new tab, tabs) that iPhone Duo's vertical toolbar requires (D27) —
+`copy/island-actions.json` emits `generated/{IslandActions.strings,
+island_actions.xml}` and guards the desktop action-cluster labels in
+`renderer.js` and `overlay.js` one-way (a desktop rename fails the check).
+Still open (same pattern): settings field labels, newtab ledger copy, empty
+states, permission-prompt text. Note the
 **app-icon and search-engine labels are owned by S5** (`settings-schema/`) — not
 duplicated here. See `copy/README.md`.
 

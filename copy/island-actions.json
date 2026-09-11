@@ -1,0 +1,17 @@
+{
+  "$note": "Single source of truth for the Island action titles (substrate S3, second slice; added for iPhone Duo, D27). Apple's iPhone Duo guidance requires a title and a symbol for every toolbar item, because the system uses the title in the overflow menu and expanded forms. `title` is the user-facing label; `symbol` is the SF Symbol Phase 2 of the Duo plan renders on iOS (Android maps it to its own icon set). `desktop` names, per desktop file, the base label that file already carries for the same action — the guard verifies that literal still exists there (as a `title`/`aria-label` or `pillButton(...)` argument, allowing a trailing shortcut suffix such as ` (⌘T)`), so a desktop rename fails `copy:check` until the catalog and the mobile resources follow. An entry with `platforms` is omitted from the desktop guard and only emitted for the listed platforms.",
+  "sources": {
+    "renderer": "src/renderer/renderer.js",
+    "overlay": "src/renderer/overlay.js"
+  },
+  "actions": [
+    { "id": "reload",     "title": "Reload",             "symbol": "arrow.clockwise",  "desktop": { "renderer": "Reload", "overlay": "Reload" } },
+    { "id": "stop",       "title": "Stop",               "symbol": "xmark",            "desktop": { "renderer": "Stop", "overlay": "Stop" } },
+    { "id": "favorite",   "title": "Favorite this page", "symbol": "heart",            "desktop": { "renderer": "Favorite this page", "overlay": "Favorite this page" } },
+    { "id": "unfavorite", "title": "Remove favorite",    "symbol": "heart.fill",       "desktop": { "renderer": "Remove favorite", "overlay": "Remove favorite" } },
+    { "id": "close_tab",  "title": "Close tab",          "symbol": "xmark.circle",     "desktop": { "renderer": "Close tab", "overlay": "Close tab" } },
+    { "id": "downloads",  "title": "Downloads",          "symbol": "arrow.down.circle","desktop": { "renderer": "Downloads" } },
+    { "id": "new_tab",    "title": "New tab",            "symbol": "plus",             "desktop": { "renderer": "New tab", "overlay": "New tab" } },
+    { "id": "tabs",       "title": "Tabs",               "symbol": "square.on.square", "platforms": ["ios", "android"], "comment": "The vertical tab-dots toolbar item on iPhone Duo (D27). Desktop has no single 'Tabs' control — its dots are individually labelled 'Switch to <title>' — so there is nothing to guard." }
+  ]
+}

@@ -19,6 +19,20 @@ const SRC = path.join(ROOT, 'tokens', 'tokens.json');
 const OUT = path.join(ROOT, 'tokens', 'generated');
 
 const spec = JSON.parse(fs.readFileSync(SRC, 'utf8'));
+
+// Every consumer a token names must be a CSS file the guard knows (spec.consumers)
+// or a declared virtual consumer such as `mobile` (Swift/Kotlin only, no CSS
+// guard). A typo like "chrom" would otherwise silently drop the token from the
+// guard and let desktop drift pass.
+const KNOWN_CONSUMERS = new Set([...Object.keys(spec.consumers), ...Object.keys(spec.virtualConsumers ?? {})]);
+for (const t of spec.tokens) {
+  const bad = t.consumers.filter((c) => !KNOWN_CONSUMERS.has(c));
+  if (!t.consumers.length || bad.length) {
+    console.error(`tokens.json: token "${t.name}" has ${bad.length ? `unknown consumer(s) ${bad.join(', ')}` : 'no consumers'}`);
+    process.exit(1);
+  }
+}
+const isMobileOnly = (t) => t.consumers.every((c) => c in (spec.virtualConsumers ?? {}));
 const isThemed = (t) => 'light' in t.values;
 const forConsumer = (c) => spec.tokens.filter((t) => t.consumers.includes(c));
 const camel = (n) => n.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -93,7 +107,7 @@ function genSwift() {
     for (const s of spec.themes) out += `        case .${scopeCase[s]}: return ${JSON.stringify(t.values[s])}\n`;
     out += '        }\n    }\n';
   }
-  for (const t of common) out += `    public static let ${camel(t.name)} = ${JSON.stringify(t.values.common)}\n`;
+  for (const t of common) out += `    public static let ${camel(t.name)} = ${JSON.stringify(t.values.common)}${isMobileOnly(t) ? ' // mobile-only: no desktop CSS counterpart' : ''}\n`;
   out += '}\n';
   return out;
 }
@@ -113,7 +127,7 @@ function genKotlin() {
     for (const s of spec.themes) out += `        BlancTheme.${scopeEnum[s]} -> ${JSON.stringify(t.values[s])}\n`;
     out += '    }\n';
   }
-  for (const t of common) out += `    const val ${camel(t.name)}: String = ${JSON.stringify(t.values.common)}\n`;
+  for (const t of common) out += `    const val ${camel(t.name)}: String = ${JSON.stringify(t.values.common)}${isMobileOnly(t) ? ' // mobile-only: no desktop CSS counterpart' : ''}\n`;
   out += '}\n';
   return out;
 }

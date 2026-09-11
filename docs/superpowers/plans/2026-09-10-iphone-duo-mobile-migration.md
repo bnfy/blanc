@@ -118,9 +118,9 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
   - `F1-8` Inner camera activation moves the pill and page content out of the camera region and back when it deactivates.
   - `F8-2` Find capsule moves off the folding region without closing.
   - `F35-7` Start page `shelf` renders an even number of columns and no content across the fold when folded.
-- [ ] **Step 5: Add the copy slice.** Titles for reload, stop, favorite, unfavorite, close tab, downloads, new tab, tabs, and overflow, generated to `.strings` and `.xml`, guarded against the desktop action-cluster labels in `index.html`/`overlay.js` the same way slash commands are.
-- [ ] **Step 6: Add tokens.** `island-readout-height`, `island-readout-radius`, `island-dot-size`, `island-dot-gap` under a `geometry` group with a `mobile` consumer; extend `tokens/build.mjs` so `mobile`-only tokens are emitted to Swift/Kotlin and skipped by the desktop CSS guard.
-- [ ] **Step 7: Run the gates.** *(spec half run 2026-09-11 after Steps 2–4; rerun after Steps 5–6)* `npm run substrate:check` and `npm run test:acceptance:dry` pass. Commit as the paired spec commit.
+- [x] **Step 5: Add the copy slice.** *(done 2026-09-11: `copy/island-actions.json`, one-way desktop guard, `IslandActions.strings` / `island_actions.xml`)* Titles for reload, stop, favorite, unfavorite, close tab, downloads, new tab, tabs, and overflow, generated to `.strings` and `.xml`, guarded against the desktop action-cluster labels in `index.html`/`overlay.js` the same way slash commands are.
+- [x] **Step 6: Add tokens.** *(done 2026-09-11: virtual `mobile` consumer, four geometry tokens, consumer-name validation)* `island-readout-height`, `island-readout-radius`, `island-dot-size`, `island-dot-gap` under a `geometry` group with a `mobile` consumer; extend `tokens/build.mjs` so `mobile`-only tokens are emitted to Swift/Kotlin and skipped by the desktop CSS guard.
+- [x] **Step 7: Run the gates.** *(2026-09-11: tokens/settings/copy/adblock/compliance checks and the acceptance dry run pass; brand:check is unverifiable in a Linux sandbox and unaffected)* `npm run substrate:check` and `npm run test:acceptance:dry` pass. Commit as the paired spec commit.
 
 **Gate:** spec files describe the Duo contract completely enough that a Swift engineer needs no HIG page open to build Phase 1 and 2.
 

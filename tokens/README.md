@@ -38,6 +38,15 @@ it has a single `common` value (fonts, radius, shadows, strip height) — emitte
 only in `:root`. Each token lists its `consumers` (`chrome` = `styles.css`, `pages`
 = `pages.css`); the mobile files receive the full union.
 
+A token may instead name the **virtual `mobile` consumer** (declared under
+`virtualConsumers`): it has no desktop CSS file, so the CSS guard and the
+reference `tokens.css` skip it, and it is emitted to `Tokens.swift` /
+`Tokens.kt` with a `// mobile-only` annotation. The first such group is the
+iPhone Duo Island geometry (`island-readout-height`, `island-readout-radius`,
+`island-dot-size`, `island-dot-gap`; D27). The builder rejects any consumer
+name that is neither a CSS file nor a declared virtual consumer, so a typo
+cannot silently drop a token from the guard.
+
 To change or add a token: edit `tokens.json`, run `tokens:build`, and — for now —
 update the matching declaration in the CSS file(s) by hand (the check confirms you
 did). Adding it to `tokens.json` is what keeps Swift/Kotlin and the drift guard in
@@ -68,3 +77,6 @@ generated — no palette is ever hand-copied into Swift or Kotlin.
   scopes in both files.
 - Negative-tested: perturbing a single value in `tokens.json` makes the check fail
   with a precise `DRIFT:` line for each affected file and exit 1.
+- Negative-tested (2026-09-11): an unknown consumer name fails the build at
+  load; perturbing a `mobile` token reports only `STALE` generated files, never
+  a CSS `DRIFT`.
