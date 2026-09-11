@@ -40,9 +40,10 @@
 - The September 11, 3 p.m. ET release-readiness cutoff was missed. The
   September 14–17 sequence is stopped; all four launch days need an owner
   reschedule. The dated schedule below is historical until that decision.
-- Adjacent v1.16.0 → v1.16.1 Mac and Windows in-app updater handoffs remain
-  pending. Final launch baseline selection, refreshed media, and a new freeze
-  with a full ≥48-hour soak remain required. Publication is not a waiver.
+- The owner confirmed both adjacent v1.16.0 → v1.16.1 Mac and Windows in-app
+  updater handoffs succeeded on September 11. Final launch baseline selection,
+  refreshed media, and a new freeze with a full ≥48-hour soak remain required.
+  Release and updater success are not a launch waiver.
 
 ## Historical execution status — September 10, 2026
 
