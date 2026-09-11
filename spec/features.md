@@ -37,6 +37,16 @@ toolbar (Bowser Design System "Island Chrome").
   view. Mobile renders it natively (SwiftUI / Compose) driven by shared design
   tokens (→ substrate). The *layout, contents, and states* are the contract; the
   windowing is D11, the input affordances are D7.
+- **iPhone Duo note (D27):** on the outer display and on the inner display in
+  landscape, where iOS places controls on a vertical side edge, the Island
+  splits into a horizontal **readout** capsule (favicon, domain, shield state,
+  private chip; tap = palette) and **actions** rendered as system toolbar items
+  on that edge (Close Tab; New Tab and Reload/Stop at high priority; Favorite;
+  Downloads with a badge while active; and the tab dots as one vertical item,
+  cap 8 plus `+N`). On the inner display in portrait the ordinary resting pill
+  returns. Contents, states, copy, and the 8-dot cap are unchanged by the
+  split; opening or closing the device never recreates tabs, web views, palette
+  input, or find state.
 - **Acceptance:** With 3 tabs in a group named `work` and 2 trackers blocked on the
   active page, the pill shows the platform back/forward affordance (buttons on
   desktop, edge-swipe gesture on mobile per D7), 3 dots, the domain, a shield
@@ -178,8 +188,14 @@ Typed into the command bar. Names + hints are the shared-copy contract below;
 - A find capsule floats over the page; the rest of the page stays interactive
   (desktop keeps the overlay bounds tight around the capsule). Match navigation
   (next/prev), count display, dismiss on Escape/back.
+- The capsule is a custom surface, so it avoids reserved regions itself: on
+  iPhone Duo it stays clear of the camera and, while the device is partially
+  folded, of the folding region, moving as little as necessary rather than
+  jumping (D27).
 - **Acceptance:** Find a word present 3× → count shows 3 and next/prev cycles
-  highlights without blocking clicks elsewhere.
+  highlights without blocking clicks elsewhere. On iPhone Duo, folding the
+  inner display moves the open capsule off the folding region without closing
+  it or losing the match count (F8-2).
 
 ## F9 — Favorites
 
@@ -316,6 +332,14 @@ From the desktop `DEFAULTS`:
   count + palette hint. **No mascot** (retired in the rebrand — do not reintroduce).
 - **Strong reuse opportunity:** ship these as **one shared web bundle** rendered in
   a web view on every platform, so they stay pixel-identical for free (→ substrate).
+- **Fold descriptor (D27, S4):** the pages have no reserved-region API of their
+  own, so the native host may push `{folded, axis, insetStart, insetEnd}` over
+  the pages bridge; the bundle exposes it as `--fold-inset-start` /
+  `--fold-inset-end` custom properties and a `data-fold` attribute on the root
+  element. The unfolded state is the default and desktop never sets it, so
+  desktop rendering is unchanged. Layouts that opt in keep content off the
+  folding region with even column counts and a centre gutter, adjusting as
+  little as possible rather than rearranging.
 - **Acceptance:** newtab shows today's date, favorites, resumable groups, and the
   weekly blocked count; each page's nav links resolve within `blanc://`; utility
   pages open in the transient surface leaving the tab set untouched, and
@@ -707,8 +731,10 @@ From the desktop `DEFAULTS`:
   62/38 default. Glance never crosses window/profile ownership, never survives
   native-window teardown or session restore, and a visible Glance tab is never
   made quiet (F31).
-- Glance is a desktop window-model capability (D11). Phone ports are N/A unless
-  a future tablet/foldable contract defines a comparable multi-pane surface.
+- Glance is a desktop window-model capability (D11). Phone ports are N/A with
+  one exception: the **iPhone Duo inner display** may present Glance as a split
+  arrangement under D11's 2026-09-11 amendment (PLANNED; hardware-gated; same
+  ownership rules, no divider persistence). Ordinary phones remain N/A.
 - **Acceptance:**
   [`acceptance/glance.feature`](./acceptance/glance.feature) selects a specific
   tab through the dedicated picker, verifies dominant/reference geometry,
@@ -763,6 +789,11 @@ From the desktop `DEFAULTS`:
   tracked locally alongside the existing weekly total.
 - No layout may ever scroll horizontally, at any window width; narrow windows
   compact insets, wrap rows, and stack the tally columns rather than overflow.
+- When the host reports a partially folded display (the F16 fold descriptor,
+  D27), `shelf` and `billboard` snap to an even column count with a centre
+  gutter, `ledger` and `tally` keep their columns off the folding region, and
+  Mahjong keeps its board on one half and its controls on the other. Unfolded
+  rendering is byte-for-byte the same as before the descriptor existed.
   At supported browser zoom levels, Mahjong's controls, board, and footer
   switcher remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — with no
