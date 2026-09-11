@@ -43,7 +43,7 @@ Not stated anywhere on the page: point dimensions, safe-area values, hinge geome
 
 ---
 
-## 3. Design decisions (recommendations to ratify in Phase 0)
+## 3. Design decisions (ratified 2026-09-11)
 
 ### 3.1 Island decomposition on the vertical axis (new divergence, D27)
 
@@ -107,7 +107,7 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
 - Modify: `docs/superpowers/specs/2026-07-07-ios-port-roadmap-design.md` (append a Duo addendum pointing here)
 
 - [ ] **Step 1: Watch the three Tech Talks** *(open: needs a person with video access; not doable from a headless session)* (111462, 111463, 111466) and record the exact API names for arrangement views and reserved regions in a `references/` note. As of September 10 neither appears in the public SwiftUI or UIKit documentation index, while `ToolbarItemVisibilityPriority`, `ToolbarOverflowMenu`, `UIBarButtonItemVisibilityPriority`, and `UINavigationItem.additionalOverflowItems` do, all at iOS 27.0. Download the iPhone Duo templates from Apple Design Resources for the safe-area values.
-- [x] **Step 2: Write D27** *(done 2026-09-11, proposed status; awaiting owner ratification)* ("iPhone Duo vertical-axis Island decomposition") with the option analysis from section 3.1 and the parity contract. Amend D7 to add Duo triggers (tap readout = palette; toolbar items = action cluster). Amend D11 so a foldable inner display may adopt a two-pane surface under an explicit contract. Amend D19 to say the vertical tab dots on Duo are a presentation of the same tab model.
+- [x] **Step 2: Write D27** *(written and ratified by the owner 2026-09-11)* ("iPhone Duo vertical-axis Island decomposition") with the option analysis from section 3.1 and the parity contract. Amend D7 to add Duo triggers (tap readout = palette; toolbar items = action cluster). Amend D11 so a foldable inner display may adopt a two-pane surface under an explicit contract. Amend D19 to say the vertical tab dots on Duo are a presentation of the same tab model.
 - [x] **Step 3: Amend the features.** F1 gains a platform note referencing D27 and keeps the 8-dot cap as the contract on every platform. F8 states the find capsule avoids reserved regions. F16 and F35 state that internal pages receive fold geometry and use even column counts when folded. F34 records the Duo inner display as a permitted, PLANNED surface.
 - [x] **Step 4: Write `iphone-duo.feature`.** Scenario ids follow the suite's `F<feature>-<n>` rule, all tagged `@duo @ios @mobile @D27`:
   - `F1-3` Outer display shows the readout capsule and vertical action items with Reload and New Tab visible at the top of the axis.
@@ -125,6 +125,8 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
 **Gate:** spec files describe the Duo contract completely enough that a Swift engineer needs no HIG page open to build Phase 1 and 2.
 
 ### Phase 1: Toolchain and adaptive skeleton (M0/M1 refresh, one to two weeks)
+
+Task-by-task plan: `docs/superpowers/plans/2026-09-11-ios-duo-phase1-adaptive-skeleton.md` (drafted 2026-09-11).
 
 **Files:**
 - Modify: `ios/Blanc/Blanc.xcodeproj/project.pbxproj` (Xcode 27 recommended settings; keep `IPHONEOS_DEPLOYMENT_TARGET = 17.0`; `UIRequiresFullScreen` absent or false; all orientations)

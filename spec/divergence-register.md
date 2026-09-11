@@ -715,7 +715,9 @@ postures.
 **Tagging:** Duo scenarios tag `@ios @mobile @duo @D27`; those that touch the
 fold or a second pane additionally tag `@D11`.
 
-**Status:** Proposed 2026-09-11 (Phase 0 of the Duo plan). Awaiting product
-owner ratification; no iOS code implements it yet. Reserved-region and
-arrangement-view API names are pending verification against the iOS 27 SDK
-(plan §6).
+**Status:** Accepted by the product owner 2026-09-11, the day it was proposed
+in Phase 0 of the Duo plan. No iOS code implements it yet; Phase 1
+(`docs/superpowers/plans/2026-09-11-ios-duo-phase1-adaptive-skeleton.md`)
+lays the adaptive layer and Phase 2 builds the split. Reserved-region and
+arrangement-view API names are still pending verification against the iOS 27
+SDK (plan §6); they affect Phases 3 and 4, not this contract.
