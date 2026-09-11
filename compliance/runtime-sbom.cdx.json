@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.16.1",
+      "bom-ref": "application:runtime:blanc@1.16.2",
       "name": "Blanc",
-      "version": "1.16.1",
+      "version": "1.16.2",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -1704,7 +1704,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.16.1",
+      "ref": "application:runtime:blanc@1.16.2",
       "dependsOn": [
         "asset:blanc-adblock-seed",
         "asset:inter-font",
