@@ -120,6 +120,8 @@
     ],
     "files": [
       "src/**/*",
+      "!src/renderer/pages/icon.svg",
+      "!src/renderer/pages/icon-{paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}.png",
       "adblock/sources/**/*",
       "package.json",
       "LICENSE",

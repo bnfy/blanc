@@ -80,6 +80,8 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
     'blanc-chrome://index/overlay.js',
     'blanc-chrome://overlay/renderer.js',
     'blanc-chrome://index/pages/settings.html',
+    'blanc-chrome://index/pages/icon.svg',
+    'blanc-chrome://overlay/pages/icon.svg',
     'blanc-chrome://index/../main/main.js',
     'blanc-chrome://index/%2e%2e/main/main.js',
     'blanc-chrome://index/styles.css?cache=1',

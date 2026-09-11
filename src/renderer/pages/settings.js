@@ -341,7 +341,7 @@
     appIconSetting.remove();
   } else {
     document.getElementById('appIconHint').textContent =
-      'Follows macOS Icon & Widget Style; Finder keeps Paper';
+      'Follows macOS Icon & Widget Style; Finder uses Sunrise';
     renderAppIconGrid();
   }
 
