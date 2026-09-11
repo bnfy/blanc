@@ -145,5 +145,7 @@ try {
   }
   server.closeAllConnections?.();
   await new Promise((resolve) => server.close(resolve));
-  fs.rmSync(userDataDir, { recursive: true, force: true });
+  // Windows can retain a child-process cache handle briefly after app exit.
+  // A persistent lock still fails the gate after this bounded cleanup retry.
+  fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
