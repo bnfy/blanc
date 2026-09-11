@@ -106,20 +106,21 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
 - Modify: `tokens/tokens.json` (mobile island geometry group)
 - Modify: `docs/superpowers/specs/2026-07-07-ios-port-roadmap-design.md` (append a Duo addendum pointing here)
 
-- [ ] **Step 1: Watch the three Tech Talks** (111462, 111463, 111466) and record the exact API names for arrangement views and reserved regions in a `references/` note. As of September 10 neither appears in the public SwiftUI or UIKit documentation index, while `ToolbarItemVisibilityPriority`, `ToolbarOverflowMenu`, `UIBarButtonItemVisibilityPriority`, and `UINavigationItem.additionalOverflowItems` do, all at iOS 27.0. Download the iPhone Duo templates from Apple Design Resources for the safe-area values.
-- [ ] **Step 2: Write D27** ("iPhone Duo vertical-axis Island decomposition") with the option analysis from section 3.1 and the parity contract. Amend D7 to add Duo triggers (tap readout = palette; toolbar items = action cluster). Amend D11 so a foldable inner display may adopt a two-pane surface under an explicit contract. Amend D19 to say the vertical tab dots on Duo are a presentation of the same tab model.
-- [ ] **Step 3: Amend the features.** F1 gains a platform note referencing D27 and keeps the 8-dot cap as the contract on every platform. F8 states the find capsule avoids reserved regions. F16 and F35 state that internal pages receive fold geometry and use even column counts when folded. F34 records the Duo inner display as a permitted, PLANNED surface.
-- [ ] **Step 4: Write `iphone-duo.feature`.** Scenarios, all tagged `@duo @ios`:
-  - `DUO-1` Outer display shows the readout capsule and vertical action items with Reload and New Tab visible at the top of the axis.
-  - `DUO-2` Opening the device in portrait restores the single resting pill without reloading the page or losing typed palette input.
-  - `DUO-3` Inner display in landscape places controls on the side; in Split View they sit on Blanc's outer edge.
-  - `DUO-4` Partially folded inner display keeps the palette sheet, permission prompt, and shield popover off the folding region.
-  - `DUO-5` Start page `shelf` renders an even number of columns and no content across the fold when folded.
-  - `DUO-6` Inner camera activation moves the readout and page content out of the camera region and back when it deactivates.
-  - `DUO-7` Downloads item stays visible under compression while a download is active.
+- [ ] **Step 1: Watch the three Tech Talks** *(open: needs a person with video access; not doable from a headless session)* (111462, 111463, 111466) and record the exact API names for arrangement views and reserved regions in a `references/` note. As of September 10 neither appears in the public SwiftUI or UIKit documentation index, while `ToolbarItemVisibilityPriority`, `ToolbarOverflowMenu`, `UIBarButtonItemVisibilityPriority`, and `UINavigationItem.additionalOverflowItems` do, all at iOS 27.0. Download the iPhone Duo templates from Apple Design Resources for the safe-area values.
+- [x] **Step 2: Write D27** *(done 2026-09-11, proposed status; awaiting owner ratification)* ("iPhone Duo vertical-axis Island decomposition") with the option analysis from section 3.1 and the parity contract. Amend D7 to add Duo triggers (tap readout = palette; toolbar items = action cluster). Amend D11 so a foldable inner display may adopt a two-pane surface under an explicit contract. Amend D19 to say the vertical tab dots on Duo are a presentation of the same tab model.
+- [x] **Step 3: Amend the features.** F1 gains a platform note referencing D27 and keeps the 8-dot cap as the contract on every platform. F8 states the find capsule avoids reserved regions. F16 and F35 state that internal pages receive fold geometry and use even column counts when folded. F34 records the Duo inner display as a permitted, PLANNED surface.
+- [x] **Step 4: Write `iphone-duo.feature`.** Scenario ids follow the suite's `F<feature>-<n>` rule, all tagged `@duo @ios @mobile @D27`:
+  - `F1-3` Outer display shows the readout capsule and vertical action items with Reload and New Tab visible at the top of the axis.
+  - `F1-4` Opening the device in portrait restores the single resting pill without reloading the page or losing typed palette input.
+  - `F1-5` Inner display in landscape places controls on the side; in Split View they sit on Blanc's outer edge.
+  - `F1-6` Downloads item stays visible under compression while a download is active.
+  - `F1-7` Partially folded inner display keeps the palette sheet, permission prompt, and shield popover off the folding region.
+  - `F1-8` Inner camera activation moves the pill and page content out of the camera region and back when it deactivates.
+  - `F8-2` Find capsule moves off the folding region without closing.
+  - `F35-7` Start page `shelf` renders an even number of columns and no content across the fold when folded.
 - [ ] **Step 5: Add the copy slice.** Titles for reload, stop, favorite, unfavorite, close tab, downloads, new tab, tabs, and overflow, generated to `.strings` and `.xml`, guarded against the desktop action-cluster labels in `index.html`/`overlay.js` the same way slash commands are.
 - [ ] **Step 6: Add tokens.** `island-readout-height`, `island-readout-radius`, `island-dot-size`, `island-dot-gap` under a `geometry` group with a `mobile` consumer; extend `tokens/build.mjs` so `mobile`-only tokens are emitted to Swift/Kotlin and skipped by the desktop CSS guard.
-- [ ] **Step 7: Run the gates.** `npm run substrate:check` and `npm run test:acceptance:dry` pass. Commit as the paired spec commit.
+- [ ] **Step 7: Run the gates.** *(spec half run 2026-09-11 after Steps 2–4; rerun after Steps 5–6)* `npm run substrate:check` and `npm run test:acceptance:dry` pass. Commit as the paired spec commit.
 
 **Gate:** spec files describe the Duo contract completely enough that a Swift engineer needs no HIG page open to build Phase 1 and 2.
 
@@ -146,16 +147,16 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
 - Create: `ios/Blanc/Blanc/IslandReadout.swift`, `ios/Blanc/Blanc/IslandActions.swift`, `ios/Blanc/Blanc/TabDots.swift`
 - Modify: `ios/Blanc/Blanc/ContentView.swift` (compose by `LayoutPosture`), `ios/Blanc/Blanc/PaletteSheet.swift`
 - Modify: `ios/Blanc/Blanc/TabsManager.swift` (close tab, favorite hook, downloads badge count placeholders)
-- Create: `ios/Blanc/BlancTests/IslandCompositionTests.swift`, UI tests for DUO-1, DUO-2, DUO-3, DUO-7
+- Create: `ios/Blanc/BlancTests/IslandCompositionTests.swift`, UI tests for F1-3, F1-4, F1-5, F1-6
 
 - [ ] **Step 1: `TabDots`.** Horizontal and vertical variants from one model: standalone pins, then the active section, cap 8, `+N` opens the palette. Fixes the 3-dot deviation.
 - [ ] **Step 2: `IslandReadout`.** Favicon, domain, shield state, private chip; Liquid Glass on iOS 26+, token surface below (D15). Blank-tab state reads as a text field (F37).
 - [ ] **Step 3: `IslandActions`.** `ToolbarItemGroup`s: navigation group (Close Tab), primary group (New Tab, Reload/Stop, high priority), secondary group (Favorite standard, Downloads standard with badge, Tabs standard). Titles from the copy slice, SF Symbols for every item, no text-only items. Ellipsis reserved for the system overflow. All gated at iOS 27 with a horizontal-pill fallback below.
 - [ ] **Step 4: Compose.** `ContentView` chooses: vertical controls → readout at the bottom of content + `IslandActions` in the toolbar; horizontal bars → the single resting pill. Transition is a layout change only; no model recreation.
 - [ ] **Step 5: Split View.** Verify at compact width beside another app on the inner simulator that controls follow Blanc's outer edge and the readout respects the opposite edge.
-- [ ] **Step 6: Update the matrix.** F1 iOS stays `PARTIAL` with a note that DUO-1/2/3/7 pass on simulator.
+- [ ] **Step 6: Update the matrix.** F1 iOS stays `PARTIAL` with a note that F1-3/4/5/6 pass on simulator.
 
-**Gate:** F1-1 and F1-2 iOS step definitions plus DUO-1, DUO-2, DUO-3, DUO-7 pass on both Duo simulators and on the floor simulator.
+**Gate:** F1-1 through F1-6 iOS step definitions pass on both Duo simulators and on the floor simulator.
 
 ### Phase 3: Fold-aware surfaces (M4 rework plus early M8–M12 items, two to three weeks)
 
@@ -170,7 +171,7 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
 - [ ] **Step 4: Shield popover and permission prompts.** System popover and system alerts with the shared copy; automatic fold avoidance.
 - [ ] **Step 5: Utility pages.** Confirm the sheet-presented web view honours the fold and that outbound links open real tabs (F16).
 
-**Gate:** DUO-4, DUO-5, DUO-6 pass on simulator; `npm run test:unit` covers the CSS fold defaults; internal-pages and newtab-layouts scenarios in the iOS column move from ⬜ to simulator-verified.
+**Gate:** F1-7, F1-8, F8-2, F35-7 pass on simulator; `npm run test:unit` covers the CSS fold defaults; internal-pages and newtab-layouts scenarios in the iOS column move from ⬜ to simulator-verified.
 
 ### Phase 4: Fold to command and Glance (Duo-only, after hardware, two weeks)
 
@@ -187,7 +188,7 @@ Blocking stays declarative with binary protection state (D1, D13, D14). Renderer
 ### Phase 5: Beta and evidence (M6 with Duo in scope)
 
 - [ ] **Step 1: TestFlight.** Provisioning for `me.bnfy.blanc`, the default-browser entitlement request (the roadmap's long pole), App Store Connect screenshots captured on both Duo display configurations and a standard iPhone.
-- [ ] **Step 2: Acceptance grid.** Every `@duo` scenario and every iOS row it touches is recorded as simulator-verified or hardware-verified, never blank.
+- [ ] **Step 2: Acceptance grid.** Every `@duo` scenario (F1-3–F1-8, F8-2, F35-7) and every iOS row it touches is recorded as simulator-verified or hardware-verified, never blank.
 - [ ] **Step 3: Release record.** A dated incident-style record under `docs/release-incidents/` for the first iOS build, mirroring the desktop discipline. Only after it exists may `docs/marketing-claims.md` admit any iPhone or iPhone Duo claim.
 
 ---

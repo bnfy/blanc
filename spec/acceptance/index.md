@@ -41,6 +41,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Blank-tab affordance | `blank-tab-affordance.feature` | F37 |
 | Certificate safety | `site-certificate-safety.feature` | F39 |
 | Tab migration | `tab-migration.feature` | F40 (D22) |
+| iPhone Duo postures | `iphone-duo.feature` | F1, F8, F35 (D27, D11) |
 
 ## Grid
 
@@ -48,6 +49,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 |----|----------|---------|:-------:|:---:|:-------:|
 | F1-1 | Resting pill reflects tab and blocking state | — | ✅ | ⬜ | ⬜ |
 | F1-2 | Palette floats command bar + tab switcher | — | ✅ | ⬜ | ⬜ |
+| F1-3 | Duo outer display shows readout + vertical actions | D27 | ➖ | ⬜ | ➖ |
+| F1-4 | Duo open/close restores the pill without losing state | D27 | ➖ | ⬜ | ➖ |
+| F1-5 | Duo inner landscape + Split View keep controls on the outer edge | D27 | ➖ | ⬜ | ➖ |
+| F1-6 | Duo badged Downloads item survives compression | D27 | ➖ | ⬜ | ➖ |
+| F1-7 | Duo expanded surfaces stay off the folding region | D27, D11 | ➖ | ⬜ | ➖ |
+| F1-8 | Duo inner camera moves chrome and page aside only while active | D27 | ➖ | ⬜ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
@@ -74,6 +81,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
 | F7-2 | Running a slash command acts | — | ✅ | ⬜ | ⬜ |
 | F8-1 | Find count + page stays interactive | — | ✅ | ⬜ | ⬜ |
+| F8-2 | Duo find capsule avoids the folding region without closing | D27, D11 | ➖ | ⬜ | ➖ |
 | F9-1 | Favorite surfaces on newtab + list | — | ✅ | ⬜ | ⬜ |
 | F9-2 | Add all open tabs to favorites | — | ✅ | ⬜ | ⬜ |
 | F10-1 | Visit recorded with final title | — | ✅ | ⬜ | ⬜ |
@@ -156,6 +164,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F35-4 | Hidden embedded Mahjong timer stays paused | — | ✅ | ⬜ | ⬜ |
 | F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
 | F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
+| F35-7 | Duo start page keeps content off the fold with even columns | D27, D11 | ➖ | ⬜ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
@@ -190,11 +199,16 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 - Features `F1–F24`, `F27–F28`, and `F30–F40` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
-- The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised
-  directly by F32 and implicitly wherever Island scenarios run against platform windowing; D13/D14
+- The suite explicitly tags D1–D12, D16, D19, D23, D25, and D27. D11 is exercised
+  directly by F32, by the iPhone Duo fold scenarios in `iphone-duo.feature`,
+  and implicitly wherever Island scenarios run against platform windowing; D13/D14
   are covered within the F12 contract (F12-1's shield assertion is relaxed on
   iOS per D13 — see
   [`../blocking-backends.md`](../blocking-backends.md)). D15, D17, and D18 do
   not yet have discrete Gherkin assertions.
 - Mobile-gained / platform-specific outcomes (F22, F24, F28, F38) correctly carry
   platform tags rather than `@all`.
+- The `@duo` scenarios (F1-3–F1-8, F8-2, F35-7) are `@ios @mobile` and ➖ on
+  desktop and Android by construction. Their iOS cells stay ⬜ until they run on
+  an iPhone Duo simulator; a simulator pass is recorded as
+  "simulator-verified" in the cell, and only a hardware pass may show ✅.

@@ -144,3 +144,22 @@ The §9 decisions are taken. On your commit go:
 2. **Invoke `writing-plans`** to produce the concrete implementation plan for **M0–M1** (the six sessions in §6).
 
 Every later milestone re-enters brainstorm → spec → plan at its own boundary.
+
+## 12. iPhone Duo addendum (2026-09-11)
+
+Apple published "Designing for iPhone Duo" on 2026-09-09. The port's target
+now includes a two-display iPhone whose outer display and inner-landscape
+posture place controls on a vertical side edge. The consequences for this
+ladder are recorded in
+[`../plans/2026-09-10-iphone-duo-mobile-migration.md`](../plans/2026-09-10-iphone-duo-mobile-migration.md)
+and, spec-first, in D27 (Island decomposition), the D7/D11/D19 amendments, and
+the `@duo` scenarios in `spec/acceptance/iphone-duo.feature`.
+
+What changes in the ladder: **M2–M4 are restructured, not appended to.** The
+adaptive layout layer (size class + control axis + fold state) lands before the
+Island is rebuilt, the pill's 3-dot cap is corrected to the F1 contract (8 plus
+`+N`) during that rebuild, and the pages bridge (M4) gains the fold descriptor.
+M5's blocking, M6's beta cut, and M7–M16 are unchanged in scope; the beta now
+requires Duo simulator evidence for the `@duo` scenarios and records hardware
+acceptance as pending until a device is in hand. The iOS 17 floor stays;
+Duo-specific APIs are gated at iOS 27.

@@ -174,6 +174,12 @@ Desktop bindings and their mobile intent:
 
 - **iPad** with a hardware keyboard **may reintroduce** the desktop shortcuts on
   iOS only — a permitted iOS-only enhancement, not an Android obligation.
+- **iPhone Duo** (D27): when the system places controls on the vertical axis,
+  tapping the Island readout summons the palette (same as tapping the pill), and
+  the action cluster's triggers are the system toolbar items on the side edge —
+  Reload/Stop, New Tab, Close Tab, Favorite, Downloads, Tabs. Items the system
+  compresses away are reached through the system overflow menu, never through a
+  Blanc-drawn ellipsis. Every one of those actions also keeps its `/command`.
 - **Slash commands (F7) are the cross-platform equalizer:** every keyboard action
   also has a `/command`, so the *capability* stays reachable on touch even where a
   shortcut doesn't.
@@ -245,6 +251,16 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
+- **iPhone Duo inner display (amended 2026-09-11):** the regular-width inner
+  display is the first phone surface where a second pane is legitimate. Two
+  foldable-only surfaces are *permitted under this entry, PLANNED, and not yet
+  built*: a **fold-to-command overlay arrangement** (page on one half, the
+  command palette on the other while the device is partially folded, collapsing
+  back to the ordinary palette sheet when it is not) and **Glance (F34) as a
+  split arrangement**. Both must keep F34's ownership rules — one workspace,
+  one profile, never surviving app teardown — and neither introduces a second
+  independent window. Split View multitasking pairs Blanc with *another* app at
+  compact width and is a resizing obligation, not a Blanc multi-window feature.
 - **Desktop workspace-local state:** reopen-closed history belongs to the native
   window that closed the tab (F2), and Glance can expose a second tab inside
   that same window (F34). Neither operation may cross a workspace/profile edge.
@@ -252,9 +268,11 @@ mobile is a single full-screen surface with system insets.
 **Parity contract:** the island's *contents and states* (F1) are identical; its
 *placement/windowing* adapts to the platform. Independent native windows (F32)
 are a desktop-only capability unless a future tablet/foldable contract adopts
-them explicitly; the same applies to the Glance multi-pane surface (F34).
+them explicitly. The Glance multi-pane surface (F34) is desktop plus, under the
+2026-09-11 amendment above, the iPhone Duo inner display only.
 
-**Status:** Accepted.
+**Status:** Accepted. Amended 2026-09-11 for the iPhone Duo inner display
+(see D27 for the Island itself).
 
 ---
 
@@ -423,6 +441,10 @@ content area and fight the platform's native navigation model.
   presentation of the canonical tab/group model.
 - **iOS:** no reserved rail. Use the native full-screen tab overview while
   preserving Blanc's tab identity, private state, pinning, and named groups.
+  On iPhone Duo, the tab dots stacked inside the vertical toolbar item (D27)
+  are the same 8-dot-plus-`+N` presentation of the same tab model as the
+  resting pill's dots, not a rail: they reserve no persistent width beyond the
+  system bar, and the system decides when they compress into overflow.
 - **Android:** no reserved rail. Use the native full-screen tab overview while
   preserving the same tab identity, private state, pinning, and named groups.
 
@@ -603,3 +625,97 @@ system-provider scenario remains `@D12`.
 
 **Status:** macOS-only first release accepted by the product owner 2026-08-24;
 the signed macOS live matrix is complete.
+
+---
+
+## D27 — iPhone Duo vertical-axis Island decomposition
+**Features:** F1, F2, F6, F8, F11, F12, F37 (contents of the Island); F16, F35
+(fold-aware internal pages)
+
+**Why:** iPhone Duo's outer display is wider and shorter than any other
+iPhone, so iOS moves toolbars, tab bars, navigation controls, the status bar,
+and the Dynamic Island to a vertical side edge there, and keeps them on the
+side on the inner display in landscape; only the inner display in portrait
+keeps horizontal bars. Apple's guidance is not to override that placement.
+Blanc's Island is a single horizontal pill whose centre is a text readout, and
+the same guidance keeps text labels in a horizontal bar, so the pill can
+neither rotate whole nor stay whole. Source: Apple HIG, "Designing for iPhone
+Duo" (published 2026-09-09).
+
+Options weighed (2026-09-10, `docs/superpowers/plans/2026-09-10-iphone-duo-mobile-migration.md` §3.1):
+
+1. *Rotate the whole pill vertical.* Rejected: the domain readout is text and
+   becomes unreadable; the HIG itself keeps text in a horizontal bar.
+2. *Keep the horizontal pill and ignore vertical controls* (a full-width
+   immersive layout). Rejected: the HIG allows full width only where bars are
+   unnecessary; a browser's bar is necessary, and the outer display is short,
+   which is the entire reason controls move sideways.
+3. *Decompose.* Adopted, below.
+
+- **Desktop / Android / every iPhone that is not a Duo:** unchanged — one
+  resting pill per window carrying back/forward (desktop), standalone pins +
+  active-section dots (cap 8, `+N`), favicon, domain, shield state, private
+  chip, and the trailing action cluster (F1).
+- **iPhone Duo, inner display in portrait** (horizontal bars): the ordinary
+  single resting pill, exactly as on any other iPhone. An open, upright Duo
+  looks like every other iPhone.
+- **iPhone Duo, outer display, and inner display in landscape** (vertical
+  controls): the Island splits into two coordinated parts driven by one model.
+  - **Island readout** — a horizontal capsule holding favicon, domain, the
+    shield state (binary on iOS, D13), and the private chip. It is the tap
+    target for the palette (D7) and, on a blank tab, reads as the text field
+    F37 requires. It sits at the bottom of the content area, inset by the
+    asymmetric safe area so it never runs under the vertical bar, the camera
+    reserved region, or (in Split View) the opposite app's edge. It never
+    carries a group name (F1/F3).
+  - **Island actions** — the action cluster and the tab dots become system
+    toolbar items in `ToolbarItemGroup`s on the side edge: a navigation group
+    (Close Tab), a primary group (New Tab, Reload/Stop; high visibility
+    priority), and a secondary group (Favorite; Downloads, which carries a
+    badge while a download is active and therefore stays visible longer;
+    Tabs). Every item has a shared-copy title and a symbol; none is
+    text-only. Items overflow into the **system** overflow menu, whose
+    ellipsis Blanc never reuses — the slash-command list is a palette mode,
+    not an overflow menu. The dots render as one custom vertical item:
+    standalone pins, then the active section, cap 8, then `+N`, which opens
+    the palette; tapping a dot switches tabs.
+  - **Expanded states** stay one sheet (panel = palette on iOS), so fold
+    avoidance is the system's. The shield popover is a system popover and
+    permission prompts are system alerts. Only the find capsule (F8) and the
+    `blanc://` page content (F16, F35) are custom surfaces that must avoid
+    reserved regions themselves.
+  - **Continuity:** opening or closing the device changes only the size class
+    and control axis. `TabsManager`, each tab's web view, palette input, find
+    state, and the active tab's scroll position survive the transition; the
+    layout containers re-derive from the environment and never recreate the
+    models.
+  - **Geometry:** safe areas, reserved regions (outer camera, inner camera
+    while active, the folding region while partially open), and fold insets
+    are read at runtime. Tokens define Blanc's own readout and dot geometry,
+    never the device's. The control axis is derived, never stored, and is not
+    a setting.
+  - **Fold descriptor (F16/F35):** the native host pushes
+    `{folded, axis, insetStart, insetEnd}` to the shared page bundle over the
+    pages bridge; the bundle exposes it as CSS custom properties and a
+    `data-fold` root attribute. Desktop never sets it, so the unfolded state
+    is the default everywhere.
+- **Below iOS 27:** the Duo-specific toolbar APIs are gated with
+  `#available(iOS 27, *)`; the ordinary pill is the fallback. The minimum iOS
+  stays 17.
+
+**Parity contract that still holds:** the Island's *contents* (dots, favicon,
+domain, shield state, private chip, the five actions), its *states* (rest,
+panel/palette, find), its *copy*, and its *behaviour* (dots switch tabs, `+N`
+and the readout open the palette, a blank tab reads as a text field) are
+identical everywhere; exactly one Island exists per window; the 8-dot cap and
+`+N` are the contract on every platform. Only the axis, the container, and the
+system-managed compression differ, and only on iPhone Duo in the vertical
+postures.
+
+**Tagging:** Duo scenarios tag `@ios @mobile @duo @D27`; those that touch the
+fold or a second pane additionally tag `@D11`.
+
+**Status:** Proposed 2026-09-11 (Phase 0 of the Duo plan). Awaiting product
+owner ratification; no iOS code implements it yet. Reserved-region and
+arrangement-view API names are pending verification against the iOS 27 SDK
+(plan §6).

@@ -82,7 +82,11 @@ is the most common silent parity failure and the easiest to prevent.
 guards **both** desktop copies (`overlay.js` command table and
 `pages/shortcuts.js` reference list — hand-synced today) against drift. Same
 guard-not-overwrite posture as S2/S5. Still open (same pattern): settings field
-labels, newtab ledger copy, empty states, permission-prompt text. Note the
+labels, newtab ledger copy, empty states, permission-prompt text, and — first
+in line, because iPhone Duo's vertical toolbar requires a title for every
+Island action (D27) — the **island-action titles** (reload, stop, favorite,
+unfavorite, close tab, downloads, new tab, tabs), guarded against the desktop
+action-cluster labels the same way slash commands are. Note the
 **app-icon and search-engine labels are owned by S5** (`settings-schema/`) — not
 duplicated here. See `copy/README.md`.
 
@@ -105,6 +109,14 @@ parity win per unit effort. The only per-platform work is the native data bridge
 **Caveat:** native screens feel better for some of these (e.g. Settings). If a
 page goes native on one platform, it must still match the shared bundle's content
 and copy, and that becomes a tracked decision (not a silent fork).
+
+**Fold descriptor (added 2026-09-11, D27):** the bridge contract gains one
+optional host→page message, `{folded, axis, insetStart, insetEnd}` (CSS pixels
+relative to the page), which the bundle maps to `--fold-inset-start`,
+`--fold-inset-end`, and a `data-fold` root attribute. Only a foldable host
+sends it; desktop's `pages.js` never does, so the unfolded default is the
+bundle's baseline and a unit test asserts it. Layout opt-in rules live in F16
+and F35.
 
 ---
 
