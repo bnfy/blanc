@@ -27,7 +27,24 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — September 10, 2026
+## Execution status — September 11, 2026
+
+- Blanc v1.16.1 is the current public baseline. It was published from
+  `6d1608a92173e8d0ea4a771d7c1d671ede91b39a` at
+  `2026-09-11T19:27:45Z`. Native packages, signed manifest, fresh public Mac
+  verification, AppImage launch, and Windows/Linux DNS gates passed. Evidence
+  is in `docs/release-incidents/2026-09-11-v1.16.1.md`.
+- The release fixes session recovery and adopts Sunrise onboarding and app-icon
+  choices, preserving the Mahjong B motif. Electron is 44.3.0. The separate
+  upstream Chrome Web Store native crash remains a known issue.
+- The September 11, 3 p.m. ET release-readiness cutoff was missed. The
+  September 14–17 sequence is stopped; all four launch days need an owner
+  reschedule. The dated schedule below is historical until that decision.
+- Adjacent v1.16.0 → v1.16.1 Mac and Windows in-app updater handoffs remain
+  pending. Final launch baseline selection, refreshed media, and a new freeze
+  with a full ≥48-hour soak remain required. Publication is not a waiver.
+
+## Historical execution status — September 10, 2026
 
 - Blanc v1.16.0 is the current public baseline. It was published from
   `233c807cde4e27cb15813b3be146749e6e51725b` at
@@ -976,7 +993,7 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.16.0 — not a Cloudflare preview URL.
+changelog and the homepage show 1.16.1 — not a Cloudflare preview URL.
 
 - [x] **Step 10: Record the current v1.9.1 soak clock**
 

@@ -1,5 +1,102 @@
 [
   {
+    "tag": "v1.16.1",
+    "version": "1.16.1",
+    "name": "1.16.1",
+    "publishedAt": "2026-09-11T19:27:45.000Z",
+    "humanDate": "September 11, 2026",
+    "machineDate": "2026-09-11",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.16.1",
+    "anchor": "v1-16-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Session recovery is visible in every New Tab layout. Links opened from email or another app can continue after you choose whether to restore your saved tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Restoring tabs after closing and reopening the recovery window from the Dock no longer waits indefinitely. Recovery also keeps named profiles separate and avoids restoring tabs into windows closed during startup."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Onboarding now uses Sunrise artwork, with Sunrise Dark in dark mode."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Retired B-monogram app icons have been removed from Settings and packaged internal pages. Existing retired icon choices fall back to Sunrise. The B motif in Mahjong tiles remains as a nod to Blanc's origins."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated to Electron 44.3.0 and Chromium 152.0.7977.78 for upstream fixes."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Known issue",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Opening some Chrome Web Store pages can still crash the browser because of an upstream Electron issue. This release fixes session recovery, but does not include the pending upstream Chrome Web Store fix."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.16.0",
     "version": "1.16.0",
     "name": "1.16.0",

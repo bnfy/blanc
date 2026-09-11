@@ -57,13 +57,14 @@ self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
 The evidence and limits for the current release are recorded in the
-[v1.16.0 release report](docs/release-incidents/2026-09-10-v1.16.0.md).
+[v1.16.1 release report](docs/release-incidents/2026-09-11-v1.16.1.md).
 
-> **Current release:** v1.16.0 adds trusted screen and system-audio sharing,
-> opens one-time tab handoffs in the current window, restores reliable
-> external-link foregrounding, and updates Electron and `js-yaml` for security
-> fixes. Use the [v1.16.0 tag](https://github.com/bnfy/blanc/tree/v1.16.0) for
-> the exact source snapshot associated with the public binaries.
+> **Current release:** v1.16.1 fixes startup session recovery and window/profile
+> restoration, uses theme-aware Sunrise onboarding, and retires legacy B app
+> icons while preserving the Mahjong B tiles. It updates to Electron 44.3.0;
+> the separate upstream Chrome Web Store crash remains a known issue. Use the
+> [v1.16.1 tag](https://github.com/bnfy/blanc/tree/v1.16.1) for the exact source
+> snapshot associated with the public binaries.
 
 ## Source and license
 
