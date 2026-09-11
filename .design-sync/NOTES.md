@@ -328,3 +328,100 @@ ASSET-LICENSE/README) — it LANDED mid-sync as 5e0964e ("Adopt Sunrise across a
   can be patched with assert-per-replacement scripts.
 - A CSS `mask` on a raster needs the alpha channel: an alpha-EXTRACTED grayscale PNG masks
   as a solid square; keep RGBA (zero RGB, keep alpha) instead.
+
+## 2026-09-11 sync (push-drift, v1.12.0 → v1.16.0 — resting island refresh)
+
+Drift scan from 6469a2f (last sync) to main 5e6de3d, 153 commits. Three touched DS
+surfaces: **ff3eaad1** ("refine resting island and add new tab shortcut"),
+**0093b6c4** ("use Inter in vertical tabs"), **aec328a0** (screen + system-audio
+sharing, #308). Brand scan clean — no `icon.svg` / `sunrise-mark.png` / dock-PNG
+change rode in on an unrelated PR this window (the 2026-08-31 scan lesson applied
+and found nothing). Owner approved the full scope + the push after render proof.
+
+- **Tokens: FIRST REAL DRIFT since this mirror began.** `--strip-h` 64 → **68px**;
+  new `--island-resting-surface` (light `rgba(255,255,255,.94)` / dark
+  `rgba(31,31,31,.94)` / private `rgba(25,25,25,.94)`), `--shadow-island-resting`,
+  `--island-resting-height: 44px`, `--island-resting-radius: 17px`. `--shadow-pill`
+  is NO LONGER the island's shadow — it now dresses the tab dot's favicon peek and
+  the onboarding island illustration; layout.css's long "fades out inside the 64px
+  strip" rationale was rewritten around that. `--control-h` stays 28px but its
+  comment dropped "address input", which is now its own 36px/14px geometry.
+  pages.css `:root` did NOT drift (the mono→Inter churn there is a scoped
+  `.ledger-body` override, not a token).
+- **Island.jsx: the resting material moved to `::after`.** 94% face + 1px border +
+  16px backdrop blur + the website nav's shadow, painted one layer below the
+  content so the resting layer can stay `transform: none` and render crisp; fixed
+  44/17 counter-scaled against `--pill-zoom`; the rise/grow now sits behind a
+  `.proximity-active` class fed by a new `proximity` prop (0→1). Private's dashed
+  edge moved to `::after` with it. Also added the **Slash + Plus shortcut keycaps**
+  (`.bw-pill-shortcuts`, matched 22px targets over 18×17 faces, 4px pair gap,
+  hidden wholesale in vertical-tabs mode) and the **display-share chip**
+  (`displayShares` + `onDisplayShareClick`, window-wide, reuses `.bw-capture-chip`;
+  `.display-share-chip` is a marker class with no declarations in the app).
+- **`box-sizing: border-box` added to `.bw-pill` — the one non-verbatim line.** The
+  app inherits it from a global `* { box-sizing: border-box }` reset that a
+  standalone DS component cannot assume. Irrelevant while the pill's height fell
+  out of padding; now that the height is FIXED, without it the 1px border lands
+  outside and the island renders **46px instead of 44px**. Documented in the file.
+  If a future port of a fixed-size app element looks 2px tall, check this first.
+- **Icons: two added, and the `plus` question settled.** `displayShare` (verbatim
+  from index.html `#pillDisplayShare`). `plusWide` (`M8 3v10M3 8h10`) is NEW: the
+  island's New-tab keycap uses the RAIL's plus drawing, not the DS `plus`
+  (`M8 3.25v9.5…`, still correct for the panel's new-tab buttons). Owner chose to
+  carry both rather than pick a winner — same rule as pin/pinned and mute/audible.
+  The old "two plus drawings coexist, left as-is" non-sync is therefore SUPERSEDED:
+  both are now named glyphs. `reopen` remains a deliberate non-sync; `extensions`
+  remains retired.
+- Guidelines refreshed: `metrics.html` (68px strip, 44/17 island, 36/14 address
+  input, 18px panel radius — that last one had been stale at 10px since the
+  2026-08-09 softening), `elevation.html` (now THREE shadows; the island swatch
+  carries the real face + blur, and `--shadow-pill` is relabelled as the peek
+  disc's), `vertical-tabs.html` (rail typography mono→Inter in all four places
+  0093b6c4 touched, 68px strip, and the stand-in minipill rebuilt as the 44/17
+  material instead of the retired capsule).
+- Pushed as plan_bee811dfe403446a_e97afb2cfd05, 13 files + sentinel fenced first
+  and re-armed last. Verified: `tokens/layout.css` round-trips byte-identical.
+
+### Repo fix made alongside (NOT a DS push, NOT yet committed): pages.css `--shadow-pill` was undefined
+`pages.css` referenced `var(--shadow-pill)` twice — `.ob-tile-blanc` and
+`.ob-minipill`, both first-run onboarding — but `tokens.json` scoped the token to
+`chrome` only, `pages.css` `:root` never declared it, and internal pages never load
+`styles.css`. With no fallback the declaration was invalid at computed-value time,
+so both elements painted **no shadow at all**. Present since 0fea28e (#140,
+2026-08-16); unrelated to this drift window, found while rewriting the layout.css
+shadow comment. Fixed by adding `pages` to the token's consumers and declaring it
+in `pages.css` `:root` (exact `tokens.json` value — the checker compares strings, so
+the unspaced `rgba(255,255,255,0.65)` form is required). Proved with a positive
+control: the pre-fix stylesheet computes `box-shadow: none` on both elements, the
+fixed one resolves all six layers. `npm run substrate:check` and 1770 unit tests pass.
+
+**Left UNCOMMITTED in the shared checkout, deliberately.** A concurrent session was
+mid-edit on `src/renderer/pages/pages.css` (its own `#startupCard` recovery rules,
+alongside uncommitted `main.js`/`newtab.html`/`package.json` and two new
+`test/desktop/*-smoke.mjs` files), so that file carries two unrelated hunks and could
+not be staged wholesale. `tokens.json` and `pages.css` must land in the SAME commit
+or `tokens:check` fails both ways (the checker flags a token in the source that the
+CSS lacks, and a token in the CSS the source lacks), so splitting them was not an
+option either. The three files — `tokens/tokens.json`, `tokens/generated/tokens.css`,
+and the `:root` hunk of `pages.css` — are in the working tree awaiting the owner.
+
+**Still open / deliberately not done:** the onboarding `.ob-minipill` now draws a
+999px capsule wearing `--shadow-pill` — it illustrates the RESTING ISLAND, which is
+no longer either of those things. Restoring its shadow was a bug fix; restyling it
+to the 44/17 island material is a design change and needs the owner's call. The
+display-share PICKER dialog stays unmodeled (transient in-flow UI, same class as the
+fill-status capsule and the Patron gate). PORT-CHECKLIST's two older gaps —
+capture-controls popover, retinted theme icons — are still open.
+
+### Gotchas learned
+- The DS component CSS is written one rule per line inside a JS template literal, so
+  a naive `indexOf("\n}")` block extractor swallows dozens of following rules and
+  "compares" the wrong thing. Use brace counting. Likewise `indexOf(sel + " {")`
+  matches a longer selector that merely ENDS with your selector
+  (`#strip.glance-open #islandPill` before `#islandPill`) — anchor on the newline.
+- Never put a backtick inside Island.jsx's `css` template literal; it terminates the
+  literal and the whole bundle silently renders nothing.
+- `get_file` on a file under ~50 KB is not persisted to disk, so patching one means
+  re-typing it. Verify the transcription before pushing: split the result into
+  paragraphs, list the ones you meant to change, and read the rest back against the
+  fetched copy — curly apostrophes and em-dashes are where it drifts.
