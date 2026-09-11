@@ -28,6 +28,7 @@ if (process.env.BLANC_TEST === '1' && process.env.BLANC_TEST_UNCAUGHT_LOG) {
 installMacOSQuitVisibilityGate({ app, BrowserWindow });
 const {
   setupAdBlocker,
+  installNavigationCrashGuard,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   onRequestBlocked,
@@ -1254,11 +1255,12 @@ function installStartupNavigationGate(sessions) {
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   startupNavigationGateActive = false;
   // A successful blocker attachment has already replaced the temporary
-  // listener with its own network filter. Clearing here would remove the
-  // blocker we just installed.
+  // listener with its composed network policy. If startup continues without
+  // the blocker, replace the gate with the standalone crash guard instead of
+  // leaving the session without an onBeforeRequest policy.
   if (!blockerAttached) {
     for (const browsingSession of sessions) {
-      browsingSession.webRequest.onBeforeRequest(null);
+      installNavigationCrashGuard(browsingSession);
     }
   }
 
@@ -7885,7 +7887,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
-  for (const browsingSession of browsingSessions) certificateObserver.observe(browsingSession);
+  for (const browsingSession of browsingSessions) {
+    installNavigationCrashGuard(browsingSession);
+    certificateObserver.observe(browsingSession);
+  }
   const chromeSes = session.fromPartition(CHROME_PARTITION);
   const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
   const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
@@ -8538,7 +8543,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const owned = profileSessionRegistry.forProfile(profileId);
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
-    for (const targetSession of targetSessions) certificateObserver.observe(targetSession);
+    for (const targetSession of targetSessions) {
+      installNavigationCrashGuard(targetSession);
+      certificateObserver.observe(targetSession);
+    }
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);

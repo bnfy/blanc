@@ -4,9 +4,15 @@
   const code = params.get('code') || '';
   const desc = params.get('desc') || '';
   const certificateFailure = params.get('kind') === 'certificate';
+  const chromeWebStoreFailure = params.get('kind') === 'chrome-web-store';
 
   document.getElementById('errorUrl').textContent = url;
-  if (certificateFailure) {
+  if (chromeWebStoreFailure) {
+    document.getElementById('errorTitle').textContent = 'Chrome Web Store is temporarily unavailable';
+    document.getElementById('errorDetail').textContent =
+      'This version of Blanc can’t safely open Chrome Web Store pages. Blanc blocked the page to prevent a browser crash.';
+    document.getElementById('retryLink').hidden = true;
+  } else if (certificateFailure) {
     document.getElementById('errorTitle').textContent = 'Your connection isn’t private';
     document.getElementById('errorDetail').textContent =
       params.get('certMessage') || 'The site could not prove its identity.';
@@ -38,7 +44,7 @@
 
   // Only re-link to schemes a failed navigation can legitimately have —
   // never let a crafted error URL smuggle e.g. javascript: into the href.
-  if (/^(https?|file):\/\//i.test(url)) {
+  if (!chromeWebStoreFailure && /^(https?|file):\/\//i.test(url)) {
     document.getElementById('retryLink').href = url;
   }
 })();
