@@ -5,8 +5,8 @@ Feature: App icon catalog, Patron, and session restore
 
   @F17-1 @F17 @all @D6
   Scenario: A current app icon can be selected
-    When I choose the app icon "ink"
-    Then the app icon "ink" is applied
+    When I choose the app icon "sunrise-dark"
+    Then the app icon "sunrise-dark" is applied
 
   @F17-2 @F17 @all
   Scenario: A retired icon cannot be restored by an active Patron
