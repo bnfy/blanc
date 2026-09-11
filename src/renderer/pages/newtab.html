@@ -8,24 +8,25 @@
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="ledger-body" data-layout="billboard">
+  <!-- Startup decisions must remain visible in every new-tab layout. -->
+  <section id="startupCard" class="launch-card" aria-labelledby="startupTitle" hidden>
+    <div class="launch-card-kicker">browser protection</div>
+    <h2 id="startupTitle">Preparing blocking…</h2>
+    <p id="startupMessage">Blanc is preparing its local ad and tracker filters before opening web pages.</p>
+    <div id="startupActions" class="launch-card-actions" hidden>
+      <button id="startupRetry" type="button">Retry</button>
+      <button id="startupContinue" type="button" class="quiet">Continue without blocking</button>
+    </div>
+    <div id="recoveryActions" class="launch-card-actions" hidden>
+      <button id="recoveryRestore" type="button">Restore tabs</button>
+      <button id="recoveryFresh" type="button" class="quiet">Start fresh</button>
+    </div>
+    <p id="recoveryError" class="section-hint" role="status" hidden></p>
+  </section>
+
   <main class="ledger" id="layoutLedger">
     <div id="dateLine" class="ledger-date"></div>
     <h1 class="ledger-heading">Where to?</h1>
-
-    <section id="startupCard" class="launch-card" aria-labelledby="startupTitle" hidden>
-      <div class="launch-card-kicker">browser protection</div>
-      <h2 id="startupTitle">Preparing blocking…</h2>
-      <p id="startupMessage">Blanc is preparing its local ad and tracker filters before opening web pages.</p>
-      <div id="startupActions" class="launch-card-actions" hidden>
-        <button id="startupRetry" type="button">Retry</button>
-        <button id="startupContinue" type="button" class="quiet">Continue without blocking</button>
-      </div>
-      <div id="recoveryActions" class="launch-card-actions" hidden>
-        <button id="recoveryRestore" type="button">Restore tabs</button>
-        <button id="recoveryFresh" type="button" class="quiet">Start fresh</button>
-      </div>
-      <p id="recoveryError" class="section-hint" role="status" hidden></p>
-    </section>
 
     <section class="ledger-section">
       <a class="ledger-label" href="blanc://bookmarks/">favorites</a>

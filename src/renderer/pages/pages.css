@@ -1788,6 +1788,24 @@ body[data-layout="shelf"] #layoutShelf { display: block; }
 body[data-layout="tally"] #layoutTally { display: block; }
 body[data-layout="mahjong"] #layoutMahjong { display: block; }
 
+/* Recovery and blocker decisions gate startup, so they own the page until
+   resolved. Keep the shared card outside every optional layout and allow it
+   to scroll even when Mahjong normally locks the viewport. */
+body.ledger-body:has(> #startupCard:not([hidden])) {
+  padding: 24px;
+  overflow: auto;
+}
+body.ledger-body:has(> #startupCard:not([hidden])) > main,
+body.ledger-body:has(> #startupCard:not([hidden])) > .ledger-footer,
+body.ledger-body:has(> #startupCard:not([hidden])) > .mahjong-footer-toggle {
+  display: none;
+}
+body.ledger-body > #startupCard {
+  width: min(100%, 560px);
+  margin: auto;
+  flex-shrink: 0;
+}
+
 /* The mahjong layout embeds blanc://mahjong full-bleed above the absolute
    footer band; the game page paints its own background and scales itself. */
 body[data-layout="mahjong"] { padding: 0; overflow: hidden; }
