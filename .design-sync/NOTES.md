@@ -384,7 +384,8 @@ and found nothing). Owner approved the full scope + the push after render proof.
 
 ### Finding only, NOT fixed: pages.css `--shadow-pill` is undefined for internal pages
 `pages.css` referenced `var(--shadow-pill)` twice — `.ob-tile-blanc` and
-`.ob-minipill`, both first-run onboarding — but `tokens.json` scoped the token to
+`.ob-minipill`, both first-run onboarding (**partly overtaken 2026-09-11: PR #327
+deleted `.ob-tile-blanc` outright, so only `.ob-minipill` is still affected**) — but `tokens.json` scoped the token to
 `chrome` only, `pages.css` `:root` never declared it, and internal pages never load
 `styles.css`. With no fallback the declaration was invalid at computed-value time,
 so both elements painted **no shadow at all**. Present since 0fea28e (#140,
@@ -437,3 +438,69 @@ capture-controls popover, retinted theme icons — are still open.
   re-typing it. Verify the transcription before pushing: split the result into
   paragraphs, list the ones you meant to change, and read the rest back against the
   fetched copy — curly apostrophes and em-dashes are where it drifts.
+
+## 2026-09-12 sync (push-drift, v1.16.0 → v1.16.2 — app-icon retirement + doc rot)
+
+Scan c937dcb4 (the squash of the last sync's head) → 534e2cd8. Of the fifteen commits
+only **#327 "Replace legacy app branding with theme-aware Sunrise artwork"** touched a
+DS surface; #325 was startup-recovery CSS on an internal page, and the v1.16.1/v1.16.2
+release train (#328–#339) touched none. **No drift in the three canonical pairs** —
+`styles.css`, `tokens.json` and all four icon sources are untouched — and
+`guidelines/brand-logos.html` needed nothing, since the Sunrise mark itself did not
+change. Owner approved all three tiers below plus the keep-and-relabel call.
+
+- **App icons: four → two (#327).** `settings-schema/schema.json` and
+  `src/main/app-icon-assets.js` now list only **sunrise** (default) and
+  **sunrise-dark**; Paper and Ink joined the monogram set in retirement,
+  `package.json` excludes eleven colorway PNGs from the payload, and a saved retired
+  id falls back to Sunrise on read. `supporterIcons` is `[]`. The owner's rule for
+  this pass: the B is gone from app UI **except inside Mahjong tile artwork**, kept
+  as a nod to Blanc's origins. Mirrored to `guidelines/dock-icon-colorways.html`
+  (rebuilt: a selectable Sunrise pair above, the five monogram tiles below in
+  greyscale at 50% under an explicit "retired — not selectable and not packaged"
+  heading — owner chose keep-and-relabel over deleting the PNGs), and to `DOCK_ICONS`
+  in both `templates/browser/app.jsx` and `ui_kits/browser/pages.jsx`, whose App icon
+  hint now matches the shipped "Follows macOS Icon & Widget Style; Finder uses
+  Sunrise".
+- **`readme.md` had rotted well beyond #327, and part of that was the previous sync's
+  miss.** The 2026-09-11 run pushed thirteen component/token files but never opened
+  the readme, which restates the same facts in prose — so it still described a 64px
+  strip (twice), the resting island "wearing the fitted `--shadow-pill`", "two
+  shadows", "no blur" (the island now carries a 16px backdrop blur), the island under
+  the 999px corners, and "the expanded island panel is the one 10px corner" — 18px
+  since 2026-08-09. Older errors fixed in the same pass, each verified against the
+  app first: private mode was documented with its pre-monochrome green cast
+  (`#0c110e` / `#a8c8b0`) while the same file's VISUAL FOUNDATIONS paragraph already
+  said the green was dropped — real values `#0a0a0a` / `#f5f5f5`; the slash-command
+  list advertised `/adblock` and `/off-leash`, which do not ship (they became
+  `/block-ads` and `/allow-ads`) and omitted eleven that do, against a shipped set of
+  24; and the island was said to name the active group and fold collapsed groups into
+  a "mini-dot capsule" when it does neither — there is no group name in the island
+  (no `pillGroup` element exists) and overflow is a quiet `+N` past `DOT_CAP = 8`.
+- **`github.md` had no entry for the 2026-09-11 sync either** — same miss. Written
+  retroactively alongside today's, and `guidelines/dock-icon-colorways.html` was added
+  to the screen map with `settings-schema/schema.json` + `src/main/app-icon-assets.js`
+  as its sources, so the app-icon set is a tracked input from now on rather than
+  something only noticed when a colorway disappears.
+- Pushed as plan_bee811dfe403446a_d34b471be18e, 5 files + sentinel fenced first and
+  re-armed last. Verified by round-tripping `templates/browser/app.jsx` back
+  byte-identical, and by rendering the rebuilt colorway card (7/7 images decode,
+  2 selectable + 5 retired at 0.5 greyscale, no horizontal overflow).
+- **No app file was touched**, per the standing rule above.
+
+### Lesson: prose surfaces need their own sweep
+A component sync is not a documentation sync. `readme.md` and `github.md` restate in
+prose what the token and component files encode, and the design agent reads the readme
+as fact — so a number corrected in `tokens/layout.css` but left standing in the readme
+is still wrong where it does the most damage. **Every future push-drift run must grep
+`readme.md` for the values it just changed** (strip height, radii, shadow names and
+counts, colour hexes, command names, icon counts) before closing, and add a `github.md`
+entry. The three canonical pairs are the scan's floor, not its ceiling.
+
+### Still open (carried forward)
+- `.ob-minipill` (first-run onboarding) still asks for `--shadow-pill`, still undefined
+  for internal pages, so it still paints no shadow; and it draws a 999px capsule while
+  illustrating an island that is now 44/17. Both are app-side, so both stay findings —
+  see the standing rule.
+- PORT-CHECKLIST's older gaps: the capture-controls popover and retinted theme icons.
+- The display-share picker dialog stays unmodeled (transient in-flow UI).
