@@ -61,6 +61,17 @@ Feature: Address input, search, and link handling
     When I submit the address of "other" in the command bar
     Then the active tab loads the address of "other"
 
+  @F5-7 @F5 @desktop @D4
+  Scenario: A reviewed desktop app callback requires confirmation
+    When I enter "claude://login" in the command bar
+    Then the external app handoff requires confirmation
+
+  @F5-8 @F5 @all
+  Scenario: A colon-prefixed search operator remains a search
+    Given the search engine is "duckduckgo"
+    When I enter "site:example.com" in the command bar
+    Then the active tab navigates to a "duckduckgo" search for "site:example.com"
+
   @F19-1 @F19 @all @D4 @D7
   Scenario: Open link in a background tab inherits the opener's group
     Given the active tab is in a group named "work"

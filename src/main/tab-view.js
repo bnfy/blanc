@@ -23,6 +23,7 @@ const {
   updateFaviconFromPage,
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
+const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
@@ -315,7 +316,6 @@ function wireTabView(tab, view, { owner, adopted }) {
       return;
     }
     if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) event.preventDefault();
-    if (handOffToOs(targetUrl)) event.preventDefault();
   }));
   // ERR_ABORTED is an ordinary cancelled load. The startup gate deliberately
   // queues HTTP(S) navigation until the blocker is ready, so do not replace
@@ -398,6 +398,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // requests (OAuth/SSO and payments) keep a real BrowserWindow so their
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
+    installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs));
     targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
       if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
@@ -406,7 +407,8 @@ function wireTabView(tab, view, { owner, adopted }) {
         return { action: 'deny' };
       }
       if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) return { action: 'deny' };
-      if (handOffToOs(targetUrl)) return { action: 'deny' };
+      const source = targetWc.getURL();
+      if (handOffToOs(targetUrl, { source })) return { action: 'deny' };
       if (disposition === 'new-window') {
         return {
           action: 'allow',

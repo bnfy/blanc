@@ -204,7 +204,7 @@ const {
 } = require('./tab-view');
 const { createProfileSessionRegistry } = require('./profile-sessions');
 const { setupWebAuthn } = require('./webauthn');
-const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
+const { classifyExternalNavigation, createExternalHandoff } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const {
   applyDockAppIcon,
@@ -1323,45 +1323,13 @@ function openExternalUrls(urls) {
   externalUrlHandoff.open(urls);
 }
 
-// Protocols handed off to the OS instead of navigated — a mailto: click
-// should open the user's mail app, not die silently (Chromium has no
-// external-protocol UI in Electron). Deliberately a small allowlist:
-// launching arbitrary registered URL schemes is a run-anything vector.
-// Checked at every point a URL becomes a navigation target: page-initiated
-// navigation (will-navigate), window.open children (setWindowOpenHandler),
-// the context menu's "Open Link" actions, and typed address-bar input.
-// The allowlist and trusted/confirm policy live in external-protocols.js
-// (pure, unit-tested); this wrapper owns the side effects only.
-let externalProtocolPromptOpen = false;
-function handOffToOs(url, { trusted = false } = {}) {
-  const decision = classifyExternalNavigation(url, { trusted });
-  if (decision.action === 'none') return false;
-
-  // Address-bar input is an explicit user instruction. Page-initiated
-  // navigations/window.open and context-menu targets are untrusted URL data,
-  // so require confirmation before launching another application. One prompt
-  // at a time prevents a hostile page from flooding the desktop with dialogs.
-  if (decision.action === 'open') {
-    shell.openExternal(url).catch(() => {});
-  } else if (!externalProtocolPromptOpen && hasLiveWindow()) {
-    externalProtocolPromptOpen = true;
-    const label = decision.protocol.slice(0, -1);
-    dialog.showMessageBox(rt().window, {
-      type: 'question',
-      title: 'Open external application?',
-      message: `Open this ${label} link in another application?`,
-      buttons: ['Open Link', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-    }).then(({ response }) => {
-      if (response === 0) shell.openExternal(url).catch(() => {});
-    }).finally(() => {
-      externalProtocolPromptOpen = false;
-    });
-  }
-  return true;
-}
+// Shared across windows: only one pending external-app confirmation at a time.
+const handOffToOs = createExternalHandoff({
+  getWindow: () => hasLiveWindow() ? rt().window : null,
+  getApplicationName: (url) => app.getApplicationNameForProtocol(url),
+  showMessageBox: (parent, options) => dialog.showMessageBox(parent, options),
+  openExternal: (url) => shell.openExternal(url),
+});
 
 function flushExternalUrls() {
   externalUrlHandoff.flush();
@@ -3368,11 +3336,37 @@ const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintSchedul
 
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
+
+  // A featureful window.open stays a real BrowserWindow for OAuth/SSO. When
+  // that popup owns focus, it is the page the user asked to fill. Falling
+  // through to runtime.activeTabId would focus the opener underneath it;
+  // sites such as Google may dismiss their login popup on that focus loss.
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedContents = focusedWindow?.webContents;
+  if (
+    focusedWindow !== runtime.window &&
+    focusedWindow && !focusedWindow.isDestroyed() &&
+    focusedContents && !focusedContents.isDestroyed() &&
+    windowRuntimes.runtimeForAuxiliaryContent(focusedContents.id) === runtime
+  ) {
+    return {
+      kind: 'popup',
+      runtime,
+      runtimeId: runtime.id,
+      webContentsId: focusedContents.id,
+      url: focusedContents.getURL(),
+      webContents: focusedContents,
+      window: focusedWindow,
+      pickerPoint: { x: 16, y: 16 },
+    };
+  }
+
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!tab || !wc || wc.isDestroyed()) return null;
   const island = runtime.islandRect;
   return {
+    kind: 'tab',
     runtime,
     runtimeId: runtime.id,
     tabId: tab.id,
@@ -3389,9 +3383,17 @@ function captureOnePasswordTarget(runtime) {
 function isOnePasswordTargetCurrent(target) {
   if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
   if (!target.window || target.window.isDestroyed()) return false;
-  if (target.runtime.activeTabId !== target.tabId) return false;
   if (target.surfaceGeneration !== undefined
       && target.surfaceGeneration !== target.runtime.surfaceGeneration) return false;
+  if (target.kind === 'popup') {
+    const wc = target.webContents;
+    return !!wc && !wc.isDestroyed()
+      && wc.id === target.webContentsId
+      && windowRuntimes.runtimeForAuxiliaryContent(wc.id) === target.runtime
+      && BrowserWindow.fromWebContents(wc) === target.window
+      && wc.getURL() === target.url;
+  }
+  if (target.runtime.activeTabId !== target.tabId) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
@@ -3445,6 +3447,15 @@ async function showFillFallbackDialog(target, kind) {
  * mapping). Null when the tab/view no longer matches the captured target —
  * the controller then falls back to the island pill anchor. */
 function onePasswordToWindowPoint(target, rect) {
+  if (target.kind === 'popup') {
+    if (!isOnePasswordTargetCurrent(target)) return null;
+    const { width, height } = target.window.getContentBounds();
+    return pickerAnchorPoint({
+      rect,
+      viewBounds: { x: 0, y: 0, width, height },
+      zoomFactor: target.webContents.getZoomFactor(),
+    });
+  }
   const tab = tabs.get(target.tabId);
   const view = tab?.view;
   const wc = liveContents(tab);
@@ -8630,7 +8641,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isSessionPersistenceReady: () => !sessionPersistenceSuspended,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
-      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      normalizeAddressInput, pasteAndGo, classifyExternalNavigation, openInternalPage, openFindBar,
+      onePasswordTargetForTest: () => {
+        const target = captureOnePasswordTarget(rt());
+        return target ? {
+          kind: target.kind,
+          webContentsId: target.webContents.id,
+          windowId: target.window.id,
+          url: target.url,
+        } : null;
+      },
       // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
       // readiness) against a real captured target — not a reimplementation.
       showFillStatusForTest: (kind) => {

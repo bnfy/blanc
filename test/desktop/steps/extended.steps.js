@@ -56,6 +56,10 @@ Then('no tab treats {string} as a search query', async function (uri) {
   assert.strictEqual(await this.call('wouldHandOff', uri), true);
 });
 
+Then('the external app handoff requires confirmation', async function () {
+  assert.strictEqual(await this.call('handoffDecision', ctx.enteredInput), 'confirm');
+});
+
 Given('the autocomplete provider returns {string}', async function (suggestion) {
   await this.call('setSearchSuggestionFixture', [suggestion]);
   await this.call('captureSearchNavigation', true);
