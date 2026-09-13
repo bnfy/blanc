@@ -26,9 +26,9 @@ blocker count close at hand, then expands when you need more.
 
 ## Watch Blanc in action
 
-[![Watch Blanc Browser — A little less browser. (v1.15.0)](https://i.ytimg.com/vi/xqUFMUcCjT0/maxresdefault.jpg)](https://www.youtube.com/watch?v=xqUFMUcCjT0)
+[![Watch Blanc Browser — A little less browser. (v1.16.2)](docs/superpowers/plans/assets/island-demo.gif)](docs/superpowers/plans/assets/island-demo.mp4)
 
-[Watch the 42-second v1.15.0 Product Hunt tour on YouTube.](https://www.youtube.com/watch?v=xqUFMUcCjT0)
+[Watch the 22-second v1.16.2 tour.](docs/superpowers/plans/assets/island-demo.mp4)
 
 ## Security and trust
 
@@ -57,14 +57,14 @@ self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
 The evidence and limits for the current release are recorded in the
-[v1.16.1 release report](docs/release-incidents/2026-09-11-v1.16.1.md).
+[v1.16.2 release report](docs/release-incidents/2026-09-11-v1.16.2.md).
 
-> **Current release:** v1.16.1 fixes startup session recovery and window/profile
-> restoration, uses theme-aware Sunrise onboarding, and retires legacy B app
-> icons while preserving the Mahjong B tiles. It updates to Electron 44.3.0;
-> the separate upstream Chrome Web Store crash remains a known issue. Use the
-> [v1.16.1 tag](https://github.com/bnfy/blanc/tree/v1.16.1) for the exact source
-> snapshot associated with the public binaries.
+> **Current release:** v1.16.2 preserves v1.16.1's session-recovery and Sunrise
+> fixes, and prevents the upstream Chrome Web Store native crash by showing a
+> local explanation until Electron ships its correction. Restored store tabs
+> recover safely, and macOS About reports the distinct build number `1162`.
+> Use the [v1.16.2 tag](https://github.com/bnfy/blanc/tree/v1.16.2) for the exact
+> source snapshot associated with the public binaries.
 
 ## Source and license
 

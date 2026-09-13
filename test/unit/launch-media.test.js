@@ -31,7 +31,7 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
   );
   const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
   const version = readme.match(/\*\*Current release:\*\* v(\d+\.\d+\.\d+)/)?.[1];
-  const mediaVersion = provenance.match(/packaged public Blanc v(\d+\.\d+\.\d+)/)?.[1];
+  const mediaVersion = provenance.match(/packaged public Blanc\s+v(\d+\.\d+\.\d+)/)?.[1];
 
   assert.ok(version, 'README must declare the public release behind launch media');
   assert.ok(mediaVersion, 'launch media must name the packaged public release it depicts');
@@ -45,13 +45,20 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
     assert.match(copy, /this pack is \*\*not publishable\*\*/);
   }
   assert.match(provenance, /\.\.\/island-demo\.mp4/);
-  assert.ok(
-    copy.includes('| Approved launch overview | https://www.youtube.com/watch?v=xqUFMUcCjT0 |')
+  assert.match(
+    copy,
+    /\| Approved v1\.16\.2 overview \| https:\/\/www\.youtube\.com\/watch\?v=REA1jQN6tY0 \|/
   );
-  assert.ok(provenance.includes('`https://www.youtube.com/watch?v=xqUFMUcCjT0`'));
-  assert.ok(provenance.includes('`youtube-nocookie.com/embed/xqUFMUcCjT0`'));
-  assert.match(provenance, /September 17 at\s+12:01 a\.m\. PDT \(3:01 a\.m\. EDT\)/);
-  assert.match(provenance, /live editor reports `Scheduled`/);
+  assert.match(provenance, /current launch media was captured[\s\S]{0,140}installed packaged public Blanc\s+v1\.16\.2/i);
+  assert.match(provenance, /owner approved the finished overview[\s\S]{0,200}youtube\.com\/watch\?v=REA1jQN6tY0/i);
+  assert.ok(provenance.includes('`https://www.youtube.com/watch?v=REA1jQN6tY0`'));
+  assert.ok(provenance.includes('`465b6a02-93c0-4ecc-a121-ffba8a12a41e.jpeg`'));
+  assert.ok(provenance.includes('`83578727-9801-4c56-9b06-9f1e07a68cfa.png`'));
+  assert.ok(provenance.includes('`895327e8-dc4b-4c24-9c4e-3f65aadabd51.png`'));
+  assert.ok(provenance.includes('`https://www.youtube.com/watch?v=X5pAN07iuks`'));
+  assert.ok(provenance.includes('`youtube-nocookie.com/embed/X5pAN07iuks`'));
+  assert.match(provenance, /September 17\s+at 12:01 a\.m\.\s+PDT\s+\(3:01 a\.m\. EDT\)/);
+  assert.match(provenance, /live Product Hunt page reported `Scheduled`/);
   assert.notDeepEqual(
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'island-resting-1270x760.png')),
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'quick-switcher-1270x760.png')),
