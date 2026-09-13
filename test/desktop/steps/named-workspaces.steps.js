@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 async function evidence(page, name, nativeCapture = false) {
   if (!process.env.BLANC_WORKSPACE_EVIDENCE_DIR) return;
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((animation) => animation.effect?.getTiming().iterations !== Infinity).map((animation) => animation.finished.catch(() => {}))));
   fs.mkdirSync(process.env.BLANC_WORKSPACE_EVIDENCE_DIR, { recursive: true });
   const target = path.join(process.env.BLANC_WORKSPACE_EVIDENCE_DIR, `${name}.png`);
   if (nativeCapture) {
@@ -140,8 +141,32 @@ Given('twenty five named workspaces with long names', async function () {
   for (let i = 0; i < 25; i++) assert.equal((await this.call('workspaceAction', 'save', `${String(i + 1).padStart(2, '0')} A long research workspace name with expanded descriptions`)).ok, true);
 });
 Then('the workspace list scrolls while creation controls remain visible', async function () {
+  const checkFooter = async (page) => {
+    await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
+    const geometry = await page.evaluate(() => {
+      const footer = document.getElementById('islandFooter').getBoundingClientRect();
+      const rects = [...document.querySelectorAll('#islandFooter button')].map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
+      const label = document.getElementById('footerWorkspaceLabel');
+      return { footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
+    });
+    assert.ok(geometry.truncated, 'long footer name should truncate instead of consuming the toolbar');
+    assert.ok(geometry.labelWidth < 100, 'footer title must keep its compact width');
+    const workspace = geometry.rects.find((entry) => entry.id === 'footerWorkspace').rect;
+    assert.ok(workspace.width > 28, 'named workspace must use the existing name-bearing button geometry');
+    assert.ok(geometry.labelRect.left >= workspace.left && geometry.labelRect.right <= workspace.right, 'workspace title must stay inside its button');
+    for (const { id, rect } of geometry.rects) {
+      assert.ok(rect.left >= geometry.footer.left - 1 && rect.right <= geometry.footer.right + 1, `${id} must fit inside the footer`);
+      assert.ok(rect.top >= geometry.footer.top - 1 && rect.bottom <= geometry.footer.bottom + 1, `${id} must fit vertically`);
+    }
+    for (let i = 0; i < geometry.rects.length; i++) for (let j = i + 1; j < geometry.rects.length; j++) {
+      const a = geometry.rects[i].rect, b = geometry.rects[j].rect;
+      assert.ok(a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1, 'footer buttons must not overlap');
+    }
+  };
   await ctx.app.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/'); window.setSize(640, 480); });
-  await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage(); await page.click('#footerWorkspace');
+  await openOverlaySurface(this, 'openPanel', 'panel'); const page = await overlayPage();
+  await checkFooter(page); await evidence(page, 'compact-footer-long-name');
+  await page.click('#footerWorkspace');
   const geometry = await page.evaluate(() => {
     const list = document.getElementById('workspaceSwitcherList'); const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
     const create = document.getElementById('wsSwitcherNew').getBoundingClientRect();
@@ -161,6 +186,9 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   });
   assert.ok(scaled.top >= 0 && scaled.bottom <= scaled.height + 1); assert.ok(scaled.left >= 0 && scaled.right <= scaled.width + 1); assert.ok(scaled.buttonBottom <= scaled.height + 1); assert.ok(scaled.buttonHeight >= 24);
   await evidence(page, 'long-workspace-list-vertical-125percent', true);
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('#workspaceSwitcher', { state: 'hidden' });
+  await checkFooter(page); await evidence(page, 'compact-footer-vertical-125percent', true);
   await ctx.app.evaluate(({ BrowserWindow, webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1); BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/').setSize(1280, 800); });
   await this.call('setTabLayout', 'island');
 });

@@ -45,6 +45,7 @@
       trigger.title = current ? `Workspace · ${current.name}` : 'Workspaces';
       trigger.setAttribute('aria-label', trigger.title);
       trigger.setAttribute('aria-expanded', String(opened));
+      trigger.classList.toggle('ws', !!current);
       trigger.classList.toggle('bound', !!current);
     }
     function open() {

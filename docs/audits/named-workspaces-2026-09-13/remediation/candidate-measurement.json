@@ -3,13 +3,13 @@
     "residentSets": 0,
     "liveOrdinaryTabs": 2,
     "quietTabs": 0,
-    "workingSetKB": 961616
+    "workingSetKB": 961984
   },
   "after": {
     "residentSets": 1,
     "liveOrdinaryTabs": 3,
     "quietTabs": 0,
-    "workingSetKB": 1076016
+    "workingSetKB": 1079968
   },
-  "roundTripIncludingIPCAndLoadMs": 238.09908300000006
+  "roundTripIncludingIPCAndLoadMs": 345.8512920000003
 }

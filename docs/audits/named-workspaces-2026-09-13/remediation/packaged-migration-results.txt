@@ -1,0 +1,6 @@
+Packaged candidate: 1d213603
+
+> blanc@1.16.2 test:packaged:migration
+> node test/desktop/packaged-migration-smoke.mjs
+
+packaged-migration-smoke OK: Blanc.app -> candidate; workspace backup, restart binding and future-format refusal verified
