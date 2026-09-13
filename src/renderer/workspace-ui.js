@@ -15,6 +15,7 @@
     'repair-failed': 'Couldn’t preserve a recovery copy. Your workspace file has not been changed.',
     'busy': 'Another workspace action is still finishing. Try again.',
     'activation-failed': 'Couldn’t open the workspace. Your current pages are still available.',
+    'saved-not-opened': 'The workspace was saved, but Blanc couldn’t open it. It remains in your workspace list.',
   };
   function create({ document: doc, window: win, api, popup, list, trigger, label, feedback, onOpenChange }) {
     let data = { items: [], deleted: [], patronActive: false, status: 'saved' };
@@ -54,10 +55,11 @@
       (popup.querySelector('input') || popup.querySelector('[data-current="true"]') || popup.querySelector('button'))?.focus();
     }
     function close({ force = false } = {}) {
-      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error)) return;
+      if (!force && (state.pending || state.kind === 'decision' || state.original || state.error)) return false;
       opened = false; popup.hidden = true; onOpenChange(false); syncIdentity();
       if (state.kind !== 'decision' && !state.original) state = { kind: 'list' };
       (invoker?.isConnected ? invoker : trigger)?.focus();
+      return true;
     }
     function begin(kind, workspace = null, original = null) {
       if (state.pending) return;
@@ -86,7 +88,13 @@
       state.pending = false;
       if (result?.items) data = result;
       if (!result?.ok) {
-        if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
+        if (result?.error === 'saved-not-opened') {
+          // Creation already committed. Leave the user on the list containing
+          // that saved row; keeping the editor/action alive would turn Retry
+          // into a misleading duplicate-name failure.
+          state = { kind: 'list', error: errors[result.error] };
+          render();
+        } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
         } else {
           state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? 'An existing workspace uses this name. Rename it before restoring this workspace.' : errors[result?.error] || 'Couldn’t complete that action. Try again.';

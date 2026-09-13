@@ -74,8 +74,11 @@ function createWorkspaceController(adapter) {
       if (!made.ok) return made;
       const result = options.newWindow ? adapter.openElsewhere(runtime, made.workspace) : activate(runtime, made.workspace, options);
       // Keep a successfully saved new record recoverable if activation fails;
-      // never report that it vanished or silently delete it on a second error.
-      return { ...result, workspaceId: made.workspace.id };
+      // identify that partial success truthfully so the UI does not invite a
+      // retry that can only fail with duplicate-name.
+      return result.ok
+        ? { ...result, workspaceId: made.workspace.id }
+        : { ok: false, error: 'saved-not-opened', cause: result.error, workspaceId: made.workspace.id };
     });
   }
   return { open, create, cancel(runtime) { decisions.delete(runtime.id); } };

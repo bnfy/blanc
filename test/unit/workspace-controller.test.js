@@ -67,6 +67,23 @@ test('create guard occurs before writing; Patron is checked in main authority', 
   h.adapter.canCreate = () => false;
   assert.equal(h.controller.create(h.runtime, 'New', { newWindow: true }).error, 'not-patron');
 });
+test('a created record is reported as saved when its activation commit fails', () => {
+  const h = harness({
+    stage: () => ({
+      commit: () => ({ ok: false, error: 'storage-failed' }),
+      rollback: () => h.calls.push('rollback'),
+      finish: () => h.calls.push('finish'),
+    }),
+  });
+  const result = h.controller.create(h.runtime, 'New');
+  assert.deepEqual(result, {
+    ok: false,
+    error: 'saved-not-opened',
+    cause: 'storage-failed',
+    workspaceId: 'new',
+  });
+  assert.deepEqual(h.calls, ['create', 'checkpoint', 'rollback']);
+});
 test('transferring membership retains exact tab/view identity, groups and window-local history', () => {
   registry.resetForTests(); const source = registry.createRuntime({ id: 'a' }); const target = registry.createRuntime({ id: 'b' });
   const view = { draft: 'Keep this draft', storage: new Map([['draft', 'text']]) };
@@ -76,6 +93,16 @@ test('transferring membership retains exact tab/view identity, groups and window
   assert.equal(registry.runtimeForTab('t'), target); assert.equal(tabs.get('t').view, view);
   assert.deepEqual(target.groups, [{ id: 'g' }]); assert.deepEqual(target.closedEntries, ['closed-b']); assert.deepEqual(source.closedEntries, ['closed-a']);
   transferSession(target, source, { tabs, registry }); assert.equal(source.activeTabId, 't'); assert.equal(tab.view.draft, 'Keep this draft');
+});
+test('invalid membership is rejected before either runtime or valid ownership changes', () => {
+  registry.resetForTests(); const source = registry.createRuntime({ id: 'source' }); const target = registry.createRuntime({ id: 'target' });
+  const tab = { id: 'good', runtimeId: 'source' }; const tabs = new Map([['good', tab]]);
+  source.tabOrder = ['good', 'missing']; source.workspaceId = 'work'; source.activeTabId = 'good'; source.groups = [{ id: 'g' }];
+  registry.attachTab(source, 'good');
+  assert.throws(() => transferSession(source, target, { tabs, registry }), /membership is invalid/);
+  assert.deepEqual(source.tabOrder, ['good', 'missing']); assert.equal(source.workspaceId, 'work'); assert.equal(source.activeTabId, 'good');
+  assert.deepEqual(source.groups, [{ id: 'g' }]); assert.deepEqual(target.tabOrder, []); assert.equal(target.workspaceId, null);
+  assert.equal(tab.runtimeId, 'source'); assert.equal(registry.runtimeForTab('good'), source);
 });
 test('retention capacity cannot evict protected pages; incoming resident frees a slot', () => {
   const residents = [{ resident: true, tabOrder: ['a'] }, { resident: true, tabOrder: ['b'] }];

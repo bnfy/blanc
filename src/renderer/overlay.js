@@ -94,9 +94,15 @@
    * already been dispatched against the row the user actually pressed. */
   let pointerHeld = false;
   let renderQueued = false;
+  let pendingWorkspacesPayload = null;
 
   function releasePointerHold() {
     pointerHeld = false;
+    if (pendingWorkspacesPayload) {
+      const payload = pendingWorkspacesPayload;
+      pendingWorkspacesPayload = null;
+      commitWorkspacesPayload(payload);
+    }
     if (!renderQueued) return;
     renderQueued = false;
     renderList();
@@ -630,15 +636,27 @@
   // footer popover. The tab list never hosts workspace chrome — only the
   // scratch-guard confirm (about this window) still appears there.
 
-  function applyWorkspacesPayload(payload) {
+  function commitWorkspacesPayload(payload) {
     wsPatronActive = !!payload?.patronActive;
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
     workspaceUI.apply({ ...payload, patronActive: wsPatronActive, items: wsWorkspaces });
   }
+  function applyWorkspacesPayload(payload) {
+    // A workspace status/autosave push can land between pointerdown and click.
+    // Replacing the pressed row in that interval drops the click, so share the
+    // tab list's pointer hold and apply only the newest queued projection.
+    if (pointerHeld) {
+      pendingWorkspacesPayload = payload;
+      renderQueued = true;
+      return false;
+    }
+    commitWorkspacesPayload(payload);
+    return true;
+  }
   function boundWorkspace() { return wsWorkspaces.find((w) => w.active) ?? null; }
   function clearWorkspacePopoverEditors() { workspaceUI.reset(); }
   function workspacePopoverEditing() { return workspaceUI.editing; }
-  function closeWorkspaceSwitcher() { workspaceUI.close(); }
+  function closeWorkspaceSwitcher() { return workspaceUI.close(); }
   function layoutWorkspaceSwitcher() { workspaceUI.layout(); }
   function paintWorkspaceSwitcher() { workspaceUI.render(); }
   function openWorkspaceSwitcher() { workspaceUI.open(); }
@@ -1513,6 +1531,11 @@
     // A press the overlay never saw released (dismissed mid-click) must not
     // leave the list frozen behind a stale hold.
     pointerHeld = false;
+    if (pendingWorkspacesPayload) {
+      const payload = pendingWorkspacesPayload;
+      pendingWorkspacesPayload = null;
+      commitWorkspacesPayload(payload);
+    }
     renderQueued = false;
     mode = next;
     glancePickerPurpose = next === 'glance' ? purpose : null;
@@ -1928,7 +1951,17 @@
   window.addEventListener('blur', releasePointerHold);
 
   // Click on the backdrop (anywhere outside the panel) dismisses.
-  backdrop.addEventListener('mousedown', () => window.browserAPI.closeOverlay());
+  backdrop.addEventListener('mousedown', (event) => {
+    // Pending decisions, Save First, and rejected editors own an explicit
+    // Cancel path. Respect workspaceUI.close() refusing dismissal instead of
+    // hiding the outer overlay and resetting that protected action anyway.
+    if (workspaceSwitcherOpen && closeWorkspaceSwitcher() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    window.browserAPI.closeOverlay();
+  });
   document.addEventListener('mousedown', (event) => {
     if (mode === 'glance' && !event.target.closest('#glancePicker')) {
       window.browserAPI.closeOverlay('cancel');

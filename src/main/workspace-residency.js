@@ -6,12 +6,18 @@
 const SESSION_FIELDS = ['tabOrder', 'activeTabId', 'groups', 'workspaceId', 'activationHistory', 'lastActiveByCluster'];
 function transferSession(source, target, { tabs, registry }) {
   if (target.tabOrder.length) throw new Error('Workspace destination is occupied');
+  // Validate the complete move before changing either runtime. A defensive
+  // membership error must leave the caller enough intact state to roll back;
+  // clearing the source first turns the guard itself into data loss.
+  const members = source.tabOrder.map((id) => {
+    const tab = tabs.get(id);
+    if (!tab) throw new Error('Workspace membership is invalid');
+    return [id, tab];
+  });
   for (const field of SESSION_FIELDS) target[field] = source[field];
   source.tabOrder = []; source.activeTabId = null; source.groups = [];
   source.workspaceId = null; source.activationHistory = []; source.lastActiveByCluster = new Map();
-  for (const id of target.tabOrder) {
-    const tab = tabs.get(id);
-    if (!tab) throw new Error('Workspace membership is invalid');
+  for (const [id, tab] of members) {
     tab.runtimeId = target.id;
     registry.attachTab(target, id);
   }

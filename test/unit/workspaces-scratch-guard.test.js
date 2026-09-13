@@ -3,7 +3,7 @@ const test = require('node:test'); const assert = require('node:assert/strict');
 const { harness, settle } = require('../support/workspace-ui-dom');
 test('all-private decision omits Save First and survives outside dismissal', async () => {
   const h = harness({ openWorkspace: async () => ({ ok: false, error: 'unsaved-scratch', tabCount: 1, privateCount: 1, decision: 'token' }) }); h.ui.switchTo({ id: 'b', name: 'Other' }); await settle();
-  assert.equal(h.button('Save this window first…'), undefined); assert.ok(h.button('Open in another window')); h.ui.close(); assert.equal(h.ui.opened, true);
+  assert.equal(h.button('Save this window first…'), undefined); assert.ok(h.button('Open in another window')); assert.equal(h.ui.close(), false); assert.equal(h.ui.opened, true);
 });
 test('Save First keeps the exact original action through validation and a remaining private decision', async () => {
   let saves = 0; const opens = []; const h = harness({

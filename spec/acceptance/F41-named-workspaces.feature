@@ -18,7 +18,7 @@ Feature: Named workspace preservation and recovery
     Then the name and validation error stay visible in the workspace editor
 
   @F41-4
-  Scenario: A switch decision remains visible while searching
+  Scenario: A switch decision remains visible while searching or clicking outside
     Given a named workspace with a live unsaved draft
     When I try switching with a private page and type a slash query
     Then the private switch decision remains visible
@@ -53,7 +53,7 @@ Feature: Named workspace preservation and recovery
     Then no removed ordinary page is restored
 
   @F41-10
-  Scenario: A failed session commit rolls back without losing the outgoing page
+  Scenario: A partial workspace save stays discoverable without losing the outgoing page
     Given a named workspace with a live unsaved draft
     When the incoming workspace session commit fails
     Then the original page identity and draft are unchanged

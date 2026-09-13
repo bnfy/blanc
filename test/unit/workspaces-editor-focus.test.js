@@ -28,3 +28,21 @@ test('failed editor remains visible while the address field is used; explicit ca
   h.doc.getElementById('workspaceName').parent.emit('submit'); await settle(); h.trigger.focus(); h.ui.close(); assert.equal(h.ui.opened, true); assert.match(h.text(), /already in use/);
   h.ui.cancel(); assert.equal(h.ui.state.kind, 'list');
 });
+test('a saved workspace with a failed binding returns to the list instead of inviting a duplicate retry', async () => {
+  const h = harness({ saveWorkspaceAs: async () => ({
+    ok: false,
+    error: 'saved-not-opened',
+    cause: 'storage-failed',
+    workspaceId: 'saved',
+    items: [
+      { id: 'a', name: 'First', active: true, tabCount: 1 },
+      { id: 'saved', name: 'Saved copy', active: false, tabCount: 1 },
+    ],
+    deleted: [],
+    status: 'saved',
+    patronActive: true,
+  }) });
+  h.ui.begin('save'); const field = h.doc.getElementById('workspaceName'); field.value = 'Saved copy'; field.emit('input'); field.parent.emit('submit'); await settle();
+  assert.equal(h.ui.state.kind, 'list'); assert.equal(h.doc.getElementById('workspaceName').isConnected, false);
+  assert.match(h.text(), /Saved copy/); assert.match(h.text(), /was saved, but Blanc couldn’t open it/);
+});

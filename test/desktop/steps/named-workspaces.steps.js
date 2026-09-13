@@ -92,6 +92,8 @@ When('I try switching with a private page and type a slash query', async functio
 Then('the private switch decision remains visible', async function () {
   const page = await overlayPage(); assert.equal(await page.isVisible('.ws-switcher-confirm'), true);
   assert.ok((await page.textContent('.ws-switcher-confirm')).includes('private'));
+  await page.locator('#backdrop').click({ position: { x: 4, y: 4 } });
+  assert.equal(await page.isVisible('.ws-switcher-confirm'), true, 'outside clicks must not bypass the explicit workspace decision');
   await evidence(page, 'private-decision-search');
 });
 When('I close its ordinary pages leaving only a private page', async function () {
@@ -214,8 +216,10 @@ Then('no removed ordinary page is restored', async function () {
 
 When('the incoming workspace session commit fails', async function () {
   const result = await this.call('workspaceAction', 'fail-session-commit', 'Commit fails');
-  assert.equal(result.ok, false); assert.equal(result.error, 'storage-failed');
-  const data = await this.call('workspaceAction', 'list'); assert.equal(data.items.find((w) => w.active).id, this.workspaceA);
+  assert.equal(result.ok, false); assert.equal(result.error, 'saved-not-opened'); assert.equal(result.cause, 'storage-failed');
+  const data = await this.call('workspaceAction', 'list');
+  assert.equal(data.items.find((w) => w.active).id, this.workspaceA);
+  assert.equal(data.items.find((w) => w.id === result.workspaceId)?.name, 'Commit fails', 'the durably saved workspace remains discoverable');
 });
 When('I explicitly close a private page while switching and return', async function () {
   await this.call('openTab', this.fixtureUrl('workspace-private'), { private: true });

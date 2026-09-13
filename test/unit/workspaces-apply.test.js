@@ -152,7 +152,7 @@ test('saveCurrentWindowAsWorkspace is still liftable from main.js', () => {
   assert.ok(saveAsSource, 'saveCurrentWindowAsWorkspace not found — update this test with it');
 });
 
-function runSaveAs({ createResult }) {
+function runSaveAs({ createResult, commitResult = { ok: true } }) {
   const calls = [];
   const runtime = { id: 'win_1', workspaceId: null };
   const sandbox = {
@@ -166,7 +166,7 @@ function runSaveAs({ createResult }) {
     // so persistSession() ran before the field was set — and that reordering
     // reintroduces the exact bug, because persistSession would capture the
     // pre-bind null.
-    flushWorkspaceSession: () => ({ ok: true }),
+    flushWorkspaceSession: () => commitResult,
     persistSession: () => { calls.push(['persistSession', runtime.workspaceId]); },
   };
   vm.runInNewContext(`${saveAsSource}\nthis.__fn = saveCurrentWindowAsWorkspace;`, sandbox);
@@ -203,6 +203,19 @@ test('a rejected save-as neither binds nor persists', () => {
     !calls.some(([name]) => name === 'persistSession'),
     'a failed save-as must not write a session entry',
   );
+});
+
+test('a save-as whose session binding fails reports the durable workspace id truthfully', () => {
+  const { calls, runtime, result } = runSaveAs({
+    createResult: { ok: true, workspace: { id: 'ws_saved' } },
+    commitResult: { ok: false, error: 'storage-failed' },
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'saved-not-opened');
+  assert.equal(result.cause, 'storage-failed');
+  assert.equal(result.workspaceId, 'ws_saved');
+  assert.equal(runtime.workspaceId, null, 'the failed session pointer is rolled back');
+  assert.equal(calls.some(([name]) => name === 'persistSession'), false);
 });
 
 // Switching/guard coverage imports workspace-controller directly.

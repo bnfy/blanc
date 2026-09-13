@@ -4484,7 +4484,7 @@ function autosaveWorkspaceBindings() {
     workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex }));
 }
 
-function checkpointWorkspaceSession(runtime) {
+function checkpointWorkspaceSession(runtime, { excludeRuntime = null } = {}) {
   if (sessionReadOnly) return { ok: false, error: 'future-format' };
   if (runtime.workspaceId) {
     const old = namedWorkspaces.get(runtime.workspaceId);
@@ -4492,14 +4492,14 @@ function checkpointWorkspaceSession(runtime) {
     const saved = namedWorkspaces.saveCapture(old.id, workspaceCapture(runtime, { previousActiveIndex: old.activeIndex }));
     if (!saved.ok) return saved;
   }
-  return flushWorkspaceSession();
+  return flushWorkspaceSession({ excludeRuntime });
 }
 
-function flushWorkspaceSession() {
+function flushWorkspaceSession({ excludeRuntime = null } = {}) {
   if (sessionReadOnly) return { ok: false, error: 'future-format' };
   const saved = ensureSessionStore().updateAndFlush((data) => {
     const previous = new Map(loadWorkspace(data).windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().filter((r) => !r.resident && !r.closing)
+    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.resident && !r.closing)
       .map((r) => captureWindowEntry(r, { previousActiveIndex: previous.get(r.id)?.activeIndex ?? 0 }));
     Object.assign(data, buildSaveShape(windows, data, { activeWindowId: focusedRuntime?.id ?? PRIMARY_WINDOW_ID }));
   });
@@ -4649,7 +4649,15 @@ const workspaceController = createWorkspaceController({
     return withWindowRuntime(target, () => {
       const transition = stageWorkspace(target, workspace);
       const result = transition.commit();
-      if (result.ok) transition.finish(); else { transition.rollback(); target.window?.close(); }
+      if (result.ok) transition.finish(); else {
+        transition.rollback();
+        // This window exists only as staging for the failed operation. Its
+        // rollback already restored the prior (empty) runtime, so skip the
+        // user-close checkpoint; a persistent disk failure would otherwise
+        // strand a blank window while reporting that the workspace stayed put.
+        target.closing = true;
+        target.window?.close();
+      }
       return result.ok ? { ok: true, action: 'focus', windowId: String(target.id) } : result;
     });
   },
@@ -4689,7 +4697,15 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
       // stale snapshot over the newer work — the exact loss Task 6 exists to
       // prevent. The swap path already persists for the same reason.
       const committed = flushWorkspaceSession();
-      if (!committed.ok) { runtime.workspaceId = previousWorkspaceId; return committed; }
+      if (!committed.ok) {
+        runtime.workspaceId = previousWorkspaceId;
+        return {
+          ok: false,
+          error: 'saved-not-opened',
+          cause: committed.error,
+          workspaceId: result.workspace.id,
+        };
+      }
       persistSession();
     }
     return result;
@@ -6413,10 +6429,16 @@ function registerIpcHandlers() {
   chromeHandle('chrome:workspaces-save-as', (_e, name) => {
     if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
     const result = saveCurrentWindowAsWorkspace(rt(), name);
-    // {ok:false, error: 'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
-    // — namedWorkspaces.create's failure shape never carries a workspace
-    // record, so it is safe to return verbatim.
-    if (!result.ok) return result;
+    if (!result.ok) {
+      // The workspace file and session file are separate atomic stores. If the
+      // first commit landed, return the saved row with an honest partial-success
+      // error instead of inviting an impossible same-name retry.
+      if (result.workspaceId) {
+        broadcastWorkspacesUpdated();
+        return { ...result, ...workspacesProjection() };
+      }
+      return result;
+    }
     broadcastWorkspacesUpdated();
     // Only the new id crosses the wire, never result.workspace itself.
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
@@ -6433,10 +6455,13 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
     const result = createBlankWorkspaceAndSwitch(rt(), name, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
-    // {ok:false, error:'not-patron'|'unsaved-scratch'|'invalid-name'|
-    // 'duplicate-name'|'limit'|'invalid-record'|'not-found'|'focus-failed'} —
-    // never a workspace record either.
-    if (!result.ok) return result;
+    if (!result.ok) {
+      if (result.workspaceId) {
+        broadcastWorkspacesUpdated();
+        return { ...result, ...workspacesProjection() };
+      }
+      return result;
+    }
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
@@ -7142,6 +7167,25 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // reattachment, not a user switch, so it must not dismiss that sheet.
     activateTab: (id) => setActiveTab(id, { dismissUtilitySheet: false }),
     flushExternalUrls,
+    // A normal secondary close destroys its pages. Commit both the final named
+    // capture and session removal before Electron can tear those views down.
+    // Primary macOS close retains its runtime for Dock reopen; forced closes
+    // mark runtime.closing before reaching this hook.
+    // A future session file is intentionally read-only and cannot be made
+    // writable by retrying. Preserve that file, but do not trap every scratch
+    // window from a newer Blanc version on screen.
+    beforeWindowClose: () => sessionReadOnly || (runtime === primaryRuntime && process.platform === 'darwin')
+      ? { ok: true }
+      : checkpointWorkspaceSession(runtime, { excludeRuntime: runtime }),
+    onCloseBlocked: () => {
+      broadcastWorkspacesUpdated();
+      dialog.showMessageBoxSync(runtime.window, {
+        type: 'error',
+        buttons: ['OK'],
+        message: 'Couldn’t close this window safely',
+        detail: 'Blanc couldn’t save its latest workspace state. Check available disk space and try again.',
+      });
+    },
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
@@ -7159,9 +7203,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
-      checkpointWorkspaceSession(runtime);
       runtime.closing = true;
-      // Secondary close checkpoints its final capture before releasing ownership.
+      // The close event durably checkpointed before native teardown.
       runtime.workspaceId = null;
       for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
       for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
@@ -7525,6 +7568,9 @@ async function destroyProfileWindow(runtime) {
     });
   }
   if (window.isDestroyed()) return;
+  // Profile deletion is already explicitly confirmed and owns crash-resumable
+  // cleanup. Bypass the ordinary close checkpoint for data being erased.
+  runtime.closing = true;
   await new Promise((resolve) => {
     window.once('closed', resolve);
     // Confirmation is the terminal commit point. beforeunload cannot retain a
