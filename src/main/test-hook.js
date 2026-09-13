@@ -106,7 +106,7 @@ function install(refs) {
     normalizeAddressInput,
     probeOnePasswordPackage,
     pasteAndGo,
-    handoffProtocols,
+    classifyExternalNavigation,
     openInternalPage,
     openFindBar,
     getOverlayMode,
@@ -1406,8 +1406,9 @@ function install(refs) {
     // ---- address routing / overlay ----
     resolveAddress(input) { return normalizeAddressInput(input); },
     wouldHandOff(url) {
-      try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
+      return classifyExternalNavigation(url).action !== 'none';
     },
+    handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {

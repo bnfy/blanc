@@ -125,12 +125,17 @@ toolbar (Bowser Design System "Island Chrome").
 - **OS hand-off** (`handOffToOs`) is checked *before* normalization for bare
   `mailto:` / `tel:` / `facetime:` / `sms:` URIs and page-initiated navigations to
   them — handed to the OS instead of treated as a query (D4).
+- Desktop also hands reviewed app schemes and standard Microsoft/Google native
+  OAuth callback schemes to their installed applications after explicit
+  confirmation. Unknown schemes never reach the OS. A captured callback remains
+  valid if its OAuth popup closes while the native confirmation is open (D4).
 - The heuristic's known edge-case misclassifications (e.g. dotted query strings)
   are an **accepted limitation**, identical on every platform — do not "fix" one
   platform's parser to be smarter than the others.
-- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest`
-  searches via the configured engine; typing `mailto:a@b.com` hands off to the OS
-  mail handler.
+- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest` or
+  `site:example.com` searches via the configured engine; typing `mailto:a@b.com`
+  hands off to the OS mail handler; a reviewed desktop app callback requires
+  confirmation.
 
 ## F6 — Command palette & Quick Switcher
 

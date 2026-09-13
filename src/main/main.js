@@ -204,7 +204,7 @@ const {
 } = require('./tab-view');
 const { createProfileSessionRegistry } = require('./profile-sessions');
 const { setupWebAuthn } = require('./webauthn');
-const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
+const { classifyExternalNavigation, createExternalHandoff } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const {
   applyDockAppIcon,
@@ -1323,45 +1323,13 @@ function openExternalUrls(urls) {
   externalUrlHandoff.open(urls);
 }
 
-// Protocols handed off to the OS instead of navigated — a mailto: click
-// should open the user's mail app, not die silently (Chromium has no
-// external-protocol UI in Electron). Deliberately a small allowlist:
-// launching arbitrary registered URL schemes is a run-anything vector.
-// Checked at every point a URL becomes a navigation target: page-initiated
-// navigation (will-navigate), window.open children (setWindowOpenHandler),
-// the context menu's "Open Link" actions, and typed address-bar input.
-// The allowlist and trusted/confirm policy live in external-protocols.js
-// (pure, unit-tested); this wrapper owns the side effects only.
-let externalProtocolPromptOpen = false;
-function handOffToOs(url, { trusted = false } = {}) {
-  const decision = classifyExternalNavigation(url, { trusted });
-  if (decision.action === 'none') return false;
-
-  // Address-bar input is an explicit user instruction. Page-initiated
-  // navigations/window.open and context-menu targets are untrusted URL data,
-  // so require confirmation before launching another application. One prompt
-  // at a time prevents a hostile page from flooding the desktop with dialogs.
-  if (decision.action === 'open') {
-    shell.openExternal(url).catch(() => {});
-  } else if (!externalProtocolPromptOpen && hasLiveWindow()) {
-    externalProtocolPromptOpen = true;
-    const label = decision.protocol.slice(0, -1);
-    dialog.showMessageBox(rt().window, {
-      type: 'question',
-      title: 'Open external application?',
-      message: `Open this ${label} link in another application?`,
-      buttons: ['Open Link', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-    }).then(({ response }) => {
-      if (response === 0) shell.openExternal(url).catch(() => {});
-    }).finally(() => {
-      externalProtocolPromptOpen = false;
-    });
-  }
-  return true;
-}
+// Shared across windows: only one pending external-app confirmation at a time.
+const handOffToOs = createExternalHandoff({
+  getWindow: () => hasLiveWindow() ? rt().window : null,
+  getApplicationName: (url) => app.getApplicationNameForProtocol(url),
+  showMessageBox: (parent, options) => dialog.showMessageBox(parent, options),
+  openExternal: (url) => shell.openExternal(url),
+});
 
 function flushExternalUrls() {
   externalUrlHandoff.flush();
@@ -8630,7 +8598,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isSessionPersistenceReady: () => !sessionPersistenceSuspended,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
-      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      normalizeAddressInput, pasteAndGo, classifyExternalNavigation, openInternalPage, openFindBar,
       // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
       // readiness) against a real captured target — not a reimplementation.
       showFillStatusForTest: (kind) => {
