@@ -139,6 +139,7 @@ function install(refs) {
     sleepBackgroundTabsNow,
     getPermissionPrompts,
     showFillStatusForTest,
+    onePasswordTargetForTest,
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
@@ -689,6 +690,7 @@ function install(refs) {
       settings.setSettings({ onePasswordEnabled: !!enabled, onePasswordAccount: String(account ?? '') });
       return settings.getSettings().onePasswordEnabled;
     },
+    onePasswordTarget() { return onePasswordTargetForTest?.() ?? null; },
     showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
     fillStatusState() { return fillStatusState?.() ?? null; },
     readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },

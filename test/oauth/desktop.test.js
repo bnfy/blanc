@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { _electron } = require('playwright');
+const { callTestHook } = require('../desktop/support/test-hook-call');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const CLIENT_HINTS = [
@@ -293,6 +294,18 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
   });
   const root = await waitForWebContents(app, { pathname: '/login' });
   assert.ok(root);
+
+  // The built-in 1Password shortcut must stay on the focused OAuth window.
+  // Targeting the opener steals focus and can make Google dismiss the popup.
+  await clickWebContents(app, root.id, '#popup');
+  const fillPopup = await waitForWebContents(app, { pathname: '/callback' });
+  assert.ok(fillPopup, '1Password target popup should open');
+  const popupTarget = await callTestHook(app, 'onePasswordTarget');
+  assert.equal(popupTarget.kind, 'popup');
+  assert.equal(popupTarget.webContentsId, fillPopup.id);
+  assert.equal(popupTarget.url, fillPopup.url);
+  await app.evaluate((electron, id) => electron.webContents.fromId(id)?.close(), fillPopup.id);
+
   // Stub only native UI/OS effects. Chromium navigation and production
   // handlers remain real; no installed application or account is touched.
   await app.evaluate((electron) => {

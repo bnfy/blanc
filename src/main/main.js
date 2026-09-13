@@ -3336,11 +3336,37 @@ const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintSchedul
 
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
+
+  // A featureful window.open stays a real BrowserWindow for OAuth/SSO. When
+  // that popup owns focus, it is the page the user asked to fill. Falling
+  // through to runtime.activeTabId would focus the opener underneath it;
+  // sites such as Google may dismiss their login popup on that focus loss.
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedContents = focusedWindow?.webContents;
+  if (
+    focusedWindow !== runtime.window &&
+    focusedWindow && !focusedWindow.isDestroyed() &&
+    focusedContents && !focusedContents.isDestroyed() &&
+    windowRuntimes.runtimeForAuxiliaryContent(focusedContents.id) === runtime
+  ) {
+    return {
+      kind: 'popup',
+      runtime,
+      runtimeId: runtime.id,
+      webContentsId: focusedContents.id,
+      url: focusedContents.getURL(),
+      webContents: focusedContents,
+      window: focusedWindow,
+      pickerPoint: { x: 16, y: 16 },
+    };
+  }
+
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!tab || !wc || wc.isDestroyed()) return null;
   const island = runtime.islandRect;
   return {
+    kind: 'tab',
     runtime,
     runtimeId: runtime.id,
     tabId: tab.id,
@@ -3357,9 +3383,17 @@ function captureOnePasswordTarget(runtime) {
 function isOnePasswordTargetCurrent(target) {
   if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
   if (!target.window || target.window.isDestroyed()) return false;
-  if (target.runtime.activeTabId !== target.tabId) return false;
   if (target.surfaceGeneration !== undefined
       && target.surfaceGeneration !== target.runtime.surfaceGeneration) return false;
+  if (target.kind === 'popup') {
+    const wc = target.webContents;
+    return !!wc && !wc.isDestroyed()
+      && wc.id === target.webContentsId
+      && windowRuntimes.runtimeForAuxiliaryContent(wc.id) === target.runtime
+      && BrowserWindow.fromWebContents(wc) === target.window
+      && wc.getURL() === target.url;
+  }
+  if (target.runtime.activeTabId !== target.tabId) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
@@ -3413,6 +3447,15 @@ async function showFillFallbackDialog(target, kind) {
  * mapping). Null when the tab/view no longer matches the captured target —
  * the controller then falls back to the island pill anchor. */
 function onePasswordToWindowPoint(target, rect) {
+  if (target.kind === 'popup') {
+    if (!isOnePasswordTargetCurrent(target)) return null;
+    const { width, height } = target.window.getContentBounds();
+    return pickerAnchorPoint({
+      rect,
+      viewBounds: { x: 0, y: 0, width, height },
+      zoomFactor: target.webContents.getZoomFactor(),
+    });
+  }
   const tab = tabs.get(target.tabId);
   const view = tab?.view;
   const wc = liveContents(tab);
@@ -8599,6 +8642,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, classifyExternalNavigation, openInternalPage, openFindBar,
+      onePasswordTargetForTest: () => {
+        const target = captureOnePasswordTarget(rt());
+        return target ? {
+          kind: target.kind,
+          webContentsId: target.webContents.id,
+          windowId: target.window.id,
+          url: target.url,
+        } : null;
+      },
       // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
       // readiness) against a real captured target — not a reimplementation.
       showFillStatusForTest: (kind) => {
