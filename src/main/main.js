@@ -122,6 +122,7 @@ const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
+  setDownloadRequesterCheck,
   downloadsActivity,
   acknowledgeDownloads,
   discardProfileDownloads,
@@ -4510,7 +4511,7 @@ function workspaceOwner(runtime, id) {
 }
 
 function workspaceProtection(runtime) {
-  if (runtime.closing || runtime.workspaceTransition || runtime.permissionPrompts.size) return { blocked: true, reason: 'permission-or-transition' };
+  if (runtime.closing || runtime.workspaceTransition || runtime.permissionPrompts.size || runtime.authenticationPrompts) return { blocked: true, reason: 'permission-or-transition' };
   const members = runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean);
   if (members.some((t) => t.capturing || t.sleeping || t.waking || t.isLoading || t.openerTabId || popupChildCounts.get(t.id))) {
     return { blocked: true, reason: 'active-page' };
@@ -8254,6 +8255,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // downloads.js invokes this from its own session/DownloadItem listeners —
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
+  setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,
     profileId: DEFAULT_PROFILE_ID,
@@ -8885,11 +8887,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       ?? windowRuntimes.runtimeForAuxiliaryContent(requestingWc?.id)
       ?? focusedRuntime
       ?? primaryRuntime;
+    if (runtime.resident || runtime.closing) { callback(); return; }
+    runtime.authenticationPrompts += 1;
     withWindowRuntime(runtime, () => {
       promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
         if (creds) callback(creds.username, creds.password);
         else callback(); // no args = cancel the request
-      });
+      }, () => callback()).finally(() => { runtime.authenticationPrompts -= 1; });
     });
   });
 

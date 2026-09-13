@@ -13,3 +13,11 @@ Final minimum-size/vertical/125% native screenshot verification (F41-8):
 1 scenario (1 passed)
 3 steps (3 passed)
 0m 2.919s (0m 2.904s executing your code)
+
+Inactive authentication and download prompt regression (F41-6):
+......
+
+2 hooks (2 passed)
+1 scenario (1 passed)
+4 steps (4 passed)
+0m 1.584s (0m 1.567s executing your code)

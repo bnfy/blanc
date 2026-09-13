@@ -30,6 +30,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     closing: false,
     resident: false,
     workspaceTransition: false,
+    authenticationPrompts: 0,
     window: null,
     chromeReady: false,
     tabOrder: [],

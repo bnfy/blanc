@@ -1,5 +1,4 @@
 Command: npm run test:unit
-Candidate: codex/named-workspaces-remediation
 
 1..1763
 # tests 1782
@@ -9,4 +8,4 @@ Candidate: codex/named-workspaces-remediation
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 67317.858417
+# duration_ms 67384.635875

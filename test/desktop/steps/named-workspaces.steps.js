@@ -112,6 +112,13 @@ When('I quiet a grouped pinned page and switch away', async function () {
 Then('inactive navigation belongs to the original workspace and its quiet tab survives', async function () {
   await this.call('workspacePageScript', this.draftId, `history.pushState({}, '', '#inactive-navigation'); document.title = 'Inactive workspace'; true`);
   const popupDenied = await this.call('workspacePageScript', this.draftId, `window.open('about:blank') === null`); assert.equal(popupDenied, true);
+  const authStatus = await this.call('workspacePageScript', this.draftId, `fetch('/workspace-auth').then(response => response.status)`); assert.equal(authStatus, 401);
+  const downloadDenied = ctx.app.evaluate(({ webContents }, id) => new Promise((resolve) => {
+    const wc = webContents.fromId(id);
+    wc.session.once('will-download', (event) => resolve(event.defaultPrevented));
+    wc.downloadURL(new URL('/workspace-download', wc.getURL()).href);
+  }), this.draftIdentity);
+  assert.equal(await downloadDenied, true);
   await this.waitForState((s) => s.tabs.every((t) => !t.isLoading));
   const opened = await this.call('workspaceAction', 'open', this.workspaceA); assert.equal(opened.ok, true, JSON.stringify(opened));
   const state = await this.state(); const quiet = state.tabs.find((t) => t.id === this.quietId);
