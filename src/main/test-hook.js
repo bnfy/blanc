@@ -406,6 +406,11 @@ function install(refs) {
   }
 
   globalThis.__blanc = {
+    workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
+    workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
+    workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
+    workspacePageScript(id, script) { return tabs.get(id)?.view?.webContents?.executeJavaScript(script); },
+    workspacePageIdentity(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     // ---- state ----
     windowRuntimes() { return windowRuntimeSnapshots(); },
     openNewWindow() { return openNewWindowAction(); },
@@ -2207,6 +2212,7 @@ function install(refs) {
 
     // ---- isolation between scenarios ----
     async reset() {
+      refs.workspaceTestAction('reset');
       clearFocusObservation();
       activeTabImportFixtureName = null;
       // Keep the current deletion lifecycle authoritative: it settles native

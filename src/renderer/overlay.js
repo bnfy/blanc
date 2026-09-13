@@ -147,50 +147,15 @@
   // that happened elsewhere (another window, or this window's own command).
   let wsPatronActive = false;
   let wsWorkspaces = [];
-  // A workspace row's context-menu Rename/Delete lands here. main has no
-  // other channel back into an already-open panel, so both reuse the SAME
-  // overlay:show purpose payload beginNewGroup already relies on — see
-  // applyMode's purpose handling below. Only one edit/confirm is ever open;
-  // a stray id (the workspace was deleted from elsewhere while open) simply
-  // has no row left to render into, so it goes inert rather than needing to
-  // be reconciled explicitly. All of these editors live in the footer
-  // workspace popover — never in the tab list.
-  let pendingRenameWorkspaceId = null;
-  let workspaceEditValue = '';
-  let pendingDeleteWorkspaceId = null;
-  // "new…" / "save as…": name editors inside the popover (create blank vs
-  // capture this window). Mutually exclusive with rename/delete.
-  let pendingCreateWorkspace = false;
-  let createWorkspaceValue = '';
-  let pendingSaveAsWorkspace = false;
-  let saveAsWorkspaceValue = '';
-  // Task 10's post-import handoff lives on the existing workspace popover,
-  // never the tab-import renderer. Task 11 opens the panel with
-  // { postImportWorkspace: true } after the batch succeeds and the utility
-  // sheet closes. The CTA below then enters the established save-as editor,
-  // whose commit still uses chrome:workspaces-save-as and its Patron gate.
-  let pendingPostImportWorkspacePrompt = false;
-  // Scratch guard (Task 9 follow-up): set when an open/create attempt comes
-  // back {error:'unsaved-scratch'} — this window is unbound and holds real
-  // tabs, so main refused to switch it without confirming first. Carries
-  // enough to retry the SAME action: 'open' replays openWorkspace(workspaceId),
-  // 'create' replays createBlankWorkspace(name). awaitingSave is set only
-  // while "save first" is in flight — see commitSaveAsWorkspace, which is
-  // the one place that consumes it.
-  let pendingScratchGuard = null; // { kind: 'open'|'create', workspaceId?, name, tabCount, privateCount, awaitingSave? }
-  // A popover editor is built into a detached element and only reaches the
-  // document when renderWorkspaceSwitcherList() runs replaceChildren, and
-  // focus() on a detached node is silently a no-op. So the editors record the
-  // focus they want here and the switcher paint applies it once the input is live.
-  let pendingEditorFocus = null; // { input, caret, select }
-  // True only for the render that opened an editor (user clicked new… /
-  // Rename). Incidental tabs:updated re-renders must not re-claim focus —
-  // that stole the caret out of the address input. An editor that already
-  // holds focus still re-claims via caret != null.
-  let claimEditorFocus = false;
-  // Footer workspace switcher popover (open/closed). Closed on Esc, outside
-  // click, tab switch, and whenever the overlay itself hides.
   let workspaceSwitcherOpen = false;
+  let pendingPostImportWorkspacePrompt = false;
+  const workspaceUI = WorkspaceUI.create({
+    document, window, api: window.browserAPI,
+    popup: workspaceSwitcher, list: workspaceSwitcherList,
+    trigger: footerWorkspace, label: footerWorkspaceLabel,
+    feedback: document.getElementById('workspaceFeedback'),
+    onOpenChange(open) { workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open); },
+  });
 
   const ICONS = {
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
@@ -668,644 +633,19 @@
   function applyWorkspacesPayload(payload) {
     wsPatronActive = !!payload?.patronActive;
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
-    syncFooterWorkspace();
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
+    workspaceUI.apply({ ...payload, patronActive: wsPatronActive, items: wsWorkspaces });
   }
-
-  function boundWorkspace() {
-    return wsWorkspaces.find((w) => w.active) || null;
-  }
-
-  /** Bound: glyph + name + --surface fill. Unbound: glyph-only, same
-   * weight as the other footer acts. */
-  function syncFooterWorkspace() {
-    const bound = boundWorkspace();
-    footerWorkspace.classList.toggle('ws', !!bound);
-    footerWorkspace.classList.toggle('bound', !!bound);
-    if (bound) {
-      footerWorkspaceLabel.hidden = false;
-      footerWorkspaceLabel.textContent = bound.name;
-      footerWorkspace.title = `Workspace · ${bound.name}`;
-      footerWorkspace.setAttribute('aria-label', `Workspace ${bound.name}`);
-    } else {
-      footerWorkspaceLabel.hidden = true;
-      footerWorkspaceLabel.textContent = '';
-      footerWorkspace.title = 'Workspaces';
-      footerWorkspace.setAttribute('aria-label', 'Workspaces');
-    }
-    footerWorkspace.setAttribute('aria-expanded', workspaceSwitcherOpen ? 'true' : 'false');
-  }
-
-  function clearWorkspacePopoverEditors() {
-    pendingRenameWorkspaceId = null;
-    workspaceEditValue = '';
-    pendingDeleteWorkspaceId = null;
-    pendingCreateWorkspace = false;
-    createWorkspaceValue = '';
-    pendingSaveAsWorkspace = false;
-    saveAsWorkspaceValue = '';
-    claimEditorFocus = false;
-  }
-
-  function workspacePopoverEditing() {
-    return pendingCreateWorkspace
-      || pendingSaveAsWorkspace
-      || pendingRenameWorkspaceId != null
-      || pendingDeleteWorkspaceId != null;
-  }
-
-  /** Drop only the "save first" hand-off flag so the unsaved-tabs confirm
-   * stays on screen. Never null the whole guard here — canceling the name
-   * field must not erase the original switch/create decision. */
-  function clearScratchGuardAwaitingSave() {
-    if (!pendingScratchGuard?.awaitingSave) return;
-    pendingScratchGuard = { ...pendingScratchGuard, awaitingSave: false };
-    renderList();
-  }
-
-  function closeWorkspaceSwitcher() {
-    if (!workspaceSwitcherOpen && !workspacePopoverEditing()) return;
-    workspaceSwitcherOpen = false;
-    workspaceSwitcher.hidden = true;
-    workspaceSwitcher.style.top = '';
-    workspaceSwitcher.style.bottom = '';
-    workspaceSwitcher.style.right = '';
-    workspaceSwitcher.style.visibility = '';
-    clearScratchGuardAwaitingSave();
-    clearWorkspacePopoverEditors();
-    pendingPostImportWorkspacePrompt = false;
-    footerWorkspace.setAttribute('aria-expanded', 'false');
-    window.browserAPI.setWorkspaceSwitcherOpen(false);
-  }
-
-  /** Pin the menu to the footer control in viewport space. Prefer above the
-   * trigger; if that would clip at the top of the overlay, flip below. */
-  function layoutWorkspaceSwitcher() {
-    const gap = 6;
-    const edge = 8;
-    const anchor = footerWorkspace.getBoundingClientRect();
-    const menu = workspaceSwitcher;
-    menu.style.top = '0px';
-    menu.style.bottom = 'auto';
-    menu.style.right = '0px';
-    const h = menu.offsetHeight;
-    const w = menu.offsetWidth;
-    let top = anchor.top - h - gap;
-    if (top < edge) {
-      top = anchor.bottom + gap;
-      const maxTop = window.innerHeight - h - edge;
-      if (top > maxTop) top = Math.max(edge, maxTop);
-    }
-    let right = window.innerWidth - anchor.right;
-    right = Math.max(edge, Math.min(right, window.innerWidth - w - edge));
-    menu.style.top = `${Math.round(top)}px`;
-    menu.style.right = `${Math.round(right)}px`;
-  }
-
-  function paintWorkspaceSwitcher({ deferFocus = false } = {}) {
-    renderWorkspaceSwitcherList();
-    layoutWorkspaceSwitcher();
-    // Opening measures with visibility:hidden — focus() is a silent no-op then
-    // (same class of bug as focusing a detached node). Callers that hide for
-    // measure must restore visibility before applying deferred editor focus.
-    if (!deferFocus) focusPendingEditor();
-  }
-
-  function openWorkspaceSwitcher() {
-    workspaceSwitcherOpen = true;
-    workspaceSwitcher.hidden = false;
-    workspaceSwitcher.style.visibility = 'hidden';
-    paintWorkspaceSwitcher({ deferFocus: true });
-    workspaceSwitcher.style.visibility = '';
-    focusPendingEditor();
-    footerWorkspace.setAttribute('aria-expanded', 'true');
-    window.browserAPI.setWorkspaceSwitcherOpen(true);
-  }
-
-  function toggleWorkspaceSwitcher() {
-    if (workspaceSwitcherOpen) closeWorkspaceSwitcher();
-    else openWorkspaceSwitcher();
-  }
-
-  function setSwitcherCommandVisibility(visible) {
-    wsSwitcherSep.hidden = !visible;
-    wsSwitcherNew.hidden = !visible;
-    wsSwitcherSaveAs.hidden = !visible;
-  }
-
-  function renderWorkspacePatronGateRow(hasExisting = wsWorkspaces.length > 0) {
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'ws-switcher-row workspace-row';
-    row.setAttribute('role', 'menuitem');
-    row.setAttribute('aria-label', 'Open Patron Settings for Named Workspaces');
-    const name = document.createElement('span');
-    name.className = 'ws-switcher-name';
-    name.textContent = hasExisting
-      ? 'Renew Patron to create another'
-      : 'Named Workspaces — Patron';
-    const action = document.createElement('span');
-    action.className = 'ws-switcher-n';
-    action.textContent = hasExisting ? '→' : 'unlock →';
-    row.append(name, action);
-    row.addEventListener('click', () => {
-      closeWorkspaceSwitcher();
-      window.browserAPI.closeOverlay();
-      window.browserAPI.openPage('settings', 'patron');
-    });
-    return row;
-  }
-
-  function renderPostImportWorkspaceRow() {
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'ws-switcher-row workspace-row';
-    row.setAttribute('role', 'menuitem');
-    const name = document.createElement('span');
-    name.className = 'ws-switcher-name';
-    const action = document.createElement('span');
-    action.className = 'ws-switcher-n';
-    if (wsPatronActive) {
-      name.textContent = 'Save this setup as a workspace…';
-      action.textContent = '→';
-      row.setAttribute('aria-label', 'Save imported tabs as a Named Workspace');
-      row.addEventListener('click', () => {
-        pendingPostImportWorkspacePrompt = false;
-        beginSaveWorkspace();
-      });
-    } else {
-      name.textContent = 'Named Workspaces can save this whole setup for later';
-      action.textContent = 'learn more →';
-      row.setAttribute('aria-label', 'Learn about Named Workspaces in Patron Settings');
-      row.addEventListener('click', () => {
-        pendingPostImportWorkspacePrompt = false;
-        closeWorkspaceSwitcher();
-        window.browserAPI.closeOverlay();
-        window.browserAPI.openPage('settings', 'patron');
-      });
-    }
-    row.append(name, action);
-    return row;
-  }
-
-  /** Shared name field for create / save-as / rename inside the popover. */
-  function renderSwitcherNameInput({
-    value, placeholder, ariaLabel, onInput, onCommit, onCancel, selectAll, caret, className,
-  }) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = className || 'ws-switcher-input';
-    input.maxLength = 60; // MAX_NAME_LENGTH (workspaces-model.js)
-    input.placeholder = placeholder;
-    input.value = value;
-    input.setAttribute('aria-label', ariaLabel);
-    input.addEventListener('input', () => onInput(input.value));
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); onCommit(); }
-      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel(); }
-    });
-    if (caret != null || claimEditorFocus) {
-      pendingEditorFocus = { input, caret, select: !!selectAll };
-      claimEditorFocus = false;
-    }
-    return input;
-  }
-
-  function renderWorkspaceSwitcherList() {
-    const naming = pendingCreateWorkspace || pendingSaveAsWorkspace;
-    // Inactive users keep the discoverable Workspaces surface, but creation
-    // controls never masquerade as enabled. Their single CTA is rendered in
-    // the list below; existing rows remain lapse-safe.
-    setSwitcherCommandVisibility(wsPatronActive && !naming);
-
-    if (pendingPostImportWorkspacePrompt) {
-      setSwitcherCommandVisibility(false);
-      workspaceSwitcherList.replaceChildren(renderPostImportWorkspaceRow());
-      return;
-    }
-
-    if (pendingCreateWorkspace) {
-      const wrap = document.createElement('div');
-      wrap.className = 'ws-switcher-editor';
-      wrap.append(renderSwitcherNameInput({
-        value: createWorkspaceValue,
-        placeholder: 'name this workspace',
-        ariaLabel: 'Name for the new workspace',
-        onInput: (v) => { createWorkspaceValue = v; },
-        onCommit: commitCreateWorkspace,
-        onCancel: cancelCreateWorkspace,
-        selectAll: false,
-        caret: currentSwitcherCaret('.ws-switcher-editor'),
-      }));
-      workspaceSwitcherList.replaceChildren(wrap);
-      return;
-    }
-
-    if (pendingSaveAsWorkspace) {
-      const wrap = document.createElement('div');
-      wrap.className = 'ws-switcher-editor';
-      wrap.append(renderSwitcherNameInput({
-        value: saveAsWorkspaceValue,
-        placeholder: 'name this window’s workspace',
-        ariaLabel: 'Name for saving this window as a workspace',
-        onInput: (v) => { saveAsWorkspaceValue = v; },
-        onCommit: commitSaveAsWorkspace,
-        onCancel: cancelSaveAsWorkspace,
-        selectAll: false,
-        caret: currentSwitcherCaret('.ws-switcher-editor'),
-      }));
-      workspaceSwitcherList.replaceChildren(wrap);
-      return;
-    }
-
-    const nodes = [];
-    if (wsWorkspaces.length === 0) {
-      if (wsPatronActive) {
-        const empty = document.createElement('div');
-        empty.className = 'ws-switcher-empty';
-        empty.textContent = 'No workspaces yet';
-        nodes.push(empty);
-      } else {
-        nodes.push(renderWorkspacePatronGateRow(false));
-      }
-    } else {
-      for (const workspace of wsWorkspaces) {
-        if (pendingRenameWorkspaceId === workspace.id) {
-          nodes.push(renderSwitcherRenameRow(workspace));
-        } else if (pendingDeleteWorkspaceId === workspace.id) {
-          nodes.push(renderSwitcherDeleteRow(workspace));
-        } else {
-          nodes.push(renderSwitcherWorkspaceRow(workspace));
-        }
-      }
-      if (!wsPatronActive) nodes.push(renderWorkspacePatronGateRow(true));
-    }
-    workspaceSwitcherList.replaceChildren(...nodes);
-  }
-
-  function currentSwitcherCaret(scopeSelector) {
-    const active = document.activeElement;
-    if (
-      active?.classList?.contains('ws-switcher-input')
-      && active.closest(scopeSelector)
-    ) return active.selectionStart;
-    return null;
-  }
-
-  function renderSwitcherWorkspaceRow(workspace) {
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'ws-switcher-row workspace-row' + (workspace.active ? ' on' : '');
-    row.dataset.workspaceId = workspace.id;
-    row.setAttribute('role', 'menuitem');
-    row.title = workspace.active
-      ? `${workspace.name}, current workspace`
-      : `Switch to ${workspace.name}`;
-    const tick = document.createElement('span');
-    tick.className = 'ws-switcher-tick';
-    tick.textContent = workspace.active ? '✓' : '';
-    tick.setAttribute('aria-hidden', 'true');
-    const name = document.createElement('span');
-    name.className = 'ws-switcher-name';
-    name.textContent = workspace.name;
-    const n = document.createElement('span');
-    n.className = 'ws-switcher-n';
-    n.textContent = String(workspace.tabCount);
-    row.append(tick, name, n);
-    row.addEventListener('click', () => {
-      closeWorkspaceSwitcher();
-      switchToWorkspace(workspace);
-    });
-    return row;
-  }
-
-  function renderSwitcherRenameRow(workspace) {
-    const row = document.createElement('div');
-    row.className = 'ws-switcher-row editing workspace-row';
-    row.dataset.workspaceId = workspace.id;
-    const input = renderSwitcherNameInput({
-      value: workspaceEditValue,
-      placeholder: '',
-      ariaLabel: `New name for ${workspace.name}`,
-      onInput: (v) => { workspaceEditValue = v; },
-      onCommit: () => commitWorkspaceRename(workspace.id),
-      onCancel: cancelWorkspaceEdit,
-      selectAll: true,
-      caret: currentSwitcherCaret(`[data-workspace-id="${CSS.escape(workspace.id)}"]`),
-    });
-    row.append(input);
-    return row;
-  }
-
-  function renderSwitcherDeleteRow(workspace) {
-    // Stacked confirm card: wrapping Inter message on a quiet surface, actions
-    // below — a single mono row truncates long names (e.g. Delete "won…).
-    const row = document.createElement('div');
-    row.className = 'ws-switcher-confirm workspace-row';
-    row.dataset.workspaceId = workspace.id;
-    const msg = document.createElement('p');
-    msg.className = 'ws-switcher-confirm-msg';
-    msg.textContent = `Delete "${workspace.name}"?`;
-    const actions = document.createElement('div');
-    actions.className = 'ws-switcher-confirm-acts';
-    const cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.className = 'ws-switcher-mini';
-    cancel.textContent = 'cancel';
-    cancel.addEventListener('click', (e) => { e.stopPropagation(); cancelWorkspaceDelete(); });
-    const confirm = document.createElement('button');
-    confirm.type = 'button';
-    confirm.className = 'ws-switcher-mini danger';
-    confirm.textContent = 'delete';
-    confirm.setAttribute('aria-label', `Permanently delete ${workspace.name}`);
-    confirm.addEventListener('click', (e) => { e.stopPropagation(); commitWorkspaceDelete(workspace.id); });
-    actions.append(cancel, confirm);
-    row.append(msg, actions);
-    return row;
-  }
-
-  /** A quiet failure code -> the notice text a user actually needs. Every
-   * mutating call funnels its failure through here so none of them can ever
-   * become a silent no-op — the whole point of the shared commandNotice
-   * channel (see runCommand's resultNotice usage for /sleep). 'unsaved-scratch'
-   * is deliberately a safety net in the switch below: every call site that can
-   * receive it passes runWorkspaceMutation an onUnsavedScratch handler, which
-   * intercepts it before this function ever runs (see runWorkspaceMutation).
-   * The case exists so a future call site that forgets that handler still
-   * surfaces something instead of falling through to the generic default. */
-  function workspaceErrorNotice(error, { name } = {}) {
-    switch (error) {
-      case 'not-patron': return 'Creating workspaces needs Blanc Patron.';
-      case 'invalid-name': return 'Type a name for this workspace.';
-      case 'duplicate-name': return name
-        ? `A workspace named "${name}" already exists.`
-        : 'A workspace with that name already exists.';
-      case 'limit': return 'You’ve reached the 25-workspace limit.';
-      case 'invalid-record': return 'Couldn’t save that workspace.';
-      case 'not-found': return 'That workspace no longer exists.';
-      case 'focus-failed': return 'Couldn’t switch to that workspace’s window.';
-      case 'unsaved-scratch': return 'This window has unsaved tabs.';
-      default: return 'Couldn’t complete that action.';
-    }
-  }
-
-  /** Run a workspace mutation ({ok, error?, patronActive?, items?}). Applies
-   * the fresh projection when the response carries one (every handler
-   * returns it inline — see Task 7's report — so this never has to wait on
-   * the separate onWorkspacesUpdated broadcast), always re-renders, and
-   * surfaces a failure as a quiet notice. Generation-guarded like every other
-   * async panel result: a response for a panel the user has since closed/
-   * reopened, or a newer workspace action, must not paint a stale notice.
-   *
-   * onUnsavedScratch (Task 9 follow-up): an open/create-blank attempt can
-   * come back {error:'unsaved-scratch', tabCount} instead of a plain
-   * failure — this window is unbound and holds real tabs, and main refused
-   * to switch it without confirming first. A call site that can trigger the
-   * guard passes this to turn that response into the in-panel confirm
-   * (pendingScratchGuard/scratchGuardRow) instead of a dead-end notice. */
-  function runWorkspaceMutation(promise, { context, onSuccess, onUnsavedScratch } = {}) {
-    const resultGeneration = ++commandResultGeneration;
-    Promise.resolve(promise).then((result) => {
-      if (resultGeneration !== commandResultGeneration) return;
-      if (result && typeof result === 'object' && 'patronActive' in result) {
-        applyWorkspacesPayload(result);
-      }
-      if (!result?.ok) {
-        if (result?.error === 'unsaved-scratch' && onUnsavedScratch) onUnsavedScratch(result);
-        else commandNotice = workspaceErrorNotice(result?.error, context);
-      }
-      renderList();
-      if (result?.ok) onSuccess?.(result);
-    }, () => {
-      if (resultGeneration !== commandResultGeneration) return;
-      commandNotice = 'Something went wrong with that workspace.';
-      renderList();
-    });
-  }
-
-  function switchToWorkspace(workspace) {
-    runWorkspaceMutation(window.browserAPI.openWorkspace(workspace.id), {
-      context: { name: workspace.name },
-      onSuccess: () => window.browserAPI.closeOverlay(),
-      onUnsavedScratch: (result) => rememberScratchGuard(result, {
-        kind: 'open', workspaceId: workspace.id, name: workspace.name,
-      }),
-    });
-  }
-
-  /** Renderer-side UX gate only. Main remains authoritative and repeats the
-   * entitlement check before every create/save write. Existing workspaces are
-   * deliberately not gated, so a lapsed Patron keeps access to their data. */
-  function guardWorkspaceCreationEntry() {
-    if (wsPatronActive) return false;
-    clearWorkspacePopoverEditors();
-    openWorkspaceSwitcher();
-    return true;
-  }
-
-  /** "Save this window as…" — name the capture inside the popover, then
-   * commit via saveWorkspaceAs (same path /workspace <name> uses). Also the
-   * scratch guard's "save first" step. */
-  function beginSaveWorkspace() {
-    if (guardWorkspaceCreationEntry()) return;
-    pendingCreateWorkspace = false;
-    createWorkspaceValue = '';
-    pendingRenameWorkspaceId = null;
-    workspaceEditValue = '';
-    pendingDeleteWorkspaceId = null;
-    pendingSaveAsWorkspace = true;
-    saveAsWorkspaceValue = '';
-    claimEditorFocus = true;
-    openWorkspaceSwitcher();
-  }
-
-  function cancelSaveAsWorkspace() {
-    pendingSaveAsWorkspace = false;
-    saveAsWorkspaceValue = '';
-    clearScratchGuardAwaitingSave();
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-  }
-
-  function commitSaveAsWorkspace() {
-    const name = saveAsWorkspaceValue;
-    pendingSaveAsWorkspace = false;
-    saveAsWorkspaceValue = '';
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-    runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), {
-      context: { name },
-      onSuccess: () => {
-        if (pendingScratchGuard?.awaitingSave) retryScratchGuard(false);
-        else closeWorkspaceSwitcher();
-      },
-    });
-  }
-
-  /** "new…" — create an empty workspace; name field stays in the popover. */
-  function beginCreateWorkspace() {
-    if (guardWorkspaceCreationEntry()) return;
-    pendingSaveAsWorkspace = false;
-    saveAsWorkspaceValue = '';
-    pendingRenameWorkspaceId = null;
-    workspaceEditValue = '';
-    pendingDeleteWorkspaceId = null;
-    pendingCreateWorkspace = true;
-    createWorkspaceValue = '';
-    claimEditorFocus = true;
-    openWorkspaceSwitcher();
-  }
-
-  function cancelCreateWorkspace() {
-    pendingCreateWorkspace = false;
-    createWorkspaceValue = '';
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-  }
-
-  function commitCreateWorkspace() {
-    const name = createWorkspaceValue;
-    pendingCreateWorkspace = false;
-    createWorkspaceValue = '';
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-    runWorkspaceMutation(window.browserAPI.createBlankWorkspace(name), {
-      context: { name },
-      onSuccess: () => window.browserAPI.closeOverlay(),
-      onUnsavedScratch: (result) => {
-        closeWorkspaceSwitcher();
-        rememberScratchGuard(result, { kind: 'create', name });
-      },
-    });
-  }
-
-  /** Capture a {error:'unsaved-scratch'} response as the in-panel confirm.
-   * privateCount rides along so scratchGuardRow can hide "save first" when
-   * every at-risk tab is private (save-as cannot clear those). */
-  function rememberScratchGuard(result, extra = {}) {
-    pendingScratchGuard = {
-      ...extra,
-      tabCount: result.tabCount,
-      privateCount: result.privateCount ?? 0,
-    };
-  }
-
-  /** Re-run the action pendingScratchGuard remembers, with an explicit
-   * decision about the guard: force:true is "discard and switch" (the user's
-   * own override); force:false is what "save first" retries with. A successful
-   * save binds this window, which covers persistable tabs — but private pages
-   * still trip the guard, so this MUST pass onUnsavedScratch. Without it a
-   * re-trip falls through to the dead-end notice and drops the original
-   * action. Clears pendingScratchGuard and repaints BEFORE the mutation
-   * resolves, so the confirm row never lingers through the round-trip. */
-  function retryScratchGuard(force) {
-    const guard = pendingScratchGuard;
-    if (!guard) return;
-    pendingScratchGuard = null;
-    renderList();
-    const context = { name: guard.name };
-    const onSuccess = () => window.browserAPI.closeOverlay();
-    const onUnsavedScratch = (result) => rememberScratchGuard(result, {
-      kind: guard.kind, workspaceId: guard.workspaceId, name: guard.name,
-    });
-    if (guard.kind === 'open') {
-      runWorkspaceMutation(window.browserAPI.openWorkspace(guard.workspaceId, { force }), {
-        context, onSuccess, onUnsavedScratch,
-      });
-    } else {
-      runWorkspaceMutation(window.browserAPI.createBlankWorkspace(guard.name, { force }), {
-        context, onSuccess, onUnsavedScratch,
-      });
-    }
-  }
-
-  /** "save these tabs as a workspace first" — opens the popover save-as
-   * editor and marks the pending guard as awaiting that save.
-   * commitSaveAsWorkspace retries the original action once the save succeeds. */
-  function beginScratchGuardSaveFirst() {
-    if (!pendingScratchGuard) return;
-    pendingScratchGuard = { ...pendingScratchGuard, awaitingSave: true };
-    beginSaveWorkspace();
-  }
-
-  /** "discard them and switch" — the explicit override; retryScratchGuard(true)
-   * skips the guard on the retried attempt. */
-  function discardScratchGuard() {
-    retryScratchGuard(true);
-  }
-
-  function cancelScratchGuard() {
-    pendingScratchGuard = null;
-    renderList();
-  }
-
-  function cancelWorkspaceEdit() {
-    pendingRenameWorkspaceId = null;
-    workspaceEditValue = '';
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-  }
-
-  function commitWorkspaceRename(id) {
-    const name = workspaceEditValue;
-    pendingRenameWorkspaceId = null;
-    workspaceEditValue = '';
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-    runWorkspaceMutation(window.browserAPI.renameWorkspace(id, name), { context: { name } });
-  }
-
-  function cancelWorkspaceDelete() {
-    pendingDeleteWorkspaceId = null;
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-  }
-
-  function commitWorkspaceDelete(id) {
-    pendingDeleteWorkspaceId = null;
-    if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
-    runWorkspaceMutation(window.browserAPI.removeWorkspace(id));
-  }
-
-  /** Scratch guard confirmation (Task 9 follow-up) — same warning + button
-   * shape as renderWorkspaceDeleteConfirm, just one more (non-destructive)
-   * choice. Rendered at the top of the at-rest list, the same slot
-   * commandNoticeRow uses (see renderList) — the two never show together. */
-  function scratchGuardRow() {
-    const row = document.createElement('div');
-    row.className = 'island-row confirming';
-    const count = pendingScratchGuard.tabCount;
-    const privateCount = pendingScratchGuard.privateCount ?? 0;
-    const allPrivate = count > 0 && privateCount >= count;
-    const tabWord = count === 1 ? 'tab' : 'tabs';
-    const warning = document.createElement('span');
-    warning.className = 'row-title';
-    warning.textContent = allPrivate
-      ? `${count} private ${tabWord} will close.`
-      : `${count} unsaved ${tabWord} will close.`;
-    const discard = document.createElement('button');
-    discard.type = 'button';
-    discard.className = 'ghead-action danger';
-    discard.textContent = 'discard';
-    discard.title = `Close ${count} ${allPrivate ? 'private' : 'unsaved'} ${tabWord} without saving`;
-    discard.setAttribute('aria-label', discard.title);
-    discard.addEventListener('click', () => discardScratchGuard());
-    const cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.className = 'ghead-action';
-    cancel.textContent = 'cancel';
-    cancel.title = 'Stay on this window';
-    cancel.addEventListener('click', () => cancelScratchGuard());
-    // Save-as never captures private tabs. Offering "save first" when every
-    // at-risk tab is private re-trips the guard after a no-op save and used
-    // to drop the original action into a dead-end notice.
-    if (!allPrivate) {
-      const saveFirst = document.createElement('button');
-      saveFirst.type = 'button';
-      saveFirst.className = 'ghead-action';
-      saveFirst.textContent = 'save first';
-      saveFirst.title = 'Save these tabs as a workspace, then continue';
-      saveFirst.setAttribute('aria-label', saveFirst.title);
-      saveFirst.addEventListener('click', () => beginScratchGuardSaveFirst());
-      row.append(warning, saveFirst, discard, cancel);
-    } else {
-      row.append(warning, discard, cancel);
-    }
-    return row;
-  }
+  function boundWorkspace() { return wsWorkspaces.find((w) => w.active) ?? null; }
+  function clearWorkspacePopoverEditors() { workspaceUI.reset(); }
+  function workspacePopoverEditing() { return workspaceUI.editing; }
+  function closeWorkspaceSwitcher() { workspaceUI.close(); }
+  function layoutWorkspaceSwitcher() { workspaceUI.layout(); }
+  function paintWorkspaceSwitcher() { workspaceUI.render(); }
+  function openWorkspaceSwitcher() { workspaceUI.open(); }
+  function toggleWorkspaceSwitcher() { workspaceUI.toggle(); }
+  function beginCreateWorkspace() { workspaceUI.begin('create'); }
+  function beginSaveWorkspace() { workspaceUI.begin('save'); }
+  function switchToWorkspace(workspace) { workspaceUI.switchTo(workspace); }
 
   // --- Remote devices (tab sync) ---
 
@@ -1392,25 +732,8 @@
 
   function runWorkspaceCommand(input) {
     const name = (input ?? '').replace(/^\/workspace\s*/, '').trim();
-    if (!name) {
-      // Reveal the footer switcher — the resting list no longer carries a
-      // workspaces section to scroll to.
-      openWorkspaceSwitcher();
-      return;
-    }
-    // Case-insensitive switch-if-exists stays lapse-safe. Only a new name is
-    // creation, so stop that path at the upfront renderer gate before an IPC
-    // round-trip; main repeats the entitlement check as the authority.
-    const existing = wsWorkspaces.find((w) => w.name.toLowerCase() === name.toLowerCase());
-    if (existing) { switchToWorkspace(existing); return; }
-    if (guardWorkspaceCreationEntry()) return;
-    runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), {
-      context: { name },
-      // Scratch guard's "save first" lands here: a save that succeeds while
-      // a guard is awaiting one means THIS window is now bound. Retry still
-      // uses force:false so remaining private pages re-trip the guard.
-      onSuccess: () => { if (pendingScratchGuard?.awaitingSave) retryScratchGuard(false); },
-    });
+    if (!name) openWorkspaceSwitcher();
+    else workspaceUI.command(name);
   }
 
   const COMMANDS = [
@@ -1866,26 +1189,7 @@
   // so an inline editor outranks restoreRowFocus. focus() on a detached or
   // visibility:hidden node is a silent no-op — leave the intent pending in
   // the hidden case so a later call (after visibility is restored) can land.
-  function focusPendingEditor() {
-    const pending = pendingEditorFocus;
-    if (!pending) return;
-    const inList = islandList.contains(pending.input);
-    const inSwitcher = workspaceSwitcher.contains(pending.input);
-    if (!inList && !inSwitcher) {
-      pendingEditorFocus = null;
-      return;
-    }
-    if (
-      inSwitcher
-      && (workspaceSwitcher.hidden || workspaceSwitcher.style.visibility === 'hidden')
-    ) {
-      return;
-    }
-    pendingEditorFocus = null;
-    pending.input.focus();
-    if (pending.caret != null) pending.input.setSelectionRange(pending.caret, pending.caret);
-    else if (pending.select) pending.input.select();
-  }
+
 
   function renderSiteInfo() {
     const info = activeTab()?.siteInfo;
@@ -2022,8 +1326,7 @@
       // the two never coexist (see runWorkspaceMutation's onUnsavedScratch,
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
-      if (pendingScratchGuard) rows.push(scratchGuardRow());
-      else if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
         rows.push(...pinned.map(tabRow));
@@ -2072,7 +1375,6 @@
       restoreRowFocus(rowAnchor);
     }
 
-    focusPendingEditor();
 
     if (!siteInfoOpen) {
       islandHint.textContent = activeTab()?.private
@@ -2231,7 +1533,6 @@
         siteInfoOpen = false;
         pendingGroupTabId = null;
         clearWorkspacePopoverEditors();
-        pendingScratchGuard = null;
         closeWorkspaceSwitcher();
         addressInputComposing = false;
         suppressProviderSuggestions = false;
@@ -2255,29 +1556,10 @@
       // as a reshow, and each purpose always targets the CURRENT edit/
       // confirm state, replacing whatever the last one was. Editors open
       // inside the footer popover.
-      if (purpose && typeof purpose === 'object' && purpose.renameWorkspaceId != null) {
-        pendingCreateWorkspace = false;
-        createWorkspaceValue = '';
-        pendingSaveAsWorkspace = false;
-        saveAsWorkspaceValue = '';
-        pendingRenameWorkspaceId = purpose.renameWorkspaceId;
-        pendingDeleteWorkspaceId = null;
-        workspaceEditValue = wsWorkspaces.find((w) => w.id === pendingRenameWorkspaceId)?.name ?? '';
-        claimEditorFocus = true;
-      }
-      if (purpose && typeof purpose === 'object' && purpose.deleteWorkspaceId != null) {
-        pendingCreateWorkspace = false;
-        createWorkspaceValue = '';
-        pendingSaveAsWorkspace = false;
-        saveAsWorkspaceValue = '';
-        pendingDeleteWorkspaceId = purpose.deleteWorkspaceId;
-        pendingRenameWorkspaceId = null;
-        workspaceEditValue = '';
-      }
-      if (purpose && typeof purpose === 'object' && purpose.postImportWorkspace === true) {
-        clearWorkspacePopoverEditors();
-        pendingScratchGuard = null;
-        pendingPostImportWorkspacePrompt = true;
+      if (purpose && typeof purpose === 'object') {
+        if (purpose.renameWorkspaceId) workspaceUI.begin('rename', wsWorkspaces.find((w) => w.id === purpose.renameWorkspaceId));
+        if (purpose.deleteWorkspaceId) workspaceUI.begin('delete', wsWorkspaces.find((w) => w.id === purpose.deleteWorkspaceId));
+        if (purpose.postImportWorkspace) { pendingPostImportWorkspacePrompt = true; workspaceUI.begin('save'); }
       }
       if (prefill) {
         // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
@@ -2631,7 +1913,6 @@
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
     clearWorkspacePopoverEditors();
-    pendingScratchGuard = null;
     closeWorkspaceSwitcher();
     selectedResultIndex = -1;
     resetSearchSuggestions();
@@ -2668,14 +1949,7 @@
 
   /** Layered Esc for the footer workspace popover. Returns true if handled
    * (editor cancel or popover close) so main must not hide the whole island. */
-  function handleWorkspaceEscape() {
-    if (pendingCreateWorkspace) { cancelCreateWorkspace(); return true; }
-    if (pendingSaveAsWorkspace) { cancelSaveAsWorkspace(); return true; }
-    if (pendingRenameWorkspaceId != null) { cancelWorkspaceEdit(); return true; }
-    if (pendingDeleteWorkspaceId != null) { cancelWorkspaceDelete(); return true; }
-    if (workspaceSwitcherOpen) { closeWorkspaceSwitcher(); return true; }
-    return false;
-  }
+  function handleWorkspaceEscape() { return workspaceUI.cancel(); }
 
   // --- Panel wiring ---
 
@@ -2772,12 +2046,6 @@
     // /group meant for the active tab.
     if (pendingGroupTabId != null && !addressInput.value.startsWith('/group')) {
       pendingGroupTabId = null;
-    }
-    // Same idea for a scratch guard's "save first": editing the address away
-    // from a leftover /workspace hand-off (slash command path) clears only
-    // awaitingSave so the confirm row remains.
-    if (pendingScratchGuard?.awaitingSave && !addressInput.value.startsWith('/workspace')) {
-      clearScratchGuardAwaitingSave();
     }
     if (!addressInput.value.trim()) {
       // Do not clear a paste/drop taint here. Delete followed by Undo restores

@@ -1,0 +1,15 @@
+Final workspace scenarios (F41-1 through F41-11):
+.............................................
+
+2 hooks (2 passed)
+11 scenarios (11 passed)
+43 steps (43 passed)
+0m 10.698s (0m 10.669s executing your code)
+
+Final minimum-size/vertical/125% native screenshot verification (F41-8):
+.....
+
+2 hooks (2 passed)
+1 scenario (1 passed)
+3 steps (3 passed)
+0m 2.919s (0m 2.904s executing your code)

@@ -3259,3 +3259,34 @@ body.fill-status-surface { background: transparent; }
   #islandPill.proximity-active { transform: none; transition: none; }
   #strip { transition: none; }
 }
+
+/* Workspace actions remain independent of address/search results. */
+.ws-switcher { width: 340px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); display: flex; flex-direction: column; overflow: hidden; }
+.ws-switcher[hidden] { display: none; }
+#workspaceSwitcherList { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.ws-switcher-cmd, .ws-switcher-sep { flex-shrink: 0; }
+.ws-managed-row { display: flex; align-items: center; gap: 4px; }
+.ws-managed-row > .ws-switcher-row { flex: 1; min-width: 0; }
+.ws-manage-button { flex: 0 0 36px; height: 36px; border: 0; border-radius: 7px; color: inherit; background: transparent; cursor: pointer; }
+.ws-manage-button:hover, .ws-manage-button:focus-visible { background: var(--accent-dim); }
+.ws-switcher-mini, .ws-switcher-cmd, .ws-switcher-row { min-height: 36px; }
+.ws-switcher-confirm-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ws-switcher-mini { padding: 7px 10px; margin: 3px 2px; }
+.ws-switcher-editor { padding: 10px; }
+.ws-editor-label { display: block; font: 500 14px/1.4 var(--font-ui, sans-serif); margin-bottom: 10px; overflow-wrap: anywhere; }
+.ws-help { font: 12px/1.55 var(--font-ui, sans-serif); opacity: .85; margin: 10px 4px; }
+.ws-error { font: 13px/1.5 var(--font-ui, sans-serif); color: var(--text); padding: 8px; border-left: 3px solid currentColor; margin: 6px 0; }
+.ws-error:empty { display: none; }
+.ws-switcher-input[aria-invalid="true"] { outline: 2px solid currentColor; outline-offset: 2px; }
+.ws-switcher button:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+.ws-switcher button:disabled { opacity: .5; cursor: wait; }
+.ws-recovery-row { padding: 8px; border-bottom: 1px solid var(--border); }
+.ws-recovery-row .ws-switcher-name { display: block; overflow-wrap: anywhere; white-space: normal; }
+#footerWorkspaceLabel { max-width: min(240px, 30vw); }
+#workspaceFeedback { flex-shrink: 0; padding: 0 12px; }
+
+.ws-switcher-mini.danger { color: var(--text); border-color: var(--danger); }
+
+.ws-switcher [hidden] { display: none !important; }
+
+@media (max-width: 750px) { #footerWorkspaceLabel { max-width: 140px; } }

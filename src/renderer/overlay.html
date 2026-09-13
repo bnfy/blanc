@@ -99,14 +99,15 @@
           <svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg>
         </button>
       </div>
+      <div id="workspaceFeedback" hidden></div>
       <div id="islandHint"></div>
     </div>
     <!-- Outside #islandPanel so fixed placement isn't clipped by the panel box. -->
-    <div id="workspaceSwitcher" class="ws-switcher" hidden role="menu" aria-label="Workspaces">
+    <div id="workspaceSwitcher" class="ws-switcher" hidden role="dialog" aria-label="Workspaces">
       <div id="workspaceSwitcherList"></div>
       <div id="wsSwitcherSep" class="ws-switcher-sep" role="separator"></div>
-      <button type="button" class="ws-switcher-cmd" id="wsSwitcherNew" role="menuitem">new…</button>
-      <button type="button" class="ws-switcher-cmd" id="wsSwitcherSaveAs" role="menuitem">save as…</button>
+      <button type="button" class="ws-switcher-cmd" id="wsSwitcherNew">New empty workspace</button>
+      <button type="button" class="ws-switcher-cmd" id="wsSwitcherSaveAs">Save this window as…</button>
     </div>
   </div>
   <section id="glancePicker" class="glance-picker" aria-labelledby="glancePickerTitle" hidden>
@@ -166,6 +167,7 @@
     <header id="capturePopHead" class="capture-pop-head">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>
   </section>
+  <script src="workspace-ui.js"></script>
   <script src="overlay.js"></script>
 </body>
 </html>

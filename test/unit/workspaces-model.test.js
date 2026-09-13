@@ -29,6 +29,7 @@ const VALID = () => ({
   profileId: 'default',
   createdAt: 100,
   updatedAt: 200,
+  revision: 0,
   urls: ['https://a.test/', 'https://b.test/'],
   activeIndex: 1,
   groups: [{ id: 'g1', name: 'research', collapsed: false }],
@@ -39,8 +40,8 @@ const VALID = () => ({
 
 test('EMPTY_FILE is a versioned, empty, non-shared shape', () => {
   const a = EMPTY_FILE();
-  assert.deepEqual(a, { version: WORKSPACES_VERSION, workspaces: [] });
-  assert.equal(WORKSPACES_VERSION, 1);
+  assert.deepEqual(a, { version: WORKSPACES_VERSION, workspaces: [], deleted: [] });
+  assert.equal(WORKSPACES_VERSION, 2);
   // A fresh object each call — a shared default would let one profile's
   // store mutate another's.
   const b = EMPTY_FILE();
@@ -269,13 +270,13 @@ test('updateCapture replaces the tab columns, bumps updatedAt, no-ops on unknown
   assert.deepEqual(updateCapture(start, 'nope', CAPTURE(), 900).file, start);
 });
 
-test('listForProfile filters by profile and orders newest-updated first', () => {
+test('listForProfile filters by profile and preserves the manual order', () => {
   let file = EMPTY_FILE();
   file = createWorkspace(file, { name: 'Old', profileId: 'default', capture: CAPTURE(), now: 10, id: 'ws_old' }).file;
   file = createWorkspace(file, { name: 'New', profileId: 'default', capture: CAPTURE(), now: 30, id: 'ws_new' }).file;
   file = createWorkspace(file, { name: 'Other', profileId: 'other', capture: CAPTURE(), now: 20, id: 'ws_other' }).file;
 
-  assert.deepEqual(listForProfile(file, 'default').map((w) => w.id), ['ws_new', 'ws_old']);
+  assert.deepEqual(listForProfile(file, 'default').map((w) => w.id), ['ws_old', 'ws_new']);
   assert.deepEqual(listForProfile(file, 'other').map((w) => w.id), ['ws_other']);
   assert.deepEqual(listForProfile(file, 'missing'), []);
 });
@@ -518,4 +519,25 @@ test('scratchSwitchGuardResult counts the tabs that will actually close without 
     tabs: [{ url: privateBlank, private: true }],
     blankNewTabUrl: blank,
   }), null, 'a private blank newtab is still the floor, not user work');
+});
+
+test('ordering survives capture/rename and migration adopts the previous display order once', () => {
+  const model = require('../../src/main/workspaces-model');
+  const old = { version: 1, workspaces: [{ ...VALID(), id: 'a', updatedAt: 10 }, { ...VALID(), id: 'b', name: 'B', updatedAt: 20 }] };
+  const migrated = model.loadFile(old).file;
+  assert.deepEqual(migrated.workspaces.map((w) => w.id), ['b', 'a']);
+  const updated = model.updateCapture(migrated, 'a', CAPTURE(), 500).file;
+  assert.deepEqual(model.renameWorkspace(updated, 'a', 'Renamed', 1000).file.workspaces.map((w) => w.id), ['b', 'a']);
+  assert.deepEqual(model.moveWorkspace(updated, 'a', 'up').file.workspaces.map((w) => w.id), ['a', 'b']);
+});
+test('delete recovery preserves identity/order, refuses conflict/capacity and expires after seven days', () => {
+  const model = require('../../src/main/workspaces-model');
+  const created = model.createWorkspace(model.EMPTY_FILE(), { name: 'Keep', profileId: 'default', capture: CAPTURE(), now: 1, id: 'keep' });
+  const deleted = model.deleteWorkspace(created.file, 'keep', 100).file;
+  assert.equal(deleted.workspaces.length, 0); assert.equal(model.restoreWorkspace(deleted, 'keep', 101).workspace.id, 'keep');
+  assert.equal(model.restoreWorkspace(deleted, 'keep', 100 + model.RECOVERY_TTL_MS).error, 'not-found');
+  const conflict = model.createWorkspace(deleted, { name: 'Keep', profileId: 'default', capture: CAPTURE(), now: 110, id: 'conflict' }).file;
+  assert.equal(model.restoreWorkspace(conflict, 'keep', 111).error, 'duplicate-name');
+  let full = deleted; for (let i = 0; i < 25; i++) full = model.createWorkspace(full, { name: `new${i}`, profileId: 'default', capture: CAPTURE(), now: 120, id: `new${i}` }).file;
+  assert.equal(model.restoreWorkspace(full, 'keep', 121).error, 'limit');
 });
