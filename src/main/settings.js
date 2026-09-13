@@ -55,8 +55,6 @@ const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adb
 const APP_ICON_LABELS = {
   sunrise: 'Sunrise',
   'sunrise-dark': 'Sunrise Dark',
-  paper: 'Paper',
-  ink: 'Ink',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 

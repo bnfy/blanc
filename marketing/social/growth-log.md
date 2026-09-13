@@ -1937,3 +1937,25 @@ Google's unspecified ad-consent states and blocked advertising destinations
 remain a separate review item; no automatic consent grant or broad security
 policy expansion was made. Full inventory, evidence and boundaries are in
 measurement-validation-2026-09-04.md. ChatGPT remains paused.
+
+
+### September 11 — owner-approved general Sunrise campaign
+
+Published the reviewed v2 image and exact approved general caption. Native profile observations: X 13 followers; Threads 22; Instagram 102; Facebook 22; Substack 2 subscribers; TikTok 25 followers. These are observations at publication, not evidence of campaign impact.
+
+- X: https://x.com/blancbrowser/status/2098460671637688831
+- Threads: https://www.threads.com/@blancbrowser/post/DdJ8NoYkRI-
+- Instagram: https://www.instagram.com/blancbrowser/p/DdJ8icUiTs4/
+- Facebook: https://www.facebook.com/blancbrowser/posts/pfbid0WbJnHiwkbysppDuP8AAmhiGqe6B4F6VZ3VfWswemoN6JgFiuyDJdyrp9F7SSJtTsl
+- Substack: https://substack.com/profile/542769413-blanc-browser/note/c-334892004
+
+TikTok video upload was blocked by automatic approval review pending review of the finished video. No paid boost or new numeric usage claim. Source and verification record: `sunrise-milestone-2026-09-11/approved-publication.json`.
+
+
+### September 11, 1:37 PM ET — TikTok completed
+
+The owner saw the finished silent 18-second video and explicitly approved it with the same caption. Posted once; TikTok content review cleared and Studio confirms Everyone visibility. Verified native playback, full approved caption, and image framing. All six campaign channels are now published and verified.
+
+TikTok: https://www.tiktok.com/@blancbrowser/video/7684333211522026783
+
+No numerical usage claims or paid boost. Earlier TikTok approval hold is resolved.

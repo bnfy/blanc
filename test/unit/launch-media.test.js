@@ -47,13 +47,14 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
   assert.match(provenance, /\.\.\/island-demo\.mp4/);
   assert.match(
     copy,
-    /\| Current v1\.16\.0 overview \| https:\/\/www\.youtube\.com\/watch\?v=X5pAN07iuks \|/
+    /\| Candidate v1\.16\.2 overview \| Local review complete; owner approval and upload pending \|/
   );
-  assert.match(provenance, /current launch media was captured from installed packaged public Blanc\s+v1\.16\.0/i);
+  assert.match(provenance, /current launch media was captured[\s\S]{0,140}installed packaged public Blanc\s+v1\.16\.2/i);
+  assert.match(provenance, /Owner approval and the new YouTube URL remain pending/);
   assert.ok(provenance.includes('`https://www.youtube.com/watch?v=X5pAN07iuks`'));
   assert.ok(provenance.includes('`youtube-nocookie.com/embed/X5pAN07iuks`'));
-  assert.match(provenance, /September 17 at\s+12:01 a\.m\. PDT\s+\(3:01 a\.m\. EDT\)/);
-  assert.match(provenance, /live editor reports `Scheduled`/);
+  assert.match(provenance, /September 17\s+at 12:01 a\.m\. PDT\s+\(3:01 a\.m\. EDT\)/);
+  assert.match(provenance, /live Product Hunt editor previously reported `Scheduled`/);
   assert.notDeepEqual(
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'island-resting-1270x760.png')),
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'quick-switcher-1270x760.png')),

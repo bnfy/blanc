@@ -7,6 +7,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { promisify } from 'node:util';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
+import { isTransientElectronEvaluationError } from './support/electron-evaluate.mjs';
 
 const execFileAsync = promisify(execFile);
 const pkg = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8'));
@@ -31,7 +32,15 @@ const poll = async (read, predicate, message, timeoutMs = 20_000) => {
   const deadline = Date.now() + timeoutMs;
   let value;
   while (Date.now() < deadline) {
-    value = await read();
+    try {
+      value = await read();
+    } catch (error) {
+      // The sheet's URL can become visible before its new document is ready.
+      // Retry only that navigation race within the existing overall deadline.
+      if (!isTransientElectronEvaluationError(error)) throw error;
+      await delay(100);
+      continue;
+    }
     if (predicate(value)) return value;
     await delay(100);
   }
@@ -207,5 +216,5 @@ try {
   console.log(`packaged-tab-handoff-protocol-smoke OK on ${process.platform}`);
 } finally {
   if (app) await app.close().catch(() => {});
-  fs.rmSync(runtimeRoot, { recursive: true, force: true });
+  fs.rmSync(runtimeRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }

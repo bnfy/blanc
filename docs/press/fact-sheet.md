@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: September 10, 2026
+Last updated: September 11, 2026
 
 ## The short version
 
@@ -21,7 +21,7 @@ assistant or an extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public baseline | [1.16.0](https://github.com/bnfy/blanc/releases/tag/v1.16.0) |
+| Current public baseline | [1.16.1](https://github.com/bnfy/blanc/releases/tag/v1.16.1) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |

@@ -24,6 +24,7 @@ const {
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
 
@@ -320,7 +321,13 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-fail-load', boundToTab((_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (noteWakeSuppressed(tab)) return;
-    if (!isMainFrame || errorCode === -3 || !validatedURL) return;
+    if (!isMainFrame || !validatedURL) return;
+    const guardedErrorUrl = chromeWebStoreErrorPageUrl(validatedURL, errorCode);
+    if (guardedErrorUrl) {
+      wc.loadURL(guardedErrorUrl).catch(() => {});
+      return;
+    }
+    if (errorCode === -3) return;
     if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {

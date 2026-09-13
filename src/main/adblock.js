@@ -14,6 +14,7 @@ const {
 } = require('./adblock-exceptions');
 const { createAdblockEventBridge } = require('./adblock-events');
 const { loadAdblockEngine } = require('./adblock-engine-loader');
+const { createBeforeRequestPolicy } = require('./chrome-web-store-guard');
 
 const bundledSourcesPath = () => path.join(app.getAppPath(), 'adblock', 'sources');
 
@@ -46,6 +47,19 @@ function isExcepted(details) {
  *
  * @param {Electron.Session} session
  */
+function installBeforeRequestPolicy(session) {
+  session.webRequest.onBeforeRequest(
+    { urls: ['<all_urls>'] },
+    createBeforeRequestPolicy({
+      isBlockingEnabled: () => !!blocker
+        && attachedSessions.has(session)
+        && blocker.isBlockingEnabled(session),
+      isExcepted,
+      blockRequest: (details, callback) => blocker.onBeforeRequest(details, callback),
+    })
+  );
+}
+
 function applyBlockingWithExceptions(session) {
   // `enableBlockingInSession` registers the library's cosmetic-filter IPC
   // handlers via the process-global `ipcMain.handle`, which throws if a
@@ -64,14 +78,17 @@ function applyBlockingWithExceptions(session) {
     blocker,
     (wc) => isWebContentsExcepted(wc, settings.getSettings().adblockExceptions)
   );
-  session.webRequest.onBeforeRequest({ urls: ['<all_urls>'] }, (details, callback) => {
-    if (isExcepted(details)) return callback({});
-    blocker.onBeforeRequest(details, callback);
-  });
+  installBeforeRequestPolicy(session);
   session.webRequest.onHeadersReceived({ urls: ['<all_urls>'] }, (details, callback) => {
     if (isExcepted(details)) return callback({});
     blocker.onHeadersReceived(details, callback);
   });
+}
+
+/** Install the crash guard before startup releases any browsing. */
+function installNavigationCrashGuard(session) {
+  if (!session) return;
+  installBeforeRequestPolicy(session);
 }
 
 /**
@@ -140,6 +157,7 @@ function attachAdBlockerToSession(session, { enabled = true } = {}) {
   if (!blocker || !session) return;
   attachedSessions.add(session);
   if (enabled && !blocker.isBlockingEnabled(session)) applyBlockingWithExceptions(session);
+  else installBeforeRequestPolicy(session);
 }
 
 /** Toggle blocking at runtime (used by the settings page). */
@@ -148,7 +166,12 @@ function setAdBlockEnabled(enabled) {
   for (const session of attachedSessions) {
     const isEnabled = blocker.isBlockingEnabled(session);
     if (enabled && !isEnabled) applyBlockingWithExceptions(session);
-    if (!enabled && isEnabled) blocker.disableBlockingInSession(session);
+    if (!enabled && isEnabled) {
+      blocker.disableBlockingInSession(session);
+      // Ghostery clears the session's request listener when it disables
+      // blocking. Restore the independent browser-crash guard immediately.
+      installBeforeRequestPolicy(session);
+    }
   }
 }
 
@@ -158,6 +181,7 @@ function getBlocker() {
 
 module.exports = {
   setupAdBlocker,
+  installNavigationCrashGuard,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   getBlocker,

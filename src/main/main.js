@@ -28,11 +28,13 @@ if (process.env.BLANC_TEST === '1' && process.env.BLANC_TEST_UNCAUGHT_LOG) {
 installMacOSQuitVisibilityGate({ app, BrowserWindow });
 const {
   setupAdBlocker,
+  installNavigationCrashGuard,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -1254,11 +1256,12 @@ function installStartupNavigationGate(sessions) {
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   startupNavigationGateActive = false;
   // A successful blocker attachment has already replaced the temporary
-  // listener with its own network filter. Clearing here would remove the
-  // blocker we just installed.
+  // listener with its composed network policy. If startup continues without
+  // the blocker, replace the gate with the standalone crash guard instead of
+  // leaving the session without an onBeforeRequest policy.
   if (!blockerAttached) {
     for (const browsingSession of sessions) {
-      browsingSession.webRequest.onBeforeRequest(null);
+      installNavigationCrashGuard(browsingSession);
     }
   }
 
@@ -2117,17 +2120,21 @@ function commitWake(tab, generation) {
   return true;
 }
 
-async function failWake(tab, generation) {
+async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
   if (wc) {
-    const q = new URLSearchParams({
-      url: tab.url ?? '',
-      code: 'wake-failed',
-      desc: 'The page could not be reloaded',
-      title: tab.title ?? '',
-    });
-    await wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    let destination = chromeWebStoreErrorPageUrl(failedUrl ?? '', 'wake-failed');
+    if (!destination) {
+      const q = new URLSearchParams({
+        url: failedUrl ?? '',
+        code: 'wake-failed',
+        desc: 'The page could not be reloaded',
+        title: tab.title ?? '',
+      });
+      destination = `blanc://error/?${q}`;
+    }
+    await wc.loadURL(destination).catch(() => {});
   }
   if (tab.wakeGeneration !== generation) return false;
   tab.asleep = false;
@@ -2242,7 +2249,9 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     // Exactly one fallback, only after restore rejects. A rejected plain load
     // gets its error page, not an unbounded retry loop.
     const canFallBack = !navigateTo && !!snapshot?.entries.length;
-    if (!canFallBack) return failWake(tab, generation);
+    if (!canFallBack) {
+      return failWake(tab, generation, { failedUrl: navigateTo ?? tab.url });
+    }
     const live = liveContents(tab);
     if (!live) return failWake(tab, generation);
     try {
@@ -7885,7 +7894,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
-  for (const browsingSession of browsingSessions) certificateObserver.observe(browsingSession);
+  for (const browsingSession of browsingSessions) {
+    installNavigationCrashGuard(browsingSession);
+    certificateObserver.observe(browsingSession);
+  }
   const chromeSes = session.fromPartition(CHROME_PARTITION);
   const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
   const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
@@ -8538,7 +8550,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const owned = profileSessionRegistry.forProfile(profileId);
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
-    for (const targetSession of targetSessions) certificateObserver.observe(targetSession);
+    for (const targetSession of targetSessions) {
+      installNavigationCrashGuard(targetSession);
+      certificateObserver.observe(targetSession);
+    }
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);
@@ -8989,16 +9004,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const startupTabIds = new Map();
   const startupRuntimes = [];
   const savedStartupRuntimes = [];
+  const savedByRuntime = new Map();
   const chromeReadyPromises = [];
   const createStartupRuntime = (saved, { savedWorkspace = true } = {}) => {
     const existing = windowRuntimes.all().find((runtime) => runtime.id === saved.id);
-    const runtime = saved.id === PRIMARY_WINDOW_ID
+    let runtime = saved.id === PRIMARY_WINDOW_ID
       ? primaryRuntime
       : (existing ?? windowRuntimes.createRuntime({ id: saved.id, profileId: saved.profileId }));
-    // The primary runtime exists before session.json is read so early app
-    // callbacks always have an owner. At this point it owns no tabs or native
-    // window yet, so adopting its persisted profile is the one safe identity
-    // initialization point.
+    // Dock reopening during recovery can already have populated Personal.
+    // Keep that runtime's tabs, sessions, and callbacks in their own profile;
+    // restore a different saved identity into a separate native window.
+    if (runtime === primaryRuntime && runtime.profileId !== saved.profileId
+      && (runtime.window || runtime.tabOrder.length || runtime.closedEntries.length)) {
+      runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: saved.profileId });
+    }
+    // Only an unused primary may adopt its persisted identity at startup.
     if (runtime === primaryRuntime) runtime.profileId = saved.profileId;
     createMainWindow(runtime);
     withWindowRuntime(runtime, () => {
@@ -9006,15 +9026,42 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       startupTabIds.set(runtime.id, createTab(NEW_TAB_URL));
     });
     startupRuntimes.push(runtime);
-    if (savedWorkspace) savedStartupRuntimes.push(runtime);
+    if (savedWorkspace) {
+      savedStartupRuntimes.push(runtime);
+      savedByRuntime.set(runtime, saved);
+    }
     chromeReadyPromises.push(new Promise((resolve) => {
-      runtime.window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+      const window = runtime.window;
+      const chromeContents = window.webContents;
+      const cleanup = () => {
+        chromeContents.removeListener('did-finish-load', onChromeReady);
+        window.removeListener('closed', onClosed);
+      };
+      const onClosed = () => {
+        cleanup();
+        // Settling is cancellation for a discarded window, not readiness.
+        // releaseStartup rechecks runtime registration before restoring tabs.
+        resolve();
+      };
+      const onChromeReady = bindWindowRuntime(runtime, () => {
+        cleanup();
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) {
           setActiveTab(startupTabId, { focusContent: true });
         }
         resolve();
-      }));
+      });
+      // Dock activation can recreate primary while the recovery decision is
+      // still pending. Reusing that loaded window must not wait for a second
+      // did-finish-load: no navigation will emit it, and recovery would hang
+      // after dismissing its prompt, leaving saved tabs and OS links queued.
+      if (runtime.chromeReady) onChromeReady();
+      else {
+        chromeContents.once('did-finish-load', onChromeReady);
+        // A dismissed recovery host must not leave its readiness promise
+        // pending forever if it closes before its first load completes.
+        window.once('closed', onClosed);
+      }
     }));
     return runtime;
   };
@@ -9023,10 +9070,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   } else {
     for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
   }
-  let savedById = new Map(savedWindows.map((saved) => [saved.id, saved]));
   focusedRuntime = recoveryRequired
     ? startupRuntimes[0]
-    : (savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+    : (savedStartupRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
       ?? savedStartupRuntimes.at(-1)
       ?? primaryRuntime);
   setFocusedLocalProfile(focusedRuntime.profileId);
@@ -9058,7 +9104,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }
       savedWindows.splice(0, savedWindows.length, fresh);
       restoredActiveWindowId = PRIMARY_WINDOW_ID;
-      savedById = new Map([[PRIMARY_WINDOW_ID, fresh]]);
     }
 
     if (!diagnostics.resolveSessionRecovery()) {
@@ -9096,12 +9141,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     startupReleased = true;
     if (recoveryChoice) {
       for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
-      focusedRuntime = savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+      focusedRuntime = savedStartupRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
         ?? savedStartupRuntimes.at(-1)
         ?? primaryRuntime;
       setFocusedLocalProfile(focusedRuntime.profileId);
     }
     await Promise.all(chromeReadyPromises);
+    // A saved secondary can close before its chrome (or another window's)
+    // finishes loading. Its close handler discarded the runtime and its tabs;
+    // never resurrect it from the startup inventory. A dock-closed primary
+    // stays registered and retains a quiet workspace for the next activation.
+    const registeredRuntimes = new Set(windowRuntimes.all());
+    const restorableRuntimes = savedStartupRuntimes.filter((runtime) => registeredRuntimes.has(runtime));
+    focusedRuntime = restorableRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
+      ?? restorableRuntimes.at(-1)
+      ?? primaryRuntime;
+    setFocusedLocalProfile(focusedRuntime.profileId);
 
     if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
       // “Continue without blocking” is an explicit effective-state change,
@@ -9120,8 +9175,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
-    for (const runtime of savedStartupRuntimes) {
-      const saved = savedById.get(runtime.id);
+    for (const runtime of restorableRuntimes) {
+      const saved = savedByRuntime.get(runtime);
       if (!saved) continue;
       withWindowRuntime(runtime, () => {
         // Lazy restore: every saved tab is a labelled record with no renderer.
@@ -9150,7 +9205,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!target) return;
         // Activate first, then close the startup tab. The inverse briefly wakes
         // the wrong quiet tab and doubles renderer memory during restore.
-        setActiveTab(target, { focusContent: true });
+        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
+        else runtime.activeTabId = target;
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
       });

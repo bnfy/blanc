@@ -43,9 +43,7 @@ enum class BlancTabSleepDelay(val id: String) { OFF("off"), M30("30m"), H1("1h")
 
 enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: Boolean) {
     SUNRISE("sunrise", "Sunrise", false),
-    SUNRISE_DARK("sunrise-dark", "Sunrise Dark", false),
-    PAPER("paper", "Paper", false),
-    INK("ink", "Ink", false);
+    SUNRISE_DARK("sunrise-dark", "Sunrise Dark", false);
 }
 
 object BlancSettingsDefaults {

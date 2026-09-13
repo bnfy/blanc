@@ -117,3 +117,29 @@ For every proposed batch:
 
 Reuse of a retired asset or hook requires a specific rationale and explicit
 user approval. Silence is not approval.
+
+## September 11 owner correction — publication hold
+
+The numerical Sunrise milestone posts were published to X, Threads, and Instagram before the owner saw the final creative. The owner reported deleting all three. No Facebook, Substack, or TikTok publication occurred. All numerical milestone assets are retired. The replacement general Sunrise graphic and caption are draft-only; show both to the owner and obtain explicit approval before any upload, scheduling, or publication. No specific usage numbers in public content. See `sunrise-milestone-2026-09-11/general-review.md`.
+
+
+## September 11 — approved general Sunrise campaign
+
+Owner reviewed the exact v2 image and caption and explicitly approved publication on all channels. This satisfies the hold above for that image and caption only. Posted once to X, Threads, Instagram, Facebook, and Substack; checked active Blanc identities and recent feeds before publication, then verified the live image and caption. No public usage numbers or Google attribution; no paid boost.
+
+- X: https://x.com/blancbrowser/status/2098460671637688831
+- Threads: https://www.threads.com/@blancbrowser/post/DdJ8NoYkRI-
+- Instagram: https://www.instagram.com/blancbrowser/p/DdJ8icUiTs4/
+- Facebook: https://www.facebook.com/blancbrowser/posts/pfbid0WbJnHiwkbysppDuP8AAmhiGqe6B4F6VZ3VfWswemoN6JgFiuyDJdyrp9F7SSJtTsl
+- Substack: https://substack.com/profile/542769413-blanc-browser/note/c-334892004
+
+TikTok: automatic approval review blocked the 18-second silent video upload because the finished video was not shown and separately approved. Awaiting review; no TikTok upload or publication completed. The historical numerical assets remain retired. See `sunrise-milestone-2026-09-11/approved-publication.json`.
+
+
+### September 11, 1:37 PM ET — TikTok completed
+
+The owner saw the finished silent 18-second video and explicitly approved it with the same caption. Posted once; TikTok content review cleared and Studio confirms Everyone visibility. Verified native playback, full approved caption, and image framing. All six campaign channels are now published and verified.
+
+TikTok: https://www.tiktok.com/@blancbrowser/video/7684333211522026783
+
+No numerical usage claims or paid boost. Earlier TikTok approval hold is resolved.

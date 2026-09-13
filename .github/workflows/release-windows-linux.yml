@@ -146,6 +146,19 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
 
+      # Build inputs remain pinned to the release tag. After packaging, use
+      # the workflow commit's test harness so infrastructure-only fixes can
+      # verify an immutable draft without rebuilding its other native assets.
+      - name: Load smoke harness from workflow commit
+        shell: bash
+        env:
+          VERIFICATION_SHA: ${{ github.sha }}
+        run: |
+          git fetch --no-tags origin "$VERIFICATION_SHA"
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs; do
+            git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
+          done
+
       - name: Verify packaged microphone and camera permissions and live tracks
         shell: pwsh
         run: |
@@ -329,6 +342,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils libfuse2 xdg-utils xvfb
+
+      # Build inputs remain pinned to the release tag. After packaging, use
+      # the workflow commit's test harness so infrastructure-only fixes can
+      # verify an immutable draft without rebuilding its other native assets.
+      - name: Load smoke harness from workflow commit
+        shell: bash
+        env:
+          VERIFICATION_SHA: ${{ github.sha }}
+        run: |
+          git fetch --no-tags origin "$VERIFICATION_SHA"
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs; do
+            git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
+          done
 
       - name: Verify packaged microphone and camera permissions and live tracks
         run: |
