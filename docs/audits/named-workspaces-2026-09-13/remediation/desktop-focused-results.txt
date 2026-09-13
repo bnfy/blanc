@@ -1,12 +1,12 @@
-Final F41-1 through F41-11, including compact-footer geometry:
+Final F41-1 through F41-11 at d06981da, including compact-footer geometry, partial-save truth, and guarded backdrop dismissal:
 .............................................
 
 2 hooks (2 passed)
 11 scenarios (11 passed)
 43 steps (43 passed)
-0m 13.71s (0m 13.21s executing your code)
+0m 10.166s (0m 10.142s executing your code)
 
-Final UI unit checks:
+Earlier editor-focused UI checks (also covered by the final full unit run):
 TAP version 13
 # Subtest: create editor focuses a connected field after opening
 ok 1 - create editor focuses a connected field after opening

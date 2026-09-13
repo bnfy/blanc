@@ -1,11 +1,11 @@
 Command: npm run test:unit
 
-1..1763
-# tests 1782
+1..1771
+# tests 1790
 # suites 0
-# pass 1782
+# pass 1790
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 67384.635875
+# duration_ms 67092.5555
