@@ -58,9 +58,9 @@ also remains intact.
 The live Product Hunt page reported `Scheduled` for September 17 at 12:01 a.m.
 PDT (3:01 a.m. EDT) after the v1.16.2 media replacement. The final gallery has
 exactly three items in the approved order: the rendered overview, homepage
-still, and Quick Switcher still. The schedule remains contingent on merge of
-the release-bound changes, the replacement freeze anchor, and the fresh soak
-clearing at or after September 13 at 5:36 p.m. ET.
+still, and Quick Switcher still. PR #323 merged the release-bound changes, the
+replacement freeze anchor is recorded, and the fresh soak cleared on September
+13 at 5:36 p.m. ET. Recheck the live schedule and gallery before launch.
 
 Verify dimensions before upload:
 
