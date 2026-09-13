@@ -40,8 +40,23 @@ function pageBody(req) {
   );
 }
 
+function workspaceResponse(req, res) {
+  if (req.url === '/workspace-auth') {
+    res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Workspace fixture"' });
+    res.end('Authentication required');
+    return true;
+  }
+  if (req.url === '/workspace-download') {
+    res.writeHead(200, { 'Content-Disposition': 'attachment; filename="workspace-fixture.txt"' });
+    res.end('Disposable workspace download fixture');
+    return true;
+  }
+  return false;
+}
+
 function start() {
   const server = http.createServer((req, res) => {
+    if (workspaceResponse(req, res)) return;
     const url = new URL(req.url || '/', 'http://fixture.invalid');
     if (url.searchParams.has('redirect-start')) {
       url.searchParams.delete('redirect-start');
@@ -66,6 +81,7 @@ function start() {
  * that cert's SPKI hash at launch, so nothing else gains trust. */
 function startSecure({ key, cert }) {
   const server = https.createServer({ key, cert }, (req, res) => {
+    if (workspaceResponse(req, res)) return;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(pageBody(req));
   });

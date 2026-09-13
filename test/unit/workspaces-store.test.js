@@ -141,7 +141,7 @@ test('a hand-edited file is repaired on access: junk dropped, foreign profile dr
   const file = path.join(userData, 'profiles', 'profile_repair', 'workspaces.json');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify({
-    version: 99,
+    version: 1,
     workspaces: [
       { id: 'keep_me', name: 'Kept', profileId: 'profile_repair', urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] },
       { id: 'no_name', name: '   ', profileId: 'profile_repair', urls: [] },
@@ -154,5 +154,83 @@ test('a hand-edited file is repaired on access: junk dropped, foreign profile dr
     // Only the valid, same-profile record survives. A profile-scoped file can
     // never legitimately hold another profile's records.
     assert.deepEqual(workspaces.list().map((w) => w.id), ['keep_me']);
+  });
+});
+
+test('future files are byte-preserved across reads and all mutation attempts', () => {
+  const file = path.join(userData, 'profiles', 'profile_future', 'workspaces.json');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const bytes = '{"version":99,"workspaces":[{"id":"future","name":"Future","profileId":"profile_future","urls":[],"newField":"keep"}],"extra":"keep"}';
+  fs.writeFileSync(file, bytes);
+  withLocalProfile('profile_future', () => {
+    assert.deepEqual(workspaces.list(), []);
+    for (const result of [workspaces.create({ name: 'x', capture: CAPTURE() }), workspaces.rename('future', 'y'), workspaces.remove('future'), workspaces.saveCapture('future', CAPTURE()), workspaces.restore('future'), workspaces.move('future', 'up'), workspaces.forget('future')]) assert.equal(result.error, 'future-format');
+  });
+  assert.equal(fs.readFileSync(file, 'utf8'), bytes);
+});
+
+test('critical fsync/rename failures roll back memory and disk; autosave retries and preserves empty captures', () => {
+  withLocalProfile('profile_faults', () => {
+    const created = workspaces.create({ name: 'Keep', capture: CAPTURE() }); assert.equal(created.ok, true);
+    const id = created.workspace.id; const file = path.join(userData, 'profiles', 'profile_faults', 'workspaces.json');
+    const before = fs.readFileSync(file, 'utf8');
+    for (const [method, code] of [['fsyncSync', 'ENOSPC'], ['renameSync', 'EACCES']]) {
+      const original = fs[method]; fs[method] = () => { throw Object.assign(Error(code), { code }); };
+      try {
+        for (const result of [workspaces.create({ name: 'Fail', capture: CAPTURE() }), workspaces.rename(id, 'Fail'), workspaces.remove(id), workspaces.saveCapture(id, CAPTURE([]))]) assert.equal(result.error, 'storage-failed');
+        workspaces.queueCapture(id, CAPTURE([])); assert.equal(workspaces.flushPending().ok, false);
+        assert.equal(workspaces.get(id).name, 'Keep'); assert.equal(fs.readFileSync(file, 'utf8'), before);
+      } finally { fs[method] = original; }
+    }
+    assert.equal(workspaces.flushPending().ok, true);
+    assert.deepEqual(workspaces.get(id).urls, []);
+    assert.deepEqual(JSON.parse(fs.readFileSync(file)).workspaces[0].urls, []);
+    assert.equal(workspaces.status(), 'saved');
+  });
+});
+
+test('unchanged captures produce no write and queued older captures cannot overwrite a checkpoint', () => {
+  withLocalProfile('profile_identical', () => {
+    const { workspace } = workspaces.create({ name: 'Same', capture: CAPTURE() });
+    const original = fs.renameSync; let writes = 0;
+    fs.renameSync = (...args) => { writes++; return original(...args); };
+    try {
+      for (let i = 0; i < 15; i++) workspaces.queueCapture(workspace.id, CAPTURE());
+      workspaces.flushPending(); assert.equal(writes, 0);
+      workspaces.queueCapture(workspace.id, CAPTURE(['https://old.test/']));
+      workspaces.saveCapture(workspace.id, CAPTURE(['https://latest.test/'])); workspaces.flushPending();
+      assert.deepEqual(workspaces.get(workspace.id).urls, ['https://latest.test/']);
+    } finally { fs.renameSync = original; }
+  });
+});
+
+test('supported repair preserves exact original with owner-only permissions', () => {
+  const file = path.join(userData, 'profiles', 'profile_original', 'workspaces.json');
+  fs.mkdirSync(path.dirname(file), { recursive: true }); const bytes = '{"version":1,"workspaces":[],"legacy":"original"}'; fs.writeFileSync(file, bytes);
+  withLocalProfile('profile_original', () => { assert.deepEqual(workspaces.list(), []); });
+  const backup = fs.readdirSync(path.dirname(file)).find((name) => name.startsWith('workspaces.json.before-repair-'));
+  assert.ok(backup); assert.equal(fs.readFileSync(path.join(path.dirname(file), backup), 'utf8'), bytes);
+  if (process.platform !== 'win32') assert.equal(fs.statSync(path.join(path.dirname(file), backup)).mode & 0o777, 0o600);
+});
+test('a failed original backup blocks repair and all later writes', () => {
+  const file = path.join(userData, 'profiles', 'profile_backup_failure', 'workspaces.json');
+  fs.mkdirSync(path.dirname(file), { recursive: true }); const bytes = '{ broken JSON'; fs.writeFileSync(file, bytes);
+  const original = fs.openSync;
+  fs.openSync = (name, ...args) => { if (String(name).includes('.before-repair-')) throw Object.assign(Error('ENOSPC'), { code: 'ENOSPC' }); return original(name, ...args); };
+  try {
+    withLocalProfile('profile_backup_failure', () => {
+      assert.deepEqual(workspaces.list(), []); assert.equal(workspaces.create({ name: 'No', capture: CAPTURE() }).error, 'repair-failed');
+    });
+  } finally { fs.openSync = original; }
+  assert.equal(fs.readFileSync(file, 'utf8'), bytes);
+});
+test('delete and restore survive a new repository instance; a failed restore keeps recovery intact', () => {
+  withLocalProfile('profile_recovery', () => {
+    const made = workspaces.create({ name: 'Recover', capture: CAPTURE() }); assert.equal(workspaces.remove(made.workspace.id).ok, true);
+    const restarted = workspaces.createRepository(); assert.equal(restarted.deleted().length, 1);
+    const original = fs.renameSync; fs.renameSync = () => { throw Error('EACCES'); };
+    try { assert.equal(restarted.restore(made.workspace.id).ok, false); assert.equal(restarted.deleted().length, 1); } finally { fs.renameSync = original; }
+    assert.equal(restarted.restore(made.workspace.id).ok, true); assert.deepEqual(restarted.get(made.workspace.id).urls, CAPTURE().urls); assert.equal(restarted.deleted().length, 0);
+    assert.equal(restarted.remove(made.workspace.id).ok, true); assert.equal(restarted.forget(made.workspace.id).ok, true); assert.equal(restarted.restore(made.workspace.id).error, 'not-found');
   });
 });

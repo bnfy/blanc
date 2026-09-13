@@ -39,6 +39,7 @@ const HOST_ASSETS = new Map([
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
+    ['/workspace-ui.js', 'workspace-ui.js'],
   ])],
   ['permission', new Map([
     ['/', 'permission.html'],
