@@ -88,7 +88,12 @@
       if (!result?.ok) {
         if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
-        } else { state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? 'An existing workspace uses this name. Rename it before restoring this workspace.' : errors[result?.error] || 'Couldn’t complete that action. Try again.'; render(); }
+        } else {
+          state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? 'An existing workspace uses this name. Rename it before restoring this workspace.' : errors[result?.error] || 'Couldn’t complete that action. Try again.';
+          render();
+          const input = popup.querySelector('input');
+          if (input) { input.focus(); if (state.editSelection) input.setSelectionRange(...state.editSelection); }
+        }
         return;
       }
       state.error = ''; success?.(result); syncIdentity(); render();
@@ -100,6 +105,8 @@
     }
     function save() {
       if (state.pending) return;
+      const input = popup.querySelector('input');
+      if (input) state.editSelection = [input.selectionStart, input.selectionEnd];
       const edit = { ...state };
       const action = { kind: 'create', name: edit.value };
       if (edit.kind === 'create') { openAction(action); return; }

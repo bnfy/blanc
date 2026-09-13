@@ -77,3 +77,11 @@ ok 10 - Save First keeps the exact original action through validation and a rema
 # skipped 0
 # todo 0
 # duration_ms 59.952084
+
+Final mouse-save error focus/selection and footer geometry:
+.........
+
+2 hooks (2 passed)
+2 scenarios (2 passed)
+7 steps (7 passed)
+0m 5.133s (0m 5.103s executing your code)

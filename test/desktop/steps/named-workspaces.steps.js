@@ -71,11 +71,13 @@ When('I rename one workspace to the other workspace name', async function () {
   await page.getByRole('button', { name: 'Manage First workspace', exact: true }).click();
   await page.getByRole('button', { name: 'Rename', exact: true }).click();
   await page.fill('#workspaceName', 'Second workspace');
+  await page.locator('#workspaceName').evaluate((input) => input.setSelectionRange(2, 6));
   await page.getByRole('button', { name: 'Save', exact: true }).click();
 });
 Then('the name and validation error stay visible in the workspace editor', async function () {
   const page = await overlayPage(); await page.waitForFunction(() => document.getElementById('workspaceEditorError')?.textContent.includes('already in use'));
   assert.equal(await page.inputValue('#workspaceName'), 'Second workspace'); assert.equal(await page.getAttribute('#workspaceName', 'aria-invalid'), 'true');
+  assert.deepEqual(await page.locator('#workspaceName').evaluate((input) => ({ focused: input === document.activeElement, start: input.selectionStart, end: input.selectionEnd })), { focused: true, start: 2, end: 6 });
   assert.equal(await page.isVisible('#wsSwitcherNew'), false);
   await evidence(page, 'rename-validation');
 });
