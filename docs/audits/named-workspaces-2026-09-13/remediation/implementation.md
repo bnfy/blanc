@@ -43,15 +43,17 @@ Unmodified public v1.16.2 rewrites unknown formats. **Do not open a candidate pr
 
 ## Verification
 
-- Full unit suite: 1,782 passed, none failed. Summary in unit-results.txt. Ten UI tests also pass after the final compact-footer correction.
-- Full runnable desktop suite: 152 scenarios / 908 steps passed, including eleven new workspace scenarios (one automatic retry in the configured profile). Full-suite evidence is in desktop-results.txt; all eleven workspace cases also pass after the final compact-footer correction (desktop-focused-results.txt).
+- Full unit suite: 1,782 passed, none failed locally. The final revision's CI unit suite also passed ([Parity guards](https://github.com/bnfy/blanc/actions/runs/34782219429)). Summary in unit-results.txt. Ten focused UI tests also pass after the editor correction.
+- Final full runnable desktop suite at `970bd6f9`: 152 scenarios / 908 steps passed, including eleven new workspace scenarios (one automatic retry in the configured profile). Full-suite evidence is in desktop-results.txt; focused workspace, footer geometry, and mouse-save focus/selection evidence is in desktop-focused-results.txt.
 - Acceptance dry run resolves all 152 scenarios / 908 steps.
 - Substrate check passed: brand, tokens, settings, copy, pinned blocker and compliance artifacts current.
 - Screenshot evidence uses disposable fixtures only, never the owner's installed profile. The original audit screenshots remain in the original local checkout.
 
 `candidate-measurement.json` records one raw A → new empty B → A timing, including test IPC and B's first load, plus process counts. Its aggregate working-set values are diagnostic only: shared pages may be counted more than once, so they are not a valid memory benchmark or a release comparison. A comparison using the repository's process-tree physical-footprint harness remains pending.
 
-The backend candidate at `1d213603` passed private Windows/Linux validation ([run 34781611047](https://github.com/bnfy/blanc/actions/runs/34781611047)) and a local signed macOS package build. Packaged v1.16.2 → candidate migration preserved the exact pre-migration workspace backup with owner-only permissions, retained the binding after restart, and left a future-format file byte-identical through rejected mutations and shutdown. The final compact-footer candidate's native evidence is recorded below when complete.
+The final product revision `970bd6f963fdc18b2337107a0cbb640a0b914897` passed private Windows/Linux validation ([run 34782228785](https://github.com/bnfy/blanc/actions/runs/34782228785)) and a local signed macOS package build. The Windows/Linux workflow passed its signature/fuse/payload and existing media/protocol smoke gates. The local macOS after-sign check confirmed strict deep signature integrity, the authorized embedded provisioning profile and required entitlements. It is a local validation package, not a notarized public release.
+
+Packaged v1.16.2 → final candidate migration preserved the exact pre-migration workspace backup with owner-only permissions, retained the binding after restart, and left a future-format file byte-identical through rejected mutations and shutdown. See packaged-migration-results.txt. Final [Parity guards](https://github.com/bnfy/blanc/actions/runs/34782219429) (unit, substrate, acceptance wiring, OAuth and tab handoff) and [CodeQL](https://github.com/bnfy/blanc/actions/runs/34782219424) passed. Subsequent evidence-only commits do not change the validated app bytes.
 
 ## Remaining release evidence
 
