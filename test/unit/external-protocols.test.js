@@ -88,7 +88,7 @@ test('confirmation shows source origin and app, never callback secrets; opens ex
   assert.deepEqual(h.launches, [url]);
   assert.deepEqual(h.lookups, ['claude://']);
   assert.match(h.prompts[0].message, /Example App/);
-  assert.match(h.prompts[0].detail, /https:\/\/example.com/);
+  assert.ok(h.prompts[0].detail.includes('https://example.com'));
   assert.doesNotMatch(JSON.stringify(h.prompts), /secret|opaque|private|token/);
   assert.equal(h.prompts[0].defaultId, 1);
 });
