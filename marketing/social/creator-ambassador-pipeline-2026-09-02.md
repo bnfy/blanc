@@ -1,3 +1,5 @@
+> **September 12 current handoff:** [Fresh prospect triage](creator-review-2026-09-12.json) and [five tailored drafts](creator-outreach-drafts-2026-09-12.md) govern the next batch. Four are currently eligible; one has a fresh-response hold. X Chat is accessible and empty; do not revive historical passcode blockers below. No message was sent in this pass. Existing September 2 invitations must be rechecked before any approved follow-up. Use current v1.16.2 evidence, not the old creator brief.
+
 # Blanc creator and ambassador pipeline — September 2, 2026
 
 ## Purpose

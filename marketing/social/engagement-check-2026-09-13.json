@@ -1,0 +1,111 @@
+{
+  "observedAt": "2026-09-13T14:42:54-04:00",
+  "mode": "engagement_only",
+  "access": "Brave accessible; Blanc identity verified across X, Threads, Instagram, Facebook, TikTok and Substack",
+  "inbound": "No fresh unanswered public question directed at Blanc across the six channels. Historical already-answered threads, reactions and acknowledgements were skipped. Facebook's three-day-old mention was an acknowledgment sticker beneath Blanc's existing comment.",
+  "coverage": [
+    "X visible mentions, browser recommendation search and fresh Chrome performance search",
+    "Threads activity, feed, browser search and direct no-AI recommendation search",
+    "Instagram public notifications, keyword results and candidate threads",
+    "Facebook public notifications, mention thread and post search",
+    "TikTok public activity, search results and candidate comment thread",
+    "Substack recent search results and full candidate threads"
+  ],
+  "actions": [
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@robertcyoung/post/DdO_bzlEe3V",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
+      "text": "The \u2018I\u2019ll need this later\u2019 tabs are the hard ones \ud83d\ude05 Try saving the link with one line about why you wanted it. That little note gives you a reason to return, instead of another mystery bookmark.",
+      "verifiedAt": "2026-09-13T14:18:46.048942-04:00",
+      "status": "published_verified",
+      "claimCheck": "General workflow suggestion/opinion, no product, external-product, numeric usage or personal-experience claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@itshinal.__/post/DdOzfeKjR1v",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
+      "text": "The three learning tabs are doing their job. The seven ‘later’ tabs need a graduation rule: turn one into a note or close it before opening another. The mystery twelve can face judgment immediately 😅",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "General workflow suggestion/opinion; no product claim, link or invented personal experience.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@fedor.zen/post/DdO9mkck5Cu",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
+      "text": "Duplicate detection gets tricky when the same URL has different history, form state, or login context. A warning with ‘switch to the existing tab’ would feel safer than silently merging them. Still a very good browser-design problem.",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "Browser-design opinion; no claim that Blanc implements duplicate detection or merging.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://x.com/insporadesign/status/2099174796961403203",
+      "url": "https://x.com/blancbrowser/status/2099202098302791948",
+      "text": "The curve makes the active tab feel like an object instead of a label. Lovely at this scale. The harder design test is what happens when 20 tabs arrive and the silhouette has to compress.",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "Interface critique of the visible concept; no product or external capability claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://x.com/bereknyei/status/2099183157715067293",
+      "url": "https://x.com/blancbrowser/status/2099202155836031022",
+      "text": "This is the most honest browser architecture diagram I’ve seen. Restore Session is orchestration, Back is rollback, and that one tab nobody will close is production.",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "Humorous commentary on the author’s analogy; no product capability claim.",
+      "audienceInteraction": false
+    }
+  ],
+  "dailyContributionCount": 5,
+  "dailyContributionCeiling": 5,
+  "immediateOutcomeCheck": {
+    "observedAt": "2026-09-13T14:25:21-04:00",
+    "classification": "early_directional_only",
+    "audience": {
+      "xFollowers": 14,
+      "threadsFollowers": 22,
+      "comparability": "Off-schedule display totals; do not use as the 17:00 daily checkpoint or attribute the X increase to these replies."
+    },
+    "replySignals": {
+      "threads": "All three replies remained visible; no audience like or reply was displayed yet.",
+      "x": [
+        {
+          "url": "https://x.com/blancbrowser/status/2099202098302791948",
+          "views": 1,
+          "replies": 0,
+          "likes": 0,
+          "reposts": 0
+        },
+        {
+          "url": "https://x.com/blancbrowser/status/2099202155836031022",
+          "views": 1,
+          "replies": 0,
+          "likes": 0,
+          "reposts": 0
+        }
+      ]
+    },
+    "nextReview": "After 24 hours; do not add more outbound contributions on September 13."
+  },
+  "audienceSnapshot": "Not taken; next scheduled 17:00 observation remains pending.",
+  "limitations": [
+    "Private X inbox navigation blocked by automatic approval review as outside public-post/reply scope; no retry."
+  ]
+}
