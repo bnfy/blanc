@@ -107,4 +107,8 @@ public enum BlancTokens {
     public static let islandRestingHeight = "44px"
     public static let islandRestingRadius = "17px"
     public static let islandPanelRadius = "18px"
+    public static let islandReadoutHeight = "44px" // mobile-only: no desktop CSS counterpart
+    public static let islandReadoutRadius = "22px" // mobile-only: no desktop CSS counterpart
+    public static let islandDotSize = "6px" // mobile-only: no desktop CSS counterpart
+    public static let islandDotGap = "6px" // mobile-only: no desktop CSS counterpart
 }

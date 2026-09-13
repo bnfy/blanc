@@ -79,4 +79,8 @@ object BlancTokens {
     const val islandRestingHeight: String = "44px"
     const val islandRestingRadius: String = "17px"
     const val islandPanelRadius: String = "18px"
+    const val islandReadoutHeight: String = "44px" // mobile-only: no desktop CSS counterpart
+    const val islandReadoutRadius: String = "22px" // mobile-only: no desktop CSS counterpart
+    const val islandDotSize: String = "6px" // mobile-only: no desktop CSS counterpart
+    const val islandDotGap: String = "6px" // mobile-only: no desktop CSS counterpart
 }
