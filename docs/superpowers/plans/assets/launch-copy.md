@@ -11,9 +11,11 @@ every affected section together.
 14 baseline and listings; Tuesday, September 15 Show HN; Wednesday, September
 16 Reddit; and Thursday, September 17 Product Hunt. The owner explicitly
 selected public v1.16.2 as the final launch release and approved the finished
-media and copy. This pack remains **not publishable** until the release-bound
-changes merge, the new freeze row is recorded, and the fresh 48-hour soak clears
-at or after `2026-09-13T21:36:18Z` with no regression or replacement.
+media and copy. PR #323 merged the release-bound changes, the immutable freeze
+row records anchor `7b25261a4683088ca390a06fec9a46cc55085141`, and the fresh
+48-hour soak cleared at `2026-09-13T21:36:18Z` without a reported regression or
+replacement. This pack is approved for the September 14–17 sequence, subject
+to each channel's morning-of checks.
 
 **Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
 v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
@@ -394,8 +396,8 @@ and the two approved stills, removed the four historical gallery items, and
 rendered the exact v1.16.2 player. The draft is at
 `https://www.producthunt.com/products/blanc-3?launch=blanc-3`. The live page
 reported `Scheduled` for **September 17 at 12:01 a.m. PDT (3:01 a.m. EDT)**
-after the replacement. The schedule remains contingent on merge, the new
-freeze anchor, and the fresh 48-hour soak clearing.
+after the replacement. PR #323, the new freeze anchor, and the fresh 48-hour
+soak are complete; recheck the live schedule and gallery before launch.
 
 **Name**
 
