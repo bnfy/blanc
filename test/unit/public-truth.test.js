@@ -278,8 +278,9 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /old `0de37a1` and `c7e9496` anchors are\s+historical and must not be reused/i);
   assert.match(plan, /Post-cutoff audit recorded September 10, 2026[\s\S]{0,250}`233c807cde4e27cb15813b3be146749e6e51725b`[\s\S]{0,500}after the noon product cutoff/i);
   assert.match(plan, /Historical execution status — September 10, 2026[\s\S]{0,1500}owner explicitly accepted v1\.16\.0 and `233c807` as the late final launch\s+release/i);
-  assert.match(plan, /Public v1\.16\.2[\s\S]{0,500}pending the owner's explicit v1\.16\.2 selection/i);
-  assert.match(copy, /Current release candidate — PENDING OWNER SELECTION:[\s\S]{0,200}v1\.16\.2/);
+  assert.match(plan, /Owner-approved recovery \(2026-09-13\)[\s\S]{0,180}selected public[\s>]+v1\.16\.2/i);
+  assert.match(copy, /Final release lock — ACCEPTED 2026-09-13:[\s\S]{0,200}v1\.16\.2/);
+  assert.match(copy, /youtube\.com\/watch\?v=REA1jQN6tY0/);
   assert.match(copy, /2026-09-13T21:36:18Z/);
   assert.match(plan, /screen and system-audio\s+sharing from PR #308[\s\S]{0,300}older screen-sharing PR #302[\s\S]{0,200}outside the launch release/i);
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);

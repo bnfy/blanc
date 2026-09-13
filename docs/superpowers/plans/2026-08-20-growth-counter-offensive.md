@@ -7,14 +7,13 @@
 > MIT rule in Global Constraints and the terms in `LICENSE`,
 > `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
 
-> **Proposed owner recovery (2026-09-13).** The owner would like to begin on
-> Monday or Tuesday if the remaining gates clear. The earliest safe sequence is
+> **Owner-approved recovery (2026-09-13).** The owner explicitly selected public
+> v1.16.2 and approved its finished media, copy, and launch sequence. The sequence is
 > Monday, September 14 through Thursday, September 17, with Show HN on
 > **Tuesday, September 15, 2026**. Public v1.16.2 and both adjacent updater
 > handoffs passed; its 48-hour soak cannot clear before September 13 at 5:36
-> p.m. ET. Release-backed v1.16.2 media and copy are prepared for owner review.
-> The sequence is still pending the owner's explicit v1.16.2 selection and
-> creative approval, merge of these release-bound changes, the new immutable
+> p.m. ET. Release-backed v1.16.2 media and copy are approved and uploaded.
+> The sequence is still pending merge of these release-bound changes, the new immutable
 > freeze row, and confirmation that the soak completed without a regression or
 > replacement. The old `c7e9496` freeze row is superseded. This recovery does
 > not waive any release, asset, freeze, soak, or evidence gate.
@@ -42,12 +41,15 @@
 - The installed public v1.16.2 app was recaptured on September 13 in an isolated
   demo profile using public pages. The 22.166667-second README MP4/GIF,
   42.000-second captioned overview/poster, and two 1270×760 Product Hunt stills
-  passed local format and visual review. Owner approval and any external upload
-  remain pending.
-- The owner would like to start Monday or Tuesday. The September 14–17 dates
-  become official only after explicit v1.16.2 selection and creative approval,
-  merge of the release-bound changes, a new freeze row, and a clean completed
-  soak. The missed September 11 cutoff remains recorded and is not waived.
+  passed local format and visual review. The owner approved them on September
+  13; YouTube and Product Hunt upload/render verification passed.
+- The owner explicitly selected v1.16.2, approved the finished creative and
+  copy, and locked the September 14–17 sequence on September 13. The overview
+  is fully processed and unlisted at
+  `https://www.youtube.com/watch?v=REA1jQN6tY0`; Product Hunt saved and rendered
+  that player plus the two approved stills. Merge, a new freeze row, and a clean
+  completed soak remain. The missed September 11 cutoff remains recorded and
+  is not waived.
 
 ## Historical execution status — September 10, 2026
 
@@ -1060,7 +1062,7 @@ If any upgrade check fails, the launch week moves.
 
 ---
 
-## Phase 1 — Assets (v1.16.2 candidate ready for owner review)
+## Phase 1 — Assets (v1.16.2 owner-approved and uploaded)
 
 > **v1.16.2 refresh (2026-09-13).** The earlier v1.15.0 and v1.16.0 work
 > recorded below is historical. The current candidate is a 42-second silent,
@@ -1658,13 +1660,14 @@ Product Hunt stills, download-baseline tag, FAQ facts, and release evidence for
 the selected public release. An old v1.10.0 asset may remain only when its exact
 behavior and visible version are still truthful for the selected release.
 
-Progress on September 10: the Product Hunt stills were recaptured from the
-installed packaged public v1.16.0 app over the live Blanc homepage. The
-overview video is owner-approved and uploaded to YouTube; Product Hunt saved
-its URL. The README short demo, copy, provenance, and regression guards are
-refreshed in this launch-only change. Check this step only after the change
-is merged, the new Product Hunt stills are uploaded, and the
-remaining README/FAQ/baseline references are verified.
+Progress on September 13: the README demo and Product Hunt stills were
+recaptured from installed packaged public v1.16.2. The owner approved the
+overview, stills, copy, and sequence. The overview is fully processed and
+unlisted at `https://www.youtube.com/watch?v=REA1jQN6tY0`; Product Hunt saved
+and rendered that exact player plus both approved stills in the scheduled
+September 17 draft. The README short demo, copy, provenance, and regression
+guards are refreshed in this launch-only change. Check this step only after the
+change is merged and the remaining README/FAQ/baseline references are verified.
 
 - [ ] **Step 5: Record the new freeze state after the release and refreshed
       assets are on `origin/main`**
@@ -1752,9 +1755,10 @@ cat "$LAUNCH_LOG"
   post-update trust checks passed
 - [x] Task 7 — v1.9.1 → v1.10.0 Windows updater handoff passed
 - [x] Task 7 — authenticated public v1.10.0 Linux AppImage launch/render passed
-- [ ] Task 8 — v1.16.0 gallery stills recaptured; 42-second overview and poster
-  owner-approved overview uploaded, README demo and provenance refreshed;
-  repository merge and Product Hunt gallery upload remain pending
+- [ ] Task 8 — v1.16.2 gallery stills recaptured; 42-second overview and poster
+  owner-approved; overview uploaded and verified; Product Hunt video/stills
+  saved and rendered; README demo and provenance refreshed; repository merge
+  remains pending
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
 - [x] Phase 1.5 — selected backlog resolved; unselected work remains open or is
@@ -2068,7 +2072,7 @@ must not create the account, subscribe, or claim access from account age alone.
 
 - [ ] **Step 1: Revise the listing using both days' objections**
 
-- [ ] **Step 2: Upload the demo video and verified stills early enough to preview**
+- [x] **Step 2: Upload the demo video and verified stills early enough to preview**
 
 Product Hunt's gallery accepts video through a full YouTube URL, not a raw MP4.
 Upload Task 8's final export as public or unlisted (never private). Its current
@@ -2076,7 +2080,7 @@ Upload Task 8's final export as public or unlisted (never private). Its current
 warns that a newly uploaded video may need about **12 hours** before Product
 Hunt can integrate it, so do not leave the upload for launch night. Paste the
 full URL into the draft and verify the rendered preview. Upload the prepared
-240×240 thumbnail and both 1270×760 packaged-v1.16.0 stills from
+240×240 thumbnail and both 1270×760 packaged-v1.16.2 stills from
 `docs/superpowers/plans/assets/product-hunt/`; those two images satisfy the
 gallery's two-image floor. A Named Workspaces still is optional and must be
 omitted unless it is a release-backed capture labeled as a Patron feature.
@@ -2094,7 +2098,8 @@ preview, both stills, the thumbnail, the pricing tag, and the final
 objection-informed copy. If Tasks 12 or 13 slipped, move Product Hunt too; do not
 schedule the old date with stale objection handling.
 
-Confirmed in the live Product Hunt editor on September 9: `Scheduled` for
+Reconfirmed in the live Product Hunt page on September 13 after replacing and
+rendering the overview and both stills: `Scheduled` for
 **September 17, 2026 at 12:01 a.m. PDT (3:01 a.m. EDT)**. The schedule remains
 contingent on the replacement release, release-bound asset refresh, and fresh
 48-hour soak clearing before launch week.
@@ -2229,10 +2234,10 @@ FINAL RELEASE CANDIDATE — platform and adjacent-updater evidence complete
           macOS/Windows/Linux + authenticated-manifest gates PASS
           v1.16.1 → v1.16.2 macOS and Windows updater handoffs PASS
           launch soak PENDING — ends Sep 13 17:36:18 ET
-          owner final-release selection PENDING
+          owner final-release selection PASS
 
 PHASE 1 — launch assets
-  Task 8  v1.16.2 overview/demo/stills ready for owner review
+  Task 8  v1.16.2 overview/demo/stills approved, uploaded, and verified
   Task 9  Newsletter capture verified
   Task 10 Copy pack v1.16.2 refresh ready for review
 
@@ -2278,10 +2283,10 @@ prerequisite because v1.10.0 is already public.
   start Task 11. **Currently satisfied:** verification is in `Completed tasks`
   and the campaign is serving; recheck before the Monday baseline.
 - **Task 8 demo incomplete or stale for the selected release** → do not start
-  Task 11. The v1.16.2 gallery stills, README demo, and local 42-second
-  overview/poster are release-backed and ready for owner review. Approval,
-  YouTube upload, Product Hunt replacement, provenance/copy merge, and
-  rendered-player validation remain pending before the new freeze anchor.
+  Task 11. The v1.16.2 gallery stills, README demo, and 42-second overview are
+  release-backed and owner-approved. YouTube processing/checks, Product Hunt
+  replacement, and rendered-player validation passed. The provenance/copy
+  merge remains pending before the new freeze anchor.
 - **Unreleased feature work reaches `main` after the new freeze anchor** → stop and re-audit
   the README, demo, copy pack, and public binary/repository boundary before
   posting any channel. **Pending:** Phase 1.5 must record the replacement anchor,

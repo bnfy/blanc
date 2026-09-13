@@ -7,15 +7,13 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Proposed schedule recovery — OWNER PREFERENCE 2026-09-13:** The owner would
-like to begin Monday or Tuesday if the remaining gates clear. The earliest safe
-sequence is Monday, September 14 baseline and listings; Tuesday, September 15
-Show HN; Wednesday, September 16 Reddit; and Thursday, September 17 Product
-Hunt. This pack remains **not publishable** until the owner explicitly selects
-public v1.16.2 as the final launch release, approves the finished media and copy,
-the release-bound changes merge, the new freeze row is recorded, and the fresh
-48-hour soak clears at or after `2026-09-13T21:36:18Z` with no regression or
-replacement.
+**Official schedule recovery — OWNER APPROVED 2026-09-13:** Monday, September
+14 baseline and listings; Tuesday, September 15 Show HN; Wednesday, September
+16 Reddit; and Thursday, September 17 Product Hunt. The owner explicitly
+selected public v1.16.2 as the final launch release and approved the finished
+media and copy. This pack remains **not publishable** until the release-bound
+changes merge, the new freeze row is recorded, and the fresh 48-hour soak clears
+at or after `2026-09-13T21:36:18Z` with no regression or replacement.
 
 **Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
 v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
@@ -23,8 +21,8 @@ incident. That confirmation closes the earlier evidence gap; it does not waive
 the asset merge, final freeze, or fresh soak. Do not publish this pack until
 the runbook's remaining launch gates are cleared.
 
-**Current release candidate — PENDING OWNER SELECTION:** Packaged public
-v1.16.2 was published from
+**Final release lock — ACCEPTED 2026-09-13:** Packaged public v1.16.2 was
+published from
 `0cced924b458496869295c711162c315a4d5da29` at `2026-09-11T21:24:34Z`. Its
 complete native-platform, authenticated-manifest, public-download, site, fresh
 AppImage launch/render, DNS, and adjacent public v1.16.1 → v1.16.2
@@ -66,7 +64,7 @@ Launch media status:
 
 | Form | URL |
 |---|---|
-| Candidate v1.16.2 overview | Local review complete; owner approval and upload pending |
+| Approved v1.16.2 overview | https://www.youtube.com/watch?v=REA1jQN6tY0 |
 | Candidate v1.16.2 short MP4 | `docs/superpowers/plans/assets/island-demo.mp4` |
 | Candidate v1.16.2 short GIF | `docs/superpowers/plans/assets/island-demo.gif` |
 | Historical v1.16.0 overview; retain until replacement approval | https://www.youtube.com/watch?v=X5pAN07iuks |
@@ -77,16 +75,18 @@ packaged public v1.16.2 in a dedicated local profile using public pages. The
 MP4 is a 22.166667-second, 1920×1200, 30 fps H.264 BT.709 export with no audio
 stream; the 960×600 GIF is below 8 MiB. They show Billboard, a named tab group,
 Quick Switcher and slash commands, the live homepage, and the real blocker
-popover. They replace the historical v1.16.0 README demo after owner approval.
+popover. They replace the historical v1.16.0 README demo.
 
 The candidate 42-second overview was created on September 13 from the same
 installed public v1.16.2 capture set. It uses Billboard, the live Blanc site,
 The Verge, a named tab group, slash commands, Quick Switcher, and the real
 blocker count and site controls. It is a 1920×1200, 30 fps H.264 BT.709 export
 with no audio stream and a 42.000-second duration. Seven release-backed captions
-occupy a reserved lower margin. Owner approval, YouTube upload, Product Hunt
-video replacement, and rendered-player validation remain pending. The
-historical v1.16.0 and v1.15.0 unlisted videos remain intact.
+occupy a reserved lower margin. The owner approved it on September 13; YouTube
+finished processing the unlisted upload and reported no copyright issues at
+`https://www.youtube.com/watch?v=REA1jQN6tY0`. Product Hunt saved the full URL
+and rendered the exact v1.16.2 player before the draft was re-verified as
+scheduled. The historical v1.16.0 and v1.15.0 unlisted videos remain intact.
 
 ## Show HN — owner writes every public word
 
@@ -388,15 +388,14 @@ The two stills were recaptured on September 13 from packaged public v1.16.2
 over the live Blanc homepage, replacing the stale v1.16.0 captures. They satisfy
 the guide's two-image gallery floor. Their exact provenance is in
 `product-hunt/README.md`.
-The candidate v1.16.2 overview is complete locally and awaits owner approval
-before YouTube upload and Product Hunt replacement. The historical v1.16.0
-video at `https://www.youtube.com/watch?v=X5pAN07iuks` remains in the
-unpublished draft for now. The draft is at
-`https://www.producthunt.com/products/blanc-3?launch=blanc-3`. The live editor
-previously reported `Scheduled` for **September 17 at 12:01 a.m. PDT
-(3:01 a.m. EDT)**. The schedule remains contingent on explicit owner selection
-of v1.16.2, creative approval and upload, merge, the new freeze anchor, and the
-fresh 48-hour soak clearing.
+The approved v1.16.2 overview is unlisted at
+`https://www.youtube.com/watch?v=REA1jQN6tY0`. Product Hunt saved that full URL
+and the two approved stills, removed the four historical gallery items, and
+rendered the exact v1.16.2 player. The draft is at
+`https://www.producthunt.com/products/blanc-3?launch=blanc-3`. The live page
+reported `Scheduled` for **September 17 at 12:01 a.m. PDT (3:01 a.m. EDT)**
+after the replacement. The schedule remains contingent on merge, the new
+freeze anchor, and the fresh 48-hour soak clearing.
 
 **Name**
 

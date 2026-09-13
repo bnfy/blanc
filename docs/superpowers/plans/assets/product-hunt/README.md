@@ -19,7 +19,9 @@ The v1.16.2 stills were captured at 2× native resolution and Lanczos-scaled to
 1270×760. They contain the real macOS window controls, Blanc Island, and live
 website; no product controls, text, or colors were composited. They exclude
 private data, remote-device identifiers, development indicators, dialogs, and
-the pointer. They are ready for owner review before upload to the unpublished
+the pointer. The owner approved them on September 13. Product Hunt stored the
+homepage still as `83578727-9801-4c56-9b06-9f1e07a68cfa.png` and the Quick
+Switcher still as `895327e8-dc4b-4c24-9c4e-3f65aadabd51.png` in the scheduled
 draft at `https://www.producthunt.com/products/blanc-3?launch=blanc-3`.
 
 The replacement 42-second overview is a local review artifact at
@@ -33,8 +35,12 @@ H.264 BT.709, exactly 42.000 seconds, with no audio stream; SHA-256
 `9ca7b00220da3916055934db4e398896fa63f6e74992eadc9b98bde02796cb5d`.
 The matching local poster SHA-256 is
 `5c5a8b25e88c7765bc2cbec4d4d14062edff6bd63f00e12de26cd88947d96453`.
-Owner approval and the new YouTube URL remain pending; do not upload this file
-or replace the Product Hunt video until that approval is recorded.
+The owner approved the finished overview on September 13. It is fully
+processed and unlisted at `https://www.youtube.com/watch?v=REA1jQN6tY0`;
+YouTube reported `Checks complete. No issues found.` Product Hunt saved that
+full URL, generated video thumbnail
+`465b6a02-93c0-4ecc-a121-ffba8a12a41e.jpeg`, and rendered the YouTube player
+with the exact v1.16.2 title.
 
 The current [22-second source demo](../island-demo.mp4) is a 1920×1200,
 30 fps H.264 BT.709 export from the same v1.16.2 capture set with no audio
@@ -49,11 +55,12 @@ remains `youtube-nocookie.com/embed/X5pAN07iuks`. It is a historical input and
 must not be published as the v1.16.2 launch overview. The older v1.15.0 video
 also remains intact.
 
-The live Product Hunt editor previously reported `Scheduled` for September 17
-at 12:01 a.m. PDT (3:01 a.m. EDT). That schedule remains contingent on explicit
-owner selection of v1.16.2, approval and upload of the finished creative,
-merge of the release-bound changes, the replacement freeze anchor, and the
-fresh soak clearing at or after September 13 at 5:36 p.m. ET.
+The live Product Hunt page reported `Scheduled` for September 17 at 12:01 a.m.
+PDT (3:01 a.m. EDT) after the v1.16.2 media replacement. The final gallery has
+exactly three items in the approved order: the rendered overview, homepage
+still, and Quick Switcher still. The schedule remains contingent on merge of
+the release-bound changes, the replacement freeze anchor, and the fresh soak
+clearing at or after September 13 at 5:36 p.m. ET.
 
 Verify dimensions before upload:
 
