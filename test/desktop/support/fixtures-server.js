@@ -5,17 +5,8 @@
 const http = require('node:http');
 const https = require('node:https');
 
-const escapeHtml = (value) => String(value)
-  .replaceAll('&', '&amp;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-  .replaceAll('"', '&quot;')
-  .replaceAll("'", '&#39;');
-
 function pageBody(req) {
   const raw = req.url || '/';
-  const name = decodeURIComponent(raw.replace(/^\/site\//, '').split('?')[0]) || 'page';
-  const safeName = escapeHtml(name);
   // Some history/wake scenarios suppress the load counter so pageState stays
   // deterministic. Ordinary site-owned sessionStorage is not unsaved user
   // work and therefore does not prevent this page from becoming quiet.
@@ -36,8 +27,11 @@ function pageBody(req) {
         ? '<form><input type="password" autocomplete="current-password" style="opacity:0"></form>'
         : '';
   return (
-    `<!doctype html><html><head><meta charset="utf-8"><title>${safeName}</title></head>` +
-    `<body><h1>${safeName}</h1><p>widget widget widget</p>` +
+    `<!doctype html><html><head><meta charset="utf-8"><title>page</title></head>` +
+    `<body><h1>page</h1><script>` +
+    `const fixtureName=decodeURIComponent(location.pathname.replace(/^\\/site\\//,'')||'page');` +
+    `document.title=fixtureName;document.querySelector('h1').textContent=fixtureName;` +
+    `</script><p>widget widget widget</p>` +
     loginForm +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +
     `<input id="acceptance-check" type="checkbox" aria-label="Unsaved checkbox">` +
