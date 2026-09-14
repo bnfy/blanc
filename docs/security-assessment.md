@@ -5,8 +5,9 @@ Assessment baseline: public Blanc v1.17.0, source tag
 
 Last reviewed: September 13, 2026
 
-This assessment covers the released Electron desktop application, the public
-website, and the Cloudflare Workers maintained in the same repository. It
+This threat model and attack-surface assessment covers the released Electron
+desktop application, the public website, and the Cloudflare Workers maintained
+in the same repository. It
 updates the August 12 remediation audit for v1.17.0's live Named Workspace
 state, reviewed desktop-application sign-in returns, and focused-popup
 1Password integration. It identifies likely high-impact failures and the
@@ -102,7 +103,8 @@ analysis completed; it does not mean the alert list is empty. Open findings are
 review inputs and must not be represented as proof that released code is free
 of vulnerabilities.
 
-Review this assessment for every release that changes a trust boundary,
+Review and update this threat model for every new or breaking feature and for
+every release that changes a trust boundary,
 external interface, permission, authentication flow, credential integration,
 network recipient, persistent data class, updater, signing path, or privileged
 CI job. Review it at least annually even if none of those triggers occurs.

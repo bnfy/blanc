@@ -35,7 +35,30 @@ permissions:
   contents: read
 
 jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate trusted workflow inputs before use
+        shell: bash
+        env:
+          RELEASE_MODE: ${{ inputs.mode }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_PLATFORM: ${{ inputs.platform }}
+        run: |
+          case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
+          case "$RELEASE_PLATFORM" in all|windows|linux) ;; *) exit 1 ;; esac
+          if [ "$RELEASE_MODE" = release ]; then
+            [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || {
+              echo "Release tag must be a version such as v1.17.0" >&2
+              exit 1
+            }
+          elif [ -n "$RELEASE_TAG" ]; then
+            echo "Validation mode does not accept a release tag" >&2
+            exit 1
+          fi
+
   windows:
+    needs: validate-inputs
     if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
     runs-on: windows-latest
     # Release uploads and provenance require these grants. Keep them local
@@ -280,6 +303,7 @@ jobs:
             dist/latest.yml
 
   linux:
+    needs: validate-inputs
     if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
     permissions:

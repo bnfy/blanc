@@ -5,6 +5,7 @@
 Security fixes are shipped through the newest published Blanc release. Older
 releases are not maintained as separate support branches. Because Blanc embeds
 Chromium, staying on the current Blanc release is part of its security model.
+The full support scope and duration are in [SUPPORT.md](SUPPORT.md).
 
 ## Report a vulnerability
 

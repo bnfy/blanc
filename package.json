@@ -47,6 +47,7 @@
     "compliance:build": "node scripts/generate-compliance.mjs",
     "compliance:check": "node scripts/generate-compliance.mjs --check",
     "bench:memory": "node bench/memory/run.js",
+    "security:dependencies": "node scripts/audit-dependencies.mjs",
     "release:security": "npm audit --omit=dev --audit-level=high",
     "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:cold-launch && npm run test:web-store-guard && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "icons:windows:build": "node scripts/build-windows-icons.js",
