@@ -57,7 +57,7 @@ and residual risks. [Project governance](docs/governance.md) names the sole
 maintainer, responsibilities, and sensitive access domains.
 
 Blanc has earned the
-[OpenSSF Best Practices Baseline Level 1](https://www.bestpractices.dev/en/projects/14451/baseline-1)
+[OpenSSF Best Practices Baseline Level 2](https://www.bestpractices.dev/en/projects/14451/baseline-2)
 self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
