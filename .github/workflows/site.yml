@@ -5,6 +5,7 @@ name: Site
 # the releases.json contract.
 on:
   push:
+    branches: [main]
     paths:
       - 'site/**'
       - 'package.json'

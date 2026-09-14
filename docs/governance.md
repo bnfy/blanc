@@ -45,6 +45,16 @@ also reviewed when a service credential rotates, a maintainer is added or
 removed, or a security incident indicates that access may no longer be
 appropriate.
 
+Before granting a person merge access, repository administration, security
+advisory access, signing authority, deployment authority, or access to project
+secrets, the maintainer must verify the person's identity and sustained project
+contributions, review their security conduct and need for the requested role,
+and record the decision in a pull request that updates this file. Access starts
+with the least privilege and shortest practical scope. Anonymous or newly
+created identities do not receive sensitive access without independently
+verified identity and contribution history. Service principals require the
+same documented purpose, owner, minimum scopes, and revocation path.
+
 Contributor requirements are in [CONTRIBUTING.md](../CONTRIBUTING.md), private
 security reporting and disclosure responsibilities are in
 [SECURITY.md](../SECURITY.md), and the live branch-control evidence is recorded

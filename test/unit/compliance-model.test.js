@@ -117,8 +117,8 @@ test('both lock SBOMs include every unique locked name/version with audited lice
   const generated = createComplianceArtifacts();
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
-  assert.equal(root.components.length, 400);
-  assert.equal(site.components.length, 295);
+  assert.equal(root.components.length, 399);
+  assert.equal(site.components.length, 287);
   const onePassword = root.components.find((component) => component.name === '@1password/sdk');
   assert.deepEqual(onePassword.licenses, [{ license: { id: 'MIT' } }]);
   const zod = site.components.find((component) => component.name === 'zod');

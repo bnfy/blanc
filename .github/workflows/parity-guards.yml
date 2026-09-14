@@ -7,6 +7,7 @@ name: Parity guards
 # their desktop step definitions. These are read-only checks — no build, no publish.
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -37,6 +38,8 @@ jobs:
       - run: npm ci
       - name: Dependency compliance artifacts match the lockfiles
         run: npm run compliance:check
+      - name: Dependency advisories satisfy the security policy
+        run: npm run security:dependencies
       - name: Unit regression tests
         run: npm run test:unit
 
