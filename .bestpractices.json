@@ -77,6 +77,6 @@
   "osps_vm_05_03_justification": "Every pull request and push to main runs the required substrate job, which evaluates all four npm lockfiles and fails on unsuppressed high/critical or unidentified dependency advisories. Evidence: https://github.com/bnfy/blanc/blob/main/.github/workflows/parity-guards.yml",
   "osps_vm_06_01_status": "Met",
   "osps_vm_06_01_justification": "The SAST policy defines critical and high CodeQL findings as violations and requires a specific recorded rationale for false-positive, test-only, or non-exploitable dismissals: https://github.com/bnfy/blanc/blob/main/docs/security-maintenance-policy.md#static-analysis",
-  "osps_vm_06_02_status": "Unmet",
-  "osps_vm_06_02_justification": "CodeQL runs on every pull request and is required, but GitHub code-scanning merge protection is not yet active and 16 existing alerts require triage. A completed analysis alone does not enforce the documented severity threshold."
+  "osps_vm_06_02_status": "Met",
+  "osps_vm_06_02_justification": "CodeQL runs on every pull request, and active repository ruleset 23236533 blocks merges on analysis errors or high-or-higher security alerts. PR #352 resolved the production findings; the sole dismissed finding is GitHub-classified test code with a recorded used-in-tests rationale. Evidence: https://github.com/bnfy/blanc/pull/352"
 }
