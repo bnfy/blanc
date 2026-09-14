@@ -51,6 +51,11 @@ and release integrity as explicit controls:
 - Vulnerabilities can be reported privately under the response targets and
   safe-harbor terms in [SECURITY.md](SECURITY.md).
 
+The current [security assessment](docs/security-assessment.md) documents
+system actors, trust boundaries, external interfaces, likely threats, controls,
+and residual risks. [Project governance](docs/governance.md) names the sole
+maintainer, responsibilities, and sensitive access domains.
+
 Blanc has earned the
 [OpenSSF Best Practices Baseline Level 1](https://www.bestpractices.dev/en/projects/14451/baseline-1)
 self-certification. It is a voluntary assessment of documented project
