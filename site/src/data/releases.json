@@ -1,5 +1,73 @@
 [
   {
+    "tag": "v1.17.0",
+    "version": "1.17.0",
+    "name": "1.17.0",
+    "publishedAt": "2026-09-14T00:08:29.000Z",
+    "humanDate": "September 13, 2026",
+    "machineDate": "2026-09-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.17.0",
+    "anchor": "v1-17-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Named Workspaces preserve live drafts, history, and page state when you switch, with reliable saving, recovery, ordering, and deletion controls."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Sign-in flows can now return from Blanc to installed desktop applications such as Claude after browser approval completes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's built-in 1Password fill stays inside the focused sign-in popup, including Google login windows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reviewed Claude and standard Microsoft and Google native OAuth callbacks ask before opening the installed application, preserve the exact callback through redirects and popup closure, and show a useful error when no handler is available."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Unknown application schemes remain blocked, and callback secrets never appear in confirmation prompts or persistent browser data."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.16.2",
     "version": "1.16.2",
     "name": "1.16.2",
