@@ -168,12 +168,16 @@ function parseChromiumBookmarks(input, {
 }
 
 async function readJsonIfSmall(filePath, fsPromises, maxBytes = 2 * 1024 * 1024) {
+  let file;
   try {
-    const stat = await fsPromises.stat(filePath);
+    file = await fsPromises.open(filePath, 'r');
+    const stat = await file.stat();
     if (!stat.isFile() || stat.size > maxBytes) return null;
-    return JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
+    return JSON.parse(await file.readFile('utf8'));
   } catch {
     return null;
+  } finally {
+    if (file) await file.close().catch(() => {});
   }
 }
 
@@ -413,16 +417,20 @@ function createBrowserDataImportService({
     async readSource(id) {
       const source = (await discover()).sources.find((candidate) => candidate.id === id);
       if (!source) return { error: 'source-unavailable' };
+      let file;
       try {
-        const stat = await fsPromises.stat(source.bookmarksPath);
+        file = await fsPromises.open(source.bookmarksPath, 'r');
+        const stat = await file.stat();
         if (!stat.isFile()) return { error: 'source-unavailable' };
         if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
-        const raw = await fsPromises.readFile(source.bookmarksPath, 'utf8');
+        const raw = await file.readFile('utf8');
         const entries = parseChromiumBookmarks(raw);
         if (!entries.length) return { error: 'empty' };
         return { source: publicSource(source), entries };
       } catch {
         return { error: 'unreadable' };
+      } finally {
+        if (file) await file.close().catch(() => {});
       }
     },
 

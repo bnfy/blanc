@@ -20,13 +20,22 @@ const SIZES = [{ tag: 'desktop', width: 1280, height: 2400 }, { tag: 'mobile', w
 
 // Materialize the baseline into a temp dir.
 const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-site-old-'));
-execFileSync('bash', ['-c', `git archive site-pre-astro site | tar -x -C ${oldDir}`], { cwd: ROOT });
+const archive = execFileSync('git', ['archive', 'site-pre-astro', 'site'], { cwd: ROOT });
+execFileSync('tar', ['-x', '-C', oldDir], { input: archive });
 
 function serve(dir) {
+  const root = path.resolve(dir);
   return new Promise((resolve) => {
     const server = http.createServer((req, res) => {
-      const url = decodeURIComponent(req.url.split('?')[0]);
-      let file = path.join(dir, url.endsWith('/') ? url + 'index.html' : url);
+      let pathname;
+      try {
+        pathname = decodeURIComponent(new URL(req.url || '/', 'http://localhost').pathname);
+      } catch {
+        res.writeHead(400); res.end(); return;
+      }
+      const relative = pathname.replace(/^\/+/, '');
+      let file = path.resolve(root, pathname.endsWith('/') ? relative + 'index.html' : relative);
+      if (file !== root && !file.startsWith(`${root}${path.sep}`)) { res.writeHead(404); res.end(); return; }
       if (!fs.existsSync(file) && fs.existsSync(file + '.html')) file += '.html';
       if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end(); return; }
       const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.xml': 'application/xml' };

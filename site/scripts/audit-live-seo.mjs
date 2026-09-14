@@ -8,9 +8,9 @@ const errors = [];
 const warnings = [];
 
 const decodeAttribute = (value = '') => value
-  .replaceAll('&amp;', '&')
   .replaceAll('&quot;', '"')
-  .replaceAll('&#39;', "'");
+  .replaceAll('&#39;', "'")
+  .replaceAll('&amp;', '&');
 
 const capture = (html, patterns) => {
   for (const pattern of patterns) {
