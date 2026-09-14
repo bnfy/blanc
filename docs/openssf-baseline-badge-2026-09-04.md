@@ -10,7 +10,7 @@ The website describes this result as a **self-assessment** and links directly
 to the public record. It does not describe the badge as a security
 certification or an independent audit.
 
-`site/public/openssf-baseline.svg` is an exact snapshot of the badge returned
+`site/public/openssf-baseline-2.svg` is an exact snapshot of the badge returned
 by the official project badge endpoint on that date. It appears only in the
 Security page's assessment block. Serving the snapshot locally avoids a
 third-party request; its link still opens the live assessment so visitors can
