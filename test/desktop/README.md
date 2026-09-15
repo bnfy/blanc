@@ -110,7 +110,7 @@ groups, by what they additionally need:
    internal-page, and theming assertions still need purpose-built `__blanc`
    readers or guest-view handles.
 2. **Real navigation / external fixtures** — address-bar search routing, history
-   recording on visit, downloads, permissions, basic-auth. Extend the fixtures
+   recording on visit, downloads, permissions, HTTP-auth cancellation. Extend the fixtures
    server (search stubs, a basic-auth route, a downloadable file) and drive real
    navigations.
 3. **OS-level behaviour** — OS URI hand-off, telemetry ping capture, the desktop
