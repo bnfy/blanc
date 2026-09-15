@@ -309,11 +309,11 @@ From the desktop `DEFAULTS`:
 ## F16 — Internal `blanc://` pages
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
-  **history**, **downloads**, **settings**, **shortcuts**, **error**, **auth**.
+  **history**, **downloads**, **settings**, **shortcuts**, **error**.
 - **Presentation split:** the five *utility* pages (favorites, history, downloads,
   settings, shortcuts) present as a **transient chrome surface** — on desktop a
-  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content
-  (`auth` is a dialog). Outbound activations (a history entry, a favorite) open
+  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
+  Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed.
 - The newtab ledger: date line, "Where to?", favorites, tab groups ("pick up where
@@ -373,12 +373,13 @@ From the desktop `DEFAULTS`:
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
 
-## F20 — Basic-auth dialog
+## F20 — HTTP authentication policy
 
-- HTTP basic-auth challenges present a modal prompt (`bowserAuth` bridge on
-  desktop; native equivalent on mobile) with the same fields/behaviour.
-- **Acceptance:** Navigating to a basic-auth-protected URL raises the credential
-  prompt; correct credentials proceed, cancel aborts the navigation.
+- HTTP basic/digest challenges never present a separate Blanc credential
+  prompt. Website sign-in forms remain the website's own UI.
+- **Acceptance:** Navigating to a basic-auth-protected URL does not raise a
+  Blanc prompt; the authentication challenge is cancelled and the protected
+  navigation fails. Subresource and proxy challenges are cancelled silently.
 
 ## F21 — Telemetry (bounded usage measurement)
 

@@ -135,7 +135,6 @@ let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
-const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
@@ -8944,23 +8943,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     bookmarks.onMerged(refreshBookmarkFlags);
   };
 
-  // HTTP basic/digest auth: without this handler, 401-protected sites
-  // (routers, staging servers) simply fail.
-  app.on('login', (event, requestingWc, _details, authInfo, callback) => {
+  // Website sign-in belongs to the website. Never turn an HTTP basic/digest
+  // challenge (including navigation, page resource, or proxy challenges) into
+  // a separate Blanc credentials dialog.
+  app.on('login', (event, _requestingWc, _details, _authInfo, callback) => {
     event.preventDefault();
-    const tabId = requestingWc ? tabIdByWebContentsId.get(requestingWc.id) : null;
-    const runtime = (tabId ? windowRuntimes.runtimeForTab(tabId) : null)
-      ?? windowRuntimes.runtimeForAuxiliaryContent(requestingWc?.id)
-      ?? focusedRuntime
-      ?? primaryRuntime;
-    if (runtime.resident || runtime.closing) { callback(); return; }
-    runtime.authenticationPrompts += 1;
-    withWindowRuntime(runtime, () => {
-      promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
-        if (creds) callback(creds.username, creds.password);
-        else callback(); // no args = cancel the request
-      }, () => callback()).finally(() => { runtime.authenticationPrompts -= 1; });
-    });
+    callback();
   });
 
   registerIpcHandlers();

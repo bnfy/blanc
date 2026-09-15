@@ -237,7 +237,6 @@ src/main/settings.js     Search engine / adblock / theme / home page settings
 src/main/search-suggestions.js  Bounded default-engine autocomplete providers
 src/main/store.js        Tiny debounced JSON-file persistence used by all of the above
 src/main/context-menu.js Right-click menu for web content
-src/main/auth-dialog.js  HTTP basic/digest auth prompt
 src/main/updater.js      electron-updater wiring
 src/main/preload.js      contextBridge API for the chrome strip + island overlay
 src/main/tab-preload.js  contextBridge API for blanc:// internal pages only

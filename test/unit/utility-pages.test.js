@@ -18,6 +18,7 @@ test('isUtilityUrl: non-utility internal pages and other schemes do not match', 
   assert.equal(isUtilityUrl('blanc://newtab/'), false);
   assert.equal(isUtilityUrl('blanc://newtab/?private=1'), false);
   assert.equal(isUtilityUrl('blanc://error/?url=x'), false);
+  assert.equal(KNOWN_PAGES.has('auth'), false);
   assert.equal(isUtilityUrl('blanc://auth/'), false);
   assert.equal(isUtilityUrl('https://settings/'), false);
   assert.equal(isUtilityUrl('https://example.com/blanc://settings/'), false);
