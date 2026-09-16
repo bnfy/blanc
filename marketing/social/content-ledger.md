@@ -193,3 +193,19 @@ Owner asked to try slightly bolder headlines. Set the social display face to rea
 Threads reply to @robertcyoung on saving the reason behind a browser tab. Published and verified 2026-09-13T14:18:46.048942-04:00: https://www.threads.com/@blancbrowser/post/DdPL9E6kffd. Exact text and claim check in engagement-check-2026-09-13.json. Do not duplicate.
 
 Four additional public replies published and verified at 14:22 EDT; the September 13 daily ceiling is now 5/5. Threads: https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3 and https://www.threads.com/@blancbrowser/post/DdPMaizEZli. X: https://x.com/blancbrowser/status/2099202098302791948 and https://x.com/blancbrowser/status/2099202155836031022. Exact copy and claim checks are in `engagement-check-2026-09-13.json`. Do not duplicate or add more contributions before the next local day.
+
+## September 14 — engagement-only verified actions
+
+Five public replies were approved, published and verified under Blanc’s identity. Threads: https://www.threads.com/@blancbrowser/post/DdRmppZkUih and https://www.threads.com/@blancbrowser/post/DdRmsDIEQDd. X: https://x.com/blancbrowser/status/2099541328237412574. TikTok: a targeted reply to `home99fam` under https://www.tiktok.com/@drgfrance/video/7683232618233613590. Substack: https://substack.com/profile/542769413-blanc-browser/note/c-337013669. Exact copy, claim checks and verification evidence are in `engagement-send-batch-2026-09-14.json`. Do not duplicate.
+
+At the 17:00 check, the target TikTok commenter had liked Blanc’s answer. The 24-hour review of the September 13 batch found 47 visible views and two substantive audience replies, both on the duplicate-tab design discussion. See `daily-scorecard-2026-09-14.json` for per-reply results.
+
+## September 15 — morning engagement-only verified actions
+
+Two public replies were published and verified under Blanc’s identity: a Threads design conversation about compounding browser UX surprises at https://www.threads.com/@blancbrowser/post/DdT6RqekVAj and an X question about distinguishing background from idle resource use at https://x.com/blancbrowser/status/2099866638568817037. Exact copy and parent URLs are in `daily-scorecard-2026-09-15.json`. Both threads were checked for existing Blanc participation. No new creative, creator pitch or standalone post was sent.
+
+A separate Vivaldi recovery-comment draft was rejected by automatic approval review for unverified first-party guidance. It was not published and is not a duplicate or completed action. Facebook notifications could not be checked through a verified Blanc account; entering the displayed personal profile was separately rejected. Preserve both as unavailable rather than reporting no activity.
+
+### September 15, 5 p.m. — audience response and verified follow-up
+
+Felix responded substantively to Blanc's September 14 Substack minimalism comment. Blanc replied with a focused question about when motion helps a minimal layout: https://substack.com/profile/542769413-blanc-browser/note/c-337992572. Exact text, parent and live URL are in `daily-scorecard-2026-09-15.json`. This brings September 15 to three verified conversation replies. The September 14 reply review found 35 visible views across Threads and X, one substantive Substack audience response and three secondary likes. TikTok and Substack comment views were unavailable. Do not duplicate the Felix thread or infer follower conversion from this interaction.

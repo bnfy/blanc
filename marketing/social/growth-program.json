@@ -37,14 +37,14 @@
   "queue": [
     {
       "id": "conversation-engagement",
-      "status": "active",
-      "remaining": "September 13 daily ceiling reached at 5/5. At the next local-day window, revalidate engagement-candidates-2026-09-14.json, prioritize unanswered inbound, and search again for fresher browser/design/maker discussions before sending."
+      "status": "active_september_15",
+      "remaining": "Three useful public replies were published and verified on September 15, including a Substack follow-up to an audience response. Continue with fresh relevant inbound at the next scheduled conversation check; verify identity, context and duplicates."
     },
     {
       "id": "baseline-audit",
-      "status": "baseline_established",
-      "artifact": "daily-scorecard-2026-09-12.md",
-      "remaining": "Use the September 13 checkpoint as the fixed opening baseline. Take the next comparable six-channel snapshot at 17:00 EDT on September 14."
+      "status": "day_three_snapshot_completed",
+      "artifact": "daily-scorecard-2026-09-15.md",
+      "remaining": "Take the next comparable six-channel snapshot at 17:00 EDT on September 16. Two consecutive measured misses are recorded for every channel. A true trailing-seven-day net remains unavailable until endpoints span seven days."
     },
     {
       "id": "first-content-batch",
@@ -78,7 +78,8 @@
     },
     {
       "id": "24h-review",
-      "status": "review_verified_reply_outcomes_when_due"
+      "status": "september_14_delayed_review_completed",
+      "remaining": "Review September 15 replies after their 24-hour due times on September 16. The delayed September 14 review found 35 visible reply views and one substantive Substack audience response, which appeared after the first 24 hours."
     },
     {
       "id": "7d-review",
@@ -98,8 +99,8 @@
       "13:00",
       "17:00"
     ],
-    "nextExpectedCheckpoint": "2026-09-14T09:00:00-04:00",
-    "lastCheckpointAttempt": "2026-09-13T17:03:50-04:00",
+    "nextExpectedCheckpoint": "2026-09-16T09:00:00-04:00",
+    "lastCheckpointAttempt": "2026-09-15T17:04:49-04:00",
     "lastScopeUpdateAt": "2026-09-13T14:18:46.048942-04:00"
   },
   "creativeRevision": "sunrise-r6",
@@ -118,21 +119,14 @@
     "ownerAccepted": false
   },
   "lastMonitoringRun": {
-    "attemptedAt": "2026-09-13T17:03:50-04:00",
-    "mode": "audience_snapshot",
-    "status": "completed_baseline_established",
+    "scheduledFor": "2026-09-15T17:00:00-04:00",
+    "attemptedAt": "2026-09-15T17:01:10-04:00",
+    "completedAt": "2026-09-15T17:04:49-04:00",
+    "mode": "audience_snapshot_delayed_24h_reply_review_and_substack_followup",
+    "status": "completed_all_six_second_measured_miss",
     "accountChecksCompleted": 6,
-    "publicActions": 0,
-    "coverage": [
-      "X",
-      "Threads",
-      "Instagram",
-      "Facebook",
-      "TikTok",
-      "Substack subscribers"
-    ],
-    "remainingCoverage": [],
-    "artifact": "daily-scorecard-2026-09-13.json"
+    "publicActions": 1,
+    "notificationDecision": "notify_second_measured_shortfall_and_verified_followup"
   },
   "monitoringHistory": [
     {
@@ -178,6 +172,117 @@
       "substackDataDelayMinutes": 23,
       "comparison": "No prior comparable scheduled checkpoint; no daily miss recorded.",
       "notificationDecision": "quiet_baseline_established"
+    },
+    {
+      "scheduledFor": "2026-09-14T09:00:00-04:00",
+      "attemptedAt": "2026-09-14T09:01:41-04:00",
+      "mode": "inbound_review",
+      "status": "unavailable_browser_access",
+      "blockerCode": "mac_locked_brave_unavailable",
+      "nextAction": "Unlock the Mac before the 13:00 engagement run so logged-in Brave can be used.",
+      "ownerActionNotifiedAt": "2026-09-14T09:01:41-04:00",
+      "suppressDuplicateBlockerNotifications": true,
+      "notificationDecision": "notify_access_regressed_after_prior_recovery",
+      "accountChecksCompleted": 0,
+      "publicActions": 0
+    },
+    {
+      "scheduledFor": "2026-09-14T13:00:00-04:00",
+      "attemptedAt": "2026-09-14T12:48:01-04:00",
+      "completedAt": "2026-09-14T12:51:39-04:00",
+      "mode": "catch_up_public_engagement",
+      "status": "completed_daily_limit",
+      "accountChecksCompleted": 5,
+      "draftsPrepared": 5,
+      "publicActions": 5,
+      "remainingCoverage": [
+        "Facebook public notifications unavailable: saved session requires password"
+      ],
+      "artifact": "engagement-send-batch-2026-09-14.json",
+      "notificationDecision": "notify_daily_limit_completed"
+    },
+    {
+      "scheduledFor": "2026-09-14T13:00:00-04:00",
+      "attemptedAt": "2026-09-14T13:00:33-04:00",
+      "mode": "inbound_review",
+      "status": "completed_no_action_recent_sweep_daily_limit",
+      "accountChecksCompleted": 0,
+      "publicActions": 0,
+      "cumulativePublicActionsToday": 5,
+      "notificationDecision": "quiet_recent_sweep_no_new_action"
+    },
+    {
+      "scheduledFor": "2026-09-14T17:00:00-04:00",
+      "attemptedAt": "2026-09-14T17:01:04-04:00",
+      "completedAt": "2026-09-14T17:04:09-04:00",
+      "mode": "audience_snapshot_and_24h_reply_review",
+      "status": "completed_measured_shortfall",
+      "accountChecksCompleted": 6,
+      "publicActions": 0,
+      "notificationDecision": "notify_measured_shortfall",
+      "audience": {
+        "x": 15,
+        "threads": 24,
+        "instagram": 102,
+        "facebook": 22,
+        "tiktok": 25,
+        "substack": 2
+      },
+      "substackDisplayTotal": 3,
+      "substackAuthorExcluded": true,
+      "substackDataDelayMinutes": 120,
+      "comparison": "Threads +1; X, Instagram, Facebook, TikTok and external Substack subscribers unchanged. First measured miss for all six channels."
+    },
+    {
+      "scheduledFor": "2026-09-15T09:00:00-04:00",
+      "attemptedAt": "2026-09-15T09:11:54-04:00",
+      "completedAt": "2026-09-15T10:23:42-04:00",
+      "mode": "public_inbound_and_relevant_conversations",
+      "status": "completed_two_verified_replies",
+      "accountChecksCompleted": 5,
+      "publicActions": 2,
+      "artifact": "daily-scorecard-2026-09-15.md",
+      "facebook": "Unavailable: saved session displayed personal Anthony J. Loria account. Automatic approval review rejected entering it; no Blanc public notification check completed.",
+      "unsentRecoveryDraft": "Automatic approval review rejected Vivaldi recovery comment for insufficient first-party claim verification. Official Vivaldi Help was then read; no submission followed.",
+      "nextAction": "At 13:00 EDT, review September 14 reply outcomes after 12:52 EDT and continue only worthwhile current conversations. Take six-channel snapshot at 17:00 EDT."
+    },
+    {
+      "scheduledFor": "2026-09-15T13:00:00-04:00",
+      "attemptedAt": "2026-09-15T13:01:40-04:00",
+      "completedAt": "2026-09-15T13:02:12-04:00",
+      "mode": "public_inbound_and_due_24h_reply_review",
+      "status": "unavailable_mac_locked_brave_not_exposed",
+      "blockerCode": "mac_locked_brave_unavailable",
+      "accountChecksCompleted": 0,
+      "publicActions": 0,
+      "replyOutcomeStatus": "due_unavailable_not_zero",
+      "artifact": "daily-scorecard-2026-09-15.json",
+      "nextAction": "Retry logged-in Brave when the Mac unlocks. Take the six-channel snapshot at 17:00 EDT if access returns.",
+      "notificationDecision": "notify_access_regressed_after_morning_recovery"
+    },
+    {
+      "scheduledFor": "2026-09-15T17:00:00-04:00",
+      "attemptedAt": "2026-09-15T17:01:10-04:00",
+      "completedAt": "2026-09-15T17:04:49-04:00",
+      "mode": "audience_snapshot_delayed_24h_reply_review_and_substack_followup",
+      "status": "completed_all_six_second_measured_miss",
+      "accountChecksCompleted": 6,
+      "publicActions": 1,
+      "artifact": "daily-scorecard-2026-09-15.json",
+      "audience": {
+        "x": 15,
+        "threads": 24,
+        "instagram": 102,
+        "facebook": 22,
+        "tiktok": 25,
+        "substackExternalSubscribers": 2
+      },
+      "substackDisplayTotal": 3,
+      "substackAuthorExcluded": true,
+      "substackDataDelayMinutes": 22,
+      "comparison": "Every channel unchanged from the comparable September 14 checkpoint; second measured daily miss for all six.",
+      "replyOutcome": "Delayed September 14 review: 35 visible views on two Threads and one X reply, one substantive Substack audience response after the first 24 hours; comment views on TikTok and Substack unavailable.",
+      "notificationDecision": "notify_second_measured_shortfall_and_verified_followup"
     }
   ],
   "executionMode": "engagement_only",
@@ -223,11 +328,20 @@
       "author": "blancbrowser",
       "parentUrl": "https://www.threads.com/@robertcyoung/post/DdO_bzlEe3V",
       "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
-      "text": "The \u2018I\u2019ll need this later\u2019 tabs are the hard ones \ud83d\ude05 Try saving the link with one line about why you wanted it. That little note gives you a reason to return, instead of another mystery bookmark.",
+      "text": "The ‘I’ll need this later’ tabs are the hard ones 😅 Try saving the link with one line about why you wanted it. That little note gives you a reason to return, instead of another mystery bookmark.",
       "verifiedAt": "2026-09-13T14:18:46.048942-04:00",
       "status": "published_verified",
       "claimCheck": "General workflow suggestion/opinion, no product, external-product, numeric usage or personal-experience claim.",
-      "audienceInteraction": false
+      "audienceInteraction": false,
+      "review24h": {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
+        "views": 7,
+        "likes": 1,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0,
+        "observedAt": "2026-09-14T17:04:09-04:00"
+      }
     },
     {
       "platform": "threads",
@@ -235,11 +349,20 @@
       "author": "blancbrowser",
       "parentUrl": "https://www.threads.com/@itshinal.__/post/DdOzfeKjR1v",
       "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
-      "text": "The three learning tabs are doing their job. The seven \u2018later\u2019 tabs need a graduation rule: turn one into a note or close it before opening another. The mystery twelve can face judgment immediately \ud83d\ude05",
+      "text": "The three learning tabs are doing their job. The seven ‘later’ tabs need a graduation rule: turn one into a note or close it before opening another. The mystery twelve can face judgment immediately 😅",
       "verifiedAt": "2026-09-13T14:22:56-04:00",
       "status": "published_verified",
       "claimCheck": "General workflow suggestion/opinion; no product claim, link or invented personal experience.",
-      "audienceInteraction": false
+      "audienceInteraction": false,
+      "review24h": {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
+        "views": 4,
+        "likes": 0,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0,
+        "observedAt": "2026-09-14T17:04:09-04:00"
+      }
     },
     {
       "platform": "threads",
@@ -247,11 +370,20 @@
       "author": "blancbrowser",
       "parentUrl": "https://www.threads.com/@fedor.zen/post/DdO9mkck5Cu",
       "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
-      "text": "Duplicate detection gets tricky when the same URL has different history, form state, or login context. A warning with \u2018switch to the existing tab\u2019 would feel safer than silently merging them. Still a very good browser-design problem.",
+      "text": "Duplicate detection gets tricky when the same URL has different history, form state, or login context. A warning with ‘switch to the existing tab’ would feel safer than silently merging them. Still a very good browser-design problem.",
       "verifiedAt": "2026-09-13T14:22:56-04:00",
       "status": "published_verified",
       "claimCheck": "Browser-design opinion; no claim that Blanc implements duplicate detection or merging.",
-      "audienceInteraction": false
+      "audienceInteraction": true,
+      "review24h": {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
+        "views": 11,
+        "likes": 1,
+        "audienceReplies": 2,
+        "meaningfulInteractions": 2,
+        "observedAt": "2026-09-14T17:04:09-04:00"
+      }
     },
     {
       "platform": "x",
@@ -263,7 +395,18 @@
       "verifiedAt": "2026-09-13T14:22:56-04:00",
       "status": "published_verified",
       "claimCheck": "Interface critique of the visible concept; no product or external capability claim.",
-      "audienceInteraction": false
+      "audienceInteraction": false,
+      "review24h": {
+        "platform": "x",
+        "url": "https://x.com/blancbrowser/status/2099202098302791948",
+        "views": 14,
+        "likes": 0,
+        "replies": 0,
+        "reposts": 0,
+        "bookmarks": 0,
+        "meaningfulInteractions": 0,
+        "observedAt": "2026-09-14T17:04:09-04:00"
+      }
     },
     {
       "platform": "x",
@@ -271,27 +414,188 @@
       "author": "blancbrowser",
       "parentUrl": "https://x.com/bereknyei/status/2099183157715067293",
       "url": "https://x.com/blancbrowser/status/2099202155836031022",
-      "text": "This is the most honest browser architecture diagram I\u2019ve seen. Restore Session is orchestration, Back is rollback, and that one tab nobody will close is production.",
+      "text": "This is the most honest browser architecture diagram I’ve seen. Restore Session is orchestration, Back is rollback, and that one tab nobody will close is production.",
       "verifiedAt": "2026-09-13T14:22:56-04:00",
       "status": "published_verified",
-      "claimCheck": "Humorous commentary on the author\u2019s analogy; no product capability claim.",
+      "claimCheck": "Humorous commentary on the author’s analogy; no product capability claim.",
+      "audienceInteraction": false,
+      "review24h": {
+        "platform": "x",
+        "url": "https://x.com/blancbrowser/status/2099202155836031022",
+        "views": 11,
+        "likes": 0,
+        "replies": 0,
+        "reposts": 0,
+        "bookmarks": 0,
+        "meaningfulInteractions": 0,
+        "observedAt": "2026-09-14T17:04:09-04:00"
+      }
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@fedor.zen/post/DdPSSq1k6Dx",
+      "url": "https://www.threads.com/@blancbrowser/post/DdRmppZkUih",
+      "text": "That distinction helps: a duplicate URL keeps separate history and state; a mirrored tab intentionally shares them. The relationship would need to be visible, or someone could edit one tab without realizing the other changes too.",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "status": "published_verified",
+      "claimCheck": "Browser-design opinion only; does not claim Blanc implements mirrored tabs.",
       "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@destinypetrel/post/DdPJF64mCko",
+      "url": "https://www.threads.com/@blancbrowser/post/DdRmsDIEQDd",
+      "text": "Blanc is an open-source desktop browser with no built-in AI assistant. You choose the search engine, so the result mix still depends on that provider—but the browser itself doesn’t add an AI layer.",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "status": "published_verified",
+      "claimCheck": "Verified against public v1.16.2 and docs/marketing-claims.md. Does not imply Blanc controls provider results.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://x.com/HxrshitYadav/status/2098996819661611106",
+      "url": "https://x.com/blancbrowser/status/2099541328237412574",
+      "text": "That “just a browser” line is exactly the constraint behind Blanc: an open-source desktop browser with built-in blocking and no AI assistant. Different implementation and tradeoffs from Helium, but the same belief that the browser should stay out of the way.",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "status": "published_verified",
+      "claimCheck": "Verified against public v1.16.2 and docs/marketing-claims.md. Does not claim Blanc is a Helium fork or identical substitute.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "tiktok",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.tiktok.com/@drgfrance/video/7683232618233613590",
+      "url": "https://www.tiktok.com/@drgfrance/video/7683232618233613590",
+      "liveLocator": "Reply by @blancbrowser directly beneath @home99fam comment “How do you do this? sorry im old! 😂”.",
+      "text": "Desktop Chrome: right-click a tab → Add tab to group → New group. Name it, then drag other tabs in. Click the group name to collapse it.",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "status": "published_verified",
+      "claimCheck": "Steps verified against current first-party Google Chrome Help.",
+      "audienceInteraction": true,
+      "earlyOutcome": {
+        "observedAt": "2026-09-14T17:04:09-04:00",
+        "lightweightLikes": 1,
+        "meaningfulInteractions": 0,
+        "note": "The target commenter liked Blanc’s answer; likes remain secondary."
+      }
+    },
+    {
+      "platform": "substack",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://substack.com/@byfelix/note/c-336048711",
+      "url": "https://substack.com/profile/542769413-blanc-browser/note/c-337013669",
+      "text": "Minimalism is a brutal test: if a removed control had a job, that job still needs a home. The good version makes the next action obvious; the bad version makes the interface beautiful and the user lost.",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "status": "published_verified",
+      "claimCheck": "Design opinion only; no product claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@pfeytser/post/DdR3_pkj6pZ",
+      "url": "https://www.threads.com/@blancbrowser/post/DdT6RqekVAj",
+      "text": "Those “million little ones” are the real browser UX. If tabs, shortcuts and DevTools keep breaking expectations, each surprise compounds over a workday. Which shortcut or tab behavior was the final straw?",
+      "verifiedAt": "2026-09-15T10:23:42-04:00",
+      "status": "published_verified",
+      "claimCheck": "Design opinion grounded in the author's post; no product or competitor capability claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://x.com/eLzcpd5tGm3oEC9/status/2099183925935411300",
+      "url": "https://x.com/blancbrowser/status/2099866638568817037",
+      "text": "Useful if it distinguishes background from idle. A render, upload or call can keep working after you switch windows. Would you exempt active media/capture or let people mark an app as never throttled? That’s the boundary I’d want to test.",
+      "verifiedAt": "2026-09-15T10:23:42-04:00",
+      "status": "published_verified",
+      "claimCheck": "Feedback question about the maker's stated resource-priority design; no Blanc claim or purported test result.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "substack",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://substack.com/profile/528232363-felix/note/c-337915104",
+      "url": "https://substack.com/profile/542769413-blanc-browser/note/c-337992572",
+      "text": "Agreed. Motion helps when it explains a change or draws attention to the next action. When every section animates, finding that action gets harder. What do you keep animated in your own minimal layouts?",
+      "verifiedAt": "2026-09-15T17:04:00-04:00",
+      "status": "published_verified",
+      "claimCheck": "Design opinion and question in an existing audience thread; no product or external-capability claim.",
+      "audienceInteraction": true
     }
   ],
   "latestReplyOutcomeCheck": {
-    "observedAt": "2026-09-13T14:25:21-04:00",
-    "classification": "early_directional_only",
-    "xFollowers": 14,
-    "threadsFollowers": 22,
-    "replyAudienceInteractions": 0,
-    "xReplyViews": 2,
-    "nextReview": "2026-09-14 after 14:23 EDT",
-    "note": "Off-schedule totals are not the 17:00 daily checkpoint and cannot attribute growth to the replies."
+    "observedAt": "2026-09-15T17:04:49-04:00",
+    "status": "completed_delayed_after_midday_mac_lock",
+    "batchDate": "2026-09-14",
+    "timingNote": "Felix's substantive response appeared about 26 hours after Blanc's reply; this is an observed later outcome, not within the first 24 hours.",
+    "contributions": [
+      {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdRmppZkUih",
+        "views": 12,
+        "likes": 1,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdRmsDIEQDd",
+        "views": 6,
+        "likes": 0,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "x",
+        "url": "https://x.com/blancbrowser/status/2099541328237412574",
+        "views": 17,
+        "likes": 0,
+        "replies": 0,
+        "reposts": 0,
+        "bookmarks": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "tiktok",
+        "url": "https://www.tiktok.com/@drgfrance/video/7683232618233613590",
+        "commentViews": null,
+        "commentLikes": 1,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "substack",
+        "url": "https://substack.com/profile/542769413-blanc-browser/note/c-337013669",
+        "commentViews": null,
+        "likes": 1,
+        "audienceReplies": 1,
+        "meaningfulInteractions": 1,
+        "audienceReplyUrl": "https://substack.com/profile/528232363-felix/note/c-337915104"
+      }
+    ],
+    "totals": {
+      "visibleReplyViews": 35,
+      "secondaryLikes": 3,
+      "meaningfulAudienceInteractions": 1
+    },
+    "interpretation": "One substantive Substack design reply was observed. Other reactions were likes; comment views on TikTok and Substack were unavailable."
   },
   "nextEngagementCandidateArtifact": "engagement-candidates-2026-09-14.json",
   "openingBaseline": {
     "observedAt": "2026-09-13T17:03:50-04:00",
-    "observationWindow": "Approximately 17:02\u201317:04 EDT",
+    "observationWindow": "Approximately 17:02–17:04 EDT",
     "xFollowers": 15,
     "threadsFollowers": 23,
     "instagramFollowers": 102,
@@ -301,5 +605,102 @@
     "substackDisplayTotal": 3,
     "substackAuthorExcluded": true,
     "comparisonStatus": "opening_baseline_no_prior_comparable_checkpoint"
-  }
+  },
+  "latestAudienceSnapshot": {
+    "observedAt": "2026-09-15T17:02:49-04:00",
+    "observationWindow": "Approximately 17:01–17:03 EDT",
+    "xFollowers": 15,
+    "threadsFollowers": 24,
+    "instagramFollowers": 102,
+    "facebookFollowers": 22,
+    "tiktokFollowers": 25,
+    "substackExternalSubscribers": 2,
+    "substackDisplayTotal": 3,
+    "substackAuthorExcluded": true,
+    "substackDataDelayMinutes": 22,
+    "deltaFromPriorComparableCheckpoint": {
+      "x": 0,
+      "threads": 0,
+      "instagram": 0,
+      "facebook": 0,
+      "tiktok": 0,
+      "substack": 0
+    },
+    "dailyTargetStatus": {
+      "x": "missed",
+      "threads": "missed",
+      "instagram": "missed",
+      "facebook": "missed",
+      "tiktok": "missed",
+      "substack": "missed"
+    },
+    "consecutiveMeasuredMisses": {
+      "x": 2,
+      "threads": 2,
+      "instagram": 2,
+      "facebook": 2,
+      "tiktok": 2,
+      "substack": 2
+    },
+    "trailingSevenDayNetStatus": "unavailable_insufficient_endpoint_span"
+  },
+  "replyOutcomeHistory": [
+    {
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "status": "completed",
+      "contributions": [
+        {
+          "platform": "threads",
+          "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
+          "views": 7,
+          "likes": 1,
+          "audienceReplies": 0,
+          "meaningfulInteractions": 0
+        },
+        {
+          "platform": "threads",
+          "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
+          "views": 4,
+          "likes": 0,
+          "audienceReplies": 0,
+          "meaningfulInteractions": 0
+        },
+        {
+          "platform": "threads",
+          "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
+          "views": 11,
+          "likes": 1,
+          "audienceReplies": 2,
+          "meaningfulInteractions": 2
+        },
+        {
+          "platform": "x",
+          "url": "https://x.com/blancbrowser/status/2099202098302791948",
+          "views": 14,
+          "likes": 0,
+          "replies": 0,
+          "reposts": 0,
+          "bookmarks": 0,
+          "meaningfulInteractions": 0
+        },
+        {
+          "platform": "x",
+          "url": "https://x.com/blancbrowser/status/2099202155836031022",
+          "views": 11,
+          "likes": 0,
+          "replies": 0,
+          "reposts": 0,
+          "bookmarks": 0,
+          "meaningfulInteractions": 0
+        }
+      ],
+      "totals": {
+        "visibleViews": 47,
+        "secondaryLikes": 2,
+        "substantiveAudienceReplies": 2,
+        "meaningfulInteractions": 2
+      },
+      "interpretation": "The duplicate-tab design reply produced the only substantive conversation. The other four replies produced no meaningful interaction within the first 24 hours."
+    }
+  ]
 }
