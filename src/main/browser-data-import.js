@@ -169,13 +169,10 @@ function parseChromiumBookmarks(input, {
 }
 
 async function readJsonIfSmall(filePath, fsPromises, maxBytes = 2 * 1024 * 1024) {
-  let file;
   try {
     return JSON.parse(await readBoundedUtf8(filePath, maxBytes, fsPromises));
   } catch {
     return null;
-  } finally {
-    if (file) await file.close().catch(() => {});
   }
 }
 
@@ -350,21 +347,15 @@ function createBrowserDataImportService({
   async function readTree(id) {
     const source = (await discover()).sources.find((candidate) => candidate.id === id);
     if (!source) return { error: 'source-unavailable' };
-    let handle;
     try {
-      // Keep validation and reading on one opened descriptor. A profile file
-      // replaced between path-based stat() and readFile() must never bypass
-      // the size/type check applied to the bytes we actually parse.
-      handle = await fsPromises.open(source.bookmarksPath, 'r');
-      const stat = await handle.stat();
-      if (!stat.isFile()) return { error: 'source-unavailable' };
-      if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
-      const raw = await handle.readFile('utf8');
+      // One handle, size enforced while reading, so a file that grows after the
+      // stat cannot bypass the bound before parse (matches readSource).
+      const raw = await readBoundedUtf8(source.bookmarksPath, MAX_BROWSER_BOOKMARK_BYTES, fsPromises);
       return { source, tree: buildChromiumTree(raw) };
-    } catch {
+    } catch (error) {
+      if (error.code === 'EFBIG') return { error: 'too-large' };
+      if (error.code === 'ENOTFILE') return { error: 'source-unavailable' };
       return { error: 'unreadable' };
-    } finally {
-      await handle?.close().catch(() => {});
     }
   }
 
@@ -415,7 +406,6 @@ function createBrowserDataImportService({
     async readSource(id) {
       const source = (await discover()).sources.find((candidate) => candidate.id === id);
       if (!source) return { error: 'source-unavailable' };
-      let file;
       try {
         const raw = await readBoundedUtf8(source.bookmarksPath, MAX_BROWSER_BOOKMARK_BYTES, fsPromises);
         const entries = parseChromiumBookmarks(raw);
@@ -425,8 +415,6 @@ function createBrowserDataImportService({
         if (error.code === 'EFBIG') return { error: 'too-large' };
         if (error.code === 'ENOTFILE') return { error: 'source-unavailable' };
         return { error: 'unreadable' };
-      } finally {
-        if (file) await file.close().catch(() => {});
       }
     },
 
