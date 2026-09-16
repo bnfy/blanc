@@ -57,9 +57,23 @@ function createDockReopenLifecycle({
   createStartTab,
   activateTab,
   flushExternalUrls,
+  beforeWindowClose,
+  onCloseBlocked,
 }) {
   return {
-    onWindowClose() {
+    onWindowClose(event) {
+      // Secondary windows are destroyed on close, so main can install a
+      // synchronous durable checkpoint here. A failed checkpoint must stop
+      // native teardown while the live page views still exist. Forced
+      // teardown (quit/profile deletion) marks the runtime closing first.
+      if (!runtime.closing && !getIsQuitting?.() && typeof beforeWindowClose === 'function') {
+        const result = beforeWindowClose();
+        if (result?.ok === false) {
+          event?.preventDefault?.();
+          onCloseBlocked?.(result);
+          return [];
+        }
+      }
       runtime.closing = true;
       return preservePrimaryTabViews({
         platform,

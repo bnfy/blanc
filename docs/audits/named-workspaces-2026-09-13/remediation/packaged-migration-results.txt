@@ -1,0 +1,7 @@
+Earlier packaged product revision: 970bd6f963fdc18b2337107a0cbb640a0b914897
+Stable: installed public 1.16.2; disposable profile only.
+
+> blanc@1.16.2 test:packaged:migration
+> node test/desktop/packaged-migration-smoke.mjs
+
+packaged-migration-smoke OK: Blanc.app -> candidate; workspace backup, restart binding and future-format refusal verified

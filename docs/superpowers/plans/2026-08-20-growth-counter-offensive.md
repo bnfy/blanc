@@ -7,6 +7,12 @@
 > MIT rule in Global Constraints and the terms in `LICENSE`,
 > `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
 
+> **Launch Week paused (2026-09-13).** Public v1.17.0 supersedes the v1.16.2
+> release, freeze, soak, media approval, and September 14–17 sequence recorded
+> below. The owner put Launch Week on the backburner while the v1.17.0 release
+> deployment and adjacent updater handoffs are completed. Treat the remaining
+> launch sections as historical working material until the owner resumes them.
+
 > **Owner-approved recovery (2026-09-13).** The owner explicitly selected public
 > v1.16.2 and approved its finished media, copy, and launch sequence. The sequence is
 > Monday, September 14 through Thursday, September 17, with Show HN on

@@ -116,6 +116,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
+  cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
   // opts: { force?: true } — skips the scratch guard (a confirmed "discard
@@ -124,6 +125,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
   renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
   removeWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-remove', id),
+  restoreWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-restore', id),
+  forgetWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-forget', id),
+  moveWorkspace: (id, direction) => ipcRenderer.invoke('chrome:workspaces-move', id, direction),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);

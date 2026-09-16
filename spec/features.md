@@ -125,12 +125,17 @@ toolbar (Bowser Design System "Island Chrome").
 - **OS hand-off** (`handOffToOs`) is checked *before* normalization for bare
   `mailto:` / `tel:` / `facetime:` / `sms:` URIs and page-initiated navigations to
   them — handed to the OS instead of treated as a query (D4).
+- Desktop also hands reviewed app schemes and standard Microsoft/Google native
+  OAuth callback schemes to their installed applications after explicit
+  confirmation. Unknown schemes never reach the OS. A captured callback remains
+  valid if its OAuth popup closes while the native confirmation is open (D4).
 - The heuristic's known edge-case misclassifications (e.g. dotted query strings)
   are an **accepted limitation**, identical on every platform — do not "fix" one
   platform's parser to be smarter than the others.
-- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest`
-  searches via the configured engine; typing `mailto:a@b.com` hands off to the OS
-  mail handler.
+- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest` or
+  `site:example.com` searches via the configured engine; typing `mailto:a@b.com`
+  hands off to the OS mail handler; a reviewed desktop app callback requires
+  confirmation.
 
 ## F6 — Command palette & Quick Switcher
 
@@ -304,11 +309,11 @@ From the desktop `DEFAULTS`:
 ## F16 — Internal `blanc://` pages
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
-  **history**, **downloads**, **settings**, **shortcuts**, **error**, **auth**.
+  **history**, **downloads**, **settings**, **shortcuts**, **error**.
 - **Presentation split:** the five *utility* pages (favorites, history, downloads,
   settings, shortcuts) present as a **transient chrome surface** — on desktop a
-  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content
-  (`auth` is a dialog). Outbound activations (a history entry, a favorite) open
+  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
+  Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed.
 - The newtab ledger: date line, "Where to?", favorites, tab groups ("pick up where
@@ -368,12 +373,13 @@ From the desktop `DEFAULTS`:
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
 
-## F20 — Basic-auth dialog
+## F20 — HTTP authentication policy
 
-- HTTP basic-auth challenges present a modal prompt (`bowserAuth` bridge on
-  desktop; native equivalent on mobile) with the same fields/behaviour.
-- **Acceptance:** Navigating to a basic-auth-protected URL raises the credential
-  prompt; correct credentials proceed, cancel aborts the navigation.
+- HTTP basic/digest challenges never present a separate Blanc credential
+  prompt. Website sign-in forms remain the website's own UI.
+- **Acceptance:** Navigating to a basic-auth-protected URL does not raise a
+  Blanc prompt; the authentication challenge is cancelled and the protected
+  navigation fails. Subresource and proxy challenges are cancelled silently.
 
 ## F21 — Telemetry (bounded usage measurement)
 

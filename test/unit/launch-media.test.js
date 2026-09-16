@@ -42,7 +42,7 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
   }
   if (mediaVersion !== version) {
     assert.match(provenance, /historical inputs and must not be published/);
-    assert.match(copy, /this pack is \*\*not publishable\*\*/);
+    assert.match(copy, /this pack is \*\*not publishable\*\*/i);
   }
   assert.match(provenance, /\.\.\/island-demo\.mp4/);
   assert.match(

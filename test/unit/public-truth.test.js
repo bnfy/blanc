@@ -258,9 +258,15 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.ok(match, 'README must declare the current release');
   const version = match[1];
 
-  assert.ok(copy.startsWith(`# Blanc launch copy pack — v${version} final-release refresh`));
-  assert.ok(copy.includes(`| Current public release | v${version} |`));
-  assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
+  const launchPaused = /Launch Week paused after v1\.17\.0/.test(copy);
+  if (launchPaused) {
+    assert.match(copy, /This pack is \*\*not\s+publishable\*\*/);
+    assert.match(plan, /Launch Week paused \(2026-09-13\)[\s\S]{0,200}v1\.17\.0/);
+  } else {
+    assert.ok(copy.startsWith(`# Blanc launch copy pack — v${version} final-release refresh`));
+    assert.ok(copy.includes(`| Current public release | v${version} |`));
+    assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
+  }
   assert.match(copy, /Blanc is free and open source under the MIT License/);
   assert.doesNotMatch(copy, /not released under an open-source licen[cs]e/i);
   assert.match(copy, /BetaList's current[\s\S]{0,200}all submissions[\s\S]{0,80}paid/i);
@@ -309,11 +315,15 @@ test('official launch artifacts track the release declared by the README', () =>
   const productHuntSchedule = plan.indexOf('Step 3: Schedule the Thursday, September 17 launch');
   assert.ok(productHuntUpload >= 0, 'Product Hunt upload step must exist');
   assert.ok(productHuntSchedule > productHuntUpload, 'Product Hunt media preview must precede scheduling');
-  assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
+  if (!launchPaused) {
+    assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
+  }
   assert.match(plan, /selected launch release's `soakEndsAt`/i);
   assert.match(plan, /Complete and record a fresh ≥48-hour soak before Task 11/i);
   assert.match(plan, /launch release by Friday, September 11 at\s+3:00 p\.m\. ET/i);
-  assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
+  if (!launchPaused) {
+    assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
+  }
 });
 
 test('platform specs match the shipped first-run telemetry contract', () => {

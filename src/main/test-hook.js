@@ -106,7 +106,7 @@ function install(refs) {
     normalizeAddressInput,
     probeOnePasswordPackage,
     pasteAndGo,
-    handoffProtocols,
+    classifyExternalNavigation,
     openInternalPage,
     openFindBar,
     getOverlayMode,
@@ -139,6 +139,7 @@ function install(refs) {
     sleepBackgroundTabsNow,
     getPermissionPrompts,
     showFillStatusForTest,
+    onePasswordTargetForTest,
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
@@ -406,6 +407,11 @@ function install(refs) {
   }
 
   globalThis.__blanc = {
+    workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
+    workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
+    workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
+    workspacePageScript(id, script) { return tabs.get(id)?.view?.webContents?.executeJavaScript(script); },
+    workspacePageIdentity(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     // ---- state ----
     windowRuntimes() { return windowRuntimeSnapshots(); },
     openNewWindow() { return openNewWindowAction(); },
@@ -684,6 +690,7 @@ function install(refs) {
       settings.setSettings({ onePasswordEnabled: !!enabled, onePasswordAccount: String(account ?? '') });
       return settings.getSettings().onePasswordEnabled;
     },
+    onePasswordTarget() { return onePasswordTargetForTest?.() ?? null; },
     showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
     fillStatusState() { return fillStatusState?.() ?? null; },
     readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },
@@ -1401,8 +1408,9 @@ function install(refs) {
     // ---- address routing / overlay ----
     resolveAddress(input) { return normalizeAddressInput(input); },
     wouldHandOff(url) {
-      try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
+      return classifyExternalNavigation(url).action !== 'none';
     },
+    handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {
@@ -2207,6 +2215,7 @@ function install(refs) {
 
     // ---- isolation between scenarios ----
     async reset() {
+      refs.workspaceTestAction('reset');
       clearFocusObservation();
       activeTabImportFixtureName = null;
       // Keep the current deletion lifecycle authoritative: it settles native

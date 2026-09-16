@@ -23,6 +23,7 @@ const {
   updateFaviconFromPage,
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
+const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
@@ -158,10 +159,11 @@ function wireTabView(tab, view, { owner, adopted }) {
   // Snapshot pre-existing listeners so the closing diff records exactly what
   // THIS call adds — Electron's own listeners are never in the recorded set.
   const preWired = new Map(wc.eventNames().map((n) => [n, new Set(wc.listeners(n))]));
-  installChromeShortcuts(wc);
-  // Resolve the owner once at attach time rather than looking it up in every
-  // asynchronous callback. A later rewire supplies the tab's actual owner.
-  const boundToTab = (fn) => bindWindowRuntime(owner, fn);
+  const getOwner = () => windowRuntimes.runtimeForTab(id) ?? owner;
+  installChromeShortcuts(wc, getOwner);
+  // Workspace residency can transfer a live view without navigation. Resolve
+  // its current owner for each event, including shortcuts and popup policy.
+  const boundToTab = (fn) => bindWindowRuntime(getOwner, fn);
   watchCursorFor(wc, () => currentTabBounds(tab), boundToTab);
 
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -183,7 +185,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // main-frame commit clears the signal.
   wc.on('media-started-playing', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (noteMediaStarted(tab, id === owner.activeTabId)) wc.setAudioMuted(true);
+    if (noteMediaStarted(tab, !getOwner().resident && id === getOwner().activeTabId)) wc.setAudioMuted(true);
   }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
@@ -234,8 +236,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.navEpoch++;
-    const shouldReclaimChromeFocus = url === tab.url && owner.tabsWantingAddressBarFocus.has(id) && owner.activeTabId === id;
-    if (url !== tab.url) owner.tabsWantingAddressBarFocus.delete(id);
+    const shouldReclaimChromeFocus = url === tab.url && getOwner().tabsWantingAddressBarFocus.has(id) && getOwner().activeTabId === id;
+    if (url !== tab.url) getOwner().tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
     tab.pageBg = null;
     tab.themeColor = null;
@@ -254,7 +256,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     // A same-document navigation of the active tab replaces what a fill
     // message was about — dismiss it (runtime-scoped; optional dep), and
     // re-probe the new route for the ambient hint.
-    if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
+    if (isMainFrame && id === getOwner().activeTabId) deps.dismissFillStatusForNavigation?.(getOwner());
     if (isMainFrame) deps.onFillHintInPageNavigation?.(tab);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
@@ -271,14 +273,14 @@ function wireTabView(tab, view, { owner, adopted }) {
     // message immediately — a decision must not stay actionable, nor an
     // error notice persist, over the successor page (same posture as the
     // shield dismissal below).
-    if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
+    if (isMainFrame && id === getOwner().activeTabId) deps.dismissFillStatusForNavigation?.(getOwner());
     // The outgoing document's hint is stale the moment navigation starts.
     if (isMainFrame) deps.onFillHintNavigationStart?.(tab);
     if (
       isMainFrame
-      && owner.overlayMode === 'shield'
-      && id === owner.activeTabId
-      && blockableHostname(url) !== owner.shieldPopoverHost
+      && getOwner().overlayMode === 'shield'
+      && id === getOwner().activeTabId
+      && blockableHostname(url) !== getOwner().shieldPopoverHost
     ) {
       hideOverlay({ refocusContent: false });
     }
@@ -303,6 +305,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // navigation uses loadURL and therefore bypasses this page-initiated guard.
   wc.on('will-navigate', boundToTab((event, targetUrl) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if (getOwner().resident && !/^https?:/i.test(targetUrl)) { event.preventDefault(); return; }
     if (isForbiddenTopLevelUrl(targetUrl)) {
       event.preventDefault();
       return;
@@ -313,7 +316,6 @@ function wireTabView(tab, view, { owner, adopted }) {
       return;
     }
     if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) event.preventDefault();
-    if (handOffToOs(targetUrl)) event.preventDefault();
   }));
   // ERR_ABORTED is an ordinary cancelled load. The startup gate deliberately
   // queues HTTP(S) navigation until the blocker is ready, so do not replace
@@ -371,8 +373,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   // Electron's polarity is deliberately inverted: preventing this event lets
   // the underlying unload proceed.
   wc.on('will-prevent-unload', boundToTab((event) => {
-    if (tab.sleeping || tab.view?.webContents !== wc) return;
-    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? owner.window : undefined, {
+    if (tab.sleeping || tab.view?.webContents !== wc || getOwner().resident) return;
+    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? getOwner().window : undefined, {
       type: 'question',
       buttons: ['Leave', 'Stay'],
       defaultId: 0,
@@ -384,8 +386,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('found-in-page', boundToTab((_e, result) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (id === owner.activeTabId) {
-      owner.overlayView?.webContents.send('chrome:find-result', {
+    if (id === getOwner().activeTabId) {
+      getOwner().overlayView?.webContents.send('chrome:find-result', {
         activeMatchOrdinal: result.activeMatchOrdinal,
         matches: result.matches,
       });
@@ -396,14 +398,17 @@ function wireTabView(tab, view, { owner, adopted }) {
   // requests (OAuth/SSO and payments) keep a real BrowserWindow so their
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
+    installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs));
     targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
+      if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
       if (isUtilityUrl(targetUrl)) {
         if (targetWc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
         return { action: 'deny' };
       }
       if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) return { action: 'deny' };
-      if (handOffToOs(targetUrl)) return { action: 'deny' };
+      const source = targetWc.getURL();
+      if (handOffToOs(targetUrl, { source })) return { action: 'deny' };
       if (disposition === 'new-window') {
         return {
           action: 'allow',
@@ -437,11 +442,11 @@ function wireTabView(tab, view, { owner, adopted }) {
         notePopupChild(tab.id, childWindow);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
-        windowRuntimes.registerAuxiliaryContent(owner, childWcId);
+        windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
         // Alongside — not via — auxiliaryOwner: popup capture state must
         // survive detachWindow on macOS close/reopen (spec §3.3).
         registerPopupCaptureSurface(childWc);
-        childWc.once('destroyed', bindWindowRuntime(owner, () => {
+        childWc.once('destroyed', bindWindowRuntime(getOwner, () => {
           windowRuntimes.unregisterAuxiliaryContent(childWcId);
         }));
       }

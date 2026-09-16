@@ -116,7 +116,7 @@ test('current and archived icon artwork retain their canonical identity sources'
 
 test('internal pages use Sunrise artwork instead of the retired B favicon', () => {
   const pages = [
-    'auth', 'bookmarks', 'downloads', 'error', 'history',
+    'bookmarks', 'downloads', 'error', 'history',
     'mahjong', 'newtab', 'settings', 'shortcuts', 'tab-handoff', 'tab-import',
   ];
   for (const page of pages) {

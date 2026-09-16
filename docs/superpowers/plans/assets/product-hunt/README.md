@@ -1,5 +1,7 @@
 # Product Hunt media provenance
 
+Launch Week is paused after public v1.17.0. These v1.16.2 files are historical inputs and must not be published as current launch creative while the pause is in effect.
+
 All current launch media was captured on September 13 from installed packaged public Blanc
 v1.16.2 in the dedicated `Launch demo` profile using public pages only. The
 selected release tag points to

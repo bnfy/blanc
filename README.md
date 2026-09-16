@@ -51,20 +51,24 @@ and release integrity as explicit controls:
 - Vulnerabilities can be reported privately under the response targets and
   safe-harbor terms in [SECURITY.md](SECURITY.md).
 
+The current [security assessment](docs/security-assessment.md) documents
+system actors, trust boundaries, external interfaces, likely threats, controls,
+and residual risks. [Project governance](docs/governance.md) names the sole
+maintainer, responsibilities, and sensitive access domains.
+
 Blanc has earned the
-[OpenSSF Best Practices Baseline Level 1](https://www.bestpractices.dev/en/projects/14451/baseline-1)
+[OpenSSF Best Practices Baseline Level 2](https://www.bestpractices.dev/en/projects/14451/baseline-2)
 self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
 The evidence and limits for the current release are recorded in the
-[v1.16.2 release report](docs/release-incidents/2026-09-11-v1.16.2.md).
+[v1.17.0 release report](docs/release-incidents/2026-09-13-v1.17.0.md).
 
-> **Current release:** v1.16.2 preserves v1.16.1's session-recovery and Sunrise
-> fixes, and prevents the upstream Chrome Web Store native crash by showing a
-> local explanation until Electron ships its correction. Restored store tabs
-> recover safely, and macOS About reports the distinct build number `1162`.
-> Use the [v1.16.2 tag](https://github.com/bnfy/blanc/tree/v1.16.2) for the exact
-> source snapshot associated with the public binaries.
+> **Current release:** v1.17.0 preserves live drafts, history, and page state
+> across Named Workspace switches; completes reviewed desktop-app sign-in
+> returns; and keeps Blanc's built-in 1Password fill inside the focused sign-in
+> popup. Use the [v1.17.0 tag](https://github.com/bnfy/blanc/tree/v1.17.0) for
+> the exact source snapshot associated with the public binaries.
 
 ## Source and license
 
@@ -233,7 +237,6 @@ src/main/settings.js     Search engine / adblock / theme / home page settings
 src/main/search-suggestions.js  Bounded default-engine autocomplete providers
 src/main/store.js        Tiny debounced JSON-file persistence used by all of the above
 src/main/context-menu.js Right-click menu for web content
-src/main/auth-dialog.js  HTTP basic/digest auth prompt
 src/main/updater.js      electron-updater wiring
 src/main/preload.js      contextBridge API for the chrome strip + island overlay
 src/main/tab-preload.js  contextBridge API for blanc:// internal pages only

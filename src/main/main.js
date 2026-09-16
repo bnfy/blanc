@@ -122,6 +122,7 @@ const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
+  setDownloadRequesterCheck,
   downloadsActivity,
   acknowledgeDownloads,
   discardProfileDownloads,
@@ -134,7 +135,6 @@ let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
-const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
@@ -203,7 +203,7 @@ const {
 } = require('./tab-view');
 const { createProfileSessionRegistry } = require('./profile-sessions');
 const { setupWebAuthn } = require('./webauthn');
-const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
+const { classifyExternalNavigation, createExternalHandoff } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const {
   applyDockAppIcon,
@@ -264,9 +264,9 @@ const {
 // (single-window binding, resolveOpen). See the "Named Workspaces" section
 // below (near closeGroup) for the capture/apply/switch seams that use them.
 const namedWorkspaces = require('./workspaces');
-const {
-  resolveOpen, scratchSwitchGuardResult, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
-} = require('./workspaces-model');
+const { createWorkspaceController } = require('./workspace-controller');
+const { transferSession, residencyCapacity } = require('./workspace-residency');
+const { scratchSwitchGuardResult } = require('./workspaces-model');
 
 // The SDK never loads in main. The first production release is macOS-only;
 // unsupported platforms do not even create the lazy client, so no command can
@@ -308,10 +308,11 @@ let installProfileSessionPolicies = () => {};
 
 /** Wrap a callback so it (and everything it schedules) resolves to `runtime`. */
 function bindWindowRuntime(runtime, fn) {
-  return (...args) => withLocalProfile(
-    runtime?.profileId ?? DEFAULT_PROFILE_ID,
-    () => windowRuntimeContext.run(runtime, () => fn(...args))
-  );
+  return (...args) => {
+    const current = typeof runtime === 'function' ? runtime() : runtime;
+    return withLocalProfile(current?.profileId ?? DEFAULT_PROFILE_ID,
+      () => windowRuntimeContext.run(current, () => fn(...args)));
+  };
 }
 
 /** The runtime owning the current execution. Native and IPC entry points bind
@@ -1321,45 +1322,13 @@ function openExternalUrls(urls) {
   externalUrlHandoff.open(urls);
 }
 
-// Protocols handed off to the OS instead of navigated — a mailto: click
-// should open the user's mail app, not die silently (Chromium has no
-// external-protocol UI in Electron). Deliberately a small allowlist:
-// launching arbitrary registered URL schemes is a run-anything vector.
-// Checked at every point a URL becomes a navigation target: page-initiated
-// navigation (will-navigate), window.open children (setWindowOpenHandler),
-// the context menu's "Open Link" actions, and typed address-bar input.
-// The allowlist and trusted/confirm policy live in external-protocols.js
-// (pure, unit-tested); this wrapper owns the side effects only.
-let externalProtocolPromptOpen = false;
-function handOffToOs(url, { trusted = false } = {}) {
-  const decision = classifyExternalNavigation(url, { trusted });
-  if (decision.action === 'none') return false;
-
-  // Address-bar input is an explicit user instruction. Page-initiated
-  // navigations/window.open and context-menu targets are untrusted URL data,
-  // so require confirmation before launching another application. One prompt
-  // at a time prevents a hostile page from flooding the desktop with dialogs.
-  if (decision.action === 'open') {
-    shell.openExternal(url).catch(() => {});
-  } else if (!externalProtocolPromptOpen && hasLiveWindow()) {
-    externalProtocolPromptOpen = true;
-    const label = decision.protocol.slice(0, -1);
-    dialog.showMessageBox(rt().window, {
-      type: 'question',
-      title: 'Open external application?',
-      message: `Open this ${label} link in another application?`,
-      buttons: ['Open Link', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-    }).then(({ response }) => {
-      if (response === 0) shell.openExternal(url).catch(() => {});
-    }).finally(() => {
-      externalProtocolPromptOpen = false;
-    });
-  }
-  return true;
-}
+// Shared across windows: only one pending external-app confirmation at a time.
+const handOffToOs = createExternalHandoff({
+  getWindow: () => hasLiveWindow() ? rt().window : null,
+  getApplicationName: (url) => app.getApplicationNameForProtocol(url),
+  showMessageBox: (parent, options) => dialog.showMessageBox(parent, options),
+  openExternal: (url) => shell.openExternal(url),
+});
 
 function flushExternalUrls() {
   externalUrlHandoff.flush();
@@ -3366,11 +3335,37 @@ const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintSchedul
 
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
+
+  // A featureful window.open stays a real BrowserWindow for OAuth/SSO. When
+  // that popup owns focus, it is the page the user asked to fill. Falling
+  // through to runtime.activeTabId would focus the opener underneath it;
+  // sites such as Google may dismiss their login popup on that focus loss.
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedContents = focusedWindow?.webContents;
+  if (
+    focusedWindow !== runtime.window &&
+    focusedWindow && !focusedWindow.isDestroyed() &&
+    focusedContents && !focusedContents.isDestroyed() &&
+    windowRuntimes.runtimeForAuxiliaryContent(focusedContents.id) === runtime
+  ) {
+    return {
+      kind: 'popup',
+      runtime,
+      runtimeId: runtime.id,
+      webContentsId: focusedContents.id,
+      url: focusedContents.getURL(),
+      webContents: focusedContents,
+      window: focusedWindow,
+      pickerPoint: { x: 16, y: 16 },
+    };
+  }
+
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!tab || !wc || wc.isDestroyed()) return null;
   const island = runtime.islandRect;
   return {
+    kind: 'tab',
     runtime,
     runtimeId: runtime.id,
     tabId: tab.id,
@@ -3387,9 +3382,17 @@ function captureOnePasswordTarget(runtime) {
 function isOnePasswordTargetCurrent(target) {
   if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
   if (!target.window || target.window.isDestroyed()) return false;
-  if (target.runtime.activeTabId !== target.tabId) return false;
   if (target.surfaceGeneration !== undefined
       && target.surfaceGeneration !== target.runtime.surfaceGeneration) return false;
+  if (target.kind === 'popup') {
+    const wc = target.webContents;
+    return !!wc && !wc.isDestroyed()
+      && wc.id === target.webContentsId
+      && windowRuntimes.runtimeForAuxiliaryContent(wc.id) === target.runtime
+      && BrowserWindow.fromWebContents(wc) === target.window
+      && wc.getURL() === target.url;
+  }
+  if (target.runtime.activeTabId !== target.tabId) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
@@ -3443,6 +3446,15 @@ async function showFillFallbackDialog(target, kind) {
  * mapping). Null when the tab/view no longer matches the captured target —
  * the controller then falls back to the island pill anchor. */
 function onePasswordToWindowPoint(target, rect) {
+  if (target.kind === 'popup') {
+    if (!isOnePasswordTargetCurrent(target)) return null;
+    const { width, height } = target.window.getContentBounds();
+    return pickerAnchorPoint({
+      rect,
+      viewBounds: { x: 0, y: 0, width, height },
+      zoomFactor: target.webContents.getZoomFactor(),
+    });
+  }
   const tab = tabs.get(target.tabId);
   const view = tab?.view;
   const wc = liveContents(tab);
@@ -3687,6 +3699,13 @@ function adblockWeekStats() {
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
+  forEachWindowRuntime((runtime) => {
+    if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
+      const existing = namedWorkspaces.get(runtime.workspaceId);
+      if (existing) namedWorkspaces.saveCapture(existing.id, workspaceCapture(runtime, { previousActiveIndex: existing.activeIndex }));
+    }
+    namedWorkspaces.flushPending();
+  });
   isQuitting = true;
   for (const runtime of windowRuntimes.all()) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
@@ -3748,7 +3767,7 @@ function persistSession() {
   ensureSessionStore().update((d) => {
     const previous = loadWorkspace(d);
     const previousById = new Map(previous.windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().map((runtime) => captureWindowEntry(runtime, {
+    const windows = windowRuntimes.all().filter((runtime) => !runtime.resident).map((runtime) => captureWindowEntry(runtime, {
       previousActiveIndex: previousById.get(runtime.id)?.activeIndex ?? 0,
     }));
     const activeWindowId = windowRuntimes.all().includes(focusedRuntime)
@@ -4437,24 +4456,11 @@ function closeGroup(groupId) {
 
 // ---------------------------------------------------------------------------
 // Named Workspaces: capture, apply, switch, single-window binding, autosave.
-// Four distinct operations, only ever reached from their own named entry
-// point below — conflating them is a data-loss bug (a save-as that tore down
-// and recreated its own tabs would destroy any private tab in the window):
-//   1. saveCurrentWindowAsWorkspace — save-as an EXISTING window's LIVE tab
-//      set into a brand new workspace. No tab teardown, never calls
-//      applyWorkspaceToWindow.
-//   2. switchWindowToWorkspace — open/switch to an EXISTING workspace. Saves
-//      this window's outgoing state, resolves the binding, then either
-//      focuses the window that already has it open or calls
-//      applyWorkspaceToWindow (the only OTHER caller allowed to — see 4).
-//      Refuses up front (the scratch guard) when this window is unbound and
-//      holds real tabs, unless the caller passes force:true.
-//   3. Plain focus (inside switchWindowToWorkspace) — already open elsewhere;
-//      focus that window and touch nothing else.
-//   4. createBlankWorkspaceAndSwitch — create a brand new EMPTY workspace
-//      (Patron-gated, and scratch-guarded the same way as #2, checked BEFORE
-//      the record is created) and switch into it via #2 itself, never a
-//      second copy of the apply protocol.
+// Save-as binds the existing live tab set without a switch. The controller
+// resolves no-op/focus before guarding activation, then checkpoints, stages,
+// commits and transfers ordinary live sessions. Only new persisted-only
+// targets pass through applyWorkspaceToWindow. Private/scratch disposal
+// requires a main-issued, one-use decision for the current affected pages.
 // ---------------------------------------------------------------------------
 
 /** captureWindowEntry's `groups` field is main.js's own runtime.groups array
@@ -4477,85 +4483,199 @@ function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   };
 }
 
-/** The live process-wide {workspaceId: windowId} binding map, derived fresh
- * from window-runtime records every call — runtime.workspaceId is the only
- * storage, so there is nothing else to keep in sync.
- *
- * Review round 2 correction: derived from EVERY runtime, not just ones with
- * a live window. A windowless runtime (macOS dock-close of the primary
- * window, which deliberately keeps its workspaceId set — see
- * window-runtime-registry.js) is a REAL, current holder of its workspace,
- * not a stale one — the workspace is still bound, only the native window is
- * gone. Filtering it out here (an earlier version of this fix did) would
- * make resolveOpen see the workspace as unbound and let a second window
- * SWAP it away — silently stealing "Work" out from under the window that
- * still owns it, the moment its dock-closed holder came back and both
- * windows' next autosave raced over the same record. So every entry here is
- * a window-runtime record that exists in the registry, live or not; a
- * "focus" decision against a windowless entry means recreate-then-focus
- * (see switchWindowToWorkspace's focus branch), never swap. */
-function deriveWorkspaceBindings() {
-  const bindings = Object.create(null);
-  for (const runtime of windowRuntimes.all()) {
-    if (runtime.workspaceId) bindings[runtime.workspaceId] = String(runtime.id);
-  }
-  return bindings;
-}
-
-/** Write a {workspaceId: windowId} bindings map — as produced by one of
- * workspaces-model's bindingsAfterSwap/Unbind/Delete transitions — back onto
- * every runtime's workspaceId field, the map's only storage. Walks ALL
- * runtimes (live or not), matching deriveWorkspaceBindings() above: a
- * windowless holder's binding is real and must be reconciled exactly like a
- * live one's. This is the seam that makes those three model functions the
- * actual, load-bearing source of the transition logic (unit-tested in
- * workspaces-model.test.js) instead of a parallel hand-rolled version here
- * that no test could reach. */
-function applyWorkspaceBindings(bindings) {
-  const byWindowId = new Map();
-  for (const workspaceId of Object.keys(bindings ?? {})) {
-    byWindowId.set(bindings[workspaceId], workspaceId);
-  }
-  for (const runtime of windowRuntimes.all()) {
-    runtime.workspaceId = byWindowId.get(String(runtime.id)) ?? null;
-  }
-}
-
-/** Named Workspaces autosave: any bound (non-scratch) window's tab set is
- * re-captured on every persistSession() call, so it rides that function's
- * exact guards and its 250ms JsonStore debounce — no new timer. A scratch
- * window (workspaceId null) writes nothing to workspaces.json. Review round
- * 2, Fix 2: also floors against an empty capture. persistSession's own
- * tabs.size===0 guard is process-wide, so a second open window with real
- * tabs defeats it for THIS runtime — switchWindowToWorkspace's scratch-
- * during-swap window (see its own comment) is the primary fix for the
- * scenario that motivated this, but a runtime with genuinely zero
- * persistable tabs must never be allowed to overwrite a workspace's real
- * saved tabs with nothing. Defense in depth, not the only line. */
+/** Autosave only the affected, stable workspace; empty ordinary sets are valid. */
 function autosaveWorkspaceBindings() {
-  forEachWindowRuntime((runtime) => {
-    if (!runtime.workspaceId) return; // scratch window — nothing to save
-    const workspace = namedWorkspaces.get(runtime.workspaceId);
-    if (!workspace) return; // deleted underneath us; unbound via its own path
-    const capture = workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex });
-    if (capture.urls.length === 0) return; // never overwrite real tabs with nothing
-    namedWorkspaces.saveCapture(runtime.workspaceId, capture);
-  }, { liveOnly: true });
+  // Tab broadcasts already run in the affected runtime's scope. Do not
+  // recapture unrelated windows on every favicon/loading/counter update.
+  const runtime = rt();
+  if (!runtime.workspaceId || runtime.closing || runtime.workspaceTransition) return;
+  const workspace = namedWorkspaces.get(runtime.workspaceId);
+  if (workspace) namedWorkspaces.queueCapture(runtime.workspaceId,
+    workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex }));
 }
 
-/** Scratch guard (follow-up to Task 9, found by hands-on testing): the live
- * tabs workspaces-model's scratchSwitchGuardResult needs, gathered from
- * THIS window — kept out of the pure model so it never has to know about the
- * tabs Map or the runtime shape. Returns the exact
- * {ok:false, error:'unsaved-scratch', tabCount, privateCount} response every guarded call
- * site returns verbatim, or null when the switch is safe to proceed
- * (bound window whose persistable tabs autosave covers AND no private pages,
- * or a scratch window holding nothing but blank newtabs). Must be called
- * from inside the requesting window's own withWindowRuntime scope, exactly
- * like every other function in this section.
- *
- * Passes the LIVE tab list, not persistableEntries: that filter drops
- * private tabs, which applyWorkspaceToWindow still closes with no recovery. */
+function checkpointWorkspaceSession(runtime, { excludeRuntime = null } = {}) {
+  if (sessionReadOnly) return { ok: false, error: 'future-format' };
+  if (runtime.workspaceId) {
+    const old = namedWorkspaces.get(runtime.workspaceId);
+    if (!old) return { ok: false, error: namedWorkspaces.status() === 'future-format' ? 'future-format' : 'not-found' };
+    const saved = namedWorkspaces.saveCapture(old.id, workspaceCapture(runtime, { previousActiveIndex: old.activeIndex }));
+    if (!saved.ok) return saved;
+  }
+  return flushWorkspaceSession({ excludeRuntime });
+}
+
+function flushWorkspaceSession({ excludeRuntime = null } = {}) {
+  if (sessionReadOnly) return { ok: false, error: 'future-format' };
+  const saved = ensureSessionStore().updateAndFlush((data) => {
+    const previous = new Map(loadWorkspace(data).windows.map((entry) => [entry.id, entry]));
+    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.resident && !r.closing)
+      .map((r) => captureWindowEntry(r, { previousActiveIndex: previous.get(r.id)?.activeIndex ?? 0 }));
+    Object.assign(data, buildSaveShape(windows, data, { activeWindowId: focusedRuntime?.id ?? PRIMARY_WINDOW_ID }));
+  });
+  return saved ? { ok: true } : { ok: false, error: 'storage-failed' };
+}
+
+function workspaceOwner(runtime, id) {
+  return windowRuntimes.all().find((r) => r.profileId === runtime.profileId && r.workspaceId === id) ?? null;
+}
+
+function workspaceProtection(runtime) {
+  if (runtime.closing || runtime.workspaceTransition || runtime.permissionPrompts.size || runtime.authenticationPrompts) return { blocked: true, reason: 'permission-or-transition' };
+  const members = runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean);
+  if (members.some((t) => t.capturing || t.sleeping || t.waking || t.isLoading || t.openerTabId || popupChildCounts.get(t.id))) {
+    return { blocked: true, reason: 'active-page' };
+  }
+  if (runtime.workspaceId && !residencyCapacity(
+    windowRuntimes.all().filter((r) => r.profileId === runtime.profileId),
+    runtime.workspaceIncoming, members, (id) => liveContents(tabs.get(id)))) {
+    return { blocked: true, reason: 'resident-capacity' };
+  }
+  return scratchGuardResult(runtime) ?? { tabCount: 0, privateCount: 0 };
+}
+
+function stageWorkspace(runtime, workspace) {
+  const priorSuspended = sessionPersistenceSuspended;
+  sessionPersistenceSuspended = true;
+  runtime.workspaceTransition = true;
+  const makeResident = () => {
+    const resident = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
+    resident.resident = true;
+    return resident;
+  };
+  let incoming = workspaceOwner(runtime, workspace.id);
+  const isNew = !incoming;
+  let outgoing;
+  let transferred = false;
+  let finalized = false;
+  const move = (from, to) => transferSession(from, to, { tabs, registry: windowRuntimes });
+  const finishScope = () => { runtime.workspaceTransition = false; sessionPersistenceSuspended = priorSuspended; };
+  const activate = () => {
+    const id = runtime.activeTabId;
+    runtime.activeTabId = null;
+    if (id) setActiveTab(id, { focusContent: true });
+    broadcastTabs();
+  };
+  const dispose = (resident) => {
+    withWindowRuntime(resident, () => {
+      resident.closing = true;
+      for (const id of [...resident.tabOrder]) closeTab(id, { record: false, selectReplacement: false });
+    });
+    windowRuntimes.discardRuntime(resident);
+  };
+  try {
+    if (!incoming) {
+      incoming = makeResident();
+      withWindowRuntime(incoming, () => applyWorkspaceToWindow(incoming, workspace));
+      incoming.workspaceId = workspace.id;
+    }
+    if (!incoming.tabOrder.length) {
+      withWindowRuntime(incoming, () => { incoming.activeTabId = createTab(NEW_TAB_URL, { asleep: true }); });
+    }
+    outgoing = makeResident();
+    hideOverlay({ refocusContent: false });
+    hideUtilitySheet({ refocusContent: false });
+    closeGlance({ focusContent: false });
+    fillStatusSurface?.invalidatePending(runtime.id);
+    clearTimeout(runtime.tabsBroadcastTimer); runtime.tabsBroadcastTimer = null;
+    runtime.tabsWantingAddressBarFocus.clear();
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab?.view) {
+        runtime.window?.contentView.removeChildView(tab.view);
+        tab.view.setVisible(false);
+      }
+      if (tab) tab.lastActiveAt = Date.now();
+    }
+    move(runtime, outgoing);
+    move(incoming, runtime);
+    transferred = true;
+  } catch (error) {
+    if (outgoing?.tabOrder.length && !runtime.tabOrder.length) move(outgoing, runtime);
+    if (outgoing) windowRuntimes.discardRuntime(outgoing);
+    if (isNew && incoming) dispose(incoming);
+    finishScope(); activate();
+    throw error;
+  }
+  return {
+    // session.json is the commit record: it contains the complete safe target
+    // capture AND pointer in one atomic write. Before this write a crash
+    // restores the outgoing checkpoint; after it the validated target. Live
+    // outgoing views stay intact until it succeeds. No second journal needed.
+    commit: flushWorkspaceSession,
+    rollback() {
+      if (finalized) return;
+      finalized = true;
+      if (transferred) { move(runtime, incoming); move(outgoing, runtime); }
+      windowRuntimes.discardRuntime(outgoing);
+      if (isNew) dispose(incoming);
+      finishScope(); activate();
+    },
+    finish() {
+      if (finalized) return;
+      finalized = true;
+      windowRuntimes.discardRuntime(incoming);
+      // Private tabs are never retained in an inactive session. The controller
+      // has already consumed a decision for precisely these outgoing pages.
+      withWindowRuntime(outgoing, () => {
+        for (const id of [...outgoing.tabOrder]) {
+          if (!outgoing.workspaceId || tabs.get(id)?.private) closeTab(id, { record: false, selectReplacement: false });
+        }
+      });
+      if (!outgoing.activeTabId) {
+        const savedIndex = namedWorkspaces.get(outgoing.workspaceId)?.activeIndex ?? 0;
+        const ordinary = persistableEntries(outgoing.tabOrder.map((id) => tabs.get(id)));
+        outgoing.activeTabId = ordinary[savedIndex]?.id ?? ordinary[0]?.id ?? outgoing.tabOrder[0] ?? null;
+      }
+      if (!outgoing.workspaceId) windowRuntimes.discardRuntime(outgoing);
+      finishScope(); activate();
+    },
+  };
+}
+
+const workspaceController = createWorkspaceController({
+  randomId: () => crypto.randomUUID(),
+  get: (_runtime, id) => namedWorkspaces.get(id),
+  readError: () => ['future-format', 'repair-failed', 'read-failed'].includes(namedWorkspaces.status()) ? namedWorkspaces.status() : null,
+  owner(runtime, id) { const holder = workspaceOwner(runtime, id); runtime.workspaceIncoming = holder; return holder; },
+  protection: workspaceProtection,
+  fingerprint: (r) => JSON.stringify([r.workspaceId, r.surfaceGeneration, r.tabOrder.map((id) => {
+    const t = tabs.get(id); return [id, t?.url, t?.private, t?.capturing, t?.isLoading, t?.wakeGeneration];
+  })]),
+  checkpoint: checkpointWorkspaceSession,
+  stage: stageWorkspace,
+  canCreate: () => settings.isPatronActive(),
+  validateCreate: (name) => namedWorkspaces.validateCreate(name),
+  create: (_r, name) => namedWorkspaces.create({ name, capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 } }),
+  focus(target) {
+    if (!target.window || target.window.isDestroyed()) createMainWindow(target);
+    if (target.window.isMinimized()) target.window.restore();
+    target.window.focus();
+    return { ok: true, action: 'focus', windowId: String(target.id) };
+  },
+  openElsewhere(runtime, workspace) {
+    const target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
+    createMainWindow(target);
+    return withWindowRuntime(target, () => {
+      const transition = stageWorkspace(target, workspace);
+      const result = transition.commit();
+      if (result.ok) transition.finish(); else {
+        transition.rollback();
+        // This window exists only as staging for the failed operation. Its
+        // rollback already restored the prior (empty) runtime, so skip the
+        // user-close checkpoint; a persistent disk failure would otherwise
+        // strand a blank window while reporting that the workspace stayed put.
+        target.closing = true;
+        target.window?.close();
+      }
+      return result.ok ? { ok: true, action: 'focus', windowId: String(target.id) } : result;
+    });
+  },
+});
+
+/** Count the private/scratch pages that activation would explicitly close.
+ * Named ordinary pages remain resident. Use the live list: persisted columns
+ * exclude private pages and therefore cannot describe this decision. */
 function scratchGuardResult(runtime) {
   return scratchSwitchGuardResult({
     bound: !!runtime.workspaceId,
@@ -4577,6 +4697,7 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
     // persistSession treats a window never yet written to session.json.
     const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime) });
     if (result.ok) {
+      const previousWorkspaceId = runtime.workspaceId;
       runtime.workspaceId = result.workspace.id;
       // Write the binding pointer to session.json NOW. Binding alone only
       // changes memory: persistSession runs off tab activity, so saving a
@@ -4585,182 +4706,32 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
       // went only to session.json, and reopening the workspace applied its
       // stale snapshot over the newer work — the exact loss Task 6 exists to
       // prevent. The swap path already persists for the same reason.
+      const committed = flushWorkspaceSession();
+      if (!committed.ok) {
+        runtime.workspaceId = previousWorkspaceId;
+        return {
+          ok: false,
+          error: 'saved-not-opened',
+          cause: committed.error,
+          workspaceId: result.workspace.id,
+        };
+      }
       persistSession();
     }
     return result;
   });
 }
 
-/** Open an EXISTING Named Workspace in this window. The ONLY caller allowed
- * to invoke applyWorkspaceToWindow (checklist step 2d in the plan).
- *
- * Scratch guard (follow-up to Task 9): `force` is the overlay's explicit
- * "discard and switch" — omitted (or false), a scratch (unbound) window
- * holding real tabs is refused up front, before ANYTHING below runs: no
- * outbound save, no binding resolution, no apply. Checked first, ahead of
- * even the outbound-save step. A bound window still triggers it when it
- * holds private pages (autosave does not cover those). */
-function switchWindowToWorkspace(runtime, workspaceId, { force = false } = {}) {
-  return withWindowRuntime(runtime, () => {
-    const workspace = namedWorkspaces.get(workspaceId);
-    if (!workspace) return { ok: false, error: 'not-found' };
-
-    if (!force) {
-      const guard = scratchGuardResult(runtime);
-      if (guard) return guard;
-    }
-
-    // (a) Outbound save: capture THIS window's current state under its OLD
-    // binding (if any) before anything moves, so nothing the user did in it
-    // is lost. previousActiveIndex is the workspace's own last selection —
-    // the named-workspace analogue of persistSession's previousById lookup —
-    // so sitting on a private tab keeps that selection instead of jumping
-    // to 0.
-    if (runtime.workspaceId) {
-      const outgoing = namedWorkspaces.get(runtime.workspaceId);
-      if (outgoing) {
-        namedWorkspaces.saveCapture(runtime.workspaceId, workspaceCapture(runtime, {
-          previousActiveIndex: outgoing.activeIndex,
-        }));
-      }
-    }
-
-    // (b) Resolve against every OTHER window's binding — live or windowless
-    // (deriveWorkspaceBindings' own comment). Captured once and reused below
-    // for the swap transition too, so both see the exact same pre-swap
-    // state.
-    const before = deriveWorkspaceBindings();
-    const decision = resolveOpen(before, workspaceId, String(runtime.id));
-
-    if (decision.action === 'noop') return { ok: true, action: 'noop' }; // already here
-
-    if (decision.action === 'focus') {
-      // (c) Already bound elsewhere — never steal it, focus it instead.
-      // Review round 2 correction: the holder may be windowless (macOS
-      // dock-close of the primary window preserves its workspaceId; see
-      // deriveWorkspaceBindings' comment). Recreate its window first via
-      // the same createMainWindow path app.on('activate') already uses when
-      // no windows remain, then focus — same restore-then-focus idiom as
-      // second-instance/openExternalUrl's window activation. This window's
-      // own tabs are untouched either way.
-      const target = windowRuntimes.all().find((candidate) => String(candidate.id) === decision.windowId);
-      // Report honestly, and WITH an error code: every other failure path
-      // carries one, and a bare { ok:false } would make the UI fail silently
-      // (no notice, no state change) instead of telling the user anything.
-      if (!target) return { ok: false, action: 'focus', error: 'focus-failed', windowId: decision.windowId };
-      if (!target.window || target.window.isDestroyed()) createMainWindow(target);
-      if (target.window.isMinimized()) target.window.restore();
-      target.window.focus();
-      return { ok: true, action: 'focus', windowId: decision.windowId };
-    }
-
-    // (d) Unbound everywhere (resolveOpen already proved that against the
-    // COMPLETE — live and windowless — bindings map above) — this window
-    // takes it.
-    //
-    // Review round 2, Fix 1 (root cause of Important findings 1 and 2, and
-    // the Minor about `finally` clobbering): the binding must not be
-    // observable to autosave until the tab swap it describes has actually
-    // finished. The original code bound runtime.workspaceId to the NEW
-    // workspace, then called applyWorkspaceToWindow — but that function's
-    // own points 1-2 (hideOverlay/hideUtilitySheet/closeGlance) ran BEFORE
-    // persistence was suspended, and any of them firing a broadcastTabs
-    // (closeGlance does) would run persistSession -> autosaveWorkspaceBindings
-    // with the NEW workspaceId already set but the OLD (outgoing) tabs still
-    // live — silently overwriting the new workspace's saved tabs with the
-    // window's stale previous set before the swap had even started closing
-    // anything.
-    //
-    // Fix: this window goes scratch (workspaceId null — no autosave target
-    // at all) for the ENTIRE swap, persistence is suspended for the ENTIRE
-    // swap (not just the tab churn — applyWorkspaceToWindow no longer owns
-    // suspend/restore or the final persistSession(), see its own comment),
-    // and the binding commits only after applyWorkspaceToWindow returns
-    // normally, reconciled through workspaces-model's bindingsAfterSwap
-    // (releases this window's own previous workspace — the workspace's
-    // previous window is provably already empty, since resolveOpen's
-    // 'swap' decision means nothing in `before` holds this id) rather than
-    // a hand-rolled field write, so the unit-tested transition rule in
-    // workspaces-model.test.js is the thing actually gating this, not a
-    // parallel copy of its logic. A throw mid-apply leaves the window
-    // scratch rather than bound to a half-applied set — and deliberately
-    // NOT re-bound to the OLD workspace either, which would let a later
-    // autosave overwrite the workspace the user was leaving with the
-    // half-destroyed outgoing set. sessionPersistenceSuspended is restored
-    // to whatever it was before (almost always false), not clobbered to
-    // false, so a hypothetical future caller that already had persistence
-    // suspended for its own reason isn't silently re-enabled by this one.
-    const prevSuspended = sessionPersistenceSuspended;
-    sessionPersistenceSuspended = true;
-    runtime.workspaceId = null;
-    try {
-      applyWorkspaceToWindow(runtime, workspace);
-      // commit only after a clean apply
-      applyWorkspaceBindings(bindingsAfterSwap(before, { workspaceId: workspace.id, windowId: String(runtime.id) }));
-    } finally {
-      sessionPersistenceSuspended = prevSuspended;
-    }
-    // Checklist point 9 (moved here from applyWorkspaceToWindow — see its
-    // comment): reflect the new live set, now correctly attributed, once.
-    persistSession();
-    return { ok: true, action: 'swap' };
-  });
+/** Open through the single testable controller; the renderer cannot bypass its guards. */
+function switchWindowToWorkspace(runtime, workspaceId, options = {}) {
+  return withWindowRuntime(runtime, () => workspaceController.open(runtime, workspaceId, options));
 }
 
-/** Create a brand-new, EMPTY Named Workspace and switch this window into it
- * — the locked spec's "create" operation (Task 9 shipped only save-as, so
- * every workspace was necessarily a copy of the current window; this is the
- * follow-up). Patron-gated: creating is the only Named Workspaces operation
- * that re-checks entitlement (list/open/rename/remove stay usable on a
- * lapsed Patron — it's the user's own data). The scratch guard is checked
- * BEFORE the record is created, not after, so a cancelled confirmation never
- * leaves an orphan empty workspace behind — creating first and relying on
- * switchWindowToWorkspace's own guard would check one step too late. Once
- * the record exists, binding and applying it is EXACTLY the same operation
- * as opening any other freshly-created workspace — delegated to
- * switchWindowToWorkspace itself (with force:true, since a real guard
- * decision — or an explicit caller override — already happened here) rather
- * than a second copy of the apply protocol. */
-function createBlankWorkspaceAndSwitch(runtime, name, { force = false } = {}) {
-  return withWindowRuntime(runtime, () => {
-    if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
-
-    if (!force) {
-      const guard = scratchGuardResult(runtime);
-      if (guard) return guard;
-    }
-
-    const created = namedWorkspaces.create({
-      name,
-      capture: { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] },
-    });
-    // {ok:false, error:'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
-    // — never carries a workspace record, safe to return verbatim.
-    if (!created.ok) return created;
-
-    const switched = switchWindowToWorkspace(runtime, created.workspace.id, { force: true });
-    // Only fails if the just-created record vanished before this ran (e.g. a
-    // concurrent delete) — surfaced verbatim rather than assumed impossible.
-    if (!switched.ok) return switched;
-    return { ...switched, workspaceId: created.workspace.id };
-  });
+function createBlankWorkspaceAndSwitch(runtime, name, options = {}) {
+  return withWindowRuntime(runtime, () => { runtime.workspaceIncoming = null; return workspaceController.create(runtime, name, options); });
 }
 
-/** Replace this window's current tabs with one Named Workspace's captured
- * set. Copies the full restore/close protocol releaseStartup and closeGroup
- * already use — a partial copy pollutes undo, wakes quiet tabs, drops
- * groups, or rewrites session.json to a half-empty window. Reachable ONLY
- * from switchWindowToWorkspace's swap branch (2d) above.
- *
- * Review round 2, Fix 1: checklist points 3 (suspend/restore
- * sessionPersistenceSuspended) and 9 (the final persistSession()) moved to
- * that caller — they must bracket the BINDING commit (runtime.workspaceId),
- * not just this function's tab churn, so only the caller can own them. This
- * function assumes persistence is already suspended and the window already
- * scratch when it's called, leaves both exactly as it found them, and
- * throws through to the caller on any unexpected failure rather than
- * swallowing it (the caller relies on that: it only commits the binding
- * after this returns normally). */
+/** Materialize safe persisted columns in a newly staged resident runtime. Normal switching transfers existing views instead. The caller suspends persistence until the complete target is committed. */
 function applyWorkspaceToWindow(runtime, workspace) {
   withWindowRuntime(runtime, () => {
     // 1. Dismiss floating chrome before touching tabs — the same guard other
@@ -4771,14 +4742,9 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // into the incoming set.
     closeGlance({ focusContent: false });
 
-    // 4. Batch-close every current tab exactly like closeGroup does:
-    // record:false keeps Recently Closed from filling with the outgoing
-    // set, selectReplacement:false stops each individual close from picking
-    // (and immediately discarding) a replacement tab mid-swap. Snapshot
-    // tabOrder first — closeTab mutates it as it goes.
-    for (const id of [...runtime.tabOrder]) {
-      closeTab(id, { record: false, selectReplacement: false });
-    }
+    // Materialization is only for a newly staged, empty runtime. Refuse a
+    // programming error instead of ever tearing down a live workspace here.
+    if (runtime.tabOrder.length) throw new Error('Workspace staging requires an empty runtime');
 
     // 5. Groups must exist on the runtime BEFORE any createTab call below —
     // createTab silently drops groupId otherwise (its own body:
@@ -4820,37 +4786,27 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // never leave the window tabless. NEW_TAB_URL, not newTabUrl() — the
     // checklist's floor is the blank internal newtab, not the user's
     // configured home page.
-    setActiveTab(target ?? createTab(NEW_TAB_URL), { focusContent: true });
+    const selected = target ?? createTab(NEW_TAB_URL, { asleep: true });
+    if (runtime.resident) runtime.activeTabId = selected;
+    else setActiveTab(selected, { focusContent: true });
   });
 }
 
-/** Delete a Named Workspace and release whichever window (live or not) was
- * showing it, via workspaces-model's own bindingsAfterDelete transition
- * ("whatever window showed it becomes scratch") reconciled back onto
- * runtime.workspaceId by applyWorkspaceBindings — not a hand-rolled
- * equivalent. Bindings are 1:1 by construction (switchWindowToWorkspace's
- * bindingsAfterSwap always releases a window's previous workspace before
- * claiming a new one), so at most one runtime can match.
- *
- * Profile contract (Minor, review round 2): like every other function in
- * this file's Named Workspaces section, this relies on ambient
- * activeLocalProfileId() context to resolve namedWorkspaces.remove(id)
- * against the CORRECT profile's workspaces.json — it takes no runtime
- * parameter, matching workspaces.js's own list/get/create/rename/saveCapture
- * convention. Callers (Task 7/8's eventual IPC handler) must invoke this
- * from inside a withWindowRuntime/withLocalProfile scope bound to the
- * correct window — chromeHandle/chromeOn already do this for every existing
- * IPC handler in this file, so a handler built the normal way gets it for
- * free, but this is not self-enforcing the way an explicit `runtime`
- * parameter would be. deriveWorkspaceBindings/applyWorkspaceBindings below
- * are profile-agnostic by construction (any runtime that happens to hold a
- * given workspace's id belongs to that workspace's profile already, since
- * binding only ever happens through this file's own profile-scoped calls),
- * so they do not need — and must not gain — a profile filter of their own. */
+/** Remove the saved record durably before unbinding matching windows in this profile. Resident pages become a visible ordinary window so deletion cannot destroy hidden drafts. */
 function removeNamedWorkspace(id) {
+  // Deleting the saved record must not destroy a hidden draft. Reveal its
+  // resident pages first; successful deletion then leaves an ordinary window.
+  const holder = workspaceOwner(rt(), id);
+  if (holder?.resident) {
+    const shown = switchWindowToWorkspace(rt(), id, { newWindow: true });
+    if (!shown.ok) return shown;
+  }
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
-    applyWorkspaceBindings(bindingsAfterDelete(deriveWorkspaceBindings(), id));
+    for (const runtime of windowRuntimes.all()) {
+      if (runtime.profileId === rt().profileId && runtime.workspaceId === id) runtime.workspaceId = null;
+    }
+    flushWorkspaceSession();
   }
   return result;
 }
@@ -6097,25 +6053,20 @@ function chromeOn(channel, handler) {
   });
 }
 
-// Named Workspaces IPC projection + freshness broadcast. Deliberately kept
-// here next to chromeHandle/chromeOn rather than in the capture/apply/switch
-// section up near removeNamedWorkspace, so nothing added for Task 7 can ever
-// land inside the exact function-boundary text slices workspaces-apply.test.js
-// lifts out of this file's source (applyWorkspaceToWindow/deriveWorkspaceBindings/
-// applyWorkspaceBindings) — inserting here cannot shift those markers.
-//
-// PROJECTION ONLY: {id, name, active, tabCount} per item — never urls, meta,
-// groups, profileId, createdAt, or the raw workspace record. Must be called
-// from inside a window-runtime scope (chromeHandle/chromeOn already provide
-// one) so rt() and the ambient local-profile context that namedWorkspaces
-// resolves its file through both refer to the requesting window.
+// Workspace IPC contains presentation metadata only. Ownership is derived
+// within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
   return {
     patronActive: settings.isPatronActive(),
+    status: namedWorkspaces.status(),
+    deleted: namedWorkspaces.deleted().map((d) => ({ id: d.workspace.id, name: d.workspace.name, deletedAt: d.deletedAt })),
     items: namedWorkspaces.list().map((workspace) => ({
       id: workspace.id,
       name: workspace.name,
       active: workspace.id === rt().workspaceId,
+      openElsewhere: !!workspaceOwner(rt(), workspace.id) && !workspaceOwner(rt(), workspace.id).resident && workspace.id !== rt().workspaceId,
+      resident: workspaceOwner(rt(), workspace.id)?.resident === true,
+      revision: workspace.revision,
       tabCount: workspace.urls.length,
     })),
   };
@@ -6143,17 +6094,8 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
-// Workspace row context-menu targets (Rename/Delete, Task 8). Both funnel
-// into showOverlay with a purpose payload — the SAME channel beginNewGroup
-// (below) already uses to open an editing UI for a specific target inside an
-// already-open panel. No new IPC: the renderer's overlay:show handler reads
-// purpose.renameWorkspaceId/deleteWorkspaceId and renders that one row
-// in-place as an inline editor or an inline delete-confirm. Placed here
-// (next to workspacesProjection/broadcastWorkspacesUpdated, not the
-// capture/apply/switch section above) for the same reason Task 7 placed its
-// own additions here: nothing added for Task 8 can land inside the exact
-// function-boundary text slices workspaces-apply.test.js lifts out of this
-// file's source.
+// Native context menus open the same workspace action state as the visible
+// row management buttons. A stale target is handled by the renderer.
 function beginRenameWorkspace(workspaceId) {
   showOverlay('panel', { purpose: { renameWorkspaceId: workspaceId } });
 }
@@ -6486,30 +6428,33 @@ function registerIpcHandlers() {
   // Named Workspaces. Per the locked spec, Patron only ever ADDS: list/open/
   // rename/remove stay fully usable on a lapsed Patron (it's the user's own
   // data), so save-as and create-blank are the ONLY handlers that re-check
-  // entitlement. open and create-blank additionally carry the scratch guard
-  // (Task 9 follow-up): both can switch this window's tabs out from under
-  // it, so both accept an optional {force:true} that skips the guard —
-  // threaded straight through to switchWindowToWorkspace/
-  // createBlankWorkspaceAndSwitch, never re-decided here. Every handler here
-  // is a chromeHandle registration, which is what makes rt() and
+  // entitlement. Open and create accept only a main-issued decision token
+  // or the non-destructive new-window alternative. chromeHandle makes rt() and
   // namedWorkspaces' ambient local-profile context resolve to the REQUESTING
   // window/profile rather than whichever window last ran — a raw
   // ipcMain.handle would silently read/write the wrong profile's
   // workspaces.json.
+  chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
   chromeHandle('chrome:workspaces-save-as', (_e, name) => {
     if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
     const result = saveCurrentWindowAsWorkspace(rt(), name);
-    // {ok:false, error: 'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
-    // — namedWorkspaces.create's failure shape never carries a workspace
-    // record, so it is safe to return verbatim.
-    if (!result.ok) return result;
+    if (!result.ok) {
+      // The workspace file and session file are separate atomic stores. If the
+      // first commit landed, return the saved row with an honest partial-success
+      // error instead of inviting an impossible same-name retry.
+      if (result.workspaceId) {
+        broadcastWorkspacesUpdated();
+        return { ...result, ...workspacesProjection() };
+      }
+      return result;
+    }
     broadcastWorkspacesUpdated();
     // Only the new id crosses the wire, never result.workspace itself.
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
-    const result = switchWindowToWorkspace(rt(), id, { force: !!opts?.force });
+    const result = switchWindowToWorkspace(rt(), id, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
     // {ok:false, error:'not-found'}, the scratch guard's
     // {ok:false, error:'unsaved-scratch', tabCount}, or the honest
     // {ok:false, action:'focus', windowId} report when the bound window
@@ -6519,11 +6464,14 @@ function registerIpcHandlers() {
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
-    const result = createBlankWorkspaceAndSwitch(rt(), name, { force: !!opts?.force });
-    // {ok:false, error:'not-patron'|'unsaved-scratch'|'invalid-name'|
-    // 'duplicate-name'|'limit'|'invalid-record'|'not-found'|'focus-failed'} —
-    // never a workspace record either.
-    if (!result.ok) return result;
+    const result = createBlankWorkspaceAndSwitch(rt(), name, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
+    if (!result.ok) {
+      if (result.workspaceId) {
+        broadcastWorkspacesUpdated();
+        return { ...result, ...workspacesProjection() };
+      }
+      return result;
+    }
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
@@ -6539,6 +6487,20 @@ function registerIpcHandlers() {
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
+
+  for (const [channel, operation] of [
+    ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
+    ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
+    ['chrome:workspaces-move', (id, direction) => namedWorkspaces.move(id, direction)],
+  ]) {
+    chromeHandle(channel, (_event, ...args) => {
+      const result = operation(...args);
+      if (!result.ok) return result;
+      broadcastWorkspacesUpdated();
+      return { ok: true, ...workspacesProjection() };
+    });
+  }
+  namedWorkspaces.setStatusObserver(() => broadcastWorkspacesUpdated());
 
   chromeHandle('chrome:search-suggestions', async (event, query) => {
     const currentSettings = settings.getSettings();
@@ -7215,9 +7177,29 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // reattachment, not a user switch, so it must not dismiss that sheet.
     activateTab: (id) => setActiveTab(id, { dismissUtilitySheet: false }),
     flushExternalUrls,
+    // A normal secondary close destroys its pages. Commit both the final named
+    // capture and session removal before Electron can tear those views down.
+    // Primary macOS close retains its runtime for Dock reopen; forced closes
+    // mark runtime.closing before reaching this hook.
+    // A future session file is intentionally read-only and cannot be made
+    // writable by retrying. Preserve that file, but do not trap every scratch
+    // window from a newer Blanc version on screen.
+    beforeWindowClose: () => sessionReadOnly || (runtime === primaryRuntime && process.platform === 'darwin')
+      ? { ok: true }
+      : checkpointWorkspaceSession(runtime, { excludeRuntime: runtime }),
+    onCloseBlocked: () => {
+      broadcastWorkspacesUpdated();
+      dialog.showMessageBoxSync(runtime.window, {
+        type: 'error',
+        buttons: ['OK'],
+        message: 'Couldn’t close this window safely',
+        detail: 'Blanc couldn’t save its latest workspace state. Check available disk space and try again.',
+      });
+    },
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    workspaceController.cancel(runtime);
     forgetTabImportForRuntime(runtime.id, 'runtime-destroyed');
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
@@ -7231,14 +7213,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
-      // Named Workspaces: a real (non-primary) window close is a real,
-      // permanent unbind — unlike the primary's dock-close below, this
-      // runtime is never coming back. Routed through workspaces-model's own
-      // bindingsAfterUnbind ("a window closed... it binds nothing"),
-      // reconciled via applyWorkspaceBindings, for the same reason
-      // switchWindowToWorkspace and removeNamedWorkspace do: the tested
-      // transition rule gates this, not a parallel hand-rolled field write.
-      applyWorkspaceBindings(bindingsAfterUnbind(deriveWorkspaceBindings(), { windowId: String(runtime.id) }));
+      runtime.closing = true;
+      // The close event durably checkpointed before native teardown.
+      runtime.workspaceId = null;
       for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
       for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
       runtime.closedEntries = [];
@@ -7582,6 +7559,11 @@ function namedProfileDataDirectory(profileId) {
 }
 
 async function destroyProfileWindow(runtime) {
+  if (runtime.resident) {
+    withWindowRuntime(runtime, () => { runtime.closing = true; for (const id of [...runtime.tabOrder]) closeTab(id, { record: false, selectReplacement: false }); });
+    windowRuntimes.discardRuntime(runtime);
+    return;
+  }
   const window = runtime.window;
   if (!window || window.isDestroyed()) return;
   // Electron's BrowserWindow visibility listener reads native state on every
@@ -7596,6 +7578,9 @@ async function destroyProfileWindow(runtime) {
     });
   }
   if (window.isDestroyed()) return;
+  // Profile deletion is already explicitly confirmed and owns crash-resumable
+  // cleanup. Bypass the ordinary close checkpoint for data being erased.
+  runtime.closing = true;
   await new Promise((resolve) => {
     window.once('closed', resolve);
     // Confirmation is the terminal commit point. beforeunload cannot retain a
@@ -7663,6 +7648,7 @@ async function completeNamedProfileDeletion(profileId, {
   }
   try {
     discardProfileDownloads(profileId);
+    namedWorkspaces.disposeProfile(profileId);
     discardProfileStoreEntries(profileId);
     fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
   } catch (error) {
@@ -8213,7 +8199,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       })();
     })
   );
-  setHeldRequesterCheck((wc) => !!wc && heldWebContents.has(wc.id));
+  setHeldRequesterCheck((wc) => !!wc && (heldWebContents.has(wc.id) || runtimeForPageWebContents(wc)?.resident === true));
   setCaptureGrantObserver(({ requestingWebContents, mediaTypes, requestingUrl, isMainFrame }) => {
     if (!requestingWebContents) return;
     const surface = ensureCaptureSurfaceForSender(requestingWebContents);
@@ -8325,6 +8311,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // downloads.js invokes this from its own session/DownloadItem listeners —
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
+  setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,
     profileId: DEFAULT_PROFILE_ID,
@@ -8613,6 +8600,38 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, closeGroup, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
+      runInWindowRuntime,
+      workspaceTestAction(action, args = []) {
+        if (action === 'list') return workspacesProjection();
+        if (action === 'save') return saveCurrentWindowAsWorkspace(rt(), args[0]);
+        if (action === 'open') return switchWindowToWorkspace(rt(), args[0], args[1]);
+        if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
+        if (action === 'fail-session-commit') {
+          const original = fs.renameSync; let writes = 0;
+          fs.renameSync = (from, to) => { if (String(to).endsWith('/session.json') && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
+          try { return createBlankWorkspaceAndSwitch(rt(), args[0]); }
+          finally { fs.renameSync = original; }
+        }
+        if (action === 'metrics') return {
+          residentSets: windowRuntimes.all().filter((r) => r.resident).length,
+          liveOrdinaryTabs: [...tabs.values()].filter((t) => !t.private && liveContents(t)).length,
+          quietTabs: [...tabs.values()].filter((t) => t.asleep).length,
+          workingSetKB: app.getAppMetrics().reduce((n, p) => n + (p.memory?.workingSetSize || 0), 0),
+        };
+        if (action === 'remove') return removeNamedWorkspace(args[0]);
+        if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
+        if (action === 'reset') {
+          for (const r of windowRuntimes.all()) {
+            if (r.resident) {
+              withWindowRuntime(r, () => { r.closing = true; for (const id of [...r.tabOrder]) closeTab(id, { record: false, selectReplacement: false }); });
+              windowRuntimes.discardRuntime(r);
+            } else r.workspaceId = null;
+          }
+          for (const w of namedWorkspaces.list()) namedWorkspaces.remove(w.id);
+          for (const w of namedWorkspaces.deleted()) namedWorkspaces.forget(w.workspace.id);
+        }
+        return { ok: true };
+      },
       openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, openTabInWindow,
       setGlanceTabInWindow, closeGlanceInWindow, closeTabInWindow, reopenClosedTabInWindow,
       createNamedLocalProfileWindow, renameNamedLocalProfile, deleteNamedLocalProfile,
@@ -8621,7 +8640,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isSessionPersistenceReady: () => !sessionPersistenceSuspended,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
-      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      normalizeAddressInput, pasteAndGo, classifyExternalNavigation, openInternalPage, openFindBar,
+      onePasswordTargetForTest: () => {
+        const target = captureOnePasswordTarget(rt());
+        return target ? {
+          kind: target.kind,
+          webContentsId: target.webContents.id,
+          windowId: target.window.id,
+          url: target.url,
+        } : null;
+      },
       // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
       // readiness) against a real captured target — not a reimplementation.
       showFillStatusForTest: (kind) => {
@@ -8915,21 +8943,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     bookmarks.onMerged(refreshBookmarkFlags);
   };
 
-  // HTTP basic/digest auth: without this handler, 401-protected sites
-  // (routers, staging servers) simply fail.
-  app.on('login', (event, requestingWc, _details, authInfo, callback) => {
+  // Website sign-in belongs to the website. Never turn an HTTP basic/digest
+  // challenge (including navigation, page resource, or proxy challenges) into
+  // a separate Blanc credentials dialog.
+  app.on('login', (event, _requestingWc, _details, _authInfo, callback) => {
     event.preventDefault();
-    const tabId = requestingWc ? tabIdByWebContentsId.get(requestingWc.id) : null;
-    const runtime = (tabId ? windowRuntimes.runtimeForTab(tabId) : null)
-      ?? windowRuntimes.runtimeForAuxiliaryContent(requestingWc?.id)
-      ?? focusedRuntime
-      ?? primaryRuntime;
-    withWindowRuntime(runtime, () => {
-      promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
-        if (creds) callback(creds.username, creds.password);
-        else callback(); // no args = cancel the request
-      });
-    });
+    callback();
   });
 
   registerIpcHandlers();
@@ -9226,8 +9245,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     );
     for (const runtime of candidatesByPreference) {
       const workspaceId = workspaceCandidates.get(runtime);
-      if (claimedWorkspaceIds.has(workspaceId)) continue;
-      claimedWorkspaceIds.add(workspaceId);
+      const claim = `${runtime.profileId}:${workspaceId}`;
+      if (claimedWorkspaceIds.has(claim)) continue;
+      claimedWorkspaceIds.add(claim);
       runtime.workspaceId = workspaceId;
     }
 
@@ -9245,6 +9265,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     buildMenu(focusedRuntime ?? primaryRuntime);
 
     sessionPersistenceSuspended = false;
+    broadcastWorkspacesUpdated();
     persistSession();
     sessionRecoveryState = {
       ...sessionRecoveryState,

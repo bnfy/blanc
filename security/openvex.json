@@ -1,0 +1,41 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://raw.githubusercontent.com/bnfy/blanc/main/security/openvex.json",
+  "author": "Blanc maintainers",
+  "role": "Document Creator",
+  "timestamp": "2026-09-13T23:59:00Z",
+  "version": 1,
+  "tooling": "Manual maintainer review",
+  "statements": [
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+        "name": "GHSA-w3rx-r6r6-pgpr"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The affected image-size parser is reachable only through web-ext while maintainers lint or package committed companion-extension files. Blanc does not pass network, user, or release-time input to this parser."
+    },
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+        "name": "GHSA-5p2g-fcmc-qvqq"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The affected image-size parser is reachable only through web-ext while maintainers lint or package committed companion-extension files. Blanc does not pass network, user, or release-time input to this parser."
+    },
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-vwc7-r8mq-g2x9",
+        "name": "GHSA-vwc7-r8mq-g2x9"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The affected adm-zip extraction is a development-only web-ext path operating on committed companion-extension sources and a maintainer-selected local output directory. It is absent from Blanc release payloads and receives no untrusted archive or destination path."
+    }
+  ]
+}

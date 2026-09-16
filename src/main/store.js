@@ -25,10 +25,11 @@ class JsonStore {
    * @param {object} defaults - shape used when the file is missing/corrupt
    * @param {{scope?: 'device'|'profile'}} options
    */
-  constructor(name, defaults, { scope = 'device' } = {}) {
+  constructor(name, defaults, { scope = 'device', quietErrors = false } = {}) {
     this.name = name;
     this.defaults = defaults;
     this.scope = scope === 'profile' ? 'profile' : 'device';
+    this.quietErrors = quietErrors;
     this.entries = new Map();
     instances.push(this);
   }
@@ -131,18 +132,18 @@ class JsonStore {
       fs.mkdirSync(path.dirname(entry.file), { recursive: true });
       descriptor = fs.openSync(tempFile, 'w', 0o600);
       fs.writeFileSync(descriptor, JSON.stringify(entry.data, null, 2), 'utf8');
+      fs.fchmodSync(descriptor, 0o600);
       fs.fsyncSync(descriptor);
       fs.closeSync(descriptor);
       descriptor = null;
       fs.renameSync(tempFile, entry.file);
-      fs.chmodSync(entry.file, 0o600);
       return true;
     } catch (err) {
       if (descriptor !== null) {
         try { fs.closeSync(descriptor); } catch { /* best effort */ }
       }
       try { fs.rmSync(tempFile, { force: true }); } catch { /* best effort */ }
-      console.warn(`[store] could not write ${entry.file}:`, err.message);
+      if (!this.quietErrors) console.warn(`[store] could not write ${entry.file}:`, err.message);
       return false;
     }
   }

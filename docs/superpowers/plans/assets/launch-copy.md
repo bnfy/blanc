@@ -1,5 +1,11 @@
 # Blanc launch copy pack — v1.16.2 final-release refresh
 
+**Launch Week paused after v1.17.0 — 2026-09-13:** This pack is **not publishable**.
+The owner put launch work on the backburner while the v1.17.0
+release deployment and adjacent updater handoffs are completed. All copy,
+media, approvals, freeze evidence, soak evidence, and dates below remain the
+historical v1.16.2 package until Launch Week resumes.
+
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
 

@@ -161,10 +161,12 @@ function setupPages(hooks = {}) {
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    let file;
     try {
-      const stat = await fs.promises.stat(picked.filePaths[0]);
+      file = await fs.promises.open(picked.filePaths[0], 'r');
+      const stat = await file.stat();
       if (stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const html = await file.readFile('utf8');
       const entries = parseNetscapeBookmarks(html);
       if (!entries.length) return { error: 'empty' };
       const { added, skipped } = bookmarks.importBookmarks(entries);
@@ -172,6 +174,8 @@ function setupPages(hooks = {}) {
       return { added, skipped };
     } catch {
       return { error: 'unreadable' };
+    } finally {
+      if (file) await file.close().catch(() => {});
     }
   });
   handle('pages:bookmarks:browser-sources', ['bookmarks', 'newtab'], () => browserImport.listSources());

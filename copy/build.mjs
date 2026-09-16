@@ -20,7 +20,7 @@ const OUT = path.join(ROOT, 'copy', 'generated');
 const spec = JSON.parse(fs.readFileSync(SPEC, 'utf8'));
 
 const keyFor = (command) => 'slash_' + command.replace(/^\//, '').replace(/-/g, '_');
-const xmlEsc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '\\"').replace(/'/g, "\\'");
+const xmlEsc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
 // ---- generators (mobile uses the primary `hint`) ----
 function genStrings() {

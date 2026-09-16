@@ -183,9 +183,18 @@ for (const file of htmlFiles) {
     if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
 
     let target;
-    if (href.startsWith('/')) target = href;
-    else if (href.startsWith(SITE_ORIGIN)) target = new URL(href).pathname;
-    else continue;
+    if (href.startsWith('/')) {
+      target = href;
+    } else {
+      let absolute;
+      try {
+        absolute = new URL(href);
+      } catch {
+        continue;
+      }
+      if (absolute.origin !== SITE_ORIGIN) continue;
+      target = `${absolute.pathname}${absolute.search}${absolute.hash}`;
+    }
 
     const clean = target.split(/[?#]/)[0] || '/';
     const normalized = clean.length > 1 ? clean.replace(/\/$/, '') : clean;
