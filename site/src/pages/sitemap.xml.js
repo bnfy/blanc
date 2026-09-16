@@ -29,7 +29,7 @@ const MANIFEST = [
   '/faq',
 ];
 
-const UNLISTED = new Set(['/import-tabs']);
+const UNLISTED = new Set(['/404', '/import-tabs']);
 
 const SITE = 'https://blancbrowser.com';
 

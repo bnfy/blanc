@@ -8,12 +8,14 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'test/site/crawl-hygiene.test.mjs'
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
       - '.github/workflows/site.yml'
   pull_request:
     paths:
       - 'site/**'
+      - 'test/site/crawl-hygiene.test.mjs'
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
       - '.github/workflows/site.yml'
@@ -35,3 +37,9 @@ jobs:
         working-directory: site
       - run: npm run build
         working-directory: site
+      - name: Verify not-found response
+        working-directory: site
+        run: |
+          npm run preview -- --background --host 127.0.0.1 --port 4322
+          trap 'npm run preview -- stop' EXIT
+          BLANC_SITE_URL=http://127.0.0.1:4322 node --test ../test/site/crawl-hygiene.test.mjs

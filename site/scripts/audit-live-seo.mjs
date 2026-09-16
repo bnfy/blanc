@@ -1,5 +1,8 @@
+import { readFile } from 'node:fs/promises';
+
 const SITE_ORIGIN = new URL(process.env.SITE_ORIGIN || 'https://blancbrowser.com').origin;
 const SITEMAP_URL = `${SITE_ORIGIN}/sitemap.xml`;
+const NOT_FOUND_PROBE = '/__blanc_not_found_audit__';
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_REDIRECTS = 5;
 const USER_AGENT = 'BlancSEOAudit/1.0 (+https://blancbrowser.com/)';
@@ -27,6 +30,12 @@ const canonicalKey = (value) => {
   return `${url.origin}${url.pathname}${url.search}`;
 };
 
+const siteUrl = new URL(SITE_ORIGIN);
+const inferredWwwOrigin = siteUrl.hostname === 'blancbrowser.com'
+  ? `${siteUrl.protocol}//www.blancbrowser.com`
+  : null;
+const WWW_ORIGIN = process.env.WWW_ORIGIN || inferredWwwOrigin;
+
 async function request(url) {
   const hops = [];
   let current = new URL(url, SITE_ORIGIN);
@@ -52,6 +61,41 @@ async function request(url) {
 async function textResponse(url) {
   const result = await request(url);
   return { ...result, body: await result.response.text() };
+}
+
+let redirectsSource = '';
+try {
+  redirectsSource = await readFile(new URL('../public/_redirects', import.meta.url), 'utf8');
+} catch (error) {
+  errors.push(`cannot read public/_redirects (${error.message})`);
+}
+
+const redirectRules = [];
+for (const [index, rawLine] of redirectsSource.split(/\r?\n/).entries()) {
+  const line = rawLine.trim();
+  if (!line || line.startsWith('#')) continue;
+  const fields = line.split(/\s+/);
+  if (fields.length !== 3) {
+    errors.push(`public/_redirects:${index + 1}: expected source destination status`);
+    continue;
+  }
+  const [source, destination, rawStatus] = fields;
+  const status = Number(rawStatus);
+  if (!source.startsWith('/') || !destination.startsWith('/') || ![301, 302, 303, 307, 308].includes(status)) {
+    errors.push(`public/_redirects:${index + 1}: invalid site-relative redirect rule`);
+    continue;
+  }
+  redirectRules.push({ source, destination, status });
+}
+
+const privateRules = redirectRules.filter((rule) => rule.source === '/private');
+const privateSlashRules = redirectRules.filter((rule) => rule.source === '/private/');
+if (
+  privateRules.length !== 1 || privateSlashRules.length !== 1
+  || privateRules[0].destination !== '/features/private-tabs' || privateRules[0].status !== 301
+  || privateSlashRules[0].destination !== '/features/private-tabs' || privateSlashRules[0].status !== 301
+) {
+  errors.push('/private and /private/ must redirect directly to /features/private-tabs with status 301');
 }
 
 let robots;
@@ -172,6 +216,90 @@ for (const link of linkResults) {
   }
   if (!sitemapKeys.has(canonicalKey(link.finalUrl))) {
     warnings.push(`${link.url}: internal HTML destination is not in the sitemap; linked from ${sources}`);
+  }
+}
+
+const redirectResults = await Promise.all(redirectRules.map(async (rule) => {
+  try {
+    return { rule, ...(await request(new URL(rule.source, SITE_ORIGIN))) };
+  } catch (error) {
+    return { rule, error };
+  }
+}));
+
+for (const result of redirectResults) {
+  const { rule } = result;
+  if (result.error) {
+    errors.push(`${rule.source}: redirect request failed (${result.error.message})`);
+    continue;
+  }
+  const firstHop = result.hops[0];
+  const expectedDestination = new URL(rule.destination, SITE_ORIGIN);
+  if (firstHop.status !== rule.status) {
+    errors.push(`${rule.source}: expected ${rule.status}, received ${firstHop.status}`);
+  }
+  if (!firstHop.location || canonicalKey(new URL(firstHop.location, firstHop.url)) !== canonicalKey(expectedDestination)) {
+    errors.push(`${rule.source}: redirect location does not point to ${expectedDestination.href}`);
+  }
+  if (result.hops.length !== 2) {
+    errors.push(`${rule.source}: expected one redirect hop, received ${result.hops.length - 1}`);
+  }
+  if (result.response.status !== 200 || canonicalKey(result.finalUrl) !== canonicalKey(expectedDestination)) {
+    errors.push(`${rule.source}: redirect did not finish on a 200 ${expectedDestination.href}`);
+  }
+  if (sitemapKeys.has(canonicalKey(new URL(rule.source, SITE_ORIGIN)))) {
+    errors.push(`${rule.source}: redirect source appears in sitemap.xml`);
+  }
+  if (internalLinks.has(canonicalKey(new URL(rule.source, SITE_ORIGIN)))) {
+    errors.push(`${rule.source}: an internal link still targets the redirect`);
+  }
+  if (!sitemapKeys.has(canonicalKey(expectedDestination))) {
+    errors.push(`${rule.source}: redirect target is missing from sitemap.xml`);
+  }
+}
+
+try {
+  const missing = await textResponse(`${SITE_ORIGIN}${NOT_FOUND_PROBE}`);
+  if (missing.hops.length !== 1) errors.push(`${NOT_FOUND_PROBE}: unknown route redirects instead of returning 404`);
+  if (missing.response.status !== 404) errors.push(`${NOT_FOUND_PROBE}: expected 404, received ${missing.response.status}`);
+  const contentType = missing.response.headers.get('content-type') || '';
+  if (!contentType.includes('text/html')) errors.push(`${NOT_FOUND_PROBE}: expected an HTML not-found response`);
+  const canonical = capture(missing.body, [
+    /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i,
+    /<link[^>]+href=["']([^"']*)["'][^>]+rel=["']canonical["']/i,
+  ]);
+  if (canonicalKey(canonical) !== canonicalKey(`${SITE_ORIGIN}/404`)) {
+    errors.push(`${NOT_FOUND_PROBE}: not-found canonical does not point to ${SITE_ORIGIN}/404`);
+  }
+  const robotsMeta = capture(missing.body, [
+    /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["']/i,
+    /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']robots["']/i,
+  ]);
+  if (!/\bnoindex\b/i.test(robotsMeta)) errors.push(`${NOT_FOUND_PROBE}: not-found response must be noindex`);
+  if (!/<h1\b[^>]*>\s*This page isn’t here\.\s*<\/h1>/i.test(missing.body)) {
+    errors.push(`${NOT_FOUND_PROBE}: branded not-found heading is missing`);
+  }
+} catch (error) {
+  errors.push(`${NOT_FOUND_PROBE}: request failed (${error.message})`);
+}
+
+if (WWW_ORIGIN) {
+  try {
+    const probePath = '/features/private-tabs?source=www-audit';
+    const wwwProbe = new URL(probePath, WWW_ORIGIN);
+    const expectedDestination = new URL(probePath, SITE_ORIGIN);
+    const result = await request(wwwProbe);
+    if (![301, 308].includes(result.hops[0].status)) {
+      errors.push(`${WWW_ORIGIN}: www host must use a permanent redirect, received ${result.hops[0].status}`);
+    }
+    if (result.hops.length !== 2) {
+      errors.push(`${WWW_ORIGIN}: expected one redirect hop to the canonical host, received ${result.hops.length - 1}`);
+    }
+    if (result.response.status !== 200 || canonicalKey(result.finalUrl) !== canonicalKey(expectedDestination)) {
+      errors.push(`${WWW_ORIGIN}: redirect must preserve the path and query at ${expectedDestination.href}`);
+    }
+  } catch (error) {
+    errors.push(`${WWW_ORIGIN}: canonical-host redirect request failed (${error.message})`);
   }
 }
 
