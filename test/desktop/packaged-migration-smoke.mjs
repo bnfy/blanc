@@ -188,6 +188,11 @@ try {
   await app.close();
   app = null;
   const originalWorkspaceBytes = fs.readFileSync(path.join(userDataDir, 'workspaces.json'));
+  const originalRecoveryCopies = new Map(
+    fs.readdirSync(userDataDir)
+      .filter((name) => name.startsWith('workspaces.json.before-repair-'))
+      .map((name) => [name, fs.readFileSync(path.join(userDataDir, name))]),
+  );
 
   await launch(candidateExecutable);
   // Current Blanc restores inactive tabs as quiet records, so they have no
@@ -218,16 +223,26 @@ try {
   );
   assert.ok(history.entries.some((entry) => entry.title === 'Migration history'));
 
-  const workspaces = JSON.parse(
-    fs.readFileSync(path.join(userDataDir, 'workspaces.json'), 'utf8')
-  );
+  const candidateWorkspaceBytes = fs.readFileSync(path.join(userDataDir, 'workspaces.json'));
+  const workspaces = JSON.parse(candidateWorkspaceBytes.toString('utf8'));
   const migratedWorkspace = workspaces.workspaces.find((entry) => entry.id === workspaceId);
   assert.ok(migratedWorkspace, 'saved Named Workspace should survive the public-to-candidate handoff');
   assert.equal(migratedWorkspace.name, workspaceName);
   assert.deepEqual(migratedWorkspace.urls, sessionUrls);
   assert.equal(workspaces.version, 2, 'candidate should migrate to the versioned workspace recovery format');
   const recoveryCopies = fs.readdirSync(userDataDir).filter((name) => name.startsWith('workspaces.json.before-repair-'));
-  assert.ok(recoveryCopies.some((name) => fs.readFileSync(path.join(userDataDir, name)).equals(originalWorkspaceBytes)), 'migration must preserve the exact public-build workspace file');
+  for (const [name, bytes] of originalRecoveryCopies) {
+    assert.ok(recoveryCopies.includes(name), 'candidate must retain public-build workspace recovery copies');
+    assert.ok(fs.readFileSync(path.join(userDataDir, name)).equals(bytes), 'candidate must byte-preserve public-build workspace recovery copies');
+  }
+  const newRecoveryCopies = recoveryCopies.filter((name) => !originalRecoveryCopies.has(name));
+  const originalWorkspaceVersion = JSON.parse(originalWorkspaceBytes.toString('utf8')).version;
+  if (newRecoveryCopies.length || originalWorkspaceVersion !== workspaces.version) {
+    assert.ok(
+      newRecoveryCopies.some((name) => fs.readFileSync(path.join(userDataDir, name)).equals(originalWorkspaceBytes)),
+      'candidate repair or migration must preserve the exact public-build workspace file',
+    );
+  }
   if (process.platform !== 'win32') {
     for (const name of recoveryCopies) assert.equal(fs.statSync(path.join(userDataDir, name)).mode & 0o777, 0o600);
   }
