@@ -1,0 +1,9 @@
+CONFIRMED: focus and noop both hit the destructive-switch guard.
+CONFIRMED code path: bound ordinary pages pass the guard and close without recovery or waitForBeforeUnload.
+CONFIRMED: an empty persistable capture leaves the previous workspace URLs saved.
+CONFIRMED: a pending switch warning is hidden while slash-command text remains in the address field.
+CONFIRMED geometry: an 850px menu in a 600px viewport extends 258px below the viewport. CSS provides no vertical scroll bound.
+CONFIRMED: rename discards its editor and value before success is known; create and save-as use the same pattern.
+CONFIRMED: merely listing a version-99 file rewrites it as version 1 and drops unknown record fields.
+[store] could not write /var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-workspace-audit-GW6ApX/not-a-directory/workspaces.json: EEXIST: file already exists, mkdir '/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-workspace-audit-GW6ApX/not-a-directory'
+CONFIRMED: create returns ok:true and retains the record in memory after the disk write fails.

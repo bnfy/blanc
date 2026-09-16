@@ -1,0 +1,305 @@
+{
+  "version": 1,
+  "approvedAt": "2026-09-12",
+  "timezone": "America/New_York",
+  "status": "engagement_only",
+  "dayOne": "2026-09-13",
+  "dayOneRule": "During engagement-only mode, start on the first local date with a fresh audience baseline and a verified authorized routine reply. Never backdate. Keep the earlier content-led program unstarted until this condition is met.",
+  "durationDays": 30,
+  "audience": "Design-minded desktop users: designers, makers and knowledge workers",
+  "ownerMinutesDaily": 30,
+  "newPaidBudgetUsd": 0,
+  "dailyNetTargetPerChannel": 10,
+  "finalSevenDayNetTargetPerChannel": 70,
+  "finalSevenDayMeaningfulEngagementIncrease": 0.5,
+  "channels": [
+    "x",
+    "threads",
+    "instagram",
+    "facebook",
+    "tiktok",
+    "substack"
+  ],
+  "substackUnit": "external_subscribers",
+  "snapshotLocalTime": "17:00",
+  "monitorLocalTimes": [
+    "09:00",
+    "13:00",
+    "17:00"
+  ],
+  "weeklyCreatorsToQualify": 0,
+  "weeklyInvitationsToPrepare": 0,
+  "weeklyCompletedCollaborationTargetFromWeek": 3,
+  "weeklyCompletedCollaborationTarget": 0,
+  "dailyContributionCeiling": 5,
+  "approvalBatchWeekdays": [],
+  "activeBatch": null,
+  "queue": [
+    {
+      "id": "conversation-engagement",
+      "status": "active",
+      "remaining": "September 13 daily ceiling reached at 5/5. At the next local-day window, revalidate engagement-candidates-2026-09-14.json, prioritize unanswered inbound, and search again for fresher browser/design/maker discussions before sending."
+    },
+    {
+      "id": "baseline-audit",
+      "status": "baseline_established",
+      "artifact": "daily-scorecard-2026-09-12.md",
+      "remaining": "Use the September 13 checkpoint as the fixed opening baseline. Take the next comparable six-channel snapshot at 17:00 EDT on September 14."
+    },
+    {
+      "id": "first-content-batch",
+      "status": "rejected_by_owner_paused",
+      "artifact": "organic-design-week-1-2026-09-12/review.html",
+      "remaining": "Do not revise or request approval unless the owner reopens creative production."
+    },
+    {
+      "id": "creator-batch",
+      "status": "paused_engagement_only",
+      "artifact": "creator-outreach-drafts-2026-09-12.md",
+      "eligibleInvitationIds": [
+        "C1",
+        "C3",
+        "C4",
+        "C5"
+      ],
+      "heldInvitationIds": [
+        "C2"
+      ],
+      "weeklyQualificationRemaining": 6
+    },
+    {
+      "id": "profile-conversion",
+      "status": "paused_engagement_only",
+      "artifact": "profile-conversion-audit-2026-09-12.md"
+    },
+    {
+      "id": "publication",
+      "status": "paused_engagement_only"
+    },
+    {
+      "id": "24h-review",
+      "status": "review_verified_reply_outcomes_when_due"
+    },
+    {
+      "id": "7d-review",
+      "status": "review_verified_reply_outcomes_when_due"
+    }
+  ],
+  "publicationPolicy": "Show exact finished media, caption, alt text, platform and placement; wait for explicit approval before uploading, scheduling or publishing. Creator messages require explicit sending approval. Never treat silence or this operating plan as final-content approval.",
+  "launchPolicy": "Launch sequence remains stopped. No countdown, launch date or new launch-bound product footage until owner acceptance of a final baseline and all release/soak gates.",
+  "automation": {
+    "id": "blanc-replies-and-follower-growth",
+    "kind": "heartbeat",
+    "status": "ACTIVE",
+    "verification": "engagement_only_update_saved_configuration_verified_2026-09-13",
+    "timezone": "America/New_York",
+    "localTimes": [
+      "09:00",
+      "13:00",
+      "17:00"
+    ],
+    "nextExpectedCheckpoint": "2026-09-14T09:00:00-04:00",
+    "lastCheckpointAttempt": "2026-09-13T17:03:50-04:00",
+    "lastScopeUpdateAt": "2026-09-13T14:18:46.048942-04:00"
+  },
+  "creativeRevision": "sunrise-r6",
+  "brandPolicy": "Sunrise mark and warm ivory/gold theme only. Old B-mark revision rejected by owner September 12. Use original site/public/sunrise-hero-mark.png. Read current docs/brand-usage.md. Owner rejected repeated centered layouts; revision 3 uses distinct compositions per idea and varying carousel panels. Omit the typeset Blanc wordmark beside the Sunrise symbol in this social batch. Also omit the recurring Browsing & design header label; symbol alone, no replacement descriptor.",
+  "reviewPreview": {
+    "localUrl": "http://127.0.0.1:8773/review.html#type",
+    "standaloneHtml": "organic-design-week-1-2026-09-12/review.html",
+    "verification": "13_images_loaded_4_videos_ready_medium_headline_trial_verified",
+    "revision": "sunrise-r6"
+  },
+  "headlineWeightTrial": {
+    "font": "Newsreader",
+    "weight": 500,
+    "previousWeight": 400,
+    "scope": "current social batch",
+    "ownerAccepted": false
+  },
+  "lastMonitoringRun": {
+    "attemptedAt": "2026-09-13T17:03:50-04:00",
+    "mode": "audience_snapshot",
+    "status": "completed_baseline_established",
+    "accountChecksCompleted": 6,
+    "publicActions": 0,
+    "coverage": [
+      "X",
+      "Threads",
+      "Instagram",
+      "Facebook",
+      "TikTok",
+      "Substack subscribers"
+    ],
+    "remainingCoverage": [],
+    "artifact": "daily-scorecard-2026-09-13.json"
+  },
+  "monitoringHistory": [
+    {
+      "scheduledFor": "2026-09-12T17:00:00-04:00",
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "status": "unavailable_browser_access",
+      "blockerCode": "mac_locked_brave_unavailable",
+      "nextAction": "Retry the six-account snapshot after the owner unlocks the Mac. Preserve actual observation times and comparison tolerance.",
+      "ownerActionNotifiedAt": "2026-09-12T21:03:06.448012+00:00",
+      "suppressDuplicateBlockerNotifications": true
+    },
+    {
+      "scheduledFor": "2026-09-13T09:00:00-04:00",
+      "attemptedAt": "2026-09-13T14:11:46.267011+00:00",
+      "mode": "inbound_review",
+      "status": "unavailable_browser_access",
+      "blockerCode": "mac_locked_brave_unavailable",
+      "nextAction": "Retry logged-in Brave access at the next scheduled run or after owner unlock.",
+      "ownerActionNotifiedAt": "2026-09-12T21:03:06.448012+00:00",
+      "suppressDuplicateBlockerNotifications": true,
+      "notificationDecision": "suppressed_unchanged_blocker",
+      "accountChecksCompleted": 0,
+      "draftsPrepared": 0,
+      "publicActions": 0
+    },
+    {
+      "scheduledFor": "2026-09-13T17:00:00-04:00",
+      "attemptedAt": "2026-09-13T17:03:50-04:00",
+      "mode": "audience_snapshot",
+      "status": "completed_baseline_established",
+      "accountChecksCompleted": 6,
+      "publicActions": 0,
+      "audience": {
+        "x": 15,
+        "threads": 23,
+        "instagram": 102,
+        "facebook": 22,
+        "tiktok": 25,
+        "substack": 2
+      },
+      "substackDisplayTotal": 3,
+      "substackAuthorExcluded": true,
+      "substackDataDelayMinutes": 23,
+      "comparison": "No prior comparable scheduled checkpoint; no daily miss recorded.",
+      "notificationDecision": "quiet_baseline_established"
+    }
+  ],
+  "executionMode": "engagement_only",
+  "scopeChangedAt": "2026-09-13",
+  "scopeChangeReason": "Owner rejected generated imagery/video and requested focus on engaging with other posts and replies for now.",
+  "pausedWeeklyCadence": {
+    "x": {
+      "posts": 5
+    },
+    "threads": {
+      "posts": 7
+    },
+    "instagram": {
+      "reels": 3,
+      "carousels": 1,
+      "storyDays": 4
+    },
+    "tiktok": {
+      "videos": 4
+    },
+    "facebook": {
+      "reels": 3,
+      "discussionPosts": 1
+    },
+    "substack": {
+      "articles": 1,
+      "notes": 5
+    }
+  },
+  "weeklyCadence": {},
+  "routineReplyPolicy": "Owner authorizes relevant routine text replies and comments as Blanc. Read the full conversation, avoid duplicate answers and promotional filler, verify identity and claims, and verify submission. Sensitive matters and creator invitations still need separate explicit authorization.",
+  "pausedCollaborationTargets": {
+    "weeklyCreatorsToQualify": 10,
+    "weeklyInvitationsToPrepare": 5,
+    "weeklyCompletedCollaborationTarget": 1,
+    "fromWeek": 3
+  },
+  "privateInboxPolicy": "Public posts, mentions and replies only for current engagement-only scope. Private X inbox access was rejected by automatic approval review as outside this request; no retry without explicit authorization.",
+  "verifiedContributions": [
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@robertcyoung/post/DdO_bzlEe3V",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
+      "text": "The \u2018I\u2019ll need this later\u2019 tabs are the hard ones \ud83d\ude05 Try saving the link with one line about why you wanted it. That little note gives you a reason to return, instead of another mystery bookmark.",
+      "verifiedAt": "2026-09-13T14:18:46.048942-04:00",
+      "status": "published_verified",
+      "claimCheck": "General workflow suggestion/opinion, no product, external-product, numeric usage or personal-experience claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@itshinal.__/post/DdOzfeKjR1v",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
+      "text": "The three learning tabs are doing their job. The seven \u2018later\u2019 tabs need a graduation rule: turn one into a note or close it before opening another. The mystery twelve can face judgment immediately \ud83d\ude05",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "General workflow suggestion/opinion; no product claim, link or invented personal experience.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@fedor.zen/post/DdO9mkck5Cu",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
+      "text": "Duplicate detection gets tricky when the same URL has different history, form state, or login context. A warning with \u2018switch to the existing tab\u2019 would feel safer than silently merging them. Still a very good browser-design problem.",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "Browser-design opinion; no claim that Blanc implements duplicate detection or merging.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://x.com/insporadesign/status/2099174796961403203",
+      "url": "https://x.com/blancbrowser/status/2099202098302791948",
+      "text": "The curve makes the active tab feel like an object instead of a label. Lovely at this scale. The harder design test is what happens when 20 tabs arrive and the silhouette has to compress.",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "Interface critique of the visible concept; no product or external capability claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://x.com/bereknyei/status/2099183157715067293",
+      "url": "https://x.com/blancbrowser/status/2099202155836031022",
+      "text": "This is the most honest browser architecture diagram I\u2019ve seen. Restore Session is orchestration, Back is rollback, and that one tab nobody will close is production.",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "status": "published_verified",
+      "claimCheck": "Humorous commentary on the author\u2019s analogy; no product capability claim.",
+      "audienceInteraction": false
+    }
+  ],
+  "latestReplyOutcomeCheck": {
+    "observedAt": "2026-09-13T14:25:21-04:00",
+    "classification": "early_directional_only",
+    "xFollowers": 14,
+    "threadsFollowers": 22,
+    "replyAudienceInteractions": 0,
+    "xReplyViews": 2,
+    "nextReview": "2026-09-14 after 14:23 EDT",
+    "note": "Off-schedule totals are not the 17:00 daily checkpoint and cannot attribute growth to the replies."
+  },
+  "nextEngagementCandidateArtifact": "engagement-candidates-2026-09-14.json",
+  "openingBaseline": {
+    "observedAt": "2026-09-13T17:03:50-04:00",
+    "observationWindow": "Approximately 17:02\u201317:04 EDT",
+    "xFollowers": 15,
+    "threadsFollowers": 23,
+    "instagramFollowers": 102,
+    "facebookFollowers": 22,
+    "tiktokFollowers": 25,
+    "substackExternalSubscribers": 2,
+    "substackDisplayTotal": 3,
+    "substackAuthorExcluded": true,
+    "comparisonStatus": "opening_baseline_no_prior_comparable_checkpoint"
+  }
+}
