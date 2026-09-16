@@ -71,7 +71,7 @@
     "@cucumber/cucumber": "^13.2.1",
     "@electron/asar": "4.3.0",
     "@ghostery/adblocker": "^2.18.2",
-    "electron": "^44.3.0",
+    "electron": "^44.4.1",
     "electron-builder": "^26.15.3",
     "playwright": "^1.62.1",
     "sharp": "^0.35.3"
@@ -133,7 +133,7 @@
     "afterPack": "scripts/after-pack-app-icons.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
-      "bundleVersion": "1170",
+      "bundleVersion": "1171",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,
