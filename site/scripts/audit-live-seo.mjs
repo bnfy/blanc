@@ -1,3 +1,4 @@
+import { decodeAttribute } from './seo-url-utils.mjs';
 import { readFile } from 'node:fs/promises';
 
 const SITE_ORIGIN = new URL(process.env.SITE_ORIGIN || 'https://blancbrowser.com').origin;
@@ -10,10 +11,7 @@ const USER_AGENT = 'BlancSEOAudit/1.0 (+https://blancbrowser.com/)';
 const errors = [];
 const warnings = [];
 
-const decodeAttribute = (value = '') => value
-  .replaceAll('&quot;', '"')
-  .replaceAll('&#39;', "'")
-  .replaceAll('&amp;', '&');
+
 
 const capture = (html, patterns) => {
   for (const pattern of patterns) {

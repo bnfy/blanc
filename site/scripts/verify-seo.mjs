@@ -1,3 +1,4 @@
+import { internalPath } from './seo-url-utils.mjs';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -183,19 +184,8 @@ for (const file of htmlFiles) {
     const href = match[1];
     if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
 
-    let target;
-    if (href.startsWith('/')) {
-      target = href;
-    } else {
-      let absolute;
-      try {
-        absolute = new URL(href);
-      } catch {
-        continue;
-      }
-      if (absolute.origin !== SITE_ORIGIN) continue;
-      target = `${absolute.pathname}${absolute.search}${absolute.hash}`;
-    }
+    const target = internalPath(href, SITE_ORIGIN);
+    if (target === null) continue;
 
     const clean = target.split(/[?#]/)[0] || '/';
     const normalized = clean.length > 1 ? clean.replace(/\/$/, '') : clean;
