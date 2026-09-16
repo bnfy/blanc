@@ -1,0 +1,434 @@
+{
+  "date": "2026-09-12",
+  "metricScope": "cumulative at inspection; unequal post ages; no causal or daily growth attribution",
+  "channels": {
+    "x": [
+      {
+        "url": "https://x.com/blancbrowser/status/2098460671637688831",
+        "topic": "Sunrise",
+        "views": 2,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2094523083755266129",
+        "topic": "Mahjong",
+        "views": 83,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2093547853905871132",
+        "topic": "Quiet Tabs",
+        "views": 58,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2093354587633639537",
+        "topic": "Tab Count Confession",
+        "views": null,
+        "follows": null,
+        "note": "Topic/URL from ledger; fresh per-post metrics not captured"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2093185805489443190",
+        "topic": "Open tabs article",
+        "views": 42,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2093179290867155407",
+        "topic": "Nico",
+        "views": 12,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2092107881868886353",
+        "topic": "Oldest tab question",
+        "views": 13,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2092003832507011242",
+        "topic": "Same 12 Tabs",
+        "views": 46,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2091966668670935320",
+        "topic": "Lean and shredded",
+        "views": 24,
+        "follows": null,
+        "note": "Native profile visible views"
+      },
+      {
+        "url": "https://x.com/blancbrowser/status/2091909064322134184",
+        "topic": "Screen-share meme",
+        "views": 14,
+        "follows": null,
+        "note": "Native profile visible views"
+      }
+    ],
+    "threads": [
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DdJ8NoYkRI-",
+        "topic": "Sunrise",
+        "views": 36,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DcuwZP4Dqa6",
+        "topic": "Mahjong",
+        "views": 26,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DcmOQdijpqu",
+        "topic": "Quiet Tabs",
+        "views": 52,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DclpG-XDo7N",
+        "topic": "Tab Count Confession",
+        "views": 28,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DckZAIJjmj3",
+        "topic": "Nico",
+        "views": 26,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DcjvzX7gAML",
+        "topic": "Unfinished context",
+        "views": 23,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DcgjALAgPSw",
+        "topic": "Moving clutter",
+        "views": 73,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DccypNfjj-4",
+        "topic": "Oldest tab promise",
+        "views": 48,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/DccEF5CkYFA",
+        "topic": "Same 12 Tabs",
+        "views": 190,
+        "follows": null
+      },
+      {
+        "url": "https://www.threads.com/@blancbrowser/post/Dcbx-LBDrck",
+        "topic": "Lean and shredded",
+        "views": 26,
+        "follows": null
+      }
+    ],
+    "instagram": [
+      {
+        "url": "https://www.instagram.com/blancbrowser/p/DdJ8icUiTs4/",
+        "topic": "Sunrise",
+        "views": 5,
+        "follows": 0,
+        "reviewDepth": "content_and_native_insights"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/p/DcyQpyKlNTk/",
+        "topic": "Blocker",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/reel/DcvgaT_AXO7/",
+        "topic": "Mahjong",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/reel/DcmOhA2j-Yn/",
+        "topic": "Quiet Tabs",
+        "views": 409,
+        "follows": 0,
+        "reviewDepth": "content_and_native_insights"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/p/DclnaMqDoL1/",
+        "topic": "Tab Count Confession",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/reel/DckYq1aTwdI/",
+        "topic": "Nico",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/p/DccGgL1CXvg/",
+        "topic": "Same 12 Tabs",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/reel/DcbxmGApfx0/",
+        "topic": "Lean and shredded",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/p/DcavTyrFlhT/",
+        "topic": "Screen-share meme",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      },
+      {
+        "url": "https://www.instagram.com/blancbrowser/reel/DcZ6nSfzxvy/",
+        "topic": "Named Workspaces",
+        "views": null,
+        "follows": null,
+        "reviewDepth": "content_review_only; per-item insights incomplete"
+      }
+    ],
+    "facebook": [
+      {
+        "nativeContentId": "122115291087424497",
+        "views": 1,
+        "viewers": 1,
+        "engagement": 0,
+        "nativeNetFollows": 0,
+        "impressions": 1,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "1806621167015739",
+        "views": 0,
+        "viewers": 0,
+        "engagement": 0,
+        "nativeNetFollows": 0,
+        "impressions": 0,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122113356579424497",
+        "views": 1859,
+        "viewers": 1258,
+        "engagement": 402,
+        "nativeNetFollows": 11,
+        "impressions": 1828,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122113137483424497",
+        "views": 296,
+        "viewers": 275,
+        "engagement": 2,
+        "nativeNetFollows": 0,
+        "impressions": 280,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122112350805424497",
+        "views": 296,
+        "viewers": 268,
+        "engagement": 1,
+        "nativeNetFollows": 0,
+        "impressions": 274,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122112288663424497",
+        "views": 16,
+        "viewers": 7,
+        "engagement": 1,
+        "nativeNetFollows": 0,
+        "impressions": 8,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122112165447424497",
+        "views": 307,
+        "viewers": 271,
+        "engagement": 1,
+        "nativeNetFollows": 0,
+        "impressions": 283,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122112102039424497",
+        "views": 18,
+        "viewers": 6,
+        "engagement": 1,
+        "nativeNetFollows": 0,
+        "impressions": 8,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122111571117424497",
+        "views": 16,
+        "viewers": 7,
+        "engagement": 0,
+        "nativeNetFollows": 0,
+        "impressions": 10,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      },
+      {
+        "nativeContentId": "122111522715424497",
+        "views": 83,
+        "viewers": 53,
+        "engagement": 1,
+        "nativeNetFollows": 0,
+        "impressions": 29,
+        "comments": 0,
+        "source": "https://www.facebook.com/professional_dashboard/content/content_library/",
+        "period": "Last 28 days: Aug 15\u2013Sep 12",
+        "attribution": "organic/paid breakdown unavailable; do not assume organic"
+      }
+    ],
+    "tiktok": [
+      {
+        "url": "https://www.tiktok.com/@blancbrowser/video/7684333211522026783",
+        "topic": "Sunrise",
+        "views": 131,
+        "follows": null
+      },
+      {
+        "url": "https://www.tiktok.com/@blancbrowser/video/7680296306849434910",
+        "topic": "Mahjong",
+        "views": 98,
+        "follows": null
+      },
+      {
+        "url": "https://www.tiktok.com/@blancbrowser/video/7679181189717953823",
+        "topic": "Quiet Tabs",
+        "views": 69,
+        "follows": null
+      },
+      {
+        "url": "https://www.tiktok.com/@blancbrowser/video/7678915361558908190",
+        "topic": "Nico",
+        "views": 89,
+        "follows": null
+      },
+      {
+        "url": "https://www.tiktok.com/@blancbrowser/video/7677674629653089567",
+        "topic": "Lean and shredded",
+        "views": 4,
+        "follows": null
+      },
+      {
+        "url": "https://www.tiktok.com/@blancbrowser/video/7677184528087092510",
+        "topic": "Island",
+        "views": 365,
+        "follows": null
+      }
+    ],
+    "substack": [
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-334892004",
+        "topic": "Sunrise",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-327060988",
+        "topic": "Mahjong",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-326268718",
+        "topic": "Business model/privacy",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-324793829",
+        "topic": "Quiet Tabs",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-324549705",
+        "topic": "Tab Count Confession",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://blancbrowser.substack.com/p/your-open-tabs-are-not-a-personal",
+        "topic": "Open tabs article",
+        "views": 4,
+        "newSubscribers": 0
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-324262960",
+        "topic": "Nico",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-323996998",
+        "topic": "Agent-browser editorial",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-322052895",
+        "topic": "Emotional support tab",
+        "views": null,
+        "newSubscribers": null
+      },
+      {
+        "url": "https://substack.com/@blancbrowser/note/c-321870188",
+        "topic": "Same 12 Tabs",
+        "views": null,
+        "newSubscribers": null
+      }
+    ]
+  }
+}

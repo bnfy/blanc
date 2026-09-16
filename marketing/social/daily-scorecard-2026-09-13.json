@@ -1,0 +1,229 @@
+{
+  "date": "2026-09-13",
+  "timezone": "America/New_York",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "programDay": 1,
+  "comparisonStatus": "baseline_established_no_prior_comparable_checkpoint",
+  "scheduledFor": "2026-09-13T17:00:00-04:00",
+  "checkpointStatus": "completed",
+  "audience": {
+    "x": {
+      "current": 15,
+      "starting": 15,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://x.com/blancbrowser",
+      "dailyStatus": "baseline_established_not_yet_comparable",
+      "consecutiveMeasuredMisses": 0,
+      "trailingSevenDayNet": null,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-13T17:03:50-04:00",
+      "lastKnown": {
+        "value": 15,
+        "observedDuring": "Approximately 17:02\u201317:04 EDT; scheduled daily checkpoint",
+        "date": "2026-09-13"
+      }
+    },
+    "threads": {
+      "current": 23,
+      "starting": 23,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.threads.com/@blancbrowser",
+      "dailyStatus": "baseline_established_not_yet_comparable",
+      "consecutiveMeasuredMisses": 0,
+      "trailingSevenDayNet": null,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-13T17:03:50-04:00",
+      "lastKnown": {
+        "value": 23,
+        "observedDuring": "Approximately 17:02\u201317:04 EDT; scheduled daily checkpoint",
+        "date": "2026-09-13"
+      }
+    },
+    "instagram": {
+      "current": 102,
+      "starting": 102,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.instagram.com/blancbrowser/",
+      "dailyStatus": "baseline_established_not_yet_comparable",
+      "consecutiveMeasuredMisses": 0,
+      "trailingSevenDayNet": null,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-13T17:03:50-04:00",
+      "lastKnown": {
+        "value": 102,
+        "observedDuring": "Approximately 17:02\u201317:04 EDT; scheduled daily checkpoint",
+        "date": "2026-09-13"
+      }
+    },
+    "facebook": {
+      "current": 22,
+      "starting": 22,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.facebook.com/blancbrowser",
+      "dailyStatus": "baseline_established_not_yet_comparable",
+      "consecutiveMeasuredMisses": 0,
+      "trailingSevenDayNet": null,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-13T17:03:50-04:00",
+      "lastKnown": {
+        "value": 22,
+        "observedDuring": "Approximately 17:02\u201317:04 EDT; scheduled daily checkpoint",
+        "date": "2026-09-13"
+      }
+    },
+    "tiktok": {
+      "current": 25,
+      "starting": 25,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.tiktok.com/@blancbrowser",
+      "dailyStatus": "baseline_established_not_yet_comparable",
+      "consecutiveMeasuredMisses": 0,
+      "trailingSevenDayNet": null,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-13T17:03:50-04:00",
+      "lastKnown": {
+        "value": 25,
+        "observedDuring": "Approximately 17:02\u201317:04 EDT; scheduled daily checkpoint",
+        "date": "2026-09-13"
+      }
+    },
+    "substack": {
+      "current": 2,
+      "starting": 2,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "external_subscribers",
+      "source": "https://blancbrowser.substack.com/publish/subscribers",
+      "dailyStatus": "baseline_established_not_yet_comparable",
+      "consecutiveMeasuredMisses": 0,
+      "trailingSevenDayNet": null,
+      "cacheDelayMinutes": 23,
+      "observedAt": "2026-09-13T17:03:50-04:00",
+      "lastKnown": {
+        "value": 2,
+        "observedDuring": "Approximately 17:02\u201317:04 EDT; scheduled daily checkpoint",
+        "date": "2026-09-13"
+      }
+    }
+  },
+  "ownedContentSignals": null,
+  "meaningfulEngagementBaseline": null,
+  "siteVisits": null,
+  "downloadClicks": null,
+  "newPaidSpendUsd": 0,
+  "publicationCount": 0,
+  "asOf": "2026-09-13T17:03:50-04:00",
+  "monitoringRuns": [
+    {
+      "scheduledFor": "2026-09-13T09:00:00-04:00",
+      "attemptedAt": "2026-09-13T14:11:46.267011+00:00",
+      "mode": "inbound_review",
+      "status": "unavailable_browser_access",
+      "blockerCode": "mac_locked_brave_unavailable",
+      "nextAction": "Retry logged-in Brave access at the next scheduled run or after owner unlock.",
+      "ownerActionNotifiedAt": "2026-09-12T21:03:06.448012+00:00",
+      "suppressDuplicateBlockerNotifications": true,
+      "notificationDecision": "suppressed_unchanged_blocker",
+      "accountChecksCompleted": 0,
+      "draftsPrepared": 0,
+      "publicActions": 0
+    },
+    {
+      "attemptedAt": "2026-09-13T14:22:56-04:00",
+      "mode": "public_engagement",
+      "status": "completed_daily_contribution_limit",
+      "accountChecksCompleted": 2,
+      "publicActions": 5,
+      "coverage": [
+        "X visible mentions",
+        "Threads activity",
+        "Threads browser feed and focused public search",
+        "X focused public search"
+      ],
+      "remainingCoverage": [
+        "Instagram",
+        "Facebook",
+        "TikTok",
+        "Substack"
+      ],
+      "privateInbox": "not_accessed_auto_review_rejected_scope",
+      "artifact": "engagement-check-2026-09-13.json"
+    },
+    {
+      "scheduledFor": "2026-09-13T17:00:00-04:00",
+      "attemptedAt": "2026-09-13T17:03:50-04:00",
+      "mode": "audience_snapshot",
+      "status": "completed_baseline_established",
+      "accountChecksCompleted": 6,
+      "publicActions": 0,
+      "observationWindow": "Approximately 17:02\u201317:04 EDT",
+      "substackDisplayTotal": 3,
+      "substackExternalSubscribers": 2,
+      "substackAuthorExcluded": true,
+      "substackDataDelayMinutes": 23,
+      "comparison": "No prior comparable scheduled checkpoint; daily deltas and miss decisions remain unavailable."
+    }
+  ],
+  "engagementActions": [
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "author": "blancbrowser",
+      "parentUrl": "https://www.threads.com/@robertcyoung/post/DdO_bzlEe3V",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
+      "text": "The \u2018I\u2019ll need this later\u2019 tabs are the hard ones \ud83d\ude05 Try saving the link with one line about why you wanted it. That little note gives you a reason to return, instead of another mystery bookmark.",
+      "verifiedAt": "2026-09-13T14:18:46.048942-04:00",
+      "status": "published_verified",
+      "claimCheck": "General workflow suggestion/opinion, no product, external-product, numeric usage or personal-experience claim.",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "threads",
+      "type": "public_reply",
+      "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "url": "https://x.com/blancbrowser/status/2099202098302791948",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "audienceInteraction": false
+    },
+    {
+      "platform": "x",
+      "type": "public_reply",
+      "url": "https://x.com/blancbrowser/status/2099202155836031022",
+      "verifiedAt": "2026-09-13T14:22:56-04:00",
+      "audienceInteraction": false
+    }
+  ],
+  "offScheduleAudienceObservation": {
+    "observedAt": "2026-09-13T14:25:21-04:00",
+    "xFollowers": 14,
+    "threadsFollowers": 22,
+    "xReplyViews": 2,
+    "replyAudienceInteractions": 0,
+    "comparability": "Directional only; do not use for the scheduled daily delta or attribution."
+  },
+  "checkpointObservedAt": "2026-09-13T17:03:50-04:00",
+  "observationWindow": "Approximately 17:02\u201317:04 EDT"
+}

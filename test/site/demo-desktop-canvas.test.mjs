@@ -4,6 +4,9 @@ import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
 
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
+// macOS Safari's default link traversal is Option-Tab (Apple Safari User Guide).
+// https://support.apple.com/guide/safari/keyboard-shortcuts-and-gestures-cpsh003/mac
+const linkTab = process.env.BLANC_SITE_BROWSER === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab';
 let browser;
 before(async () => {
   browser = await (process.env.BLANC_SITE_BROWSER === 'webkit' ? webkit : chromium).launch();
@@ -12,6 +15,7 @@ after(async () => { await browser?.close(); });
 
 async function openPage(width, reducedMotion = 'reduce') {
   const page = await browser.newPage({ viewport: { width, height: 844 }, reducedMotion });
+  await page.route('**/*', route => new URL(route.request().url()).origin === new URL(baseURL).origin ? route.continue() : route.abort());
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(baseURL);
@@ -65,6 +69,27 @@ async function productColors(page, selector) {
   });
 }
 
+test('mobile demo captions use their content height without an empty spacer above them', async () => {
+  for (const width of [360, 390, 640]) {
+    const { page } = await openPage(width);
+    try {
+      const options = await page.locator('#demoChapterSelect option').evaluateAll(options => options.map(option => option.value));
+      for (const option of options) {
+        await page.locator('#demoChapterSelect').selectOption(option);
+        const geometry = await page.evaluate(() => {
+          const frame = document.querySelector('.demo-showcase').getBoundingClientRect();
+          const message = document.getElementById('demoHeroMessage').getBoundingClientRect();
+          const title = document.getElementById('demoHeadline').getBoundingClientRect();
+          return { blankHeight: message.height - title.height, topGap: title.top - frame.top, overflow: document.documentElement.scrollWidth > innerWidth };
+        });
+        assert.ok(geometry.blankHeight < 1, `${width}px chapter ${option}: no reserved blank caption space`);
+        assert.ok(geometry.topGap <= 34, `${width}px chapter ${option}: compact top padding, got ${geometry.topGap}`);
+        assert.equal(geometry.overflow, false);
+      }
+    } finally { await page.close(); }
+  }
+});
+
 test('Sunrise website colors never leak into light, private, or enlarged product replicas', async () => {
   const { page } = await openPage(1440);
   const light = {
@@ -93,6 +118,9 @@ test('Sunrise website colors never leak into light, private, or enlarged product
 
 test('website palette, text contrast, and ink footer symbols hold across pages and breakpoints', { timeout: 60000 }, async () => {
   const page = await browser.newPage({ reducedMotion: 'reduce', colorScheme: 'dark' });
+  // Routing disables HTTP caching, so every route assertion observes a fresh
+  // document response rather than WebKit's exposed 304 revalidation response.
+  await page.route('**/*', route => new URL(route.request().url()).origin === new URL(baseURL).origin ? route.continue() : route.abort());
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const routes = ['/', '/features', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors', '/privacy', '/terms',
@@ -164,11 +192,11 @@ test('gold marks remain visible with reduced motion and mobile navigation stays 
     assert.equal(await page.locator('.site-brand-mark').evaluate(el => getComputedStyle(el).opacity), '1');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await navBrand.focus();
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press(linkTab);
+    await page.keyboard.press(`Shift+${linkTab}`);
     assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').opacity), '1');
     assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').transitionDuration), '0s');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(linkTab);
     assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').opacity), '0');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ reducedMotion: 'reduce' });

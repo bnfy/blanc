@@ -1,4 +1,6 @@
 node_modules/
+# Rebuilt from pinned sources during npm install/ci; its manifest stays tracked.
+/src/main/assets/adblock-engine-seed.bin
 dist/
 # Ad-hoc local build output (`--dir=dist-local-…`). `dist/` does not cover these,
 # and unpacked electron-builder output runs ~330 MB per directory.
@@ -18,6 +20,8 @@ docs/press-outreach-plan.md
 # Raw benchmark output is machine- and session-specific. Commit the specific
 # report you intend to cite in public, not every exploratory run.
 bench/memory/results/
+bench/tab-import/.hf-cache/
+bench/tab-import/results/
 .astro/
 site/.parity/
 site/.parity-shots/

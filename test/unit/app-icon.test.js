@@ -48,9 +48,12 @@ function harness({ packaged = true, namedEmpty = false, pathEmpty = false } = {}
 }
 
 test('every selectable colorway has a named native icon stack', () => {
-  const selectable = ['sunrise', 'sunrise-dark', 'paper', 'ink'].sort();
+  const selectable = ['sunrise', 'sunrise-dark'].sort();
   assert.deepEqual(Object.keys(APP_ICON_ASSETS).sort(), selectable);
   assert.equal(new Set(Object.values(APP_ICON_ASSETS).map((x) => x.nativeName)).size, selectable.length);
+  for (const definition of Object.values(APP_ICON_ASSETS)) {
+    assert.equal(createIconDocument(definition).groups[0].layers[0]['image-name'], 'sunrise-mark.png');
+  }
 });
 
 test('packaging wires the Icon Composer source and multi-colorway compiler', () => {
@@ -180,13 +183,13 @@ test('uses the adaptive named icon in a packaged macOS 26+ build', () => {
   const h = harness();
   const result = applyDockAppIcon({
     ...h,
-    appIcon: 'ink',
+    appIcon: 'sunrise-dark',
     platform: 'darwin',
     systemVersion: '26.5.1',
   });
-  assert.deepEqual(result, { source: 'native', nativeName: 'Ink' });
+  assert.deepEqual(result, { source: 'native', nativeName: 'SunriseDark' });
   assert.equal(h.calls[0][0], 'named');
-  assert.equal(h.calls[0][1], 'Ink');
+  assert.equal(h.calls[0][1], 'SunriseDark');
   assert.equal(h.calls.some(([kind]) => kind === 'path'), false);
 });
 
@@ -195,13 +198,13 @@ test('uses the flat PNG in dev and on pre-Tahoe macOS', () => {
     const h = harness({ packaged });
     const result = applyDockAppIcon({
       ...h,
-      appIcon: 'ink',
+      appIcon: 'sunrise-dark',
       platform: 'darwin',
       systemVersion: version,
       iconsDirectory: '/icons',
     });
-    assert.deepEqual(result, { source: 'png', appIcon: 'ink' });
-    assert.deepEqual(h.calls[0], ['path', path.join('/icons', 'icon-ink.png')]);
+    assert.deepEqual(result, { source: 'png', appIcon: 'sunrise-dark' });
+    assert.deepEqual(h.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
   }
 });
 
@@ -210,7 +213,7 @@ test('uses an explicit candidate icon only for an unpackaged macOS preview', () 
   const dev = harness({ packaged: false });
   const devResult = applyDockAppIcon({
     ...dev,
-    appIcon: 'paper',
+    appIcon: 'sunrise',
     developmentPreviewPath: previewPath,
     platform: 'darwin',
   });
@@ -222,13 +225,13 @@ test('uses an explicit candidate icon only for an unpackaged macOS preview', () 
   const packaged = harness({ packaged: true });
   const packagedResult = applyDockAppIcon({
     ...packaged,
-    appIcon: 'paper',
+    appIcon: 'sunrise',
     developmentPreviewPath: previewPath,
     platform: 'darwin',
     systemVersion: '26.0',
   });
-  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Paper' });
-  assert.deepEqual(packaged.calls[0], ['named', 'Paper']);
+  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Icon' });
+  assert.deepEqual(packaged.calls[0], ['named', 'Icon']);
 });
 
 test('uses the dark candidate in dark appearance and keeps packaged adaptation native', () => {
@@ -286,15 +289,15 @@ test('falls back to the PNG if the packaged asset catalog cannot resolve a name'
   const h = harness({ namedEmpty: true });
   const result = applyDockAppIcon({
     ...h,
-    appIcon: 'paper',
+    appIcon: 'sunrise',
     platform: 'darwin',
     systemVersion: '27.0',
     iconsDirectory: '/icons',
   });
-  assert.deepEqual(result, { source: 'png', appIcon: 'paper' });
+  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise' });
   assert.deepEqual(h.calls.slice(0, 2), [
-    ['named', 'Paper'],
-    ['path', path.join('/icons', 'icon-paper.png')],
+    ['named', 'Icon'],
+    ['path', path.join('/icons', 'icon-sunrise.png')],
   ]);
 });
 

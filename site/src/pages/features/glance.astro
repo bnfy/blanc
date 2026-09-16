@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Glance: Browse Two Pages Side by Side | Blanc Browser"
+  description="Keep a reference tab beside your main page with Blanc Glance. Choose a local tab, resize the split, swap pages, or close the temporary view."
+  path="/features/glance"
+  page="feature-glance"
+  current="features"
+  ogImage="/feature-glance.png"
+  ogImageAlt="Two pages displayed together in the signed Blanc app, with Glance’s reference controls visible."
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Glance","item":"https://blancbrowser.com/features/glance"}]}
+  </script>
+<main class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">glance</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="glance-title">
+    <p class="section-kicker">glance</p>
+    <h1 id="glance-title">Keep a reference beside the page you’re using.</h1>
+    <p>Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.</p>
+  </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/glance.png" aria-label="View full Glance capture"><img src="/feature-captures/glance.png" width="1440" height="900" loading="lazy" decoding="async" alt="Two pages displayed together in the signed Blanc app, with Glance’s reference controls visible." /></a>
+    <figcaption>The main page and reference share one window. You choose the reference.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="glance-section-0">
+    <div><p class="section-kicker">choose your reference</p><h2 id="glance-section-0">Bring another open tab into view.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Choose explicitly</h3><p>Press ⌘⇧G on macOS or Ctrl+Shift+G on Windows and Linux, or choose View → Open Glance. Pick a tab from the current window; the picker stays within its local profile.</p></article>
+      <article><h3>Give each page the room it needs</h3><p>Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.</p></article>
+      <article><h3>Change, swap, or finish</h3><p>Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="glance-section-1">
+    <div><p class="section-kicker">stay with the page</p><h2 id="glance-section-1">A temporary view for the task in front of you.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Both visible pages stay available</h3><p>Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.</p></article>
+      <article><h3>Keep the choice local</h3><p>The picker uses tabs from this window and profile. It does not search history, Favorites, remote tabs, or another window.</p></article>
+    </div>
+  </section>
+  <aside class="truth-note" aria-labelledby="glance-note-title">
+    <p class="section-kicker">good to know</p><h2 id="glance-note-title">Glance is temporary.</h2>
+    <p>The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.</p>
+    <a class="text-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="glance" data-cta-position="related-feature">Keep related tabs in Named Groups <span aria-hidden="true">↗</span></a>
+  </aside>
+  <section class="feature-close" aria-labelledby="glance-close-title">
+    <p class="section-kicker">ready when you are</p><h2 id="glance-close-title">Make room for the way you browse.</h2>
+    <a class="cta" href="/download" data-track="feature_cta_click" data-feature="glance" data-cta-position="feature-close">download blanc</a>
+  </section>
+</main>
+</BaseLayout>

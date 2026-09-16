@@ -6,6 +6,7 @@ const path = require('node:path');
 const test = require('node:test');
 const { _electron } = require('playwright');
 const { scriptJson } = require('../helpers/html-encoding');
+const { callTestHook } = require('../desktop/support/test-hook-call');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const CLIENT_HINTS = [
@@ -262,4 +263,112 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
     await app.evaluate((electron, id) => electron.webContents.fromId(id)?.close(), callbackWc.id);
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
+});
+
+test('external app login callbacks from tabs, redirects, frames and OAuth popups', { timeout: 90_000 }, async (t) => {
+  const server = await listen((req, res) => {
+    const url = new URL(req.url, 'http://localhost');
+    if (url.pathname === '/redirect') {
+      res.writeHead(302, { Location: 'claude://callback?code=test-only&state=opaque' });
+      return res.end();
+    }
+    sendHtml(res, `<a id="direct" href="claude://callback?code=test-only&state=opaque">Return to app</a>
+      <a id="redirect" href="/redirect">Redirect to app</a>
+      <button id="popup" onclick="window.open('/callback', 'oauth', 'popup,width=520,height=680')">Popup</button>
+      <button id="tab" onclick="window.open('/callback', '_blank')">New tab</button>
+      <button id="frame" onclick="document.querySelector('iframe').src='/redirect'">Frame callback</button>
+      <button id="newwindow" onclick="window.open('claude://callback?code=test-only&state=opaque')">App window</button>
+      <button id="close-after-callback" onclick="location.href='claude://callback?code=test-only&state=opaque'; setTimeout(close, 20)">Close after callback</button>
+      <iframe></iframe>`);
+  });
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-app-login-'));
+  let app;
+  t.after(async () => {
+    if (app) await app.close();
+    await server.close();
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+    fs.rmSync(`${userDataDir}-Dev`, { recursive: true, force: true });
+  });
+  app = await _electron.launch({
+    args: [REPO_ROOT, `--user-data-dir=${userDataDir}`, `${server.base}/login`],
+    env: { ...process.env, BLANC_TEST: '1' },
+  });
+  const root = await waitForWebContents(app, { pathname: '/login' });
+  assert.ok(root);
+
+  // The built-in 1Password shortcut must stay on the focused OAuth window.
+  // Targeting the opener steals focus and can make Google dismiss the popup.
+  await clickWebContents(app, root.id, '#popup');
+  const fillPopup = await waitForWebContents(app, { pathname: '/callback' });
+  assert.ok(fillPopup, '1Password target popup should open');
+  const popupTarget = await callTestHook(app, 'onePasswordTarget');
+  assert.equal(popupTarget.kind, 'popup');
+  assert.equal(popupTarget.webContentsId, fillPopup.id);
+  assert.equal(popupTarget.url, fillPopup.url);
+  await app.evaluate((electron, id) => electron.webContents.fromId(id)?.close(), fillPopup.id);
+
+  // Stub only native UI/OS effects. Chromium navigation and production
+  // handlers remain real; no installed application or account is touched.
+  await app.evaluate((electron) => {
+    globalThis.appHandoffTest = { prompts: [], launches: [], lookups: [], response: 0, promptDelay: 0 };
+    electron.app.getApplicationNameForProtocol = (url) => {
+      globalThis.appHandoffTest.lookups.push(url);
+      return 'Claude';
+    };
+    electron.dialog.showMessageBox = async (_, options) => {
+      globalThis.appHandoffTest.prompts.push(options);
+      await new Promise((resolve) => setTimeout(resolve, globalThis.appHandoffTest.promptDelay));
+      return { response: globalThis.appHandoffTest.response };
+    };
+    electron.shell.openExternal = async (url) => { globalThis.appHandoffTest.launches.push(url); };
+  });
+  const snapshot = () => app.evaluate(() => globalThis.appHandoffTest);
+  async function waitForLaunch(count) {
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      const state = await snapshot();
+      if (state.launches.length >= count) return state;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return snapshot();
+  }
+  let count = 0;
+  for (const selector of ['direct', 'redirect', 'frame', 'newwindow']) {
+    await clickWebContents(app, root.id, `#${selector}`);
+    const state = await waitForLaunch(++count);
+    assert.equal(state.launches.length, count, `${selector} callback should launch once`);
+    assert.equal(state.prompts.length, count, `${selector} callback should prompt once`);
+  }
+  for (const mode of ['popup', 'tab']) {
+    await clickWebContents(app, root.id, `#${mode}`);
+    const child = await waitForWebContents(app, { pathname: '/callback' });
+    assert.ok(child, `${mode} should open`);
+    for (const selector of ['direct', 'redirect']) {
+      await clickWebContents(app, child.id, `#${selector}`);
+      const state = await waitForLaunch(++count);
+      assert.equal(state.launches.length, count, `${mode} ${selector} callback should launch once`);
+    }
+    await app.evaluate((electron, id) => electron.webContents.fromId(id)?.close(), child.id);
+  }
+  // OAuth completion pages often close their popup after attempting the app
+  // callback. Delay the native confirmation long enough to prove that the
+  // captured callback no longer depends on that WebContents staying alive.
+  await clickWebContents(app, root.id, '#popup');
+  const closingChild = await waitForWebContents(app, { pathname: '/callback' });
+  assert.ok(closingChild, 'self-closing popup should open');
+  await app.evaluate(() => { globalThis.appHandoffTest.promptDelay = 150; });
+  await clickWebContents(app, closingChild.id, '#close-after-callback');
+  const afterClose = await waitForLaunch(++count);
+  assert.equal(afterClose.launches.length, count, 'callback should survive its popup closing');
+  const state = await snapshot();
+  assert.ok(state.launches.every((url) => url === 'claude://callback?code=test-only&state=opaque'));
+  assert.ok(state.lookups.every((url) => url === 'claude://'));
+  assert.doesNotMatch(JSON.stringify(state.prompts), /test-only|opaque/);
+  await app.evaluate(() => {
+    globalThis.appHandoffTest.response = 1;
+    globalThis.appHandoffTest.promptDelay = 0;
+  });
+  await clickWebContents(app, root.id, '#direct');
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal((await snapshot()).launches.length, count, 'cancel should not launch an app');
 });

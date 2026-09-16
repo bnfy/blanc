@@ -1,0 +1,200 @@
+{
+  "preparedAt": "2026-09-13T14:28:20-04:00",
+  "lastReviewedAt": "2026-09-13T14:45:21-04:00",
+  "intendedWindow": "2026-09-14 morning",
+  "status": "revalidate_before_send",
+  "selectionRule": "Re-read the full thread, confirm it is still active and useful, check for prior Blanc participation, and choose no more than five of these candidates for the local day. Skip rather than force a weak reply.",
+  "candidates": [
+    {
+      "id": "E20260914-01",
+      "platform": "substack",
+      "author": "Sophie M. Barrow | Author",
+      "url": "https://substack.com/@sophiembarrow/note/c-336052003",
+      "observedAge": "7 hours",
+      "observedSignals": "3 likes; no comment count displayed in the latest search result",
+      "priority": 8,
+      "audienceFit": "Browser choice framed through visual personality and delight",
+      "proposedReply": "Delight is a legitimate browser requirement. People spend too many hours inside one for its personality to be irrelevant.",
+      "claimCheck": "Design opinion only. Do not endorse or repeat the note's privacy accusation about another browser.",
+      "threadReview": "Full note reviewed; no replies and no prior Blanc participation. This is a clean first-reply opening, although current reach is modest.",
+      "status": "candidate_revalidate"
+    },
+    {
+      "id": "E20260914-02",
+      "platform": "substack",
+      "author": "Felix",
+      "url": "https://substack.com/@byfelix/note/c-336048711",
+      "observedAge": "6 hours",
+      "observedSignals": "7 likes and 1 reply on the note",
+      "priority": 5,
+      "audienceFit": "Web designer discussing minimalism, directly aligned with Blanc's design audience",
+      "proposedReply": "Minimalism is a brutal test: if a removed control had a job, that job still needs a home. The good version makes the next action obvious; the bad version makes the interface beautiful and the user lost.",
+      "claimCheck": "Design opinion only; no Blanc capability claim.",
+      "threadReview": "The existing reply discusses inspiration overload and AI-generated animation pressure; Felix answers that minimal designs can look boring beside AI animation. Blanc's proposed reply makes a distinct point about preserving the function of removed controls.",
+      "status": "candidate_revalidate"
+    },
+    {
+      "id": "E20260914-03",
+      "platform": "instagram",
+      "author": "krishnachaytanyaa",
+      "url": "https://www.instagram.com/p/DdBvp9Hhi_u/",
+      "observedAge": "5 days",
+      "observedSignals": "87 likes, 1 repost and no comments on the full post",
+      "priority": 6,
+      "audienceFit": "Developer-facing explanation of browser renderer isolation and tab memory",
+      "proposedReply": "Process isolation is a good tradeoff; the waste comes from keeping every inactive renderer alive forever. Blanc quiets only eligible inactive tabs and restores or reloads them when you return, while tabs with active or uncertain state stay awake.",
+      "claimCheck": "Verified against immutable public tag v1.16.2 at 0cced924b458496869295c711162c315a4d5da29. src/main/tab-sleep.js excludes active, loading, media, capture, pinned and otherwise ineligible tabs; src/main/main.js sleepTab refuses dirty or uncertain state and wakeTab restores or reloads the page. docs/release-incidents/2026-09-11-v1.16.2.md proves the tag is public. Preserve every qualification.",
+      "claimVerdict": "verified",
+      "claimEvidence": [
+        "git show v1.16.2:src/main/tab-sleep.js — sleepCandidates eligibility exclusions",
+        "git show v1.16.2:src/main/main.js — sleepTab dirty-state refusal and wakeTab restore/reload paths",
+        "docs/release-incidents/2026-09-11-v1.16.2.md — public tag and artifact evidence"
+      ],
+      "threadReview": "Full post reviewed; no comments and no prior Blanc participation. Strongest Instagram reach found in the live browser-tabs results, but its five-day age keeps it behind fresher conversations.",
+      "status": "candidate_revalidate_age_risk"
+    },
+    {
+      "id": "E20260914-04",
+      "platform": "instagram",
+      "author": "marketing.socioshoot",
+      "url": "https://www.instagram.com/p/DdI8yQiAG3k/",
+      "observedAge": "2 days",
+      "observedSignals": "12 likes and no comments on the full post",
+      "priority": 10,
+      "audienceFit": "Tab-management workflow for people with 25 open tabs",
+      "proposedReply": "The hard part isn’t closing tabs; it’s trusting you can recover why each one was open. A list preserves the URLs. A short note about the intent preserves the task.",
+      "claimCheck": "Workflow observation only; no claim about OneTab or Blanc.",
+      "threadReview": "Full post reviewed; no comments and no prior Blanc participation. The source is a marketing agency promoting OneTab, so use only if stronger first-party conversations do not appear.",
+      "status": "candidate_revalidate_fallback"
+    },
+    {
+      "id": "E20260914-05",
+      "platform": "tiktok",
+      "author": "Dr Grace France | uni tips",
+      "url": "https://www.tiktok.com/@drgfrance/video/7683232618233613590",
+      "targetReplyAuthor": "home99fam",
+      "targetReplyText": "How do you do this? sorry im old! 😂",
+      "observedAge": "5 days",
+      "observedSignals": "335 likes, 197 saves, 43 shares and 8 comments; the how-to question is unanswered",
+      "priority": 4,
+      "audienceFit": "Students and knowledge workers asking how to organize research tabs",
+      "proposedReply": "On desktop Chrome: right-click any tab → Add tab to group → New group, then name it. Drag other tabs into it; click the name to collapse it. Tip: name the outcome (‘essay draft’) rather than the topic (‘research’).",
+      "claimCheck": "Chrome steps verified against current first-party Google Chrome Help: https://support.google.com/chrome/answer/2391819?co=GENIE.Platform%3DDesktop&hl=en-uk. The naming tip is Blanc's workflow advice.",
+      "threadReview": "Full video and all eight visible comments reviewed. The creator demonstrates a named Chrome tab group. The target commenter asks for instructions; no creator or audience answer and no prior Blanc participation were visible.",
+      "status": "candidate_revalidate_unanswered"
+    },
+    {
+      "id": "E20260914-06",
+      "platform": "facebook",
+      "author": "Navarro Techonology",
+      "url": "https://www.facebook.com/navarrotech/posts/pfbid0N3AeWi6vYGCs3pLKg9PWY7MgBYFBCeQy8gwhapASHn4cds24JJY1TS5Mq269MNvjl",
+      "observedAge": "5 hours",
+      "observedSignals": "No reactions and no comments on the full public post",
+      "priority": 7,
+      "audienceFit": "Remote workers and small-business users discussing browser memory pressure",
+      "proposedReply": "The real UX test is whether you trust the tab will come back. Blanc quiets eligible inactive tabs, while loading, playing, capturing, pinned, or uncertain work stays awake. Memory saving shouldn’t make people afraid to return to a tab.",
+      "claimCheck": "Blanc wording is verified against immutable public tag v1.16.2 at 0cced924b458496869295c711162c315a4d5da29 using src/main/tab-sleep.js and src/main/main.js. Do not repeat or endorse the post's unsupported 'up to 30%' Chrome claim.",
+      "claimVerdict": "verified",
+      "threadReview": "Full post reviewed; no comments, reactions or prior Blanc participation. It is very fresh but currently has no demonstrated distribution, so retain behind higher-signal opportunities and recheck for activity.",
+      "status": "candidate_revalidate_low_signal"
+    },
+    {
+      "id": "E20260914-07",
+      "platform": "x",
+      "author": "mohsen (@eLzcpd5tGm3oEC9)",
+      "url": "https://x.com/eLzcpd5tGm3oEC9/status/2099183925935411300",
+      "observedAge": "about 1 hour",
+      "observedSignals": "32 views, no replies, likes, reposts or bookmarks",
+      "priority": 3,
+      "audienceFit": "Independent developer building a Rust resource-priority tool for designers using Chrome and Photoshop",
+      "proposedReply": "We hit the same boundary with Blanc’s quiet tabs: ‘background’ isn’t always ‘idle.’ Do you exempt media playback, screen capture, downloads, or recent input before applying EcoQoS? Those cases decide whether resource saving feels invisible or disruptive.",
+      "claimCheck": "The limited Blanc reference is verified against public v1.16.2: quiet-tab policy and runtime guards protect media, capture, loading, dirty/uncertain and otherwise ineligible tabs. The question makes no claim about the author's implementation beyond the EcoQoS behavior stated in the post.",
+      "claimVerdict": "verified",
+      "threadReview": "Full post reviewed. The author invites feedback on a zero-config Windows daemon that lowers background process priority. No replies or prior Blanc participation were visible. Draft length is 254 characters, within X's standard post limit.",
+      "status": "candidate_revalidate_fresh"
+    },
+    {
+      "id": "E20260914-08",
+      "platform": "x",
+      "author": "@bluecow (@BLUECOW009)",
+      "url": "https://x.com/BLUECOW009/status/2097119824388194668",
+      "observedAge": "6 days",
+      "observedSignals": "2,808 views, 23 replies, 33 likes and 3 bookmarks",
+      "priority": 9,
+      "audienceFit": "Explicit request for a Chrome alternative because of RAM and CPU use",
+      "proposedReply": "If CPU is the real bottleneck, Blanc is worth testing with the same tabs. It quiets eligible inactive tabs, while tabs with active or uncertain work stay awake. Compare your system monitor before and after—the useful answer is your own workload, not a benchmark.",
+      "claimCheck": "Verified against public v1.16.2 quiet-tab eligibility and wake behavior. This invites a user-controlled comparison and makes no unsupported claim that Blanc will beat Chrome on their workload.",
+      "claimVerdict": "verified",
+      "threadReview": "Full visible thread reviewed. The author engaged with several recommendations and clarified CPU is the main problem. A conversation-scoped X search returned no Blanc reply. Age and 23 existing replies make this an alternate rather than a top-five choice.",
+      "status": "candidate_revalidate_age_and_crowding"
+    },
+    {
+      "id": "E20260914-09",
+      "platform": "threads",
+      "author": "destinypetrel",
+      "url": "https://www.threads.com/@destinypetrel/post/DdPJF64mCko",
+      "observedAge": "49 minutes",
+      "observedSignals": "85 views, 1 like and no replies",
+      "priority": 1,
+      "audienceFit": "Explicit request for a browser with no built-in AI and ordinary web results",
+      "proposedReply": "Blanc is an open-source desktop browser with no built-in AI assistant or agent layer. You choose the search engine, so result quality still depends on that provider—but the browser itself isn’t inserting AI into the experience.",
+      "claimCheck": "Verified against public v1.16.2 and docs/marketing-claims.md. The exact tag's site states that Blanc has no built-in AI assistant, copilot or page summarizer; its Settings expose the user's search-engine choice. package.json at v1.16.2 records MIT licensing. Do not imply that Blanc controls or removes AI content from a selected search provider's results.",
+      "claimVerdict": "verified",
+      "threadReview": "Full thread reviewed; no replies and no prior Blanc participation. This is the clearest same-day product-fit request found and should be revalidated first.",
+      "status": "candidate_revalidate_fresh_direct_fit"
+    },
+    {
+      "id": "E20260914-10",
+      "platform": "x",
+      "author": "Harshit Yadav (@HxrshitYadav)",
+      "url": "https://x.com/HxrshitYadav/status/2098996819661611106",
+      "observedAge": "about 14 hours",
+      "observedSignals": "113 views, 1 reply, no likes, reposts or bookmarks",
+      "priority": 2,
+      "audienceFit": "Developer explicitly asking for a restrained desktop browser with blocking and no AI chatbot or attention-seeking extras",
+      "proposedReply": "That ‘just a browser’ line is exactly the design constraint behind Blanc: an open-source desktop browser with built-in blocking and no AI assistant. Different implementation and tradeoffs from Helium, but the same belief that the browser should stay out of the way.",
+      "claimCheck": "Verified against public v1.16.2 and docs/marketing-claims.md: Blanc is an MIT-licensed desktop browser, ships built-in ad/tracker blocking, and has no built-in AI assistant or agent layer. The final sentence is a design-positioning statement, not a comparative product claim. Do not claim Blanc is a Helium fork or identical substitute.",
+      "claimVerdict": "verified",
+      "claimEvidence": [
+        "git show v1.16.2:package.json — MIT license and desktop Electron product",
+        "git show v1.16.2:site/src/pages/index.astro — built-in blocking and no built-in AI assistant",
+        "docs/marketing-claims.md — approved AI and blocking claim boundaries"
+      ],
+      "threadReview": "Full post and its only visible reply reviewed. The author says he wants ‘just a browser’ and highlights Chromium, blocking, extensions and no AI chatbot; the sole reply is a probable-spam VPN promotion. A conversation-scoped X search returned no prior Blanc participation.",
+      "status": "candidate_revalidate_direct_fit"
+    }
+  ],
+  "publicInboundReview": {
+    "observedAt": "2026-09-13T14:37:54-04:00",
+    "tiktok": "No fresh unanswered public reply. The newest relevant signal is a like on an earlier Blanc comment.",
+    "instagram": "No fresh unanswered public reply. New activity is a post like; the suggested thread is unrelated to browsing.",
+    "facebook": "The only recent mention is a three-day-old acknowledgment sticker beneath Blanc's existing browser-security comment; no reply is useful.",
+    "privateInboxes": "Not accessed; this review remained within public engagement scope."
+  },
+  "discardedDuringReview": [
+    {
+      "url": "https://www.instagram.com/p/DdDyk-SiKpf/",
+      "reason": "Four days old with 3 likes and no comments; weaker reach and audience fit than the retained candidates."
+    },
+    {
+      "url": "https://www.instagram.com/p/DdB5GJqDTfr/",
+      "reason": "Five days old with 4 likes, no comments and a broad telecom account audience."
+    },
+    {
+      "url": "https://www.instagram.com/p/Dcq0uFUK_Je/",
+      "reason": "Two weeks old with 539 comments; Blanc has already liked it and a new reply would be buried."
+    },
+    {
+      "url": "https://www.threads.com/@theinfiniteaffinity/post/DdO8_aKoDgq",
+      "reason": "The request is specifically for a phone browser; Blanc is desktop-only."
+    },
+    {
+      "url": "https://www.threads.com/@xynetak/post/DdDfuDXEVrL",
+      "reason": "The request concerns native iPhone search engines and mobile browser apps; Blanc is desktop-only."
+    },
+    {
+      "url": "https://www.threads.com/@technologypublicmy/post/DdOiqNoD0Wc",
+      "reason": "The post asks about must-have extensions. Promoting Blanc there would not answer the author's question."
+    }
+  ]
+}

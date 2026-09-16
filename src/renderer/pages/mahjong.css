@@ -1491,7 +1491,9 @@
 .mj-win {
   position: fixed;
   z-index: 40;
-  inset: 50% auto auto 50%;
+  /* Viewport units keep the card centered even when the page's vertical
+     scrollbar briefly changes the fixed-position containing block width. */
+  inset: 50% auto auto 50vw;
   transform: translate(-50%, -50%);
   width: min(520px, calc(100% - 28px));
   max-height: calc(100% - 28px);
@@ -1573,6 +1575,12 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.055em;
   text-shadow: 0 1px 0 #fff, 0 3px 0 #a97925, 0 7px 0 rgba(46, 30, 6, 0.72), 0 13px 24px rgba(0, 8, 6, 0.58), 0 0 30px rgba(242, 196, 79, 0.32);
+}
+.mj-win-score-separator {
+  color: #f3deb0;
+  -webkit-text-fill-color: #f3deb0;
+  -webkit-text-stroke: 0.35px rgba(91, 57, 8, 0.52);
+  text-shadow: 0 3px 8px rgba(46, 30, 6, 0.52);
 }
 .mj-win-unit { margin-top: 11px; color: var(--mj-muted); font: 720 10px/1 var(--font-mono); letter-spacing: 0.17em; text-transform: uppercase; }
 .mj-win-best {

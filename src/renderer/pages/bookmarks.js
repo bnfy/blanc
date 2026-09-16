@@ -1,11 +1,19 @@
 (async () => {
   const list = document.getElementById('list');
+  const bringTabsBtn = document.getElementById('bringTabsBtn');
   const importBtn = document.getElementById('importBtn');
   const importStatus = document.getElementById('importStatus');
   const browserSourceWrap = document.getElementById('browserSourceWrap');
   const browserSource = document.getElementById('browserSource');
   const browserImportBtn = document.getElementById('browserImportBtn');
   const browserFindBtn = document.getElementById('browserFindBtn');
+
+  // This stays inside the existing utility sheet. Main's will-navigate guard
+  // permits only allowlisted blanc:// utility pages and updates the sheet's
+  // owned URL before this document is replaced.
+  bringTabsBtn.addEventListener('click', () => {
+    window.location.href = 'blanc://tab-import/';
+  });
 
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   function importSummary(added, skipped) {
@@ -30,7 +38,9 @@
   // Discovery reads other browsers' profile directories, so it never runs on
   // its own — only when the person explicitly asks Blanc to look.
   async function loadBrowserSources() {
-    const sources = await window.bowserPages.bookmarks.browserSources();
+    const result = await window.bowserPages.bookmarks.browserSources();
+    const sources = result?.sources ?? [];
+    const unavailable = result?.unavailable ?? [];
     browserSource.replaceChildren();
     for (const source of sources) {
       const option = document.createElement('option');
@@ -38,11 +48,28 @@
       option.textContent = source.label;
       browserSource.append(option);
     }
-    const available = sources.length > 0;
-    browserSourceWrap.hidden = !available;
-    browserImportBtn.hidden = !available;
-    browserFindBtn.hidden = available;
-    return available;
+    for (const entry of unavailable) {
+      const option = document.createElement('option');
+      option.disabled = true;
+      option.textContent = `${entry.label} — permission needed`;
+      browserSource.append(option);
+    }
+    const browserGuidance = document.getElementById('browserImportGuidance');
+    if (browserGuidance) {
+      if (unavailable.length) {
+        browserGuidance.textContent = unavailable[0].guidance ?? '';
+        browserGuidance.hidden = false;
+      } else {
+        browserGuidance.textContent = '';
+        browserGuidance.hidden = true;
+      }
+    }
+    const hasSelectable = sources.length > 0;
+    const hasBlocked = unavailable.length > 0;
+    browserSourceWrap.hidden = !hasSelectable && !hasBlocked;
+    browserImportBtn.hidden = !hasSelectable;
+    browserFindBtn.hidden = hasSelectable || hasBlocked;
+    return hasSelectable;
   }
 
   browserFindBtn.addEventListener('click', async () => {

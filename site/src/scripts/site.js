@@ -6,6 +6,18 @@ const openAIAttribution = (() => {
   const validOppref = (value) =>
     typeof value === 'string' && value.length > 0 && value.length <= MAX_OPPREF_LENGTH;
 
+  const clearDownloadReference = (link) => {
+    try {
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin || !url.pathname.startsWith('/dl/')) return null;
+      if (url.searchParams.has('oppref')) {
+        url.searchParams.delete('oppref');
+        link.href = url.href;
+      }
+      return url;
+    } catch { return null; }
+  };
+
   let pendingOppref = null;
   try {
     const landingOppref = new URL(location.href).searchParams.get('oppref');
@@ -29,15 +41,21 @@ const openAIAttribution = (() => {
     deny() {
       pendingOppref = null;
       try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* No stored attribution. */ }
+      // A prior click may have opened another tab or a download, leaving this
+      // page's link decorated. Withdrawal must also clean that live URL.
+      document.querySelectorAll('a[data-download-cta], a[data-download-link]')
+        .forEach(clearDownloadReference);
     },
     decorateDownload(link) {
+      // Remove old attribution before reading storage, which may now be denied
+      // or unavailable. Add it back only for a currently consented click.
+      const url = clearDownloadReference(link);
+      if (!url) return;
       try {
         if (localStorage.getItem(CONSENT_KEY) !== 'granted') return;
         const oppref = sessionStorage.getItem(STORAGE_KEY);
         if (!validOppref(oppref)) return;
 
-        const url = new URL(link.href, location.href);
-        if (url.origin !== location.origin || !url.pathname.startsWith('/dl/')) return;
         url.searchParams.set('oppref', oppref);
         link.href = url.href;
       } catch { /* Attribution must never affect the download path. */ }
@@ -120,6 +138,24 @@ const openAIAttribution = (() => {
     if (link) openAIAttribution.decorateDownload(link);
   });
 })();
+
+// Cloudflare Web Analytics: a cookieless page-view beacon with no persistent
+// identifier, so it sits under the same restricted-measurement basis as the
+// denied-state GA4 pings and needs no consent gate. It only loads on non-legal
+// pages because site.js itself is gated by BaseLayout's `analytics` prop.
+// The token is public (it names the site, not an account); leave it empty to
+// ship without the beacon. EasyPrivacy blocks cloudflareinsights.com, so Blanc
+// and other blocker users are never counted — it measures the non-blocking share.
+try {
+  const CF_BEACON_TOKEN = '5bb5a98e48364f51b4fea600381c2a0c';
+  if (CF_BEACON_TOKEN) {
+    const beacon = document.createElement('script');
+    beacon.type = 'module';
+    beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    beacon.setAttribute('data-cf-beacon', JSON.stringify({ token: CF_BEACON_TOKEN }));
+    document.head.appendChild(beacon);
+  }
+} catch {}
 
 // GA4 Consent Mode: gtag loads with analytics_storage denied by default.
 // Cookieless pings give GA4 modelling signal; full measurement requires opt-in.

@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>helper</title>
+</head>
+<body>
+  <button id="go">capture</button>
+  <script>
+    const go = document.getElementById('go');
+    window.audioProbe.on('audio-probe:run', async (job) => {
+      const result = { name: job.name, api: job.api };
+      try {
+        let stream;
+        if (job.api === 'getDisplayMedia') {
+          stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        } else {
+          stream = await navigator.mediaDevices.getUserMedia(job.constraints);
+        }
+        result.tracks = stream.getTracks().map((t) => {
+          const s = t.getSettings();
+          return {
+            kind: t.kind,
+            readyState: t.readyState,
+            muted: t.muted,
+            label: t.label,
+            width: s.width || null,
+            height: s.height || null,
+            displaySurface: s.displaySurface || null,
+          };
+        });
+        const audioTrack = stream.getAudioTracks()[0];
+        if (audioTrack) {
+          const ctx = new AudioContext();
+          await ctx.resume();
+          const src = ctx.createMediaStreamSource(new MediaStream([audioTrack]));
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 2048;
+          src.connect(analyser);
+          const buf = new Float32Array(analyser.fftSize);
+          let peak = 0;
+          const started = performance.now();
+          while (performance.now() - started < 1500) {
+            analyser.getFloatTimeDomainData(buf);
+            for (const sample of buf) peak = Math.max(peak, Math.abs(sample));
+            await new Promise((r) => setTimeout(r, 40));
+          }
+          result.helperLocalPeak = peak;
+          result.helperAudioContextState = ctx.state;
+          await ctx.close();
+        }
+        const pc = new RTCPeerConnection({ iceServers: [] });
+        for (const track of stream.getTracks()) pc.addTrack(track, stream);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        if (pc.iceGatheringState !== 'complete') {
+          await new Promise((resolve) => {
+            pc.addEventListener('icegatheringstatechange', () => {
+              if (pc.iceGatheringState === 'complete') resolve();
+            });
+          });
+        }
+        window.audioProbe.send('audio-probe:helper-offer', {
+          name: job.name,
+          sdp: pc.localDescription.sdp,
+        });
+        window.audioProbe.on('audio-probe:page-answer', async (msg) => {
+          if (msg.name !== job.name) return;
+          await pc.setRemoteDescription({ type: 'answer', sdp: msg.sdp });
+        });
+        window.__probeCleanup = () => {
+          for (const t of stream.getTracks()) t.stop();
+          pc.close();
+        };
+        result.ok = true;
+      } catch (err) {
+        result.ok = false;
+        result.error = `${err.name}: ${err.message}`;
+      }
+      window.audioProbe.send('audio-probe:helper-result', result);
+    });
+    go.addEventListener('click', () => {
+      window.audioProbe.send('audio-probe:clicked', { href: location.href });
+    });
+  </script>
+</body>
+</html>

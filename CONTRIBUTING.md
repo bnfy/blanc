@@ -37,6 +37,13 @@ reproduction steps where useful, and add regression coverage for behavior or
 security fixes. Report the checks actually run and any remaining platform
 limitations. Do not mark an unperformed check as passed.
 
+A major change alters a user-visible feature, trust boundary, external
+interface, stored-data format, permission or authentication flow, dependency
+set, packaging/signing path, or privileged workflow. It must add or update an
+automated test that exercises the changed behavior and its important failure
+case. If automation cannot exercise an affected platform behavior, document
+the reason and the required affected-machine check in the pull request.
+
 The common local checks are:
 
 ```sh
@@ -54,8 +61,13 @@ Linux behavior.
 
 For website changes, run `npm ci --prefix site` and `npm run site:build`.
 For dependency changes, commit the corresponding lockfile and run
-`npm run compliance:build` followed by `npm run compliance:check`; include
-updated generated compliance files. Do not hand-edit generated inventories.
+`npm run security:dependencies`, then `npm run compliance:build` followed by
+`npm run compliance:check`; include updated generated compliance files. Do not
+hand-edit generated inventories. CI runs the dependency and license policy on
+every pull request and push to `main`; any unsuppressed high or critical
+advisory, malicious package, or compliance-policy violation fails the required
+`substrate` check. See the
+[security maintenance policy](docs/security-maintenance-policy.md).
 For other generated assets, use the relevant build/check commands documented
 in AGENTS.md and package.json.
 

@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Page Not Found | Blanc Browser"
+  description="This Blanc Browser page could not be found. Return home or browse the feature guides."
+  path="/404"
+  page="not-found"
+  header="solid"
+  social="none"
+  robots="noindex,nofollow"
+>
+  <main class="not-found-page">
+    <p class="section-kicker">404</p>
+    <h1>This page isn’t here.</h1>
+    <p>The address may have moved, or the link may be out of date.</p>
+    <div class="not-found-actions">
+      <a class="cta" href="/">back to Blanc</a>
+      <a class="text-link" href="/features">browse features <span aria-hidden="true">↗</span></a>
+    </div>
+  </main>
+</BaseLayout>

@@ -22,7 +22,7 @@ test('network/data inventory is complete enough to act as a release drift guard'
     assert.match(flow.id, /^[a-z0-9-]+$/);
     assert.equal(ids.has(flow.id), false, `duplicate flow ${flow.id}`);
     ids.add(flow.id);
-    assert.ok(['desktop', 'website'].includes(flow.surface));
+    assert.ok(['desktop', 'website', 'ChatGPT plugin', 'Firefox or Safari companion'].includes(flow.surface));
     assert.ok(typeof flow.trigger === 'string' && flow.trigger.length > 3);
     assert.ok(Array.isArray(flow.data) && flow.data.length > 0);
     assert.ok(Array.isArray(flow.code) && flow.code.length > 0);
@@ -33,6 +33,13 @@ test('network/data inventory is complete enough to act as a release drift guard'
   for (const id of ['profile-sync', 'supporter-activation', 'newsletter']) {
     assert.equal(inventory.flows.find((flow) => flow.id === id)?.default, 'off', id);
   }
+  for (const id of ['tab-handoff-chatgpt', 'tab-handoff-companion', 'tab-handoff-desktop-claim']) {
+    assert.equal(inventory.flows.find((flow) => flow.id === id)?.default, 'off', id);
+  }
+  const localImport = inventory.flows.find((flow) => flow.id === 'tab-import-local-ipc');
+  assert.match(localImport?.recipient ?? '', /no network recipient/);
+  assert.ok(localImport.channels.includes('pages:tab-import:suggest-source-groups'));
+  assert.ok(!localImport.channels.includes('pages:tab-import:select-folder'));
   assert.equal(inventory.flows.find((flow) => flow.id === 'onepassword-login-fill')?.default, 'off');
   assert.match(
     inventory.flows.find((flow) => flow.id === 'search-suggestions')?.default ?? '',

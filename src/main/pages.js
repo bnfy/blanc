@@ -27,7 +27,6 @@ const { developmentBrandAssetPath } = require('./development-brand-preview');
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
@@ -136,6 +135,15 @@ function setupPages(hooks = {}) {
     hooks.utilitySheet.setEscapeArmed?.(!!armed);
   });
 
+  // The relay review is a distinct surface from Bring Your Tabs. The latter
+  // owns blanc://tab-import/ and its richer local-session organizer.
+  handle('pages:tab-handoff:get', 'tab-handoff', () =>
+    hooks.tabHandoff?.get?.() ?? { state: 'empty' });
+  handle('pages:tab-handoff:accept', 'tab-handoff', (destination) =>
+    hooks.tabHandoff?.accept?.(destination) ?? { ok: false, error: 'unavailable' });
+  handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
+    hooks.tabHandoff?.cancel?.() ?? { ok: true });
+
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
@@ -154,6 +162,7 @@ function setupPages(hooks = {}) {
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    let file;
     try {
       const html = await readBoundedUtf8(picked.filePaths[0], MAX_IMPORT_BYTES);
       const entries = parseNetscapeBookmarks(html);
@@ -164,6 +173,8 @@ function setupPages(hooks = {}) {
     } catch (error) {
       if (error.code === 'EFBIG') return { error: 'too-large' };
       return { error: 'unreadable' };
+    } finally {
+      if (file) await file.close().catch(() => {});
     }
   });
   handle('pages:bookmarks:browser-sources', ['bookmarks', 'newtab'], () => browserImport.listSources());
@@ -174,6 +185,66 @@ function setupPages(hooks = {}) {
     hooks.onDataChanged?.();
     return { added, skipped, source: read.source };
   });
+
+  // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites
+  // import. Selecting a profile reads its restorable open-tab session in
+  // main; the sheet receives only the opaque candidate projection.
+  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listOpenTabSources());
+  handle('pages:tab-import:open-source', 'tab-import', async (id, options = {}) => {
+    const isCurrent = hooks.tabImport?.beginSourceRead?.() ?? (() => false);
+    const sourceId = String(id ?? '');
+    const read = await browserImport.readOpenTabs(sourceId, {
+      afterQuit: options?.afterQuit === true,
+    });
+    if (!isCurrent()) return { error: 'session-unavailable' };
+    if (read.error) {
+      return {
+        error: read.error,
+        recoverable: read.recoverable === true,
+        recoverableTabCount: Number(read.recoverableTabCount) || 0,
+      };
+    }
+    const opened = hooks.tabImport?.openSource?.({
+      sourceKind: 'chromium',
+      sourceLabel: read.source.label,
+      readCandidates: async () => read,
+    }) ?? { error: 'session-unavailable' };
+    if (opened.error) return opened;
+    const loaded = await hooks.tabImport?.loadCandidates?.(opened.sessionId)
+      ?? { error: 'session-unavailable' };
+    if (loaded.error) return loaded;
+    return {
+      ...opened,
+      ...loaded,
+      source: read.source,
+    };
+  });
+  handle('pages:tab-import:set-selection', 'tab-import', (sessionId, selection) =>
+    hooks.tabImport?.setSelection?.(
+      String(sessionId ?? ''),
+      selection ?? {},
+    ) ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-source-groups', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestSourceGroups?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-embed', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestEmbed?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle(
+    'pages:tab-import:submit-embeddings',
+    'tab-import',
+    (sessionId, generation, matrix) => hooks.tabImport?.submitEmbeddings?.(
+      String(sessionId ?? ''),
+      String(generation ?? ''),
+      matrix,
+    ) ?? { error: 'session-unavailable' },
+  );
+  handle('pages:tab-import:apply', 'tab-import', (sessionId, request) =>
+    hooks.tabImport?.apply?.(String(sessionId ?? ''), request ?? {})
+      ?? { error: 'apply-unavailable' });
+  handle('pages:tab-import:cancel', 'tab-import', (sessionId) =>
+    hooks.tabImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
+
   handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();
@@ -213,6 +284,7 @@ function setupPages(hooks = {}) {
       supporter: record,
       patron: _patron,
       _syncMeta,
+      _syncTieBreakers,
       onePasswordEnabled,
       onePasswordAccount,
       presentationDefaultsResetVersion,

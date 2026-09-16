@@ -1,5 +1,9 @@
 # Blanc organic-social measurement plan
 
+## September 4 validation update
+
+Current operational scorecard: [September 4](daily-scorecard-2026-09-04.md). Live Brave Tag Assistant testing verified the deployed GA4 tag, consent opt-in/opt-out, and one Mac `download_click` with the expected page, CTA and platform fields. The QA hit was marked internal and the active GA4 Internal Traffic filter excludes it; no customer growth is claimed. A security-policy review is now warranted for specific blocked Google advertising/diagnostic requests. Full paid attribution and file completion were not proved. See [live validation and exact limits](measurement-validation-2026-09-04.md). Historical observations below retain their original dates.
+
 Last updated: August 29, 2026. Existing first-party measurement paths were last
 verified August 28; the evergreen profile URLs below were prepared August 29
 and remain unexecuted.

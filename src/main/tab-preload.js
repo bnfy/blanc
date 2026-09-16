@@ -55,6 +55,15 @@ if (window.location.protocol === 'blanc:') {
     api = {
       mahjong: { played: () => invoke('pages:mahjong:played') },
     };
+  } else if (host === 'tab-handoff') {
+    api = {
+      surface,
+      tabHandoff: {
+        get: () => invoke('pages:tab-handoff:get'),
+        accept: (destination) => invoke('pages:tab-handoff:accept', destination),
+        cancel: () => invoke('pages:tab-handoff:cancel'),
+      },
+    };
   } else if (host === 'bookmarks') {
     api = {
       surface,
@@ -94,6 +103,25 @@ if (window.location.protocol === 'blanc:') {
     api = {
       surface,
       shortcuts: { list: () => invoke('pages:shortcuts:list') },
+    };
+  } else if (host === 'tab-import') {
+    api = {
+      surface,
+      tabImport: {
+        sources: () => invoke('pages:tab-import:sources'),
+        openSource: (id, options) => invoke('pages:tab-import:open-source', id, options),
+        setSelection: (sessionId, selection) =>
+          invoke('pages:tab-import:set-selection', sessionId, selection),
+        suggestSourceGroups: (sessionId) =>
+          invoke('pages:tab-import:suggest-source-groups', sessionId),
+        suggestEmbed: (sessionId) =>
+          invoke('pages:tab-import:suggest-embed', sessionId),
+        submitEmbeddings: (sessionId, generation, matrix) =>
+          invoke('pages:tab-import:submit-embeddings', sessionId, generation, matrix),
+        apply: (sessionId, request) =>
+          invoke('pages:tab-import:apply', sessionId, request),
+        cancel: (sessionId) => invoke('pages:tab-import:cancel', sessionId),
+      },
     };
   } else if (host === 'settings') {
     api = {

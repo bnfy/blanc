@@ -183,12 +183,56 @@ test('Dock reopen creates and activates a start tab when no document is reusable
   assert.deepEqual(activated, ['start']);
 });
 
+test('chrome readiness flushes pending handoffs even without a reusable tab', () => {
+  let flushes = 0;
+  const runtime = { activeTabId: null };
+  const lifecycle = createDockReopenLifecycle({
+    runtime, tabs: new Map(), liveContents: () => null,
+    activateTab() { assert.fail('there is no existing tab to activate'); },
+    flushExternalUrls() { flushes += 1; },
+  });
+  assert.equal(lifecycle.onChromeReady(), null);
+  assert.equal(flushes, 1);
+});
+
+test('a failed pre-close checkpoint prevents native teardown and preserves the runtime', () => {
+  const runtime = { activeTabId: 'active', glanceTabId: null, closing: false };
+  let prevented = false; let blocked = null; let checkpoints = 0;
+  const lifecycle = createDockReopenLifecycle({
+    platform: 'darwin', runtime, primaryRuntime: {},
+    window: { isDestroyed: () => false, contentView: { removeChildView() { assert.fail('must remain attached'); } } },
+    tabs: new Map([['active', { view: view('active') }]]), liveContents: () => ({}),
+    getIsQuitting: () => false,
+    beforeWindowClose: () => { checkpoints += 1; return { ok: false, error: 'storage-failed' }; },
+    onCloseBlocked: (result) => { blocked = result; },
+    flushExternalUrls() {},
+  });
+  assert.deepEqual(lifecycle.onWindowClose({ preventDefault() { prevented = true; } }), []);
+  assert.equal(prevented, true); assert.equal(checkpoints, 1); assert.equal(runtime.closing, false); assert.equal(blocked.error, 'storage-failed');
+});
+
+test('a successful pre-close checkpoint runs before the runtime enters teardown', () => {
+  const runtime = { activeTabId: null, glanceTabId: null, closing: false };
+  const observations = [];
+  const lifecycle = createDockReopenLifecycle({
+    platform: 'darwin', runtime, primaryRuntime: {},
+    window: { isDestroyed: () => false, contentView: { removeChildView() {} } },
+    tabs: new Map(), liveContents: () => null, getIsQuitting: () => false,
+    beforeWindowClose: () => { observations.push(runtime.closing); return { ok: true }; },
+    flushExternalUrls() {},
+  });
+  lifecycle.onWindowClose({ preventDefault() { assert.fail('successful close must continue'); } });
+  assert.deepEqual(observations, [false]); assert.equal(runtime.closing, true);
+});
+
 test('main installs both handlers from the tested Dock-reopen lifecycle', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 
   assert.match(main, /const dockReopenLifecycle = createDockReopenLifecycle\(\{/);
+  assert.match(main, /beforeWindowClose: \(\) => sessionReadOnly \|\|/);
+  assert.match(main, /beforeWindowClose:[\s\S]*?checkpointWorkspaceSession\(runtime, \{ excludeRuntime: runtime \}\)/);
   assert.match(main, /\.on\('close', bindWindowRuntime\(runtime, dockReopenLifecycle\.onWindowClose\)\)/);
   assert.match(main, /dockReopenLifecycle\.onChromeReady/);
 });

@@ -8,6 +8,8 @@ const { escapeHtml } = require('../../helpers/html-encoding');
 
 function pageBody(req) {
   const raw = req.url || '/';
+  // Escape the request-derived fixture name server-side so a probe URL cannot
+  // inject markup into the served page (CodeQL: reflected request content).
   let name;
   try { name = decodeURIComponent(raw.replace(/^\/site\//, '').split('?')[0]) || 'page'; }
   catch { name = 'invalid path'; }
@@ -44,8 +46,109 @@ function pageBody(req) {
   );
 }
 
+function workspaceResponse(req, res) {
+  if (req.url === '/workspace-auth') {
+    res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Workspace fixture"' });
+    res.end('Authentication required');
+    return true;
+  }
+  if (req.url === '/workspace-download') {
+    res.writeHead(200, { 'Content-Disposition': 'attachment; filename="workspace-fixture.txt"' });
+    res.end('Disposable workspace download fixture');
+    return true;
+  }
+  return false;
+}
+// HTTP authentication fixtures (F20). A fixed test credential exists only so
+// the routes can prove that Blanc never supplies one: the app must let the
+// 401/407 reach the page instead of opening its own credentials dialog.
+const AUTH_ACCEPTED = `Basic ${Buffer.from('user:pass').toString('base64')}`;
+
+function challenge(res, path, { proxy = false } = {}) {
+  res.writeHead(proxy ? 407 : 401, {
+    [proxy ? 'Proxy-Authenticate' : 'WWW-Authenticate']: `Basic realm="${path}"`,
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+  });
+  res.end(`${proxy ? 407 : 401} body for ${path}`);
+}
+
+function authProbePage(host) {
+  // insecure.test resolves to this same server (harness --host-resolver-rules),
+  // so it is a genuinely different origin without a second listener.
+  const crossOrigin = `http://insecure.test:${host.split(':')[1]}`;
+  return (
+    `<!doctype html><html><head><meta charset="utf-8"><title>auth-probe</title></head>` +
+    `<body><h1>auth-probe</h1>` +
+    `<img id="same-img" src="/auth/protected.png" alt="">` +
+    `<img id="cross-img" src="${crossOrigin}/auth/protected.png" alt="">` +
+    `<script>` +
+    `window.__authResults = {};` +
+    `const imgDone = (id) => new Promise((resolve) => { const i = document.getElementById(id); i.onload = () => resolve({ loaded: true }); i.onerror = () => resolve({ loaded: false }); if (i.complete) resolve({ loaded: i.naturalWidth > 0 }); });` +
+    `Promise.all([` +
+    `fetch('/auth/api').then((r) => r.text().then((body) => ({ status: r.status, wwwAuthenticate: r.headers.get('www-authenticate'), body }))).catch((e) => ({ error: String(e) })).then((r) => { window.__authResults.sameOriginFetch = r; }),` +
+    `new Promise((resolve) => { const x = new XMLHttpRequest(); x.open('POST', '/auth/api'); x.setRequestHeader('Authorization', 'Bearer not-a-real-token'); x.onloadend = () => resolve({ status: x.status }); x.send('{}'); }).then((r) => { window.__authResults.bearerXhr = r; }),` +
+    `imgDone('same-img').then((r) => { window.__authResults.sameOriginImage = r; }),` +
+    `imgDone('cross-img').then((r) => { window.__authResults.crossOriginImage = r; }),` +
+    `]).then(() => { window.__authResults.done = true; });` +
+    `</script></body></html>`
+  );
+}
+
+const SIGN_IN_PAGE =
+  `<!doctype html><html><head><meta charset="utf-8"><title>sign-in</title></head>` +
+  `<body><h1>sign-in</h1>` +
+  `<form id="signin" method="post" action="/auth/login">` +
+  `<input id="signin-user" name="username" autocomplete="username">` +
+  `<input id="signin-pass" name="password" type="password" autocomplete="current-password">` +
+  `<button type="submit">Sign in</button></form></body></html>`;
+
+/** @returns {boolean} true when the request was an auth fixture and is answered. */
+function handleAuthFixture(req, res) {
+  const raw = req.url || '/';
+  // Absolute-form request line = we are being used as an HTTP proxy.
+  if (/^https?:\/\//i.test(raw)) {
+    challenge(res, 'fixture-proxy', { proxy: true });
+    return true;
+  }
+  const url = new URL(raw, 'http://fixture.invalid');
+  const path = url.pathname;
+  if (!path.startsWith('/auth/')) return false;
+  const authorized = req.headers.authorization === AUTH_ACCEPTED;
+  if (path === '/auth/protected' || path === '/auth/api' || path === '/auth/protected.png') {
+    if (!authorized) { challenge(res, path); return true; }
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(`<!doctype html><title>protected</title><h1>PROTECTED-CONTENT</h1>`);
+    return true;
+  }
+  if (path === '/auth/page') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(authProbePage(req.headers.host || '127.0.0.1:0'));
+    return true;
+  }
+  if (path === '/auth/signin') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(SIGN_IN_PAGE);
+    return true;
+  }
+  if (path === '/auth/login' && req.method === 'POST') {
+    let bytes = 0;
+    req.on('data', (chunk) => { bytes += chunk.length; });
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(`<!doctype html><title>signed-in</title><p>form-login-received ${bytes} bytes</p>`);
+    });
+    return true;
+  }
+  res.writeHead(404, { 'Content-Type': 'text/plain' });
+  res.end('unknown auth fixture');
+  return true;
+}
+
 function start() {
   const server = http.createServer((req, res) => {
+    if (workspaceResponse(req, res)) return;
+    if (handleAuthFixture(req, res)) return;
     const url = new URL(req.url || '/', 'http://fixture.invalid');
     if (url.searchParams.has('redirect-start')) {
       url.searchParams.delete('redirect-start');
@@ -70,6 +173,7 @@ function start() {
  * that cert's SPKI hash at launch, so nothing else gains trust. */
 function startSecure({ key, cert }) {
   const server = https.createServer({ key, cert }, (req, res) => {
+    if (workspaceResponse(req, res)) return;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(pageBody(req));
   });

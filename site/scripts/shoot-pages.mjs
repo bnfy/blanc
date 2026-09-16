@@ -20,7 +20,8 @@ const SIZES = [{ tag: 'desktop', width: 1280, height: 2400 }, { tag: 'mobile', w
 
 // Materialize the baseline into a temp dir.
 const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-site-old-'));
-execFileSync('bash', ['-c', `git archive site-pre-astro site | tar -x -C ${oldDir}`], { cwd: ROOT });
+const archive = execFileSync('git', ['archive', 'site-pre-astro', 'site'], { cwd: ROOT });
+execFileSync('tar', ['-x', '-C', oldDir], { input: archive });
 
 
 const oldServer = await servePreview(path.join(oldDir, 'site'));

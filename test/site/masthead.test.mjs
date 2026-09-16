@@ -23,7 +23,7 @@ async function openPage(path = '/', width = 1440, reducedMotion = 'reduce') {
   return { page, context };
 }
 
-const featureHrefs = ['/features/island', '/features/vertical-tabs', '/features/tab-groups', '/features/quiet-tabs', '/features/ad-blocking', '/features/private-tabs', '/features/security', '/features/command-palette', '/features/sync'];
+const featureHrefs = ['/features/island', '/features/start-page', '/features/glance', '/features/vertical-tabs', '/features/tab-groups', '/features/quiet-tabs', '/features/ad-blocking', '/features/private-tabs', '/features/security', '/features/command-palette', '/features/reopen-closed-tabs', '/features/profiles', '/features/sync', '/features/workspaces'];
 
 test('the masthead is sticky at the top, 64px tall, and never tucks', async () => {
   const { page, context } = await openPage('/features');
@@ -58,6 +58,26 @@ test('the features menu opens on click, lists every feature page, and closes on 
     await page.waitForFunction(() => document.querySelector('#site-menu-features').dataset.open === 'false');
     assert.equal(await trigger.getAttribute('aria-expanded'), 'false');
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-menu')), 'features', 'focus returns to the trigger');
+  } finally { await context.close(); }
+});
+
+test('the feature spotlight stays compact beside the fourteen-guide menu', async () => {
+  const { page, context } = await openPage('/');
+  try {
+    await page.locator('.site-menu-trigger[data-menu="features"]').click();
+    const card = await page.locator('#site-menu-features .site-mega-spot').evaluate(el => {
+      const body = el.querySelector('.site-mega-spot-body');
+      const children = [...body.children].map(child => child.getBoundingClientRect());
+      return {
+        top: el.getBoundingClientRect().top,
+        linksTop: el.previousElementSibling.getBoundingClientRect().top,
+        height: el.getBoundingClientRect().height,
+        gaps: children.slice(1).map((child, index) => child.top - children[index].bottom),
+      };
+    });
+    assert.ok(Math.abs(card.top - card.linksTop) < 1, 'spotlight is top-aligned with the guide columns');
+    assert.ok(card.height < 360, `spotlight uses its content height, got ${card.height}`);
+    assert.ok(card.gaps.every(gap => gap >= 5 && gap <= 11), `text has compact gaps, got ${card.gaps}`);
   } finally { await context.close(); }
 });
 

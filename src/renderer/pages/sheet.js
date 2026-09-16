@@ -24,7 +24,7 @@
   close.setAttribute('aria-label', 'Close');
   close.textContent = '✕';
   close.addEventListener('click', () => window.bowserPages.surface.close());
-  // All five utility pages have a sticky .page-nav — the ✕ rides it so it
+  // Utility sheet pages have a sticky .page-nav — the ✕ rides it so it
   // never scrolls away and never stacks under the nav band.
   page.querySelector('.page-nav').append(close);
 

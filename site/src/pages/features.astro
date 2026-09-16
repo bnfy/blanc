@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title={"Blanc Browser Features — Minimal browsing, built in"}
-  description={"Explore the Blanc island, Glance, built-in blocking, Named Groups, Patron Named Workspaces, Quiet Tabs, local profiles, encrypted sync, and structural security."}
+  description={"Explore Blanc’s Start Page and Mahjong, Glance, tab recovery, local profiles, Named Workspaces, built-in blocking, encrypted sync, and more."}
   path="/features"
   page="features"
   current="features"
@@ -31,127 +31,83 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <section class="feature-hub-list" aria-label="Blanc browser features">
     <article class="feature-hub-row" id="island">
       <p class="feature-number">01</p>
-      <div>
-        <p class="feature-label">the blanc island</p>
-        <h2>One small control surface. The whole browser.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Search, tabs, navigation, the current site, and page controls live together, so the page stays in front.</p>
-        <a class="text-link" href="/features/island" data-track="feature_cta_click" data-feature="island" data-cta-position="feature-hub">Meet the island <span aria-hidden="true">↗</span></a>
-      </div>
+      <div><p class="feature-label">the blanc island</p><h2>One small control surface. The whole browser.</h2></div>
+      <div class="feature-row-end"><p>Search, tabs, navigation, the current site, and page controls live together, so the page stays in front.</p><a class="text-link" href="/features/island" data-track="feature_cta_click" data-feature="island" data-cta-position="feature-hub">Meet the island <span aria-hidden="true">↗</span></a></div>
     </article>
-    <article class="feature-hub-row feature-hub-row--featured" id="glance">
+    <article class="feature-hub-row" id="start-page">
       <p class="feature-number">02</p>
-      <div>
-        <p class="feature-label">side by side, briefly</p>
-        <h2>Open a reference without leaving your place.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Glance opens a temporary page beside the one you are using, then gets out of the way when you are done. It stays local and is never restored or synced.</p>
-      </div>
+      <div><p class="feature-label">five ways to begin</p><h2>Your familiar sites. Or a fresh Mahjong board.</h2></div>
+      <div class="feature-row-end"><p>Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard brings frequent sites from local history; Mahjong offers eight boards, Daily deals, and device-local records.</p><a class="text-link" href="/features/start-page" data-track="feature_cta_click" data-feature="start-page" data-cta-position="feature-hub">Find your starting point <span aria-hidden="true">↗</span></a></div>
+    </article>
+    <article class="feature-hub-row" id="glance">
+      <p class="feature-number">03</p>
+      <div><p class="feature-label">side by side, briefly</p><h2>Open a reference without leaving your place.</h2></div>
+      <div class="feature-row-end"><p>Choose another tab from this window for a temporary reference beside your main page. Resize, swap, or close the view; Glance is never restored or synced.</p><a class="text-link" href="/features/glance" data-track="feature_cta_click" data-feature="glance" data-cta-position="feature-hub">Meet Glance <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="ad-blocking">
-      <p class="feature-number">03</p>
-      <div>
-        <p class="feature-label">built in</p>
-        <h2>Site controls that say what they do.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Blanc Blocker stops ads and known trackers at the browser level. Its shield tells you what was blocked here, whether the site uses HTTPS, and lets you turn blocking off for that one site.</p>
-        <a class="text-link" href="/features/ad-blocking" data-track="feature_cta_click" data-feature="ad-blocking" data-cta-position="feature-hub">See site controls <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">04</p>
+      <div><p class="feature-label">built in</p><h2>Site controls that say what they do.</h2></div>
+      <div class="feature-row-end"><p>Blanc Blocker stops ads and known trackers at the browser level. Its shield shows blocked requests and connection details, with a switch for the current site.</p><a class="text-link" href="/features/ad-blocking" data-track="feature_cta_click" data-feature="ad-blocking" data-cta-position="feature-hub">See site controls <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="private-tabs">
-      <p class="feature-number">04</p>
-      <div>
-        <p class="feature-label">a clean trail</p>
-        <h2>Private tabs that stay out of the record.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Private pages do not enter Blanc history, session restore, or reopen-closed. Close the private chip when you are finished.</p>
-        <a class="text-link" href="/features/private-tabs" data-track="feature_cta_click" data-feature="private-tabs" data-cta-position="feature-hub">Read about private tabs <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">05</p>
+      <div><p class="feature-label">a clean trail</p><h2>Private tabs that stay out of the record.</h2></div>
+      <div class="feature-row-end"><p>Private pages do not enter Blanc history, session restore, sync, or Recently Closed. Files you choose to download remain on disk.</p><a class="text-link" href="/features/private-tabs" data-track="feature_cta_click" data-feature="private-tabs" data-cta-position="feature-hub">Read about private tabs <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="commands">
-      <p class="feature-number">05</p>
-      <div>
-        <p class="feature-label">keyboard first</p>
-        <h2>One shortcut to move through your whole session.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Command or Control L blends open tabs, Favorites, history, and Named Groups. Type / to run browser commands, or reopen a recently closed tab or group without rebuilding your place.</p>
-        <a class="text-link" href="/features/command-palette" data-track="feature_cta_click" data-feature="command-palette" data-cta-position="feature-hub">Explore commands <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">06</p>
+      <div><p class="feature-label">keyboard first</p><h2>One shortcut to move through your whole session.</h2></div>
+      <div class="feature-row-end"><p>Command or Control L finds open tabs, Favorites, history, and Named Groups. Type / to discover and run browser commands.</p><a class="text-link" href="/features/command-palette" data-track="feature_cta_click" data-feature="command-palette" data-cta-position="feature-hub">Explore commands <span aria-hidden="true">↗</span></a></div>
+    </article>
+    <article class="feature-hub-row" id="reopen-closed-tabs">
+      <p class="feature-number">07</p>
+      <div><p class="feature-label">a second chance</p><h2>Bring back the tab you meant to keep.</h2></div>
+      <div class="feature-row-end"><p>Pick a tab or group from this window’s Recently Closed list. Eligible pages can briefly return without a reload; recovery has time limits and excludes private tabs.</p><a class="text-link" href="/features/reopen-closed-tabs" data-track="feature_cta_click" data-feature="reopen-closed-tabs" data-cta-position="feature-hub">How reopening works <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="tab-groups">
-      <p class="feature-number">06</p>
-      <div>
-        <p class="feature-label">named groups</p>
-        <h2>Name the task. Keep its tabs together.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Named Groups keep related tabs in one cluster. Blanc shows the active group on the island while the others stay close, folded away from the page.</p>
-        <a class="text-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="feature-hub">Explore Named Groups <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">08</p>
+      <div><p class="feature-label">named groups</p><h2>Name the task. Keep its tabs together.</h2></div>
+      <div class="feature-row-end"><p>You create Named Groups and choose the tabs that belong in each. Keep the active group close and fold other groups away in the command panel.</p><a class="text-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="feature-hub">Explore Named Groups <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row feature-hub-row--patron" id="workspaces">
-      <p class="feature-number">07</p>
-      <div>
-        <p class="feature-label">named workspaces <span class="feature-patron-badge">Patron</span></p>
-        <h2>Save a whole window. Return to it by name.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Named Workspaces save a window’s tabs and groups, switch the set in place, and keep it up to date automatically. Active Patrons can create and save them; anything already saved remains available if membership ends.</p>
-        <div class="feature-row-actions">
-          <a class="feature-patron-cta" data-track="supporter_click" data-feature="named-workspaces" data-cta-position="feature-workspaces" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf" target="_blank" rel="noopener">become a Patron</a>
-          <a class="text-link" href="/about" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="feature-hub">what Patron supports <span aria-hidden="true">↗</span></a>
-        </div>
-      </div>
+      <p class="feature-number">09</p>
+      <div><p class="feature-label">named workspaces <span class="feature-patron-badge">Patron</span></p><h2>Save a whole window. Return to it by name.</h2></div>
+      <div class="feature-row-end"><p>Named Workspaces save a window’s tabs and groups and keep that set up to date as you browse. Active Patrons can create and save them; existing workspaces stay usable if membership ends.</p><a class="text-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="feature-hub">Explore Named Workspaces <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="vertical-tabs">
-      <p class="feature-number">08</p>
-      <div>
-        <p class="feature-label">your preferred view</p>
-        <h2>An optional vertical tab rail. The island stays.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Move tabs to a resizable left rail when a persistent overview helps. Nothing reloads, and the island remains the only address and command surface.</p>
-        <a class="text-link" href="/features/vertical-tabs" data-track="feature_cta_click" data-feature="vertical-tabs" data-cta-position="feature-hub">See vertical tabs <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">10</p>
+      <div><p class="feature-label">your preferred view</p><h2>An optional vertical tab rail. The island stays.</h2></div>
+      <div class="feature-row-end"><p>Use a resizable left rail when a persistent tab overview helps. The Island remains the address and command surface.</p><a class="text-link" href="/features/vertical-tabs" data-track="feature_cta_click" data-feature="vertical-tabs" data-cta-position="feature-hub">See vertical tabs <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="quiet-tabs">
-      <p class="feature-number">09</p>
-      <div>
-        <p class="feature-label">memory, on your terms</p>
-        <h2>Tabs you are not using give their memory back.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Leave a tab alone and Blanc hands its page back to your computer, then reloads it when you return. You choose the delay; anything half-finished is left awake.</p>
-        <a class="text-link" href="/features/quiet-tabs" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="feature-hub">How quiet tabs work <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">11</p>
+      <div><p class="feature-label">memory, on your terms</p><h2>Free up memory without closing the tab.</h2></div>
+      <div class="feature-row-end"><p>Eligible inactive tabs release renderer memory and reload when you return. Choose the delay; tabs with protected activity or uncertain eligibility stay awake.</p><a class="text-link" href="/features/quiet-tabs" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="feature-hub">How Quiet Tabs work <span aria-hidden="true">↗</span></a></div>
+    </article>
+    <article class="feature-hub-row" id="profiles">
+      <p class="feature-number">12</p>
+      <div><p class="feature-label">separate browsing identities</p><h2>Keep work logins apart from personal browsing.</h2></div>
+      <div class="feature-row-end"><p>Local profiles separate cookies, site data, Favorites, history, download metadata, and remembered permissions. Open independent windows, with device preferences and Patron shared.</p><a class="text-link" href="/features/profiles" data-track="feature_cta_click" data-feature="profiles" data-cta-position="feature-hub">Explore profiles and windows <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="sync">
-      <p class="feature-number">10</p>
-      <div>
-        <p class="feature-label">profiles, windows, devices</p>
-        <h2>Separate contexts without losing continuity.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Keep browsing identities separate with local profiles and open more than one Blanc window. From Personal, opt-in sync shows what each device has open — end-to-end encrypted, read-only, and never one merged live session.</p>
-        <a class="text-link" href="/features/sync" data-track="feature_cta_click" data-feature="sync" data-cta-position="feature-hub">How tab sync works <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">13</p>
+      <div><p class="feature-label">on your other devices</p><h2>Find a tab you left on another machine.</h2></div>
+      <div class="feature-row-end"><p>From Personal, opt-in sync shows what each device has open. The list is end-to-end encrypted and read-only; opening a remote tab creates a local tab.</p><a class="text-link" href="/features/sync" data-track="feature_cta_click" data-feature="sync" data-cta-position="feature-hub">How tab sync works <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="security">
-      <p class="feature-number">11</p>
-      <div>
-        <p class="feature-label">private by architecture</p>
-        <h2>Security that is structural, not bolted on.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Sandboxed pages, pinned network-level blocking, signed releases, device-bound Touch ID passkeys, and optional user-invoked 1Password fill on macOS. The quiet parts, documented.</p>
-        <a class="text-link" href="/features/security" data-track="feature_cta_click" data-feature="security" data-cta-position="feature-hub">Read the security story <span aria-hidden="true">↗</span></a>
-      </div>
+      <p class="feature-number">14</p>
+      <div><p class="feature-label">private by architecture</p><h2>See the protections behind the page.</h2></div>
+      <div class="feature-row-end"><p>Sandboxed pages, signed releases, explicit site permissions, device-bound Touch ID passkeys, and optional user-invoked 1Password fill on macOS.</p><a class="text-link" href="/features/security" data-track="feature_cta_click" data-feature="security" data-cta-position="feature-hub">Read the security story <span aria-hidden="true">↗</span></a></div>
     </article>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="small-details-title">
+    <div><p class="section-kicker">everyday browsing</p><h2 id="small-details-title">Smaller details that matter.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Bring your Favorites.</h3><p>First-run setup helps you choose a default browser and save your privacy choices. Import bookmarks from a detected browser profile or an HTML file in Favorites. <a href="/faq#bookmark-import">How importing works</a>.</p></article>
+      <article><h3>Keep calls under your control.</h3><p>See microphone and camera use from the Island and stop access from its popover. Call audio buffering offers Automatic, Stable, and Resilient receive-buffer choices, with extra delay in exchange for more tolerance of choppy playback. <a href="/features/security#security-calls-title">Read the call controls</a>.</p></article>
+      <article><h3>Choose how to recover.</h3><p>After an unclean shutdown, choose whether to restore tabs or start fresh. Settings can export local diagnostics for you to review before sharing. <a href="/features/security#security-recovery-title">Recovery and diagnostics</a>.</p></article>
+      <article><h3>Make the everyday controls yours.</h3><p>The Island’s Plus opens a regular, ungrouped tab with its address field focused. macOS offers Sunrise, Sunrise Dark, Paper, and Ink icons without a Patron subscription. <a href="/features/island#island-personal-title">Explore the details</a>.</p></article>
+    </div>
   </section>
 
   <section class="feature-patron" aria-labelledby="feature-patron-title">

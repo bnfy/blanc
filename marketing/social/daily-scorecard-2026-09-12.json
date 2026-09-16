@@ -1,0 +1,333 @@
+{
+  "date": "2026-09-12",
+  "asOf": "2026-09-12T21:03:06.448012+00:00",
+  "timezone": "America/New_York",
+  "observationWindow": "17:01\u201317:02 EDT scheduled checkpoint attempt; account observations unavailable",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "programDay": null,
+  "comparisonStatus": "not_measurable",
+  "audience": {
+    "x": {
+      "starting": null,
+      "current": null,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://x.com/blancbrowser",
+      "dailyStatus": "unavailable",
+      "consecutiveMeasuredMisses": null,
+      "trailingSevenDayNet": null,
+      "observationTimestampPrecision": "no_account_observation",
+      "cacheDelayMinutes": null,
+      "observedAt": null,
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "lastKnown": {
+        "value": 13,
+        "observedDuring": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+        "unit": "followers"
+      }
+    },
+    "threads": {
+      "starting": null,
+      "current": null,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.threads.com/@blancbrowser",
+      "dailyStatus": "unavailable",
+      "consecutiveMeasuredMisses": null,
+      "trailingSevenDayNet": null,
+      "observationTimestampPrecision": "no_account_observation",
+      "cacheDelayMinutes": null,
+      "observedAt": null,
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "lastKnown": {
+        "value": 22,
+        "observedDuring": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+        "unit": "followers"
+      }
+    },
+    "instagram": {
+      "starting": null,
+      "current": null,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.instagram.com/blancbrowser/",
+      "dailyStatus": "unavailable",
+      "consecutiveMeasuredMisses": null,
+      "trailingSevenDayNet": null,
+      "observationTimestampPrecision": "no_account_observation",
+      "cacheDelayMinutes": null,
+      "observedAt": null,
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "lastKnown": {
+        "value": 102,
+        "observedDuring": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+        "unit": "followers"
+      }
+    },
+    "facebook": {
+      "starting": null,
+      "current": null,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.facebook.com/blancbrowser",
+      "dailyStatus": "unavailable",
+      "consecutiveMeasuredMisses": null,
+      "trailingSevenDayNet": null,
+      "observationTimestampPrecision": "no_account_observation",
+      "cacheDelayMinutes": null,
+      "observedAt": null,
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "lastKnown": {
+        "value": 22,
+        "observedDuring": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+        "unit": "followers"
+      }
+    },
+    "tiktok": {
+      "starting": null,
+      "current": null,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "followers",
+      "source": "https://www.tiktok.com/@blancbrowser",
+      "dailyStatus": "unavailable",
+      "consecutiveMeasuredMisses": null,
+      "trailingSevenDayNet": null,
+      "observationTimestampPrecision": "no_account_observation",
+      "cacheDelayMinutes": null,
+      "observedAt": null,
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "lastKnown": {
+        "value": 25,
+        "observedDuring": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+        "unit": "followers"
+      }
+    },
+    "substack": {
+      "starting": null,
+      "current": null,
+      "delta": null,
+      "remainingToTarget": null,
+      "unit": "external_subscribers",
+      "source": "https://blancbrowser.substack.com/publish/subscribers",
+      "dailyStatus": "unavailable",
+      "consecutiveMeasuredMisses": null,
+      "trailingSevenDayNet": null,
+      "observationTimestampPrecision": "no_account_observation",
+      "cacheDelayMinutes": null,
+      "displayedTotalIncludingAuthor": null,
+      "authorCount": null,
+      "observedAt": null,
+      "attemptedAt": "2026-09-12T21:03:06.448012+00:00",
+      "lastKnown": {
+        "value": 2,
+        "observedDuring": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+        "unit": "external_subscribers"
+      }
+    }
+  },
+  "ownedContentSignals": {
+    "x": null,
+    "threads": null,
+    "instagram": null,
+    "facebook": null,
+    "tiktok": null,
+    "substack": null
+  },
+  "meaningfulEngagementBaseline": null,
+  "siteVisits": null,
+  "downloadClicks": null,
+  "newPaidSpendUsd": 0,
+  "publicationCount": 0,
+  "openingSnapshot": {
+    "date": "2026-09-12",
+    "asOf": "2026-09-12T17:04:23.341193+00:00",
+    "timezone": "America/New_York",
+    "observationWindow": "Approximately 12:45\u201313:05 EDT; setup inspection, not the 17:00 comparison checkpoint",
+    "targetNewAudiencePerPriorityPlatform": 10,
+    "programDay": null,
+    "comparisonStatus": "not_measurable",
+    "audience": {
+      "x": {
+        "starting": null,
+        "current": 13,
+        "delta": null,
+        "remainingToTarget": null,
+        "unit": "followers",
+        "source": "https://x.com/blancbrowser",
+        "dailyStatus": "not_measurable",
+        "consecutiveMeasuredMisses": null,
+        "trailingSevenDayNet": null,
+        "observationTimestampPrecision": "inspection_window",
+        "cacheDelayMinutes": null
+      },
+      "threads": {
+        "starting": null,
+        "current": 22,
+        "delta": null,
+        "remainingToTarget": null,
+        "unit": "followers",
+        "source": "https://www.threads.com/@blancbrowser",
+        "dailyStatus": "not_measurable",
+        "consecutiveMeasuredMisses": null,
+        "trailingSevenDayNet": null,
+        "observationTimestampPrecision": "inspection_window",
+        "cacheDelayMinutes": null
+      },
+      "instagram": {
+        "starting": null,
+        "current": 102,
+        "delta": null,
+        "remainingToTarget": null,
+        "unit": "followers",
+        "source": "https://www.instagram.com/blancbrowser/",
+        "dailyStatus": "not_measurable",
+        "consecutiveMeasuredMisses": null,
+        "trailingSevenDayNet": null,
+        "observationTimestampPrecision": "inspection_window",
+        "cacheDelayMinutes": null
+      },
+      "facebook": {
+        "starting": null,
+        "current": 22,
+        "delta": null,
+        "remainingToTarget": null,
+        "unit": "followers",
+        "source": "https://www.facebook.com/blancbrowser",
+        "dailyStatus": "not_measurable",
+        "consecutiveMeasuredMisses": null,
+        "trailingSevenDayNet": null,
+        "observationTimestampPrecision": "inspection_window",
+        "cacheDelayMinutes": null
+      },
+      "tiktok": {
+        "starting": null,
+        "current": 25,
+        "delta": null,
+        "remainingToTarget": null,
+        "unit": "followers",
+        "source": "https://www.tiktok.com/@blancbrowser",
+        "dailyStatus": "not_measurable",
+        "consecutiveMeasuredMisses": null,
+        "trailingSevenDayNet": null,
+        "observationTimestampPrecision": "inspection_window",
+        "cacheDelayMinutes": null
+      },
+      "substack": {
+        "starting": null,
+        "current": 2,
+        "delta": null,
+        "remainingToTarget": null,
+        "unit": "external_subscribers",
+        "source": "https://blancbrowser.substack.com/publish/subscribers",
+        "dailyStatus": "not_measurable",
+        "consecutiveMeasuredMisses": null,
+        "trailingSevenDayNet": null,
+        "observationTimestampPrecision": "inspection_window",
+        "cacheDelayMinutes": 19,
+        "displayedTotalIncludingAuthor": 3,
+        "authorCount": 1
+      }
+    },
+    "ownedContentSignals": {
+      "x": {
+        "sunriseViews": 2,
+        "mahjongViews": 83,
+        "quietTabsViews": 58
+      },
+      "threads": {
+        "period": "Aug 13\u2013Sep 11 / native last 30 days",
+        "views": 13045,
+        "viewers": 6995,
+        "nonFollowerViewers": 6975,
+        "netFollowers": 19,
+        "interactions": 321,
+        "warning": "Native interactions include categories outside the meaningful-audience metric; not the new program baseline"
+      },
+      "instagram": {
+        "sunrise": {
+          "views": 5,
+          "viewers": 3,
+          "nonFollowerViewPercent": 0,
+          "profileVisits": 2,
+          "follows": 0,
+          "comments": 0,
+          "saves": 0,
+          "shares": 0
+        },
+        "quietTabs": {
+          "views": 409,
+          "viewers": 102,
+          "nonFollowerViewPercent": 95.5,
+          "profileActivity": 0,
+          "follows": 0,
+          "comments": 0,
+          "saves": 0,
+          "shares": 0,
+          "insightsLikes": 2,
+          "publicLikes": 3,
+          "note": "Native public and insights surfaces disagree on likes; preserve both and do not infer missing events"
+        }
+      },
+      "facebook": {
+        "blockerPost": {
+          "views": 1859,
+          "viewers": 1258,
+          "engagement": 402,
+          "clicks": 399,
+          "comments": 0,
+          "shares": 1,
+          "follows": 11,
+          "linkClicks": 372,
+          "attribution": "blended / previously promoted; not organic program results"
+        }
+      },
+      "tiktok": {
+        "publicVideos": 6,
+        "cumulativeLikes": 7,
+        "videoViewsNewestFirst": [
+          131,
+          98,
+          69,
+          89,
+          4,
+          365
+        ]
+      },
+      "substack": {
+        "dashboardPeriod": "14 days",
+        "views": 49,
+        "articles": {
+          "2026-08-27": {
+            "views": 4,
+            "newSubscribers": 0,
+            "openRatePercent": 50
+          },
+          "2026-08-23": {
+            "views": 13,
+            "newSubscribers": 0,
+            "openRatePercent": 100
+          }
+        }
+      }
+    },
+    "meaningfulEngagementBaseline": null,
+    "siteVisits": null,
+    "downloadClicks": null,
+    "newPaidSpendUsd": 0,
+    "publicationCount": 0
+  },
+  "scheduledFor": "2026-09-12T17:00:00-04:00",
+  "checkpointStatus": "unavailable_browser_access",
+  "blocker": {
+    "code": "mac_locked_brave_unavailable",
+    "evidence": "Brave was unavailable to browser control; surface inventory reported the Mac locked and automatic unlock unsuccessful. Only the in-app creative review tab was available.",
+    "requiredAction": "Owner unlocks the Mac so logged-in Brave can be read.",
+    "attemptedAt": "2026-09-12T21:03:06.448012+00:00"
+  },
+  "checkpointNote": "Opening observations remain historical in openingSnapshot. An inaccessible checkpoint is not zero growth, a daily miss, or evidence that audiences stayed unchanged."
+}

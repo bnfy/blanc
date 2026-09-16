@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>receiver</title>
+</head>
+<body>
+  <button id="arm">arm</button>
+  <video id="v" autoplay playsinline></video>
+  <script>
+    const video = document.getElementById('v');
+    video.muted = false;
+    let armedCtx = null;
+    document.getElementById('arm').addEventListener('click', async () => {
+      armedCtx = new AudioContext();
+      await armedCtx.resume();
+      window.audioProbe.send('audio-probe:armed', { state: armedCtx.state });
+    });
+    let pc;
+    window.audioProbe.on('audio-probe:helper-offer', async (msg) => {
+      pc = new RTCPeerConnection({ iceServers: [] });
+      pc.ontrack = (event) => {
+        const stream = event.streams[0] || new MediaStream([event.track]);
+        video.srcObject = stream;
+        video.play().catch(() => {});
+        if (event.track.kind !== 'audio') return;
+        measure(event.track, msg.name);
+      };
+      await pc.setRemoteDescription({ type: 'offer', sdp: msg.sdp });
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      if (pc.iceGatheringState !== 'complete') {
+        await new Promise((resolve) => {
+          pc.addEventListener('icegatheringstatechange', () => {
+            if (pc.iceGatheringState === 'complete') resolve();
+          });
+        });
+      }
+      window.audioProbe.send('audio-probe:page-answer', {
+        name: msg.name,
+        sdp: pc.localDescription.sdp,
+        iceGatheringState: pc.iceGatheringState,
+      });
+    });
+
+    async function waitUnmute(track, ms) {
+      if (track.muted !== true) return track.muted;
+      await new Promise((resolve) => {
+        const t = setTimeout(resolve, ms);
+        track.addEventListener('unmute', () => { clearTimeout(t); resolve(); }, { once: true });
+      });
+      return track.muted;
+    }
+
+    async function measure(track, name) {
+      const mutedAfterWait = await waitUnmute(track, 1500);
+      const ctx = armedCtx && armedCtx.state !== 'closed' ? armedCtx : new AudioContext();
+      await ctx.resume();
+      const src = ctx.createMediaStreamSource(new MediaStream([track]));
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      src.connect(analyser);
+      const buf = new Float32Array(analyser.fftSize);
+      let peak = 0;
+      const started = performance.now();
+      while (performance.now() - started < 2200) {
+        analyser.getFloatTimeDomainData(buf);
+        for (const sample of buf) peak = Math.max(peak, Math.abs(sample));
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      window.audioProbe.send('audio-probe:energy', {
+        name,
+        peak,
+        readyState: track.readyState,
+        muted: track.muted,
+        mutedAfterWait,
+        audioContextState: ctx.state,
+        iceConnectionState: pc?.iceConnectionState || null,
+        usedMicGetUserMedia: false,
+      });
+    }
+  </script>
+</body>
+</html>

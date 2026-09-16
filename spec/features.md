@@ -125,12 +125,17 @@ toolbar (Bowser Design System "Island Chrome").
 - **OS hand-off** (`handOffToOs`) is checked *before* normalization for bare
   `mailto:` / `tel:` / `facetime:` / `sms:` URIs and page-initiated navigations to
   them — handed to the OS instead of treated as a query (D4).
+- Desktop also hands reviewed app schemes and standard Microsoft/Google native
+  OAuth callback schemes to their installed applications after explicit
+  confirmation. Unknown schemes never reach the OS. A captured callback remains
+  valid if its OAuth popup closes while the native confirmation is open (D4).
 - The heuristic's known edge-case misclassifications (e.g. dotted query strings)
   are an **accepted limitation**, identical on every platform — do not "fix" one
   platform's parser to be smarter than the others.
-- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest`
-  searches via the configured engine; typing `mailto:a@b.com` hands off to the OS
-  mail handler.
+- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest` or
+  `site:example.com` searches via the configured engine; typing `mailto:a@b.com`
+  hands off to the OS mail handler; a reviewed desktop app callback requires
+  confirmation.
 
 ## F6 — Command palette & Quick Switcher
 
@@ -304,11 +309,11 @@ From the desktop `DEFAULTS`:
 ## F16 — Internal `blanc://` pages
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
-  **history**, **downloads**, **settings**, **shortcuts**, **error**, **auth**.
+  **history**, **downloads**, **settings**, **shortcuts**, **error**.
 - **Presentation split:** the five *utility* pages (favorites, history, downloads,
   settings, shortcuts) present as a **transient chrome surface** — on desktop a
-  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content
-  (`auth` is a dialog). Outbound activations (a history entry, a favorite) open
+  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
+  Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed.
 - The newtab ledger: date line, "Where to?", favorites, tab groups ("pick up where
@@ -368,12 +373,13 @@ From the desktop `DEFAULTS`:
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
 
-## F20 — Basic-auth dialog
+## F20 — HTTP authentication policy
 
-- HTTP basic-auth challenges present a modal prompt (`bowserAuth` bridge on
-  desktop; native equivalent on mobile) with the same fields/behaviour.
-- **Acceptance:** Navigating to a basic-auth-protected URL raises the credential
-  prompt; correct credentials proceed, cancel aborts the navigation.
+- HTTP basic/digest challenges never present a separate Blanc credential
+  prompt. Website sign-in forms remain the website's own UI.
+- **Acceptance:** Navigating to a basic-auth-protected URL does not raise a
+  Blanc prompt; the authentication challenge is cancelled and the protected
+  navigation fails. Subresource and proxy challenges are cancelled silently.
 
 ## F21 — Telemetry (bounded usage measurement)
 
@@ -787,7 +793,9 @@ From the desktop `DEFAULTS`:
   closes only on a confirmed write. The import step embeds F30's migration
   with its explicit-discovery rule intact: no other browser's profile is read
   until the person asks to look, and the universal bookmarks-file import is
-  offered from the start.
+  offered from the start. The import step also offers **Bring your open tabs…**
+  as a separate F40 handoff before or after F30 Favorites import. F40 does not
+  depend on completing a Favorites import first.
 - Ad-blocking and theme choices apply live during the flow through the same
   validated settings paths as Settings itself; the default-browser step uses
   the OS registration only where the platform genuinely supports it and
@@ -800,7 +808,8 @@ From the desktop `DEFAULTS`:
   [`acceptance/onboarding.feature`](./acceptance/onboarding.feature) shows the
   walkthrough to a fresh profile once, proves skip records the privacy
   choices, never re-asks a completed profile, and verifies the import step
-  reads nothing before the explicit ask.
+  reads nothing before the explicit ask. F40's onboarding handoff is covered by
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature).
 
 ## F37 — The blank tab shows where to type
 
@@ -860,3 +869,38 @@ From the desktop `DEFAULTS`:
   background access. A release additionally needs a signed packaged test with
   a real installed 1Password desktop app on macOS. Windows and Linux must prove
   the feature is unavailable and cannot start its broker.
+
+## F39 — Certificate safety
+
+- Invalid certificates are rejected with a safety interstitial and certificate
+  problem details. No certificate bypass is offered.
+- **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
+
+## F40 — Bring Your Tabs (direct open-tab migration)
+
+PR #205 originally used F39 for migration. F40 resolves its collision with the
+existing certificate-safety scenario; historical PR evidence retains its old IDs.
+
+- A person explicitly chooses a supported Chromium-family browser profile.
+  Blanc reads that profile's newest restorable open-tab session only after the
+  selection; it does not use bookmarks or require source-browser preparation.
+- The Tabs step preserves source-window/tab order, exact duplicates, pins, and
+  named source groups. The renderer receives bounded titles, hostnames, opaque
+  candidate IDs, source-window/group labels, and selection state—never full
+  URLs or source filesystem paths. Inputs are bounded to 500 candidates.
+- A normal source-browser quit is requested only when a read-only preflight
+  proves a saved/restorable session exists. Blanc never force-quits or modifies
+  the source profile, never promises automatic reopening, and never imports an
+  older snapshot after post-quit verification fails.
+- Eligible source groups seed editable Blanc Named Groups. Everything else
+  remains ungrouped until the person creates, renames, or moves it; no bookmark
+  folders, placeholder groups, cloud organizer, or hidden semantic-model promise
+  participates in v1.
+- Apply creates tabs/groups transactionally in preview order and never writes
+  Favorites. Imported tabs are quiet and viewless; only the first selected tab
+  wakes. A Named Workspace remains a separate optional Patron gesture.
+- **Acceptance:**
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
+  covers explicit session reads, quit safety, duplicate/order/group fidelity,
+  opaque renderer projection, transactional apply, ownership/cancellation,
+  onboarding, and the separate workspace handoff.

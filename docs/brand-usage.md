@@ -3,41 +3,25 @@
 This is the required visual-identity check for Blanc marketing, social assets,
 press materials, product demos, thumbnails, avatars, and generated imagery.
 
-## The mark is monochrome by default
+## Current identity: Sunrise only
 
-The Blanc mark's static website and marketing treatments are:
+**Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.
 
-- black mark on a white field;
-- white mark on a black field.
+For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: ivory `#F7F0E5`, warm surfaces `#EFE6D8`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
 
-Except for the website Sunrise treatments documented below, never recolor the mark.
-Never place it on, inside, or visually backed by an
-accent-colored circle, badge, tile, gradient, texture, photograph, or other
-shape. Do not add an outline, glow, colored shadow, or decorative fill to the
-mark. Preserve clear visual space around it.
+Use Newsreader regular for sentence-case headings and Inter for supporting text. Choose title alignment to suit the composition; not every social asset should use the same centered poster layout. Keep generous clear space around the Sunrise symbol. Do not redraw it, replace it with a letterform, tint the original artwork, add a badge or place a glow immediately behind it. A subtle gold horizon may appear away from the symbol. Existing monochrome Sunrise site variants remain valid for the specifically documented placements below.
 
-Campaign accent colors may appear elsewhere in a static graphic when the
-campaign calls for them, but they must remain clearly separate from the mark.
-An accent-colored shape behind a white logo tile still reads as a colored logo
-treatment and is not allowed.
+**Visual variety, September 12 owner direction:** A shared brand does not mean an identical layout. Give each editorial idea an appropriate composition, and let carousel panels progress through distinct visual structures. Use a restrained mix of imagery, useful diagrams, typography, light and dark Sunrise surfaces. Keep the exact mark, palette and type family coherent. Conceptual illustrations must not impersonate product footage or evidence.
 
-Outside the website Sunrise treatments below, this is a fail-closed rule.
-If any part of a logo lockup, badge, avatar,
-thumbnail, end card, or immediate backing composition introduces a non-neutral
-color, reject the asset; do not approve it as an exception and do not publish
-it. The permitted lockups are entirely black and white, not merely a
-monochrome mark placed inside a colored composition.
+**Social wordmark, September 12 owner direction:** Omit the typeset “Blanc” wordmark and the recurring “Browsing & design” header label from this social creative system. Use the Sunrise symbol alone; do not add a replacement brand descriptor. This does not remove normal mentions of Blanc in editorial copy or the website address.
 
-Use `assets/blanc-mark.svg` as the canonical authoring source. Its white
-distressed strokes are cutout instructions, not a third brand color;
-`npm run brand:build` converts them to transparent negative space and
-regenerates the app icons, in-product marks, website logo and favicons, and
-their exported variants. A white-on-black treatment must keep the same
-geometry and change only the mark/field polarity.
+**Social headline trial, September 12:** At the owner’s request, the current social batch tests Newsreader Medium (weight 500) for a modest increase over regular 400. Supporting Inter copy stays unchanged. This is a review trial, not a site/product typography change or blanket acceptance of the weight.
+
+The earlier B-mark/paper-white marketing rule is superseded. Historical files and released product screenshots are evidence, not sources for current marketing identity. Do not repaint product footage to imply a different shipped interface.
 
 ## Core palette
 
-Blanc's default visual system is paper/ink with restrained neutral surfaces:
+The following neutral tokens describe existing product surfaces and supporting ink. New marketing uses the Sunrise palette below:
 
 - paper: `#ffffff`;
 - soft paper: `#f7f7f7`;
@@ -53,12 +37,12 @@ The authoritative product/site tokens remain in `site/src/styles/site.css` and
 `src/renderer/styles.css`. Retired feature-specific colorways are not part of
 the general Blanc brand palette.
 
-### Website Sunrise palette
+### Sunrise palette for website and marketing
 
 The website carries the Sunrise icon's warmth through ivory backgrounds,
 warm surfaces, and muted gold details. Keep the existing typography,
 near-black headings, dark primary buttons, and an ivory desktop masthead.
-These website-only tokens are separate from the released product palette:
+These website and marketing tokens are separate from the released product palette:
 
 - page background, sampled from the Sunrise source art: `#F7F0E5` (`--site-bg`);
 - section surfaces and footer: `#EFE6D8` (`--site-surface`);
@@ -82,7 +66,7 @@ warm ink. The warm ink belongs to the Patron offer alone: the shared
 Decorative hairlines are not focus indicators; retain high-contrast outlines
 and control states.
 
-The website may place its monochrome marks directly on these warm page
+The website may place its monochrome Sunrise marks directly on these warm page
 surfaces. This exception permits the shared page background, not added logo
 badges, decorative backings, glows, gradients, or tinted marks. Desktop
 navigation is monochrome at rest, with the hover treatment documented below.
@@ -150,9 +134,7 @@ The homepage demo's headline-and-subline pair was merged at the same time
 into one sentence per scene, set as an Inter figure title, because it
 repeated the hero's shape directly beneath it. The generated share cards and
 press card follow the heading face. The app keeps Inter; giving it
-Newsreader needs its own brief. Social templates under the title rule below
-adopt Newsreader only after the September 2026 launch week, so launch assets
-stay consistent with what was approved before it.
+Newsreader needs its own brief. All new social templates follow the current Sunrise identity and Newsreader title rule. Previously approved launch assets require fresh review if changed.
 
 ### Editorial website footer
 
@@ -255,8 +237,7 @@ Marketing titles and subtitles should carry the same hierarchy as the Blanc
 website:
 
 - write titles in sentence case, never all caps;
-- center titles and balance deliberate line breaks rather than setting them as
-  a left-aligned poster block;
+- balance deliberate line breaks and align titles to the composition; left-aligned editorial layouts and centered questions can coexist in the same Sunrise batch;
 - center the composition on the actual artboard by default. When native
   controls require an offset, use the smallest optical shift that preserves
   the safe area and document it; do not push the whole composition visibly to
@@ -276,10 +257,8 @@ state labels, and interface annotations. It is not a headline treatment.
 Before approving or publishing an asset:
 
 1. Inspect every frame, thumbnail, crop, and end card—not only the source file.
-2. Confirm the mark is black on white or white on black, or is one of the
-   website Sunrise treatments explicitly documented above. Outside those
-   website treatments, no accent-colored backing is permitted.
+2. Confirm the symbol is Sunrise, never the retired B. For new social creative, use the original gold Sunrise artwork on the warm ivory theme; preserve its geometry and clear space.
 3. Confirm crop-safe previews do not clip or crowd the mark.
-4. Confirm campaign colors do not override the paper/ink identity.
+4. Confirm new marketing uses the Sunrise ivory, warm ink, muted brown-gray and restrained gold palette.
 5. Confirm titles are sentence case and subtitles follow the website hierarchy.
 6. Apply the separate product-claim gate in `docs/marketing-claims.md`.

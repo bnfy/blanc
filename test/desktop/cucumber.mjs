@@ -16,10 +16,12 @@
 const common = {
   paths: ['spec/acceptance/**/*.feature'],
   require: ['test/desktop/support/**/*.js', 'test/desktop/steps/**/*.js'],
+  import: ['test/desktop/tab-import.mjs'],
 };
 
 // The scenarios implemented in steps/ (by their stable @F#-n ids).
 const RUNNABLE = [
+  '@F41-1', '@F41-2', '@F41-3', '@F41-4', '@F41-5', '@F41-6', '@F41-7', '@F41-8', '@F41-9', '@F41-10', '@F41-11',
   '@F2-1', '@F2-2', '@F2-3', '@F2-4',
   '@F2-5', '@F2-6', '@F2-7',
   '@F3-1', '@F3-2', '@F3-4', '@F3-5',
@@ -33,6 +35,7 @@ const RUNNABLE = [
   '@F16-2', '@F16-3', '@F16-4', '@F16-5', '@F16-6', '@F16-7', '@F16-8',
   '@F17-1', '@F17-3',
   '@F19-2', '@F19-3',
+  '@F20-1', '@F20-2', '@F20-3', '@F20-4',
   '@F28-1', '@F28-2', '@F28-3', '@F28-4', '@F28-5', '@F28-6',
   '@F28-7', '@F28-8', '@F28-9', '@F28-10', '@F28-11', '@F28-12',
   '@F28-13', '@F28-14', '@F28-15', '@F28-16', '@F28-17',
@@ -47,6 +50,10 @@ const RUNNABLE = [
   '@F37-1', '@F37-2', '@F37-3',
   '@F38-2', '@F38-3', '@F38-4', '@F38-5', '@F38-6', '@F38-7',
   '@F39-1',
+  // F39 is already the current certificate-safety scenario. Migration uses
+  // F40 so reconciling PR #205 cannot alias or replace that safety coverage.
+  '@F40-1', '@F40-2', '@F40-4', '@F40-5',
+  '@F40-7', '@F40-8', '@F40-9', '@F40-10', '@F40-11', '@F40-14', '@F40-15',
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };

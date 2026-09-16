@@ -46,6 +46,22 @@ const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%20press
 
 const proofPoints = [
   {
+    label: 'Five Start Page layouts',
+    detail: 'Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard uses local frequent sites; Mahjong includes eight boards, rotating Daily deals, and device-local records.',
+  },
+  {
+    label: 'A reference beside your page',
+    detail: 'Glance temporarily displays another tab from the current window beside the main page, with resize, swap, change, and close controls.',
+  },
+  {
+    label: 'Separate identities and saved sets',
+    detail: 'Local profiles and independent windows separate browsing contexts. Patron adds creation of device-local Named Workspaces for saved sets of tabs and groups.',
+  },
+  {
+    label: 'A second chance after closing',
+    detail: 'Recently Closed is a bounded per-window undo history for ordinary tabs and groups. Eligible pages can briefly return without reloading; private tabs are excluded.',
+  },
+  {
     label: 'Built-in network blocking',
     detail: 'Blanc stops ads, trackers, and fingerprinting requests at the network layer—no extension required.',
   },
@@ -235,6 +251,22 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
     <p class="press-assets-contact">Need a different crop, background, or product state? <!--email_off--><a href={PRESS_REQUEST_URL}>Ask Anthony J. Loria directly.</a><!--/email_off--></p>
   </section>
 
+  <section class="press-newsroom" aria-labelledby="press-feature-captures-title">
+    <div class="press-newsroom-heading"><div><p class="section-kicker">current product captures</p><h2 id="press-feature-captures-title">More of the browser, ready to show.</h2></div><p>Captured from the signed public v1.15.0 macOS app with an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.</p></div>
+    <div class="layout-gallery press-feature-gallery">
+      {[
+        ['billboard', 'Billboard', 'A clock and frequent sites derived from local browsing history.'],
+        ['mahjong', 'Mahjong', 'Turtle in Classic mode, one of eight solvable-by-construction boards in the start page.'],
+        ['glance', 'Glance', 'Two ordinary tabs sharing one window.'],
+        ['workspaces', 'Named Workspaces', 'The switcher with saved sets of tabs and groups.'],
+        ['profiles', 'Local profiles', 'Settings with Personal and a separate named profile.'],
+        ['reopen-closed-tabs', 'Recently Closed', 'A recently closed tab and a group, ready to reopen.'],
+      ].map(([slug, title, description]) => (
+        <figure><a href={`/feature-captures/${slug}.png`} download><img src={`/feature-captures/${slug}.png`} width="1440" height="900" loading="lazy" decoding="async" alt={description} /></a><figcaption><strong>{title}.</strong> {description} <a href={`/feature-captures/${slug}.png`} download>Download PNG · 1440 × 900</a></figcaption></figure>
+      ))}
+    </div>
+  </section>
+
   <section class="press-announcement" id="announcement" aria-labelledby="press-announcement-title">
     <div class="press-announcement-intro">
       <p class="section-kicker">the launch story</p>
@@ -289,6 +321,12 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
           <div><dt>private tabs</dt><dd>Excluded from history, recently closed tabs, and the next launch</dd></div>
           <div><dt>account</dt><dd>Not required</dd></div>
           <div><dt>sync</dt><dd>Optional and end-to-end encrypted</dd></div>
+          <div><dt>start page</dt><dd>Ledger, Billboard, Shelf, Tally, and Mahjong; Billboard frequent sites stay local</dd></div>
+          <div><dt>Mahjong</dt><dd>Eight boards, rotating Daily deals, local records and streaks, cross-tab continuation, and undoable Shuffle</dd></div>
+          <div><dt>Glance</dt><dd>A temporary reference pane using tabs from the current window and profile</dd></div>
+          <div><dt>profiles and windows</dt><dd>Local browsing identities with independent windows; Profile Sync is Personal-only</dd></div>
+          <div><dt>Recently Closed</dt><dd>Per-window recovery for ordinary tabs and groups; time-limited, memory-only, and may reload</dd></div>
+          <div><dt>Named Workspaces</dt><dd>Patron creation of device-local, profile-scoped saved tab and group sets; existing sets remain usable after membership lapses</dd></div>
           <div><dt>built-in AI agent</dt><dd>None</dd></div>
           <div><dt>extension marketplace</dt><dd>Not supported</dd></div>
         </dl>
@@ -336,6 +374,10 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
       <li><span>02</span><p><strong>Organize a real project.</strong> Open a few related tabs and type <code>/group research</code>. Use <code>/pin</code> for a tab you need nearby, <code>/ungroup</code> to pull one out, or <code>/close-group</code> when the task is finished.</p></li>
       <li><span>03</span><p><strong>Handle everyday browsing.</strong> Try <code>/new</code>, <code>/private</code>, and <code>/find</code>. Type <code>/save reading</code> to add the current page to a Favorites folder named “reading.”</p></li>
       <li><span>04</span><p><strong>Control Blanc without menu hunting.</strong> Use <code>/block-ads</code> to toggle blocking, <code>/allow-ads</code> to exempt the current site, <code>/theme dark</code> to change appearance, and <code>/settings</code> to see every device-level choice.</p></li>
+      <li><span>05</span><p><strong>Choose a starting point.</strong> Open a new tab and try the five footer layouts. In <a href="/features/start-page">Mahjong</a>, try a Daily board and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.</p></li>
+      <li><span>06</span><p><strong>Keep a reference in view.</strong> Open two ordinary tabs, press Cmd/Ctrl+Shift+G, and pick one for <a href="/features/glance">Glance</a>. Resize the divider and try Make main.</p></li>
+      <li><span>07</span><p><strong>Undo a close.</strong> Close an ordinary tab or named group, then pick it in Recently Closed or press Cmd/Ctrl+Shift+T. <a href="/features/reopen-closed-tabs">Recovery is bounded</a> and may reload the page.</p></li>
+      <li><span>08</span><p><strong>Separate identities and sets.</strong> Create a <a href="/features/profiles">named local profile</a> in Settings. With active Patron, save a tab/group set through <code>/workspace</code> and switch to another <a href="/features/workspaces">Named Workspace</a>.</p></li>
     </ol>
   </section>
 

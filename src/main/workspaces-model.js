@@ -12,7 +12,8 @@ const { validProfileId } = require('./local-profile-model');
 // object, leaving validWindowId undefined mid-load and failing every id.
 const { validWorkspaceId } = require('./session-workspace');
 
-const WORKSPACES_VERSION = 1;
+const WORKSPACES_VERSION = 2;
+const RECOVERY_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // Bounded like the closed-tab entry cap: keeps the file small and the ⌘L
 // list scannable. A plan-time decision, not a spec requirement.
 const MAX_WORKSPACES = 25;
@@ -20,7 +21,7 @@ const MAX_NAME_LENGTH = 60;
 
 /** A fresh empty file. Returns a NEW object each call — a shared default
  * would let one profile's store mutate another's. */
-const EMPTY_FILE = () => ({ version: WORKSPACES_VERSION, workspaces: [] });
+const EMPTY_FILE = () => ({ version: WORKSPACES_VERSION, workspaces: [], deleted: [] });
 
 /** The user's handle for switching: trimmed, whitespace-collapsed, capped.
  * Null when nothing survives, which is what makes an empty name a rejection
@@ -54,6 +55,7 @@ function normalizeWorkspace(raw) {
     profileId: raw.profileId,
     createdAt: Number.isFinite(raw.createdAt) ? raw.createdAt : 0,
     updatedAt: Number.isFinite(raw.updatedAt) ? raw.updatedAt : 0,
+    revision: Number.isSafeInteger(raw.revision) && raw.revision >= 0 ? raw.revision : 0,
     urls,
     activeIndex: Number.isInteger(raw.activeIndex) ? raw.activeIndex : 0,
     groups: asArray(raw.groups),
@@ -67,8 +69,8 @@ function normalizeWorkspace(raw) {
 }
 
 /** The whole file, repaired: invalid records dropped, ids de-duplicated
- * (first wins), and the list bounded. Always stamped with THIS build's
- * version — a newer/unknown version is normalized, never trusted verbatim. */
+ * (first wins), and the list bounded. Call loadFile at disk boundaries: a
+ * future format must never enter this supported-format normalizer. */
 function normalizeFile(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const seen = new Set();
@@ -80,7 +82,24 @@ function normalizeFile(raw) {
     workspaces.push(workspace);
     if (workspaces.length === MAX_WORKSPACES) break;
   }
-  return { version: WORKSPACES_VERSION, workspaces };
+  // v1 displayed most-recently-saved first; migrate that order once.
+  if (source.version === 1) workspaces.sort((a, b) => b.updatedAt - a.updatedAt);
+  const deleted = asArray(source.deleted).flatMap((entry) => {
+    const workspace = normalizeWorkspace(entry?.workspace);
+    return workspace && !seen.has(workspace.id) && Number.isFinite(entry.deletedAt)
+      ? [{ workspace, deletedAt: entry.deletedAt, index: Number.isInteger(entry.index) ? entry.index : workspaces.length }] : [];
+  }).slice(-MAX_WORKSPACES);
+  return { version: WORKSPACES_VERSION, workspaces, deleted };
+}
+
+function loadFile(raw) {
+  if (raw && typeof raw === 'object' && Number(raw.version) > WORKSPACES_VERSION) {
+    return { status: 'future-format', file: raw };
+  }
+  if (!raw || typeof raw !== 'object' || !Array.isArray(raw.workspaces)) {
+    return { status: 'corrupt', file: EMPTY_FILE() };
+  }
+  return { status: 'supported', file: normalizeFile(raw) };
 }
 
 /** The tab columns a capture carries, copied so the record never aliases the
@@ -108,7 +127,7 @@ const nameTaken = (file, profileId, name, exceptId = null) => {
     w.profileId === profileId && w.id !== exceptId && w.name.toLowerCase() === wanted);
 };
 
-const withWorkspaces = (file, workspaces) => ({ version: WORKSPACES_VERSION, workspaces });
+const withWorkspaces = (file, workspaces) => ({ ...file, version: WORKSPACES_VERSION, workspaces });
 
 function createWorkspace(file, { name, profileId, capture, now, id } = {}) {
   const clean = normalizeFile(file);
@@ -141,11 +160,16 @@ function renameWorkspace(file, id, name, now) {
   };
 }
 
-function deleteWorkspace(file, id) {
+function deleteWorkspace(file, id, now = Date.now()) {
   const clean = normalizeFile(file);
   const workspaces = clean.workspaces.filter((w) => w.id !== id);
+  const index = clean.workspaces.findIndex((w) => w.id === id);
+  const next = withWorkspaces(clean, workspaces);
+  next.deleted = clean.deleted.filter((d) => now - d.deletedAt < RECOVERY_TTL_MS);
+  if (index >= 0) next.deleted.push({ workspace: clean.workspaces[index], index, deletedAt: now });
+  next.deleted = next.deleted.slice(-MAX_WORKSPACES);
   return {
-    file: withWorkspaces(clean, workspaces),
+    file: next,
     removed: workspaces.length !== clean.workspaces.length,
   };
 }
@@ -156,18 +180,21 @@ function updateCapture(file, id, capture, now) {
   const clean = normalizeFile(file);
   const existing = clean.workspaces.find((w) => w.id === id);
   if (!existing) return { file: clean };
-  const workspace = { ...existing, ...captureColumns(capture), updatedAt: now };
+  const columns = captureColumns(capture);
+  if (JSON.stringify(captureColumns(existing)) === JSON.stringify(columns)) {
+    return { file: clean, workspace: existing, unchanged: true };
+  }
+  const workspace = { ...existing, ...columns, updatedAt: now, revision: existing.revision + 1 };
   return {
     file: withWorkspaces(clean, clean.workspaces.map((w) => (w.id === id ? workspace : w))),
     workspace,
   };
 }
 
-/** One profile's workspaces, newest-updated first — the ⌘L list order. */
+/** One profile's workspaces in stable manual order. */
 function listForProfile(file, profileId) {
   return normalizeFile(file).workspaces
-    .filter((w) => w.profileId === profileId)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
+    .filter((w) => w.profileId === profileId);
 }
 
 // ---------------------------------------------------------------------------
@@ -309,7 +336,29 @@ function bindingsAfterDelete(bindings, workspaceId) {
   return next;
 }
 
+function restoreWorkspace(file, id, now = Date.now()) {
+  const clean = normalizeFile(file);
+  const entry = clean.deleted.find((d) => d.workspace.id === id && now - d.deletedAt < RECOVERY_TTL_MS);
+  if (!entry) return { error: 'not-found' };
+  if (clean.workspaces.length >= MAX_WORKSPACES) return { error: 'limit' };
+  if (nameTaken(clean, entry.workspace.profileId, entry.workspace.name)) return { error: 'duplicate-name' };
+  clean.workspaces.splice(Math.max(0, Math.min(entry.index, clean.workspaces.length)), 0, entry.workspace);
+  clean.deleted = clean.deleted.filter((d) => d.workspace.id !== id);
+  return { file: clean, workspace: entry.workspace };
+}
+
+function moveWorkspace(file, id, direction) {
+  const clean = normalizeFile(file);
+  const index = clean.workspaces.findIndex((w) => w.id === id);
+  if (index < 0) return { error: 'not-found' };
+  const target = Math.max(0, Math.min(clean.workspaces.length - 1, index + (direction === 'up' ? -1 : 1)));
+  const [workspace] = clean.workspaces.splice(index, 1);
+  clean.workspaces.splice(target, 0, workspace);
+  return { file: clean, workspace, unchanged: target === index };
+}
+
 module.exports = {
+  loadFile, captureColumns, restoreWorkspace, moveWorkspace, RECOVERY_TTL_MS,
   WORKSPACES_VERSION,
   MAX_WORKSPACES,
   MAX_NAME_LENGTH,

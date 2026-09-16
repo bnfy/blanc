@@ -1,112 +1,144 @@
-// src/main/workspaces.js
-// Named Workspaces persistence: one profile-scoped `workspaces.json` per local
-// profile (Personal at the userData root, named profiles under
-// `profiles/<opaque-id>/`, exactly where Favorites and history already live).
-//
-// Deliberately thin. Every decision — validation, naming rules, the cap, the
-// binding transitions — lives in the Electron-free workspaces-model, so it can
-// be unit-tested. This file only reads and writes the store, mints ids, and
-// stamps the clock.
-//
-// NEVER synced. Workspaces are device-local in this project; `workspaces` must
-// not appear in SYNCED_KEYS or any sync payload.
+'use strict';
 
+// The only writer of profile-local workspace files. Critical operations are
+// durable before success. Background captures remain queued until durable;
+// recovery state here contains only the normal session columns, never pages.
 const crypto = require('crypto');
+const fs = require('fs');
 const { JsonStore } = require('./store');
-const { activeLocalProfileId } = require('./local-profile-context');
+const { activeLocalProfileId, withLocalProfile } = require('./local-profile-context');
 const model = require('./workspaces-model');
 
-let store = null;
-// Review round 2, Fix 4: which profiles have already been repaired THIS
-// process. ensureStore() is the first thing every read AND write in this
-// file calls — including main.js's autosaveWorkspaceBindings, which rides
-// persistSession/broadcastTabs's ~10 broadcasts/s coalesce during a page
-// load. Re-running normalizeFile plus two full JSON.stringify passes of the
-// whole file (up to MAX_WORKSPACES records, each with an 8KB favicon column)
-// on every single call was a measurable main-process stall on that hot path.
-const repairedProfiles = new Set();
-
-const ensureStore = () => {
-  if (!store) {
-    store = new JsonStore('workspaces', model.EMPTY_FILE(), { scope: 'profile' });
-  }
-  const profileId = activeLocalProfileId();
-  // Repair on FIRST access per profile per process, not on every access. The
-  // file is only ever written through this module (create/rename/remove/
-  // saveCapture all route through ensureStore + store.update), so nothing
-  // external can re-corrupt it mid-process — a hand-edited or partially
-  // written file only needs normalizing the first time this process reads it
-  // for that profile, exactly like JsonStore itself only loads a file once
-  // per profile and then trusts its own retained copy.
-  if (!repairedProfiles.has(profileId)) {
-    // A profile-scoped file can never legitimately hold another profile's
-    // records, so a foreign profileId is dropped here — the model stays
-    // generally profile-aware, but the store enforces the single-profile
-    // invariant at the boundary.
-    const current = store.data;
-    const repaired = model.normalizeFile(current);
-    repaired.workspaces = repaired.workspaces.filter((w) => w.profileId === profileId);
-    if (JSON.stringify(repaired) !== JSON.stringify(current)) {
-      store.update((data) => {
-        data.version = repaired.version;
-        data.workspaces = repaired.workspaces;
-      });
+function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE(), { scope: 'profile', quietErrors: true }), io = fs, clock = Date.now, makeId = crypto.randomUUID } = {}) {
+  const profiles = new Map();
+  let onStatus = () => {};
+  function state() {
+    const profileId = activeLocalProfileId();
+    if (profiles.has(profileId)) return profiles.get(profileId);
+    const current = { status: 'saved', pending: new Map(), timer: null, attempts: 0 };
+    profiles.set(profileId, current);
+    let bytes;
+    try { bytes = io.readFileSync(store.file, 'utf8'); }
+    catch (error) {
+      if (error.code !== 'ENOENT') current.status = 'read-failed';
+      return current;
     }
-    repairedProfiles.add(profileId);
+    let raw;
+    try { raw = JSON.parse(bytes); } catch { raw = null; }
+    const loaded = model.loadFile(raw);
+    if (loaded.status === 'future-format') {
+      current.status = 'future-format';
+      return current;
+    }
+    const repaired = loaded.file;
+    repaired.workspaces = repaired.workspaces.filter((w) => w.profileId === profileId);
+    repaired.deleted = repaired.deleted.filter((d) => d.workspace.profileId === profileId);
+    if (JSON.stringify(repaired) !== JSON.stringify(raw)) {
+      // Preserve the exact original before any supported-format repair/migration.
+      // A fresh unique name avoids replacing a previous recovery copy.
+      let fd;
+      try {
+        fd = io.openSync(`${store.file}.before-repair-${makeId()}.bak`, 'wx', 0o600);
+        io.writeFileSync(fd, bytes, 'utf8');
+        io.fsyncSync(fd);
+        io.closeSync(fd); fd = null;
+        if (!store.updateAndFlush((data) => { for (const key of Object.keys(data)) delete data[key]; Object.assign(data, repaired); })) throw new Error('write');
+      } catch {
+        if (fd != null) { try { io.closeSync(fd); } catch {} }
+        current.status = 'repair-failed';
+      }
+    }
+    return current;
   }
-  return store;
-};
-
-/** This profile's workspaces, newest-updated first (the ⌘L list order). */
-function list() {
-  return model.listForProfile(ensureStore().data, activeLocalProfileId());
+  const unavailable = (s) => ['future-format', 'repair-failed', 'read-failed'].includes(s.status);
+  function status() { return state().status; }
+  function list() {
+    const s = state();
+    if (unavailable(s)) return [];
+    return store.data.workspaces.filter((w) => w.profileId === activeLocalProfileId());
+  }
+  const get = (id) => list().find((w) => w.id === id) ?? null;
+  function write(result) {
+    const s = state();
+    if (unavailable(s)) return { ok: false, error: s.status };
+    if (result.error) return { ok: false, error: result.error };
+    if (!result.file) return { ok: false, error: 'not-found' };
+    if (!result.unchanged && !store.updateAndFlush((data) => Object.assign(data, result.file))) {
+      s.status = 'storage-failed'; onStatus();
+      return { ok: false, error: 'storage-failed' };
+    }
+    s.status = s.pending.size ? 'pending' : 'saved'; s.attempts = 0; onStatus();
+    return { ok: true, ...(result.workspace ? { workspace: result.workspace } : {}) };
+  }
+  function mutate(operation) {
+    const s = state();
+    return unavailable(s) ? { ok: false, error: s.status } : write(operation(store.data));
+  }
+  function saveCapture(id, capture) {
+    const result = mutate((data) => { const changed = model.updateCapture(data, id, capture, clock()); return changed.workspace ? changed : { error: 'not-found' }; });
+    if (result.ok) state().pending.delete(id);
+    return result;
+  }
+  function flushPending() {
+    const s = state();
+    clearTimeout(s.timer); s.timer = null;
+    for (const [id, capture] of s.pending) {
+      const result = saveCapture(id, capture);
+      if (!result.ok && result.error !== 'not-found') {
+        scheduleRetry(s); return result;
+      }
+      s.pending.delete(id);
+    }
+    s.status = unavailable(s) ? s.status : 'saved'; onStatus();
+    return { ok: true };
+  }
+  function scheduleRetry(s) {
+    if (s.timer || unavailable(s)) return;
+    const profileId = activeLocalProfileId();
+    const delay = Math.min(30000, 250 * 2 ** Math.min(s.attempts++, 7));
+    s.timer = setTimeout(() => withLocalProfile(profileId, flushPending), delay);
+    s.timer.unref?.();
+  }
+  function queueCapture(id, capture) {
+    const s = state();
+    if (unavailable(s)) return { ok: false, error: s.status };
+    const current = get(id);
+    if (!current) return { ok: false, error: 'not-found' };
+    const columns = model.captureColumns(capture);
+    if (!s.pending.has(id) && JSON.stringify(model.captureColumns(current)) === JSON.stringify(columns)) return { ok: true };
+    s.pending.set(id, columns);
+    if (s.status !== 'storage-failed' && s.status !== 'pending') { s.status = 'pending'; onStatus(); }
+    scheduleRetry(s);
+    return { ok: true };
+  }
+  return {
+    list, get, status, saveCapture, queueCapture, flushPending,
+    setStatusObserver(fn) { onStatus = typeof fn === 'function' ? fn : () => {}; },
+    validateCreate(name) {
+      const s = state(); if (unavailable(s)) return { ok: false, error: s.status };
+      const result = model.createWorkspace(store.data, { name, capture: {}, now: clock(), id: makeId(), profileId: activeLocalProfileId() });
+      return result.error ? { ok: false, error: result.error } : { ok: true };
+    },
+    create({ name, capture }) { return mutate((data) => model.createWorkspace(data, { name, capture, now: clock(), id: makeId(), profileId: activeLocalProfileId() })); },
+    rename(id, name) { return mutate((data) => model.renameWorkspace(data, id, name, clock())); },
+    remove(id) {
+      const s = state();
+      const result = mutate((data) => { const r = model.deleteWorkspace(data, id, clock()); return r.removed ? r : { error: 'not-found' }; });
+      if (result.ok) s.pending.delete(id);
+      return result;
+    },
+    deleted() {
+      const s = state();
+      if (unavailable(s)) return [];
+      const remaining = store.data.deleted.filter((d) => clock() - d.deletedAt < model.RECOVERY_TTL_MS);
+      if (remaining.length !== store.data.deleted.length && !store.updateAndFlush((data) => { data.deleted = remaining; })) s.status = 'storage-failed';
+      return remaining;
+    },
+    restore(id) { return mutate((data) => model.restoreWorkspace(data, id, clock())); },
+    move(id, direction) { return mutate((data) => model.moveWorkspace(data, id, direction)); },
+    forget(id) { return mutate((data) => data.deleted.some((d) => d.workspace.id === id) ? { file: { ...data, deleted: data.deleted.filter((d) => d.workspace.id !== id) } } : { error: 'not-found' }); },
+    disposeProfile(profileId) { clearTimeout(profiles.get(profileId)?.timer); profiles.delete(profileId); },
+  };
 }
-
-function get(id) {
-  return list().find((workspace) => workspace.id === id) ?? null;
-}
-
-/** Save the current window as a new named workspace.
- * The store mints the id: the model stays deterministic, and randomUUID()
- * satisfies validWorkspaceId (36 chars, hex + hyphens). */
-function create({ name, capture }) {
-  const current = ensureStore();
-  const result = model.createWorkspace(current.data, {
-    name,
-    profileId: activeLocalProfileId(),
-    capture,
-    now: Date.now(),
-    id: crypto.randomUUID(),
-  });
-  if (result.error) return { ok: false, error: result.error };
-  current.update((data) => { data.workspaces = result.file.workspaces; });
-  return { ok: true, workspace: result.workspace };
-}
-
-function rename(id, name) {
-  const current = ensureStore();
-  const result = model.renameWorkspace(current.data, id, name, Date.now());
-  if (result.error) return { ok: false, error: result.error };
-  current.update((data) => { data.workspaces = result.file.workspaces; });
-  return { ok: true, workspace: result.workspace };
-}
-
-function remove(id) {
-  const current = ensureStore();
-  const result = model.deleteWorkspace(current.data, id);
-  if (!result.removed) return { ok: false, error: 'not-found' };
-  current.update((data) => { data.workspaces = result.file.workspaces; });
-  return { ok: true };
-}
-
-/** Autosave from a bound window. A no-op for an unknown id, so a deleted
- * workspace's last in-flight capture cannot resurrect it. */
-function saveCapture(id, capture) {
-  const current = ensureStore();
-  const result = model.updateCapture(current.data, id, capture, Date.now());
-  if (!result.workspace) return { ok: false, error: 'not-found' };
-  current.update((data) => { data.workspaces = result.file.workspaces; });
-  return { ok: true };
-}
-
-module.exports = { list, get, create, rename, remove, saveCapture };
+const repository = createRepository();
+module.exports = { ...repository, createRepository };

@@ -20,16 +20,4 @@ module.exports = {
     preserveColor: true,
     layerName: 'Sunrise',
   },
-  paper: {
-    nativeName: 'Paper',
-    background: '#FFFFFF',
-    foreground: '#0E0E0E',
-    darkForeground: '#F4F4F4',
-  },
-  ink: {
-    nativeName: 'Ink',
-    background: '#0D0D0D',
-    foreground: '#F4F4F4',
-    darkForeground: '#F4F4F4',
-  },
 };

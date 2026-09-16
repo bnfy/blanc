@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const test = require('node:test');
+const packageJson = require('../../package.json');
 
 const {
   ABOUT_APPLICATION_NAME,
@@ -38,4 +39,10 @@ test('showAboutPanel configures metadata before opening the native dialog', () =
   assert.equal(calls[0][1].applicationVersion, '1.0.2');
   assert.equal(calls[0][1].iconPath, '/tmp/blanc-about.png');
   assert.deepEqual(calls[1], ['show']);
+});
+
+test('the macOS bundle build number is distinct from the user-facing version', () => {
+  const bundleVersion = packageJson.build?.mac?.bundleVersion;
+  assert.match(bundleVersion, /^\d+(?:\.\d+){0,2}$/);
+  assert.notEqual(bundleVersion, packageJson.version);
 });

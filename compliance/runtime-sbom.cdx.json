@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.15.0",
+      "bom-ref": "application:runtime:blanc@1.17.0",
       "name": "Blanc",
-      "version": "1.15.0",
+      "version": "1.17.0",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -1036,14 +1036,14 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.1.1",
+      "bom-ref": "pkg:npm/electron@44.3.0",
       "name": "electron",
-      "version": "44.1.1",
+      "version": "44.3.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "376582ab6b1b3a4a9082f5c9631da54ba5223bc6c5f98afaeedac39d2e8929ad96c5309142c0231a5e7b494b5d5bd87aaf93e576e0458c8871860777773bf586"
+          "content": "4adf4457b17656d61a6160f6a9a0230705202b1c77f5e24e52c509e7eff5d75deca9b55f36abf80db9bf5b5acdeea99848f6be996c11eb2afe6fb31f8238157d"
         }
       ],
       "licenses": [
@@ -1053,7 +1053,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.1.1",
+      "purl": "pkg:npm/electron@44.3.0",
       "properties": [
         {
           "name": "blanc:declaration",
@@ -1067,7 +1067,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.1.1.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.3.0.tgz"
         }
       ]
     },
@@ -1163,14 +1163,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/js-yaml@4.3.1",
+      "bom-ref": "pkg:npm/js-yaml@4.3.2",
       "name": "js-yaml",
-      "version": "4.3.1",
+      "version": "4.3.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "098e9cac6ab7d77317f06930bc1eedce0a7df6f8d0c58d7efb9cb5d3f04a37f1947c7a9668e19030d66406fa92cec64a5a4fe28f01e55b3ce42ee96c18786359"
+          "content": "48534ebd227e0e07fff409fdd38631f828129483c2908a5aa38aa8e7596979edb94c845e8dd1f7ae1478119306a0dc77fd33f73bec335ae893165e2ca9b96dcc"
         }
       ],
       "licenses": [
@@ -1180,7 +1180,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/js-yaml@4.3.1",
+      "purl": "pkg:npm/js-yaml@4.3.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -1202,7 +1202,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz"
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz"
         }
       ]
     },
@@ -1704,7 +1704,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.15.0",
+      "ref": "application:runtime:blanc@1.17.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
         "asset:inter-font",
@@ -1712,7 +1712,7 @@
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.1.1"
+        "pkg:npm/electron@44.3.0"
       ]
     },
     {
@@ -1847,7 +1847,7 @@
       "dependsOn": [
         "pkg:npm/builder-util-runtime@9.7.0",
         "pkg:npm/fs-extra@10.1.0",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/lazy-val@1.0.5",
         "pkg:npm/lodash.escaperegexp@4.1.2",
         "pkg:npm/lodash.isequal@4.5.0",
@@ -1856,7 +1856,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.1.1",
+      "ref": "pkg:npm/electron@44.3.0",
       "dependsOn": []
     },
     {
@@ -1872,7 +1872,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/js-yaml@4.3.1",
+      "ref": "pkg:npm/js-yaml@4.3.2",
       "dependsOn": [
         "pkg:npm/argparse@2.0.1"
       ]

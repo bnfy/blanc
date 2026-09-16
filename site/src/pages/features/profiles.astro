@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Local Profiles and Multiple Windows | Blanc Browser"
+  description="Separate cookies, site data, Favorites, history, and permissions with Blanc’s local profiles. Use independent windows, with no account required."
+  path="/features/profiles"
+  page="feature-profiles"
+  current="features"
+  ogImage="/feature-profiles.png"
+  ogImageAlt="Blanc Settings showing Personal and a separate named local profile."
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Profiles & Windows","item":"https://blancbrowser.com/features/profiles"}]}
+  </script>
+<main class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">profiles & windows</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="profiles-title">
+    <p class="section-kicker">profiles & windows</p>
+    <h1 id="profiles-title">Separate browsing identities. Keep every window independent.</h1>
+    <p>Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.</p>
+  </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/profiles.png" aria-label="View full Profiles & Windows capture"><img src="/feature-captures/profiles.png" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc Settings showing Personal and a separate named local profile." /></a>
+    <figcaption>Create and manage local profile windows in Settings.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="profiles-section-0">
+    <div><p class="section-kicker">separate identities</p><h2 id="profiles-section-0">Sign into the same site in different profiles.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Start with Personal</h3><p>Personal is permanent and keeps your existing Blanc data. In Settings, name another profile and choose Create profile window.</p></article>
+      <article><h3>Keep browsing data separate</h3><p>Named profiles isolate cookies, site data, Favorites, history, download metadata, and remembered permissions. Their ordinary and private sessions are separate from other profiles.</p></article>
+      <article><h3>Open more than one window</h3><p>Each native window owns its tabs, groups, Island panel, and Recently Closed list. Saved windows return to their associated profile after relaunch.</p></article>
+    </div>
+  </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/profile-window.png" aria-label="View the separate Studio profile window"><img src="/feature-captures/profile-window.png" width="1440" height="900" loading="lazy" decoding="async" alt="A separate Studio profile window with an empty tab set and no Personal Favorites." /></a>
+    <figcaption>The Studio profile opens its own window without Personal’s tabs or Favorites. Device-level preferences and blocking totals remain shared.</figcaption>
+  </figure>
+  <section class="feature-copy-grid" aria-labelledby="profiles-section-1">
+    <div><p class="section-kicker">what is shared</p><h2 id="profiles-section-1">A profile is a browsing identity on this device.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Device preferences stay consistent</h3><p>Appearance, network and privacy preferences, usage-measurement choices, and Patron status remain shared across the device.</p></article>
+      <article><h3>Sync belongs to Personal</h3><p>Profile Sync is available only to Personal. Creating a named profile does not create another synced identity.</p></article>
+      <article><h3>Delete deliberately</h3><p>Deleting a named profile requires its exact name. It closes that profile’s windows and removes its browsing data and saved workspaces. Files you downloaded remain on disk; Personal cannot be deleted.</p></article>
+    </div>
+  </section>
+  <aside class="truth-note" aria-labelledby="profiles-note-title">
+    <p class="section-kicker">good to know</p><h2 id="profiles-note-title">Separate site data, not separate operating-system users.</h2>
+    <p>Profiles separate browsing identities inside Blanc. They are not password-protected vaults or a security boundary against someone who can use your device account. Named profile data stays on this device.</p>
+    <a class="text-link" href="/features/sync" data-track="feature_cta_click" data-feature="profiles" data-cta-position="related-feature">See what Personal can sync <span aria-hidden="true">↗</span></a>
+  </aside>
+  <section class="feature-close" aria-labelledby="profiles-close-title">
+    <p class="section-kicker">ready when you are</p><h2 id="profiles-close-title">Make room for the way you browse.</h2>
+    <a class="cta" href="/download" data-track="feature_cta_click" data-feature="profiles" data-cta-position="feature-close">download blanc</a>
+  </section>
+</main>
+</BaseLayout>

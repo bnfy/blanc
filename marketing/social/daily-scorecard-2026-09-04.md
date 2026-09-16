@@ -1,5 +1,23 @@
 # Blanc daily social scorecard — September 4, 2026
 
+## Current operating authority and late 5 p.m. checkpoint
+
+Updated September 4 after the owner's explicit implementation request in Default mode. **This section supersedes historical access and approval instructions below.** Brave is available; X Chat works and is empty. Routine useful engagement replies are authorized without another approval. New posts, creator outreach, profile changes and ad changes remain separate review items. Do not create an X passcode or repeat the old access blocker.
+
+Approximately **17:24 EDT**, live profile navigation/reloads displayed X **11**, Threads **21**, Instagram **103**, Facebook **14**, TikTok **25**, and Substack **2 external subscribers** (three including Author). Substack's dashboard reports a 27-minute data delay. Totals match earlier September 4 observations. This late snapshot is not a reconstructed 17:00 or midnight baseline.
+
+Daily +10 status for each channel: **not measurable for a comparable 24-hour interval; not verified achieved**. Consecutive measured misses: **not established**. Do not increment that count from repeated same-day observations. Use met/missed/not measurable with the actual observation times on future scorecards; after three consecutive measured misses prepare one focused experiment for the affected channel. Missing checks do not count as a pass or failure.
+
+Fresh Meta results: **$32.80, five attributed follows, $6.56 per attributed follow**; promotion remains $13/day and ends **September 9**. Its live public post says **No comments yet**. ChatGPT campaign remains paused. No new useful question was found in the inspected current inbox/activity surfaces; no reply was sent.
+
+Next actions: continue the existing 9/13/17 Eastern monitor; review Meta when completion is observed; compare September 5–11 Google results with August 28–September 3 on September 12; finish consented web-only measurement/import validation without synthetic customer conversions. Full coverage, metric distinctions and exact promotion identity: [implementation checkpoint](monitoring-check-2026-09-04-1724.md).
+
+Latest measurement follow-up, approximately 17:30–17:35: deployed GA4 and a single Mac `download_click` verified in internal QA; its traffic is excluded by the existing Analytics filter. Tag Assistant found specific blocked measurement requests, and the attempted asset download was blocked in this Brave test environment. These are diagnostics, not new followers, customer downloads or savings. [Validation evidence](measurement-validation-2026-09-04.md).
+
+## Historical observations and prior instructions
+
+The material below preserves what was known at its stated time. The current authority, access status and action queue above govern subsequent runs.
+
 Prepared at 12:32 EDT; live Brave checks resumed after the owner confirmed
 unlock, approximately 12:34–12:43 EDT. The standing target remains +10
 followers/subscribers per priority platform per day. Changes below are since

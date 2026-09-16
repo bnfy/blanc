@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Start Page Layouts and Mahjong | Blanc Browser"
+  description="Choose Ledger, Billboard, Shelf, Tally, or Mahjong in Blanc. Find frequent sites from local history, or play eight boards with Daily deals and local records."
+  path="/features/start-page"
+  page="feature-start-page"
+  current="features"
+  ogImage="/feature-start-page.png"
+  ogImageAlt="Blanc’s Billboard start page with a large clock, local frequent sites, and named groups."
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Start Page","item":"https://blancbrowser.com/features/start-page"}]}
+  </script>
+<main class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">start page</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="start-page-title">
+    <p class="section-kicker">start page</p>
+    <h1 id="start-page-title">Five ways to begin. One of them is Mahjong.</h1>
+    <p>Go straight to a familiar site, pick up a group of tabs, or take a moment with a game. Choose the start page that suits the way you want to begin.</p>
+  </section>
+  <figure class="product-capture feature-capture released-capture">
+    <a href="/feature-captures/billboard.png" aria-label="View full Start Page capture"><img src="/feature-captures/billboard.png" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc’s Billboard start page with a large clock, local frequent sites, and named groups." /></a>
+    <figcaption>Billboard puts frequently visited sites within reach. Sample browsing data shown.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="start-page-section-0">
+    <div><p class="section-kicker">five layouts</p><h2 id="start-page-section-0">A different starting point, whenever you want.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Billboard</h3><p>A large clock, your weekly blocked-request total, frequently visited sites, and your named groups. Billboard is the default; change layouts from the start-page footer or Settings → General.</p></article>
+      <article><h3>Ledger</h3><p>A simple list of Favorites and named groups. When you opt into sharing tabs, Ledger also shows tabs from your other devices.</p></article>
+      <article><h3>Shelf</h3><p>Favorites as tiles, with named groups and a weekly blocking total underneath.</p></article>
+      <article><h3>Tally</h3><p>Favorites and groups beside a day-by-day chart of blocked requests this week.</p></article>
+      <article><h3>Mahjong</h3><p>A playable Mahjong solitaire table in your new tab, with Classic and Burst modes. Hide the footer while you play, then bring it back to change layouts.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="start-page-section-1">
+    <div><p class="section-kicker">familiar places</p><h2 id="start-page-section-1">Your regular sites, a click away.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Built from your own visits</h3><p>Billboard ranks ordinary browsing history on this device. Its site icons come from locally cached artwork; drawing the row makes no new request to those sites or a favicon service.</p></article>
+      <article><h3>Hide a tile without erasing a visit</h3><p>Remove a site from Billboard when you do not want it there. That choice stays local and does not delete its history. Private tabs neither contribute to nor receive the history-derived row.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="start-page-section-2">
+    <div><p class="section-kicker">a little room to play</p><h2 id="start-page-section-2">Eight boards. A different Daily deal.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>A board with a solution</h3><p>Turtle, Arch, Peaks, Pyramid, Fortress, Butterfly, Bridge, and Cross are solvable by construction when dealt. The Daily deal rotates across all eight; your choices during play can still leave you needing a hint, Undo, or Shuffle.</p></article>
+      <article><h3>Play at your own pace</h3><p>Choose Classic or Burst, with scoring, timed combos and automatic clears in Burst. Hints, sound controls, Undo, and Shuffle are built in. Shuffle itself can be undone, including after a Burst rescue.</p></article>
+      <article><h3>Keep a record of your progress</h3><p>The Records sheet keeps boards cleared, best Classic times and Burst scores, and current and longest Daily streaks on this device.</p></article>
+      <article><h3>Continue an unfinished board</h3><p>Blanc remembers your last board, mode, and deal choice. A new Mahjong tab can offer to continue an unfinished game from another tab.</p></article>
+    </div>
+  </section>
+  <section class="layout-gallery" aria-label="Five start-page layouts">
+    <figure><a href="/feature-captures/billboard.png" aria-label="View full billboard capture"><img src="/feature-captures/billboard.png" width="1440" height="900" loading="lazy" decoding="async" alt="The billboard layout in public Blanc v1.15.0." /></a><figcaption>Billboard</figcaption></figure>
+    <figure><a href="/feature-captures/ledger.png" aria-label="View full ledger capture"><img src="/feature-captures/ledger.png" width="1440" height="900" loading="lazy" decoding="async" alt="The ledger layout in public Blanc v1.15.0." /></a><figcaption>Ledger</figcaption></figure>
+    <figure><a href="/feature-captures/shelf.png" aria-label="View full shelf capture"><img src="/feature-captures/shelf.png" width="1440" height="900" loading="lazy" decoding="async" alt="The shelf layout in public Blanc v1.15.0." /></a><figcaption>Shelf</figcaption></figure>
+    <figure><a href="/feature-captures/tally.png" aria-label="View full tally capture"><img src="/feature-captures/tally.png" width="1440" height="900" loading="lazy" decoding="async" alt="The tally layout in public Blanc v1.15.0." /></a><figcaption>Tally</figcaption></figure>
+    <figure><a href="/feature-captures/mahjong.png" aria-label="View full mahjong capture"><img src="/feature-captures/mahjong.png" width="1440" height="900" loading="lazy" decoding="async" alt="The layered Turtle board in Classic mode in public Blanc v1.15.0." /></a><figcaption>Mahjong — Turtle / Classic</figcaption></figure>
+  </section>
+  <aside class="truth-note" aria-labelledby="start-page-note-title">
+    <p class="section-kicker">good to know</p><h2 id="start-page-note-title">Your game and frequent sites stay on this device.</h2>
+    <p>Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. The layout preference itself can sync through Personal’s optional Profile Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.</p>
+    <a class="text-link" href="/privacy" data-track="feature_cta_click" data-feature="start-page" data-cta-position="related-feature">Read the data details <span aria-hidden="true">↗</span></a>
+  </aside>
+  <section class="feature-close" aria-labelledby="start-page-close-title">
+    <p class="section-kicker">ready when you are</p><h2 id="start-page-close-title">Make room for the way you browse.</h2>
+    <a class="cta" href="/download" data-track="feature_cta_click" data-feature="start-page" data-cta-position="feature-close">download blanc</a>
+  </section>
+</main>
+</BaseLayout>
