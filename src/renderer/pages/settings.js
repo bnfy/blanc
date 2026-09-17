@@ -708,58 +708,126 @@
   // --- Sync ---
   if (supports('sync')) {
     (function initSync() {
+      const { createSyncSetupModel, transition, view } = window.blancSyncSetupModel;
       const setup = document.getElementById('syncSetup');
       const active = document.getElementById('syncActive');
+      const paths = document.getElementById('syncPaths');
+      const pathStart = document.getElementById('syncPathStart');
+      const pathJoin = document.getElementById('syncPathJoin');
+      const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
-      const enableBtn = document.getElementById('syncEnable');
+      const handleHint = document.getElementById('syncHandleHint');
+      const passHint = document.getElementById('syncPassphraseHint');
+      const submitBtn = document.getElementById('syncSubmit');
+      const backBtn = document.getElementById('syncBack');
+      const submitRow = document.getElementById('syncSubmitRow');
+      const notFound = document.getElementById('syncNotFound');
+      const tryAgainBtn = document.getElementById('syncTryAgain');
+      const startNewBtn = document.getElementById('syncStartNew');
       const setupStatus = document.getElementById('syncSetupStatus');
       const activeStatus = document.getElementById('syncActiveStatus');
+      const syncStatusHandle = document.getElementById('syncStatusHandle');
+      const syncStatusData = document.getElementById('syncStatusData');
+      const syncStatusTabs = document.getElementById('syncStatusTabs');
+      const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
+      const syncStatusError = document.getElementById('syncStatusError');
       const nowBtn = document.getElementById('syncNow');
       const disableBtn = document.getElementById('syncDisable');
       const wipeEl = document.getElementById('syncWipe');
       const tabsShareEl = document.getElementById('syncTabsShare');
 
       const when = (ts) => (ts ? new Date(ts).toLocaleString() : 'never');
-      function render(status, note) {
+
+      // On-state: one row per category; the error lives ONLY in its own row.
+      function renderStatus(status, note) {
         const on = !!status.enabled;
         setup.hidden = on;
         active.hidden = !on;
         tabsShareEl.checked = !!status.syncTabs;
         if (on) {
-          const base = status.lastError
-            ? `Sync is on (${status.handle}). ${status.lastError}`
-            : `Sync is on (${status.handle}). Last synced ${when(status.lastSyncedAt)}.`;
-          activeStatus.textContent = note ? `${note} ${base}` : base;
-        } else {
-          setupStatus.textContent = note || '';
+          syncStatusHandle.textContent = status.handle;
+          syncStatusData.textContent = status.lastSyncedAt ? `Last synced ${when(status.lastSyncedAt)}` : 'Not synced yet';
+          syncStatusTabs.textContent = status.syncTabs ? 'Sharing' : 'Not shared';
+          syncStatusErrorRow.hidden = !status.lastError;
+          syncStatusError.textContent = status.lastError || '';
+          activeStatus.textContent = note || '';
         }
       }
 
-      window.bowserPages.settings.syncGet().then(render).catch(() => {});
-
-      async function enable() {
-        if (enableBtn.disabled) return;
-        enableBtn.disabled = true;
-        setupStatus.textContent = 'Turning on sync…';
-        const res = await window.bowserPages.settings.syncEnable({ handle: handleEl.value, passphrase: passEl.value });
-        enableBtn.disabled = false;
-        passEl.value = '';
-        // Sync can be ON even when the first sync failed (offline), so always
-        // reflect the real status. A brand-new account gets a heads-up in case
-        // the passphrase was mistyped — a wrong one silently starts a new one.
-        const note = res.created
-          ? `Started a new sync account for “${handleEl.value.trim()}”. If you have data on another device, turn sync off and check the name and passphrase match exactly.`
-          : (res.ok ? null : res.message);
-        render(res.status, note);
+      // Off-state: the reducer owns the flow; this code only mirrors view()
+      // to the DOM and performs each returned effect exactly once.
+      let model = createSyncSetupModel();
+      function renderSetup() {
+        const v = view(model);
+        paths.hidden = v.pathChosen;
+        form.hidden = !v.fieldsVisible;
+        handleHint.textContent = v.handleHint;
+        passHint.textContent = v.passphraseHint;
+        submitBtn.textContent = v.submitLabel;
+        submitBtn.disabled = v.submitDisabled;
+        submitRow.hidden = v.showNotFound;
+        notFound.hidden = !v.showNotFound;
+        setupStatus.textContent = v.noticeText;
+        if (handleEl.value !== model.handle) handleEl.value = model.handle;
+        if (passEl.value !== model.passphrase) passEl.value = model.passphrase;
       }
-      enableBtn.addEventListener('click', enable);
-      passEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') enable(); });
+
+      async function performEnable(effect) {
+        setupStatus.textContent = 'Turning on sync…';
+        const res = await window.bowserPages.settings.syncEnable({ handle: effect.handle, passphrase: effect.passphrase });
+        const name = effect.handle;
+        // Copy comes from the EFFECT's path, never from live model state: the
+        // person may have pressed Back or switched paths while this awaited.
+        // created === false: enable()'s own probe found data — say so.
+        // created === null: probe offline — plain copy.
+        const note = res.ok
+          ? (res.created === false
+            ? (effect.path === 'join' ? `Connected to “${name}”. Pulling your favorites and settings now.` : `Joined your existing sync as “${name}”.`)
+            : 'Sync is on. Your favorites and settings will sync as you change them.')
+          : res.message;
+        // Only a reply for the attempt still in flight may speak; the status
+        // itself is always real (sync may be on now) and is always rendered.
+        const current = model.phase === 'enabling' && model.token === effect.token;
+        dispatch({ type: 'enable-reply', token: effect.token, ok: res.ok, message: res.message });
+        renderStatus(res.status, current ? note : null);
+      }
+
+      async function performPreflight(effect) {
+        setupStatus.textContent = 'Checking…';
+        let reply;
+        try {
+          reply = await window.bowserPages.settings.syncPreflight({ handle: effect.handle, passphrase: effect.passphrase });
+        } catch {
+          reply = { ok: false, outcome: 'error', message: 'Could not check sync. Try again.' };
+        }
+        dispatch({ type: 'preflight-reply', token: effect.token, outcome: reply.outcome, message: reply.message });
+      }
+
+      function dispatch(event) {
+        const { state: next, effect } = transition(model, event);
+        model = next;
+        renderSetup();
+        if (effect?.type === 'preflight') performPreflight(effect);
+        if (effect?.type === 'enable') performEnable(effect);
+      }
+
+      pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathJoin.addEventListener('click', () => { dispatch({ type: 'choose', path: 'join' }); handleEl.focus(); });
+      backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
+      const onInput = () => dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value });
+      handleEl.addEventListener('input', onInput);
+      passEl.addEventListener('input', onInput);
+      form.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
+      tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
+      startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
+
+      window.bowserPages.settings.syncGet().then((status) => { renderStatus(status); renderSetup(); }).catch(() => {});
 
       nowBtn.addEventListener('click', async () => {
         nowBtn.disabled = true;
         activeStatus.textContent = 'Syncing…';
-        render(await window.bowserPages.settings.syncNow());
+        renderStatus(await window.bowserPages.settings.syncNow());
         nowBtn.disabled = false;
       });
 
@@ -768,11 +836,13 @@
         // A failed remote wipe keeps sync ON (the accountId is the only handle
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;
-        render(res.status, res.ok ? null : res.message);
+        model = createSyncSetupModel();
+        renderStatus(res.status, res.ok ? null : res.message);
+        renderSetup();
       });
 
       tabsShareEl.addEventListener('change', async () => {
-        render(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));
+        renderStatus(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));
       });
     })();
   } else {
@@ -834,7 +904,7 @@
 
     // Score each group by how much of *itself* is on screen, highest wins.
     // (A fixed trigger line — the usual scroll-spy trick — fails here:
-    // Privacy & Security's card is taller than Sync + Patron combined, so
+    // Privacy & Security's card is taller than the short trailing sections combined, so
     // near the page bottom there's no scroll room left for their headers to
     // ever cross the line, and they'd be skipped.) On a positive tie (two
     // short trailing sections both fully visible) the later one wins, so
@@ -853,7 +923,7 @@
     }
 
     // A sidebar click pins its target through the smooth-scroll animation.
-    // Otherwise clicking a short trailing section (Sync) — whose scrollIntoView
+    // Otherwise clicking a short trailing section (Help) — whose scrollIntoView
     // clamps at the page bottom, leaving it tied with Patron — would let the
     // scorer settle the highlight on Patron instead.
     let pinnedUntil = 0;
