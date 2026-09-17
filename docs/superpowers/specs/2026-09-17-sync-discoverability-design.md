@@ -101,11 +101,13 @@ link. The copy differs per path.
   renderer mirrors the rule for the disabled state; main remains the authority
   and still rejects on submit.
 - Submit label: "Turn on sync".
+- The start path calls `enable()` directly. It never calls `preflight()`.
 - Result copy on success: "Sync is on. Your favorites and settings will sync
-  as you change them." If the preflight (see 4.3) found existing data under
-  these credentials, the success copy instead says "Joined your existing sync
-  as “{name}”." (a person may pick the start path on a second device; that is
-  fine and is not an error).
+  as you change them." When `enable()` returns `created === false` (its
+  existing post-commit probe found data under these credentials), the success
+  copy instead says "Joined your existing sync as “{name}”." A person may pick
+  the start path on a second device; that is fine and is not an error. When
+  `created` is `null` (probe offline) the plain success copy is used.
 
 **Join path**
 
@@ -113,7 +115,8 @@ link. The copy differs per path.
   your other device." Hint under the passphrase: "Enter the exact passphrase.
   Case matters."
 - Submit label: "Connect".
-- Before anything is saved, the page calls `preflight` (4.3). Outcomes:
+- The join path is the only caller of `preflight()` (4.3). Before anything is
+  saved it runs the preflight, then acts on the outcome:
   - **found** → the page calls `enable`, then shows "Connected to “{name}”.
     Pulling your favorites and settings now."
   - **notFound** → the fields stay filled and a choice block appears in place
@@ -136,14 +139,24 @@ preflight outcomes, and which outcomes may call `enable`) is a pure reducer in
 a new flat file `src/renderer/pages/settings-sync-setup-model.js`, loaded by
 `settings.html` before `settings.js` and require-able by node, following the
 `settings-verify-model.js` dual-environment pattern. `settings.js` only wires
-DOM events to the reducer and renders its `view()`. The reducer's `view()`
-returns a single `action` field, one of `null | 'preflight' | 'enable'`, and
-`settings.js` calls main only when `action` is set. `'enable'` is produced in
-exactly three cases: submit on the start path, a `found` preflight reply on
-the join path, and the explicit `start-new` event after `notFound`. Every
+DOM events to the reducer and renders its `view()`.
+
+Network calls are **one-shot effects returned by transitions**, never derived
+from state. Each transition has the shape
+`transition(state, event) → { state, effect }` where `effect` is
+`null | { type: 'preflight', token, handle, passphrase } | { type: 'enable', handle, passphrase }`.
+`settings.js` performs the effect exactly once, at the moment the transition
+returns it, and then discards it. `view(state)` is pure presentation (labels,
+disabled flags, which block is visible) and carries no effect, so re-rendering
+can never repeat a network mutation.
+
+An `enable` effect is produced by exactly three transitions: submit on the
+start path, a `found` preflight reply on the join path whose token matches the
+pending request, and the explicit `start-new` event after `notFound`. Every
 other event, including `offline`, `rateLimited`, `error`, and `invalid`
-replies, yields `null`. Preflight replies carry a token echoed from the
-request, and stale replies are dropped, as in the verify model.
+replies and any reply whose token does not match, returns `effect: null`. A
+transition that emits `preflight` moves the state to `pending`, and further
+submits while `pending` return `effect: null`.
 
 ### 4.3 `preflight()` in `sync.js`
 
@@ -161,18 +174,21 @@ Behaviour:
 - Applies the same input validation as `enable` and returns `invalid` with the
   existing messages for a short name or weak passphrase.
 - Derives `accountId` and `key` with `deriveKeys`, issues one `GET` for the
-  `settings` blob (the same probe `enable` performs today), zero-fills the key,
-  and maps: 200 → `found`, 404 → `notFound`, 429 → `rateLimited`, network
-  failure → `offline`, anything else → `error` with `http-<status>`.
+  `settings` blob (the same shape of probe `enable` performs today), and maps:
+  200 → `found`, 404 → `notFound`, 429 → `rateLimited`, network failure →
+  `offline`, anything else → `error` with `http-<status>`. The derived key is
+  zero-filled in a `finally` block so every return and throw path clears it.
 - Writes nothing: no store update, no `protectSyncKey`, no `syncNow`, no
   `syncGen` bump, no tab-icon refresh.
 - `enable()` keeps its post-commit probe and `created` return so the start path
   and any existing callers are unchanged; the join path simply calls
   `preflight` first.
 
-Rate-limit note: the Worker throttles per client IP, so a preflight plus an
-enable is at most two probes per attempt. That is within the existing budget
-and does not change the Worker.
+Request accounting: the preflight adds exactly one `GET` to the join path.
+`enable()` is unchanged and still performs its own post-commit probe, and the
+`syncNow()` it triggers still performs its normal per-store `GET`s and `PUT`s.
+The Worker's per-client-IP throttle is unchanged; the extra request is a
+single blob read and does not change the Worker.
 
 IPC: `pages:settings:sync-preflight` in `pages.js`, guarded to the `settings`
 page like its siblings; `tab-preload.js` exposes it as
@@ -249,9 +265,12 @@ the other layouts do not show it. Content:
 **The flag.** `syncNudgeDismissed` is set to `true` by any of:
 
 1. **Not now** on the card.
-2. A successful `enable()` (the `pages:settings:sync-enable` handler in
-   `pages.js` writes it when the result is `ok`). Turning sync on is the
-   strongest possible "I know about this".
+2. An `enable()` that persisted credentials (the `pages:settings:sync-enable`
+   handler in `pages.js` writes it when `result.status?.enabled === true`,
+   not only when `result.ok`). `enable()` can save enabled credentials and
+   still return `ok: false` because the immediate first sync failed, and sync
+   is on in that case. Turning sync on is the strongest possible "I know
+   about this".
 3. Once at startup, in main's sync initialisation, when `sync.status().enabled`
    is already true. This covers profiles that enabled sync before this release
    and would otherwise see the card the first time they turned it off.
@@ -260,17 +279,20 @@ It is never cleared. The card is therefore one-time in fact, not just in
 intent: turning sync off later cannot re-show it because every path to an
 enabled state has already set the flag.
 
-**Visibility rule**, computed in main:
+**Visibility rule**, computed in main for `startPageStatus()`:
 
 ```
 syncNudge = firstRunComplete
-         && isDefaultLocalProfile()      // Personal only
+         && !sync.status().enabled
          && !settings.get().syncNudgeDismissed
 ```
 
-The `!enabled` term is deliberately absent: with the three setters above it
-is implied, and keeping it would re-introduce the disable-then-show path the
-first draft of this spec had.
+The persistent flag is what prevents disable-then-show. The `!enabled` term
+stays as a defensive check: it keeps the card off before the startup setter
+in item 3 has run, and after a flag write that failed to persist. The
+Personal-only condition is **not** in this rule, because `startPageStatus()`
+is one object shared by every open start page; it is applied per tab at the
+send sites below.
 
 **Delivery.** `syncNudge` is a field of `startPageStatus()` in `main.js`, the
 object that both the initial `pages:start:data` reply spreads in and the
@@ -281,12 +303,20 @@ change on another window reaches every open start page. The renderer's
 `onStatus` handler sets `syncNudge.hidden = !status.syncNudge`, the same way
 `renderPatronCallout` reacts to `patronActive`.
 
-**Private tabs.** `startPageStatus()` is one object broadcast to every open
-start page, so the private exclusion is applied at the send sites, not in
-the rule: the broadcast loop sends `{...status, syncNudge: false}` to a tab
-whose record is `private`, and the `pages:start:data` handler resolves the
-sender's tab (as `topSites` already does) and does the same. A private start
-page never sees `true`.
+**Per-tab guard at both send sites.** `startPageStatus()` is one object
+broadcast to every open start page, so the per-tab exclusions are applied
+where it is sent, not in the rule. Both `broadcastStartPageStatus` and the
+`pages:start:data` handler (which resolves the sender's tab as `topSites`
+already does) send
+
+```
+syncNudge: status.syncNudge
+        && tab.profileId === DEFAULT_PROFILE_ID
+        && !tab.private
+```
+
+so a Named-profile start page or a private start page never sees `true`.
+`isDefaultLocalProfile()` is not called from the shared status object.
 
 **Settings key registration.** `syncNudgeDismissed`, boolean, default
 `false`, validated as a strict boolean in `settings.js`, device-local, and
@@ -354,7 +384,8 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
 | Preflight offline / 429 | Message shown, nothing saved |
 | Keychain protection fails in `enable` | Existing `SyncKeyStorageError` messages, unchanged |
 | Store flush fails in `enable` | Existing rollback, unchanged |
-| Start path on a second device with existing data | Succeeds and says it joined |
+| Start path on a second device with existing data | `enable()` succeeds with `created === false`; copy says it joined |
+| `enable()` persists credentials but first sync fails | Sync is on; flag set from `status.enabled`; existing error message shown |
 | Card shown, then sync enabled from Settings | The enable sets the flag; the status push hides the card |
 | Sync enabled before this release, later turned off | Startup already set the flag; no card |
 | Named profile active | No card; Settings shows the existing Personal-only note |
@@ -369,17 +400,24 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
 - `settings.js`: `syncNudgeDismissed` defaults to `false`, accepts only
   booleans, and is absent from `SYNCED_KEYS` (extend the existing synced-keys
   policy assertions in the same commit, per the repo's policy-test rule).
-- `settings-sync-setup-model.js`: for every reducer event sequence, `action`
-  is `'enable'` only for start-path submit, a `found` reply, or `start-new`
-  after `notFound`; a table-driven test asserts `notFound`, `offline`,
-  `rateLimited`, `error`, and `invalid` replies never yield `'enable'`, and a
-  stale-token reply is ignored. This test carries the safety property; the
+- `settings-sync-setup-model.js`: a table-driven test over transitions
+  asserts an `enable` effect is returned only for start-path submit, a
+  token-matching `found` reply, or `start-new` after `notFound`; `notFound`,
+  `offline`, `rateLimited`, `error`, `invalid`, and stale-token replies all
+  return `effect: null`; a submit while `pending` returns no effect; and
+  `view()` never carries an effect, so calling it repeatedly on the same
+  state is inert. This test carries the safety property; the
   manual two-device check below only confirms the wiring.
 - Start-page projection: a pure helper `shouldShowSyncNudge({firstRunComplete,
   personal, dismissed})` for the rule in §5.2, one test per clause, plus a
   test that the send sites force `false` for a private tab.
-- Flag setters: `pages:settings:sync-enable` sets the flag on `ok` and not on
-  failure; startup sets it when sync is already enabled; dismiss sets it.
+- Flag setters: `pages:settings:sync-enable` sets the flag whenever
+  `result.status.enabled` is true, including an `ok: false` first-sync
+  failure, and not when credentials were not persisted; startup sets it when
+  sync is already enabled; dismiss sets it.
+- Send-site guard: a Named-profile tab and a private tab both receive
+  `syncNudge: false` from `broadcastStartPageStatus` and from the
+  `pages:start:data` reply even when the shared status says `true`.
 - `openSettingsSection`: maps `sync`, `blocking`, `patron`; unknown sections
   produce no fragment; both `tabs:open-page` and the start hook route through
   it (assert the handler bodies call it, not a private map).
@@ -438,3 +476,11 @@ feature's name.
   because the guard inventories every default; the settings-section allowlist
   becomes a shared `openSettingsSection` resolver; the join-path safety
   property gets a reducer test instead of relying on the manual check.
+- Review round 2 (owner, 2026-09-17): start calls `enable()` directly and
+  uses `created === false` for the joined copy; only join calls
+  `preflight()`; the preflight key is cleared in `finally`; request accounting
+  states the real count instead of "two probes"; `!enabled` restored to the
+  rule as a defensive check; Personal-only and private exclusions applied per
+  tab at both send sites via `tab.profileId` and `tab.private`; reducer
+  effects are one-shot transition results, never `view()` state; the flag is
+  set from `result.status.enabled`, not `result.ok`.
