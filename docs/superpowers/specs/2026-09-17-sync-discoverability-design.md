@@ -409,8 +409,9 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
   state is inert. This test carries the safety property; the
   manual two-device check below only confirms the wiring.
 - Start-page projection: a pure helper `shouldShowSyncNudge({firstRunComplete,
-  personal, dismissed})` for the rule in §5.2, one test per clause, plus a
-  test that the send sites force `false` for a private tab.
+  syncEnabled, dismissed})` for the rule in §5.2, one test per clause.
+  Personal eligibility is not a parameter; it belongs exclusively to the
+  per-tab send-site guard, tested below.
 - Flag setters: `pages:settings:sync-enable` sets the flag whenever
   `result.status.enabled` is true, including an `ok: false` first-sync
   failure, and not when credentials were not persisted; startup sets it when
@@ -449,7 +450,7 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
    move, two paths, on-state list) + CSS wired to it.
 3. `openSettingsSection` extraction, `/sync` command, substrate rebuild.
 4. Settings key (schema `internalDefaults`), flag setters, start-page card,
-   `startPageStatus` field, send-site private guard, acceptance scenario.
+   `startPageStatus` field, send-site profile/private guard, acceptance scenario.
 5. Site copy + naming sweep + site build.
 6. Release; then the two Product Hunt owner actions can reference the new flow.
 
@@ -484,3 +485,6 @@ feature's name.
   tab at both send sites via `tab.profileId` and `tab.private`; reducer
   effects are one-shot transition results, never `view()` state; the flag is
   set from `result.status.enabled`, not `result.ok`.
+- Review round 3 (owner, 2026-09-17): projection helper signature is
+  `{firstRunComplete, syncEnabled, dismissed}`; Personal eligibility lives only
+  in the send-site guard. Spec approved for planning.
