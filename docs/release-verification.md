@@ -256,6 +256,13 @@ trust anchor. Never copy the expected identity from the bundle being checked.
 - **Linux:** AppImage has no platform-equivalent publisher signature. Verify
   its SHA-256 digest and the authenticated manifest.
 
+The exact-tag `.github/workflows/prerelease-smoke.yml` dispatch also downloads
+the public macOS DMG on a hosted `macos-15` runner, checks its manifest digest,
+mounts it read-only, runs strict deep `codesign`, pins the Developer ID team and
+leaf-certificate fingerprint, and validates the stapled application ticket.
+This independent hosted check complements rather than replaces the local
+Gatekeeper assessment above.
+
 GitHub build-provenance attestations cover native CI artifacts as a second
 source of build evidence. They complement, rather than replace, platform
 signatures and the signed complete release manifest.
