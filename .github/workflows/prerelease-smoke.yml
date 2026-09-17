@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: Optional published version whose Linux AppImage should be launched (for example, 1.8.1)
+        description: Optional published version whose Linux AppImage should be launched and macOS DMG verified (for example, 1.8.1)
         required: false
         type: string
   push:
@@ -91,3 +91,69 @@ jobs:
         env:
           VERSION: ${{ inputs.release_version }}
         run: node scripts/smoke-public-appimage.mjs "release-smoke/Blanc-$VERSION.AppImage" "$VERSION"
+
+  published-macos-dmg:
+    if: ${{ inputs.release_version != '' }}
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate release version
+        env:
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || {
+            echo "Invalid release version: $VERSION" >&2
+            exit 1
+          }
+      - name: Download published DMG and manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          mkdir release-smoke-mac
+          gh release download "v$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "Blanc-$VERSION-arm64.dmg" \
+            --pattern SHA256SUMS \
+            --dir release-smoke-mac
+      - name: Verify published DMG digest and signing identity
+        env:
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+          ARTIFACT="Blanc-$VERSION-arm64.dmg"
+          EXPECTED=$(awk -v file="$ARTIFACT" '$2 == file { print $1 }' release-smoke-mac/SHA256SUMS)
+          [ -n "$EXPECTED" ] || { echo "$ARTIFACT is missing from SHA256SUMS" >&2; exit 1; }
+          ACTUAL=$(shasum -a 256 "release-smoke-mac/$ARTIFACT" | awk '{ print $1 }')
+          [ "$ACTUAL" = "$EXPECTED" ] || {
+            echo "$ARTIFACT digest mismatch: expected $EXPECTED, got $ACTUAL" >&2
+            exit 1
+          }
+
+          # A known platform app is the positive control for the hosted verifier.
+          codesign --verify --deep --strict --verbose=4 /System/Applications/Utilities/Terminal.app
+
+          MOUNT_DIR="$RUNNER_TEMP/blanc-public-dmg"
+          CERT_PREFIX="$RUNNER_TEMP/blanc-release-cert-"
+          cleanup() {
+            hdiutil detach "$MOUNT_DIR" || true
+            rm -f "${CERT_PREFIX}"*
+          }
+          trap cleanup EXIT
+          mkdir -p "$MOUNT_DIR"
+          hdiutil attach "release-smoke-mac/$ARTIFACT" -mountpoint "$MOUNT_DIR" -readonly -nobrowse
+
+          APP="$MOUNT_DIR/Blanc.app"
+          codesign --verify --deep --strict --verbose=4 "$APP"
+          DETAILS=$(codesign -dv --verbose=4 "$APP" 2>&1)
+          printf '%s\n' "$DETAILS"
+          grep -F 'Authority=Developer ID Application: Anthony Loria (XYGUCY4498)' <<<"$DETAILS"
+          grep -F 'TeamIdentifier=XYGUCY4498' <<<"$DETAILS"
+
+          codesign -d --extract-certificates "$CERT_PREFIX" "$APP"
+          CERT_SHA1=$(shasum -a 1 "${CERT_PREFIX}0" | awk '{ print toupper($1) }')
+          [ "$CERT_SHA1" = '55283A84D3706D5A22386D5F002A0CD4845ECFD4' ] || {
+            echo "Unexpected Developer ID leaf certificate: $CERT_SHA1" >&2
+            exit 1
+          }
+          xcrun stapler validate "$APP"
