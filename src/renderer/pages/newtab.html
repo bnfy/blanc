@@ -46,6 +46,15 @@
       <div id="groupsList" class="ledger-list ledger-groups"></div>
     </section>
 
+    <section id="syncNudge" class="ledger-section sync-nudge js-sync-nudge" hidden>
+      <div class="ledger-label">pick up on another device</div>
+      <p class="sync-nudge-copy">Sync your favorites and settings across your devices, and, if you choose, open tabs. End-to-end encrypted; Blanc can’t read it.</p>
+      <div class="sync-nudge-actions">
+        <button type="button" class="js-sync-nudge-setup">Set up sync</button>
+        <button type="button" class="quiet js-sync-nudge-dismiss">Not now</button>
+      </div>
+    </section>
+
     <section id="remoteSection" class="ledger-section" hidden>
       <div class="ledger-label">on your other devices</div>
       <div id="remoteList" class="ledger-list"></div>
@@ -69,6 +78,14 @@
     <div id="bbFavorites" class="bb-favs"></div>
     <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="bbGroups" class="bb-groups"></div>
+    <section class="bb-sync-nudge sync-nudge js-sync-nudge" hidden>
+      <p class="sync-nudge-title">Pick up on another device.</p>
+      <p class="sync-nudge-copy">Sync your favorites and settings across your devices, and, if you choose, open tabs. End-to-end encrypted; Blanc can’t read it.</p>
+      <div class="sync-nudge-actions">
+        <button type="button" class="js-sync-nudge-setup">Set up sync</button>
+        <button type="button" class="quiet js-sync-nudge-dismiss">Not now</button>
+      </div>
+    </section>
     <a class="tab-import-promo bb-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
       <span class="tab-import-promo-text">
         <span class="tab-import-promo-title">Bring your tabs</span>

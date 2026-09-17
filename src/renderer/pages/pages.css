@@ -2641,3 +2641,14 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .sync-status-list > div { display: contents; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
+
+/* Start-page sync card (design 2026-09-17 §5.2). One-time; hidden until
+   main's status projection says otherwise. */
+.sync-nudge-copy { margin: 8px 0 0; max-width: 520px; color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+.sync-nudge-actions { display: flex; gap: 10px; margin-top: 12px; }
+.sync-nudge-actions button.quiet { background: transparent; border-color: transparent; color: var(--text-dim); }
+.sync-nudge-actions button.quiet:hover { color: var(--accent); }
+.bb-sync-nudge { margin-top: 38px; text-align: center; }
+.bb-sync-nudge .sync-nudge-title { margin: 0; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.bb-sync-nudge .sync-nudge-copy { margin-left: auto; margin-right: auto; }
+.bb-sync-nudge .sync-nudge-actions { justify-content: center; }
