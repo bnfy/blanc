@@ -40,6 +40,8 @@ if (window.location.protocol === 'blanc:') {
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        openSettings: (section) => invoke('pages:start:open-settings', section),
+        dismissSyncNudge: () => invoke('pages:start:sync-nudge-dismiss'),
         defaultBrowser: () => invoke('pages:default-browser:get'),
         setDefaultBrowser: () => invoke('pages:default-browser:set'),
         onboardingSet: (partial) => invoke('pages:start:onboarding-set', partial),

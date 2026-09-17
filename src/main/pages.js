@@ -358,7 +358,13 @@ function setupPages(hooks = {}) {
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', 'settings', () => sync.status());
-  handle('pages:settings:sync-enable', 'settings', (payload) => sync.enable(payload ?? {}));
+  handle('pages:settings:sync-enable', 'settings', async (payload) => {
+    const result = await sync.enable(payload ?? {});
+    // Persisted credentials mean sync is on even when the first pull failed
+    // (ok: false) — that is still "I know about sync", so retire the card.
+    if (result?.status?.enabled === true) settings.setSettings({ syncNudgeDismissed: true });
+    return result;
+  });
   // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
   handle('pages:settings:sync-preflight', 'settings', (payload) => sync.preflight(payload ?? {}));
   handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
@@ -393,6 +399,8 @@ function setupPages(hooks = {}) {
     // below: startPageStatus() supplies it, and the same function feeds the
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
+    // Per-tab guard: the shared status never carries profile or privacy.
+    syncNudge: hooks.startPage?.syncNudgeFor?.(event.sender) ?? false,
   }));
   // Billboard asks for another bounded page only when local dismissals consume
   // the initial candidate set. The hidden-hostname list stays in page storage
@@ -451,6 +459,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
+  // Start-page sync card: open Settings at an allowlisted section (main owns
+  // the allowlist) and the one-time dismissal.
+  handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
+  handle('pages:start:sync-nudge-dismiss', 'newtab', () => hooks.startPage?.dismissSyncNudge?.() === true);
 
   // Standalone games invoke from their exact top-level document. The embedded
   // game has no preload authority; it posts a fixed signal to newtab.js, which
