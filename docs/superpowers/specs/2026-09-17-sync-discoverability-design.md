@@ -52,8 +52,8 @@ The feature is **Sync**. That single word is the Settings nav label, the
 section heading, the site navigation label, and the listing term. Descriptive
 copy qualifies it the same way every time:
 
-> End-to-end encrypted sync of your favorites and settings, and, if you turn it
-> on, this device's open tabs.
+> Sync your favorites and settings across your devices, and, if you choose,
+> open tabs. End-to-end encrypted.
 
 Retire "Profile Sync" and "Tab Sync" as feature names in user-facing copy
 (Settings profiles hint, `site/src/pages/features/sync.astro`,
@@ -131,6 +131,20 @@ link. The copy differs per path.
 The join path never calls `enable` on a `notFound` result unless the person
 clicks **Start a new sync with these**.
 
+**Setup state model.** The off-state flow (path choice, field validity, the
+preflight outcomes, and which outcomes may call `enable`) is a pure reducer in
+a new flat file `src/renderer/pages/settings-sync-setup-model.js`, loaded by
+`settings.html` before `settings.js` and require-able by node, following the
+`settings-verify-model.js` dual-environment pattern. `settings.js` only wires
+DOM events to the reducer and renders its `view()`. The reducer's `view()`
+returns a single `action` field, one of `null | 'preflight' | 'enable'`, and
+`settings.js` calls main only when `action` is set. `'enable'` is produced in
+exactly three cases: submit on the start path, a `found` preflight reply on
+the join path, and the explicit `start-new` event after `notFound`. Every
+other event, including `offline`, `rateLimited`, `error`, and `invalid`
+replies, yields `null`. Preflight replies carry a token echoed from the
+request, and stale replies are dropped, as in the verify model.
+
 ### 4.3 `preflight()` in `sync.js`
 
 New exported function, Personal-only through the same `withLocalProfile`
@@ -171,11 +185,12 @@ the outcome record. No credential is echoed back.
 `syncActiveStatus` becomes a small definition list instead of one sentence:
 
 - **Sync name** — the handle.
-- **Favorites and settings** — "Last synced {relative time}" or the last error.
+- **Favorites and settings** — "Last synced {relative time}", or "Not synced
+  yet" when `lastSyncedAt` is unset. Never the error text.
 - **This device's open tabs** — "Sharing" or "Not shared" (mirrors the
   existing `syncTabs` switch, which stays directly below).
-- **Last error** — shown only when `lastError` is set, using the existing
-  distinct messages.
+- **Last error** — a conditional row, rendered only when `lastError` is set,
+  using the existing distinct messages. The error appears in this row only.
 
 Actions remain: **Sync now**, the tab-sharing switch, **Turn off sync** with
 the existing "also delete synced data" checkbox. The confidentiality line stays
@@ -195,9 +210,16 @@ require splitting it.
 Adds `/sync` with hint "Set up or manage sync" to `copy/slash-commands.json`,
 the overlay command table (`overlay.js`), the reference list
 (`pages/shortcuts.js`), and the Help → Slash Commands list (`SLASH_COMMANDS`
-in `main.js`). It runs `window.browserAPI.openPage('settings', 'sync')`. The
-allowlisted `sectionMap` in the `tabs:open-page` handler gains
-`sync: '#group-sync'`. Run `npm run slash-commands:build` and
+in `main.js`). It runs `window.browserAPI.openPage('settings', 'sync')`.
+
+The section allowlist today is a `sectionMap` local to the `tabs:open-page`
+chrome handler in `main.js`, so it cannot be reused from a second entry point
+as-is. Extract a main-owned resolver, `openSettingsSection(section)`, that
+holds the allowlist (`blocking`, `patron`, and the new `sync` → `#group-sync`),
+maps an unknown section to no fragment, and calls
+`openInternalPage` with `blanc://settings/` plus the fragment. `tabs:open-page`
+calls it for `name === 'settings'`; the start-page hook in §5.2 calls the same
+function. The fragment is never interpolated from renderer text. Run `npm run slash-commands:build` and
 `npm run substrate:check`.
 
 ### 5.2 Start-page card
@@ -212,38 +234,69 @@ equivalent slot on Billboard beneath the frequently-visited grid. Mahjong and
 the other layouts do not show it. Content:
 
 > **Pick up on another device.**
-> Sync your favorites, settings, and open tabs between your Macs and PCs.
-> End-to-end encrypted; Blanc can't read it.
+> Sync your favorites and settings across your devices, and, if you choose,
+> open tabs. End-to-end encrypted; Blanc can't read it.
 > [Set up sync] [Not now]
 
 - **Set up sync** calls a new `start.openSettings('sync')` bridge method →
-  `pages:start:open-settings` (guarded to `newtab`), which main routes through
-  the same allowlisted section map to `openInternalPage('blanc://settings/#group-sync')`.
-  The utility sheet opens over the start page.
+  `pages:start:open-settings` (guarded to `newtab`). Main routes it through
+  the `openSettingsSection` resolver from §5.1, so the start page and the
+  chrome share one allowlist. The utility sheet opens over the start page.
 - **Not now** calls `start.dismissSyncNudge()` → `pages:start:sync-nudge-dismiss`
-  (guarded to `newtab`), which sets the settings key below and hides the card.
+  (guarded to `newtab`), which sets the settings key below. The card hides on
+  the resulting status push, not by the renderer acting on its own click.
 
-**Visibility rule**, computed in main and projected as one boolean
-`syncNudge` on `pages:start:data` (and on the later `pages:start:data`
-pushes that already refresh groups):
+**The flag.** `syncNudgeDismissed` is set to `true` by any of:
+
+1. **Not now** on the card.
+2. A successful `enable()` (the `pages:settings:sync-enable` handler in
+   `pages.js` writes it when the result is `ok`). Turning sync on is the
+   strongest possible "I know about this".
+3. Once at startup, in main's sync initialisation, when `sync.status().enabled`
+   is already true. This covers profiles that enabled sync before this release
+   and would otherwise see the card the first time they turned it off.
+
+It is never cleared. The card is therefore one-time in fact, not just in
+intent: turning sync off later cannot re-show it because every path to an
+enabled state has already set the flag.
+
+**Visibility rule**, computed in main:
 
 ```
 syncNudge = firstRunComplete
          && isDefaultLocalProfile()      // Personal only
-         && !sync.status().enabled
          && !settings.get().syncNudgeDismissed
-         && !tab.private
 ```
 
-The renderer never decides; it only reflects the boolean. Turning sync on
-hides the card on the next data push. Turning sync off later does not re-show
-it: the card is one-time.
+The `!enabled` term is deliberately absent: with the three setters above it
+is implied, and keeping it would re-introduce the disable-then-show path the
+first draft of this spec had.
 
-**Settings key:** `syncNudgeDismissed`, boolean, default `false`, validated as
-a strict boolean in `settings.js`, device-local, and deliberately **not** in
-`SYNCED_KEYS` (a dismissal on one machine says nothing about another). It is
-not part of `settings-schema/schema.json`, which guards enums and their
-defaults only; `npm run settings:check` must still pass.
+**Delivery.** `syncNudge` is a field of `startPageStatus()` in `main.js`, the
+object that both the initial `pages:start:data` reply spreads in and the
+`pages:start:status` push carries. There is no separate data re-fetch; the
+existing `settings.onSettingsChanged(() => broadcastStartPageStatus())` hook
+already fires for every write of the flag, so a dismissal, an enable, or a
+change on another window reaches every open start page. The renderer's
+`onStatus` handler sets `syncNudge.hidden = !status.syncNudge`, the same way
+`renderPatronCallout` reacts to `patronActive`.
+
+**Private tabs.** `startPageStatus()` is one object broadcast to every open
+start page, so the private exclusion is applied at the send sites, not in
+the rule: the broadcast loop sends `{...status, syncNudge: false}` to a tab
+whose record is `private`, and the `pages:start:data` handler resolves the
+sender's tab (as `topSites` already does) and does the same. A private start
+page never sees `true`.
+
+**Settings key registration.** `syncNudgeDismissed`, boolean, default
+`false`, validated as a strict boolean in `settings.js`, device-local, and
+deliberately **not** in `SYNCED_KEYS` (a dismissal on one machine says nothing
+about another). The settings-schema guard inventories every `DEFAULTS` key
+and fails on any it does not know, so the key must be added to
+`settings-schema/schema.json` under `internalDefaults` (desktop-only, no
+mobile-parity meaning), beside `onboardingVersion` and
+`presentationDefaultsResetVersion`. Run `npm run settings:build` and
+`npm run settings:check` in the same commit.
 
 ### 5.3 What does not change
 
@@ -266,13 +319,13 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
   before they leave your machine.", link to `/features/sync` with the existing
   `data-track="feature_cta_click" data-feature="sync"` attributes.
 - **Site sync page** is re-titled around the whole feature: page title
-  "Encrypted Sync Across Devices | Blanc Browser", hero "Your favorites,
-  settings and open tabs, on your other devices.", and a short "What syncs"
+  "Encrypted Sync Across Devices | Blanc Browser", hero "Your favorites and
+  settings on your other devices, and, if you choose, your open tabs.", and a short "What syncs"
   block (favorites, settings, optional open tabs; never history, downloads,
   permissions, cookies, private tabs). The existing tab-sync sections and the
   "honest part" aside remain beneath it unchanged.
-- **Navigation** description becomes "Favorites, settings and open tabs across
-  devices."
+- **Navigation** description becomes "Favorites and settings across devices,
+  open tabs if you choose."
 - **Features hub** row text and the profiles page's "Profile Sync belongs to
   Personal" line adopt the §3 wording.
 - **Product Hunt.** Two owner actions. Neither waits on the in-app work,
@@ -282,7 +335,8 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
      > floating Island replaces the tab strip and toolbar, ad and tracker
      > blocking runs at the network layer, and end-to-end encrypted sync links
      > your devices. Optional Patron adds Named Workspaces.
-     (verify the character count in the live form before saving).
+     That is 257 characters, three under the limit; re-check in the live form
+     before saving in case the form counts differently.
   2. Reply to the review as the maker, personally written, pointing to
      Settings → Sync and `https://blancbrowser.com/features/sync?ref=ph`.
 - **Claims gate.** Sync of favorites and settings shipped in v0.12.0; open-tab
@@ -301,7 +355,8 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
 | Keychain protection fails in `enable` | Existing `SyncKeyStorageError` messages, unchanged |
 | Store flush fails in `enable` | Existing rollback, unchanged |
 | Start path on a second device with existing data | Succeeds and says it joined |
-| Card shown, then sync enabled elsewhere on this device | Next data push hides it |
+| Card shown, then sync enabled from Settings | The enable sets the flag; the status push hides the card |
+| Sync enabled before this release, later turned off | Startup already set the flag; no card |
 | Named profile active | No card; Settings shows the existing Personal-only note |
 
 ## 8. Testing
@@ -314,11 +369,20 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
 - `settings.js`: `syncNudgeDismissed` defaults to `false`, accepts only
   booleans, and is absent from `SYNCED_KEYS` (extend the existing synced-keys
   policy assertions in the same commit, per the repo's policy-test rule).
+- `settings-sync-setup-model.js`: for every reducer event sequence, `action`
+  is `'enable'` only for start-path submit, a `found` reply, or `start-new`
+  after `notFound`; a table-driven test asserts `notFound`, `offline`,
+  `rateLimited`, `error`, and `invalid` replies never yield `'enable'`, and a
+  stale-token reply is ignored. This test carries the safety property; the
+  manual two-device check below only confirms the wiring.
 - Start-page projection: a pure helper `shouldShowSyncNudge({firstRunComplete,
-  personal, syncEnabled, dismissed, privateTab})` extracted for the rule in
-  §5.2, with one test per clause.
-- `tabs:open-page` section map includes `sync` and still refuses unknown
-  sections.
+  personal, dismissed})` for the rule in §5.2, one test per clause, plus a
+  test that the send sites force `false` for a private tab.
+- Flag setters: `pages:settings:sync-enable` sets the flag on `ok` and not on
+  failure; startup sets it when sync is already enabled; dismiss sets it.
+- `openSettingsSection`: maps `sync`, `blocking`, `patron`; unknown sections
+  produce no fragment; both `tabs:open-page` and the start hook route through
+  it (assert the handler bodies call it, not a private map).
 - Slash-command substrate: `npm run substrate:check` passes after
   `slash-commands:build`.
 
@@ -343,9 +407,11 @@ lists features, and `docs/superpowers/plans/assets/launch-copy.md`.
 ## 9. Sequencing
 
 1. `sync.preflight` + IPC + unit tests.
-2. Settings card (nav move, two paths, on-state list) + CSS.
-3. `/sync` command + section map + substrate rebuild.
-4. Settings key + start-page card + projection + acceptance scenario.
+2. `settings-sync-setup-model.js` + its tests, then the Settings card (nav
+   move, two paths, on-state list) + CSS wired to it.
+3. `openSettingsSection` extraction, `/sync` command, substrate rebuild.
+4. Settings key (schema `internalDefaults`), flag setters, start-page card,
+   `startPageStatus` field, send-site private guard, acceptance scenario.
 5. Site copy + naming sweep + site build.
 6. Release; then the two Product Hunt owner actions can reference the new flow.
 
@@ -365,3 +431,10 @@ feature's name.
   choice, not a warning.
 - No protocol or Worker change: the v1 identity model is kept exactly; this
   design only reorders when the existing probe runs.
+- Review round 1 (owner, 2026-09-17): the flag is set on enable and at startup
+  so the one-time promise holds without an `!enabled` clause; `syncNudge`
+  rides `startPageStatus()` because there is no data re-fetch, only the
+  status push; the key is registered in the schema's `internalDefaults`
+  because the guard inventories every default; the settings-section allowlist
+  becomes a shared `openSettingsSection` resolver; the join-path safety
+  property gets a reducer test instead of relying on the manual check.
