@@ -1884,7 +1884,7 @@ This belongs to the release that carries the app changes, alongside the gates in
 3. B: Turn off sync (no wipe). Join path, wrong passphrase → the not-found choice appears; B's `sync.json` shows `enabled: false`; nothing was created (A's data unchanged).
 4. B: **Start a new sync with these** → a distinct second account (A's favorite does not appear).
 5. B: disconnect the network, turn off sync, Join path → offline notice, nothing saved.
-6. Clean-up, in this order because only a device holding an account's credentials can wipe it: B turns sync on again with the second account's credentials, then **Turn off sync** with "also delete synced data" (wipes the second account). Then A: **Turn off sync** with "also delete synced data" (wipes the first account). A cannot wipe B's account.
+6. Clean-up, in this order because only a device holding an account's credentials can wipe it: B reconnects to the network, turns sync on again with the second account's credentials, then **Turn off sync** with "also delete synced data" (wipes the second account). Then A: **Turn off sync** with "also delete synced data" (wipes the first account). A cannot wipe B's account.
 
 ---
 
