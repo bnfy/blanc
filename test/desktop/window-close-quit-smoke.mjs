@@ -73,6 +73,11 @@ try {
   }
   console.log(`window-close-quit: ok (${platform}${simulated ? ', simulated' : ''})`);
 } finally {
-  if (app && app.process().exitCode === null) await app.close().catch(() => {});
+  // On Windows/Linux the app has already exited by design, and Playwright may
+  // have torn down its handle — `app.process()` itself can throw then. The
+  // assertions above are the test; cleanup must never turn a pass into a fail.
+  try {
+    if (app && app.process().exitCode === null) await app.close();
+  } catch {}
   fs.rmSync(root, { recursive: true, force: true });
 }
