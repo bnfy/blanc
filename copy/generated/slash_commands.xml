@@ -6,6 +6,7 @@
     <string name="slash_history">Open browsing history</string>
     <string name="slash_downloads">Open downloads</string>
     <string name="slash_settings">Open settings</string>
+    <string name="slash_sync">Set up or manage sync</string>
     <string name="slash_clear">Clear browsing history</string>
     <string name="slash_new">Open a new tab</string>
     <string name="slash_private">Open a private tab (history stays untouched)</string>

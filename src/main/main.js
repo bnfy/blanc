@@ -5848,6 +5848,21 @@ function openInternalPage(url) {
   }
 }
 
+// The ONLY place a Settings section name becomes a URL fragment. Allowlisted,
+// never interpolated from renderer text (blanc://settings/ is privileged).
+// Used by the chrome's tabs:open-page and by the start page's sync card.
+const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
+  blocking: '#group-privacy',
+  patron: '#group-patron',
+  sync: '#group-sync',
+});
+function openSettingsSection(section) {
+  const fragment = Object.prototype.hasOwnProperty.call(SETTINGS_SECTION_FRAGMENTS, section)
+    ? SETTINGS_SECTION_FRAGMENTS[section]
+    : '';
+  openInternalPage(`blanc://settings/${fragment}`);
+}
+
 function toggleBookmarkForActiveTab() {
   if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
 }
@@ -6316,12 +6331,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
   chromeHandle('tabs:open-page', (_e, name, section) => {
-    if (['bookmarks', 'history', 'downloads', 'settings', 'tab-import'].includes(name)) {
-      // Deep-link into a page section via URL fragment — allowlisted only,
-      // never interpolated from renderer-supplied text (privileged URL).
-      const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
-      const fragment = name === 'settings' && Object.prototype.hasOwnProperty.call(sectionMap, section) ? sectionMap[section] : '';
-      openInternalPage(`blanc://${name}/${fragment}`);
+    if (name === 'settings') return openSettingsSection(section);
+    if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
+      openInternalPage(`blanc://${name}/`);
     }
   });
   chromeHandle('tabs:get-all', () => ({
@@ -6740,6 +6752,7 @@ const SLASH_COMMANDS = [
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],
   ['/settings', 'Open settings'],
+  ['/sync', 'Set up or manage sync'],
   ['/clear', 'Clear browsing history'],
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],

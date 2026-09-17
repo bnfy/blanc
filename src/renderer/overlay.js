@@ -766,6 +766,7 @@
     { cmd: '/history', hint: 'Open browsing history', run: () => window.browserAPI.openPage('history') },
     { cmd: '/downloads', hint: 'Open downloads', run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: 'Open settings', run: () => window.browserAPI.openPage('settings') },
+    { cmd: '/sync', hint: 'Set up or manage sync', run: () => window.browserAPI.openPage('settings', 'sync') },
     { cmd: '/clear', hint: 'Clear browsing history', run: () => window.browserAPI.clearHistory() },
     { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab(null, { focusAddress: false }) },
     { cmd: '/private', hint: 'Open a private tab (history stays untouched)', run: () => window.browserAPI.createTab(null, { private: true, focusAddress: false }) },

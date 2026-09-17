@@ -9,6 +9,7 @@ const SLASH_COMMANDS = [
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],
   ['/settings', 'Open settings'],
+  ['/sync', 'Set up or manage sync'],
   ['/clear', 'Clear browsing history'],
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],

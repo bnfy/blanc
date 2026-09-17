@@ -105,7 +105,7 @@ test('/bring-tabs is catalogued and dispatches through the privileged page allow
   )?.[0];
   assert.ok(handler, 'tabs:open-page handler not found');
   assert.match(handler, /'tab-import'/);
-  assert.match(handler, /openInternalPage\(`blanc:\/\/\$\{name\}\/\$\{fragment\}`\)/);
+  assert.match(handler, /openInternalPage\(`blanc:\/\/\$\{name\}\/`\)/);
 });
 
 test('onboarding import step exposes the open-tab handoff on both paths', () => {
