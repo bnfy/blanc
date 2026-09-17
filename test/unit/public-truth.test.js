@@ -20,7 +20,7 @@ test('expanded feature guides retain release limitations beside their benefits',
   assert.match(workspaces, /membership lapses, existing workspaces remain openable, switchable, and automatically updated/);
   assert.match(workspaces, /device-local and profile-scoped/);
   assert.match(workspaces, /do not sync across devices/);
-  assert.match(guide('profiles'), /Profile Sync is available only to Personal/);
+  assert.match(guide('profiles'), /Sync is available only to Personal/);
   assert.match(guide('profiles'), /Files you downloaded remain on disk/);
   assert.match(guide('glance'), /never written to session restore or sync/);
   assert.match(guide('glance'), /does not search history, Favorites, remote tabs, or another window/);
