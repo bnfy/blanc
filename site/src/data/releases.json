@@ -1,5 +1,37 @@
 [
   {
+    "tag": "v1.17.2",
+    "version": "1.17.2",
+    "name": "1.17.2",
+    "publishedAt": "2026-09-17T19:39:06.000Z",
+    "humanDate": "September 17, 2026",
+    "machineDate": "2026-09-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.17.2",
+    "anchor": "v1-17-2",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now exits cleanly after the last visible window is closed on Windows and Linux, so relaunching the app no longer requires ending leftover Blanc processes in Task Manager."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.17.1",
     "version": "1.17.1",
     "name": "1.17.1",
