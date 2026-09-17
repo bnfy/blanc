@@ -252,6 +252,7 @@ test('published macOS smoke verifies the immutable DMG and pinned signing identi
   assert.match(job, /codesign --verify --deep --strict --verbose=4/);
   assert.match(job, /Developer ID Application: Anthony Loria \(XYGUCY4498\)/);
   assert.match(job, /TeamIdentifier=XYGUCY4498/);
+  assert.match(job, /--extract-certificates="\$CERT_PREFIX"/);
   assert.match(job, /55283A84D3706D5A22386D5F002A0CD4845ECFD4/);
   assert.match(job, /xcrun stapler validate/);
   assert.match(job, /hdiutil detach/);

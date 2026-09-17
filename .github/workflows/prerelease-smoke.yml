@@ -150,7 +150,7 @@ jobs:
           grep -F 'Authority=Developer ID Application: Anthony Loria (XYGUCY4498)' <<<"$DETAILS"
           grep -F 'TeamIdentifier=XYGUCY4498' <<<"$DETAILS"
 
-          codesign -d --extract-certificates "$CERT_PREFIX" "$APP"
+          codesign -d --extract-certificates="$CERT_PREFIX" "$APP"
           CERT_SHA1=$(shasum -a 1 "${CERT_PREFIX}0" | awk '{ print toupper($1) }')
           [ "$CERT_SHA1" = '55283A84D3706D5A22386D5F002A0CD4845ECFD4' ] || {
             echo "Unexpected Developer ID leaf certificate: $CERT_SHA1" >&2
