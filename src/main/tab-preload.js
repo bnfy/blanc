@@ -132,6 +132,7 @@ if (window.location.protocol === 'blanc:') {
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
+        syncPreflight: (payload) => invoke('pages:settings:sync-preflight', payload),
         syncDisable: (opts) => invoke('pages:settings:sync-disable', opts),
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),

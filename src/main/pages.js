@@ -359,6 +359,8 @@ function setupPages(hooks = {}) {
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', 'settings', () => sync.status());
   handle('pages:settings:sync-enable', 'settings', (payload) => sync.enable(payload ?? {}));
+  // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
+  handle('pages:settings:sync-preflight', 'settings', (payload) => sync.preflight(payload ?? {}));
   handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
   handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => sync.status()));
   // Per-device consent for publishing this device's open tabs (spec §3) —
