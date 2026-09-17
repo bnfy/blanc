@@ -112,6 +112,7 @@ const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
+const { releaseHiddenWindowsOnLastClose } = require('./last-window-close');
 const { sanitizeFavicon } = require('./favicon-sanitizer');
 const {
   resolvedFavicon,
@@ -7242,8 +7243,18 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
-    if (!windowRuntimes.all().some((candidate) =>
-      candidate.window && !candidate.window.isDestroyed())) iconRaster.dispose();
+    const liveRuntimeWindows = windowRuntimes.all().filter((candidate) =>
+      candidate.window && !candidate.window.isDestroyed()).length;
+    if (liveRuntimeWindows === 0) iconRaster.dispose();
+    // The display-capture helper IS a hidden BrowserWindow, and Electron
+    // withholds `window-all-closed` while any BrowserWindow exists. Left
+    // alone it kept Blanc alive in Task Manager after the last visible
+    // window closed, and a relaunch deferred to that stuck instance (#368).
+    // macOS keeps it: dock reopen reuses the broker's helper.
+    if (releaseHiddenWindowsOnLastClose({ platform: process.platform, liveRuntimeWindows })
+      && displayCaptureHelperWindow && !displayCaptureHelperWindow.isDestroyed()) {
+      displayCaptureHelperWindow.close();
+    }
   }));
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
@@ -7869,6 +7880,7 @@ let lastSecureDnsTemplate = null;
 let displayCaptureRegistry = null;
 let displayCaptureBroker = null;
 let displayCapturePicker = null;
+let displayCaptureHelperWindow = null; // hidden BrowserWindow; released on the last visible close
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   profileSessionRegistry = createProfileSessionRegistry({
@@ -8063,7 +8075,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   displayCaptureHelperSession.setPermissionCheckHandler((_wc, permission) => (
     permission === 'media' || permission === 'display-capture'
   ));
-  const displayCaptureHelperWindow = attachHelperWindow({
+  displayCaptureHelperWindow = attachHelperWindow({
     BrowserWindow,
     session: displayCaptureHelperSession,
     preloadPath: path.join(__dirname, 'display-capture-helper-preload.js'),

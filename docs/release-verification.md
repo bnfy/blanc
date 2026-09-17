@@ -89,6 +89,21 @@ available, report the evidence gap rather than improvising or checking the box.
 An owner can waive the gate only after being told the missing evidence and
 risk; preserve the explicit approval in the release incident.
 
+There is a third check that neither of those covers: **close the last visible
+window, then relaunch.** Windows and Linux quit Blanc from `window-all-closed`,
+which Electron withholds while any hidden `BrowserWindow` exists, and the
+updater handoff cannot catch that class of bug because **Restart Now** calls
+`app.quit()`, which closes hidden windows too. v1.16.0 shipped exactly that
+defect (issue #368: the display-capture helper kept Blanc alive in Task Manager
+after the window closed, and a relaunch deferred to the stuck instance) and
+passed every gate above. On each affected-machine candidate, and again on the
+updated build after the handoff: close the window with the X button or Alt+F4,
+confirm no Blanc process remains (Task Manager, or `Get-Process Blanc`), then
+relaunch from the shortcut and confirm a window appears. On Linux, close the
+window and confirm the AppImage process exits before relaunching.
+`npm run test:window-close-quit` covers the unpackaged app on Linux in CI and,
+with `--simulate-platform=win32`, on a Mac; neither replaces the packaged check.
+
 Before starting, unlock the 1Password desktop app and ensure `gh auth status`
 succeeds in the selected operator environment. Do not fetch or paste either
 secret and do not run a separate sign-in flow: `release.sh` owns both 1Password
@@ -240,6 +255,13 @@ trust anchor. Never copy the expected identity from the bundle being checked.
   timestamp certificate must be present.
 - **Linux:** AppImage has no platform-equivalent publisher signature. Verify
   its SHA-256 digest and the authenticated manifest.
+
+The exact-tag `.github/workflows/prerelease-smoke.yml` dispatch also downloads
+the public macOS DMG on a hosted `macos-15` runner, checks its manifest digest,
+mounts it read-only, runs strict deep `codesign`, pins the Developer ID team and
+leaf-certificate fingerprint, and validates the stapled application ticket.
+This independent hosted check complements rather than replaces the local
+Gatekeeper assessment above.
 
 GitHub build-provenance attestations cover native CI artifacts as a second
 source of build evidence. They complement, rather than replace, platform
