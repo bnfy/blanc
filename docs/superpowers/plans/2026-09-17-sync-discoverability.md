@@ -22,7 +22,7 @@
 - Slash-command copy has four copies guarded by `npm run copy:check`: `copy/slash-commands.json`, `src/renderer/overlay.js`, `src/renderer/pages/shortcuts.js`, `SLASH_COMMANDS` in `src/main/main.js`. Never hand-edit `copy/generated/`.
 - Public copy may claim only shipped behaviour (sync since v0.12.0, tab sharing since v0.20.0). The new setup flow, `/sync`, and the card must not appear in public copy until the release carrying them is public (`docs/marketing-claims.md`).
 - Run all commands from the repo root of the worktree. Unit tests: `npm run test:unit`. Substrate: `npm run substrate:check`. Acceptance dry run: `npm run test:acceptance:dry`.
-- Commit after every task with the attribution line `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- Commit after every task. When the commit is authored by a Claude agent, end the message with `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`; a human or another agent uses their own attribution. The commit blocks below show the Claude form.
 
 ---
 
@@ -105,8 +105,23 @@ require.cache[electronId] = {
   },
 };
 
+// Wrap the real key derivation so the test can hold the buffer preflight()
+// is given and prove it is zero-filled on every outcome.
+const cryptoId = require.resolve('../../src/main/sync-crypto');
+const realCrypto = require(cryptoId);
+let lastKey = null;
+require.cache[cryptoId].exports = {
+  ...realCrypto,
+  deriveKeys: (handle, passphrase) => {
+    const derived = realCrypto.deriveKeys(handle, passphrase);
+    lastKey = derived.key;
+    return derived;
+  },
+};
+
 const sync = require('../../src/main/sync');
 const creds = { handle: 'preflight-test', passphrase: 'a passphrase long enough to pass' };
+const isZeroed = (buf) => Buffer.isBuffer(buf) && buf.length === 32 && buf.every((b) => b === 0);
 
 test.beforeEach(() => { fetchCalls = []; encryptCalls = 0; });
 
@@ -144,6 +159,22 @@ test('invalid inputs never reach the network', async () => {
   res = await sync.preflight({ handle: 'fine', passphrase: 'short' });
   assert.equal(res.outcome, 'invalid');
   assert.equal(fetchCalls.length, 0);
+});
+
+test('preflight zero-fills the derived key on every outcome', async () => {
+  for (const response of [
+    { status: 200, ok: true, json: async () => ({}) },
+    { status: 404, ok: false },
+    { status: 429, ok: false },
+    { status: 500, ok: false },
+    new Error('offline'),
+  ]) {
+    nextResponse = response;
+    lastKey = null;
+    await sync.preflight(creds);
+    assert.ok(lastKey, 'deriveKeys ran');
+    assert.ok(isZeroed(lastKey), `key must be zeroed after ${response.status ?? 'thrown network error'}`);
+  }
 });
 
 test('preflight writes nothing on any outcome', async () => {
@@ -221,7 +252,7 @@ Add `preflight,` to `module.exports` directly after `enable,`.
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/unit/sync-preflight.test.js`
-Expected: PASS, 5 tests.
+Expected: PASS, 6 tests.
 
 - [ ] **Step 5: Add the IPC handler and bridge**
 
@@ -251,7 +282,7 @@ test('the settings page can reach preflight only through the guarded channel', (
 });
 ```
 
-Run: `node --test test/unit/sync-preflight.test.js` → PASS, 6 tests. Then `npm run test:unit` → all pass.
+Run: `node --test test/unit/sync-preflight.test.js` → PASS, 7 tests. Then `npm run test:unit` → all pass.
 
 - [ ] **Step 7: Commit**
 
@@ -277,8 +308,8 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces (global `blancSyncSetupModel` in the page, `module.exports` in node):
   - `createSyncSetupModel() → state` where `state = { path: null|'start'|'join', phase: 'idle'|'pending'|'notFound'|'enabling', handle: string, passphrase: string, token: number, notice: null|{ kind: string, message: string } }`
-  - `transition(state, event) → { state, effect }` with `effect` one of `null`, `{ type: 'preflight', token, handle, passphrase }`, `{ type: 'enable', handle, passphrase }`.
-  - Events: `{ type: 'choose', path }`, `{ type: 'back' }`, `{ type: 'input', handle, passphrase }`, `{ type: 'submit' }`, `{ type: 'preflight-reply', token, outcome, message }`, `{ type: 'start-new' }`, `{ type: 'enable-reply', ok, message }`.
+  - `transition(state, event) → { state, effect }` with `effect` one of `null`, `{ type: 'preflight', token, handle, passphrase }`, `{ type: 'enable', token, path, handle, passphrase }`. Every effect carries the token that its reply must echo; the enable effect also carries the path so reply copy never reads live state.
+  - Events: `{ type: 'choose', path }`, `{ type: 'back' }`, `{ type: 'input', handle, passphrase }`, `{ type: 'submit' }`, `{ type: 'preflight-reply', token, outcome, message }`, `{ type: 'start-new' }`, `{ type: 'enable-reply', token, ok, message }`.
   - `view(state) → { pathChosen, path, fieldsVisible, handleHint, passphraseHint, submitLabel, submitDisabled, showNotFound, noticeText }` — pure, no effect.
   - `passphraseStrong(p)` mirror of main's rule (main stays the authority).
 
@@ -302,9 +333,9 @@ function ready(path) {
   return state;
 }
 
-test('start path submit returns a single enable effect', () => {
+test('start path submit returns a single tokenized enable effect', () => {
   const { state, effect } = transition(ready('start'), { type: 'submit' });
-  assert.deepEqual(effect, { type: 'enable', ...good });
+  assert.deepEqual(effect, { type: 'enable', token: state.token, path: 'start', ...good });
   assert.equal(state.phase, 'enabling');
 });
 
@@ -318,7 +349,7 @@ test('join path submit returns a preflight effect and moves to pending', () => {
 test('a token-matching found reply is the only reply that enables', () => {
   const pending = transition(ready('join'), { type: 'submit' }).state;
   const { state, effect } = transition(pending, { type: 'preflight-reply', token: pending.token, outcome: 'found' });
-  assert.deepEqual(effect, { type: 'enable', ...good });
+  assert.deepEqual(effect, { type: 'enable', token: state.token, path: 'join', ...good });
   assert.equal(state.phase, 'enabling');
 });
 
@@ -348,7 +379,8 @@ test('a stale-token reply changes nothing', () => {
 test('start-new after notFound enables; start-new elsewhere is inert', () => {
   const pending = transition(ready('join'), { type: 'submit' }).state;
   const notFound = transition(pending, { type: 'preflight-reply', token: pending.token, outcome: 'notFound' }).state;
-  assert.deepEqual(transition(notFound, { type: 'start-new' }).effect, { type: 'enable', ...good });
+  const startNew = transition(notFound, { type: 'start-new' });
+  assert.deepEqual(startNew.effect, { type: 'enable', token: startNew.state.token, path: 'join', ...good });
   assert.equal(transition(ready('join'), { type: 'start-new' }).effect, null);
   assert.equal(transition(ready('start'), { type: 'start-new' }).effect, null);
 });
@@ -398,12 +430,28 @@ test('notice copy per outcome', () => {
 
 test('enable-reply returns to idle, clears the passphrase, keeps a failure message', () => {
   const enabling = transition(ready('start'), { type: 'submit' }).state;
-  const failed = transition(enabling, { type: 'enable-reply', ok: false, message: 'Could not protect the sync key.' }).state;
+  const failed = transition(enabling, { type: 'enable-reply', token: enabling.token, ok: false, message: 'Could not protect the sync key.' }).state;
   assert.equal(failed.phase, 'idle');
   assert.equal(failed.passphrase, '');
   assert.equal(view(failed).noticeText, 'Could not protect the sync key.');
-  const okState = transition(enabling, { type: 'enable-reply', ok: true }).state;
+  const okState = transition(enabling, { type: 'enable-reply', token: enabling.token, ok: true }).state;
   assert.equal(okState.notice, null);
+});
+
+test('a stale enable reply changes nothing after the flow moved on', () => {
+  const submitted = transition(ready('start'), { type: 'submit' });
+  const oldToken = submitted.effect.token;
+  // Back, a path change, or an edit during enabling all move the token on.
+  const backed = transition(submitted.state, { type: 'back' }).state;
+  assert.notEqual(backed.token, oldToken);
+  const stale = transition(backed, { type: 'enable-reply', token: oldToken, ok: false, message: 'late failure' });
+  assert.equal(stale.effect, null);
+  assert.equal(stale.state, backed, 'a stale reply must not touch the newer flow');
+  const edited = transition(submitted.state, { type: 'input', ...good, handle: 'renamed' }).state;
+  assert.equal(edited.phase, 'idle');
+  assert.equal(transition(edited, { type: 'enable-reply', token: oldToken, ok: true }).state, edited);
+  const rechosen = transition(submitted.state, { type: 'choose', path: 'join' }).state;
+  assert.equal(transition(rechosen, { type: 'enable-reply', token: oldToken, ok: true }).state, rechosen);
 });
 ```
 
@@ -427,6 +475,9 @@ Expected: FAIL, cannot find module.
 // re-render can never repeat a network mutation. An `enable` effect comes
 // from exactly three transitions: start-path submit, a token-matching
 // `found` preflight reply on the join path, and `start-new` after `notFound`.
+// Every effect carries a token; back/choose/input while pending or enabling
+// move the token on, so a reply from an abandoned attempt is dropped and the
+// enable effect's own `path` (never live state) decides the result copy.
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -449,39 +500,47 @@ Expected: FAIL, cannot find module.
   const valid = (s) => trimmed(s.handle).length >= 2 && passphraseStrong(String(s.passphrase ?? ''));
   const creds = (s) => ({ handle: trimmed(s.handle), passphrase: String(s.passphrase ?? '') });
   const none = (state) => ({ state, effect: null });
+  const busy = (s) => s.phase === 'pending' || s.phase === 'enabling';
+  // Any move away from an in-flight attempt strands its reply.
+  const nextToken = (s) => (busy(s) ? s.token + 1 : s.token);
+  const enableEffect = (state) => ({
+    state: { ...state, phase: 'enabling', notice: null },
+    effect: { type: 'enable', token: state.token, path: state.path, ...creds(state) },
+  });
 
   function transition(state, event) {
     switch (event.type) {
       case 'choose':
         if (event.path !== 'start' && event.path !== 'join') return none(state);
-        return none({ ...state, path: event.path, phase: 'idle', notice: null });
+        return none({ ...state, path: event.path, phase: 'idle', notice: null, token: nextToken(state) });
       case 'back':
-        return none({ ...state, path: null, phase: 'idle', notice: null, passphrase: '' });
-      case 'input': {
-        // Editing during pending strands the in-flight reply (token moves on).
-        const token = state.phase === 'pending' ? state.token + 1 : state.token;
-        return none({ ...state, handle: String(event.handle ?? ''), passphrase: String(event.passphrase ?? ''), token, phase: 'idle', notice: null });
-      }
+        return none({ ...state, path: null, phase: 'idle', notice: null, passphrase: '', token: nextToken(state) });
+      case 'input':
+        return none({
+          ...state,
+          handle: String(event.handle ?? ''),
+          passphrase: String(event.passphrase ?? ''),
+          token: nextToken(state),
+          phase: 'idle',
+          notice: null,
+        });
       case 'submit': {
-        if (!state.path || state.phase === 'pending' || state.phase === 'enabling' || !valid(state)) return none(state);
-        if (state.path === 'start') {
-          return { state: { ...state, phase: 'enabling', notice: null }, effect: { type: 'enable', ...creds(state) } };
-        }
+        if (!state.path || busy(state) || !valid(state)) return none(state);
         const token = state.token + 1;
+        if (state.path === 'start') return enableEffect({ ...state, token });
         return { state: { ...state, token, phase: 'pending', notice: null }, effect: { type: 'preflight', token, ...creds(state) } };
       }
       case 'preflight-reply': {
         if (state.phase !== 'pending' || event.token !== state.token) return none(state);
-        if (event.outcome === 'found') {
-          return { state: { ...state, phase: 'enabling', notice: null }, effect: { type: 'enable', ...creds(state) } };
-        }
+        if (event.outcome === 'found') return enableEffect(state);
         if (event.outcome === 'notFound') return none({ ...state, phase: 'notFound', notice: null });
         return none({ ...state, phase: 'idle', notice: { kind: String(event.outcome ?? 'error'), message: String(event.message ?? '') } });
       }
       case 'start-new':
         if (state.phase !== 'notFound') return none(state);
-        return { state: { ...state, phase: 'enabling', notice: null }, effect: { type: 'enable', ...creds(state) } };
+        return enableEffect({ ...state, token: state.token + 1 });
       case 'enable-reply':
+        if (state.phase !== 'enabling' || event.token !== state.token) return none(state);
         return none({
           ...state,
           phase: 'idle',
@@ -500,7 +559,6 @@ Expected: FAIL, cannot find module.
 
   function view(state) {
     const join = state.path === 'join';
-    const busy = state.phase === 'pending' || state.phase === 'enabling';
     return {
       pathChosen: !!state.path,
       path: state.path,
@@ -512,7 +570,7 @@ Expected: FAIL, cannot find module.
         ? 'Enter the exact passphrase. Case matters.'
         : '16+ characters, or 10+ mixing letters, numbers and symbols. Blanc can’t recover it if you forget it.',
       submitLabel: join ? 'Connect' : 'Turn on sync',
-      submitDisabled: busy || !valid(state),
+      submitDisabled: busy(state) || !valid(state),
       showNotFound: state.phase === 'notFound',
       noticeText: state.notice ? (NOTICES[state.notice.kind] ?? state.notice.message) : '',
     };
@@ -525,7 +583,7 @@ Expected: FAIL, cannot find module.
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test test/unit/settings-sync-setup-model.test.js`
-Expected: PASS, 12 tests.
+Expected: PASS, 13 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -607,6 +665,9 @@ test('settings.js drives the flow through the reducer and performs effects once'
   assert.match(js, /function dispatch\(event\) \{[\s\S]*?const \{ state: next, effect \} = transition\(model, event\)/);
   assert.match(js, /if \(effect\?\.type === 'preflight'\)/);
   assert.match(js, /if \(effect\?\.type === 'enable'\)/);
+  assert.match(js, /effect\.path === 'join'/, 'result copy derives from the effect, not live state');
+  assert.doesNotMatch(js, /model\.path === 'join'/);
+  assert.match(js, /type: 'enable-reply', token: effect\.token/);
   // enable is only ever reached through a dispatched effect.
   assert.equal((js.match(/settings\.syncEnable\(/g) ?? []).length, 1);
   assert.doesNotMatch(js, /Profile Sync/);
@@ -813,15 +874,20 @@ Replace everything from `// --- Sync ---` through the `} else { document.getElem
         setupStatus.textContent = 'Turning on sync…';
         const res = await window.bowserPages.settings.syncEnable({ handle: effect.handle, passphrase: effect.passphrase });
         const name = effect.handle;
+        // Copy comes from the EFFECT's path, never from live model state: the
+        // person may have pressed Back or switched paths while this awaited.
         // created === false: enable()'s own probe found data — say so.
         // created === null: probe offline — plain copy.
         const note = res.ok
           ? (res.created === false
-            ? (model.path === 'join' ? `Connected to “${name}”. Pulling your favorites and settings now.` : `Joined your existing sync as “${name}”.`)
+            ? (effect.path === 'join' ? `Connected to “${name}”. Pulling your favorites and settings now.` : `Joined your existing sync as “${name}”.`)
             : 'Sync is on. Your favorites and settings will sync as you change them.')
           : res.message;
-        dispatch({ type: 'enable-reply', ok: res.ok, message: res.message });
-        renderStatus(res.status, note);
+        // Only a reply for the attempt still in flight may speak; the status
+        // itself is always real (sync may be on now) and is always rendered.
+        const current = model.phase === 'enabling' && model.token === effect.token;
+        dispatch({ type: 'enable-reply', token: effect.token, ok: res.ok, message: res.message });
+        renderStatus(res.status, current ? note : null);
       }
 
       async function performPreflight(effect) {
@@ -1177,7 +1243,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 **Files:**
 - Create: `src/main/sync-nudge.js`
-- Modify: `src/main/main.js` (requires near line 160; `startPageStatus` ~line 8350; `broadcastStartPageStatus` ~line 8366; `startPage` hooks ~line 8445; after `sync.init()` ~line 8947)
+- Modify: `src/main/main.js` (requires near line 160; the acceptance first-run block inside `app.whenReady` ~line 7907; `startPageStatus` ~line 8350; `broadcastStartPageStatus` ~line 8366; `startPage` hooks ~line 8445)
 - Modify: `src/main/pages.js` (`pages:start:data` handler; `pages:settings:sync-enable`; new start handlers)
 - Modify: `src/main/tab-preload.js` (`start` api)
 - Test: `test/unit/sync-nudge.test.js`
@@ -1225,8 +1291,15 @@ test('main projects syncNudge on the shared status and guards it per tab at both
   assert.match(main, /syncNudgeFor: \(wc\) => syncNudgeForTab\(startPageStatus\(\)\.syncNudge, tabs\.get\(tabIdByWebContentsId\.get\(wc\.id\)\), DEFAULT_PROFILE_ID\)/);
   assert.match(main, /dismissSyncNudge: \(\) => \{\s*settings\.setSettings\(\{ syncNudgeDismissed: true \}\);\s*return true;\s*\}/);
   assert.match(main, /openSettingsSection: \(section\) => openSettingsSection\(String\(section \?\? ''\)\)/);
-  // Startup setter: profiles that enabled sync before this release.
-  assert.match(main, /sync\.init\(\);\s*if \(sync\.status\(\)\.enabled && !settings\.getSettings\(\)\.syncNudgeDismissed\) \{\s*settings\.setSettings\(\{ syncNudgeDismissed: true \}\);\s*\}/);
+  // Startup setter for profiles that enabled sync before this release. It
+  // must run before any window exists and before sync.init() registers its
+  // settings listener — i.e. before the settings fan-out block, not after.
+  const setter = main.indexOf('// Retire the start-page sync card for profiles that already sync.');
+  const fanout = main.indexOf('settings.onSettingsChanged((s) => {');
+  const syncInit = main.indexOf('sync.init();');
+  assert.ok(setter > 0 && fanout > 0 && syncInit > 0);
+  assert.ok(setter < fanout && setter < syncInit, 'startup setter runs before fan-out and sync.init()');
+  assert.match(main, /\/\/ Retire the start-page sync card for profiles that already sync\.[\s\S]{0,600}?if \(sync\.status\(\)\.enabled && !settings\.getSettings\(\)\.syncNudgeDismissed\) \{\s*settings\.setSettings\(\{ syncNudgeDismissed: true \}\);\s*\}/);
 });
 
 test('pages.js wires the data field, the enable-side flag, and the two start handlers', () => {
@@ -1314,13 +1387,19 @@ In the `startPage: {` hooks object, directly after `status: startPageStatus,`, a
       openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
 ```
 
-Directly after the `sync.init();` call (~line 8947), add:
+Inside `app.whenReady`, directly after the acceptance-mode first-run block (the `if (acceptanceTestMode && !settings.isFirstRunComplete()) {…}` statement, ~line 7907-7913) and before the DoH block, add:
 
 ```js
-    if (sync.status().enabled && !settings.getSettings().syncNudgeDismissed) {
-      settings.setSettings({ syncNudgeDismissed: true });
-    }
+  // Retire the start-page sync card for profiles that already sync. Runs
+  // here — before any window exists, before the settings fan-out listener,
+  // and long before startProfileSync() registers sync.init()'s listener —
+  // so the write can neither flash the card nor reschedule the launch sync.
+  if (sync.status().enabled && !settings.getSettings().syncNudgeDismissed) {
+    settings.setSettings({ syncNudgeDismissed: true });
+  }
 ```
+
+`sync.init()` itself (inside `startProfileSync`, ~line 8947) is not touched.
 
 - [ ] **Step 5: Wire `pages.js` and the preload**
 
@@ -1361,7 +1440,7 @@ In `tab-preload.js`, in the `start` api object directly after `completePrivacy`,
 
 - [ ] **Step 6: Run the tests**
 
-Run: `node --test test/unit/sync-nudge.test.js` → PASS, 4 tests. Run: `npm run test:unit` → all pass. Run `npm start` once and confirm the app launches without a console error in main (the startup setter runs after `sync.init()`). Quit.
+Run: `node --test test/unit/sync-nudge.test.js` → PASS, 4 tests. Run: `npm run test:unit` → all pass. Run `npm start` once and confirm the app launches without a console error in main. Quit.
 
 - [ ] **Step 7: Commit**
 
@@ -1531,13 +1610,14 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `spec/acceptance/sync.feature` (append), `spec/acceptance/index.md` (F27 rows)
-- Modify: `src/main/test-hook.js` (beside `readNewtabLayoutDom`)
+- Modify: `src/main/test-hook.js` (the `install(refs)` destructure ~line 50-157; beside `readNewtabLayoutDom`)
+- Modify: `src/main/main.js` (the `require('./test-hook').install({` refs object ~line 8603)
 - Create: `test/desktop/steps/sync-nudge.steps.js`
 - Modify: `test/desktop/cucumber.mjs` (`RUNNABLE`)
 
 **Interfaces:**
-- Consumes: `.js-sync-nudge*` classes (Task 7), `settings.getSettings().syncNudgeDismissed` (Task 5), main's utility-sheet runtime (`rt().utilitySheetUrl`).
-- Produces: hook methods `readSyncNudgeDom()`, `clickSyncNudge(action)`, `syncNudgeDismissed()`, `utilitySheetUrl()`.
+- Consumes: `.js-sync-nudge*` classes (Task 7), `settings.getSettings().syncNudgeDismissed` (Task 5), the existing hook `utilitySurface()` (returns `{ visible, url, loadedUrl, ready }` where `url` is the exact `blanc://settings/#group-…` string main opened), the existing steps `When I run the slash command {string}` (runnable.steps.js) and `Then the {word} page opens in the utility sheet under the blanc scheme`, and main's `liveContents(tab)`.
+- Produces: hook methods `readSyncNudgeDom()`, `clickSyncNudge(action)`, `resetSyncNudge()`, `syncNudgeDismissed()`, `syncEnabled()`; ref `liveContents` passed into the hook.
 
 - [ ] **Step 1: Add the scenario**
 
@@ -1561,32 +1641,50 @@ Append to `spec/acceptance/sync.feature`:
     And sync is off and the sync offer has not been dismissed
     When I open a new tab
     And I choose Set up sync on the sync offer
-    Then Settings opens at the "sync" section
+    Then the settings page opens in the utility sheet under the blanc scheme
+    And the Settings sheet is at the "sync" section
+
+  @F27-6 @F27 @desktop
+  Scenario: The sync command opens Settings at the Sync section
+    Given a profile that completed first run
+    When I run the slash command "/sync"
+    Then the settings page opens in the utility sheet under the blanc scheme
+    And the Settings sheet is at the "sync" section
 ```
+
+F27-6 goes through the real path the spec requires: the chrome overlay's command input → `tabs:open-page` → `openSettingsSection`. `When I run the slash command {string}` already exists in `runnable.steps.js` and drives the overlay through `test/desktop/support/overlay.js`.
 
 In `spec/acceptance/index.md`, after the `F27-3` row add:
 
 ```
 | F27-4 | Start page offers sync once; Not now is permanent | — | ✅ | ⬜ | ⬜ |
 | F27-5 | Sync offer opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
+| F27-6 | /sync opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
 ```
 
-Before writing steps, run `grep -rn "I open a new tab\|completed first run" test/desktop/steps/` and reuse those existing definitions; define only the new phrasings below.
+Before writing steps, run `grep -rn "I open a new tab\|completed first run\|I run the slash command\|opens in the utility sheet" test/desktop/steps/` and reuse those existing definitions; define only the new phrasings below.
 
 - [ ] **Step 2: Run the dry run to see the undefined steps**
 
 Run: `npm run test:acceptance:dry`
-Expected: reports undefined steps for the four new phrasings (the dry run is tag-filtered by `RUNNABLE`; add `'@F27-4', '@F27-5'` to `RUNNABLE` in `test/desktop/cucumber.mjs` after the `'@F27-…'` entries, or after the F16 line if no F27 entries exist, then rerun).
+Expected: reports undefined steps for the five new phrasings (the dry run is tag-filtered by `RUNNABLE`; add `'@F27-4', '@F27-5', '@F27-6'` to `RUNNABLE` in `test/desktop/cucumber.mjs` after the existing `'@F27-…'` entries, or after the F16 line if no F27 entries exist, then rerun).
 
-- [ ] **Step 3: Add the test-hook methods**
+- [ ] **Step 3: Pass `liveContents` into the hook and add the methods**
 
-In `src/main/test-hook.js`, directly after `readNewtabLayoutDom() {…},`, add:
+Repository policy: `liveContents(tab)` is the only correct liveness check; after `webContents.close()` a tab's `view.webContents` can read back `undefined`. The hook does not receive it today, so add it.
+
+In `src/main/main.js`, in the `require('./test-hook').install({` refs object, on the line that begins `tabs, getTabOrder: () => rt().tabOrder, …`, add `liveContents,` as the first entry so it reads `liveContents, tabs, getTabOrder: () => rt().tabOrder, …`.
+
+In `src/main/test-hook.js`, in the `const { … } = refs;` destructure at the top of `install(refs)`, add `liveContents,` directly after `tabs,`.
+
+Then, directly after `readNewtabLayoutDom() {…},`, add:
 
 ```js
     readSyncNudgeDom() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
-      return tab.view.webContents.executeJavaScript(`(() => {
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
         const cards = [...document.querySelectorAll('.js-sync-nudge')];
         return {
           count: cards.length,
@@ -1596,9 +1694,10 @@ In `src/main/test-hook.js`, directly after `readNewtabLayoutDom() {…},`, add:
     },
     clickSyncNudge(action) {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
       const cls = action === 'setup' ? 'js-sync-nudge-setup' : 'js-sync-nudge-dismiss';
-      return tab.view.webContents.executeJavaScript(`(() => {
+      return wc.executeJavaScript(`(() => {
         const btn = [...document.querySelectorAll('.${cls}')]
           .find((el) => !el.closest('.js-sync-nudge').hidden && getComputedStyle(el).display !== 'none');
         if (!btn) return false;
@@ -1606,18 +1705,14 @@ In `src/main/test-hook.js`, directly after `readNewtabLayoutDom() {…},`, add:
         return true;
       })()`);
     },
+    // Test-only: the one place the flag is ever written false, so the three
+    // scenarios can run in any order inside one acceptance profile.
     resetSyncNudge() { settings.setSettings({ syncNudgeDismissed: false }); return settings.getSettings().syncNudgeDismissed; },
     syncNudgeDismissed() { return settings.getSettings().syncNudgeDismissed === true; },
     syncEnabled() { return sync.status().enabled === true; },
 ```
 
-`resetSyncNudge` is test-only and is the one place the flag is ever written false; it exists so the two scenarios can run in either order in one profile. If `sync` is not already in scope in `test-hook.js`, add `const sync = require('./sync');` beside its other requires. For the Settings-section assertion, grep `test-hook.js` for an existing `utilitySheet` reader; if none exists, add beside the methods above:
-
-```js
-    utilitySheetUrl() { return rt().utilitySheetUrl ?? null; },
-```
-
-using whatever accessor the hook already uses for the window runtime (`rt` is the name in `main.js`; the hook receives it through its deps object — check the top of `test-hook.js` for how `getActiveTabId` is provided and pass `utilitySheetUrl` the same way).
+If `sync` is not already in scope in `test-hook.js`, add `const sync = require('./sync');` beside its other requires. The Settings-section assertion uses the existing `utilitySurface()` hook; no new reader is needed.
 
 - [ ] **Step 4: Write the step definitions**
 
@@ -1659,10 +1754,11 @@ Then('the start page no longer offers sync', async function () {
   );
 });
 
-Then('Settings opens at the {string} section', async function (section) {
+// `url` is the exact string main passed to showUtilityPage, fragment included.
+Then('the Settings sheet is at the {string} section', async function (section) {
   await waitForValue(
-    () => this.call('utilitySheetUrl'),
-    (url) => typeof url === 'string' && url.startsWith('blanc://settings/') && url.endsWith(`#group-${section}`),
+    () => this.call('utilitySurface'),
+    (surf) => surf?.visible === true && surf.ready === true && surf.url === `blanc://settings/#group-${section}`,
     `the Settings sheet at #group-${section}`,
   );
 });
@@ -1671,13 +1767,13 @@ Then('Settings opens at the {string} section', async function (section) {
 - [ ] **Step 5: Run dry, then the real scenarios**
 
 Run: `npm run test:acceptance:dry` → no undefined steps.
-Run: `npm run test:acceptance:desktop -- --tags "@F27-4 or @F27-5"` (if the script does not forward args, run the underlying cucumber command from `test/desktop/cucumber.mjs` with the tag expression). Expected: 2 scenarios passed. Afterwards, delete any Playwright/output artifacts the run leaves behind (`output/`, `test-results/`) before committing.
+Run: `npm run test:acceptance:desktop -- --tags "@F27-4 or @F27-5 or @F27-6"` (if the script does not forward args, run the underlying cucumber command from `test/desktop/cucumber.mjs` with the tag expression). Expected: 3 scenarios passed. Afterwards, delete any Playwright/output artifacts the run leaves behind (`output/`, `test-results/`) before committing.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add spec/acceptance/sync.feature spec/acceptance/index.md src/main/test-hook.js test/desktop/steps/sync-nudge.steps.js test/desktop/cucumber.mjs
-git commit -m "test(acceptance): start-page sync offer is one-time and routes to Settings
+git add spec/acceptance/sync.feature spec/acceptance/index.md src/main/main.js src/main/test-hook.js test/desktop/steps/sync-nudge.steps.js test/desktop/cucumber.mjs
+git commit -m "test(acceptance): sync offer is one-time; card and /sync open Settings at Sync
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
@@ -1707,7 +1803,7 @@ In `sync.astro` frontmatter, set:
 
 ```
   title={"Encrypted Sync Across Devices | Blanc Browser"}
-  description={"Blanc Sync carries your favorites and settings between devices, and your open tabs if you choose — end-to-end encrypted, off by default, opt-in per device."}
+  description={"Sync carries your favorites and settings between devices, and your open tabs if you choose — end-to-end encrypted, off by default, opt-in per device."}
   ogDescription={"Your favorites and settings on your other devices, and, if you choose, your open tabs. End-to-end encrypted."}
 ```
 
@@ -1763,29 +1859,32 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 npm run test:unit
 npm run substrate:check
 npm run test:acceptance:dry
-npm run test:acceptance:desktop -- --tags "@F27-4 or @F27-5 or @F36-3"
+npm run test:acceptance:desktop -- --tags "@F27-4 or @F27-5 or @F27-6 or @F36-3"
 ```
 Expected: all pass. Delete Playwright artifacts afterwards.
 
-- [ ] **Step 2: Packaged check**
+- [ ] **Step 2: Packaged check in an isolated profile**
 
-Run: `npm run dist:dir`. Launch the unpacked app with a scratch profile (`--user-data-dir` is not supported; instead temporarily rename the real userData directory or use the acceptance profile technique from `test/desktop/packaged-first-run-smoke.mjs`). Confirm: card visible after the tour, **Not now** hides it, relaunch keeps it hidden, `/sync` opens Settings at Sync, the two-path card renders.
+Run: `npm run dist:dir`. Launch the unpacked app **only** with the isolated-profile technique used by `test/desktop/packaged-first-run-smoke.mjs` (it points the packaged app at a scratch userData directory and never touches the real one). Never rename, move, or edit the real user data directory. Confirm: card visible after the tour, **Not now** hides it, relaunch keeps it hidden, `/sync` opens Settings at Sync, the two-path card renders.
 
-- [ ] **Step 3: Pre-release manual two-device check (record in the release incident)**
+- [ ] **Step 3: Hand off for review**
 
-With two packaged builds on two machines, clean Personal profiles, a throwaway sync name:
+Report the gates run and their results. **Do not push the branch or open a pull request without the owner's explicit authorization in chat**; the shared checkout is used by other sessions and PRs are owner-approved. When authorized, the PR is titled `Sync discoverability and two-path setup`, targets `main`, lists the spec path, the tasks, and the gates, states that the site copy changes (Task 9) are release-backed while the app changes ship with the next release, and ends with the attribution the PR author is required to use (for a Claude agent: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`).
+
+---
+
+## Pre-release checklist (not a PR prerequisite)
+
+This belongs to the release that carries the app changes, alongside the gates in `docs/release-verification.md`; record pass/fail per step in that release's `docs/release-incidents/<date>-<version>.md`. It does not block merging the implementation PR.
+
+**Two-device manual check.** Two packaged builds on two machines, clean Personal profiles, throwaway sync names:
+
 1. A: Start path → "Sync is on…". Add a favorite.
 2. B: Join path, correct credentials → "Connected to …", the favorite appears.
-3. B: Turn off sync. Join path, wrong passphrase → the not-found choice appears; `sync.json` shows `enabled: false`; nothing was created (A's data unchanged, Worker has no new account).
-4. B: **Start a new sync with these** → a distinct account (A's favorite does not appear).
-5. B: disconnect the network, Join path → offline notice, nothing saved.
-6. A: Settings → Sync, **Turn off sync** with "also delete synced data" for both throwaway accounts.
-
-Record pass/fail per step in `docs/release-incidents/<date>-<version>.md` when the release that carries this ships.
-
-- [ ] **Step 4: Open the PR**
-
-Push the branch and open a PR against `main` titled `Sync discoverability and two-path setup`. The description lists the spec path, the tasks, the gates run, and states that public copy changes (Task 9) are release-backed while the app changes ship with the next release. End with the required attribution line.
+3. B: Turn off sync (no wipe). Join path, wrong passphrase → the not-found choice appears; B's `sync.json` shows `enabled: false`; nothing was created (A's data unchanged).
+4. B: **Start a new sync with these** → a distinct second account (A's favorite does not appear).
+5. B: disconnect the network, turn off sync, Join path → offline notice, nothing saved.
+6. Clean-up, in this order because only a device holding an account's credentials can wipe it: B turns sync on again with the second account's credentials, then **Turn off sync** with "also delete synced data" (wipes the second account). Then A: **Turn off sync** with "also delete synced data" (wipes the first account). A cannot wipe B's account.
 
 ---
 
@@ -1793,4 +1892,5 @@ Push the branch and open a PR against `main` titled `Sync discoverability and tw
 
 - **Spec coverage.** §3 naming → Tasks 3 and 9. §4.1 placement → Task 3. §4.2 paths, copy, and reducer → Tasks 2 and 3. §4.3 preflight and IPC → Task 1. §4.4 on-state → Task 3. §5.1 `/sync` and resolver → Task 4. §5.2 card, flag, visibility rule, delivery, send-site guard, key registration → Tasks 5, 6, 7. §5.3 no tour change → nothing to do. §6 site and listing → Task 9 (the two Product Hunt actions are owner actions, not code). §7 error table → Tasks 1, 2, 6. §8 tests → each task; manual check → Task 10. §9 sequencing matches Tasks 1–9.
 - **Type consistency.** `preflight` outcomes (`found|notFound|invalid|offline|rateLimited|error`) match the reducer's `preflight-reply` handling and the notice map. `syncNudgeForTab(shared, tab, defaultProfileId)` is used identically at both send sites and in the hook. Bridge names `start.openSettings` / `start.dismissSyncNudge` match Task 7's calls and Task 6's preload. `openSettingsSection(section)` is the single name across Tasks 4, 6, and 8.
-- **Deviation from spec.** The acceptance scenario for `/sync` is exercised through the start-page card's **Set up sync** button (same resolver); the `/sync` command itself is guarded by the copy substrate and the source test in Task 4. Recorded here so the spec's §8 line is read accordingly.
+- **`/sync` coverage.** F27-6 drives the real chrome path (overlay command input → `tabs:open-page` → `openSettingsSection`); F27-5 drives the start-page hook through the same resolver. No deviation from the spec's §8 remains.
+- **Review round 1 (owner).** Enable effects and replies are tokenized and copy derives from the effect's path; the startup migration runs before any window and before the sync listener; `/sync` has its own acceptance scenario; key zeroization is tested on every outcome; hooks use `liveContents`; Task 10 no longer touches real user data, the two-device check moved to a pre-release checklist with the wipe order corrected, pushing requires owner authorization, the attribution trailer is conditional, and the site metadata says "Sync".
