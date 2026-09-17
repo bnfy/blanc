@@ -35,6 +35,7 @@
     "test:startup-layout": "node test/desktop/startup-layout-smoke.mjs",
     "test:recovery-reopen": "node test/desktop/startup-layout-smoke.mjs --reopened-window",
     "test:recovery-lifecycle": "node test/desktop/startup-recovery-lifecycle-smoke.mjs",
+    "test:window-close-quit": "node test/desktop/window-close-quit-smoke.mjs",
     "test:packaged:external-links": "node test/desktop/packaged-external-links-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",

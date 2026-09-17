@@ -104,3 +104,5 @@ jobs:
           npm run build:firefox --prefix extensions/blanc-tab-import
       - name: Both import screens coexist in Electron
         run: xvfb-run -a npm run test:tab-handoff
+      - name: Closing the last window quits Blanc (Linux path of #368)
+        run: xvfb-run -a npm run test:window-close-quit
