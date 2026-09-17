@@ -116,6 +116,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F27-1 | Sharing open tabs off by default | — | ✅ | ⬜ | ⬜ |
 | F27-2 | Remote tab opens locally as new ungrouped tab | — | ✅ | ⬜ | ⬜ |
 | F27-3 | Sharing-off retracts this device | — | ✅ | ⬜ | ⬜ |
+| F27-4 | Start page offers sync once; Not now is permanent | — | ✅ | ⬜ | ⬜ |
+| F27-5 | Sync offer opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
+| F27-6 | /sync opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
 | F28-1 | Layout default, persistence, and no-sync rule | D19 | ✅ | ➖ | ➖ |
 | F28-2 | Layout switching preserves live guest content | D19 | ✅ | ➖ | ➖ |
 | F28-3 | Full-height rail and safe-area page-pane geometry | D19 | ✅ | ➖ | ➖ |

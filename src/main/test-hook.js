@@ -9,6 +9,7 @@
 // scenarios exercise real behaviour rather than a reimplementation.
 
 const settings = require('./settings');
+const sync = require('./sync');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
@@ -56,6 +57,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     tabs,
+    liveContents,
     getTabOrder,
     getGroups,
     getActiveTabId,
@@ -733,6 +735,36 @@ function install(refs) {
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
     },
+    readSyncNudgeDom() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const cards = [...document.querySelectorAll('.js-sync-nudge')];
+        return {
+          count: cards.length,
+          visible: cards.some((el) => !el.hidden && getComputedStyle(el).display !== 'none'),
+        };
+      })()`);
+    },
+    clickSyncNudge(action) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      const cls = action === 'setup' ? 'js-sync-nudge-setup' : 'js-sync-nudge-dismiss';
+      return wc.executeJavaScript(`(() => {
+        const btn = [...document.querySelectorAll('.${cls}')]
+          .find((el) => !el.closest('.js-sync-nudge').hidden && getComputedStyle(el).display !== 'none');
+        if (!btn) return false;
+        btn.click();
+        return true;
+      })()`);
+    },
+    // Test-only: the one place the flag is ever written false, so the three
+    // scenarios can run in any order inside one acceptance profile.
+    resetSyncNudge() { settings.setSettings({ syncNudgeDismissed: false }); return settings.getSettings().syncNudgeDismissed; },
+    syncNudgeDismissed() { return settings.getSettings().syncNudgeDismissed === true; },
+    syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
