@@ -123,6 +123,9 @@ const DEFAULTS = {
   // pre-existing settings file is first opened; only a truly missing
   // settings file starts at 0.
   onboardingVersion: 0,
+  // Device-local, set once the start page's sync card is dismissed or sync is
+  // turned on; never cleared, never Profile Synced (design 2026-09-17 §5.2).
+  syncNudgeDismissed: false,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -260,6 +263,9 @@ function getSettings() {
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
+  if (typeof data.syncNudgeDismissed !== 'boolean') {
+    data.syncNudgeDismissed = DEFAULTS.syncNudgeDismissed;
+  }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
@@ -302,6 +308,7 @@ function sanitize(partial) {
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
+  if (typeof partial.syncNudgeDismissed === 'boolean') clean.syncNudgeDismissed = partial.syncNudgeDismissed;
   if (typeof partial.homePage === 'string') {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }
