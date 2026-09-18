@@ -48,8 +48,11 @@ test('main projects syncNudge on the shared status and guards it per tab at both
 test('pages.js wires the data field, the enable-side flag, and the two start handlers', () => {
   const pages = read('src/main/pages.js');
   assert.match(pages, /syncNudge: hooks\.startPage\?\.syncNudgeFor\?\.\(event\.sender\) \?\? false,/);
-  // Comment lines may sit between the call and the flag write.
-  assert.match(pages, /const result = await sync\.enable\(payload \?\? \{\}\);(?:\s*\/\/[^\n]*)*\s*if \(result\?\.status\?\.enabled === true\) settings\.setSettings\(\{ syncNudgeDismissed: true \}\);\s*return result;/);
+  // Comment lines may sit between the call and the flag write. Strip them and
+  // match the code alone: consuming them inline needs a nested quantifier,
+  // which backtracks exponentially on adversarial input (CodeQL js/redos).
+  const code = pages.replace(/^[ \t]*\/\/[^\n]*$/gm, '');
+  assert.match(code, /const result = await sync\.enable\(payload \?\? \{\}\);\s*if \(result\?\.status\?\.enabled === true\) settings\.setSettings\(\{ syncNudgeDismissed: true \}\);\s*return result;/);
   assert.match(pages, /handle\('pages:start:open-settings', 'newtab', \(section\) => hooks\.startPage\?\.openSettingsSection\?\.\(section\)\)/);
   assert.match(pages, /handle\('pages:start:sync-nudge-dismiss', 'newtab', \(\) => hooks\.startPage\?\.dismissSyncNudge\?\.\(\) === true\)/);
   const preload = read('src/main/tab-preload.js');

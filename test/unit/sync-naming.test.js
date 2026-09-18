@@ -34,7 +34,10 @@ test('no user-facing surface says Profile Sync or Tab Sync', () => {
 test('the sync feature page names itself Sync in its breadcrumb and structured data', () => {
   const source = read('site/src/pages/features/sync.astro');
   assert.match(source, /<span aria-current="page">sync<\/span>/);
-  const breadcrumb = JSON.parse(source.match(/\{"@context":"https:\/\/schema\.org","@type":"BreadcrumbList".*?\}\s*$/ms)?.[0] ?? '{}');
+  // The JSON-LD block is one line; find it rather than matching across the
+  // whole file, which needs a dot-all lazy scan.
+  const ld = source.split('\n').find((line) => line.includes('"@type":"BreadcrumbList"'));
+  const breadcrumb = JSON.parse(ld ?? '{}');
   const last = breadcrumb.itemListElement?.at(-1);
   assert.equal(last?.name, 'Sync');
   assert.equal(last?.item, 'https://blancbrowser.com/features/sync');
