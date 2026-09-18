@@ -24,17 +24,31 @@ test('start page carries one shared accessible migration checklist', () => {
 test('every start-page template names the Blanc Patron upgrade as an action', () => {
   const html = read('src/renderer/pages/newtab.html');
   const css = read('src/renderer/pages/pages.css');
-  const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron">Upgrade to Blanc Patron <span aria-hidden="true">→<\/span><\/a>/g) ?? [];
+  const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Upgrade to Blanc Patron<\/span><span class="patron-cta-arrow" aria-hidden="true">→<\/span><\/a>/g) ?? [];
 
   assert.equal(ctas.length, 4, 'Ledger, Billboard, Shelf, and Tally share the explicit Patron CTA');
   assert.doesNotMatch(html, />Support Blanc</);
-  assert.match(css, /\.js-patron-callout a \{[\s\S]{0,520}?display: inline-flex;[\s\S]{0,520}?border: 1px solid var\(--patron-gold-fill\);[\s\S]{0,520}?border-radius: 999px;/,
+  assert.match(css, /\.js-patron-callout a \{[\s\S]{0,620}?display: inline-flex;[\s\S]{0,620}?border: 1px solid color-mix\(in srgb, var\(--patron-gold\) 58%, transparent\);[\s\S]{0,620}?border-radius: 999px;/,
     'the upgrade link is a compact pill action');
-  assert.match(css, /--patron-gold: #805d28;/i, 'light mode uses the Sunrise bronze');
-  assert.match(css, /--patron-gold-fill: #d4ad66;/i, 'the CTA uses the Sunrise gold fill');
-  assert.match(css, /--patron-gold: #d4ad66;/i, 'dark mode uses the Sunrise gold');
-  assert.match(css, /\.js-patron-callout a \{[\s\S]{0,700}?color: var\(--patron-ink\);[\s\S]{0,700}?background: var\(--patron-gold-fill\);/,
-    'the Patron pill is the intentionally warm start-page action');
+  assert.match(css, /--patron-gold: #d4ad66;/i, 'the CTA uses the Sunrise gold');
+  assert.match(css, /--patron-surface: #12100b;/i, 'the CTA uses Patron warm ink');
+  assert.match(css, /\.js-patron-callout a \{[\s\S]{0,800}?color: var\(--patron-label\);[\s\S]{0,800}?background: var\(--patron-surface\);/,
+    'the Patron pill reserves the warm dark surface for the upgrade action');
+  assert.match(css, /\.patron-cta-mark \{[\s\S]{0,180}?width: 20px;[\s\S]{0,180}?height: 20px;/,
+    'the local Sunrise mark is sized as the pill’s leading brand asset');
+  assert.match(css, /\.patron-cta-arrow \{[\s\S]{0,100}?color: var\(--patron-gold\);/,
+    'the action arrow repeats the mark’s gold accent');
+  assert.match(css, /\.js-patron-callout a:hover \{[\s\S]{0,300}?background: var\(--patron-surface\);/,
+    'hover preserves the warm-ink material instead of inverting the pill');
+  assert.match(css, /\.js-patron-callout a:hover \.patron-cta-arrow \{ transform: translateX\(2px\); \}/,
+    'hover emphasizes the action through the arrow rather than recoloring the brand');
+  const hover = css.match(/\.js-patron-callout a:hover \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  assert.doesNotMatch(hover, /transform|padding|font-size|min-height|border(?:-width|-color)?\s*:/,
+    'hover cannot resize, move, or repaint the Patron pill border');
+  assert.match(hover, /box-shadow: 0 5px 18px -9px var\(--patron-halo\);/,
+    'hover keeps the resting shadow geometry');
+  assert.match(hover, /filter: brightness\(1\.16\);/,
+    'hover visibly brightens the complete capsule without changing geometry');
 });
 
 test('checklist occupies the corner, compacts at tight viewports, and avoids private and Mahjong', () => {

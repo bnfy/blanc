@@ -1908,6 +1908,17 @@ final result: passed
   `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.18.31 PM.png`
 - Earlier active Sync state supplied by the owner:
   `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.29.22 PM.png`
+- Final Billboard implementation capture:
+  `docs/superpowers/specs/assets/start-page-patron-pill-final.jpg`
+- Focused Patron CTA comparison:
+  `docs/superpowers/specs/assets/start-page-patron-source-crop.png` and
+  `docs/superpowers/specs/assets/start-page-patron-final-crop.jpg`
+
+The checklist source is 1586×992 pixels. The live Electron implementation was
+captured at a 1229×768 CSS-pixel app viewport at device scale 1; their aspect
+ratios differ by less than 0.1%, so the full views were compared at their
+native sizes and the CTA regions were cropped separately for readable detail.
+The compared state is Billboard, light appearance, `0/2`, no recent sites.
 
 ## Checklist comparison
 
@@ -1924,10 +1935,21 @@ compact panel expands downward from that trigger; the other layouts expand
 above the footer.
 
 Each informational layout also replaces the vague “Support Blanc” footer link
-with a compact **Upgrade to Blanc Patron →** pill. Its Sunrise-gold fill and
-warm-ink label deliberately reserve Blanc’s warmth for the Patron offer. The
-copy names the product and action directly, retains the existing Patron
-Settings target, and stays hidden for active Patrons.
+with a compact **Upgrade to Blanc Patron →** pill. The final treatment uses the
+original local gold Sunrise artwork on Patron warm ink, with an ivory label and
+gold arrow. The copy names the product and action directly, retains the
+existing Patron Settings target, and stays hidden for active Patrons. Hover
+keeps the material, border, shadow, dimensions, and brand colors stable,
+brightens the complete capsule uniformly, and advances only the arrow; reduced
+motion removes that movement.
+
+The full-view source and implementation were opened in one comparison input.
+The CTA was also compared in focused crops because the full-view label and
+mark are too small for reliable inspection. Typography uses Inter at an
+appropriate optical weight; the 20px source mark is sharp and uncropped;
+spacing, 36px target height, capsule radius, warm-ink/gold/ivory palette, and
+the complete upgrade copy are visually balanced. No P0, P1, or P2 issue
+remains in the CTA.
 
 Verified in the live dev app and the signed unpacked package in light and dark
 modes. Ledger, Billboard, Shelf, and Tally eligibility plus Mahjong/private
@@ -1979,3 +2001,20 @@ unchanged.
 - Final signed-package visual check: checklist, Sync chooser, correct Sync nav
   marker, and setup routing pass.
 - `git diff --check`: pass.
+
+## Comparison history
+
+- First pass: the vague text-only “Support Blanc” link had weak affordance.
+  It was replaced by an explicit upgrade pill.
+- Second pass: a flat gold fill felt generic and did not carry Blanc’s brand
+  mark. It was replaced by the original Sunrise artwork on Patron warm ink.
+- Third pass: hover changed the capsule material, then its lift/shadow and
+  border-color changes made the capsule appear to shrink. Hover now preserves
+  the warm-ink surface, ivory label, exact border, geometry, and resting
+  shadow; the complete capsule brightens uniformly while only the arrow moves.
+
+## Follow-up polish
+
+No P3 follow-up is required for this component.
+
+final result: passed
