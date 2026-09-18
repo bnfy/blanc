@@ -708,7 +708,7 @@
   // --- Sync ---
   if (supports('sync')) {
     (function initSync() {
-      const { createSyncSetupModel, transition, view } = window.blancSyncSetupModel;
+      const { createSyncSetupModel, transition, view, relativeSyncTime } = window.blancSyncSetupModel;
       const setup = document.getElementById('syncSetup');
       const active = document.getElementById('syncActive');
       const paths = document.getElementById('syncPaths');
@@ -737,8 +737,6 @@
       const wipeEl = document.getElementById('syncWipe');
       const tabsShareEl = document.getElementById('syncTabsShare');
 
-      const when = (ts) => (ts ? new Date(ts).toLocaleString() : 'never');
-
       // On-state: one row per category; the error lives ONLY in its own row.
       function renderStatus(status, note) {
         const on = !!status.enabled;
@@ -747,7 +745,8 @@
         tabsShareEl.checked = !!status.syncTabs;
         if (on) {
           syncStatusHandle.textContent = status.handle;
-          syncStatusData.textContent = status.lastSyncedAt ? `Last synced ${when(status.lastSyncedAt)}` : 'Not synced yet';
+          const lastSynced = relativeSyncTime(status.lastSyncedAt);
+          syncStatusData.textContent = lastSynced ? `Last synced ${lastSynced}` : 'Not synced yet';
           syncStatusTabs.textContent = status.syncTabs ? 'Sharing' : 'Not shared';
           syncStatusErrorRow.hidden = !status.lastError;
           syncStatusError.textContent = status.lastError || '';
@@ -781,11 +780,16 @@
         // person may have pressed Back or switched paths while this awaited.
         // created === false: enable()'s own probe found data — say so.
         // created === null: probe offline — plain copy.
+        // Only a SUCCESSFUL enable gets transient copy. A failure that still
+        // persisted credentials leaves sync on, and its message is already the
+        // status's lastError — repeating it here would put the same error in
+        // two places, which §4.4 forbids. A failure that persisted nothing
+        // keeps the setup panel up, where the reducer's notice speaks.
         const note = res.ok
           ? (res.created === false
             ? (effect.path === 'join' ? `Connected to “${name}”. Pulling your favorites and settings now.` : `Joined your existing sync as “${name}”.`)
             : 'Sync is on. Your favorites and settings will sync as you change them.')
-          : res.message;
+          : null;
         // Only a reply for the attempt still in flight may speak; the status
         // itself is always real (sync may be on now) and is always rendered.
         const current = model.phase === 'enabling' && model.token === effect.token;

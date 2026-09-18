@@ -35,7 +35,11 @@ test('the on state lists categories and keeps the error in one conditional row',
   assert.match(html, /<dt>This device’s open tabs<\/dt><dd id="syncStatusTabs">/);
   assert.match(html, /<div id="syncStatusErrorRow" hidden><dt>Last error<\/dt><dd id="syncStatusError">/);
   const js = read('src/renderer/pages/settings.js');
-  assert.match(js, /syncStatusData\.textContent = status\.lastSyncedAt \? `Last synced \$\{when\(status\.lastSyncedAt\)\}` : 'Not synced yet'/);
+  // The wording itself is covered behaviourally by relativeSyncTime's tests;
+  // this only pins the wiring, including that no absolute timestamp is used.
+  assert.match(js, /const lastSynced = relativeSyncTime\(status\.lastSyncedAt\);/);
+  assert.match(js, /syncStatusData\.textContent = lastSynced \? `Last synced \$\{lastSynced\}` : 'Not synced yet';/);
+  assert.doesNotMatch(js, /toLocaleString\(\)[\s\S]{0,80}syncStatusData/);
   assert.match(js, /syncStatusErrorRow\.hidden = !status\.lastError/);
 });
 
@@ -43,13 +47,17 @@ test('settings.js drives the flow through the reducer and performs effects once'
   const html = read('src/renderer/pages/settings.html');
   assert.match(html, /<script src="settings-sync-setup-model\.js"><\/script>\s*<script src="settings\.js"><\/script>/);
   const js = read('src/renderer/pages/settings.js');
-  assert.match(js, /const \{ createSyncSetupModel, transition, view \} = window\.blancSyncSetupModel/);
+  assert.match(js, /const \{ createSyncSetupModel, transition, view, relativeSyncTime \} = window\.blancSyncSetupModel/);
   assert.match(js, /function dispatch\(event\) \{[\s\S]*?const \{ state: next, effect \} = transition\(model, event\)/);
   assert.match(js, /if \(effect\?\.type === 'preflight'\)/);
   assert.match(js, /if \(effect\?\.type === 'enable'\)/);
   assert.match(js, /effect\.path === 'join'/, 'result copy derives from the effect, not live state');
   assert.doesNotMatch(js, /model\.path === 'join'/);
   assert.match(js, /type: 'enable-reply', token: effect\.token/);
+  // A failed enable never becomes a transient note: the error belongs to the
+  // Last error row (persisted credentials) or the reducer's notice (not).
+  assert.match(js, /: 'Sync is on\. Your favorites and settings will sync as you change them\.'\)\s*: null;/);
+  assert.doesNotMatch(js, /: res\.message;/);
   // enable is only ever reached through a dispatched effect.
   assert.equal((js.match(/settings\.syncEnable\(/g) ?? []).length, 1);
   assert.doesNotMatch(js, /Profile Sync/);

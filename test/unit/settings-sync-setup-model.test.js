@@ -134,3 +134,34 @@ test('a stale enable reply changes nothing after the flow moved on', () => {
   const rechosen = transition(submitted.state, { type: 'choose', path: 'join' }).state;
   assert.equal(transition(rechosen, { type: 'enable-reply', token: oldToken, ok: true }).state, rechosen);
 });
+
+// --- on-state relative time (design 2026-09-17 §4.4: "Last synced {relative time}") ---
+
+const { relativeSyncTime } = require('../../src/renderer/pages/settings-sync-setup-model');
+const NOW = Date.UTC(2026, 8, 17, 12, 0, 0);
+const ago = (ms) => NOW - ms;
+const SECOND = 1000, MINUTE = 60 * SECOND, HOUR = 60 * MINUTE, DAY = 24 * HOUR;
+
+test('relativeSyncTime renders elapsed time, not an absolute timestamp', () => {
+  assert.equal(relativeSyncTime(ago(5 * SECOND), NOW), 'just now');
+  assert.equal(relativeSyncTime(ago(59 * SECOND), NOW), 'just now');
+  assert.equal(relativeSyncTime(ago(MINUTE), NOW), '1 minute ago');
+  assert.equal(relativeSyncTime(ago(90 * SECOND), NOW), '1 minute ago');
+  assert.equal(relativeSyncTime(ago(42 * MINUTE), NOW), '42 minutes ago');
+  assert.equal(relativeSyncTime(ago(HOUR), NOW), '1 hour ago');
+  assert.equal(relativeSyncTime(ago(5 * HOUR), NOW), '5 hours ago');
+  assert.equal(relativeSyncTime(ago(DAY), NOW), 'yesterday');
+  assert.equal(relativeSyncTime(ago(3 * DAY), NOW), '3 days ago');
+  assert.equal(relativeSyncTime(ago(29 * DAY), NOW), '29 days ago');
+});
+
+test('relativeSyncTime falls back to a date beyond a month, and has no value to show when never synced', () => {
+  const old = relativeSyncTime(ago(90 * DAY), NOW);
+  assert.doesNotMatch(old, /ago|just now/);
+  assert.ok(old.length > 0);
+  for (const empty of [0, null, undefined, '']) assert.equal(relativeSyncTime(empty, NOW), null);
+});
+
+test('a clock skewed into the future reads as just now rather than a negative age', () => {
+  assert.equal(relativeSyncTime(NOW + 5 * MINUTE, NOW), 'just now');
+});

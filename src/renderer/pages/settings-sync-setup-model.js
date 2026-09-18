@@ -1,7 +1,9 @@
 'use strict';
-// The Settings → Sync off-state flow as a pure reducer (design 2026-09-17
-// §4.2). Served flat to settings.html via a <script> tag AND require-able by
-// node tests — the same dual-environment pattern as settings-verify-model.js.
+// The Settings → Sync card's pure logic (design 2026-09-17 §4.2 and §4.4):
+// the off-state setup flow as a reducer, plus the on-state's relative
+// "last synced" formatter. Served flat to settings.html via a <script> tag AND
+// require-able by node tests — the same dual-environment pattern as
+// settings-verify-model.js.
 //
 // Network calls are ONE-SHOT EFFECTS returned by transition(), never derived
 // from state: settings.js performs the returned effect exactly once and
@@ -110,5 +112,26 @@
     };
   }
 
-  return { createSyncSetupModel, transition, view, passphraseStrong };
+  // §4.4 asks for "Last synced {relative time}". An absolute timestamp makes
+  // the reader do the arithmetic; elapsed time answers the only question the
+  // row exists for — is this device current? Beyond a month the elapsed form
+  // stops being informative, so it degrades to a plain date. Returns null when
+  // there is nothing to show; the caller renders "Not synced yet".
+  function relativeSyncTime(timestamp, now = Date.now()) {
+    if (!timestamp) return null;
+    const seconds = Math.floor((now - timestamp) / 1000);
+    // A device whose clock runs ahead must not read as a negative age.
+    if (seconds < 60) return 'just now';
+    const plural = (value, unit) => `${value} ${unit}${value === 1 ? '' : 's'} ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return plural(minutes, 'minute');
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return plural(hours, 'hour');
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'yesterday';
+    if (days < 30) return plural(days, 'day');
+    return new Date(timestamp).toLocaleDateString();
+  }
+
+  return { createSyncSetupModel, transition, view, passphraseStrong, relativeSyncTime };
 });
