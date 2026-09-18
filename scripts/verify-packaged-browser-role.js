@@ -5,15 +5,21 @@
 //
 //   CFBundleURLTypes      http + https (electron-builder writes these from
 //                         build.protocols)
-//   CFBundleDocumentTypes public.html + public.xhtml (build.mac.extendInfo)
+//   CFBundleDocumentTypes public.html + public.xhtml (build.mac.extendInfo),
+//                         each ranked None so Blanc is never selected to open
+//                         local HTML files it deliberately does not support
 //
 // Scheme claims alone are not enough: LaunchServices only flags a bundle
 // `web-browser` — what System Settings' default-browser picker keys on — when
-// it also claims HTML documents. That amendment was learned the hard way in
-// v0.7.2, lost again afterwards, and cost an Apple entitlement rejection
-// ("the app isn't able to be set as the user's default browser"). Verifying
+// it also claims HTML documents. The claim landed in v0.7.2, was later removed
+// with local HTML viewing, and its absence left clean installs without
+// LaunchServices' browser classification. Apple's later entitlement rejection
+// exposed that gap, although its response described the already-present HTTP
+// and HTTPS scheme declarations instead. Verifying
 // the built bundle, rather than the config that is supposed to produce it,
-// is what keeps it from going missing a third time.
+// is what keeps it from going missing a third time. The Viewer role is only
+// for browser classification; LSHandlerRank None preserves the security
+// decision that local file navigation is unsupported.
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
@@ -58,6 +64,11 @@ function verifyBrowserRole(info) {
       claim.CFBundleTypeRole,
       'Viewer',
       `${uti} must be claimed with CFBundleTypeRole Viewer`,
+    );
+    assert.equal(
+      claim.LSHandlerRank,
+      'None',
+      `${uti} must use LSHandlerRank None so Blanc is never selected to open local HTML files`,
     );
   }
 

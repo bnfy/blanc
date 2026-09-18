@@ -151,12 +151,14 @@
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",
+            "LSHandlerRank": "None",
             "LSItemContentTypes": [
               "public.html"
             ]
           },
           {
             "CFBundleTypeRole": "Viewer",
+            "LSHandlerRank": "None",
             "LSItemContentTypes": [
               "public.xhtml"
             ]

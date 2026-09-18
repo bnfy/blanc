@@ -19,17 +19,24 @@ default-protocol-client API doesn't exist.
 only flags an app `web-browser` (what System Settings' picker keys on) when it also
 claims HTML documents. `build.mac.extendInfo` adds `CFBundleDocumentTypes` with
 `public.html` and `public.xhtml`, one UTI per dict, `CFBundleTypeRole: Viewer` — the
-exact shape Brave/Chrome use. Bundling extra UTIs (e.g. Apple's derived
-`com.apple.default-app.web-browser`) into one dict makes LS drop the claim silently.
+shape Brave/Chrome use for browser classification. Each claim also sets
+`LSHandlerRank: None`, so LaunchServices never selects Blanc to open local HTML files;
+local `file:` navigation remains deliberately unsupported. Bundling extra UTIs (e.g.
+Apple's derived `com.apple.default-app.web-browser`) into one dict makes LS drop the
+claim silently.
 Packaged builds only; a dev run must never register the bare Electron binary.
 **Regressed and re-landed (2026-09-18):** the `CFBundleDocumentTypes` claim went
-missing from `package.json` sometime after v0.7.2 while `build.protocols` stayed,
-so shipped builds claimed the schemes but were never flagged `web-browser`. Apple
-denied Blanc's Web Browser Public Key Credential Request for exactly that reason
-("the app isn't able to be set as the user's default browser"). Config alone is no
-longer the gate: `scripts/verify-packaged-browser-role.js` reads the **built**
+missing from `package.json` when local HTML viewing was retired while
+`build.protocols` stayed, so shipped builds claimed the schemes but were never
+flagged `web-browser` on a clean registration. Apple later denied Blanc's Web Browser
+Public Key Credential Request, reporting that the app did not specify the HTTP and
+HTTPS schemes and therefore could not be set as the default browser. The public
+bundle did contain those scheme claims; restoring the document metadata addresses
+the missing LaunchServices browser classification, while Apple's next review remains
+the final confirmation. Config alone is no longer the gate:
+`scripts/verify-packaged-browser-role.js` reads the **built**
 `Contents/Info.plist` from the cross-platform `afterPack` hook and fails the mac
-package before signing unless both claims survived, and
+package before signing unless both claims and the non-handler rank survived, and
 `test/unit/browser-role-packaging.test.js` checks the same rules on Linux CI.
 
 **2. Setting = live OS state.** Not persisted in settings.json — LaunchServices owns it.
