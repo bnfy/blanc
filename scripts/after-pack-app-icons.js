@@ -11,6 +11,7 @@ const { verifyPackagedAdblock } = require('./verify-packaged-adblock');
 const { packageCompliance } = require('./package-compliance');
 const { verifyPackagedCompliance } = require('./verify-packaged-compliance');
 const { verifyPackagedCaptureRuntime } = require('./verify-packaged-capture-runtime');
+const { verifyPackagedBrowserRole } = require('./verify-packaged-browser-role');
 
 function iconComposerColor(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex);
@@ -72,12 +73,12 @@ function run(command, args) {
 }
 
 module.exports = async function afterPackAppIcons(context) {
+  const macAppPath = path.join(
+    context.appOutDir,
+    `${context.packager.appInfo.productFilename}.app`,
+  );
   const resourcesDir = context.electronPlatformName === 'darwin'
-    ? path.join(
-      context.appOutDir,
-      `${context.packager.appInfo.productFilename}.app`,
-      'Contents/Resources',
-    )
+    ? path.join(macAppPath, 'Contents/Resources')
     : path.join(context.appOutDir, 'resources');
   verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
   verifyPackagedCaptureRuntime(path.join(resourcesDir, 'app.asar'), context.electronPlatformName);
@@ -85,6 +86,11 @@ module.exports = async function afterPackAppIcons(context) {
   verifyPackagedCompliance(resourcesDir);
 
   if (context.electronPlatformName !== 'darwin') return;
+
+  // Apple reviews the packaged Info.plist, and LaunchServices only offers Blanc
+  // as a default browser when the built bundle claims both the web schemes and
+  // HTML documents. Fail here rather than ship a bundle that cannot be default.
+  verifyPackagedBrowserRole(macAppPath);
 
   const root = path.join(__dirname, '..');
   const sourceIcon = path.join(root, 'build/app-icons/Icon.icon');

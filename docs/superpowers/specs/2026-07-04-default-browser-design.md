@@ -22,6 +22,15 @@ claims HTML documents. `build.mac.extendInfo` adds `CFBundleDocumentTypes` with
 exact shape Brave/Chrome use. Bundling extra UTIs (e.g. Apple's derived
 `com.apple.default-app.web-browser`) into one dict makes LS drop the claim silently.
 Packaged builds only; a dev run must never register the bare Electron binary.
+**Regressed and re-landed (2026-09-18):** the `CFBundleDocumentTypes` claim went
+missing from `package.json` sometime after v0.7.2 while `build.protocols` stayed,
+so shipped builds claimed the schemes but were never flagged `web-browser`. Apple
+denied Blanc's Web Browser Public Key Credential Request for exactly that reason
+("the app isn't able to be set as the user's default browser"). Config alone is no
+longer the gate: `scripts/verify-packaged-browser-role.js` reads the **built**
+`Contents/Info.plist` from the cross-platform `afterPack` hook and fails the mac
+package before signing unless both claims survived, and
+`test/unit/browser-role-packaging.test.js` checks the same rules on Linux CI.
 
 **2. Setting = live OS state.** Not persisted in settings.json — LaunchServices owns it.
 Two guarded IPC handlers in `src/main/pages.js` (exposed via `bowserPages` in
