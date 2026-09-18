@@ -158,6 +158,7 @@ const {
   validRecoveryChoice,
 } = require('./session-recovery');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { shouldShowSyncNudge, syncNudgeForTab } = require('./sync-nudge');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -5848,6 +5849,21 @@ function openInternalPage(url) {
   }
 }
 
+// The ONLY place a Settings section name becomes a URL fragment. Allowlisted,
+// never interpolated from renderer text (blanc://settings/ is privileged).
+// Used by the chrome's tabs:open-page and by the start page's sync card.
+const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
+  blocking: '#group-privacy',
+  patron: '#group-patron',
+  sync: '#group-sync',
+});
+function openSettingsSection(section) {
+  const fragment = Object.prototype.hasOwnProperty.call(SETTINGS_SECTION_FRAGMENTS, section)
+    ? SETTINGS_SECTION_FRAGMENTS[section]
+    : '';
+  openInternalPage(`blanc://settings/${fragment}`);
+}
+
 function toggleBookmarkForActiveTab() {
   if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
 }
@@ -6316,12 +6332,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
   chromeHandle('tabs:open-page', (_e, name, section) => {
-    if (['bookmarks', 'history', 'downloads', 'settings', 'tab-import'].includes(name)) {
-      // Deep-link into a page section via URL fragment — allowlisted only,
-      // never interpolated from renderer-supplied text (privileged URL).
-      const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
-      const fragment = name === 'settings' && Object.prototype.hasOwnProperty.call(sectionMap, section) ? sectionMap[section] : '';
-      openInternalPage(`blanc://${name}/${fragment}`);
+    if (name === 'settings') return openSettingsSection(section);
+    if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
+      openInternalPage(`blanc://${name}/`);
     }
   });
   chromeHandle('tabs:get-all', () => ({
@@ -6740,6 +6753,7 @@ const SLASH_COMMANDS = [
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],
   ['/settings', 'Open settings'],
+  ['/sync', 'Set up or manage sync'],
   ['/clear', 'Clear browsing history'],
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],
@@ -7910,6 +7924,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       usagePing: false,
     });
   }
+  // Retire the start-page sync card for profiles that already sync. Runs
+  // here — before any window exists, before the settings fan-out listener,
+  // and long before startProfileSync() registers sync.init()'s listener —
+  // so the write can neither flash the card nor reschedule the launch sync.
+  if (sync.status().enabled && !settings.getSettings().syncNudgeDismissed) {
+    settings.setSettings({ syncNudgeDismissed: true });
+  }
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
   // including the private-browsing session, so private tabs inherit it by
@@ -8361,13 +8382,20 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // settings change (below), and setPatron() fires those listeners, so
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
+      // Start-page sync card (design 2026-09-17 §5.2). Shared across tabs;
+      // the send sites apply the per-tab profile/private guard.
+      syncNudge: shouldShowSyncNudge({
+        firstRunComplete: settings.isFirstRunComplete(),
+        syncEnabled: sync.status().enabled,
+        dismissed: current.syncNudgeDismissed,
+      }),
     };
   };
   const broadcastStartPageStatus = () => {
     const status = startPageStatus();
     for (const tab of tabs.values()) {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
-      liveContents(tab)?.send('pages:start:status', status);
+      liveContents(tab)?.send('pages:start:status', { ...status, syncNudge: syncNudgeForTab(status.syncNudge, tab, DEFAULT_PROFILE_ID) });
     }
   };
   // A layout picked in Settings (or arriving from Profile Sync) must reach
@@ -8488,6 +8516,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
+      syncNudgeFor: (wc) => syncNudgeForTab(startPageStatus().syncNudge, tabs.get(tabIdByWebContentsId.get(wc.id)), DEFAULT_PROFILE_ID),
+      dismissSyncNudge: () => {
+        settings.setSettings({ syncNudgeDismissed: true });
+        return true;
+      },
+      // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
+      openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
       setLayout: (name) => settings.setSettings({ newtabLayout: name }),
       openIsland: (char) => openIslandTyping(char),
       // Runs inside runInPageRuntime, so the tab lands in the sheet's own
@@ -8605,7 +8640,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // (electronApp.evaluate() reaches straight into the main process) —
       // test-hook.js wraps every installed method with this at install time.
       bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn),
-      tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
+      liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,

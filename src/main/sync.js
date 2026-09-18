@@ -259,6 +259,39 @@ async function enable({ handle, passphrase }) {
   return { ok: res.ok, message: res.message, created, status: status() };
 }
 
+// Join-path probe (design 2026-09-17 §4.3): does data already exist under
+// these credentials? Reads ONE blob and writes nothing — no store update, no
+// protectSyncKey, no syncNow, no syncGen bump — so a mistyped passphrase is
+// caught before enable() would fork a silent empty account. The derived key
+// is cleared in `finally` so every return and throw path zero-fills it.
+async function preflight({ handle, passphrase }) {
+  if (!isDefaultLocalProfile()) {
+    return withLocalProfile(DEFAULT_PROFILE_ID, () => preflight({ handle, passphrase }));
+  }
+  const h = String(handle ?? '').trim();
+  const p = String(passphrase ?? '');
+  if (h.length < 2) {
+    return { ok: false, outcome: 'invalid', message: 'Choose a sync name (at least 2 characters).' };
+  }
+  if (!passphraseStrong(p)) {
+    return { ok: false, outcome: 'invalid', message: 'Use a longer passphrase — 16+ characters, or 10+ with mixed characters.' };
+  }
+  const { accountId, key } = deriveKeys(h, p);
+  try {
+    const res = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
+    if (res.status === 200) return { ok: true, outcome: 'found' };
+    if (res.status === 404) return { ok: true, outcome: 'notFound' };
+    if (res.status === 429) {
+      return { ok: false, outcome: 'rateLimited', message: describe(new SyncError('rate-limited')) };
+    }
+    return { ok: false, outcome: 'error', message: describe(new SyncError(`http-${res.status}`)) };
+  } catch {
+    return { ok: false, outcome: 'offline', message: describe(new Error('offline')) };
+  } finally {
+    key.fill(0);
+  }
+}
+
 async function disable({ wipeRemote = false } = {}) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => disable({ wipeRemote }));
@@ -629,6 +662,7 @@ function init() {
 module.exports = {
   init,
   enable,
+  preflight,
   disable,
   syncNow,
   status,

@@ -5,6 +5,7 @@
 "slash_history" = "Open browsing history";
 "slash_downloads" = "Open downloads";
 "slash_settings" = "Open settings";
+"slash_sync" = "Set up or manage sync";
 "slash_clear" = "Clear browsing history";
 "slash_new" = "Open a new tab";
 "slash_private" = "Open a private tab (history stays untouched)";

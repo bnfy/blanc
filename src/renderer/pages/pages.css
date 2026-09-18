@@ -2625,3 +2625,30 @@ body:not([data-layout="ledger"]) .ledger-footer {
   }
   .mj-tile.shake { animation: none; }
 }
+
+/* Settings → Sync: two-path setup + on-state category list (2026-09-17). */
+.sync-form { margin-top: 14px; }
+.sync-field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; max-width: 420px; }
+.sync-field > span:first-child { font-size: 13px; }
+.sync-field .hint { color: var(--text-dim); font-size: 12px; line-height: 1.45; }
+.sync-field > input { width: 100%; min-width: 0; }
+#syncSubmitRow, #syncNotFound { margin-top: 14px; }
+#syncPaths button.quiet,
+.sync-form button.quiet { background: transparent; border-color: transparent; color: var(--text-dim); }
+#syncPaths button.quiet:hover,
+.sync-form button.quiet:hover { color: var(--accent); }
+.sync-status-list { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0 0 12px; font-size: 13px; }
+.sync-status-list > div { display: contents; }
+.sync-status-list dt { color: var(--text-dim); }
+.sync-status-list dd { margin: 0; }
+
+/* Start-page sync card (design 2026-09-17 §5.2). One-time; hidden until
+   main's status projection says otherwise. */
+.sync-nudge-copy { margin: 8px 0 0; max-width: 520px; color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+.sync-nudge-actions { display: flex; gap: 10px; margin-top: 12px; }
+.sync-nudge-actions button.quiet { background: transparent; border-color: transparent; color: var(--text-dim); }
+.sync-nudge-actions button.quiet:hover { color: var(--accent); }
+.bb-sync-nudge { margin-top: 38px; text-align: center; }
+.bb-sync-nudge .sync-nudge-title { margin: 0; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.bb-sync-nudge .sync-nudge-copy { margin-left: auto; margin-right: auto; }
+.bb-sync-nudge .sync-nudge-actions { justify-content: center; }

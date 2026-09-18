@@ -286,6 +286,7 @@ From the desktop `DEFAULTS`:
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
+| `syncNudgeDismissed` | `false` | desktop-only boolean set when the start page's sync card is dismissed or sync is turned on; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 

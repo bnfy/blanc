@@ -128,6 +128,19 @@ function renderPatronCallout(patronActive) {
   for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = !!patronActive;
 }
 
+// Start-page sync card. Driven only by main's projection (initial data +
+// every status push); the renderer never decides visibility itself, so a
+// dismissal or an enable in another window hides it here too.
+function renderSyncNudge(show) {
+  for (const el of document.querySelectorAll('.js-sync-nudge')) el.hidden = !show;
+}
+for (const button of document.querySelectorAll('.js-sync-nudge-setup')) {
+  button.addEventListener('click', () => { window.bowserPages?.start.openSettings('sync').catch(() => {}); });
+}
+for (const button of document.querySelectorAll('.js-sync-nudge-dismiss')) {
+  button.addEventListener('click', () => { window.bowserPages?.start.dismissSyncNudge().catch(() => {}); });
+}
+
 startupRetry.addEventListener('click', async () => {
   startupRetry.disabled = true;
   startupContinue.disabled = true;
@@ -735,6 +748,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
+  renderSyncNudge(data.syncNudge === true);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
       `${state.blockedThisWeek.toLocaleString()} ads blocked this week`;
@@ -751,6 +765,7 @@ window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
+  if (status && 'syncNudge' in status) renderSyncNudge(status.syncNudge === true);
 });
 
 // The pill's caret says keystrokes land somewhere. They do: a printable
