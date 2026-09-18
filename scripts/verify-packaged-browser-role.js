@@ -6,8 +6,8 @@
 //   CFBundleURLTypes      http + https (electron-builder writes these from
 //                         build.protocols)
 //   CFBundleDocumentTypes public.html + public.xhtml (build.mac.extendInfo),
-//                         each ranked None so Blanc is never selected to open
-//                         local HTML files it deliberately does not support
+//                         each ranked Alternate so LaunchServices admits Blanc
+//                         to the default-browser picker without claiming ownership
 //
 // Scheme claims alone are not enough: LaunchServices only flags a bundle
 // `web-browser` — what System Settings' default-browser picker keys on — when
@@ -17,9 +17,10 @@
 // exposed that gap, although its response described the already-present HTTP
 // and HTTPS scheme declarations instead. Verifying
 // the built bundle, rather than the config that is supposed to produce it,
-// is what keeps it from going missing a third time. The Viewer role is only
-// for browser classification; LSHandlerRank None preserves the security
-// decision that local file navigation is unsupported.
+// is what keeps it from going missing a third time. Rank None looks safer but
+// excludes the app from System Settings entirely; Alternate is the lowest rank
+// that passed clean-registration picker testing. The matching open-file path
+// admits only explicit macOS HTML/XHTML handoffs.
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
@@ -67,8 +68,8 @@ function verifyBrowserRole(info) {
     );
     assert.equal(
       claim.LSHandlerRank,
-      'None',
-      `${uti} must use LSHandlerRank None so Blanc is never selected to open local HTML files`,
+      'Alternate',
+      `${uti} must use LSHandlerRank Alternate so Blanc remains eligible for the default-browser picker`,
     );
   }
 

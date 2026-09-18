@@ -20,8 +20,12 @@ only flags an app `web-browser` (what System Settings' picker keys on) when it a
 claims HTML documents. `build.mac.extendInfo` adds `CFBundleDocumentTypes` with
 `public.html` and `public.xhtml`, one UTI per dict, `CFBundleTypeRole: Viewer` — the
 shape Brave/Chrome use for browser classification. Each claim also sets
-`LSHandlerRank: None`, so LaunchServices never selects Blanc to open local HTML files;
-local `file:` navigation remains deliberately unsupported. Bundling extra UTIs (e.g.
+`LSHandlerRank: Alternate`, the lowest rank that remains eligible for the macOS
+default-browser picker. `None` was tested on a clean registration and excludes the
+app from that picker. Blanc therefore handles the matching macOS `open-file` event,
+but only for an existing regular HTML/XHTML document explicitly handed over by the
+OS. Typed `file:` URLs, argv paths, page-initiated file navigation, popups, arbitrary
+file types, and sync remain rejected. Bundling extra UTIs (e.g.
 Apple's derived `com.apple.default-app.web-browser`) into one dict makes LS drop the
 claim silently.
 Packaged builds only; a dev run must never register the bare Electron binary.
@@ -36,7 +40,7 @@ the missing LaunchServices browser classification, while Apple's next review rem
 the final confirmation. Config alone is no longer the gate:
 `scripts/verify-packaged-browser-role.js` reads the **built**
 `Contents/Info.plist` from the cross-platform `afterPack` hook and fails the mac
-package before signing unless both claims and the non-handler rank survived, and
+package before signing unless both claims and the Alternate rank survived, and
 `test/unit/browser-role-packaging.test.js` checks the same rules on Linux CI.
 
 **2. Setting = live OS state.** Not persisted in settings.json — LaunchServices owns it.
@@ -55,6 +59,13 @@ While running: open the URL as a new active tab and focus the window. During col
 Win/Linux basic path: the existing `second-instance` handler also opens any http(s) URLs
 found in `commandLine`, and startup scans `process.argv` the same way. A shared
 `urlsFromArgv(argv)` helper filters strictly for `^https?://`.
+
+**4. Local HTML handoff.** `app.on('open-file')` is also registered before `ready` so
+the document can queue through the same window/readiness lifecycle. The path must be
+absolute, resolve to an existing regular file, and end in one of the declared
+HTML/XHTML extensions. It is canonicalized to a `file:` URL, then `createTab` requires
+an explicit `allowLocalFile` capability and rechecks the URL type. This narrow path is
+why the packaging declaration is truthful without making `file:` generally navigable.
 
 ## Settings UI
 

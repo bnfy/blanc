@@ -54,14 +54,14 @@ test('bundling the UTIs into one dict is rejected — LaunchServices drops that 
   assert.throws(() => verifyBrowserRole(info), /dict of its own/);
 });
 
-test('HTML declarations can classify the browser but never register Blanc as a file opener', () => {
+test('HTML declarations use the lowest rank that remains eligible for the browser picker', () => {
   const info = packagedInfoPlist();
   for (const type of info.CFBundleDocumentTypes) {
-    assert.equal(type.LSHandlerRank, 'None');
+    assert.equal(type.LSHandlerRank, 'Alternate');
   }
 
-  delete info.CFBundleDocumentTypes[0].LSHandlerRank;
-  assert.throws(() => verifyBrowserRole(info), /LSHandlerRank None/);
+  info.CFBundleDocumentTypes[0].LSHandlerRank = 'None';
+  assert.throws(() => verifyBrowserRole(info), /LSHandlerRank Alternate/);
 });
 
 test('dropping either web scheme is rejected', () => {

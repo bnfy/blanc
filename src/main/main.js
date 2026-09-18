@@ -239,6 +239,7 @@ const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { isSupportedLocalHtmlUrl } = require('./local-html-files');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
@@ -1206,10 +1207,10 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
   }
 }
 
-// URLs handed over by the OS when Blanc is the default browser. macOS
-// delivers them via 'open-url' (which can fire before 'ready' — those queue
-// until the window and session restore are up); Windows/Linux pass them on
-// the command line, at startup or through 'second-instance'.
+// URLs and declared HTML documents handed over by the OS. macOS delivers them
+// via 'open-url' / 'open-file' (both can fire before 'ready' — those queue
+// until the window and session restore are up); Windows/Linux web URLs arrive
+// on the command line, at startup or through 'second-instance'.
 let externalUrlsFlushable = false;
 const externalUrlHandoff = createExternalUrlHandoff({
   application: app,
@@ -1220,7 +1221,7 @@ const externalUrlHandoff = createExternalUrlHandoff({
   isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
     && runtime.window && !runtime.window.isDestroyed(),
   withRuntime: withWindowRuntime,
-  createTab: (url) => createTab(url),
+  createTab: (url, options) => createTab(url, options),
   activateTab: (id) => setActiveTab(id),
   revealWindow: (window) => bringExternalWindowToFront(app, window),
 });
@@ -1314,10 +1315,9 @@ function maybeSendProductUsage(wc, report) {
   return report();
 }
 
-// Only web URLs may enter from command-line/default-browser handoff. Local
-// HTML is intentionally not a supported document type: Electron's file:
-// implementation grants a document broader filesystem authority than a web
-// page, even when its renderer is sandboxed.
+// Command-line/default-browser URL handoff remains web-only. Local HTML has a
+// separate macOS open-file trust boundary below; typed file: URLs, argv paths,
+// web-page file links, popups, and arbitrary file types all stay rejected.
 const urlsFromArgv = webUrlsFromArgv;
 
 function resolveExternalRuntime(preferred = focusedRuntime) {
@@ -1326,6 +1326,10 @@ function resolveExternalRuntime(preferred = focusedRuntime) {
 
 function openExternalUrls(urls) {
   externalUrlHandoff.open(urls);
+}
+
+function openLocalHtmlFiles(paths) {
+  externalUrlHandoff.openLocalFiles(paths);
 }
 
 // Shared across windows: only one pending external-app confirmation at a time.
@@ -1368,6 +1372,16 @@ app.on('open-url', (event, url) => {
     if (queueTabHandoff(url)) return;
     openExternalUrls([url]);
   });
+});
+
+// Must be registered before ready: Finder and LaunchServices may deliver the
+// first document while Electron is still starting. Conversion requires an
+// existing regular HTML/XHTML file, and createTab requires the explicit
+// allowLocalFile capability again before it will admit the resulting file URL.
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  const runtime = resolveExternalRuntime();
+  withWindowRuntime(runtime, () => openLocalHtmlFiles([filePath]));
 });
 
 // Must happen before app 'ready'.
@@ -4976,8 +4990,9 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null } = {}) {
-  if (isForbiddenTopLevelUrl(url)) url = NEW_TAB_URL;
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false } = {}) {
+  const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
+  if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
     // open-url handoff, future call sites). Session restore filters
