@@ -123,9 +123,12 @@ const DEFAULTS = {
   // pre-existing settings file is first opened; only a truly missing
   // settings file starts at 0.
   onboardingVersion: 0,
-  // Device-local, set once the start page's sync card is dismissed or sync is
-  // turned on; never cleared, never Profile Synced (design 2026-09-17 §5.2).
-  syncNudgeDismissed: false,
+  // Device-local moving-in checklist state. Completion means the migration
+  // action succeeded at least once; it is not cleared if the feature is later
+  // turned off or used again. None of these keys are Profile Synced.
+  migrationChecklistDismissed: false,
+  syncMigrationCompleted: false,
+  tabImportCompleted: false,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -263,8 +266,8 @@ function getSettings() {
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
-  if (typeof data.syncNudgeDismissed !== 'boolean') {
-    data.syncNudgeDismissed = DEFAULTS.syncNudgeDismissed;
+  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
+    if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
@@ -308,7 +311,9 @@ function sanitize(partial) {
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
-  if (typeof partial.syncNudgeDismissed === 'boolean') clean.syncNudgeDismissed = partial.syncNudgeDismissed;
+  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
+    if (typeof partial[key] === 'boolean') clean[key] = partial[key];
+  }
   if (typeof partial.homePage === 'string') {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }

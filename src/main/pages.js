@@ -360,9 +360,9 @@ function setupPages(hooks = {}) {
   handle('pages:settings:sync-get', 'settings', () => sync.status());
   handle('pages:settings:sync-enable', 'settings', async (payload) => {
     const result = await sync.enable(payload ?? {});
-    // Persisted credentials mean sync is on even when the first pull failed
-    // (ok: false) — that is still "I know about sync", so retire the card.
-    if (result?.status?.enabled === true) settings.setSettings({ syncNudgeDismissed: true });
+    // Persisted credentials complete the migration task even when the first
+    // pull failed (ok: false). The marker never clears if Sync is later off.
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
     return result;
   });
   // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
@@ -400,7 +400,10 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
     // Per-tab guard: the shared status never carries profile or privacy.
-    syncNudge: hooks.startPage?.syncNudgeFor?.(event.sender) ?? false,
+    migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
+    // A utility sheet is a separate WebContentsView layered over this tab;
+    // document.hasFocus() in the covered renderer is not a reliable signal.
+    utilitySheetVisible: hooks.startPage?.utilitySheetVisibleFor?.(event.sender) === true,
   }));
   // Billboard asks for another bounded page only when local dismissals consume
   // the initial candidate set. The hidden-hostname list stays in page storage
@@ -459,10 +462,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
-  // Start-page sync card: open Settings at an allowlisted section (main owns
-  // the allowlist) and the one-time dismissal.
+  // Moving-in checklist: open Settings at an allowlisted section (main owns
+  // the allowlist) and persist a one-time dismissal.
   handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
-  handle('pages:start:sync-nudge-dismiss', 'newtab', () => hooks.startPage?.dismissSyncNudge?.() === true);
+  handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
 
   // Standalone games invoke from their exact top-level document. The embedded
   // game has no preload authority; it posts a fixed signal to newtab.js, which

@@ -95,6 +95,9 @@ test('view is pure presentation and carries no effect', () => {
   assert.equal(a.submitLabel, 'Connect');
   assert.equal(view(ready('start')).submitLabel, 'Turn on sync');
   assert.equal(view(createSyncSetupModel()).pathChosen, false);
+  assert.equal(view(ready('start')).setupTitle, 'Start syncing from this device');
+  assert.equal(view(ready('join')).setupTitle, 'Connect this device');
+  assert.match(view(ready('join')).setupIntro, /same sync name and passphrase/);
 });
 
 test('notice copy per outcome', () => {

@@ -36,7 +36,7 @@ test('main applies saved consent and private-tab policy at the trusted boundary'
 test('a rendered layout is reported, including the first post-consent render', () => {
   assert.match(
     newtab,
-    /function applyLayout\(name\) \{\s*state\.layout = name;\s*document\.body\.dataset\.layout = name;\s*window\.bowserPages\?\.start\?\.layoutUsed\?\.\(name\)/,
+    /function applyLayout\(name\) \{\s*state\.layout = name;\s*document\.body\.dataset\.layout = name;\s*presentPendingMigrationChecklistCompletion\(\);\s*window\.bowserPages\?\.start\?\.layoutUsed\?\.\(name\)/,
   );
   assert.match(newtab, /event\.origin !== 'blanc:\/\/mahjong'/);
   assert.match(newtab, /event\.source !== mahjongFrame\.contentWindow/);

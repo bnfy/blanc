@@ -33,26 +33,9 @@
       <div id="favoritesList" class="ledger-list"></div>
     </section>
 
-    <a class="tab-import-promo ledger-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
-      <span class="tab-import-promo-text">
-        <span class="tab-import-promo-title">Bring your tabs</span>
-        <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
-      </span>
-      <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
-    </a>
-
     <section id="groupsSection" class="ledger-section" hidden>
       <div class="ledger-label">pick up where you left off</div>
       <div id="groupsList" class="ledger-list ledger-groups"></div>
-    </section>
-
-    <section id="syncNudge" class="ledger-section sync-nudge js-sync-nudge" hidden>
-      <div class="ledger-label">pick up on another device</div>
-      <p class="sync-nudge-copy">Sync your favorites and settings across your devices, and, if you choose, open tabs. End-to-end encrypted; Blanc can’t read it.</p>
-      <div class="sync-nudge-actions">
-        <button type="button" class="js-sync-nudge-setup">Set up sync</button>
-        <button type="button" class="quiet js-sync-nudge-dismiss">Not now</button>
-      </div>
     </section>
 
     <section id="remoteSection" class="ledger-section" hidden>
@@ -61,7 +44,7 @@
     </section>
 
     <p id="patron-callout" class="ledger-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron">Support Blanc</a>
+      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
     </p>
   </main>
 
@@ -78,23 +61,8 @@
     <div id="bbFavorites" class="bb-favs"></div>
     <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="bbGroups" class="bb-groups"></div>
-    <section class="bb-sync-nudge sync-nudge js-sync-nudge" hidden>
-      <p class="sync-nudge-title">Pick up on another device.</p>
-      <p class="sync-nudge-copy">Sync your favorites and settings across your devices, and, if you choose, open tabs. End-to-end encrypted; Blanc can’t read it.</p>
-      <div class="sync-nudge-actions">
-        <button type="button" class="js-sync-nudge-setup">Set up sync</button>
-        <button type="button" class="quiet js-sync-nudge-dismiss">Not now</button>
-      </div>
-    </section>
-    <a class="tab-import-promo bb-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
-      <span class="tab-import-promo-text">
-        <span class="tab-import-promo-title">Bring your tabs</span>
-        <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
-      </span>
-      <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
-    </a>
     <p class="bb-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron">Support Blanc</a>
+      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
     </p>
   </main>
 
@@ -116,16 +84,9 @@
           <span class="shelf-unit">ads this week</span>
         </div>
       </div>
-      <a class="tab-import-promo shelf-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
-        <span class="tab-import-promo-text">
-          <span class="tab-import-promo-title">Bring your tabs</span>
-          <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
-        </span>
-        <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
-      </a>
     </div>
     <p class="shelf-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron">Support Blanc</a>
+      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
     </p>
   </main>
 
@@ -137,15 +98,8 @@
       <div id="tlFavorites" class="ledger-list"></div>
       <div class="ledger-label tally-label tally-label-groups">pick up where you left off</div>
       <div id="tlGroups" class="tally-chiprow"></div>
-      <a class="tab-import-promo tally-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
-        <span class="tab-import-promo-text">
-          <span class="tab-import-promo-title">Bring your tabs</span>
-          <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
-        </span>
-        <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
-      </a>
       <p class="tally-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron">Support Blanc</a>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
       </p>
     </div>
     <div class="tally-right">
@@ -162,6 +116,36 @@
          so the other layouts never pay for loading the game. -->
     <iframe id="mahjongFrame" title="Mahjong solitaire"></iframe>
   </main>
+
+  <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
+    <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
+      <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
+      <span class="page-sr-only">Open moving-in checklist</span>
+    </button>
+    <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
+      <div class="migration-checklist-heading">
+        <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
+        <h2 id="migrationChecklistTitle">ready to move in?</h2>
+      </div>
+      <ul class="migration-checklist-tasks">
+        <li id="migrationSyncTask">
+          <button id="migrationSyncAction" class="migration-task" type="button">
+            <span class="migration-task-check" aria-hidden="true"></span>
+            <span class="migration-task-label">Set up Sync</span>
+            <span class="page-sr-only migration-task-status">Not completed</span>
+          </button>
+        </li>
+        <li id="migrationTabsTask">
+          <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
+            <span class="migration-task-check" aria-hidden="true"></span>
+            <span class="migration-task-label">Bring your tabs</span>
+            <span class="page-sr-only migration-task-status">Not completed</span>
+          </a>
+        </li>
+      </ul>
+      <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
+    </aside>
+  </div>
 
   <footer id="layoutFooter" class="ledger-footer">
     <span class="footer-left">

@@ -158,7 +158,10 @@ const {
   validRecoveryChoice,
 } = require('./session-recovery');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
-const { shouldShowSyncNudge, syncNudgeForTab } = require('./sync-nudge');
+const {
+  migrationChecklistState,
+  migrationChecklistForTab,
+} = require('./migration-checklist');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -897,6 +900,7 @@ function broadcastTabImportSurfaceOnce() {
 function completeTabImportSuccess(sessionId) {
   forgetTabImportSource(sessionId);
   tabImportSessions.destroySession(sessionId, 'applied');
+  settings.setSettings({ tabImportCompleted: true });
   hideUtilitySheet();
   showOverlay('panel', { purpose: { postImportWorkspace: true } });
 }
@@ -3088,6 +3092,14 @@ function liveUtilitySheet(runtime = rt()) {
   return wc ? { view, wc } : null;
 }
 
+function broadcastStartPageUtilitySheetVisibility(runtime, visible) {
+  for (const id of runtime.tabOrder) {
+    const tab = tabs.get(id);
+    if (!tab?.url?.startsWith('blanc://newtab')) continue;
+    liveContents(tab)?.send('pages:start:utility-sheet-visibility', visible === true);
+  }
+}
+
 // Electron can fault natively when loadURL is called again on this cached
 // WebContents while its prior utility-page navigation is still settling. The
 // acceptance runner made that race repeatable by opening/hiding several sheets
@@ -3256,6 +3268,7 @@ function showUtilityPage(url) {
   bindWindowRuntime(runtime, restackPermissionView)();
   resizeActiveView();
   sheet.wc.focus();
+  broadcastStartPageUtilitySheetVisibility(runtime, true);
 }
 
 function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
@@ -3285,6 +3298,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
     sheet.view.setVisible(false);
   }
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
+  broadcastStartPageUtilitySheetVisibility(runtime, false);
 }
 
 let onePasswordFillController = null;
@@ -5851,7 +5865,7 @@ function openInternalPage(url) {
 
 // The ONLY place a Settings section name becomes a URL fragment. Allowlisted,
 // never interpolated from renderer text (blanc://settings/ is privileged).
-// Used by the chrome's tabs:open-page and by the start page's sync card.
+// Used by the chrome's tabs:open-page and by the start page's moving-in checklist.
 const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
   blocking: '#group-privacy',
   patron: '#group-patron',
@@ -7924,12 +7938,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       usagePing: false,
     });
   }
-  // Retire the start-page sync card for profiles that already sync. Runs
+  // Mark the Sync migration task complete for profiles that already sync. Runs
   // here — before any window exists, before the settings fan-out listener,
   // and long before startProfileSync() registers sync.init()'s listener —
-  // so the write can neither flash the card nor reschedule the launch sync.
-  if (sync.status().enabled && !settings.getSettings().syncNudgeDismissed) {
-    settings.setSettings({ syncNudgeDismissed: true });
+  // so the write can neither flash the checklist nor reschedule launch sync.
+  if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
+    settings.setSettings({ syncMigrationCompleted: true });
   }
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
@@ -8382,12 +8396,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // settings change (below), and setPatron() fires those listeners, so
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
-      // Start-page sync card (design 2026-09-17 §5.2). Shared across tabs;
-      // the send sites apply the per-tab profile/private guard.
-      syncNudge: shouldShowSyncNudge({
+      // Start-page moving-in checklist. Shared across tabs; the send sites
+      // apply the per-tab profile/private guard.
+      migrationChecklist: migrationChecklistState({
         firstRunComplete: settings.isFirstRunComplete(),
-        syncEnabled: sync.status().enabled,
-        dismissed: current.syncNudgeDismissed,
+        dismissed: current.migrationChecklistDismissed,
+        syncComplete: current.syncMigrationCompleted,
+        tabsComplete: current.tabImportCompleted,
       }),
     };
   };
@@ -8395,7 +8410,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const status = startPageStatus();
     for (const tab of tabs.values()) {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
-      liveContents(tab)?.send('pages:start:status', { ...status, syncNudge: syncNudgeForTab(status.syncNudge, tab, DEFAULT_PROFILE_ID) });
+      liveContents(tab)?.send('pages:start:status', {
+        ...status,
+        migrationChecklist: migrationChecklistForTab(
+          status.migrationChecklist,
+          tab,
+          DEFAULT_PROFILE_ID,
+        ),
+      });
     }
   };
   // A layout picked in Settings (or arriving from Profile Sync) must reach
@@ -8516,9 +8538,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
-      syncNudgeFor: (wc) => syncNudgeForTab(startPageStatus().syncNudge, tabs.get(tabIdByWebContentsId.get(wc.id)), DEFAULT_PROFILE_ID),
-      dismissSyncNudge: () => {
-        settings.setSettings({ syncNudgeDismissed: true });
+      migrationChecklistFor: (wc) => migrationChecklistForTab(
+        startPageStatus().migrationChecklist,
+        tabs.get(tabIdByWebContentsId.get(wc.id)),
+        DEFAULT_PROFILE_ID,
+      ),
+      utilitySheetVisibleFor: (wc) => {
+        const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+        return !!tab && tab.id === rt().activeTabId && !!rt().utilitySheetUrl;
+      },
+      dismissMigrationChecklist: () => {
+        settings.setSettings({ migrationChecklistDismissed: true });
         return true;
       },
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.

@@ -141,42 +141,101 @@
 
         <section class="settings-group" id="group-sync">
           <h2 class="group-title">Sync</h2>
-          <div class="settings-card">
-            <p class="section-hint">
-              Sync your favorites and settings across your devices, and, if you choose, open tabs.
-              End-to-end encrypted. Blanc encrypts everything on this device with your passphrase
-              and stores only unreadable data — Blanc can’t read it, and can’t recover it if you
-              forget your passphrase.
-            </p>
+          <div class="settings-card sync-settings-card">
             <div id="syncSetup">
-              <div id="syncPaths" class="toolbar-row">
-                <button id="syncPathStart" type="button">Start syncing from this device</button>
-                <button id="syncPathJoin" type="button" class="quiet">I already sync on another device</button>
+              <header class="sync-setup-header">
+                <h3 id="syncSetupTitle">Set up Sync</h3>
+                <p id="syncSetupIntro">
+                  Sync your favorites and settings across your devices, and, if you choose, open tabs.
+                  Everything is end-to-end encrypted — Blanc can’t read it, and can’t recover it if you forget your passphrase.
+                </p>
+              </header>
+              <div id="syncPaths" class="sync-paths" aria-label="Choose how to set up Sync">
+                <button id="syncPathStart" class="sync-path" type="button">
+                  <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
+                    <rect x="7" y="11" width="34" height="23" rx="2"></rect>
+                    <path d="M4 38h40M20 34h8"></path>
+                    <path d="M20 22h8M25 17l5 5-5 5"></path>
+                  </svg>
+                  <span class="sync-path-copy">
+                    <strong>Start syncing from this device</strong>
+                    <span>Create the name and passphrase you’ll use on your other devices.</span>
+                  </span>
+                  <span class="sync-path-arrow" aria-hidden="true">→</span>
+                </button>
+                <button id="syncPathJoin" class="sync-path" type="button">
+                  <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
+                    <rect x="5" y="10" width="25" height="19" rx="2"></rect>
+                    <path d="M2 33h31"></path>
+                    <rect x="35" y="15" width="9" height="20" rx="2"></rect>
+                    <path d="M25 40c6 3 13 1 16-3M40 9c-6-3-13-1-16 3"></path>
+                  </svg>
+                  <span class="sync-path-copy">
+                    <strong>I already sync on another device</strong>
+                    <span>Connect with the exact same name and passphrase.</span>
+                  </span>
+                  <span class="sync-path-arrow" aria-hidden="true">→</span>
+                </button>
               </div>
               <form id="syncForm" class="sync-form" hidden>
-                <label class="sync-field">
-                  <span>Sync name</span>
-                  <input id="syncHandle" type="text" autocomplete="off" spellcheck="false" maxlength="64" />
-                  <span class="hint" id="syncHandleHint"></span>
-                </label>
-                <label class="sync-field">
-                  <span>Passphrase</span>
-                  <input id="syncPassphrase" type="password" autocomplete="off" />
-                  <span class="hint" id="syncPassphraseHint"></span>
-                </label>
-                <div class="toolbar-row" id="syncSubmitRow">
-                  <button id="syncSubmit" type="submit">Turn on sync</button>
-                  <button id="syncBack" type="button" class="quiet">Back</button>
-                </div>
-                <div id="syncNotFound" hidden>
-                  <p class="section-hint">Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again.</p>
-                  <div class="toolbar-row">
-                    <button id="syncTryAgain" type="button">Try again</button>
-                    <button id="syncStartNew" type="button" class="quiet">Start a new sync with these</button>
-                  </div>
-                </div>
+                <ol class="sync-guide">
+                  <li class="sync-guide-step" data-step="1">
+                    <span class="sync-step-number" aria-hidden="true">1</span>
+                    <svg class="sync-guide-icon" viewBox="0 0 48 48" aria-hidden="true">
+                      <path d="M13 16h26v22H13z"></path>
+                      <path d="M18 16v-3a6 6 0 0 1 12 0v3"></path>
+                      <text class="sync-icon-word" x="26" y="30" text-anchor="middle">you</text>
+                    </svg>
+                    <label class="sync-field">
+                      <strong>Give your sync a name</strong>
+                      <input id="syncHandle" type="text" autocomplete="off" spellcheck="false" maxlength="64" />
+                      <span class="hint" id="syncHandleHint"></span>
+                    </label>
+                  </li>
+                  <li class="sync-guide-step" data-step="2">
+                    <span class="sync-step-number" aria-hidden="true">2</span>
+                    <svg class="sync-guide-icon" viewBox="0 0 48 48" aria-hidden="true">
+                      <rect x="12" y="20" width="24" height="20" rx="3"></rect>
+                      <path d="M17 20v-5a7 7 0 0 1 14 0v5"></path>
+                      <circle cx="24" cy="29" r="2"></circle>
+                      <path d="M24 31v4"></path>
+                    </svg>
+                    <label class="sync-field">
+                      <strong>Choose a passphrase</strong>
+                      <input id="syncPassphrase" type="password" autocomplete="off" />
+                      <span class="hint" id="syncPassphraseHint"></span>
+                      <span class="sync-trust-note">
+                        <span class="sync-info-mark" aria-hidden="true">i</span>
+                        Your passphrase stays on your devices. It’s never sent to Blanc.
+                      </span>
+                    </label>
+                  </li>
+                  <li class="sync-guide-step sync-guide-finish" data-step="3">
+                    <span class="sync-step-number" aria-hidden="true">3</span>
+                    <svg class="sync-guide-icon" viewBox="0 0 48 48" aria-hidden="true">
+                      <rect x="4" y="15" width="23" height="17" rx="2"></rect>
+                      <path d="M2 36h27M34 12h10v24H34zM37 32h4"></path>
+                      <path d="M26 10c5-3 10-2 13 0M39 10l-3-3M22 39c5 3 10 2 13 0M22 39l3 3"></path>
+                    </svg>
+                    <div class="sync-guide-content">
+                      <strong id="syncFinishTitle">Turn on Sync</strong>
+                      <p id="syncFinishHint">You’re ready — your favorites and settings will sync securely across your devices.</p>
+                      <div class="toolbar-row" id="syncSubmitRow">
+                        <button id="syncSubmit" type="submit">Turn on sync</button>
+                        <button id="syncBack" type="button" class="quiet">Back</button>
+                      </div>
+                      <div id="syncNotFound" hidden>
+                        <p class="section-hint">Nothing was found under that name and passphrase. Check for typos, including capital letters, then try again.</p>
+                        <div class="toolbar-row">
+                          <button id="syncTryAgain" type="button">Try again</button>
+                          <button id="syncStartNew" type="button" class="quiet">Start a new sync with these</button>
+                        </div>
+                      </div>
+                      <p class="section-hint" id="syncSetupStatus" role="status"></p>
+                    </div>
+                  </li>
+                </ol>
               </form>
-              <p class="section-hint" id="syncSetupStatus" role="status"></p>
             </div>
             <div id="syncActive" hidden>
               <dl class="sync-status-list">

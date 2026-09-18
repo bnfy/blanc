@@ -17,6 +17,13 @@
   font-weight: 400 800;
   font-display: swap;
 }
+@font-face {
+  font-family: "Caveat";
+  src: url("caveat-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
 
 :root {
   --bg: #ffffff;
@@ -29,6 +36,11 @@
   --accent-dim: rgba(17, 17, 17, 0.08);
   --danger: #ff3b30;
   --on-danger: #ffffff;
+  /* Patron is the one product surface allowed to carry Sunrise warmth. */
+  --patron-gold: #d4ad66;
+  --patron-surface: #12100b;
+  --patron-label: #f7f0e5;
+  --patron-halo: rgba(128, 93, 40, 0.24);
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
@@ -51,6 +63,7 @@
     --accent-dim: rgba(245, 245, 245, 0.12);
     --danger: #ff453a;
     --on-danger: #0e0e0e;
+    --patron-halo: rgba(212, 173, 102, 0.26);
     --select-caret: url("select-caret-dark.svg");
   }
 }
@@ -69,6 +82,7 @@
   --accent-dim: rgba(245, 245, 245, 0.12);
   --danger: #ff453a;
   --on-danger: #0a0a0a;
+  --patron-halo: rgba(212, 173, 102, 0.26);
   --select-caret: url("select-caret-dark.svg");
 }
 
@@ -815,67 +829,256 @@ a.ledger-label:hover { color: var(--accent); }
 
 .ledger-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
 
-/* A quiet, one-row entry on every start-page layout. The whole row is the
-   blanc:// link; main routes it into the utility sheet. */
-.tab-import-promo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
-  padding: 12px 0;
-  color: var(--text);
-  border-top: 1px solid var(--border);
-  text-decoration: none;
-}
-.tab-import-promo-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.tab-import-promo-title {
-  font-size: 14px;
-  font-weight: 600;
-}
-.tab-import-promo-copy {
-  color: var(--text-dim);
-  font-size: 11.5px;
-  line-height: 1.4;
-}
-.tab-import-promo-arrow {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 auto;
-  opacity: 0.42;
-  transition: transform 120ms ease, opacity 120ms ease;
-}
-.tab-import-promo:hover .tab-import-promo-title { color: var(--accent); }
-.tab-import-promo:hover .tab-import-promo-arrow { opacity: 0.8; transform: translateX(2px); }
-.ledger-tab-import-promo { max-width: 520px; margin-top: 32px; }
-.bb-tab-import-promo { width: min(430px, calc(100vw - 96px)); margin-top: 28px; text-align: left; }
-.shelf-tab-import-promo { grid-column: 1 / -1; }
-.tally-tab-import-promo { margin-top: 26px; }
-:root[data-theme="private"] .tab-import-promo { display: none; }
-@media (prefers-color-scheme: dark) {
-  .tab-import-promo-arrow { filter: invert(1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tab-import-promo-arrow { transition: none; }
-  .tab-import-promo:hover .tab-import-promo-arrow { transform: none; }
-}
-
-/* Quiet, one-line Patron callout — one per start-page layout, hidden once the
-   user is a Patron. Matches the understated .ledger-empty hint rather than the
-   bolder .launch-card, since this is an optional upsell. The shared link look
-   lives on .js-patron-callout; each layout only sets its own spacing. */
+/* Compact Patron CTA — one per informational layout, hidden once the user is a
+   Patron. This is the sole warm start-page surface: warm ink carries the gold
+   Sunrise mark without competing with the larger migration checklist. */
 .js-patron-callout { font-family: var(--font-mono); font-size: 11.5px; }
-.js-patron-callout a { color: var(--text-dim); text-decoration: none; }
-.js-patron-callout a:hover { color: var(--accent); }
+.js-patron-callout a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  color: var(--patron-label);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid color-mix(in srgb, var(--patron-gold) 58%, transparent);
+  border-radius: 999px;
+  background: var(--patron-surface);
+  padding: 6px 12px 6px 8px;
+  box-shadow: 0 5px 18px -9px var(--patron-halo);
+  transition: filter 120ms ease;
+}
+.js-patron-callout a:hover {
+  color: var(--patron-label);
+  background: var(--patron-surface);
+  box-shadow: 0 5px 18px -9px var(--patron-halo);
+  filter: brightness(1.16);
+}
+.js-patron-callout a:focus-visible {
+  outline: 2px solid var(--patron-gold);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+.patron-cta-mark {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+.patron-cta-arrow {
+  color: var(--patron-gold);
+  transition: transform 120ms ease;
+}
+.js-patron-callout a:hover .patron-cta-arrow { transform: translateX(2px); }
 .ledger-patron { margin-top: 50px; }
 .bb-patron { margin-top: 28px; text-align: center; }
 .shelf-patron { margin-top: 20px; }
 .tally-patron { margin-top: 28px; }
+
+/* A single moving-in checklist replaces the separate Sync and tab-import
+   promos. It uses the lower-right margin by default and remains outside the
+   page's primary content hierarchy. */
+.migration-checklist-shell {
+  position: fixed;
+  z-index: 8;
+  right: clamp(48px, 7vw, 110px);
+  bottom: 84px;
+  width: 286px;
+}
+/* Billboard's recent-site row occupies the lower middle/right at the same
+   vertical level as the default checklist slot. Keep this layout's checklist
+   above the clock instead, leaving every recent-site action unobstructed. */
+body[data-layout="billboard"] .migration-checklist-shell {
+  top: 92px;
+  bottom: auto;
+}
+.migration-checklist {
+  color: var(--text);
+  user-select: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.migration-checklist-heading {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.migration-checklist-heading h2 {
+  margin: 0;
+  font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  transform: rotate(-1.4deg);
+  transform-origin: left center;
+}
+.migration-progress-ring {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 4px solid var(--border);
+  border-radius: 50%;
+  color: var(--text);
+  font: 600 12px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.migration-checklist-tasks {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0 72px;
+  padding: 0;
+  list-style: none;
+}
+.migration-task {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.migration-task:hover { background: transparent; border-color: transparent; color: var(--text); }
+.migration-task:focus-visible,
+.migration-checklist-hide:focus-visible,
+.migration-checklist-compact:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.migration-task-check {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.82;
+}
+.migration-task-label {
+  position: relative;
+  width: fit-content;
+  font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  font-size: 26px;
+  line-height: 1.05;
+}
+.migration-task-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: -3px;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.64;
+  transform: rotate(-0.7deg);
+  transform-origin: left center;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.migration-task:is(:hover, :focus-visible) .migration-task-label::after {
+  opacity: 1;
+  transform: rotate(0deg) translateY(-1px);
+}
+.migration-checklist-tasks li.is-complete .migration-task-check::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(43deg);
+}
+.migration-checklist-tasks li.is-complete .migration-task-label { opacity: 0.48; }
+.migration-checklist-tasks li.is-complete .migration-task-label::after {
+  bottom: 48%;
+  opacity: 0.48;
+  transform: rotate(-1deg);
+}
+.migration-checklist-hide {
+  display: block;
+  margin: 10px 0 0 auto;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font: 11.5px/1.3 var(--font-ui);
+}
+.migration-checklist-hide:hover { background: transparent; border-color: transparent; color: var(--text); }
+.migration-checklist-compact { display: none; }
+.migration-checklist-shell.is-completing .migration-checklist {
+  animation: migration-checklist-retire 200ms 1.3s ease forwards;
+}
+@keyframes migration-checklist-retire {
+  to { opacity: 0; transform: translateY(5px); }
+}
+body[data-layout="mahjong"] .migration-checklist-shell,
+:root[data-theme="private"] .migration-checklist-shell,
+body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell {
+  display: none;
+}
+
+@media (max-width: 960px), (max-height: 640px) {
+  .migration-checklist-shell {
+    right: 24px;
+    bottom: 72px;
+    width: 48px;
+  }
+  .migration-checklist-compact {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    min-width: 0;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+  .migration-checklist-compact .migration-progress-ring {
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+    font-size: 11px;
+  }
+  .migration-checklist {
+    position: absolute;
+    right: 0;
+    bottom: 58px;
+    display: none;
+    width: 270px;
+    padding: 16px;
+    background: var(--bg);
+  }
+  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
+  body[data-layout="billboard"] .migration-checklist-shell {
+    top: 76px;
+    bottom: auto;
+  }
+  body[data-layout="billboard"] .migration-checklist {
+    top: 58px;
+    bottom: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-patron-callout a { transition: none; }
+  .patron-cta-arrow { transition: none; }
+  .js-patron-callout a:hover .patron-cta-arrow { transform: none; }
+  .migration-checklist,
+  .migration-task-label::after { transition: none; }
+  .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
+}
 
 .ledger-footer {
   /* Pinned to the viewport bottom by the auto margin while the ledger is
@@ -2626,29 +2829,214 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .mj-tile.shake { animation: none; }
 }
 
-/* Settings → Sync: two-path setup + on-state category list (2026-09-17). */
-.sync-form { margin-top: 14px; }
-.sync-field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; max-width: 420px; }
-.sync-field > span:first-child { font-size: 13px; }
-.sync-field .hint { color: var(--text-dim); font-size: 12px; line-height: 1.45; }
-.sync-field > input { width: 100%; min-width: 0; }
-#syncSubmitRow, #syncNotFound { margin-top: 14px; }
-#syncPaths button.quiet,
+/* Settings → Sync: a visual three-step guide rather than a dense form.
+   The surface deliberately stays unboxed so the numbered path, illustrations,
+   and generous dividers do the organizing. */
+.sync-settings-card {
+  padding: 2px 0 0;
+  border: 0;
+  background: transparent;
+}
+.sync-setup-header {
+  max-width: 720px;
+  padding-bottom: 23px;
+}
+.sync-setup-header h3 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 3vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.sync-setup-header p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.sync-paths {
+  max-width: 720px;
+  border-top: 1px solid var(--border);
+}
+.sync-path {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  padding: 19px 6px;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+.sync-path:hover,
+.sync-path:focus-visible {
+  color: var(--text);
+  background: var(--accent-dim);
+  border-color: var(--border);
+}
+.sync-path-icon,
+.sync-guide-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sync-path-icon { width: 46px; height: 46px; }
+.sync-path-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+.sync-path-copy strong { font-size: 15px; font-weight: 600; }
+.sync-path-copy > span { color: var(--text-dim); font-size: 12px; line-height: 1.45; }
+.sync-path-arrow { color: var(--text-dim); font-size: 20px; transition: transform 120ms ease; }
+.sync-path:hover .sync-path-arrow,
+.sync-path:focus-visible .sync-path-arrow { transform: translateX(3px); color: var(--text); }
+
+.sync-form { margin-top: 4px; }
+.sync-guide {
+  max-width: 780px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sync-guide-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px 88px minmax(0, 1fr);
+  column-gap: 20px;
+  align-items: start;
+  min-height: 150px;
+  padding: 27px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sync-guide-step::before {
+  content: "";
+  position: absolute;
+  top: 70px;
+  bottom: -1px;
+  left: 20px;
+  width: 1px;
+  background: var(--border);
+}
+.sync-guide-step:last-child {
+  min-height: 0;
+  border-bottom: 0;
+}
+.sync-guide-step:last-child::before { display: none; }
+.sync-step-number {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 500;
+}
+.sync-guide-icon {
+  width: 64px;
+  height: 64px;
+  margin: 1px auto 0;
+}
+.sync-icon-word {
+  fill: currentColor;
+  stroke: none;
+  font-family: "Caveat", cursive;
+  font-size: 13px;
+}
+.sync-field,
+.sync-guide-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+}
+.sync-field > strong,
+.sync-guide-content > strong {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.sync-field > input {
+  width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+}
+.sync-field .hint,
+.sync-guide-content > p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.sync-trust-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.sync-info-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+}
+#syncSubmitRow { margin-top: 12px; }
+#syncNotFound {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-left: 2px solid var(--text-dim);
+}
+#syncSetupStatus { min-height: 1.5em; }
 .sync-form button.quiet { background: transparent; border-color: transparent; color: var(--text-dim); }
-#syncPaths button.quiet:hover,
 .sync-form button.quiet:hover { color: var(--accent); }
 .sync-status-list { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0 0 12px; font-size: 13px; }
 .sync-status-list > div { display: contents; }
 .sync-status-list dt { color: var(--text-dim); }
 .sync-status-list dd { margin: 0; }
 
-/* Start-page sync card (design 2026-09-17 §5.2). One-time; hidden until
-   main's status projection says otherwise. */
-.sync-nudge-copy { margin: 8px 0 0; max-width: 520px; color: var(--text-dim); font-size: 13px; line-height: 1.5; }
-.sync-nudge-actions { display: flex; gap: 10px; margin-top: 12px; }
-.sync-nudge-actions button.quiet { background: transparent; border-color: transparent; color: var(--text-dim); }
-.sync-nudge-actions button.quiet:hover { color: var(--accent); }
-.bb-sync-nudge { margin-top: 38px; text-align: center; }
-.bb-sync-nudge .sync-nudge-title { margin: 0; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
-.bb-sync-nudge .sync-nudge-copy { margin-left: auto; margin-right: auto; }
-.bb-sync-nudge .sync-nudge-actions { justify-content: center; }
+@media (max-width: 720px) {
+  .sync-guide-step {
+    grid-template-columns: 42px minmax(0, 1fr);
+    column-gap: 16px;
+    min-height: 0;
+    padding: 22px 0;
+  }
+  .sync-guide-icon {
+    grid-column: 2;
+    width: 54px;
+    height: 54px;
+    margin: 0 0 10px;
+  }
+  .sync-field,
+  .sync-guide-content { grid-column: 2; }
+  .sync-guide-step::before { top: 64px; }
+  .sync-path { grid-template-columns: 46px minmax(0, 1fr) auto; gap: 12px; }
+  .sync-path-icon { width: 40px; height: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sync-path-arrow { transition: none; }
+}

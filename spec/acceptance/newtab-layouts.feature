@@ -63,3 +63,19 @@ Feature: Start page layouts
     When I open a new tab
     Then all start-page templates use Inter instead of JetBrains Mono
     And Inter start-page typography fits at desktop size boundaries
+
+  @F35-7 @desktop
+  Scenario: The moving-in checklist belongs to informational layouts only
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    When I open a new tab
+    Then the moving-in checklist appears in every informational layout and not Mahjong
+
+  @F35-8 @desktop
+  Scenario: Billboard keeps the moving-in checklist clear of recent sites
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    And local history contains repeated visits for the Billboard
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    Then the Billboard moving-in checklist stays above its recent sites

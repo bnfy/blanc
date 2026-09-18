@@ -128,18 +128,129 @@ function renderPatronCallout(patronActive) {
   for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = !!patronActive;
 }
 
-// Start-page sync card. Driven only by main's projection (initial data +
-// every status push); the renderer never decides visibility itself, so a
-// dismissal or an enable in another window hides it here too.
-function renderSyncNudge(show) {
-  for (const el of document.querySelectorAll('.js-sync-nudge')) el.hidden = !show;
+// Main owns durable checklist progress; this renderer only reflects that
+// projection. The one local exception is the 1.5 s final confirmation, which
+// lets an already-open page show 2/2 before the now-complete checklist retires.
+const migrationChecklistShell = document.getElementById('migrationChecklistShell');
+const migrationChecklistTitle = document.getElementById('migrationChecklistTitle');
+const migrationChecklistCompact = document.getElementById('migrationChecklistCompact');
+const migrationSyncTask = document.getElementById('migrationSyncTask');
+const migrationTabsTask = document.getElementById('migrationTabsTask');
+const migrationSyncAction = document.getElementById('migrationSyncAction');
+const migrationTabsAction = document.getElementById('migrationTabsAction');
+const migrationChecklistHide = document.getElementById('migrationChecklistHide');
+let migrationChecklistProjection = null;
+let migrationChecklistRetireTimer = null;
+let migrationChecklistPendingCompletion = null;
+let migrationChecklistUtilitySheetVisible = false;
+
+function setMigrationTask(task, action, complete, label) {
+  task.classList.toggle('is-complete', complete);
+  task.querySelector('.migration-task-status').textContent = complete ? 'Completed' : 'Not completed';
+  action.setAttribute('aria-label', `${label} — ${complete ? 'completed' : 'not completed'}`);
 }
-for (const button of document.querySelectorAll('.js-sync-nudge-setup')) {
-  button.addEventListener('click', () => { window.bowserPages?.start.openSettings('sync').catch(() => {}); });
+
+function paintMigrationChecklist(checklist, { completing = false } = {}) {
+  for (const el of document.querySelectorAll('.js-migration-progress')) {
+    el.textContent = `${checklist.completedCount}/2`;
+  }
+  migrationChecklistTitle.textContent = completing ? 'all moved in' : 'ready to move in?';
+  setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, 'Set up Sync');
+  setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, 'Bring your tabs');
 }
-for (const button of document.querySelectorAll('.js-sync-nudge-dismiss')) {
-  button.addEventListener('click', () => { window.bowserPages?.start.dismissSyncNudge().catch(() => {}); });
+
+function hideMigrationChecklist() {
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = null;
+  migrationChecklistPendingCompletion = null;
+  migrationChecklistShell.hidden = true;
+  migrationChecklistShell.classList.remove('is-completing', 'is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', 'false');
 }
+
+function canPresentMigrationChecklistCompletion() {
+  return document.hasFocus() &&
+    document.visibilityState !== 'hidden' &&
+    !migrationChecklistUtilitySheetVisible &&
+    document.body.dataset.layout !== 'mahjong' &&
+    startupCard.hidden &&
+    !document.querySelector('[role="dialog"][aria-modal="true"]:not([hidden])');
+}
+
+function presentPendingMigrationChecklistCompletion() {
+  const checklist = migrationChecklistPendingCompletion;
+  if (!checklist || !canPresentMigrationChecklistCompletion()) return false;
+  migrationChecklistPendingCompletion = null;
+  paintMigrationChecklist(checklist, { completing: true });
+  migrationChecklistShell.hidden = false;
+  // Compact layouts normally keep the full list collapsed. Completion is the
+  // one exception: expose both checked rows and the final heading for the same
+  // dwell the full layout receives, rather than showing only a 2/2 ring.
+  migrationChecklistShell.classList.add('is-completing', 'is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', 'true');
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = setTimeout(hideMigrationChecklist, 1500);
+  return true;
+}
+
+function renderMigrationChecklist(checklist) {
+  const previous = migrationChecklistProjection;
+  migrationChecklistProjection = checklist;
+
+  if (!checklist) {
+    hideMigrationChecklist();
+    return;
+  }
+
+  const justCompleted = previous?.visible === true &&
+    previous.completedCount < 2 && checklist.completedCount === 2;
+  if (justCompleted) {
+    migrationChecklistPendingCompletion = checklist;
+    paintMigrationChecklist(checklist, { completing: true });
+    migrationChecklistShell.hidden = false;
+    presentPendingMigrationChecklistCompletion();
+    return;
+  }
+
+  // Settings and the tab-import sheet are separate focused WebContentsViews.
+  // Their completion push reaches this page while it is covered. Preserve the
+  // pending confirmation across later status pushes and start its dwell only
+  // after the start page itself becomes presentable again.
+  if (migrationChecklistPendingCompletion && checklist.completedCount === 2) {
+    presentPendingMigrationChecklistCompletion();
+    return;
+  }
+
+  if (!checklist.visible) {
+    hideMigrationChecklist();
+    return;
+  }
+
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = null;
+  paintMigrationChecklist(checklist);
+  migrationChecklistShell.classList.remove('is-completing');
+  migrationChecklistShell.hidden = false;
+}
+
+migrationSyncAction.addEventListener('click', () => {
+  window.bowserPages?.start.openSettings('sync').catch(() => {});
+});
+migrationChecklistHide.addEventListener('click', () => {
+  window.bowserPages?.start.dismissMigrationChecklist().catch(() => {});
+});
+migrationChecklistCompact.addEventListener('click', () => {
+  const expanded = migrationChecklistShell.classList.toggle('is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', String(expanded));
+});
+window.addEventListener('focus', presentPendingMigrationChecklistCompletion);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) presentPendingMigrationChecklistCompletion();
+});
+window.bowserPages?.start.onUtilitySheetVisibility((visible) => {
+  migrationChecklistUtilitySheetVisible = visible;
+  if (!visible) presentPendingMigrationChecklistCompletion();
+});
 
 startupRetry.addEventListener('click', async () => {
   startupRetry.disabled = true;
@@ -693,6 +804,7 @@ syncMahjongBadge();
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
+  presentPendingMigrationChecklistCompletion();
   window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
   syncMahjongFooter();
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
@@ -734,6 +846,7 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 });
 
 const dataReady = window.bowserPages?.start.data().then((data) => {
+  migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
     layout: data.layout ?? 'billboard',
     groups: data.groups,
@@ -748,7 +861,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
-  renderSyncNudge(data.syncNudge === true);
+  renderMigrationChecklist(data.migrationChecklist ?? null);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
       `${state.blockedThisWeek.toLocaleString()} ads blocked this week`;
@@ -765,7 +878,9 @@ window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
-  if (status && 'syncNudge' in status) renderSyncNudge(status.syncNudge === true);
+  if (status && 'migrationChecklist' in status) {
+    renderMigrationChecklist(status.migrationChecklist ?? null);
+  }
 });
 
 // The pill's caret says keystrokes land somewhere. They do: a printable
@@ -778,6 +893,12 @@ window.bowserPages?.start.onStatus((status) => {
 // controls. `target === document.body` is that check: a keystroke aimed at
 // any control has that control as its target.
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && migrationChecklistShell.classList.contains('is-expanded')) {
+    migrationChecklistShell.classList.remove('is-expanded');
+    migrationChecklistCompact.setAttribute('aria-expanded', 'false');
+    migrationChecklistCompact.focus();
+    return;
+  }
   if (e.target !== document.body) return;
   // ...and not while a modal is up. The onboarding dialog focuses its own
   // Continue button when it opens, so target is that button and the check

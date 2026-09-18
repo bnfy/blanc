@@ -43,6 +43,41 @@
       "version": "194ddc2d204c13b9"
     },
     {
+      "type": "file",
+      "bom-ref": "asset:caveat-font",
+      "name": "Caveat Latin webfont",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/caveat-latin.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/caveat-OFL.txt"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/googlefonts/caveat"
+        }
+      ]
+    },
+    {
       "type": "data",
       "bom-ref": "asset:easylist-data",
       "name": "EasyList",
@@ -1707,6 +1742,7 @@
       "ref": "application:runtime:blanc@1.17.2",
       "dependsOn": [
         "asset:blanc-adblock-seed",
+        "asset:caveat-font",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
         "pkg:npm/%401password/sdk@0.5.0",
@@ -1723,6 +1759,10 @@
         "asset:ghostery-resources",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2"
       ]
+    },
+    {
+      "ref": "asset:caveat-font",
+      "dependsOn": []
     },
     {
       "ref": "asset:easylist-data",

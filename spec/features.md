@@ -286,7 +286,9 @@ From the desktop `DEFAULTS`:
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
-| `syncNudgeDismissed` | `false` | desktop-only boolean set when the start page's sync card is dismissed or sync is turned on; device-local, never synced |
+| `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
+| `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
+| `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
@@ -774,6 +776,14 @@ From the desktop `DEFAULTS`:
   switcher remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — with no
   placeholder copy on the three newer layouts.
+- After first run, Personal non-private start pages show one corner
+  moving-in checklist on ledger, billboard, shelf, and tally. It stays
+  lower-right on ledger, shelf, and tally, and moves upper-right on Billboard
+  to preserve the recent-site row and its dismissal actions. It tracks the
+  device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
+  permanently, and retires after a brief 2/2 confirmation. Mahjong omits it.
+  Tight windows collapse it to a progress-ring trigger so primary content and
+  the footer stay reachable.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
@@ -899,7 +909,9 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   participates in v1.
 - Apply creates tabs/groups transactionally in preview order and never writes
   Favorites. Imported tabs are quiet and viewless; only the first selected tab
-  wakes. A Named Workspace remains a separate optional Patron gesture.
+  wakes. Only after that successful apply does Blanc mark the device-local
+  moving-in checklist task complete. A Named Workspace remains a separate
+  optional Patron gesture.
 - **Acceptance:**
   [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
   covers explicit session reads, quit safety, duplicate/order/group fidelity,

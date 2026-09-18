@@ -23,24 +23,27 @@ Feature: Tab sync (open tabs from other devices)
     Then other devices no longer list this device
 
   @F27-4 @F27 @desktop
-  Scenario: The start page offers sync once and stays quiet after Not now
+  Scenario: The moving-in checklist can be hidden permanently
     Given a profile that completed first run
-    And sync is off and the sync offer has not been dismissed
+    And the moving-in checklist is incomplete and not hidden
     When I open a new tab
-    Then the start page offers to set up sync
-    When I choose Not now on the sync offer
-    Then the start page no longer offers sync
+    And I resize the desktop window to 900 by 600
+    Then the moving-in checklist shows "0/2"
+    When I hide the moving-in checklist
+    Then the moving-in checklist remains hidden
     When I open a new tab
-    Then the start page no longer offers sync
+    Then the moving-in checklist remains hidden
 
   @F27-5 @F27 @desktop
-  Scenario: The sync offer opens Settings at the Sync section
+  Scenario: The moving-in checklist opens Settings at Sync and tracks progress
     Given a profile that completed first run
-    And sync is off and the sync offer has not been dismissed
+    And the moving-in checklist is incomplete and not hidden
     When I open a new tab
-    And I choose Set up sync on the sync offer
+    And I choose Set up Sync from the moving-in checklist
     Then the settings page opens in the utility sheet under the blanc scheme
     And the Settings sheet is at the "sync" section
+    When I mark Sync complete in the moving-in checklist
+    Then the Sync task stays checked at "1/2"
 
   @F27-6 @F27 @desktop
   Scenario: The sync command opens Settings at the Sync section
@@ -48,3 +51,18 @@ Feature: Tab sync (open tabs from other devices)
     When I run the slash command "/sync"
     Then the settings page opens in the utility sheet under the blanc scheme
     And the Settings sheet is at the "sync" section
+
+  @F27-7 @F27 @desktop
+  Scenario: Completion waits until the covered start page can show it
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    When I open a new tab
+    Then the moving-in checklist shows "0/2"
+    When I mark tab migration complete in the moving-in checklist
+    And I choose Set up Sync from the moving-in checklist
+    Then the Settings sheet is at the "sync" section
+    When I mark Sync complete in the moving-in checklist
+    Then the moving-in completion waits behind Settings
+    When I close the Settings sheet
+    Then the moving-in checklist briefly confirms completion
+    And the moving-in checklist retires

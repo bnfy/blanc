@@ -62,11 +62,19 @@ object BlancTokens {
         BlancTheme.DARK -> "#0e0e0e"
         BlancTheme.PRIVATE -> "#0a0a0a"
     }
+    fun patronHalo(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "rgba(128, 93, 40, 0.24)"
+        BlancTheme.DARK -> "rgba(212, 173, 102, 0.26)"
+        BlancTheme.PRIVATE -> "rgba(212, 173, 102, 0.26)"
+    }
     fun selectCaret(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "url(\"select-caret.svg\")"
         BlancTheme.DARK -> "url(\"select-caret-dark.svg\")"
         BlancTheme.PRIVATE -> "url(\"select-caret-dark.svg\")"
     }
+    const val patronGold: String = "#d4ad66"
+    const val patronSurface: String = "#12100b"
+    const val patronLabel: String = "#f7f0e5"
     const val fontUi: String = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     const val fontMono: String = "\"JetBrains Mono\", ui-monospace, \"SF Mono\", \"Cascadia Code\", Menlo, Consolas, monospace"
     const val fontKbd: String = "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"

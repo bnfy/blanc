@@ -735,35 +735,82 @@ function install(refs) {
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
     },
-    readSyncNudgeDom() {
+    readMigrationChecklistDom() {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
       if (!wc) return null;
       return wc.executeJavaScript(`(() => {
-        const cards = [...document.querySelectorAll('.js-sync-nudge')];
+        const shell = document.getElementById('migrationChecklistShell');
+        const sync = document.getElementById('migrationSyncTask');
+        const tabs = document.getElementById('migrationTabsTask');
+        const bounds = (element) => {
+          if (!element || getComputedStyle(element).display === 'none') return null;
+          const rect = element.getBoundingClientRect();
+          return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left,
+            width: rect.width, height: rect.height };
+        };
         return {
-          count: cards.length,
-          visible: cards.some((el) => !el.hidden && getComputedStyle(el).display !== 'none'),
+          count: shell ? 1 : 0,
+          visible: !!shell && !shell.hidden && getComputedStyle(shell).display !== 'none',
+          detailsVisible: !!shell && !shell.hidden &&
+            getComputedStyle(document.getElementById('migrationChecklist')).display !== 'none',
+          progress: shell?.querySelector('.js-migration-progress')?.textContent ?? null,
+          title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
+          syncComplete: sync?.classList.contains('is-complete') ?? false,
+          tabsComplete: tabs?.classList.contains('is-complete') ?? false,
+          expanded: shell?.classList.contains('is-expanded') ?? false,
+          focused: document.hasFocus(),
+          layout: document.body.dataset.layout ?? null,
+          shellBounds: bounds(shell),
+          billboardSitesBounds: bounds(document.getElementById('bbFavorites')),
         };
       })()`);
     },
-    clickSyncNudge(action) {
+    clickMigrationChecklist(action) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
       if (!wc) return false;
-      const cls = action === 'setup' ? 'js-sync-nudge-setup' : 'js-sync-nudge-dismiss';
+      const ids = {
+        sync: 'migrationSyncAction',
+        tabs: 'migrationTabsAction',
+        hide: 'migrationChecklistHide',
+        compact: 'migrationChecklistCompact',
+      };
+      const id = ids[action];
+      if (!id) return false;
       return wc.executeJavaScript(`(() => {
-        const btn = [...document.querySelectorAll('.${cls}')]
-          .find((el) => !el.closest('.js-sync-nudge').hidden && getComputedStyle(el).display !== 'none');
+        const btn = document.getElementById('${id}');
         if (!btn) return false;
         btn.click();
         return true;
       })()`);
     },
-    // Test-only: the one place the flag is ever written false, so the three
-    // scenarios can run in any order inside one acceptance profile.
-    resetSyncNudge() { settings.setSettings({ syncNudgeDismissed: false }); return settings.getSettings().syncNudgeDismissed; },
-    syncNudgeDismissed() { return settings.getSettings().syncNudgeDismissed === true; },
+    // Test-only reset so acceptance scenarios remain independent in one profile.
+    resetMigrationChecklist() {
+      settings.setSettings({
+        migrationChecklistDismissed: false,
+        syncMigrationCompleted: false,
+        tabImportCompleted: false,
+      });
+      const current = settings.getSettings();
+      return {
+        dismissed: current.migrationChecklistDismissed,
+        syncComplete: current.syncMigrationCompleted,
+        tabsComplete: current.tabImportCompleted,
+      };
+    },
+    setMigrationChecklistProgress(syncComplete, tabsComplete) {
+      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });
+      return true;
+    },
+    migrationChecklistSettings() {
+      const current = settings.getSettings();
+      return {
+        dismissed: current.migrationChecklistDismissed === true,
+        syncComplete: current.syncMigrationCompleted === true,
+        tabsComplete: current.tabImportCompleted === true,
+      };
+    },
     syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
@@ -1606,6 +1653,7 @@ function install(refs) {
       return wc.executeJavaScript('document.body.dataset.mode || null');
     },
     utilitySurface() { return getUtilitySheetState(); },
+    closeUtilitySurface() { hideUtilitySheet(); return true; },
     windowContentBounds() { return getWindowContentBounds(); },
     setWindowContentSize(width, height) { setWindowContentSize(width, height); },
     // Fronts + focuses the window and reports whether it is now focused, so
