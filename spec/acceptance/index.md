@@ -116,9 +116,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F27-1 | Sharing open tabs off by default | — | ✅ | ⬜ | ⬜ |
 | F27-2 | Remote tab opens locally as new ungrouped tab | — | ✅ | ⬜ | ⬜ |
 | F27-3 | Sharing-off retracts this device | — | ✅ | ⬜ | ⬜ |
-| F27-4 | Start page offers sync once; Not now is permanent | — | ✅ | ⬜ | ⬜ |
-| F27-5 | Sync offer opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
+| F27-4 | Moving-in checklist can be hidden permanently | — | ✅ | ⬜ | ⬜ |
+| F27-5 | Moving-in checklist opens Sync and tracks progress | — | ✅ | ⬜ | ⬜ |
 | F27-6 | /sync opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
+| F27-7 | Two completed migration tasks confirm and retire the checklist | — | ✅ | ⬜ | ⬜ |
 | F28-1 | Layout default, persistence, and no-sync rule | D19 | ✅ | ➖ | ➖ |
 | F28-2 | Layout switching preserves live guest content | D19 | ✅ | ➖ | ➖ |
 | F28-3 | Full-height rail and safe-area page-pane geometry | D19 | ✅ | ➖ | ➖ |
@@ -161,6 +162,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F35-4 | Hidden embedded Mahjong timer stays paused | — | ✅ | ⬜ | ⬜ |
 | F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
 | F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
+| F35-7 | Moving-in checklist appears on informational layouts, not Mahjong | — | ✅ | ➖ | ➖ |
+| F35-8 | Billboard keeps the moving-in checklist clear of recent sites | — | ✅ | ➖ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |

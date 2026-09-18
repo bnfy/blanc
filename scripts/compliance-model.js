@@ -343,7 +343,13 @@ function runtimeSbom(model, policy) {
   }
 
   const rootRef = `application:runtime:${model.pkg.name}@${model.pkg.version}`;
-  const rootDeps = new Set([electron['bom-ref'], 'asset:inter-font', 'asset:jetbrains-mono-font', 'asset:blanc-adblock-seed']);
+  const rootDeps = new Set([
+    electron['bom-ref'],
+    'asset:inter-font',
+    'asset:jetbrains-mono-font',
+    'asset:caveat-font',
+    'asset:blanc-adblock-seed',
+  ]);
   for (const name of closure.directNames) {
     const lockPath = resolveDependencyPath(model.lock.packages, '', name);
     rootDeps.add(model.byPath.get(lockPath).component['bom-ref']);

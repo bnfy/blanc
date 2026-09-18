@@ -711,6 +711,8 @@
       const { createSyncSetupModel, transition, view, relativeSyncTime } = window.blancSyncSetupModel;
       const setup = document.getElementById('syncSetup');
       const active = document.getElementById('syncActive');
+      const setupTitle = document.getElementById('syncSetupTitle');
+      const setupIntro = document.getElementById('syncSetupIntro');
       const paths = document.getElementById('syncPaths');
       const pathStart = document.getElementById('syncPathStart');
       const pathJoin = document.getElementById('syncPathJoin');
@@ -720,6 +722,8 @@
       const handleHint = document.getElementById('syncHandleHint');
       const passHint = document.getElementById('syncPassphraseHint');
       const submitBtn = document.getElementById('syncSubmit');
+      const finishTitle = document.getElementById('syncFinishTitle');
+      const finishHint = document.getElementById('syncFinishHint');
       const backBtn = document.getElementById('syncBack');
       const submitRow = document.getElementById('syncSubmitRow');
       const notFound = document.getElementById('syncNotFound');
@@ -759,11 +763,15 @@
       let model = createSyncSetupModel();
       function renderSetup() {
         const v = view(model);
+        setupTitle.textContent = v.setupTitle;
+        setupIntro.textContent = v.setupIntro;
         paths.hidden = v.pathChosen;
         form.hidden = !v.fieldsVisible;
         handleHint.textContent = v.handleHint;
         passHint.textContent = v.passphraseHint;
         submitBtn.textContent = v.submitLabel;
+        finishTitle.textContent = v.finishTitle;
+        finishHint.textContent = v.finishHint;
         submitBtn.disabled = v.submitDisabled;
         submitRow.hidden = v.showNotFound;
         notFound.hidden = !v.showNotFound;
@@ -901,6 +909,7 @@
 
     const links = [...document.querySelectorAll('.settings-nav a')];
     const activeGroups = links.map((link) => document.getElementById(`group-${link.dataset.group}`)).filter(Boolean);
+    let anchoredGroup = activeGroups.find((group) => `#${group.id}` === location.hash) ?? null;
 
     const setCurrent = (group) => {
       for (const link of links) link.classList.toggle('current', link.dataset.group === group);
@@ -915,6 +924,17 @@
     // scrolling down keeps advancing; a zero-tie leaves `best` on the first
     // group rather than cascading to the last.
     function updateCurrent() {
+      // A deep-linked section owns the marker while its heading is still in
+      // the upper part of the sheet. Percentage scoring alone can select the
+      // next short section when the anchored section is also fully visible.
+      if (anchoredGroup) {
+        const anchoredRect = anchoredGroup.getBoundingClientRect();
+        if (anchoredRect.top >= 0 && anchoredRect.top < window.innerHeight * 0.45) {
+          setCurrent(anchoredGroup.id.replace('group-', ''));
+          return;
+        }
+        anchoredGroup = null;
+      }
       let best = null;
       let bestRatio = -1;
       for (const group of activeGroups) {
@@ -932,19 +952,28 @@
     // scorer settle the highlight on Patron instead.
     let pinnedUntil = 0;
     let ticking = false;
-    window.addEventListener('scroll', () => {
+    const scheduleUpdate = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         if (Date.now() >= pinnedUntil) updateCurrent();
         ticking = false;
       });
-    });
+    };
+    window.addEventListener('scroll', scheduleUpdate);
+    // Setup panels can change height without scrolling (for example, choosing
+    // a Sync path). Re-score then too so the sidebar never highlights the next
+    // short section after the current section expands.
+    if (typeof ResizeObserver === 'function') {
+      const sizeObserver = new ResizeObserver(scheduleUpdate);
+      for (const group of activeGroups) sizeObserver.observe(group);
+    }
     updateCurrent();
 
     for (const link of links) {
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        anchoredGroup = document.getElementById(`group-${link.dataset.group}`);
         setCurrent(link.dataset.group);
         pinnedUntil = Date.now() + 800; // outlasts the smooth-scroll animation
         document.getElementById(`group-${link.dataset.group}`)?.scrollIntoView({ behavior: 'smooth' });

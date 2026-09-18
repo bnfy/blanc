@@ -7,6 +7,7 @@ const os = require('os');
 const path = require('path');
 
 const settingsSchema = require('../../settings-schema/schema.json');
+const KEYS = ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted'];
 
 const electronId = require.resolve('electron');
 const originalElectron = require.cache[electronId];
@@ -32,27 +33,26 @@ test.after(() => {
   else delete require.cache[electronId];
 });
 
-test('syncNudgeDismissed defaults false, validates, persists, and never syncs', (t) => {
-  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-nudge-'));
+test('checklist state defaults false, validates, persists, and never syncs', (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-migration-checklist-'));
   t.after(() => fs.rmSync(userData, { recursive: true, force: true }));
 
   let settings = loadSettings(userData);
-  assert.equal(settings.getSettings().syncNudgeDismissed, false);
-  assert.equal(settingsSchema.internalDefaults.includes('syncNudgeDismissed'), true);
+  for (const key of KEYS) {
+    assert.equal(settings.getSettings()[key], false, `${key} defaults false`);
+    assert.equal(settingsSchema.internalDefaults.includes(key), true, `${key} is an internal default`);
+    settings.setSettings({ [key]: 'yes' });
+    assert.equal(settings.getSettings()[key], false, `${key} rejects non-booleans`);
+    settings.setSettings({ [key]: true });
+    assert.equal(settings.getSettings()[key], true, `${key} persists`);
+    assert.equal(Object.hasOwn(settings.exportForSync().values, key), false, `${key} is not synced`);
+    assert.equal(Object.hasOwn(settings.getSettings()._syncMeta, key), false, `${key} gets no sync clock`);
+  }
 
-  settings.setSettings({ syncNudgeDismissed: 'yes' });
-  assert.equal(settings.getSettings().syncNudgeDismissed, false, 'non-boolean writes are ignored');
-
-  settings.setSettings({ syncNudgeDismissed: true });
-  assert.equal(settings.getSettings().syncNudgeDismissed, true);
-  assert.equal(Object.prototype.hasOwnProperty.call(settings.exportForSync().values, 'syncNudgeDismissed'), false);
-  assert.equal(Object.prototype.hasOwnProperty.call(settings.getSettings()._syncMeta, 'syncNudgeDismissed'), false);
-
-  // A hand-edited file reads back as the default, never as a truthy string.
   const file = path.join(userData, 'settings.json');
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  data.syncNudgeDismissed = 'true';
+  for (const key of KEYS) data[key] = 'true';
   fs.writeFileSync(file, JSON.stringify(data));
   settings = loadSettings(userData);
-  assert.equal(settings.getSettings().syncNudgeDismissed, false);
+  for (const key of KEYS) assert.equal(settings.getSettings()[key], false, `${key} coerces corrupt data`);
 });

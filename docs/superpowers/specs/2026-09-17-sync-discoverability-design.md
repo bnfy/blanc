@@ -1,11 +1,63 @@
 # Sync discoverability and setup — design
 
 **Date:** 2026-09-17
-**Status:** approved design, awaiting implementation plan
+**Status:** implemented; start-page §5.2 and the visual presentation in §4.2
+are superseded by the approved addenda below
 **Trigger:** a Product Hunt reviewer on launch day (2026-09-17) wished Blanc had
 cross-device sync. Blanc has shipped end-to-end encrypted sync since v0.12.0 and
 open-tab sharing since v0.20.0. Nothing in the app, the site, or the listing
 points at it, and the setup card assumes knowledge it never gives.
+
+## Approved addendum — moving-in checklist
+
+The pre-release product review replaced §5.2's separate Ledger/Billboard Sync
+card and the four persistent Bring Your Tabs promos with one shared corner
+checklist on Ledger, Billboard, Shelf, and Tally. It sits lower-right on
+Ledger, Shelf, and Tally, and upper-right on Billboard so its frequent-site row
+keeps the full lower canvas. The selected direction is an
+unboxed progress list: an Inter `0/2` ring, Caveat heading **ready to move
+in?**, and the actionable rows **Set up Sync** and **Bring your tabs**. A quiet
+**hide** action permanently dismisses the device-local checklist. Private tabs,
+Named profiles, and Mahjong never show it; tight windows collapse it to a 48 px
+progress-ring trigger in the same layout-specific corner.
+
+Three strict, device-local booleans replace `syncNudgeDismissed`:
+`migrationChecklistDismissed`, `syncMigrationCompleted`, and
+`tabImportCompleted`. Sync completion is written when credentials persist and
+at startup for an already-enabled profile; it is never cleared on disable. Tab
+completion is written only after `completeTabImportSuccess()` has applied and
+activated the imported batch. The renderer receives one guarded projection:
+`{ visible, completedCount, syncComplete, tabsComplete }`. When the second task
+completes on an open page, it shows **2/2 — all moved in** for 1.5 seconds and
+then retires; a later page starts hidden. These rules supersede every state,
+copy, layout, and test requirement in §5.2, while preserving its shared
+`openSettingsSection('sync')` routing and per-tab send-site guard.
+
+## Approved addendum — visual Sync setup
+
+The owner selected the three-step visual-guide direction after reviewing the
+implemented Settings flow in the app. The path choice remains explicit, but
+choosing either path now opens an unboxed, single-column guide instead of a
+dense card:
+
+1. **Give your sync a name**, with a name-tag line illustration and the
+   existing path-specific name hint.
+2. **Choose a passphrase**, with a lock illustration, the existing strength
+   hint, and the reassurance “Your passphrase stays on your devices. It’s
+   never sent to Blanc.”
+3. **Turn on Sync** or **Connect this device**, with a device-pair
+   illustration, a short readiness explanation, and the existing primary and
+   Back actions.
+
+An outlined number and connecting rule form the progress spine. Light
+dividers, monochrome line art, generous spacing, full-width fields, and Blanc’s
+existing Inter typography provide hierarchy without adding another boxed
+surface. At 720 px and below the illustration stacks above its content while
+the number spine remains visible. The reducer, preflight boundary, validation,
+not-found choice, and active state specified below do not change. A
+`ResizeObserver` re-scores the Settings scroll-spy after either setup panel
+changes height so Sync remains the selected navigation section. This addendum
+supersedes only the labels and visual composition described in §4.2.
 
 ## 1. Problem
 
