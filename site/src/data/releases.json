@@ -1,5 +1,99 @@
 [
   {
+    "tag": "v1.18.0",
+    "version": "1.18.0",
+    "name": "1.18.0",
+    "publishedAt": "2026-09-18T03:36:53.000Z",
+    "humanDate": "September 17, 2026",
+    "machineDate": "2026-09-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.18.0",
+    "anchor": "v1-18-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "New",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync now tells you how to set it up."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings asks whether this is your first device or another one, and explains what a sync name is before you pick one. Choosing \"I already sync on another device\" checks your name and passphrase against the server before anything is saved, so a typo no longer quietly starts a second, empty sync. When nothing is found, Blanc says so and lets you try again or deliberately start a new sync with what you typed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Moving into Blanc feels intentional."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A quiet start-page checklist brings Sync and Bring Your Tabs together, remembers each task you finish, and gets out of the way when you are done. You can hide it at any time. Sync also sits second in Settings, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " opens it from the command bar."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated to Electron 44.4.2 and Chromium 152.0.7977.130 for upstream fixes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Sync's settings now list what is covered and when it last ran: your sync name, favorites and settings with the time of the last sync, and whether this device shares its open tabs. A sync problem appears in one place instead of two."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc says \"Sync\" everywhere it used to say \"Profile Sync\" or \"Tab Sync\". What syncs is unchanged: favorites and settings, plus this device's open tabs if you turn that on. History, downloads, permissions, cookies, site data, and private tabs stay on the device, and sync remains end-to-end encrypted and Personal-only."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.17.2",
     "version": "1.17.2",
     "name": "1.17.2",
