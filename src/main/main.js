@@ -3092,6 +3092,14 @@ function liveUtilitySheet(runtime = rt()) {
   return wc ? { view, wc } : null;
 }
 
+function broadcastStartPageUtilitySheetVisibility(runtime, visible) {
+  for (const id of runtime.tabOrder) {
+    const tab = tabs.get(id);
+    if (!tab?.url?.startsWith('blanc://newtab')) continue;
+    liveContents(tab)?.send('pages:start:utility-sheet-visibility', visible === true);
+  }
+}
+
 // Electron can fault natively when loadURL is called again on this cached
 // WebContents while its prior utility-page navigation is still settling. The
 // acceptance runner made that race repeatable by opening/hiding several sheets
@@ -3260,6 +3268,7 @@ function showUtilityPage(url) {
   bindWindowRuntime(runtime, restackPermissionView)();
   resizeActiveView();
   sheet.wc.focus();
+  broadcastStartPageUtilitySheetVisibility(runtime, true);
 }
 
 function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
@@ -3289,6 +3298,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
     sheet.view.setVisible(false);
   }
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
+  broadcastStartPageUtilitySheetVisibility(runtime, false);
 }
 
 let onePasswordFillController = null;
@@ -8533,6 +8543,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         tabs.get(tabIdByWebContentsId.get(wc.id)),
         DEFAULT_PROFILE_ID,
       ),
+      utilitySheetVisibleFor: (wc) => {
+        const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+        return !!tab && tab.id === rt().activeTabId && !!rt().utilitySheetUrl;
+      },
       dismissMigrationChecklist: () => {
         settings.setSettings({ migrationChecklistDismissed: true });
         return true;

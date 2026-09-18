@@ -141,6 +141,8 @@ const migrationTabsAction = document.getElementById('migrationTabsAction');
 const migrationChecklistHide = document.getElementById('migrationChecklistHide');
 let migrationChecklistProjection = null;
 let migrationChecklistRetireTimer = null;
+let migrationChecklistPendingCompletion = null;
+let migrationChecklistUtilitySheetVisible = false;
 
 function setMigrationTask(task, action, complete, label) {
   task.classList.toggle('is-complete', complete);
@@ -160,9 +162,35 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
 function hideMigrationChecklist() {
   clearTimeout(migrationChecklistRetireTimer);
   migrationChecklistRetireTimer = null;
+  migrationChecklistPendingCompletion = null;
   migrationChecklistShell.hidden = true;
   migrationChecklistShell.classList.remove('is-completing', 'is-expanded');
   migrationChecklistCompact.setAttribute('aria-expanded', 'false');
+}
+
+function canPresentMigrationChecklistCompletion() {
+  return document.hasFocus() &&
+    document.visibilityState !== 'hidden' &&
+    !migrationChecklistUtilitySheetVisible &&
+    document.body.dataset.layout !== 'mahjong' &&
+    startupCard.hidden &&
+    !document.querySelector('[role="dialog"][aria-modal="true"]:not([hidden])');
+}
+
+function presentPendingMigrationChecklistCompletion() {
+  const checklist = migrationChecklistPendingCompletion;
+  if (!checklist || !canPresentMigrationChecklistCompletion()) return false;
+  migrationChecklistPendingCompletion = null;
+  paintMigrationChecklist(checklist, { completing: true });
+  migrationChecklistShell.hidden = false;
+  // Compact layouts normally keep the full list collapsed. Completion is the
+  // one exception: expose both checked rows and the final heading for the same
+  // dwell the full layout receives, rather than showing only a 2/2 ring.
+  migrationChecklistShell.classList.add('is-completing', 'is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', 'true');
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = setTimeout(hideMigrationChecklist, 1500);
+  return true;
 }
 
 function renderMigrationChecklist(checklist) {
@@ -174,13 +202,22 @@ function renderMigrationChecklist(checklist) {
     return;
   }
 
-  const justCompleted = previous?.completedCount < 2 && checklist.completedCount === 2;
-  if (justCompleted && !migrationChecklistShell.hidden) {
+  const justCompleted = previous?.visible === true &&
+    previous.completedCount < 2 && checklist.completedCount === 2;
+  if (justCompleted) {
+    migrationChecklistPendingCompletion = checklist;
     paintMigrationChecklist(checklist, { completing: true });
     migrationChecklistShell.hidden = false;
-    migrationChecklistShell.classList.add('is-completing');
-    clearTimeout(migrationChecklistRetireTimer);
-    migrationChecklistRetireTimer = setTimeout(hideMigrationChecklist, 1500);
+    presentPendingMigrationChecklistCompletion();
+    return;
+  }
+
+  // Settings and the tab-import sheet are separate focused WebContentsViews.
+  // Their completion push reaches this page while it is covered. Preserve the
+  // pending confirmation across later status pushes and start its dwell only
+  // after the start page itself becomes presentable again.
+  if (migrationChecklistPendingCompletion && checklist.completedCount === 2) {
+    presentPendingMigrationChecklistCompletion();
     return;
   }
 
@@ -205,6 +242,14 @@ migrationChecklistHide.addEventListener('click', () => {
 migrationChecklistCompact.addEventListener('click', () => {
   const expanded = migrationChecklistShell.classList.toggle('is-expanded');
   migrationChecklistCompact.setAttribute('aria-expanded', String(expanded));
+});
+window.addEventListener('focus', presentPendingMigrationChecklistCompletion);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) presentPendingMigrationChecklistCompletion();
+});
+window.bowserPages?.start.onUtilitySheetVisibility((visible) => {
+  migrationChecklistUtilitySheetVisible = visible;
+  if (!visible) presentPendingMigrationChecklistCompletion();
 });
 
 startupRetry.addEventListener('click', async () => {
@@ -759,6 +804,7 @@ syncMahjongBadge();
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
+  presentPendingMigrationChecklistCompletion();
   window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
   syncMahjongFooter();
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
@@ -800,6 +846,7 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 });
 
 const dataReady = window.bowserPages?.start.data().then((data) => {
+  migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
     layout: data.layout ?? 'billboard',
     groups: data.groups,

@@ -63,9 +63,6 @@
     --accent-dim: rgba(245, 245, 245, 0.12);
     --danger: #ff453a;
     --on-danger: #0e0e0e;
-    --patron-gold: #d4ad66;
-    --patron-surface: #12100b;
-    --patron-label: #f7f0e5;
     --patron-halo: rgba(212, 173, 102, 0.26);
     --select-caret: url("select-caret-dark.svg");
   }
@@ -85,9 +82,6 @@
   --accent-dim: rgba(245, 245, 245, 0.12);
   --danger: #ff453a;
   --on-danger: #0a0a0a;
-  --patron-gold: #d4ad66;
-  --patron-surface: #12100b;
-  --patron-label: #f7f0e5;
   --patron-halo: rgba(212, 173, 102, 0.26);
   --select-caret: url("select-caret-dark.svg");
 }

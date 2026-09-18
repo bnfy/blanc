@@ -27,6 +27,7 @@ Feature: Tab sync (open tabs from other devices)
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
+    And I resize the desktop window to 900 by 600
     Then the moving-in checklist shows "0/2"
     When I hide the moving-in checklist
     Then the moving-in checklist remains hidden
@@ -52,11 +53,16 @@ Feature: Tab sync (open tabs from other devices)
     And the Settings sheet is at the "sync" section
 
   @F27-7 @F27 @desktop
-  Scenario: Completing both moving-in tasks confirms and retires the checklist
+  Scenario: Completion waits until the covered start page can show it
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
     Then the moving-in checklist shows "0/2"
-    When I complete both moving-in tasks
+    When I mark tab migration complete in the moving-in checklist
+    And I choose Set up Sync from the moving-in checklist
+    Then the Settings sheet is at the "sync" section
+    When I mark Sync complete in the moving-in checklist
+    Then the moving-in completion waits behind Settings
+    When I close the Settings sheet
     Then the moving-in checklist briefly confirms completion
     And the moving-in checklist retires

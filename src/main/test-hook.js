@@ -752,11 +752,14 @@ function install(refs) {
         return {
           count: shell ? 1 : 0,
           visible: !!shell && !shell.hidden && getComputedStyle(shell).display !== 'none',
+          detailsVisible: !!shell && !shell.hidden &&
+            getComputedStyle(document.getElementById('migrationChecklist')).display !== 'none',
           progress: shell?.querySelector('.js-migration-progress')?.textContent ?? null,
           title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
           syncComplete: sync?.classList.contains('is-complete') ?? false,
           tabsComplete: tabs?.classList.contains('is-complete') ?? false,
           expanded: shell?.classList.contains('is-expanded') ?? false,
+          focused: document.hasFocus(),
           layout: document.body.dataset.layout ?? null,
           shellBounds: bounds(shell),
           billboardSitesBounds: bounds(document.getElementById('bbFavorites')),
@@ -1650,6 +1653,7 @@ function install(refs) {
       return wc.executeJavaScript('document.body.dataset.mode || null');
     },
     utilitySurface() { return getUtilitySheetState(); },
+    closeUtilitySurface() { hideUtilitySheet(); return true; },
     windowContentBounds() { return getWindowContentBounds(); },
     setWindowContentSize(width, height) { setWindowContentSize(width, height); },
     // Fronts + focuses the window and reports whether it is now focused, so

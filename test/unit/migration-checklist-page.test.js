@@ -24,6 +24,7 @@ test('start page carries one shared accessible migration checklist', () => {
 test('every start-page template names the Blanc Patron upgrade as an action', () => {
   const html = read('src/renderer/pages/newtab.html');
   const css = read('src/renderer/pages/pages.css');
+  const tokens = JSON.parse(read('tokens/tokens.json'));
   const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Upgrade to Blanc Patron<\/span><span class="patron-cta-arrow" aria-hidden="true">→<\/span><\/a>/g) ?? [];
 
   assert.equal(ctas.length, 4, 'Ledger, Billboard, Shelf, and Tally share the explicit Patron CTA');
@@ -49,6 +50,10 @@ test('every start-page template names the Blanc Patron upgrade as an action', ()
     'hover keeps the resting shadow geometry');
   assert.match(hover, /filter: brightness\(1\.16\);/,
     'hover visibly brightens the complete capsule without changing geometry');
+  for (const name of ['patron-gold', 'patron-surface', 'patron-label', 'patron-halo']) {
+    const token = tokens.tokens.find((entry) => entry.name === name);
+    assert.deepEqual(token?.consumers, ['pages'], `${name} belongs to the guarded pages token source`);
+  }
 });
 
 test('checklist occupies the corner, compacts at tight viewports, and avoids private and Mahjong', () => {
@@ -81,7 +86,15 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
   const js = read('src/renderer/pages/newtab.js');
 
   assert.match(js, /function renderMigrationChecklist\(checklist\)/);
-  assert.match(js, /previous\?\.completedCount < 2 && checklist\.completedCount === 2/);
+  assert.match(js, /previous\.completedCount < 2 && checklist\.completedCount === 2/);
+  assert.match(js, /document\.hasFocus\(\)/,
+    'completion waits until the start-page WebContents regains focus');
+  assert.match(js, /!migrationChecklistUtilitySheetVisible/,
+    'completion waits until main reports that the utility sheet is gone');
+  assert.match(js, /onUtilitySheetVisibility\(\(visible\) =>/);
+  assert.match(js, /classList\.add\('is-completing', 'is-expanded'\)/,
+    'compact completion exposes the full checked checklist during its dwell');
+  assert.match(js, /window\.addEventListener\('focus', presentPendingMigrationChecklistCompletion\)/);
   assert.match(js, /setTimeout\(hideMigrationChecklist, 1500\)/);
   assert.match(js, /migrationSyncAction\.addEventListener\('click'/);
   assert.match(js, /start\.openSettings\('sync'\)/);

@@ -401,6 +401,9 @@ function setupPages(hooks = {}) {
     ...hooks.startPage?.status?.(),
     // Per-tab guard: the shared status never carries profile or privacy.
     migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
+    // A utility sheet is a separate WebContentsView layered over this tab;
+    // document.hasFocus() in the covered renderer is not a reliable signal.
+    utilitySheetVisible: hooks.startPage?.utilitySheetVisibleFor?.(event.sender) === true,
   }));
   // Billboard asks for another bounded page only when local dismissals consume
   // the initial candidate set. The hidden-hostname list stays in page storage

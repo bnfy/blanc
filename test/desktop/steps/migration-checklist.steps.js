@@ -29,7 +29,13 @@ When('I choose Set up Sync from the moving-in checklist', async function () {
 });
 
 When('I mark Sync complete in the moving-in checklist', async function () {
-  assert.equal(await this.call('setMigrationChecklistProgress', true, false), true);
+  const current = await this.call('migrationChecklistSettings');
+  assert.equal(await this.call('setMigrationChecklistProgress', true, current.tabsComplete), true);
+});
+
+When('I mark tab migration complete in the moving-in checklist', async function () {
+  const current = await this.call('migrationChecklistSettings');
+  assert.equal(await this.call('setMigrationChecklistProgress', current.syncComplete, true), true);
 });
 
 When('I complete both moving-in tasks', async function () {
@@ -47,9 +53,24 @@ Then('the Sync task stays checked at {string}', async function (progress) {
 Then('the moving-in checklist briefly confirms completion', async function () {
   await waitForValue(
     () => this.call('readMigrationChecklistDom'),
-    (dom) => dom?.visible === true && dom.progress === '2/2' && dom.title === 'all moved in',
+    (dom) => dom?.visible === true && dom.detailsVisible === true && dom.expanded === true &&
+      dom.progress === '2/2' && dom.title === 'all moved in',
     'the moving-in checklist to confirm 2/2',
   );
+});
+
+Then('the moving-in completion waits behind Settings', async function () {
+  await new Promise((resolve) => setTimeout(resolve, 1700));
+  const surface = await this.call('utilitySurface');
+  assert.equal(surface?.visible, true, 'Settings should still cover the start page');
+  const dom = await this.call('readMigrationChecklistDom');
+  assert.equal(dom?.visible, true, 'the confirmation must not retire while covered');
+  assert.equal(dom?.progress, '2/2');
+  assert.equal(dom?.title, 'all moved in');
+});
+
+When('I close the Settings sheet', async function () {
+  assert.equal(await this.call('closeUtilitySurface'), true);
 });
 
 Then('the moving-in checklist retires', async function () {

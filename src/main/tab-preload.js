@@ -42,6 +42,9 @@ if (window.location.protocol === 'blanc:') {
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
         openSettings: (section) => invoke('pages:start:open-settings', section),
         dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
+        onUtilitySheetVisibility: (callback) => {
+          ipcRenderer.on('pages:start:utility-sheet-visibility', (_event, visible) => callback(visible === true));
+        },
         defaultBrowser: () => invoke('pages:default-browser:get'),
         setDefaultBrowser: () => invoke('pages:default-browser:set'),
         onboardingSet: (partial) => invoke('pages:start:onboarding-set', partial),

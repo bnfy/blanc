@@ -34,12 +34,16 @@ test('successful migration actions persist completion without a disable reset', 
 });
 
 test('pages IPC and preload expose the checklist projection and dismissal only', () => {
+  const main = read('src/main/main.js');
   const pages = read('src/main/pages.js');
   const preload = read('src/main/tab-preload.js');
 
   assert.match(pages, /migrationChecklist: hooks\.startPage\?\.migrationChecklistFor\?\.\(event\.sender\) \?\? null,/);
   assert.match(pages, /handle\('pages:start:migration-checklist-dismiss', 'newtab', \(\) => hooks\.startPage\?\.dismissMigrationChecklist\?\.\(\) === true\)/);
   assert.match(preload, /dismissMigrationChecklist: \(\) => invoke\('pages:start:migration-checklist-dismiss'\)/);
+  assert.match(preload, /onUtilitySheetVisibility: \(callback\) =>/);
+  assert.match(pages, /utilitySheetVisible: hooks\.startPage\?\.utilitySheetVisibleFor\?\.\(event\.sender\) === true/);
+  assert.match(main, /pages:start:utility-sheet-visibility/);
   assert.doesNotMatch(pages, /syncNudge/);
   assert.doesNotMatch(preload, /syncNudge/);
 });
