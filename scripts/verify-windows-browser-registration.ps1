@@ -18,6 +18,22 @@ $clientRelative = "Software\Clients\StartMenuInternet\$ProductName"
 $clientKey = "HKCU:\$clientRelative"
 $registeredApplications = 'HKCU:\Software\RegisteredApplications'
 $progIdKey = "HKCU:\Software\Classes\$ProgId"
+$uninstallRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall'
+
+function Get-UninstallEntry {
+  Get-ChildItem $uninstallRoot |
+    ForEach-Object { Get-ItemProperty $_.PSPath } |
+    Where-Object { $_.DisplayName -eq "$ProductName $Version" } |
+    Select-Object -First 1
+}
+
+# An earlier workflow step installs and silently uninstalls this same build.
+# Its uninstaller removes these same registration keys, so if it is still
+# finishing when this install runs, it can delete the fresh registration
+# out from under the checks below. Start only once that install is gone.
+$deadline = (Get-Date).AddSeconds(60)
+while ((Get-UninstallEntry) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 1 }
+if (Get-UninstallEntry) { throw "a previous $ProductName $Version install is still present" }
 
 $install = Start-Process -FilePath $resolvedInstaller -ArgumentList '/S' -Wait -PassThru
 Assert-Equal $install.ExitCode 0 'installer exit code'
@@ -42,11 +58,7 @@ if ($openCommand -notmatch [regex]::Escape("$ProductName.exe") -or $openCommand 
   throw "URL open command is invalid: $openCommand"
 }
 
-$uninstallRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall'
-$uninstallEntry = Get-ChildItem $uninstallRoot |
-  ForEach-Object { Get-ItemProperty $_.PSPath } |
-  Where-Object { $_.DisplayName -eq "$ProductName $Version" } |
-  Select-Object -First 1
+$uninstallEntry = Get-UninstallEntry
 if (-not $uninstallEntry) { throw "uninstall entry is missing for $ProductName $Version" }
 if ($uninstallEntry.QuietUninstallString -notmatch '^"([^"]+)"\s*(.*)$') {
   throw "unexpected QuietUninstallString: $($uninstallEntry.QuietUninstallString)"
