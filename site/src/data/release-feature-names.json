@@ -1,4 +1,5 @@
 {
+  "1.19.0": ["Default browser setup", "Local HTML opening"],
   "1.18.0": ["Guided Sync setup", "Migration checklist", "/sync command"],
   "1.17.0": ["Live Named Workspaces", "Desktop app sign-in returns", "Focused-popup 1Password fill"],
   "1.16.0": ["Screen and system-audio sharing", "Bring Your Tabs"],
