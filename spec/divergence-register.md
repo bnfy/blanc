@@ -86,7 +86,10 @@ cap** are identical; only where the bytes land and how you re-open them differ.
 - **Desktop:** `handOffToOs()` for `mailto:`/`tel:`/`facetime:`/`sms:` plus an
   affirmative allowlist of reviewed app schemes and standard native OAuth scheme
   conventions. App callbacks require confirmation; unknown schemes never reach
-  the OS. OS default registration uses the packaged app.
+  the OS. OS default registration uses the packaged app (macOS LaunchServices,
+  the Windows Default Programs registry contract written by the installer, and
+  the Linux desktop entry's `WebBrowser` category and HTTP(S) scheme-handler
+  types).
 - **iOS:** default-browser **entitlement** + universal-link/URI handling; hand-off
   via `UIApplication.open`.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
