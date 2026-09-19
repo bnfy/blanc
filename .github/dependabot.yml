@@ -18,3 +18,9 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    groups:
+      # init and analyze must run the same CodeQL version; bumped separately,
+      # each PR fails with "Loaded a configuration file for version ..." (#366/#367).
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
