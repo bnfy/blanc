@@ -6,7 +6,8 @@ import sharp from 'sharp';
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
 const SITE_ORIGIN = 'https://blancbrowser.com';
-const NO_SOCIAL_ROUTES = new Set(['/privacy', '/terms']);
+const NO_SOCIAL_ROUTES = new Set(['/404', '/privacy', '/terms', '/import-tabs']);
+const NOINDEX_ROUTES = new Set(['/404', '/import-tabs']);
 const OG_ASPECT_RATIO = 1200 / 630;
 const VERSIONED_SOCIAL_ASSET = /(?:^|[-_/])v?\d+\.\d+(?:\.\d+)?(?=[-_.\/]|$)/i;
 const htmlFiles = [];
@@ -48,6 +49,7 @@ const warnings = [];
 const titles = new Map();
 const descriptions = new Map();
 const socialImages = new Map();
+const internalRouteLinks = new Map();
 
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
@@ -98,7 +100,11 @@ for (const file of htmlFiles) {
   if (hasUnprotectedMailto || hasUnprotectedVisibleEmail) {
     errors.push(`${route}: email address is not protected from Cloudflare email-address rewriting`);
   }
-  if (!/\bindex\b/i.test(robots) || /\bnoindex\b/i.test(robots)) errors.push(`${route}: page is not indexable`);
+  if (NOINDEX_ROUTES.has(route)) {
+    if (!/\bnoindex\b/i.test(robots)) errors.push(`${route}: utility page must be noindex`);
+  } else if (!/\bindex\b/i.test(robots) || /\bnoindex\b/i.test(robots)) {
+    errors.push(`${route}: page is not indexable`);
+  }
   if (!NO_SOCIAL_ROUTES.has(route)) {
     const missingSocialFields = [
       ['og:title', ogTitle],
@@ -178,16 +184,28 @@ for (const file of htmlFiles) {
     if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
 
     let target;
-    if (href.startsWith('/')) target = href;
-    else if (href.startsWith(SITE_ORIGIN)) target = new URL(href).pathname;
-    else continue;
+    if (href.startsWith('/')) {
+      target = href;
+    } else {
+      let absolute;
+      try {
+        absolute = new URL(href);
+      } catch {
+        continue;
+      }
+      if (absolute.origin !== SITE_ORIGIN) continue;
+      target = `${absolute.pathname}${absolute.search}${absolute.hash}`;
+    }
 
     const clean = target.split(/[?#]/)[0] || '/';
     const normalized = clean.length > 1 ? clean.replace(/\/$/, '') : clean;
     const isAsset = /\.[a-z0-9]+$/i.test(normalized);
     const isDownloadRoute = normalized.startsWith('/dl/');
-    if (!isAsset && !isDownloadRoute && !routes.has(normalized)) {
-      errors.push(`${route}: internal link points to missing route ${href}`);
+    if (!isAsset && !isDownloadRoute) {
+      const sources = internalRouteLinks.get(normalized) ?? new Set();
+      sources.add(route);
+      internalRouteLinks.set(normalized, sources);
+      if (!routes.has(normalized)) errors.push(`${route}: internal link points to missing route ${href}`);
     }
   }
 
@@ -230,8 +248,64 @@ const sitemap = await readFile(new URL('../dist/sitemap.xml', import.meta.url), 
 const sitemapRoutes = new Set(
   [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]).pathname.replace(/\/$/, '') || '/')
 );
-for (const route of routes) if (!sitemapRoutes.has(route)) errors.push(`${route}: missing from sitemap.xml`);
+for (const route of routes) {
+  if (!NOINDEX_ROUTES.has(route) && !sitemapRoutes.has(route)) errors.push(`${route}: missing from sitemap.xml`);
+  if (NOINDEX_ROUTES.has(route) && sitemapRoutes.has(route)) errors.push(`${route}: noindex utility page appears in sitemap.xml`);
+}
 for (const route of sitemapRoutes) if (!routes.has(route)) errors.push(`sitemap.xml points to missing route ${route}`);
+
+let redirectsSource = '';
+try {
+  redirectsSource = await readFile(path.join(DIST_ROOT, '_redirects'), 'utf8');
+} catch {
+  errors.push('_redirects is missing from the built site');
+}
+
+const redirectRules = [];
+for (const [index, rawLine] of redirectsSource.split(/\r?\n/).entries()) {
+  const line = rawLine.trim();
+  if (!line || line.startsWith('#')) continue;
+  const fields = line.split(/\s+/);
+  if (fields.length !== 3) {
+    errors.push(`_redirects:${index + 1}: expected source destination status`);
+    continue;
+  }
+  const [source, destination, rawStatus] = fields;
+  const status = Number(rawStatus);
+  if (!source.startsWith('/') || !destination.startsWith('/')) {
+    errors.push(`_redirects:${index + 1}: only site-relative path redirects belong in this file`);
+    continue;
+  }
+  if (![301, 302, 303, 307, 308].includes(status)) {
+    errors.push(`_redirects:${index + 1}: unsupported redirect status ${rawStatus}`);
+    continue;
+  }
+  const destinationRoute = destination.split(/[?#]/)[0].replace(/\/$/, '') || '/';
+  redirectRules.push({ source, destination: destinationRoute, status, line: index + 1 });
+}
+
+const redirectSources = new Set(redirectRules.map((rule) => rule.source));
+if (redirectSources.size !== redirectRules.length) errors.push('_redirects contains duplicate source routes');
+for (const rule of redirectRules) {
+  const normalizedSource = rule.source.length > 1 ? rule.source.replace(/\/$/, '') : rule.source;
+  if (routes.has(rule.source)) errors.push(`${rule.source}: redirect source is also a built page`);
+  if (!routes.has(rule.destination)) errors.push(`${rule.source}: redirect target ${rule.destination} is not a built page`);
+  if (redirectSources.has(rule.destination)) errors.push(`${rule.source}: redirect target ${rule.destination} creates a redirect chain`);
+  if (sitemapRoutes.has(normalizedSource)) errors.push(`${rule.source}: redirect source appears in sitemap.xml`);
+  if (internalRouteLinks.has(normalizedSource)) {
+    errors.push(`${rule.source}: internal links still target this redirect from ${[...internalRouteLinks.get(normalizedSource)].join(', ')}`);
+  }
+}
+
+const privateRules = redirectRules.filter((rule) => rule.source === '/private');
+const privateSlashRules = redirectRules.filter((rule) => rule.source === '/private/');
+if (
+  privateRules.length !== 1 || privateSlashRules.length !== 1
+  || privateRules[0].destination !== '/features/private-tabs' || privateRules[0].status !== 301
+  || privateSlashRules[0].destination !== '/features/private-tabs' || privateSlashRules[0].status !== 301
+) {
+  errors.push('/private and /private/ must redirect directly to /features/private-tabs with status 301');
+}
 
 const robots = await readFile(new URL('../dist/robots.txt', import.meta.url), 'utf8');
 if (!robots.includes('Sitemap: https://blancbrowser.com/sitemap.xml')) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Renders the six Open Graph cards from the built site.
+ * Renders the Open Graph card manifest from the built site and public captures.
  *
  * They were hand-authored PNGs and had drifted badly: og-image.png still showed
  * a `blocked 18` text chip from two Island designs ago, feature-island.png and
@@ -8,11 +8,12 @@
  * BaseLayout told every crawler they were 1200x630, and the private-tabs and
  * tab-groups cards were a small pill stranded on an otherwise empty field.
  *
- * Each card now composites the feature page's OWN island figure — the same
+ * The original cards composite the feature page's OWN island figure — the same
  * markup the page renders — so a change to the Island reaches the share cards
  * by re-running this, exactly like render-press-primary-capture.mjs. The layout
  * is that script's editorial system at OG scale: mono brand line, tight Inter
- * headline, the product sitting on the baseline.
+ * headline, the product sitting on the baseline. The v1.15 expansion cards
+ * use the reviewed native public-app captures in feature-captures/ instead.
  *
  *   node scripts/render-og-cards.mjs        (after `npm run build`)
  */
@@ -32,6 +33,31 @@ const HEIGHT = 630;
  * visitor is about to land on. og-image.png is the site-wide default and takes
  * the homepage hero's line instead. */
 const CARDS = [
+  {
+    out: 'feature-start-page.png',
+    capture: 'billboard.png',
+    headline: 'Five ways to begin. One of them is Mahjong.',
+  },
+  {
+    out: 'feature-glance.png',
+    capture: 'glance.png',
+    headline: 'Keep a reference beside the page you’re using.',
+  },
+  {
+    out: 'feature-workspaces.png',
+    capture: 'workspaces.png',
+    headline: 'Save a whole window. Return to it by name.',
+  },
+  {
+    out: 'feature-profiles.png',
+    capture: 'profiles.png',
+    headline: 'Separate browsing identities. Keep every window independent.',
+  },
+  {
+    out: 'feature-reopen-closed-tabs.png',
+    capture: 'reopen-closed-tabs.png',
+    headline: 'Get the tab back, not just its address.',
+  },
   {
     out: 'og-image.png',
     page: '/features/island.html',
@@ -83,6 +109,12 @@ const CARDS = [
   },
 ];
 
+// Allow a single repaired card to be regenerated without touching other exports.
+const selectedOutput = process.argv.find(arg => arg.startsWith('--only='))?.slice(7);
+if (selectedOutput && !CARDS.some(card => card.out === selectedOutput)) {
+  throw new Error(`Unknown card: ${selectedOutput}`);
+}
+
 function serve(root) {
   return new Promise((resolve) => {
     const types = {
@@ -117,9 +149,16 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const brandMark = dataUrl(path.join(PUBLIC_ROOT, 'favicon.svg'), 'image/svg+xml');
 const inter = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), 'font/woff2');
 const mono = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2'), 'font/woff2');
+const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2'), 'font/woff2');
 
 try {
   for (const card of CARDS) {
+    if (selectedOutput && card.out !== selectedOutput) continue;
+    let figureShot;
+    if (card.capture) {
+      // Native public-release pixels, never a recreated product state.
+      figureShot = fs.readFileSync(path.join(PUBLIC_ROOT, 'feature-captures', card.capture));
+    } else {
     // 1. Shoot the page's own island figure at 2x.
     const shooter = await browser.newPage({
       viewport: { width: 1280, height: 900 },
@@ -198,8 +237,9 @@ try {
       if (crop) bottom = top + (bottom - top) * crop;
       return { x: left, y: top, width: right - left, height: Math.max(bottom - top, 60) };
     }, { sel: card.figure, crop: card.crop ?? 0 });
-    const figureShot = await shooter.screenshot({ clip: box });
+    figureShot = await shooter.screenshot({ clip: box });
     await shooter.close();
+    }
 
     // 2. Composite it into the card.
     const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });
@@ -207,14 +247,15 @@ try {
       <html lang="en"><head><meta charset="utf-8" /><style>
         @font-face { font-family: Inter; src: url('${inter}') format('woff2'); font-weight: 100 900; }
         @font-face { font-family: 'JetBrains Mono'; src: url('${mono}') format('woff2'); font-weight: 500; }
+        @font-face { font-family: Newsreader; src: url('${newsreader}') format('woff2-variations'); font-weight: 200 800; }
         * { box-sizing: border-box; }
         html, body { width: ${WIDTH}px; height: ${HEIGHT}px; margin: 0; overflow: hidden; background: #fbfbfa; }
         body { color: #0e0e0e; font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
         .brand { position: absolute; top: 52px; left: 64px; display: flex; align-items: center; gap: 15px;
                  color: #666; font: 500 13px/1 'JetBrains Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; }
         .brand img { width: 25px; height: 33px; object-fit: contain; }
-        h1 { position: absolute; top: 118px; left: 62px; width: 900px; margin: 0;
-             font-size: 56px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.02; }
+        h1 { position: absolute; top: 112px; left: 62px; width: 1000px; margin: 0;
+             font-family: Newsreader, serif; font-size: 62px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; font-optical-sizing: auto; }
         /* One region for the Island whatever its shape: a resting pill is wide
            and short, an open panel is tall. Containing rather than cropping
            lets both sit at their own proportions on a shared baseline. */

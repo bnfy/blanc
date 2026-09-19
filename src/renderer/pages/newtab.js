@@ -1,5 +1,45 @@
 const isPrivate = new URLSearchParams(location.search).has('private');
 const isMac = navigator.platform.startsWith('Mac');
+const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
+const MAX_HIDDEN_TOP_SITES = 200;
+const TOP_SITES_PAGE_SIZE = 48;
+
+function readHiddenTopSites() {
+  if (isPrivate) return new Set();
+  try {
+    const saved = JSON.parse(localStorage.getItem(TOP_SITES_HIDDEN_KEY) || '[]');
+    return new Set(
+      (Array.isArray(saved) ? saved : [])
+        // Main owns hostname parsing. A bounded string is enough here: saved
+        // values can only suppress an exact key that main later supplies.
+        .filter((key) => typeof key === 'string' && key.length > 0 && key.length <= 255)
+        .slice(-MAX_HIDDEN_TOP_SITES),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+const hiddenTopSites = readHiddenTopSites();
+let topSitesExhausted = isPrivate;
+let topSitesLoad = null;
+let topSitesReady = false;
+let topSitesOffset = 0;
+
+function rememberHiddenTopSite(key) {
+  if (isPrivate || typeof key !== 'string' || !key) return;
+  hiddenTopSites.delete(key);
+  hiddenTopSites.add(key);
+  while (hiddenTopSites.size > MAX_HIDDEN_TOP_SITES) {
+    hiddenTopSites.delete(hiddenTopSites.values().next().value);
+  }
+  try {
+    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+  } catch {
+    // Storage may be unavailable; the in-memory dismissal still lasts for
+    // this page without falling back to any main-process or network store.
+  }
+}
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
 // and the ledger's margin copy explains the deal instead of stats.
@@ -87,6 +127,130 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
 function renderPatronCallout(patronActive) {
   for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = !!patronActive;
 }
+
+// Main owns durable checklist progress; this renderer only reflects that
+// projection. The one local exception is the 1.5 s final confirmation, which
+// lets an already-open page show 2/2 before the now-complete checklist retires.
+const migrationChecklistShell = document.getElementById('migrationChecklistShell');
+const migrationChecklistTitle = document.getElementById('migrationChecklistTitle');
+const migrationChecklistCompact = document.getElementById('migrationChecklistCompact');
+const migrationSyncTask = document.getElementById('migrationSyncTask');
+const migrationTabsTask = document.getElementById('migrationTabsTask');
+const migrationSyncAction = document.getElementById('migrationSyncAction');
+const migrationTabsAction = document.getElementById('migrationTabsAction');
+const migrationChecklistHide = document.getElementById('migrationChecklistHide');
+let migrationChecklistProjection = null;
+let migrationChecklistRetireTimer = null;
+let migrationChecklistPendingCompletion = null;
+let migrationChecklistUtilitySheetVisible = false;
+
+function setMigrationTask(task, action, complete, label) {
+  task.classList.toggle('is-complete', complete);
+  task.querySelector('.migration-task-status').textContent = complete ? 'Completed' : 'Not completed';
+  action.setAttribute('aria-label', `${label} — ${complete ? 'completed' : 'not completed'}`);
+}
+
+function paintMigrationChecklist(checklist, { completing = false } = {}) {
+  for (const el of document.querySelectorAll('.js-migration-progress')) {
+    el.textContent = `${checklist.completedCount}/2`;
+  }
+  migrationChecklistTitle.textContent = completing ? 'all moved in' : 'ready to move in?';
+  setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, 'Set up Sync');
+  setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, 'Bring your tabs');
+}
+
+function hideMigrationChecklist() {
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = null;
+  migrationChecklistPendingCompletion = null;
+  migrationChecklistShell.hidden = true;
+  migrationChecklistShell.classList.remove('is-completing', 'is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', 'false');
+}
+
+function canPresentMigrationChecklistCompletion() {
+  return document.hasFocus() &&
+    document.visibilityState !== 'hidden' &&
+    !migrationChecklistUtilitySheetVisible &&
+    document.body.dataset.layout !== 'mahjong' &&
+    startupCard.hidden &&
+    !document.querySelector('[role="dialog"][aria-modal="true"]:not([hidden])');
+}
+
+function presentPendingMigrationChecklistCompletion() {
+  const checklist = migrationChecklistPendingCompletion;
+  if (!checklist || !canPresentMigrationChecklistCompletion()) return false;
+  migrationChecklistPendingCompletion = null;
+  paintMigrationChecklist(checklist, { completing: true });
+  migrationChecklistShell.hidden = false;
+  // Compact layouts normally keep the full list collapsed. Completion is the
+  // one exception: expose both checked rows and the final heading for the same
+  // dwell the full layout receives, rather than showing only a 2/2 ring.
+  migrationChecklistShell.classList.add('is-completing', 'is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', 'true');
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = setTimeout(hideMigrationChecklist, 1500);
+  return true;
+}
+
+function renderMigrationChecklist(checklist) {
+  const previous = migrationChecklistProjection;
+  migrationChecklistProjection = checklist;
+
+  if (!checklist) {
+    hideMigrationChecklist();
+    return;
+  }
+
+  const justCompleted = previous?.visible === true &&
+    previous.completedCount < 2 && checklist.completedCount === 2;
+  if (justCompleted) {
+    migrationChecklistPendingCompletion = checklist;
+    paintMigrationChecklist(checklist, { completing: true });
+    migrationChecklistShell.hidden = false;
+    presentPendingMigrationChecklistCompletion();
+    return;
+  }
+
+  // Settings and the tab-import sheet are separate focused WebContentsViews.
+  // Their completion push reaches this page while it is covered. Preserve the
+  // pending confirmation across later status pushes and start its dwell only
+  // after the start page itself becomes presentable again.
+  if (migrationChecklistPendingCompletion && checklist.completedCount === 2) {
+    presentPendingMigrationChecklistCompletion();
+    return;
+  }
+
+  if (!checklist.visible) {
+    hideMigrationChecklist();
+    return;
+  }
+
+  clearTimeout(migrationChecklistRetireTimer);
+  migrationChecklistRetireTimer = null;
+  paintMigrationChecklist(checklist);
+  migrationChecklistShell.classList.remove('is-completing');
+  migrationChecklistShell.hidden = false;
+}
+
+migrationSyncAction.addEventListener('click', () => {
+  window.bowserPages?.start.openSettings('sync').catch(() => {});
+});
+migrationChecklistHide.addEventListener('click', () => {
+  window.bowserPages?.start.dismissMigrationChecklist().catch(() => {});
+});
+migrationChecklistCompact.addEventListener('click', () => {
+  const expanded = migrationChecklistShell.classList.toggle('is-expanded');
+  migrationChecklistCompact.setAttribute('aria-expanded', String(expanded));
+});
+window.addEventListener('focus', presentPendingMigrationChecklistCompletion);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) presentPendingMigrationChecklistCompletion();
+});
+window.bowserPages?.start.onUtilitySheetVisibility((visible) => {
+  migrationChecklistUtilitySheetVisible = visible;
+  if (!visible) presentPendingMigrationChecklistCompletion();
+});
 
 startupRetry.addEventListener('click', async () => {
   startupRetry.disabled = true;
@@ -276,12 +440,13 @@ function renderRemote(remoteDevices) {
 // only when their layout is first shown — so the cache is cleared whenever a
 // feed changes, or a layout drawn from stale data would never redraw.
 const state = {
-  layout: 'ledger',
+  layout: 'billboard',
   groups: [],
   blockedThisWeek: 0,
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
   blockedBarHeights: [0, 0, 0, 0, 0, 0, 0],
   favorites: [],
+  topSites: [],
   onboarding: null,
 };
 const rendered = new Set();
@@ -325,18 +490,50 @@ function renderBillboard() {
   // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
-  favs.hidden = !state.favorites.length;
-  for (const b of state.favorites.slice(0, 6)) {
-    const item = document.createElement('a');
-    item.className = 'bb-fav';
-    item.href = b.url;
+  const sites = isPrivate
+    ? []
+    : state.topSites.filter((site) => !hiddenTopSites.has(site.key)).slice(0, 6);
+  favs.hidden = !sites.length;
+  for (const site of sites) {
+    const item = document.createElement('div');
+    item.className = 'bb-site';
+    item.dataset.siteKey = site.key;
+    const link = document.createElement('a');
+    link.className = 'bb-fav';
+    link.href = site.url;
     const tile = document.createElement('span');
     tile.className = 'tile';
-    decorateTile(tile, b);
+    decorateTile(tile, site);
     const label = document.createElement('span');
     label.className = 'label';
-    label.textContent = shortLabel(b.url, b.title);
-    item.append(tile, label);
+    label.textContent = (site.title || hostOf(site.url) || 'Untitled site').trim();
+    label.title = label.textContent;
+    link.setAttribute('aria-label', `Open ${label.textContent}`);
+    link.append(tile, label);
+
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'bb-site-dismiss';
+    dismiss.title = `Hide ${label.textContent}`;
+    dismiss.setAttribute('aria-label', `Hide ${label.textContent} from Billboard`);
+    const closeIcon = document.createElement('img');
+    closeIcon.src = 'close.svg';
+    closeIcon.alt = '';
+    closeIcon.draggable = false;
+    dismiss.appendChild(closeIcon);
+    dismiss.addEventListener('click', () => {
+      const index = [...favs.children].indexOf(item);
+      rememberHiddenTopSite(site.key);
+      renderBillboard();
+      document.getElementById('bbTopSitesStatus').textContent =
+        `${label.textContent} hidden from Billboard.`;
+      const next = favs.children[Math.min(index, favs.children.length - 1)]
+        ?.querySelector('.bb-fav, .bb-site-dismiss');
+      next?.focus();
+      fillBillboardSites().catch(() => {});
+    });
+
+    item.append(link, dismiss);
     favs.appendChild(item);
   }
 
@@ -344,6 +541,40 @@ function renderBillboard() {
   groups.replaceChildren();
   groups.hidden = !state.groups.length;
   for (const g of state.groups) groups.appendChild(groupChip(g));
+}
+
+function visibleBillboardSites() {
+  return state.topSites.filter((site) => !hiddenTopSites.has(site.key));
+}
+
+async function fillBillboardSites() {
+  if (
+    isPrivate ||
+    !topSitesReady ||
+    topSitesExhausted ||
+    visibleBillboardSites().length >= 6 ||
+    typeof window.bowserPages?.start?.topSites !== 'function'
+  ) return;
+  if (topSitesLoad) return topSitesLoad;
+
+  const offset = topSitesOffset;
+  topSitesLoad = window.bowserPages.start.topSites({
+    offset,
+    limit: TOP_SITES_PAGE_SIZE,
+  }).then((sites) => {
+    const next = Array.isArray(sites) ? sites : [];
+    topSitesOffset += next.length;
+    const known = new Set(state.topSites.map((site) => site.key));
+    state.topSites.push(...next.filter((site) => !known.has(site.key)));
+    if (next.length < TOP_SITES_PAGE_SIZE) topSitesExhausted = true;
+  }).finally(() => {
+    topSitesLoad = null;
+  });
+  await topSitesLoad;
+  renderBillboard();
+  if (visibleBillboardSites().length < 6 && !topSitesExhausted) {
+    await fillBillboardSites();
+  }
 }
 
 function renderShelf() {
@@ -573,6 +804,7 @@ syncMahjongBadge();
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
+  presentPendingMigrationChecklistCompletion();
   window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
   syncMahjongFooter();
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
@@ -592,6 +824,7 @@ function applyLayout(name) {
   }
   notifyMahjongActivity();
   if (name === 'billboard') startClock();
+  if (name === 'billboard') fillBillboardSites().catch(() => {});
 }
 
 for (const button of document.querySelectorAll('[data-layout-pick]')) {
@@ -613,16 +846,22 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 });
 
 const dataReady = window.bowserPages?.start.data().then((data) => {
+  migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
-    layout: data.layout ?? 'ledger',
+    layout: data.layout ?? 'billboard',
     groups: data.groups,
     blockedThisWeek: data.blockedThisWeek,
     blockedByDay: data.blockedByDay ?? state.blockedByDay,
     blockedBarHeights: data.blockedBarHeights ?? state.blockedBarHeights,
+    topSites: data.topSites ?? [],
     onboarding: data.onboarding ?? null,
   });
+  topSitesReady = true;
+  topSitesOffset = state.topSites.length;
+  topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
+  renderMigrationChecklist(data.migrationChecklist ?? null);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
       `${state.blockedThisWeek.toLocaleString()} ads blocked this week`;
@@ -639,6 +878,9 @@ window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
+  if (status && 'migrationChecklist' in status) {
+    renderMigrationChecklist(status.migrationChecklist ?? null);
+  }
 });
 
 // The pill's caret says keystrokes land somewhere. They do: a printable
@@ -651,6 +893,12 @@ window.bowserPages?.start.onStatus((status) => {
 // controls. `target === document.body` is that check: a keystroke aimed at
 // any control has that control as its target.
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && migrationChecklistShell.classList.contains('is-expanded')) {
+    migrationChecklistShell.classList.remove('is-expanded');
+    migrationChecklistCompact.setAttribute('aria-expanded', 'false');
+    migrationChecklistCompact.focus();
+    return;
+  }
   if (e.target !== document.body) return;
   // ...and not while a modal is up. The onboarding dialog focuses its own
   // Continue button when it opens, so target is that button and the check

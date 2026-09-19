@@ -15,12 +15,11 @@ const {
   RISE_AT_1,
 } = require('../../src/main/island-proximity');
 
-// The resting pill as it actually renders, measured in the running chrome:
-// top 11.5, bottom 50.28 inside a 64px strip, with the shadow fading to white
-// exactly at 64. See the --shadow-pill note in tokens/layout.css.
-const PILL = { x: 466, y: 11.5, width: 348, height: 38.78 };
-const SHADOW_REACH = 13.72;
-const STRIP_H = 64;
+// The website-inspired resting island's rendered geometry. The shorter site
+// shadow reaches 12px below the 44px face and remains inside the 68px strip.
+const PILL = { x: 466, y: 11.5, width: 348, height: 44 };
+const SHADOW_REACH = 12;
+const STRIP_H = 68;
 
 test('closeness is 0 beyond the range and 1 on the pill', () => {
   assert.equal(closeness({ x: 640, y: PILL.y + PILL.height + RANGE }, PILL), 0);
@@ -71,9 +70,9 @@ test('smoothstep is clamped and symmetric about its midpoint', () => {
 
 // ---------------------------------------------------------------------------
 // The one that matters. This is a guard, not a description: the pill's shadow
-// has ZERO headroom at rest, so if someone shrinks the rise or grows the scale
-// the shadow starts getting sliced at the strip's edge — the exact bug fixed in
-// PR #93, twice. The numbers here mirror styles.css.
+// still needs enough headroom at full proximity: if someone shrinks the rise
+// or grows the scale, the shadow can be sliced at the strip's edge. The
+// numbers here mirror styles.css.
 // ---------------------------------------------------------------------------
 
 test('the rise out-runs the scale, so the shadow never reaches the strip edge', () => {

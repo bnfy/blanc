@@ -149,6 +149,75 @@ update (BrandMark.astro + favicon + rebuild) — a separate task, not this push-
 Also out of scope: `Logo.prompt.md` still says "use --accent green" (palette went monochrome
 long ago) — cosmetic, left for a later pass.
 
+## 2026-08-31 sync (push-drift, v1.9.0 → v1.11.0)
+
+Diffed all three canonical pairs from baseline 9396fc8^ (the 2026-08-25 sync predates
+that same-day commit). **Tokens: no drift** (all post-baseline pages.css churn was
+Mahjong game styles, no `:root` changes). Three app changes pushed (user approved all
+three; verified by rendering the real components locally — Babel-clean, light + dark,
+trust card + local state + fallbacks exercised via a served harness):
+
+- **Site trust (0b88915):** Icon.jsx gained `secure` (closed padlock) + `local`
+  (target dot) verbatim from overlay.js ICONS (`insecure` was already synced).
+  Island.jsx: the panel address row is now LED by the `.bw-site-info-button`
+  (secure/insecure/certificate-error/local states; internal/neutral/loading draw
+  nothing — same visibility rule as overlay.js), replacing the old in-row insecure
+  span; clicking swaps the list for the `.bw-site-info-card` (state dot, title, mono
+  origin, summary, certificate dl grid, blocked tally + "Privacy settings" via new
+  `onOpenPrivacySettings`); the hint line switches to "connection details are
+  supplied by Chromium" / cert-error "Blanc did not offer a bypass". The pill's
+  insecure badge became a button (opens site controls → `onShieldClick`) shown for
+  insecure OR certificate-error, title from `siteInfo.title`; tab prop `siteInfo`
+  added, legacy `insecure: true` still works (synthesized as an insecure siteInfo).
+- **1Password fill hint (819d901):** Icon.jsx gained `key` (verbatim from
+  index.html #pillFillHint); Island.jsx gained the `.bw-fill-hint-chip` between the
+  capture chip and the shield (`tab.fillHint` + `onFillLogin`) — text-dim
+  invitation, macOS-only in the app (documented in .d.ts/.prompt.md).
+- **Favicon fallback (9396fc8):** Favicon gained a `url` prop → domain-initial
+  fallback (`.bw-island-favicon.fallback`, mono 8px; `faviconFallbackLabel` logic
+  verbatim); the dot peek mirrors it at 9px (`.bw-dot-peek.fallback` — the app
+  composes `.dot-peek favicon` classes, DS folds the two rules). Tab rows, Quick
+  Switcher rows, and the pill slot all pass `url` now.
+
+chrome.card.html now exercises all three (active Verge tab carries full `siteInfo` +
+`fillHint`; new 5th favicon-less tab shows the initial); icons.card.html renders the
+31-glyph set (+secure/local/key; `reopen` stays a deliberate NON-sync). Sentinel
+re-armed. NOT modeled: the fill-status capsule (fourth chrome document — transient
+in-flow UI, same class as the Patron gate), and the shield popover's site-scoped
+internals (unchanged).
+
+## 2026-08-31 follow-up sync (brand: Mahjong-inspired mark, PR #256)
+
+Caught after the morning sync: 61da29f ("Mahjong v2", merged same day) ALSO rolled out
+a **new Blanc mark** in its final commit ("roll out Mahjong-inspired Blanc mark") — the
+morning drift scan stat-checked only chrome renderer files for that commit and
+miscategorized it as game-styles-only. The design-side agent flagged the stale mark.
+
+- New canonical mark: `src/renderer/pages/icon.svg`, viewBox **290.91×344**, built as a
+  LUMINANCE MASK (1 silhouette path + 13 cutout paths + 1 cutout polygon) painted through
+  a currentColor/themable rect; master artwork `assets/blanc-mark.svg`. Replaces the
+  v1.9.0 (#211) 157.08×207.08 filled two-path cut. All 11 dock colorway PNGs + export
+  app icons regenerated in the same commit.
+- Pushed (user-directed; verified by rendering — light pixels + dark computed-style
+  currentColor flip; generated SVG vs shipped icon.svg side-by-side identical; path
+  data diffed byte-identical; per-instance React.useId mask ids so multiple Logos
+  coexist): `Logo.jsx` (mask-based symbol), `Logo.prompt.md` (also fixed the stale
+  "--accent green" line → monochrome-ink rule), `assets/blanc-symbol.svg` (currentColor),
+  `assets/app-icon.svg` (#111111), `assets/app-icon.png` (← export icon-paper-1024),
+  the 5 dock-icon PNGs (← src/renderer/pages, verbatim copies), and
+  `guidelines/brand-logos.html` (inline mask marks nm-a/nm-b + note). `Logo.d.ts`
+  unchanged (API identical). Sentinel re-armed. Generation was scripted straight from
+  icon.svg — never redrawn.
+- ~~Site two mark generations behind~~ **WRONG, corrected same day:** #256 itself
+  updated every site brand asset (BrandMark.astro, favicons, logo.png, OG/press cards)
+  and the v1.11.0 release flow deployed it — live blancbrowser.com byte-matches the
+  repo assets (verified 2026-08-31). App, DS, and site are aligned; the DS note/Logo.jsx
+  comment were re-pushed with the correction. Lesson: verify the LIVE site before
+  flagging it stale — the old flag was carried forward from pre-#256 notes.
+- Scan lesson: the drift diff must include `src/renderer/pages/icon.svg` + `icon-*.png`
+  in the per-commit stat, not just chrome renderer files — a mark change can ride in on
+  an unrelated feature PR.
+
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
   a `_ds_needs_recompile` sentinel file (finalize_plan + write_files, any content) and open the project —
@@ -172,3 +241,90 @@ long ago) — cosmetic, left for a later pass.
   stays on the old chip until the design project is next opened and recompiles. chrome.card.html's
   quiet MDN demo tab needs no change (it now just renders the dim). guidelines/vertical-tabs.html
   never had quiet rows. Never re-mirror the chip back into the app.
+
+## 2026-09-02 sync (push-drift, v1.11.0 → v1.12.0 — Sunrise brand sync)
+
+Drift scan from a19d334 (last sync commit) to df7a0e5. Only #262 (aa01590, "Adopt Sunrise
+as the default app icon", shipped in v1.12.0) touched DS surfaces. **Tokens: no drift**
+(no `:root` change in styles.css/pages.css/tokens.json since the verified 08-31 sync).
+**Icon glyphs: no drift** (renderer.js/overlay.js ICONS unchanged; only comments moved).
+
+Owner decisions (AskUserQuestion, 2026-09-02): (1) **Sunrise replaces the B everywhere** —
+not just the app icon; (2) full app-icon sync incl. `assets/app-icon.png`; (3) model the
+internal-page favicon change in Island. Rendering proof (Playwright Chromium against the
+real compiled Icon bundle + DS tokens, light and dark, pixel crops) was sent and an
+explicit push approval obtained before any write.
+
+Pushed (plan_bee811dfe403446a_3ee10cffb81e; 24 writes + 1 delete; sentinel fenced first and
+re-armed last):
+- **Brand.** `components/icons/Logo.jsx` now embeds `src/renderer/pages/sunrise-mark.png`
+  (680×680 RGBA, 265 KB base64) VERBATIM as a data URI — Sunrise is raster (the app's brand
+  build derives it from `mahjong-wind-east.png`; there is no vector, never trace it). Two
+  tones: `tone="ink"` (default; currentColor through the PNG alpha via CSS mask — exactly
+  styles.css `.favicon.internal`) and `tone="color"` (the gold `<img>`). Below 20px the ink
+  tone swaps in the app's rays-only `sunrise-favicon-mark.png`, embedded as a **128px
+  alpha-preserving downsample** (3.7 KB; RGB zeroed, alpha kept) — the only non-verbatim
+  bytes in the push, disclosed in the file header; the app itself applies the same crop
+  rule at 14px. `Logo.d.ts` gained `tone`; `Logo.prompt.md` rewritten (monochrome-ink rule
+  kept, gold reserved for app-icon contexts).
+- `assets/blanc-symbol.svg` = the same verbatim PNG wrapped as an alpha `<mask>` over a
+  currentColor rect (266 KB). `assets/app-icon.svg` (B vector) DELETED. `assets/app-icon.png`
+  ← `export/app-icons-1024-square/icon-sunrise-1024.png`. Added `assets/sunrise-mark.png`,
+  `assets/sunrise-favicon-mark.png`, `assets/dock-icons/icon-sunrise{,-dark}.png` (all
+  byte-identical copies). `guidelines/brand-logos.html` (ink + color symbol, nav lockup with
+  the ≤16px crop rule, Sunrise tile; viewport 700×330), `dock-icon-colorways.html`
+  (7 of 13 swatches, Sunrise default first), `wordmark-export.html` (square 21×21 mark).
+  `readme.md` brand/logo/dock paragraphs rewritten; `github.md` sync entry added.
+- **Island internal-page favicon (#262).** Verbatim styles.css rules under bw- names:
+  `.bw-island-favicon.internal` (text-ink mask of the rays-only crop; embedded data URI so
+  it resolves from any card depth), `.bw-pill-favicon.internal { display: none }`
+  (= `#islandPill #pillFavicon.internal`), `.bw-dot-peek.internal` = blank disc
+  (= `#islandPill .dot-peek.internal::after { display:none }`; the app's dot peeks exist
+  only in the pill — renderer.js:620). `Favicon` gained an `internal` state
+  (`isInternalUrl` = url starts with `blanc://`); rows and peeks branch on it. `.d.ts` and
+  `.prompt.md` document it; `chrome.card.html` gained a `blanc://newtab/` tab so the row
+  is visible. Shield comment updated (B "since retired").
+- `ui_kits/browser/index.html` + `templates/browser/app.jsx`: `faviconOf(blanc://)` →
+  `undefined` (the Island supplies the mark; they used to borrow app-icon.svg);
+  `pages.jsx`/`app.jsx` `DOCK_ICONS` = sunrise, sunrise-dark, evergreen (id `default`),
+  midnight, cream, forest, sage; default `sunrise`.
+- `templates/social-covers/CoverBoard.dc.html`: the two blancbrowser.com favicons (pill +
+  pinned row) were the OLD stroked B (`153.09×203.01`, never updated for #211/#256) → Sunrise
+  ink silhouettes (128px data URI). Everything else byte-for-byte as fetched.
+
+Deliberately NOT touched: `explorations/*`, `design_handoff_*/*` (historical snapshots;
+`NewtabOnboarding.dc.html` was already marked historical and still shows the old B),
+`thumbnail.html` (wordmark text only), `guidelines/island-hero.html` (comment only),
+the five monogram dock PNGs (the app still ships the B tile in those colorways).
+
+### ✅ The site is LIVE on Sunrise (2026-09-02)
+blancbrowser.com ships the Sunrise mark: PR #263 (squash c91bc87) generated every site
+brand surface from the Sunrise motifs via `scripts/build-brand-assets.js` (in-page ink
+silhouette in `BrandMark.astro`, rays-only crop for the ≤16px favicons, white-tile
+`logo.png`, re-rendered OG/feature/press cards, demo island hides the blank tab's favicon
+slot). Deployed as Cloudflare Pages deployment 5457bcd8, Production, branch main, source
+c91bc87; `favicon.svg`, `logo.png`, `favicon-32x32.png`, `apple-touch-icon.png`, and
+`og-image.png` verified byte-identical on the live domain. App, DS, and site are aligned.
+The DS's own "still ships the B" wording (`guidelines/brand-logos.html` note, `readme.md`
+Logos bullet, `github.md` entry) was corrected in a same-day follow-up push; the readme's
+site-lockup sizes now match the live site (header 20×20 mark alone, press 21×21, legal 24×24).
+
+### (original flag kept for the record)
+As of df7a0e5, `site/` has NO Sunrise asset (only `releases.json` mentions it) and the live
+brand mark is still the Mahjong-inspired B from #256. With the owner's "Sunrise everywhere"
+decision the DS is deliberately AHEAD of the site; BrandMark.astro, favicons, logo.png,
+OG/press cards need their own pass. Also uncommitted in the shared checkout at sync time:
+a Sunrise-for-Windows/Linux/iOS icon pass (build/icon.png, icon-sunrise.ico, iOS asset,
+ASSET-LICENSE/README) — it LANDED mid-sync as 5e0964e ("Adopt Sunrise across all platforms", between df7a0e5 and this record). It changes no DS surface (Windows ICO, Linux PNG, iOS asset, docs), so nothing further to mirror; it is on main but not in a public release yet.
+
+### Gotchas learned
+- The Browser pane cannot crop (`zoom` region unsupported) and stalls while hidden; use the
+  Playwright MCP against a `python3 -m http.server` launch.json entry (temporary
+  `ds-harness`, removed after) and crop the saved PNG with magick.
+- Babel-standalone can't resolve ESM imports: strip `import`/`export` from the sources,
+  bind `Icon` from the fetched `_ds_bundle.js`, concatenate, and render.
+- `get_file` results under ~50 KB are NOT persisted to disk — edits to such files mean
+  re-authoring them in full; larger ones (Island.jsx, the bundle) land in tool-results and
+  can be patched with assert-per-replacement scripts.
+- A CSS `mask` on a raster needs the alpha channel: an alpha-EXTRACTED grayscale PNG masks
+  as a solid square; keep RGBA (zero RGB, keep alpha) instead.

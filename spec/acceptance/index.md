@@ -7,10 +7,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 **Status:** ✅ verified/passing · ⬜ not built / not run · ➖ N/A on this platform.
 
-> Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
-> in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 21 `.feature`
-> files.
+> Desktop is the shipped reference, so existing shipped `@all` cells are ✅
+> (behaviour verified in the shipping app; automated step-defs are a separate
+> track). Newly planned contracts remain ⬜ until their acceptance gate passes.
+> iOS/Android are greenfield → ⬜. The grid below tracks stable scenario IDs
+> across 23 `.feature` files.
 
 ## Files
 
@@ -38,6 +39,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Start page layouts | `newtab-layouts.feature` | F35 |
 | First-run onboarding | `onboarding.feature` | F36 (F30, D22) |
 | Blank-tab affordance | `blank-tab-affordance.feature` | F37 |
+| Certificate safety | `site-certificate-safety.feature` | F39 |
+| Tab migration | `tab-migration.feature` | F40 (D22) |
 
 ## Grid
 
@@ -66,6 +69,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
 | F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
 | F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
+| F5-7 | Reviewed desktop app callback requires confirmation | D4 | ✅ | ➖ | ➖ |
+| F5-8 | Colon-prefixed search operator remains a search | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
@@ -88,7 +93,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F12-9 | Site controls follow their opening control | — | ✅ | ⬜ | ⬜ |
 | F13-1 | Geolocation prompt + deny persists | — | ✅ | ⬜ | ⬜ |
 | F14-1 | Invalid search engine rejected | — | ✅ | ⬜ | ⬜ |
-| F14-2 | Unlicensed supporter icon → default | D5 | ✅ | ⬜ | ⬜ |
+| F14-2 | Retired app icon → default | — | ✅ | ⬜ | ⬜ |
 | F14-3 | Exception hostnames normalized | — | ✅ | ⬜ | ⬜ |
 | F14-4 | Search-suggestion opt-out stays device-local | — | ✅ | ⬜ | ⬜ |
 | F15-1 | Dark recolors chrome + page live | — | ✅ | ⬜ | ⬜ |
@@ -96,8 +101,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F16-1 | Newtab ledger contents | — | ✅ | ⬜ | ⬜ |
 | F16-2 | Internal nav stays in scheme | — | ✅ | ⬜ | ⬜ |
 | F16-3 | Privileged chrome rejects web navigation | D11 | ✅ | ➖ | ➖ |
-| F17-1 | Supporter unlock enables colorways | D6 | ✅ | ⬜ | ⬜ |
-| F17-2 | Non-supporter locked + fallback | — | ✅ | ⬜ | ⬜ |
+| F17-1 | Current app icon applies | D6 | ✅ | ⬜ | ⬜ |
+| F17-2 | Patron cannot restore retired icon | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
 | F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
 | F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
@@ -111,6 +116,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F27-1 | Sharing open tabs off by default | — | ✅ | ⬜ | ⬜ |
 | F27-2 | Remote tab opens locally as new ungrouped tab | — | ✅ | ⬜ | ⬜ |
 | F27-3 | Sharing-off retracts this device | — | ✅ | ⬜ | ⬜ |
+| F27-4 | Moving-in checklist can be hidden permanently | — | ✅ | ⬜ | ⬜ |
+| F27-5 | Moving-in checklist opens Sync and tracks progress | — | ✅ | ⬜ | ⬜ |
+| F27-6 | /sync opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
+| F27-7 | Two completed migration tasks confirm and retire the checklist | — | ✅ | ⬜ | ⬜ |
 | F28-1 | Layout default, persistence, and no-sync rule | D19 | ✅ | ➖ | ➖ |
 | F28-2 | Layout switching preserves live guest content | D19 | ✅ | ➖ | ➖ |
 | F28-3 | Full-height rail and safe-area page-pane geometry | D19 | ✅ | ➖ | ➖ |
@@ -149,6 +158,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
+| F35-3 | Mahjong layout embeds a playable deal | — | ✅ | ⬜ | ⬜ |
+| F35-4 | Hidden embedded Mahjong timer stays paused | — | ✅ | ⬜ | ⬜ |
+| F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
+| F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
+| F35-7 | Moving-in checklist appears on informational layouts, not Mahjong | — | ✅ | ➖ | ➖ |
+| F35-8 | Billboard keeps the moving-in checklist clear of recent sites | — | ✅ | ➖ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
@@ -157,6 +172,22 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
 | F38-1 | Explicit matching macOS 1Password fill stays bounded and transient | D26 | ⬜ | ➖ | ➖ |
+| F39-1 | Invalid certificates are rejected without a bypass | — | ✅ | ➖ | ➖ |
+| F40-1 | A selected browser profile exposes its verified open-tab session | D22 | ✅ | ⬜ | ⬜ |
+| F40-2 | Apply preserves source order, duplicates, pins, and quiet state | — | ✅ | ⬜ | ⬜ |
+| F40-3 | Source groups seed editable Named Groups without placeholders | — | ⬜ | ⬜ | ⬜ |
+| F40-4 | Source data is not read before explicit selection | D22 | ✅ | ⬜ | ⬜ |
+| F40-5 | The utility renderer receives no full URLs or source paths | D22 | ✅ | ➖ | ➖ |
+| F40-6 | A failed tab batch leaves tabs, groups, and Favorites unchanged | — | ⬜ | ⬜ | ⬜ |
+| F40-7 | A quit prompt appears only after recoverability preflight | D22 | ✅ | ⬜ | ⬜ |
+| F40-8 | A reviewed name matching an existing group merges | — | ✅ | ⬜ | ⬜ |
+| F40-9 | A stale or differently owned session cannot apply | D22 | ✅ | ➖ | ➖ |
+| F40-10 | Post-quit import requires the exact newest complete session | D22 | ✅ | ⬜ | ⬜ |
+| F40-11 | Both onboarding paths reach the same migration sheet | D22 | ✅ | ⬜ | ⬜ |
+| F40-12 | Encrypted or malformed sessions fail without credential access | D22 | ⬜ | ➖ | ➖ |
+| F40-13 | Workspace save stays separate from migration | — | ⬜ | ➖ | ➖ |
+| F40-14 | Cancel destroys the ephemeral migration session | — | ✅ | ⬜ | ⬜ |
+| F40-15 | A 500-candidate import keeps one live imported tab | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -164,7 +195,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, and `F30–F38` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F40` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised

@@ -36,6 +36,7 @@
   const pillCapture = document.getElementById('pillCapture');
   const pillCaptureMic = document.getElementById('pillCaptureMic');
   const pillCaptureCam = document.getElementById('pillCaptureCam');
+  const pillDisplayShare = document.getElementById('pillDisplayShare');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
@@ -88,6 +89,7 @@
   const PILL_ICONS = {
     back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
     forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
+    plus: '<svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg>',
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
     // Deliberately NOT an ✕ (which is what most browsers use for stop): the
     // pill's trailing cluster already ends in the close-tab ✕, so a loading
@@ -126,6 +128,14 @@
   const forwardBtn = pillButton('forward', 'Forward', () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
   pillNav.append(backBtn, forwardBtn);
 
+  const newTabShortcut = window.browserAPI.platform === 'darwin' ? '⌘T' : 'Ctrl+T';
+  const newTabBtn = pillButton('plus', `New tab (${newTabShortcut})`, () => {
+    window.browserAPI.createTab(null, { focusAddress: true });
+  });
+  newTabBtn.id = 'pillNewTab';
+  newTabBtn.classList.add('pill-shortcut');
+  newTabBtn.setAttribute('aria-label', 'New tab');
+  pillSlash.after(newTabBtn);
   const reloadBtn = pillButton('reload', 'Reload', () => {
     const t = activeTab();
     if (!t) return;
@@ -355,8 +365,8 @@
     el.textContent = '';
     if (!tab || tab.isLoading) return;
     if (tab.url.startsWith('blanc://')) {
-      // Blanc mark via CSS mask so it follows the theme — the pages' own SVG
-      // favicon always rasterizes light-scheme (see .favicon.internal).
+      // CSS supplies the reviewed internal-page artwork consistently across
+      // the resting pill, glance picker, overlay rows, and dot peeks.
       el.classList.add('internal');
     } else if (tab.favicon) {
       el.classList.add('has-icon');
@@ -713,6 +723,18 @@
     pillCapture.title = `${capTitle} — open capture controls`;
     pillCapture.setAttribute('aria-label', `${capTitle} — open capture controls`);
 
+    // Display-share chip: WINDOW-WIDE — pending picker or active share on
+    // any tab in this window, including a backgrounded sharing tab.
+    const shares = state.displayShares ?? [];
+    pillDisplayShare.hidden = shares.length === 0;
+    const shareTitle = shares.length === 1
+      ? (shares[0].pending
+        ? 'Choosing what to share'
+        : `Sharing ${shares[0].surfaceLabel || 'this screen'}`)
+      : `${shares.length} screen shares`;
+    pillDisplayShare.title = `${shareTitle} — open share controls`;
+    pillDisplayShare.setAttribute('aria-label', `${shareTitle} — open share controls`);
+
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
@@ -768,6 +790,12 @@
   pillCapture.addEventListener('click', (e) => {
     e.stopPropagation();
     const r = pillCapture.getBoundingClientRect();
+    window.browserAPI.openCapturePopover({ right: r.right });
+  });
+
+  pillDisplayShare.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillDisplayShare.getBoundingClientRect();
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
@@ -899,8 +927,12 @@
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
+    pillDisplayShare.setAttribute('aria-expanded', String(mode === 'capture'));
     glanceChange.setAttribute('aria-expanded', String(mode === 'glance'));
-    if (restoreTrigger === 'capture') pillCapture.focus();
+    if (restoreTrigger === 'capture') {
+      if (!pillCapture.hidden) pillCapture.focus();
+      else pillDisplayShare.focus();
+    }
     if (restoreTrigger === 'glance-change') glanceChange.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
     // focus() here lands in a focused document and paints the ring.
@@ -959,6 +991,8 @@
   requestAnimationFrame(reportIslandRect);
 
   window.browserAPI.onIslandProximity(({ k }) => {
-    islandPill.style.setProperty('--island-k', String(k ?? 0));
+    const next = Number(k) || 0;
+    islandPill.style.setProperty('--island-k', String(next));
+    islandPill.classList.toggle('proximity-active', next > 0);
   });
 })();

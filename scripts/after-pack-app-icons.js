@@ -10,6 +10,7 @@ const APP_ICON_ASSETS = require('../src/main/app-icon-assets');
 const { verifyPackagedAdblock } = require('./verify-packaged-adblock');
 const { packageCompliance } = require('./package-compliance');
 const { verifyPackagedCompliance } = require('./verify-packaged-compliance');
+const { verifyPackagedCaptureRuntime } = require('./verify-packaged-capture-runtime');
 
 function iconComposerColor(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex);
@@ -21,20 +22,37 @@ function iconComposerColor(hex) {
 
 const solid = (hex) => ({ solid: iconComposerColor(hex) });
 
-function createIconDocument({ background, foreground, darkForeground }) {
+function createIconDocument({
+  background,
+  darkBackground = background,
+  foreground,
+  darkForeground = foreground,
+  imageName = 'sunrise-mark.png',
+  preserveColor = true,
+  layerName = 'Sunrise',
+}) {
+  const layer = {
+    ...(!preserveColor ? {
+      'fill-specializations': [
+        { value: solid(foreground) },
+        { appearance: 'dark', value: solid(darkForeground) },
+        { appearance: 'tinted', value: solid('#FFFFFF') },
+      ],
+    } : {}),
+    glass: false,
+    'image-name': imageName,
+    name: layerName,
+  };
   return {
     fill: { 'automatic-gradient': iconComposerColor(background) },
-    groups: [{
-      layers: [{
-        'fill-specializations': [
-          { value: solid(foreground) },
-          { appearance: 'dark', value: solid(darkForeground) },
-          { appearance: 'tinted', value: solid('#FFFFFF') },
-        ],
-        glass: false,
-        'image-name': 'blanc-mark.svg',
-        name: 'Blanc mark',
+    ...(darkBackground !== background ? {
+      'fill-specializations': [{
+        appearance: 'dark',
+        value: { 'automatic-gradient': iconComposerColor(darkBackground) },
       }],
+    } : {}),
+    groups: [{
+      layers: [layer],
       shadow: { kind: 'neutral', opacity: 0.25 },
       translucency: { enabled: false, value: 0.5 },
     }],
@@ -62,6 +80,7 @@ module.exports = async function afterPackAppIcons(context) {
     )
     : path.join(context.appOutDir, 'resources');
   verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
+  verifyPackagedCaptureRuntime(path.join(resourcesDir, 'app.asar'), context.electronPlatformName);
   await packageCompliance(context);
   verifyPackagedCompliance(resourcesDir);
 
@@ -69,7 +88,6 @@ module.exports = async function afterPackAppIcons(context) {
 
   const root = path.join(__dirname, '..');
   const sourceIcon = path.join(root, 'build/app-icons/Icon.icon');
-  const markSource = path.join(sourceIcon, 'Assets/blanc-mark.svg');
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-app-icons-'));
   const outputDir = path.join(workDir, 'compiled');
 
@@ -82,7 +100,11 @@ module.exports = async function afterPackAppIcons(context) {
       const iconDir = path.join(workDir, `${definition.nativeName}.icon`);
       const assetsDir = path.join(iconDir, 'Assets');
       await fs.mkdir(assetsDir, { recursive: true });
-      await fs.copyFile(markSource, path.join(assetsDir, 'blanc-mark.svg'));
+      const imageName = definition.imageName ?? 'sunrise-mark.png';
+      await fs.copyFile(
+        path.join(sourceIcon, 'Assets', imageName),
+        path.join(assetsDir, imageName),
+      );
       await fs.writeFile(
         path.join(iconDir, 'icon.json'),
         `${JSON.stringify(createIconDocument(definition), null, 2)}\n`,

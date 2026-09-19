@@ -137,12 +137,14 @@ test('the public press page keeps its release links, indexability, and no-analyt
   // and the quiet pill rests over a miniature "billboard" start page (date +
   // clock + blocked line + favorites).
   assert.match(islandDemo, /id="pressIslandSlash"[^>]*hidden/);
+  assert.match(islandDemo, /id="pressIslandPillNewTab"/);
   assert.match(islandDemo, /id="pressIslandNewTab"/);
   assert.match(islandDemo, /id="pressIslandStart"[^>]*hidden/);
   assert.match(islandDemo, /class="demo-bb-clock"/);
   assert.match(islandDemo, /class="demo-bb-favs"/);
   assert.match(islandScript, /Search or type a URL/);
   assert.match(islandScript, /enterBlankTab/);
+  assert.match(islandScript, /#pressIslandPillNewTab/);
   assert.match(islandScript, /ads blocked this week/);
   assert.match(siteStyles, /pill-placeholder-wash/);
   assert.match(siteStyles, /\.demo-island \.pill-slash\[hidden\]/);

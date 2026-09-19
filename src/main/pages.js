@@ -19,13 +19,13 @@ const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
+const { developmentBrandAssetPath } = require('./development-brand-preview');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
@@ -42,6 +42,9 @@ function registerPagesScheme() {
  * bookmarks page). */
 function setupPages(hooks = {}) {
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
+  const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
+  const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
   // Test runs may point discovery at a throwaway synthetic home, but only in
   // an unpackaged BLANC_TEST process. Production always uses the real OS home.
   const testBrowserHome =
@@ -63,7 +66,15 @@ function setupPages(hooks = {}) {
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
     const name = pathname === '/' ? `${host}.html` : path.basename(pathname);
     if (!/^[\w.-]+$/.test(name)) return new Response('Bad request', { status: 400 });
-    return net.fetch(pathToFileURL(path.join(PAGES_DIR, name)).toString());
+    const defaultPath = path.join(PAGES_DIR, name);
+    const resource = developmentBrandAssetPath({
+      name,
+      defaultPath,
+      brandMarkPath: developmentBrandMarkPath,
+      dockIconPath: developmentDockIconPath,
+      darkDockIconPath: developmentDarkDockIconPath,
+    });
+    return net.fetch(pathToFileURL(resource).toString());
   };
 
   // The top-level `protocol` module binds only to the default session, so a
@@ -123,6 +134,15 @@ function setupPages(hooks = {}) {
     hooks.utilitySheet.setEscapeArmed?.(!!armed);
   });
 
+  // The relay review is a distinct surface from Bring Your Tabs. The latter
+  // owns blanc://tab-import/ and its richer local-session organizer.
+  handle('pages:tab-handoff:get', 'tab-handoff', () =>
+    hooks.tabHandoff?.get?.() ?? { state: 'empty' });
+  handle('pages:tab-handoff:accept', 'tab-handoff', (destination) =>
+    hooks.tabHandoff?.accept?.(destination) ?? { ok: false, error: 'unavailable' });
+  handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
+    hooks.tabHandoff?.cancel?.() ?? { ok: true });
+
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
@@ -141,10 +161,12 @@ function setupPages(hooks = {}) {
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    let file;
     try {
-      const stat = await fs.promises.stat(picked.filePaths[0]);
+      file = await fs.promises.open(picked.filePaths[0], 'r');
+      const stat = await file.stat();
       if (stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const html = await file.readFile('utf8');
       const entries = parseNetscapeBookmarks(html);
       if (!entries.length) return { error: 'empty' };
       const { added, skipped } = bookmarks.importBookmarks(entries);
@@ -152,6 +174,8 @@ function setupPages(hooks = {}) {
       return { added, skipped };
     } catch {
       return { error: 'unreadable' };
+    } finally {
+      if (file) await file.close().catch(() => {});
     }
   });
   handle('pages:bookmarks:browser-sources', ['bookmarks', 'newtab'], () => browserImport.listSources());
@@ -162,6 +186,66 @@ function setupPages(hooks = {}) {
     hooks.onDataChanged?.();
     return { added, skipped, source: read.source };
   });
+
+  // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites
+  // import. Selecting a profile reads its restorable open-tab session in
+  // main; the sheet receives only the opaque candidate projection.
+  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listOpenTabSources());
+  handle('pages:tab-import:open-source', 'tab-import', async (id, options = {}) => {
+    const isCurrent = hooks.tabImport?.beginSourceRead?.() ?? (() => false);
+    const sourceId = String(id ?? '');
+    const read = await browserImport.readOpenTabs(sourceId, {
+      afterQuit: options?.afterQuit === true,
+    });
+    if (!isCurrent()) return { error: 'session-unavailable' };
+    if (read.error) {
+      return {
+        error: read.error,
+        recoverable: read.recoverable === true,
+        recoverableTabCount: Number(read.recoverableTabCount) || 0,
+      };
+    }
+    const opened = hooks.tabImport?.openSource?.({
+      sourceKind: 'chromium',
+      sourceLabel: read.source.label,
+      readCandidates: async () => read,
+    }) ?? { error: 'session-unavailable' };
+    if (opened.error) return opened;
+    const loaded = await hooks.tabImport?.loadCandidates?.(opened.sessionId)
+      ?? { error: 'session-unavailable' };
+    if (loaded.error) return loaded;
+    return {
+      ...opened,
+      ...loaded,
+      source: read.source,
+    };
+  });
+  handle('pages:tab-import:set-selection', 'tab-import', (sessionId, selection) =>
+    hooks.tabImport?.setSelection?.(
+      String(sessionId ?? ''),
+      selection ?? {},
+    ) ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-source-groups', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestSourceGroups?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-embed', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestEmbed?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle(
+    'pages:tab-import:submit-embeddings',
+    'tab-import',
+    (sessionId, generation, matrix) => hooks.tabImport?.submitEmbeddings?.(
+      String(sessionId ?? ''),
+      String(generation ?? ''),
+      matrix,
+    ) ?? { error: 'session-unavailable' },
+  );
+  handle('pages:tab-import:apply', 'tab-import', (sessionId, request) =>
+    hooks.tabImport?.apply?.(String(sessionId ?? ''), request ?? {})
+      ?? { error: 'apply-unavailable' });
+  handle('pages:tab-import:cancel', 'tab-import', (sessionId) =>
+    hooks.tabImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
+
   handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();
@@ -201,8 +285,10 @@ function setupPages(hooks = {}) {
       supporter: record,
       patron: _patron,
       _syncMeta,
+      _syncTieBreakers,
       onePasswordEnabled,
       onePasswordAccount,
+      presentationDefaultsResetVersion,
       ...rest
     } = settings.getSettings();
     return {
@@ -221,7 +307,6 @@ function setupPages(hooks = {}) {
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
-    supporterIcons: settings.SUPPORTER_ICON_LABELS,
   }));
   handle('pages:settings:set', 'settings', (partial) => {
     const next = partial && typeof partial === 'object' ? { ...partial } : {};
@@ -273,7 +358,15 @@ function setupPages(hooks = {}) {
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', 'settings', () => sync.status());
-  handle('pages:settings:sync-enable', 'settings', (payload) => sync.enable(payload ?? {}));
+  handle('pages:settings:sync-enable', 'settings', async (payload) => {
+    const result = await sync.enable(payload ?? {});
+    // Persisted credentials complete the migration task even when the first
+    // pull failed (ok: false). The marker never clears if Sync is later off.
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
+    return result;
+  });
+  // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
+  handle('pages:settings:sync-preflight', 'settings', (payload) => sync.preflight(payload ?? {}));
   handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
   handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => sync.status()));
   // Per-device consent for publishing this device's open tabs (spec §3) —
@@ -288,8 +381,11 @@ function setupPages(hooks = {}) {
 
   // Start page (the ledger new tab): tab groups + the weekly blocked
   // counter live in main.js, reached through hooks rather than a module.
-  handle('pages:start:data', 'newtab', () => ({
+  handleEvent('pages:start:data', 'newtab', (event) => ({
     groups: hooks.startPage?.groups() ?? [],
+    // Derived on demand from the active local profile's history. Private
+    // newtabs receive an empty list from the main-owned hook.
+    topSites: hooks.startPage?.topSites?.(event.sender) ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
     // Raw per-day counts drive the tally caption ("busiest day friday");
     // the bar heights are normalized in main so the rule stays unit-tested.
@@ -303,7 +399,20 @@ function setupPages(hooks = {}) {
     // below: startPageStatus() supplies it, and the same function feeds the
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
+    // Per-tab guard: the shared status never carries profile or privacy.
+    migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
+    // A utility sheet is a separate WebContentsView layered over this tab;
+    // document.hasFocus() in the covered renderer is not a reliable signal.
+    utilitySheetVisible: hooks.startPage?.utilitySheetVisibleFor?.(event.sender) === true,
   }));
+  // Billboard asks for another bounded page only when local dismissals consume
+  // the initial candidate set. The hidden-hostname list stays in page storage
+  // and never crosses IPC.
+  handleEvent('pages:start:top-sites', 'newtab', (event, options) =>
+    hooks.startPage?.topSites?.(
+      event.sender,
+      options && typeof options === 'object' ? options : {},
+    ) ?? []);
   // The footer layout switcher. The value is enum-validated by setSettings,
   // so an unknown name is a no-op rather than an error.
   handle(
@@ -353,6 +462,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
+  // Moving-in checklist: open Settings at an allowlisted section (main owns
+  // the allowlist) and persist a one-time dismissal.
+  handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
+  handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
 
   // Standalone games invoke from their exact top-level document. The embedded
   // game has no preload authority; it posts a fixed signal to newtab.js, which

@@ -3,18 +3,40 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const sharp = require('sharp');
+const { FileMatcher } = require('app-builder-lib/out/fileMatcher');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const NEW_GEOMETRY = 'M232.18,150.8';
 const OLD_GEOMETRY = 'M153.05,123.49';
-const ICON_IDS = [
-  'paper', 'ink', 'graphite', 'default', 'midnight', 'cream',
-  'forest', 'sage', 'ember', 'plum', 'gold',
-];
+const ICON_IDS = ['sunrise', 'sunrise-dark', 'paper', 'ink'];
 
 function source(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
+
+test('packaged UI excludes retired B app icons and keeps Sunrise and Mahjong tiles', () => {
+  const pkg = JSON.parse(source('package.json'));
+  const filter = new FileMatcher(ROOT, '/unused', (value) => value, pkg.build.files).createFilter();
+  const pages = path.join(ROOT, 'src/renderer/pages');
+  const icons = fs.readdirSync(pages).filter((name) => /^icon-.*\.png$/.test(name));
+  for (const name of ['icon.svg', ...icons]) {
+    const file = path.join(pages, name);
+    const current = ['icon-sunrise.png', 'icon-sunrise-dark.png'].includes(name);
+    assert.equal(filter(file, fs.statSync(file)), current, `${name}: shipped only for current Sunrise variants`);
+  }
+  for (const name of fs.readdirSync(pages).filter((name) => name.startsWith('mahjong-'))) {
+    const file = path.join(pages, name);
+    assert.equal(filter(file, fs.statSync(file)), true, `${name}: heritage tile artwork remains packaged`);
+  }
+});
+
+test('UI code does not reference retired monogram assets or embed their geometry', () => {
+  const renderer = path.join(ROOT, 'src/renderer');
+  const retired = /(?:icon-(?:paper|ink|graphite|default|midnight|cream|forest|sage|ember|plum|gold)\.png|icon\.svg|ob-blanc-mark|M232\.18,150\.8|M153\.05,123\.49)/;
+  for (const file of fs.readdirSync(renderer, { recursive: true }).filter((name) => /\.(?:html|css|js)$/.test(name))) {
+    assert.doesNotMatch(fs.readFileSync(path.join(renderer, file), 'utf8'), retired, file);
+  }
+});
 
 async function boundsOf(input, predicate) {
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -37,7 +59,7 @@ async function boundsOf(input, predicate) {
   };
 }
 
-test('the supplied Mahjong-inspired mark is the canonical brand source', () => {
+test('the supplied B mark remains available as heritage source artwork', () => {
   const canonical = source('assets/blanc-mark.svg');
   assert.match(canonical, /viewBox="0 0 290\.91 344"/);
   assert.match(canonical, new RegExp(NEW_GEOMETRY.replace('.', '\\.')));
@@ -49,11 +71,9 @@ test('the supplied Mahjong-inspired mark is the canonical brand source', () => {
   assert.match(pkg.scripts['substrate:check'], /brand:check/);
 });
 
-test('every active vector surface uses the new geometry as transparent cutouts', () => {
+test('archived monogram vectors preserve their supplied geometry as transparent cutouts', () => {
   const generated = [
     'src/renderer/pages/icon.svg',
-    'site/public/favicon.svg',
-    'site/src/components/BrandMark.astro',
     'build/app-icons/Icon.icon/Assets/blanc-mark.svg',
   ];
   for (const relativePath of generated) {
@@ -65,11 +85,13 @@ test('every active vector surface uses the new geometry as transparent cutouts',
   }
 
   const onboarding = source('src/renderer/pages/newtab.html');
-  assert.equal((onboarding.match(/class="ob-blanc-mark"/g) ?? []).length, 2);
+  assert.doesNotMatch(onboarding, /ob-blanc-mark|icon\.svg/);
+  assert.equal((onboarding.match(/srcset="icon-sunrise-dark\.png"/g) ?? []).length, 2);
+  assert.equal((onboarding.match(/src="icon-sunrise\.png"/g) ?? []).length, 2);
   assert.doesNotMatch(onboarding, new RegExp(OLD_GEOMETRY.replace('.', '\\.')));
 });
 
-test('all app icon variants and platform copies are generated from the wider mark', async () => {
+test('current and archived icon artwork retain their canonical identity sources', async () => {
   for (const id of ICON_IDS) {
     assert.equal(fs.existsSync(path.join(ROOT, `src/renderer/pages/icon-${id}.png`)), true, id);
     assert.equal(fs.existsSync(path.join(ROOT, `export/app-icons-1024-square/icon-${id}-1024.png`)), true, `${id} export`);
@@ -80,13 +102,51 @@ test('all app icon variants and platform copies are generated from the wider mar
   assert.ok(mark.width >= 455 && mark.width <= 465, `Paper mark width is ${mark.width}px`);
   assert.ok(mark.height >= 540 && mark.height <= 548, `Paper mark height is ${mark.height}px`);
 
-  const paperBytes = fs.readFileSync(paper);
-  assert.deepEqual(fs.readFileSync(path.join(ROOT, 'build/icon.png')), paperBytes);
+  const platformSource = fs.readFileSync(path.join(ROOT, 'assets/sunrise-app-icon.png'));
+  const platformIcon = fs.readFileSync(path.join(ROOT, 'build/icon.png'));
+  assert.deepEqual(platformIcon, platformSource);
   assert.deepEqual(
-    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-paper.png')),
-    paperBytes,
+    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png')),
+    platformIcon,
   );
-  assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-paper.ico')).size > 10_000);
+  const appIconCatalog = JSON.parse(source('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/Contents.json'));
+  assert.equal(appIconCatalog.images[0].filename, 'icon-sunrise.png');
+  assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-sunrise.ico')).size > 10_000);
+});
+
+test('internal pages use Sunrise artwork instead of the retired B favicon', () => {
+  const pages = [
+    'bookmarks', 'downloads', 'error', 'history',
+    'mahjong', 'newtab', 'settings', 'shortcuts', 'tab-handoff', 'tab-import',
+  ];
+  for (const page of pages) {
+    const html = source(`src/renderer/pages/${page}.html`);
+    assert.match(html, /<link rel="icon" type="image\/png" href="icon-sunrise\.png" \/>/, page);
+    assert.doesNotMatch(html, /<link rel="icon"[^>]*href="icon\.svg"/, page);
+  }
+
+  const chromeStyles = source('src/renderer/styles.css');
+  assert.match(chromeStyles, /\.favicon\.internal\s*\{[^}]*mask:\s*url\("pages\/sunrise-favicon-mark\.png"\)/);
+  assert.doesNotMatch(chromeStyles, /\.favicon\.internal\s*\{[^}]*url\("pages\/icon\.svg"\)/);
+  assert.match(chromeStyles, /#islandPill #pillFavicon\.internal\s*\{[^}]*display:\s*none/);
+  assert.match(chromeStyles, /#islandPill \.dot-peek\.internal::after\s*\{[^}]*display:\s*none/);
+});
+
+test('the tiny monochrome Sunrise omits every water line beneath the sun', async () => {
+  const file = path.join(ROOT, 'src/renderer/pages/sunrise-favicon-mark.png');
+  const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let widestOpaqueRun = 0;
+  for (let y = 0; y < info.height; y += 1) {
+    let run = 0;
+    for (let x = 0; x < info.width; x += 1) {
+      const alpha = data[((y * info.width) + x) * info.channels + 3];
+      run = alpha > 24 ? run + 1 : 0;
+      widestOpaqueRun = Math.max(widestOpaqueRun, run);
+    }
+  }
+  assert.equal(info.width, 680);
+  assert.equal(info.height, 680);
+  assert.ok(widestOpaqueRun < 450, `unexpected horizontal water line spans ${widestOpaqueRun}px`);
 });
 
 test('website identity, OpenGraph, press, and retained social outputs are all covered', () => {
@@ -127,4 +187,73 @@ test('website identity, OpenGraph, press, and retained social outputs are all co
   assert.match(source('marketing/article-assets/ai-clean-browser/compose.py'), /src\/renderer\/pages\/icon-ink\.png/);
   assert.match(source('marketing/social/quiet-tabs-carousel/render.js'), /site\/public\/logo\.png/);
   assert.match(source('marketing/social/tab-count-confession/render.js'), /site\/public\/logo\.png/);
+});
+
+async function regionBounds(relativePath, region, predicate) {
+  const buffer = await sharp(path.join(ROOT, relativePath)).extract(region).png().toBuffer();
+  return boundsOf(buffer, predicate);
+}
+
+const isInk = (r, g, b, a) => a > 24 && ((r + g + b) / 3) < 128;
+
+test('the website brand component paints the Sunrise silhouette in currentColor', () => {
+  const component = source('site/src/components/BrandMark.astro');
+  assert.match(component, /data:image\/png;base64,/, 'embeds the raster silhouette');
+  assert.match(component, /mask/, 'paints through the alpha as a mask');
+  assert.match(component, /currentColor/, 'takes the page ink');
+  assert.doesNotMatch(component, new RegExp(NEW_GEOMETRY.replace('.', '\\.')), 'drops the retired B');
+  assert.doesNotMatch(component, /blanc-cutout/);
+});
+
+test('the website favicon carries the Sunrise silhouette on the white tile', () => {
+  const favicon = source('site/public/favicon.svg');
+  assert.match(favicon, /<rect width="256" height="256" rx="48" fill="#fff"\/>/, 'keeps the rounded white tile');
+  assert.match(favicon, /<image [^>]*href="data:image\/png;base64,/, 'embeds the raster silhouette');
+  assert.doesNotMatch(favicon, new RegExp(NEW_GEOMETRY.replace('.', '\\.')), 'drops the retired B');
+});
+
+test('logo.png keeps the press-kit geometry with the square Sunrise mark', async () => {
+  const mark = await boundsOf(path.join(ROOT, 'site/public/logo.png'), isInk);
+  assert.ok(mark.height >= 805 && mark.height <= 830, `mark height is ${mark.height}px (80% of 1024, soft edges)`);
+  assert.ok(mark.width >= 780, `Sunrise is near-square; the B was ~697px wide, got ${mark.width}px`);
+});
+
+test('the launch cards carry the square Sunrise mark at the old placements', async () => {
+  const v2 = await regionBounds('site/public/press/blanc-1.0-launch-card-v2.png', { left: 121, top: 110, width: 62, height: 72 }, isInk);
+  assert.ok(v2.height >= 60 && v2.height <= 64, `v2 mark height ${v2.height}px`);
+  assert.ok(v2.width >= 58, `v2 mark is near-square, got ${v2.width}px wide`);
+  const v3 = await regionBounds('site/public/press/blanc-1.0-launch-card-v3.png', { left: 111, top: 93, width: 36, height: 43 }, isInk);
+  assert.ok(v3.height >= 34 && v3.height <= 38, `v3 mark height ${v3.height}px`);
+  assert.ok(v3.width >= 33, `v3 mark is near-square, got ${v3.width}px wide`);
+});
+
+test('the site sizes the square mark everywhere the portrait B was sized', () => {
+  const css = source('site/src/styles/site.css');
+  assert.match(css, /\.site-brand-mark \{ width: 24px; height: 24px;/);
+  assert.match(css, /\.site-brand-mark \{ width: 28px; height: 28px;/);
+  assert.match(css, /\.legal-home \.mark \{ width: 24px; height: 24px;/);
+  assert.match(css, /\.press-brand-mark \{ display: block; width: 21px; height: 21px;/);
+  for (const selector of ['\\.site-brand-mark', '\\.legal-home \\.mark', '\\.press-brand-mark']) {
+    const rules = [...css.matchAll(new RegExp(`${selector} \\{([^}]*)\\}`, 'g'))];
+    assert.ok(rules.length > 0, `${selector} is styled`);
+    for (const [, body] of rules) {
+      const width = body.match(/width: (\\d+)px/)?.[1];
+      const height = body.match(/height: (\\d+)px/)?.[1];
+      assert.equal(width, height, `${selector} is square, got ${body.trim()}`);
+    }
+  }
+});
+
+test('the demo island hides the favicon slot on internal pages like the shipped app', () => {
+  const css = source('site/src/styles/site.css');
+  assert.match(css, /\.demo-island \.pill-fav\.internal \{ display: none;/);
+  assert.doesNotMatch(css, /\.demo-island \.pill-fav\.internal \{[^}]*logo\.png/);
+});
+
+test('the site icon links carry a version query so cached favicons refetch after a mark change', () => {
+  const layout = source('site/src/layouts/BaseLayout.astro');
+  for (const file of ['favicon.ico', 'favicon.svg', 'favicon-32x32.png', 'favicon-16x16.png', 'apple-touch-icon.png']) {
+    assert.match(layout, new RegExp('href="/' + file.replace('.', '\\.') + '\\?v=[A-Za-z0-9._-]+"'), file + ' link is versioned');
+  }
+  assert.doesNotMatch(layout, /href="\/favicon[^"?]*"/, 'no unversioned favicon link remains');
 });

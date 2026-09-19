@@ -1,0 +1,14 @@
+{
+  "revision": "sunrise-r6",
+  "imagesLoaded": 13,
+  "imagesTotal": 13,
+  "videosReady": 4,
+  "headlineTrial": {
+    "face": "Newsreader",
+    "previousWeight": 400,
+    "weight": 500,
+    "opticalSize": 72
+  },
+  "verification": "Font weight axis verified. All rendered text passed safe-width checks; comparison visually inspected. All MP4 decode checks passed. Live preview refreshed with regular/medium comparison.",
+  "publicationApproval": false
+}

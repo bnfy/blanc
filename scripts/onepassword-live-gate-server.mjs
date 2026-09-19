@@ -137,34 +137,36 @@ function send(response, statusCode, body, method = 'GET') {
   response.end(method === 'HEAD' ? undefined : payload);
 }
 
+export function handleGateRequest(request, response) {
+  const method = String(request.method || '').toUpperCase();
+  if (method !== 'GET' && method !== 'HEAD') {
+    request.resume();
+    send(response, 405, '<!doctype html><title>Method not allowed</title>', method);
+    return;
+  }
+
+  const hostname = hostnameFromHeader(request.headers.host);
+  const allowed = hostname === LOOPBACK_HOST || hostname === 'localhost'
+    || TEST_HOSTS.includes(hostname);
+  if (!allowed) {
+    send(response, 421, '<!doctype html><title>Misdirected request</title>', method);
+    return;
+  }
+
+  const requestUrl = new URL(request.url || '/', `http://${request.headers.host}`);
+  const variant = requestUrl.pathname === '/signup' ? 'signup'
+    : requestUrl.pathname === '/navigated' ? 'navigated'
+      : requestUrl.pathname === '/' ? 'index'
+        : requestUrl.pathname === '/login' ? 'login' : null;
+  if (!variant) {
+    send(response, 404, '<!doctype html><title>Not found</title>', method);
+    return;
+  }
+  send(response, 200, buildPage({ variant, host: request.headers.host }), method);
+}
+
 export function createGateServer() {
-  return http.createServer((request, response) => {
-    const method = String(request.method || '').toUpperCase();
-    if (method !== 'GET' && method !== 'HEAD') {
-      request.resume();
-      send(response, 405, '<!doctype html><title>Method not allowed</title>', method);
-      return;
-    }
-
-    const hostname = hostnameFromHeader(request.headers.host);
-    const allowed = hostname === LOOPBACK_HOST || hostname === 'localhost'
-      || TEST_HOSTS.includes(hostname);
-    if (!allowed) {
-      send(response, 421, '<!doctype html><title>Misdirected request</title>', method);
-      return;
-    }
-
-    const requestUrl = new URL(request.url || '/', `http://${request.headers.host}`);
-    const variant = requestUrl.pathname === '/signup' ? 'signup'
-      : requestUrl.pathname === '/navigated' ? 'navigated'
-        : requestUrl.pathname === '/' ? 'index'
-          : requestUrl.pathname === '/login' ? 'login' : null;
-    if (!variant) {
-      send(response, 404, '<!doctype html><title>Not found</title>', method);
-      return;
-    }
-    send(response, 200, buildPage({ variant, host: request.headers.host }), method);
-  });
+  return http.createServer(handleGateRequest);
 }
 
 export async function startGateServer({ port = DEFAULT_PORT } = {}) {

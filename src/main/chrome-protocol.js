@@ -2,6 +2,8 @@
 
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { developmentBrandAssetPath } = require('./development-brand-preview');
+const { captureRuntimeForPlatform } = require('./capture-platform');
 
 const CHROME_SCHEME = 'blanc-chrome';
 // No `persist:` prefix: privileged UI state lives in an in-memory session that
@@ -11,6 +13,7 @@ const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
+const CHROME_DISPLAY_CAPTURE_HELPER_URL = `${CHROME_SCHEME}://display-capture-helper/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 
 // Chrome is intentionally much smaller than the internal-pages surface. Each
@@ -20,7 +23,7 @@ const RENDERER_DIR = path.join(__dirname, '../renderer');
 const SHARED_ASSETS = new Set([
   '/styles.css',
   '/panel-left.svg',
-  '/pages/icon.svg',
+  '/pages/sunrise-favicon-mark.png',
   '/pages/inter-latin.woff2',
   '/pages/jetbrains-mono-latin.woff2',
   // Pure keyboard-gate logic, no IPC and no application data — the chrome
@@ -36,6 +39,7 @@ const HOST_ASSETS = new Map([
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
+    ['/workspace-ui.js', 'workspace-ui.js'],
   ])],
   ['permission', new Map([
     ['/', 'permission.html'],
@@ -46,9 +50,13 @@ const HOST_ASSETS = new Map([
     ['/fill-status.js', 'fill-status.js'],
     ['/fill-status-copy.js', 'fill-status-copy.js'],
   ])],
+  ['display-capture-helper', new Map([
+    ['/', 'display-capture-helper.html'],
+    ['/display-capture-helper.js', 'display-capture-helper.js'],
+  ])],
 ]);
 
-function chromeResourcePath(rawUrl) {
+function chromeResourcePath(rawUrl, platform = process.platform) {
   let parsed;
   try {
     parsed = new URL(rawUrl);
@@ -69,19 +77,30 @@ function chromeResourcePath(rawUrl) {
   const relative = hostAssets.get(parsed.pathname)
     ?? (SHARED_ASSETS.has(parsed.pathname) ? parsed.pathname.slice(1) : null);
   if (!relative) return null;
+  if (parsed.hostname === 'display-capture-helper' && relative === 'display-capture-helper.js') {
+    return path.join(RENDERER_DIR, captureRuntimeForPlatform(platform).helper);
+  }
   return path.join(RENDERER_DIR, relative);
 }
 
-function createChromeProtocolHandler({ net }) {
+function createChromeProtocolHandler({ net, developmentBrandMarkPath = null }) {
   return (request) => {
-    const resource = chromeResourcePath(request.url);
-    if (!resource) return new Response('Not found', { status: 404 });
+    const defaultPath = chromeResourcePath(request.url);
+    if (!defaultPath) return new Response('Not found', { status: 404 });
+    const resource = developmentBrandAssetPath({
+      name: path.basename(defaultPath),
+      defaultPath,
+      brandMarkPath: developmentBrandMarkPath,
+    });
     return net.fetch(pathToFileURL(resource).href);
   };
 }
 
-function setupChromeProtocol({ session, net }) {
-  session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({ net }));
+function setupChromeProtocol({ session, net, developmentBrandMarkPath = null }) {
+  session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({
+    net,
+    developmentBrandMarkPath,
+  }));
 }
 
 module.exports = {
@@ -91,6 +110,7 @@ module.exports = {
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
   createChromeProtocolHandler,
   setupChromeProtocol,

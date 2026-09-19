@@ -5,6 +5,7 @@
 Security fixes are shipped through the newest published Blanc release. Older
 releases are not maintained as separate support branches. Because Blanc embeds
 Chromium, staying on the current Blanc release is part of its security model.
+The full support scope and duration are in [SUPPORT.md](SUPPORT.md).
 
 ## Report a vulnerability
 
@@ -31,6 +32,23 @@ These are targets rather than guarantees: Chromium or platform dependencies,
 coordinated disclosure, and safe update validation can change the timeline. We
 will keep the reporter informed, coordinate disclosure, and credit them if
 requested after affected users have a safe update.
+
+## Public vulnerability record
+
+After a coordinated fix is available, Blanc publishes confirmed
+vulnerabilities in [GitHub Security Advisories](https://github.com/bnfy/blanc/security/advisories)
+and identifies the affected and fixed versions, impact, and update guidance.
+The corresponding [GitHub release](https://github.com/bnfy/blanc/releases) and
+[release notes](docs/press/release-notes/) link or summarize the advisory when
+users need to take action. If an investigation finds that a report does not
+affect a released Blanc version, private reporter details remain private and no
+advisory is required.
+
+The public [security and privacy assessment](security_privacy_audit_2026-08-12.md)
+records the security findings discovered before this publication policy was
+adopted, including their scope and remediation. Current architecture, threats,
+controls, and residual risks are maintained in the
+[security assessment](docs/security-assessment.md).
 
 ## Scope and safe harbor
 

@@ -7,7 +7,6 @@
   const demo = document.getElementById('demoIsland');
   const heroMessageEl = document.getElementById('demoHeroMessage');
   const headlineEl = document.getElementById('demoHeadline');
-  const subtextEl = document.getElementById('demoSubtext');
   const dotsEl = document.getElementById('demoDots');
   const favEl = document.getElementById('demoFav');
   const domainEl = document.getElementById('demoDomain');
@@ -34,6 +33,49 @@
   const workspaceSwitcherEl = document.getElementById('demoWorkspaceSwitcher');
   const tabContextEl = document.getElementById('demoTabContext');
   const cursorEl = document.getElementById('demoCursor');
+  const frame = document.getElementById('demoFrame');
+  const mount = document.getElementById('demoMount');
+  const viewer = document.getElementById('demoViewer');
+  const viewerCanvas = document.getElementById('demoViewerCanvas');
+  const viewerHeadline = document.getElementById('demoViewerHeadline');
+  const fitButton = document.getElementById('demoViewerFit');
+  const actualButton = document.getElementById('demoViewerActual');
+  const enlargeButton = document.getElementById('demoEnlarge');
+  let actualSize = false;
+
+  // Only the outer presentation scales. All scene geometry stays in the
+  // desktop canvas's coordinates, including values measured during a morph.
+  function canvasPoint(clientX, clientY) {
+    const rect = stage.getBoundingClientRect();
+    const scale = rect.width / stage.offsetWidth || 1;
+    return {
+      x: (clientX - rect.left) / scale - stage.clientLeft,
+      y: (clientY - rect.top) / scale - stage.clientTop,
+    };
+  }
+
+  function canvasRect(element) {
+    const rect = element.getBoundingClientRect();
+    const topLeft = canvasPoint(rect.left, rect.top);
+    const bottomRight = canvasPoint(rect.right, rect.bottom);
+    return {
+      left: topLeft.x, top: topLeft.y,
+      right: bottomRight.x, bottom: bottomRight.y,
+      width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y,
+    };
+  }
+
+  function fitCanvas() {
+    const width = stage.offsetWidth;
+    const height = parseFloat(getComputedStyle(stage).height);
+    const availableWidth = viewer.open ? viewerCanvas.clientWidth : mount.clientWidth;
+    const availableHeight = viewer.open ? viewerCanvas.clientHeight : Infinity;
+    const scale = viewer.open && actualSize ? 1 : Math.min(1, availableWidth / width, availableHeight / height);
+    frame.style.width = `${width * scale}px`;
+    frame.style.setProperty('--demo-scale', String(scale));
+    frame.style.setProperty('--viewer-frame-top', `${viewer.open && !actualSize ? Math.max(0, (availableHeight - height * scale) / 2) : 0}px`);
+    queueProximity();
+  }
 
   // The blank-tab beat renders a miniature of the "billboard" start page. The
   // date, clock, and meridiem use the app's own formats; the blocked line is
@@ -72,10 +114,9 @@
       return;
     }
 
-    const stageRect = stage.getBoundingClientRect();
     if (cursorEl.hidden) {
-      cursorEl.style.setProperty('--cursor-x', `${stageRect.width * 0.78}px`);
-      cursorEl.style.setProperty('--cursor-y', `${stageRect.height * 0.78}px`);
+      cursorEl.style.setProperty('--cursor-x', `${stage.clientWidth * 0.78}px`);
+      cursorEl.style.setProperty('--cursor-y', `${stage.clientHeight * 0.78}px`);
       cursorEl.hidden = false;
       void cursorEl.offsetWidth;
       cursorEl.classList.add('visible');
@@ -88,12 +129,11 @@
         cursorEl.classList.remove('visible');
         return;
       }
-      const targetRect = target.getBoundingClientRect();
-      const currentStageRect = stage.getBoundingClientRect();
-      const targetX = targetRect.left - currentStageRect.left + targetRect.width * (cue.x ?? 0.5);
-      const targetY = targetRect.top - currentStageRect.top + targetRect.height * (cue.y ?? 0.5);
-      const x = Math.max(4, Math.min(currentStageRect.width - 24, targetX));
-      const y = Math.max(4, Math.min(currentStageRect.height - 30, targetY));
+      const targetRect = canvasRect(target);
+      const targetX = targetRect.left + targetRect.width * (cue.x ?? 0.5);
+      const targetY = targetRect.top + targetRect.height * (cue.y ?? 0.5);
+      const x = Math.max(4, Math.min(stage.clientWidth - 24, targetX));
+      const y = Math.max(4, Math.min(stage.clientHeight - 30, targetY));
       cursorEl.style.setProperty('--cursor-x', `${Math.round(x)}px`);
       cursorEl.style.setProperty('--cursor-y', `${Math.round(y)}px`);
       if (cue.click || cue.drag || cue.rightClick) {
@@ -122,38 +162,26 @@
 
   const smoothstep = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 
-  // The pill's on-screen box. .demo-island's own border box is the pill's
-  // untransformed one — a transform on a child never changes its parent's box,
-  // which is exactly what makes it a stable reference — so the hero's base
-  // presentation scale (--pill-scale, origin 50% 0%) is folded back in by hand.
-  // The proximity scale is deliberately left out: the app measures the
-  // untransformed pill too, and including it here would feed the pill's own
-  // growth back into the next frame's distance.
+  // The pill's untransformed box is the stable proximity reference. Including
+  // its own 2% reaction here would feed growth back into the next frame.
   function pillBox() {
-    const r = demo.getBoundingClientRect();
-    const s = parseFloat(getComputedStyle(demo).getPropertyValue('--pill-scale')) || 1;
-    const width = r.width * s;
-    const height = r.height * s;
-    const left = r.left + (r.width - width) / 2;
-    return { left, top: r.top, right: left + width, bottom: r.top + height, width, height };
+    return canvasRect(demo);
   }
 
   function applyProximity() {
     proxFrame = null;
     let k = 0;
-    let lean = 0;
     // Nothing moves while the panel is open or the page has lost the cursor —
     // the app holds just as still when it is not the focused application.
-    if (cursor && !reduceMotion.matches && !panelOpen) {
+    if (cursor && !reduceMotion.matches && !paused && !panelOpen) {
       const r = pillBox();
-      const dx = Math.max(r.left - cursor.x, 0, cursor.x - r.right);
-      const dy = Math.max(r.top - cursor.y, 0, cursor.y - r.bottom);
+      const localCursor = canvasPoint(cursor.x, cursor.y);
+      const dx = Math.max(r.left - localCursor.x, 0, localCursor.x - r.right);
+      const dy = Math.max(r.top - localCursor.y, 0, localCursor.y - r.bottom);
       k = smoothstep(1 - Math.min(Math.hypot(dx, dy), PROX_RANGE) / PROX_RANGE);
-      const offset = (cursor.x - (r.left + r.width / 2)) / (r.width / 2 + PROX_RANGE);
-      lean = Math.max(-1, Math.min(1, offset)) * k;
     }
     demo.style.setProperty('--island-k', k.toFixed(4));
-    demo.style.setProperty('--island-lean', lean.toFixed(4));
+    demo.classList.toggle('proximity-active', k > 0);
   }
 
   function queueProximity() {
@@ -179,7 +207,7 @@
   let morphTimer = null;
 
   function setPanelOpen(open) {
-    if (panelOpen === open) return;
+    if (panelOpen === open && !paused && !reduceMotion.matches) return;
     panelOpen = open;
     clearTimeout(morphTimer);
     panelEl.classList.remove('morph-start', 'morph-run', 'retracting');
@@ -187,17 +215,16 @@
     panelEl.style.height = '';
     panelEl.style.borderRadius = '';
 
-    if (reduceMotion.matches) {
+    if (reduceMotion.matches || paused) {
       demo.classList.toggle('open', open);
       queueProximity();
       return;
     }
 
     const pill = pillBox();
-    // The pill's *used* corner radius: 999px on a box this short resolves to
-    // half its height. Travelling from that to the panel's own 18px is a
-    // movement of about a pixel — the corner should barely register.
-    const pillRadius = pill.height / 2;
+    // The native Island morphs from the canonical 17px resting corner to the
+    // panel's 18px corner rather than resolving a stadium radius from height.
+    const pillRadius = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--island-resting-radius')) || 17;
     const panelRadius = getComputedStyle(panelEl).borderTopLeftRadius;
 
     if (open) {
@@ -260,27 +287,17 @@
     nine:     { title: 'Apple reports Q3 2026 earnings: revenue up 16% [Charts]', domain: '9to5mac.com', fav: '9to5mac.com', shield: 4, shot: '9to5mac' },
     cnet:     { title: 'CNET | Product reviews, tech news & more', domain: 'cnet.com', fav: 'cnet.com', shield: 18, shot: 'cnet-before' },
     // A blank tab. No domain puts the pill in placeholder mode: the prompt
-    // label, the Blanc-mark favicon, the "/" chip, and no shield (the app
-    // hides it entirely on internal pages) — matching the real app's state.
+    // label, an empty favicon slot, the "/" chip, and no shield (since 1.12.0
+    // the app hides both on internal pages) — matching the real app's state.
     newtab:   { title: 'New Tab',   domain: '',                fav: null,           shield: 0, internal: true },
   };
 
   const ICON_BASE = '/favicons/';
   const favStyle = (t) => t.fav ? `background-image:url('${ICON_BASE}${t.fav}.ico')` : '';
 
-  /* ---- real page renders for the tabs a scene can land on ----
-     Desktop and mobile layouts are pre-captured and bundled under
-     site/shots/{desktop,mobile}/ rather than pulled live. The live services
-     were unreliable in both directions: mobile-viewport requests 403'd, and a
-     live desktop render silently drifts (and letterboxes) when a site
-     redesigns. Bundling ships a controlled crop that always loads instantly;
-     until an image loads the skeleton bars stay visible. */
+  /* Bundled desktop page captures stay identical at every presentation size.
+     A phone scales the complete desktop window, never the website inside it. */
   const shotEl = document.getElementById('demoShot');
-  // Which render set to use tracks the SAME 560px breakpoint as the compact-
-  // pill CSS, and stays reactive (change listener below) so a rotation across
-  // it never leaves the pill and its background render from different modes.
-  const mobileMq = window.matchMedia('(max-width: 560px)');
-  let MOBILE = mobileMq.matches;
   // Sampled top-edge color of each bundled render, so the island's top strip
   // blends into the page below it (the CSS reads --demo-strip-bg). A scene with
   // no bundled shot falls back to the theme surface (matching the skeleton).
@@ -292,7 +309,7 @@
   const shots = {}; // id -> { src, ready }
   let currentShotId = null;
 
-  const shotSrc = (id) => '/shots/' + (MOBILE ? 'mobile' : 'desktop') + '/' + id + '.jpg';
+  const shotSrc = (id) => '/shots/desktop/' + id + '.jpg';
   const tabShotId = (id) => TABS[id]?.shot || id;
 
   function preloadShot(id) {
@@ -303,20 +320,6 @@
     img.onload = () => { rec.src = src; rec.ready = true; showShot(currentShotId); };
     img.src = src;
   }
-
-  // Crossing the 560px breakpoint (mainly a phone rotation) swaps the desktop
-  // renders for the mobile ones and vice versa. Drop the cached other-mode
-  // shots and refresh only the visible render; later scenes stay on-demand so
-  // a rotation never triggers a second full screenshot download batch.
-  mobileMq.addEventListener('change', (e) => {
-    MOBILE = e.matches;
-    Object.keys(shots).forEach((id) => delete shots[id]);
-    showShot(currentShotId);
-    if (glanceModeVisible) {
-      glanceShotEl.src = shotSrc(tabShotId(glanceTabId));
-      layoutDemoGlance();
-    }
-  });
 
   function showShot(id) {
     currentShotId = id;
@@ -371,6 +374,7 @@
       const glanceLeft = primaryWidth + divider;
       glanceEl.dataset.direction = 'horizontal';
       demo.style.left = `${Math.round(primaryWidth / 2)}px`;
+      demo.style.maxWidth = `${Math.max(0, primaryWidth - 24)}px`;
       Object.assign(shotEl.style, { left: '0px', top: `${pageY}px`, width: `${primaryWidth}px`, height: `${pageHeight}px` });
       Object.assign(glanceHeaderEl.style, { left: `${primaryWidth}px`, top: '0px', width: `${width - primaryWidth}px`, height: `${pageY}px` });
       Object.assign(glanceDividerEl.style, { left: `${primaryWidth}px`, top: `${pageY}px`, width: `${divider}px`, height: `${pageHeight}px` });
@@ -386,6 +390,7 @@
     const glanceTop = headerTop + stackedHeader;
     glanceEl.dataset.direction = 'vertical';
     demo.style.left = `${Math.round(width / 2)}px`;
+    demo.style.maxWidth = `${Math.max(0, width - 24)}px`;
     Object.assign(shotEl.style, { left: '0px', top: `${pageY}px`, width: `${width}px`, height: `${primaryHeight}px` });
     Object.assign(glanceDividerEl.style, { left: '0px', top: `${dividerTop}px`, width: `${width}px`, height: `${divider}px` });
     Object.assign(glanceHeaderEl.style, { left: '0px', top: `${headerTop}px`, width: `${width}px`, height: `${stackedHeader}px` });
@@ -399,6 +404,7 @@
     if (!visible) {
       for (const prop of ['left', 'top', 'width', 'height']) shotEl.style.removeProperty(prop);
       demo.style.removeProperty('left');
+      demo.style.removeProperty('max-width');
       return;
     }
     setGlanceTab(tab);
@@ -645,15 +651,11 @@
     const show = () => {
       const target = listEl.querySelector(`[data-demo-tab="${menu.tab}"]`);
       if (!target) return;
-      const stageRect = stage.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const mobile = stage.clientWidth <= 560;
-      const menuWidth = mobile
-        ? (menu.mode === 'root' ? 128 : 242)
-        : (menu.mode === 'root' ? 202 : 370);
-      const menuHeight = mobile ? 154 : (menu.inactive ? 370 : 322);
-      const left = Math.max(8, Math.min(stage.clientWidth - menuWidth - 8, targetRect.left - stageRect.left + 110));
-      const top = Math.max(8, Math.min(stage.clientHeight - menuHeight - 8, targetRect.top - stageRect.top - 5));
+      const targetRect = canvasRect(target);
+      const menuWidth = menu.mode === 'root' ? 202 : 370;
+      const menuHeight = menu.inactive ? 370 : 322;
+      const left = Math.max(8, Math.min(stage.clientWidth - menuWidth - 8, targetRect.left + 110));
+      const top = Math.max(8, Math.min(stage.clientHeight - menuHeight - 8, targetRect.top - 5));
       tabContextEl.innerHTML = contextMenuMarkup(menu);
       tabContextEl.style.left = `${Math.round(left)}px`;
       tabContextEl.style.top = `${Math.round(top)}px`;
@@ -792,7 +794,7 @@
 
     const t = TABS[current];
     // No domain = the app's placeholder mode (1.6.0): the prompt label with
-    // its wash, the "/" chip, the Blanc-mark favicon, and no shield at all —
+    // its wash, the "/" chip, a hidden favicon slot (1.12.0), and no shield at all —
     // internal pages hide the shield entirely, unlike a protected site with
     // zero blocked (which keeps a quiet shield).
     const blank = !t.domain;
@@ -822,7 +824,7 @@
 
   function setHeroMessage(scene) {
     headlineEl.textContent = scene.headline;
-    subtextEl.textContent = scene.subtext;
+    viewerHeadline.textContent = scene.headline;
     heroMessageEl.classList.remove('scene-change');
     void heroMessageEl.offsetWidth; // restart the quiet message transition
     heroMessageEl.classList.add('scene-change');
@@ -863,40 +865,40 @@
   // H2 messages can stay benefit-led while still pairing Blanc's feature names
   // with the plain-language terms a new visitor is likely to recognize.
   const SCENES = [
-    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'Your browser controls,\nin one floating island.', subtext: 'Blanc keeps tabs, search and commands together so the page stays in front.' },
-    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'Scroll with the page\nstill in front.', subtext: 'The island stays fixed, then gently meets you when the cursor moves close.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'One floating island holds your tabs, search and browser commands, so the page stays in front.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'The island stays fixed while you scroll, then meets you when the cursor moves close.' },
 
     // Open Glance as the direct result of the staged click, then leave the
     // completed split view on screen long enough to register before the next
     // chapter moves the cursor to the divider.
-    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Open two tabs side by side\nwith Glance.', subtext: 'Watch Netflix while the page you were reading stays open, then resize or swap either side.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Resize your\nGlance split view.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Make either tab\nthe main page.', subtext: 'Swap their roles instantly without closing a tab or losing its place.' },
+    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Open two tabs side by side with Glance: watch Netflix while the page you were reading stays open.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Drag the divider to resize the Glance split view until the balance feels right.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Make either tab the main page, swapping roles without closing a tab or losing its place.' },
 
     // The blocker now proves the outcome instead of only explaining the
     // popover. First show the ad-heavy page with protection disabled, then
     // click the real per-site switch and reload into the clean reflowed page.
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page,\nbefore Blanc.', subtext: 'The page is competing with three separate ad placements.', afterAction: { headline: 'Built-in ad blocking,\none click away.', subtext: 'Use the Blanc Blocker shield to control ads and known trackers for the current site.' } },
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'Block ads and\nknown trackers.', subtext: 'One per-site switch reloads the page with ads and known trackers blocked.', afterAction: { headline: 'The page,\nwithout the ad layer.', subtext: 'Ad slots collapse and the story returns to the foreground.' } },
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page before Blanc, competing with three separate ad placements.', afterAction: { headline: 'Built-in ad blocking, one click away: the Blanc Blocker shield controls ads and known trackers for the current site.' } },
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'One per-site switch reloads the page with ads and known trackers blocked.', afterAction: { headline: 'Without the ad layer, the ad slots collapse and the story returns to the foreground.' } },
 
     // The blank-tab beat uses the app's real placeholder state. One mixed
     // search replaces the old duplicate tab-search stories.
-    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Search tabs, history and\nbrowser commands.', subtext: 'Type a slash to browse Blanc’s commands, or search open tabs, groups, Favorites and history.' },
-    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse every\nbrowser command.', subtext: 'Scroll the directory or start typing to narrow it to exactly what you need.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'One field searches\nyour whole session.', subtext: 'Open tabs, tab groups, Favorites and history all answer from the same input.' },
-    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Enter switches.\nThe page returns.', subtext: 'Blanc gets the interface out of the way as soon as you choose where to go.' },
+    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Type a slash to search browser commands, or search open tabs, groups, Favorites and history.' },
+    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse every browser command, or start typing to narrow the directory to exactly what you need.' },
+    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'One field searches your whole session: open tabs, tab groups, Favorites and history.' },
+    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Enter switches, and Blanc gets the interface out of the way as soon as you choose where to go.' },
 
     // The shipped native menu is the workflow: right-click a background row,
     // pick an existing radio item, see membership update, then use the same
     // submenu's New Group… handoff without ever switching away from the page.
-    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'root', tab: 'netflix', inactive: true, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Organize tabs into\nnamed groups.', subtext: 'Right-click any tab to move it into an existing group or create a new one.' },
-    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'existing', tab: 'netflix', inactive: true, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Move it to an\nexisting tab group.', subtext: 'Existing named groups are direct choices in Move to Group.' },
-    { view: 'panel', layout: 'socialNetflix', current: 'scroll', contextMenu: { mode: 'new', tab: 'netflix', inactive: true, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix joins Social.', subtext: 'The checkmark confirms the move. Remove from Group and New Group… stay in the same menu.' },
-    { view: 'panel', layout: 'socialNetflix', current: 'scroll', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'Create a new\nnamed tab group.', subtext: 'New Group… opens the /group handoff, still bound to Netflix.' },
-    { view: 'panel', layout: 'watchNetflix', current: 'scroll', justGroup: 'watch', hold: 3200, headline: 'Netflix moves\ninto Watch.', subtext: 'Only that tab moves. Every other pin, group and loose tab stays put.' },
+    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'root', tab: 'netflix', inactive: true, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Organize tabs into named groups: right-click any tab to move it into a group or create a new one.' },
+    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'existing', tab: 'netflix', inactive: true, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Existing named tab groups are direct choices in Move to Group.' },
+    { view: 'panel', layout: 'socialNetflix', current: 'scroll', contextMenu: { mode: 'new', tab: 'netflix', inactive: true, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix joins Social, and the checkmark confirms the move; Remove from Group and New Group… stay in the same menu.' },
+    { view: 'panel', layout: 'socialNetflix', current: 'scroll', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'New Group… opens the /group handoff to create a named tab group, still bound to Netflix.' },
+    { view: 'panel', layout: 'watchNetflix', current: 'scroll', justGroup: 'watch', hold: 3200, headline: 'Netflix moves into Watch; every other pin, group and loose tab stays put.' },
 
-    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Save and reopen complete\nbrowser workspaces.', subtext: 'Patron members can restore a window with its tabs, pins and active page.' },
-    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Reopen the whole\nbrowser workspace.', subtext: 'For Patron members, tabs, pins and the active page arrive together in a saved workspace.' },
+    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Patron members can save and reopen complete browser workspaces: a window with its tabs, pins and active page.' },
+    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Reopen the whole browser workspace and its tabs, pins and active page arrive together.' },
   ];
 
   // Chapters group the scenes into the demo's topics; each scrub-bar marker sits
@@ -1056,6 +1058,9 @@
   const fillEl = document.getElementById('demoScrubFill');
   const currentChapterEl = document.getElementById('demoScrubCurrent');
   const playbackToggleEl = document.getElementById('demoScrubToggle');
+  const chapterSelect = document.getElementById('demoChapterSelect');
+  CHAPTERS.forEach(chapter => chapterSelect.add(new Option(chapter.label, String(chapter.scene))));
+  chapterSelect.addEventListener('change', () => jumpTo(Number(chapterSelect.value)));
   const markerEls = trackEl ? CHAPTERS.map((ch) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -1100,6 +1105,7 @@
     }
     const active = activeChapter();
     if (currentChapterEl) currentChapterEl.textContent = active.label;
+    chapterSelect.value = String(active.scene);
     markerEls.forEach((m) => {
       const isActive = m._scene === active.scene;
       m.classList.toggle('active', isActive);
@@ -1110,8 +1116,11 @@
 
   function updatePlaybackControl() {
     if (!playbackToggleEl) return;
-    playbackToggleEl.textContent = paused ? 'play' : 'pause';
-    playbackToggleEl.setAttribute('aria-label', paused ? 'Play demo' : 'Pause demo');
+    stage.classList.toggle('is-paused', paused);
+    const action = paused ? 'Play demo' : 'Pause demo';
+    playbackToggleEl.dataset.paused = String(paused);
+    playbackToggleEl.setAttribute('aria-label', action);
+    playbackToggleEl.title = action;
   }
 
   function scheduleNext(delay) {
@@ -1133,6 +1142,7 @@
       remaining = Math.max(0, DUR[idx] - elapsed);
       clearTimeout(timer);
       paused = true;
+      updatePlaybackControl();
       // Resolve the current beat into a stable end state. This stops cursor,
       // typing, and delayed popover movement without stranding the visitor on
       // a half-typed query or an unexplained pre-click frame.
@@ -1164,6 +1174,64 @@
   }
 
   playbackToggleEl?.addEventListener('click', () => setPaused(!paused));
+  const scrub = document.getElementById('demoScrub');
+  let previousBodyStyle = null;
+  let pageScroll = { x: 0, y: 0 };
+
+  function setViewerSize(nextActualSize) {
+    actualSize = nextActualSize;
+    fitButton.setAttribute('aria-pressed', String(!actualSize));
+    actualButton.setAttribute('aria-pressed', String(actualSize));
+    fitCanvas();
+    viewerCanvas.scrollTop = 0;
+    viewerCanvas.scrollLeft = actualSize ? Math.max(0, (viewerCanvas.scrollWidth - viewerCanvas.clientWidth) / 2) : 0;
+  }
+
+  enlargeButton.addEventListener('click', () => {
+    if (viewer.open) return;
+    setPaused(true);
+    cursor = null;
+    pageScroll = { x: window.scrollX, y: window.scrollY };
+    previousBodyStyle = document.body.getAttribute('style');
+    // A fixed body also prevents background scrolling on mobile Safari.
+    Object.assign(document.body.style, {
+      position: 'fixed', top: `${-pageScroll.y}px`, left: `${-pageScroll.x}px`, width: '100%', overflow: 'hidden',
+    });
+    viewerCanvas.append(frame);
+    document.getElementById('demoViewerControls').append(scrub);
+    viewer.showModal();
+    setViewerSize(false);
+  });
+  document.getElementById('demoViewerClose').addEventListener('click', () => viewer.close());
+  fitButton.addEventListener('click', () => setViewerSize(false));
+  actualButton.addEventListener('click', () => setViewerSize(true));
+  viewer.addEventListener('keydown', event => {
+    if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
+    const controls = [...viewer.querySelectorAll('button:not([disabled]), select:not([disabled]), [tabindex="0"]')]
+      .filter(element => element.getClientRects().length && !element.closest('[inert]'));
+    // Safari can omit buttons from its default tab order. Cycle the visible
+    // viewer controls explicitly so both directions stay usable there too.
+    const current = controls.indexOf(document.activeElement);
+    const next = (current + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
+    event.preventDefault();
+    controls[next].focus();
+  });
+  viewer.addEventListener('close', () => {
+    mount.append(frame);
+    document.getElementById('demoControlsMount').append(scrub);
+    if (previousBodyStyle === null) document.body.removeAttribute('style');
+    else document.body.setAttribute('style', previousBodyStyle);
+    window.scrollTo({ left: pageScroll.x, top: pageScroll.y, behavior: 'instant' });
+    fitCanvas();
+    enlargeButton.focus({ preventScroll: true });
+  });
+  // Observe the presentation slots, not the fixed canvas. Caption changes and
+  // rotation can resize the viewer even without a window resize event.
+  const canvasObserver = new ResizeObserver(fitCanvas);
+  canvasObserver.observe(mount);
+  canvasObserver.observe(viewerCanvas);
+  viewerCanvas.addEventListener('scroll', queueProximity, { passive: true });
+  fitCanvas();
   reduceMotion.addEventListener('change', (event) => {
     if (event.matches) setPaused(true);
   });

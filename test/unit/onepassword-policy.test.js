@@ -14,6 +14,8 @@ const {
   pickerAnchorPoint,
 } = require('../../src/main/onepassword-policy');
 
+const CHROME_HEIGHT = 68;
+
 const website = (url, autofillBehavior = AUTOFILL.ANYWHERE) => ({ url, autofillBehavior });
 
 test('AnywhereOnWebsite matches only the saved host and its descendants', () => {
@@ -72,17 +74,17 @@ test('field policy refuses signup/new-password pages and does not fill a usernam
 });
 
 test('pickerAnchorPoint honors view origin and zoom, clamps to view', () => {
-  const viewBounds = { x: 240, y: 64, width: 1000, height: 700 }; // vertical-tabs x offset
+  const viewBounds = { x: 240, y: CHROME_HEIGHT, width: 1000, height: 700 }; // vertical-tabs x offset
   // Field bottom-left at CSS (100, 200..230), 1.25 zoom.
   const p = pickerAnchorPoint({ rect: { x: 100, y: 200, width: 240, height: 30 }, viewBounds, zoomFactor: 1.25 });
-  assert.deepEqual(p, { x: 240 + Math.round(100 * 1.25), y: 64 + Math.round(230 * 1.25) });
+  assert.deepEqual(p, { x: 240 + Math.round(100 * 1.25), y: CHROME_HEIGHT + Math.round(230 * 1.25) });
   // Scrolled far below the fold clamps to the view's bottom edge.
   const q = pickerAnchorPoint({ rect: { x: 100, y: 5000, width: 240, height: 30 }, viewBounds, zoomFactor: 1 });
-  assert.equal(q.y, 64 + 700);
+  assert.equal(q.y, CHROME_HEIGHT + 700);
   assert.ok(q.x >= 240 && q.x <= 240 + 1000);
   // Glance primary rect (nonzero y beyond the strip) and default zoom.
-  const g = pickerAnchorPoint({ rect: { x: 10, y: 20, width: 50, height: 20 }, viewBounds: { x: 0, y: 64, width: 500, height: 400 }, zoomFactor: undefined });
-  assert.deepEqual(g, { x: 10, y: 64 + 40 });
+  const g = pickerAnchorPoint({ rect: { x: 10, y: 20, width: 50, height: 20 }, viewBounds: { x: 0, y: CHROME_HEIGHT, width: 500, height: 400 }, zoomFactor: undefined });
+  assert.deepEqual(g, { x: 10, y: CHROME_HEIGHT + 40 });
 });
 
 test('field-rect script validates without consuming the stash and reads geometry only', () => {

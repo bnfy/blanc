@@ -1,0 +1,5 @@
+{
+  "name": "blanc-admission-probe",
+  "private": true,
+  "main": "main.cjs"
+}

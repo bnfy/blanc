@@ -8,6 +8,14 @@
     </g>
   </symbol>
 
+  <symbol id="records" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="9" r="5.2" />
+      <path d="M9.2 13.4 7.6 21l4.4-2.2 4.4 2.2-1.6-7.6" />
+      <path d="M10.4 9.2l1.1 1.1 2.2-2.4" />
+    </g>
+  </symbol>
+
   <symbol id="undo" viewBox="0 0 24 24">
     <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M8.5 7H4.5V3" />

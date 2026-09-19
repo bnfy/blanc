@@ -1,0 +1,199 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const APPLICATION_ENDPOINT = 'https://blanc-newsletter.bnfy-441.workers.dev/ambassador-apply';
+
+const fits = [
+  ['browser and tech', 'You make unfamiliar products understandable without turning every review into a feature list.'],
+  ['productivity and work', 'You care about the everyday friction around tabs, focus, research, and keeping too much open.'],
+  ['privacy and user agency', 'You ask who technology serves, what it collects, and whether people remain in control.'],
+  ['design and open source', 'You notice interface decisions, independent software, or what becomes possible when the code is open.'],
+];
+
+const steps = [
+  ['01', 'Try the real browser', 'We send the current public build, a short factual brief, and a direct line to the people building Blanc.'],
+  ['02', 'Tell us what you actually think', 'Start with private feedback. If something is confusing or disappointing, that is useful—not a reason to soften the reaction.'],
+  ['03', 'Choose a native idea together', 'If the fit is real, we shape one collaboration for your audience: a reaction, workflow test, conversation, or launch-week post.'],
+  ['04', 'Prove the relationship before scaling it', 'We look at qualified follows, visits, downloads, and feedback. A longer ambassador pilot follows only when it works for both sides.'],
+];
+---
+<BaseLayout
+  title="Blanc Ambassador Pilot — Try the browser, tell the truth"
+  description="The Blanc Ambassador Pilot is for thoughtful creators who want to try an independent open-source desktop browser and share an honest reaction."
+  path="/ambassadors"
+  page="ambassadors"
+  current="ambassadors"
+  ogTitle="Try Blanc. Tell people what you really think."
+  ogDescription="A small ambassador pilot for creators in tech, productivity, privacy, design, and open source."
+  ogImageAlt="The black Blanc Browser mark on a white background."
+>
+  <main class="ambassador-page">
+    <section class="ambassador-hero" aria-labelledby="ambassador-title">
+      <div class="ambassador-hero-copy">
+        <p class="section-kicker">Blanc ambassador pilot</p>
+        <h1 id="ambassador-title">Help people see a different kind of browser.</h1>
+        <p class="ambassador-lead">Blanc is an independent, open-source desktop browser that replaces the permanent tab strip and toolbar with one floating Island. We are looking for thoughtful creators who can try it, question it, and explain what the difference feels like in their own voice.</p>
+        <div class="ambassador-actions">
+          <a class="cta" href="#apply" data-track="ambassador_apply_click" data-cta-position="hero">introduce yourself</a>
+          <a class="ambassador-text-link" href="/features" data-track="ambassador_features_click" data-cta-position="hero">see what Blanc ships <span aria-hidden="true">→</span></a>
+        </div>
+        <p class="ambassador-fineprint">Audience size is not the first filter. Relevance, curiosity, and trust with the people who follow you matter more.</p>
+      </div>
+      <figure class="ambassador-creator-art">
+        <img
+          src="/ambassadors/creator-group-cutout.png"
+          alt="Illustrative portrait of three independent creators with a camera, laptop, and studio headphones."
+          width="1224"
+          height="1285"
+          decoding="async"
+          fetchpriority="high"
+        >
+      </figure>
+    </section>
+
+    <section class="ambassador-fit" aria-labelledby="ambassador-fit-title">
+      <div class="ambassador-section-heading">
+        <p class="section-kicker">who fits</p>
+        <h2 id="ambassador-fit-title">The people we want to meet.</h2>
+        <p>You do not need to be a browser specialist. You do need a real point of view and an audience that cares about at least one of these conversations.</p>
+      </div>
+      <div class="ambassador-fit-grid">
+        {fits.map(([title, description]) => (
+          <article>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="ambassador-process" aria-labelledby="ambassador-process-title">
+      <div class="ambassador-section-heading">
+        <p class="section-kicker">how it works</p>
+        <h2 id="ambassador-process-title">A trial first. A title later.</h2>
+        <p>Nobody becomes a Blanc ambassador because they agreed to copy a caption. The relationship has to earn its way there.</p>
+      </div>
+      <ol class="ambassador-steps">
+        {steps.map(([number, title, description]) => (
+          <li>
+            <span>{number}</span>
+            <div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="ambassador-promise" aria-labelledby="ambassador-promise-title">
+      <p class="section-kicker">the agreement</p>
+      <h2 id="ambassador-promise-title">Your opinion stays yours.</h2>
+      <div class="ambassador-promise-grid">
+        <p>No scripted praise. No posting obligation during the trial. No pretending a paid collaboration is organic.</p>
+        <p>If we agree on a paid pilot, the deliverable, compensation, reuse permission, and disclosure expectations are written down before anything goes live.</p>
+        <p>If Blanc is not right for you or your audience, say so. Clear criticism is more useful than a vague endorsement.</p>
+      </div>
+    </section>
+
+    <section id="apply" class="ambassador-apply" aria-labelledby="ambassador-apply-title">
+      <div class="ambassador-apply-intro">
+        <p class="section-kicker">start with a conversation</p>
+        <h2 id="ambassador-apply-title">Show us what you make.</h2>
+        <p>One good link and a short introduction are enough. No media kit required.</p>
+      </div>
+
+      <form
+        class="ambassador-form"
+        action={APPLICATION_ENDPOINT}
+        method="post"
+        data-ambassador-form
+      >
+        <fieldset>
+          <div class="ambassador-form-row">
+            <label>
+              <span>Your name</span>
+              <input name="name" type="text" required maxlength="100" autocomplete="name" placeholder="Ada Lovelace">
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" required maxlength="254" autocomplete="email" placeholder="ada@example.com">
+            </label>
+          </div>
+          <label>
+            <span>Your best creator profile</span>
+            <input name="profileUrl" type="url" required maxlength="500" pattern="https://.*" title="Use a full https:// link." inputmode="url" autocomplete="url" placeholder="https://youtube.com/@yourname">
+          </label>
+          <label>
+            <span>What do you make, who is it for, and why Blanc?</span>
+            <textarea name="introduction" required minlength="20" maxlength="1200" rows="5" placeholder="A few honest sentences are plenty."></textarea>
+          </label>
+          <label class="ambassador-hp" aria-hidden="true">
+            <span>Leave this field blank</span>
+            <input name="blancCheck" type="text" tabindex="-1" autocomplete="off" data-1p-ignore data-lpignore="true" data-form-type="other">
+          </label>
+          <button class="cta" type="submit" data-track="ambassador_application_submit">send application</button>
+          <p class="ambassador-form-note">We use this only to review and reply to your application. It does not subscribe you to marketing. <a href="/privacy">Privacy details</a>.</p>
+        </fieldset>
+        <p class="ambassador-form-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll('form[data-ambassador-form]').forEach((form) => {
+    const fieldset = form.querySelector('fieldset');
+    const button = form.querySelector('button');
+    const status = form.querySelector('.ambassador-form-status');
+    if (!(form instanceof HTMLFormElement) || !(fieldset instanceof HTMLFieldSetElement) ||
+        !(button instanceof HTMLButtonElement) || !(status instanceof HTMLElement)) return;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.classList.remove('is-success');
+      status.textContent = '';
+      button.disabled = true;
+      button.textContent = 'sending…';
+
+      const trap = form.elements.namedItem('blancCheck');
+      // Password managers and browser autofill occasionally populate hidden
+      // fields despite autocomplete="off". A real, user-triggered submission
+      // can safely clear that false positive; automated submissions still send
+      // the trap value for the Worker to reject.
+      if (event.isTrusted && trap instanceof HTMLInputElement) trap.value = '';
+      const data = new FormData(form);
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: String(data.get('name') ?? '').trim(),
+            email: String(data.get('email') ?? '').trim(),
+            profileUrl: String(data.get('profileUrl') ?? '').trim(),
+            introduction: String(data.get('introduction') ?? '').trim(),
+            blancCheck: String(data.get('blancCheck') ?? ''),
+          }),
+        });
+
+        if (response.ok) {
+          fieldset.hidden = true;
+          status.classList.add('is-success');
+          status.textContent = 'Thank you. We’ll review your work and reply if the pilot looks like a fit.';
+          form.reset();
+        } else if (response.status === 400) {
+          status.textContent = 'One of those details needs another look.';
+        } else if (response.status === 429) {
+          status.textContent = 'Too many attempts just now. Please wait a minute and try again.';
+        } else {
+          status.textContent = 'We couldn’t send this just now. Please try again in a little while.';
+        }
+      } catch {
+        status.textContent = 'We couldn’t send this just now. Please try again in a little while.';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'send application';
+      }
+    });
+  });
+</script>

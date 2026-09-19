@@ -1,0 +1,628 @@
+TAP version 13
+# Subtest: v0 (version-less flat file) loads as one window
+ok 1 - v0 (version-less flat file) loads as one window
+  ---
+  duration_ms: 1.678334
+  type: 'test'
+  ...
+# Subtest: empty or missing data loads as one empty window
+ok 2 - empty or missing data loads as one empty window
+  ---
+  duration_ms: 0.56875
+  type: 'test'
+  ...
+# Subtest: v1 with an agreeing mirror migrates windows into Personal
+ok 3 - v1 with an agreeing mirror migrates windows into Personal
+  ---
+  duration_ms: 0.166125
+  type: 'test'
+  ...
+# Subtest: v2 preserves the explicit profile identity of every window
+ok 4 - v2 preserves the explicit profile identity of every window
+  ---
+  duration_ms: 0.113709
+  type: 'test'
+  ...
+# Subtest: rollback → re-upgrade: a diverged mirror wins over the stale nested workspace
+ok 5 - rollback → re-upgrade: a diverged mirror wins over the stale nested workspace
+  ---
+  duration_ms: 0.154167
+  type: 'test'
+  ...
+# Subtest: unknown future version loads from the mirror, read-only
+ok 6 - unknown future version loads from the mirror, read-only
+  ---
+  duration_ms: 0.05225
+  type: 'test'
+  ...
+# Subtest: unknown future version with an unparseable mirror loads empty, read-only
+ok 7 - unknown future version with an unparseable mirror loads empty, read-only
+  ---
+  duration_ms: 0.077292
+  type: 'test'
+  ...
+# Subtest: buildSaveShape writes v2 plus a mirror shape-identical to the 1.0.9 writer
+ok 8 - buildSaveShape writes v2 plus a mirror shape-identical to the 1.0.9 writer
+  ---
+  duration_ms: 0.06775
+  type: 'test'
+  ...
+# Subtest: buildSaveShape preserves foreign keys it does not own
+ok 9 - buildSaveShape preserves foreign keys it does not own
+  ---
+  duration_ms: 0.21075
+  type: 'test'
+  ...
+# Subtest: v1 with populated windows[0] but NO mirror keys → nested wins
+ok 10 - v1 with populated windows[0] but NO mirror keys → nested wins
+  ---
+  duration_ms: 0.2285
+  type: 'test'
+  ...
+# Subtest: v1 with populated windows[0] and PARTIAL mirror → nested wins
+ok 11 - v1 with populated windows[0] and PARTIAL mirror → nested wins
+  ---
+  duration_ms: 0.079583
+  type: 'test'
+  ...
+# Subtest: v1 with populated windows[0] and INVALID mirror → nested wins
+ok 12 - v1 with populated windows[0] and INVALID mirror → nested wins
+  ---
+  duration_ms: 0.042375
+  type: 'test'
+  ...
+# Subtest: v1 where mirror groups have different key order but identical content → treated as agreeing
+ok 13 - v1 where mirror groups have different key order but identical content → treated as agreeing
+  ---
+  duration_ms: 0.058375
+  type: 'test'
+  ...
+# Subtest: meta is written into windows[0] only, never into the v0 mirror
+ok 14 - meta is written into windows[0] only, never into the v0 mirror
+  ---
+  duration_ms: 0.028625
+  type: 'test'
+  ...
+# Subtest: a v1 file with meta and an agreeing mirror still loads the NESTED workspace
+ok 15 - a v1 file with meta and an agreeing mirror still loads the NESTED workspace
+  ---
+  duration_ms: 0.545958
+  type: 'test'
+  ...
+# Subtest: a meta array whose length no longer matches urls self-drops
+ok 16 - a meta array whose length no longer matches urls self-drops
+  ---
+  duration_ms: 0.096167
+  type: 'test'
+  ...
+# Subtest: rollback → re-upgrade drops meta along with the stale nested workspace
+ok 17 - rollback → re-upgrade drops meta along with the stale nested workspace
+  ---
+  duration_ms: 0.082375
+  type: 'test'
+  ...
+# Subtest: v1 restores multiple independently identified windows and the focused owner
+ok 18 - v1 restores multiple independently identified windows and the focused owner
+  ---
+  duration_ms: 0.089458
+  type: 'test'
+  ...
+# Subtest: buildSaveShape retains every window and mirrors only the focused one
+ok 19 - buildSaveShape retains every window and mirrors only the focused one
+  ---
+  duration_ms: 0.086041
+  type: 'test'
+  ...
+# Subtest: legacy mirror divergence collapses stale multi-window state to one primary workspace
+ok 20 - legacy mirror divergence collapses stale multi-window state to one primary workspace
+  ---
+  duration_ms: 0.076834
+  type: 'test'
+  ...
+# Subtest: profile removal drops every owned workspace and repairs the focused id
+ok 21 - profile removal drops every owned workspace and repairs the focused id
+  ---
+  duration_ms: 0.12775
+  type: 'test'
+  ...
+# Subtest: profile removal refuses Personal and future workspace formats
+ok 22 - profile removal refuses Personal and future workspace formats
+  ---
+  duration_ms: 0.074041
+  type: 'test'
+  ...
+# Subtest: entryFrom: a valid workspaceId round-trips
+ok 23 - entryFrom: a valid workspaceId round-trips
+  ---
+  duration_ms: 0.046375
+  type: 'test'
+  ...
+# Subtest: entryFrom: a 64-character workspaceId (the upper bound) round-trips
+ok 24 - entryFrom: a 64-character workspaceId (the upper bound) round-trips
+  ---
+  duration_ms: 0.059834
+  type: 'test'
+  ...
+# Subtest: entryFrom: an invalid workspaceId normalizes to null
+ok 25 - entryFrom: an invalid workspaceId normalizes to null
+  ---
+  duration_ms: 0.073875
+  type: 'test'
+  ...
+# Subtest: entryFrom: an absent workspaceId key normalizes to null
+ok 26 - entryFrom: an absent workspaceId key normalizes to null
+  ---
+  duration_ms: 0.086208
+  type: 'test'
+  ...
+# Subtest: mirrorProjection still emits exactly the five legacy keys — no workspaceId
+ok 27 - mirrorProjection still emits exactly the five legacy keys — no workspaceId
+  ---
+  duration_ms: 0.106542
+  type: 'test'
+  ...
+# Subtest: hasMirror is unaffected: a healthy file with no top-level workspaceId round-trips the nested binding and is still recognized as having a mirror
+ok 28 - hasMirror is unaffected: a healthy file with no top-level workspaceId round-trips the nested binding and is still recognized as having a mirror
+  ---
+  duration_ms: 0.091834
+  type: 'test'
+  ...
+# Subtest: each restored window carries its own independent workspaceId (or none)
+ok 29 - each restored window carries its own independent workspaceId (or none)
+  ---
+  duration_ms: 0.088084
+  type: 'test'
+  ...
+# Subtest: applyWorkspaceToWindow, deriveWorkspaceBindings, and applyWorkspaceBindings are still liftable from main.js
+ok 30 - applyWorkspaceToWindow, deriveWorkspaceBindings, and applyWorkspaceBindings are still liftable from main.js
+  ---
+  duration_ms: 0.4315
+  type: 'test'
+  ...
+# Subtest: switchWindowToWorkspace and createBlankWorkspaceAndSwitch are still liftable from main.js
+ok 31 - switchWindowToWorkspace and createBlankWorkspaceAndSwitch are still liftable from main.js
+  ---
+  duration_ms: 0.079333
+  type: 'test'
+  ...
+# Subtest: scratchGuardResult feeds live tabs to the model, not persistableEntries
+ok 32 - scratchGuardResult feeds live tabs to the model, not persistableEntries
+  ---
+  duration_ms: 0.068375
+  type: 'test'
+  ...
+# Subtest: every outgoing tab is closed with { record: false, selectReplacement: false }
+ok 33 - every outgoing tab is closed with { record: false, selectReplacement: false }
+  ---
+  duration_ms: 0.893792
+  type: 'test'
+  ...
+# Subtest: runtime.groups is assigned from the workspace before the first createTab
+ok 34 - runtime.groups is assigned from the workspace before the first createTab
+  ---
+  duration_ms: 0.326125
+  type: 'test'
+  ...
+# Subtest: an empty filtered set still yields exactly one createTab (blanc://newtab, never tabless)
+ok 35 - an empty filtered set still yields exactly one createTab (blanc://newtab, never tabless)
+  ---
+  duration_ms: 0.218625
+  type: 'test'
+  ...
+# Subtest: overlay/sheet dismissal and Glance collapse happen before any closeTab
+ok 36 - overlay/sheet dismissal and Glance collapse happen before any closeTab
+  ---
+  duration_ms: 0.826
+  type: 'test'
+  ...
+# Subtest: deriveWorkspaceBindings includes a windowless holder, so resolveOpen says focus, never swap
+ok 37 - deriveWorkspaceBindings includes a windowless holder, so resolveOpen says focus, never swap
+  ---
+  duration_ms: 0.413083
+  type: 'test'
+  ...
+# Subtest: applyWorkspaceBindings reconciles a bindingsAfterSwap result onto every runtime, live or not
+ok 38 - applyWorkspaceBindings reconciles a bindingsAfterSwap result onto every runtime, live or not
+  ---
+  duration_ms: 0.443208
+  type: 'test'
+  ...
+# Subtest: saveCurrentWindowAsWorkspace is still liftable from main.js
+ok 39 - saveCurrentWindowAsWorkspace is still liftable from main.js
+  ---
+  duration_ms: 0.211583
+  type: 'test'
+  ...
+# Subtest: a successful save-as binds the window AND persists the pointer
+ok 40 - a successful save-as binds the window AND persists the pointer
+  ---
+  duration_ms: 0.303417
+  type: 'test'
+  ...
+# Subtest: a rejected save-as neither binds nor persists
+ok 41 - a rejected save-as neither binds nor persists
+  ---
+  duration_ms: 0.435708
+  type: 'test'
+  ...
+# Subtest: switchWindowToWorkspace returns the scratch guard result untouched, before resolving bindings
+ok 42 - switchWindowToWorkspace returns the scratch guard result untouched, before resolving bindings
+  ---
+  duration_ms: 0.762042
+  type: 'test'
+  ...
+# Subtest: switchWindowToWorkspace with force:true skips the guard call entirely and completes the swap
+ok 43 - switchWindowToWorkspace with force:true skips the guard call entirely and completes the swap
+  ---
+  duration_ms: 0.433791
+  type: 'test'
+  ...
+# Subtest: switchWindowToWorkspace with no guard hit (bound window, or nothing worth confirming) proceeds normally
+ok 44 - switchWindowToWorkspace with no guard hit (bound window, or nothing worth confirming) proceeds normally
+  ---
+  duration_ms: 0.285167
+  type: 'test'
+  ...
+# Subtest: createBlankWorkspaceAndSwitch refuses a non-Patron before touching the guard or the store
+ok 45 - createBlankWorkspaceAndSwitch refuses a non-Patron before touching the guard or the store
+  ---
+  duration_ms: 0.41925
+  type: 'test'
+  ...
+# Subtest: createBlankWorkspaceAndSwitch returns the scratch guard result and never creates a record
+ok 46 - createBlankWorkspaceAndSwitch returns the scratch guard result and never creates a record
+  ---
+  duration_ms: 0.392792
+  type: 'test'
+  ...
+# Subtest: createBlankWorkspaceAndSwitch with force:true skips the guard, creates an EMPTY capture, and switches with force:true
+ok 47 - createBlankWorkspaceAndSwitch with force:true skips the guard, creates an EMPTY capture, and switches with force:true
+  ---
+  duration_ms: 0.55775
+  type: 'test'
+  ...
+# Subtest: createBlankWorkspaceAndSwitch surfaces a create failure without ever switching
+ok 48 - createBlankWorkspaceAndSwitch surfaces a create failure without ever switching
+  ---
+  duration_ms: 0.36775
+  type: 'test'
+  ...
+# Subtest: an incidental re-render does not yank focus into an already-open editor
+ok 49 - an incidental re-render does not yank focus into an already-open editor
+  ---
+  duration_ms: 1.260583
+  type: 'test'
+  ...
+# Subtest: a re-render restores the caret only when the editor already held focus
+ok 50 - a re-render restores the caret only when the editor already held focus
+  ---
+  duration_ms: 0.536458
+  type: 'test'
+  ...
+# Subtest: the create editor does not try to focus a row that is still detached
+ok 51 - the create editor does not try to focus a row that is still detached
+  ---
+  duration_ms: 1.052959
+  type: 'test'
+  ...
+# Subtest: the rename editor defers its focus and selection the same way
+ok 52 - the rename editor defers its focus and selection the same way
+  ---
+  duration_ms: 0.609708
+  type: 'test'
+  ...
+# Subtest: a recorded focus for a row that never rendered is dropped, not applied
+ok 53 - a recorded focus for a row that never rendered is dropped, not applied
+  ---
+  duration_ms: 0.623792
+  type: 'test'
+  ...
+# Subtest: focus is deferred while the switcher is visibility:hidden (measure window)
+ok 54 - focus is deferred while the switcher is visibility:hidden (measure window)
+  ---
+  duration_ms: 0.601958
+  type: 'test'
+  ...
+# Subtest: openWorkspaceSwitcher focuses only after visibility is restored
+ok 55 - openWorkspaceSwitcher focuses only after visibility is restored
+  ---
+  duration_ms: 0.536375
+  type: 'test'
+  ...
+# Subtest: EMPTY_FILE is a versioned, empty, non-shared shape
+ok 56 - EMPTY_FILE is a versioned, empty, non-shared shape
+  ---
+  duration_ms: 1.057
+  type: 'test'
+  ...
+# Subtest: sanitizeName trims, collapses whitespace, caps length, rejects empty
+ok 57 - sanitizeName trims, collapses whitespace, caps length, rejects empty
+  ---
+  duration_ms: 0.318791
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace round-trips a fully valid record
+ok 58 - normalizeWorkspace round-trips a fully valid record
+  ---
+  duration_ms: 0.193167
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace rejects bad id, name, and profileId
+ok 59 - normalizeWorkspace rejects bad id, name, and profileId
+  ---
+  duration_ms: 0.166583
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace sanitizes the stored name
+ok 60 - normalizeWorkspace sanitizes the stored name
+  ---
+  duration_ms: 0.137
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace coerces parallel columns and drops mismatched meta
+ok 61 - normalizeWorkspace coerces parallel columns and drops mismatched meta
+  ---
+  duration_ms: 0.110416
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace does not mutate its input
+ok 62 - normalizeWorkspace does not mutate its input
+  ---
+  duration_ms: 0.322
+  type: 'test'
+  ...
+# Subtest: normalizeFile drops invalid records, dedupes by id (first wins), and caps
+ok 63 - normalizeFile drops invalid records, dedupes by id (first wins), and caps
+  ---
+  duration_ms: 0.167292
+  type: 'test'
+  ...
+# Subtest: normalizeFile repairs a missing, malformed, or foreign-shaped file
+ok 64 - normalizeFile repairs a missing, malformed, or foreign-shaped file
+  ---
+  duration_ms: 0.18175
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace COPIES its arrays (no aliasing back to the caller)
+ok 65 - normalizeWorkspace COPIES its arrays (no aliasing back to the caller)
+  ---
+  duration_ms: 0.837125
+  type: 'test'
+  ...
+# Subtest: normalizeWorkspace rejects ids that cannot round-trip into session.json
+ok 66 - normalizeWorkspace rejects ids that cannot round-trip into session.json
+  ---
+  duration_ms: 0.214875
+  type: 'test'
+  ...
+# Subtest: createWorkspace stamps a record, binds it to the profile, and copies the capture
+ok 67 - createWorkspace stamps a record, binds it to the profile, and copies the capture
+  ---
+  duration_ms: 0.223708
+  type: 'test'
+  ...
+# Subtest: createWorkspace rejects invalid name, duplicate name in-profile, and the cap
+ok 68 - createWorkspace rejects invalid name, duplicate name in-profile, and the cap
+  ---
+  duration_ms: 0.730458
+  type: 'test'
+  ...
+# Subtest: renameWorkspace applies name rules and bumps updatedAt
+ok 69 - renameWorkspace applies name rules and bumps updatedAt
+  ---
+  duration_ms: 0.119708
+  type: 'test'
+  ...
+# Subtest: deleteWorkspace removes only the target and reports whether it did
+ok 70 - deleteWorkspace removes only the target and reports whether it did
+  ---
+  duration_ms: 0.064041
+  type: 'test'
+  ...
+# Subtest: updateCapture replaces the tab columns, bumps updatedAt, no-ops on unknown id
+ok 71 - updateCapture replaces the tab columns, bumps updatedAt, no-ops on unknown id
+  ---
+  duration_ms: 0.147125
+  type: 'test'
+  ...
+# Subtest: listForProfile filters by profile and orders newest-updated first
+ok 72 - listForProfile filters by profile and orders newest-updated first
+  ---
+  duration_ms: 0.065625
+  type: 'test'
+  ...
+# Subtest: every mutation leaves its input file untouched
+ok 73 - every mutation leaves its input file untouched
+  ---
+  duration_ms: 0.052791
+  type: 'test'
+  ...
+# Subtest: validWorkspaceId is exported so Task 6 does not re-derive the rule
+ok 74 - validWorkspaceId is exported so Task 6 does not re-derive the rule
+  ---
+  duration_ms: 1.129833
+  type: 'test'
+  ...
+# Subtest: resolveOpen: focus when bound elsewhere, noop when bound here, swap when free
+ok 75 - resolveOpen: focus when bound elsewhere, noop when bound here, swap when free
+  ---
+  duration_ms: 0.077916
+  type: 'test'
+  ...
+# Subtest: resolveOpen never resolves an inherited property to a binding
+ok 76 - resolveOpen never resolves an inherited property to a binding
+  ---
+  duration_ms: 0.032667
+  type: 'test'
+  ...
+# Subtest: binding maps are null-prototype, so a hostile key cannot poison them
+ok 77 - binding maps are null-prototype, so a hostile key cannot poison them
+  ---
+  duration_ms: 0.039708
+  type: 'test'
+  ...
+# Subtest: bindingsAfterSwap keeps one workspace per window AND one window per workspace
+ok 78 - bindingsAfterSwap keeps one workspace per window AND one window per workspace
+  ---
+  duration_ms: 0.033083
+  type: 'test'
+  ...
+# Subtest: bindingsAfterUnbind / bindingsAfterDelete remove only their target
+ok 79 - bindingsAfterUnbind / bindingsAfterDelete remove only their target
+  ---
+  duration_ms: 0.047
+  type: 'test'
+  ...
+# Subtest: binding transitions never mutate their input
+ok 80 - binding transitions never mutate their input
+  ---
+  duration_ms: 0.031292
+  type: 'test'
+  ...
+# Subtest: scratchSwitchNeedsGuard: a BOUND window is unguarded only when every tab is persistable
+ok 81 - scratchSwitchNeedsGuard: a BOUND window is unguarded only when every tab is persistable
+  ---
+  duration_ms: 0.834
+  type: 'test'
+  ...
+# Subtest: scratchSwitchNeedsGuard: private pages are guarded even on a bound window
+ok 82 - scratchSwitchNeedsGuard: private pages are guarded even on a bound window
+  ---
+  duration_ms: 0.479292
+  type: 'test'
+  ...
+# Subtest: scratchSwitchNeedsGuard: an UNBOUND window is guarded only when a tab is more than the blank newtab
+ok 83 - scratchSwitchNeedsGuard: an UNBOUND window is guarded only when a tab is more than the blank newtab
+  ---
+  duration_ms: 0.288583
+  type: 'test'
+  ...
+# Subtest: scratchSwitchNeedsGuard: a scratch window of only private real pages is guarded
+ok 84 - scratchSwitchNeedsGuard: a scratch window of only private real pages is guarded
+  ---
+  duration_ms: 0.06625
+  type: 'test'
+  ...
+# Subtest: scratchSwitchNeedsGuard treats a missing/malformed tab list as empty, not a crash
+ok 85 - scratchSwitchNeedsGuard treats a missing/malformed tab list as empty, not a crash
+  ---
+  duration_ms: 0.110916
+  type: 'test'
+  ...
+# Subtest: scratchSwitchGuardResult counts the tabs that will actually close without recovery
+ok 86 - scratchSwitchGuardResult counts the tabs that will actually close without recovery
+  ---
+  duration_ms: 0.123125
+  type: 'test'
+  ...
+# Subtest: non-Patron create and save-as entry stop before either name editor opens
+ok 87 - non-Patron create and save-as entry stop before either name editor opens
+  ---
+  duration_ms: 1.8215
+  type: 'test'
+  ...
+# Subtest: active Patrons still reach both workspace name editors
+ok 88 - active Patrons still reach both workspace name editors
+  ---
+  duration_ms: 1.086083
+  type: 'test'
+  ...
+# Subtest: /workspace keeps existing rows lapse-safe but gates a new name upfront
+ok 89 - /workspace keeps existing rows lapse-safe but gates a new name upfront
+  ---
+  duration_ms: 0.853584
+  type: 'test'
+  ...
+# Subtest: /workspace sends a new name to main only after the renderer gate passes
+ok 90 - /workspace sends a new name to main only after the renderer gate passes
+  ---
+  duration_ms: 0.560667
+  type: 'test'
+  ...
+# Subtest: the Patron gate row distinguishes unlock from lapse and links to Patron Settings
+ok 91 - the Patron gate row distinguishes unlock from lapse and links to Patron Settings
+  ---
+  duration_ms: 0.683625
+  type: 'test'
+  ...
+# Subtest: inactive users get one CTA instead of new and save-as controls
+ok 92 - inactive users get one CTA instead of new and save-as controls
+  ---
+  duration_ms: 0.131583
+  type: 'test'
+  ...
+# Subtest: Patron activation and validation repaint an already-open workspace popover
+ok 93 - Patron activation and validation repaint an already-open workspace popover
+  ---
+  duration_ms: 0.272292
+  type: 'test'
+  ...
+# Subtest: retryScratchGuard re-shows the confirm if a post-save retry still trips
+ok 94 - retryScratchGuard re-shows the confirm if a post-save retry still trips
+  ---
+  duration_ms: 0.822959
+  type: 'test'
+  ...
+# Subtest: scratchGuardRow omits save first when every at-risk tab is private
+ok 95 - scratchGuardRow omits save first when every at-risk tab is private
+  ---
+  duration_ms: 0.568375
+  type: 'test'
+  ...
+# Subtest: scratchGuardRow still offers save first when a persistable tab is also at risk
+ok 96 - scratchGuardRow still offers save first when a persistable tab is also at risk
+  ---
+  duration_ms: 0.238459
+  type: 'test'
+  ...
+# Subtest: create mints a storable id, stamps the profile, and persists to disk
+ok 97 - create mints a storable id, stamps the profile, and persists to disk
+  ---
+  duration_ms: 2.012834
+  type: 'test'
+  ...
+# Subtest: errors from the model surface as { ok:false, error } and write nothing
+ok 98 - errors from the model surface as { ok:false, error } and write nothing
+  ---
+  duration_ms: 0.269167
+  type: 'test'
+  ...
+# Subtest: saveCapture replaces tab columns without disturbing identity
+ok 99 - saveCapture replaces tab columns without disturbing identity
+  ---
+  duration_ms: 0.144458
+  type: 'test'
+  ...
+# Subtest: rename and remove persist
+ok 100 - rename and remove persist
+  ---
+  duration_ms: 0.08775
+  type: 'test'
+  ...
+# Subtest: each local profile gets its own file and cannot see the others
+ok 101 - each local profile gets its own file and cannot see the others
+  ---
+  duration_ms: 0.289792
+  type: 'test'
+  ...
+# Subtest: writes land at the profile-correct paths on disk
+ok 102 - writes land at the profile-correct paths on disk
+  ---
+  duration_ms: 261.507334
+  type: 'test'
+  ...
+# Subtest: a hand-edited file is repaired on access: junk dropped, foreign profile dropped
+ok 103 - a hand-edited file is repaired on access: junk dropped, foreign profile dropped
+  ---
+  duration_ms: 1.076417
+  type: 'test'
+  ...
+1..103
+# tests 103
+# suites 0
+# pass 103
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 578.295916

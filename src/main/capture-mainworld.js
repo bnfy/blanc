@@ -10,13 +10,19 @@
 // malicious-page backstop.
 const fs = require('fs');
 const path = require('path');
+const { captureRuntimeForPlatform } = require('./capture-platform');
 
-const preloadSource = fs.readFileSync(path.join(__dirname, 'capture-preload.js'), 'utf8');
-const match = preloadSource.match(
-  /\/\/ >>> mainworld\nconst CAPTURE_MAINWORLD_SOURCE = `([\s\S]*?)`;\n\/\/ <<< mainworld/
-);
-if (!match) {
-  throw new Error('capture-preload.js: mainworld markers missing or malformed');
+function captureMainworldSourceForPlatform(platform = process.platform) {
+  const { preload } = captureRuntimeForPlatform(platform);
+  const preloadSource = fs.readFileSync(path.join(__dirname, preload), 'utf8');
+  const match = preloadSource.match(
+    /\/\/ >>> mainworld\nconst CAPTURE_MAINWORLD_SOURCE = `([\s\S]*?)`;\n\/\/ <<< mainworld/
+  );
+  if (!match) throw new Error(`${preload}: mainworld markers missing or malformed`);
+  return match[1];
 }
 
-module.exports = { CAPTURE_MAINWORLD_SOURCE: match[1] };
+module.exports = {
+  CAPTURE_MAINWORLD_SOURCE: captureMainworldSourceForPlatform(),
+  captureMainworldSourceForPlatform,
+};

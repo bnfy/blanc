@@ -28,7 +28,11 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     id: resolvedId,
     profileId,
     closing: false,
+    resident: false,
+    workspaceTransition: false,
+    authenticationPrompts: 0,
     window: null,
+    chromeReady: false,
     tabOrder: [],
     activeTabId: null,
     groups: [],
@@ -106,7 +110,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * never persisted, synced, or exposed over IPC; pruned as tabs close, so
      * bounded by the live tab count. */
     activationHistory: [],
-    chromeHeight: 64,
+    chromeHeight: 68,
     tabsBroadcastTimer: null,
     themeTintRefreshGeneration: 0,
     lastActiveByCluster: new Map(),
@@ -174,6 +178,7 @@ function detachWindow(runtime) {
     if (owner === runtime) auxiliaryOwner.delete(wcId);
   }
   runtime.window = null;
+  runtime.chromeReady = false;
   runtime.overlayView = null;
   runtime.overlayMode = null;
   runtime.workspaceSwitcherOpen = false;

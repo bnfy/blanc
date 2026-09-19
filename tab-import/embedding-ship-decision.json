@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "shipOnDeviceEmbeddings": false,
+  "decisionDate": "2026-08-23",
+  "reason": "Curated web worker payload is 30.04 MiB uncompressed, above the 30 MiB packaging gate.",
+  "benchmark": "docs/superpowers/specs/2026-08-23-tab-import-embedding-benchmark.md",
+  "selectedCandidate": {
+    "id": "Xenova/paraphrase-MiniLM-L3-v2",
+    "license": "Apache-2.0",
+    "quantization": "uint8",
+    "dimensions": 384,
+    "onnxBytes": 17388904,
+    "onnxSha256": "883a0fa38c9a52de26265c3d34b611360cc5b871328af80372245ae9c9a9b0a3"
+  },
+  "runtime": {
+    "transformers": "4.2.0",
+    "ortWasm": "ort-wasm-simd-threaded.wasm",
+    "ortWasmBytes": 12942611,
+    "ortWasmSha256": null
+  }
+}

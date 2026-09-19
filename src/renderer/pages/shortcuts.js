@@ -4,10 +4,12 @@
 // the command table in overlay.js.
 const SLASH_COMMANDS = [
   ['/favorites', 'Open favorites'],
+  ['/bring-tabs', 'Bring open tabs from another browser'],
   ['/save [folder]', 'Save this page to favorites, into a folder if you name one'],
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],
   ['/settings', 'Open settings'],
+  ['/sync', 'Set up or manage sync'],
   ['/clear', 'Clear browsing history'],
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],

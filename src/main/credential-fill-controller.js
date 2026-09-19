@@ -193,7 +193,7 @@ function createCredentialFillController({
         // Geometry has exactly one channel: a live read immediately before
         // the popup — the broker await above can sit in DesktopAuth for many
         // seconds, during which the user may scroll or reflow the page.
-        let anchor = initial.pickerPoint ?? { x: 16, y: 64 };
+        let anchor = initial.pickerPoint ?? { x: 16, y: 68 };
         let geo = null;
         try {
           geo = await initial.webContents.executeJavaScriptInIsolatedWorld(

@@ -60,10 +60,9 @@ function closeness(point, rect, range = RANGE, settle = SETTLE) {
 }
 
 /**
- * THE INVARIANT. The pill's shadow currently fades to nothing exactly at the
- * bottom of the chrome strip — there is no headroom at all (see the
- * `--shadow-pill` note in tokens/layout.css). Scaling the pill therefore
- * clips it twice over: the box grows downward, and the shadow grows with it.
+ * THE INVARIANT. The resting island's website shadow must remain inside the
+ * chrome strip at every proximity value. Scaling can consume that headroom
+ * twice over: the box grows downward, and the shadow grows with it.
  *
  * The rise is what pays for both. This returns how far the shadow's bottom
  * edge sits from the strip's edge at full closeness — positive means clear.

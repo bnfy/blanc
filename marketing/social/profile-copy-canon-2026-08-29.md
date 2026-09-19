@@ -3,6 +3,10 @@
 Status: **prepared for approval; no profile field, link, pin, or account
 setting changed**.
 
+Formatting is governed by `voice-and-formatting-canon.md`. Existing lowercase
+profile copy documented below is preserved as observed live, not treated as a
+rule for future writing or a reason to lowercase professional copy.
+
 This copy is designed to convert a first profile visit into a follow. It does
 not ask the visitor to decode a feature list. The emotional tension comes
 first—browser chrome should not be the loudest thing on the screen—then the

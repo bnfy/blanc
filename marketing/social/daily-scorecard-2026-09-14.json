@@ -1,0 +1,356 @@
+{
+  "date": "2026-09-14",
+  "timezone": "America/New_York",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "programDay": 2,
+  "comparisonStatus": "completed_all_channels_missed_daily_target",
+  "scheduledFor": "2026-09-14T17:00:00-04:00",
+  "checkpointStatus": "completed",
+  "audience": {
+    "x": {
+      "current": 15,
+      "starting": 15,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers",
+      "source": "https://x.com/blancbrowser",
+      "dailyStatus": "missed",
+      "consecutiveMeasuredMisses": 1,
+      "trailingSevenDayNet": 0,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "lastKnown": {
+        "value": 15,
+        "observedDuring": "Approximately 17:01–17:04 EDT",
+        "date": "2026-09-14"
+      },
+      "trailingSevenDayCoverageDays": 1,
+      "observedDuring": "Approximately 17:01–17:04 EDT"
+    },
+    "threads": {
+      "current": 24,
+      "starting": 23,
+      "delta": 1,
+      "remainingToTarget": 9,
+      "unit": "followers",
+      "source": "https://www.threads.com/@blancbrowser",
+      "dailyStatus": "missed",
+      "consecutiveMeasuredMisses": 1,
+      "trailingSevenDayNet": 1,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "lastKnown": {
+        "value": 24,
+        "observedDuring": "Approximately 17:01–17:04 EDT",
+        "date": "2026-09-14"
+      },
+      "trailingSevenDayCoverageDays": 1,
+      "observedDuring": "Approximately 17:01–17:04 EDT"
+    },
+    "instagram": {
+      "current": 102,
+      "starting": 102,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers",
+      "source": "https://www.instagram.com/blancbrowser/",
+      "dailyStatus": "missed",
+      "consecutiveMeasuredMisses": 1,
+      "trailingSevenDayNet": 0,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "lastKnown": {
+        "value": 102,
+        "observedDuring": "Approximately 17:01–17:04 EDT",
+        "date": "2026-09-14"
+      },
+      "trailingSevenDayCoverageDays": 1,
+      "observedDuring": "Approximately 17:01–17:04 EDT"
+    },
+    "facebook": {
+      "current": 22,
+      "starting": 22,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers",
+      "source": "https://www.facebook.com/blancbrowser",
+      "dailyStatus": "missed",
+      "consecutiveMeasuredMisses": 1,
+      "trailingSevenDayNet": 0,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "lastKnown": {
+        "value": 22,
+        "observedDuring": "Approximately 17:01–17:04 EDT",
+        "date": "2026-09-14"
+      },
+      "trailingSevenDayCoverageDays": 1,
+      "observedDuring": "Approximately 17:01–17:04 EDT"
+    },
+    "tiktok": {
+      "current": 25,
+      "starting": 25,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers",
+      "source": "https://www.tiktok.com/@blancbrowser",
+      "dailyStatus": "missed",
+      "consecutiveMeasuredMisses": 1,
+      "trailingSevenDayNet": 0,
+      "cacheDelayMinutes": null,
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "lastKnown": {
+        "value": 25,
+        "observedDuring": "Approximately 17:01–17:04 EDT",
+        "date": "2026-09-14"
+      },
+      "trailingSevenDayCoverageDays": 1,
+      "observedDuring": "Approximately 17:01–17:04 EDT"
+    },
+    "substack": {
+      "current": 2,
+      "starting": 2,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "external_subscribers",
+      "source": "https://blancbrowser.substack.com/publish/subscribers",
+      "dailyStatus": "missed",
+      "consecutiveMeasuredMisses": 1,
+      "trailingSevenDayNet": 0,
+      "cacheDelayMinutes": 120,
+      "observedAt": "2026-09-14T17:04:09-04:00",
+      "lastKnown": {
+        "value": 2,
+        "observedDuring": "Approximately 17:01–17:04 EDT",
+        "date": "2026-09-14"
+      },
+      "trailingSevenDayCoverageDays": 1,
+      "observedDuring": "Approximately 17:01–17:04 EDT"
+    }
+  },
+  "ownedContentSignals": null,
+  "meaningfulEngagementBaseline": {
+    "status": "accumulating_first_seven_days",
+    "reviewsIncluded": 1,
+    "reviewedContributions": 5,
+    "substantiveAudienceReplies": 2,
+    "sharesOrReposts": 0,
+    "saves": 0,
+    "articleReplies": 0,
+    "meaningfulInteractions": 2,
+    "visibleViews": 47,
+    "meaningfulInteractionsPerVisibleView": 0.0426,
+    "secondaryLikes": 2,
+    "note": "Likes are secondary and excluded from meaningful interactions. Threads exposed view totals; X exposed impression totals labelled Views."
+  },
+  "siteVisits": null,
+  "downloadClicks": null,
+  "newPaidSpendUsd": 0,
+  "publicationCount": 0,
+  "asOf": "2026-09-14T17:04:09-04:00",
+  "monitoringRuns": [
+    {
+      "scheduledFor": "2026-09-14T09:00:00-04:00",
+      "attemptedAt": "2026-09-14T09:01:41-04:00",
+      "mode": "inbound_review",
+      "status": "unavailable_browser_access",
+      "blockerCode": "mac_locked_brave_unavailable",
+      "nextAction": "Unlock the Mac before the 13:00 engagement run so logged-in Brave can be used.",
+      "ownerActionNotifiedAt": "2026-09-14T09:01:41-04:00",
+      "suppressDuplicateBlockerNotifications": true,
+      "notificationDecision": "notify_access_regressed_after_prior_recovery",
+      "accountChecksCompleted": 0,
+      "publicActions": 0
+    },
+    {
+      "attemptedAt": "2026-09-14T12:48:01-04:00",
+      "mode": "catch_up_public_engagement",
+      "status": "completed_daily_limit",
+      "accountChecksCompleted": 5,
+      "publicActions": 5,
+      "draftsPrepared": 5,
+      "coverage": [
+        "X public notifications and two candidate threads",
+        "Threads public activity and direct-request thread",
+        "Instagram public notifications",
+        "TikTok public activity and comment thread",
+        "Substack public activity and design note"
+      ],
+      "remainingCoverage": [
+        "Facebook public notifications unavailable: saved session requires password"
+      ],
+      "artifact": "engagement-send-batch-2026-09-14.json",
+      "completedAt": "2026-09-14T12:51:39-04:00",
+      "verification": "All five replies rendered under Blanc identity; live URLs recorded in the send batch."
+    },
+    {
+      "scheduledFor": "2026-09-14T13:00:00-04:00",
+      "attemptedAt": "2026-09-14T13:00:33-04:00",
+      "mode": "inbound_review",
+      "status": "completed_no_action_recent_sweep_daily_limit",
+      "accountChecksCompleted": 0,
+      "publicActions": 0,
+      "cumulativePublicActionsToday": 5,
+      "note": "The full five-surface catch-up finished nine minutes before this checkpoint and reached the planned daily contribution limit. No duplicate sweep or additional contribution was warranted."
+    },
+    {
+      "scheduledFor": "2026-09-14T17:00:00-04:00",
+      "attemptedAt": "2026-09-14T17:01:04-04:00",
+      "completedAt": "2026-09-14T17:04:09-04:00",
+      "mode": "audience_snapshot_and_24h_reply_review",
+      "status": "completed_measured_shortfall",
+      "accountChecksCompleted": 6,
+      "publicActions": 0,
+      "audience": {
+        "x": 15,
+        "threads": 24,
+        "instagram": 102,
+        "facebook": 22,
+        "tiktok": 25,
+        "substack": 2
+      },
+      "substackDisplayTotal": 3,
+      "substackAuthorExcluded": true,
+      "substackDataDelayMinutes": 120,
+      "comparison": "Threads gained 1 follower; all other channels were flat. All six channels missed the +10 daily target; this is the first consecutive measured miss for each.",
+      "notificationDecision": "notify_measured_shortfall"
+    }
+  ],
+  "engagementActions": [
+    {
+      "order": 1,
+      "platform": "threads",
+      "type": "reply_to_inbound_follow_up",
+      "targetAuthor": "fedor.zen",
+      "parentUrl": "https://www.threads.com/@fedor.zen/post/DdPSSq1k6Dx",
+      "liveUrl": "https://www.threads.com/@blancbrowser/post/DdRmppZkUih",
+      "text": "That distinction helps: a duplicate URL keeps separate history and state; a mirrored tab intentionally shares them. The relationship would need to be visible, or someone could edit one tab without realizing the other changes too.",
+      "status": "published_verified",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "claimCheck": "Browser-design opinion only; does not claim Blanc implements mirrored tabs.",
+      "verificationEvidence": "Threads showed Posted and a View link to the Blanc reply."
+    },
+    {
+      "order": 2,
+      "platform": "threads",
+      "type": "reply_to_direct_browser_request",
+      "targetAuthor": "destinypetrel",
+      "parentUrl": "https://www.threads.com/@destinypetrel/post/DdPJF64mCko",
+      "liveUrl": "https://www.threads.com/@blancbrowser/post/DdRmsDIEQDd",
+      "text": "Blanc is an open-source desktop browser with no built-in AI assistant. You choose the search engine, so the result mix still depends on that provider—but the browser itself doesn’t add an AI layer.",
+      "status": "published_verified",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "claimCheck": "Verified against public v1.16.2 and docs/marketing-claims.md. Does not imply Blanc controls provider results.",
+      "verificationEvidence": "Threads showed Posted and a View link to the Blanc reply."
+    },
+    {
+      "order": 3,
+      "platform": "x",
+      "type": "reply_to_direct_product_fit",
+      "targetAuthor": "Harshit Yadav (@HxrshitYadav)",
+      "parentUrl": "https://x.com/HxrshitYadav/status/2098996819661611106",
+      "liveUrl": "https://x.com/blancbrowser/status/2099541328237412574",
+      "text": "That “just a browser” line is exactly the constraint behind Blanc: an open-source desktop browser with built-in blocking and no AI assistant. Different implementation and tradeoffs from Helium, but the same belief that the browser should stay out of the way.",
+      "status": "published_verified",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "claimCheck": "Verified against public v1.16.2 and docs/marketing-claims.md. Does not claim Blanc is a Helium fork or identical substitute.",
+      "verificationEvidence": "X showed Your post was sent and rendered the exact reply under @blancbrowser."
+    },
+    {
+      "order": 4,
+      "platform": "tiktok",
+      "type": "reply_to_unanswered_how_to",
+      "targetAuthor": "home99fam",
+      "parentUrl": "https://www.tiktok.com/@drgfrance/video/7683232618233613590",
+      "liveUrl": "https://www.tiktok.com/@drgfrance/video/7683232618233613590",
+      "liveLocator": "Reply by @blancbrowser directly beneath @home99fam comment “How do you do this? sorry im old! 😂”.",
+      "text": "Desktop Chrome: right-click a tab → Add tab to group → New group. Name it, then drag other tabs in. Click the group name to collapse it.",
+      "status": "published_verified",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "claimCheck": "Steps verified against current first-party Google Chrome Help.",
+      "verificationEvidence": "TikTok showed Reply sent, increased the video comment count from 8 to 9, and rendered the exact nested reply under @blancbrowser.",
+      "earlyOutcome": {
+        "observedAt": "2026-09-14T17:04:09-04:00",
+        "lightweightLikes": 1,
+        "meaningfulInteractions": 0,
+        "note": "The target commenter liked Blanc’s answer; likes remain secondary under the measurement plan."
+      }
+    },
+    {
+      "order": 5,
+      "platform": "substack",
+      "type": "reply_to_design_discussion",
+      "targetAuthor": "Felix",
+      "parentUrl": "https://substack.com/@byfelix/note/c-336048711",
+      "liveUrl": "https://substack.com/profile/542769413-blanc-browser/note/c-337013669",
+      "text": "Minimalism is a brutal test: if a removed control had a job, that job still needs a home. The good version makes the next action obvious; the bad version makes the interface beautiful and the user lost.",
+      "status": "published_verified",
+      "verifiedAt": "2026-09-14T12:51:39-04:00",
+      "claimCheck": "Design opinion only; no product claim.",
+      "verificationEvidence": "Substack showed Reply sent, increased the thread from 1 to 2 replies, and rendered the exact note under Blanc Browser."
+    }
+  ],
+  "observationWindow": "Approximately 17:01–17:04 EDT",
+  "comparisonWindow": {
+    "from": "2026-09-13T17:03:50-04:00",
+    "to": "2026-09-14T17:04:09-04:00",
+    "duration": "approximately 24 hours"
+  },
+  "replyOutcomeReview24h": {
+    "observedAt": "2026-09-14T17:04:09-04:00",
+    "status": "completed",
+    "contributions": [
+      {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdPL9E6kffd",
+        "views": 7,
+        "likes": 1,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdPMYDbEYq3",
+        "views": 4,
+        "likes": 0,
+        "audienceReplies": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "threads",
+        "url": "https://www.threads.com/@blancbrowser/post/DdPMaizEZli",
+        "views": 11,
+        "likes": 1,
+        "audienceReplies": 2,
+        "meaningfulInteractions": 2
+      },
+      {
+        "platform": "x",
+        "url": "https://x.com/blancbrowser/status/2099202098302791948",
+        "views": 14,
+        "likes": 0,
+        "replies": 0,
+        "reposts": 0,
+        "bookmarks": 0,
+        "meaningfulInteractions": 0
+      },
+      {
+        "platform": "x",
+        "url": "https://x.com/blancbrowser/status/2099202155836031022",
+        "views": 11,
+        "likes": 0,
+        "replies": 0,
+        "reposts": 0,
+        "bookmarks": 0,
+        "meaningfulInteractions": 0
+      }
+    ],
+    "totals": {
+      "visibleViews": 47,
+      "secondaryLikes": 2,
+      "substantiveAudienceReplies": 2,
+      "meaningfulInteractions": 2
+    },
+    "interpretation": "The duplicate-tab design reply produced the only substantive conversation. The other four replies produced no meaningful interaction within the first 24 hours."
+  }
+}

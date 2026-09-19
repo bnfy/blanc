@@ -1,12 +1,23 @@
 # Blanc social experiment pipeline
 
-Last release check: `v1.10.0`, August 30, 2026.
+Last release check: `v1.13.0`, September 3, 2026.
+
+> **Superseded for daily operation on September 4, 2026.** Use
+> [`reply-monitoring-growth-plan-2026-09-04.md`](reply-monitoring-growth-plan-2026-09-04.md)
+> for current targets, authorization, schedule and measurement, and the
+> reconciled September 2 operating plan for the ordered content queue.
+> The source paths below were rechecked against
+> public v1.13.0 on September 3, 2026. Each material claim still requires a
+> fresh reading of the tagged evidence and release record before copy, an asset,
+> or a demo is approved or published.
 
 This pipeline exists to prevent Blanc's small content library from collapsing
 into repeated tab-count posts. It is not a publication schedule and grants no
-approval to post. Every public action still requires Anthony's explicit
-approval in the active Codex thread and a final freshness, duplicate, claim,
-brand, crop, and destination check.
+approval to publish these experiments. New posts, creator outreach, profile
+changes and ads remain separate review items. Useful routine inbound replies
+are already authorized by the September 4 plan; read the conversation and log,
+check claims, and verify submission. Publication of an experiment requires a
+final freshness, duplicate, claim, brand, crop and destination check.
 
 ## Operating mix
 
@@ -36,7 +47,7 @@ or later. No draft in that lane is approved for publication.
 ### 1. Quiet Tabs — free up memory without closing tabs
 
 - **Primary native format:** Instagram and Facebook four-slide carousel.
-- **Secondary test:** one short X clip made from a real v1.9.1 interaction,
+- **Secondary test:** one short X clip made from a real v1.13.0 interaction,
   only after the carousel has produced a baseline.
 - **User tension:** people are often done with a page for now without being
   ready to lose the useful context it represents.
@@ -45,8 +56,8 @@ or later. No draft in that lane is approved for publication.
 - **Hook:** `your laptop has enough to do.`
 - **Proof required:** show the Settings delay and one real tab reloading after
   it goes quiet; never imply exact live-state resumption or numeric savings.
-- **Evidence:** `v1.9.1:src/main/tab-sleep.js`,
-  `v1.9.1:site/src/pages/features/quiet-tabs.astro`.
+- **Evidence:** `v1.13.0:src/main/tab-sleep.js`,
+  `v1.13.0:site/src/pages/features/quiet-tabs.astro`.
 - **Existing asset:** `quiet-tabs-carousel/`; do not adapt the same frames into
   a Reel without a genuinely new demonstration.
 
@@ -60,14 +71,14 @@ or later. No draft in that lane is approved for publication.
 - **Proof required:** switch View → Tab Layout → Vertical Tabs and back in the
   current public build, showing that the page does not reload and navigation
   remains in the Island.
-- **Evidence:** `v1.9.1:site/src/pages/features/vertical-tabs.astro`.
+- **Evidence:** `v1.13.0:site/src/pages/features/vertical-tabs.astro`.
 - **Guardrail:** do not claim Blanc has no vertical tabs or no persistent tab
   view. The Island layout is the default; the vertical rail is optional.
 - **Campaign brief:** [`island-or-rail/README.md`](island-or-rail/README.md).
 
 ### 3. One shortcut through the whole session
 
-- **Primary native format:** 8–12 second TikTok/Reel recorded from v1.9.1.
+- **Primary native format:** 8–12 second TikTok/Reel recorded from v1.13.0.
 - **Secondary test:** GIF or short clip on X and Threads.
 - **User tension:** finding a tab, favorite, history item, group, or browser
   command should not require five separate surfaces.
@@ -75,7 +86,7 @@ or later. No draft in that lane is approved for publication.
 - **Proof required:** one uncut interaction matching an open tab, a favorite,
   and a named group, followed by a slash command. Do not imply semantic or AI
   matching.
-- **Evidence:** `v1.9.1:site/src/pages/features/command-palette.astro`.
+- **Evidence:** `v1.13.0:site/src/pages/features/command-palette.astro`.
 - **Campaign brief:**
   [`quick-switcher-campaign-brief-2026-08-29.md`](quick-switcher-campaign-brief-2026-08-29.md).
   Storyboard and six platform-native executions are prepared but not approved
@@ -91,7 +102,7 @@ or later. No draft in that lane is approved for publication.
 - **Hook:** `what would you call the tabs in front of you right now?`
 - **Proof required:** user explicitly creates or assigns the group. Never say
   Blanc infers a task, chooses a name, or organizes tabs automatically.
-- **Evidence:** `v1.9.1:site/src/pages/features/tab-groups.astro`.
+- **Evidence:** `v1.13.0:site/src/pages/features/tab-groups.astro`.
 
 ### 5. Blocking that is already part of the browser
 
@@ -105,8 +116,8 @@ or later. No draft in that lane is approved for publication.
 - **Proof required:** describe built-in EasyList/EasyPrivacy blocking as a
   strong default, never a guarantee; do not claim every ad or tracker is
   blocked.
-- **Evidence:** `v1.9.1:site/src/pages/features/ad-blocking.astro`,
-  `v1.9.1:site/src/pages/features/security.astro`.
+- **Evidence:** `v1.13.0:site/src/pages/features/ad-blocking.astro`,
+  `v1.13.0:site/src/pages/features/security.astro`.
 
 ### 6. Private tabs that stay out of Blanc's record
 
@@ -118,7 +129,7 @@ or later. No draft in that lane is approved for publication.
 - **Proof required:** say only that private pages stay out of Blanc history,
   session restore, and reopen-closed. Saved files, websites, networks, and
   employers may still observe activity.
-- **Evidence:** `v1.9.1:site/src/pages/features/private-tabs.astro`.
+- **Evidence:** `v1.13.0:site/src/pages/features/private-tabs.astro`.
 
 ### 7. Your other device is a menu, not a remote control
 
@@ -130,7 +141,7 @@ or later. No draft in that lane is approved for publication.
 - **Proof required:** remote tabs are opt-in, read-only snapshots; choosing one
   opens a fresh local tab and does not force-open, close, or reorder the source
   device. Private tabs never enter a snapshot.
-- **Evidence:** `v1.9.1:site/src/pages/features/sync.astro`.
+- **Evidence:** `v1.13.0:site/src/pages/features/sync.astro`.
 
 ### 8. Closed the wrong tab? Get the page back
 
@@ -142,10 +153,10 @@ or later. No draft in that lane is approved for publication.
 - **Hook:** `closed the wrong tab?`
 - **Proof required:** close and reopen one eligible ordinary page inside the
   tagged 30-second live-hold window, showing the real entered line return in
-  the installed public v1.9.1 build. Say “eligible” and “about 30 seconds.”
+  the installed public v1.13.0 build. Say “eligible” and “about 30 seconds.”
   Never promise that every page or form state is recoverable.
-- **Evidence:** `v1.9.1:src/main/closed-tabs.js`,
-  `v1.9.1:src/main/main.js`, and `v1.9.1:site/src/pages/features.astro`.
+- **Evidence:** `v1.13.0:src/main/closed-tabs.js`,
+  `v1.13.0:src/main/main.js`, and `v1.13.0:site/src/pages/features.astro`.
 - **Campaign brief:**
   [`reopen-closed-tab-campaign-brief-2026-08-29.md`](reopen-closed-tab-campaign-brief-2026-08-29.md).
   Storyboard, claim ledger, six platform-native executions, and read-only

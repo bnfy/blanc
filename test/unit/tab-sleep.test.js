@@ -162,6 +162,18 @@ for (const [field, value] of [
   });
 }
 
+test('displayShareBlocking excludes a tab even when capturing is false', () => {
+  assert.deepEqual(run([tab({ capturing: false, displayShareBlocking: true })]), []);
+});
+
+test('mayDiscardRenderer refuses after displayShareBlocking flips true', () => {
+  const { mayDiscardRenderer } = require('../../src/main/tab-sleep');
+  const record = tab({ capturing: false, displayShareBlocking: false });
+  assert.equal(mayDiscardRenderer(record), true);
+  record.displayShareBlocking = true;
+  assert.equal(mayDiscardRenderer(record), false);
+});
+
 test('a private tab with an ordinary GET commit is a candidate', () => {
   assert.deepEqual(run([tab({ private: true, historyEligible: false })]), ['a']);
 });

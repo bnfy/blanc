@@ -33,7 +33,7 @@ toolbar (Bowser Design System "Island Chrome").
   `find` (F8). Only the active state shows; Escape/back dismisses.
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
-- **Platform note:** desktop draws this as a 64px strip + an always-on-top overlay
+- **Platform note:** desktop draws this as a 68px strip + an always-on-top overlay
   view. Mobile renders it natively (SwiftUI / Compose) driven by shared design
   tokens (→ substrate). The *layout, contents, and states* are the contract; the
   windowing is D11, the input affordances are D7.
@@ -125,12 +125,17 @@ toolbar (Bowser Design System "Island Chrome").
 - **OS hand-off** (`handOffToOs`) is checked *before* normalization for bare
   `mailto:` / `tel:` / `facetime:` / `sms:` URIs and page-initiated navigations to
   them — handed to the OS instead of treated as a query (D4).
+- Desktop also hands reviewed app schemes and standard Microsoft/Google native
+  OAuth callback schemes to their installed applications after explicit
+  confirmation. Unknown schemes never reach the OS. A captured callback remains
+  valid if its OAuth popup closes while the native confirmation is open (D4).
 - The heuristic's known edge-case misclassifications (e.g. dotted query strings)
   are an **accepted limitation**, identical on every platform — do not "fix" one
   platform's parser to be smarter than the others.
-- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest`
-  searches via the configured engine; typing `mailto:a@b.com` hands off to the OS
-  mail handler.
+- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest` or
+  `site:example.com` searches via the configured engine; typing `mailto:a@b.com`
+  hands off to the OS mail handler; a reviewed desktop app callback requires
+  confirmation.
 
 ## F6 — Command palette & Quick Switcher
 
@@ -277,19 +282,22 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
-| `appIcon` | `paper` | a free icon id, or a supporter id **iff** supporter active |
+| `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
+| `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
+| `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
+| `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
-- `appIcon` is **sanitized on read** the same way it is validated on write: a
-  stale/unlicensed supporter id reads back as the default. This predicate
+- `appIcon` is **sanitized on read** the same way it is validated on write: any
+  stale or retired id reads back as Sunrise. This predicate
   (`isAppIconAllowed`) is shared logic.
-- **Acceptance:** Setting an invalid search engine is rejected; setting a supporter
-  icon without an active license reads back as `paper`; adding `WWW.Example.com/x`
-  to exceptions stores `example.com`.
+- **Acceptance:** Setting an invalid search engine is rejected; setting a retired
+  icon id reads back as `sunrise`; adding `WWW.Example.com/x` to exceptions
+  stores `example.com`.
 
 ## F15 — Theming
 
@@ -304,11 +312,11 @@ From the desktop `DEFAULTS`:
 ## F16 — Internal `blanc://` pages
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
-  **history**, **downloads**, **settings**, **shortcuts**, **error**, **auth**.
+  **history**, **downloads**, **settings**, **shortcuts**, **error**.
 - **Presentation split:** the five *utility* pages (favorites, history, downloads,
   settings, shortcuts) present as a **transient chrome surface** — on desktop a
-  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content
-  (`auth` is a dialog). Outbound activations (a history entry, a favorite) open
+  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
+  Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed.
 - The newtab ledger: date line, "Where to?", favorites, tab groups ("pick up where
@@ -321,17 +329,17 @@ From the desktop `DEFAULTS`:
   pages open in the transient surface leaving the tab set untouched, and
   activating a favorite from the surface opens exactly one real tab.
 
-## F17 — Supporter & app icons
+## F17 — Patron & app icons
 
-- 8 free colorways (`paper` default, `ink`, `graphite`, `default`/"Evergreen",
-  `midnight`, `cream`, `forest`, `sage`) + 3 supporter-gated (`ember`, `plum`,
-  `gold`), same fixed geometry.
-- Supporter unlock is **trusted forever, offline-OK, cosmetic-only** — no
-  revalidation, no DRM. Renderers only ever see a derived `supporterActive` boolean.
+- macOS Settings offers four Dock colorways: `sunrise` (default),
+  `sunrise-dark`, `paper`, and `ink`. Older ids are retired; any stale or
+  hand-set retired id falls back to `sunrise`.
+- Patron unlocks Named Workspaces, not icon variants. Renderers only ever see a
+  derived `patronActive` boolean; the entitlement record stays in main.
 - **Diverges:** purchase rails (D5 — Apple IAP / Play Billing, not Polar, on mobile)
   and icon-switching mechanism (D6 — clean on iOS, limited on Android).
-- **Acceptance:** A supporter can select `ember`; a non-supporter sees it locked and
-  any hand-set supporter id falls back to `paper`.
+- **Acceptance:** A current colorway can be selected; a retired id is rejected
+  even when Patron is active.
 
 ## F18 — Session persistence & restore
 
@@ -368,12 +376,13 @@ From the desktop `DEFAULTS`:
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
 
-## F20 — Basic-auth dialog
+## F20 — HTTP authentication policy
 
-- HTTP basic-auth challenges present a modal prompt (`bowserAuth` bridge on
-  desktop; native equivalent on mobile) with the same fields/behaviour.
-- **Acceptance:** Navigating to a basic-auth-protected URL raises the credential
-  prompt; correct credentials proceed, cancel aborts the navigation.
+- HTTP basic/digest challenges never present a separate Blanc credential
+  prompt. Website sign-in forms remain the website's own UI.
+- **Acceptance:** Navigating to a basic-auth-protected URL does not raise a
+  Blanc prompt; the authentication challenge is cancelled and the protected
+  navigation fails. Subresource and proxy challenges are cancelled silently.
 
 ## F21 — Telemetry (bounded usage measurement)
 
@@ -455,15 +464,32 @@ From the desktop `DEFAULTS`:
   provider's equivalent) reports DoH active; a deliberately-unreachable custom
   template fails closed rather than silently resolving over plaintext.
 
-## F26 — WebRTC leak protection
+## F26 — WebRTC privacy and call stability
 
 - A Settings → Privacy control sets the WebRTC IP-handling policy: **Standard**
-  exposes no addresses beyond the default route's public interface; **Disable
-  direct UDP** additionally stops WebRTC from opening direct UDP paths that bypass
-  an application-level proxy (not relay-only enforcement). Applied to every tab.
+  exposes no addresses beyond the default route's public interface;
+  **Compatibility** restores the engine's ordinary public-and-local candidate
+  discovery for calls that stutter or fail under the narrower policy, with an
+  explicit local-address privacy warning; **Disable direct UDP** additionally
+  stops WebRTC from opening direct UDP paths that bypass an application-level
+  proxy (not relay-only enforcement). Applied to every tab.
+- A separate device-local **Call audio** control chooses the receiver playout
+  policy. **Automatic** leaves Chromium's latency/continuity tradeoff untouched;
+  **Stable** targets about 400 ms through the standards-track
+  `RTCRtpReceiver.jitterBufferTarget` property for smoother speech when a live
+  call arrives in bursts; **Resilient** targets about 1 second for severe burst
+  arrival at the cost of slower conversational turn-taking. Both explicit
+  targets apply only to audio receivers and do not alter video timing or the
+  selected IP-handling policy.
 - **Acceptance:** On a WebRTC test page, Standard reveals no local/multi-homed
-  private addresses; with an application proxy configured, Disable-direct-UDP
-  removes direct UDP candidates.
+  private addresses; Compatibility exposes the engine-default candidate set;
+  with an application proxy configured, Disable-direct-UDP removes direct UDP
+  candidates. In a new call begun with Stable selected, each audio receiver
+  reports a 400 ms `jitterBufferTarget` while Resilient reports 1000 ms and
+  video receivers remain unchanged;
+  returning to Automatic writes `null` to receivers managed by Blanc and a new
+  call resumes engine-default buffering. A new call started after changing
+  either setting uses the new policy.
 
 ## F27 — Tab Sync (open tabs from your other devices)
 
@@ -499,7 +525,7 @@ From the desktop `DEFAULTS`:
   the rendered width is temporarily capped so the website retains at least
   392px; widening restores the saved preference. The Island remains the only
   address, search, and command surface. Guest tabs and the utility sheet
-  occupy the remaining page pane below a 64px safe-area gutter whose color is
+  occupy the remaining page pane below a 68px safe-area gutter whose color is
   sampled from the active website; the Island floats in that gutter without
   covering website pixels.
   The resting Island plus its panel and palette share the remaining website
@@ -701,13 +727,34 @@ From the desktop `DEFAULTS`:
 ## F35 — Start page layouts
 
 - The start page offers five layouts: **ledger** (the original column),
-  **billboard** (a live clock over favorite tiles), **shelf** (a favorites grid
+  **billboard** (a live clock over locally ranked frequent-site tiles), **shelf** (a favorites grid
   with group and blocked-count cards), **tally** (the ledger column beside a
   week-of-blocking bar chart), and **mahjong** (an embedded, local solitaire
-  deal). The four informational layouts draw the same favorites, tab-group, and
-  blocker feeds; Mahjong deliberately replaces those feeds with the game. All
-  five re-ink under the light, dark, and private themes.
-- The choice is a synced setting (`newtabLayout`, default `ledger`), changeable
+  deal). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
+  derives up to six hostname-level sites from the active local profile's
+  on-device history, ranked by visit count with recency as the tie-breaker. A
+  full, bounded local page title labels each tile, and a bounded profile-local
+  cache reuses sanitized 32 px favicon pixels captured during normal visits;
+  rendering the row never starts a favicon request. A
+  hover/focus dismiss button stores only a bounded hostname list in that
+  profile's `blanc://newtab` localStorage; it does not delete history, sync,
+  emit telemetry, or contact a favicon service. Clearing history also clears
+  its cached Billboard artwork. Private Billboard tabs receive
+  no history-derived sites. Mahjong replaces the informational feeds with the
+  game. All five re-ink under the light, dark, and private themes.
+- All five start-page layouts use **Inter** for text that previously used the
+  shared JetBrains Mono role, including the shared footer and onboarding. This
+  override is local to the new-tab and embedded Mahjong documents; other
+  internal pages and browser chrome retain their existing typography. The one
+  deliberate exception is Mahjong's tile faces: character numerals and wind
+  badge letters are game artwork and keep the bundled JetBrains Mono (at its
+  ExtraBold weight), while the game's meters, sheets, and dock labels use
+  Inter. Desktop
+  acceptance exercises every layout at the default and minimum supported
+  sizes and on both sides of its responsive breakpoints, with realistic long
+  Billboard titles, and rejects horizontal overflow, unreachable text, or
+  unintended clipping.
+- The choice is a synced setting (`newtabLayout`, default `billboard`), changeable
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.
@@ -729,10 +776,19 @@ From the desktop `DEFAULTS`:
   switcher remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — with no
   placeholder copy on the three newer layouts.
+- After first run, Personal non-private start pages show one corner
+  moving-in checklist on ledger, billboard, shelf, and tally. It stays
+  lower-right on ledger, shelf, and tally, and moves upper-right on Billboard
+  to preserve the recent-site row and its dismissal actions. It tracks the
+  device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
+  permanently, and retires after a brief 2/2 confirmation. Mahjong omits it.
+  Tight windows collapse it to a progress-ring trigger so primary content and
+  the footer stay reachable.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
-  renders the saved layout on a new tab, persists a footer switch, and verifies
-  that Mahjong embeds a playable 144-tile deal.
+  renders the saved layout on a new tab, persists a footer switch, verifies
+  Billboard's local frequency ranking and dismissal, and confirms that Mahjong
+  embeds a playable 144-tile deal.
 
 ## F36 — First-run onboarding
 
@@ -748,7 +804,9 @@ From the desktop `DEFAULTS`:
   closes only on a confirmed write. The import step embeds F30's migration
   with its explicit-discovery rule intact: no other browser's profile is read
   until the person asks to look, and the universal bookmarks-file import is
-  offered from the start.
+  offered from the start. The import step also offers **Bring your open tabs…**
+  as a separate F40 handoff before or after F30 Favorites import. F40 does not
+  depend on completing a Favorites import first.
 - Ad-blocking and theme choices apply live during the flow through the same
   validated settings paths as Settings itself; the default-browser step uses
   the OS registration only where the platform genuinely supports it and
@@ -761,7 +819,8 @@ From the desktop `DEFAULTS`:
   [`acceptance/onboarding.feature`](./acceptance/onboarding.feature) shows the
   walkthrough to a fresh profile once, proves skip records the privacy
   choices, never re-asks a completed profile, and verifies the import step
-  reads nothing before the explicit ask.
+  reads nothing before the explicit ask. F40's onboarding handoff is covered by
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature).
 
 ## F37 — The blank tab shows where to type
 
@@ -821,3 +880,40 @@ From the desktop `DEFAULTS`:
   background access. A release additionally needs a signed packaged test with
   a real installed 1Password desktop app on macOS. Windows and Linux must prove
   the feature is unavailable and cannot start its broker.
+
+## F39 — Certificate safety
+
+- Invalid certificates are rejected with a safety interstitial and certificate
+  problem details. No certificate bypass is offered.
+- **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
+
+## F40 — Bring Your Tabs (direct open-tab migration)
+
+PR #205 originally used F39 for migration. F40 resolves its collision with the
+existing certificate-safety scenario; historical PR evidence retains its old IDs.
+
+- A person explicitly chooses a supported Chromium-family browser profile.
+  Blanc reads that profile's newest restorable open-tab session only after the
+  selection; it does not use bookmarks or require source-browser preparation.
+- The Tabs step preserves source-window/tab order, exact duplicates, pins, and
+  named source groups. The renderer receives bounded titles, hostnames, opaque
+  candidate IDs, source-window/group labels, and selection state—never full
+  URLs or source filesystem paths. Inputs are bounded to 500 candidates.
+- A normal source-browser quit is requested only when a read-only preflight
+  proves a saved/restorable session exists. Blanc never force-quits or modifies
+  the source profile, never promises automatic reopening, and never imports an
+  older snapshot after post-quit verification fails.
+- Eligible source groups seed editable Blanc Named Groups. Everything else
+  remains ungrouped until the person creates, renames, or moves it; no bookmark
+  folders, placeholder groups, cloud organizer, or hidden semantic-model promise
+  participates in v1.
+- Apply creates tabs/groups transactionally in preview order and never writes
+  Favorites. Imported tabs are quiet and viewless; only the first selected tab
+  wakes. Only after that successful apply does Blanc mark the device-local
+  moving-in checklist task complete. A Named Workspace remains a separate
+  optional Patron gesture.
+- **Acceptance:**
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
+  covers explicit session reads, quit safety, duplicate/order/group fidelity,
+  opaque renderer projection, transactional apply, ownership/cancellation,
+  onboarding, and the separate workspace handoff.

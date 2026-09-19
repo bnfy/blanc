@@ -10,7 +10,7 @@ const containsEmail = (span) =>
 ---
 {spans.map((span) => (
   <Fragment>
-    {containsEmail(span) && <Fragment set:html="<!--email_off-->" />}
+    {containsEmail(span) && <Fragment set:html={'<!--email_off-->'} />}
     {span.type === 'strong' ? <strong>{span.value}</strong>
     : span.type === 'code' ? <code>{span.value}</code>
     : span.type === 'link' ? (
@@ -19,6 +19,6 @@ const containsEmail = (span) =>
           : <a href={span.url}>{span.value}</a>
       )
     : <Fragment>{span.value}</Fragment>}
-    {containsEmail(span) && <Fragment set:html="<!--/email_off-->" />}
+    {containsEmail(span) && <Fragment set:html={'<!--/email_off-->'} />}
   </Fragment>
 ))}

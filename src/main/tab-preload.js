@@ -30,6 +30,7 @@ if (window.location.protocol === 'blanc:') {
       },
       start: {
         data: () => invoke('pages:start:data'),
+        topSites: (options) => invoke('pages:start:top-sites', options),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         setLayout: (name) => invoke('pages:start:set-layout', name),
         layoutUsed: (name) => invoke('pages:start:layout-used', name),
@@ -39,6 +40,11 @@ if (window.location.protocol === 'blanc:') {
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        openSettings: (section) => invoke('pages:start:open-settings', section),
+        dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
+        onUtilitySheetVisibility: (callback) => {
+          ipcRenderer.on('pages:start:utility-sheet-visibility', (_event, visible) => callback(visible === true));
+        },
         defaultBrowser: () => invoke('pages:default-browser:get'),
         setDefaultBrowser: () => invoke('pages:default-browser:set'),
         onboardingSet: (partial) => invoke('pages:start:onboarding-set', partial),
@@ -53,6 +59,15 @@ if (window.location.protocol === 'blanc:') {
   } else if (host === 'mahjong') {
     api = {
       mahjong: { played: () => invoke('pages:mahjong:played') },
+    };
+  } else if (host === 'tab-handoff') {
+    api = {
+      surface,
+      tabHandoff: {
+        get: () => invoke('pages:tab-handoff:get'),
+        accept: (destination) => invoke('pages:tab-handoff:accept', destination),
+        cancel: () => invoke('pages:tab-handoff:cancel'),
+      },
     };
   } else if (host === 'bookmarks') {
     api = {
@@ -94,6 +109,25 @@ if (window.location.protocol === 'blanc:') {
       surface,
       shortcuts: { list: () => invoke('pages:shortcuts:list') },
     };
+  } else if (host === 'tab-import') {
+    api = {
+      surface,
+      tabImport: {
+        sources: () => invoke('pages:tab-import:sources'),
+        openSource: (id, options) => invoke('pages:tab-import:open-source', id, options),
+        setSelection: (sessionId, selection) =>
+          invoke('pages:tab-import:set-selection', sessionId, selection),
+        suggestSourceGroups: (sessionId) =>
+          invoke('pages:tab-import:suggest-source-groups', sessionId),
+        suggestEmbed: (sessionId) =>
+          invoke('pages:tab-import:suggest-embed', sessionId),
+        submitEmbeddings: (sessionId, generation, matrix) =>
+          invoke('pages:tab-import:submit-embeddings', sessionId, generation, matrix),
+        apply: (sessionId, request) =>
+          invoke('pages:tab-import:apply', sessionId, request),
+        cancel: (sessionId) => invoke('pages:tab-import:cancel', sessionId),
+      },
+    };
   } else if (host === 'settings') {
     api = {
       surface,
@@ -103,6 +137,7 @@ if (window.location.protocol === 'blanc:') {
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
+        syncPreflight: (payload) => invoke('pages:settings:sync-preflight', payload),
         syncDisable: (opts) => invoke('pages:settings:sync-disable', opts),
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),

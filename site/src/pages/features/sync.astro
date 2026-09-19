@@ -2,21 +2,29 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 <BaseLayout
-  title={"Encrypted Tab Sync Across Devices | Blanc Browser"}
-  description={"Blanc's Tab Sync shows your open tabs from your other devices — end-to-end encrypted, off by default, opt-in per device, and never a merged live session."}
+  title={"Encrypted Sync Across Devices | Blanc Browser"}
+  description={"Sync carries your favorites and settings between devices, and your open tabs if you choose — end-to-end encrypted, off by default, opt-in per device."}
   path="/features/sync"
   page="feature-sync"
   current="features"
-  ogDescription={"Your open tabs from your other devices — end-to-end encrypted, off by default, opt-in per device."}
+  ogDescription={"Your favorites and settings on your other devices, and, if you choose, your open tabs. End-to-end encrypted."}
   ogImageAlt={"Blanc Browser"}
 >
   <script type="application/ld+json" is:inline slot="head">
-{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Tab sync","item":"https://blancbrowser.com/features/sync"}]}
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Sync","item":"https://blancbrowser.com/features/sync"}]}
 </script>
 
 <main class="feature-page feature-detail-page">
-  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">tab sync</span></nav>
-  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="sync-title"><p class="section-kicker">pick up anywhere</p><h1 id="sync-title">Your open tabs, on your other devices.</h1><p>Turn on sharing and each machine publishes what it has open. Browse another device&rsquo;s tabs from the island, the Quick Switcher, or the start page — and open one locally with a click.</p></section>
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">sync</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="sync-title"><p class="section-kicker">pick up anywhere</p><h1 id="sync-title">Your favorites and settings on your other devices, and, if you choose, your open tabs.</h1><p>Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.</p></section>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="sync-what-title">
+    <div><p class="section-kicker">what syncs</p><h2 id="sync-what-title">Favorites and settings. Open tabs if you choose.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Favorites and settings.</h3><p>Your favorites, search engine, blocking state and exceptions, home page, and theme, encrypted on your device before upload.</p></article>
+      <article><h3>Open tabs, per device.</h3><p>Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.</p></article>
+      <article><h3>Never synced.</h3><p>History, downloads, permissions, cookies, site data, and private tabs stay on the device.</p></article>
+    </div>
+  </section>
   <figure class="product-capture feature-capture">
     <div class="demo-stage island-figure island-figure--panel" role="img" aria-label="Blanc's island panel open, showing local tabs and a folded section from another device: blanc on MacBook Air with three tabs.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
@@ -46,6 +54,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div class="feature-copy-list">
       <article><h3>Off until you say so, on each device.</h3><p>Sharing is a per-device switch in Settings, off by default. A machine&rsquo;s tabs never leave it until you flip the switch on that machine — and flipping it off withdraws them.</p></article>
       <article><h3>Open here, not there.</h3><p>Another device&rsquo;s tabs are a read-only list. Picking one opens it as a fresh local tab; nothing force-opens, closes, or reorders on the other side.</p></article>
+      <article><h3>Sync belongs to Personal.</h3><p>Sync is available only to Personal. <a href="/features/profiles" data-track="feature_cta_click" data-feature="profiles" data-cta-position="related-feature">Named local profiles and independent windows</a> let you separate browsing identities on this device.</p></article>
       <article><h3>Everywhere you already look.</h3><p>Remote tabs sit behind a folded section in the island panel, match in the Quick Switcher below your local tabs, and appear on the start page under &ldquo;on your other devices.&rdquo;</p></article>
     </div>
   </section>

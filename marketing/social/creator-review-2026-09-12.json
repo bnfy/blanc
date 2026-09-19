@@ -1,0 +1,101 @@
+{
+  "date": "2026-09-12",
+  "sendingApproved": false,
+  "newPaidBudgetUsd": 0,
+  "invitationEligible": 4,
+  "weeklyQualificationTarget": 10,
+  "weeklyQualificationRemaining": 6,
+  "note": "Ten candidates reviewed/triaged is not ten freshly qualified. Ram is a completed draft with a live qualification hold. Recheck any contact thread immediately before approved sending.",
+  "candidates": [
+    {
+      "name": "Dominick Joseph Luna",
+      "platform": "X",
+      "profile": "https://x.com/DomJoLuna",
+      "audienceSnapshot": 2053,
+      "evidence": "Current original within 1 hour; current thoughtful replies to Greg Isenberg and Andrew Ng; warm prior interaction with Blanc.",
+      "stage": "eligible_for_invitation",
+      "evidenceUrl": "https://x.com/DomJoLuna/status/2098739927143817275"
+    },
+    {
+      "name": "Ram Maheshwari",
+      "platform": "X",
+      "profile": "https://x.com/rammcodes",
+      "audienceSnapshot": 4457,
+      "evidence": "Current mockup-generator and hand-drawn UI posts fit design-tool discovery. Audience response was verified September 3, but this pass only confirmed self-thread source replies.",
+      "stage": "hold_for_fresh_audience_response",
+      "evidenceUrl": "https://x.com/rammcodes/status/2098810463668859035"
+    },
+    {
+      "name": "Pranav Mailarpawar",
+      "platform": "X",
+      "profile": "https://x.com/pranvtwt",
+      "audienceSnapshot": "18.8K displayed",
+      "evidence": "Current maker-tool posts and direct replies to readers within the hour; profile lists independently built web tools.",
+      "stage": "eligible_for_invitation",
+      "evidenceUrl": "https://x.com/pranvtwt/status/2098811286805213259"
+    },
+    {
+      "name": "Xinran Ma",
+      "platform": "Substack",
+      "profile": "https://substack.com/@xinran",
+      "audienceSnapshot": "44K+ self-described publication audience",
+      "evidence": "September 7 design-workflow interview; visible author replies and likes on September 11 reader discussion; author invites relevant interviews.",
+      "stage": "eligible_for_invitation",
+      "evidenceUrl": "https://designwithai.substack.com/p/from-mockups-to-merged-prs/comment/335093178"
+    },
+    {
+      "name": "Oliur",
+      "platform": "X / Instagram",
+      "profile": "https://x.com/UltraLinx",
+      "audienceSnapshot": "124.2K displayed",
+      "evidence": "Official website links this identity; September 11 Mac wallpaper-app post; direct audience replies within hours. Large-account stretch prospect.",
+      "stage": "eligible_for_invitation_stretch",
+      "evidenceUrl": "https://x.com/UltraLinx/status/2098401973842461164"
+    },
+    {
+      "name": "Only tech talk",
+      "platform": "Instagram",
+      "profile": "https://www.instagram.com/onlytech.talk/",
+      "audienceSnapshot": null,
+      "evidence": "Live Meta inbox still ends with Blanc’s September 2 invitation; no acceptance or reply observed.",
+      "stage": "already_contacted_no_new_invitation",
+      "evidenceUrl": null
+    },
+    {
+      "name": "Causal",
+      "platform": "Threads",
+      "profile": "https://www.threads.com/@causal.so",
+      "audienceSnapshot": null,
+      "evidence": "Existing September 2 invitation in shared log; current activity view shows historical exchange already replied to.",
+      "stage": "existing_contact_recheck_before_followup",
+      "evidenceUrl": null
+    },
+    {
+      "name": "Gina",
+      "platform": "TikTok",
+      "profile": "https://www.tiktok.com/@gis4gina_ugc",
+      "audienceSnapshot": null,
+      "evidence": "September 2 invitation documented; current response not reverified.",
+      "stage": "existing_contact_not_freshly_qualified",
+      "evidenceUrl": null
+    },
+    {
+      "name": "Ryan Duffy",
+      "platform": "Substack",
+      "profile": "https://substack.com/@rduffyy",
+      "audienceSnapshot": null,
+      "evidence": "Existing subscriber and September 2 invitation; current response not reverified.",
+      "stage": "existing_contact_not_freshly_qualified",
+      "evidenceUrl": null
+    },
+    {
+      "name": "Uncaught Creative",
+      "platform": "Threads",
+      "profile": "https://www.threads.com/@uncaught_creative",
+      "audienceSnapshot": null,
+      "evidence": "Current design discussion about error messages surfaced in notifications; not an inbound message to Blanc.",
+      "stage": "discovery_bench_needs_profile_and_response_check",
+      "evidenceUrl": "https://www.threads.com/@uncaught_creative/post/DdH3S4zk7O6"
+    }
+  ]
+}

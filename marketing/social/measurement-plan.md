@@ -1,6 +1,10 @@
 # Blanc organic-social measurement plan
 
-Last updated: August 30, 2026. Existing first-party measurement paths were last
+## September 4 validation update
+
+Current operational scorecard: [September 4](daily-scorecard-2026-09-04.md). Live Brave Tag Assistant testing verified the deployed GA4 tag, consent opt-in/opt-out, and one Mac `download_click` with the expected page, CTA and platform fields. The QA hit was marked internal and the active GA4 Internal Traffic filter excludes it; no customer growth is claimed. A security-policy review is now warranted for specific blocked Google advertising/diagnostic requests. Full paid attribution and file completion were not proved. See [live validation and exact limits](measurement-validation-2026-09-04.md). Historical observations below retain their original dates.
+
+Last updated: August 29, 2026. Existing first-party measurement paths were last
 verified August 28; the evergreen profile URLs below were prepared August 29
 and remain unexecuted.
 
@@ -9,9 +13,9 @@ Facebook, TikTok, and Substack. It does not treat aggregate GitHub artifact
 downloads as proof that a particular social post converted.
 
 The current one-page operating score is
-[`daily-scorecard-2026-08-30.md`](daily-scorecard-2026-08-30.md), with a
+[`daily-scorecard-2026-08-29.md`](daily-scorecard-2026-08-29.md), with a
 machine-readable companion in
-[`daily-scorecard-2026-08-30.json`](daily-scorecard-2026-08-30.json).
+[`daily-scorecard-2026-08-29.json`](daily-scorecard-2026-08-29.json).
 
 ## Existing first-party measurement
 
@@ -34,23 +38,14 @@ not complete person-level attribution.
 The read-only helper
 [`capture-download-baseline.mjs`](capture-download-baseline.mjs) snapshots the
 current public release's GitHub asset counters without writing files. The
-current v1.10.0 baseline is stored in
-[`download-baseline-v1.10.0-2026-08-30.json`](download-baseline-v1.10.0-2026-08-30.json).
+August 29 baseline is stored in
+[`download-baseline-2026-08-29.json`](download-baseline-2026-08-29.json).
 Pass that file as the optional second argument to receive an explicit delta:
 
 ```sh
 node marketing/social/capture-download-baseline.mjs \
-  v1.10.0 marketing/social/download-baseline-v1.10.0-2026-08-30.json
+  v1.9.1 marketing/social/download-baseline-2026-08-29.json
 ```
-
-At `2026-08-30T15:15:54Z`, v1.10.0 had 40 package-asset requests: 14 macOS
-DMG/ZIP requests, 16 Windows installer requests, and 10 Linux AppImage
-requests. It also had 128 updater-metadata and blockmap requests. This is the
-new comparison floor for current social measurement; it is not 40 unique
-people or 40 socially acquired users.
-
-The retired v1.9.1 measurement remains below as historical evidence. Do not
-compare its cumulative totals directly with v1.10.0's separate counters.
 
 At `2026-08-29T17:02:25Z`, v1.9.1 had 137 package-asset requests: 41 macOS
 DMG/ZIP requests, 66 Windows installer requests, and 30 Linux AppImage

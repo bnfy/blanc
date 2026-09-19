@@ -16,6 +16,32 @@ function uuid(number) {
   return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 }
 
+class HookedStorage extends MemoryStorage {
+  constructor(entries) { super(entries); this.failKeys = new Set(); this.failRemoveKeys = new Set(); this.onSet = null; }
+  setItem(key, value) {
+    if (this.failKeys.has(key)) throw new Error(`write refused: ${key}`);
+    super.setItem(key, value);
+    if (this.onSet) { const hook = this.onSet; this.onSet = null; hook(key); }
+  }
+  removeItem(key) {
+    if (this.failRemoveKeys.has(key)) throw new Error(`removal refused: ${key}`);
+    super.removeItem(key);
+  }
+}
+
+function completion(layoutId, mode, extra = {}) {
+  return {
+    layoutId, layoutRevision: S.LAYOUT_REVISIONS[layoutId], mode, elapsedMs: 60_000, score: mode === 'tray' ? 1000 : 0,
+    scoringRevision: mode === 'tray' ? 2 : 0, completed: true, assists: { undo: 0, hint: 0, shuffle: 0 }, ...extra,
+  };
+}
+
+function rawEvent(storage, number, result, updatedAt) {
+  const eventId = uuid(number);
+  storage.setItem(`${S.RECORD_EVENT_PREFIX}${eventId}`, JSON.stringify({ version: 2, eventId, updatedAt, result }));
+  return eventId;
+}
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -394,18 +420,16 @@ test('record revisions preserve unchanged layouts and discard retired Arch geome
   }, 8).classic.arch.bestTimeMs, 45_000);
 });
 
-test('daily deal identity is deterministic and rotates Turtle, Arch, Peaks', () => {
+test('daily deal identity is deterministic and rotates through every layout', () => {
   const first = S.dailyDeal('2026-08-30');
   assert.deepEqual(first, S.dailyDeal('2026-08-30'));
   assert.notEqual(first.seed, S.dailySeed('2026-08-31'));
-  const layouts = [
-    S.dailyLayoutId('2026-08-30'),
-    S.dailyLayoutId('2026-08-31'),
-    S.dailyLayoutId('2026-09-01'),
-    S.dailyLayoutId('2026-09-02'),
-  ];
-  assert.equal(new Set(layouts.slice(0, 3)).size, 3);
-  assert.equal(layouts[0], layouts[3]);
+  const days = ['2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11', '2026-09-12', '2026-09-13', '2026-09-14'];
+  const layouts = days.map((day) => S.dailyLayoutId(day));
+  assert.deepEqual([...layouts].sort(), [...S.LAYOUT_IDS].sort(), 'eight consecutive days visit every layout once');
+  assert.equal(S.dailyLayoutId('2026-09-15'), layouts[0], 'the ninth day wraps');
+  assert.equal(S.LAYOUT_IDS.length, 8);
+  assert.deepEqual(S.LAYOUT_IDS, ['turtle', 'arch', 'peaks', 'pyramid', 'fortress', 'butterfly', 'bridge', 'cross']);
   assert.equal(S.dailyKey(new Date(2026, 7, 30, 23, 59)), '2026-08-30');
 });
 
@@ -595,4 +619,225 @@ test('duplicate guard forks the newer live instance and announces its new id', (
   assert.deepEqual(forks, [{ from: gameId, to: uuid(43) }]);
   first.dispose();
   second.dispose();
+});
+
+test('game summaries expose resumable saves without touching access times', () => {
+  const storage = new MemoryStorage();
+  let clock = 1000;
+  const store = S.createGameStore({ storage, engine: E, now: () => clock });
+  const untouched = E.createGame({ seed: 1, layoutId: 'peaks', mode: 'tray' });
+  store.save(uuid(1), untouched);
+  clock = 2000;
+  const played = E.createGame({ seed: 2, layoutId: 'arch', mode: 'classic', dailyKey: '2026-09-02' });
+  const [first, second] = E.generateDeal({ seed: 2, layoutId: 'arch' }).solution[0];
+  E.removePair(played, first, second);
+  store.save(uuid(2), played);
+  clock = 3000;
+  const won = E.createGame({ seed: 3, layoutId: 'peaks', mode: 'classic' });
+  for (const pair of E.generateDeal({ seed: 3, layoutId: 'peaks' }).solution) E.removePair(won, ...pair);
+  store.save(uuid(3), won);
+
+  clock = 9000;
+  const summaries = store.summaries();
+  assert.deepEqual(summaries.map((entry) => entry.gameId), [uuid(3), uuid(2), uuid(1)]);
+  assert.deepEqual(summaries[1], {
+    gameId: uuid(2), lastAccessAt: 2000, layoutId: 'arch', mode: 'classic',
+    dailyKey: '2026-09-02', status: 'playing', started: true, pairsLeft: 47,
+  });
+  assert.equal(summaries[0].status, 'won');
+  assert.equal(summaries[2].started, false);
+  assert.equal(JSON.parse(storage.getItem(S.gameAccessKey(uuid(2)))).lastAccessAt, 2000, 'summaries never touch access');
+
+  assert.equal(S.resumeCandidate(summaries, { excludeGameId: uuid(9) }).gameId, uuid(2));
+  assert.equal(S.resumeCandidate(summaries, { excludeGameId: uuid(2) }), null);
+  assert.equal(S.resumeCandidate([], {}), null);
+});
+
+test('table preferences persist the last layout, mode, and deal source with safe defaults', () => {
+  const storage = new MemoryStorage();
+  const prefs = S.createPrefsStore({ storage });
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily' });
+  assert.equal(prefs.write({ layoutId: 'arch', mode: 'classic', source: 'random' }), true);
+  assert.deepEqual(prefs.read(), { layoutId: 'arch', mode: 'classic', source: 'random' });
+  assert.deepEqual(S.createPrefsStore({ storage }).read(), { layoutId: 'arch', mode: 'classic', source: 'random' });
+  storage.setItem(S.PREFS_KEY, JSON.stringify({ version: 1, layoutId: 'castle', mode: 'zen', source: 'random' }));
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'random' });
+  storage.setItem(S.PREFS_KEY, '{not json');
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily' });
+});
+
+test('completion outcome distinguishes a first clear, a new record, and no change', () => {
+  const classicBefore = { bestTimeMs: 90_000 };
+  assert.equal(S.completionOutcome({ mode: 'classic', before: null, after: null }), 'none');
+  assert.equal(S.completionOutcome({ mode: 'classic', before: null, after: { bestTimeMs: 100 } }), 'first');
+  assert.equal(S.completionOutcome({ mode: 'classic', before: classicBefore, after: { bestTimeMs: 80_000 } }), 'record');
+  assert.equal(S.completionOutcome({ mode: 'classic', before: classicBefore, after: { bestTimeMs: 90_000 } }), 'none');
+  const trayBefore = { bestScore: 3000, bestTimeMs: 100_000 };
+  assert.equal(S.completionOutcome({ mode: 'tray', before: trayBefore, after: { bestScore: 3100, bestTimeMs: 200_000 } }), 'record');
+  assert.equal(S.completionOutcome({ mode: 'tray', before: trayBefore, after: { bestScore: 3000, bestTimeMs: 90_000 } }), 'record');
+  assert.equal(S.completionOutcome({ mode: 'tray', before: trayBefore, after: { bestScore: 3000, bestTimeMs: 100_000 } }), 'none');
+});
+
+test('daily results describe a cleared day per mode', () => {
+  const formatMs = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}`;
+  const records = S.applyResult(S.emptyRecords(), {
+    layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 252_000, score: 3450,
+    scoringRevision: 2, completed: true, dailyKey: '2026-09-02', assists: {},
+  }, 5);
+  assert.equal(S.describeDailyResult(records, '2026-09-02', 'tray', formatMs), 'cleared · 3,450 pts · 4:12');
+  assert.equal(S.describeDailyResult(records, '2026-09-02', 'classic', formatMs), null);
+  const classic = S.applyResult(records, {
+    layoutId: 'arch', layoutRevision: 2, mode: 'classic', elapsedMs: 61_000, completed: true, dailyKey: '2026-09-02', assists: {},
+  }, 6);
+  assert.equal(S.describeDailyResult(classic, '2026-09-02', 'classic', formatMs), 'cleared · 1:01');
+  assert.equal(S.describeDailyResult(classic, '2026-09-03', 'classic', formatMs), null);
+});
+
+test('totals count each completion once across repeated reads and are normalised safely', () => {
+  const storage = new HookedStorage();
+  let clock = 1000;
+  const store = S.createRecordStore({ storage, now: () => clock, uuid: () => uuid(clock++) });
+  store.record(completion('peaks', 'classic'));
+  store.record(completion('peaks', 'classic'));
+  store.record(completion('arch', 'tray'));
+  for (let i = 0; i < 3; i++) store.read();
+  const records = store.read();
+  assert.deepEqual(records.totals.cleared, { classic: { peaks: 2 }, tray: { arch: 1 } });
+  assert.equal(records.totals.countedEvents.length, 3);
+  assert.deepEqual(S.emptyRecords().totals, S.emptyTotals());
+  const oversized = Array.from({ length: S.MAX_RECORD_EVENTS * 3 }, (_, i) => uuid(10_000 + i));
+  assert.equal(
+    S.normalizeRecords({ version: 2, totals: { cleared: {}, countedEvents: oversized } }).totals.countedEvents.length,
+    oversized.length,
+    'normalisation never truncates seen ids; only compaction after a prune bounds them'
+  );
+  const corrupt = S.normalizeRecords({ version: 2, classic: { peaks: { layoutRevision: 1, bestTimeMs: 5 } }, totals: { cleared: { classic: { peaks: -4, castle: 2 }, tray: 'x' }, countedEvents: 'nope' } });
+  assert.deepEqual(corrupt.totals, S.emptyTotals());
+  assert.equal(corrupt.classic.peaks.bestTimeMs, 5, 'a corrupt totals block never disturbs best records');
+});
+
+test('only completed: true events increment totals; false or missing never do', () => {
+  const storage = new HookedStorage();
+  rawEvent(storage, 1, completion('peaks', 'classic'), 1);
+  rawEvent(storage, 2, completion('peaks', 'classic', { completed: false }), 2);
+  const missing = completion('peaks', 'classic');
+  delete missing.completed;
+  rawEvent(storage, 3, missing, 3);
+  const store = S.createRecordStore({ storage, now: () => 10, uuid: () => uuid(99) });
+  const records = store.read();
+  assert.deepEqual(records.totals.cleared, { classic: { peaks: 1 }, tray: {} });
+  assert.equal(records.totals.countedEvents.length, 3, 'non-counting events are still marked seen so they are never re-examined');
+  assert.deepEqual(store.read().totals.cleared, { classic: { peaks: 1 }, tray: {} });
+});
+
+test('a failed aggregate write leaves every event in place and never prunes', () => {
+  const storage = new HookedStorage();
+  for (let n = 1; n <= S.MAX_RECORD_EVENTS + 1; n++) rawEvent(storage, n, completion('turtle', 'classic'), n);
+  storage.failKeys.add(S.RECORDS_KEY);
+  const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
+  const view = store.read();
+  assert.equal(view.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'the in-memory view still counts');
+  assert.equal(storage.getItem(S.RECORDS_KEY), null, 'nothing persisted');
+  const remaining = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX));
+  assert.equal(remaining.length, S.MAX_RECORD_EVENTS + 1, 'no event pruned while the count is unpersisted');
+  storage.failKeys.clear();
+  const recovered = store.read();
+  assert.equal(recovered.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  const afterPrune = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX));
+  assert.equal(afterPrune.length, S.MAX_RECORD_EVENTS);
+  assert.equal(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(1)}`), null, 'the oldest counted event is the one pruned');
+  assert.equal(recovered.totals.countedEvents.length, S.MAX_RECORD_EVENTS, 'countedEvents compacts to retained ids');
+  assert.ok(!recovered.totals.countedEvents.includes(uuid(1)));
+});
+
+test('an event written between persist and prune is never pruned before it is counted', () => {
+  const storage = new HookedStorage();
+  for (let n = 1; n <= S.MAX_RECORD_EVENTS + 1; n++) rawEvent(storage, n, completion('turtle', 'classic'), n);
+  const late = S.MAX_RECORD_EVENTS + 2;
+  // Another tab lands its completion the instant this tab persists its aggregate.
+  storage.onSet = (key) => { if (key === S.RECORDS_KEY) rawEvent(storage, late, completion('cross', 'tray'), late); };
+  const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
+  const first = store.read();
+  assert.equal(first.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.equal(first.totals.cleared.tray.cross, undefined, 'the late event is not yet counted');
+  assert.notEqual(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(late)}`), null, 'the late event survived pruning');
+  assert.equal(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(1)}`), null, 'the oldest counted event was pruned instead');
+  const second = store.read();
+  assert.equal(second.totals.cleared.tray.cross, 1);
+  assert.equal(second.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'no double count');
+  const retained = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX)).length;
+  assert.equal(retained, S.MAX_RECORD_EVENTS);
+  assert.equal(second.totals.countedEvents.length, S.MAX_RECORD_EVENTS);
+});
+
+function dailyRecords(entries) {
+  let records = S.emptyRecords();
+  for (const [dailyKey, mode, layoutId] of entries) {
+    records = S.applyResult(records, completion(layoutId, mode, { dailyKey }), 5);
+  }
+  return records;
+}
+
+test('dailyStreak counts consecutive local days with any completed daily', () => {
+  assert.deepEqual(S.dailyStreak(S.emptyRecords(), '2026-09-02'), { current: 0, longest: 0, cleared: 0 });
+  assert.deepEqual(S.dailyStreak(dailyRecords([['2026-09-02', 'classic', 'arch']]), '2026-09-02'), { current: 1, longest: 1, cleared: 1 });
+  // yesterday only: today is not yet broken
+  assert.deepEqual(S.dailyStreak(dailyRecords([['2026-09-01', 'tray', 'peaks']]), '2026-09-02'), { current: 1, longest: 1, cleared: 1 });
+  // a gap resets current but keeps longest
+  const gappy = dailyRecords([
+    ['2026-08-20', 'classic', 'turtle'], ['2026-08-21', 'classic', 'turtle'], ['2026-08-22', 'tray', 'turtle'],
+    ['2026-09-01', 'classic', 'arch'], ['2026-09-02', 'classic', 'arch'],
+  ]);
+  assert.deepEqual(S.dailyStreak(gappy, '2026-09-02'), { current: 2, longest: 3, cleared: 5 });
+  // both modes on one day count once; two days ago does not extend the streak
+  const doubled = dailyRecords([['2026-08-31', 'classic', 'peaks'], ['2026-08-31', 'tray', 'peaks']]);
+  assert.deepEqual(S.dailyStreak(doubled, '2026-09-02'), { current: 0, longest: 1, cleared: 1 });
+  assert.equal(S.shiftDailyKey('2026-03-01', -1), '2026-02-28');
+  assert.equal(S.shiftDailyKey('2026-12-31', 1), '2027-01-01');
+});
+
+test('recordsSummary lays out eight rows in order, marks the current board, and ends its strip today', () => {
+  const storage = new MemoryStorage();
+  let clock = 100;
+  const store = S.createRecordStore({ storage, now: () => clock, uuid: () => uuid(clock++) });
+  store.record(completion('cross', 'classic', { elapsedMs: 90_000, dailyKey: '2026-09-02' }));
+  store.record(completion('cross', 'classic', { elapsedMs: 80_000 }));
+  store.record(completion('bridge', 'tray', { elapsedMs: 200_000, score: 4200, dailyKey: '2026-09-01' }));
+  const summary = S.recordsSummary(store.read(), { today: '2026-09-02', currentLayoutId: 'bridge' });
+  assert.deepEqual(summary.overview, { cleared: 3, streak: 2, longest: 2, dailies: 2 });
+  assert.deepEqual(summary.rows.map((row) => row.layoutId), [...S.LAYOUT_IDS]);
+  assert.deepEqual(summary.rows.find((row) => row.layoutId === 'cross'), {
+    layoutId: 'cross', classicBestMs: 80_000, trayBestScore: null, trayBestMs: null, cleared: 2, current: false,
+  });
+  assert.deepEqual(summary.rows.find((row) => row.layoutId === 'bridge'), {
+    layoutId: 'bridge', classicBestMs: null, trayBestScore: 4200, trayBestMs: 200_000, cleared: 1, current: true,
+  });
+  assert.equal(summary.rows.filter((row) => row.current).length, 1);
+  assert.equal(summary.days.length, 28);
+  assert.deepEqual(summary.days.at(-1), { key: '2026-09-02', cleared: true, today: true });
+  assert.deepEqual(summary.days.at(-2), { key: '2026-09-01', cleared: true, today: false });
+  assert.equal(summary.days[0].key, '2026-08-06');
+  assert.equal(summary.days.filter((day) => day.cleared).length, 2);
+  const empty = S.recordsSummary(S.emptyRecords(), { today: '2026-09-02' });
+  assert.deepEqual(empty.overview, { cleared: 0, streak: 0, longest: 0, dailies: 0 });
+  assert.ok(empty.rows.every((row) => row.classicBestMs === null && row.trayBestScore === null && row.cleared === 0 && !row.current));
+});
+
+test('a failed event removal keeps its id counted so the surviving event is never counted twice', () => {
+  const storage = new HookedStorage();
+  for (let n = 1; n <= S.MAX_RECORD_EVENTS + 1; n++) rawEvent(storage, n, completion('turtle', 'classic'), n);
+  const oldestKey = `${S.RECORD_EVENT_PREFIX}${uuid(1)}`;
+  storage.failRemoveKeys.add(oldestKey);
+  const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
+  const first = store.read();
+  assert.equal(first.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.notEqual(storage.getItem(oldestKey), null, 'the removal failed, so the event is still stored');
+  assert.ok(first.totals.countedEvents.includes(uuid(1)), 'an event that survived pruning stays marked as counted');
+  const second = store.read();
+  assert.equal(second.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'no double count after the failed prune');
+  storage.failRemoveKeys.clear();
+  const third = store.read();
+  assert.equal(third.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.equal(storage.getItem(oldestKey), null, 'the prune succeeds once removal works again');
+  assert.equal(third.totals.countedEvents.length, S.MAX_RECORD_EVENTS);
 });

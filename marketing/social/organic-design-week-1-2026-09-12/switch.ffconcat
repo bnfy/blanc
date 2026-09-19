@@ -1,0 +1,8 @@
+ffconcat version 1.0
+file 'switch-scene-1.png'
+duration 6
+file 'switch-scene-2.png'
+duration 6
+file 'switch-scene-3.png'
+duration 6
+file 'switch-scene-3.png'

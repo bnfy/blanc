@@ -1,4 +1,3 @@
-/Users/anthonyjloria/.rvm/scripts/rvm:29: operation not permitted: ps
 # Mahjong Burst momentum and hint design QA — 2026-08-31
 
 **Final result:** passed
@@ -171,6 +170,284 @@ responsive rule, and the intentional visible picker-cancel affordance.
 ## Follow-up polish
 
 No P3 visual follow-up is required for this release candidate.
+
+final result: passed
+
+---
+
+# Bring Your Tabs design QA
+
+**Final result:** passed for the corrected direct-open-tab flow
+
+## Comparison target
+
+- Approved source-card direction: `docs/superpowers/specs/assets/tab-import-source-option-3.png`
+- Reference/live comparison: `docs/superpowers/specs/assets/tab-import-source-design-qa-current.jpg`
+- Desktop live states:
+  - `docs/superpowers/specs/assets/tab-import-source-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-tabs-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-organize-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-review-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-quit-gate-live-final.jpg`
+- Compact 700×600 states:
+  - `docs/superpowers/specs/assets/tab-import-source-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-tabs-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-organize-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-review-narrow-final.jpg`
+
+## Normalization
+
+- Desktop implementation capture: 1229×768 macOS Electron content, light appearance, no page zoom.
+- The approved source-card direction was normalized to 1229×768 and placed beside the desktop
+  source capture in a 2458×768 comparison image.
+- Compact capture: the real Electron window was set to 700×600 through the acceptance-only main
+  process hook; the utility sheet retained its production 24px scrim margin and vertical scrollport.
+- Data is synthetic but structurally realistic: two source windows, six HTTP(S) tabs, a duplicate,
+  a pin, two named source groups, one ungrouped tab, and one unsupported internal URL.
+- The old mock's Folder step, bookmark-oriented profile copy, and HTML fallback were treated as
+  superseded semantics. The approved visual direction—official-logo cards, profile rows, spacing,
+  and restrained monochrome shell—remains the visual target.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings in the implemented desktop flow.
+
+- Source: official bundled Brave, Chrome, Edge, Vivaldi, and Chromium artwork is crisp and
+  consistently framed. Available, selected, permission-needed, and profile-count states preserve
+  the approved card hierarchy without implying that Favorites are involved.
+- Tabs: source windows, duplicate tabs, pin/group metadata, selected count, and unsupported-tab
+  copy are readable without exposing full URLs. The sheet scrolls vertically at compact heights.
+- Organize: preserved group names are visibly labelled **from source**; group rename, create,
+  remove, and move controls use the existing Blanc form language. Compact group headers remain
+  one line and row actions stack without stretching header controls.
+- Review: exact tab/group/ungrouped consequences are prominent. Desktop uses three compact metric
+  columns; the 700×600 layout stacks them and exposes a clear scroll affordance.
+- Quit safeguard: the prompt appears only with a proven saved/restorable session count, asks for a
+  normal quit, says Blanc only reads and never removes source tabs, and avoids promising automatic
+  reopening. While the gate is open, every profile row is disabled and the selected row replaces
+  its chevron with **Waiting…**, leaving the explicit **check again** button as the sole primary
+  continuation. Post-quit verification refuses an incomplete newest session rather than falling
+  back.
+- Accessibility: the wizard exposes labelled steps, browser radios, profile buttons, selected-tab
+  checkboxes, labelled group-name inputs, move selects, live status text, and a persistent close
+  control. Step changes reset the sheet scrollport so the next heading remains visible.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The implemented feature still used a bookmarks-folder source, contradicting the requested
+  open-tab migration outcome.
+- [P1] Source profiles were plain text rows without the selected official-logo visual direction.
+
+Fix: replaced the source with explicit Chromium restorable-session reads and retained the approved
+official-logo browser-card/profile-row layout.
+
+### Iteration 2 — blocked
+
+- [P1] Advancing from a long Tabs panel carried its scroll position into Organize, clipping the
+  Organize heading beneath the sticky navigation.
+- [P2] At 700×600, the group-name flex basis became vertical blank space and the remove-group
+  action stretched across the card.
+- [P2] Preserved source groups were incorrectly labelled **new**.
+
+Fix: reset the sheet scrollport immediately and on the next animation frame at every step change;
+kept group headers horizontal at the compact breakpoint; scoped full-width controls to row actions;
+and mapped high-confidence preserved groups to **from source**.
+
+### Iteration 3 — passed
+
+The desktop and 700×600 captures show complete headings, consistent card rhythm, usable scrolling,
+compact group controls, accurate source provenance, and no clipped or horizontally overflowing UI.
+
+### Final cleanup — passed
+
+The quit-safeguard profile row is now visibly dimmed, disabled, and labelled **Waiting…** while
+the retry gate is active. The rejected bookmark-folder renderer was removed rather than retained
+as a second dead F39 UI, and its design and plan are explicitly non-normative superseded records.
+
+## Functional evidence
+
+- Unit: 1,088/1,088 passed after the direct-session and scroll-transition changes.
+- Focused F39 Electron acceptance with retries disabled: 11/11 scenarios, 63/63 steps passed.
+- Full Electron acceptance before the final presentation-only fixes: 127/127 scenarios and
+  766/766 steps passed; the focused no-retry run was repeated afterward.
+- Substrate: token, settings, generated copy, and pinned adblock checks pass; the production
+  dependency audit reports zero vulnerabilities.
+
+## Remaining release evidence
+
+- The signed unpacked macOS app passes its source-session read and post-sign verification and
+  contains no ONNX, MiniLM, Transformers, embedding, or `.wasm` payload.
+- Windows locked-session quit/retry and Linux Chromium-session reads remain unverified. They were
+  explicitly deferred by the product owner on 2026-09-07 because Parallels Desktop was too
+  unreliable for trustworthy packaged results. F39 remains `PLANNED`; see
+  `docs/release-incidents/2026-09-07-f39-platform-verification-deferral.md`.
+
+---
+
+# Design QA — optional website measurement toast
+
+## Comparison target
+
+- Source visual truth: `/Users/anthonyjloria/.codex/generated_images/01a06387-2951-7463-80ea-a9de3678b46d/exec-441b237d-270e-43fe-844b-0a9b08f089a2.png`.
+- Final desktop implementation: `/private/tmp/blanc-consent-final-1487.png`.
+- Full-view comparison: `/private/tmp/blanc-consent-final-qa-side-by-side.png`.
+- Focused toast comparison: `/private/tmp/blanc-consent-final-focus-side-by-side.png`.
+- Default-window implementation: `/private/tmp/blanc-consent-finished.png`.
+- Responsive implementation: `/private/tmp/blanc-consent-final-mobile.png`.
+
+## Normalization and state
+
+- Source and matched implementation are both 1487 × 1058 pixels at a 1487 × 1058 CSS-pixel viewport and device scale factor 1.
+- The full-view and focused comparisons place source and implementation together without rescaling. The focused evidence uses equal 420 × 240 crops.
+- State: homepage, light appearance, upper-right measurement choice open. The implementation had an existing denied choice and was reopened through the persistent footer control, which renders the same visual state as first presentation.
+- Responsive evidence uses a 390 × 844 CSS-pixel viewport at device scale factor 1.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Fonts and typography: the toast uses bundled Inter throughout. The final 15.5px semibold heading, 12.5px body, and 12px actions retain a readable hierarchy without turning the consent choice into a large editorial card.
+- Spacing and layout rhythm: the final desktop card is 330 × 144.2 CSS pixels, fixed 12px from the top and 16px from the right edge. Its 16px padding, 16px radius, compact internal gaps, and 34px actions are intentionally smaller than the generated concept following direct user review. At 390px the card keeps 16px side gutters, stays below the mobile navigation, and all three actions remain visible.
+- Colors and visual tokens: the face is `rgba(255,255,255,.96)` over 16px backdrop blur, with the shared `#dedede` border and a quiet three-layer Blanc shadow. The black Allow action leads without hiding or shrinking No thanks.
+- Image quality and asset fidelity: the toast contains no imagery or new icon assets. The existing Sunrise mark and page imagery remain untouched; no placeholder or code-drawn replacement was introduced.
+- Copy and content: final copy is `Help improve Blanc` and `Allow analytics and limited ad measurement to see what visitors explore.` It is concise, product-centered, and explicitly names measurement without sympathy framing. `Privacy details` remains in the action row.
+- Affordances and accessibility: the choice is a labelled non-modal dialog. Allow and No thanks are full buttons, Privacy details is a visible link, and the footer's Privacy choices button reopens the dialog and focuses Allow.
+
+## Comparison history
+
+- [P1] The original full-width footer banner competed with the newly bottom-centered navigation Island and occupied the entire viewport edge.
+
+Fix: moved measurement consent to the selected upper-right toast and removed all consent-driven page and navigation offsets.
+
+### Iteration 2 — blocked
+
+- [P2] The first implementation used a 370px card with a heading, two explanatory paragraphs, and longer action copy. User review found it materially too wordy and large.
+
+Fix: reduced the card to 330px, tightened its type and controls, removed the separate disclosure paragraph, and kept one explanation sentence.
+
+### Iteration 3 — blocked
+
+- [P2] `Help a small independent browser see what’s working` sounded attention-seeking and weakened Blanc's confidence.
+
+Fix: replaced the sympathy framing with the direct `Help improve Blanc` and tied the request to visitor exploration.
+
+### Iteration 4 — blocked
+
+- [P2] The remaining eyebrow and discovery clause still made the toast feel more promotional and verbose than the quiet Island aesthetic.
+
+Fix: removed the eyebrow and shortened the body to one direct measurement sentence, reducing the default card to 144.2px high.
+
+### Iteration 5 — passed
+
+Post-fix evidence:
+
+- `/private/tmp/blanc-consent-final-qa-side-by-side.png`
+- `/private/tmp/blanc-consent-final-focus-side-by-side.png`
+- `/private/tmp/blanc-consent-final-mobile.png`
+
+The final matched-scale and focused comparisons show the same restrained upper-right treatment as the selected direction, with the user-requested reductions in size and language. No actionable P0/P1/P2 drift remains.
+
+## Functional evidence
+
+- No saved choice: the toast presents automatically without moving page content or the bottom navigation Island.
+- No thanks: stores denial and dismisses the toast.
+- Privacy choices: reopens the toast after denial and moves keyboard focus to Allow.
+- Mobile: all controls remain visible at 390px and the toast clears the fixed navigation.
+- Browser console: no errors during the final desktop and responsive checks.
+- Site build and SEO verification: passed for all 19 pages.
+- Token consistency: passed.
+- Complete unit suite: 1,412 tests passed, 0 failed.
+
+## Follow-up polish
+
+No P3 follow-up is required.
+
+final result: passed
+
+---
+
+# Design QA — website-inspired resting Island
+
+## Comparison target
+
+- Source visual truth: `/Users/anthonyjloria/Desktop/Blanc/Screenshot 2026-09-02 at 3.09.47 PM.png`.
+- Final full-window implementation: `/private/tmp/blanc-island-resting-final-window.png`.
+- Final focused resting implementation: `/private/tmp/blanc-island-focused-final-2x.png`.
+- Final focused hover implementation: `/private/tmp/blanc-island-hover-2x.png`.
+- Expanded-state implementation: `/private/tmp/blanc-island-expanded-final.png`.
+- Narrow-state implementation: `/private/tmp/blanc-island-narrow-2x.png`.
+
+## Normalization and state
+
+- The source is 956 × 154 pixels at Retina density, representing a 478 × 77 CSS-pixel crop. The visible website face is approximately 48 CSS pixels high.
+- The focused resting implementation is 818 × 136 pixels at device scale factor 2, representing a 409 × 68 CSS-pixel strip crop. CDP measured the live Island itself at 377.69 × 44 CSS pixels.
+- The full-window implementation is a 1229 × 768 macOS Computer Use capture of the live 1280 × 800 CSS-pixel Electron viewport. It is composition evidence; the equal-density focused captures are the fidelity authority.
+- State: macOS, light appearance, resting proximity `k=0`, normal horizontal tabs, live dynamic tab content. The user-approved app specification intentionally uses a 44px face and 17px radius rather than copying the website component's approximately 48px face and near-capsule radius.
+- The source and implementation contain different controls and dynamic text, so comparison is limited to the requested material, edge, shadow, typography crispness, vertical density, and interaction behavior rather than exact width or content alignment.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Fonts and typography: the URL resolves to bundled Inter at weight 400. The resting transform is `none`, keeping the idle URL and glyph layer sharp; the unified proximity transform exists only while hover proximity is active. Long URLs remain single-line and ellipsize (`scrollWidth 476`, `clientWidth 189` in the 640px check).
+- Spacing and layout rhythm: live geometry is exactly 44px high with a 17px rendered radius inside a 68px strip. The copied shadow remains inside the strip at rest and at the 2% hover scale. The expanded address input is 36px high with a 14px radius, and the panel morph uses 17px at the collapsed endpoints and 18px when fully open.
+- Colors and visual tokens: light mode uses `rgba(255,255,255,.94)`, `#dedede`, 16px backdrop blur, and the exact three-layer website shadow. Dark uses `rgba(31,31,31,.94)` with `#2e2e2e`; private uses `rgba(25,25,25,.94)` with its existing dashed state treatment.
+- Image quality and asset fidelity: the Island introduces no new raster imagery or replacement art. Existing favicons and Lucide-style application glyphs remain on their original rendering paths; no source asset was approximated.
+- Copy and content: no app-specific copy changed. The live domain, placeholder, counts, chips, and accessible labels continue to come from existing state.
+- Icons and affordances: trailing reload, favorite, close, and contextual downloads controls remain individually bare. The trailing group and each visible action compute to transparent backgrounds with no group shadow or shared dark wrapper.
+- Interaction state: at proximity `k=1`, the whole Island computes `matrix(1.02, 0, 0, 1.02, 0, -2)`. Measured URL, dot, and reload geometry each scales by 1.02; the shield and contextual chips share that same parent transform when visible. At `k=0` the whole Island returns to `transform: none`.
+- Responsiveness and accessibility: the 640px horizontal, vertical-tabs, and Glance constraints keep the Island within the available pane; long content truncates. Reduced-motion forces both resting and proximity-active states to `transform: none` with no transition. Existing role, keyboard entry, focus, private, capture, and contextual-chip behavior is unchanged.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P2] The first live implementation looked softer than the website reference in the focused Retina comparison because the resting content layer was continuously transform-composited.
+
+Fix: moved the exact website face, border, blur, and shadow onto the Island material pseudo-element and made the resting content layer explicitly `transform: none`.
+
+### Iteration 2 — blocked
+
+- [P1] The first crispness correction scaled only the material face on proximity. User review correctly identified that the URL, dots, shield, and trailing controls no longer grew together with the Island.
+
+Fix: restored the unified 2% rise/grow transform to `#islandPill`, gated it behind `.proximity-active`, restored resting-box compensation in `renderer.js`, and kept the exact website material stack unchanged.
+
+### Iteration 3 — passed
+
+Post-fix evidence:
+
+- `/private/tmp/blanc-island-focused-final-2x.png`
+- `/private/tmp/blanc-island-hover-2x.png`
+- `/private/tmp/blanc-island-resting-final-window.png`
+
+The final resting capture is crisp, and measured child geometry confirms the full Island scales as one object during proximity hover. The supplied website source and final focused capture were opened together in the same comparison input; no actionable P0/P1/P2 visual drift remains within the approved 44px/17px app geometry.
+
+## Functional evidence
+
+- Token generation and validation: `npm run tokens:build` and `npm run tokens:check` passed.
+- Complete unit suite: 1,386 tests passed, 0 failed.
+- Live state sweep: 1280px and 640px widths, horizontal tabs, vertical tabs, Glance constraint, light/dark/private material, reduced motion, long URL ellipsis, bare trailing actions, expanded input, and open/close restoration checked.
+- Proximity geometry: URL, active dot, and reload action measured at 1.02× together; resting geometry returned exactly to 44px with no transform.
+- `git diff --check` passed.
+
+## Open questions
+
+None.
+
+## Implementation checklist
+
+- [x] Preserve 44px resting height, 17px radius, and 68px chrome strip.
+- [x] Copy the website face, border, blur, and exact shadow stack.
+- [x] Keep Inter regular URL typography and bare trailing actions.
+- [x] Preserve unified proximity rise/grow without extra shadow darkening.
+- [x] Use 36px/14px expanded address geometry and 17px morph endpoints.
+- [x] Verify themes, reduced motion, alternate layouts, narrow width, overflow, and contextual states.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
 
 final result: passed
 
@@ -1359,5 +1636,385 @@ vertical two-dot tile, readable dense ranks, and no clipping or collisions.
 ## Follow-up polish
 
 No P3 implementation follow-up is required.
+
+final result: passed
+
+---
+
+# Design QA — macOS Settings app icons
+
+- Source visual truth path: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 1.02.25 PM.png` (conversation attachment Image #1; the original desktop file was no longer present after attachment).
+- Implementation full-view screenshot: `/private/tmp/blanc-settings-icon-qa.png`.
+- Implementation focused-region screenshot: `/private/tmp/blanc-settings-icon-qa-crop.png`.
+- Viewport: 1280 × 736 CSS px Settings WebContentsView inside a 1280 × 800 Blanc window.
+- Pixels and density: source attachment 1374 × 282 px focused crop; implementation full view 2560 × 1472 px and focused crop 1252 × 244 px at macOS 2× density. The focused implementation bounds were 626 × 122 CSS px. Comparison used the app-icon row as the common content region rather than scaling either raster.
+- State: light appearance, General Settings, Sunrise selected and keyboard-focused.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Fonts and typography: the existing Inter hierarchy, 13 px labels, and muted hint treatment remain consistent with the source. All four icon names stay on one line.
+- Spacing and layout rhythm: the four retained variants fit comfortably in one row. Removing the obsolete caret controls eliminates the uneven edge spacing visible in the source. The 14 px swatch gap and 5 px ring clearance remain balanced at the target viewport.
+- Colors and visual tokens: the selection/focus state uses the existing theme-aware `--accent`; it remains high contrast in light, dark, and private token scopes.
+- Image quality and asset fidelity: the original Sunrise, Sunrise Dark, Paper, and Ink PNG previews are reused at their native UI slot with the existing alpha shape and shadow; there are no generated substitutes or stretched assets.
+- Copy and content: only the four requested names remain. Patron copy no longer promises icon colorways, while the macOS adaptive-icon hint remains accurate.
+- Interaction and accessibility: each swatch remains a native button with `role="radio"` and `aria-checked`. Selection and keyboard focus now share one rounded, offset halo around the preview; the former stacked square button outline and image outline are gone.
+
+## Comparison history
+
+- Initial source findings: P1 — the picker exposed more than the four requested variants, including Patron-only choices; P2 — the chosen icon showed stacked square active/focus outlines.
+- Fixes made: reduced the authoritative selectable catalog and packaged adaptive icon definitions to Sunrise, Sunrise Dark, Paper, and Ink; removed Patron gating and carousel carets; replaced the two outlines with one rounded preview halo.
+- Post-fix evidence: `/private/tmp/blanc-settings-icon-qa-crop.png` shows four variants, no arrows or Patron tags, and one rounded halo around focused Sunrise. `/private/tmp/blanc-settings-icon-qa.png` confirms the row remains aligned within the complete Settings sheet.
+
+## Implementation checklist
+
+- [x] Four-icon catalog and selection behavior.
+- [x] Retired-id fallback to Sunrise.
+- [x] Single accessible selected/focus halo.
+- [x] One-time Sunrise/Billboard upgrade reset with future-choice preservation.
+- [x] Patron copy and public source claims updated.
+- [x] Unit, schema, site-build, and targeted desktop acceptance verification.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
+# Design QA — Billboard frequent sites
+
+- Source visual truth: `/private/tmp/blanc-billboard-source.png`, copied from the supplied `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 1.33.42 PM.png`.
+- Implementation screenshot: `/private/tmp/blanc-billboard-top-sites-qa-normalized.png`.
+- Focused interaction screenshot: `/private/tmp/blanc-billboard-top-sites-focus.png`.
+- Side-by-side comparison: `/private/tmp/blanc-billboard-top-sites-comparison.png` (source left, implementation right).
+- Viewport and density: both full views are 1680 × 1028 px at the supplied Retina viewport; the implementation used 840 × 514 CSS px captured at macOS 2× density. The focused row is 1608 × 210 px.
+- State: light appearance, Billboard selected, six ranked local-history fixtures, first dismiss control keyboard-focused. Group chips and nonzero blocker data were intentionally absent from the isolated fixture and were excluded from this focused comparison.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Typography and hierarchy: the existing mono date, clock, status, and site-label hierarchy is unchanged from the supplied source.
+- Spacing and rhythm: six equal 96 px site slots retain the original evenly distributed row at the matching viewport. The dismiss control overlaps only the icon corner and does not shift the tile or label.
+- Visual treatment: the close control is hidden at rest, appears on hover or focus, and uses a compact circular surface with a one-pixel theme-aware focus halo. Dark and private themes invert the reused close mark.
+- Content behavior: the row now presents hostname-level frequent sites instead of Favorites, preserves the six-item cap, and fills a dismissed slot from lower-ranked candidates.
+- Interaction and accessibility: every site remains a direct link. Each dismiss control is a native button with a site-specific accessible label, visible keyboard focus, an aria-live confirmation, and deterministic focus recovery after removal.
+- Privacy: ranking is derived on demand from the active profile's existing local history. Dismissals store only a bounded hostname list in `blanc://newtab` localStorage; private tabs receive no candidates, and no sync, telemetry, remote favicon, or dismissal IPC path was added.
+
+## Comparison history
+
+- Initial source: six static Favorite tiles with no per-item removal affordance.
+- First implementation capture: local-history ordering and dismissal worked, but the two-pixel keyboard halo was visually heavier than the small control.
+- Final implementation capture: the halo was reduced to one pixel while preserving contrast and the source row's alignment. The supplied favicon-backed tiles remain supported whenever a matching locally saved Favorite favicon exists; the isolated QA fixture correctly exercises the no-network letter fallback.
+
+## Implementation checklist
+
+- [x] Local hostname-level frequency ranking with recency tie-break.
+- [x] Six visible slots plus lower-ranked backfill after dismissal.
+- [x] Hover/focus dismiss control with accessible labeling and focus recovery.
+- [x] Profile-local, bounded dismissal storage with no history deletion.
+- [x] Private-tab exclusion and no new server/network retention path.
+- [x] Unit, syntax, site-build, dry-schema, and focused desktop acceptance verification.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
+# Design QA — Billboard full titles and local icons
+
+- Correction source: `/private/tmp/blanc-billboard-short-labels-source.png`, copied from the supplied `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 1.48.51 PM.png`.
+- Final resting row: `/private/tmp/blanc-billboard-full-titles-row.png`.
+- Final keyboard-focus row: `/private/tmp/blanc-billboard-top-sites-focus.png`.
+- Side-by-side comparison: `/private/tmp/blanc-billboard-full-titles-comparison.png` (correction source left, implementation right).
+- Viewport and density: source and final comparison rows are both 1654 × 322 px at macOS Retina density. The implementation used an 827 CSS px-wide Billboard view at 2× density.
+- State: light appearance, six frequent-site fixtures with real local favicon rasters; the resting capture has no visible dismiss controls and the focus capture exposes the first one.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Content: the hostname-token labels called out in the source are gone. Tiles now use the complete locally recorded page title, bounded to 120 characters and visibly clamped to two lines; the full value remains available as the native title and accessible name.
+- Image quality: production reuses only inert 32 px PNG pixels Blanc already sanitized while the user visited the site. The QA fixtures use real checked-in favicon artwork rather than letter or placeholder assets.
+- Layout: 112 px title slots and a 20 px inter-item gap preserve the original six-icon center rhythm while making room for descriptive two-line titles. Long titles clamp cleanly without changing tile alignment or overlapping adjacent items.
+- Interaction: the close control remains hidden in the resting comparison and appears without reflow on hover or keyboard focus. Its one-pixel halo stays clear of the favicon tile.
+- Privacy: the new profile-local icon cache is capped at 256 hostnames, contains no count or timestamp, never syncs, never performs a request, and is cleared with local history. Existing local Favorite and same-profile tab icons provide immediate fallback when available.
+
+## Comparison history
+
+### User-reviewed iteration — failed
+
+- [P1] The first implementation reduced every label to a short hostname token, losing the page's useful local title.
+- [P2] Non-Favorite sites fell back to bare letters even after Blanc had already loaded and sanitized their favicons during normal browsing.
+
+### Corrected iteration — passed
+
+- Full local page titles replace the short-label helper on Billboard only.
+- Sanitized favicon pixels are retained locally as bounded appearance metadata and rendered without a Billboard-triggered network request.
+- The exact-width comparison shows six real icons, readable two-line titles, even alignment, and no collision or clipping.
+
+## Functional evidence
+
+- Focused Electron acceptance: 2 scenarios and 15 steps passed, covering frequency order, full titles, six decoded cached icons, dismissal persistence, unchanged history, and backfill beyond the initial 48 candidates.
+- Complete unit suite: 1,379 tests passed.
+- Acceptance schema: 128 scenarios, 788 steps, 0 undefined.
+- Website/privacy build and SEO verification: 19 pages passed.
+- Syntax checks and `git diff --check` passed.
+
+## Follow-up polish
+
+No P3 follow-up is required for this correction.
+
+final result: passed
+
+---
+
+# Design QA — resting Island new-tab shortcut
+
+- Rejected CTA source: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 3.56.22 PM.png`.
+- Spacing and color refinement source: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 4.05.07 PM.png`.
+- Final full-window implementation: `/private/tmp/blanc-island-plus-keycap-tight-window.jpg`.
+- Final focused resting implementation: `/private/tmp/blanc-island-plus-keycap-resting-2x.png`.
+- Final focused proximity implementation: `/private/tmp/blanc-island-plus-keycap-hover-2x.png`.
+- Final keyboard-focus implementation: `/private/tmp/blanc-island-plus-keycap-focus-2x.png`.
+- Final matched-keycap crop: `/private/tmp/blanc-keycap-parity.png`.
+- Viewport and density: focused captures use the live 1280 × 800 CSS-pixel chrome renderer at macOS device scale factor 2. The resting Island measures 406.98 × 44 CSS pixels; Slash and Plus now share identical 25.30 × 25.30 CSS-pixel rendered hit targets and identical centered 18 × 17 CSS-pixel outlined faces before proximity scaling.
+- State: horizontal light appearance on a blank tab at rest and at proximity `k=1`; additional computed checks cover a regular page, private theme, vertical tabs, reduced motion, and a 640px viewport with a long domain.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Hierarchy: the Plus no longer reads as a CTA or competes with the URL. It sits immediately after the slash command keycap and shares its transparent face, one-pixel `--border` outline, compact radius, and accent-only hover treatment.
+- Color and optical weight: both glyphs compute to the exact same `rgb(107, 107, 107)` `--text-dim` ink in light mode. The Plus keeps that shared color and uses a small 1.5px stroke correction to counter the lighter antialiasing of its 11px SVG against the slash font glyph.
+- Grouping: Reload, Favorite, Close, and contextual Downloads remain the complete trailing action cluster. That cluster has a transparent background and no dark or shared wrapper.
+- Geometry and rhythm: the two shortcut keycaps form a quiet pair before the existing separator. Their dedicated wrapper reduces the rendered internal gap from the Island-wide 11.5px rhythm to 4px. Both outlined faces and full button targets are now exactly the same size; the Island remains exactly 44px tall, and the new placement avoids adding a fourth persistent icon to the trailing cluster.
+- Motion: the domain, Plus keycap, Reload, and Favorite each measured the same 1.02 scale ratio at maximum proximity, preserving the unified Island rise/grow response.
+- Responsive behavior: at 640px, the Island remains within the viewport and the long domain ellipsizes. The Plus computes `display: none` in vertical-tabs mode while the rail's existing New tab control remains available; on a nonblank vertical tab, the now-empty shortcut wrapper also collapses and consumes 0px rather than leaving an 11.5px Island gap.
+- Accessibility: the Plus remains a native button with `aria-label="New tab"`, the platform tooltip `New tab (⌘T)`, keyboard focus behavior inherited from the Island controls, and a non-bubbling click target.
+
+## Comparison history
+
+### Iteration 1 — functionally passed, visually superseded
+
+The initial bare Plus sat before Reload in the trailing action cluster. It created one regular ungrouped tab and focused the address field, but its position made the cluster busier.
+
+### Iteration 2 — rejected
+
+- [P1] A filled black circular CTA became the first element the eye landed on and broke the intended quiet Island hierarchy.
+
+Fix: removed the filled treatment entirely rather than muting it incrementally.
+
+### Iteration 3 — user-reviewed refinement
+
+The Plus adopted the existing slash-command keycap language beside that control, but the pair still inherited the Island-wide gap and the SVG Plus appeared optically lighter than the font-rendered slash.
+
+### Iteration 4 — passed
+
+The pair now has a dedicated 4px rendered gap. Both glyphs retain the exact same color token, with only a slight Plus stroke-weight correction for optical parity. The supplied refinement crop and final resting and focus captures were opened together in one comparison input; the pair is visibly tighter without becoming a combined wrapper or sacrificing either hit target.
+
+### Iteration 5 — passed
+
+Slash moved from a font-sized border box to the same 22px target and the same 18 × 17px pseudo-element outline as Plus. Live computed geometry and the matched crop confirm equal targets, equal faces, equal border weight/radius, and the retained 4px gap.
+
+## Functional evidence
+
+- Live Electron click check: tab dots increased from one to two, the new active tab showed the blank-address placeholder, and `#addressInput` received focus immediately.
+- Computed visual checks: identical slash/Plus `rgb(107, 107, 107)` ink, 25.30 × 25.30px targets, 18 × 17px outlined faces, 4px rendered pair gap, transparent faces and action cluster, exact shortcut adjacency, platform tooltip and accessible label, keycap-shaped focus ring, shared 1.02 proximity scale, zero-width empty wrapper in vertical mode, 640px fit and ellipsis, and zero-duration reduced-motion transition all passed.
+- `npm run tokens:check` passed.
+- Complete unit suite: 1,390 tests passed.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
+# Design QA — v1.14 Island website refresh
+
+- Material reference: `/Users/anthonyjloria/Desktop/Blanc/Screenshot 2026-09-02 at 3.09.47 PM.png`.
+- Placement and page-context reference: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 6.23.57 PM.png`.
+- Final desktop homepage: `/private/tmp/blanc-site-home-desktop-final.png`.
+- Final mobile homepage: `/private/tmp/blanc-site-mobile-final.png`.
+- Final desktop Glance state: `/private/tmp/blanc-site-glance-final.png`.
+- Final expanded press Island: `/private/tmp/blanc-site-press-final.png`.
+- Normalization: desktop was checked at 1440 × 1000 CSS pixels and mobile at 390 × 844. The source material, placement reference, and desktop implementation were opened together in one visual comparison input. The homepage demo used its authored 900px stage; the Glance split was measured against the primary page boundary rather than the full stage.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Brand hierarchy: the existing Sunrise mark is centered above the homepage eyebrow at 32px desktop and 26px mobile. Rebalanced hero padding keeps the headline at the intended visual position instead of moving the whole composition down.
+- Island material: public replicas use the released 44px resting height, 17px radius, 68px strip, Inter URL, 36px × 14px expanded field, 18px panel radius, 16px backdrop blur, and the exact three-layer website shadow. Proximity motion rises and grows the complete Island without adding a second shadow treatment.
+- Controls: horizontal Island replicas include the quiet Plus keycap beside Slash with matching face geometry and a 4px rendered pair gap. Reload, Favorite, Close, and contextual Downloads remain bare trailing actions with no shared dark wrapper. Vertical-tabs visuals omit the duplicate Plus because the rail already owns New tab.
+- Navigation: desktop navigation is fixed at bottom center with a 10px viewport inset, moves above the consent surface when present, tucks fully out of view after 12px of cumulative downward scrolling, and returns on upward scrolling or keyboard focus. The mobile navigation remains fixed at the top.
+- Glance containment: at the tested desktop split the Island remained entirely inside the primary page, with 36.2px left and 35.2px right insets. The implementation derives its maximum width from the live primary pane and switches to a full-width-minus-24px constraint in the stacked layout.
+- Responsive layout: at 390px the homepage demo Island remained 13px inside both edges of the stage. The Sunrise mark, headline, demo copy, and top navigation stayed centered without collision or horizontal overflow.
+- Accessibility and motion: the existing semantic navigation and buttons remain intact, scroll-return responds to focus entry, and reduced-motion disables the new header transition and Island movement. Browser console QA reported no warnings or errors.
+- Generated media: homepage social art, feature cards, and press captures were regenerated from the released geometry so static website visuals no longer show the superseded Island.
+
+## Comparison history
+
+### Superseded website state — failed
+
+- Island replicas used an older, taller stadium silhouette and longer shadow.
+- The desktop navigation occupied the same upper page zone as Blanc's real Island.
+- The Glance demo centered the Island across the whole stage, allowing it to cross the active pane divider.
+- The homepage had no primary Sunrise mark above the opening message.
+
+### Final website state — passed
+
+- The source material, page-context reference, and implementation were reviewed together. The nav retains the source face, border, radius, typography, and short shadow while moving to the requested bottom-center position.
+- Resting, hover, expanded, horizontal, vertical, Glance, desktop, mobile, press, and generated-image states now share the released Island geometry and control ordering.
+- The Sunrise mark creates a clear brand-to-eyebrow-to-H1 sequence without disturbing the original headline balance.
+
+## Functional evidence
+
+- `npm run site:build`: 19 pages built and 19 sitemap URLs passed SEO verification.
+- `npm run tokens:check`: generated design-token artifacts are current.
+- Focused website and geometry coverage: 14 tests passed.
+- Complete unit suite: 1,411 tests passed, 0 failed.
+- In-app browser checks: desktop bottom offset, tuck/reveal motion, mobile top navigation, 13px mobile Island inset, Glance pane containment, 36px/14px expanded field, 18px panel radius, and zero browser warnings/errors passed.
+- `git diff --check` passed.
+
+## Follow-up polish
+
+No P3 follow-up is required for this change.
+
+final result: passed
+
+---
+
+# Design QA — Start-page migration checklist and Sync setup
+
+**Date:** 2026-09-17
+**Result:** PASS
+
+## References
+
+- Start-page checklist target:
+  `/Users/anthonyjloria/.codex/generated_images/01a0b134-ab46-7351-84d2-ca354c756789/exec-d44f107a-4e8d-4aa7-a56e-c61477f87b37.png`
+- Selected Sync setup direction (Option 2):
+  `/Users/anthonyjloria/.codex/generated_images/01a0b134-ab46-7351-84d2-ca354c756789/exec-d83e29bd-798c-4adb-aa6e-64de8a3f8a3e.png`
+- Earlier Sync setup supplied by the owner:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.18.31 PM.png`
+- Earlier active Sync state supplied by the owner:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.29.22 PM.png`
+- Final Billboard implementation capture:
+  `docs/superpowers/specs/assets/start-page-patron-pill-final.jpg`
+- Focused Patron CTA comparison:
+  `docs/superpowers/specs/assets/start-page-patron-source-crop.png` and
+  `docs/superpowers/specs/assets/start-page-patron-final-crop.jpg`
+
+The checklist source is 1586×992 pixels. The live Electron implementation was
+captured at a 1229×768 CSS-pixel app viewport at device scale 1; their aspect
+ratios differ by less than 0.1%, so the full views were compared at their
+native sizes and the CTA regions were cropped separately for readable detail.
+The compared state is Billboard, light appearance, `0/2`, no recent sites.
+
+## Checklist comparison
+
+The implemented checklist matches the chosen visual direction: unboxed corner
+placement, a thin `0/2` progress ring in Inter, Caveat handwriting for
+the heading and task labels, hand-drawn underlines, monochrome circles and
+checks, a slight counter-clockwise heading tilt, and a quiet hide action. The
+local Caveat WOFF2 produces the same
+casual handwritten rhythm as the reference without a network font request.
+The 48 px compact trigger appears below the width/height breakpoint. Ledger,
+Shelf, and Tally use the lower-right slot; Billboard uses the upper-right slot
+so its recent-site row and dismissal controls retain the lower canvas. Its
+compact panel expands downward from that trigger; the other layouts expand
+above the footer.
+
+Each informational layout also replaces the vague “Support Blanc” footer link
+with a compact **Upgrade to Blanc Patron →** pill. The final treatment uses the
+original local gold Sunrise artwork on Patron warm ink, with an ivory label and
+gold arrow. The copy names the product and action directly, retains the
+existing Patron Settings target, and stays hidden for active Patrons. Hover
+keeps the material, border, shadow, dimensions, and brand colors stable,
+brightens the complete capsule uniformly, and advances only the arrow; reduced
+motion removes that movement.
+
+The full-view source and implementation were opened in one comparison input.
+The CTA was also compared in focused crops because the full-view label and
+mark are too small for reliable inspection. Typography uses Inter at an
+appropriate optical weight; the 20px source mark is sharp and uncropped;
+spacing, 36px target height, capsule radius, warm-ink/gold/ivory palette, and
+the complete upgrade copy are visually balanced. No P0, P1, or P2 issue
+remains in the CTA.
+
+Verified in the live dev app and the signed unpacked package in light and dark
+modes. Ledger, Billboard, Shelf, and Tally eligibility plus Mahjong/private
+exclusion are covered by unit and desktop acceptance checks.
+
+## Sync setup comparison
+
+The selected Option 2 composition is implemented as one open canvas rather
+than another bordered card. It preserves the large title and supporting copy,
+then uses three numbered steps connected by a thin rule. Each step has a
+matching monochrome line illustration, a clear task title, and generous
+dividers. Name and passphrase fields span the available content width; the
+passphrase step includes the dedicated on-device trust note. The last step
+keeps the primary action and quiet Back action together.
+
+At 720 px and below, illustrations stack within the content column while the
+number spine remains visible. At normal size the horizontal icon/content
+alignment matches the selected mockup. Light and dark themes retain the same
+hierarchy and contrast. The deep-linked Sync section now keeps the Sync
+sidebar marker selected when the chooser or guide changes height.
+
+## Functional parity
+
+The visual work did not remove or replace the earlier active-state controls.
+The implementation still exposes and wires:
+
+- sync name, last-sync time, tab-sharing status, and a dedicated last-error row;
+- **Sync now**;
+- **Turn off sync**;
+- optional **also delete synced data**, including retry-safe behavior after a
+  failed remote wipe; and
+- **share this device’s open tabs with your other devices**.
+
+The start/join reducer, preflight-before-save boundary, token-based stale-reply
+guard, validation rules, not-found choice, and first-sync-failure behavior are
+unchanged.
+
+## Verification
+
+- Focused Sync UI/model tests: pass.
+- Full unit suite: 1,848/1,848 tests pass.
+- Desktop acceptance: 161/161 scenarios passed before the Billboard geometry
+  addition; its focused 1-scenario, 7-step overlap check also passes. The final
+  Sync routing recheck passes 2/2 focused scenarios.
+- Settings/copy/brand/tokens/adblock/compliance substrate: pass.
+- Site build and SEO verification: pass.
+- Signed unpacked macOS package: payload, compliance, license, fuse, profile,
+  entitlement, and deep code-sign verification pass.
+- Final signed-package visual check: checklist, Sync chooser, correct Sync nav
+  marker, and setup routing pass.
+- `git diff --check`: pass.
+
+## Comparison history
+
+- First pass: the vague text-only “Support Blanc” link had weak affordance.
+  It was replaced by an explicit upgrade pill.
+- Second pass: a flat gold fill felt generic and did not carry Blanc’s brand
+  mark. It was replaced by the original Sunrise artwork on Patron warm ink.
+- Third pass: hover changed the capsule material, then its lift/shadow and
+  border-color changes made the capsule appear to shrink. Hover now preserves
+  the warm-ink surface, ivory label, exact border, geometry, and resting
+  shadow; the complete capsule brightens uniformly while only the arrow moves.
+
+## Follow-up polish
+
+No P3 follow-up is required for this component.
 
 final result: passed

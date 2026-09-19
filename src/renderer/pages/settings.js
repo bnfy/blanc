@@ -3,7 +3,6 @@
     settings,
     searchEngines,
     appIcons,
-    supporterIcons,
     capabilities,
     onePasswordAvailable,
   } =
@@ -36,7 +35,7 @@
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
-  newtabLayout.value = settings.newtabLayout ?? 'ledger';
+  newtabLayout.value = settings.newtabLayout ?? 'billboard';
   searchEngine.value = settings.searchEngine;
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
@@ -94,6 +93,16 @@
       window.bowserPages.settings.set({ webrtcPolicy: webrtcPolicy.value }));
   } else {
     document.getElementById('webrtcPolicy')?.closest('.setting')?.remove();
+  }
+
+  // --- WebRTC audio receive buffer ---
+  if (supports('webrtcAudioBuffer')) {
+    const webrtcAudioBuffer = document.getElementById('webrtcAudioBuffer');
+    webrtcAudioBuffer.value = settings.webrtcAudioBuffer ?? 'automatic';
+    webrtcAudioBuffer.addEventListener('change', () =>
+      window.bowserPages.settings.set({ webrtcAudioBuffer: webrtcAudioBuffer.value }));
+  } else {
+    document.getElementById('webrtcAudioBuffer')?.closest('.setting')?.remove();
   }
 
   // --- Encrypted DNS (DoH) ---
@@ -283,19 +292,17 @@
   }
 
   // --- App icon colorways (macOS Dock only) ---
-  // These four bindings stay in IIFE scope unconditionally because the Patron
-  // section below reads `patronActive` and calls `renderAppIconGrid`. The
-  // function/const definitions are inert until called; only the executable tail
-  // (render vs. remove) is gated.
+  // The bindings stay in IIFE scope unconditionally because only the executable
+  // tail (render vs. remove) is gated by the platform capability below.
   const appIconSetting = document.getElementById('appIconSetting');
   // `patronActive` is the durable projection field; `supporterActive` is only a
   // temporary alias to the same boolean (see pages.js's clientSettings()).
   let patronActive = settings.patronActive ?? false;
   const appIconGrid = document.getElementById('appIconGrid');
   // Tracked directly rather than re-derived from the DOM on every render —
-  // ids/labels come from main (settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS)
+  // ids/labels come from main (settings.js APP_ICON_LABELS)
   // so there's one source of truth instead of a hand-typed second copy.
-  let selectedIcon = settings.appIcon ?? 'paper';
+  let selectedIcon = settings.appIcon ?? 'sunrise';
 
   const selectAppIcon = (id) => {
     selectedIcon = id;
@@ -307,14 +314,10 @@
 
   function renderAppIconGrid() {
     appIconGrid.replaceChildren();
-    const entries = [
-      ...Object.entries(appIcons).map(([id, label]) => [id, label, false]),
-      ...Object.entries(supporterIcons).map(([id, label]) => [id, label, !patronActive]),
-    ];
-    for (const [id, label, locked] of entries) {
+    for (const [id, label] of Object.entries(appIcons)) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = locked ? 'icon-swatch locked' : 'icon-swatch';
+      btn.className = 'icon-swatch';
       btn.dataset.icon = id;
       btn.setAttribute('role', 'radio');
       const img = document.createElement('img');
@@ -323,39 +326,13 @@
       const name = document.createElement('span');
       name.textContent = label;
       btn.append(img, name);
-      if (locked) {
-        const tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.textContent = 'patron';
-        btn.append(tag);
-        // A locked tile points at the Patron section instead of
-        // silently failing (main would reject the id anyway).
-        btn.addEventListener('click', () => {
-          document.getElementById('patronTitle').scrollIntoView({ behavior: 'smooth' });
-          document.getElementById('patronKey').focus({ preventScroll: true });
-        });
-      } else {
-        btn.addEventListener('click', async () => {
-          await window.bowserPages.settings.set({ appIcon: id });
-          selectAppIcon(id);
-        });
-      }
+      btn.addEventListener('click', async () => {
+        await window.bowserPages.settings.set({ appIcon: id });
+        selectAppIcon(id);
+      });
       appIconGrid.append(btn);
     }
     selectAppIcon(selectedIcon);
-    updateIconCarets();
-  }
-
-  // The scroller hides its scrollbar; these carets are the only visible
-  // affordance, so they dim out at either end of the scroll range.
-  const iconPrev = document.getElementById('appIconPrev');
-  const iconNext = document.getElementById('appIconNext');
-  const CARET_SCROLL_STEP = 3 * (58 + 14); // three tiles per click
-
-  function updateIconCarets() {
-    const max = appIconGrid.scrollWidth - appIconGrid.clientWidth;
-    iconPrev.disabled = appIconGrid.scrollLeft <= 1;
-    iconNext.disabled = appIconGrid.scrollLeft >= max - 1;
   }
 
   const appIconPlatform = navigator.platform;
@@ -364,13 +341,7 @@
     appIconSetting.remove();
   } else {
     document.getElementById('appIconHint').textContent =
-      'Follows macOS Icon & Widget Style; Finder keeps Paper';
-    iconPrev.addEventListener('click', () =>
-      appIconGrid.scrollBy({ left: -CARET_SCROLL_STEP, behavior: 'smooth' }));
-    iconNext.addEventListener('click', () =>
-      appIconGrid.scrollBy({ left: CARET_SCROLL_STEP, behavior: 'smooth' }));
-    appIconGrid.addEventListener('scroll', updateIconCarets);
-    window.addEventListener('resize', updateIconCarets);
+      'Follows macOS Icon & Widget Style; Finder uses Sunrise';
     renderAppIconGrid();
   }
 
@@ -427,7 +398,6 @@
         // was at page load, and renderPatronState() shows it only when set.
         patronActive = true;
         renderPatronState();
-        if (navigator.platform.startsWith('Mac')) renderAppIconGrid();
       } else {
         patronStatus.textContent = result.message;
       }
@@ -738,58 +708,138 @@
   // --- Sync ---
   if (supports('sync')) {
     (function initSync() {
+      const { createSyncSetupModel, transition, view, relativeSyncTime } = window.blancSyncSetupModel;
       const setup = document.getElementById('syncSetup');
       const active = document.getElementById('syncActive');
+      const setupTitle = document.getElementById('syncSetupTitle');
+      const setupIntro = document.getElementById('syncSetupIntro');
+      const paths = document.getElementById('syncPaths');
+      const pathStart = document.getElementById('syncPathStart');
+      const pathJoin = document.getElementById('syncPathJoin');
+      const form = document.getElementById('syncForm');
       const handleEl = document.getElementById('syncHandle');
       const passEl = document.getElementById('syncPassphrase');
-      const enableBtn = document.getElementById('syncEnable');
+      const handleHint = document.getElementById('syncHandleHint');
+      const passHint = document.getElementById('syncPassphraseHint');
+      const submitBtn = document.getElementById('syncSubmit');
+      const finishTitle = document.getElementById('syncFinishTitle');
+      const finishHint = document.getElementById('syncFinishHint');
+      const backBtn = document.getElementById('syncBack');
+      const submitRow = document.getElementById('syncSubmitRow');
+      const notFound = document.getElementById('syncNotFound');
+      const tryAgainBtn = document.getElementById('syncTryAgain');
+      const startNewBtn = document.getElementById('syncStartNew');
       const setupStatus = document.getElementById('syncSetupStatus');
       const activeStatus = document.getElementById('syncActiveStatus');
+      const syncStatusHandle = document.getElementById('syncStatusHandle');
+      const syncStatusData = document.getElementById('syncStatusData');
+      const syncStatusTabs = document.getElementById('syncStatusTabs');
+      const syncStatusErrorRow = document.getElementById('syncStatusErrorRow');
+      const syncStatusError = document.getElementById('syncStatusError');
       const nowBtn = document.getElementById('syncNow');
       const disableBtn = document.getElementById('syncDisable');
       const wipeEl = document.getElementById('syncWipe');
       const tabsShareEl = document.getElementById('syncTabsShare');
 
-      const when = (ts) => (ts ? new Date(ts).toLocaleString() : 'never');
-      function render(status, note) {
+      // On-state: one row per category; the error lives ONLY in its own row.
+      function renderStatus(status, note) {
         const on = !!status.enabled;
         setup.hidden = on;
         active.hidden = !on;
         tabsShareEl.checked = !!status.syncTabs;
         if (on) {
-          const base = status.lastError
-            ? `Sync is on (${status.handle}). ${status.lastError}`
-            : `Sync is on (${status.handle}). Last synced ${when(status.lastSyncedAt)}.`;
-          activeStatus.textContent = note ? `${note} ${base}` : base;
-        } else {
-          setupStatus.textContent = note || '';
+          syncStatusHandle.textContent = status.handle;
+          const lastSynced = relativeSyncTime(status.lastSyncedAt);
+          syncStatusData.textContent = lastSynced ? `Last synced ${lastSynced}` : 'Not synced yet';
+          syncStatusTabs.textContent = status.syncTabs ? 'Sharing' : 'Not shared';
+          syncStatusErrorRow.hidden = !status.lastError;
+          syncStatusError.textContent = status.lastError || '';
+          activeStatus.textContent = note || '';
         }
       }
 
-      window.bowserPages.settings.syncGet().then(render).catch(() => {});
-
-      async function enable() {
-        if (enableBtn.disabled) return;
-        enableBtn.disabled = true;
-        setupStatus.textContent = 'Turning on sync…';
-        const res = await window.bowserPages.settings.syncEnable({ handle: handleEl.value, passphrase: passEl.value });
-        enableBtn.disabled = false;
-        passEl.value = '';
-        // Sync can be ON even when the first sync failed (offline), so always
-        // reflect the real status. A brand-new account gets a heads-up in case
-        // the passphrase was mistyped — a wrong one silently starts a new one.
-        const note = res.created
-          ? `Started a new sync account for “${handleEl.value.trim()}”. If you have data on another device, turn sync off and check the name and passphrase match exactly.`
-          : (res.ok ? null : res.message);
-        render(res.status, note);
+      // Off-state: the reducer owns the flow; this code only mirrors view()
+      // to the DOM and performs each returned effect exactly once.
+      let model = createSyncSetupModel();
+      function renderSetup() {
+        const v = view(model);
+        setupTitle.textContent = v.setupTitle;
+        setupIntro.textContent = v.setupIntro;
+        paths.hidden = v.pathChosen;
+        form.hidden = !v.fieldsVisible;
+        handleHint.textContent = v.handleHint;
+        passHint.textContent = v.passphraseHint;
+        submitBtn.textContent = v.submitLabel;
+        finishTitle.textContent = v.finishTitle;
+        finishHint.textContent = v.finishHint;
+        submitBtn.disabled = v.submitDisabled;
+        submitRow.hidden = v.showNotFound;
+        notFound.hidden = !v.showNotFound;
+        setupStatus.textContent = v.noticeText;
+        if (handleEl.value !== model.handle) handleEl.value = model.handle;
+        if (passEl.value !== model.passphrase) passEl.value = model.passphrase;
       }
-      enableBtn.addEventListener('click', enable);
-      passEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') enable(); });
+
+      async function performEnable(effect) {
+        setupStatus.textContent = 'Turning on sync…';
+        const res = await window.bowserPages.settings.syncEnable({ handle: effect.handle, passphrase: effect.passphrase });
+        const name = effect.handle;
+        // Copy comes from the EFFECT's path, never from live model state: the
+        // person may have pressed Back or switched paths while this awaited.
+        // created === false: enable()'s own probe found data — say so.
+        // created === null: probe offline — plain copy.
+        // Only a SUCCESSFUL enable gets transient copy. A failure that still
+        // persisted credentials leaves sync on, and its message is already the
+        // status's lastError — repeating it here would put the same error in
+        // two places, which §4.4 forbids. A failure that persisted nothing
+        // keeps the setup panel up, where the reducer's notice speaks.
+        const note = res.ok
+          ? (res.created === false
+            ? (effect.path === 'join' ? `Connected to “${name}”. Pulling your favorites and settings now.` : `Joined your existing sync as “${name}”.`)
+            : 'Sync is on. Your favorites and settings will sync as you change them.')
+          : null;
+        // Only a reply for the attempt still in flight may speak; the status
+        // itself is always real (sync may be on now) and is always rendered.
+        const current = model.phase === 'enabling' && model.token === effect.token;
+        dispatch({ type: 'enable-reply', token: effect.token, ok: res.ok, message: res.message });
+        renderStatus(res.status, current ? note : null);
+      }
+
+      async function performPreflight(effect) {
+        setupStatus.textContent = 'Checking…';
+        let reply;
+        try {
+          reply = await window.bowserPages.settings.syncPreflight({ handle: effect.handle, passphrase: effect.passphrase });
+        } catch {
+          reply = { ok: false, outcome: 'error', message: 'Could not check sync. Try again.' };
+        }
+        dispatch({ type: 'preflight-reply', token: effect.token, outcome: reply.outcome, message: reply.message });
+      }
+
+      function dispatch(event) {
+        const { state: next, effect } = transition(model, event);
+        model = next;
+        renderSetup();
+        if (effect?.type === 'preflight') performPreflight(effect);
+        if (effect?.type === 'enable') performEnable(effect);
+      }
+
+      pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathJoin.addEventListener('click', () => { dispatch({ type: 'choose', path: 'join' }); handleEl.focus(); });
+      backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
+      const onInput = () => dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value });
+      handleEl.addEventListener('input', onInput);
+      passEl.addEventListener('input', onInput);
+      form.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
+      tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
+      startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
+
+      window.bowserPages.settings.syncGet().then((status) => { renderStatus(status); renderSetup(); }).catch(() => {});
 
       nowBtn.addEventListener('click', async () => {
         nowBtn.disabled = true;
         activeStatus.textContent = 'Syncing…';
-        render(await window.bowserPages.settings.syncNow());
+        renderStatus(await window.bowserPages.settings.syncNow());
         nowBtn.disabled = false;
       });
 
@@ -798,11 +848,13 @@
         // A failed remote wipe keeps sync ON (the accountId is the only handle
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;
-        render(res.status, res.ok ? null : res.message);
+        model = createSyncSetupModel();
+        renderStatus(res.status, res.ok ? null : res.message);
+        renderSetup();
       });
 
       tabsShareEl.addEventListener('change', async () => {
-        render(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));
+        renderStatus(await window.bowserPages.settings.syncTabsSet(tabsShareEl.checked));
       });
     })();
   } else {
@@ -857,6 +909,7 @@
 
     const links = [...document.querySelectorAll('.settings-nav a')];
     const activeGroups = links.map((link) => document.getElementById(`group-${link.dataset.group}`)).filter(Boolean);
+    let anchoredGroup = activeGroups.find((group) => `#${group.id}` === location.hash) ?? null;
 
     const setCurrent = (group) => {
       for (const link of links) link.classList.toggle('current', link.dataset.group === group);
@@ -864,13 +917,24 @@
 
     // Score each group by how much of *itself* is on screen, highest wins.
     // (A fixed trigger line — the usual scroll-spy trick — fails here:
-    // Privacy & Security's card is taller than Sync + Patron combined, so
+    // Privacy & Security's card is taller than the short trailing sections combined, so
     // near the page bottom there's no scroll room left for their headers to
     // ever cross the line, and they'd be skipped.) On a positive tie (two
     // short trailing sections both fully visible) the later one wins, so
     // scrolling down keeps advancing; a zero-tie leaves `best` on the first
     // group rather than cascading to the last.
     function updateCurrent() {
+      // A deep-linked section owns the marker while its heading is still in
+      // the upper part of the sheet. Percentage scoring alone can select the
+      // next short section when the anchored section is also fully visible.
+      if (anchoredGroup) {
+        const anchoredRect = anchoredGroup.getBoundingClientRect();
+        if (anchoredRect.top >= 0 && anchoredRect.top < window.innerHeight * 0.45) {
+          setCurrent(anchoredGroup.id.replace('group-', ''));
+          return;
+        }
+        anchoredGroup = null;
+      }
       let best = null;
       let bestRatio = -1;
       for (const group of activeGroups) {
@@ -883,24 +947,33 @@
     }
 
     // A sidebar click pins its target through the smooth-scroll animation.
-    // Otherwise clicking a short trailing section (Sync) — whose scrollIntoView
+    // Otherwise clicking a short trailing section (Help) — whose scrollIntoView
     // clamps at the page bottom, leaving it tied with Patron — would let the
     // scorer settle the highlight on Patron instead.
     let pinnedUntil = 0;
     let ticking = false;
-    window.addEventListener('scroll', () => {
+    const scheduleUpdate = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         if (Date.now() >= pinnedUntil) updateCurrent();
         ticking = false;
       });
-    });
+    };
+    window.addEventListener('scroll', scheduleUpdate);
+    // Setup panels can change height without scrolling (for example, choosing
+    // a Sync path). Re-score then too so the sidebar never highlights the next
+    // short section after the current section expands.
+    if (typeof ResizeObserver === 'function') {
+      const sizeObserver = new ResizeObserver(scheduleUpdate);
+      for (const group of activeGroups) sizeObserver.observe(group);
+    }
     updateCurrent();
 
     for (const link of links) {
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        anchoredGroup = document.getElementById(`group-${link.dataset.group}`);
         setCurrent(link.dataset.group);
         pinnedUntil = Date.now() + 800; // outlasts the smooth-scroll animation
         document.getElementById(`group-${link.dataset.group}`)?.scrollIntoView({ behavior: 'smooth' });

@@ -1,0 +1,3 @@
+# Host redirects live in Cloudflare Bulk Redirects; Pages handles path rules here.
+/private /features/private-tabs 301
+/private/ /features/private-tabs 301

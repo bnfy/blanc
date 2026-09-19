@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.10.0",
+      "bom-ref": "application:runtime:blanc@1.18.0",
       "name": "Blanc",
-      "version": "1.10.0",
+      "version": "1.18.0",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -41,6 +41,41 @@
         }
       ],
       "version": "194ddc2d204c13b9"
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:caveat-font",
+      "name": "Caveat Latin webfont",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/caveat-latin.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/caveat-OFL.txt"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/googlefonts/caveat"
+        }
+      ]
     },
     {
       "type": "data",
@@ -1036,14 +1071,14 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.0.0",
+      "bom-ref": "pkg:npm/electron@44.4.2",
       "name": "electron",
-      "version": "44.0.0",
+      "version": "44.4.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1644ea3eb14f65896374f2396fb28e446b094dde8581440379f97932b5375f3f51f3ba408fd24bade2230ea71137c849224147228bb4a3c90acef7294fdaa245"
+          "content": "f3bdadffef0cf13cab89b5a6d9c6294701d8d9a0e5c831ce9fe0879e137d907412b555bca408a322116895803fa90c8376b8b6f17a7c322dc7123e6416f6a30b"
         }
       ],
       "licenses": [
@@ -1053,7 +1088,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.0.0",
+      "purl": "pkg:npm/electron@44.4.2",
       "properties": [
         {
           "name": "blanc:declaration",
@@ -1067,7 +1102,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.0.0.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.4.2.tgz"
         }
       ]
     },
@@ -1163,14 +1198,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/js-yaml@4.3.1",
+      "bom-ref": "pkg:npm/js-yaml@4.3.2",
       "name": "js-yaml",
-      "version": "4.3.1",
+      "version": "4.3.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "098e9cac6ab7d77317f06930bc1eedce0a7df6f8d0c58d7efb9cb5d3f04a37f1947c7a9668e19030d66406fa92cec64a5a4fe28f01e55b3ce42ee96c18786359"
+          "content": "48534ebd227e0e07fff409fdd38631f828129483c2908a5aa38aa8e7596979edb94c845e8dd1f7ae1478119306a0dc77fd33f73bec335ae893165e2ca9b96dcc"
         }
       ],
       "licenses": [
@@ -1180,7 +1215,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/js-yaml@4.3.1",
+      "purl": "pkg:npm/js-yaml@4.3.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -1202,7 +1237,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz"
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz"
         }
       ]
     },
@@ -1704,15 +1739,16 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.10.0",
+      "ref": "application:runtime:blanc@1.18.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
+        "asset:caveat-font",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.0.0"
+        "pkg:npm/electron@44.4.2"
       ]
     },
     {
@@ -1723,6 +1759,10 @@
         "asset:ghostery-resources",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2"
       ]
+    },
+    {
+      "ref": "asset:caveat-font",
+      "dependsOn": []
     },
     {
       "ref": "asset:easylist-data",
@@ -1847,7 +1887,7 @@
       "dependsOn": [
         "pkg:npm/builder-util-runtime@9.7.0",
         "pkg:npm/fs-extra@10.1.0",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/lazy-val@1.0.5",
         "pkg:npm/lodash.escaperegexp@4.1.2",
         "pkg:npm/lodash.isequal@4.5.0",
@@ -1856,7 +1896,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.0.0",
+      "ref": "pkg:npm/electron@44.4.2",
       "dependsOn": []
     },
     {
@@ -1872,7 +1912,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/js-yaml@4.3.1",
+      "ref": "pkg:npm/js-yaml@4.3.2",
       "dependsOn": [
         "pkg:npm/argparse@2.0.1"
       ]

@@ -1,0 +1,36 @@
+{
+  "name": "blanc-tab-import",
+  "version": "0.1.0",
+  "description": "Create a private, one-time handoff from one supported browser window to Blanc.",
+  "author": {
+    "name": "Bananify Creative",
+    "email": "support@blancbrowser.com",
+    "url": "https://blancbrowser.com"
+  },
+  "homepage": "https://blancbrowser.com",
+  "repository": "https://github.com/bnfy/blanc",
+  "license": "MIT",
+  "keywords": ["blanc", "browser", "tabs", "handoff"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Open tabs in Blanc",
+    "shortDescription": "Copy one browser window into a new Blanc window.",
+    "longDescription": "Copies URL, title, order, and active-tab status from one supported Chromium-family browser window into an expiring, one-time Blanc handoff. Source tabs remain untouched.",
+    "developerName": "Bananify Creative",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://blancbrowser.com",
+    "privacyPolicyURL": "https://blancbrowser.com/privacy",
+    "termsOfServiceURL": "https://blancbrowser.com/terms",
+    "defaultPrompt": [
+      "Open this browser window in Blanc.",
+      "Copy my selected tabs into Blanc.",
+      "Create a Blanc handoff for these tabs."
+    ],
+    "brandColor": "#C88A2B",
+    "composerIcon": "./assets/sunrise-mark.png",
+    "logo": "./assets/sunrise-mark.png",
+    "logoDark": "./assets/sunrise-mark.png"
+  }
+}

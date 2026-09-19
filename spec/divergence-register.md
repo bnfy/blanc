@@ -83,34 +83,38 @@ cap** are identical; only where the bytes land and how you re-open them differ.
 **Features:** F5, F19
 **Why:** Each OS has its own default-browser mechanism and URI-hand-off model.
 
-- **Desktop:** `handOffToOs()` for `mailto:`/`tel:`/`facetime:`/`sms:`; OS default
-  registration via the packaged app.
+- **Desktop:** `handOffToOs()` for `mailto:`/`tel:`/`facetime:`/`sms:` plus an
+  affirmative allowlist of reviewed app schemes and standard native OAuth scheme
+  conventions. App callbacks require confirmation; unknown schemes never reach
+  the OS. OS default registration uses the packaged app.
 - **iOS:** default-browser **entitlement** + universal-link/URI handling; hand-off
   via `UIApplication.open`.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
 
 **Parity contract:** a bare `mailto:`/`tel:`/etc. is handed to the OS (never
-treated as a search query), and Blanc can be set as the default browser, on every
-platform that allows it.
+treated as a search query), unknown schemes do not reach an OS handler, and Blanc
+can be set as the default browser, on every platform that allows it. Desktop app
+callbacks are an accepted platform-specific extension.
 
 **Status:** Accepted.
 
 ---
 
-## D5 — Supporter monetization rails
-**Features:** F17, F14 (`supporter`)
+## D5 — Patron monetization rails
+**Features:** F17, F14 (`patron`)
 **Why:** App Store and Play require their own in-app billing for digital unlocks;
 the desktop Polar.sh flow cannot be used in-app on mobile (and would violate store
 policy).
 
-- **Desktop:** Polar.sh one-time license, activated against Polar's API.
+- **Desktop:** Polar monthly/annual subscription, with earlier founding licenses
+  honored permanently.
 - **iOS:** **StoreKit / In-App Purchase** (Apple's cut applies).
 - **Android:** **Google Play Billing.**
 
-**Parity contract:** the unlock is a **one-time purchase** that flips
-`supporterActive` and unlocks the same 3 colorways; once unlocked it is
-**trusted-forever, offline-OK, cosmetic-only** (no revalidation/DRM) on every
-platform. Renderers only ever see the derived boolean, never a key.
+**Parity contract:** Patron unlocks creation of Named Workspaces on every
+platform. Existing workspaces remain available after a subscription lapses;
+founding licenses retain permanent access. App-icon colorways are not a Patron
+benefit. Renderers only ever see the derived boolean, never a key.
 
 **Cross-honor (decided 2026-07-07):** a purchase on **either** platform unlocks the
 other (not independent). The activation *mechanism* is non-trivial and deferred to
@@ -121,8 +125,7 @@ Blanc has no cross-platform account. Favour activation-time-only checks to prese
 the trusted-forever/offline-OK posture after unlock. See
 [the iOS port roadmap](../docs/superpowers/specs/2026-07-07-ios-port-roadmap-design.md) §5.5.
 
-**Status:** Accepted; **cross-honor both ways** — direction decided 2026-07-07,
-activation mechanism TBD @ iOS M13.
+**Status:** Accepted; mobile activation mechanism TBD @ iOS M13.
 
 ---
 
@@ -241,7 +244,7 @@ is platform-native.
 **Why:** Desktop uses resizable native windows with window controls and a strip + overlay;
 mobile is a single full-screen surface with system insets.
 
-- **Desktop:** one independent workspace per `BrowserWindow`, each with a 64px
+- **Desktop:** one independent workspace per `BrowserWindow`, each with a 68px
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
@@ -390,11 +393,13 @@ whatever layer that platform provides.
 
 ---
 
-## D18 — WebRTC IP-handling control (F26)
+## D18 — WebRTC IP-handling and receiver-buffer controls (F26)
 **Features:** F26
-**Why:** WebRTC IP-policy control depends on the engine.
+**Why:** WebRTC IP-policy and receiver-buffer controls depend on the engine.
 
-- **Desktop:** `webContents.setWebRTCIPHandlingPolicy` (standard + disable-direct-UDP).
+- **Desktop:** `webContents.setWebRTCIPHandlingPolicy` (standard + compatibility +
+  disable-direct-UDP), plus `RTCRtpReceiver.jitterBufferTarget` for the Stable
+  and Resilient call-audio modes.
 - **Android:** WebView WebRTC IP-handling support to be assessed at port time.
 - **iOS:** WKWebView exposes no WebRTC IP-handling policy; iOS contract downgrades
   to **platform default behavior, documented** (no in-app control).
@@ -416,7 +421,7 @@ content area and fight the platform's native navigation model.
   resetting to 248px. Its width is directly adjustable and device-local; a
   narrow window temporarily caps the rendered rail to preserve at least 392px
   for the page without overwriting the saved preference. The page pane keeps a
-  64px sampled-color safe-area gutter for the floating Island, which remains
+  68px sampled-color safe-area gutter for the floating Island, which remains
   the sole address, search, and command surface. The rail is another
   presentation of the canonical tab/group model.
 - **iOS:** no reserved rail. Use the native full-screen tab overview while

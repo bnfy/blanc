@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -28,11 +28,13 @@ if (process.env.BLANC_TEST === '1' && process.env.BLANC_TEST_UNCAUGHT_LOG) {
 installMacOSQuitVisibilityGate({ app, BrowserWindow });
 const {
   setupAdBlocker,
+  installNavigationCrashGuard,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -50,6 +52,16 @@ const {
 } = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
+  mergeDisabledFeatures,
+  captureDisabledFeatures,
+  applyLinuxCaptureOzone,
+} = require('./display-capture-flags');
+const {
+  WEBRTC_AUDIO_BUFFER_GET_CHANNEL,
+  sendWebrtcAudioBufferMode,
+} = require('./webrtc-audio-buffer');
+const { createNativeMediaAccessGate } = require('./native-media-access');
+const {
   chromeClientHintPlatform,
   chromeClientHintArchitecture,
   chromeClientHintBitness,
@@ -64,7 +76,30 @@ const {
   CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
+const { evaluateAdmission, evaluateDocumentVisible } = require('./display-capture-admission');
+const { parseDisplayMediaOptions } = require('./display-capture-constraints');
+const { createBrokerRegistry } = require('./display-capture-state');
+const { projectDisplayShares } = require('./display-capture-indicator');
+const { createDisplayCapturePicker } = require('./display-capture-picker');
+const { showOverlayView, hideOverlayView } = require('./overlay-view-lifecycle');
+const { filterSignaling, collectLocalAddresses } = require('./display-capture-ice');
+const { captureRuntimeForPlatform } = require('./capture-platform');
+const CAPTURE_RUNTIME = captureRuntimeForPlatform();
+const {
+  createHelperAuthority,
+  createHelperSession,
+  attachHelperWindow,
+  installDisplayCaptureBroker,
+} = require('./' + CAPTURE_RUNTIME.broker);
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
+const nativeMediaAccess = createNativeMediaAccessGate({
+  platform: process.platform,
+  systemPreferences,
+});
+const nativeMediaPermissionOptions = {
+  requestNativeMediaAccess: nativeMediaAccess.request,
+  nativeMediaAccessState: nativeMediaAccess.state,
+};
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const {
   sendLaunchPing,
@@ -77,6 +112,7 @@ const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
+const { releaseHiddenWindowsOnLastClose } = require('./last-window-close');
 const { sanitizeFavicon } = require('./favicon-sanitizer');
 const {
   resolvedFavicon,
@@ -87,23 +123,25 @@ const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
+  setDownloadRequesterCheck,
   downloadsActivity,
   acknowledgeDownloads,
   discardProfileDownloads,
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
+const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
-const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
+const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const {
@@ -120,6 +158,10 @@ const {
   validRecoveryChoice,
 } = require('./session-recovery');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const {
+  migrationChecklistState,
+  migrationChecklistForTab,
+} = require('./migration-checklist');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -129,7 +171,20 @@ const {
 const { filterRestoredSession, restoreTargetId } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
+  MAX_TAB_IMPORT_ENVELOPE_BYTES,
+  MAX_TAB_IMPORT_TABS,
+  TAB_IMPORT_RELAY_ORIGIN,
+  decryptTabHandoffEnvelope,
+  parseTabImportUrl,
+  readBoundedResponseBytes,
+  sanitizeTabHandoff,
+  tabImportClaimUrl,
+  tabImportUrlsFromArgv,
+} = require('./tab-import-handoff');
+const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
+const {
   sleepCandidates,
+  mayDiscardRenderer,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
@@ -153,7 +208,7 @@ const {
 } = require('./tab-view');
 const { createProfileSessionRegistry } = require('./profile-sessions');
 const { setupWebAuthn } = require('./webauthn');
-const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
+const { classifyExternalNavigation, createExternalHandoff } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const {
   applyDockAppIcon,
@@ -180,9 +235,24 @@ const {
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
-const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
-const { bringExternalWindowToFront } = require('./window-activation');
+const { webUrlsFromArgv } = require('./startup-urls');
+const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
+const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
+const {
+  sanitizeCandidateInput,
+  proposeFromSourceGroups,
+  proposeFromFolders,
+  proposeFromEmbeddings,
+  validateProposal,
+} = require('./tab-import-organizer');
+const { planTabImportApply } = require('./tab-import-apply');
+const {
+  computeBatchInsertAt,
+  reorderTabOrderForBatch,
+  resolveBatchGroupId,
+} = require('./tab-import-batch');
 const { createOnePasswordClient } = require('./onepassword-client');
 const { isOnePasswordAvailable } = require('./onepassword-availability');
 const { createCredentialFillController } = require('./credential-fill-controller');
@@ -191,7 +261,7 @@ const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } 
 const { buildHintProbeScript, configTransition, createFillHintScheduler } = require('./fill-hint');
 const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
+  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -199,9 +269,9 @@ const {
 // (single-window binding, resolveOpen). See the "Named Workspaces" section
 // below (near closeGroup) for the capture/apply/switch seams that use them.
 const namedWorkspaces = require('./workspaces');
-const {
-  resolveOpen, scratchSwitchGuardResult, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
-} = require('./workspaces-model');
+const { createWorkspaceController } = require('./workspace-controller');
+const { transferSession, residencyCapacity } = require('./workspace-residency');
+const { scratchSwitchGuardResult } = require('./workspaces-model');
 
 // The SDK never loads in main. The first production release is macOS-only;
 // unsupported platforms do not even create the lazy client, so no command can
@@ -243,10 +313,11 @@ let installProfileSessionPolicies = () => {};
 
 /** Wrap a callback so it (and everything it schedules) resolves to `runtime`. */
 function bindWindowRuntime(runtime, fn) {
-  return (...args) => withLocalProfile(
-    runtime?.profileId ?? DEFAULT_PROFILE_ID,
-    () => windowRuntimeContext.run(runtime, () => fn(...args))
-  );
+  return (...args) => {
+    const current = typeof runtime === 'function' ? runtime() : runtime;
+    return withLocalProfile(current?.profileId ?? DEFAULT_PROFILE_ID,
+      () => windowRuntimeContext.run(current, () => fn(...args)));
+  };
 }
 
 /** The runtime owning the current execution. Native and IPC entry points bind
@@ -270,6 +341,735 @@ const rt = currentRuntime;
 // run from startup contexts.
 primaryRuntime = windowRuntimes.createRuntime({ id: PRIMARY_WINDOW_ID });
 focusedRuntime = primaryRuntime;
+
+// F40 import state is main-process-only. Selecting a profile reads its bounded
+// restorable open-tab session once; exact URLs never cross the page bridge.
+const tabImportSessions = createTabImportSessionStore();
+const tabImportSourceReaders = new Map(); // sessionId -> owner + reader + generation
+const tabImportSourceRequests = new Map(); // runtimeId -> current async source-read identity
+
+function beginTabImportSourceRead() {
+  const runtime = rt();
+  const request = {};
+  const generation = runtime.surfaceGeneration;
+  tabImportSourceRequests.set(runtime.id, request);
+  return () => tabImportSourceRequests.get(runtime.id) === request &&
+    runtime.surfaceGeneration === generation &&
+    !!runtime.window && !runtime.window.isDestroyed() &&
+    sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-import/');
+}
+
+function tabImportOwner() {
+  return { runtimeId: rt().id, profileId: rt().profileId };
+}
+
+function sameTabImportOwner(record, owner) {
+  return !!record && record.runtimeId === owner.runtimeId && record.profileId === owner.profileId;
+}
+
+function forgetTabImportSource(sessionId) {
+  return tabImportSourceReaders.delete(String(sessionId ?? ''));
+}
+
+function forgetTabImportForRuntime(runtimeId, reason = 'runtime-destroyed') {
+  tabImportSourceRequests.delete(runtimeId);
+  for (const [sessionId, record] of tabImportSourceReaders) {
+    if (record.runtimeId === runtimeId) tabImportSourceReaders.delete(sessionId);
+  }
+  return tabImportSessions.destroyForRuntime(runtimeId, reason);
+}
+
+function expireTabImportSessions(at = Date.now()) {
+  for (const [sessionId, record] of tabImportSourceReaders) {
+    if (at - record.lastTouchAt >= SESSION_TTL_MS) {
+      tabImportSourceReaders.delete(sessionId);
+      tabImportSessions.destroySession(sessionId, 'expired');
+    }
+  }
+  // Also catches a future session without a source reader. Source-backed
+  // sessions were destroyed above so the store call remains idempotent.
+  tabImportSessions.expireIdleSessions(at);
+}
+
+function openTabImportSource({ sourceKind, sourceLabel, readCandidates } = {}) {
+  const owner = tabImportOwner();
+  if (typeof readCandidates !== 'function') return { error: 'source-unavailable' };
+  // createSession enforces one session per runtime; mirror that replacement
+  // in the source-reader map so an old source snapshot cannot outlive its ticket.
+  for (const [sessionId, record] of tabImportSourceReaders) {
+    if (record.runtimeId === owner.runtimeId) tabImportSourceReaders.delete(sessionId);
+  }
+  const created = tabImportSessions.createSession({
+    ...owner,
+    sourceKind: String(sourceKind ?? '').slice(0, 40),
+    sourceLabel: String(sourceLabel ?? '').slice(0, 120),
+  });
+  tabImportSourceReaders.set(created.sessionId, {
+    ...owner,
+    generation: created.generation,
+    readCandidates,
+    lastTouchAt: Date.now(),
+  });
+  return created;
+}
+
+function ownedTabImportSource(sessionId) {
+  const key = String(sessionId ?? '');
+  const owner = tabImportOwner();
+  const record = tabImportSourceReaders.get(key);
+  if (!record) return { error: 'session-unavailable' };
+  if (!sameTabImportOwner(record, owner)) return { error: 'forbidden' };
+  if (Date.now() - record.lastTouchAt >= SESSION_TTL_MS) {
+    tabImportSourceReaders.delete(key);
+    tabImportSessions.destroySession(key, 'expired');
+    return { error: 'session-unavailable' };
+  }
+  record.lastTouchAt = Date.now();
+  return { key, owner, record };
+}
+
+function dropUnavailableTabImportSource(sessionId, result) {
+  if (result?.error === 'session-unavailable') forgetTabImportSource(sessionId);
+  return result;
+}
+
+async function loadTabImportCandidates(sessionId) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  let read;
+  try {
+    read = await resolved.record.readCandidates();
+  } catch {
+    return { error: 'unreadable' };
+  }
+  if (!read || read.error) return read ?? { error: 'unreadable' };
+  const assigned = tabImportSessions.assignCandidates(
+    resolved.key,
+    read.candidates,
+    resolved.owner,
+  );
+  if (assigned.error) return dropUnavailableTabImportSource(resolved.key, assigned);
+  // A newly loaded source invalidates vectors from an earlier preview.
+  tabImportSessions.clearEmbeddings(resolved.key, resolved.owner);
+  const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
+  if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
+  return {
+    generation: resolved.record.generation,
+    candidates: projection.candidates,
+    windowCount: Number(read.windowCount) || 0,
+    excludedCount: Number(read.excludedCount) || 0,
+  };
+}
+
+function setTabImportSelection(sessionId, selection) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  const changed = tabImportSessions.setSelection(resolved.key, selection, resolved.owner);
+  if (changed.error) return dropUnavailableTabImportSource(resolved.key, changed);
+  // Selection changes alter worker row order/cardinality, so old vectors are
+  // never eligible for a later proposal even within the same session.
+  tabImportSessions.clearEmbeddings(resolved.key, resolved.owner);
+  const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
+  if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
+  return { generation: resolved.record.generation, candidates: projection.candidates };
+}
+
+function selectedTabImportProjection(sessionId) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
+  if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
+  return {
+    ...resolved,
+    selected: projection.candidates.filter((candidate) =>
+      candidate.selected && !candidate.excluded),
+    excludedIds: projection.candidates
+      .filter((candidate) => candidate.excluded)
+      .map((candidate) => candidate.candidateId),
+  };
+}
+
+function validatedTabImportProposal(selected, excludedIds, proposal) {
+  const checked = validateProposal(proposal, {
+    selectedIds: selected.map((candidate) => candidate.candidateId),
+    excludedIds,
+  });
+  return checked.ok ? { proposal: checked.proposal } : { error: 'invalid-proposal' };
+}
+
+function suggestTabImportSourceGroups(sessionId) {
+  const projected = selectedTabImportProjection(sessionId);
+  if (projected.error) return projected;
+  return validatedTabImportProposal(
+    projected.selected,
+    projected.excludedIds,
+    proposeFromSourceGroups(projected.selected),
+  );
+}
+
+function startTabImportEmbedding(sessionId) {
+  const projected = selectedTabImportProjection(sessionId);
+  if (projected.error) return projected;
+  tabImportSessions.clearEmbeddings(projected.key, projected.owner);
+  return {
+    generation: projected.record.generation,
+    // sanitizeCandidateInput is the complete worker/model allowlist: opaque
+    // id, bounded title, hostname, and folder path only.
+    candidates: projected.selected.map(sanitizeCandidateInput),
+  };
+}
+
+function normalizeTabImportEmbeddingMatrix(matrix, expectedRows) {
+  if (!Array.isArray(matrix) || matrix.length !== expectedRows || matrix.length > 500) return null;
+  let dimensions = null;
+  const normalized = [];
+  for (const row of matrix) {
+    const values = Array.isArray(row)
+      ? row
+      : (ArrayBuffer.isView(row) ? Array.from(row) : null);
+    if (!values || values.length < 1 || values.length > 4096) return null;
+    if (dimensions === null) dimensions = values.length;
+    if (values.length !== dimensions || !values.every((value) => Number.isFinite(value))) return null;
+    normalized.push(values.map(Number));
+  }
+  return normalized;
+}
+
+function submitTabImportEmbeddings(sessionId, generation, matrix) {
+  const projected = selectedTabImportProjection(sessionId);
+  if (projected.error) return projected;
+  const normalized = normalizeTabImportEmbeddingMatrix(matrix, projected.selected.length);
+  if (!normalized) return { error: 'invalid-embeddings' };
+  const stored = tabImportSessions.storeEmbeddings(
+    projected.key,
+    generation,
+    normalized,
+    projected.owner,
+  );
+  if (stored.error) return dropUnavailableTabImportSource(projected.key, stored);
+  const proposal = proposeFromEmbeddings(projected.selected, normalized);
+  const validated = validatedTabImportProposal(
+    projected.selected,
+    projected.excludedIds,
+    proposal,
+  );
+  if (!validated.error) return validated;
+  // A malformed/unsuitable model result fails closed to the deterministic
+  // folder organizer; there is no cloud fallback.
+  const fallback = validatedTabImportProposal(
+    projected.selected,
+    projected.excludedIds,
+    proposeFromFolders(projected.selected),
+  );
+  return fallback.error ? fallback : { ...fallback, fallback: true };
+}
+
+// Task 11 replaces this no-mutation floor with the transactional batch apply
+// seam. Keeping the endpoint delegated through main prevents pages.js or the
+// utility renderer from ever acquiring direct tab/group mutation access.
+let tabCreationBatchDepth = 0;
+let tabStateBroadcastSuppressionDepth = 0;
+let tabImportApplyBroadcasted = false;
+let acceptanceTabStateBroadcastCount = 0;
+
+function isTabCreationBatched() {
+  return tabCreationBatchDepth > 0;
+}
+
+function ownedTabImportSession(sessionId) {
+  const key = String(sessionId ?? '');
+  const owner = tabImportOwner();
+  const owned = tabImportSessions.ownSession(key, owner);
+  if (owned.error) return dropUnavailableTabImportSource(key, owned);
+  return {
+    key,
+    owner,
+    generation: owned.generation,
+    state: owned.state,
+    focusTabId: owned.focusTabId,
+    tabIds: owned.tabIds,
+  };
+}
+
+function tabImportRelayOrigin() {
+  // Acceptance may point at a throwaway loopback relay. Packaged builds are
+  // permanently pinned to the production origin regardless of environment.
+  if (acceptanceTestMode && process.env.BLANC_TEST_TAB_IMPORT_RELAY) {
+    try {
+      const candidate = new URL(process.env.BLANC_TEST_TAB_IMPORT_RELAY);
+      if (candidate.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(candidate.hostname)) {
+        return candidate.origin;
+      }
+    } catch {}
+  }
+  return TAB_IMPORT_RELAY_ORIGIN;
+}
+
+function tabHandoffRuntime() {
+  const preferred = focusedRuntime ?? primaryRuntime;
+  if (preferred?.window && !preferred.window.isDestroyed()) return preferred;
+  return windowRuntimes.all().find((runtime) => runtime.window && !runtime.window.isDestroyed())
+    ?? primaryRuntime;
+}
+
+function focusPendingTabHandoff() {
+  const runtime = pendingTabHandoff
+    ? windowRuntimes.all().find((candidate) => candidate.id === pendingTabHandoff.runtimeId)
+    : null;
+  if (!runtime?.window || runtime.window.isDestroyed()) return false;
+  withWindowRuntime(runtime, () => {
+    if (!sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-handoff/')) {
+      showUtilityPage('blanc://tab-handoff/');
+    }
+    bringExternalWindowToFront(app, runtime.window);
+    liveUtilitySheet(runtime)?.wc.focus();
+  });
+  return true;
+}
+
+function tabHandoffErrorMessage(code) {
+  if (code === 'invalid-expiry') return 'This handoff has expired or your device clock is incorrect. Check the clock and create a new handoff.';
+  if (code === 'too-many-tabs') return 'This handoff has more than 100 tabs. Select a smaller set and try again.';
+  if (code === 'empty') return 'This handoff has no eligible web tabs.';
+  if (code === 'multiple-active-tabs') return 'The source browser reported more than one active tab.';
+  if (code === 'decryption-failed' || code === 'invalid-envelope' || code === 'invalid-payload') {
+    return 'Blanc could not verify this handoff. It may have been changed or opened with the wrong link.';
+  }
+  if (code === 'unavailable') return 'This handoff has expired, was already used, or is unavailable.';
+  if (code === 'offline') return 'Blanc could not reach the tab handoff service. Check your connection and try again.';
+  return 'Blanc could not import these tabs.';
+}
+
+async function claimTabHandoff(parsed) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await net.fetch(tabImportClaimUrl(parsed.id, tabImportRelayOrigin()), {
+      method: 'POST',
+      redirect: 'error',
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: controller.signal,
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error('unavailable');
+    const maxResponseBytes = Math.ceil(MAX_TAB_IMPORT_ENVELOPE_BYTES * 4 / 3) + 2048;
+    const bytes = await readBoundedResponseBytes(response, maxResponseBytes);
+    let envelope;
+    try { envelope = JSON.parse(bytes.toString('utf8')); } catch { throw new Error('invalid-envelope'); }
+    return await decryptTabHandoffEnvelope(envelope, parsed.key, parsed.id);
+  } catch (error) {
+    if (controller.signal.aborted || error?.name === 'AbortError') throw new Error('offline');
+    if (['unavailable', 'invalid-envelope', 'decryption-failed', 'invalid-payload', 'invalid-expiry'].includes(error?.message)) throw error;
+    throw new Error('offline');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function processTabHandoff(url) {
+  const parsed = parseTabImportUrl(url);
+  if (!parsed || tabHandoffClaimInFlight) return false;
+  const runtime = tabHandoffRuntime();
+  if (!runtime?.window || runtime.window.isDestroyed()) {
+    pendingTabHandoffUrls.splice(0, 0, url);
+    return false;
+  }
+  const profile = localProfiles.getLocalProfile(runtime.profileId)
+    ?? localProfiles.getLocalProfile(DEFAULT_PROFILE_ID);
+  const loadingImport = {
+    state: 'loading',
+    runtimeId: runtime.id,
+    profileId: profile?.id ?? DEFAULT_PROFILE_ID,
+    profileName: profile?.name ?? 'Personal',
+  };
+  const requestId = Symbol('tab-handoff-request');
+  activeTabHandoffRequest = requestId;
+  pendingTabHandoff = loadingImport;
+  tabHandoffClaimInFlight = true;
+  try {
+    refreshTabHandoffSheet(runtime);
+    const raw = await claimTabHandoff(parsed);
+    const clean = sanitizeTabHandoff(raw);
+    if (!clean.ok) throw new Error(clean.error);
+    // Escape/Cancel while the claim was in flight permanently discards its
+    // eventual result. The relay record is already one-time at this point.
+    if (activeTabHandoffRequest !== requestId || pendingTabHandoff !== loadingImport) return false;
+    pendingTabHandoff = {
+      state: 'ready',
+      runtimeId: runtime.id,
+      profileId: profile?.id ?? DEFAULT_PROFILE_ID,
+      profileName: profile?.name ?? 'Personal',
+      payload: clean.value,
+      skippedCount: clean.skippedCount,
+    };
+  } catch (error) {
+    if (activeTabHandoffRequest !== requestId || pendingTabHandoff !== loadingImport) return false;
+    pendingTabHandoff = {
+      state: 'error',
+      runtimeId: runtime.id,
+      profileId: profile?.id ?? DEFAULT_PROFILE_ID,
+      profileName: profile?.name ?? 'Personal',
+      error: error?.message ?? 'failed',
+      message: tabHandoffErrorMessage(error?.message),
+    };
+  } finally {
+    if (activeTabHandoffRequest === requestId) {
+      activeTabHandoffRequest = null;
+      tabHandoffClaimInFlight = false;
+      // A dismissed retrieval owns no sheet. Its one queued replacement is
+      // started only after this retrieval settles, never concurrently.
+      if (pendingTabHandoff?.state === 'waiting') {
+        const replacement = pendingTabHandoff.url;
+        pendingTabHandoff = null;
+        pendingTabHandoffUrls.push(replacement);
+      }
+      flushTabHandoffs();
+    }
+  }
+  // A replacement may already be loading. Never repaint the old request.
+  if (pendingTabHandoff?.runtimeId === runtime.id
+    && ['ready', 'error'].includes(pendingTabHandoff.state)) refreshTabHandoffSheet(runtime);
+  return true;
+}
+
+function refreshTabHandoffSheet(runtime) {
+  if (runtime.window && !runtime.window.isDestroyed()) {
+    withWindowRuntime(runtime, () => {
+      if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-handoff/')) {
+        hideUtilitySheet({ refocusContent: false, discardTabHandoff: false });
+      }
+      showUtilityPage('blanc://tab-handoff/');
+      bringExternalWindowToFront(app, runtime.window);
+    });
+  }
+}
+
+function queueTabHandoff(url) {
+  if (!parseTabImportUrl(url)) return false;
+  if (['ready', 'waiting', 'loading'].includes(pendingTabHandoff?.state)) {
+    focusPendingTabHandoff();
+    return true;
+  }
+  const runtime = tabHandoffRuntime();
+  if (!tabHandoffsFlushable || !runtime?.window || runtime.window.isDestroyed()) {
+    if (!pendingTabHandoffUrls.length) pendingTabHandoffUrls.push(url);
+    return true;
+  }
+  if (pendingTabHandoff?.state === 'error') pendingTabHandoff = null;
+  if (tabHandoffClaimInFlight) {
+    // A link may already be queued while every window was closed. It keeps
+    // its slot when a window reopens; a later invocation must not replace it.
+    const replacement = pendingTabHandoffUrls.shift() ?? url;
+    pendingTabHandoff = { state: 'waiting', runtimeId: runtime.id, url: replacement };
+    try { refreshTabHandoffSheet(runtime); }
+    catch {
+      pendingTabHandoff = null;
+      // Preserve the link if the native sheet could not be constructed.
+      if (!pendingTabHandoffUrls.length) pendingTabHandoffUrls.push(replacement);
+    }
+    return true;
+  }
+  processTabHandoff(url).catch(() => {});
+  return true;
+}
+
+function flushTabHandoffs() {
+  if (!tabHandoffsFlushable) return;
+  const url = pendingTabHandoffUrls.shift();
+  pendingTabHandoffUrls.length = 0;
+  if (url) queueTabHandoff(url);
+}
+
+function pendingTabHandoffProjection() {
+  if (!pendingTabHandoff || pendingTabHandoff.runtimeId !== rt().id) return { state: 'empty' };
+  if (pendingTabHandoff.state === 'waiting') return { state: 'waiting' };
+  if (pendingTabHandoff.state === 'loading') return { state: 'loading' };
+  if (pendingTabHandoff.state === 'error') {
+    return { state: 'error', message: pendingTabHandoff.message };
+  }
+  const handoff = pendingTabHandoff.payload;
+  return {
+    state: 'ready',
+    sourceBrowser: handoff.sourceBrowser,
+    profileName: pendingTabHandoff.profileName,
+    skippedCount: pendingTabHandoff.skippedCount,
+    tabs: handoff.tabs.map((tab) => ({
+      title: tab.title,
+      domain: new URL(tab.url).hostname,
+      active: tab.active,
+    })),
+  };
+}
+
+function cancelPendingTabHandoff() {
+  if (pendingTabHandoff?.runtimeId === rt().id) pendingTabHandoff = null;
+  hideUtilitySheet();
+  return { ok: true };
+}
+
+function destroyQuietTabRecord(id) {
+  const tab = tabs.get(id);
+  if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  forgetTabWebContentsIds(id);
+  tabs.delete(id);
+  popupChildCounts.delete(id);
+  windowRuntimes.detachTab(id);
+  rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
+  rt().activationHistory = (rt().activationHistory ?? []).filter((tid) => tid !== id);
+}
+
+function rollbackQuietTabBatch(rollback) {
+  for (const id of rollback.tabIds) destroyQuietTabRecord(id);
+  rt().tabOrder = [...rollback.priorTabOrder];
+  if (rollback.createdGroupIds.length) {
+    const created = new Set(rollback.createdGroupIds);
+    rt().groups = rt().groups.filter((group) => !created.has(group.id));
+  }
+}
+
+function createQuietTabsBatch(runtime, tabSpecs, { insertAt } = {}) {
+  return withWindowRuntime(runtime, () => {
+    if (!Array.isArray(tabSpecs) || !tabSpecs.length || tabSpecs.length > 500) {
+      return { error: 'invalid-spec' };
+    }
+    const rollback = {
+      tabIds: [],
+      createdGroupIds: [],
+      priorTabOrder: [...rt().tabOrder],
+    };
+    tabCreationBatchDepth += 1;
+    try {
+      const createdIds = [];
+      const tabIdByCandidateId = {};
+      for (const spec of tabSpecs) {
+        if (!spec || typeof spec.candidateId !== 'string' || typeof spec.url !== 'string') {
+          rollbackQuietTabBatch(rollback);
+          return { error: 'invalid-spec' };
+        }
+        let groupId = null;
+        if (spec.groupName) {
+          groupId = resolveBatchGroupId(rt().groups, spec.groupName, rollback.createdGroupIds);
+          if (!groupId) {
+            rollbackQuietTabBatch(rollback);
+            return { error: 'invalid-spec' };
+          }
+        }
+        const id = createTab(spec.url, {
+          asleep: true,
+          title: spec.title,
+          favicon: spec.favicon,
+          groupId,
+          pinned: spec.pinned === true,
+          private: false,
+        });
+        if (!id) {
+          rollbackQuietTabBatch(rollback);
+          return { error: 'invalid-tab' };
+        }
+        createdIds.push(id);
+        tabIdByCandidateId[spec.candidateId] = id;
+        rollback.tabIds.push(id);
+      }
+      const targetInsert = Number.isInteger(insertAt)
+        ? insertAt
+        : computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+      rt().tabOrder = reorderTabOrderForBatch(rt().tabOrder, createdIds, targetInsert);
+      return {
+        tabIds: createdIds,
+        tabIdByCandidateId,
+        createdGroupIds: [...rollback.createdGroupIds],
+      };
+    } catch {
+      rollbackQuietTabBatch(rollback);
+      return { error: 'invalid-tab' };
+    } finally {
+      tabCreationBatchDepth -= 1;
+    }
+  });
+}
+
+function broadcastTabImportSurfaceOnce() {
+  if (tabImportApplyBroadcasted) return;
+  tabImportApplyBroadcasted = true;
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+function completeTabImportSuccess(sessionId) {
+  forgetTabImportSource(sessionId);
+  tabImportSessions.destroySession(sessionId, 'applied');
+  settings.setSettings({ tabImportCompleted: true });
+  hideUtilitySheet();
+  showOverlay('panel', { purpose: { postImportWorkspace: true } });
+}
+
+function activateTabImportFocusTab(focusTabId) {
+  // Waking the first quiet tab can emit did-start-loading synchronously, and
+  // setActiveTab emits again after attaching it. Neither intermediate view is
+  // useful to render; publish the complete imported state exactly once.
+  tabStateBroadcastSuppressionDepth += 1;
+  try {
+    setActiveTab(focusTabId, { focusContent: true, dismissUtilitySheet: false });
+  } finally {
+    tabStateBroadcastSuppressionDepth -= 1;
+  }
+  const activated = rt().activeTabId === focusTabId && tabs.has(focusTabId);
+  broadcastTabImportSurfaceOnce();
+  return activated;
+}
+
+function applyTabImport(sessionId, request = {}) {
+  if (request?.retryActivation || request?.phase === 'activation-retry') {
+    const owned = ownedTabImportSession(sessionId);
+    if (owned.error) return owned;
+    if (owned.state !== 'tabsApplied') return { error: 'session-not-ready' };
+    if (request.generation && request.generation !== owned.generation) {
+      return { error: 'stale-generation' };
+    }
+    if (!owned.focusTabId) return { error: 'session-not-ready' };
+    tabImportApplyBroadcasted = false;
+    if (!activateTabImportFocusTab(owned.focusTabId)) {
+      broadcastTabImportSurfaceOnce();
+      return {
+        ok: false,
+        phase: 'activation',
+        retryable: true,
+        generation: owned.generation,
+        tabIds: owned.tabIds,
+      };
+    }
+    completeTabImportSuccess(owned.key);
+    return { ok: true, tabIds: owned.tabIds };
+  }
+
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+
+  const applied = tabImportSessions.resolveApply(resolved.key, request, resolved.owner);
+  if (applied.error) return dropUnavailableTabImportSource(resolved.key, applied);
+
+  const candidates = applied.entries.map((entry) => ({
+    candidateId: entry.candidateId,
+    url: entry.url,
+    title: entry.title,
+    favicon: entry.favicon,
+    pinned: entry.pinned,
+  }));
+  const proposal = {
+    version: 1,
+    groups: applied.groups.map((group) => ({
+      suggestionId: group.name,
+      name: group.name,
+      candidateIds: [...group.candidateIds],
+    })),
+    ungroupedCandidateIds: [...applied.ungroupedCandidateIds],
+  };
+  const plan = planTabImportApply({
+    candidates,
+    proposal,
+    existingGroupNames: rt().groups.map((group) => group.name),
+  });
+  if (plan.error) return { error: 'invalid-proposal' };
+
+  tabImportApplyBroadcasted = false;
+  const priorTabOrder = [...rt().tabOrder];
+  const insertAt = computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+  const batch = createQuietTabsBatch(rt(), plan.tabs, { insertAt });
+  if (batch.error) return batch;
+
+  pruneEmptyGroups();
+
+  const focusTabId = batch.tabIdByCandidateId[plan.focusCandidateId];
+  if (!focusTabId) {
+    rollbackQuietTabBatch({
+      tabIds: batch.tabIds,
+      createdGroupIds: batch.createdGroupIds,
+      priorTabOrder,
+    });
+    return { error: 'invalid-proposal' };
+  }
+
+  const marked = tabImportSessions.markTabsApplied(resolved.key, applied.generation, {
+    tabIds: batch.tabIds,
+    focusTabId,
+  });
+  if (marked.error) {
+    rollbackQuietTabBatch({
+      tabIds: batch.tabIds,
+      createdGroupIds: batch.createdGroupIds,
+      priorTabOrder,
+    });
+    return dropUnavailableTabImportSource(resolved.key, marked);
+  }
+  forgetTabImportSource(resolved.key);
+
+  if (!activateTabImportFocusTab(focusTabId)) {
+    broadcastTabImportSurfaceOnce();
+    return {
+      ok: false,
+      phase: 'activation',
+      retryable: true,
+      generation: applied.generation,
+      tabIds: batch.tabIds,
+    };
+  }
+
+  completeTabImportSuccess(resolved.key);
+  return { ok: true, tabIds: batch.tabIds };
+}
+
+function cancelTabImport(sessionId) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  tabImportSessions.destroySession(resolved.key, 'cancel');
+  forgetTabImportSource(resolved.key);
+  return { ok: true };
+}
+
+// Acceptance-only readers below are passed to test-hook.js only when
+// acceptanceTestMode is true. They project the same opaque candidate shape as
+// the renderer and invoke the real owner-bound apply path; exact URLs and
+// source-reader closures never leave this module.
+function currentTabImportAcceptanceProjection(runtimeId) {
+  if (!acceptanceTestMode) return { error: 'test-hook-unavailable' };
+  const runtime = windowRuntimes.all()
+    .find((candidate) => String(candidate.id) === String(runtimeId));
+  if (!runtime) return { error: 'runtime-unavailable' };
+  const owner = { runtimeId: runtime.id, profileId: runtime.profileId };
+  const entry = [...tabImportSourceReaders.entries()]
+    .find(([, record]) => sameTabImportOwner(record, owner));
+  if (!entry) return { error: 'session-unavailable' };
+  const [sessionId] = entry;
+  const owned = tabImportSessions.ownSession(sessionId, owner);
+  if (owned.error) return dropUnavailableTabImportSource(sessionId, owned);
+  const projected = tabImportSessions.projectCandidates(sessionId, owner);
+  if (projected.error) return dropUnavailableTabImportSource(sessionId, projected);
+  const selected = projected.candidates.filter((candidate) =>
+    candidate.selected && !candidate.excluded);
+  const checked = validateProposal(proposeFromSourceGroups(selected), {
+    selectedIds: selected.map((candidate) => candidate.candidateId),
+    excludedIds: projected.candidates
+      .filter((candidate) => candidate.excluded)
+      .map((candidate) => candidate.candidateId),
+  });
+  return {
+    sessionId,
+    generation: owned.generation,
+    state: owned.state,
+    candidates: projected.candidates,
+    proposal: checked.ok ? checked.proposal : null,
+  };
+}
+
+function applyTabImportAcceptanceFromRuntime(runtimeId, sessionId, request) {
+  if (!acceptanceTestMode) return { error: 'test-hook-unavailable' };
+  const runtime = windowRuntimes.all()
+    .find((candidate) => String(candidate.id) === String(runtimeId));
+  if (!runtime) return { error: 'runtime-unavailable' };
+  return withWindowRuntime(runtime, () => applyTabImport(sessionId, request));
+}
 
 function withWindowRuntime(runtime, work) {
   if (!runtime) return undefined;
@@ -359,6 +1159,11 @@ settings.setExistingProfileHint(
   )
 );
 
+const tabImportProtocolRegistration = registerWindowsTabImportProtocol(app);
+if (tabImportProtocolRegistration.attempted && !tabImportProtocolRegistration.registered) {
+  console.warn('[tab-handoff] could not register blanc-import as a Windows protocol client');
+}
+
 // One production instance per profile: a second launch defers to the first.
 // The unpackaged acceptance harness already has a unique userData directory;
 // do not let a running installed Blanc make isolated test launches impossible.
@@ -368,10 +1173,11 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
 } else {
   diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
-    const runtime = focusedRuntime ?? primaryRuntime;
+    const runtime = resolveExternalRuntime();
     withWindowRuntime(runtime, () => {
       openExternalUrls(urlsFromArgv(commandLine));
-      if (rt().window && !rt().window.isDestroyed()) {
+      for (const url of tabImportUrlsFromArgv(commandLine)) queueTabHandoff(url);
+      if (!urlsFromArgv(commandLine).length && rt().window && !rt().window.isDestroyed()) {
         bringExternalWindowToFront(app, rt().window);
       }
     });
@@ -404,8 +1210,25 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
 // delivers them via 'open-url' (which can fire before 'ready' — those queue
 // until the window and session restore are up); Windows/Linux pass them on
 // the command line, at startup or through 'second-instance'.
-const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
+const externalUrlHandoff = createExternalUrlHandoff({
+  application: app,
+  isReady: () => externalUrlsFlushable,
+  isQuitting: () => isQuitting,
+  getRuntime: resolveExternalRuntime,
+  ensureWindow: (runtime) => createMainWindow(runtime, { ensureStartTab: true }),
+  isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
+    && runtime.window && !runtime.window.isDestroyed(),
+  withRuntime: withWindowRuntime,
+  createTab: (url) => createTab(url),
+  activateTab: (id) => setActiveTab(id),
+  revealWindow: (window) => bringExternalWindowToFront(app, window),
+});
+const pendingTabHandoffUrls = [];
+let tabHandoffsFlushable = false;
+let pendingTabHandoff = null;
+let tabHandoffClaimInFlight = false;
+let activeTabHandoffRequest = null;
 
 // While enabled blocking is compiling its lists, main-frame HTTP(S)
 // navigations are held here. Local blanc:// chrome remains available, so an
@@ -440,11 +1263,12 @@ function installStartupNavigationGate(sessions) {
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   startupNavigationGateActive = false;
   // A successful blocker attachment has already replaced the temporary
-  // listener with its own network filter. Clearing here would remove the
-  // blocker we just installed.
+  // listener with its composed network policy. If startup continues without
+  // the blocker, replace the gate with the standalone crash guard instead of
+  // leaving the session without an onBeforeRequest policy.
   if (!blockerAttached) {
     for (const browsingSession of sessions) {
-      browsingSession.webRequest.onBeforeRequest(null);
+      installNavigationCrashGuard(browsingSession);
     }
   }
 
@@ -496,72 +1320,54 @@ function maybeSendProductUsage(wc, report) {
 // page, even when its renderer is sandboxed.
 const urlsFromArgv = webUrlsFromArgv;
 
-function openExternalUrl(url, { activate = true } = {}) {
-  if (!externalUrlsFlushable || !hasLiveWindow()) {
-    pendingExternalUrls.push(url);
-    return;
-  }
-  const id = createTab(url);
-  if (activate) {
-    setActiveTab(id);
-    bringExternalWindowToFront(app, rt().window);
-  }
+function resolveExternalRuntime(preferred = focusedRuntime) {
+  return externalWindowRuntime(windowRuntimes.all(), preferred ?? focusedRuntime, primaryRuntime, focusedRuntime);
 }
 
 function openExternalUrls(urls) {
-  for (const entry of externalUrlActivationPlan(urls)) {
-    openExternalUrl(entry.url, { activate: entry.activate });
-  }
+  externalUrlHandoff.open(urls);
 }
 
-// Protocols handed off to the OS instead of navigated — a mailto: click
-// should open the user's mail app, not die silently (Chromium has no
-// external-protocol UI in Electron). Deliberately a small allowlist:
-// launching arbitrary registered URL schemes is a run-anything vector.
-// Checked at every point a URL becomes a navigation target: page-initiated
-// navigation (will-navigate), window.open children (setWindowOpenHandler),
-// the context menu's "Open Link" actions, and typed address-bar input.
-// The allowlist and trusted/confirm policy live in external-protocols.js
-// (pure, unit-tested); this wrapper owns the side effects only.
-let externalProtocolPromptOpen = false;
-function handOffToOs(url, { trusted = false } = {}) {
-  const decision = classifyExternalNavigation(url, { trusted });
-  if (decision.action === 'none') return false;
-
-  // Address-bar input is an explicit user instruction. Page-initiated
-  // navigations/window.open and context-menu targets are untrusted URL data,
-  // so require confirmation before launching another application. One prompt
-  // at a time prevents a hostile page from flooding the desktop with dialogs.
-  if (decision.action === 'open') {
-    shell.openExternal(url).catch(() => {});
-  } else if (!externalProtocolPromptOpen && hasLiveWindow()) {
-    externalProtocolPromptOpen = true;
-    const label = decision.protocol.slice(0, -1);
-    dialog.showMessageBox(rt().window, {
-      type: 'question',
-      title: 'Open external application?',
-      message: `Open this ${label} link in another application?`,
-      buttons: ['Open Link', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-    }).then(({ response }) => {
-      if (response === 0) shell.openExternal(url).catch(() => {});
-    }).finally(() => {
-      externalProtocolPromptOpen = false;
-    });
-  }
-  return true;
-}
+// Shared across windows: only one pending external-app confirmation at a time.
+const handOffToOs = createExternalHandoff({
+  getWindow: () => hasLiveWindow() ? rt().window : null,
+  getApplicationName: (url) => app.getApplicationNameForProtocol(url),
+  showMessageBox: (parent, options) => dialog.showMessageBox(parent, options),
+  openExternal: (url) => shell.openExternal(url),
+});
 
 function flushExternalUrls() {
-  externalUrlsFlushable = true;
-  openExternalUrls(pendingExternalUrls.splice(0));
+  externalUrlHandoff.flush();
+}
+
+function acceptPendingTabHandoff(destination = 'current-window') {
+  if (!['current-window', 'new-window'].includes(destination)) {
+    return { ok: false, error: 'invalid-destination' };
+  }
+  if (pendingTabHandoff?.state !== 'ready' || pendingTabHandoff.runtimeId !== rt().id) {
+    return { ok: false, error: 'unavailable' };
+  }
+  const accepted = pendingTabHandoff;
+  const result = openTabHandoffWindow({
+    destination,
+    reviewRuntime: rt(),
+    profileId: accepted.profileId,
+    handoffTabs: accepted.payload.tabs,
+  });
+  if (result.ok) {
+    pendingTabHandoff = null;
+    hideUtilitySheet({ refocusContent: false });
+  }
+  return result;
 }
 
 app.on('open-url', (event, url) => {
   event.preventDefault();
-  withWindowRuntime(focusedRuntime ?? primaryRuntime, () => openExternalUrl(url));
+  const runtime = resolveExternalRuntime();
+  withWindowRuntime(runtime, () => {
+    if (queueTabHandoff(url)) return;
+    openExternalUrls([url]);
+  });
 });
 
 // Must happen before app 'ready'.
@@ -585,10 +1391,15 @@ function chromeLikeUserAgent(ua) {
 // the same low-entropy UA shape as desktop Chrome.
 app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 
-// Hide the FedCM API. Must happen before app 'ready', and silently no-ops
-// if Chromium ever retires the "FedCm" feature name (an Electron bump that
-// brings back Google-login 400s should recheck here first — also see the
-// CDP client-hints override and onBeforeSendHeaders fallback below). Chromium ships
+// Hide the FedCM API (and on macOS disable Catap loopback so display-share
+// can use the older Screen & System Audio Recording path). Must happen
+// Linux additionally disables WebRTC input-volume adjustment to avoid the
+// measured loopback monitor attenuation. This also affects page microphones;
+// simultaneous microphone/camera/system-audio remains a packaged release gate.
+// before app 'ready'. Silently no-ops if Chromium retires a feature name
+// (an Electron bump that brings back Google-login 400s should recheck here
+// first — also see the CDP client-hints override and onBeforeSendHeaders
+// fallback below). Chromium ships
 // the JS surface (IdentityCredential) but Electron has no account-chooser
 // UI behind it, so FedCM calls can only ever fail with "Error retrieving
 // a token". Google Identity Services feature-detects the API, commits to
@@ -602,8 +1413,13 @@ app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 const priorDisabledFeatures = app.commandLine.getSwitchValue('disable-features');
 app.commandLine.appendSwitch(
   'disable-features',
-  priorDisabledFeatures ? `${priorDisabledFeatures},FedCm` : 'FedCm'
+  mergeDisabledFeatures(priorDisabledFeatures, [
+    'FedCm',
+    ...captureDisabledFeatures(process.platform),
+  ])
 );
+// Before ready: Wayland sessions must not fall through to X11 ozone/capture.
+applyLinuxCaptureOzone(app.commandLine);
 
 // Override client-hints branding at the Chromium level via CDP so both HTTP
 // Sec-CH-UA headers AND navigator.userAgentData.brands report Chrome.
@@ -750,20 +1566,38 @@ function handleNativeThemeUpdated() {
   forEachWindowRuntime(() => applyChromeThemeAppearance(appearance), { liveOnly: true });
   if (appearance === lastNativeThemeAppearance) return;
   lastNativeThemeAppearance = appearance;
+  applyAppIcon();
   // Covers live OS appearance changes while the setting is "system". Explicit
   // app theme changes already invalidated before assigning themeSource; doing
   // it again here is harmless and keeps this path self-contained.
   forEachWindowRuntime(refreshActivePageTintForThemeChange, { liveOnly: true });
 }
 
-// Swap the chosen macOS Dock icon. Windows deliberately has one fixed icon,
-// embedded into Blanc.exe by electron-builder.
+// Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
+// into Blanc.exe by electron-builder.
 function applyAppIcon() {
-  // getSettings() already falls back an unauthorized/stale supporter icon
-  // (hand-edited or copied settings.json) to the default — nothing further
-  // to validate here.
+  // getSettings() already falls back a stale retired icon id (hand-edited or
+  // copied settings.json) to the default — nothing further to validate here.
   const { appIcon } = settings.getSettings();
-  applyDockAppIcon({ app, nativeImage, appIcon });
+  const developmentPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_PREVIEW
+    ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_PREVIEW)
+    : null;
+  const developmentDarkPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW
+    ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW)
+    : null;
+  applyDockAppIcon({
+    app,
+    nativeImage,
+    appIcon,
+    developmentPreviewPath,
+    developmentDarkPreviewPath,
+    darkAppearance: nativeTheme.shouldUseDarkColors,
+  });
+}
+
+function developmentPreviewPath(environmentKey) {
+  const rawPath = process.env[environmentKey];
+  return !app.isPackaged && rawPath ? path.resolve(rawPath) : null;
 }
 
 const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
@@ -898,7 +1732,7 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   // and Glance, which can make the tab visible during it.
   if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
       || tab.navEpoch !== navEpoch || tab.isLoading
-      || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
+      || !tab.sleeping || !mayDiscardRenderer(tab) || liveContents(tab) !== wc
       // A mid-probe Move-Tab-to-New-Window re-homes the tab; the active/glance
       // checks above read the runtime that STARTED this sleep, so they would
       // miss a tab that is now the destination window's visible page.
@@ -974,7 +1808,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
   // the visible Glance reference while an earlier candidate's probe awaited.
   if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
       || tab.navEpoch !== epochAtProbe
-      || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)
+      || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
       // that started this sleep no longer owns a tab moved mid-probe.
       || windowRuntimes.runtimeForTab(id) !== rt()) return false;
@@ -1182,7 +2016,7 @@ function parkTabView(tab, entry) {
   if (!wc) return false;
   // Final synchronous guard, same shape as sleepTab's: capture state can
   // change between eligibility selection and this call (§5.1a).
-  if (tab.capturing || (tab.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  if (!mayParkTabView(tab)) return false;
   const owner = rt();
   const view = tab.view;
   // Registry FIRST, then strip, then firewall: no instant exists in which a
@@ -1261,17 +2095,21 @@ function commitWake(tab, generation) {
   return true;
 }
 
-async function failWake(tab, generation) {
+async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
   if (wc) {
-    const q = new URLSearchParams({
-      url: tab.url ?? '',
-      code: 'wake-failed',
-      desc: 'The page could not be reloaded',
-      title: tab.title ?? '',
-    });
-    await wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    let destination = chromeWebStoreErrorPageUrl(failedUrl ?? '', 'wake-failed');
+    if (!destination) {
+      const q = new URLSearchParams({
+        url: failedUrl ?? '',
+        code: 'wake-failed',
+        desc: 'The page could not be reloaded',
+        title: tab.title ?? '',
+      });
+      destination = `blanc://error/?${q}`;
+    }
+    await wc.loadURL(destination).catch(() => {});
   }
   if (tab.wakeGeneration !== generation) return false;
   tab.asleep = false;
@@ -1386,7 +2224,9 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     // Exactly one fallback, only after restore rejects. A rejected plain load
     // gets its error page, not an unbounded retry loop.
     const canFallBack = !navigateTo && !!snapshot?.entries.length;
-    if (!canFallBack) return failWake(tab, generation);
+    if (!canFallBack) {
+      return failWake(tab, generation, { failedUrl: navigateTo ?? tab.url });
+    }
     const live = liveContents(tab);
     if (!live) return failWake(tab, generation);
     try {
@@ -1725,6 +2565,10 @@ function currentTabBounds(tab) {
 function overlayBounds() {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
+  if (rt().overlayMode === 'display-share') {
+    const { width, height } = rt().window.getContentBounds();
+    return { x: 0, y: 0, width, height };
+  }
   if (rt().overlayMode === 'find') {
     if (!glance) return layout.findBounds;
     const width = Math.min(560, glance.primary.width);
@@ -2022,7 +2866,7 @@ function createOverlay() {
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
     if (acceptanceTestMode) return;
-    if (!rt().overlayMode || rt().overlayMode === 'find') return;
+    if (!rt().overlayMode || rt().overlayMode === 'find' || rt().overlayMode === 'display-share') return;
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
@@ -2105,6 +2949,10 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  if (rt().overlayMode === 'display-share'
+      && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
+    hideOverlay({ refocusContent: false, reason: 'cancel' });
+  }
   bumpSurfaceGeneration();
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
@@ -2118,7 +2966,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   // (Re-)adding moves the overlay to the top of the child-view stack.
   // Stack order: tab < fill capsule < overlay < permission prompt.
   restackFillStatusView();
-  rt().window.contentView.addChildView(rt().overlayView);
+  showOverlayView(rt().window, rt().overlayView);
   restackPermissionView();
   if (rt().overlayExitTimer) {
     clearTimeout(rt().overlayExitTimer);
@@ -2175,6 +3023,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
+  if (closingMode === 'display-share' && reason !== 'display-share-resolved') {
+    displayCapturePicker?.cancel(closingPurpose?.requestId);
+  }
   rt().workspaceSwitcherOpen = false;
   rt().shieldAnchorRight = null;
   rt().captureAnchorRight = null;
@@ -2200,11 +3051,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
         // Re-check: a new overlay may have opened while this was retracting,
         // in which case the view is legitimately on screen again.
         if (!rt().overlayMode && hasLiveWindow() && rt().overlayView) {
-          rt().window.contentView.removeChildView(rt().overlayView);
+          hideOverlayView(rt().window, rt().overlayView);
         }
       }), OVERLAY_RETRACT_MS);
     } else {
-      rt().window.contentView.removeChildView(rt().overlayView);
+      hideOverlayView(rt().window, rt().overlayView);
     }
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
@@ -2239,6 +3090,14 @@ function liveUtilitySheet(runtime = rt()) {
   const view = runtime.utilitySheetView;
   const wc = liveViewContents(view);
   return wc ? { view, wc } : null;
+}
+
+function broadcastStartPageUtilitySheetVisibility(runtime, visible) {
+  for (const id of runtime.tabOrder) {
+    const tab = tabs.get(id);
+    if (!tab?.url?.startsWith('blanc://newtab')) continue;
+    liveContents(tab)?.send('pages:start:utility-sheet-visibility', visible === true);
+  }
 }
 
 // Electron can fault natively when loadURL is called again on this cached
@@ -2352,6 +3211,7 @@ function createUtilitySheet() {
   wc.on('will-navigate', bindWindowRuntime(runtime, (event, targetUrl) => {
     if (runtime.utilitySheetView !== view) return event.preventDefault();
     if (isUtilityUrl(targetUrl)) {
+      if (!sameUtilityPage(runtime.utilitySheetUrl, targetUrl)) discardUtilityImportState(runtime);
       runtime.utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
       runtime.utilitySheetEscapeArmed = false; // document is about to be replaced
       return;
@@ -2383,6 +3243,7 @@ function showUtilityPage(url) {
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
   if (runtime.utilitySheetUrl && sheet && sameUtilityPage(runtime.utilitySheetUrl, url)) return hideUtilitySheet();
+  if (runtime.utilitySheetUrl) discardUtilityImportState(runtime);
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
   if (!sheet) {
@@ -2407,11 +3268,26 @@ function showUtilityPage(url) {
   bindWindowRuntime(runtime, restackPermissionView)();
   resizeActiveView();
   sheet.wc.focus();
+  broadcastStartPageUtilitySheetVisibility(runtime, true);
 }
 
-function hideUtilitySheet({ refocusContent = true } = {}) {
+function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
+  if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-import/')) {
+    forgetTabImportForRuntime(runtime.id, 'cancel');
+  }
+  if (
+    discardTabHandoff &&
+    sameUtilityPage(runtime.utilitySheetUrl, 'blanc://tab-handoff/') &&
+    pendingTabHandoff?.runtimeId === runtime.id
+  ) {
+    pendingTabHandoff = null;
+  }
+}
+
+function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = {}) {
   const runtime = rt();
   if (!runtime.utilitySheetUrl) return;
+  discardUtilityImportState(runtime, { discardTabHandoff });
   bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;
@@ -2422,6 +3298,7 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
     sheet.view.setVisible(false);
   }
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
+  broadcastStartPageUtilitySheetVisibility(runtime, false);
 }
 
 let onePasswordFillController = null;
@@ -2474,11 +3351,37 @@ const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintSchedul
 
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
+
+  // A featureful window.open stays a real BrowserWindow for OAuth/SSO. When
+  // that popup owns focus, it is the page the user asked to fill. Falling
+  // through to runtime.activeTabId would focus the opener underneath it;
+  // sites such as Google may dismiss their login popup on that focus loss.
+  const focusedWindow = BrowserWindow.getFocusedWindow();
+  const focusedContents = focusedWindow?.webContents;
+  if (
+    focusedWindow !== runtime.window &&
+    focusedWindow && !focusedWindow.isDestroyed() &&
+    focusedContents && !focusedContents.isDestroyed() &&
+    windowRuntimes.runtimeForAuxiliaryContent(focusedContents.id) === runtime
+  ) {
+    return {
+      kind: 'popup',
+      runtime,
+      runtimeId: runtime.id,
+      webContentsId: focusedContents.id,
+      url: focusedContents.getURL(),
+      webContents: focusedContents,
+      window: focusedWindow,
+      pickerPoint: { x: 16, y: 16 },
+    };
+  }
+
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!tab || !wc || wc.isDestroyed()) return null;
   const island = runtime.islandRect;
   return {
+    kind: 'tab',
     runtime,
     runtimeId: runtime.id,
     tabId: tab.id,
@@ -2495,9 +3398,17 @@ function captureOnePasswordTarget(runtime) {
 function isOnePasswordTargetCurrent(target) {
   if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
   if (!target.window || target.window.isDestroyed()) return false;
-  if (target.runtime.activeTabId !== target.tabId) return false;
   if (target.surfaceGeneration !== undefined
       && target.surfaceGeneration !== target.runtime.surfaceGeneration) return false;
+  if (target.kind === 'popup') {
+    const wc = target.webContents;
+    return !!wc && !wc.isDestroyed()
+      && wc.id === target.webContentsId
+      && windowRuntimes.runtimeForAuxiliaryContent(wc.id) === target.runtime
+      && BrowserWindow.fromWebContents(wc) === target.window
+      && wc.getURL() === target.url;
+  }
+  if (target.runtime.activeTabId !== target.tabId) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
@@ -2551,6 +3462,15 @@ async function showFillFallbackDialog(target, kind) {
  * mapping). Null when the tab/view no longer matches the captured target —
  * the controller then falls back to the island pill anchor. */
 function onePasswordToWindowPoint(target, rect) {
+  if (target.kind === 'popup') {
+    if (!isOnePasswordTargetCurrent(target)) return null;
+    const { width, height } = target.window.getContentBounds();
+    return pickerAnchorPoint({
+      rect,
+      viewBounds: { x: 0, y: 0, width, height },
+      zoomFactor: target.webContents.getZoomFactor(),
+    });
+  }
   const tab = tabs.get(target.tabId);
   const view = tab?.view;
   const wc = liveContents(tab);
@@ -2795,7 +3715,17 @@ function adblockWeekStats() {
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
+  forEachWindowRuntime((runtime) => {
+    if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
+      const existing = namedWorkspaces.get(runtime.workspaceId);
+      if (existing) namedWorkspaces.saveCapture(existing.id, workspaceCapture(runtime, { previousActiveIndex: existing.activeIndex }));
+    }
+    namedWorkspaces.flushPending();
+  });
   isQuitting = true;
+  for (const runtime of windowRuntimes.all()) {
+    forgetTabImportForRuntime(runtime.id, 'cancel');
+  }
   onePasswordBroker?.stop();
   for (const snapshot of [...sleepSnapshots.values()]) {
     const wc = snapshot.view?.webContents;
@@ -2853,7 +3783,7 @@ function persistSession() {
   ensureSessionStore().update((d) => {
     const previous = loadWorkspace(d);
     const previousById = new Map(previous.windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().map((runtime) => captureWindowEntry(runtime, {
+    const windows = windowRuntimes.all().filter((runtime) => !runtime.resident).map((runtime) => captureWindowEntry(runtime, {
       previousActiveIndex: previousById.get(runtime.id)?.activeIndex ?? 0,
     }));
     const activeWindowId = windowRuntimes.all().includes(focusedRuntime)
@@ -3055,6 +3985,11 @@ function captureRowCount() {
     const p = captureProjection(popup.record);
     if (p.audio || p.video) count += 1;
   }
+  if (displayCaptureRegistry) {
+    count += projectDisplayShares(displayCaptureRegistry.listShares(), {
+      tabIds: rt().tabOrder,
+    }).length;
+  }
   return count;
 }
 
@@ -3091,11 +4026,16 @@ function currentTabsPayload() {
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
+    displayShares: projectDisplayShares(displayCaptureRegistry?.listShares() ?? [], {
+      tabIds: runtime.tabOrder,
+    }),
     ...widthMetrics,
   };
 }
 
 function broadcastTabs() {
+  if (tabStateBroadcastSuppressionDepth > 0) return;
+  if (acceptanceTestMode) acceptanceTabStateBroadcastCount += 1;
   persistSession();
   // The Dock menu's active-tab line reflects the frontmost window, which may
   // not be rt() — refresh unconditionally, before the rt()-liveness return.
@@ -3306,6 +4246,12 @@ async function setTabFavicon(tab, source) {
   // tab.bookmarked (redirect heal), but private tabs never write Favorites.
   // updateFavicon no-ops when nothing matches.
   if (mayWriteFavoriteFavicon(tab, sanitized)) bookmarks.updateFavicon(tab.url, sanitized);
+  // The Billboard can reuse real site artwork without making a request of its
+  // own. Keep one bounded, profile-local icon only after a successful normal
+  // visit has already produced a sanitized PNG.
+  if (sanitized && !tab.private && tab.historyEligible) {
+    history.cacheSiteIcon(tab.url, sanitized);
+  }
   if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
   return true;
@@ -3526,24 +4472,11 @@ function closeGroup(groupId) {
 
 // ---------------------------------------------------------------------------
 // Named Workspaces: capture, apply, switch, single-window binding, autosave.
-// Four distinct operations, only ever reached from their own named entry
-// point below — conflating them is a data-loss bug (a save-as that tore down
-// and recreated its own tabs would destroy any private tab in the window):
-//   1. saveCurrentWindowAsWorkspace — save-as an EXISTING window's LIVE tab
-//      set into a brand new workspace. No tab teardown, never calls
-//      applyWorkspaceToWindow.
-//   2. switchWindowToWorkspace — open/switch to an EXISTING workspace. Saves
-//      this window's outgoing state, resolves the binding, then either
-//      focuses the window that already has it open or calls
-//      applyWorkspaceToWindow (the only OTHER caller allowed to — see 4).
-//      Refuses up front (the scratch guard) when this window is unbound and
-//      holds real tabs, unless the caller passes force:true.
-//   3. Plain focus (inside switchWindowToWorkspace) — already open elsewhere;
-//      focus that window and touch nothing else.
-//   4. createBlankWorkspaceAndSwitch — create a brand new EMPTY workspace
-//      (Patron-gated, and scratch-guarded the same way as #2, checked BEFORE
-//      the record is created) and switch into it via #2 itself, never a
-//      second copy of the apply protocol.
+// Save-as binds the existing live tab set without a switch. The controller
+// resolves no-op/focus before guarding activation, then checkpoints, stages,
+// commits and transfers ordinary live sessions. Only new persisted-only
+// targets pass through applyWorkspaceToWindow. Private/scratch disposal
+// requires a main-issued, one-use decision for the current affected pages.
 // ---------------------------------------------------------------------------
 
 /** captureWindowEntry's `groups` field is main.js's own runtime.groups array
@@ -3566,85 +4499,199 @@ function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   };
 }
 
-/** The live process-wide {workspaceId: windowId} binding map, derived fresh
- * from window-runtime records every call — runtime.workspaceId is the only
- * storage, so there is nothing else to keep in sync.
- *
- * Review round 2 correction: derived from EVERY runtime, not just ones with
- * a live window. A windowless runtime (macOS dock-close of the primary
- * window, which deliberately keeps its workspaceId set — see
- * window-runtime-registry.js) is a REAL, current holder of its workspace,
- * not a stale one — the workspace is still bound, only the native window is
- * gone. Filtering it out here (an earlier version of this fix did) would
- * make resolveOpen see the workspace as unbound and let a second window
- * SWAP it away — silently stealing "Work" out from under the window that
- * still owns it, the moment its dock-closed holder came back and both
- * windows' next autosave raced over the same record. So every entry here is
- * a window-runtime record that exists in the registry, live or not; a
- * "focus" decision against a windowless entry means recreate-then-focus
- * (see switchWindowToWorkspace's focus branch), never swap. */
-function deriveWorkspaceBindings() {
-  const bindings = Object.create(null);
-  for (const runtime of windowRuntimes.all()) {
-    if (runtime.workspaceId) bindings[runtime.workspaceId] = String(runtime.id);
-  }
-  return bindings;
-}
-
-/** Write a {workspaceId: windowId} bindings map — as produced by one of
- * workspaces-model's bindingsAfterSwap/Unbind/Delete transitions — back onto
- * every runtime's workspaceId field, the map's only storage. Walks ALL
- * runtimes (live or not), matching deriveWorkspaceBindings() above: a
- * windowless holder's binding is real and must be reconciled exactly like a
- * live one's. This is the seam that makes those three model functions the
- * actual, load-bearing source of the transition logic (unit-tested in
- * workspaces-model.test.js) instead of a parallel hand-rolled version here
- * that no test could reach. */
-function applyWorkspaceBindings(bindings) {
-  const byWindowId = new Map();
-  for (const workspaceId of Object.keys(bindings ?? {})) {
-    byWindowId.set(bindings[workspaceId], workspaceId);
-  }
-  for (const runtime of windowRuntimes.all()) {
-    runtime.workspaceId = byWindowId.get(String(runtime.id)) ?? null;
-  }
-}
-
-/** Named Workspaces autosave: any bound (non-scratch) window's tab set is
- * re-captured on every persistSession() call, so it rides that function's
- * exact guards and its 250ms JsonStore debounce — no new timer. A scratch
- * window (workspaceId null) writes nothing to workspaces.json. Review round
- * 2, Fix 2: also floors against an empty capture. persistSession's own
- * tabs.size===0 guard is process-wide, so a second open window with real
- * tabs defeats it for THIS runtime — switchWindowToWorkspace's scratch-
- * during-swap window (see its own comment) is the primary fix for the
- * scenario that motivated this, but a runtime with genuinely zero
- * persistable tabs must never be allowed to overwrite a workspace's real
- * saved tabs with nothing. Defense in depth, not the only line. */
+/** Autosave only the affected, stable workspace; empty ordinary sets are valid. */
 function autosaveWorkspaceBindings() {
-  forEachWindowRuntime((runtime) => {
-    if (!runtime.workspaceId) return; // scratch window — nothing to save
-    const workspace = namedWorkspaces.get(runtime.workspaceId);
-    if (!workspace) return; // deleted underneath us; unbound via its own path
-    const capture = workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex });
-    if (capture.urls.length === 0) return; // never overwrite real tabs with nothing
-    namedWorkspaces.saveCapture(runtime.workspaceId, capture);
-  }, { liveOnly: true });
+  // Tab broadcasts already run in the affected runtime's scope. Do not
+  // recapture unrelated windows on every favicon/loading/counter update.
+  const runtime = rt();
+  if (!runtime.workspaceId || runtime.closing || runtime.workspaceTransition) return;
+  const workspace = namedWorkspaces.get(runtime.workspaceId);
+  if (workspace) namedWorkspaces.queueCapture(runtime.workspaceId,
+    workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex }));
 }
 
-/** Scratch guard (follow-up to Task 9, found by hands-on testing): the live
- * tabs workspaces-model's scratchSwitchGuardResult needs, gathered from
- * THIS window — kept out of the pure model so it never has to know about the
- * tabs Map or the runtime shape. Returns the exact
- * {ok:false, error:'unsaved-scratch', tabCount, privateCount} response every guarded call
- * site returns verbatim, or null when the switch is safe to proceed
- * (bound window whose persistable tabs autosave covers AND no private pages,
- * or a scratch window holding nothing but blank newtabs). Must be called
- * from inside the requesting window's own withWindowRuntime scope, exactly
- * like every other function in this section.
- *
- * Passes the LIVE tab list, not persistableEntries: that filter drops
- * private tabs, which applyWorkspaceToWindow still closes with no recovery. */
+function checkpointWorkspaceSession(runtime, { excludeRuntime = null } = {}) {
+  if (sessionReadOnly) return { ok: false, error: 'future-format' };
+  if (runtime.workspaceId) {
+    const old = namedWorkspaces.get(runtime.workspaceId);
+    if (!old) return { ok: false, error: namedWorkspaces.status() === 'future-format' ? 'future-format' : 'not-found' };
+    const saved = namedWorkspaces.saveCapture(old.id, workspaceCapture(runtime, { previousActiveIndex: old.activeIndex }));
+    if (!saved.ok) return saved;
+  }
+  return flushWorkspaceSession({ excludeRuntime });
+}
+
+function flushWorkspaceSession({ excludeRuntime = null } = {}) {
+  if (sessionReadOnly) return { ok: false, error: 'future-format' };
+  const saved = ensureSessionStore().updateAndFlush((data) => {
+    const previous = new Map(loadWorkspace(data).windows.map((entry) => [entry.id, entry]));
+    const windows = windowRuntimes.all().filter((r) => r !== excludeRuntime && !r.resident && !r.closing)
+      .map((r) => captureWindowEntry(r, { previousActiveIndex: previous.get(r.id)?.activeIndex ?? 0 }));
+    Object.assign(data, buildSaveShape(windows, data, { activeWindowId: focusedRuntime?.id ?? PRIMARY_WINDOW_ID }));
+  });
+  return saved ? { ok: true } : { ok: false, error: 'storage-failed' };
+}
+
+function workspaceOwner(runtime, id) {
+  return windowRuntimes.all().find((r) => r.profileId === runtime.profileId && r.workspaceId === id) ?? null;
+}
+
+function workspaceProtection(runtime) {
+  if (runtime.closing || runtime.workspaceTransition || runtime.permissionPrompts.size || runtime.authenticationPrompts) return { blocked: true, reason: 'permission-or-transition' };
+  const members = runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean);
+  if (members.some((t) => t.capturing || t.sleeping || t.waking || t.isLoading || t.openerTabId || popupChildCounts.get(t.id))) {
+    return { blocked: true, reason: 'active-page' };
+  }
+  if (runtime.workspaceId && !residencyCapacity(
+    windowRuntimes.all().filter((r) => r.profileId === runtime.profileId),
+    runtime.workspaceIncoming, members, (id) => liveContents(tabs.get(id)))) {
+    return { blocked: true, reason: 'resident-capacity' };
+  }
+  return scratchGuardResult(runtime) ?? { tabCount: 0, privateCount: 0 };
+}
+
+function stageWorkspace(runtime, workspace) {
+  const priorSuspended = sessionPersistenceSuspended;
+  sessionPersistenceSuspended = true;
+  runtime.workspaceTransition = true;
+  const makeResident = () => {
+    const resident = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
+    resident.resident = true;
+    return resident;
+  };
+  let incoming = workspaceOwner(runtime, workspace.id);
+  const isNew = !incoming;
+  let outgoing;
+  let transferred = false;
+  let finalized = false;
+  const move = (from, to) => transferSession(from, to, { tabs, registry: windowRuntimes });
+  const finishScope = () => { runtime.workspaceTransition = false; sessionPersistenceSuspended = priorSuspended; };
+  const activate = () => {
+    const id = runtime.activeTabId;
+    runtime.activeTabId = null;
+    if (id) setActiveTab(id, { focusContent: true });
+    broadcastTabs();
+  };
+  const dispose = (resident) => {
+    withWindowRuntime(resident, () => {
+      resident.closing = true;
+      for (const id of [...resident.tabOrder]) closeTab(id, { record: false, selectReplacement: false });
+    });
+    windowRuntimes.discardRuntime(resident);
+  };
+  try {
+    if (!incoming) {
+      incoming = makeResident();
+      withWindowRuntime(incoming, () => applyWorkspaceToWindow(incoming, workspace));
+      incoming.workspaceId = workspace.id;
+    }
+    if (!incoming.tabOrder.length) {
+      withWindowRuntime(incoming, () => { incoming.activeTabId = createTab(NEW_TAB_URL, { asleep: true }); });
+    }
+    outgoing = makeResident();
+    hideOverlay({ refocusContent: false });
+    hideUtilitySheet({ refocusContent: false });
+    closeGlance({ focusContent: false });
+    fillStatusSurface?.invalidatePending(runtime.id);
+    clearTimeout(runtime.tabsBroadcastTimer); runtime.tabsBroadcastTimer = null;
+    runtime.tabsWantingAddressBarFocus.clear();
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab?.view) {
+        runtime.window?.contentView.removeChildView(tab.view);
+        tab.view.setVisible(false);
+      }
+      if (tab) tab.lastActiveAt = Date.now();
+    }
+    move(runtime, outgoing);
+    move(incoming, runtime);
+    transferred = true;
+  } catch (error) {
+    if (outgoing?.tabOrder.length && !runtime.tabOrder.length) move(outgoing, runtime);
+    if (outgoing) windowRuntimes.discardRuntime(outgoing);
+    if (isNew && incoming) dispose(incoming);
+    finishScope(); activate();
+    throw error;
+  }
+  return {
+    // session.json is the commit record: it contains the complete safe target
+    // capture AND pointer in one atomic write. Before this write a crash
+    // restores the outgoing checkpoint; after it the validated target. Live
+    // outgoing views stay intact until it succeeds. No second journal needed.
+    commit: flushWorkspaceSession,
+    rollback() {
+      if (finalized) return;
+      finalized = true;
+      if (transferred) { move(runtime, incoming); move(outgoing, runtime); }
+      windowRuntimes.discardRuntime(outgoing);
+      if (isNew) dispose(incoming);
+      finishScope(); activate();
+    },
+    finish() {
+      if (finalized) return;
+      finalized = true;
+      windowRuntimes.discardRuntime(incoming);
+      // Private tabs are never retained in an inactive session. The controller
+      // has already consumed a decision for precisely these outgoing pages.
+      withWindowRuntime(outgoing, () => {
+        for (const id of [...outgoing.tabOrder]) {
+          if (!outgoing.workspaceId || tabs.get(id)?.private) closeTab(id, { record: false, selectReplacement: false });
+        }
+      });
+      if (!outgoing.activeTabId) {
+        const savedIndex = namedWorkspaces.get(outgoing.workspaceId)?.activeIndex ?? 0;
+        const ordinary = persistableEntries(outgoing.tabOrder.map((id) => tabs.get(id)));
+        outgoing.activeTabId = ordinary[savedIndex]?.id ?? ordinary[0]?.id ?? outgoing.tabOrder[0] ?? null;
+      }
+      if (!outgoing.workspaceId) windowRuntimes.discardRuntime(outgoing);
+      finishScope(); activate();
+    },
+  };
+}
+
+const workspaceController = createWorkspaceController({
+  randomId: () => crypto.randomUUID(),
+  get: (_runtime, id) => namedWorkspaces.get(id),
+  readError: () => ['future-format', 'repair-failed', 'read-failed'].includes(namedWorkspaces.status()) ? namedWorkspaces.status() : null,
+  owner(runtime, id) { const holder = workspaceOwner(runtime, id); runtime.workspaceIncoming = holder; return holder; },
+  protection: workspaceProtection,
+  fingerprint: (r) => JSON.stringify([r.workspaceId, r.surfaceGeneration, r.tabOrder.map((id) => {
+    const t = tabs.get(id); return [id, t?.url, t?.private, t?.capturing, t?.isLoading, t?.wakeGeneration];
+  })]),
+  checkpoint: checkpointWorkspaceSession,
+  stage: stageWorkspace,
+  canCreate: () => settings.isPatronActive(),
+  validateCreate: (name) => namedWorkspaces.validateCreate(name),
+  create: (_r, name) => namedWorkspaces.create({ name, capture: { urls: [], groups: [], groupIds: [], pinned: [], meta: [], activeIndex: 0 } }),
+  focus(target) {
+    if (!target.window || target.window.isDestroyed()) createMainWindow(target);
+    if (target.window.isMinimized()) target.window.restore();
+    target.window.focus();
+    return { ok: true, action: 'focus', windowId: String(target.id) };
+  },
+  openElsewhere(runtime, workspace) {
+    const target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: runtime.profileId });
+    createMainWindow(target);
+    return withWindowRuntime(target, () => {
+      const transition = stageWorkspace(target, workspace);
+      const result = transition.commit();
+      if (result.ok) transition.finish(); else {
+        transition.rollback();
+        // This window exists only as staging for the failed operation. Its
+        // rollback already restored the prior (empty) runtime, so skip the
+        // user-close checkpoint; a persistent disk failure would otherwise
+        // strand a blank window while reporting that the workspace stayed put.
+        target.closing = true;
+        target.window?.close();
+      }
+      return result.ok ? { ok: true, action: 'focus', windowId: String(target.id) } : result;
+    });
+  },
+});
+
+/** Count the private/scratch pages that activation would explicitly close.
+ * Named ordinary pages remain resident. Use the live list: persisted columns
+ * exclude private pages and therefore cannot describe this decision. */
 function scratchGuardResult(runtime) {
   return scratchSwitchGuardResult({
     bound: !!runtime.workspaceId,
@@ -3666,6 +4713,7 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
     // persistSession treats a window never yet written to session.json.
     const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime) });
     if (result.ok) {
+      const previousWorkspaceId = runtime.workspaceId;
       runtime.workspaceId = result.workspace.id;
       // Write the binding pointer to session.json NOW. Binding alone only
       // changes memory: persistSession runs off tab activity, so saving a
@@ -3674,182 +4722,32 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
       // went only to session.json, and reopening the workspace applied its
       // stale snapshot over the newer work — the exact loss Task 6 exists to
       // prevent. The swap path already persists for the same reason.
+      const committed = flushWorkspaceSession();
+      if (!committed.ok) {
+        runtime.workspaceId = previousWorkspaceId;
+        return {
+          ok: false,
+          error: 'saved-not-opened',
+          cause: committed.error,
+          workspaceId: result.workspace.id,
+        };
+      }
       persistSession();
     }
     return result;
   });
 }
 
-/** Open an EXISTING Named Workspace in this window. The ONLY caller allowed
- * to invoke applyWorkspaceToWindow (checklist step 2d in the plan).
- *
- * Scratch guard (follow-up to Task 9): `force` is the overlay's explicit
- * "discard and switch" — omitted (or false), a scratch (unbound) window
- * holding real tabs is refused up front, before ANYTHING below runs: no
- * outbound save, no binding resolution, no apply. Checked first, ahead of
- * even the outbound-save step. A bound window still triggers it when it
- * holds private pages (autosave does not cover those). */
-function switchWindowToWorkspace(runtime, workspaceId, { force = false } = {}) {
-  return withWindowRuntime(runtime, () => {
-    const workspace = namedWorkspaces.get(workspaceId);
-    if (!workspace) return { ok: false, error: 'not-found' };
-
-    if (!force) {
-      const guard = scratchGuardResult(runtime);
-      if (guard) return guard;
-    }
-
-    // (a) Outbound save: capture THIS window's current state under its OLD
-    // binding (if any) before anything moves, so nothing the user did in it
-    // is lost. previousActiveIndex is the workspace's own last selection —
-    // the named-workspace analogue of persistSession's previousById lookup —
-    // so sitting on a private tab keeps that selection instead of jumping
-    // to 0.
-    if (runtime.workspaceId) {
-      const outgoing = namedWorkspaces.get(runtime.workspaceId);
-      if (outgoing) {
-        namedWorkspaces.saveCapture(runtime.workspaceId, workspaceCapture(runtime, {
-          previousActiveIndex: outgoing.activeIndex,
-        }));
-      }
-    }
-
-    // (b) Resolve against every OTHER window's binding — live or windowless
-    // (deriveWorkspaceBindings' own comment). Captured once and reused below
-    // for the swap transition too, so both see the exact same pre-swap
-    // state.
-    const before = deriveWorkspaceBindings();
-    const decision = resolveOpen(before, workspaceId, String(runtime.id));
-
-    if (decision.action === 'noop') return { ok: true, action: 'noop' }; // already here
-
-    if (decision.action === 'focus') {
-      // (c) Already bound elsewhere — never steal it, focus it instead.
-      // Review round 2 correction: the holder may be windowless (macOS
-      // dock-close of the primary window preserves its workspaceId; see
-      // deriveWorkspaceBindings' comment). Recreate its window first via
-      // the same createMainWindow path app.on('activate') already uses when
-      // no windows remain, then focus — same restore-then-focus idiom as
-      // second-instance/openExternalUrl's window activation. This window's
-      // own tabs are untouched either way.
-      const target = windowRuntimes.all().find((candidate) => String(candidate.id) === decision.windowId);
-      // Report honestly, and WITH an error code: every other failure path
-      // carries one, and a bare { ok:false } would make the UI fail silently
-      // (no notice, no state change) instead of telling the user anything.
-      if (!target) return { ok: false, action: 'focus', error: 'focus-failed', windowId: decision.windowId };
-      if (!target.window || target.window.isDestroyed()) createMainWindow(target);
-      if (target.window.isMinimized()) target.window.restore();
-      target.window.focus();
-      return { ok: true, action: 'focus', windowId: decision.windowId };
-    }
-
-    // (d) Unbound everywhere (resolveOpen already proved that against the
-    // COMPLETE — live and windowless — bindings map above) — this window
-    // takes it.
-    //
-    // Review round 2, Fix 1 (root cause of Important findings 1 and 2, and
-    // the Minor about `finally` clobbering): the binding must not be
-    // observable to autosave until the tab swap it describes has actually
-    // finished. The original code bound runtime.workspaceId to the NEW
-    // workspace, then called applyWorkspaceToWindow — but that function's
-    // own points 1-2 (hideOverlay/hideUtilitySheet/closeGlance) ran BEFORE
-    // persistence was suspended, and any of them firing a broadcastTabs
-    // (closeGlance does) would run persistSession -> autosaveWorkspaceBindings
-    // with the NEW workspaceId already set but the OLD (outgoing) tabs still
-    // live — silently overwriting the new workspace's saved tabs with the
-    // window's stale previous set before the swap had even started closing
-    // anything.
-    //
-    // Fix: this window goes scratch (workspaceId null — no autosave target
-    // at all) for the ENTIRE swap, persistence is suspended for the ENTIRE
-    // swap (not just the tab churn — applyWorkspaceToWindow no longer owns
-    // suspend/restore or the final persistSession(), see its own comment),
-    // and the binding commits only after applyWorkspaceToWindow returns
-    // normally, reconciled through workspaces-model's bindingsAfterSwap
-    // (releases this window's own previous workspace — the workspace's
-    // previous window is provably already empty, since resolveOpen's
-    // 'swap' decision means nothing in `before` holds this id) rather than
-    // a hand-rolled field write, so the unit-tested transition rule in
-    // workspaces-model.test.js is the thing actually gating this, not a
-    // parallel copy of its logic. A throw mid-apply leaves the window
-    // scratch rather than bound to a half-applied set — and deliberately
-    // NOT re-bound to the OLD workspace either, which would let a later
-    // autosave overwrite the workspace the user was leaving with the
-    // half-destroyed outgoing set. sessionPersistenceSuspended is restored
-    // to whatever it was before (almost always false), not clobbered to
-    // false, so a hypothetical future caller that already had persistence
-    // suspended for its own reason isn't silently re-enabled by this one.
-    const prevSuspended = sessionPersistenceSuspended;
-    sessionPersistenceSuspended = true;
-    runtime.workspaceId = null;
-    try {
-      applyWorkspaceToWindow(runtime, workspace);
-      // commit only after a clean apply
-      applyWorkspaceBindings(bindingsAfterSwap(before, { workspaceId: workspace.id, windowId: String(runtime.id) }));
-    } finally {
-      sessionPersistenceSuspended = prevSuspended;
-    }
-    // Checklist point 9 (moved here from applyWorkspaceToWindow — see its
-    // comment): reflect the new live set, now correctly attributed, once.
-    persistSession();
-    return { ok: true, action: 'swap' };
-  });
+/** Open through the single testable controller; the renderer cannot bypass its guards. */
+function switchWindowToWorkspace(runtime, workspaceId, options = {}) {
+  return withWindowRuntime(runtime, () => workspaceController.open(runtime, workspaceId, options));
 }
 
-/** Create a brand-new, EMPTY Named Workspace and switch this window into it
- * — the locked spec's "create" operation (Task 9 shipped only save-as, so
- * every workspace was necessarily a copy of the current window; this is the
- * follow-up). Patron-gated: creating is the only Named Workspaces operation
- * that re-checks entitlement (list/open/rename/remove stay usable on a
- * lapsed Patron — it's the user's own data). The scratch guard is checked
- * BEFORE the record is created, not after, so a cancelled confirmation never
- * leaves an orphan empty workspace behind — creating first and relying on
- * switchWindowToWorkspace's own guard would check one step too late. Once
- * the record exists, binding and applying it is EXACTLY the same operation
- * as opening any other freshly-created workspace — delegated to
- * switchWindowToWorkspace itself (with force:true, since a real guard
- * decision — or an explicit caller override — already happened here) rather
- * than a second copy of the apply protocol. */
-function createBlankWorkspaceAndSwitch(runtime, name, { force = false } = {}) {
-  return withWindowRuntime(runtime, () => {
-    if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
-
-    if (!force) {
-      const guard = scratchGuardResult(runtime);
-      if (guard) return guard;
-    }
-
-    const created = namedWorkspaces.create({
-      name,
-      capture: { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] },
-    });
-    // {ok:false, error:'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
-    // — never carries a workspace record, safe to return verbatim.
-    if (!created.ok) return created;
-
-    const switched = switchWindowToWorkspace(runtime, created.workspace.id, { force: true });
-    // Only fails if the just-created record vanished before this ran (e.g. a
-    // concurrent delete) — surfaced verbatim rather than assumed impossible.
-    if (!switched.ok) return switched;
-    return { ...switched, workspaceId: created.workspace.id };
-  });
+function createBlankWorkspaceAndSwitch(runtime, name, options = {}) {
+  return withWindowRuntime(runtime, () => { runtime.workspaceIncoming = null; return workspaceController.create(runtime, name, options); });
 }
 
-/** Replace this window's current tabs with one Named Workspace's captured
- * set. Copies the full restore/close protocol releaseStartup and closeGroup
- * already use — a partial copy pollutes undo, wakes quiet tabs, drops
- * groups, or rewrites session.json to a half-empty window. Reachable ONLY
- * from switchWindowToWorkspace's swap branch (2d) above.
- *
- * Review round 2, Fix 1: checklist points 3 (suspend/restore
- * sessionPersistenceSuspended) and 9 (the final persistSession()) moved to
- * that caller — they must bracket the BINDING commit (runtime.workspaceId),
- * not just this function's tab churn, so only the caller can own them. This
- * function assumes persistence is already suspended and the window already
- * scratch when it's called, leaves both exactly as it found them, and
- * throws through to the caller on any unexpected failure rather than
- * swallowing it (the caller relies on that: it only commits the binding
- * after this returns normally). */
+/** Materialize safe persisted columns in a newly staged resident runtime. Normal switching transfers existing views instead. The caller suspends persistence until the complete target is committed. */
 function applyWorkspaceToWindow(runtime, workspace) {
   withWindowRuntime(runtime, () => {
     // 1. Dismiss floating chrome before touching tabs — the same guard other
@@ -3860,14 +4758,9 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // into the incoming set.
     closeGlance({ focusContent: false });
 
-    // 4. Batch-close every current tab exactly like closeGroup does:
-    // record:false keeps Recently Closed from filling with the outgoing
-    // set, selectReplacement:false stops each individual close from picking
-    // (and immediately discarding) a replacement tab mid-swap. Snapshot
-    // tabOrder first — closeTab mutates it as it goes.
-    for (const id of [...runtime.tabOrder]) {
-      closeTab(id, { record: false, selectReplacement: false });
-    }
+    // Materialization is only for a newly staged, empty runtime. Refuse a
+    // programming error instead of ever tearing down a live workspace here.
+    if (runtime.tabOrder.length) throw new Error('Workspace staging requires an empty runtime');
 
     // 5. Groups must exist on the runtime BEFORE any createTab call below —
     // createTab silently drops groupId otherwise (its own body:
@@ -3909,37 +4802,27 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // never leave the window tabless. NEW_TAB_URL, not newTabUrl() — the
     // checklist's floor is the blank internal newtab, not the user's
     // configured home page.
-    setActiveTab(target ?? createTab(NEW_TAB_URL), { focusContent: true });
+    const selected = target ?? createTab(NEW_TAB_URL, { asleep: true });
+    if (runtime.resident) runtime.activeTabId = selected;
+    else setActiveTab(selected, { focusContent: true });
   });
 }
 
-/** Delete a Named Workspace and release whichever window (live or not) was
- * showing it, via workspaces-model's own bindingsAfterDelete transition
- * ("whatever window showed it becomes scratch") reconciled back onto
- * runtime.workspaceId by applyWorkspaceBindings — not a hand-rolled
- * equivalent. Bindings are 1:1 by construction (switchWindowToWorkspace's
- * bindingsAfterSwap always releases a window's previous workspace before
- * claiming a new one), so at most one runtime can match.
- *
- * Profile contract (Minor, review round 2): like every other function in
- * this file's Named Workspaces section, this relies on ambient
- * activeLocalProfileId() context to resolve namedWorkspaces.remove(id)
- * against the CORRECT profile's workspaces.json — it takes no runtime
- * parameter, matching workspaces.js's own list/get/create/rename/saveCapture
- * convention. Callers (Task 7/8's eventual IPC handler) must invoke this
- * from inside a withWindowRuntime/withLocalProfile scope bound to the
- * correct window — chromeHandle/chromeOn already do this for every existing
- * IPC handler in this file, so a handler built the normal way gets it for
- * free, but this is not self-enforcing the way an explicit `runtime`
- * parameter would be. deriveWorkspaceBindings/applyWorkspaceBindings below
- * are profile-agnostic by construction (any runtime that happens to hold a
- * given workspace's id belongs to that workspace's profile already, since
- * binding only ever happens through this file's own profile-scoped calls),
- * so they do not need — and must not gain — a profile filter of their own. */
+/** Remove the saved record durably before unbinding matching windows in this profile. Resident pages become a visible ordinary window so deletion cannot destroy hidden drafts. */
 function removeNamedWorkspace(id) {
+  // Deleting the saved record must not destroy a hidden draft. Reveal its
+  // resident pages first; successful deletion then leaves an ordinary window.
+  const holder = workspaceOwner(rt(), id);
+  if (holder?.resident) {
+    const shown = switchWindowToWorkspace(rt(), id, { newWindow: true });
+    if (!shown.ok) return shown;
+  }
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
-    applyWorkspaceBindings(bindingsAfterDelete(deriveWorkspaceBindings(), id));
+    for (const runtime of windowRuntimes.all()) {
+      if (runtime.profileId === rt().profileId && runtime.workspaceId === id) runtime.workspaceId = null;
+    }
+    flushWorkspaceSession();
   }
   return result;
 }
@@ -4111,7 +4994,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // sheet; when foreground creation follows with setActiveTab, that call
   // immediately re-focuses the new tab — the transient refocus is harmless.
   // No-ops during session restore and window creation (sheet hidden).
-  hideUtilitySheet();
+  if (!isTabCreationBatched()) hideUtilitySheet();
   const id = crypto.randomUUID();
   const owner = currentRuntime();
   // An adopted view (window.open child, see the window-open handler) arrives
@@ -4202,7 +5085,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // A quiet-born tab has no webContents until wakeTab builds one. Everything
   // below this point dereferences the view, so return before wiring/navigation.
   if (bornQuiet) {
-    scheduleMenuRebuild();
+    if (!isTabCreationBatched()) scheduleMenuRebuild();
     return id;
   }
 
@@ -4241,11 +5124,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
     else wc.loadURL(url).catch(() => {});
   }
-  scheduleMenuRebuild();
+  if (!isTabCreationBatched()) scheduleMenuRebuild();
   return id;
 }
 
-function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
+function setActiveTab(id, {
+  focusContent = true,
+  focusAddress = false,
+  dismissUtilitySheet = true,
+} = {}) {
   const next = tabs.get(id);
   if (!next || windowRuntimes.runtimeForTab(id) !== rt()) return;
   // The wake's synchronous prefix creates its view before returning. This is
@@ -4270,7 +5157,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
-  hideUtilitySheet({ refocusContent: false });
+  if (dismissUtilitySheet) hideUtilitySheet({ refocusContent: false });
 
   rt().lastActiveByCluster.set(clusterKeyForTab(next), id);
   rt().activationHistory = recordActivation(rt().activationHistory, id);
@@ -4976,6 +5863,21 @@ function openInternalPage(url) {
   }
 }
 
+// The ONLY place a Settings section name becomes a URL fragment. Allowlisted,
+// never interpolated from renderer text (blanc://settings/ is privileged).
+// Used by the chrome's tabs:open-page and by the start page's moving-in checklist.
+const SETTINGS_SECTION_FRAGMENTS = Object.freeze({
+  blocking: '#group-privacy',
+  patron: '#group-patron',
+  sync: '#group-sync',
+});
+function openSettingsSection(section) {
+  const fragment = Object.prototype.hasOwnProperty.call(SETTINGS_SECTION_FRAGMENTS, section)
+    ? SETTINGS_SECTION_FRAGMENTS[section]
+    : '';
+  openInternalPage(`blanc://settings/${fragment}`);
+}
+
 function toggleBookmarkForActiveTab() {
   if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
 }
@@ -5182,25 +6084,20 @@ function chromeOn(channel, handler) {
   });
 }
 
-// Named Workspaces IPC projection + freshness broadcast. Deliberately kept
-// here next to chromeHandle/chromeOn rather than in the capture/apply/switch
-// section up near removeNamedWorkspace, so nothing added for Task 7 can ever
-// land inside the exact function-boundary text slices workspaces-apply.test.js
-// lifts out of this file's source (applyWorkspaceToWindow/deriveWorkspaceBindings/
-// applyWorkspaceBindings) — inserting here cannot shift those markers.
-//
-// PROJECTION ONLY: {id, name, active, tabCount} per item — never urls, meta,
-// groups, profileId, createdAt, or the raw workspace record. Must be called
-// from inside a window-runtime scope (chromeHandle/chromeOn already provide
-// one) so rt() and the ambient local-profile context that namedWorkspaces
-// resolves its file through both refer to the requesting window.
+// Workspace IPC contains presentation metadata only. Ownership is derived
+// within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
   return {
     patronActive: settings.isPatronActive(),
+    status: namedWorkspaces.status(),
+    deleted: namedWorkspaces.deleted().map((d) => ({ id: d.workspace.id, name: d.workspace.name, deletedAt: d.deletedAt })),
     items: namedWorkspaces.list().map((workspace) => ({
       id: workspace.id,
       name: workspace.name,
       active: workspace.id === rt().workspaceId,
+      openElsewhere: !!workspaceOwner(rt(), workspace.id) && !workspaceOwner(rt(), workspace.id).resident && workspace.id !== rt().workspaceId,
+      resident: workspaceOwner(rt(), workspace.id)?.resident === true,
+      revision: workspace.revision,
       tabCount: workspace.urls.length,
     })),
   };
@@ -5228,17 +6125,8 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
-// Workspace row context-menu targets (Rename/Delete, Task 8). Both funnel
-// into showOverlay with a purpose payload — the SAME channel beginNewGroup
-// (below) already uses to open an editing UI for a specific target inside an
-// already-open panel. No new IPC: the renderer's overlay:show handler reads
-// purpose.renameWorkspaceId/deleteWorkspaceId and renders that one row
-// in-place as an inline editor or an inline delete-confirm. Placed here
-// (next to workspacesProjection/broadcastWorkspacesUpdated, not the
-// capture/apply/switch section above) for the same reason Task 7 placed its
-// own additions here: nothing added for Task 8 can land inside the exact
-// function-boundary text slices workspaces-apply.test.js lifts out of this
-// file's source.
+// Native context menus open the same workspace action state as the visible
+// row management buttons. A stale target is handled by the renderer.
 function beginRenameWorkspace(workspaceId) {
   showOverlay('panel', { purpose: { renameWorkspaceId: workspaceId } });
 }
@@ -5458,12 +6346,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
   chromeHandle('tabs:open-page', (_e, name, section) => {
-    if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
-      // Deep-link into a page section via URL fragment — allowlisted only,
-      // never interpolated from renderer-supplied text (privileged URL).
-      const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
-      const fragment = name === 'settings' && Object.prototype.hasOwnProperty.call(sectionMap, section) ? sectionMap[section] : '';
-      openInternalPage(`blanc://${name}/${fragment}`);
+    if (name === 'settings') return openSettingsSection(section);
+    if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
+      openInternalPage(`blanc://${name}/`);
     }
   });
   chromeHandle('tabs:get-all', () => ({
@@ -5571,30 +6456,33 @@ function registerIpcHandlers() {
   // Named Workspaces. Per the locked spec, Patron only ever ADDS: list/open/
   // rename/remove stay fully usable on a lapsed Patron (it's the user's own
   // data), so save-as and create-blank are the ONLY handlers that re-check
-  // entitlement. open and create-blank additionally carry the scratch guard
-  // (Task 9 follow-up): both can switch this window's tabs out from under
-  // it, so both accept an optional {force:true} that skips the guard —
-  // threaded straight through to switchWindowToWorkspace/
-  // createBlankWorkspaceAndSwitch, never re-decided here. Every handler here
-  // is a chromeHandle registration, which is what makes rt() and
+  // entitlement. Open and create accept only a main-issued decision token
+  // or the non-destructive new-window alternative. chromeHandle makes rt() and
   // namedWorkspaces' ambient local-profile context resolve to the REQUESTING
   // window/profile rather than whichever window last ran — a raw
   // ipcMain.handle would silently read/write the wrong profile's
   // workspaces.json.
+  chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
   chromeHandle('chrome:workspaces-save-as', (_e, name) => {
     if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
     const result = saveCurrentWindowAsWorkspace(rt(), name);
-    // {ok:false, error: 'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
-    // — namedWorkspaces.create's failure shape never carries a workspace
-    // record, so it is safe to return verbatim.
-    if (!result.ok) return result;
+    if (!result.ok) {
+      // The workspace file and session file are separate atomic stores. If the
+      // first commit landed, return the saved row with an honest partial-success
+      // error instead of inviting an impossible same-name retry.
+      if (result.workspaceId) {
+        broadcastWorkspacesUpdated();
+        return { ...result, ...workspacesProjection() };
+      }
+      return result;
+    }
     broadcastWorkspacesUpdated();
     // Only the new id crosses the wire, never result.workspace itself.
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
-    const result = switchWindowToWorkspace(rt(), id, { force: !!opts?.force });
+    const result = switchWindowToWorkspace(rt(), id, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
     // {ok:false, error:'not-found'}, the scratch guard's
     // {ok:false, error:'unsaved-scratch', tabCount}, or the honest
     // {ok:false, action:'focus', windowId} report when the bound window
@@ -5604,11 +6492,14 @@ function registerIpcHandlers() {
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
-    const result = createBlankWorkspaceAndSwitch(rt(), name, { force: !!opts?.force });
-    // {ok:false, error:'not-patron'|'unsaved-scratch'|'invalid-name'|
-    // 'duplicate-name'|'limit'|'invalid-record'|'not-found'|'focus-failed'} —
-    // never a workspace record either.
-    if (!result.ok) return result;
+    const result = createBlankWorkspaceAndSwitch(rt(), name, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
+    if (!result.ok) {
+      if (result.workspaceId) {
+        broadcastWorkspacesUpdated();
+        return { ...result, ...workspacesProjection() };
+      }
+      return result;
+    }
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
@@ -5624,6 +6515,20 @@ function registerIpcHandlers() {
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
+
+  for (const [channel, operation] of [
+    ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
+    ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
+    ['chrome:workspaces-move', (id, direction) => namedWorkspaces.move(id, direction)],
+  ]) {
+    chromeHandle(channel, (_event, ...args) => {
+      const result = operation(...args);
+      if (!result.ok) return result;
+      broadcastWorkspacesUpdated();
+      return { ok: true, ...workspacesProjection() };
+    });
+  }
+  namedWorkspaces.setStatusObserver(() => broadcastWorkspacesUpdated());
 
   chromeHandle('chrome:search-suggestions', async (event, query) => {
     const currentSettings = settings.getSettings();
@@ -5857,10 +6762,12 @@ function listShortcuts() {
 // SLASH_COMMANDS — keep all three in sync when adding or changing a command.
 const SLASH_COMMANDS = [
   ['/favorites', 'Open favorites'],
+  ['/bring-tabs', 'Bring open tabs from another browser'],
   ['/save [folder]', 'Save this page to favorites, into a folder if you name one'],
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],
   ['/settings', 'Open settings'],
+  ['/sync', 'Set up or manage sync'],
   ['/clear', 'Clear browsing history'],
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],
@@ -6208,8 +7115,8 @@ function menuContextActions(owner) {
   };
 }
 
-function createMainWindow(runtime = primaryRuntime) {
-  return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime));
+function createMainWindow(runtime = primaryRuntime, options = {}) {
+  return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime, options));
 }
 
 function profileWindowTitle(profile) {
@@ -6218,9 +7125,10 @@ function profileWindowTitle(profile) {
     : `${profile?.name ?? 'Profile'} — Blanc`;
 }
 
-function createMainWindowForRuntime(runtime) {
+function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
+  runtime.chromeReady = false;
   installProfileSessionPolicies(runtime.profileId);
   const localProfile = localProfiles.getLocalProfile(runtime.profileId);
   // Packaged Windows builds inherit the multi-resolution icon embedded in
@@ -6253,7 +7161,7 @@ function createMainWindowForRuntime(runtime) {
     event.preventDefault();
     newWindow.setTitle(profileWindowTitle(localProfiles.getLocalProfile(runtime.profileId)));
   }));
-  // The strip's own 64px band. Its document IS the window, so no offset.
+  // The strip's own 68px band. Its document IS the window, so no offset.
   watchCursorFor(newWindow.webContents, { x: 0, y: 0 },
     (fn) => bindWindowRuntime(runtime, fn));
 
@@ -6283,10 +7191,45 @@ function createMainWindowForRuntime(runtime) {
     refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
   }));
-  rt().window.on('close', bindWindowRuntime(runtime, () => {
-    runtime.closing = true;
-  }));
+  const dockReopenLifecycle = createDockReopenLifecycle({
+    platform: process.platform,
+    runtime,
+    primaryRuntime,
+    window: newWindow,
+    tabs,
+    liveContents,
+    getIsQuitting: () => isQuitting,
+    ensureStartTab,
+    createStartTab: () => createTab(newTabUrl()),
+    // Chrome can finish after a new window has already opened a utility
+    // sheet (notably the tab-handoff review). This is a same-tab native-view
+    // reattachment, not a user switch, so it must not dismiss that sheet.
+    activateTab: (id) => setActiveTab(id, { dismissUtilitySheet: false }),
+    flushExternalUrls,
+    // A normal secondary close destroys its pages. Commit both the final named
+    // capture and session removal before Electron can tear those views down.
+    // Primary macOS close retains its runtime for Dock reopen; forced closes
+    // mark runtime.closing before reaching this hook.
+    // A future session file is intentionally read-only and cannot be made
+    // writable by retrying. Preserve that file, but do not trap every scratch
+    // window from a newer Blanc version on screen.
+    beforeWindowClose: () => sessionReadOnly || (runtime === primaryRuntime && process.platform === 'darwin')
+      ? { ok: true }
+      : checkpointWorkspaceSession(runtime, { excludeRuntime: runtime }),
+    onCloseBlocked: () => {
+      broadcastWorkspacesUpdated();
+      dialog.showMessageBoxSync(runtime.window, {
+        type: 'error',
+        buttons: ['OK'],
+        message: 'Couldn’t close this window safely',
+        detail: 'Blanc couldn’t save its latest workspace state. Check available disk space and try again.',
+      });
+    },
+  });
+  rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    workspaceController.cancel(runtime);
+    forgetTabImportForRuntime(runtime.id, 'runtime-destroyed');
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();
@@ -6296,16 +7239,12 @@ function createMainWindowForRuntime(runtime) {
     // case too, where no view exists), then destroy the capsule view.
     fillStatusSurface?.invalidatePending(runtime.id);
     liveViewContents(runtime.fillStatusView)?.close();
+    if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
-      // Named Workspaces: a real (non-primary) window close is a real,
-      // permanent unbind — unlike the primary's dock-close below, this
-      // runtime is never coming back. Routed through workspaces-model's own
-      // bindingsAfterUnbind ("a window closed... it binds nothing"),
-      // reconciled via applyWorkspaceBindings, for the same reason
-      // switchWindowToWorkspace and removeNamedWorkspace do: the tested
-      // transition rule gates this, not a parallel hand-rolled field write.
-      applyWorkspaceBindings(bindingsAfterUnbind(deriveWorkspaceBindings(), { windowId: String(runtime.id) }));
+      runtime.closing = true;
+      // The close event durably checkpointed before native teardown.
+      runtime.workspaceId = null;
       for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
       for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
       runtime.closedEntries = [];
@@ -6332,22 +7271,30 @@ function createMainWindowForRuntime(runtime) {
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
-    if (!windowRuntimes.all().some((candidate) =>
-      candidate.window && !candidate.window.isDestroyed())) iconRaster.dispose();
+    const liveRuntimeWindows = windowRuntimes.all().filter((candidate) =>
+      candidate.window && !candidate.window.isDestroyed()).length;
+    if (liveRuntimeWindows === 0) iconRaster.dispose();
+    // The display-capture helper IS a hidden BrowserWindow, and Electron
+    // withholds `window-all-closed` while any BrowserWindow exists. Left
+    // alone it kept Blanc alive in Task Manager after the last visible
+    // window closed, and a relaunch deferred to that stuck instance (#368).
+    // macOS keeps it: dock reopen reuses the broker's helper.
+    if (releaseHiddenWindowsOnLastClose({ platform: process.platform, liveRuntimeWindows })
+      && displayCaptureHelperWindow && !displayCaptureHelperWindow.isDestroyed()) {
+      displayCaptureHelperWindow.close();
+    }
   }));
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
   // First launch has no activeTabId yet — app.whenReady handles that one.
-  rt().window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
-    if (!rt().activeTabId || !tabs.has(rt().activeTabId)) return;
-    const id = rt().activeTabId;
-    rt().activeTabId = null; // force setActiveTab to treat it as a fresh attach
-    setActiveTab(id);
-    // An 'open-url' with no window queues; opening it is why the window
-    // was recreated (macOS dock-reopen path).
-    flushExternalUrls();
-  }));
+  rt().window.webContents.once('did-finish-load', bindWindowRuntime(
+    runtime,
+    () => {
+      runtime.chromeReady = true;
+      dockReopenLifecycle.onChromeReady();
+    }
+  ));
   return runtime;
 }
 
@@ -6392,9 +7339,107 @@ function focusDockActiveWindow() {
     win.focus();
     return;
   }
-  if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createMainWindow(primaryRuntime, { ensureStartTab: true });
+  }
   focusedRuntime = primaryRuntime;
   setFocusedLocalProfile(primaryRuntime.profileId);
+}
+
+/** Import into the review window, or an explicitly requested scratch window,
+ * through the same transactional quiet-tab batch
+ * seam used by Bring Your Tabs. The relay supplies no groups, pins, or
+ * favicons; source order remains authoritative and its active row wakes. */
+function openTabHandoffWindow({
+  profileId: requestedProfileId, handoffTabs, reviewRuntime,
+  destination = 'current-window',
+} = {}) {
+  if (!['current-window', 'new-window'].includes(destination)) {
+    return { ok: false, error: 'invalid-destination' };
+  }
+  if (!Array.isArray(handoffTabs) || !handoffTabs.length
+    || handoffTabs.length > MAX_TAB_IMPORT_TABS) {
+    return { ok: false, error: 'invalid-handoff' };
+  }
+  const profileId = localProfiles.getLocalProfile(requestedProfileId)?.id;
+  if (!profileId || profileDeletions.hasPendingProfileDeletion(profileId)) {
+    return { ok: false, error: 'profile-unavailable' };
+  }
+  if (!reviewRuntime?.window || reviewRuntime.window.isDestroyed()
+    || reviewRuntime.profileId !== profileId) {
+    return { ok: false, error: 'unavailable' };
+  }
+  const createdWindow = destination === 'new-window';
+  const runtime = createdWindow ? windowRuntimes.createRuntime({
+    id: createWindowRuntimeId(),
+    profileId,
+  }) : reviewRuntime;
+  if (createdWindow) createMainWindow(runtime);
+
+  const result = withWindowRuntime(runtime, () => {
+    const tabSpecs = handoffTabs.map((tab, index) => ({
+      candidateId: `handoff-${index}`,
+      url: tab.url,
+      title: tab.title,
+      favicon: null,
+      groupName: null,
+      pinned: false,
+    }));
+    const priorPersistenceSuspended = sessionPersistenceSuspended;
+    const priorTabOrder = [...runtime.tabOrder];
+    const priorActiveTabId = runtime.activeTabId;
+    const priorActivationHistory = [...runtime.activationHistory];
+    const priorLastActiveByCluster = new Map(runtime.lastActiveByCluster);
+    let batch;
+    let activeTabId = null;
+    sessionPersistenceSuspended = true;
+    tabStateBroadcastSuppressionDepth += 1;
+    try {
+      batch = createQuietTabsBatch(runtime, tabSpecs, { insertAt: priorTabOrder.length });
+      if (batch.error) throw new Error(batch.error);
+      const activeIndex = handoffTabs.findIndex((tab) => tab.active === true);
+      activeTabId = batch.tabIds[activeIndex >= 0 ? activeIndex : 0] ?? null;
+      if (!activeTabId) throw new Error('invalid-handoff');
+      setActiveTab(activeTabId, { focusContent: true, dismissUtilitySheet: false });
+      if (rt().activeTabId !== activeTabId || !liveContents(tabs.get(activeTabId))) {
+        throw new Error('activation-failed');
+      }
+    } catch {
+      // The selected import may already own a live view. Close through the
+      // normal disposal path without creating undo entries or replacement tabs.
+      for (const id of batch?.tabIds ?? []) {
+        closeTab(id, { record: false, selectReplacement: false });
+      }
+      runtime.tabOrder = priorTabOrder;
+      if (priorActiveTabId && tabs.has(priorActiveTabId)) {
+        // Force reattachment even if activation threw after detaching the old view.
+        runtime.activeTabId = null;
+        setActiveTab(priorActiveTabId, { focusContent: false, dismissUtilitySheet: false });
+      }
+      runtime.activationHistory = priorActivationHistory;
+      runtime.lastActiveByCluster = priorLastActiveByCluster;
+      liveUtilitySheet(reviewRuntime)?.wc.focus();
+      return { ok: false, error: batch?.error ?? 'activation-failed', retryable: true };
+    } finally {
+      tabStateBroadcastSuppressionDepth -= 1;
+      sessionPersistenceSuspended = priorPersistenceSuspended;
+    }
+
+    focusedRuntime = runtime;
+    setFocusedLocalProfile(runtime.profileId);
+    runtime.window.show();
+    runtime.window.focus();
+    // The batch itself emitted no state or persistence churn. This is the
+    // single completed-window publication and session write.
+    broadcastTabs();
+    buildMenu(runtime);
+    return { ok: true, runtimeId: runtime.id, tabIds: batch.tabIds };
+  });
+
+  if (!result?.ok && createdWindow && runtime.window && !runtime.window.isDestroyed()) {
+    runtime.window.destroy();
+  }
+  return result ?? { ok: false, error: 'unavailable' };
 }
 
 function openNewWindow(options = {}) {
@@ -6553,6 +7598,11 @@ function namedProfileDataDirectory(profileId) {
 }
 
 async function destroyProfileWindow(runtime) {
+  if (runtime.resident) {
+    withWindowRuntime(runtime, () => { runtime.closing = true; for (const id of [...runtime.tabOrder]) closeTab(id, { record: false, selectReplacement: false }); });
+    windowRuntimes.discardRuntime(runtime);
+    return;
+  }
   const window = runtime.window;
   if (!window || window.isDestroyed()) return;
   // Electron's BrowserWindow visibility listener reads native state on every
@@ -6567,6 +7617,9 @@ async function destroyProfileWindow(runtime) {
     });
   }
   if (window.isDestroyed()) return;
+  // Profile deletion is already explicitly confirmed and owns crash-resumable
+  // cleanup. Bypass the ordinary close checkpoint for data being erased.
+  runtime.closing = true;
   await new Promise((resolve) => {
     window.once('closed', resolve);
     // Confirmation is the terminal commit point. beforeunload cannot retain a
@@ -6634,6 +7687,7 @@ async function completeNamedProfileDeletion(profileId, {
   }
   try {
     discardProfileDownloads(profileId);
+    namedWorkspaces.disposeProfile(profileId);
     discardProfileStoreEntries(profileId);
     fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
   } catch (error) {
@@ -6834,11 +7888,27 @@ function applyWebrtcPolicyToAllTabs() {
   }
 }
 
+// Broadcast the call-audio choice to every WebContents on a browsing session,
+// including held views and auxiliary popups that are intentionally absent from
+// the live tab map. Their session preload applies it in the page's main world.
+function broadcastWebrtcAudioBufferToBrowsingContents() {
+  const mode = settings.getSettings().webrtcAudioBuffer;
+  return sendWebrtcAudioBufferMode({
+    contents: webContents.getAllWebContents(),
+    sessions: profileSessionRegistry?.all() ?? [],
+    mode,
+  });
+}
+
 // Last-applied encrypted-DNS values, so onSettingsChanged only reconfigures the
 // resolver + clears its cache when DNS actually changes — the listener fires on
 // every settings write, and clearing the cache mid-session isn't free.
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
+let displayCaptureRegistry = null;
+let displayCaptureBroker = null;
+let displayCapturePicker = null;
+let displayCaptureHelperWindow = null; // hidden BrowserWindow; released on the last visible close
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   profileSessionRegistry = createProfileSessionRegistry({
@@ -6850,9 +7920,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
-  for (const browsingSession of browsingSessions) certificateObserver.observe(browsingSession);
+  for (const browsingSession of browsingSessions) {
+    installNavigationCrashGuard(browsingSession);
+    certificateObserver.observe(browsingSession);
+  }
   const chromeSes = session.fromPartition(CHROME_PARTITION);
-  setupChromeProtocol({ session: chromeSes, net });
+  const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
+  const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
+  const developmentDarkDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_DARK_PREVIEW');
+  setupChromeProtocol({ session: chromeSes, net, developmentBrandMarkPath });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
@@ -6861,6 +7937,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       searchSuggestions: true,
       usagePing: false,
     });
+  }
+  // Mark the Sync migration task complete for profiles that already sync. Runs
+  // here — before any window exists, before the settings fan-out listener,
+  // and long before startProfileSync() registers sync.init()'s listener —
+  // so the write can neither flash the checklist nor reschedule launch sync.
+  if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
+    settings.setSettings({ syncMigrationCompleted: true });
   }
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
@@ -6896,15 +7979,25 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'chrome-compat-preload.js'),
       });
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'webrtc-audio-buffer-preload.js'),
+      });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
       // stay unconfirmable and fail toward stuck-on, never silently-off.
       browsingSession.registerPreloadScript({
         type: 'frame',
-        filePath: path.join(__dirname, 'capture-preload.js'),
+        filePath: path.join(__dirname, CAPTURE_RUNTIME.preload),
       });
     }
   };
+  // The session preload needs the persisted target before page scripts run.
+  // This synchronous reply is one enum read from the in-memory settings store;
+  // no page API or browsing data crosses the isolated-world boundary.
+  ipcMain.on(WEBRTC_AUDIO_BUFFER_GET_CHANNEL, (event) => {
+    event.returnValue = settings.getSettings().webrtcAudioBuffer;
+  });
   installSessionPreloads(browsingSessions);
 
   // Fallback: patch Sec-CH-UA HTTP headers for webContents where the CDP
@@ -6976,10 +8069,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
-  setupPermissionPolicy(ses, { profileId: DEFAULT_PROFILE_ID });
+  setupPermissionPolicy(ses, {
+    profileId: DEFAULT_PROFILE_ID,
+    ...nativeMediaPermissionOptions,
+  });
   setupPermissionPolicy(privateSes, {
     persistDecisions: false,
     profileId: DEFAULT_PROFILE_ID,
+    ...nativeMediaPermissionOptions,
   });
   let permissionPromptCounter = 0;
   // Resolve the tab owning a requesting webContents through the maintained
@@ -6988,6 +8085,135 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!wc) return null;
     return tabs.get(tabIdByWebContentsId.get(wc.id)) ?? null;
   }
+
+  displayCaptureRegistry = createBrokerRegistry();
+  displayCaptureRegistry.onChange(() => {
+    for (const tab of tabs.values()) {
+      tab.displayShareBlocking = displayCaptureRegistry.tabHasBlockingShare(tab.id) === true;
+    }
+    forEachWindowRuntime(() => {
+      scheduleBroadcastTabs();
+      if (rt().overlayMode !== 'capture') return;
+      if (captureRowCount() === 0) hideOverlay({ refocusContent: false });
+      else if (rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+    }, { liveOnly: true });
+  });
+  const displayCaptureAuthority = createHelperAuthority();
+  const displayCaptureHelperSession = createHelperSession({
+    sessionFactory: session,
+    setupChromeProtocol,
+    net,
+  });
+  displayCaptureHelperSession.setPermissionRequestHandler((_wc, permission, callback) => {
+    callback(permission === 'media' || permission === 'display-capture');
+  });
+  displayCaptureHelperSession.setPermissionCheckHandler((_wc, permission) => (
+    permission === 'media' || permission === 'display-capture'
+  ));
+  displayCaptureHelperWindow = attachHelperWindow({
+    BrowserWindow,
+    session: displayCaptureHelperSession,
+    preloadPath: path.join(__dirname, 'display-capture-helper-preload.js'),
+    lockPrivilegedNavigation,
+    authority: displayCaptureAuthority,
+  });
+  const pickerOwner = (requestId) => {
+    const row = displayCaptureRegistry.listShares().find((item) => item.requestId === requestId);
+    return row ? windowRuntimes.runtimeForTab(row.tabId) : null;
+  };
+  const pickerSender = (event, owner) => {
+    try {
+      return !!owner && owner.overlayView?.webContents === event.sender
+        && event.senderFrame === event.sender.mainFrame
+        && event.sender.getURL() === CHROME_OVERLAY_URL;
+    } catch { return false; }
+  };
+  displayCapturePicker = createDisplayCapturePicker({
+    platform: process.platform, desktopCapturer, ownerForRequest: pickerOwner,
+    portalSelection: process.platform === 'linux' && (
+      app.commandLine.getSwitchValue('ozone-platform') === 'wayland'
+      || (!app.commandLine.getSwitchValue('ozone-platform')
+        && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY))
+    ),
+    isOwnerSender: pickerSender,
+    present: (owner, model) => withWindowRuntime(owner, () => {
+      if (!hasLiveWindow() || !rt().overlayView) {
+        displayCapturePicker.cancel(model.requestId);
+        return;
+      }
+      showOverlay('display-share', { purpose: model });
+    }),
+    dismiss: (owner, requestId) => withWindowRuntime(owner, () => {
+      if (rt().overlayMode === 'display-share' && rt().overlayPurpose?.requestId === requestId) {
+        hideOverlay({ refocusContent: false, reason: 'display-share-resolved' });
+      }
+    }),
+    onCancel: (requestId) => displayCaptureBroker?.cancelAcquisition(requestId),
+    onChoose: (event, choice, source) => displayCaptureBroker.resolvePicker(event, choice, source),
+  });
+  ipcMain.on('display-capture:picker-resolve', (event, payload) => {
+    displayCapturePicker.resolve(event, payload).catch(() => {
+      // Only a live, owned picker may be cancelled by this sender.
+      if (pickerSender(event, pickerOwner(payload?.requestId))) {
+        displayCapturePicker.cancel(payload.requestId);
+      }
+    });
+  });
+  displayCaptureBroker = installDisplayCaptureBroker({
+    ipcMain,
+    registry: displayCaptureRegistry,
+    evaluateAdmission,
+    parseDisplayMediaOptions,
+    filterSignaling,
+    collectLocalAddresses,
+    helperWc: displayCaptureHelperWindow.webContents,
+    helperSession: displayCaptureHelperSession,
+    desktopCapturer,
+    showPicker: (id, model) => displayCapturePicker.show(id, model),
+    hidePicker: (id) => displayCapturePicker.hide(id),
+    handlePickerIpc: false,
+    authority: displayCaptureAuthority,
+    isPackaged: app.isPackaged,
+    stubPicker: false,
+    isOverlaySender: (event, requestId) => pickerSender(event,
+      requestId ? pickerOwner(requestId) : windowRuntimes.runtimeForChromeWebContentsId(event.sender.id)),
+    readTrustedFacts: (event) => {
+      const wc = event.sender;
+      const tab = tabForWebContents(wc);
+      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+      const win = owner?.window;
+      const frame = event.senderFrame || wc?.mainFrame;
+      let frameVisible = null;
+      try {
+        frameVisible = typeof frame?.visibilityState === 'string'
+          ? frame.visibilityState === 'visible'
+          : null;
+      } catch {
+        frameVisible = null;
+      }
+      const tabAttached = !!(tab && owner && owner.activeTabId === tab.id && tab.view);
+      return {
+        documentFocused: win?.isFocused?.() === true && wc?.isFocused?.() === true,
+        documentVisible: evaluateDocumentVisible({
+          windowVisible: win?.isVisible?.() === true,
+          windowMinimized: win?.isMinimized?.() === true,
+          tabAttached,
+          frameVisible: frameVisible === true,
+        }),
+        // Subframes remain unsupported until preload reach and policy are proven.
+        frameAlive: !!tab && frame === wc?.mainFrame
+          && frame?.isDestroyed?.() === false && frame.detached === false,
+        tabId: tab?.id ?? null,
+        webContentsId: wc?.id ?? null,
+        frameId: frame?.frameTreeNodeId ?? frame?.routingId ?? null,
+        origin: (() => {
+          try { return new URL(frame.url).origin; } catch { return null; }
+        })(),
+        documentGeneration: frame ? `${frame.processId}:${frame.routingId}` : null,
+        sources: [],
+      };
+    },
+  });
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
   // transient no-window moment can't permanently block a site.
@@ -7020,7 +8246,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       })();
     })
   );
-  setHeldRequesterCheck((wc) => !!wc && heldWebContents.has(wc.id));
+  setHeldRequesterCheck((wc) => !!wc && (heldWebContents.has(wc.id) || runtimeForPageWebContents(wc)?.resident === true));
   setCaptureGrantObserver(({ requestingWebContents, mediaTypes, requestingUrl, isMainFrame }) => {
     if (!requestingWebContents) return;
     const surface = ensureCaptureSurfaceForSender(requestingWebContents);
@@ -7132,6 +8358,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // downloads.js invokes this from its own session/DownloadItem listeners —
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
+  setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,
     profileId: DEFAULT_PROFILE_ID,
@@ -7169,13 +8396,28 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // settings change (below), and setPatron() fires those listeners, so
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
+      // Start-page moving-in checklist. Shared across tabs; the send sites
+      // apply the per-tab profile/private guard.
+      migrationChecklist: migrationChecklistState({
+        firstRunComplete: settings.isFirstRunComplete(),
+        dismissed: current.migrationChecklistDismissed,
+        syncComplete: current.syncMigrationCompleted,
+        tabsComplete: current.tabImportCompleted,
+      }),
     };
   };
   const broadcastStartPageStatus = () => {
     const status = startPageStatus();
     for (const tab of tabs.values()) {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
-      liveContents(tab)?.send('pages:start:status', status);
+      liveContents(tab)?.send('pages:start:status', {
+        ...status,
+        migrationChecklist: migrationChecklistForTab(
+          status.migrationChecklist,
+          tab,
+          DEFAULT_PROFILE_ID,
+        ),
+      });
     }
   };
   // A layout picked in Settings (or arriving from Profile Sync) must reach
@@ -7186,6 +8428,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
     sessions: browsingSessions,
+    developmentBrandMarkPath,
+    developmentDockIconPath,
+    developmentDarkDockIconPath,
     sessionsForCurrentRuntime: () => {
       const owned = profileSessionRegistry.forProfile(rt().profileId);
       return [owned.normal, owned.private];
@@ -7223,6 +8468,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         });
       },
     },
+    tabHandoff: {
+      get: () => pendingTabHandoffProjection(),
+      accept: (destination) => acceptPendingTabHandoff(destination),
+      cancel: () => cancelPendingTabHandoff(),
+    },
+    tabImport: {
+      beginSourceRead: beginTabImportSourceRead,
+      openSource: openTabImportSource,
+      loadCandidates: loadTabImportCandidates,
+      setSelection: setTabImportSelection,
+      suggestSourceGroups: suggestTabImportSourceGroups,
+      suggestEmbed: startTabImportEmbedding,
+      submitEmbeddings: submitTabImportEmbeddings,
+      apply: applyTabImport,
+      cancel: cancelTabImport,
+    },
     telemetry: {
       mahjongPlayed: (wc) =>
         maybeSendProductUsage(wc, () => sendMahjongPlay()),
@@ -7242,12 +8503,56 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
         .filter((g) => g.count > 0),
+      topSites: (wc, options = {}) => {
+        const owner = tabs.get(tabIdByWebContentsId.get(wc.id));
+        if (!owner || owner.private) return [];
+
+        // Reuse only locally stored, already-sanitized bookmark PNGs. A top
+        // site without one gets the existing letter tile; the start page must
+        // never contact a website or a third-party favicon service to draw it.
+        const faviconsBySite = new Map();
+        for (const favorite of bookmarks.listBookmarks()) {
+          const key = topSiteKey(favorite.url);
+          if (key && favorite.favicon && !faviconsBySite.has(key)) {
+            faviconsBySite.set(key, favorite.favicon);
+          }
+        }
+        // Also reuse icons already held by live or quiet tabs in this local
+        // profile. This gives an existing profile an immediate local backfill
+        // while the bounded history cache fills naturally on later visits.
+        for (const tab of tabs.values()) {
+          if (tab.profileId !== owner.profileId || tab.private || !tab.favicon) continue;
+          const key = topSiteKey(tab.url);
+          if (key) faviconsBySite.set(key, tab.favicon);
+        }
+        return history.listTopSites(options).map(({ key, url, title, favicon }) => ({
+          key,
+          url,
+          title,
+          favicon: favicon ?? faviconsBySite.get(key) ?? null,
+        }));
+      },
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
       blockedByDay: () => [...adblockWeekStats().data.days],
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
+      migrationChecklistFor: (wc) => migrationChecklistForTab(
+        startPageStatus().migrationChecklist,
+        tabs.get(tabIdByWebContentsId.get(wc.id)),
+        DEFAULT_PROFILE_ID,
+      ),
+      utilitySheetVisibleFor: (wc) => {
+        const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+        return !!tab && tab.id === rt().activeTabId && !!rt().utilitySheetUrl;
+      },
+      dismissMigrationChecklist: () => {
+        settings.setSettings({ migrationChecklistDismissed: true });
+        return true;
+      },
+      // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
+      openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
       setLayout: (name) => settings.setSettings({ newtabLayout: name }),
       openIsland: (char) => openIslandTyping(char),
       // Runs inside runInPageRuntime, so the tab lands in the sheet's own
@@ -7309,14 +8614,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const owned = profileSessionRegistry.forProfile(profileId);
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
-    for (const targetSession of targetSessions) certificateObserver.observe(targetSession);
+    for (const targetSession of targetSessions) {
+      installNavigationCrashGuard(targetSession);
+      certificateObserver.observe(targetSession);
+    }
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);
-    setupPermissionPolicy(owned.normal, { profileId: owned.profileId });
+    setupPermissionPolicy(owned.normal, {
+      profileId: owned.profileId,
+      ...nativeMediaPermissionOptions,
+    });
     setupPermissionPolicy(owned.private, {
       persistDecisions: false,
       profileId: owned.profileId,
+      ...nativeMediaPermissionOptions,
     });
     setupDownloads(owned.normal, broadcastDownloadsActivity, {
       private: false,
@@ -7358,13 +8670,45 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // (electronApp.evaluate() reaches straight into the main process) —
       // test-hook.js wraps every installed method with this at install time.
       bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn),
-      tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
+      liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, closeGroup, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
+      runInWindowRuntime,
+      workspaceTestAction(action, args = []) {
+        if (action === 'list') return workspacesProjection();
+        if (action === 'save') return saveCurrentWindowAsWorkspace(rt(), args[0]);
+        if (action === 'open') return switchWindowToWorkspace(rt(), args[0], args[1]);
+        if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
+        if (action === 'fail-session-commit') {
+          const original = fs.renameSync; let writes = 0;
+          fs.renameSync = (from, to) => { if (String(to).endsWith('/session.json') && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
+          try { return createBlankWorkspaceAndSwitch(rt(), args[0]); }
+          finally { fs.renameSync = original; }
+        }
+        if (action === 'metrics') return {
+          residentSets: windowRuntimes.all().filter((r) => r.resident).length,
+          liveOrdinaryTabs: [...tabs.values()].filter((t) => !t.private && liveContents(t)).length,
+          quietTabs: [...tabs.values()].filter((t) => t.asleep).length,
+          workingSetKB: app.getAppMetrics().reduce((n, p) => n + (p.memory?.workingSetSize || 0), 0),
+        };
+        if (action === 'remove') return removeNamedWorkspace(args[0]);
+        if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
+        if (action === 'reset') {
+          for (const r of windowRuntimes.all()) {
+            if (r.resident) {
+              withWindowRuntime(r, () => { r.closing = true; for (const id of [...r.tabOrder]) closeTab(id, { record: false, selectReplacement: false }); });
+              windowRuntimes.discardRuntime(r);
+            } else r.workspaceId = null;
+          }
+          for (const w of namedWorkspaces.list()) namedWorkspaces.remove(w.id);
+          for (const w of namedWorkspaces.deleted()) namedWorkspaces.forget(w.workspace.id);
+        }
+        return { ok: true };
+      },
       openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, openTabInWindow,
       setGlanceTabInWindow, closeGlanceInWindow, closeTabInWindow, reopenClosedTabInWindow,
       createNamedLocalProfileWindow, renameNamedLocalProfile, deleteNamedLocalProfile,
@@ -7373,7 +8717,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isSessionPersistenceReady: () => !sessionPersistenceSuspended,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
-      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      normalizeAddressInput, pasteAndGo, classifyExternalNavigation, openInternalPage, openFindBar,
+      onePasswordTargetForTest: () => {
+        const target = captureOnePasswordTarget(rt());
+        return target ? {
+          kind: target.kind,
+          webContentsId: target.webContents.id,
+          windowId: target.window.id,
+          url: target.url,
+        } : null;
+      },
       // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
       // readiness) against a real captured target — not a reimplementation.
       showFillStatusForTest: (kind) => {
@@ -7466,6 +8819,58 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // place. Entries never leave the main process — the hook only clears.
       getClosedEntries: () => rt().closedEntries ??= [],
       clearClosedEntries,
+      testRuntimeId: primaryRuntime.id,
+      getTabImportSessionProjection: currentTabImportAcceptanceProjection,
+      applyTabImportFromRuntime: applyTabImportAcceptanceFromRuntime,
+      getTabStateBroadcastCount: () => acceptanceTabStateBroadcastCount,
+      getTabHandoffTestState: () => {
+        const owner = pendingTabHandoff
+          ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
+          : null;
+        const pending = owner
+          ? withWindowRuntime(owner, pendingTabHandoffProjection)
+          : { state: 'empty' };
+        return {
+          pending,
+          claimInFlight: tabHandoffClaimInFlight,
+          flushable: tabHandoffsFlushable,
+          windows: windowRuntimes.all().map((runtime) => ({
+            id: runtime.id,
+            profileId: runtime.profileId,
+            activeTabId: runtime.activeTabId,
+            tabs: runtime.tabOrder.map((id) => {
+              const tab = tabs.get(id);
+              if (!tab) return null;
+              return {
+                id,
+                url: tab.url,
+                title: tab.title,
+                active: id === runtime.activeTabId,
+                asleep: !!tab.asleep,
+                live: !!liveContents(tab),
+                private: !!tab.private,
+                pinned: !!tab.pinned,
+                groupId: tab.groupId ?? null,
+              };
+            }).filter(Boolean),
+          })),
+        };
+      },
+      queueTabHandoffForTest: queueTabHandoff,
+      acceptTabHandoffForTest: (destination) => {
+        const owner = pendingTabHandoff
+          ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
+          : null;
+        return owner
+          ? withWindowRuntime(owner, () => acceptPendingTabHandoff(destination))
+          : { ok: false, error: 'unavailable' };
+      },
+      cancelTabHandoffForTest: () => {
+        const owner = pendingTabHandoff
+          ? windowRuntimes.all().find((runtime) => runtime.id === pendingTabHandoff.runtimeId)
+          : null;
+        return owner ? withWindowRuntime(owner, cancelPendingTabHandoff) : { ok: true };
+      },
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;
@@ -7476,6 +8881,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // One 30-second sweep fans out across independent workspaces. The immediate
   // keeps WebContents lifecycle work outside settings fan-out turns.
   setInterval(() => {
+    expireTabImportSessions();
     setImmediate(() => forEachWindowRuntime((runtime) => {
       runSleepSweep().catch((err) =>
         console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
@@ -7546,6 +8952,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // WebRTC reapply is unconditional — setWebRTCIPHandlingPolicy is a cheap,
     // idempotent per-tab call and settings writes are infrequent/user-initiated.
     applyWebrtcPolicyToAllTabs();
+    broadcastWebrtcAudioBufferToBrowsingContents();
     if (s.secureDns !== lastSecureDns || s.secureDnsTemplate !== lastSecureDnsTemplate) {
       lastSecureDns = s.secureDns;
       lastSecureDnsTemplate = s.secureDnsTemplate;
@@ -7613,21 +9020,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     bookmarks.onMerged(refreshBookmarkFlags);
   };
 
-  // HTTP basic/digest auth: without this handler, 401-protected sites
-  // (routers, staging servers) simply fail.
-  app.on('login', (event, requestingWc, _details, authInfo, callback) => {
+  // Website sign-in belongs to the website. Never turn an HTTP basic/digest
+  // challenge (including navigation, page resource, or proxy challenges) into
+  // a separate Blanc credentials dialog.
+  app.on('login', (event, _requestingWc, _details, _authInfo, callback) => {
     event.preventDefault();
-    const tabId = requestingWc ? tabIdByWebContentsId.get(requestingWc.id) : null;
-    const runtime = (tabId ? windowRuntimes.runtimeForTab(tabId) : null)
-      ?? windowRuntimes.runtimeForAuxiliaryContent(requestingWc?.id)
-      ?? focusedRuntime
-      ?? primaryRuntime;
-    withWindowRuntime(runtime, () => {
-      promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
-        if (creds) callback(creds.username, creds.password);
-        else callback(); // no args = cancel the request
-      });
-    });
+    callback();
   });
 
   registerIpcHandlers();
@@ -7702,16 +9100,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const startupTabIds = new Map();
   const startupRuntimes = [];
   const savedStartupRuntimes = [];
+  const savedByRuntime = new Map();
   const chromeReadyPromises = [];
   const createStartupRuntime = (saved, { savedWorkspace = true } = {}) => {
     const existing = windowRuntimes.all().find((runtime) => runtime.id === saved.id);
-    const runtime = saved.id === PRIMARY_WINDOW_ID
+    let runtime = saved.id === PRIMARY_WINDOW_ID
       ? primaryRuntime
       : (existing ?? windowRuntimes.createRuntime({ id: saved.id, profileId: saved.profileId }));
-    // The primary runtime exists before session.json is read so early app
-    // callbacks always have an owner. At this point it owns no tabs or native
-    // window yet, so adopting its persisted profile is the one safe identity
-    // initialization point.
+    // Dock reopening during recovery can already have populated Personal.
+    // Keep that runtime's tabs, sessions, and callbacks in their own profile;
+    // restore a different saved identity into a separate native window.
+    if (runtime === primaryRuntime && runtime.profileId !== saved.profileId
+      && (runtime.window || runtime.tabOrder.length || runtime.closedEntries.length)) {
+      runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: saved.profileId });
+    }
+    // Only an unused primary may adopt its persisted identity at startup.
     if (runtime === primaryRuntime) runtime.profileId = saved.profileId;
     createMainWindow(runtime);
     withWindowRuntime(runtime, () => {
@@ -7719,15 +9122,42 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       startupTabIds.set(runtime.id, createTab(NEW_TAB_URL));
     });
     startupRuntimes.push(runtime);
-    if (savedWorkspace) savedStartupRuntimes.push(runtime);
+    if (savedWorkspace) {
+      savedStartupRuntimes.push(runtime);
+      savedByRuntime.set(runtime, saved);
+    }
     chromeReadyPromises.push(new Promise((resolve) => {
-      runtime.window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+      const window = runtime.window;
+      const chromeContents = window.webContents;
+      const cleanup = () => {
+        chromeContents.removeListener('did-finish-load', onChromeReady);
+        window.removeListener('closed', onClosed);
+      };
+      const onClosed = () => {
+        cleanup();
+        // Settling is cancellation for a discarded window, not readiness.
+        // releaseStartup rechecks runtime registration before restoring tabs.
+        resolve();
+      };
+      const onChromeReady = bindWindowRuntime(runtime, () => {
+        cleanup();
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) {
           setActiveTab(startupTabId, { focusContent: true });
         }
         resolve();
-      }));
+      });
+      // Dock activation can recreate primary while the recovery decision is
+      // still pending. Reusing that loaded window must not wait for a second
+      // did-finish-load: no navigation will emit it, and recovery would hang
+      // after dismissing its prompt, leaving saved tabs and OS links queued.
+      if (runtime.chromeReady) onChromeReady();
+      else {
+        chromeContents.once('did-finish-load', onChromeReady);
+        // A dismissed recovery host must not leave its readiness promise
+        // pending forever if it closes before its first load completes.
+        window.once('closed', onClosed);
+      }
     }));
     return runtime;
   };
@@ -7736,10 +9166,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   } else {
     for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
   }
-  let savedById = new Map(savedWindows.map((saved) => [saved.id, saved]));
   focusedRuntime = recoveryRequired
     ? startupRuntimes[0]
-    : (savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+    : (savedStartupRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
       ?? savedStartupRuntimes.at(-1)
       ?? primaryRuntime);
   setFocusedLocalProfile(focusedRuntime.profileId);
@@ -7771,7 +9200,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }
       savedWindows.splice(0, savedWindows.length, fresh);
       restoredActiveWindowId = PRIMARY_WINDOW_ID;
-      savedById = new Map([[PRIMARY_WINDOW_ID, fresh]]);
     }
 
     if (!diagnostics.resolveSessionRecovery()) {
@@ -7809,12 +9237,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     startupReleased = true;
     if (recoveryChoice) {
       for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
-      focusedRuntime = savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+      focusedRuntime = savedStartupRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
         ?? savedStartupRuntimes.at(-1)
         ?? primaryRuntime;
       setFocusedLocalProfile(focusedRuntime.profileId);
     }
     await Promise.all(chromeReadyPromises);
+    // A saved secondary can close before its chrome (or another window's)
+    // finishes loading. Its close handler discarded the runtime and its tabs;
+    // never resurrect it from the startup inventory. A dock-closed primary
+    // stays registered and retains a quiet workspace for the next activation.
+    const registeredRuntimes = new Set(windowRuntimes.all());
+    const restorableRuntimes = savedStartupRuntimes.filter((runtime) => registeredRuntimes.has(runtime));
+    focusedRuntime = restorableRuntimes.find((runtime) => savedByRuntime.get(runtime)?.id === restoredActiveWindowId)
+      ?? restorableRuntimes.at(-1)
+      ?? primaryRuntime;
+    setFocusedLocalProfile(focusedRuntime.profileId);
 
     if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
       // “Continue without blocking” is an explicit effective-state change,
@@ -7833,8 +9271,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
-    for (const runtime of savedStartupRuntimes) {
-      const saved = savedById.get(runtime.id);
+    for (const runtime of restorableRuntimes) {
+      const saved = savedByRuntime.get(runtime);
       if (!saved) continue;
       withWindowRuntime(runtime, () => {
         // Lazy restore: every saved tab is a labelled record with no renderer.
@@ -7863,7 +9301,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!target) return;
         // Activate first, then close the startup tab. The inverse briefly wakes
         // the wrong quiet tab and doubles renderer memory during restore.
-        setActiveTab(target, { focusContent: true });
+        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
+        else runtime.activeTabId = target;
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
       });
@@ -7883,8 +9322,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     );
     for (const runtime of candidatesByPreference) {
       const workspaceId = workspaceCandidates.get(runtime);
-      if (claimedWorkspaceIds.has(workspaceId)) continue;
-      claimedWorkspaceIds.add(workspaceId);
+      const claim = `${runtime.profileId}:${workspaceId}`;
+      if (claimedWorkspaceIds.has(claim)) continue;
+      claimedWorkspaceIds.add(claim);
       runtime.workspaceId = workspaceId;
     }
 
@@ -7902,6 +9342,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     buildMenu(focusedRuntime ?? primaryRuntime);
 
     sessionPersistenceSuspended = false;
+    broadcastWorkspacesUpdated();
     persistSession();
     sessionRecoveryState = {
       ...sessionRecoveryState,
@@ -7918,8 +9359,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
-    pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
+    openExternalUrls(urlsFromArgv(process.argv.slice(1)));
+    pendingTabHandoffUrls.push(...tabImportUrlsFromArgv(process.argv.slice(1)));
+    externalUrlsFlushable = true;
     withWindowRuntime(focusedRuntime, flushExternalUrls);
+    tabHandoffsFlushable = true;
+    withWindowRuntime(focusedRuntime, flushTabHandoffs);
     maybeSendLaunchPing();
 
     // Patron subscription revalidation — off the critical path, after the
@@ -7996,11 +9441,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupAutoUpdater();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
-    focusedRuntime = primaryRuntime;
-    setFocusedLocalProfile(primaryRuntime.profileId);
+    if (isQuitting) return;
+    const runtime = resolveExternalRuntime();
+    createMainWindow(runtime, { ensureStartTab: true });
+    focusedRuntime = runtime;
+    setFocusedLocalProfile(runtime.profileId);
     refreshDockMenu();
-    withWindowRuntime(primaryRuntime, refocusAddressBarIfWanted);
+    withWindowRuntime(runtime, refocusAddressBarIfWanted);
+    withWindowRuntime(runtime, flushExternalUrls);
+    withWindowRuntime(runtime, flushTabHandoffs);
   });
 }));
 

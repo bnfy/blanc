@@ -70,12 +70,16 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.10.0 public release:
+These boundaries are verified for the v1.16.0 public release:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
   navigation, switching, search, and commands. Do not turn this into a claim
   that Blanc understands what the user is working on.
+- **New-tab shortcut:** The resting Island's Plus creates one regular,
+  ungrouped tab and focuses its address field. It stays bare beside the slash
+  keycap and is hidden in vertical-tabs mode, where the rail already has a New
+  tab control. Do not describe it as creating private or grouped tabs.
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
   categorize tabs semantically, or organize them automatically.
@@ -102,9 +106,49 @@ These boundaries are verified for the v1.10.0 public release:
   metadata, never field values or page text, and does not contact 1Password.
   Credential lookup and fill remain explicit user actions. This is not
   automatic fill, a general extension runtime, or a Blanc password manager.
+- **Mahjong:** Mahjong is a user-selected start-page layout with eight
+  solvable-by-construction boards. Daily rotates deterministically across the
+  eight layouts. Device-local state remembers the last layout, mode, and deal,
+  can offer to continue an unfinished board from another tab, and keeps records
+  and daily streaks. The game also includes scoring, timed combos, automatic
+  clears, hints, shuffle, undo, sound controls, and a footer that can be hidden
+  while playing. Do not describe it as online multiplayer, cloud-synced, or
+  AI-generated.
+- **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
+  choices for WebRTC calls. Stable targets about 400 ms and Resilient about one
+  second, trading responsiveness for more tolerance of choppy playback. Do not
+  promise that either mode eliminates every crackle or fixes source-side,
+  network, Bluetooth, driver, or hardware faults.
+- **Billboard frequently visited sites:** Billboard ranks ordinary browsing
+  history on the device and keeps its favicon artwork and hidden-tile choices
+  local. Private tabs do not contribute or receive this row. Do not describe
+  the feature as synced, account-based, remotely retained, or semantically
+  organized.
+- **Screen and system-audio sharing:** A site request opens Blanc's centered
+  confirmation before capture begins. The user chooses a surface, separately
+  approves computer audio, and can stop each share from the Island while its
+  tab is in the background. Linux continues into its system chooser. Direct
+  and legacy desktop-capture paths remain denied. Do not claim that every
+  platform has an identical chooser or broaden tested conference behavior
+  beyond the dated release evidence.
+- **App icons:** Public v1.16.0 offers Sunrise, Sunrise Dark, Paper, and Ink on
+  macOS. Public copy must not present app icons as a paid benefit.
 - **AI:** Blanc ships no AI assistant or agent browser. It does not understand
   assignments, detect semantic task boundaries, automatically organize tabs
   by meaning, or isolate automated browsing work from a person's session.
+- **Bring Your Tabs and open-tab handoff:** Both are available in public
+  v1.16.0. They are complementary, not interchangeable. Bring Your Tabs
+  starts inside Blanc, reads a user-selected Chromium profile's saved session
+  locally, supports selection and Named Group editing, and can preserve eligible
+  source groups and pins. The one-time handoff starts in ChatGPT or the
+  Firefox/Safari companion and copies only URL, title, order, and active-tab
+  status from one live source window into the current Blanc window. It has a
+  100-tab limit and a simpler review screen; it does not transfer groups or
+  pins. Copy must preserve those distinctions, excluded private/internal tabs,
+  and the fact that OpenAI processes selected
+  metadata on the ChatGPT path while Firefox/Safari encrypt locally. Do not call
+  either path account sync, migration of sessions or logins, an automatic
+  import, or an AI browser feature.
 
 Canonical evidence locations include `src/main/main.js`,
 `src/renderer/overlay.js`, `src/main/tab-sleep.js`, the matching public release
@@ -142,6 +186,7 @@ must come from the current public build or a clearly labelled preview build.
 Do not let generated imagery invent controls, automatic behavior, names, or
 states that Blanc does not ship.
 
-Visual identity follows `docs/brand-usage.md`. In particular, the Blanc mark is
-always black on white or white on black and is never placed on, inside, or
-visually backed by an accent-colored treatment.
+Visual identity follows `docs/brand-usage.md`, including its explicit
+website-only Sunrise palette and mark treatments. Outside those website
+exceptions, the Blanc mark is black on white or white on black and is never
+placed on, inside, or visually backed by an accent-colored treatment.

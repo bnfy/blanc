@@ -7,10 +7,12 @@
   },
   "commands": [
     { "command": "/favorites", "hint": "Open favorites" },
+    { "command": "/bring-tabs", "hint": "Bring open tabs from another browser" },
     { "command": "/save", "hint": "Save this page to favorites — name a folder to file it", "doc": { "command": "/save [folder]", "hint": "Save this page to favorites, into a folder if you name one" } },
     { "command": "/history", "hint": "Open browsing history" },
     { "command": "/downloads", "hint": "Open downloads" },
     { "command": "/settings", "hint": "Open settings" },
+    { "command": "/sync", "hint": "Set up or manage sync" },
     { "command": "/clear", "hint": "Clear browsing history" },
     { "command": "/new", "hint": "Open a new tab" },
     { "command": "/private", "hint": "Open a private tab (history stays untouched)" },

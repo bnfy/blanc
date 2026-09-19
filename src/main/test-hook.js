@@ -9,9 +9,11 @@
 // scenarios exercise real behaviour rather than a reimplementation.
 
 const settings = require('./settings');
+const sync = require('./sync');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { app, Menu, clipboard } = require('electron');
+const path = require('node:path');
+const { app, Menu, clipboard, nativeImage } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -22,6 +24,26 @@ const {
   isAddressMenuAttached,
   ADDRESS_INPUT_ID,
 } = require('./address-menu');
+
+const TAB_IMPORT_FIXTURES = Object.freeze({
+  'folder-fallback': Object.freeze({
+    sourceLabel: 'Google Chrome — Tab migration fixture',
+    candidateCount: 6,
+  }),
+  'merge-existing': Object.freeze({
+    sourceLabel: 'Google Chrome — Merge fixture',
+    candidateCount: 2,
+  }),
+  'stress-500': Object.freeze({
+    sourceLabel: 'Google Chrome — Stress 500',
+    candidateCount: 500,
+    timeout: 20_000,
+  }),
+  'quit-safety': Object.freeze({
+    sourceLabel: 'Google Chrome — Quit safety fixture',
+    candidateCount: 2,
+  }),
+});
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -35,6 +57,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     tabs,
+    liveContents,
     getTabOrder,
     getGroups,
     getActiveTabId,
@@ -85,7 +108,7 @@ function install(refs) {
     normalizeAddressInput,
     probeOnePasswordPackage,
     pasteAndGo,
-    handoffProtocols,
+    classifyExternalNavigation,
     openInternalPage,
     openFindBar,
     getOverlayMode,
@@ -118,12 +141,21 @@ function install(refs) {
     sleepBackgroundTabsNow,
     getPermissionPrompts,
     showFillStatusForTest,
+    onePasswordTargetForTest,
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
+    testRuntimeId,
+    getTabImportSessionProjection,
+    applyTabImportFromRuntime,
+    getTabStateBroadcastCount,
+    getTabHandoffTestState,
+    queueTabHandoffForTest,
+    acceptTabHandoffForTest,
+    cancelTabHandoffForTest,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -142,6 +174,9 @@ function install(refs) {
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
+  let activeTabImportFixtureName = null;
+  const projectRootTabImportSession = () =>
+    getTabImportSessionProjection(testRuntimeId);
   const beforeUnloadProbes = new Map();
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
@@ -180,7 +215,205 @@ function install(refs) {
     }
   }
 
+  async function readTabImportDom() {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) return null;
+    return wc.executeJavaScript(`(() => {
+      if (location.host !== 'tab-import') return null;
+      const visiblePanel = [...document.querySelectorAll('[data-step-panel]')]
+        .find((panel) => !panel.hidden);
+      return {
+        step: visiblePanel?.dataset.stepPanel ?? null,
+        sourceLabels: [...document.querySelectorAll('.tab-import-source-btn')]
+          .map((button) => button.dataset.sourceLabel ?? button.textContent),
+        windows: [...document.querySelectorAll('.tab-import-window-heading h3')]
+          .map((heading) => heading.textContent),
+        preview: [...document.querySelectorAll('.tab-import-preview-row')]
+          .map((row) => ({
+            title: row.querySelector('.title')?.textContent ?? '',
+            meta: row.querySelector('.meta')?.textContent ?? '',
+            selected: row.querySelector('input[type="checkbox"]')?.checked ?? false,
+          })),
+        selectedCount: document.getElementById('tabImportSelectedCount')?.textContent ?? '',
+        groupNames: [...document.querySelectorAll('.tab-import-group-name')]
+          .map((input) => input.value),
+        applyLabel: document.getElementById('tabImportApplyBtn')?.textContent ?? '',
+        applyDisabled: document.getElementById('tabImportApplyBtn')?.disabled ?? true,
+        reviewDisabled: document.getElementById('tabImportContinueToReview')?.disabled ?? true,
+        recoveryHidden: document.getElementById('tabImportSourceRecovery')?.hidden ?? true,
+        recoveryText: document.getElementById('tabImportSourceRecovery')?.textContent ?? '',
+        recoveryButton: document.querySelector('#tabImportSourceRecovery button')?.textContent ?? '',
+        recoveryButtonCount: document.querySelectorAll('#tabImportSourceRecovery button').length,
+        sourceRows: [...document.querySelectorAll('.tab-import-source-btn')]
+          .map((button) => ({
+            label: button.dataset.sourceLabel ?? '',
+            disabled: button.disabled,
+            waiting: button.classList.contains('waiting'),
+            affordance: button.querySelector('.tab-import-source-waiting')?.textContent ?? '',
+          })),
+        status: document.getElementById('tabImportStatus')?.textContent ?? '',
+      };
+    })()`);
+  }
+
+  async function waitForTabImportDom(predicate, label, timeout = 8_000) {
+    const deadline = Date.now() + timeout;
+    let last = null;
+    for (;;) {
+      const surface = getUtilitySheetState();
+      if (surface?.visible && surface.ready && surface.url === 'blanc://tab-import/') {
+        try { last = await readTabImportDom(); } catch { last = null; }
+      } else {
+        last = null;
+      }
+      if (predicate(last)) return last;
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for ${label}; last: ${JSON.stringify(last)}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  async function clickTabImportSelector(selector, matcher = null) {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) throw new Error('tab-import sheet is not open');
+    const clicked = await wc.executeJavaScript(`(() => {
+      const nodes = [...document.querySelectorAll(${JSON.stringify(selector)})];
+      const matcher = ${JSON.stringify(matcher)};
+      const node = matcher === null
+        ? nodes[0]
+        : nodes.find((candidate) =>
+          (candidate.dataset.sourceLabel ?? candidate.textContent) === matcher
+          || (candidate.dataset.sourceLabel ?? candidate.textContent).startsWith(matcher + ' ('));
+      if (!node || node.disabled) return false;
+      node.click();
+      return true;
+    })()`);
+    if (!clicked) throw new Error(`tab-import control unavailable: ${selector} ${matcher ?? ''}`);
+  }
+
+  async function ensureTabImportFixtureStage(name, targetStage) {
+    const fixture = TAB_IMPORT_FIXTURES[name];
+    if (!fixture) throw new Error(`unknown tab-import fixture: ${name}`);
+    const surface = getUtilitySheetState();
+    let dom = await readTabImportDom();
+    if (!surface?.visible || !dom || (activeTabImportFixtureName && activeTabImportFixtureName !== name)) {
+      if (surface?.visible) hideUtilitySheet();
+      openInternalPage('blanc://tab-import/');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
+        `${fixture.sourceLabel} source button`,
+        fixture.timeout,
+      );
+    }
+    activeTabImportFixtureName = name;
+    if (dom.step === 'source') {
+      await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'tabs' && value.preview.length === fixture.candidateCount,
+        'tab-import tabs step',
+        fixture.timeout,
+      );
+    }
+    if (targetStage === 'tabs') return dom;
+    if (dom.step === 'tabs') {
+      await clickTabImportSelector('#tabImportContinueToOrganize');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'organize' && !value.reviewDisabled,
+        'tab-import organize step',
+        fixture.timeout,
+      );
+    }
+    if (targetStage === 'organize') return dom;
+    if (dom.step === 'organize') {
+      await clickTabImportSelector('#tabImportContinueToReview');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'review' && !value.applyDisabled,
+        'tab-import review step',
+        fixture.timeout,
+      );
+    }
+    return dom;
+  }
+
+  async function ensureTabImportQuitGate(name) {
+    const fixture = TAB_IMPORT_FIXTURES[name];
+    if (!fixture) throw new Error(`unknown tab-import fixture: ${name}`);
+    const surface = getUtilitySheetState();
+    let dom = await readTabImportDom();
+    if (!surface?.visible || !dom || (activeTabImportFixtureName && activeTabImportFixtureName !== name)) {
+      if (surface?.visible) hideUtilitySheet();
+      openInternalPage('blanc://tab-import/');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
+        `${fixture.sourceLabel} source button`,
+        fixture.timeout,
+      );
+    }
+    activeTabImportFixtureName = name;
+    if (dom.recoveryHidden) {
+      await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.recoveryHidden === false,
+        'tab-import verified quit gate',
+        fixture.timeout,
+      );
+    }
+    return dom;
+  }
+
+  async function renameTabImportGroup(from, to) {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) throw new Error('tab-import sheet is not open');
+    const changed = await wc.executeJavaScript(`(() => {
+      const input = [...document.querySelectorAll('.tab-import-group-name')]
+        .find((candidate) => candidate.value === ${JSON.stringify(String(from))});
+      if (!input) return false;
+      input.value = ${JSON.stringify(String(to))};
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    if (!changed) throw new Error(`review group not found: ${from}`);
+    return waitForTabImportDom(
+      (value) => value?.step === 'organize' && value.groupNames.includes(String(to)),
+      `organize group rename to ${to}`,
+    );
+  }
+
+  async function waitForTabImportProjection(candidateCount, timeout = 8_000) {
+    const deadline = Date.now() + timeout;
+    let last;
+    for (;;) {
+      last = projectRootTabImportSession();
+      if (!last?.error && last?.candidates?.length === candidateCount) return last;
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for tab-import projection; last: ${JSON.stringify(last)}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  function tabImportApplyRequestFromProjection(projection) {
+    if (!projection || projection.error || !projection.proposal) {
+      throw new Error(`tab-import projection unavailable: ${JSON.stringify(projection)}`);
+    }
+    return {
+      generation: projection.generation,
+      groups: projection.proposal.groups.map((group) => ({
+        name: group.name,
+        candidateIds: [...group.candidateIds],
+      })),
+      ungroupedCandidateIds: [...projection.proposal.ungroupedCandidateIds],
+    };
+  }
+
   globalThis.__blanc = {
+    workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
+    workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
+    workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
+    workspacePageScript(id, script) { return tabs.get(id)?.view?.webContents?.executeJavaScript(script); },
+    workspacePageIdentity(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     // ---- state ----
     windowRuntimes() { return windowRuntimeSnapshots(); },
     openNewWindow() { return openNewWindowAction(); },
@@ -406,6 +639,51 @@ function install(refs) {
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
+    async seedBillboardHistory() {
+      const current = tabs.get(getActiveTabId());
+      await current?.view?.webContents?.session.clearStorageData({
+        origin: 'blanc://newtab',
+        storages: ['localstorage'],
+      });
+      for (const [url, title] of [
+        ['https://youtube.com/watch?v=one', 'YouTube – videos worth watching'],
+        ['https://cnet.com/article/one', 'CNET – technology news and reviews'],
+        ['https://youtube.com/watch?v=two', 'YouTube – videos worth watching'],
+        ['https://scrollapp.co/', 'Scroll – creative work, beautifully organized'],
+        ['https://cnet.com/article/two', 'CNET – technology news and reviews'],
+        ['https://youtube.com/watch?v=three', 'YouTube – videos worth watching'],
+        ['https://developer.mozilla.org/docs', 'MDN Web Docs'],
+        ['https://nintendo.com/', 'Nintendo – Official Site'],
+        ['https://blancbrowser.com/', 'Blanc Browser – browse without the baggage'],
+      ]) history.addVisit(url, title);
+      for (const [url, file] of [
+        ['https://youtube.com/', ['favicons', 'youtube.com.ico']],
+        ['https://cnet.com/', ['favicons', 'cnet.com.ico']],
+        ['https://scrollapp.co/', ['favicons', 'scrollapp.co.ico']],
+        ['https://developer.mozilla.org/', ['favicons', 'developer.mozilla.org.ico']],
+        ['https://nintendo.com/', ['favicons', 'nintendo.com.ico']],
+        ['https://blancbrowser.com/', ['favicon-32x32.png']],
+      ]) {
+        const source = path.join(app.getAppPath(), 'site', 'public', ...file);
+        const png = nativeImage.createFromPath(source)
+          .resize({ width: 32, height: 32, quality: 'best' })
+          .toPNG();
+        history.cacheSiteIcon(url, `data:image/png;base64,${png.toString('base64')}`);
+      }
+      return history.listTopSites({ limit: 6 });
+    },
+    seedBillboardOverflowHistory() {
+      history.clearHistory();
+      // Different visit counts make the sixty-host order deterministic even
+      // when this tight fixture loop produces identical Date.now() values.
+      for (let index = 0; index < 60; index++) {
+        const key = `site-${String(index).padStart(2, '0')}.example`;
+        for (let visit = 0; visit < 60 - index; visit++) {
+          history.addVisit(`https://${key}/${visit}`, `Site ${index}`);
+        }
+      }
+      return history.listTopSites({ limit: 48 }).map((site) => site.key);
+    },
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
@@ -414,6 +692,7 @@ function install(refs) {
       settings.setSettings({ onePasswordEnabled: !!enabled, onePasswordAccount: String(account ?? '') });
       return settings.getSettings().onePasswordEnabled;
     },
+    onePasswordTarget() { return onePasswordTargetForTest?.() ?? null; },
     showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
     fillStatusState() { return fillStatusState?.() ?? null; },
     readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },
@@ -456,6 +735,236 @@ function install(refs) {
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
     },
+    readMigrationChecklistDom() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const shell = document.getElementById('migrationChecklistShell');
+        const sync = document.getElementById('migrationSyncTask');
+        const tabs = document.getElementById('migrationTabsTask');
+        const bounds = (element) => {
+          if (!element || getComputedStyle(element).display === 'none') return null;
+          const rect = element.getBoundingClientRect();
+          return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left,
+            width: rect.width, height: rect.height };
+        };
+        return {
+          count: shell ? 1 : 0,
+          visible: !!shell && !shell.hidden && getComputedStyle(shell).display !== 'none',
+          detailsVisible: !!shell && !shell.hidden &&
+            getComputedStyle(document.getElementById('migrationChecklist')).display !== 'none',
+          progress: shell?.querySelector('.js-migration-progress')?.textContent ?? null,
+          title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
+          syncComplete: sync?.classList.contains('is-complete') ?? false,
+          tabsComplete: tabs?.classList.contains('is-complete') ?? false,
+          expanded: shell?.classList.contains('is-expanded') ?? false,
+          focused: document.hasFocus(),
+          layout: document.body.dataset.layout ?? null,
+          shellBounds: bounds(shell),
+          billboardSitesBounds: bounds(document.getElementById('bbFavorites')),
+        };
+      })()`);
+    },
+    clickMigrationChecklist(action) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      const ids = {
+        sync: 'migrationSyncAction',
+        tabs: 'migrationTabsAction',
+        hide: 'migrationChecklistHide',
+        compact: 'migrationChecklistCompact',
+      };
+      const id = ids[action];
+      if (!id) return false;
+      return wc.executeJavaScript(`(() => {
+        const btn = document.getElementById('${id}');
+        if (!btn) return false;
+        btn.click();
+        return true;
+      })()`);
+    },
+    // Test-only reset so acceptance scenarios remain independent in one profile.
+    resetMigrationChecklist() {
+      settings.setSettings({
+        migrationChecklistDismissed: false,
+        syncMigrationCompleted: false,
+        tabImportCompleted: false,
+      });
+      const current = settings.getSettings();
+      return {
+        dismissed: current.migrationChecklistDismissed,
+        syncComplete: current.syncMigrationCompleted,
+        tabsComplete: current.tabImportCompleted,
+      };
+    },
+    setMigrationChecklistProgress(syncComplete, tabsComplete) {
+      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });
+      return true;
+    },
+    migrationChecklistSettings() {
+      const current = settings.getSettings();
+      return {
+        dismissed: current.migrationChecklistDismissed === true,
+        syncComplete: current.syncMigrationCompleted === true,
+        tabsComplete: current.tabImportCompleted === true,
+      };
+    },
+    syncEnabled() { return sync.status().enabled === true; },
+    async readStartPageFontUsage() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const page = await tab.view.webContents.executeJavaScript(`(() => {
+        const selectors = [
+          '.ledger-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
+          '.bb-blocked', '.shelf-date', '.shelf-label', '.shelf-count',
+          '.tally-count', '.tally-caption', '.ledger-footer', '.ob-step-label',
+          '.ob-commands'
+        ];
+        return {
+          samples: selectors.map((selector) => ({
+            selector,
+            family: getComputedStyle(document.querySelector(selector)).fontFamily,
+          })),
+          jetbrains: [...document.querySelectorAll('body, body *')]
+            .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
+        };
+      })()`);
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return { page, mahjong: null };
+      // Tile faces (character numerals and wind badge letters inside the
+      // tile SVGs) are game artwork and deliberately keep JetBrains Mono;
+      // the Inter rule covers the game's UI text only. Report the faces
+      // separately so the step can assert both halves of that contract.
+      const mahjong = await frame.executeJavaScript(`(() => {
+        const selectors = ['.mj-meter-label', '.mj-timer', '.mj-dock-action', '.mj-overline'];
+        const isTileFace = (element) => element.closest('.mj-face') !== null;
+        const monoElements = [...document.querySelectorAll('body, body *')]
+          .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'));
+        return {
+          samples: selectors.map((selector) => ({
+            selector,
+            family: getComputedStyle(document.querySelector(selector)).fontFamily,
+          })),
+          jetbrains: monoElements
+            .filter((element) => !isTileFace(element))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
+          tileFaceMono: monoElements.filter(isTileFace).length,
+        };
+      })()`);
+      return { page, mahjong };
+    },
+    async readStartPageLayoutFit() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const audit = `(() => {
+        scrollTo(0, 0);
+        const root = document.documentElement;
+        const body = document.body;
+        const describe = (element) => {
+          if (element.id) return '#' + element.id;
+          const classes = [...element.classList].slice(0, 3);
+          return element.tagName.toLowerCase() + (classes.length ? '.' + classes.join('.') : '');
+        };
+        const visible = (element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' &&
+            rect.width > 0 && rect.height > 0;
+        };
+        const hasDirectText = (element) => [...element.childNodes]
+          .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+        const ignored = (element) => element.matches(
+          '.page-sr-only, .mj-sr-only, .mj-skip, [data-dock-label], [aria-hidden="true"], ' +
+          '.fav .name, .shelf-tile .name, .shelf-tile .host, .shelf-date, .bb-fav .label'
+        );
+        const text = [...body.querySelectorAll('*')]
+          .filter((element) => visible(element) && hasDirectText(element) && !ignored(element));
+        const horizontalText = text.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.left < -1 || rect.right > innerWidth + 1;
+        }).map(describe);
+        const unreachableText = text.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          const documentBottom = Math.max(root.scrollHeight, body.scrollHeight);
+          return rect.top < -1 || rect.bottom + scrollY > documentBottom + 1;
+        }).map(describe);
+        const clippedText = text.filter((element) => {
+          const style = getComputedStyle(element);
+          const clipsX = style.overflowX === 'hidden' || style.overflowX === 'clip';
+          const clipsY = style.overflowY === 'hidden' || style.overflowY === 'clip';
+          return (clipsX && element.scrollWidth > element.clientWidth + 1) ||
+            (clipsY && element.scrollHeight > element.clientHeight + 1);
+        }).map(describe);
+        const surfaces = [...body.querySelectorAll('main, .ledger-footer')]
+          .filter(visible)
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left < -1 || rect.right > innerWidth + 1;
+          })
+          .map(describe);
+        return {
+          layout: body.dataset.layout ?? null,
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          clientWidth: root.clientWidth,
+          scrollWidth: root.scrollWidth,
+          horizontalText,
+          unreachableText,
+          clippedText,
+          surfaces,
+        };
+      })()`;
+      const page = await tab.view.webContents.executeJavaScript(audit);
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      const mahjong = frame ? await frame.executeJavaScript(audit) : null;
+      return { page, mahjong };
+    },
+    readBillboardSites() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        sites: [...document.querySelectorAll('#bbFavorites .bb-site')].map((item) => ({
+          key: item.dataset.siteKey,
+          href: item.querySelector('.bb-fav')?.href ?? null,
+          label: item.querySelector('.label')?.textContent ?? null,
+          hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
+          dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+        })),
+        hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
+      }))()`);
+    },
+    hideBillboardSite(key) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const item = [...document.querySelectorAll('#bbFavorites .bb-site')]
+          .find((candidate) => candidate.dataset.siteKey === ${JSON.stringify(String(key))});
+        const button = item?.querySelector('.bb-site-dismiss');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    setBillboardHidden(keys) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      const bounded = Array.isArray(keys) ? keys.slice(0, 200).map(String) : [];
+      return tab.view.webContents.executeJavaScript(`(() => {
+        localStorage.setItem(
+          'blanc.billboard.hidden-top-sites.v1',
+          ${JSON.stringify(JSON.stringify(bounded))}
+        );
+        return true;
+      })()`);
+    },
     async readMahjongEmbedDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -497,6 +1006,7 @@ function install(refs) {
             dockBottom: dockRect?.bottom ?? 0,
             dockButtonWidth: firstDockButton?.width ?? 0,
             dockButtonHeight: firstDockButton?.height ?? 0,
+            dockButtonCount: dockButtons.length,
             dockButtonGap: firstDockButton && secondDockButton
               ? secondDockButton.top - firstDockButton.bottom
               : 0,
@@ -546,16 +1056,23 @@ function install(refs) {
               await new Promise((resolve) => requestAnimationFrame(() => resolve()));
             }
             const actionRect = lastAction.getBoundingClientRect();
+            const bodyRect = document.body.getBoundingClientRect();
+            const cardStyle = getComputedStyle(card);
             return {
               card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
               wrap: { left: wrapRect.left, top: wrapRect.top, right: wrapRect.right, bottom: wrapRect.bottom },
+              body: { left: bodyRect.left, top: bodyRect.top, right: bodyRect.right, bottom: bodyRect.bottom },
               viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
               centerDeltaX: Math.abs((cardRect.left + cardRect.right - innerWidth) / 2),
               centerDeltaY: Math.abs((cardRect.top + cardRect.bottom - innerHeight) / 2),
+              documentClientWidth: document.documentElement.clientWidth,
+              bodyClientWidth: document.body.clientWidth,
+              bodyScrollWidth: document.body.scrollWidth,
+              computedLeft: cardStyle.left,
               clientHeight: card.clientHeight,
               scrollHeight: card.scrollHeight,
               scrollTop: card.scrollTop,
-              overflowY: getComputedStyle(card).overflowY,
+              overflowY: cardStyle.overflowY,
               actionInitiallyVisible,
               actionVisibleAfterScroll:
                 actionRect.top >= cardRect.top - 1 && actionRect.bottom <= cardRect.bottom + 1,
@@ -568,6 +1085,54 @@ function install(refs) {
             time.textContent = previousTime;
             best.textContent = previousBest;
           }
+        })()`);
+      } catch {
+        return null;
+      }
+    },
+    async setNewtabZoomFactor(factor) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const applied = Math.min(3, Math.max(0.5, Number(factor) || 1));
+      tab.view.webContents.setZoomFactor(applied);
+      return tab.view.webContents.getZoomFactor();
+    },
+    async newtabZoomFactor() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.getZoomFactor();
+    },
+    async readMahjongRecordsGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const sheet = document.getElementById('mjRecordsSheet');
+          const card = sheet?.querySelector('.mj-records-card');
+          const trigger = document.getElementById('mjRecords');
+          if (!sheet || !card || !trigger || typeof openRecords !== 'function' || typeof closeRecords !== 'function') return null;
+          if (!sheet.hidden) closeRecords();
+          openRecords();
+          await new Promise((resolve) => setTimeout(resolve, 320));
+          const cardRect = card.getBoundingClientRect();
+          const measured = {
+            card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
+            viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
+            scrollWidth: card.scrollWidth,
+            clientWidth: card.clientWidth,
+            overflowY: getComputedStyle(card).overflowY,
+            rowCount: document.querySelectorAll('#mjRecordsRows tr').length,
+            viewportWidth: innerWidth,
+            viewportHeight: innerHeight,
+            zoomFactor: outerWidth ? outerWidth / innerWidth : 1,
+          };
+          closeRecords();
+          await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+          measured.focusReturned = document.activeElement === trigger;
+          return measured;
         })()`);
       } catch {
         return null;
@@ -922,8 +1487,9 @@ function install(refs) {
     // ---- address routing / overlay ----
     resolveAddress(input) { return normalizeAddressInput(input); },
     wouldHandOff(url) {
-      try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
+      return classifyExternalNavigation(url).action !== 'none';
     },
+    handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {
@@ -1087,6 +1653,7 @@ function install(refs) {
       return wc.executeJavaScript('document.body.dataset.mode || null');
     },
     utilitySurface() { return getUtilitySheetState(); },
+    closeUtilitySurface() { hideUtilitySheet(); return true; },
     windowContentBounds() { return getWindowContentBounds(); },
     setWindowContentSize(width, height) { setWindowContentSize(width, height); },
     // Fronts + focuses the window and reports whether it is now focused, so
@@ -1367,6 +1934,114 @@ function install(refs) {
       return labels;
     },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    openTabImport() { openInternalPage('blanc://tab-import/'); },
+    readTabImportDom,
+    getTabImportSessionProjection() { return projectRootTabImportSession(); },
+    async applyTabImportFixture(name, options = {}) {
+      const fixtureName = String(name ?? '');
+      const stage = String(options?.stage ?? 'apply');
+      if (stage === 'quit-gate' || stage === 'after-quit-refusal') {
+        let dom = await ensureTabImportQuitGate(fixtureName);
+        if (stage === 'after-quit-refusal') {
+          await clickTabImportSelector('#tabImportSourceRecovery button');
+          dom = await waitForTabImportDom(
+            (value) => value?.step === 'source' && value.status.includes('Reopen'),
+            'tab-import exact-newest refusal',
+            TAB_IMPORT_FIXTURES[fixtureName].timeout,
+          );
+        }
+        return { ok: true, dom };
+      }
+      const targetStage = stage === 'preview' || stage === 'cancel'
+        ? 'tabs'
+        : (stage === 'organize' || options?.renameFrom || options?.directApply ? 'organize' : 'review');
+      let dom = await ensureTabImportFixtureStage(
+        fixtureName,
+        targetStage,
+      );
+      if (stage === 'preview' || stage === 'organize' || stage === 'review') {
+        return {
+          ok: true,
+          dom,
+          projection: await waitForTabImportProjection(
+            TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+            TAB_IMPORT_FIXTURES[fixtureName].timeout,
+          ),
+        };
+      }
+      if (options?.renameFrom && options?.renameTo) {
+        dom = await renameTabImportGroup(options.renameFrom, options.renameTo);
+        await clickTabImportSelector('#tabImportContinueToReview');
+        dom = await waitForTabImportDom(
+          (value) => value?.step === 'review' && !value.applyDisabled,
+          'tab-import review after rename',
+          TAB_IMPORT_FIXTURES[fixtureName].timeout,
+        );
+      }
+      const projection = await waitForTabImportProjection(
+        TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+        TAB_IMPORT_FIXTURES[fixtureName].timeout,
+      );
+      if (options?.runtimeId !== undefined && options?.runtimeId !== null) {
+        const request = tabImportApplyRequestFromProjection(projection);
+        if (options?.staleGeneration) request.generation = `stale-${request.generation}`;
+        return applyTabImportFromRuntime(
+          options.runtimeId,
+          projection.sessionId,
+          request,
+        );
+      }
+      if (options?.directApply) {
+        const request = tabImportApplyRequestFromProjection(projection);
+        const beforeBroadcasts = getTabStateBroadcastCount();
+        const result = applyTabImportFromRuntime(
+          testRuntimeId,
+          projection.sessionId,
+          request,
+        );
+        const broadcastCount = getTabStateBroadcastCount() - beforeBroadcasts;
+        if (result?.ok) activeTabImportFixtureName = null;
+        return { ...result, applied: result?.ok === true, projection, broadcastCount };
+      }
+      if (stage === 'cancel') {
+        // Use the renderer's real close control. tab-import-open-tabs.js wraps the
+        // shared sheet close so it cancels the opaque session before main
+        // dismisses the surface; calling hideUtilitySheet directly would
+        // skip that renderer-owned cancellation path when a sheet was
+        // already visually detached.
+        await clickTabImportSelector('.sheet-close');
+        const closeDeadline = Date.now() + 8_000;
+        while (getUtilitySheetState()?.visible) {
+          if (Date.now() > closeDeadline) throw new Error('timed out dismissing tab-import sheet');
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        activeTabImportFixtureName = null;
+        return {
+          ok: true,
+          cancelled: true,
+          projectionAfterCancel: projectRootTabImportSession(),
+          surfaceAfterCancel: getUtilitySheetState(),
+        };
+      }
+      await clickTabImportSelector('#tabImportApplyBtn');
+      const deadline = Date.now() + 8_000;
+      while (getUtilitySheetState()?.visible) {
+        if (Date.now() > deadline) {
+          throw new Error(`timed out applying tab-import fixture; last: ${JSON.stringify(await readTabImportDom())}`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      activeTabImportFixtureName = null;
+      return { ok: true, applied: true, projection };
+    },
+    activePageHasTabImportBridge() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      return wc.executeJavaScript(
+        `typeof window.bowserPages?.tabImport === 'object'`
+      );
+    },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
     destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
@@ -1433,6 +2108,8 @@ function install(refs) {
         findHidden: document.getElementById('obLook')?.hidden ?? true,
         options: [...document.querySelectorAll('#obSources .ob-src-row')].map((row) => row.textContent),
         status: document.getElementById('obImportStatus')?.textContent ?? '',
+        bringTabsHidden: document.getElementById('obBringTabs')?.hidden ?? true,
+        bringTabsLabel: document.getElementById('obBringTabs')?.textContent ?? '',
         step: document.getElementById('onboardDialog')?.dataset.step ?? null,
       }))()`);
     },
@@ -1469,6 +2146,16 @@ function install(refs) {
         if (!rows.length) return false;
         if (!rows[0].classList.contains('selected')) rows[0].click();
         document.getElementById('obNext').click();
+        return true;
+      })()`);
+    },
+    clickFirstRunBringTabs() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('obBringTabs');
+        if (!button || button.hidden) return false;
+        button.click();
         return true;
       })()`);
     },
@@ -1527,6 +2214,10 @@ function install(refs) {
     chromeUrl() { return getChromeUrl(); },
     persistedSessionData() { return persistedSessionData(); },
     serializedTabsPayload() { return serializedTabsPayload(); },
+    tabHandoffState() { return getTabHandoffTestState(); },
+    queueTabHandoff(url) { return queueTabHandoffForTest(String(url)); },
+    acceptTabHandoff(destination) { return acceptTabHandoffForTest(destination); },
+    cancelTabHandoff() { return cancelTabHandoffForTest(); },
     sessionSyncSnapshot() {
       return syncSnapshot(getTabOrder().map((id) => tabs.get(id)), getGroups());
     },
@@ -1604,7 +2295,12 @@ function install(refs) {
 
     // ---- isolation between scenarios ----
     async reset() {
+      refs.workspaceTestAction('reset');
       clearFocusObservation();
+      activeTabImportFixtureName = null;
+      // Keep the current deletion lifecycle authoritative: it settles native
+      // visibility and closes profile windows before clearing their sessions.
+      // Pre-closing them here races asynchronous native/view teardown.
       for (const profile of localProfileSnapshots()) {
         if (profile.id === 'default') continue;
         await deleteNamedLocalProfile(profile.id, profile.name);
@@ -1613,10 +2309,14 @@ function install(refs) {
         if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
       }
       await new Promise((resolve) => setImmediate(resolve));
-      // Do not let a scenario inherit quiet state or retained page state. A
-      // quiet record is safe for closeTab, but waking first makes teardown and
-      // the subsequent snapshot clear explicit.
-      for (const [id, tab] of tabs) if (tab.asleep) await wakeTab(id);
+      // Do not let a scenario inherit retained page state. Quiet imported tabs
+      // are viewless and have no snapshot, so waking hundreds of them merely to
+      // delete them makes the stress scenario's cleanup slower than the product
+      // operation itself. Only retained snapshot state needs an explicit wake
+      // before teardown; closeTab safely removes the other quiet records.
+      for (const [id, tab] of tabs) {
+        if (tab.asleep && getSleepSnapshots().has(id)) await wakeTab(id);
+      }
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       beforeUnloadProbes.clear();
@@ -1647,9 +2347,9 @@ function install(refs) {
         homePage: '',
         theme: 'system',
         tabLayout: 'island',
-        newtabLayout: 'ledger',
+        newtabLayout: 'billboard',
         verticalTabsWidth: 248,
-        appIcon: 'paper',
+        appIcon: 'sunrise',
         adblockExceptions: [],
         onePasswordEnabled: false,
         onePasswordAccount: '',

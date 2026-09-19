@@ -14,10 +14,11 @@
   const favicon = toggle?.querySelector('.pill-fav');
   const page = document.getElementById('pressIslandPage');
   const slash = document.getElementById('pressIslandSlash');
+  const pillNewTab = document.getElementById('pressIslandPillNewTab');
   const start = document.getElementById('pressIslandStart');
   const newTab = document.getElementById('pressIslandNewTab');
 
-  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !shieldCount || !hint || !favicon || !page || !slash || !start || !newTab) return;
+  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !shieldCount || !hint || !favicon || !page || !slash || !pillNewTab || !start || !newTab) return;
 
   // The blank tab renders a miniature of the "billboard" start page. Date,
   // clock, and meridiem use the app's own formats; the blocked line is
@@ -190,11 +191,15 @@
   toggle.addEventListener('click', (event) => {
     interact();
     const open = island.classList.contains('open');
+    if (event.target.closest?.('#pressIslandPillNewTab')) {
+      enterBlankTab();
+      return;
+    }
     // The "/" chip opens the panel already showing the command list, exactly
     // like the app's own chip — a bare "/" cannot say what it does, so
     // clicking it shows you. (The chip is a decorative span inside the pill
     // button, so its clicks arrive here by delegation.)
-    if (!open && event.target === slash) {
+    if (!open && event.target.closest?.('#pressIslandSlash')) {
       input.value = '/';
       renderCommands('/');
       setOpen(true);

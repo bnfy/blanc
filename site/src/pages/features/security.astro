@@ -32,6 +32,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <div class="dots"><span></span><span class="cur"></span><span></span></div>
           <span class="pill-fav" style="background-image:url('/favicons/github.com.ico')"></span>
           <span class="domain">github.com</span>
+          <span class="pill-shortcuts"><span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span></span>
           <span class="shield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count">2</span></span>
           <span class="psep"></span>
           <div class="pacts">
@@ -67,6 +68,41 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>WebRTC stays in its lane.</h3><p>WebRTC can reveal network addresses that sidestep a proxy. Blanc limits it to your default connection by default, and an optional &ldquo;disable direct UDP&rdquo; mode blocks a specific direct-UDP path around an application proxy. It is not a promise of anonymity — it reduces one well-known proxy-bypass risk.</p></article>
       <article><h3>DNS you can encrypt — or hand to your VPN.</h3><p>Blanc can send DNS lookups over an encrypted connection (DoH) to Cloudflare, Quad9, Mullvad, or a provider you name — or stay out of the way and leave DNS to your system or VPN. Encryption hides your lookups from the network in transit; it does not hide the sites themselves, and it makes the resolver a party you choose to trust. Automatic mode upgrades opportunistically and is not a guarantee.</p></article>
     </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-login-title">
+    <div><p class="section-kicker">your existing password manager</p><h2 id="security-login-title">Fill a login when you ask.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Optional 1Password fill on macOS.</h3><p>Use matching Login items from your installed 1Password desktop app and account. Blanc’s narrow SDK integration is off by default, and credential lookup and fill require your explicit action. It is not automatic fill, an extension runtime, or a Blanc password store.</p></article>
+      <article><h3>A local hint, before any lookup.</h3><p>A small hint can appear when the visible page has a current-password field. It uses bounded structure-only metadata, never field values or page text, and makes no request to 1Password. Settings can explicitly verify your saved 1Password account identifier.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-calls-title">
+    <div><p class="section-kicker">calls and permissions</p><h2 id="security-calls-title">See when your microphone or camera is in use.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Access you can see and stop.</h3><p>The Island shows microphone and camera use across the window’s tabs and popups. Open the indicator’s popover to see the active surfaces and stop their access. Closing a capturing tab ends its access immediately.</p></article>
+      <article><h3>A choice for choppy call playback.</h3><p>Call audio buffering offers Automatic, Stable, and Resilient receive-buffer modes for WebRTC calls. Stable targets about 400 ms; Resilient targets about one second. Extra buffering trades conversational responsiveness for more tolerance of choppy playback. It cannot guarantee a fix for network, source, Bluetooth, driver, or hardware faults.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="security-recovery-title">
+    <div><p class="section-kicker">when something goes wrong</p><h2 id="security-recovery-title">A clearer explanation and a choice about recovery.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Certificate failures get their own explanation.</h3><p>Blanc shows a dedicated certificate-failure surface with site-trust details, so a connection problem does not disappear into a generic navigation error.</p></article>
+      <article><h3>Restore tabs or start fresh.</h3><p>After an unclean shutdown, Blanc offers explicit recovery choices. Recovery runs locally and does not upload browsing data.</p></article>
+      <article><h3>Diagnostics you choose to share.</h3><p>Settings → Export diagnostics creates a local file for troubleshooting. Review it before sharing it with support; exporting does not send it anywhere.</p></article>
+    </div>
+  </section>
+  <section class="security-baseline" aria-labelledby="security-baseline-title">
+    <div class="security-baseline-copy">
+      <p class="section-kicker">documented practice</p>
+      <h2 id="security-baseline-title">A public security baseline.</h2>
+      <p>Blanc&rsquo;s current OpenSSF self-assessment records all 24 Level 1 controls and all 19 Level 2 controls as met. The public record covers how the project handles source, changes, dependencies, vulnerability reports, build provenance, and releases.</p>
+      <a class="text-link" href="https://www.bestpractices.dev/en/projects/14451/baseline-2" target="_blank" rel="noopener">Read the OpenSSF assessment <span aria-hidden="true">↗</span></a>
+    </div>
+    <a class="security-baseline-proof" href="https://www.bestpractices.dev/en/projects/14451/baseline-2" target="_blank" rel="noopener" aria-label="View Blanc's OpenSSF Baseline Level 2 self-assessment">
+      <img src="/openssf-baseline-2.svg" width="213" height="20" loading="lazy" decoding="async" alt="OpenSSF Baseline version 2026.08.28, Level 2" />
+      <span class="security-baseline-score" aria-hidden="true">19 / 19</span>
+      <span class="security-baseline-label" aria-hidden="true">level 2 controls documented</span>
+    </a>
   </section>
   <section class="feature-copy-grid" aria-labelledby="security-verify-title">
     <div><p class="section-kicker">verify a release</p><h2 id="security-verify-title">Check that a download is really ours.</h2></div>

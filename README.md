@@ -1,23 +1,77 @@
 # Blanc Browser
 
-[![Blanc's Island chrome opening into the Quick Switcher, switching tabs, and showing a live blocker count](docs/superpowers/plans/assets/island-demo.gif)](docs/superpowers/plans/assets/island-demo.mp4)
+[![Blanc — The browser that gets out of your way](site/public/og-image.png)](https://blancbrowser.com)
 
-A minimal Electron browser with **Island chrome**: instead of a tab strip
-and toolbar, a single floating pill sits top-center over the page — tab
-dots, the current site, and an ad-block counter. Click it (or hit
-`Cmd/Ctrl+L`) and it expands into a command bar: address input, slash
-commands, and a quick switcher across open tabs, favorites, and history.
-Ad/tracker blocking is wired in at the network layer, independent of
-Chrome's extension store and Manifest V3's `declarativeNetRequest` limits.
-Plus favorites, history, downloads, settings, private tabs, per-site
-permission prompts, session restore, and signed + notarized auto-updating
-macOS builds.
+<p align="center">
+  <strong>A minimal, open-source desktop browser built around one small Island.</strong><br>
+  <a href="https://blancbrowser.com">Website</a> ·
+  <a href="https://github.com/bnfy/blanc/releases/latest">Download</a> ·
+  <a href="docs/user-guide.md">User guide</a> ·
+  <a href="SECURITY.md">Security</a>
+</p>
 
-> **Current release:** v1.10.0 refines the optional macOS 1Password integration
-> with device-local login hints and Settings verification while keeping
-> credential fill explicit and user-invoked. Use the
-> [v1.10.0 tag](https://github.com/bnfy/blanc/tree/v1.10.0) for the exact source
-> snapshot associated with the public binaries.
+Blanc replaces the usual tab strip and toolbar with a floating command pill.
+It keeps the current site, tab switching, navigation, search, and a live
+blocker count close at hand, then expands when you need more.
+
+- **A quieter interface:** Island chrome, the Quick Switcher, tab groups,
+  Quiet Tabs, Glance, and multiple windows without a permanent toolbar.
+- **Blocking built in:** ads and trackers are filtered at the network layer
+  from bundled, hash-verified EasyList and EasyPrivacy snapshots.
+- **Private and local choices:** private tabs use a separate in-memory session;
+  local profiles separate site data, history, Favorites, downloads, and
+  remembered permissions.
+- **Desktop releases:** signed and notarized macOS builds, signed Windows
+  installers, and Linux AppImages, all distributed through GitHub Releases.
+
+## Watch Blanc in action
+
+[![Watch Blanc Browser — A little less browser. (v1.16.2)](docs/superpowers/plans/assets/island-demo.gif)](docs/superpowers/plans/assets/island-demo.mp4)
+
+[Watch the 22-second v1.16.2 tour.](docs/superpowers/plans/assets/island-demo.mp4)
+
+## Security and trust
+
+Blanc uses Electron and Chromium. Electron is part of the browser's attack
+surface, so Blanc treats runtime configuration, permissions, dependencies,
+and release integrity as explicit controls:
+
+- Public web tabs run with Chromium sandboxing enabled, Node integration
+  disabled, and context isolation enabled. Blanc-owned pages such as Settings
+  and History use a narrow internal connection to the app. Regular websites
+  do not get that connection, which helps keep a malicious or compromised site
+  from reaching tabs, history, settings, or browser controls.
+- Permissions deny by default. Camera, microphone, location, and notifications
+  require per-site decisions. Screen sharing starts only through Blanc's
+  trusted confirmation and capture helper; direct and legacy capture paths and
+  other unhandled permissions remain refused.
+- Published macOS builds are signed and notarized, and Windows installers are
+  timestamp-signed. The current release includes a Sigstore-authenticated
+  checksum manifest, a CycloneDX SBOM, and provenance evidence.
+- Vulnerabilities can be reported privately under the response targets and
+  safe-harbor terms in [SECURITY.md](SECURITY.md).
+
+The current [security assessment](docs/security-assessment.md) documents
+system actors, trust boundaries, external interfaces, likely threats, controls,
+and residual risks. [Project governance](docs/governance.md) names the sole
+maintainer, responsibilities, and sensitive access domains.
+
+Blanc has earned the
+[OpenSSF Best Practices Baseline Level 2](https://www.bestpractices.dev/en/projects/14451/baseline-2)
+self-certification. It is a voluntary assessment of documented project
+practices, not an independent security audit or endorsement. Blanc currently
+has one human maintainer and has not completed an independent external audit.
+The evidence and limits for the current release are recorded in the
+[v1.17.2 release report](docs/release-incidents/2026-09-17-v1.17.2.md).
+
+> **Current release:** v1.17.2 exits cleanly on Windows and Linux once the last
+> visible window is closed, so a relaunch no longer defers to a stuck
+> background process. It follows v1.17.1, which removed Blanc's own HTTP
+> authentication dialog — sites and proxies that relied on that browser prompt
+> may now fail with a 401 or 407 — and v1.17.0, which preserves live drafts,
+> history, and page state across Named Workspace switches. Use the
+> [v1.17.2 tag](https://github.com/bnfy/blanc/tree/v1.17.2) for the exact
+> source snapshot associated with the public binaries.
 
 ## Source and license
 
@@ -48,10 +102,9 @@ the published artifacts; they do not make local builds reproducible. See the
 
 Everything that makes Blanc a browser is free: ad and tracker blocking,
 encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc
-Patron costs $30 a year or $4 a month and, on macOS, adds three Dock colorways;
-on every platform, it also adds Named Workspaces. Creating a named workspace
-requires an active Patron subscription. Renaming and removing existing
-workspaces continue to work if it lapses.
+Patron costs $30 a year or $4 a month and adds Named Workspaces on every
+platform. Creating a named workspace requires an active Patron subscription.
+Renaming and removing existing workspaces continue to work if it lapses.
 
 The memory benchmark, method, and raw runs are in
 [`bench/memory/`](bench/memory/).
@@ -65,7 +118,14 @@ Apple Silicon and/or Intel dmg/zip artifacts, signed & notarized), Windows
 (x86_64 AppImage).
 Installed copies keep themselves current via auto-update.
 
+See the [user guide](docs/user-guide.md) for getting started, browsing,
+privacy controls, profiles, sync, and updates.
+
 ## Run it from source
+
+For bug reports, patches, and documentation improvements, see
+[Contributing to Blanc](CONTRIBUTING.md). Report vulnerabilities through
+[the private security reporting process](SECURITY.md).
 
 ```
 npm install
@@ -84,8 +144,11 @@ Dev runs use their own userData profile and never send usage events.
 
 To build an installable app: `npm run dist` (or `npm run dist:dir` for a
 quick unpacked build in `dist/`). Targets: macOS dmg/zip, Windows NSIS,
-Linux AppImage. `build/icon.png` (1024×1024) is the app icon source;
-electron-builder derives the .icns/.ico from it automatically.
+Linux AppImage. `assets/sunrise-app-icon.png` is the canonical static app-icon
+source for Linux and iOS, and the brand build copies it to `build/icon.png`.
+Windows generates its multi-frame ICO from the canonical transparent Sunrise
+mark, omitting only its three shortest reflection lines for taskbar scale;
+macOS uses the appearance-aware Sunrise Icon Composer document.
 
 ## The island
 
@@ -177,7 +240,6 @@ src/main/settings.js     Search engine / adblock / theme / home page settings
 src/main/search-suggestions.js  Bounded default-engine autocomplete providers
 src/main/store.js        Tiny debounced JSON-file persistence used by all of the above
 src/main/context-menu.js Right-click menu for web content
-src/main/auth-dialog.js  HTTP basic/digest auth prompt
 src/main/updater.js      electron-updater wiring
 src/main/preload.js      contextBridge API for the chrome strip + island overlay
 src/main/tab-preload.js  contextBridge API for blanc:// internal pages only
@@ -213,9 +275,11 @@ to Blanc's chrome documents and is independently sender-checked.
 
 **Permissions:** deny-by-default. Camera, microphone, geolocation, and
 notifications surface a per-site Allow/Block prompt in the chrome; the
-decision is remembered per origin and manageable in Settings. Everything
-else (screen capture, MIDI, etc.) is refused outright; fullscreen, pointer
-lock, and sanitized clipboard writes are allowed.
+decision is remembered per origin and manageable in Settings. Screen sharing
+uses a dedicated Blanc confirmation and helper session, while direct and
+legacy desktop-capture paths remain denied. Other unhandled permissions such
+as MIDI are refused; fullscreen, pointer lock, and sanitized clipboard writes
+are allowed.
 
 **Ad blocking:** `adblock.js` attaches a `@ghostery/adblocker-electron`
 engine to `session.defaultSession` once at startup, covering every tab.
@@ -298,21 +362,13 @@ entirely.
   credential-manager passkeys still await Apple's grant of the
   `com.apple.developer.web-browser.public-key-credential` entitlement
   (requested).
-## Rebrand cleanup still pending
 
-This app was renamed from "Bowser" to Blanc — the code, package identity,
-and visual assets are done, but a few infra steps are deliberately not yet
-live:
+## Naming continuity
 
-- The marketing site (`site/`) is live on the Cloudflare Pages project
-  `blancbrowser` (direct upload: `npm run site:deploy`, which builds the
-  Astro site and uploads `site/dist`), served at the canonical domain
-  `blancbrowser.com`. `getbowser.com` 301-redirects there path-for-path
-  (live since 2026-07-11), so search consolidates onto the canonical domain.
-- This file's still-old-name architecture references were updated, but a
-  fuller pass to make sure nothing else in the repo (scripts, docs, comments)
-  assumes "Bowser" would be worth a final sweep before the first real
-  "Blanc" release ships.
+The app was renamed from Bowser to Blanc in July 2026. It keeps the bundle
+identifier `me.bnfy.bowser` so existing macOS signing and Gatekeeper identity,
+installed user data, and the auto-update chain continue to work. The former
+`getbowser.com` domain redirects path-for-path to `blancbrowser.com`.
 
 ## Known rough edges
 

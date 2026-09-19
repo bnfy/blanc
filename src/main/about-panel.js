@@ -12,7 +12,7 @@ function aboutPanelOptions({ app, iconPath } = {}) {
     credits: 'Independent browser by Bananify.',
     authors: ['Bananify'],
     website: ABOUT_WEBSITE,
-    iconPath: iconPath ?? path.join(__dirname, '../renderer/pages/icon-paper.png'),
+    iconPath: iconPath ?? path.join(__dirname, '../renderer/pages/icon-sunrise.png'),
   };
 }
 

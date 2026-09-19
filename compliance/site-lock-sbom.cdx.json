@@ -583,14 +583,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/internal-helpers@0.10.4",
+      "bom-ref": "pkg:npm/%40astrojs/internal-helpers@0.11.0",
       "name": "@astrojs/internal-helpers",
-      "version": "0.10.4",
+      "version": "0.11.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9e8cd94b2fe62982ea7b862ba9b2ad74eb3379d01f5d80adc37c19d1df82023cf81aa4382fdae5d65b482f90658309985629c983f459d0c806b9639d97245994"
+          "content": "debcf127ec5ba34fbc632a8eccbce220ddf6c26b077428c4573dac18ea51c49f817a7fca88ba61e08b71072d5a6c42fe13c7e4473aa3834adf5e6687246c3d24"
         }
       ],
       "licenses": [
@@ -600,7 +600,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/internal-helpers@0.10.4",
+      "purl": "pkg:npm/%40astrojs/internal-helpers@0.11.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -622,20 +622,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/internal-helpers/-/internal-helpers-0.10.4.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/internal-helpers/-/internal-helpers-0.11.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
+      "bom-ref": "pkg:npm/%40astrojs/markdown-satteri@0.4.1",
       "name": "@astrojs/markdown-satteri",
-      "version": "0.3.8",
+      "version": "0.4.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9fc22da454c29a50ec551e7eaf00e67a149ffa314260b5a66628ac64d1ae17bc482ea621b157817dc85ae2a812d927aaddf01cf539b9f1956bbea150e9142045"
+          "content": "1278876c535ae924070e287b267a4fa2cdcd5973ba85db78ada05c3a8b1f1a695f73780ff4223fb04480dd539fd4f80967b4857dec25656f4b8af9f426e80466"
         }
       ],
       "licenses": [
@@ -645,7 +645,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
+      "purl": "pkg:npm/%40astrojs/markdown-satteri@0.4.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -667,7 +667,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/markdown-satteri/-/markdown-satteri-0.3.8.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/markdown-satteri/-/markdown-satteri-0.4.1.tgz"
         }
       ]
     },
@@ -1686,14 +1686,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40emnapi/runtime@1.11.2",
+      "bom-ref": "pkg:npm/%40emnapi/runtime@1.11.3",
       "name": "@emnapi/runtime",
-      "version": "1.11.2",
+      "version": "1.11.3",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9323a5dd7d03b93893d61d9fb7caf67d83bc258b54f5af578acff305288602b35a6a008e5b1f74375936c31a75f1ccc50c7f8e81c5866f964ffd732dddd7323c"
+          "content": "5f3e13a72922ed7caba5b50ad6347502174075a5f2861638959de778ba1d9a1a6e59fcb63c040de41e3ab00894e2588e5c62e41f2a67fea53e8ef7d64826182c"
         }
       ],
       "licenses": [
@@ -1703,7 +1703,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40emnapi/runtime@1.11.2",
+      "purl": "pkg:npm/%40emnapi/runtime@1.11.3",
       "properties": [
         {
           "name": "blanc:development",
@@ -1725,7 +1725,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.2.tgz"
+          "url": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.3.tgz"
         }
       ]
     },
@@ -3244,6 +3244,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
+      "name": "@fontsource-variable/newsreader",
+      "version": "5.3.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "aebcd88b8dea3296f3c2e16d7fd3a4587f2cc403d53dc410404c17a4fb7068a61e27cc9583968bb3991ac26a357f6435b75337f132e610a0a41950ec63081d17"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@fontsource-variable/newsreader"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@fontsource-variable/newsreader/-/newsreader-5.3.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
       "name": "@fontsource/jetbrains-mono",
       "version": "5.3.0",
@@ -3334,14 +3379,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-darwin-arm64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-darwin-arm64@0.35.4",
       "name": "@img/sharp-darwin-arm64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "44c9c55fb610b0ca21ee559f70ce0d1071f29815ffacbb8a34f54cf385c4f4e34f71a4820e013b087207a5280f70edb1711b61801cb51df34edf5f66c2120092"
+          "content": "5217e5e15e2584fda76d4545f7e8721f5fa5ba3f3a7f581415ea3c00b63116850ba14f86f3b0f8dc17de30ff171ec93d6e8c409c263f6dfd841f0840eccb86b0"
         }
       ],
       "licenses": [
@@ -3351,7 +3396,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-darwin-arm64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-darwin-arm64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3359,7 +3404,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3381,20 +3426,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-darwin-arm64/-/sharp-darwin-arm64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-darwin-arm64/-/sharp-darwin-arm64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-darwin-x64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-darwin-x64@0.35.4",
       "name": "@img/sharp-darwin-x64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "5e8fb9b8506d2cdd012aa89e4f1885cc53d00149416db1f98812b2457ff3d49adb9d8b074df2899d47cbf3ea764cf5ebd695ea6a8e1e78be11975e38b83a4af7"
+          "content": "8569e25d8ddb1b9a8aa642ab0303dee32f954cf99fd3ce984009e4c5687bb80d58ae5468b9619ad0cd0cc63dd98e75c592feff4c3d5b4f2f651942b6eaf46f5b"
         }
       ],
       "licenses": [
@@ -3404,7 +3449,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-darwin-x64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-darwin-x64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3412,7 +3457,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3434,20 +3479,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-darwin-x64/-/sharp-darwin-x64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-darwin-x64/-/sharp-darwin-x64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.4",
       "name": "@img/sharp-freebsd-wasm32",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "954c5ca96223db0310f41af03639e072bd60594af9c606864e1051a8f3da9480b69faec2aa3d6e3e1f0d9c0fd984083c8546ca97e9151cac20508c1ee9960fae"
+          "content": "948b0ac3f054fa48c1e1e663c6b62b666c0e2588b7023aefeba8809419943f229cdc7a679687af075837c31183f4fff905b4356eb04697ae55451ac2bd00c4a8"
         }
       ],
       "licenses": [
@@ -3457,11 +3502,11 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.4",
       "properties": [
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3483,20 +3528,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-freebsd-wasm32/-/sharp-freebsd-wasm32-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-freebsd-wasm32/-/sharp-freebsd-wasm32-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.3",
       "name": "@img/sharp-libvips-darwin-arm64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f49eb2a591694018f862778f1a8abf4b7f30ea7cfebea8395992eb2c663862e49e99d32ae3b18c2c13cee36333c1d1b0a60fda819ef1cd97051dae3cc65cb07e"
+          "content": "b2e4c13d30c6ac8f56a1d71c683770648b5349a0580129419353527c49521eb51fceedeccc6ea5bc8179f3e5a216f9dfcee2bc641152e73134d0fc6ac674623e"
         }
       ],
       "licenses": [
@@ -3506,7 +3551,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3514,7 +3559,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3536,20 +3581,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-darwin-arm64/-/sharp-libvips-darwin-arm64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-darwin-arm64/-/sharp-libvips-darwin-arm64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.3",
       "name": "@img/sharp-libvips-darwin-x64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9b6a56d67e9c9ecf556ae6cdc2c67e737091623c4d416809e603e59cbd676c1729901bc59ba48214de68d29b051c8f30f67d7534a84591e1039ecf7cb62a9b13"
+          "content": "155259e662133286e65c8cff84f0d3c341229ed4d6e47dd67ebc702ea12a8e2222865bbe8554721ab150eb4c65d0bc67ec1b77cdda5ebcf6908b41c4ceacfd7f"
         }
       ],
       "licenses": [
@@ -3559,7 +3604,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3567,7 +3612,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3589,20 +3634,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-darwin-x64/-/sharp-libvips-darwin-x64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.3",
       "name": "@img/sharp-libvips-linux-arm",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d5e30bcf2f7623827aae68b89804fcc82dc7c4eb678b21842e5cc66cd30b2dea9ed39d9a84543487a2c5abe961e43b0321d6158880ecb74f1a6ef49b70474b5d"
+          "content": "deb6d4e2fa975dcde163f3a25dd979db166f4f4175c849e059fbeab9db4f260fca93289a430d8346c16b373a662ef7dabdbc0eab7a979f7e863fca1b1d150b40"
         }
       ],
       "licenses": [
@@ -3612,7 +3657,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3620,7 +3665,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3642,20 +3687,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm/-/sharp-libvips-linux-arm-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm/-/sharp-libvips-linux-arm-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.3",
       "name": "@img/sharp-libvips-linux-arm64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "76a5521729c2a31e02fc9f244f5e95ed2205027b3422380bc24bd84fba7c2d0566279392e5bead23d2067e5c537ae052fffcd77852146f0b79770c72675edc9c"
+          "content": "d0368bd00e97bbab104901707b88950ab2965367024c8b6746c62c09dc40326f4d17ab70000f412a7a2acb886acf8f9acd0d091ee036eaa8942ac7f55c9fefe4"
         }
       ],
       "licenses": [
@@ -3665,7 +3710,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3673,7 +3718,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3695,20 +3740,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm64/-/sharp-libvips-linux-arm64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-arm64/-/sharp-libvips-linux-arm64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.3",
       "name": "@img/sharp-libvips-linux-ppc64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "df3d0d1c3c43ea7e48f60734e54d5e5b5032466f86ce7ceade768caed84f36a13aa18ca4728816d25fe37e925d8d89ee365f11ef223da4d6c4d578947b2ab403"
+          "content": "71d9f53af501c2c5e16c2d334b32673737f9319fe64eba1b6b00ef357053c5ef15b6a2809b4b11b8463612fce8bdbff0f49324e13bd1c6ab7599e912b89cfae3"
         }
       ],
       "licenses": [
@@ -3718,7 +3763,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3726,7 +3771,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3748,20 +3793,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-ppc64/-/sharp-libvips-linux-ppc64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-ppc64/-/sharp-libvips-linux-ppc64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.3",
       "name": "@img/sharp-libvips-linux-riscv64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6ec6f8ac8f8d95d18eb17b9e8f6afc39d492f3ecd70d56825b1c96adcbfa9277933a58001ed640051cc1042c1db0f883f742789b2349b87a60ea4036d08996ff"
+          "content": "1e33d5c7bc8acfed25a9d843953c35b6df74c1a981a318625e9be5d5766924b8871f8442279c834ea1fe56560fbf67f016cf3d245c3873521ec5839c4148b821"
         }
       ],
       "licenses": [
@@ -3771,7 +3816,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3779,7 +3824,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3801,20 +3846,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-riscv64/-/sharp-libvips-linux-riscv64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-riscv64/-/sharp-libvips-linux-riscv64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.3",
       "name": "@img/sharp-libvips-linux-s390x",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "fc006c8728fc802a7222b3579c79f82e8ac32741c79b55615cf065c59f3302d7d53c069269f5cf1a7fac5122118b0692072d269858d28e25c8e6691cc1d0a129"
+          "content": "9de58b87edf208d4e1c677f2ddce016d505e1a0b7d69fb67a3e5db4f9ea22b6f1181e0ecdd43855af88b5a552ed1b02b6156096850caf9146885b89c50d0a6f1"
         }
       ],
       "licenses": [
@@ -3824,7 +3869,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3832,7 +3877,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3854,20 +3899,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-s390x/-/sharp-libvips-linux-s390x-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-s390x/-/sharp-libvips-linux-s390x-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.3",
       "name": "@img/sharp-libvips-linux-x64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "2133c4b607df189d12e86f5d472c3fdfaead250a8545c1d63c7842f92b6983767c00432b0eb4ebda585dcf87ff63f1cc6d187fffb679981cc4a55762eb639cdf"
+          "content": "e2f2a6bc0b2df67ae8c1caaab8a140c992540e8954688a7cb9188dd2658582e275229942f7fa62b57b659e7954e1a6bf789c3727b8baed5fa9c142fec1919db0"
         }
       ],
       "licenses": [
@@ -3877,7 +3922,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3885,7 +3930,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3907,20 +3952,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-x64/-/sharp-libvips-linux-x64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linux-x64/-/sharp-libvips-linux-x64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.3",
       "name": "@img/sharp-libvips-linuxmusl-arm64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cc4f447625335268399834f96b5ae4e5f609e8658f9684f05816034b5e276aa1ec2fe11a3290e3d405a7a4b821deed1808e46fd93b79d30adcae962a90ff7b2b"
+          "content": "63d91068b32e3680746cf60e39d71931ab1e36b1693e874859632bc7e099cb275fdb19faf23f5661ceac59646b0f0364cc24232987dcebc2fb8ca8c69473226f"
         }
       ],
       "licenses": [
@@ -3930,7 +3975,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3938,7 +3983,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3960,20 +4005,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-arm64/-/sharp-libvips-linuxmusl-arm64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-arm64/-/sharp-libvips-linuxmusl-arm64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.2",
+      "bom-ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.3",
       "name": "@img/sharp-libvips-linuxmusl-x64",
-      "version": "1.3.2",
-      "scope": "required",
+      "version": "1.3.3",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9b496b2e252dfa50589c216bf2a57feb9c8c47813f73bff07fbf08e5e29376411a90502567d425cc433740886103055e5212c01cb702abb6bb56cceafe814d65"
+          "content": "7e3f0cbf41c77c3d51afee08ebcfb76a02729f10d6b4116089c4db48e6fd0647baa48c3319c27e457ff21e39a210614c09abd8fddc6f7a6eccc8d68917ec038b"
         }
       ],
       "licenses": [
@@ -3983,7 +4028,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.2",
+      "purl": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.3",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -3991,7 +4036,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4013,20 +4058,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-x64/-/sharp-libvips-linuxmusl-x64-1.3.2.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-x64/-/sharp-libvips-linuxmusl-x64-1.3.3.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linux-arm@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linux-arm@0.35.4",
       "name": "@img/sharp-linux-arm",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "69f7d55824cba28cbc4d2c5b0f1daa933b8379a58b355040f8ffff14d062ac7b17a4fd9fb81864e40b9ba18527ac39f3a177acf06163a53c7448114e09183e14"
+          "content": "ece012f2023411178a1953761ecb0794ceae989831179548df1374a7d140f75a7f60efa8bb986236084b759e41107cedc1a68ae7e6cb2917fcc7fa362f69e4f4"
         }
       ],
       "licenses": [
@@ -4036,7 +4081,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linux-arm@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linux-arm@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4044,7 +4089,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4066,20 +4111,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linux-arm/-/sharp-linux-arm-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linux-arm/-/sharp-linux-arm-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linux-arm64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linux-arm64@0.35.4",
       "name": "@img/sharp-linux-arm64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "420283b291cf9eb53e190e795cf846c32842f1a70b54e392c80be8d6855f166ac85cb903366196cc07c3678c4af28480d6a050ac02dc1d7d06e546678bf4ae15"
+          "content": "0dee23a449c053c1dde684f48f51b7b8be19bd3ba2a55327ed80babcf689872ebfec4c0469ed12540a01ad431841b90b1839bce6d6955b0b8f7356b8e0b4f309"
         }
       ],
       "licenses": [
@@ -4089,7 +4134,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linux-arm64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linux-arm64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4097,7 +4142,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4119,20 +4164,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linux-arm64/-/sharp-linux-arm64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linux-arm64/-/sharp-linux-arm64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linux-ppc64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linux-ppc64@0.35.4",
       "name": "@img/sharp-linux-ppc64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b0c77cac3c66a4b3b0bffecde38925163383e4350eec52dd8e25c3234868c5869fec0af6eb6750204928b04f7c6e9b3ee473cbb69fc4bcda9ea90b4ec9c3ff20"
+          "content": "da861925e225e2409c306938a2e6558e7902b45ae940594d12d27a19bc7384741c8701f4347fea11bf729263a5dbd76ac0cabe26115d667fb56a4d852a123d7d"
         }
       ],
       "licenses": [
@@ -4142,7 +4187,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linux-ppc64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linux-ppc64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4150,7 +4195,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4172,20 +4217,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linux-ppc64/-/sharp-linux-ppc64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linux-ppc64/-/sharp-linux-ppc64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linux-riscv64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linux-riscv64@0.35.4",
       "name": "@img/sharp-linux-riscv64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d04a1befcca39583df2f9bcc356016e7997747d63a0504bf80e7ded1970ff66133f68861292b788a6d616b28a49d781ff005ab16a32f25c2887662e611eef279"
+          "content": "70f6cd0a1a1151101675e6c320749e9f1469804772ec990fc9d4a7531466f55bca0fb9b4ff155a47ff05ce5bbcd699399c712f1c7f3b519500edc4edc276c948"
         }
       ],
       "licenses": [
@@ -4195,7 +4240,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linux-riscv64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linux-riscv64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4203,7 +4248,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4225,20 +4270,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linux-riscv64/-/sharp-linux-riscv64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linux-riscv64/-/sharp-linux-riscv64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linux-s390x@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linux-s390x@0.35.4",
       "name": "@img/sharp-linux-s390x",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "2a00314340f1a4d3aad6b1b6b797204e04a1245192b94ed73b8e5ca82fb53553ae6673fab6581946e49839f36ea46907203d28ddc24eb30e0355e269328bdc1b"
+          "content": "458d09158f0577a4689c206d1f3f83bda75a3e45c3488d40527eb258bf538a9aa4675bd8f30f1ebea760c83167926e3f2b5bded53bd989a78f3f9a12778f9655"
         }
       ],
       "licenses": [
@@ -4248,7 +4293,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linux-s390x@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linux-s390x@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4256,7 +4301,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4278,20 +4323,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linux-s390x/-/sharp-linux-s390x-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linux-s390x/-/sharp-linux-s390x-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linux-x64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linux-x64@0.35.4",
       "name": "@img/sharp-linux-x64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f29aafc6e6cbd8f19d8653f2e862eacc360c523c9198a03028760a8b1a5d2580542bb3c9d02d36f5776c9e91487604591baf1f66219d1d559c28fbed88f07870"
+          "content": "f6abef100ba4f24f3d4df594a17da1b568db00c5fca7e3710a9a63a5c83993ac4cb2384140f4eca08877ea1f5075ee1646e1a925e6273a3768b039ff727bfe38"
         }
       ],
       "licenses": [
@@ -4301,7 +4346,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linux-x64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linux-x64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4309,7 +4354,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4331,20 +4376,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linux-x64/-/sharp-linux-x64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linux-x64/-/sharp-linux-x64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.4",
       "name": "@img/sharp-linuxmusl-arm64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "573d22423cf37125f71c26dfc057c2486ffd48222ac8ed261f6b17ca21da0187c1934711b025974724185f4a2f08afcf01005b4f343476c3d01e1e4c0052f9f7"
+          "content": "281e63c697d6413af49dcdf1747b560a175b89f1eb046b1dd9233ad84cb1ae5f1a7e2926f9fe6a18153be522486414ff4b5302f17c9a71d95704c496aba39444"
         }
       ],
       "licenses": [
@@ -4354,7 +4399,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4362,7 +4407,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4384,20 +4429,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linuxmusl-arm64/-/sharp-linuxmusl-arm64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linuxmusl-arm64/-/sharp-linuxmusl-arm64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.4",
       "name": "@img/sharp-linuxmusl-x64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e8ed4d3ca703563f5011d83b1f1e78f445fc534ae9eb25d0111aabbbac9137b7c6067df652f2112549569e4fbcc430a21bbea15d505b5fcd8d67f64aaf47ae22"
+          "content": "7fe79925921034411ddba44f496fbbe9c87039fd57b40d98fcefb9a1c5722e588791e8a1ddefa384b54174d4dddab4b721b3572bcfae83ddd57f9657b45e4bc6"
         }
       ],
       "licenses": [
@@ -4407,7 +4452,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4415,7 +4460,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4437,20 +4482,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-linuxmusl-x64/-/sharp-linuxmusl-x64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-linuxmusl-x64/-/sharp-linuxmusl-x64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-wasm32@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-wasm32@0.35.4",
       "name": "@img/sharp-wasm32",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "719d1791c606a47664a96ea20a4a93726502d020fd0e10f977fa9e6656647d1067e869c79e26572d4a39fbdc70f08bfbe9813a2d014df5834194a4447021bbeb"
+          "content": "cd09e5e0ac29ed0e8d1ec10db54d93ff4d198bec37010370cf7f94693c95072d85a57af35f31a39dda4aeb5a278598d1b51a505f10937aac35f5b5725ce87b8c"
         }
       ],
       "licenses": [
@@ -4458,11 +4503,11 @@
           "expression": "Apache-2.0 AND LGPL-3.0-or-later AND MIT"
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-wasm32@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-wasm32@0.35.4",
       "properties": [
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4480,20 +4525,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-wasm32/-/sharp-wasm32-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-wasm32/-/sharp-wasm32-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.4",
       "name": "@img/sharp-webcontainers-wasm32",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "dab9eaedb5f7373791d93e185a0cfcaa21b88774d274c7bebcdd62417a4995e489dd2339cd0f05cb64b2c9701695bc69119d98f99e2ed4178f8091186d2cbcd1"
+          "content": "1127cd932c2609f3cdc9a663c68a1d74942243e97f9d3a4610e1ad87188b9c81d70bf0a67018b19dfc1495e5fd982cfda2fad452f28c6a9fe99bc4586f37f068"
         }
       ],
       "licenses": [
@@ -4503,7 +4548,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4511,7 +4556,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4529,20 +4574,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-webcontainers-wasm32/-/sharp-webcontainers-wasm32-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-webcontainers-wasm32/-/sharp-webcontainers-wasm32-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-win32-arm64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-win32-arm64@0.35.4",
       "name": "@img/sharp-win32-arm64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e1b3f015d31b782e0943c2fc2cec96a7a9ec1dc6e83f97f1929ea23ce5f3d95838f51e364ee32cdb08642793803f8fd4974df9a8ecf2d0079c385f553ac727e3"
+          "content": "88d765057f602d5bea7b6237b8825220a4eaeb07243ff0d8c59b5cab19b4f71e468b6e039c50663c05999abeb467260c1b4c65ce8ea0a06dfaef46abf915ef47"
         }
       ],
       "licenses": [
@@ -4550,7 +4595,7 @@
           "expression": "Apache-2.0 AND LGPL-3.0-or-later"
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-win32-arm64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-win32-arm64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4558,7 +4603,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4580,20 +4625,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-win32-arm64/-/sharp-win32-arm64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-win32-arm64/-/sharp-win32-arm64-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-win32-ia32@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-win32-ia32@0.35.4",
       "name": "@img/sharp-win32-ia32",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "af9de65ec04dea51540e2493efae12be0c1474702a338acf0220f30267f87cba01e97feb91fc93acb0a0ebe835ef0249882981dc96201ee5257425942111525f"
+          "content": "92a46c6da6b9092e8a1e5a719cded6844eaf000ba05f2641bada5176f0d67ad96fe90bf837d59372b5b317bb577c1f53eccb2869da9d23c866c0baba5252efb7"
         }
       ],
       "licenses": [
@@ -4601,7 +4646,7 @@
           "expression": "Apache-2.0 AND LGPL-3.0-or-later"
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-win32-ia32@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-win32-ia32@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4609,7 +4654,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4631,20 +4676,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-win32-ia32/-/sharp-win32-ia32-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-win32-ia32/-/sharp-win32-ia32-0.35.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40img/sharp-win32-x64@0.35.3",
+      "bom-ref": "pkg:npm/%40img/sharp-win32-x64@0.35.4",
       "name": "@img/sharp-win32-x64",
-      "version": "0.35.3",
-      "scope": "required",
+      "version": "0.35.4",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0f8cb5bcd799ac820908dfae1da595b47f3a07e682add31862389ccbda571ef6c665e1982cb49ddf0755b82dfb171557954d4046c93ce1e2967d631719812abc"
+          "content": "5ed9a762105cace46c2785c99e0cb3aff1163f485164b019445680a5d2aebe2caa17bf3eca5c61db2d3a666b542c030e9ce6c9dee72937401cc125a7328c1346"
         }
       ],
       "licenses": [
@@ -4652,7 +4697,7 @@
           "expression": "Apache-2.0 AND LGPL-3.0-or-later"
         }
       ],
-      "purl": "pkg:npm/%40img/sharp-win32-x64@0.35.3",
+      "purl": "pkg:npm/%40img/sharp-win32-x64@0.35.4",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -4660,7 +4705,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4682,7 +4727,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.4.tgz"
         }
       ]
     },
@@ -6330,14 +6375,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40ungap/structured-clone@1.3.3",
+      "bom-ref": "pkg:npm/%40ungap/structured-clone@1.4.0",
       "name": "@ungap/structured-clone",
-      "version": "1.3.3",
+      "version": "1.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "eb461169e9c241c56360428e706f36e3e0d1186210dd5284adc0680040c9673e5b288b36646f97fc7f4d93e43a115930264e50340a716eb73942d052c2dad702"
+          "content": "d66119b4c28f334f6f0e642de72ed8be6376f831533fb4e0d0459776273cfc2e95467a5bdf77b88218ac0881375998ec13637c99ff9057566a87b64560b5889d"
         }
       ],
       "licenses": [
@@ -6347,7 +6392,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40ungap/structured-clone@1.3.3",
+      "purl": "pkg:npm/%40ungap/structured-clone@1.4.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -6369,7 +6414,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.3.3.tgz"
+          "url": "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.4.0.tgz"
         }
       ]
     },
@@ -6415,51 +6460,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/am-i-vibing/-/am-i-vibing-0.4.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/ansi-styles@4.3.0",
-      "name": "ansi-styles",
-      "version": "4.3.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "cdb07dac22404f5adb8e25436f686a2851cd60bc60b64f0d511c59dc86700f717a36dc5b5d94029e74a2d4b931f880e885d3e5169db6db05402c885e64941212"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/ansi-styles@4.3.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/ansi-styles"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz"
         }
       ]
     },
@@ -6600,14 +6600,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/astro@7.2.7",
+      "bom-ref": "pkg:npm/astro@7.3.2",
       "name": "astro",
-      "version": "7.2.7",
+      "version": "7.3.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f975bb675c74de1abfcd5f2d8849ef4bc13b2582a8e62c9854f245b79461123ddd384fb34b085569469b72a36c1035497277905f69aac68e1f3e0a123be25cdb"
+          "content": "cac4dc76918feb55d9a47a0c4580bf08ad7d0d0f78aa406fcd732d5c4a34804a8f36498e53f4effbe0ad5a6cda2389c5d8293c45715d896bdd95359ada83abf7"
         }
       ],
       "licenses": [
@@ -6617,7 +6617,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/astro@7.2.7",
+      "purl": "pkg:npm/astro@7.3.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -6639,7 +6639,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/astro/-/astro-7.2.7.tgz"
+          "url": "https://registry.npmjs.org/astro/-/astro-7.3.2.tgz"
         }
       ]
     },
@@ -6820,51 +6820,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/ccount/-/ccount-2.0.1.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/chalk@4.1.2",
-      "name": "chalk",
-      "version": "4.1.2",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "a0a9db845c91217a54b9ecfc881326c846b89db8f820e432ba173fc32f6463bfd654f73020ef5503aebc3eef1190eefed06efa48b44e7b2c3d0a9434eb58b898"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/chalk@4.1.2",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/chalk"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz"
         }
       ]
     },
@@ -7095,96 +7050,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/color-convert@2.0.1",
-      "name": "color-convert",
-      "version": "2.0.1",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "4511023ec8fb8aeff16f9a0a61cb051d2a6914d9ec8ffe763954d129be333f9a275f0545df3566993a0d70e7c60be0910e97cafd4e7ce1f320dfc64709a12529"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/color-convert@2.0.1",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/color-convert"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/color-name@1.1.4",
-      "name": "color-name",
-      "version": "1.1.4",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "74ecbedc0b96ddadb035b64722e319a537208c6b8b53fb812ffb9b71917d3976c3a3c7dfe0ef32569e417f479f4bcb84a18a39ab8171edd63d3a04065e002c40"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/color-name@1.1.4",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/color-name"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/comma-separated-tokens@2.0.3",
       "name": "comma-separated-tokens",
       "version": "2.0.3",
@@ -7270,51 +7135,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/commander/-/commander-11.1.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/commander@14.0.3",
-      "name": "commander",
-      "version": "14.0.3",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "1fecb4268fd3d5167da8f3f8121d6991c41c2d1825ada25a48ba323ad1f1bba01aa648d6542cb64a2b75410e31dc39e0f2a0e54ac6447adee0e4fab4e8cbd383"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/commander@14.0.3",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/find-process/node_modules/commander"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/commander/-/commander-14.0.3.tgz"
         }
       ]
     },
@@ -7500,14 +7320,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/css-select@5.2.2",
+      "bom-ref": "pkg:npm/css-select@6.0.0",
       "name": "css-select",
-      "version": "5.2.2",
+      "version": "6.0.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4e2cd3cd475d1bfc582c0dcd5e87453347d26cd8b35e338a86a890430be196ca5a759a249f5283cb4359152d30b84b9b218015e7f735fe502bd1369a157117cf"
+          "content": "ad965548b95ef2fd3e118f100240d6aca86982de920393ad1ec8019ec8fa65a2dbe5d98354e5940ed422b5df72771c6f12385ec0db9d4ba793554eee3b2cef5f"
         }
       ],
       "licenses": [
@@ -7517,7 +7337,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/css-select@5.2.2",
+      "purl": "pkg:npm/css-select@6.0.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -7539,7 +7359,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/css-select/-/css-select-5.2.2.tgz"
+          "url": "https://registry.npmjs.org/css-select/-/css-select-6.0.0.tgz"
         }
       ]
     },
@@ -7635,14 +7455,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/css-what@6.2.2",
+      "bom-ref": "pkg:npm/css-what@7.0.0",
       "name": "css-what",
-      "version": "6.2.2",
+      "version": "7.0.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bbf3b7bf06e9b7384cb372f57d013cd9948b1d041fb68e60c99cf0b5e54813279a63915ced1e1d6a917f06f46849815ea9f064e26d15d5569fab93e3bf6e70bc"
+          "content": "c03e68cf9c626cc38f1f3cb5dc2c869a8801de985dbdc0da079b745bf36be59d8efda81c07c6303b3e9ed8bb29d74a4d0f30680cef6755add11acff606db691d"
         }
       ],
       "licenses": [
@@ -7652,7 +7472,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/css-what@6.2.2",
+      "purl": "pkg:npm/css-what@7.0.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -7674,7 +7494,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/css-what/-/css-what-6.2.2.tgz"
+          "url": "https://registry.npmjs.org/css-what/-/css-what-7.0.0.tgz"
         }
       ]
     },
@@ -8290,7 +8110,7 @@
         },
         {
           "name": "blanc:lockPath",
-          "value": "node_modules/dom-serializer/node_modules/entities"
+          "value": "node_modules/entities"
         },
         {
           "name": "blanc:optional",
@@ -8670,14 +8490,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/find-process@2.1.1",
-      "name": "find-process",
-      "version": "2.1.1",
+      "bom-ref": "pkg:npm/find-proc@0.1.0",
+      "name": "find-proc",
+      "version": "0.1.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4ab403c774219661ccf748aa9fdadd8c241cc3f4fe5a5a4e90716c8e846007ecd3a437e5b4d03555235879810bc21513272d76505c6a8d686684eac973ea38b0"
+          "content": "39a3a9118bf63e243b490e4b22b97e75e0355da59cc448e7a4ce95b965d352f9feb5e217c5e1532c39aed7cff30d0a45987378a37a03057f814f4006c0485e9a"
         }
       ],
       "licenses": [
@@ -8687,7 +8507,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/find-process@2.1.1",
+      "purl": "pkg:npm/find-proc@0.1.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -8695,7 +8515,7 @@
         },
         {
           "name": "blanc:lockPath",
-          "value": "node_modules/find-process"
+          "value": "node_modules/find-proc"
         },
         {
           "name": "blanc:optional",
@@ -8709,7 +8529,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/find-process/-/find-process-2.1.1.tgz"
+          "url": "https://registry.npmjs.org/find-proc/-/find-proc-0.1.0.tgz"
         }
       ]
     },
@@ -9029,51 +8849,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/h3/-/h3-1.15.11.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/has-flag@4.0.0",
-      "name": "has-flag",
-      "version": "4.0.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "1329094ff4352a34d672da698080207d23b4b4a56e6548e180caf5ee4a93ba6325e807efdc421295e53ba99533a170c54c01d30c2e0d3a81bf67153712f94c3d"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/has-flag@4.0.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/has-flag"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/has-flag/-/has-flag-4.0.0.tgz"
         }
       ]
     },
@@ -9439,14 +9214,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/js-yaml@4.3.1",
+      "bom-ref": "pkg:npm/js-yaml@4.3.2",
       "name": "js-yaml",
-      "version": "4.3.1",
+      "version": "4.3.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "098e9cac6ab7d77317f06930bc1eedce0a7df6f8d0c58d7efb9cb5d3f04a37f1947c7a9668e19030d66406fa92cec64a5a4fe28f01e55b3ce42ee96c18786359"
+          "content": "48534ebd227e0e07fff409fdd38631f828129483c2908a5aa38aa8e7596979edb94c845e8dd1f7ae1478119306a0dc77fd33f73bec335ae893165e2ca9b96dcc"
         }
       ],
       "licenses": [
@@ -9456,7 +9231,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/js-yaml@4.3.1",
+      "purl": "pkg:npm/js-yaml@4.3.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -9478,7 +9253,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz"
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz"
         }
       ]
     },
@@ -10152,51 +9927,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/lightningcss/-/lightningcss-1.33.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/loglevel@1.9.2",
-      "name": "loglevel",
-      "version": "1.9.2",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "1e03260aa2094802aaa3af25d2b4b601a9c459f931699e703621056f98209b4f250ecf579762b10655f73d371a0f672104cd605c061fe3dd7f33646ff09c1aca"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/loglevel@1.9.2",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/loglevel"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/loglevel/-/loglevel-1.9.2.tgz"
         }
       ]
     },
@@ -12227,14 +11957,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/sax@1.6.0",
+      "bom-ref": "pkg:npm/sax@1.6.1",
       "name": "sax",
-      "version": "1.6.0",
+      "version": "1.6.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e91dc9e4ce0071bb4b51d66646fd92ca079568cec886b2d7bbd0669ce1a698009a93c7e252d3ac60d5944b8b8aeeea5b9872016cb05e15e23fff8efb04a2c1cc"
+          "content": "e36b415702d69da42f5b9cdce076d9ad3b9671c1020997c18bdd850eec2dab16ac1fe25b3c1dff14e29bd66db6d8ae364785b1bb1cf332c4ecc1fce0b52bbae1"
         }
       ],
       "licenses": [
@@ -12244,7 +11974,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/sax@1.6.0",
+      "purl": "pkg:npm/sax@1.6.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -12266,7 +11996,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/sax/-/sax-1.6.0.tgz"
+          "url": "https://registry.npmjs.org/sax/-/sax-1.6.1.tgz"
         }
       ]
     },
@@ -12317,14 +12047,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/sharp@0.35.3",
+      "bom-ref": "pkg:npm/sharp@0.35.4",
       "name": "sharp",
-      "version": "0.35.3",
+      "version": "0.35.4",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7a3d33547b991870a20015dc3717988694673cd3c072f6c6f1131d0408430312ca9024554a92b7232bbba9bab0dc9333a23d1111e33a7f7b492ed570974d36dd"
+          "content": "9fefbc5d6723fa308eaf620e97b87c2db2a71810d8e1a3db9a9acc38d04d15d9f42265eaa4656fe739620ecd15f476e66c240ba5bba8d9e8fdac0a0e413bcc0c"
         }
       ],
       "licenses": [
@@ -12334,7 +12064,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/sharp@0.35.3",
+      "purl": "pkg:npm/sharp@0.35.4",
       "properties": [
         {
           "name": "blanc:development",
@@ -12356,7 +12086,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/sharp/-/sharp-0.35.3.tgz"
+          "url": "https://registry.npmjs.org/sharp/-/sharp-0.35.4.tgz"
         }
       ]
     },
@@ -12632,59 +12362,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/supports-color@7.2.0",
-      "name": "supports-color",
-      "version": "7.2.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "aa9080bd197db2db8e1ef78ab27ec79dc251befe74d6a21a70acd094effe2f0c5cf7ed2adb02f2bf80dfbedf34fc33e7da9a8e06c25d0e2a205c647df8ebf047"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/supports-color@7.2.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/supports-color"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/supports-color/-/supports-color-7.2.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/svgo@4.0.2",
+      "bom-ref": "pkg:npm/svgo@4.1.0",
       "name": "svgo",
-      "version": "4.0.2",
+      "version": "4.1.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7a4c7de33d6b45ce4b0e2ea849469e46762177450e27176d4022f6ac5f31a56c43dd33c0b084963abc5ecea1a8bea4b7f0645939da437ef41ededb3a17b9ec9e"
+          "content": "6e4c674e0d64494d20ba12019a26c0e94521ad098f540d57b102cdfb294277e516cdb9cb93248e717a729359ab974e5ffa971a0b1d9e1dbfaca7a060319597f9"
         }
       ],
       "licenses": [
@@ -12694,7 +12379,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/svgo@4.0.2",
+      "purl": "pkg:npm/svgo@4.1.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -12716,7 +12401,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/svgo/-/svgo-4.0.2.tgz"
+          "url": "https://registry.npmjs.org/svgo/-/svgo-4.1.0.tgz"
         }
       ]
     },
@@ -13892,14 +13577,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/zod@4.4.3",
+      "bom-ref": "pkg:npm/zod@4.6.5",
       "name": "zod",
-      "version": "4.4.3",
+      "version": "4.6.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cad10d163209165d94c1882575eda37215b61f09b818914b0e249759d4eb25004837d15cca9ee7e0387124489634024c575fc1a967d6fe4920ef55037072724d"
+          "content": "bf997f6855d941e6a2e1ac0b6cea52a0779c13d52232b9dfc7be6d1172e33689d754047143998e7a2a538d1394721b3350d0aa9c4fa1a8032e8d1b111ecbadd9"
         }
       ],
       "licenses": [
@@ -13909,7 +13594,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/zod@4.4.3",
+      "purl": "pkg:npm/zod@4.6.5",
       "properties": [
         {
           "name": "blanc:development",
@@ -13931,7 +13616,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz"
+          "url": "https://registry.npmjs.org/zod/-/zod-4.6.5.tgz"
         }
       ]
     },
@@ -13986,9 +13671,10 @@
       "ref": "application:site:blanc-site@0",
       "dependsOn": [
         "pkg:npm/%40fontsource-variable/inter@5.3.0",
+        "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
         "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
-        "pkg:npm/astro@7.2.7",
-        "pkg:npm/sharp@0.35.3"
+        "pkg:npm/astro@7.3.2",
+        "pkg:npm/sharp@0.35.4"
       ]
     },
     {
@@ -14050,11 +13736,11 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/internal-helpers@0.10.4",
+      "ref": "pkg:npm/%40astrojs/internal-helpers@0.11.0",
       "dependsOn": [
         "pkg:npm/%40types/hast@3.0.5",
         "pkg:npm/%40types/mdast@4.0.4",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/picomatch@4.0.5",
         "pkg:npm/retext-smartypants@6.2.0",
         "pkg:npm/shiki@4.4.3",
@@ -14063,9 +13749,9 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
+      "ref": "pkg:npm/%40astrojs/markdown-satteri@0.4.1",
       "dependsOn": [
-        "pkg:npm/%40astrojs/internal-helpers@0.10.4",
+        "pkg:npm/%40astrojs/internal-helpers@0.11.0",
         "pkg:npm/%40astrojs/prism@4.0.2",
         "pkg:npm/github-slugger@2.0.0",
         "pkg:npm/satteri@0.10.5"
@@ -14190,7 +13876,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40emnapi/runtime@1.11.2",
+      "ref": "pkg:npm/%40emnapi/runtime@1.11.3",
       "dependsOn": [
         "pkg:npm/tslib@2.8.1"
       ]
@@ -14316,6 +14002,10 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
       "dependsOn": []
     },
@@ -14324,133 +14014,133 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-darwin-arm64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-darwin-arm64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-darwin-x64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-darwin-x64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-wasm32@0.35.3"
+        "pkg:npm/%40img/sharp-wasm32@0.35.4"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.2",
+      "ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.3",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linux-arm@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linux-arm@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linux-arm64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linux-arm64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linux-ppc64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linux-ppc64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linux-riscv64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linux-riscv64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linux-s390x@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linux-s390x@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linux-x64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linux-x64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.2"
+        "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-wasm32@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-wasm32@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40emnapi/runtime@1.11.2"
+        "pkg:npm/%40emnapi/runtime@1.11.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.4",
       "dependsOn": [
-        "pkg:npm/%40img/sharp-wasm32@0.35.3"
+        "pkg:npm/%40img/sharp-wasm32@0.35.4"
       ]
     },
     {
-      "ref": "pkg:npm/%40img/sharp-win32-arm64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-win32-arm64@0.35.4",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-win32-ia32@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-win32-ia32@0.35.4",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40img/sharp-win32-x64@0.35.3",
+      "ref": "pkg:npm/%40img/sharp-win32-x64@0.35.4",
       "dependsOn": []
     },
     {
@@ -14626,19 +14316,13 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40ungap/structured-clone@1.3.3",
+      "ref": "pkg:npm/%40ungap/structured-clone@1.4.0",
       "dependsOn": []
     },
     {
       "ref": "pkg:npm/am-i-vibing@0.4.0",
       "dependsOn": [
         "pkg:npm/process-ancestry@0.1.0"
-      ]
-    },
-    {
-      "ref": "pkg:npm/ansi-styles@4.3.0",
-      "dependsOn": [
-        "pkg:npm/color-convert@2.0.1"
       ]
     },
     {
@@ -14657,11 +14341,11 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/astro@7.2.7",
+      "ref": "pkg:npm/astro@7.3.2",
       "dependsOn": [
         "pkg:npm/%40astrojs/compiler-rs@0.4.0",
-        "pkg:npm/%40astrojs/internal-helpers@0.10.4",
-        "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
+        "pkg:npm/%40astrojs/internal-helpers@0.11.0",
+        "pkg:npm/%40astrojs/markdown-satteri@0.4.1",
         "pkg:npm/%40astrojs/telemetry@3.3.3",
         "pkg:npm/%40capsizecss/unpack@4.0.1",
         "pkg:npm/%40clack/prompts@1.7.0",
@@ -14678,14 +14362,14 @@
         "pkg:npm/dset@3.1.4",
         "pkg:npm/es-module-lexer@2.3.1",
         "pkg:npm/esbuild@0.28.2",
-        "pkg:npm/find-process@2.1.1",
+        "pkg:npm/find-proc@0.1.0",
         "pkg:npm/flattie@1.1.1",
         "pkg:npm/fontace@0.4.1",
         "pkg:npm/get-tsconfig@5.0.0-beta.4",
         "pkg:npm/github-slugger@2.0.0",
         "pkg:npm/html-escaper@3.0.3",
         "pkg:npm/http-cache-semantics@4.2.0",
-        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/js-yaml@4.3.2",
         "pkg:npm/jsonc-parser@3.3.1",
         "pkg:npm/magic-string@1.1.1",
         "pkg:npm/magicast@0.5.3",
@@ -14698,10 +14382,10 @@
         "pkg:npm/piccolore@0.1.3",
         "pkg:npm/picomatch@4.0.5",
         "pkg:npm/semver@7.8.5",
-        "pkg:npm/sharp@0.35.3",
+        "pkg:npm/sharp@0.35.4",
         "pkg:npm/shiki@4.4.3",
         "pkg:npm/smol-toml@1.8.0",
-        "pkg:npm/svgo@4.0.2",
+        "pkg:npm/svgo@4.1.0",
         "pkg:npm/tinyclip@0.1.15",
         "pkg:npm/tinyexec@1.2.4",
         "pkg:npm/tinyglobby@0.2.17",
@@ -14712,7 +14396,7 @@
         "pkg:npm/vitefu@1.1.3",
         "pkg:npm/xxhash-wasm@1.1.0",
         "pkg:npm/yargs-parser@22.0.0",
-        "pkg:npm/zod@4.4.3"
+        "pkg:npm/zod@4.6.5"
       ]
     },
     {
@@ -14730,13 +14414,6 @@
     {
       "ref": "pkg:npm/ccount@2.0.1",
       "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/chalk@4.1.2",
-      "dependsOn": [
-        "pkg:npm/ansi-styles@4.3.0",
-        "pkg:npm/supports-color@7.2.0"
-      ]
     },
     {
       "ref": "pkg:npm/character-entities-html4@2.1.0",
@@ -14761,25 +14438,11 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/color-convert@2.0.1",
-      "dependsOn": [
-        "pkg:npm/color-name@1.1.4"
-      ]
-    },
-    {
-      "ref": "pkg:npm/color-name@1.1.4",
-      "dependsOn": []
-    },
-    {
       "ref": "pkg:npm/comma-separated-tokens@2.0.3",
       "dependsOn": []
     },
     {
       "ref": "pkg:npm/commander@11.1.0",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/commander@14.0.3",
       "dependsOn": []
     },
     {
@@ -14801,10 +14464,10 @@
       ]
     },
     {
-      "ref": "pkg:npm/css-select@5.2.2",
+      "ref": "pkg:npm/css-select@6.0.0",
       "dependsOn": [
         "pkg:npm/boolbase@1.0.0",
-        "pkg:npm/css-what@6.2.2",
+        "pkg:npm/css-what@7.0.0",
         "pkg:npm/domhandler@5.0.3",
         "pkg:npm/domutils@3.2.2",
         "pkg:npm/nth-check@2.1.1"
@@ -14825,7 +14488,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/css-what@6.2.2",
+      "ref": "pkg:npm/css-what@7.0.0",
       "dependsOn": []
     },
     {
@@ -14962,12 +14625,8 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/find-process@2.1.1",
-      "dependsOn": [
-        "pkg:npm/chalk@4.1.2",
-        "pkg:npm/commander@14.0.3",
-        "pkg:npm/loglevel@1.9.2"
-      ]
+      "ref": "pkg:npm/find-proc@0.1.0",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/flattie@1.1.1",
@@ -15012,10 +14671,6 @@
         "pkg:npm/ufo@1.6.4",
         "pkg:npm/uncrypto@0.1.3"
       ]
-    },
-    {
-      "ref": "pkg:npm/has-flag@4.0.0",
-      "dependsOn": []
     },
     {
       "ref": "pkg:npm/hast-util-to-html@9.0.5",
@@ -15064,7 +14719,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/js-yaml@4.3.1",
+      "ref": "pkg:npm/js-yaml@4.3.2",
       "dependsOn": [
         "pkg:npm/argparse@2.0.1"
       ]
@@ -15135,10 +14790,6 @@
       ]
     },
     {
-      "ref": "pkg:npm/loglevel@1.9.2",
-      "dependsOn": []
-    },
-    {
       "ref": "pkg:npm/lru-cache@11.5.2",
       "dependsOn": []
     },
@@ -15161,7 +14812,7 @@
       "dependsOn": [
         "pkg:npm/%40types/hast@3.0.5",
         "pkg:npm/%40types/mdast@4.0.4",
-        "pkg:npm/%40ungap/structured-clone@1.3.3",
+        "pkg:npm/%40ungap/structured-clone@1.4.0",
         "pkg:npm/devlop@1.1.0",
         "pkg:npm/micromark-util-sanitize-uri@2.0.1",
         "pkg:npm/trim-lines@3.0.1",
@@ -15402,7 +15053,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/sax@1.6.0",
+      "ref": "pkg:npm/sax@1.6.1",
       "dependsOn": []
     },
     {
@@ -15410,34 +15061,34 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/sharp@0.35.3",
+      "ref": "pkg:npm/sharp@0.35.4",
       "dependsOn": [
         "pkg:npm/%40img/colour@1.1.0",
-        "pkg:npm/%40img/sharp-darwin-arm64@0.35.3",
-        "pkg:npm/%40img/sharp-darwin-x64@0.35.3",
-        "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.3",
-        "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.2",
-        "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.2",
-        "pkg:npm/%40img/sharp-linux-arm64@0.35.3",
-        "pkg:npm/%40img/sharp-linux-arm@0.35.3",
-        "pkg:npm/%40img/sharp-linux-ppc64@0.35.3",
-        "pkg:npm/%40img/sharp-linux-riscv64@0.35.3",
-        "pkg:npm/%40img/sharp-linux-s390x@0.35.3",
-        "pkg:npm/%40img/sharp-linux-x64@0.35.3",
-        "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.3",
-        "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.3",
-        "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.3",
-        "pkg:npm/%40img/sharp-win32-arm64@0.35.3",
-        "pkg:npm/%40img/sharp-win32-ia32@0.35.3",
-        "pkg:npm/%40img/sharp-win32-x64@0.35.3",
+        "pkg:npm/%40img/sharp-darwin-arm64@0.35.4",
+        "pkg:npm/%40img/sharp-darwin-x64@0.35.4",
+        "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.4",
+        "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.3",
+        "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.3",
+        "pkg:npm/%40img/sharp-linux-arm64@0.35.4",
+        "pkg:npm/%40img/sharp-linux-arm@0.35.4",
+        "pkg:npm/%40img/sharp-linux-ppc64@0.35.4",
+        "pkg:npm/%40img/sharp-linux-riscv64@0.35.4",
+        "pkg:npm/%40img/sharp-linux-s390x@0.35.4",
+        "pkg:npm/%40img/sharp-linux-x64@0.35.4",
+        "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.4",
+        "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.4",
+        "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.4",
+        "pkg:npm/%40img/sharp-win32-arm64@0.35.4",
+        "pkg:npm/%40img/sharp-win32-ia32@0.35.4",
+        "pkg:npm/%40img/sharp-win32-x64@0.35.4",
         "pkg:npm/detect-libc@2.1.2",
         "pkg:npm/semver@7.8.5"
       ]
@@ -15479,21 +15130,15 @@
       ]
     },
     {
-      "ref": "pkg:npm/supports-color@7.2.0",
-      "dependsOn": [
-        "pkg:npm/has-flag@4.0.0"
-      ]
-    },
-    {
-      "ref": "pkg:npm/svgo@4.0.2",
+      "ref": "pkg:npm/svgo@4.1.0",
       "dependsOn": [
         "pkg:npm/commander@11.1.0",
-        "pkg:npm/css-select@5.2.2",
+        "pkg:npm/css-select@6.0.0",
         "pkg:npm/css-tree@3.2.1",
-        "pkg:npm/css-what@6.2.2",
+        "pkg:npm/css-what@7.0.0",
         "pkg:npm/csso@5.0.5",
         "pkg:npm/picocolors@1.1.1",
-        "pkg:npm/sax@1.6.0"
+        "pkg:npm/sax@1.6.1"
       ]
     },
     {
@@ -15651,7 +15296,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/zod@4.4.3",
+      "ref": "pkg:npm/zod@4.6.5",
       "dependsOn": []
     },
     {

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect x="48" y="150" width="840" height="430" rx="28" fill="#000" fill-opacity="0.88"/>
+  <text x="80" y="290" fill="#fff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="76" font-weight="600">
+    <tspan x="80" dy="0">Apply to the Blanc</tspan>
+    <tspan x="80" dy="96">Ambassador pilot.</tspan>
+  </text>
+  <text x="80" y="500" fill="#fff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="36" font-weight="400">blancbrowser.com/ambassadors</text>
+</svg>

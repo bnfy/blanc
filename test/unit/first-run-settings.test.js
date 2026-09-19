@@ -57,6 +57,59 @@ test('a new profile requires first-run while a legacy settings file is promoted'
   fs.rmSync(existingDir, { recursive: true, force: true });
 });
 
+test('the Sunrise and Billboard release reset runs once, then preserves later choices', () => {
+  const upgradeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-presentation-reset-'));
+  const settingsFile = path.join(upgradeDir, 'settings.json');
+  const remoteTimestamp = Date.now() + 60_000;
+  fs.writeFileSync(settingsFile, JSON.stringify({
+    onboardingVersion: 1,
+    appIcon: 'ink',
+    newtabLayout: 'mahjong',
+    _syncMeta: { newtabLayout: remoteTimestamp },
+  }));
+
+  let settings = loadSettings(upgradeDir, true);
+  let current = settings.getSettings();
+  assert.equal(current.appIcon, 'sunrise');
+  assert.equal(current.newtabLayout, 'billboard');
+  assert.equal(
+    current.presentationDefaultsResetVersion,
+    settings.PRESENTATION_DEFAULTS_RESET_VERSION,
+  );
+  assert.ok(current._syncMeta.newtabLayout > remoteTimestamp);
+
+  const persisted = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  persisted.appIcon = 'sunrise-dark';
+  persisted.newtabLayout = 'shelf';
+  fs.writeFileSync(settingsFile, JSON.stringify(persisted));
+
+  settings = loadSettings(upgradeDir, true);
+  current = settings.getSettings();
+  assert.equal(current.appIcon, 'sunrise-dark');
+  assert.equal(current.newtabLayout, 'shelf');
+
+  fs.rmSync(upgradeDir, { recursive: true, force: true });
+});
+
+test('retired B icons sanitize on upgrade and cannot be selected again', () => {
+  for (const appIcon of ['paper', 'ink', 'graphite', 'default', 'midnight', 'cream', 'forest', 'sage', 'ember', 'plum', 'gold']) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-retired-icon-'));
+    try {
+      fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({
+        appIcon, onboardingVersion: 1, presentationDefaultsResetVersion: 1, newtabLayout: 'mahjong',
+      }));
+      const settings = loadSettings(dir, true);
+      assert.equal(settings.getSettings().appIcon, 'sunrise', appIcon);
+      assert.equal(settings.getSettings().newtabLayout, 'mahjong', 'Icon retirement preserves unrelated preferences');
+      settings.setSettings({ appIcon: 'sunrise-dark' });
+      settings.setSettings({ appIcon });
+      assert.equal(settings.getSettings().appIcon, 'sunrise-dark', `${appIcon} cannot replace a valid choice`);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }
+});
+
 test('an interrupted first run stays incomplete after session persistence', () => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-first-run-restart-'));
   let settings = loadSettings(userData, false);

@@ -1,0 +1,22 @@
+{
+  "candidates": [
+    {
+      "candidateId": "atlas-a",
+      "title": "Project Atlas Docs",
+      "hostname": "docs.google.com",
+      "folderPath": ["project atlas"]
+    },
+    {
+      "candidateId": "atlas-b",
+      "title": "Project Atlas Sheet",
+      "hostname": "docs.google.com",
+      "folderPath": ["project atlas"]
+    },
+    {
+      "candidateId": "solo-c",
+      "title": "Reading List",
+      "hostname": "reading.example",
+      "folderPath": ["reading"]
+    }
+  ]
+}

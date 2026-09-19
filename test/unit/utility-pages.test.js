@@ -9,6 +9,8 @@ test('isUtilityUrl: utility hosts match, with paths and queries', () => {
   assert.equal(isUtilityUrl('blanc://downloads/'), true);
   assert.equal(isUtilityUrl('blanc://settings/'), true);
   assert.equal(isUtilityUrl('blanc://shortcuts/'), true);
+  assert.equal(isUtilityUrl('blanc://tab-handoff/'), true);
+  assert.equal(isUtilityUrl('blanc://tab-import/'), true);
   assert.equal(isUtilityUrl('blanc://settings/?section=sync'), true);
 });
 
@@ -16,6 +18,7 @@ test('isUtilityUrl: non-utility internal pages and other schemes do not match', 
   assert.equal(isUtilityUrl('blanc://newtab/'), false);
   assert.equal(isUtilityUrl('blanc://newtab/?private=1'), false);
   assert.equal(isUtilityUrl('blanc://error/?url=x'), false);
+  assert.equal(KNOWN_PAGES.has('auth'), false);
   assert.equal(isUtilityUrl('blanc://auth/'), false);
   assert.equal(isUtilityUrl('https://settings/'), false);
   assert.equal(isUtilityUrl('https://example.com/blanc://settings/'), false);
@@ -24,9 +27,9 @@ test('isUtilityUrl: non-utility internal pages and other schemes do not match', 
   assert.equal(isUtilityUrl(undefined), false);
 });
 
-test('UTILITY_PAGES is exactly the five sheet pages', () => {
+test('UTILITY_PAGES is exactly the seven sheet pages', () => {
   assert.deepEqual([...UTILITY_PAGES].sort(),
-    ['bookmarks', 'downloads', 'history', 'settings', 'shortcuts']);
+    ['bookmarks', 'downloads', 'history', 'settings', 'shortcuts', 'tab-handoff', 'tab-import']);
 });
 
 test('mahjong is a known page but never a utility page', () => {
