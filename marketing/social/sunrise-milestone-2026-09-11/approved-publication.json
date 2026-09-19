@@ -1,0 +1,43 @@
+{
+  "approval": "Owner reviewed v2 graphic and caption and explicitly approved all channels in conversation.",
+  "image": "general-review-v2-1080x1350.png",
+  "sha256": "865e0c1efc272b507cb3bfb6bae13daad04248f4f16fe1f4bdebcc1e03856d83",
+  "caption": "Blanc has seen an encouraging uptick in usage over the past few days. It’s early, and we’re grateful to everyone giving it a try.\n\nThank you for being part of Blanc.\nhttps://blancbrowser.com",
+  "channels": {
+    "x": {
+      "status": "published_verified",
+      "url": "https://x.com/blancbrowser/status/2098460671637688831",
+      "verification": "Native account feed confirms approved caption and image with supplied alt text."
+    },
+    "threads": {
+      "status": "published_verified",
+      "url": "https://www.threads.com/@blancbrowser/post/DdJ8NoYkRI-",
+      "verification": "Native account feed confirms approved caption and image with supplied alt text."
+    },
+    "instagram": {
+      "status": "published_verified",
+      "url": "https://www.instagram.com/blancbrowser/p/DdJ8icUiTs4/",
+      "verification": "Native post confirms approved caption and image."
+    },
+    "facebook": {
+      "status": "published_verified",
+      "url": "https://www.facebook.com/blancbrowser/posts/pfbid0WbJnHiwkbysppDuP8AAmhiGqe6B4F6VZ3VfWswemoN6JgFiuyDJdyrp9F7SSJtTsl",
+      "verification": "Native post confirms approved caption and image."
+    },
+    "substack": {
+      "status": "published_verified",
+      "url": "https://substack.com/profile/542769413-blanc-browser/note/c-334892004",
+      "verification": "Native post confirms approved caption and image.",
+      "alt_text_note": "Web Note composer offered crop/edit controls but no custom alt-text control; description preserved in campaign source."
+    },
+    "tiktok": {
+      "status": "published_verified",
+      "asset": "approved-tiktok-1080x1920.mp4",
+      "video_approval": "Owner saw the finished 18-second video and replied yes to posting it with the same approved caption on September 11, 2026.",
+      "url": "https://www.tiktok.com/@blancbrowser/video/7684333211522026783",
+      "verification": "TikTok Studio review cleared, visibility Everyone, published Sep 11 at 1:37 PM ET. Native permalink plays the approved 18-second video and displays exact approved caption. Prepublication music and content checks passed."
+    }
+  },
+  "organic": true,
+  "source": "Owner-supplied Claude morning summary; not independently verified. No numerical usage claims or acquisition attribution in published creative."
+}

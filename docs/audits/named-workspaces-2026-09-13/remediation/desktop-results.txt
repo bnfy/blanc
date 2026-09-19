@@ -1,0 +1,11 @@
+Final product revision: d06981da45b879b65a8e3fed46bb9c21c9603b49
+
+> blanc@1.16.2 test:acceptance:desktop
+> cucumber-js -c test/desktop/cucumber.mjs -p runnable
+
+Progress output: one configured automatic retry; aggregate result below.
+
+2 hooks (2 passed)
+152 scenarios (152 passed)
+908 steps (908 passed)
+1m 38.511s (1m 38.300s executing your code)

@@ -1,7 +1,7 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.15.0",
+  "version": "1.18.0",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -27,7 +27,16 @@
     "test:onepassword:live-server": "node scripts/onepassword-live-gate-server.mjs",
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
     "test:mahjong-telemetry": "node test/desktop/mahjong-telemetry-relay-smoke.mjs",
+    "test:tab-handoff": "node test/desktop/tab-handoff-smoke.mjs",
+    "test:packaged:tab-handoff-protocol": "node test/desktop/packaged-tab-handoff-protocol-smoke.mjs",
     "test:cold-launch": "node test/desktop/cold-launch-smoke.mjs",
+    "test:external-links": "node test/desktop/external-links-smoke.mjs",
+    "test:web-store-guard": "node test/desktop/chrome-web-store-guard-smoke.mjs",
+    "test:startup-layout": "node test/desktop/startup-layout-smoke.mjs",
+    "test:recovery-reopen": "node test/desktop/startup-layout-smoke.mjs --reopened-window",
+    "test:recovery-lifecycle": "node test/desktop/startup-recovery-lifecycle-smoke.mjs",
+    "test:window-close-quit": "node test/desktop/window-close-quit-smoke.mjs",
+    "test:packaged:external-links": "node test/desktop/packaged-external-links-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
     "test:packaged:regressions": "node test/desktop/release-regressions-smoke.mjs",
@@ -39,8 +48,9 @@
     "compliance:build": "node scripts/generate-compliance.mjs",
     "compliance:check": "node scripts/generate-compliance.mjs --check",
     "bench:memory": "node bench/memory/run.js",
+    "security:dependencies": "node scripts/audit-dependencies.mjs",
     "release:security": "npm audit --omit=dev --audit-level=high",
-    "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:cold-launch && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
+    "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:cold-launch && npm run test:web-store-guard && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "icons:windows:build": "node scripts/build-windows-icons.js",
     "icons:windows:check": "node scripts/build-windows-icons.js --check",
     "brand:build": "node scripts/build-brand-assets.js",
@@ -62,9 +72,9 @@
     "@cucumber/cucumber": "^13.2.1",
     "@electron/asar": "4.3.0",
     "@ghostery/adblocker": "^2.18.2",
-    "electron": "^44.1.1",
+    "electron": "^44.4.2",
     "electron-builder": "^26.15.3",
-    "playwright": "^1.62.1",
+    "playwright": "^1.63.0",
     "sharp": "^0.35.3"
   },
   "dependencies": {
@@ -102,10 +112,19 @@
           "https"
         ],
         "role": "Viewer"
+      },
+      {
+        "name": "Blanc Tab Handoff",
+        "schemes": [
+          "blanc-import"
+        ],
+        "role": "Viewer"
       }
     ],
     "files": [
       "src/**/*",
+      "!src/renderer/pages/icon.svg",
+      "!src/renderer/pages/icon-{paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}.png",
       "adblock/sources/**/*",
       "package.json",
       "LICENSE",
@@ -115,6 +134,7 @@
     "afterPack": "scripts/after-pack-app-icons.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
+      "bundleVersion": "1180",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,
@@ -126,7 +146,8 @@
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
-        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera."
+        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
+        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source."
       },
       "target": [
         "dmg",

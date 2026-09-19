@@ -1,0 +1,38 @@
+[
+  {
+    "file": "simple-1080x1920.mp4",
+    "revision": "sunrise-r6",
+    "duration": 18.0,
+    "width": 1080,
+    "height": 1920,
+    "codec": "h264",
+    "decode": "passed"
+  },
+  {
+    "file": "simple-tiktok-1080x1920.mp4",
+    "revision": "sunrise-r6",
+    "duration": 18.0,
+    "width": 1080,
+    "height": 1920,
+    "codec": "h264",
+    "decode": "passed"
+  },
+  {
+    "file": "switch-1080x1920.mp4",
+    "revision": "sunrise-r6",
+    "duration": 18.0,
+    "width": 1080,
+    "height": 1920,
+    "codec": "h264",
+    "decode": "passed"
+  },
+  {
+    "file": "trial-1080x1920.mp4",
+    "revision": "sunrise-r6",
+    "duration": 24.0,
+    "width": 1080,
+    "height": 1920,
+    "codec": "h264",
+    "decode": "passed"
+  }
+]

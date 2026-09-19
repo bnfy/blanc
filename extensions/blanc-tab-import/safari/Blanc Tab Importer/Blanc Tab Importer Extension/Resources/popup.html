@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open tabs in Blanc</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">blanc</p>
+        <h1>Open tabs in Blanc</h1>
+      </div>
+      <button id="toggleAll" type="button">Clear</button>
+    </header>
+    <p id="intro">Choose up to 100 tabs from this window. The source browser stays unchanged.</p>
+    <div id="status" role="status" aria-live="polite"></div>
+    <div id="tabs" class="tabs" aria-label="Tabs in the current window"></div>
+    <footer>
+      <span id="count">0 selected</span>
+      <button id="open" class="primary" type="button" disabled>Open in Blanc</button>
+    </footer>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

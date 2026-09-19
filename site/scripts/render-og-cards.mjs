@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Renders the six Open Graph cards from the built site.
+ * Renders the Open Graph card manifest from the built site and public captures.
  *
  * They were hand-authored PNGs and had drifted badly: og-image.png still showed
  * a `blocked 18` text chip from two Island designs ago, feature-island.png and
@@ -8,11 +8,12 @@
  * BaseLayout told every crawler they were 1200x630, and the private-tabs and
  * tab-groups cards were a small pill stranded on an otherwise empty field.
  *
- * Each card now composites the feature page's OWN island figure — the same
+ * The original cards composite the feature page's OWN island figure — the same
  * markup the page renders — so a change to the Island reaches the share cards
  * by re-running this, exactly like render-press-primary-capture.mjs. The layout
  * is that script's editorial system at OG scale: mono brand line, tight Inter
- * headline, the product sitting on the baseline.
+ * headline, the product sitting on the baseline. The v1.15 expansion cards
+ * use the reviewed native public-app captures in feature-captures/ instead.
  *
  *   node scripts/render-og-cards.mjs        (after `npm run build`)
  */
@@ -32,6 +33,31 @@ const HEIGHT = 630;
  * visitor is about to land on. og-image.png is the site-wide default and takes
  * the homepage hero's line instead. */
 const CARDS = [
+  {
+    out: 'feature-start-page.png',
+    capture: 'billboard.png',
+    headline: 'Five ways to begin. One of them is Mahjong.',
+  },
+  {
+    out: 'feature-glance.png',
+    capture: 'glance.png',
+    headline: 'Keep a reference beside the page you’re using.',
+  },
+  {
+    out: 'feature-workspaces.png',
+    capture: 'workspaces.png',
+    headline: 'Save a whole window. Return to it by name.',
+  },
+  {
+    out: 'feature-profiles.png',
+    capture: 'profiles.png',
+    headline: 'Separate browsing identities. Keep every window independent.',
+  },
+  {
+    out: 'feature-reopen-closed-tabs.png',
+    capture: 'reopen-closed-tabs.png',
+    headline: 'Get the tab back, not just its address.',
+  },
   {
     out: 'og-image.png',
     page: '/features/island.html',
@@ -128,6 +154,11 @@ const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variab
 try {
   for (const card of CARDS) {
     if (selectedOutput && card.out !== selectedOutput) continue;
+    let figureShot;
+    if (card.capture) {
+      // Native public-release pixels, never a recreated product state.
+      figureShot = fs.readFileSync(path.join(PUBLIC_ROOT, 'feature-captures', card.capture));
+    } else {
     // 1. Shoot the page's own island figure at 2x.
     const shooter = await browser.newPage({
       viewport: { width: 1280, height: 900 },
@@ -206,8 +237,9 @@ try {
       if (crop) bottom = top + (bottom - top) * crop;
       return { x: left, y: top, width: right - left, height: Math.max(bottom - top, 60) };
     }, { sel: card.figure, crop: card.crop ?? 0 });
-    const figureShot = await shooter.screenshot({ clip: box });
+    figureShot = await shooter.screenshot({ clip: box });
     await shooter.close();
+    }
 
     // 2. Composite it into the card.
     const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: 1 });

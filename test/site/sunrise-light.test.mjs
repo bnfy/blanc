@@ -126,13 +126,13 @@ test('the homepage reveal never hides content without JavaScript or with reduced
   const noScript = await openPage({ javaScriptEnabled: false });
   try {
     const visible = await noScript.page.locator('.home-feature').evaluateAll(els => els.map(el => getComputedStyle(el).opacity));
-    assert.deepEqual(visible, ['1', '1', '1']);
+    assert.deepEqual(visible, Array(6).fill('1'));
   } finally { await noScript.context.close(); }
 
   const reduced = await openPage({ reducedMotion: 'reduce' });
   try {
     const grid = await reduced.page.locator('.home-feature').evaluateAll(els => els.map(el => [getComputedStyle(el).opacity, getComputedStyle(el).transform]));
-    assert.deepEqual(grid, [['1', 'none'], ['1', 'none'], ['1', 'none']], 'reduced motion sees the grid at rest');
+    assert.deepEqual(grid, Array.from({ length: 6 }, () => ['1', 'none']), 'reduced motion sees all six cards at rest');
     const patron = await reduced.page.locator('.home-patron').evaluate(el => getComputedStyle(el).opacity);
     assert.equal(patron, '1');
   } finally { await reduced.context.close(); }
@@ -144,12 +144,12 @@ test('the feature grid and Patron section rise once into view, then stay put', a
     const belowFold = await page.locator('.home-feature-grid').evaluate(el => el.getBoundingClientRect().top > innerHeight);
     assert.equal(belowFold, true, 'the grid starts below a 900px viewport');
     const waiting = await page.locator('.home-feature').evaluateAll(els => els.map(el => [el.classList.contains('is-waiting'), getComputedStyle(el).opacity]));
-    assert.deepEqual(waiting, [[true, '0'], [true, '0'], [true, '0']], 'below-fold cards wait for the viewport');
+    assert.deepEqual(waiting, Array.from({ length: 6 }, () => [true, '0']), 'below-fold cards wait for the viewport');
 
     await page.locator('.home-feature-grid').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => [...document.querySelectorAll('.home-feature')].every(el => el.classList.contains('is-revealed') && getComputedStyle(el).opacity === '1'), null, { timeout: 5000 });
     const delays = await page.locator('.home-feature').evaluateAll(els => els.map(el => getComputedStyle(el).animationDelay));
-    assert.equal(new Set(delays).size, 3, `cards stagger, got ${delays.join(' ')}`);
+    assert.equal(new Set(delays).size, 6, `cards stagger, got ${delays.join(' ')}`);
 
     await page.locator('.home-patron').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => {

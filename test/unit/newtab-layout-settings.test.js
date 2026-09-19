@@ -68,6 +68,116 @@ test('the start-page layout defaults to billboard, validates its enum, and syncs
   );
 });
 
+test('a local layout choice outranks a future-dated preference already observed from sync', (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-newtab-layout-clock-'));
+  t.after(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
+  const settings = loadSettings(userData);
+  const remoteTimestamp = Date.now() + 60_000;
+  const remote = {
+    values: { newtabLayout: 'mahjong' },
+    meta: { newtabLayout: remoteTimestamp },
+  };
+
+  settings.mergeFromSync(remote);
+  assert.equal(settings.getSettings().newtabLayout, 'mahjong');
+
+  settings.setSettings({ newtabLayout: 'shelf' });
+  const local = settings.exportForSync();
+  assert.equal(local.values.newtabLayout, 'shelf');
+  assert.ok(local.meta.newtabLayout > remoteTimestamp);
+
+  // Pulling the unchanged remote document again must not undo the choice.
+  settings.mergeFromSync(remote);
+  assert.equal(settings.getSettings().newtabLayout, 'shelf');
+});
+
+test('concurrent equal-clock layout choices converge deterministically', (t) => {
+  const deviceADir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-layout-device-a-'));
+  const deviceBDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-layout-device-b-'));
+  t.after(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(deviceADir, { recursive: true, force: true });
+    fs.rmSync(deviceBDir, { recursive: true, force: true });
+  });
+  const baseTimestamp = Date.now() + 60_000;
+  const base = JSON.stringify({
+    onboardingVersion: 1,
+    presentationDefaultsResetVersion: 1,
+    newtabLayout: 'mahjong',
+    _syncMeta: { newtabLayout: baseTimestamp },
+    _syncTieBreakers: { newtabLayout: 'base-write' },
+  });
+  fs.writeFileSync(path.join(deviceADir, 'settings.json'), base);
+  fs.writeFileSync(path.join(deviceBDir, 'settings.json'), base);
+
+  const deviceA = loadSettings(deviceADir);
+  deviceA.setSettings({ newtabLayout: 'shelf' });
+  const deviceAPayload = deviceA.exportForSync();
+
+  const deviceB = loadSettings(deviceBDir);
+  deviceB.setSettings({ newtabLayout: 'billboard' });
+  const deviceBPayload = deviceB.exportForSync();
+
+  assert.equal(deviceAPayload.meta.newtabLayout, baseTimestamp + 1);
+  assert.equal(deviceBPayload.meta.newtabLayout, baseTimestamp + 1);
+  assert.notEqual(
+    deviceAPayload.tieBreakers.newtabLayout,
+    deviceBPayload.tieBreakers.newtabLayout,
+  );
+
+  deviceA.mergeFromSync(deviceBPayload);
+  deviceB.mergeFromSync(deviceAPayload);
+
+  assert.deepEqual(deviceA.exportForSync(), deviceB.exportForSync());
+  assert.equal(deviceA.getSettings().newtabLayout, deviceB.getSettings().newtabLayout);
+});
+
+test('unsafe remote timestamps are ignored and never re-exported', (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-layout-invalid-clock-'));
+  t.after(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
+  fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({
+    onboardingVersion: 1,
+    presentationDefaultsResetVersion: 1,
+    newtabLayout: 'billboard',
+    _syncMeta: { newtabLayout: Number.MAX_SAFE_INTEGER },
+  }));
+  const settings = loadSettings(userData);
+  const invalidRemotes = [
+    1e100,
+    Number.MAX_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER - 1,
+    '999999999999999999999',
+  ];
+
+  for (const timestamp of invalidRemotes) {
+    settings.mergeFromSync({
+      values: { newtabLayout: 'mahjong' },
+      meta: { newtabLayout: timestamp },
+      tieBreakers: { newtabLayout: 'remote-write' },
+    });
+    assert.equal(settings.getSettings().newtabLayout, 'billboard');
+  }
+  assert.equal(settings.exportForSync().meta.newtabLayout, undefined);
+
+  settings.setSettings({ newtabLayout: 'shelf' });
+  const local = settings.exportForSync();
+  assert.equal(local.values.newtabLayout, 'shelf');
+  assert.ok(Number.isSafeInteger(local.meta.newtabLayout));
+
+  settings.mergeFromSync({
+    values: { newtabLayout: 'mahjong' },
+    meta: { newtabLayout: 1e100 },
+    tieBreakers: { newtabLayout: 'remote-write' },
+  });
+  assert.equal(settings.getSettings().newtabLayout, 'shelf');
+});
+
 const settingsSchema = require('../../settings-schema/schema.json');
 
 test('the layout enum reaches the schema and both generated mobile artifacts', () => {

@@ -1,4 +1,7 @@
 {
+  "1.18.0": ["Guided Sync setup", "Migration checklist", "/sync command"],
+  "1.17.0": ["Live Named Workspaces", "Desktop app sign-in returns", "Focused-popup 1Password fill"],
+  "1.16.0": ["Screen and system-audio sharing", "Bring Your Tabs"],
   "1.11.0": ["Mahjong start-page layout", "Crash recovery and diagnostics", "Certificate failure details"],
   "1.10.0": ["1Password login hint", "1Password account verification"],
   "1.9.0": ["1Password login fill", "Refined app icons", "Quiet tab dots"],

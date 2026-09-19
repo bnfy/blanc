@@ -1,0 +1,10 @@
+ffconcat version 1.0
+file 'trial-scene-1.png'
+duration 6
+file 'trial-scene-2.png'
+duration 6
+file 'trial-scene-3.png'
+duration 6
+file 'trial-scene-4.png'
+duration 6
+file 'trial-scene-4.png'

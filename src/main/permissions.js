@@ -179,6 +179,10 @@ function setupPermissionPolicy(
   session.setPermissionRequestHandler((wc, permission, callback, details) =>
     withLocalProfile(profileId, async () => {
     if (heldRequester(wc)) return callback(false);
+    if (permission === 'display-capture') return callback(false);
+    if (permission === 'media' && normalizedMediaTypes(details?.mediaTypes).length === 0) {
+      return callback(false);
+    }
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
@@ -235,6 +239,10 @@ function setupPermissionPolicy(
   session.setPermissionCheckHandler((wc, permission, requestingOrigin, details) =>
     withLocalProfile(profileId, () => {
     if (heldRequester(wc)) return false;
+    if (permission === 'display-capture') return false;
+    if (permission === 'media' && details?.mediaType !== 'audio' && details?.mediaType !== 'video') {
+      return false;
+    }
     if (AUTO_ALLOWED.has(permission)) return true;
     if (!PROMPTED.has(permission)) return false;
     const origin = normalizedOrigin(requestingOrigin);

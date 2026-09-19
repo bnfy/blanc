@@ -8,24 +8,25 @@
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="ledger-body" data-layout="billboard">
+  <!-- Startup decisions must remain visible in every new-tab layout. -->
+  <section id="startupCard" class="launch-card" aria-labelledby="startupTitle" hidden>
+    <div class="launch-card-kicker">browser protection</div>
+    <h2 id="startupTitle">Preparing blocking…</h2>
+    <p id="startupMessage">Blanc is preparing its local ad and tracker filters before opening web pages.</p>
+    <div id="startupActions" class="launch-card-actions" hidden>
+      <button id="startupRetry" type="button">Retry</button>
+      <button id="startupContinue" type="button" class="quiet">Continue without blocking</button>
+    </div>
+    <div id="recoveryActions" class="launch-card-actions" hidden>
+      <button id="recoveryRestore" type="button">Restore tabs</button>
+      <button id="recoveryFresh" type="button" class="quiet">Start fresh</button>
+    </div>
+    <p id="recoveryError" class="section-hint" role="status" hidden></p>
+  </section>
+
   <main class="ledger" id="layoutLedger">
     <div id="dateLine" class="ledger-date"></div>
     <h1 class="ledger-heading">Where to?</h1>
-
-    <section id="startupCard" class="launch-card" aria-labelledby="startupTitle" hidden>
-      <div class="launch-card-kicker">browser protection</div>
-      <h2 id="startupTitle">Preparing blocking…</h2>
-      <p id="startupMessage">Blanc is preparing its local ad and tracker filters before opening web pages.</p>
-      <div id="startupActions" class="launch-card-actions" hidden>
-        <button id="startupRetry" type="button">Retry</button>
-        <button id="startupContinue" type="button" class="quiet">Continue without blocking</button>
-      </div>
-      <div id="recoveryActions" class="launch-card-actions" hidden>
-        <button id="recoveryRestore" type="button">Restore tabs</button>
-        <button id="recoveryFresh" type="button" class="quiet">Start fresh</button>
-      </div>
-      <p id="recoveryError" class="section-hint" role="status" hidden></p>
-    </section>
 
     <section class="ledger-section">
       <a class="ledger-label" href="blanc://bookmarks/">favorites</a>
@@ -43,7 +44,7 @@
     </section>
 
     <p id="patron-callout" class="ledger-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron">Support Blanc</a>
+      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
     </p>
   </main>
 
@@ -61,7 +62,7 @@
     <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="bbGroups" class="bb-groups"></div>
     <p class="bb-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron">Support Blanc</a>
+      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
     </p>
   </main>
 
@@ -85,7 +86,7 @@
       </div>
     </div>
     <p class="shelf-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron">Support Blanc</a>
+      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
     </p>
   </main>
 
@@ -98,7 +99,7 @@
       <div class="ledger-label tally-label tally-label-groups">pick up where you left off</div>
       <div id="tlGroups" class="tally-chiprow"></div>
       <p class="tally-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron">Support Blanc</a>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
       </p>
     </div>
     <div class="tally-right">
@@ -115,6 +116,36 @@
          so the other layouts never pay for loading the game. -->
     <iframe id="mahjongFrame" title="Mahjong solitaire"></iframe>
   </main>
+
+  <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
+    <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
+      <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
+      <span class="page-sr-only">Open moving-in checklist</span>
+    </button>
+    <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
+      <div class="migration-checklist-heading">
+        <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
+        <h2 id="migrationChecklistTitle">ready to move in?</h2>
+      </div>
+      <ul class="migration-checklist-tasks">
+        <li id="migrationSyncTask">
+          <button id="migrationSyncAction" class="migration-task" type="button">
+            <span class="migration-task-check" aria-hidden="true"></span>
+            <span class="migration-task-label">Set up Sync</span>
+            <span class="page-sr-only migration-task-status">Not completed</span>
+          </button>
+        </li>
+        <li id="migrationTabsTask">
+          <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
+            <span class="migration-task-check" aria-hidden="true"></span>
+            <span class="migration-task-label">Bring your tabs</span>
+            <span class="page-sr-only migration-task-status">Not completed</span>
+          </a>
+        </li>
+      </ul>
+      <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
+    </aside>
+  </div>
 
   <footer id="layoutFooter" class="ledger-footer">
     <span class="footer-left">
@@ -151,7 +182,10 @@
         <div class="ob-vignette ob-vignette-apps">
           <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><circle cx="8" cy="8" r="5.75"></circle><path d="M2.5 8h11M8 2.25c-1.8 1.6-2.7 3.5-2.7 5.75S6.2 12.15 8 13.75c1.8-1.6 2.7-3.5 2.7-5.75S9.8 3.85 8 2.25z"></path></svg></span>
           <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><path d="M2.75 12.5c0-4.5 2.5-8.25 5.25-8.25s5.25 3.75 5.25 8.25"></path><path d="M8 4.25V2.5M5 12.5h6"></path></svg></span>
-          <span class="ob-tile ob-tile-blanc"><span class="ob-blanc-mark" aria-hidden="true"></span></span>
+          <picture class="ob-app-icon">
+            <source media="(prefers-color-scheme: dark)" srcset="icon-sunrise-dark.png" />
+            <img src="icon-sunrise.png" width="64" height="64" alt="Blanc" />
+          </picture>
           <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><rect x="2.75" y="3.25" width="10.5" height="9.5" rx="1.5"></rect><path d="M2.75 6h10.5M5 4.6h.01M6.8 4.6h.01"></path></svg></span>
           <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><path d="M3.5 11.5c-.6-1-1-2.2-1-3.5a5.5 5.5 0 1 1 11 0c0 1.3-.4 2.5-1 3.5"></path><circle cx="8" cy="8" r="1.75"></circle><path d="M8 9.75V13"></path></svg></span>
         </div>
@@ -163,13 +197,17 @@
         <div class="ob-vignette ob-vignette-import">
           <span class="ob-tile ob-tile-sm"><svg viewBox="0 0 16 16" width="18" height="18"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"></path></svg></span>
           <svg class="ob-arrow" viewBox="0 0 16 16" width="20" height="20"><path d="M2.5 8h11M10.25 4.75 13.5 8l-3.25 3.25"></path></svg>
-          <span class="ob-tile ob-tile-blanc ob-tile-blanc-sm"><span class="ob-blanc-mark" aria-hidden="true"></span></span>
+          <picture class="ob-app-icon ob-app-icon-sm">
+            <source media="(prefers-color-scheme: dark)" srcset="icon-sunrise-dark.png" />
+            <img src="icon-sunrise.png" width="60" height="60" alt="Blanc" />
+          </picture>
         </div>
         <h1>Bring your bookmarks</h1>
         <p>Imports happen on this device — nothing is uploaded.</p>
         <div class="ob-cta-row"><button id="obLook" class="ob-btn-secondary" type="button">Look for installed browsers</button></div>
         <div id="obSources" class="ob-srclist"></div>
         <span id="obImportStatus" class="ob-status" role="status"></span>
+        <button id="obBringTabs" class="ob-btn-secondary ob-handoff" type="button" hidden>Bring your open tabs…</button>
       </section>
       <section data-step="2" hidden>
         <h1>Meet the island</h1>

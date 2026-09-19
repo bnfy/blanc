@@ -52,14 +52,10 @@ public enum BlancTabSleepDelay: String, CaseIterable { case off, m30 = "30m", h1
 public enum BlancAppIcon: String, CaseIterable {
     case sunrise
     case sunriseDark
-    case paper
-    case ink
     public var label: String {
         switch self {
         case .sunrise: return "Sunrise"
         case .sunriseDark: return "Sunrise Dark"
-        case .paper: return "Paper"
-        case .ink: return "Ink"
         }
     }
     public var isSupporterOnly: Bool {

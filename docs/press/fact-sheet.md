@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: September 2, 2026
+Last updated: September 11, 2026
 
 ## The short version
 
@@ -12,15 +12,16 @@ Blanc is an independent Chromium-based desktop browser from Bananify. It ships
 with built-in ad and tracker blocking, private tabs, Favorites, history,
 downloads, a command palette, named tab groups, independent windows, isolated
 local profiles, a focused two-page Glance view, optional vertical tabs, Named
-Workspaces for Patrons, and end-to-end-encrypted Profile Sync. It does not ship
-an AI assistant or an extension runtime.
+Workspaces for Patrons, end-to-end-encrypted Sync, trusted screen and
+system-audio sharing, and a private one-time tab handoff. It does not ship an AI
+assistant or an extension runtime.
 
 ## Product facts
 
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public baseline | [1.15.0](https://github.com/bnfy/blanc/releases/tag/v1.15.0) |
+| Current public baseline | [1.16.1](https://github.com/bnfy/blanc/releases/tag/v1.16.1) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
@@ -93,7 +94,7 @@ produced it is `bench/memory/` in the repository.
   activity and can be disabled in Settings.
 - Private tabs use a separate, non-persistent in-memory browser session and stay
   out of Blanc history, session restore, and reopen-closed.
-- Profile Sync encrypts data on the device before upload. Open-tab sharing is
+- Sync encrypts data on the device before upload. Open-tab sharing is
   off by default on every device, and private tabs are never included.
 - When open-tab sharing is enabled, bounded source-rasterized PNG favicons may
   be uploaded in a separately encrypted sidecar; receiving devices do not

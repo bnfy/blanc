@@ -1,4 +1,3 @@
-/Users/anthonyjloria/.rvm/scripts/rvm:29: operation not permitted: ps
 # Mahjong Burst momentum and hint design QA — 2026-08-31
 
 **Final result:** passed
@@ -176,6 +175,117 @@ final result: passed
 
 ---
 
+# Bring Your Tabs design QA
+
+**Final result:** passed for the corrected direct-open-tab flow
+
+## Comparison target
+
+- Approved source-card direction: `docs/superpowers/specs/assets/tab-import-source-option-3.png`
+- Reference/live comparison: `docs/superpowers/specs/assets/tab-import-source-design-qa-current.jpg`
+- Desktop live states:
+  - `docs/superpowers/specs/assets/tab-import-source-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-tabs-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-organize-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-review-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-quit-gate-live-final.jpg`
+- Compact 700×600 states:
+  - `docs/superpowers/specs/assets/tab-import-source-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-tabs-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-organize-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-review-narrow-final.jpg`
+
+## Normalization
+
+- Desktop implementation capture: 1229×768 macOS Electron content, light appearance, no page zoom.
+- The approved source-card direction was normalized to 1229×768 and placed beside the desktop
+  source capture in a 2458×768 comparison image.
+- Compact capture: the real Electron window was set to 700×600 through the acceptance-only main
+  process hook; the utility sheet retained its production 24px scrim margin and vertical scrollport.
+- Data is synthetic but structurally realistic: two source windows, six HTTP(S) tabs, a duplicate,
+  a pin, two named source groups, one ungrouped tab, and one unsupported internal URL.
+- The old mock's Folder step, bookmark-oriented profile copy, and HTML fallback were treated as
+  superseded semantics. The approved visual direction—official-logo cards, profile rows, spacing,
+  and restrained monochrome shell—remains the visual target.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings in the implemented desktop flow.
+
+- Source: official bundled Brave, Chrome, Edge, Vivaldi, and Chromium artwork is crisp and
+  consistently framed. Available, selected, permission-needed, and profile-count states preserve
+  the approved card hierarchy without implying that Favorites are involved.
+- Tabs: source windows, duplicate tabs, pin/group metadata, selected count, and unsupported-tab
+  copy are readable without exposing full URLs. The sheet scrolls vertically at compact heights.
+- Organize: preserved group names are visibly labelled **from source**; group rename, create,
+  remove, and move controls use the existing Blanc form language. Compact group headers remain
+  one line and row actions stack without stretching header controls.
+- Review: exact tab/group/ungrouped consequences are prominent. Desktop uses three compact metric
+  columns; the 700×600 layout stacks them and exposes a clear scroll affordance.
+- Quit safeguard: the prompt appears only with a proven saved/restorable session count, asks for a
+  normal quit, says Blanc only reads and never removes source tabs, and avoids promising automatic
+  reopening. While the gate is open, every profile row is disabled and the selected row replaces
+  its chevron with **Waiting…**, leaving the explicit **check again** button as the sole primary
+  continuation. Post-quit verification refuses an incomplete newest session rather than falling
+  back.
+- Accessibility: the wizard exposes labelled steps, browser radios, profile buttons, selected-tab
+  checkboxes, labelled group-name inputs, move selects, live status text, and a persistent close
+  control. Step changes reset the sheet scrollport so the next heading remains visible.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The implemented feature still used a bookmarks-folder source, contradicting the requested
+  open-tab migration outcome.
+- [P1] Source profiles were plain text rows without the selected official-logo visual direction.
+
+Fix: replaced the source with explicit Chromium restorable-session reads and retained the approved
+official-logo browser-card/profile-row layout.
+
+### Iteration 2 — blocked
+
+- [P1] Advancing from a long Tabs panel carried its scroll position into Organize, clipping the
+  Organize heading beneath the sticky navigation.
+- [P2] At 700×600, the group-name flex basis became vertical blank space and the remove-group
+  action stretched across the card.
+- [P2] Preserved source groups were incorrectly labelled **new**.
+
+Fix: reset the sheet scrollport immediately and on the next animation frame at every step change;
+kept group headers horizontal at the compact breakpoint; scoped full-width controls to row actions;
+and mapped high-confidence preserved groups to **from source**.
+
+### Iteration 3 — passed
+
+The desktop and 700×600 captures show complete headings, consistent card rhythm, usable scrolling,
+compact group controls, accurate source provenance, and no clipped or horizontally overflowing UI.
+
+### Final cleanup — passed
+
+The quit-safeguard profile row is now visibly dimmed, disabled, and labelled **Waiting…** while
+the retry gate is active. The rejected bookmark-folder renderer was removed rather than retained
+as a second dead F39 UI, and its design and plan are explicitly non-normative superseded records.
+
+## Functional evidence
+
+- Unit: 1,088/1,088 passed after the direct-session and scroll-transition changes.
+- Focused F39 Electron acceptance with retries disabled: 11/11 scenarios, 63/63 steps passed.
+- Full Electron acceptance before the final presentation-only fixes: 127/127 scenarios and
+  766/766 steps passed; the focused no-retry run was repeated afterward.
+- Substrate: token, settings, generated copy, and pinned adblock checks pass; the production
+  dependency audit reports zero vulnerabilities.
+
+## Remaining release evidence
+
+- The signed unpacked macOS app passes its source-session read and post-sign verification and
+  contains no ONNX, MiniLM, Transformers, embedding, or `.wasm` payload.
+- Windows locked-session quit/retry and Linux Chromium-session reads remain unverified. They were
+  explicitly deferred by the product owner on 2026-09-07 because Parallels Desktop was too
+  unreliable for trustworthy packaged results. F39 remains `PLANNED`; see
+  `docs/release-incidents/2026-09-07-f39-platform-verification-deferral.md`.
+
+---
+
 # Design QA — optional website measurement toast
 
 ## Comparison target
@@ -206,8 +316,6 @@ No actionable P0, P1, or P2 findings remain.
 - Affordances and accessibility: the choice is a labelled non-modal dialog. Allow and No thanks are full buttons, Privacy details is a visible link, and the footer's Privacy choices button reopens the dialog and focuses Allow.
 
 ## Comparison history
-
-### Iteration 1 — blocked
 
 - [P1] The original full-width footer banner competed with the newly bottom-centered navigation Island and occupied the entire viewport edge.
 
@@ -1780,5 +1888,133 @@ No actionable P0, P1, or P2 findings remain.
 ## Follow-up polish
 
 No P3 follow-up is required for this change.
+
+final result: passed
+
+---
+
+# Design QA — Start-page migration checklist and Sync setup
+
+**Date:** 2026-09-17
+**Result:** PASS
+
+## References
+
+- Start-page checklist target:
+  `/Users/anthonyjloria/.codex/generated_images/01a0b134-ab46-7351-84d2-ca354c756789/exec-d44f107a-4e8d-4aa7-a56e-c61477f87b37.png`
+- Selected Sync setup direction (Option 2):
+  `/Users/anthonyjloria/.codex/generated_images/01a0b134-ab46-7351-84d2-ca354c756789/exec-d83e29bd-798c-4adb-aa6e-64de8a3f8a3e.png`
+- Earlier Sync setup supplied by the owner:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.18.31 PM.png`
+- Earlier active Sync state supplied by the owner:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.29.22 PM.png`
+- Final Billboard implementation capture:
+  `docs/superpowers/specs/assets/start-page-patron-pill-final.jpg`
+- Focused Patron CTA comparison:
+  `docs/superpowers/specs/assets/start-page-patron-source-crop.png` and
+  `docs/superpowers/specs/assets/start-page-patron-final-crop.jpg`
+
+The checklist source is 1586×992 pixels. The live Electron implementation was
+captured at a 1229×768 CSS-pixel app viewport at device scale 1; their aspect
+ratios differ by less than 0.1%, so the full views were compared at their
+native sizes and the CTA regions were cropped separately for readable detail.
+The compared state is Billboard, light appearance, `0/2`, no recent sites.
+
+## Checklist comparison
+
+The implemented checklist matches the chosen visual direction: unboxed corner
+placement, a thin `0/2` progress ring in Inter, Caveat handwriting for
+the heading and task labels, hand-drawn underlines, monochrome circles and
+checks, a slight counter-clockwise heading tilt, and a quiet hide action. The
+local Caveat WOFF2 produces the same
+casual handwritten rhythm as the reference without a network font request.
+The 48 px compact trigger appears below the width/height breakpoint. Ledger,
+Shelf, and Tally use the lower-right slot; Billboard uses the upper-right slot
+so its recent-site row and dismissal controls retain the lower canvas. Its
+compact panel expands downward from that trigger; the other layouts expand
+above the footer.
+
+Each informational layout also replaces the vague “Support Blanc” footer link
+with a compact **Upgrade to Blanc Patron →** pill. The final treatment uses the
+original local gold Sunrise artwork on Patron warm ink, with an ivory label and
+gold arrow. The copy names the product and action directly, retains the
+existing Patron Settings target, and stays hidden for active Patrons. Hover
+keeps the material, border, shadow, dimensions, and brand colors stable,
+brightens the complete capsule uniformly, and advances only the arrow; reduced
+motion removes that movement.
+
+The full-view source and implementation were opened in one comparison input.
+The CTA was also compared in focused crops because the full-view label and
+mark are too small for reliable inspection. Typography uses Inter at an
+appropriate optical weight; the 20px source mark is sharp and uncropped;
+spacing, 36px target height, capsule radius, warm-ink/gold/ivory palette, and
+the complete upgrade copy are visually balanced. No P0, P1, or P2 issue
+remains in the CTA.
+
+Verified in the live dev app and the signed unpacked package in light and dark
+modes. Ledger, Billboard, Shelf, and Tally eligibility plus Mahjong/private
+exclusion are covered by unit and desktop acceptance checks.
+
+## Sync setup comparison
+
+The selected Option 2 composition is implemented as one open canvas rather
+than another bordered card. It preserves the large title and supporting copy,
+then uses three numbered steps connected by a thin rule. Each step has a
+matching monochrome line illustration, a clear task title, and generous
+dividers. Name and passphrase fields span the available content width; the
+passphrase step includes the dedicated on-device trust note. The last step
+keeps the primary action and quiet Back action together.
+
+At 720 px and below, illustrations stack within the content column while the
+number spine remains visible. At normal size the horizontal icon/content
+alignment matches the selected mockup. Light and dark themes retain the same
+hierarchy and contrast. The deep-linked Sync section now keeps the Sync
+sidebar marker selected when the chooser or guide changes height.
+
+## Functional parity
+
+The visual work did not remove or replace the earlier active-state controls.
+The implementation still exposes and wires:
+
+- sync name, last-sync time, tab-sharing status, and a dedicated last-error row;
+- **Sync now**;
+- **Turn off sync**;
+- optional **also delete synced data**, including retry-safe behavior after a
+  failed remote wipe; and
+- **share this device’s open tabs with your other devices**.
+
+The start/join reducer, preflight-before-save boundary, token-based stale-reply
+guard, validation rules, not-found choice, and first-sync-failure behavior are
+unchanged.
+
+## Verification
+
+- Focused Sync UI/model tests: pass.
+- Full unit suite: 1,848/1,848 tests pass.
+- Desktop acceptance: 161/161 scenarios passed before the Billboard geometry
+  addition; its focused 1-scenario, 7-step overlap check also passes. The final
+  Sync routing recheck passes 2/2 focused scenarios.
+- Settings/copy/brand/tokens/adblock/compliance substrate: pass.
+- Site build and SEO verification: pass.
+- Signed unpacked macOS package: payload, compliance, license, fuse, profile,
+  entitlement, and deep code-sign verification pass.
+- Final signed-package visual check: checklist, Sync chooser, correct Sync nav
+  marker, and setup routing pass.
+- `git diff --check`: pass.
+
+## Comparison history
+
+- First pass: the vague text-only “Support Blanc” link had weak affordance.
+  It was replaced by an explicit upgrade pill.
+- Second pass: a flat gold fill felt generic and did not carry Blanc’s brand
+  mark. It was replaced by the original Sunrise artwork on Patron warm ink.
+- Third pass: hover changed the capsule material, then its lift/shadow and
+  border-color changes made the capsule appear to shrink. Hover now preserves
+  the warm-ink surface, ivory label, exact border, geometry, and resting
+  shadow; the complete capsule brightens uniformly while only the arrow moves.
+
+## Follow-up polish
+
+No P3 follow-up is required for this component.
 
 final result: passed

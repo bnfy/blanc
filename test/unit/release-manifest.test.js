@@ -234,6 +234,30 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseScript, /SHA256SUMS\.sigstore\.json/);
 });
 
+test('published macOS smoke verifies the immutable DMG and pinned signing identity independently', () => {
+  const workflow = fs.readFileSync(
+    path.join(root, '.github/workflows/prerelease-smoke.yml'),
+    'utf8'
+  );
+  const start = workflow.indexOf('  published-macos-dmg:');
+  assert.ok(start >= 0, 'published smoke must include an independent macOS DMG job');
+  const job = workflow.slice(start);
+
+  assert.match(job, /runs-on: macos-15/);
+  assert.match(job, /Blanc-\$VERSION-arm64\.dmg/);
+  assert.match(job, /--pattern SHA256SUMS/);
+  assert.match(job, /ACTUAL=\$\(shasum -a 256/);
+  assert.match(job, /\[ "\$ACTUAL" = "\$EXPECTED" \]/);
+  assert.match(job, /hdiutil attach .* -readonly -nobrowse/);
+  assert.match(job, /codesign --verify --deep --strict --verbose=4/);
+  assert.match(job, /Developer ID Application: Anthony Loria \(XYGUCY4498\)/);
+  assert.match(job, /TeamIdentifier=XYGUCY4498/);
+  assert.match(job, /--extract-certificates="\$CERT_PREFIX"/);
+  assert.match(job, /55283A84D3706D5A22386D5F002A0CD4845ECFD4/);
+  assert.match(job, /xcrun stapler validate/);
+  assert.match(job, /hdiutil detach/);
+});
+
 test('release authentication uses an explicit interactive operator, 1Password desktop auth, and Safari', () => {
   const releasePath = path.join(root, 'scripts/release.sh');
   const releaseScript = fs.readFileSync(releasePath, 'utf8');
@@ -266,7 +290,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.15.0}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.18.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);

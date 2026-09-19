@@ -14,6 +14,172 @@ The current one-page audience, conversion, and download result is maintained in
 [`daily-scorecard-2026-08-29.md`](daily-scorecard-2026-08-29.md). Use it as the
 operating score; use this log for detailed evidence and chronology.
 
+## August 30, 2026 — daily goal restored
+
+Anthony rejected the staged Start Here trailer direction in full. Its local
+storyboard, captures, renders, captions, and review files were deleted, and the
+content-ledger entry was changed to prohibit publication or reuse. The standing
+daily objective is active again: tend X, Threads, Instagram, Facebook, TikTok,
+and Substack; work toward at least 10 new followers or subscribers per priority
+platform per day; verify counts; and obtain action-time approval before every
+public post, reply, like, follow, pin, or profile change.
+
+### Verified public baseline
+
+| Platform | Current public audience | Change from last recorded count | Evidence / qualification |
+| --- | ---: | ---: | --- |
+| X | 8 followers | +1 | 75 following and 67 posts. The new follower is Nzo (`@0x6e7a6f`), a small open-source/tech account Blanc already follows. |
+| Threads | 21 followers | 0 | 12.8K recent views. Recent Blanc replies have earned author likes or replies, but the audience has not converted upward. |
+| Instagram | 104 followers | -1 | 60 following and 23 posts. Public HTML does not expose current reach, visits, saves, or post-level engagement. |
+| Facebook | 9 followers | 0 | 52 following. The logged-in profile exposes the follower count directly. |
+| TikTok | 27 followers | 0 | 17 following, 6 total likes, and 4 videos. |
+| Substack | 1 subscriber; 3 profile followers | -1 subscriber from the Aug 29 logged-in reading | Subscriber and profile-follower counts are separate and must remain separate in reporting. |
+
+The immediate diagnosis is conversion, not output volume: Threads has broad
+recent exposure without follower movement; X's recent owned posts have 9–20
+views and no visible engagement; Instagram lost one follower; TikTok is flat.
+Do not answer this by publishing more rejected or recycled creative. Prioritize
+fresh inbound follow-ups, current conversations, and profile-conversion issues.
+
+### 11:05 ET live platform pass
+
+No public action was taken. Logged-in X, Threads, Instagram, Facebook, TikTok,
+and Substack were inspected in visible Brave. There is no fresh customer
+question or genuine unanswered reply on any of the six platforms. Threads'
+newest activity is author acknowledgement on existing Blanc replies; X's only
+new conversion is the follower above; Instagram and Facebook have lightweight
+likes on the Quiet Tabs reel; TikTok has a like on a prior Blanc comment but no
+reply; and Substack has a Note like plus one day-old follow. TikTok and Facebook
+inboxes contain no legitimate unanswered inquiry.
+
+The latest TikTok video counts are 68, 87, 1, and 358 views. Facebook's latest
+Quiet Tabs reel has one reaction, and the profile's Featured section is empty:
+“People won’t see this unless you pin something.” Substack reports one
+subscriber; its separately exposed public profile-follower count remains three.
+
+Fresh native scouting produced three defensible conversation opportunities:
+
+- Threads: a two-hour-old autism/ADHD joke has an active nested comment about
+  counting open tabs on both phone and laptop. The proposed casual reply is:
+  “the combined phone + laptop count is between you and your operating system”.
+- X: Micron Technology's 20-hour-old travel-planning post has about 6K views,
+  93 likes, 12 reposts, and five replies. A non-promotional response can address
+  the real tab tension: “travel planning is one of those jobs where every tab
+  feels too important to close. the hard part is keeping them useful without
+  letting the browser take over.”
+- Substack: Ira Writes' six-hour-old Note says the needed page is never among
+  the brain's 47 open tabs. The proposed reply is: “the one you need is always
+  hiding behind three tabs you opened to avoid looking for it.”
+
+Facebook has a separate profile-conversion opportunity: its Featured surface
+is blank even though the existing two-day-old “No AI assistant. No permanent
+tab strip.” Reel explains Blanc's position more quickly than the remaining
+posts currently visible on the profile. Featuring it would reuse an already
+public post, not create new content. Each reply and the Featured change require
+separate action-time approval and a final freshness/duplicate check.
+
+### Read-only issues and next checks
+
+- Threads has fresh author acknowledgement on existing Blanc replies, but no
+  branch presently benefits from a manufactured second reply.
+- X's new-follower notification is verified and needs no follow-back because
+  Blanc already follows the account.
+- Substack's public profile bio is aligned, but its publication hero text still
+  uses the older “quieter web” positioning. Any edit is a separately approved
+  public profile change.
+- Search-engine scouting did not produce a reliable same-day X or Threads
+  conversation. Do not use search results without a live-platform freshness and
+  duplicate-reply check.
+
+### 11:11 ET continuation checkpoint
+
+No public action was taken. X still reports 8 followers and 67 posts, while its
+following count has moved from 75 to 92 since the earlier check. The source of
+those follows is not inferred. Threads remains at 21 followers and 12.8K recent
+views; its activity feed has no newer signal than the previously recorded
+one-hour-old like. Facebook remains at 9 followers and 52 following, and its
+Featured surface is still empty.
+
+The Facebook profile scroll exposed the existing five-day-old “same 12 tabs”
+comparison. It is a stronger Featured candidate than the two-day-old “No AI
+assistant” Reel because the image demonstrates Blanc's primary visible
+difference immediately. This changes only the recommendation; no pin or
+Featured action is authorized. Instagram, TikTok, and Substack retain the
+11:05 verified counts after Brave's accessibility layer stopped exposing their
+web contents during the continuation. The browser was not restarted and the
+open session was not disturbed merely to manufacture another identical read.
+
+The current one-page operating record is
+[`daily-scorecard-2026-08-30.md`](daily-scorecard-2026-08-30.md). The standing
++10 target is not met on any platform; X is the only platform with a positive
+verified daily delta.
+
+### 11:16 ET current-release measurement reset
+
+No public action was taken. The release boundary was verified against the live
+GitHub state instead of the stale repository header: v1.10.0 is published,
+non-draft, and non-prerelease at commit
+`a96eb47d83341e863be0cb1f5099eb035e23637e`, with native packages and updater,
+checksum, Sigstore, SBOM, and Windows-signature assets present.
+
+The social download helper now defaults to v1.10.0. A new current-release
+baseline at `2026-08-30T15:15:54Z` records 40 cumulative package-asset
+requests—14 macOS, 16 Windows, and 10 Linux—and 128 updater-metadata or
+blockmap requests. It is saved as
+[`download-baseline-v1.10.0-2026-08-30.json`](download-baseline-v1.10.0-2026-08-30.json).
+These counters are aggregate corroboration only. They do not prove 40 people,
+40 installs, social acquisition, or any contribution toward the follower
+target. v1.9.1 totals remain historical and are not compared directly with the
+new release's independent counters.
+
+A verifier run three minutes later reached 41 package requests and 129 updater
+requests: +1 macOS package request and +1 updater request. The checkpoint is
+[`download-checkpoint-v1.10.0-2026-08-30-151832Z.json`](download-checkpoint-v1.10.0-2026-08-30-151832Z.json).
+This movement is not attributed to social or counted as a follower/download
+conversion.
+
+### 11:20 ET approval blocker audit
+
+No public action was taken. This is the fourth consecutive goal turn in which
+the current reply and Facebook Featured actions remain prepared but lack the
+required action-time approval. Read-only work has been exhausted for the
+current state: all six platforms were checked, the audience score is current,
+the approval queue was narrowed, the live v1.10.0 release boundary and download
+baseline were verified, and the stale v1.9.1 measurement default was corrected.
+
+Brave's accessibility feed stopped exposing page contents after the latest
+cross-platform pass, and no Playwright browser or local Brave debugging endpoint
+is available to attach without disturbing the user's logged-in window. That is
+not treated as permission to restart Brave. More importantly, even restored
+browser inspection would not authorize a reply, like, follow, pin, or profile
+change. Progress toward follower growth now requires Anthony's explicit approval
+of the prepared public actions or a later external-state change that creates a
+new inbound item.
+
+## August 29, 2026 — 14:19–14:27 ET first-wave execution
+
+Anthony approved the balanced six-platform reply wave. Every parent was
+reopened in visible Brave immediately before entry and checked for freshness,
+context, account identity, and an existing Blanc response. The audience
+baseline immediately before publication remained X 7, Threads 21, Instagram
+105, Facebook 9, TikTok 27, and Substack 1.
+
+| Platform | Live Blanc reply | Parent evidence immediately before publishing |
+| --- | --- | --- |
+| Threads | [Direct response to nahiddotai](https://threads.com/@blancbrowser/post/DcolFc6kZy1) | Direct inbound reply, 3 hours old, no existing Blanc response on the branch. |
+| X | [Dr. Sylvie tab-overload reply](https://x.com/blancbrowser/status/2093767233478533136) | Parent at 2,261 views, 9 likes, 3 reposts, 4 bookmarks, and 0 replies before Blanc. |
+| Instagram | [iampascio founder-expenses comment](https://www.instagram.com/p/DclGubHKtyW/c/18113187422068675/) | Parent at 2.3K likes, 15 comments, and 103 reposts; Blanc became comment 16. |
+| Facebook | [Brave Accounts comment](https://www.facebook.com/BraveSoftware/posts/pfbid032bEZGQcEgXs53UUEtxTWWGkb2tV9i2y61ms2weTFrwzy5nspZ5ZFFAPm3ikxPb9Pl?comment_id=1062177083209967) | Parent at 2.2K reactions, 118 comments, and 124 shares before Blanc. |
+| TikTok | [Amanda Mercedesb tab-count comment](https://www.tiktok.com/@amandamercedesb/video/7679245261239045406) | Parent 17 hours old with 8 likes, 16 comments, 1 favorite, and 0 shares; Blanc became comment 17. TikTok exposed no direct comment permalink. |
+| Substack | [Alexandros Wikipedia-tabs reply](https://substack.com/profile/542769413-blanc-browser/note/c-325381217) | Parent at 18 likes, 2 replies, and 1 restack before Blanc. |
+
+No likes, follows, subscriptions, or restacks were added. X briefly published
+stale clipboard text even though the visible composer showed the approved
+copy. The incorrect reply was removed immediately; the approved replacement
+was entered with native keystrokes, verified character-for-character, and then
+confirmed live. Measure reply reactions, parent-author responses, profile
+visits, and audience changes after 60–90 minutes and again after 24 hours.
+
 ## August 29, 2026 — 12:32 ET logged-in check-in
 
 ### Audience and conversion evidence
@@ -764,6 +930,17 @@ minute/24-hour measurement gate are recorded in
 subscribing, restacking, or any account change still requires explicit
 approval.
 
+### 17:51 ET Substack replacement execution (August 30)
+
+The user approved the separately prepared STUDIO BRITTANY replacement. An
+immediate refresh confirmed the Note was six hours old, had one like, no
+replies, and no existing Blanc response. The logged-in identity was Blanc
+Browser. The exact approved text—“honestly browser switching is at least 40%
+vibes and anyone who says otherwise is lying.”—was posted and verified live at
+`https://substack.com/profile/542769413-blanc-browser/note/c-326157439`. The
+parent now shows one reply. No like, subscription, restack, follow, or unrelated
+account change was made.
+
 ### 13:24 ET profile-destination audit (August 29)
 
 No public field or account setting was changed. The live X profile was opened
@@ -911,6 +1088,464 @@ requests, not unique people or acquisition sources; QA, retries, updater
 handoffs, direct traffic, and non-social acquisition are included. The Windows
 movement is therefore aggregate corroboration only and is not recorded as a
 new social user, attributed download, or campaign conversion.
+
+### 23:38 ET first-wave conversion check (August 29)
+
+No public action was taken. The six platform profiles and the available
+first-wave reply surfaces were reopened read-only in visible Brave roughly ten
+hours after publication. Audience counts remain X 7, Threads 21, Instagram
+105, Facebook 9, TikTok 27, and Substack 1. The confirmed daily audience delta
+is therefore zero on all six platforms.
+
+The X reply recorded 4 views and no replies, reposts, likes, or bookmarks. Its
+parent conversation moved from 2,261 to 2,850 views, from 9 to 11 likes, from 3
+to 5 reposts, from 4 to 7 bookmarks, and from 0 to 1 reply. Instagram's parent
+post rose from the rounded 2.3K-like surface to 2,746 likes; Blanc's comment
+has no visible like or reply. Facebook's parent moved from 2.2K to 2.6K
+reactions, 118 to 123 comments, and 124 to 143 shares; Blanc's comment has no
+visible reaction or response.
+
+TikTok produced the clearest reply-level result: the parent moved from 8 to 10
+likes and 16 to 18 comments, while Blanc's comment earned 1 like and no visible
+reply. The Substack reply also earned 1 like and no reply; its parent remains
+at 18 likes and 1 restack and moved from 2 to 3 comments. Threads still reports
+21 followers and 12.8K recent views, but the first-wave permalink redirects to
+the Blanc profile and the reply is absent from Blanc's recent reply history.
+It is recorded as unavailable rather than as successful or zero-engagement.
+
+The read-only v1.9.1 package checkpoint reached 140 cumulative package-asset
+requests, +2 since the 17:37:59Z checkpoint and +3 from the day's 137-request
+baseline. Both new requests since the prior checkpoint were macOS. This is
+aggregate corroboration only and cannot be attributed to the first-wave
+replies. The checkpoint is saved in
+`download-checkpoint-2026-08-30-033802Z.json`.
+
+The evidence does not support immediately repeating the same reply pattern.
+Two of five measurable replies earned one lightweight interaction, none
+produced a visible conversation, and no platform added a follower. The next
+recommended distribution unit is a fresh, owned, high-comprehension product
+post with a direct emotional payoff, followed by selective replies only where
+the parent author is actively responding. No new public action is authorized
+by this measurement pass.
+
+### 11:32 ET approved activity execution (August 30)
+
+Three approved public actions were completed in visible Brave after an
+immediate age, context, identity, and duplicate-response check. No like,
+follow, deletion, or unrelated account change was made.
+
+- **Threads:** replied to `@ohsoyourekindofwild`'s 28-minute-old nested comment,
+  “Will they also be counting the number of open browser tabs on both my phone
+  and laptop?” The parent thread was two hours old with 502 views, 18 likes,
+  and six replies before publication. Blanc's reply—“the combined phone +
+  laptop count is between you and your operating system”—is live at
+  `https://www.threads.com/@blancbrowser/post/Dcq1RMRkafY`. The nested comment
+  immediately showed one reply and the parent showed seven.
+- **Substack:** replied to Ira Writes' six-hour-old Note, “My brain has 47 tabs
+  open and none of them are the one I actually need.” The Note had seven likes
+  and no replies. Blanc's response—“the one you need is always hiding behind
+  three tabs you opened to avoid looking for it.”—was verified live; the Note
+  now shows one reply. Parent:
+  `https://substack.com/@byirawrites/note/c-322182726`.
+- **Facebook:** pinned the existing “same 12 tabs” comparison through Manage
+  featured items. The manager changed the card action from **Pin** to
+  **Unpin**, and the public profile's Featured section now exposes the exact
+  post at
+  `https://www.facebook.com/blancbrowser/posts/pfbid0QAEofeY1ruBVkTigDiNiEFgmbYHyYD6UzFdnE9EeMNgbewHzExvBFU7uJqxck1Lpl`.
+
+The approved X travel/open-tabs parent was not used. It was more than 25 hours
+old at action time, outside the standing under-24-hour freshness gate. A fresh
+replacement posted at 6:37 EDT at
+`https://x.com/fukingbcjr/status/2094011746612560020` was prepared with the
+reply “every fic tab is emotionally load-bearing. closing one without
+finishing it would be irresponsible.” At the 11:32 refresh it had 145 views,
+7 likes, 1 repost, no replies, and no Blanc response. The replacement is a
+different public action and remains unapproved.
+
+### 11:36 ET X replacement execution incident (August 30)
+
+The user approved the replacement X reply. Immediately before composition,
+the parent still showed 145 views, 7 likes, 1 repost, no replies, and no Blanc
+response. The first simulated text entry produced malformed spacing and
+punctuation in the composer. The draft was then corrected through the
+settable field and the accessibility surface showed the exact approved
+sentence before submission. X nevertheless published the earlier malformed
+rendering—“every. fictab is emotionally load-bearing. closing one without
+finishing it would be irresponsible.”—at
+`https://x.com/blancbrowser/status/2094086502468755936`.
+
+The live post menu exposes Delete but no Edit control. No deletion, second
+reply, or other public action was taken. Correcting the incident requires an
+action-time confirmation to delete the malformed reply and then repost the
+exact approved sentence.
+
+### 11:36 ET X replacement correction (August 30)
+
+After the user gave the required action-time confirmation, the malformed X
+reply at `https://x.com/blancbrowser/status/2094086502468755936` was
+permanently deleted. The reply was then composed again through an exact text
+paste, checked in both the accessibility value and the visible Brave composer,
+and published. The live response now reads exactly “every fic tab is
+emotionally load-bearing. closing one without finishing it would be
+irresponsible.” at
+`https://x.com/blancbrowser/status/2094086920280113219`.
+
+The approved August 30 action batch is now complete: one X reply, one Threads
+reply, one Substack reply, and one Facebook Featured placement. No like,
+follow, second reply, or unrelated account change was made.
+
+### 17:34 ET six-platform activity and conversion checkpoint (August 30)
+
+No new public action was taken. Visible Brave was used for a read-only audience,
+content, and inbox pass. Current public counts are X 9, Threads 21, Instagram
+104, Facebook 9, TikTok 26, and Substack 1 subscriber. X's public count is up
+two from the start of day, but only Nzo (`@0x6e7a6f`) is a confirmed external
+follower; the other newly listed account is Blanc-owned `@NicoFromBlanc`.
+TikTok is down one and Instagram remains down one.
+
+The corrected X reply has 32 views, one like, and one positive author reply.
+The Threads reply has 3 views and 2 likes, including the original author, with
+no reply. Instagram's Quiet Tabs Reel has 401 views from 102 viewers, 95.5%
+non-followers, 2 insight interactions, 3 public likes, and zero comments,
+saves, shares, profile actions, or follows. Its Facebook cross-post has 288
+views, one reaction, and zero comments. TikTok's Quiet Tabs video has 68 views
+and no likes or comments. Ira Writes' Substack Note now has 8 likes and still
+only Blanc's reply; there is no author response.
+
+Two strong fresh distribution candidates were verified before the Mac locked:
+Cake Marketing's 55-minute-old Threads post about vertical tabs taking too much
+space on a 13-inch screen, and Michelle Songy's four-hour-old Substack article
+about tools expanding capability without creating mental space. Cake had 362
+followers, 77 post views, no likes or replies, and no Blanc response; Michelle
+had 17K+ subscribers, 2 article likes, no comments, and no Blanc response. A
+simple like on the positive X author reply is also prepared. Exact proposed
+copy is recorded in `daily-scorecard-2026-08-30.md` and its JSON companion.
+Every action remains unapproved and requires a fresh age/context/duplicate
+check plus action-time approval after unlock. Instagram/TikTok scouting was
+interrupted by the lock; no candidate or inbox result was guessed.
+
+### 17:43 ET resumed scouting and action-time refresh (August 30)
+
+The Mac was unlocked and visible Brave resumed from the exact interrupted
+Instagram search. No public action was taken. Instagram's strongest relevant
+result was Nicksadler's browser-tabs/Google Disco Reel, but Instagram labels it
+one day old; it was rejected under the standing under-24-hour freshness rule.
+The vertical-tabs keyword results did not produce a stronger current target.
+
+TikTok's native Activity panel was successfully opened. The newest relevant
+event is a 21-hour-old like on Blanc's comment, “open enough that the number
+stopped feeling like useful information”; there is no reply to answer. Native
+search returned Nicksadler's corresponding video at one day old and older
+browser-tab posts, so no TikTok comment was forced. The profile still shows 26
+followers, 17 following, and 6 likes.
+
+The prepared relationship/outreach batch was then refreshed immediately. The
+X author's positive response remains unliked with 30 views; Blanc's corrected
+reply has 35 views. Cake Marketing's Threads parent is roughly one hour old,
+has 90 views, no likes, no replies, and no Blanc response. Michelle Songy's
+Substack article still has 2 likes and no comments; the author profile exposes
+17K+ subscribers. Exact copy remains recorded in the daily scorecard. All
+three actions are now at the action-time approval boundary and remain
+unapproved.
+
+### 17:48 ET approved relationship batch execution (August 30)
+
+The user approved all three exact actions. Two were completed and verified in
+visible Brave. Blanc liked the X author's positive response at
+`https://x.com/fukingbcjr/status/2094088544243364185`; the live control changed
+from zero likes to **Liked** with one like. Blanc also replied to Cake
+Marketing's roughly one-hour-old Threads post. The exact text—“top steals
+height. side steals width. somehow the page always loses.”—is live at
+`https://www.threads.com/@blancbrowser/post/DcrgpL4kWXA`, and the parent showed
+one reply immediately after publication.
+
+The approved Substack comment could not be posted. Michelle Songy's article
+exposed a Comment button in the reader, but its destination stated that the
+thread is visible only to paid subscribers and comments are for subscribers.
+Blanc did not subscribe, switch accounts, or post a comment. The automatically
+opened comments tab was closed after the constraint was verified.
+
+A fresh public replacement was scouted but not actioned: STUDIO BRITTANY's
+six-hour-old Note, “switching browsers because the branding was pretty is a
+lifestyle and i will not be taking questions.” The author writes about systems,
+tech, marketing, and design, exposes 189 subscribers, and the Note had one like
+and no visible reply. Proposed copy—“honestly browser switching is at least 40%
+vibes and anyone who says otherwise is lying.”—requires separate action-time
+approval.
+
+### 17:51 ET approved Substack replacement execution (August 30)
+
+After separate action-time approval, Blanc published the exact replacement
+reply to STUDIO BRITTANY: “honestly browser switching is at least 40% vibes and
+anyone who says otherwise is lying.” It was verified live at
+`https://substack.com/profile/542769413-blanc-browser/note/c-326157439`; the
+parent moved from zero replies to one. No like, restack, subscription, or
+follow was added.
+
+### 21:13 ET immediate conversion checkpoint (August 30)
+
+No new public action was taken. Visible Brave was used to verify the newest
+relationship interactions. X remains at 9 followers. Blanc's corrected
+fic-tabs reply increased from 36 to 39 views; the author's positive response
+increased from 32 to 34 views, remains liked by Blanc, and has no further reply.
+
+Threads remains at 21 followers and now reports 12.9K recent views. The Cake
+Marketing reply has 9 views, no likes, and one substantive response from the
+original author: “True, but I definitely need more screen width to do what I
+want to do more easily. I was all for the change, but after several days I just
+can’t 😅”. A timely like and follow-up reply is prepared but unapproved.
+
+Substack remains at one publication subscriber, but the public profile follower
+count increased from 3 to 5. The STUDIO BRITTANY reply still has no like or
+response. Instagram, Facebook, and TikTok had no fresh inbox item in the latest
+read-only pass; their audience counts were not reclassified from the most recent
+verified checkpoint. The +10 per-platform target remains unmet.
+
+### 21:25 ET six-platform refresh and fresh opportunity check (August 30)
+
+No public action was taken. Visible Brave was used to reverify every current
+audience count: X 9, Threads 21, Instagram 104, Facebook 9, TikTok 26,
+Substack 1 publication subscriber, and Substack 5 public profile followers.
+There was no net audience movement from the 21:13 checkpoint. X now reports 68
+posts and 92 following; its newest social signal is the already-counted Nzo
+follow notification at 11 hours. Threads' Cake Marketing author response is
+still unanswered and is now roughly three hours old. TikTok and Substack have
+no fresh inbound reply. Meta's newest unread-comment card is six days old and
+was rejected under the freshness rule.
+
+Fresh X scouting found a materially stronger target than the generic
+browser-privacy search results: a seven-hour-old direct question, “Guys, what
+is the best browser to use?”, at
+`https://x.com/KuroSekaiAnime/status/2094120501484376574`. The parent had 4,779
+views, 31 replies, 28 likes, four bookmarks, and no visible Blanc response.
+The prepared conversational reply is: “honest answer: it depends which browser
+compromise annoys you most. we built Blanc for one very specific irritation—the
+tab strip taking permanent space while your tabs keep changing.” It would be
+X's second selective reply for the day.
+
+The existing Threads follow-up and this X reply are the smallest fresh
+approval-ready batch. Both require an immediate age/context/identity/duplicate
+check and action-time approval. The new Substack privacy/business-model article
+is drafted locally with current first-party sources and a v1.10.0 claim ledger,
+but remains unpublished and still needs its 5:2 header plus separate copy and
+publication approvals.
+
+### 21:30 ET Substack publication and positioning check (August 30)
+
+No public action was taken. The live publication was opened in visible Brave.
+Its public description is already aligned—“The desktop web browser for people
+who reject the default. Product notes, release stories, and the thinking behind
+one floating Island.”—so no profile edit is proposed merely to force the new
+privacy lane into every surface.
+
+The publication dashboard now reports **2 total subscribers**, up from the
+previously verified 1. It reports 38 seven-day views; the latest article has 2
+views and a 50% open rate, while the first article has 13 views and a 100% open
+rate. Five public profile followers remain visible separately. The confirmed
+daily subscriber delta is now +1, leaving 9 to the +10 target.
+
+Substack's approved editorial direction is privacy, consent, ownership, power,
+and business-model incentives. Copy should address informed, privacy-conscious
+readers without inferring or targeting an individual reader's political
+beliefs. “Big Brother” may be used only as a cultural hook followed by a sourced
+mechanism. Blanc's fresh-install usage choice must not be called opt-in: the
+toggle is initially on, Blanc asks before the first ping, and the user can turn
+it off before continuing or later.
+
+### 21:33 ET fresh Substack privacy lane and outreach recheck (August 30)
+
+No public action was taken. Visible Brave was used to search current Substack
+privacy and browser-business-model conversations. Broad results were rejected
+instead of forcing volume. One unusually well-aligned post passed the freshness,
+context, and duplicate checks: EKO's four-hour-old **Privacy Policy**, whose
+short version is “your data is not the business. Books are.” The full policy
+names Substack and Stripe, says what each service receives, and separates the
+author's book business from reader data. It has one like, zero comments, and no
+Blanc response. Proposed non-promotional reply: “this is the part most privacy
+policies skip: saying what the business actually sells. once that's clear, the
+rest of the data story becomes much easier to evaluate.”
+
+The two existing candidates were also refreshed. Cake Marketing's Threads
+parent is four hours old; Blanc's reply has 11 views, and the original author's
+substantive response is roughly three hours old with no Blanc follow-up. The X
+browser-recommendation question remains seven hours old and now has 4,824 views,
+31 replies, 28 likes, four bookmarks, and no visible Blanc response. The exact
+Threads, X, and Substack copy is recorded in the daily scorecard. All three
+remain unapproved and require an immediate final context/duplicate check before
+any public action.
+
+### 21:35 ET Meta and TikTok freshness pass (August 30)
+
+No public action was taken. Visible Brave was used to inspect the remaining
+priority networks while the Threads, X, and Substack batch waits for approval.
+Meta Business Suite reverified Facebook at 9 followers and Instagram at 104.
+The newest unread Instagram comment remains six days old. Meta's five “new”
+messages were inspected at the list level: two are two-week-old scam-like
+copyright/update solicitations and the remaining three are three-week-old
+unavailable or attachment-only threads. None is treated as customer activity.
+
+TikTok remains at 26 followers, 17 following, and 6 likes. Its Activity panel
+shows only one-day-old likes on Blanc comments and no reply. Quiet Tabs remains
+at 68 views, Nico at 87, the low-performing test at 1, and the Island post at
+358. A native Videos search for “browser tabs” returned no under-24-hour
+candidate; the newest explicitly relative result was Amanda Mercedesb at two
+days old, followed by four-day-old and older results. No TikTok reply was added
+to the approval queue merely to create volume.
+
+### 21:38 ET focused Substack lane follow-up (August 30)
+
+No public action was taken. Visible Brave was used to test whether EKO's policy
+should be supplemented with a second privacy/incentives reply. Recent searches
+for “surveillance capitalism,” “independent software,” “data business,” “big
+tech,” and “telemetry” produced no current result worth engaging. EKO remains
+the only strong privacy-lane candidate, and the approval queue stays at three
+actions rather than filling a daily ceiling with a weaker comment.
+
+### 21:40 ET release-backed owned Substack Note draft (August 30)
+
+No public action was taken. The public v1.10.0 about page, privacy policy, and
+first-run settings implementation were rechecked before drafting. A standalone,
+follow-oriented Substack Note now opens with “privacy features live inside
+business models,” names Blanc's independent/no-ads funding model, and preserves
+the important limitation that the fresh-install usage-ping choice starts on,
+Blanc asks before the first ping, and the user can turn it off before
+continuing. The draft and claim ledger are in
+`substack-owned-note-business-model-2026-08-30.md`. It is unpublished and now
+requires separate action-time approval alongside the three replies.
+
+### 21:41 ET Substack subscriber attribution check (August 30)
+
+No public action was taken. Substack's Network dashboard was inspected in
+visible Brave without opening the subscriber identity list. It attributes one
+subscriber to the **Substack App**, representing 100% of the
+network-attributed subscriber shown for the selected 90-day window. The
+dashboard does not identify which exact Note, comment, or profile visit caused
+the subscription, so the gain remains unassigned at the individual-content
+level. The actionable evidence is that Blanc's current subscriber growth came
+through Substack's native network rather than a verified external-link source.
+That supports using native Notes and thoughtful privacy/incentives comments as
+the discovery layer, with articles serving as the deeper follow-through.
+
+### 21:43 ET all-platform freshness checkpoint (August 30)
+
+No public action was taken. All six priority platforms were rechecked in
+visible Brave. Audience counts remain X 9, Threads 21, Instagram 104, Facebook
+9, TikTok 26, and Substack 2 publication subscribers. Threads still exposes
+12.9K recent views; X still reports 92 following and 68 posts; Substack's
+Network dashboard still attributes one subscriber to the Substack App.
+
+The three pending conversations remain valid and free of a duplicate Blanc
+response: Cake Marketing's Threads author response is roughly three hours old;
+the X browser-recommendation question is nearly eight hours old with 4,824
+views, 31 replies, and 28 likes; and EKO's current privacy policy still has one
+like and no visible comment. Instagram and Facebook expose no newer inbound
+activity than the six-day-old Instagram comment cards. TikTok's Activity panel
+still contains only one-day-old likes and no fresh reply, and its browser-tabs
+search still offers no under-24-hour candidate. The approval queue therefore
+remains unchanged rather than being expanded with weaker activity.
+
+### 21:48 ET approved four-action batch completed (August 30)
+
+The user approved all four prepared actions. Each target was reopened in
+visible Brave and rechecked for current context and duplicate Blanc activity
+immediately before execution.
+
+- **Threads:** Blanc liked Cake Marketing's author response and published the
+  exact approved follow-up at
+  `https://www.threads.com/@blancbrowser/post/Dcr8GDtjmCd`. The branch moved
+  from two to three replies.
+- **X:** Blanc published the exact approved browser-recommendation reply at
+  `https://x.com/blancbrowser/status/2094240434960695668`. The parent moved
+  from 31 to 32 replies.
+- **Substack comment:** Blanc published the exact approved EKO privacy-policy
+  comment at `https://ekolovesyou.com/p/privacy-policy/comment/326268547`.
+- **Substack owned Note:** Blanc published the release-backed privacy and
+  business-model Note at
+  `https://substack.com/@blancbrowser/note/c-326268718`.
+
+All four results were visibly verified. No additional like, reply, follow,
+subscription, restack, profile change, or public action was taken. The daily
++10 target remains unmet: the last verified counts remain X 9, Threads 21,
+Instagram 104, Facebook 9, TikTok 26, and Substack 2 publication subscribers.
+The approval queue is now empty.
+
+### 13:35 ET current-platform audit and fresh approval queue (August 31)
+
+No public action was taken. Visible Brave was used to inspect X, Threads,
+Instagram, Facebook, TikTok, and Substack. The live counts are X 11, Threads 21,
+Instagram 105, Facebook 9, TikTok 26, and Substack 2 publication subscribers.
+Compared with the last verified August 30 checkpoint, that is X +2, Instagram
++1, and no movement elsewhere. Because no exact midnight snapshot exists, these
+are checkpoint movements rather than claimed August 31-only gains. Simone
+(`@lilmiss_tech`) is one confirmed new X follower; the second identity is not
+clear enough to name.
+
+There is no unanswered fresh inbound on any platform. A live freshness pass
+found four stronger actions for approval: like and answer Causal's roughly
+one-hour-old tab-overload prompt on Threads, follow the relevant Causal
+design/tech product account, like and answer Sara's four-hour-old Ubuntu browser
+question on X, and comment on Shadia Sabagh's four-hour-old “Privacy is power”
+Note on Substack. Exact copy, links, evidence, and claim basis are recorded in
+`daily-scorecard-2026-08-31.md` and its JSON companion. All four remain
+unapproved.
+
+Instagram and Facebook produced no fresh relevant conversation. TikTok's newest
+clearly dated browser-tabs result was two days old. A viral X RAM branch was
+rejected because the direct reply author was not a relevant product account and
+the parent image context was unavailable. A political Substack profile was
+rejected because the surrounding feed created unnecessary brand risk and the
+external spying claim was unsupported. The standing +10-per-platform target is
+unmet on every platform at this checkpoint.
+
+### 13:39 ET queued-target and audience revalidation (August 31)
+
+No public action was taken. The four-action queue was rechecked in visible
+Brave. Causal's Threads post now has 255 views, one like, one share, no replies,
+and no Blanc response. Sara's X question now has 403 views, 21 replies, 22
+likes, and no Blanc response. Shadia Sabagh's Substack Note still has six likes,
+no replies, and no Blanc activity. Causal remains unfollowed by Blanc. All four
+queued actions are still timely and duplicate-free.
+
+The live audience counts remain X 11, Threads 21, Instagram 105, Facebook 9,
+TikTok 26, and Substack 2 publication subscribers. X following moved from 93 to
+95 without a follower-count change; no follow was performed in this audit.
+Threads still exposes 12.9K recent views. Meta Business Suite still shows the
+newest unread Instagram comment at six days old. TikTok remains at 17 following
+and six profile likes, and its newest clearly dated relevant search result is
+still two days old. Substack remains at 48 seven-day views, down 35.1% from 74.
+The +10 target remains unmet across every platform.
+
+### 13:41 ET X follower attribution completed (August 31)
+
+No public action was taken. X's complete ordered follower list identifies the
+two accounts behind the move from 9 to 11: Simone (`@lilmiss_tech`) and Aalvated
+Browser (`@aalvated`). The remaining nine entries match the prior checkpoint,
+so the +2 checkpoint movement is now fully attributed to external accounts.
+
+Aalvated was inspected before being considered for a follow-back. It is an
+active independent Android-browser account with 128 posts, a Play Store link,
+recent platform-specific privacy writing, local-profile work, and explicit
+limits on its own anonymity claims. It already follows Blanc. A selective
+follow-back has been added as a fifth unapproved action; it was not executed.
+
+### 13:47–13:51 ET approved five-action execution (August 31)
+
+Anthony approved all five queued actions. Each target was reopened and checked
+for duplicate Blanc activity immediately before execution in visible Brave.
+Blanc followed back Aalvated Browser on X; liked, followed, and replied to
+Causal on Threads; liked and replied to Sara's Ubuntu browser question on X;
+and replied to Shadia Sabagh's “Privacy is power” Note on Substack. All five
+actions were verified live after submission.
+
+The live Blanc replies are:
+
+- Threads: `https://www.threads.com/@blancbrowser/post/DctqdLQkaCe`
+- X: `https://x.com/blancbrowser/status/2094483116244996379`
+- Substack: `https://substack.com/profile/542769413-blanc-browser/note/c-326728672`
+
+The August 31 approval queue is now empty. The standing +10-per-platform target
+remains unmet at the last verified counts; this execution is recorded as a
+conversion attempt, not as achieved follower growth.
 
 ### 01:06 ET social-growth checkpoint (September 2)
 
@@ -1937,3 +2572,170 @@ Google's unspecified ad-consent states and blocked advertising destinations
 remain a separate review item; no automatic consent grant or broad security
 policy expansion was made. Full inventory, evidence and boundaries are in
 measurement-validation-2026-09-04.md. ChatGPT remains paused.
+
+
+### September 11 — owner-approved general Sunrise campaign
+
+Published the reviewed v2 image and exact approved general caption. Native profile observations: X 13 followers; Threads 22; Instagram 102; Facebook 22; Substack 2 subscribers; TikTok 25 followers. These are observations at publication, not evidence of campaign impact.
+
+- X: https://x.com/blancbrowser/status/2098460671637688831
+- Threads: https://www.threads.com/@blancbrowser/post/DdJ8NoYkRI-
+- Instagram: https://www.instagram.com/blancbrowser/p/DdJ8icUiTs4/
+- Facebook: https://www.facebook.com/blancbrowser/posts/pfbid0WbJnHiwkbysppDuP8AAmhiGqe6B4F6VZ3VfWswemoN6JgFiuyDJdyrp9F7SSJtTsl
+- Substack: https://substack.com/profile/542769413-blanc-browser/note/c-334892004
+
+TikTok video upload was blocked by automatic approval review pending review of the finished video. No paid boost or new numeric usage claim. Source and verification record: `sunrise-milestone-2026-09-11/approved-publication.json`.
+
+
+### September 11, 1:37 PM ET — TikTok completed
+
+The owner saw the finished silent 18-second video and explicitly approved it with the same caption. Posted once; TikTok content review cleared and Studio confirms Everyone visibility. Verified native playback, full approved caption, and image framing. All six campaign channels are now published and verified.
+
+TikTok: https://www.tiktok.com/@blancbrowser/video/7684333211522026783
+
+No numerical usage claims or paid boost. Earlier TikTok approval hold is resolved.
+
+
+### September 12 — 30-day organic program implementation
+
+Updated the existing September 2 operating plan, monitoring plan and content ledger; `growth-program.json` is the single ordered execution queue. Fresh opening observation: X 13, Threads 22, Instagram 102, Facebook 22, TikTok 25 followers; Substack 2 external subscribers, excluding the Author. These are not yet comparable 17:00 daily checkpoints; daily growth and miss streaks remain unavailable.
+
+The first finished local batch is `organic-design-week-1-2026-09-12/review.md`: four source pieces, four checked video exports, a four-panel carousel, Story cards, a complete article and 34 exact placements. Export checks and visual inspection passed. All final creative remains awaiting explicit owner approval; nothing was uploaded, scheduled or published in this implementation.
+
+Five personalized invitations are in `creator-outreach-drafts-2026-09-12.md`. C1/C3/C4/C5 are eligible for approval; C2 (Ram) remains held for fresh evidence of audience response. Ten candidates were triaged, but only four count as currently qualified; six further qualifications remain for the weekly target. Existing invitations were not duplicated. No message was sent.
+
+Reconciled historical monitoring: the previously referenced automation did not exist. Created `blanc-replies-and-follower-growth` as an ACTIVE heartbeat attached to this task; read back its saved configuration and verified daily 09:00, 13:00 and 17:00 scheduling with America/New_York specified in its operating prompt. Quiet for unchanged state; alerts for actionable results and final-content review. The 17:00 pass records the scheduled snapshot. After day 30 it reports each channel separately and pauses unless extended.
+
+The recent-content audit records native evidence and explicit limits; eight Instagram per-item insight details need a later retry. Day one stays unset until the fresh snapshot and first approved executable publication exist. Product launch sequence remains stopped, no new paid spend, and no application/API changes or git publication were made.
+
+
+### September 12 — owner brand correction, Sunrise revision 2
+
+The owner rejected the first batch because media previews did not load and the assets used the retired B symbol. That review request is superseded. Rebuilt all 15 card PNGs and four MP4 exports from the original gold `site/public/sunrise-hero-mark.png` using the Sunrise ivory/gold theme. Updated `docs/brand-usage.md` and AGENTS.md to remove ambiguity for future work. Caption content is unchanged; accessibility copy now describes the actual Sunrise treatment.
+
+Primary review: `organic-design-week-1-2026-09-12/review.html`, a self-contained document with embedded media/fonts and native video controls, plus all 34 exact placements and the full article. No upload or publication. New hashes identify revision 2. The owner explicitly authorized local preview verification. The loopback-only review was opened successfully: 9/9 embedded images loaded and 4/4 videos played with advancing timestamps and no errors. All 34 placements and the full article were visible; reload confirmed readiness. The initial preview restriction is resolved. Full MP4 decode and visual checks are recorded in QA.md.
+
+
+### September 12 — varied Sunrise compositions, revision 3
+
+The owner rejected the identical layouts in revision 2. Rebuilt the active batch with three visual approaches and a progressing carousel: tactile still life/checklists, dark mechanism/diagrams, and expressive question typography. Native Sunrise mark and shared palette retained; two original conceptual illustrations added. Full prompts and sources are in `organic-design-week-1-2026-09-12/art-direction-r3.md`.
+
+All 15 cards and four videos are finished; exact on-screen transcripts and alt text were refreshed in the same review packet. Captions retain their approved-plan draft content, with no publication approval inferred. Verified 12/12 images, 4/4 native video playback, all 34 placements, and full decode checks. Revision 3 supersedes earlier creative for this batch. No upload or publication.
+
+
+### September 12 — symbol-only branding, revision 4
+
+Owner requested removal of the wordmark. Removed the typeset Blanc label beside the Sunrise symbol from the shared source, all 15 card exports and all four videos. The original Sunrise symbol remains. Updated the exact transcripts, preview and current queue to revision 4; publication still awaits final approval.
+
+
+### September 12 — remove recurring header label, revision 5
+
+Owner requested removal of “Browsing & design” from social media headers. Removed the recurring label from the shared source, all 15 cards and all four videos, and from their on-screen transcripts. Only the original Sunrise symbol remains in the asset header. Revision 5 supersedes revision 4; no publication approval inferred.
+
+
+### September 12 — Newsreader Medium trial, revision 6
+
+Owner asked to try slightly bolder headlines. Set the social display face to real Newsreader weight 500, up from 400, preserving the existing sizes/layout and Inter supporting copy. Refreshed all creative and the self-contained review; a regular/medium comparison is included. Revision 6 is the current trial. Thirteen embedded images and four video players load, and all video decodes pass. No publication approval or global typography change is implied.
+
+
+### September 12, 5 p.m. — scheduled observation unavailable
+
+The 17:01–17:02 EDT attempt could not access logged-in Brave. Browser inventory reported the Mac locked and automatic unlock unsuccessful; only the in-app creative review was exposed. Recorded all six checkpoint observations and native metrics as unavailable, preserved the midday setup data separately, and did not calculate growth or increment daily-miss streaks. Owner unlock is required before retry. Revision 6 remains the current unapproved creative; no new campaign, upload, message, publication or paid action occurred. Suppress repeat notifications about this same lock condition until it changes.
+
+
+### September 13, 9 a.m. — unchanged account-access blocker
+
+Fresh surface inventory again reports Mac locked, automatic unlock unsuccessful and no Brave connection. No account/inbound inspection could be completed; no claim of an empty inbox, unchanged audience or a measured miss. Recorded the run in today's existing-pattern scorecard and program state. The September 12 unlock notification remains pending; duplicate alert suppressed. No public action or new campaign.
+
+
+### September 13 — owner changes scope to engagement only
+
+Generated imagery/video rejected; revision 6 is no longer awaiting approval. Paused original-content production, weekly publishing cadence, creator-invitation work and profile changes. Routine relevant replies/comments remain authorized. Continue existing scheduled conversation checks and audience measurements; preserve historical creative without further revisions or approval reminders.
+
+
+### September 13 — first engagement-only pass
+
+Observed 2026-09-13T14:18:46.048942-04:00. Brave access restored, Blanc identity verified on X and Threads. Visible mentions/activity had no fresh unanswered question; skipped acknowledgements and already-answered conversations. Published one relevant public Threads reply suggesting saving a link with a short note about why it mattered. Verified exact text under @blancbrowser: https://www.threads.com/@blancbrowser/post/DdPL9E6kffd. No product claim, link promotion, upload or creator pitch. One of five daily contributions used. Partial coverage; other four channels remain for scheduled checks. Audience snapshot not taken; dayOne remains unset pending fresh baseline. Automatic approval review rejected private X inbox navigation as outside the public engagement request; inbox not accessed, no workaround.
+
+
+### September 13 — daily engagement ceiling reached
+
+Completed four additional public replies at 14:22 EDT, bringing the day to the five-contribution ceiling. Two Threads replies addressed a learning-tab backlog and the tradeoffs in duplicate-tab detection. Two X replies joined a current tab-interface critique and a developer discussion that framed browser tabs as service infrastructure. Every reply was read in full, checked for existing Blanc participation, posted from @blancbrowser and verified at its public URL. No reply included a product claim, link promotion, creator pitch or invented personal experience. The 17:00 audience snapshot and later 24-hour outcome review remain pending.
+
+Immediate 14:25 EDT outcome check: X displayed 14 followers and Threads 22, but these are off-schedule totals and no growth is attributed to the replies. The two X replies each displayed one view; all five replies showed zero audience interactions at this early point. No additional outbound contribution was made.
+
+Read-only discovery at 14:28 EDT produced four candidates for the next local-day window in `engagement-candidates-2026-09-14.json`: two fresh Substack notes about browser delight and minimalism, plus two Instagram discussions about tab memory and tab recovery. No sixth contribution was sent. Every candidate requires a fresh activity and duplicate check before use; the older technical Instagram post carries an explicit age-risk hold.
+
+Verified the technical Instagram candidate's product wording against the immutable public v1.16.2 tag (`0cced924b458496869295c711162c315a4d5da29`). Exact-tag policy excludes active, dirty, loading, media, capture and other uncertain tabs from quieting; wake paths restore or reload eligible tabs. The candidate now carries a verified claim verdict and precise evidence, while its age-risk hold remains. No public action was taken.
+
+Reviewed the existing discussion under Felix's Substack minimalism note. Its only reply concerns inspiration overload and AI animation pressure; Felix responds that restrained designs can look boring beside AI-generated animation. Blanc's queued reply instead addresses the product-design obligation to preserve the function of a removed control, so it remains distinct. Refreshed the candidate to 7 likes and 1 reply and kept it for revalidation on September 14. Sophie's candidate was also refreshed to 3 likes. No additional contribution was sent.
+
+Completed full-thread qualification for both retained Instagram candidates. The browser-memory post has 87 likes, 1 repost and no comments; it remains the stronger Instagram opportunity but carries a five-day age risk. The OneTab post has 12 likes and no comments; because it comes from a marketing agency promoting another product, it is now fallback-only. Live Instagram keyword results also surfaced three weaker posts, which were discarded for low activity, poor audience fit, age or comment saturation; one had already been liked by Blanc.
+
+Expanded read-only discovery to TikTok and found a tab-groups video for students with 335 likes, 197 saves, 43 shares and eight comments. A viewer's “How do you do this?” question is unanswered. Reviewed the full video and visible comment thread, found no prior Blanc participation, and verified the proposed desktop Chrome instructions against current Google Chrome Help. This direct answer is priority one for the September 14 revalidation window. The queue now has five qualified or fallback candidates, and no sixth September 13 contribution was sent.
+
+Completed the remaining public inbound sweep across TikTok, Instagram and Facebook. TikTok's newest relevant activity is a like on an earlier Blanc comment; Instagram's new activity is a post like; Facebook's three-day-old mention is an acknowledgment sticker under Blanc's existing security comment. None merits another reply. Private inboxes remained outside this public-engagement scope.
+
+Facebook public-post search found a five-hour-old Navarro Technology post about browser memory pressure. The full post has no reactions, comments or prior Blanc participation. Added a claim-checked Blanc reply as a low-signal standby: it explains that trustworthy recovery matters and that eligible inactive tabs can be quieted while loading, playing, capturing, pinned or uncertain work stays awake. The post's unsupported numerical Chrome claim is deliberately neither repeated nor endorsed. The September 14 queue now contains five ranked prospects plus one fallback; revalidation still controls whether any are used.
+
+Ran a focused X search for people seeking a browser recommendation or discussing Chrome RAM/CPU pressure. A six-day-old direct recommendation request has 2,808 views, 23 replies and active follow-up from the author; a conversation-scoped search confirmed Blanc has not participated. Kept it as an age-and-crowding alternate with a claim-checked invitation to test the same workload rather than promising a benchmark result.
+
+A fresher maker post is the stronger X opportunity: a developer describes a Rust/Windows process-priority tool for Chrome-plus-Photoshop work and explicitly asks for feedback. The full post had 32 views and no replies when reviewed. Promoted a 254-character technical question to priority one; it connects the design boundary to Blanc's public quiet-tabs behavior and asks how the tool protects media, capture, downloads and recent input before applying EcoQoS. Tomorrow's top five now span X, TikTok, Substack, Instagram and Facebook, with three alternates retained. No September 13 reply was added.
+
+Focused Threads search found a same-day direct product-fit request from `destinypetrel`: “Which browser are yall using that has no ai features,” with 85 views, one like and no replies at review time. Verified the response against the public v1.16.2 tag and `docs/marketing-claims.md`: Blanc is an open-source desktop browser with no built-in AI assistant or agent layer, and the user selects the search engine. The draft explicitly leaves result quality with that provider and does not claim Blanc removes AI content from search results. Promoted this to September 14 priority one.
+
+Discarded three adjacent Threads results rather than forcing a pitch: two ask specifically for phone/iPhone options, while one asks about extension recommendations that Blanc would not answer. The ranked queue now holds five primary candidates and four alternates; today's five-reply ceiling remains unchanged.
+
+The focused X no-AI search found a second direct-fit conversation from Harshit Yadav, who says he wants “just a browser” with blocking and no AI chatbot or extra attention-seeking features. The full post had 113 views and one probable-spam VPN reply; a conversation-scoped search confirmed Blanc has not participated. Added a release-backed response explaining Blanc’s open-source desktop scope, built-in blocking and absence of an AI assistant, while keeping its implementation and tradeoffs distinct from Helium. This is now priority two for September 14, behind the unanswered Threads browser request. No additional September 13 contribution was sent.
+
+
+### September 13, 5 p.m. — opening engagement baseline established
+
+Completed the scheduled six-channel snapshot approximately 17:02–17:04 EDT: X 15 followers, Threads 23, Instagram 102, Facebook 22, TikTok 25, and Substack 2 external subscribers. Substack displayed three subscribers in total; the Author account was visibly identified and excluded, and the dashboard reported a 23-minute data delay.
+
+September 13 is now program day one because the date contains both this fresh baseline and five verified authorized public replies. There is no prior comparable scheduled checkpoint, so no daily delta, target result or measured miss is assigned. The September 12 inaccessible checkpoint remains unavailable and was not reconstructed. No public action occurred during this measurement run; the next comparison is September 14 at 17:00 EDT.
+
+
+### September 14, 9 a.m. — logged-in Brave unavailable
+
+Attempted the scheduled engagement run at 09:01 EDT. The Mac is locked and automatic unlock could not expose Brave, so no public inbound, candidate thread, account identity or audience metric was inspected. No reply or other public action occurred. This is a fresh access regression after September 13’s recovery, so the owner was notified once; suppress duplicate alerts unless the state changes. Retry at 13:00 EDT after unlock and revalidate the existing candidate queue before any reply.
+
+At 12:48 EDT, Brave access recovered and the missed engagement pass was caught up through five public surfaces. Public X, Threads, Instagram, TikTok and Substack activity was reviewed; Facebook’s saved session now requires a password and was left unchanged. A substantive Threads follow-up and the unanswered TikTok how-to were prioritized alongside three revalidated direct-fit discussions. The exact five-reply batch is in `engagement-send-batch-2026-09-14.json`. Every thread was re-read and checked for prior Blanc participation; claims remain within the public v1.16.2 boundary. No message was sent while the required computer-use action-time confirmation is pending.
+
+### September 14, 12:51 p.m. — daily engagement ceiling reached
+
+The owner approved the exact five-reply batch. Published and verified two Threads replies, one X reply, one targeted TikTok comment reply and one Substack reply under Blanc’s identity. Threads supplied stable live reply URLs; X rendered the exact reply under @blancbrowser; TikTok displayed “Reply sent,” increased the video comment count from 8 to 9 and rendered the response beneath `home99fam`; Substack displayed “Reply sent,” increased the thread to two replies and rendered the note under Blanc Browser.
+
+Live results: https://www.threads.com/@blancbrowser/post/DdRmppZkUih, https://www.threads.com/@blancbrowser/post/DdRmsDIEQDd, https://x.com/blancbrowser/status/2099541328237412574, https://www.tiktok.com/@drgfrance/video/7683232618233613590, and https://substack.com/profile/542769413-blanc-browser/note/c-337013669.
+
+The five-contribution ceiling is now reached for September 14. No further public contribution should be sent today. The 17:00 comparable audience snapshot and the due outcome review remain pending; Facebook public notifications are still unavailable because the saved session requires a password.
+
+### September 14, 1 p.m. — recent sweep still current
+
+The complete five-surface catch-up finished nine minutes before the scheduled checkpoint and had already used the plan’s five-contribution daily limit. No duplicate inbound sweep or additional public contribution was warranted. The next material checkpoint is the 17:00 audience snapshot; the first reply-outcome review becomes due after 14:23 EDT.
+
+### September 14, 5 p.m. — first measured daily comparison
+
+Completed the comparable six-channel snapshot approximately 17:01–17:04 EDT. X remained at 15 followers; Threads rose from 23 to 24; Instagram remained at 102; Facebook remained at 22; TikTok remained at 25; Substack remained at 2 external subscribers after excluding the Author from the displayed total of 3. Substack’s dashboard reported a two-hour data delay.
+
+All six channels missed the +10 daily target. This is the first consecutive measured miss for every channel, so no three-miss adjustment is due. Available trailing-seven-day net values currently cover one comparable day: Threads +1 and every other channel 0.
+
+Completed the first 24-hour review of the five September 13 replies. The three Threads replies displayed 7, 4 and 11 views; the two X replies displayed 14 and 11 views, for 47 total. The duplicate-tab design reply produced two substantive audience responses and one secondary like; the first Threads reply received one secondary like from the original author. The remaining replies produced no meaningful interaction. The target commenter also liked today’s TikTok how-to reply within four hours, which is recorded as a secondary acknowledgment rather than a meaningful interaction.
+
+### September 15, morning — public conversation check
+
+Public X, Threads, Instagram, TikTok and Substack activity was reviewed. Recent likes, applause and a short Threads acknowledgment did not merit more replies. Facebook public notifications remain unavailable because the saved login presents Anthony J. Loria’s personal profile rather than a verified Blanc identity. Automatic approval review rejected entering that profile; no private content was opened.
+
+Two conversation-first replies were published and visibly verified: https://www.threads.com/@blancbrowser/post/DdT6RqekVAj on the cumulative cost of inconsistent browser behavior, and https://x.com/blancbrowser/status/2099866638568817037 on background versus idle resource use in an indie maker’s tool. Both are design feedback, with no Blanc feature claim or standalone content.
+
+Automatic approval review also rejected an attempted Vivaldi tab-recovery reply because its backup and restart guidance had not yet been checked against the cited official source. The official Vivaldi Help pages were subsequently read, but the recovery draft was not sent. Do not count it as a contribution. September 15 audience growth remains unmeasured until the scheduled 17:00 checkpoint; the September 14 reply batch becomes due for 24-hour review after 12:52 EDT.
+
+### September 15, 1 p.m. — access regression
+
+The Mac locked after this morning’s successful Brave engagement pass. At the scheduled 13:00 check, computer inventory exposed no logged-in Brave and reported automatic unlock unsuccessful. No public inbound or due September 14 reply outcomes were inspected; views, reactions and meaningful interactions remain unavailable. No public action occurred. Retry after unlock and preserve actual times for the 17:00 audience comparison.
+
+### September 15, 5 p.m. — second measured daily miss
+
+Brave access returned. The comparable 17:01–17:03 EDT audience snapshot found X 15, Threads 24, Instagram 102, Facebook 22, TikTok 25 and Substack 2 external subscribers. Facebook was read on Blanc's public page without entering the displayed personal account. Substack showed three total subscribers, including the Author, and a 22-minute data delay. Each channel was unchanged from September 14; every channel has now missed +10 for two consecutive measured days. The adjustment rule activates only after a third consecutive measured miss. A true trailing-seven-day net is unavailable because the endpoint span is still under seven days.
+
+The delayed September 14 reply review found 12 and 6 Threads views plus 17 X views, 35 visible reply views in total. One Threads like and one TikTok like were secondary. Felix responded substantively to Blanc's Substack minimalism comment around 26 hours after it was published; that comment also received one like. TikTok and Substack comment views were unavailable. Blanc answered Felix's current design response with a question about useful motion, published and verified at https://substack.com/profile/542769413-blanc-browser/note/c-337992572. No original creative, creator message, upload, paid action or standalone post was made.

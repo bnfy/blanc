@@ -28,12 +28,13 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 39);
-  assert.ok(refs.has('pkg:npm/electron@44.1.1'));
+  assert.equal(sbom.components.length, 40);
+  assert.ok(refs.has('pkg:npm/electron@44.4.2'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk-core@0.5.0'));
   assert.ok(refs.has('asset:inter-font'));
   assert.ok(refs.has('asset:jetbrains-mono-font'));
+  assert.ok(refs.has('asset:caveat-font'));
   assert.ok(refs.has('asset:easylist-data'));
   assert.ok(refs.has('asset:easyprivacy-data'));
   assert.ok(refs.has('asset:ghostery-resources'));
@@ -42,7 +43,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.equal([...refs].some((ref) => ref.includes('electron-builder@')), false);
 
   const root = sbom.dependencies.find((item) => item.ref.startsWith('application:runtime:'));
-  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.1.1'));
+  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.4.2'));
   assert.ok(root.dependsOn.includes('asset:blanc-adblock-seed'));
   const seed = sbom.dependencies.find((item) => item.ref === 'asset:blanc-adblock-seed');
   assert.deepEqual(seed.dependsOn, [
@@ -117,8 +118,8 @@ test('both lock SBOMs include every unique locked name/version with audited lice
   const generated = createComplianceArtifacts();
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
-  assert.equal(root.components.length, 400);
-  assert.equal(site.components.length, 295);
+  assert.equal(root.components.length, 398);
+  assert.equal(site.components.length, 287);
   const onePassword = root.components.find((component) => component.name === '@1password/sdk');
   assert.deepEqual(onePassword.licenses, [{ license: { id: 'MIT' } }]);
   const zod = site.components.find((component) => component.name === 'zod');
@@ -184,17 +185,18 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 39);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 40);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 34, '32 runtime npm records plus two font licenses');
+  assert.equal(licenses.length, 35, '32 runtime npm records plus three font licenses');
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
   assert.ok(licenses.includes('lazy-val--1.0.5.txt'));
   assert.ok(licenses.includes('inter-OFL.txt'));
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));
+  assert.ok(licenses.includes('caveat-OFL.txt'));
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 
   fs.writeFileSync(path.join(resources, 'runtime-sbom.cdx.json'), '{}');

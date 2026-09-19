@@ -9,6 +9,7 @@ const stableExecutable = process.env.BLANC_STABLE_EXECUTABLE;
 const candidateExecutable =
   process.env.BLANC_CANDIDATE_EXECUTABLE ||
   path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
+const stableExpectsQuiet = process.env.BLANC_STABLE_EXPECTS_QUIET === '1';
 
 for (const [label, executable] of [
   ['BLANC_STABLE_EXECUTABLE', stableExecutable],
@@ -22,6 +23,8 @@ for (const [label, executable] of [
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-stable-migration-'));
 const favoriteUrl = 'https://example.com/favorite';
 const sessionUrls = ['https://example.com/', 'https://www.wikipedia.org/'];
+const workspaceId = 'migration_workspace';
+const workspaceName = 'Migration workspace';
 let app;
 
 const writeJson = (name, value) => fs.writeFileSync(
@@ -29,10 +32,10 @@ const writeJson = (name, value) => fs.writeFileSync(
   JSON.stringify(value, null, 2)
 );
 
-// Blanc 1.0.3 predates the privileged blanc-chrome:// scheme and renders its
-// packaged chrome from file://…/src/renderer/index.html. The migration gate
-// starts with that public build, then hands the same profile to the candidate,
-// so it must recognize both trusted chrome locations.
+// Older public Blanc builds predate the privileged blanc-chrome:// scheme and
+// render packaged chrome from file://…/src/renderer/index.html. The migration
+// gate starts with a real public build, then hands the same profile to the
+// candidate, so it recognizes both trusted chrome locations.
 const isChromePage = (page) => {
   const url = page.url();
   if (url === 'blanc-chrome://index/') return true;
@@ -72,6 +75,17 @@ const waitForQuietRestore = async ({ label, expectQuiet, wakeQuiet }) => {
       state = await chrome.evaluate(() => window.browserAPI.getAllTabs());
       if (sessionUrls.every((expected) =>
         state.tabs.some((tab) => tab.url === expected))) {
+        const group = state.groups.find((entry) => entry.name === 'research');
+        assert.ok(group, `${label} should preserve the saved tab group`);
+        assert.ok(
+          sessionUrls.every((url) => state.tabs.find((tab) => tab.url === url)?.groupId === group.id),
+          `${label} should preserve tab membership in the saved group`,
+        );
+        assert.equal(
+          state.tabs.find((tab) => tab.url === sessionUrls[0])?.pinned,
+          true,
+          `${label} should preserve the pinned tab`,
+        );
         const quiet = state.tabs.find((tab) => tab.url === sessionUrls[0]);
         if (expectQuiet) {
           assert.equal(quiet.asleep, true, `${label} inactive restored tab should begin quiet`);
@@ -101,6 +115,21 @@ try {
     usagePing: false,
   });
   writeJson('session.json', {
+    version: 2,
+    activeWindowId: 'primary',
+    windows: [{
+      id: 'primary',
+      profileId: 'default',
+      workspaceId,
+      urls: sessionUrls,
+      activeIndex: 1,
+      groups: [{ id: 'migration-group', name: 'research', collapsed: false }],
+      groupIds: ['migration-group', 'migration-group'],
+      pinned: [true, false],
+      meta: sessionUrls.map((url) => ({ title: url, favicon: null })),
+    }],
+    // The flat rollback mirror remains present so an older public baseline can
+    // open and rewrite the profile without understanding v2-only fields.
     urls: sessionUrls,
     activeIndex: 1,
     groups: [{ id: 'migration-group', name: 'research', collapsed: false }],
@@ -126,16 +155,44 @@ try {
       visitedAt: now,
     }],
   });
+  writeJson('workspaces.json', {
+    version: 1,
+    workspaces: [{
+      id: workspaceId,
+      name: workspaceName,
+      profileId: 'default',
+      createdAt: now,
+      updatedAt: now,
+      urls: sessionUrls,
+      activeIndex: 1,
+      groups: [{ id: 'migration-group', name: 'research', collapsed: false }],
+      groupIds: ['migration-group', 'migration-group'],
+      pinned: [true, false],
+      meta: sessionUrls.map((url) => ({ title: url, favicon: null })),
+    }],
+  });
 
   // Launch the real public Stable first so the fixture is proven acceptable
-  // to that build, then hand the exact same profile to the candidate. Current
-  // Stable is pre-Quiet-Tabs, so inspect its authoritative chrome model rather
-  // than requiring every tab to have a live CDP page. Do not change selection
-  // here: the candidate must receive the exact profile written by Stable.
+  // to that build, then hand the exact same profile to the candidate. Inspect
+  // its authoritative chrome model rather than requiring every tab to have a
+  // live CDP page. The optional expectation lets a current public baseline
+  // prove quiet restore without blocking older migration investigations. Do
+  // not change selection here: the candidate must receive the exact profile
+  // written by Stable.
   await launch(stableExecutable);
-  await waitForQuietRestore({ label: 'stable', expectQuiet: false, wakeQuiet: false });
+  await waitForQuietRestore({
+    label: 'stable',
+    expectQuiet: stableExpectsQuiet,
+    wakeQuiet: false,
+  });
   await app.close();
   app = null;
+  const originalWorkspaceBytes = fs.readFileSync(path.join(userDataDir, 'workspaces.json'));
+  const originalRecoveryCopies = new Map(
+    fs.readdirSync(userDataDir)
+      .filter((name) => name.startsWith('workspaces.json.before-repair-'))
+      .map((name) => [name, fs.readFileSync(path.join(userDataDir, name))]),
+  );
 
   await launch(candidateExecutable);
   // Current Blanc restores inactive tabs as quiet records, so they have no
@@ -166,8 +223,61 @@ try {
   );
   assert.ok(history.entries.some((entry) => entry.title === 'Migration history'));
 
+  const candidateWorkspaceBytes = fs.readFileSync(path.join(userDataDir, 'workspaces.json'));
+  const workspaces = JSON.parse(candidateWorkspaceBytes.toString('utf8'));
+  const migratedWorkspace = workspaces.workspaces.find((entry) => entry.id === workspaceId);
+  assert.ok(migratedWorkspace, 'saved Named Workspace should survive the public-to-candidate handoff');
+  assert.equal(migratedWorkspace.name, workspaceName);
+  assert.deepEqual(migratedWorkspace.urls, sessionUrls);
+  assert.equal(workspaces.version, 2, 'candidate should migrate to the versioned workspace recovery format');
+  const recoveryCopies = fs.readdirSync(userDataDir).filter((name) => name.startsWith('workspaces.json.before-repair-'));
+  for (const [name, bytes] of originalRecoveryCopies) {
+    assert.ok(recoveryCopies.includes(name), 'candidate must retain public-build workspace recovery copies');
+    assert.ok(fs.readFileSync(path.join(userDataDir, name)).equals(bytes), 'candidate must byte-preserve public-build workspace recovery copies');
+  }
+  const newRecoveryCopies = recoveryCopies.filter((name) => !originalRecoveryCopies.has(name));
+  const originalWorkspaceVersion = JSON.parse(originalWorkspaceBytes.toString('utf8')).version;
+  if (newRecoveryCopies.length || originalWorkspaceVersion !== workspaces.version) {
+    assert.ok(
+      newRecoveryCopies.some((name) => fs.readFileSync(path.join(userDataDir, name)).equals(originalWorkspaceBytes)),
+      'candidate repair or migration must preserve the exact public-build workspace file',
+    );
+  }
+  if (process.platform !== 'win32') {
+    for (const name of recoveryCopies) assert.equal(fs.statSync(path.join(userDataDir, name)).mode & 0o777, 0o600);
+  }
+
+  await app.close();
+  app = null;
+  await launch(candidateExecutable);
+  await waitForQuietRestore({ label: 'candidate restart', expectQuiet: false, wakeQuiet: false });
+  let chrome = app.pages().find(isChromePage);
+  const restarted = await chrome.evaluate(() => window.browserAPI.listWorkspaces());
+  assert.equal(restarted.items.find((workspace) => workspace.id === 'migration_workspace')?.active, true, 'the saved binding must survive a packaged restart');
+  await app.close();
+  app = null;
+
+  // A newer-format profile remains byte-preserved through startup, reads,
+  // rejected mutations, and shutdown, even with an old binding in session.json.
+  const futureBytes = Buffer.from(JSON.stringify({ version: 999, workspaces: [{ futureField: 'preserve this exact fixture' }] }, null, 2));
+  fs.writeFileSync(path.join(userDataDir, 'workspaces.json'), futureBytes);
+  await launch(candidateExecutable);
+  await waitForQuietRestore({ label: 'future-format startup', expectQuiet: false, wakeQuiet: false });
+  chrome = app.pages().find(isChromePage);
+  const refused = await chrome.evaluate(async () => ({
+    list: await window.browserAPI.listWorkspaces(),
+    rename: await window.browserAPI.renameWorkspace('migration_workspace', 'Do not rewrite'),
+    remove: await window.browserAPI.removeWorkspace('migration_workspace'),
+  }));
+  assert.equal(refused.list.status, 'future-format');
+  assert.equal(refused.rename.error, 'future-format');
+  assert.equal(refused.remove.error, 'future-format');
+  await app.close();
+  app = null;
+  assert.ok(fs.readFileSync(path.join(userDataDir, 'workspaces.json')).equals(futureBytes));
+
   console.log(
-    `packaged-migration-smoke OK: ${path.basename(path.resolve(stableExecutable, '../../..'))} -> candidate`
+    `packaged-migration-smoke OK: ${path.basename(path.resolve(stableExecutable, '../../..'))} -> candidate; workspace backup, restart binding and future-format refusal verified`
   );
 } finally {
   if (app) await app.close();

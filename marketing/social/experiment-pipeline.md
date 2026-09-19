@@ -31,6 +31,17 @@ final freshness, duplicate, claim, brand, crop and destination check.
 No platform should receive the same caption and crop by default. A campaign is
 one idea with native executions, not six identical uploads.
 
+## Substack editorial lane
+
+Substack now carries a distinct privacy, power, and browser-incentives lane for
+technically literate readers. Its claim ledger, article sequence, Note prompts,
+and comparison rules are in
+[`substack-privacy-editorial-lane-2026-08-30.md`](substack-privacy-editorial-lane-2026-08-30.md).
+The lead thesis is: **a browser's business model is part of the browser**.
+Do not describe Blanc's launch ping as opt-in: a fresh install asks before the
+first ping, but the choice is presented on and can be disabled before continuing
+or later. No draft in that lane is approved for publication.
+
 ## Next eight distinct experiments
 
 ### 1. Quiet Tabs — free up memory without closing tabs

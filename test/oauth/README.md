@@ -56,3 +56,24 @@ To run only one canary while debugging:
 npm run test:oauth:live -- chatgpt
 npm run test:oauth:live -- instacart
 ```
+
+## External application callbacks
+
+The deterministic suite also verifies browser-to-app callbacks in the real
+Electron runtime: direct links, HTTP redirects, iframe redirects, direct
+`window.open`, managed child tabs, and OAuth popup windows. Only the native
+app lookup, confirmation dialog, and OS launch are stubbed. Cancellation must
+not launch anything; callback parameters must not appear in dialog text.
+
+Blanc accepts only reviewed app schemes and standard Microsoft/Google native
+OAuth callback conventions. Custom app schemes always require confirmation,
+including typed links. Unknown schemes are never passed to the OS, and typed
+colon-prefixed terms continue through normal search routing. Additions to the
+allowlist require an app-specific security and login-flow review. Missing
+handlers and launch errors produce a visible message. No persistent permission
+or callback URL is saved.
+
+This coverage verifies the browser handoff contract, not a real account login.
+Before release, validate actual sign-in on macOS, Windows, and Linux with
+representative installed apps, including Claude. Google account-policy errors
+and provider-specific authentication failures require separate diagnosis.

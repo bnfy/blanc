@@ -28,7 +28,6 @@ const { developmentBrandAssetPath } = require('./development-brand-preview');
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
@@ -137,6 +136,15 @@ function setupPages(hooks = {}) {
     hooks.utilitySheet.setEscapeArmed?.(!!armed);
   });
 
+  // The relay review is a distinct surface from Bring Your Tabs. The latter
+  // owns blanc://tab-import/ and its richer local-session organizer.
+  handle('pages:tab-handoff:get', 'tab-handoff', () =>
+    hooks.tabHandoff?.get?.() ?? { state: 'empty' });
+  handle('pages:tab-handoff:accept', 'tab-handoff', (destination) =>
+    hooks.tabHandoff?.accept?.(destination) ?? { ok: false, error: 'unavailable' });
+  handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
+    hooks.tabHandoff?.cancel?.() ?? { ok: true });
+
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
@@ -155,10 +163,12 @@ function setupPages(hooks = {}) {
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    let file;
     try {
-      const stat = await fs.promises.stat(picked.filePaths[0]);
+      file = await fs.promises.open(picked.filePaths[0], 'r');
+      const stat = await file.stat();
       if (stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const html = await file.readFile('utf8');
       const entries = parseNetscapeBookmarks(html);
       if (!entries.length) return { error: 'empty' };
       const { added, skipped } = bookmarks.importBookmarks(entries);
@@ -166,6 +176,8 @@ function setupPages(hooks = {}) {
       return { added, skipped };
     } catch {
       return { error: 'unreadable' };
+    } finally {
+      if (file) await file.close().catch(() => {});
     }
   });
   handle('pages:bookmarks:browser-sources', ['bookmarks', 'newtab'], () => browserImport.listSources());
@@ -176,6 +188,66 @@ function setupPages(hooks = {}) {
     hooks.onDataChanged?.();
     return { added, skipped, source: read.source };
   });
+
+  // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites
+  // import. Selecting a profile reads its restorable open-tab session in
+  // main; the sheet receives only the opaque candidate projection.
+  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listOpenTabSources());
+  handle('pages:tab-import:open-source', 'tab-import', async (id, options = {}) => {
+    const isCurrent = hooks.tabImport?.beginSourceRead?.() ?? (() => false);
+    const sourceId = String(id ?? '');
+    const read = await browserImport.readOpenTabs(sourceId, {
+      afterQuit: options?.afterQuit === true,
+    });
+    if (!isCurrent()) return { error: 'session-unavailable' };
+    if (read.error) {
+      return {
+        error: read.error,
+        recoverable: read.recoverable === true,
+        recoverableTabCount: Number(read.recoverableTabCount) || 0,
+      };
+    }
+    const opened = hooks.tabImport?.openSource?.({
+      sourceKind: 'chromium',
+      sourceLabel: read.source.label,
+      readCandidates: async () => read,
+    }) ?? { error: 'session-unavailable' };
+    if (opened.error) return opened;
+    const loaded = await hooks.tabImport?.loadCandidates?.(opened.sessionId)
+      ?? { error: 'session-unavailable' };
+    if (loaded.error) return loaded;
+    return {
+      ...opened,
+      ...loaded,
+      source: read.source,
+    };
+  });
+  handle('pages:tab-import:set-selection', 'tab-import', (sessionId, selection) =>
+    hooks.tabImport?.setSelection?.(
+      String(sessionId ?? ''),
+      selection ?? {},
+    ) ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-source-groups', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestSourceGroups?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-embed', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestEmbed?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle(
+    'pages:tab-import:submit-embeddings',
+    'tab-import',
+    (sessionId, generation, matrix) => hooks.tabImport?.submitEmbeddings?.(
+      String(sessionId ?? ''),
+      String(generation ?? ''),
+      matrix,
+    ) ?? { error: 'session-unavailable' },
+  );
+  handle('pages:tab-import:apply', 'tab-import', (sessionId, request) =>
+    hooks.tabImport?.apply?.(String(sessionId ?? ''), request ?? {})
+      ?? { error: 'apply-unavailable' });
+  handle('pages:tab-import:cancel', 'tab-import', (sessionId) =>
+    hooks.tabImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
+
   handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();
@@ -215,6 +287,7 @@ function setupPages(hooks = {}) {
       supporter: record,
       patron: _patron,
       _syncMeta,
+      _syncTieBreakers,
       onePasswordEnabled,
       onePasswordAccount,
       presentationDefaultsResetVersion,
@@ -287,7 +360,15 @@ function setupPages(hooks = {}) {
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', 'settings', () => sync.status());
-  handle('pages:settings:sync-enable', 'settings', (payload) => sync.enable(payload ?? {}));
+  handle('pages:settings:sync-enable', 'settings', async (payload) => {
+    const result = await sync.enable(payload ?? {});
+    // Persisted credentials complete the migration task even when the first
+    // pull failed (ok: false). The marker never clears if Sync is later off.
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
+    return result;
+  });
+  // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
+  handle('pages:settings:sync-preflight', 'settings', (payload) => sync.preflight(payload ?? {}));
   handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
   handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => sync.status()));
   // Per-device consent for publishing this device's open tabs (spec §3) —
@@ -320,6 +401,11 @@ function setupPages(hooks = {}) {
     // below: startPageStatus() supplies it, and the same function feeds the
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
+    // Per-tab guard: the shared status never carries profile or privacy.
+    migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
+    // A utility sheet is a separate WebContentsView layered over this tab;
+    // document.hasFocus() in the covered renderer is not a reliable signal.
+    utilitySheetVisible: hooks.startPage?.utilitySheetVisibleFor?.(event.sender) === true,
   }));
   // Billboard asks for another bounded page only when local dismissals consume
   // the initial candidate set. The hidden-hostname list stays in page storage
@@ -378,6 +464,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
+  // Moving-in checklist: open Settings at an allowlisted section (main owns
+  // the allowlist) and persist a one-time dismissal.
+  handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
+  handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
 
   // Standalone games invoke from their exact top-level document. The embedded
   // game has no preload authority; it posts a fixed signal to newtab.js, which

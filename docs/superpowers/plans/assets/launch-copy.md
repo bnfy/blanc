@@ -1,4 +1,10 @@
-# Blanc v1.15.0 launch copy pack
+# Blanc launch copy pack — v1.16.2 final-release refresh
+
+**Launch Week paused after v1.17.0 — 2026-09-13:** This pack is **not publishable**.
+The owner put launch work on the backburner while the v1.17.0
+release deployment and adjacent updater handoffs are completed. All copy,
+media, approvals, freeze evidence, soak evidence, and dates below remain the
+historical v1.16.2 package until Launch Week resumes.
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -7,16 +13,15 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
-September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
-September 10. A bounded backlog-cleanup window now precedes the launch freeze.
-**FINAL RELEASE SELECTION 2026-09-03:** v1.15.0 is the launch release. Its
-publication, all native-platform gates, public Linux launch/render check, and
-adjacent macOS and Windows updater handoffs are complete. The release-bound
-demo and Product Hunt stills were recaptured from that installed packaged
-build. If a regression forces a replacement release, this pack becomes
-non-publishable until every release-bound fact and asset is rebaselined and the
-fresh launch soak restarts.
+**Official schedule recovery — OWNER APPROVED 2026-09-13:** Monday, September
+14 baseline and listings; Tuesday, September 15 Show HN; Wednesday, September
+16 Reddit; and Thursday, September 17 Product Hunt. The owner explicitly
+selected public v1.16.2 as the final launch release and approved the finished
+media and copy. PR #323 merged the release-bound changes, the immutable freeze
+row records anchor `7b25261a4683088ca390a06fec9a46cc55085141`, and the fresh
+48-hour soak cleared at `2026-09-13T21:36:18Z` without a reported regression or
+replacement. This pack is approved for the September 14–17 sequence, subject
+to each channel's morning-of checks.
 
 **Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
 v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
@@ -24,30 +29,23 @@ incident. That confirmation closes the earlier evidence gap; it does not waive
 the asset merge, final freeze, or fresh soak. Do not publish this pack until
 the runbook's remaining launch gates are cleared.
 
-**Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
-v1.15.0, published from `d0c2304`. It carries the optional macOS 1Password
-ambient login hint and Settings account verification while keeping credential
-lookup and fill explicit. It also carries WebRTC receive-buffer controls,
-Electron 44.1.1, device-local frequently visited Billboard sites, Inter across
-every start-page template, Sunrise branding on all platforms, and four macOS
-icon choices. The resting Island now uses the compact website-inspired
-geometry and material treatment, includes a quiet one-click regular-tab
-shortcut beside the slash keycap, and keeps its unified proximity response;
-the vertical rail uses Inter. Mahjong now has eight layouts, a deterministic
-Daily rotation across all eight, device-local records and streaks, unfinished-
-game continuation across tabs, and undoable Shuffle. It resets every profile
-once to Sunrise and Billboard, then preserves later user changes. The
-authenticated public v1.15.0 Linux launch/render check passed, and the adjacent
-v1.14.0 -> v1.15.0 macOS and Windows updater handoffs both passed. Complete
-release evidence is recorded in
-`docs/release-incidents/2026-09-02-v1.15.0.md`. Do not use UI or claims from
+**Final release lock — ACCEPTED 2026-09-13:** Packaged public v1.16.2 was
+published from
+`0cced924b458496869295c711162c315a4d5da29` at `2026-09-11T21:24:34Z`. Its
+complete native-platform, authenticated-manifest, public-download, site, fresh
+AppImage launch/render, DNS, and adjacent public v1.16.1 → v1.16.2
+macOS/Windows updater evidence passed. It includes the v1.16.0 feature set, the
+v1.16.1 startup-recovery and Sunrise presentation fixes, and the v1.16.2 Chrome
+Web Store crash guard plus restored-tab recovery and distinct macOS build
+number. Complete evidence is recorded in
+`docs/release-incidents/2026-09-11-v1.16.2.md`. Do not use UI or claims from
 later work on `main`.
 
 ## Frozen facts
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.15.0 |
+| Current public release | v1.16.2 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
@@ -58,7 +56,7 @@ later work on `main`.
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
 | macOS 1Password boundary | Optional and device-local. A small hint may use bounded structure-only metadata from a visible current-password field, without field values, page text, or a 1Password request. Settings can explicitly verify a saved account identifier. Credential lookup and fill remain user-invoked; Blanc does not fill automatically or store credentials. It is not an extension runtime |
-| Repository/build boundary | The v1.15.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
+| Repository/build boundary | The v1.16.2 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -70,22 +68,33 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
-Packaged-v1.15.0 launch demo assets:
+Launch media status:
 
 | Form | URL |
 |---|---|
-| MP4 | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.mp4 |
-| GIF | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.gif |
+| Approved v1.16.2 overview | https://www.youtube.com/watch?v=REA1jQN6tY0 |
+| Candidate v1.16.2 short MP4 | `docs/superpowers/plans/assets/island-demo.mp4` |
+| Candidate v1.16.2 short GIF | `docs/superpowers/plans/assets/island-demo.gif` |
+| Historical v1.16.0 overview; retain until replacement approval | https://www.youtube.com/watch?v=X5pAN07iuks |
+| Historical v1.15.0 overview | https://www.youtube.com/watch?v=xqUFMUcCjT0 |
 
-These files were captured on September 3 from the installed packaged public
-v1.15.0 macOS app in an isolated local profile with telemetry and search
-suggestions disabled. The 22-second export is 1920×1200, 30 fps H.264, and
-BT.709; the 960×600 GIF is below 8 MiB. It shows the resting Island, `⌘L`
-expansion, a live `git` Quick Switcher filter, tab-dot switching, The Verge's
-live blocker count and popover, and a final resting hold. The
-MP4 is the source for the required public or unlisted YouTube upload before
-Product Hunt. A raw MP4 URL does not satisfy Product Hunt's gallery-video
-field.
+The candidate short files were captured on September 13 from installed
+packaged public v1.16.2 in a dedicated local profile using public pages. The
+MP4 is a 22.166667-second, 1920×1200, 30 fps H.264 BT.709 export with no audio
+stream; the 960×600 GIF is below 8 MiB. They show Billboard, a named tab group,
+Quick Switcher and slash commands, the live homepage, and the real blocker
+popover. They replace the historical v1.16.0 README demo.
+
+The candidate 42-second overview was created on September 13 from the same
+installed public v1.16.2 capture set. It uses Billboard, the live Blanc site,
+The Verge, a named tab group, slash commands, Quick Switcher, and the real
+blocker count and site controls. It is a 1920×1200, 30 fps H.264 BT.709 export
+with no audio stream and a 42.000-second duration. Seven release-backed captions
+occupy a reserved lower margin. The owner approved it on September 13; YouTube
+finished processing the unlisted upload and reported no copyright issues at
+`https://www.youtube.com/watch?v=REA1jQN6tY0`. Product Hunt saved the full URL
+and rendered the exact v1.16.2 player before the draft was re-verified as
+scheduled. The historical v1.16.0 and v1.15.0 unlisted videos remain intact.
 
 ## Show HN — owner writes every public word
 
@@ -105,8 +114,8 @@ Submission mechanics:
 1. Confirm the owner's existing personal HN account is currently allowed to
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
-   editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.15.0 release.
+   editing. The title must begin `Show HN` and describe the whole browser, not
+   announce the incremental v1.16.2 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -130,7 +139,7 @@ Write these ideas in Anthony's natural words:
 - The honest limitation: Electron. Point to the measured method and raw data;
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support.
-- Narrow exception to the extension boundary: packaged macOS v1.15.0 may show
+- Narrow exception to the extension boundary: packaged macOS v1.16.2 may show
   a small local hint for a visible current-password field and can verify a
   saved account identifier in Settings. A matching Login item is requested
   from the installed 1Password app only when the user asks to fill; it is not
@@ -360,7 +369,7 @@ thread as a substitute launch.
 ## Product Hunt
 
 **Account gate:** use the owner's personal account and confirm it can reach the
-submission form before Thursday, September 10. Product Hunt's current
+submission form before Thursday, September 17. Product Hunt's current
 [posting-access guide](https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post)
 says company accounts cannot post and newly created personal accounts normally
 wait one week; newsletter subscription can grant immediate access.
@@ -372,7 +381,7 @@ through a full YouTube URL. Upload the final demo to YouTube as public or
 unlisted—not private—at least 12 hours before the final preview when possible;
 Product Hunt warns that new YouTube uploads may need about 12 hours before they
 can be integrated. Verify the full URL in the preview, then use **Schedule
-Launch** for **Thursday, September 10, 2026**; Product Hunt says its 24-hour PST
+Launch** for **Thursday, September 17, 2026**; Product Hunt says its 24-hour PST
 period puts scheduled posts live at **12:01 a.m. PST**. Re-check the
 [official posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 when creating the draft.
@@ -383,11 +392,18 @@ Prepared release-backed media:
 - Gallery still 1: `product-hunt/island-resting-1270x760.png`
 - Gallery still 2: `product-hunt/quick-switcher-1270x760.png`
 
-The two stills were exported from the packaged-v1.15.0 launch demo and satisfy
+The two stills were recaptured on September 13 from packaged public v1.16.2
+over the live Blanc homepage, replacing the stale v1.16.0 captures. They satisfy
 the guide's two-image gallery floor. Their exact provenance is in
 `product-hunt/README.md`.
-The full YouTube URL remains owner-supplied and must not be inferred from a raw
-MP4 URL.
+The approved v1.16.2 overview is unlisted at
+`https://www.youtube.com/watch?v=REA1jQN6tY0`. Product Hunt saved that full URL
+and the two approved stills, removed the four historical gallery items, and
+rendered the exact v1.16.2 player. The draft is at
+`https://www.producthunt.com/products/blanc-3?launch=blanc-3`. The live page
+reported `Scheduled` for **September 17 at 12:01 a.m. PDT (3:01 a.m. EDT)**
+after the replacement. PR #323, the new freeze anchor, and the fresh 48-hour
+soak are complete; recheck the live schedule and gallery before launch.
 
 **Name**
 
@@ -404,9 +420,9 @@ MP4 URL.
 This is more candid than `Free`: core browsing is free, but Named Workspace
 creation is a paid benefit.
 
-**Tagline** — 51 characters
+**Tagline** — 22 characters; owner-confirmed website wording, September 4
 
-> A minimal desktop browser with built-in ad blocking
+> A little less browser.
 
 **Description** — 244 characters, within the current 260-character limit
 
@@ -447,10 +463,10 @@ Use only topics that exist in the live form and genuinely fit.
 
 **Gallery order**
 
-1. Island demo through a verified full YouTube URL.
+1. Approved 42-second launch overview through its verified full YouTube URL.
 2. `product-hunt/island-resting-1270x760.png`.
 3. `product-hunt/quick-switcher-1270x760.png`.
-4. Optional: a packaged-v1.15.0 Named Workspaces capture with a visible
+4. Optional: a packaged-v1.16.2 Named Workspaces capture with a visible
    `Patron` label in its caption. Omit it rather than substituting a mockup,
    development build, or unlabeled paid feature.
 
@@ -583,8 +599,8 @@ drop a full defense where one sentence would do.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.15.0.
-- [ ] The README still links the v1.15.0 tag as the exact source snapshot for
+- [ ] `package.json` and the latest public release both still say v1.16.2.
+- [ ] The README still links the v1.16.2 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The latest `launch-freeze-start` row records the final `origin/main`
   anchor, launch release tag, and release SHA; since that dynamic anchor,
@@ -609,8 +625,9 @@ drop a full defense where one sentence would do.
 - [ ] The owner's personal Product Hunt account can reach the submission form.
 - [ ] Product Hunt's full YouTube URL is not private, has had processing time,
   and appears in the preview with both stills before **Schedule Launch**.
-- [ ] Product Hunt's live form displays **September 10, 2026** before scheduling;
-      if an earlier channel slipped, every downstream date moved with it.
+- [ ] Product Hunt's live editor reports `Scheduled` for **September 17, 2026**
+      at 12:01 a.m. PDT (3:01 a.m. EDT). The superseded September 10 schedule
+      does not count.
 - [ ] Each Reddit community's live rules and the eligibility matrix permit the
       planned post format; every ineligible candidate is explicitly skipped.
 - [ ] The HN account is eligible under the current Show HN restriction.

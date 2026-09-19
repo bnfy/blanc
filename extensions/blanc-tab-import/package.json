@@ -1,0 +1,14 @@
+{
+  "name": "blanc-tab-import-companions",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "lint:firefox": "web-ext lint --source-dir web-extension",
+    "build:firefox": "web-ext build --source-dir web-extension --artifacts-dir dist/firefox --overwrite-dest",
+    "sign:firefox": "web-ext sign --source-dir web-extension --artifacts-dir dist/firefox-signed --channel listed",
+    "prepare:safari": "sh prepare-safari-companion.sh"
+  },
+  "devDependencies": {
+    "web-ext": "10.6.0"
+  }
+}

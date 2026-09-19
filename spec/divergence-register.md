@@ -83,17 +83,21 @@ cap** are identical; only where the bytes land and how you re-open them differ.
 **Features:** F5, F19
 **Why:** Each OS has its own default-browser mechanism and URI-hand-off model.
 
-- **Desktop:** `handOffToOs()` for `mailto:`/`tel:`/`facetime:`/`sms:`; OS default
-  registration via the packaged app (macOS LaunchServices, the Windows Default
-  Programs registry contract written by the installer, and the Linux desktop
-  entry's `WebBrowser` category and HTTP(S) scheme-handler types).
+- **Desktop:** `handOffToOs()` for `mailto:`/`tel:`/`facetime:`/`sms:` plus an
+  affirmative allowlist of reviewed app schemes and standard native OAuth scheme
+  conventions. App callbacks require confirmation; unknown schemes never reach
+  the OS. OS default registration uses the packaged app (macOS LaunchServices,
+  the Windows Default Programs registry contract written by the installer, and
+  the Linux desktop entry's `WebBrowser` category and HTTP(S) scheme-handler
+  types).
 - **iOS:** default-browser **entitlement** + universal-link/URI handling; hand-off
   via `UIApplication.open`.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
 
 **Parity contract:** a bare `mailto:`/`tel:`/etc. is handed to the OS (never
-treated as a search query), and Blanc can be set as the default browser, on every
-platform that allows it.
+treated as a search query), unknown schemes do not reach an OS handler, and Blanc
+can be set as the default browser, on every platform that allows it. Desktop app
+callbacks are an accepted platform-specific extension.
 
 **Status:** Accepted.
 

@@ -69,6 +69,10 @@
   --accent-dim: rgba(17, 17, 17, 0.08);
   --danger: #ff3b30;
   --on-danger: #ffffff;
+  --patron-gold: #d4ad66;
+  --patron-surface: #12100b;
+  --patron-label: #f7f0e5;
+  --patron-halo: rgba(128, 93, 40, 0.24);
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -87,6 +91,7 @@
     --accent-dim: rgba(245, 245, 245, 0.12);
     --danger: #ff453a;
     --on-danger: #0e0e0e;
+    --patron-halo: rgba(212, 173, 102, 0.26);
     --select-caret: url("select-caret-dark.svg");
   }
 }
@@ -101,5 +106,6 @@
   --accent-dim: rgba(245, 245, 245, 0.12);
   --danger: #ff453a;
   --on-danger: #0a0a0a;
+  --patron-halo: rgba(212, 173, 102, 0.26);
   --select-caret: url("select-caret-dark.svg");
 }
