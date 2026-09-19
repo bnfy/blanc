@@ -1,5 +1,78 @@
 [
   {
+    "tag": "v1.19.0",
+    "version": "1.19.0",
+    "name": "1.19.0",
+    "publishedAt": "2026-09-19T17:13:42.000Z",
+    "humanDate": "September 19, 2026",
+    "machineDate": "2026-09-19",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.19.0",
+    "anchor": "v1-19-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Choose Blanc as your default browser."
+                  },
+                  {
+                    "type": "text",
+                    "value": " macOS now recognizes Blanc's web browser role in System Settings. On Windows, the installer registers Blanc as a browser candidate and the Make default button opens Default apps, where you make the final choice. Linux desktop environments can also offer Blanc for web links. Availability in each system's picker depends on its desktop settings."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, an existing HTML document opened with Blanc from Finder opens in a tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated to Electron 44.4.3, which retains Chromium 152.0.7977.130 and includes upstream fixes."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows checks the system's chosen handlers for both HTTP and HTTPS before saying Blanc is the default browser. Opening Default apps alone no longer makes Blanc report that it is the default."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.18.0",
     "version": "1.18.0",
     "name": "1.18.0",
