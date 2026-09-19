@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 
@@ -22,6 +23,9 @@ const server = http.createServer((_req, res) => {
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
+const localHtmlPath = path.join(root, 'LaunchServices document.html');
+fs.writeFileSync(localHtmlPath, '<!doctype html><title>LaunchServices document</title><main>Local document</main>');
+const localHtmlUrl = pathToFileURL(fs.realpathSync(localHtmlPath)).href;
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 const uncaughtLog = path.join(root, 'uncaught.log');
 let app;
@@ -40,33 +44,52 @@ try {
     app.emit('open-url', { preventDefault() {} }, url);
   }, url);
   if (process.platform === 'darwin') {
+    const beforeLocal = await read();
+    const prevented = await app.evaluate(({ app }, filePath) => {
+      let value = false;
+      app.emit('open-file', { preventDefault() { value = true; } }, filePath);
+      return value;
+    }, localHtmlPath);
+    assert.equal(prevented, true);
+    const afterLocal = await selected(localHtmlUrl);
+    assert.equal(afterLocal.tabs.length, beforeLocal.tabs.length + 1);
+    console.log('external-links local HTML document PASS');
+
     for (const mode of ['hidden', 'minimized', 'hidden-minimized']) {
       if (mode.includes('minimized')) {
-        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].minimize());
+        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+          .find((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/').minimize());
         // Hiding during the native minimize animation can cancel that
         // transition. Establish each precondition before requesting the next.
-        await waitForValue(() => app.evaluate(({ BrowserWindow }) =>
-          BrowserWindow.getAllWindows()[0].isMinimized()), Boolean, 'native minimize completed');
+        await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+          .find((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/').isMinimized()), Boolean, 'native minimize completed');
       }
       if (mode.includes('hidden')) await app.evaluate(({ app }) => app.hide());
-      await waitForValue(() => app.evaluate(({ app, BrowserWindow }) => ({
-        hidden: app.isHidden(), minimized: BrowserWindow.getAllWindows()[0].isMinimized(),
-      })), (s) => (!mode.includes('hidden') || s.hidden)
+      await waitForValue(() => app.evaluate(({ app, BrowserWindow }) => {
+        const window = BrowserWindow.getAllWindows()
+          .find((candidate) => candidate.webContents.getURL() !== 'blanc-chrome://display-capture-helper/');
+        return { hidden: app.isHidden(), minimized: window.isMinimized() };
+      }), (s) => (!mode.includes('hidden') || s.hidden)
         && (!mode.includes('minimized') || s.minimized), `prepare ${mode}`);
       const before = await read();
       await deliver(`${origin}/${mode}`);
       const after = await selected(`${origin}/${mode}`);
       assert.equal(after.tabs.length, before.tabs.length + 1);
-      await waitForValue(() => app.evaluate(({ app, BrowserWindow }) => ({
-        hidden: app.isHidden(), active: app.isActive(),
-        minimized: BrowserWindow.getAllWindows()[0].isMinimized(),
-        focused: BrowserWindow.getAllWindows()[0].isFocused(),
-      })), (s) => !s.hidden && s.active && !s.minimized && s.focused, `restore ${mode}`);
+      await waitForValue(() => app.evaluate(({ app, BrowserWindow }) => {
+        const window = BrowserWindow.getAllWindows()
+          .find((candidate) => candidate.webContents.getURL() !== 'blanc-chrome://display-capture-helper/');
+        return {
+          hidden: app.isHidden(), active: app.isActive(),
+          minimized: window.isMinimized(), focused: window.isFocused(),
+        };
+      }), (s) => !s.hidden && s.active && !s.minimized && s.focused, `restore ${mode}`);
       console.log(`external-links ${mode} PASS`);
     }
-    await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
-    await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length),
-      (count) => count === 0, 'last window closed');
+    await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+      .find((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/').close());
+    await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+      .some((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/')),
+    (exists) => !exists, 'last browser window closed');
     // No app.activate event accompanies this injection: URL handling itself
     // must create chrome and flush the queued URL exactly once.
     const before = await read();
@@ -91,9 +114,11 @@ try {
     }, path.resolve('.'));
     try {
       for (const mode of ['hidden', 'minimized']) {
-        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
-        await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length),
-          (count) => count === 0, 'close before delayed chrome');
+        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+          .find((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/').close());
+        await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+          .some((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/')),
+        (exists) => !exists, 'close browser window before delayed chrome');
         const before = await read();
         const url = `${origin}/cancel-during-chrome-${mode}`;
         await deliver(url);
@@ -101,12 +126,16 @@ try {
           Boolean, 'chrome request held');
         assert.equal((await read()).tabs.length, before.tabs.length, 'URL waits for chrome readiness');
         await app.evaluate(({ app, BrowserWindow }, mode) => {
+          const window = BrowserWindow.getAllWindows()
+            .find((candidate) => candidate.webContents.getURL() !== 'blanc-chrome://display-capture-helper/');
           if (mode === 'hidden') app.hide();
-          else BrowserWindow.getAllWindows()[0].minimize();
+          else window.minimize();
         }, mode);
-        const nativeState = () => app.evaluate(({ app, BrowserWindow }) => ({
-          hidden: app.isHidden(), minimized: BrowserWindow.getAllWindows()[0].isMinimized(),
-        }));
+        const nativeState = () => app.evaluate(({ app, BrowserWindow }) => {
+          const window = BrowserWindow.getAllWindows()
+            .find((candidate) => candidate.webContents.getURL() !== 'blanc-chrome://display-capture-helper/');
+          return { hidden: app.isHidden(), minimized: window.isMinimized() };
+        });
         await waitForValue(nativeState, (s) => mode === 'hidden' ? s.hidden : s.minimized,
           `user ${mode} during initialization`);
         await app.evaluate(() => {

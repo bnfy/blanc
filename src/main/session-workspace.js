@@ -26,6 +26,8 @@ const EMPTY_ENTRY = (id = PRIMARY_WINDOW_ID) => ({
 });
 
 /** @typedef {{title: string, favicon: string|null}} SessionTabMeta */
+// localFiles is a separate optional v2-only grant column, never a metadata
+// property or part of the five-key rollback mirror.
 
 function validWindowId(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
@@ -62,6 +64,8 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
     // Quiet Tabs: titles and favicons for tabs that come back quiet, zipped
     // onto `urls`. A mismatch means a rollback writer moved the URL column.
     meta: Array.isArray(source.meta) && source.meta.length === urls.length ? source.meta : [],
+    ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
+      ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
   };
 }
 

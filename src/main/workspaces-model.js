@@ -65,6 +65,8 @@ function normalizeWorkspace(raw) {
     // writer moved the URL column, so the record survives without its meta
     // rather than pairing a title with the wrong tab.
     meta: meta.length === urls.length ? meta : [],
+    ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
+      ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
   };
 }
 
@@ -115,6 +117,8 @@ const captureColumns = (capture) => {
     groupIds: asArray(source.groupIds),
     pinned: asArray(source.pinned),
     meta: meta.length === urls.length ? meta : [],
+    ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
+      ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
   };
 };
 

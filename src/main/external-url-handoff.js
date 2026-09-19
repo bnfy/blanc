@@ -1,6 +1,7 @@
 'use strict';
 
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
+const { localHtmlUrlsFromPaths } = require('./local-html-files');
 
 /** OS URL delivery is independent of app activation and chrome loading.
  * Pin each warm request to its receiving runtime; cold requests resolve only
@@ -79,7 +80,7 @@ function createExternalUrlHandoff({
           continue;
         }
         withRuntime(runtime, () => {
-          const id = createTab(entry.url);
+          const id = createTab(entry.url, entry.localFile ? { allowLocalFile: true } : undefined);
           const shouldReveal = entry.intent?.consume();
           if (id == null || !shouldReveal) return;
           activateTab(id);
@@ -91,17 +92,26 @@ function createExternalUrlHandoff({
     }
   }
 
-  function open(urls) {
+  function enqueue(urls, { localFiles = false } = {}) {
     if (isQuitting()) return;
-    const plan = externalUrlActivationPlan(webUrlsFromArgv(urls));
+    const accepted = localFiles ? localHtmlUrlsFromPaths(urls) : webUrlsFromArgv(urls);
+    const plan = externalUrlActivationPlan(accepted);
     if (!plan.length) return;
     const intent = createRevealIntent();
     const runtime = isReady() ? getRuntime() : null;
-    pending.push(...plan.map(({ url, activate }) => ({ url, runtime, intent: activate ? intent : null })));
+    pending.push(...plan.map(({ url, activate }) => ({
+      url,
+      runtime,
+      localFile: localFiles,
+      intent: activate ? intent : null,
+    })));
     flush();
   }
 
-  return { open, flush };
+  const open = (urls) => enqueue(urls);
+  const openLocalFiles = (paths) => enqueue(paths, { localFiles: true });
+
+  return { open, openLocalFiles, flush };
 }
 
 module.exports = { createExternalUrlHandoff };
