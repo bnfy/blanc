@@ -1,12 +1,13 @@
 // Pure restore-time filter (design §6 of 2026-07-22-utility-sheet-design):
-// session.json holds parallel arrays (urls / groupIds / pinned / meta) plus
+// session.json holds parallel arrays (urls / groupIds / pinned / meta and an
+// optional localFiles grant column) plus
 // activeIndex, so dropping entries must be zipped or the metadata silently
 // misaligns onto the wrong tabs.
 
 /**
  * @param {{urls?: string[], groupIds?: (string|null)[], pinned?: boolean[],
- *          meta?: {title: string, favicon: string|null}[], activeIndex?: number}} saved
- * @param {(url: string) => boolean} shouldDrop
+ *          meta?: {title: string, favicon: string|null}[], localFiles?: boolean[], activeIndex?: number}} saved
+ * @param {(url: string, index: number, localFile: boolean) => boolean} shouldDrop
  */
 // Files written before the meta column (≤1.1.1), and rollbacks that dropped
 // it, carry no saved title — and restored tabs are born quiet, so nothing
@@ -24,10 +25,12 @@ function hostTitle(url) {
   }
 }
 
-function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], activeIndex = 0 } = {}, shouldDrop) {
+function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, activeIndex = 0 } = {}, shouldDrop) {
+  const hasLocalFiles = Array.isArray(localFiles) && localFiles.length === urls.length;
   const survivors = [];
   for (const [i, url] of urls.entries()) {
-    if (shouldDrop(url)) continue;
+    const localFile = hasLocalFiles && localFiles[i] === true;
+    if (shouldDrop(url, i, localFile)) continue;
     // Quiet Tabs (spec §10.1). A missing or blank saved title falls back to
     // the host, never to a label belonging to a different tab.
     const saved = meta[i] ?? { title: '', favicon: null };
@@ -35,6 +38,7 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
       url,
       groupId: groupIds[i] ?? null,
       pinned: !!pinned[i],
+      localFile,
       meta: saved.title ? saved : { ...saved, title: hostTitle(url) },
       originalIndex: i,
     });
@@ -50,6 +54,7 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
     groupIds: survivors.map((s) => s.groupId),
     pinned: survivors.map((s) => s.pinned),
     meta: survivors.map((s) => s.meta),
+    ...(hasLocalFiles ? { localFiles: survivors.map((s) => s.localFile) } : {}),
     activeIndex: next,
   };
 }

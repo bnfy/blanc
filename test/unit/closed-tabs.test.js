@@ -101,6 +101,17 @@ test('buildTabEntry captures identity, slot, and the adoption seed', () => {
   assert.ok(entry.id && entry.id !== buildTabEntry(baseTab(), SNAP, { index: 0 }, 1000).id);
 });
 
+test('recently closed entries retain only a main-process local-file grant', () => {
+  const local = baseTab({ url: 'file:///tmp/opened.html', localFile: true });
+  assert.equal(buildTabEntry(local, SNAP).localFile, true);
+  assert.equal(buildTabEntry(baseTab({ url: local.url }), SNAP).localFile, false);
+  const group = buildGroupEntry({ id: 'g', name: 'Files', index: 0 }, [local], 0);
+  const batch = buildBatchEntry([local], 0);
+  assert.equal(group.tabs[0].localFile, true);
+  assert.equal(batch.tabs[0].localFile, true);
+  assert.equal('localFile' in projectEntries([batch])[0], false);
+});
+
 test('buildGroupEntry is one entry with per-member snapshots and no private members', () => {
   const members = [
     { url: 'https://a.test/', title: 'A', favicon: null, pinned: true, muted: false, private: false, snapshot: SNAP },

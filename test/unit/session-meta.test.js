@@ -76,6 +76,16 @@ test('persistSession writes a meta entry per persisted url, in the same order', 
   assert.equal('meta' in data, false, 'the v0 mirror never carries meta');
 });
 
+test('the local HTML grant survives only in the v2 window, not the rollback mirror', () => {
+  const data = run([
+    tab({ id: 'web', url: 'https://a/' }),
+    tab({ id: 'file', url: 'file:///tmp/opened.html', localFile: true }),
+  ], 'file');
+  assert.deepEqual(data.windows[0].localFiles, [false, true]);
+  assert.equal('localFiles' in data, false);
+  assert.deepEqual(loadWorkspace(data).windows[0].localFiles, [false, true]);
+});
+
 test('the restore copy-back threads meta through the utility-url filter', () => {
   assert.match(mainSource, /meta: cleaned\.meta,/,
     'without this a dropped utility url misaligns every title by one');

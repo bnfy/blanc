@@ -19,9 +19,29 @@ default-protocol-client API doesn't exist.
 only flags an app `web-browser` (what System Settings' picker keys on) when it also
 claims HTML documents. `build.mac.extendInfo` adds `CFBundleDocumentTypes` with
 `public.html` and `public.xhtml`, one UTI per dict, `CFBundleTypeRole: Viewer` — the
-exact shape Brave/Chrome use. Bundling extra UTIs (e.g. Apple's derived
-`com.apple.default-app.web-browser`) into one dict makes LS drop the claim silently.
+shape Brave/Chrome use for browser classification. Each claim also sets
+`LSHandlerRank: Alternate`, the lowest rank that remains eligible for the macOS
+default-browser picker. `None` was tested on a clean registration and excludes the
+app from that picker. Blanc therefore handles the matching macOS `open-file` event,
+but only for an existing regular HTML/XHTML document explicitly handed over by the
+OS. Typed `file:` URLs, argv paths, page-initiated file navigation, popups, arbitrary
+file types, and sync remain rejected. Bundling extra UTIs (e.g.
+Apple's derived `com.apple.default-app.web-browser`) into one dict makes LS drop the
+claim silently.
 Packaged builds only; a dev run must never register the bare Electron binary.
+**Regressed and re-landed (2026-09-18):** the `CFBundleDocumentTypes` claim went
+missing from `package.json` when local HTML viewing was retired while
+`build.protocols` stayed, so shipped builds claimed the schemes but were never
+flagged `web-browser` on a clean registration. Apple later denied Blanc's Web Browser
+Public Key Credential Request, reporting that the app did not specify the HTTP and
+HTTPS schemes and therefore could not be set as the default browser. The public
+bundle did contain those scheme claims; restoring the document metadata addresses
+the missing LaunchServices browser classification, while Apple's next review remains
+the final confirmation. Config alone is no longer the gate:
+`scripts/verify-packaged-browser-role.js` reads the **built**
+`Contents/Info.plist` from the cross-platform `afterPack` hook and fails the mac
+package before signing unless both claims and the Alternate rank survived, and
+`test/unit/browser-role-packaging.test.js` checks the same rules on Linux CI.
 
 **2. Setting = live OS state.** Not persisted in settings.json — LaunchServices owns it.
 Two guarded IPC handlers in `src/main/pages.js` (exposed via `bowserPages` in
@@ -39,6 +59,18 @@ While running: open the URL as a new active tab and focus the window. During col
 Win/Linux basic path: the existing `second-instance` handler also opens any http(s) URLs
 found in `commandLine`, and startup scans `process.argv` the same way. A shared
 `urlsFromArgv(argv)` helper filters strictly for `^https?://`.
+
+**4. Local HTML handoff.** `app.on('open-file')` is also registered before `ready` so
+the document can queue through the same window/readiness lifecycle. The path must be
+absolute, resolve to an existing regular file, and end in one of the declared
+HTML/XHTML extensions. It is canonicalized to a `file:` URL, then `createTab` requires
+an explicit `allowLocalFile` capability and rechecks the URL type. This narrow path is
+why the packaging declaration is truthful without making `file:` generally navigable.
+Duplicate Tab and Recently Closed keep the grant for that in-memory document.
+The device-local session and Named Workspaces store a parallel grant bit; restore
+accepts it only if the same canonical HTML file still exists. A missing file or
+unmarked `file:` URL is dropped, and the rollback mirror and Sync never carry
+the grant.
 
 ## Settings UI
 

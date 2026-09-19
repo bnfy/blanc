@@ -76,6 +76,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     id: nextEntryId(),
     closedAt: now,
     url: tab.url,
+    localFile: tab.localFile === true,
     title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,
     pinned: !!tab.pinned,
@@ -121,6 +122,7 @@ function buildGroupEntry(group, members, now = 0) {
       .filter((m) => !m.private)
       .map((m) => ({
         url: m.url,
+        localFile: m.localFile === true,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         favicon: typeof m.favicon === 'string' ? m.favicon : null,
         pinned: !!m.pinned,
@@ -147,6 +149,7 @@ function buildBatchEntry(members, now = 0) {
       .filter((m) => !m.private)
       .map((m) => ({
         url: m.url,
+        localFile: m.localFile === true,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         favicon: typeof m.favicon === 'string' ? m.favicon : null,
         pinned: !!m.pinned,

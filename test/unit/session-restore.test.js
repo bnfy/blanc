@@ -2,8 +2,42 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const { filterRestoredSession, restoreTargetId } = require('../../src/main/session-restore');
+const { isForbiddenTopLevelUrl } = require('../../src/main/top-level-url-policy');
+const { restorableLocalHtmlUrl } = require('../../src/main/local-html-files');
+const { pathToFileURL } = require('node:url');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 
 const drop = (url) => url.startsWith('blanc://settings');
+
+test('local file grants stay zipped while ungranted and missing files are dropped', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-session-html-'));
+  const file = path.join(dir, 'opened.html');
+  try {
+    fs.writeFileSync(file, '<title>Opened</title>');
+    const url = pathToFileURL(fs.realpathSync(file)).href;
+    const saved = {
+      urls: ['https://a.test/', url, 'file:///tmp/missing.html', url],
+      groupIds: [null, 'g1', 'g2', 'g3'],
+      pinned: [false, true, false, false],
+      localFiles: [false, true, true, false],
+      activeIndex: 1,
+    };
+    const shouldDrop = (value, _index, localFile) => isForbiddenTopLevelUrl(value)
+      && !(localFile && restorableLocalHtmlUrl(value));
+    const result = filterRestoredSession(saved, shouldDrop);
+    assert.deepEqual(result.urls, ['https://a.test/', url]);
+    assert.deepEqual(result.groupIds, [null, 'g1']);
+    assert.deepEqual(result.pinned, [false, true]);
+    assert.deepEqual(result.localFiles, [false, true]);
+    assert.equal(result.activeIndex, 1);
+    assert.deepEqual(filterRestoredSession({ urls: [url] }, shouldDrop).urls, []);
+    assert.deepEqual(filterRestoredSession({ urls: [url], localFiles: [true, false] }, shouldDrop).urls, []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test('keeps zipped alignment when middle entries drop', () => {
   const out = filterRestoredSession({

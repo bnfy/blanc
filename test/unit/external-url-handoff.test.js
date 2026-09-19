@@ -4,6 +4,9 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { EventEmitter } = require('node:events');
 const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const vm = require('node:vm');
 const { createExternalUrlHandoff } = require('../../src/main/external-url-handoff');
 const { externalWindowRuntime } = require('../../src/main/window-activation');
@@ -15,7 +18,7 @@ function harness({ ready = true, chromeReady = true } = {}) {
   const runtimes = [primary, work];
   const state = { ready, quitting: false, hidden: false, focused: primary, current: null };
   const application = Object.assign(new EventEmitter(), { isHidden: () => state.hidden });
-  const created = [], activated = [], revealed = [], rebuilt = [];
+  const created = [], createdOptions = [], activated = [], revealed = [], rebuilt = [];
   const handler = createExternalUrlHandoff({
     application,
     isReady: () => state.ready,
@@ -29,9 +32,10 @@ function harness({ ready = true, chromeReady = true } = {}) {
     },
     isWindowReady: (runtime) => runtime.chromeReady,
     withRuntime(runtime, fn) { state.current = runtime; try { fn(); } finally { state.current = null; } },
-    createTab(url) {
+    createTab(url, options) {
       const entry = { id: created.length + 1, url, profileId: state.current.profileId };
       created.push(entry);
+      createdOptions.push(options);
       return url === 'https://refused.test/' ? null : entry.id;
     },
     activateTab(id) { activated.push(id); },
@@ -41,7 +45,7 @@ function harness({ ready = true, chromeReady = true } = {}) {
     assert.deepEqual(application.eventNames(), []);
     for (const runtime of runtimes) assert.deepEqual(runtime.window?.eventNames() ?? [], []);
   };
-  return { handler, application, primary, work, runtimes, state, created, activated, revealed, rebuilt, noListeners };
+  return { handler, application, primary, work, runtimes, state, created, createdOptions, activated, revealed, rebuilt, noListeners };
 }
 
 for (const event of ['hide', 'minimize']) {
@@ -224,6 +228,24 @@ test('rejected/non-web URLs and quit never activate windows', () => {
   f.handler.flush();
   assert.equal(f.created.length, 1);
   assert.deepEqual(f.revealed, []);
+});
+
+test('explicit macOS HTML documents use the narrow local-file capability', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-local-html-'));
+  const html = path.join(root, 'picked page.html');
+  const text = path.join(root, 'ignored.txt');
+  fs.writeFileSync(html, '<!doctype html><title>Picked</title>');
+  fs.writeFileSync(text, 'not html');
+  try {
+    const f = harness();
+    f.handler.openLocalFiles([text, html, '/tmp/missing.xhtml']);
+    assert.deepEqual(f.created.map((tab) => tab.url), [pathToFileURL(fs.realpathSync(html)).href]);
+    assert.deepEqual(f.createdOptions, [{ allowLocalFile: true }]);
+    assert.deepEqual(f.activated, [1]);
+    assert.deepEqual(f.revealed, [f.primary.window]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('app activate preserves the chosen runtime/profile and flushes its pending work', () => {
