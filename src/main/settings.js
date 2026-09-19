@@ -123,6 +123,12 @@ const DEFAULTS = {
   // pre-existing settings file is first opened; only a truly missing
   // settings file starts at 0.
   onboardingVersion: 0,
+  // Device-local moving-in checklist state. Completion means the migration
+  // action succeeded at least once; it is not cleared if the feature is later
+  // turned off or used again. None of these keys are Profile Synced.
+  migrationChecklistDismissed: false,
+  syncMigrationCompleted: false,
+  tabImportCompleted: false,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -260,6 +266,9 @@ function getSettings() {
   if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
+  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
+    if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
+  }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
@@ -302,6 +311,9 @@ function sanitize(partial) {
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
+  for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
+    if (typeof partial[key] === 'boolean') clean[key] = partial[key];
+  }
   if (typeof partial.homePage === 'string') {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }

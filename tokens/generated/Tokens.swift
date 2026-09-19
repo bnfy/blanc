@@ -88,6 +88,13 @@ public enum BlancTokens {
         case .privateBrowsing: return "#0a0a0a"
         }
     }
+    public static func patronHalo(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "rgba(128, 93, 40, 0.24)"
+        case .dark: return "rgba(212, 173, 102, 0.26)"
+        case .privateBrowsing: return "rgba(212, 173, 102, 0.26)"
+        }
+    }
     public static func selectCaret(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "url(\"select-caret.svg\")"
@@ -95,6 +102,9 @@ public enum BlancTokens {
         case .privateBrowsing: return "url(\"select-caret-dark.svg\")"
         }
     }
+    public static let patronGold = "#d4ad66"
+    public static let patronSurface = "#12100b"
+    public static let patronLabel = "#f7f0e5"
     public static let fontUi = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
     public static let fontMono = "\"JetBrains Mono\", ui-monospace, \"SF Mono\", \"Cascadia Code\", Menlo, Consolas, monospace"
     public static let fontKbd = "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"

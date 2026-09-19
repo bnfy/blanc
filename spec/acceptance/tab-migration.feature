@@ -16,6 +16,7 @@ Feature: Bring Your Tabs
     Given I reviewed selected open-tab candidates from multiple source windows
     When I apply the tab migration
     Then imported tabs appear in source-window and source-tab order
+    And the moving-in checklist records tab migration as complete
     And source pins remain pinned
     And only the first selected imported tab is awake and focused
     And every other imported tab is quiet and viewless

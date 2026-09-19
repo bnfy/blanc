@@ -1,4 +1,3 @@
-/Users/anthonyjloria/.rvm/scripts/rvm:29: operation not permitted: ps
 # Mahjong Burst momentum and hint design QA — 2026-08-31
 
 **Final result:** passed
@@ -1889,5 +1888,133 @@ No actionable P0, P1, or P2 findings remain.
 ## Follow-up polish
 
 No P3 follow-up is required for this change.
+
+final result: passed
+
+---
+
+# Design QA — Start-page migration checklist and Sync setup
+
+**Date:** 2026-09-17
+**Result:** PASS
+
+## References
+
+- Start-page checklist target:
+  `/Users/anthonyjloria/.codex/generated_images/01a0b134-ab46-7351-84d2-ca354c756789/exec-d44f107a-4e8d-4aa7-a56e-c61477f87b37.png`
+- Selected Sync setup direction (Option 2):
+  `/Users/anthonyjloria/.codex/generated_images/01a0b134-ab46-7351-84d2-ca354c756789/exec-d83e29bd-798c-4adb-aa6e-64de8a3f8a3e.png`
+- Earlier Sync setup supplied by the owner:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.18.31 PM.png`
+- Earlier active Sync state supplied by the owner:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-09-17 at 9.29.22 PM.png`
+- Final Billboard implementation capture:
+  `docs/superpowers/specs/assets/start-page-patron-pill-final.jpg`
+- Focused Patron CTA comparison:
+  `docs/superpowers/specs/assets/start-page-patron-source-crop.png` and
+  `docs/superpowers/specs/assets/start-page-patron-final-crop.jpg`
+
+The checklist source is 1586×992 pixels. The live Electron implementation was
+captured at a 1229×768 CSS-pixel app viewport at device scale 1; their aspect
+ratios differ by less than 0.1%, so the full views were compared at their
+native sizes and the CTA regions were cropped separately for readable detail.
+The compared state is Billboard, light appearance, `0/2`, no recent sites.
+
+## Checklist comparison
+
+The implemented checklist matches the chosen visual direction: unboxed corner
+placement, a thin `0/2` progress ring in Inter, Caveat handwriting for
+the heading and task labels, hand-drawn underlines, monochrome circles and
+checks, a slight counter-clockwise heading tilt, and a quiet hide action. The
+local Caveat WOFF2 produces the same
+casual handwritten rhythm as the reference without a network font request.
+The 48 px compact trigger appears below the width/height breakpoint. Ledger,
+Shelf, and Tally use the lower-right slot; Billboard uses the upper-right slot
+so its recent-site row and dismissal controls retain the lower canvas. Its
+compact panel expands downward from that trigger; the other layouts expand
+above the footer.
+
+Each informational layout also replaces the vague “Support Blanc” footer link
+with a compact **Upgrade to Blanc Patron →** pill. The final treatment uses the
+original local gold Sunrise artwork on Patron warm ink, with an ivory label and
+gold arrow. The copy names the product and action directly, retains the
+existing Patron Settings target, and stays hidden for active Patrons. Hover
+keeps the material, border, shadow, dimensions, and brand colors stable,
+brightens the complete capsule uniformly, and advances only the arrow; reduced
+motion removes that movement.
+
+The full-view source and implementation were opened in one comparison input.
+The CTA was also compared in focused crops because the full-view label and
+mark are too small for reliable inspection. Typography uses Inter at an
+appropriate optical weight; the 20px source mark is sharp and uncropped;
+spacing, 36px target height, capsule radius, warm-ink/gold/ivory palette, and
+the complete upgrade copy are visually balanced. No P0, P1, or P2 issue
+remains in the CTA.
+
+Verified in the live dev app and the signed unpacked package in light and dark
+modes. Ledger, Billboard, Shelf, and Tally eligibility plus Mahjong/private
+exclusion are covered by unit and desktop acceptance checks.
+
+## Sync setup comparison
+
+The selected Option 2 composition is implemented as one open canvas rather
+than another bordered card. It preserves the large title and supporting copy,
+then uses three numbered steps connected by a thin rule. Each step has a
+matching monochrome line illustration, a clear task title, and generous
+dividers. Name and passphrase fields span the available content width; the
+passphrase step includes the dedicated on-device trust note. The last step
+keeps the primary action and quiet Back action together.
+
+At 720 px and below, illustrations stack within the content column while the
+number spine remains visible. At normal size the horizontal icon/content
+alignment matches the selected mockup. Light and dark themes retain the same
+hierarchy and contrast. The deep-linked Sync section now keeps the Sync
+sidebar marker selected when the chooser or guide changes height.
+
+## Functional parity
+
+The visual work did not remove or replace the earlier active-state controls.
+The implementation still exposes and wires:
+
+- sync name, last-sync time, tab-sharing status, and a dedicated last-error row;
+- **Sync now**;
+- **Turn off sync**;
+- optional **also delete synced data**, including retry-safe behavior after a
+  failed remote wipe; and
+- **share this device’s open tabs with your other devices**.
+
+The start/join reducer, preflight-before-save boundary, token-based stale-reply
+guard, validation rules, not-found choice, and first-sync-failure behavior are
+unchanged.
+
+## Verification
+
+- Focused Sync UI/model tests: pass.
+- Full unit suite: 1,848/1,848 tests pass.
+- Desktop acceptance: 161/161 scenarios passed before the Billboard geometry
+  addition; its focused 1-scenario, 7-step overlap check also passes. The final
+  Sync routing recheck passes 2/2 focused scenarios.
+- Settings/copy/brand/tokens/adblock/compliance substrate: pass.
+- Site build and SEO verification: pass.
+- Signed unpacked macOS package: payload, compliance, license, fuse, profile,
+  entitlement, and deep code-sign verification pass.
+- Final signed-package visual check: checklist, Sync chooser, correct Sync nav
+  marker, and setup routing pass.
+- `git diff --check`: pass.
+
+## Comparison history
+
+- First pass: the vague text-only “Support Blanc” link had weak affordance.
+  It was replaced by an explicit upgrade pill.
+- Second pass: a flat gold fill felt generic and did not carry Blanc’s brand
+  mark. It was replaced by the original Sunrise artwork on Patron warm ink.
+- Third pass: hover changed the capsule material, then its lift/shadow and
+  border-color changes made the capsule appear to shrink. Hover now preserves
+  the warm-ink surface, ivory label, exact border, geometry, and resting
+  shadow; the complete capsule brightens uniformly while only the arrow moves.
+
+## Follow-up polish
+
+No P3 follow-up is required for this component.
 
 final result: passed

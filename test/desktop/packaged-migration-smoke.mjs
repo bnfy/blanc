@@ -187,6 +187,12 @@ try {
   });
   await app.close();
   app = null;
+  const originalWorkspaceBytes = fs.readFileSync(path.join(userDataDir, 'workspaces.json'));
+  const originalRecoveryCopies = new Map(
+    fs.readdirSync(userDataDir)
+      .filter((name) => name.startsWith('workspaces.json.before-repair-'))
+      .map((name) => [name, fs.readFileSync(path.join(userDataDir, name))]),
+  );
 
   await launch(candidateExecutable);
   // Current Blanc restores inactive tabs as quiet records, so they have no
@@ -217,16 +223,61 @@ try {
   );
   assert.ok(history.entries.some((entry) => entry.title === 'Migration history'));
 
-  const workspaces = JSON.parse(
-    fs.readFileSync(path.join(userDataDir, 'workspaces.json'), 'utf8')
-  );
+  const candidateWorkspaceBytes = fs.readFileSync(path.join(userDataDir, 'workspaces.json'));
+  const workspaces = JSON.parse(candidateWorkspaceBytes.toString('utf8'));
   const migratedWorkspace = workspaces.workspaces.find((entry) => entry.id === workspaceId);
   assert.ok(migratedWorkspace, 'saved Named Workspace should survive the public-to-candidate handoff');
   assert.equal(migratedWorkspace.name, workspaceName);
   assert.deepEqual(migratedWorkspace.urls, sessionUrls);
+  assert.equal(workspaces.version, 2, 'candidate should migrate to the versioned workspace recovery format');
+  const recoveryCopies = fs.readdirSync(userDataDir).filter((name) => name.startsWith('workspaces.json.before-repair-'));
+  for (const [name, bytes] of originalRecoveryCopies) {
+    assert.ok(recoveryCopies.includes(name), 'candidate must retain public-build workspace recovery copies');
+    assert.ok(fs.readFileSync(path.join(userDataDir, name)).equals(bytes), 'candidate must byte-preserve public-build workspace recovery copies');
+  }
+  const newRecoveryCopies = recoveryCopies.filter((name) => !originalRecoveryCopies.has(name));
+  const originalWorkspaceVersion = JSON.parse(originalWorkspaceBytes.toString('utf8')).version;
+  if (newRecoveryCopies.length || originalWorkspaceVersion !== workspaces.version) {
+    assert.ok(
+      newRecoveryCopies.some((name) => fs.readFileSync(path.join(userDataDir, name)).equals(originalWorkspaceBytes)),
+      'candidate repair or migration must preserve the exact public-build workspace file',
+    );
+  }
+  if (process.platform !== 'win32') {
+    for (const name of recoveryCopies) assert.equal(fs.statSync(path.join(userDataDir, name)).mode & 0o777, 0o600);
+  }
+
+  await app.close();
+  app = null;
+  await launch(candidateExecutable);
+  await waitForQuietRestore({ label: 'candidate restart', expectQuiet: false, wakeQuiet: false });
+  let chrome = app.pages().find(isChromePage);
+  const restarted = await chrome.evaluate(() => window.browserAPI.listWorkspaces());
+  assert.equal(restarted.items.find((workspace) => workspace.id === 'migration_workspace')?.active, true, 'the saved binding must survive a packaged restart');
+  await app.close();
+  app = null;
+
+  // A newer-format profile remains byte-preserved through startup, reads,
+  // rejected mutations, and shutdown, even with an old binding in session.json.
+  const futureBytes = Buffer.from(JSON.stringify({ version: 999, workspaces: [{ futureField: 'preserve this exact fixture' }] }, null, 2));
+  fs.writeFileSync(path.join(userDataDir, 'workspaces.json'), futureBytes);
+  await launch(candidateExecutable);
+  await waitForQuietRestore({ label: 'future-format startup', expectQuiet: false, wakeQuiet: false });
+  chrome = app.pages().find(isChromePage);
+  const refused = await chrome.evaluate(async () => ({
+    list: await window.browserAPI.listWorkspaces(),
+    rename: await window.browserAPI.renameWorkspace('migration_workspace', 'Do not rewrite'),
+    remove: await window.browserAPI.removeWorkspace('migration_workspace'),
+  }));
+  assert.equal(refused.list.status, 'future-format');
+  assert.equal(refused.rename.error, 'future-format');
+  assert.equal(refused.remove.error, 'future-format');
+  await app.close();
+  app = null;
+  assert.ok(fs.readFileSync(path.join(userDataDir, 'workspaces.json')).equals(futureBytes));
 
   console.log(
-    `packaged-migration-smoke OK: ${path.basename(path.resolve(stableExecutable, '../../..'))} -> candidate`
+    `packaged-migration-smoke OK: ${path.basename(path.resolve(stableExecutable, '../../..'))} -> candidate; workspace backup, restart binding and future-format refusal verified`
   );
 } finally {
   if (app) await app.close();

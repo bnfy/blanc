@@ -26,9 +26,9 @@ blocker count close at hand, then expands when you need more.
 
 ## Watch Blanc in action
 
-[![Watch Blanc Browser — A little less browser. (v1.15.0)](https://i.ytimg.com/vi/xqUFMUcCjT0/maxresdefault.jpg)](https://www.youtube.com/watch?v=xqUFMUcCjT0)
+[![Watch Blanc Browser — A little less browser. (v1.16.2)](docs/superpowers/plans/assets/island-demo.gif)](docs/superpowers/plans/assets/island-demo.mp4)
 
-[Watch the 42-second v1.15.0 Product Hunt tour on YouTube.](https://www.youtube.com/watch?v=xqUFMUcCjT0)
+[Watch the 22-second v1.16.2 tour.](docs/superpowers/plans/assets/island-demo.mp4)
 
 ## Security and trust
 
@@ -51,20 +51,27 @@ and release integrity as explicit controls:
 - Vulnerabilities can be reported privately under the response targets and
   safe-harbor terms in [SECURITY.md](SECURITY.md).
 
+The current [security assessment](docs/security-assessment.md) documents
+system actors, trust boundaries, external interfaces, likely threats, controls,
+and residual risks. [Project governance](docs/governance.md) names the sole
+maintainer, responsibilities, and sensitive access domains.
+
 Blanc has earned the
-[OpenSSF Best Practices Baseline Level 1](https://www.bestpractices.dev/en/projects/14451/baseline-1)
+[OpenSSF Best Practices Baseline Level 2](https://www.bestpractices.dev/en/projects/14451/baseline-2)
 self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
 The evidence and limits for the current release are recorded in the
-[v1.16.1 release report](docs/release-incidents/2026-09-11-v1.16.1.md).
+[v1.17.2 release report](docs/release-incidents/2026-09-17-v1.17.2.md).
 
-> **Current release:** v1.16.1 fixes startup session recovery and window/profile
-> restoration, uses theme-aware Sunrise onboarding, and retires legacy B app
-> icons while preserving the Mahjong B tiles. It updates to Electron 44.3.0;
-> the separate upstream Chrome Web Store crash remains a known issue. Use the
-> [v1.16.1 tag](https://github.com/bnfy/blanc/tree/v1.16.1) for the exact source
-> snapshot associated with the public binaries.
+> **Current release:** v1.17.2 exits cleanly on Windows and Linux once the last
+> visible window is closed, so a relaunch no longer defers to a stuck
+> background process. It follows v1.17.1, which removed Blanc's own HTTP
+> authentication dialog — sites and proxies that relied on that browser prompt
+> may now fail with a 401 or 407 — and v1.17.0, which preserves live drafts,
+> history, and page state across Named Workspace switches. Use the
+> [v1.17.2 tag](https://github.com/bnfy/blanc/tree/v1.17.2) for the exact
+> source snapshot associated with the public binaries.
 
 ## Source and license
 
@@ -233,7 +240,6 @@ src/main/settings.js     Search engine / adblock / theme / home page settings
 src/main/search-suggestions.js  Bounded default-engine autocomplete providers
 src/main/store.js        Tiny debounced JSON-file persistence used by all of the above
 src/main/context-menu.js Right-click menu for web content
-src/main/auth-dialog.js  HTTP basic/digest auth prompt
 src/main/updater.js      electron-updater wiring
 src/main/preload.js      contextBridge API for the chrome strip + island overlay
 src/main/tab-preload.js  contextBridge API for blanc:// internal pages only

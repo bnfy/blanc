@@ -1,70 +1,74 @@
 # Product Hunt media provenance
 
-These files were produced as launch media for packaged public Blanc v1.15.0.
-Post-freeze product changes now require a replacement release, so the files are
-historical inputs and must not be published until every visible behavior and
-claim is reverified—or the affected media is recaptured—from the final launch
-release.
+Launch Week is paused after public v1.17.0. These v1.16.2 files are historical inputs and must not be published as current launch creative while the pause is in effect.
 
-- `thumbnail-240x240.png` is a 240×240 Lanczos export of the production
-  `site/public/logo.png` mark.
-- `island-resting-1270x760.png` is a September 4 native screenshot of the
-  installed public v1.15.0 app displaying the live `https://blancbrowser.com/`
-  homepage, including the current “A little less browser.” headline.
-- `quick-switcher-1270x760.png` shows the same page behind the real Quick
-  Switcher, with `blancbrowser.com/features` and two public-site history results.
+All current launch media was captured on September 13 from installed packaged public Blanc
+v1.16.2 in the dedicated `Launch demo` profile using public pages only. The
+selected release tag points to
+`0cced924b458496869295c711162c315a4d5da29`.
 
-The September 4 stills replace the Example Domain video-frame exports at the
-owner's request. They were captured in a separate window, with webpage zoom
-increased for legibility, then cropped to the central 836×500 region of the
-1229×768 native capture and scaled with Lanczos to 1270×760. The crop excludes
-the operating-system capture indicator, pointer and lower website demo; no
-product controls, website text or colors were composited or altered. The
-Quick Switcher's dimmed page is the real app scrim. Only public website results
-are visible; no other tabs or remote-device identifiers appear. Page zoom was
-restored after capture. The app mark thumbnail and both gallery stills remained
-unchanged when the launch video was replaced.
+- `thumbnail-240x240.png` is a 240×240 Lanczos export of
+  `site/public/logo.png`; SHA-256
+  `21b075a4b9cc62f160b002d1beda2197c2c63f60003accdf44888c4cd02b3e8e`.
+- `island-resting-1270x760.png` shows public v1.16.2 over the live Blanc
+  homepage and its current “A little less browser.” headline; SHA-256
+  `00ee5eb5a9fe1903eb6a7b760de973631af3a533562886aff58564ad45097b8a`.
+- `quick-switcher-1270x760.png` shows the same public app and homepage behind
+  the real Quick Switcher, with public Blanc-site results only; SHA-256
+  `25508f3fe5ccef634d532fb691038110c5422bc98b146e68fe68373ede1e2eb8`.
 
-Both replacement stills were uploaded to the unpublished Product Hunt draft
-at `https://www.producthunt.com/products/blanc-3?launch=blanc-3` on September 4.
+The v1.16.2 stills were captured at 2× native resolution and Lanczos-scaled to
+1270×760. They contain the real macOS window controls, Blanc Island, and live
+website; no product controls, text, or colors were composited. They exclude
+private data, remote-device identifiers, development indicators, dialogs, and
+the pointer. The owner approved them on September 13. Product Hunt stored the
+homepage still as `83578727-9801-4c56-9b06-9f1e07a68cfa.png` and the Quick
+Switcher still as `895327e8-dc4b-4c24-9c4e-3f65aadabd51.png` in the scheduled
+draft at `https://www.producthunt.com/products/blanc-3?launch=blanc-3`.
 
-The approved launch video is the unlisted 42-second overview at
-`https://www.youtube.com/watch?v=xqUFMUcCjT0`. It was recorded on September 4
-from installed packaged public v1.15.0 in a dedicated capture profile, using
-only the live Blanc site and public GitHub pages. It demonstrates real Quick
-Switcher and slash-command use, tab-group assignment and folding, Glance Make
-main, the real one-request blocker count and site controls, Explore/Build Named
-Workspace switching with `Named Workspaces · Patron` visible, and one legal
-Mahjong match. The final 1920×1200, 30 fps H.264 BT.709 file is exactly 42.000
-seconds and has no audio stream. Anthony approved the revision with 38 px Inter
-secondary labels on September 4.
+The replacement 42-second overview is a local review artifact at
+`output/product-demos/overview-review-v1.16.2/blanc-launch-overview.mp4`. It
+uses only the installed public v1.16.2 app, the live Blanc site, The Verge, and
+the dedicated demo profile. It demonstrates the Billboard start page, a named
+tab group, slash commands, Quick Switcher, the live homepage, and the real
+blocker count and per-site controls. Its seven captions are release-backed by
+the v1.16.2 tag and current public site. The final file is 1920×1200, 30 fps
+H.264 BT.709, exactly 42.000 seconds, with no audio stream; SHA-256
+`9ca7b00220da3916055934db4e398896fa63f6e74992eadc9b98bde02796cb5d`.
+The matching local poster SHA-256 is
+`5c5a8b25e88c7765bc2cbec4d4d14062edff6bd63f00e12de26cd88947d96453`.
+The owner approved the finished overview on September 13. It is fully
+processed and unlisted at `https://www.youtube.com/watch?v=REA1jQN6tY0`;
+YouTube reported `Checks complete. No issues found.` Product Hunt saved that
+full URL, generated video thumbnail
+`465b6a02-93c0-4ecc-a121-ffba8a12a41e.jpeg`, and rendered the YouTube player
+with the exact v1.16.2 title.
 
-YouTube reported no copyright issues and published the replacement as
-unlisted. Product Hunt saved only the video-field change; its draft player
-resolved to `youtube-nocookie.com/embed/xqUFMUcCjT0`, showed the correct title,
-and reported 42 seconds. Anthony authorized the original schedule on September
-4; the September 10 date is superseded. Anthony saved the replacement date on
-September 9, and the live editor reports `Scheduled` for September 17 at
-12:01 a.m. PDT (3:01 a.m. EDT). That schedule remains contingent on the final
-release and fresh 48-hour soak clearing before launch week.
-YouTube requires phone verification before this channel can upload the matching
-custom poster, so no verification or credential flow was attempted. The cleanest homepage-backed
-frame among YouTube's three generated choices was selected instead; the exact
-matching poster is retained in the owner's local review output.
+The current [22-second source demo](../island-demo.mp4) is a 1920×1200,
+30 fps H.264 BT.709 export from the same v1.16.2 capture set with no audio
+stream; SHA-256
+`0391ade1b070370c8676292d934caea2bc8e9150ecc639c85c527e94e9c03205`.
+The 960×600 GIF SHA-256 is
+`6ce898171346c8606347593548917023abbaa408440ed18534686f2bd0d7bc99`.
 
-The existing [22-second source demo](../island-demo.mp4) was captured on
-September 3, 2026 from the installed packaged public v1.15.0 macOS app in an
-isolated local profile with telemetry and search suggestions disabled. It
-remains the repository README demo. The former unlisted YouTube video was not
-deleted. Full provenance and verification are recorded in `../launch-copy.md`
-and `../../2026-08-20-growth-counter-offensive.md`.
+The historical v1.16.0 overview remains unlisted at
+`https://www.youtube.com/watch?v=X5pAN07iuks`, and its privacy-enhanced embed
+remains `youtube-nocookie.com/embed/X5pAN07iuks`. It is a historical input and
+must not be published as the v1.16.2 launch overview. The older v1.15.0 video
+also remains intact.
 
-Before uploading, verify the files rather than trusting filenames:
+The live Product Hunt page reported `Scheduled` for September 17 at 12:01 a.m.
+PDT (3:01 a.m. EDT) after the v1.16.2 media replacement. The final gallery has
+exactly three items in the approved order: the rendered overview, homepage
+still, and Quick Switcher still. PR #323 merged the release-bound changes, the
+replacement freeze anchor is recorded, and the fresh soak cleared on September
+13 at 5:36 p.m. ET. Recheck the live schedule and gallery before launch.
+
+Verify dimensions before upload:
 
 ```bash
 sips -g pixelWidth -g pixelHeight \
   docs/superpowers/plans/assets/product-hunt/*.png
 ```
 
-Expected: the thumbnail is exactly 240×240 and both gallery stills are exactly
-1270×760.
+Expected: thumbnail 240×240; both gallery stills 1270×760.

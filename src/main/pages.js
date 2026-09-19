@@ -161,10 +161,12 @@ function setupPages(hooks = {}) {
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    let file;
     try {
-      const stat = await fs.promises.stat(picked.filePaths[0]);
+      file = await fs.promises.open(picked.filePaths[0], 'r');
+      const stat = await file.stat();
       if (stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const html = await file.readFile('utf8');
       const entries = parseNetscapeBookmarks(html);
       if (!entries.length) return { error: 'empty' };
       const { added, skipped } = bookmarks.importBookmarks(entries);
@@ -172,6 +174,8 @@ function setupPages(hooks = {}) {
       return { added, skipped };
     } catch {
       return { error: 'unreadable' };
+    } finally {
+      if (file) await file.close().catch(() => {});
     }
   });
   handle('pages:bookmarks:browser-sources', ['bookmarks', 'newtab'], () => browserImport.listSources());
@@ -354,7 +358,15 @@ function setupPages(hooks = {}) {
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', 'settings', () => sync.status());
-  handle('pages:settings:sync-enable', 'settings', (payload) => sync.enable(payload ?? {}));
+  handle('pages:settings:sync-enable', 'settings', async (payload) => {
+    const result = await sync.enable(payload ?? {});
+    // Persisted credentials complete the migration task even when the first
+    // pull failed (ok: false). The marker never clears if Sync is later off.
+    if (result?.status?.enabled === true) settings.setSettings({ syncMigrationCompleted: true });
+    return result;
+  });
+  // Join-path probe: outcome-only reply, nothing persisted (see sync.preflight).
+  handle('pages:settings:sync-preflight', 'settings', (payload) => sync.preflight(payload ?? {}));
   handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
   handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => sync.status()));
   // Per-device consent for publishing this device's open tabs (spec §3) —
@@ -387,6 +399,11 @@ function setupPages(hooks = {}) {
     // below: startPageStatus() supplies it, and the same function feeds the
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
+    // Per-tab guard: the shared status never carries profile or privacy.
+    migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
+    // A utility sheet is a separate WebContentsView layered over this tab;
+    // document.hasFocus() in the covered renderer is not a reliable signal.
+    utilitySheetVisible: hooks.startPage?.utilitySheetVisibleFor?.(event.sender) === true,
   }));
   // Billboard asks for another bounded page only when local dismissals consume
   // the initial candidate set. The hidden-hostname list stays in page storage
@@ -445,6 +462,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
+  // Moving-in checklist: open Settings at an allowlisted section (main owns
+  // the allowlist) and persist a one-time dismissal.
+  handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
+  handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
 
   // Standalone games invoke from their exact top-level document. The embedded
   // game has no preload authority; it posts a fixed signal to newtab.js, which

@@ -25,7 +25,7 @@ export const menus = [
         { href: '/features/command-palette', label: 'Command palette', description: 'One shortcut to move through your whole session.' },
         { href: '/features/reopen-closed-tabs', label: 'Reopen Closed Tabs', description: 'Get the tab back, not just its address.' },
         { href: '/features/profiles', label: 'Profiles & Windows', description: 'Separate browsing identities. Keep every window independent.' },
-        { href: '/features/sync', label: 'Sync', description: 'Your open tabs, on your other devices.' },
+        { href: '/features/sync', label: 'Sync', description: 'Your favorites and settings on your other devices, and, if you choose, your open tabs.' },
         { href: '/features/workspaces', label: 'Named Workspaces', description: 'Save a whole window. Return to it by name.' },
       ] },
     ],

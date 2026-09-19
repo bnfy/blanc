@@ -40,6 +40,11 @@ if (window.location.protocol === 'blanc:') {
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        openSettings: (section) => invoke('pages:start:open-settings', section),
+        dismissMigrationChecklist: () => invoke('pages:start:migration-checklist-dismiss'),
+        onUtilitySheetVisibility: (callback) => {
+          ipcRenderer.on('pages:start:utility-sheet-visibility', (_event, visible) => callback(visible === true));
+        },
         defaultBrowser: () => invoke('pages:default-browser:get'),
         setDefaultBrowser: () => invoke('pages:default-browser:set'),
         onboardingSet: (partial) => invoke('pages:start:onboarding-set', partial),
@@ -132,6 +137,7 @@ if (window.location.protocol === 'blanc:') {
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
+        syncPreflight: (payload) => invoke('pages:settings:sync-preflight', payload),
         syncDisable: (opts) => invoke('pages:settings:sync-disable', opts),
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),

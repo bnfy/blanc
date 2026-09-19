@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.16.2",
+      "bom-ref": "application:runtime:blanc@1.18.0",
       "name": "Blanc",
-      "version": "1.16.2",
+      "version": "1.18.0",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -41,6 +41,41 @@
         }
       ],
       "version": "194ddc2d204c13b9"
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:caveat-font",
+      "name": "Caveat Latin webfont",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/caveat-latin.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/caveat-OFL.txt"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/googlefonts/caveat"
+        }
+      ]
     },
     {
       "type": "data",
@@ -1036,14 +1071,14 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.3.0",
+      "bom-ref": "pkg:npm/electron@44.4.2",
       "name": "electron",
-      "version": "44.3.0",
+      "version": "44.4.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4adf4457b17656d61a6160f6a9a0230705202b1c77f5e24e52c509e7eff5d75deca9b55f36abf80db9bf5b5acdeea99848f6be996c11eb2afe6fb31f8238157d"
+          "content": "f3bdadffef0cf13cab89b5a6d9c6294701d8d9a0e5c831ce9fe0879e137d907412b555bca408a322116895803fa90c8376b8b6f17a7c322dc7123e6416f6a30b"
         }
       ],
       "licenses": [
@@ -1053,7 +1088,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.3.0",
+      "purl": "pkg:npm/electron@44.4.2",
       "properties": [
         {
           "name": "blanc:declaration",
@@ -1067,7 +1102,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.3.0.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.4.2.tgz"
         }
       ]
     },
@@ -1704,15 +1739,16 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.16.2",
+      "ref": "application:runtime:blanc@1.18.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
+        "asset:caveat-font",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.3.0"
+        "pkg:npm/electron@44.4.2"
       ]
     },
     {
@@ -1723,6 +1759,10 @@
         "asset:ghostery-resources",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2"
       ]
+    },
+    {
+      "ref": "asset:caveat-font",
+      "dependsOn": []
     },
     {
       "ref": "asset:easylist-data",
@@ -1856,7 +1896,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.3.0",
+      "ref": "pkg:npm/electron@44.4.2",
       "dependsOn": []
     },
     {

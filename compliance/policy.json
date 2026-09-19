@@ -48,6 +48,15 @@
       "homepage": "https://github.com/JetBrains/JetBrainsMono"
     },
     {
+      "id": "caveat-font",
+      "name": "Caveat Latin webfont",
+      "type": "file",
+      "file": "src/renderer/pages/caveat-latin.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/caveat-OFL.txt",
+      "homepage": "https://github.com/googlefonts/caveat"
+    },
+    {
       "id": "easylist-data",
       "name": "EasyList",
       "type": "data",

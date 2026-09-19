@@ -9,6 +9,7 @@
 // scenarios exercise real behaviour rather than a reimplementation.
 
 const settings = require('./settings');
+const sync = require('./sync');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
@@ -56,6 +57,7 @@ function install(refs) {
     // wrapped with it, once, mechanically, at the end of this function.
     bindRoot,
     tabs,
+    liveContents,
     getTabOrder,
     getGroups,
     getActiveTabId,
@@ -106,7 +108,7 @@ function install(refs) {
     normalizeAddressInput,
     probeOnePasswordPackage,
     pasteAndGo,
-    handoffProtocols,
+    classifyExternalNavigation,
     openInternalPage,
     openFindBar,
     getOverlayMode,
@@ -139,6 +141,7 @@ function install(refs) {
     sleepBackgroundTabsNow,
     getPermissionPrompts,
     showFillStatusForTest,
+    onePasswordTargetForTest,
     fillStatusState,
     readFillStatusDom,
     setSleepThresholdOverride,
@@ -406,6 +409,11 @@ function install(refs) {
   }
 
   globalThis.__blanc = {
+    workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
+    workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
+    workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
+    workspacePageScript(id, script) { return tabs.get(id)?.view?.webContents?.executeJavaScript(script); },
+    workspacePageIdentity(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     // ---- state ----
     windowRuntimes() { return windowRuntimeSnapshots(); },
     openNewWindow() { return openNewWindowAction(); },
@@ -684,6 +692,7 @@ function install(refs) {
       settings.setSettings({ onePasswordEnabled: !!enabled, onePasswordAccount: String(account ?? '') });
       return settings.getSettings().onePasswordEnabled;
     },
+    onePasswordTarget() { return onePasswordTargetForTest?.() ?? null; },
     showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
     fillStatusState() { return fillStatusState?.() ?? null; },
     readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },
@@ -726,6 +735,83 @@ function install(refs) {
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
     },
+    readMigrationChecklistDom() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const shell = document.getElementById('migrationChecklistShell');
+        const sync = document.getElementById('migrationSyncTask');
+        const tabs = document.getElementById('migrationTabsTask');
+        const bounds = (element) => {
+          if (!element || getComputedStyle(element).display === 'none') return null;
+          const rect = element.getBoundingClientRect();
+          return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left,
+            width: rect.width, height: rect.height };
+        };
+        return {
+          count: shell ? 1 : 0,
+          visible: !!shell && !shell.hidden && getComputedStyle(shell).display !== 'none',
+          detailsVisible: !!shell && !shell.hidden &&
+            getComputedStyle(document.getElementById('migrationChecklist')).display !== 'none',
+          progress: shell?.querySelector('.js-migration-progress')?.textContent ?? null,
+          title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
+          syncComplete: sync?.classList.contains('is-complete') ?? false,
+          tabsComplete: tabs?.classList.contains('is-complete') ?? false,
+          expanded: shell?.classList.contains('is-expanded') ?? false,
+          focused: document.hasFocus(),
+          layout: document.body.dataset.layout ?? null,
+          shellBounds: bounds(shell),
+          billboardSitesBounds: bounds(document.getElementById('bbFavorites')),
+        };
+      })()`);
+    },
+    clickMigrationChecklist(action) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      const ids = {
+        sync: 'migrationSyncAction',
+        tabs: 'migrationTabsAction',
+        hide: 'migrationChecklistHide',
+        compact: 'migrationChecklistCompact',
+      };
+      const id = ids[action];
+      if (!id) return false;
+      return wc.executeJavaScript(`(() => {
+        const btn = document.getElementById('${id}');
+        if (!btn) return false;
+        btn.click();
+        return true;
+      })()`);
+    },
+    // Test-only reset so acceptance scenarios remain independent in one profile.
+    resetMigrationChecklist() {
+      settings.setSettings({
+        migrationChecklistDismissed: false,
+        syncMigrationCompleted: false,
+        tabImportCompleted: false,
+      });
+      const current = settings.getSettings();
+      return {
+        dismissed: current.migrationChecklistDismissed,
+        syncComplete: current.syncMigrationCompleted,
+        tabsComplete: current.tabImportCompleted,
+      };
+    },
+    setMigrationChecklistProgress(syncComplete, tabsComplete) {
+      settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });
+      return true;
+    },
+    migrationChecklistSettings() {
+      const current = settings.getSettings();
+      return {
+        dismissed: current.migrationChecklistDismissed === true,
+        syncComplete: current.syncMigrationCompleted === true,
+        tabsComplete: current.tabImportCompleted === true,
+      };
+    },
+    syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -1401,8 +1487,9 @@ function install(refs) {
     // ---- address routing / overlay ----
     resolveAddress(input) { return normalizeAddressInput(input); },
     wouldHandOff(url) {
-      try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
+      return classifyExternalNavigation(url).action !== 'none';
     },
+    handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {
@@ -1566,6 +1653,7 @@ function install(refs) {
       return wc.executeJavaScript('document.body.dataset.mode || null');
     },
     utilitySurface() { return getUtilitySheetState(); },
+    closeUtilitySurface() { hideUtilitySheet(); return true; },
     windowContentBounds() { return getWindowContentBounds(); },
     setWindowContentSize(width, height) { setWindowContentSize(width, height); },
     // Fronts + focuses the window and reports whether it is now focused, so
@@ -2207,6 +2295,7 @@ function install(refs) {
 
     // ---- isolation between scenarios ----
     async reset() {
+      refs.workspaceTestAction('reset');
       clearFocusObservation();
       activeTabImportFixtureName = null;
       // Keep the current deletion lifecycle authoritative: it settles native

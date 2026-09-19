@@ -122,6 +122,11 @@ Then('imported tabs appear in source-window and source-tab order', async functio
   this.tabImportAppliedState = state;
 });
 
+Then('the moving-in checklist records tab migration as complete', async function () {
+  const checklist = await this.call('migrationChecklistSettings');
+  assert.equal(checklist.tabsComplete, true);
+});
+
 Then('source pins remain pinned', async function () {
   const state = await this.call('state');
   const imported = importedTabs(state);

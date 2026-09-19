@@ -20,7 +20,7 @@ test('expanded feature guides retain release limitations beside their benefits',
   assert.match(workspaces, /membership lapses, existing workspaces remain openable, switchable, and automatically updated/);
   assert.match(workspaces, /device-local and profile-scoped/);
   assert.match(workspaces, /do not sync across devices/);
-  assert.match(guide('profiles'), /Profile Sync is available only to Personal/);
+  assert.match(guide('profiles'), /Sync is available only to Personal/);
   assert.match(guide('profiles'), /Files you downloaded remain on disk/);
   assert.match(guide('glance'), /never written to session restore or sync/);
   assert.match(guide('glance'), /does not search history, Favorites, remote tabs, or another window/);
@@ -258,9 +258,15 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.ok(match, 'README must declare the current release');
   const version = match[1];
 
-  assert.ok(copy.startsWith('# Blanc launch copy pack — replacement release pending'));
-  assert.ok(copy.includes(`| Current public release | v${version} |`));
-  assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
+  const launchPaused = /Launch Week paused after v1\.17\.0/.test(copy);
+  if (launchPaused) {
+    assert.match(copy, /This pack is \*\*not\s+publishable\*\*/);
+    assert.match(plan, /Launch Week paused \(2026-09-13\)[\s\S]{0,200}v1\.17\.0/);
+  } else {
+    assert.ok(copy.startsWith(`# Blanc launch copy pack — v${version} final-release refresh`));
+    assert.ok(copy.includes(`| Current public release | v${version} |`));
+    assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
+  }
   assert.match(copy, /Blanc is free and open source under the MIT License/);
   assert.doesNotMatch(copy, /not released under an open-source licen[cs]e/i);
   assert.match(copy, /BetaList's current[\s\S]{0,200}all submissions[\s\S]{0,80}paid/i);
@@ -277,13 +283,19 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /1vj0og9[\s\S]{0,500}not a founder launch[\s\S]{0,500}skip r\/browsers/i);
   assert.match(plan, /old `0de37a1` and `c7e9496` anchors are\s+historical and must not be reused/i);
   assert.match(plan, /Post-cutoff audit recorded September 10, 2026[\s\S]{0,250}`233c807cde4e27cb15813b3be146749e6e51725b`[\s\S]{0,500}after the noon product cutoff/i);
+  assert.match(plan, /Historical execution status — September 10, 2026[\s\S]{0,1500}owner explicitly accepted v1\.16\.0 and `233c807` as the late final launch\s+release/i);
+  assert.match(plan, /Owner-approved recovery \(2026-09-13\)[\s\S]{0,180}selected public[\s>]+v1\.16\.2/i);
+  assert.match(copy, /Final release lock — ACCEPTED 2026-09-13:[\s\S]{0,200}v1\.16\.2/);
+  assert.match(copy, /youtube\.com\/watch\?v=REA1jQN6tY0/);
+  assert.match(copy, /2026-09-13T21:36:18Z/);
   assert.match(plan, /screen and system-audio\s+sharing from PR #308[\s\S]{0,300}older screen-sharing PR #302[\s\S]{0,200}outside the launch release/i);
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
   assert.match(plan, /launch-freeze-start[\s\S]{0,500}anchor[\s\S]{0,200}releaseTag[\s\S]{0,100}releaseSha/);
   assert.match(copy, /launch-freeze-start[\s\S]{0,300}dynamic anchor[\s\S]{0,300}no\s+product\/runtime/i);
   assert.match(plan, /Monday, September 14, 2026[\s\S]{0,300}Tuesday, September 15, 2026[\s\S]{0,300}Wednesday, September 16, 2026[\s\S]{0,300}Thursday, September 17, 2026/i);
-  assert.match(plan, /Thursday, September 10 at noon ET[\s\S]{0,600}Friday,\s+September 11 at 3:00 p\.m\. ET/i);
-  assert.match(plan, /owner expects more than one post-v1\.10\.0 release/i);
+  assert.match(plan, /Thursday noon ET cutoff/i);
+  assert.match(plan, /launch release by Friday, September 11 at 3:00 p\.m\. ET/i);
+  assert.match(plan, /For every post-v1\.10\.0 version, follow the complete release operator protocol/i);
   assert.match(plan, /updater handoff starts in the immediately preceding public version/i);
   assert.match(plan, /jump over an intermediate public\s+version, is not that handoff/i);
   assert.match(plan, /final selected launch release starts the\s+only soak that can clear Task 11/i);
@@ -303,11 +315,15 @@ test('official launch artifacts track the release declared by the README', () =>
   const productHuntSchedule = plan.indexOf('Step 3: Schedule the Thursday, September 17 launch');
   assert.ok(productHuntUpload >= 0, 'Product Hunt upload step must exist');
   assert.ok(productHuntSchedule > productHuntUpload, 'Product Hunt media preview must precede scheduling');
-  assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
+  if (!launchPaused) {
+    assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
+  }
   assert.match(plan, /selected launch release's `soakEndsAt`/i);
   assert.match(plan, /Complete and record a fresh ≥48-hour soak before Task 11/i);
-  assert.match(plan, /Finish the release train with the launch release by Friday, September 11 at\s+3:00 p\.m\. ET/i);
-  assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
+  assert.match(plan, /launch release by Friday, September 11 at\s+3:00 p\.m\. ET/i);
+  if (!launchPaused) {
+    assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
+  }
 });
 
 test('platform specs match the shipped first-run telemetry contract', () => {

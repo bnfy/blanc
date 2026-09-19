@@ -70,18 +70,12 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
   assert.doesNotMatch(renderer, /openFile|selectFolder|suggestFolders|Save to Favorites/);
 });
 
-test('every start-page layout promotes the same local Bring Your Tabs flow', () => {
+test('the shared start-page checklist promotes the local Bring Your Tabs flow', () => {
   const html = read('src/renderer/pages/newtab.html');
   const css = read('src/renderer/pages/pages.css');
-  const entryPoints = [...html.matchAll(
-    /class="tab-import-promo [^"]+" href="blanc:\/\/tab-import\/"/g,
-  )];
-
-  assert.equal(entryPoints.length, 4, 'ledger, billboard, shelf, and tally each need one CTA');
-  assert.equal((html.match(/Move open tabs from another browser and organize them here\./g) ?? []).length, 4);
-  assert.equal((html.match(/class="tab-import-promo-arrow" src="import-chevron-right\.svg"/g) ?? []).length, 4);
-  assert.doesNotMatch(html, /tab-import-promo-kicker|tab-import-promo-action|new in blanc/);
-  assert.match(css, /:root\[data-theme="private"\] \.tab-import-promo \{ display: none; \}/,
+  assert.equal((html.match(/href="blanc:\/\/tab-import\/"/g) ?? []).length, 1);
+  assert.match(html, /id="migrationTabsAction" class="migration-task" href="blanc:\/\/tab-import\/"/);
+  assert.match(css, /:root\[data-theme="private"\] \.migration-checklist-shell/,
     'private start tabs must not advertise a regular-profile migration action');
 });
 
@@ -105,7 +99,7 @@ test('/bring-tabs is catalogued and dispatches through the privileged page allow
   )?.[0];
   assert.ok(handler, 'tabs:open-page handler not found');
   assert.match(handler, /'tab-import'/);
-  assert.match(handler, /openInternalPage\(`blanc:\/\/\$\{name\}\/\$\{fragment\}`\)/);
+  assert.match(handler, /openInternalPage\(`blanc:\/\/\$\{name\}\/`\)/);
 });
 
 test('onboarding import step exposes the open-tab handoff on both paths', () => {

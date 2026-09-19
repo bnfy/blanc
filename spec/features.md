@@ -125,12 +125,17 @@ toolbar (Bowser Design System "Island Chrome").
 - **OS hand-off** (`handOffToOs`) is checked *before* normalization for bare
   `mailto:` / `tel:` / `facetime:` / `sms:` URIs and page-initiated navigations to
   them — handed to the OS instead of treated as a query (D4).
+- Desktop also hands reviewed app schemes and standard Microsoft/Google native
+  OAuth callback schemes to their installed applications after explicit
+  confirmation. Unknown schemes never reach the OS. A captured callback remains
+  valid if its OAuth popup closes while the native confirmation is open (D4).
 - The heuristic's known edge-case misclassifications (e.g. dotted query strings)
   are an **accepted limitation**, identical on every platform — do not "fix" one
   platform's parser to be smarter than the others.
-- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest`
-  searches via the configured engine; typing `mailto:a@b.com` hands off to the OS
-  mail handler.
+- **Acceptance:** Typing `example.com` navigates; typing `how tall is everest` or
+  `site:example.com` searches via the configured engine; typing `mailto:a@b.com`
+  hands off to the OS mail handler; a reviewed desktop app callback requires
+  confirmation.
 
 ## F6 — Command palette & Quick Switcher
 
@@ -281,6 +286,9 @@ From the desktop `DEFAULTS`:
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
+| `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
+| `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
+| `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
@@ -304,11 +312,11 @@ From the desktop `DEFAULTS`:
 ## F16 — Internal `blanc://` pages
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
-  **history**, **downloads**, **settings**, **shortcuts**, **error**, **auth**.
+  **history**, **downloads**, **settings**, **shortcuts**, **error**.
 - **Presentation split:** the five *utility* pages (favorites, history, downloads,
   settings, shortcuts) present as a **transient chrome surface** — on desktop a
-  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content
-  (`auth` is a dialog). Outbound activations (a history entry, a favorite) open
+  sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
+  Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed.
 - The newtab ledger: date line, "Where to?", favorites, tab groups ("pick up where
@@ -368,12 +376,13 @@ From the desktop `DEFAULTS`:
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
 
-## F20 — Basic-auth dialog
+## F20 — HTTP authentication policy
 
-- HTTP basic-auth challenges present a modal prompt (`bowserAuth` bridge on
-  desktop; native equivalent on mobile) with the same fields/behaviour.
-- **Acceptance:** Navigating to a basic-auth-protected URL raises the credential
-  prompt; correct credentials proceed, cancel aborts the navigation.
+- HTTP basic/digest challenges never present a separate Blanc credential
+  prompt. Website sign-in forms remain the website's own UI.
+- **Acceptance:** Navigating to a basic-auth-protected URL does not raise a
+  Blanc prompt; the authentication challenge is cancelled and the protected
+  navigation fails. Subresource and proxy challenges are cancelled silently.
 
 ## F21 — Telemetry (bounded usage measurement)
 
@@ -767,6 +776,14 @@ From the desktop `DEFAULTS`:
   switcher remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — with no
   placeholder copy on the three newer layouts.
+- After first run, Personal non-private start pages show one corner
+  moving-in checklist on ledger, billboard, shelf, and tally. It stays
+  lower-right on ledger, shelf, and tally, and moves upper-right on Billboard
+  to preserve the recent-site row and its dismissal actions. It tracks the
+  device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
+  permanently, and retires after a brief 2/2 confirmation. Mahjong omits it.
+  Tight windows collapse it to a progress-ring trigger so primary content and
+  the footer stay reachable.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
@@ -892,7 +909,9 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   participates in v1.
 - Apply creates tabs/groups transactionally in preview order and never writes
   Favorites. Imported tabs are quiet and viewless; only the first selected tab
-  wakes. A Named Workspace remains a separate optional Patron gesture.
+  wakes. Only after that successful apply does Blanc mark the device-local
+  moving-in checklist task complete. A Named Workspace remains a separate
+  optional Patron gesture.
 - **Acceptance:**
   [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
   covers explicit session reads, quit safety, duplicate/order/group fidelity,

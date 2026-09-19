@@ -30,6 +30,13 @@ const lastCompletedAtByProfile = new Map();
 
 /** @type {(() => void) | null} notify the chrome UI that something changed */
 let onChanged = null;
+let downloadRequesterAllowed = () => true;
+
+// Main owns page/runtime liveness. Check new requests before Chromium can
+// show a save dialog; already accepted downloads keep their normal lifecycle.
+function setDownloadRequesterCheck(check) {
+  downloadRequesterAllowed = typeof check === 'function' ? check : () => true;
+}
 
 const THROTTLE_MS = 250;
 let lastBroadcast = 0;
@@ -52,7 +59,11 @@ function setupDownloads(
 ) {
   onChanged = notifyChanged;
 
-  session.on('will-download', (_event, item) => withLocalProfile(profileId, () => {
+  session.on('will-download', (_event, item, requestingWebContents) => withLocalProfile(profileId, () => {
+    if (!downloadRequesterAllowed(requestingWebContents)) {
+      _event.preventDefault();
+      return;
+    }
     if (deletedProfileIds.has(profileId)) {
       item.cancel();
       return;
@@ -195,6 +206,7 @@ function downloadsActivity() {
 }
 
 module.exports = {
+  setDownloadRequesterCheck,
   setupDownloads,
   listDownloads,
   activeCount,

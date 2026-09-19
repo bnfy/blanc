@@ -1,4 +1,53 @@
-# Blanc follower-growth operating plan — September 2, 2026
+> **September 13 owner direction — engagement only:** The owner rejected the generated imagery/video and asked to focus on engaging with other posts and replies for now. Pause all original-content production and publishing cadence, creative approval reminders, creator-invitation work and profile changes. Preserve rejected files as history; do not revise or resubmit them without a new request. Routine relevant text replies/comments as Blanc are authorized. Prioritize inbound, read full threads, skip duplicates and weak opportunities, and verify each posted result. Keep the existing 9 a.m./1 p.m./5 p.m. Eastern schedule and 5 p.m. audience tracking. Targets remain aspirations; no daily growth guarantee. During this mode, day one requires a fresh baseline plus a verified authorized reply, rather than an approved creative batch. Creator pitches and sensitive responses still require separate authorization. This direction supersedes production and approval-queue instructions below.
+
+# Blanc organic growth operating plan
+
+**Current authority: owner-approved September 12, 2026 implementation.** This section supersedes older cadence, audience, creator volume and launch-calendar instructions below. Preserve historical measurements as historical. Machine-readable state and the single ordered queue: [growth-program.json](growth-program.json). First finished approval batch: [review](organic-design-week-1-2026-09-12/review.md).
+
+## Target and clock
+
+Aim for +10 net daily on X, Threads, Instagram, Facebook and TikTok, plus +10 external Substack subscribers. By day 30, each channel must independently gain +70 over the preceding seven days. No portfolio offset and no guaranteed daily outcome. Day one starts only with a fresh observed baseline and an approved executable publication; record it once in growth-program.json, never backdate or restart to hide misses. First seven days establish engagement; final seven days target +50% meaningful interactions with no decline in rate on comparable formats. A zero baseline uses absolute counts.
+
+Organic first, no new paid spend. Audience: design-minded desktop users, designers, makers and knowledge workers. Owner contributes 30 minutes daily: ten supplying opinions/recordings, ten in conversations, ten reviewing. Codex handles production, evidence and reporting during scheduled work.
+
+## Native weekly cadence
+
+| Channel | Output |
+| --- | --- |
+| X | 5 posts: 2 demonstrations, 2 design opinions, 1 question |
+| Threads | 7 originals, including follow-ups |
+| Instagram | 3 Reels, 1 carousel, Stories on 4 days |
+| TikTok | 4 videos |
+| Facebook | 3 original Reels, 1 discussion |
+| Substack | 1 useful article, 5 Notes |
+
+Use four source pieces a week across One browsing frustration, One design decision and You asked. Adapt hooks, captions and editing for each destination. Never invent an audience question or founder anecdote. If no real question is available, publish an explicitly labelled question to seed participation. While launch-bound footage is gated, substitute useful general browsing advice and editorial design discussion; record substitutions instead of claiming to meet the demonstration quota.
+
+## Daily execution
+
+At 9 a.m. review inbound and the first incomplete queue item; prepare no more than five useful contributions across the entire portfolio. At 1 p.m. continue production, creator qualification and any due 24-hour reviews. At 5 p.m. record one comparable audience snapshot, review due seven-day outcomes and set the next concrete action. These are scheduled checks, not continuous coverage. Monday and Thursday prepare finished approval batches; maintain one current batch rather than spinning up campaigns while approval is pending.
+
+Qualify ten creators/writers weekly and prepare five personalized unpaid trial or design-conversation invitations. Verify recent relevant work and visible audience interaction; do not fill the quota with weak fits. Existing invitations must be checked before a follow-up is proposed. Aim for one completed collaboration a week from week three; another person's acceptance is never counted as guaranteed. Do not offer compensation, gifted benefits, exclusivity or repost rights without separate approval.
+
+Days 1–3: baseline, recent-content audit, profile conversion proposals, finished batch, creator invitations and verified monitoring. Days 4–14: publish approved cadence and compare problem-first versus design-first hooks. Days 15–30: approximately two-thirds demonstrated winners and one-third exploration. On day 30 report each channel against +70, engagement quality and the next experiment, then pause the growth heartbeat unless the owner has extended the program.
+
+## Measurement and decisions
+
+Use the existing daily-scorecard-YYYY-MM-DD.md and .json pattern. Record actual observation time, native URL, audience unit, cache delay and availability. Missing values are null/unavailable, not zero. Net growth uses comparable approximately 24-hour observations; record the actual duration, with a default comparison tolerance of 30 minutes. A seven-day net total requires comparable endpoint observations seven days apart. Separate paid/blended attribution from organic audience changes.
+
+Track non-follower reach, profile visits, attributed follows, substantive audience comments, shares/reposts, saves and article replies. Exclude Blanc's own replies from meaningful audience interactions. Do not silently switch between reach and impressions as the denominator. Likes are secondary. Site visits and download clicks remain separate; aggregate installer requests are not attributed people.
+
+Review each publication after 24 hours and seven days. Three consecutive comparable measured misses trigger one focused adjustment. Missing days neither count as misses nor establish consecutive calendar-day misses. Low reach: hook/topic/distribution. Reach without profile visits: connect to the account's promise. Visits without follows: bio/pin/series promise. Follows without engagement: audience fit. Evaluate adjustments over seven days before stacking changes.
+
+## Approval, identity and release rules
+
+Preparation is authorized. Show finished graphic/video, exact caption, alt text and placements before upload, scheduling or publication; wait for explicit final-content approval. Creator invitations require explicit sending approval. Keep proposed replies in the review queue unless an applicable explicit reply authorization covers the actual action. Verify account identity and submitted result; uncertain submissions must be re-read before retrying. No paid changes.
+
+Follow docs/marketing-claims.md and docs/brand-usage.md. Current inspected public baseline is v1.16.2. The official launch is stopped pending owner rescheduling and final-baseline acceptance; no countdowns or new launch-bound footage. Do not disclose numerical usage claims. Historical campaigns below are not permission to reuse assets or execute stale launch dates.
+
+---
+
+# Historical September 2 operating plan
 
 Operational reconciliation, September 4: the owner's implemented
 [reply monitoring and growth plan](reply-monitoring-growth-plan-2026-09-04.md)

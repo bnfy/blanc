@@ -128,15 +128,10 @@ test('apply consequence copy pluralizes its exact tab and group counts', () => {
   );
 });
 
-test('post-import workspace handoff reuses the existing Patron and save-as surfaces', () => {
-  const row = overlaySource.match(
-    /function renderPostImportWorkspaceRow\(\) \{[\s\S]*?\n  \}/,
-  )?.[0];
-  assert.ok(row, 'post-import workspace row is no longer liftable from overlay.js');
-  assert.match(row, /Save this setup as a workspace…/);
-  assert.match(row, /Named Workspaces can save this whole setup for later/);
-  assert.match(row, /beginSaveWorkspace\(\)/, 'Patrons must enter the established save-as editor');
-  assert.match(row, /openPage\('settings', 'patron'\)/, 'non-Patrons use the existing learn-more surface');
-  assert.doesNotMatch(row, /buy\.polar|checkout/i, 'the post-import handoff never opens checkout');
-  assert.match(overlaySource, /purpose\.postImportWorkspace === true/);
+test('post-import workspace handoff enters the shared, Patron-gated workspace UI', () => {
+  assert.match(overlaySource, /purpose\.postImportWorkspace/);
+  assert.match(overlaySource, /workspaceUI\.begin\('save'\)/);
+  const uiSource = fs.readFileSync(path.join(__dirname, '../../src/renderer/workspace-ui.js'), 'utf8');
+  assert.match(uiSource, /data\.patronActive/);
+  assert.doesNotMatch(uiSource, /buy\.polar|checkout/i);
 });

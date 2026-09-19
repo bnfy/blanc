@@ -100,6 +100,17 @@
         "test/unit/public-truth.test.js"
       ],
       "qualification": "Public desktop v1.15.0 only. No AI or automatic semantic organization. Plus makes a regular ungrouped tab. Four app icons are macOS/free. Quiet eligible tabs release renderer memory and reload; this is not a CPU/battery/perfect-state promise. Sync is opt-in, Personal-only and remote tabs are read-only."
+    },
+    "sync": {
+      "evidence": [
+        "src/main/sync.js",
+        "src/main/sync-crypto.js",
+        "src/main/tabsync.js",
+        "src/renderer/pages/settings.html",
+        "test/unit/sync-coalescing.test.js",
+        "test/unit/sync-tab-state-ready.test.js"
+      ],
+      "qualification": "Sync is opt-in per device with a sync name and passphrase; the key is derived on the device and the server stores only ciphertext (confidentiality, not durability or tamper-evidence). It carries Favorites and eligible settings (search engine, blocking state and exceptions, home page, theme, start-page layout). Publishing this device's open tabs is a separate per-device opt-in producing a bounded read-only snapshot. History, downloads, permissions, cookies, site data, private tabs, Patron/supporter status, app icon, search-suggestion and usage-ping choices are never synced. Personal is the only sync identity."
     }
   },
   "claims": [
@@ -389,7 +400,7 @@
     {
       "id": "website-115-029",
       "source": "site/src/pages/features.astro",
-      "exactWording": "on your other devices",
+      "exactWording": "across your devices",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
@@ -399,20 +410,22 @@
     {
       "id": "website-115-030",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Find a tab you left on another machine.",
+      "exactWording": "Pick up on your other devices.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "foundations"
+        "foundations",
+        "sync"
       ],
       "verdict": "qualified"
     },
     {
       "id": "website-115-031",
       "source": "site/src/pages/features.astro",
-      "exactWording": "From Personal, opt-in sync shows what each device has open. The list is end-to-end encrypted and read-only; opening a remote tab creates a local tab.",
+      "exactWording": "From Personal, opt-in sync carries your favorites and settings, and, if you choose, shows what each device has open. End-to-end encrypted; opening a remote tab creates a local tab.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "profiles"
+        "profiles",
+        "sync"
       ],
       "verdict": "qualified"
     },
@@ -653,7 +666,7 @@
     {
       "id": "website-115-055",
       "source": "site/src/pages/faq.astro",
-      "exactWording": "Mahjong’s eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. The start-page layout preference itself can sync through Personal’s optional Profile Sync.",
+      "exactWording": "Mahjong’s eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. The start-page layout preference itself can sync through Personal’s optional Sync.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage",
@@ -696,7 +709,7 @@
     {
       "id": "website-115-059",
       "source": "site/src/pages/faq.astro",
-      "exactWording": "Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Profile Sync.",
+      "exactWording": "Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Sync.",
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles",
@@ -1080,7 +1093,7 @@
     {
       "id": "website-115-097",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. The layout preference itself can sync through Personal’s optional Profile Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
+      "exactWording": "Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. The layout preference itself can sync through Personal’s optional Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage",
@@ -1762,7 +1775,7 @@
     {
       "id": "website-115-164",
       "source": "site/src/pages/features/profiles.astro",
-      "exactWording": "Profile Sync is available only to Personal. Creating a named profile does not create another synced identity.",
+      "exactWording": "Sync is available only to Personal. Creating a named profile does not create another synced identity.",
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles"
@@ -2377,7 +2390,7 @@
     {
       "id": "website-115-225",
       "source": "site/src/pages/features/sync.astro",
-      "exactWording": "Profile Sync is available only to Personal. Named local profiles and independent windows let you separate browsing identities on this device.",
+      "exactWording": "Sync is available only to Personal. Named local profiles and independent windows let you separate browsing identities on this device.",
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles"
@@ -2508,7 +2521,7 @@
     {
       "id": "website-115-238",
       "source": "site/src/pages/press.astro",
-      "exactWording": "Local browsing identities with independent windows; Profile Sync is Personal-only",
+      "exactWording": "Local browsing identities with independent windows; Sync is Personal-only",
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles"
@@ -2532,6 +2545,127 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-241",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Pick up on your other devices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-242",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Sync your favorites and settings across your devices, and, if you choose, open tabs. End-to-end encrypted before anything leaves your machine.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-243",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Your favorites and settings on your other devices, and, if you choose, your open tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-244",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-245",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Favorites and settings. Open tabs if you choose.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-246",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Favorites and settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-247",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Your favorites, search engine, blocking state and exceptions, home page, and theme, encrypted on your device before upload.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-248",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Open tabs, per device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-249",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-250",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "History, downloads, permissions, cookies, site data, and private tabs stay on the device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-251",
+      "source": "site/src/data/navigation.mjs",
+      "exactWording": "Your favorites and settings on your other devices, and, if you choose, your open tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
       ],
       "verdict": "qualified"
     }

@@ -69,6 +69,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
 | F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
 | F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
+| F5-7 | Reviewed desktop app callback requires confirmation | D4 | ✅ | ➖ | ➖ |
+| F5-8 | Colon-prefixed search operator remains a search | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
@@ -114,6 +116,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F27-1 | Sharing open tabs off by default | — | ✅ | ⬜ | ⬜ |
 | F27-2 | Remote tab opens locally as new ungrouped tab | — | ✅ | ⬜ | ⬜ |
 | F27-3 | Sharing-off retracts this device | — | ✅ | ⬜ | ⬜ |
+| F27-4 | Moving-in checklist can be hidden permanently | — | ✅ | ⬜ | ⬜ |
+| F27-5 | Moving-in checklist opens Sync and tracks progress | — | ✅ | ⬜ | ⬜ |
+| F27-6 | /sync opens Settings at the Sync section | — | ✅ | ⬜ | ⬜ |
+| F27-7 | Two completed migration tasks confirm and retire the checklist | — | ✅ | ⬜ | ⬜ |
 | F28-1 | Layout default, persistence, and no-sync rule | D19 | ✅ | ➖ | ➖ |
 | F28-2 | Layout switching preserves live guest content | D19 | ✅ | ➖ | ➖ |
 | F28-3 | Full-height rail and safe-area page-pane geometry | D19 | ✅ | ➖ | ➖ |
@@ -156,6 +162,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F35-4 | Hidden embedded Mahjong timer stays paused | — | ✅ | ⬜ | ⬜ |
 | F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
 | F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
+| F35-7 | Moving-in checklist appears on informational layouts, not Mahjong | — | ✅ | ➖ | ➖ |
+| F35-8 | Billboard keeps the moving-in checklist clear of recent sites | — | ✅ | ➖ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |

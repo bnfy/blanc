@@ -1,0 +1,92 @@
+{
+  "date": "2026-09-15",
+  "timezone": "America/New_York",
+  "programDay": 3,
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "scheduledMorningRun": "2026-09-15T09:00:00-04:00",
+  "morningRunCompletedAt": "2026-09-15T10:23:42-04:00",
+  "morningRunStatus": "completed_two_verified_replies",
+  "middayRun": {
+    "scheduledFor": "2026-09-15T13:00:00-04:00",
+    "attemptedAt": "2026-09-15T13:01:40-04:00",
+    "completedAt": "2026-09-15T13:02:12-04:00",
+    "status": "unavailable_mac_locked_brave_not_exposed",
+    "accountChecksCompleted": 0,
+    "publicActions": 0,
+    "nextAction": "Retry logged-in Brave after the Mac unlocks. Take the 17:00 audience snapshot if access returns."
+  },
+  "publicInboundChecks": {
+    "x": "No fresh unanswered public mention or question visible in notifications.",
+    "threads": "A recent reaction to an existing Blanc tab discussion was an acknowledgment; no question to answer.",
+    "instagram": "Recent likes on an older Blanc comment; no fresh unanswered public question.",
+    "facebook": "unavailable_personal_profile_login_rejected_by_auto_review",
+    "tiktok": "A like on Blanc's September 14 answer and applause on older media; no substantive unanswered question.",
+    "substack": "Newest public activity was five days old; no fresh unanswered question."
+  },
+  "publishedContributions": [
+    {
+      "platform": "threads",
+      "parentUrl": "https://www.threads.com/@pfeytser/post/DdR3_pkj6pZ",
+      "liveUrl": "https://www.threads.com/@blancbrowser/post/DdT6RqekVAj",
+      "text": "Those “million little ones” are the real browser UX. If tabs, shortcuts and DevTools keep breaking expectations, each surprise compounds over a workday. Which shortcut or tab behavior was the final straw?",
+      "status": "published_verified"
+    },
+    {
+      "platform": "x",
+      "parentUrl": "https://x.com/eLzcpd5tGm3oEC9/status/2099183925935411300",
+      "liveUrl": "https://x.com/blancbrowser/status/2099866638568817037",
+      "text": "Useful if it distinguishes background from idle. A render, upload or call can keep working after you switch windows. Would you exempt active media/capture or let people mark an app as never throttled? That’s the boundary I’d want to test.",
+      "status": "published_verified"
+    }
+  ],
+  "unsentDrafts": [
+    {
+      "platform": "threads",
+      "parentUrl": "https://www.threads.com/@siennathesane/post/DdT0tZZiJrI",
+      "status": "rejected_by_auto_review_no_publication",
+      "reason": "The first draft's Vivaldi backup and restart guidance had not been verified against the cited first-party source at action time. The official Help pages were subsequently read; no further submission occurred."
+    }
+  ],
+  "checkpoint17Eastern": {
+    "scheduledFor": "2026-09-15T17:00:00-04:00",
+    "observedDuring": "Approximately 17:01–17:03 EDT",
+    "completedAt": "2026-09-15T17:02:49-04:00",
+    "status": "completed_all_six_channels_second_measured_miss",
+    "comparisonFrom": "2026-09-14T17:04:09-04:00",
+    "comparisonDuration": "approximately 23 hours 59 minutes",
+    "audience": {
+      "x": {"current": 15, "delta": 0, "dailyStatus": "missed", "consecutiveMeasuredMisses": 2, "unit": "followers", "source": "https://x.com/blancbrowser"},
+      "threads": {"current": 24, "delta": 0, "dailyStatus": "missed", "consecutiveMeasuredMisses": 2, "unit": "followers", "source": "https://www.threads.com/@blancbrowser"},
+      "instagram": {"current": 102, "delta": 0, "dailyStatus": "missed", "consecutiveMeasuredMisses": 2, "unit": "followers", "source": "https://www.instagram.com/blancbrowser/"},
+      "facebook": {"current": 22, "delta": 0, "dailyStatus": "missed", "consecutiveMeasuredMisses": 2, "unit": "followers", "source": "https://www.facebook.com/blancbrowser", "sourceAccess": "public_logged_out_page"},
+      "tiktok": {"current": 25, "delta": 0, "dailyStatus": "missed", "consecutiveMeasuredMisses": 2, "unit": "followers", "source": "https://www.tiktok.com/@blancbrowser"},
+      "substackExternalSubscribers": {"current": 2, "delta": 0, "dailyStatus": "missed", "consecutiveMeasuredMisses": 2, "unit": "external_subscribers", "source": "https://blancbrowser.substack.com/publish/subscribers", "displayTotal": 3, "authorExcluded": true, "cacheDelayMinutes": 22}
+    },
+    "trailingSevenDayNet": "unavailable_insufficient_comparable_endpoint_span",
+    "trailingSevenDayCoverageDays": 2,
+    "adjustmentTrigger": "not_due_until_three_consecutive_measured_misses"
+  },
+  "replyReview24h": {
+    "september14BatchDueAfter": "2026-09-15T12:52:00-04:00",
+    "observedAt": "2026-09-15T17:04:49-04:00",
+    "status": "completed_delayed_after_mac_lock",
+    "timingNote": "The review was about four hours later than the first 24-hour due time. Felix's substantive response appeared about 26 hours after Blanc's original reply; it is included as an observed later outcome, not mislabeled as within the first 24 hours.",
+    "contributions": [
+      {"platform": "threads", "url": "https://www.threads.com/@blancbrowser/post/DdRmppZkUih", "views": 12, "likes": 1, "audienceReplies": 0, "meaningfulInteractions": 0},
+      {"platform": "threads", "url": "https://www.threads.com/@blancbrowser/post/DdRmsDIEQDd", "views": 6, "likes": 0, "audienceReplies": 0, "meaningfulInteractions": 0},
+      {"platform": "x", "url": "https://x.com/blancbrowser/status/2099541328237412574", "views": 17, "likes": 0, "replies": 0, "reposts": 0, "bookmarks": 0, "meaningfulInteractions": 0},
+      {"platform": "tiktok", "url": "https://www.tiktok.com/@drgfrance/video/7683232618233613590", "commentViews": "unavailable", "commentLikes": 1, "audienceRepliesToBlanc": 0, "meaningfulInteractions": 0},
+      {"platform": "substack", "url": "https://substack.com/profile/542769413-blanc-browser/note/c-337013669", "commentViews": "unavailable", "likes": 1, "audienceReplies": 1, "meaningfulInteractions": 1, "audienceReplyUrl": "https://substack.com/profile/528232363-felix/note/c-337915104"}
+    ],
+    "totals": {"visibleReplyViews": 35, "secondaryLikes": 3, "meaningfulAudienceInteractions": 1},
+    "interpretation": "The Substack design conversation produced one substantive response. Other observed interactions were likes, with no additional audience replies on Threads, X or TikTok."
+  },
+  "eveningFollowUp": {
+    "platform": "substack",
+    "parentUrl": "https://substack.com/profile/528232363-felix/note/c-337915104",
+    "liveUrl": "https://substack.com/profile/542769413-blanc-browser/note/c-337992572",
+    "text": "Agreed. Motion helps when it explains a change or draws attention to the next action. When every section animates, finding that action gets harder. What do you keep animated in your own minimal layouts?",
+    "status": "published_verified",
+    "verifiedAt": "2026-09-15T17:04:00-04:00"
+  }
+}
