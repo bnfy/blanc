@@ -239,7 +239,7 @@ const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { isSupportedLocalHtmlUrl } = require('./local-html-files');
+const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
@@ -3779,6 +3779,9 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     groupIds: entries.map((item) => item.groupId),
     pinned: entries.map((item) => item.pinned),
     meta: entries.map((item) => sessionTabMeta(tabs.get(item.id))),
+    ...(entries.some((item) => tabs.get(item.id)?.localFile === true) ? {
+      localFiles: entries.map((item) => tabs.get(item.id)?.localFile === true),
+    } : {}),
     groups: runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id)),
     activeIndex: previousActiveIndex,
   };
@@ -4449,6 +4452,7 @@ function closedMemberRecord(id) {
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    localFile: tab.localFile === true,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
     // Batch entries (Close Other Tabs) span groups; each member re-resolves
     // this against the surviving groups at restore time. Group entries carry
@@ -4797,8 +4801,10 @@ function applyWorkspaceToWindow(runtime, workspace) {
       groupIds: workspace.groupIds,
       pinned: workspace.pinned,
       meta: workspace.meta,
+      localFiles: workspace.localFiles,
       activeIndex: workspace.activeIndex,
-    }, (url) => isUtilityUrl(url) || isForbiddenTopLevelUrl(url));
+    }, (url, _index, localFile) => isUtilityUrl(url)
+      || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url))));
 
     // 7. Tabs are born quiet; only the selected one wakes (setActiveTab's
     // synchronous wakeTab prefix), so a switch is cheap regardless of how
@@ -4809,6 +4815,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       asleep: true,
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
+      allowLocalFile: cleaned.localFiles?.[index] === true,
     }));
     pruneEmptyGroups();
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
@@ -4874,6 +4881,7 @@ function duplicateTab(id) {
   const entries = snapshot ? snapshot.entries : (history?.getAllEntries() ?? []);
   const activeIndex = snapshot ? snapshot.index : (history?.getActiveIndex() ?? 0);
   const newId = createTab(source.url, {
+    allowLocalFile: source.localFile === true,
     private: source.private,
     groupId: source.groupId,
     pinned: source.pinned,
@@ -4893,6 +4901,7 @@ function duplicateTab(id) {
  * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
+  if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
   tab.usedMedia = false;
@@ -5037,6 +5046,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     view: bornQuiet ? null : view,
     title: typeof title === 'string' && title ? title : 'New Tab',
     url,
+    // Main-process grant, never copied from an IPC option. Cleared when the
+    // document leaves this local file; only an OS handoff can originate it.
+    localFile: admittedLocalFile,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
@@ -5472,6 +5484,7 @@ function reopenGroupEntry(entry) {
     const id = createTab(member.url, {
       groupId: group.id, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon,
+      allowLocalFile: member.localFile === true,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -5501,6 +5514,7 @@ function reopenBatchEntry(entry) {
     const id = createTab(member.url, {
       groupId, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon,
+      allowLocalFile: member.localFile === true,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -5732,6 +5746,7 @@ function reopenEntry(entry) {
     removeHeldFirewall(entry, entry.view.webContents);
     const id = createTab(entry.url, {
       ...common, adoptView: entry.view, title: entry.title, favicon: entry.favicon,
+      allowLocalFile: entry.localFile === true,
     });
     if (id) {
       heldWebContents.delete(wcId);
@@ -5744,6 +5759,7 @@ function reopenEntry(entry) {
   downgradeHeldEntry(entry);
   const id = createTab(entry.url, {
     ...common,
+    allowLocalFile: entry.localFile === true,
     restoreHistory: entry.snapshot
       ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
       : null,
@@ -9057,7 +9073,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     .map((saved) => {
     const cleaned = filterRestoredSession(
       saved,
-      (url) => isUtilityUrl(url) || isForbiddenTopLevelUrl(url)
+      (url, _index, localFile) => isUtilityUrl(url)
+        || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url)))
     );
     return {
       ...saved,
@@ -9066,6 +9083,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       groupIds: cleaned.groupIds,
       pinned: cleaned.pinned,
       meta: cleaned.meta,
+      localFiles: cleaned.localFiles,
       activeIndex: cleaned.activeIndex,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
         .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
@@ -9298,6 +9316,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           asleep: true,
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
+          allowLocalFile: saved.localFiles?.[index] === true,
         }));
         pruneEmptyGroups();
         // This window's tabs now exist, so it's safe to check whether the

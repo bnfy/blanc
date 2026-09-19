@@ -35,6 +35,18 @@ function localHtmlUrlsFromPaths(paths) {
   return paths.map((filePath) => localHtmlUrlFromPath(filePath)).filter(Boolean);
 }
 
+/** A saved grant is usable only for the same canonical, still-existing file.
+ * An unmarked or noncanonical file URL cannot become a restored tab. */
+function restorableLocalHtmlUrl(value) {
+  if (!isSupportedLocalHtmlUrl(value)) return null;
+  try {
+    const parsed = new URL(value);
+    return localHtmlUrlFromPath(fileURLToPath(parsed)) === parsed.href ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Defense in depth at createTab(): the caller must also opt into local-file
  * loading, and even then only one of the declared HTML document types passes. */
 function isSupportedLocalHtmlUrl(value) {
@@ -54,4 +66,5 @@ module.exports = {
   isSupportedLocalHtmlUrl,
   localHtmlUrlFromPath,
   localHtmlUrlsFromPaths,
+  restorableLocalHtmlUrl,
 };

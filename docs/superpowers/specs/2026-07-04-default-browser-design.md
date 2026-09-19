@@ -66,6 +66,11 @@ absolute, resolve to an existing regular file, and end in one of the declared
 HTML/XHTML extensions. It is canonicalized to a `file:` URL, then `createTab` requires
 an explicit `allowLocalFile` capability and rechecks the URL type. This narrow path is
 why the packaging declaration is truthful without making `file:` generally navigable.
+Duplicate Tab and Recently Closed keep the grant for that in-memory document.
+The device-local session and Named Workspaces store a parallel grant bit; restore
+accepts it only if the same canonical HTML file still exists. A missing file or
+unmarked `file:` URL is dropped, and the rollback mirror and Sync never carry
+the grant.
 
 ## Settings UI
 

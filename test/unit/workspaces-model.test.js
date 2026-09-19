@@ -95,6 +95,16 @@ test('normalizeWorkspace coerces parallel columns and drops mismatched meta', ()
   assert.equal(normalizeWorkspace({ ...VALID(), activeIndex: 'x' }).activeIndex, 0);
 });
 
+test('local HTML grants remain aligned through workspace capture and reload', () => {
+  const capture = { ...CAPTURE(), localFiles: [true] };
+  const created = createWorkspace(EMPTY_FILE(), {
+    name: 'Files', profileId: 'default', capture, now: 1, id: 'files',
+  });
+  assert.deepEqual(created.workspace.localFiles, [true]);
+  assert.deepEqual(normalizeWorkspace(created.workspace).localFiles, [true]);
+  assert.equal('localFiles' in normalizeWorkspace({ ...created.workspace, localFiles: [true, false] }), false);
+});
+
 test('normalizeWorkspace does not mutate its input', () => {
   const raw = { ...VALID(), name: '  Work  ' };
   const snapshot = JSON.parse(JSON.stringify(raw));
