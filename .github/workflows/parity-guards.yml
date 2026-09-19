@@ -40,6 +40,8 @@ jobs:
         run: npm run compliance:check
       - name: Dependency advisories satisfy the security policy
         run: npm run security:dependencies
+      - name: JavaScript correctness checks
+        run: npm run lint
       - name: Unit regression tests
         run: npm run test:unit
 
