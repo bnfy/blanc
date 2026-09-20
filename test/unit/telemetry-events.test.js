@@ -21,7 +21,7 @@ function senderHarness({ packaged = true } = {}) {
     arch: 'arm64',
     getSystemVersion: () => '26.4.1',
     makeSessionId: () => 0x3fffffff,
-    newtabLayouts: ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'],
+    newtabLayouts: ['ledger', 'billboard', 'shelf', 'tally'],
     warn: () => {},
   });
   return { sender, calls };
@@ -72,7 +72,7 @@ test('development builds and unknown layout values send nothing', () => {
   assert.equal(dev.calls.length, 0);
 
   const packaged = senderHarness();
-  for (const value of ['', 'unknown', '../../history', null, 1]) {
+  for (const value of ['', 'unknown', 'mahjong', '../../history', null, 1]) {
     assert.equal(packaged.sender.sendNewtabLayoutUsed(value), false);
   }
   assert.equal(packaged.calls.length, 0);

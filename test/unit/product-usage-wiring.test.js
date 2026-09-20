@@ -17,11 +17,11 @@ const onboarding = source('src/renderer/pages/onboarding.js');
 
 test('the internal-page bridge exposes only the two bounded usage events', () => {
   assert.match(preload, /layoutUsed: \(name\) => invoke\('pages:start:layout-used', name\)/);
-  assert.match(preload, /mahjongPlayed: \(\) => invoke\('pages:mahjong:played'\)/);
+  assert.doesNotMatch(preload, /mahjongPlayed: \(\) => invoke\('pages:mahjong:played'\)/);
   assert.match(preload, /mahjong: \{ played: \(\) => invoke\('pages:mahjong:played'\) \}/);
   assert.match(pages, /handleEvent\('pages:start:layout-used', 'newtab'/);
   assert.match(pages, /settings\.NEWTAB_LAYOUTS\.includes\(name\)/);
-  assert.match(pages, /handleEvent\('pages:mahjong:played', \['mahjong', 'newtab'\]/);
+  assert.match(pages, /handleEvent\('pages:mahjong:played', \['mahjong'\]/);
 });
 
 test('main applies saved consent and private-tab policy at the trusted boundary', () => {
@@ -36,11 +36,9 @@ test('main applies saved consent and private-tab policy at the trusted boundary'
 test('a rendered layout is reported, including the first post-consent render', () => {
   assert.match(
     newtab,
-    /function applyLayout\(name\) \{\s*state\.layout = name;\s*document\.body\.dataset\.layout = name;\s*presentPendingMigrationChecklistCompletion\(\);\s*window\.bowserPages\?\.start\?\.layoutUsed\?\.\(name\)/,
+    /function applyLayout\(name\) \{\s*if \(!\['ledger', 'billboard', 'shelf', 'tally'\]\.includes\(name\)\) name = 'billboard';\s*state\.layout = name;\s*document\.body\.dataset\.layout = name;\s*presentPendingMigrationChecklistCompletion\(\);\s*window\.bowserPages\?\.start\?\.layoutUsed\?\.\(name\)/,
   );
-  assert.match(newtab, /event\.origin !== 'blanc:\/\/mahjong'/);
-  assert.match(newtab, /event\.source !== mahjongFrame\.contentWindow/);
-  assert.match(newtab, /event\.data !== 'blanc:mahjong-played'/);
+  assert.doesNotMatch(newtab, /mahjongFrame|blanc:mahjong-played/);
   const privacySaved = onboarding.indexOf('if (!(await persistPrivacy()))');
   const layoutUsed = onboarding.indexOf('window.bowserPages.start.layoutUsed(document.body.dataset.layout)');
   assert.ok(privacySaved !== -1 && layoutUsed > privacySaved);

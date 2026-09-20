@@ -23,7 +23,7 @@ const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
-const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'];
+const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
@@ -238,6 +238,17 @@ function ensureStore() {
           data._syncMeta.newtabLayout,
           resetAt,
         );
+        data._syncTieBreakers ??= {};
+        data._syncTieBreakers.newtabLayout = crypto.randomUUID();
+      });
+    }
+    // Mahjong is now a standalone game. Persist Billboard with a fresh Sync
+    // clock so an old client cannot restore the retired layout on the next pull.
+    if (store.data.newtabLayout === 'mahjong') {
+      store.updateAndFlush((data) => {
+        data.newtabLayout = DEFAULTS.newtabLayout;
+        data._syncMeta ??= {};
+        data._syncMeta.newtabLayout = nextSyncWriteTimestamp(data._syncMeta.newtabLayout);
         data._syncTieBreakers ??= {};
         data._syncTieBreakers.newtabLayout = crypto.randomUUID();
       });

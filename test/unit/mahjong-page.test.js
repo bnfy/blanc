@@ -324,7 +324,7 @@ test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances
     assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
   }
   assert.match(controller, /E\.advanceComboClock\(game, delta\)/);
-  assert.match(controller, /game\?\.mode === 'tray'[\s\S]*!document\.hidden[\s\S]*embedActive[\s\S]*!tileAnimationBusy[\s\S]*comboAnimationPauseCount === 0[\s\S]*!activeModal\(\)/);
+  assert.match(controller, /game\?\.mode === 'tray'[\s\S]*!document\.hidden[\s\S]*!tileAnimationBusy[\s\S]*comboAnimationPauseCount === 0[\s\S]*!activeModal\(\)/);
   assert.match(controller, /document\.getElementById\('mjHint'\)\.addEventListener[\s\S]*game\.assists\.hint \+= 1[\s\S]*saveAfterMutation\(\)/);
   assert.doesNotMatch(controller, /getElementById\('mjHint'\)[\s\S]{0,600}resetCombo/);
   assert.match(controller, /freeHighlight\.checked = enabled;\s*freeHighlight\.defaultChecked = enabled;/);
@@ -412,19 +412,19 @@ test('hints pulse a complete pair and include a parked Burst tile', () => {
   assert.match(styles, /--mj-hint:\s*#8db7c2/);
 });
 
-test('mahjong owns a local Sunrise-at-dusk presentation with motion and no remote data path', () => {
+test('mahjong restores its local lacquer palette and board backdrop without a remote data path', () => {
   assert.match(html, /<link rel="stylesheet" href="mahjong\.css"/);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /<script src="mahjong-state\.js"><\/script>/);
-  assert.match(styles, /url\("mahjong-dusk\.webp"\)/);
-  const backdrop = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-dusk.webp'));
+  assert.match(styles, /url\("mahjong-lacquer\.webp"\)/);
+  const backdrop = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-lacquer.webp'));
   assert.equal(backdrop.subarray(0, 4).toString(), 'RIFF');
   assert.equal(backdrop.subarray(8, 12).toString(), 'WEBP');
-  assert.ok(backdrop.length < 200_000, 'the bundled backdrop should stay lightweight');
-  for (const token of ['#1b1713', '#29221b', '#332a21', '#f7f0e5', '#b7a999', '#d4ad66']) {
-    assert.ok(styles.includes(token), `missing game-local dusk token ${token}`);
+  assert.ok(backdrop.length < 400_000, 'the bundled backdrop should stay bounded');
+  for (const token of ['#0b3d31', '#04251f', '#0a392f', '#f8f1dc', '#d8b969', '#292239']) {
+    assert.ok(styles.includes(token), `missing game-local lacquer token ${token}`);
   }
-  assert.doesNotMatch(styles, /#292239|#c4a5d6|hue-rotate\(67deg\)/);
+  assert.doesNotMatch(styles, /mahjong-dusk\.webp/);
   assert.doesNotMatch(styles, /\.mj-brand-mark\s*\{[^}]*filter:/);
   for (const hook of ['mj-pair-remove', 'mj-tray-travel', 'mj-score-pulse', 'mj-shuffle-cascade']) {
     assert.match(styles, new RegExp(`@keyframes ${hook}`));
@@ -437,38 +437,18 @@ test('mahjong owns a local Sunrise-at-dusk presentation with motion and no remot
   assert.match(styles, /@keyframes mj-auto-clear/);
 });
 
-test('layout-card hover and focus preserve readable dusk text colors', () => {
+test('layout-card hover and focus preserve readable lacquer text colors', () => {
   assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\)/);
   assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\) small\s*\{[^}]*color:\s*var\(--mj-muted\)/);
 });
 
-test('embedded Mahjong shares its opaque game id with the persisted parent URL', () => {
-  assert.match(newtab, /function mahjongGameId\(\)/);
-  assert.match(newtab, /history\.replaceState\(history\.state, '', url\)/);
-  assert.match(newtab, /url\.searchParams\.set\('game', mahjongGameId\(\)\)/);
-  assert.match(newtab, /event\.origin !== 'blanc:\/\/mahjong'/);
-  assert.match(newtab, /event\.source !== mahjongFrame\.contentWindow/);
-  assert.match(newtab, /event\.data\?\.type === 'blanc:mahjong-game-id'/);
-  assert.match(newtab, /type:\s*'blanc:mahjong-active'/);
-  assert.match(controller, /event\.data\?\.type !== 'blanc:mahjong-active'/);
-  assert.match(controller, /if \(!embedActive\) \{[\s\S]*pauseTimer\(\);[\s\S]*saveAfterMutation\(\);/);
-  assert.doesNotMatch(newtab, /searchParams\.set\('(seed|layout|mode|score)'/);
-});
-
-test('Mahjong footer can collapse, expand the game, and persist locally', () => {
-  assert.match(newtabHtml, /id="mahjongFooterToggle"[^>]*aria-controls="layoutFooter"[^>]*aria-expanded="true"/);
-  assert.match(newtab, /const MAHJONG_FOOTER_KEY = 'mahjongFooterHidden'/);
-  assert.match(newtab, /localStorage\.getItem\(MAHJONG_FOOTER_KEY\) === '1'/);
-  assert.match(newtab, /mahjongFooterHidden = !mahjongFooterHidden[\s\S]*localStorage\.setItem\(MAHJONG_FOOTER_KEY, mahjongFooterHidden \? '1' : '0'\)[\s\S]*syncMahjongFooter\(\{ animate: true \}\)/);
-  assert.match(newtab, /mahjongFooterToggle\.hidden = state\.layout !== 'mahjong'/);
-  assert.match(newtab, /document\.startViewTransition\(paintMahjongFooter\)/);
-  assert.match(newtab, /mahjongFooterTransition\?\.skipTransition\(\)/);
-  assert.match(styles, /body\[data-layout="mahjong"\]\[data-mahjong-footer="hidden"\] \.mahjong-embed\s*\{[^}]*bottom:\s*0/);
-  assert.match(styles, /body\[data-layout="mahjong"\]\[data-mahjong-footer="hidden"\] \.ledger-footer\s*\{[^}]*visibility:\s*hidden[^}]*pointer-events:\s*none/);
-  assert.match(styles, /body\[data-layout="mahjong"\]\[data-mahjong-footer="hidden"\] \.mahjong-footer-toggle\s*\{[^}]*bottom:\s*12px/);
-  assert.match(styles, /\.mahjong-footer-toggle:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*#fff6dc/);
-  assert.match(styles, /::view-transition-group\(mahjong-game\)[\s\S]*animation-duration:\s*260ms/);
-  assert.doesNotMatch(styles, /\.mahjong-embed\s*\{[^}]*transition:\s*bottom/);
+test('Mahjong launches from a separate footer link and owns its game URL', () => {
+  assert.match(newtabHtml, /id="mahjongLink" href="blanc:\/\/mahjong\/" target="_blank"/);
+  assert.match(newtab, /'blanc:\/\/mahjong\/\?private=1'/);
+  assert.match(controller, /S\.forkGameId\(\{ href: location\.href, history/);
+  assert.doesNotMatch(newtabHtml, /mahjongFrame|mahjongFooterToggle|<iframe/);
+  assert.doesNotMatch(controller, /postMessage|embedActive/);
+  assert.doesNotMatch(styles, /\.mahjong-embed|\.mahjong-footer-toggle/);
 });
 
 test('compact and zoomed layouts retain status with a scroll recovery path', () => {
@@ -566,10 +546,7 @@ test('mahjong reports play only after a real free-tile move', () => {
     controller,
     /function reportPlayOnce\(\) \{[\s\S]*if \(playReported\) return;[\s\S]*mahjong\?\.played\?\.\(\)/,
   );
-  assert.match(
-    controller,
-    /window\.parent\.postMessage\('blanc:mahjong-played', 'blanc:\/\/newtab'\)/,
-  );
+  assert.doesNotMatch(controller, /window\.parent\.postMessage/);
   assert.match(
     controller,
     /if \(!E\.isFree\(game, i\)\) \{[\s\S]*return;[\s\S]*reportPlayOnce\(\);\s*startTimer\(\);/,
@@ -615,8 +592,8 @@ test('a fresh tab offers to continue the most recent unfinished board without au
   }
   assert.match(controller, /S\.resumeCandidate\(gameStore\.summaries\(\), \{ excludeGameId: gameId \}\)/);
   assert.match(controller, /function adoptGame\(targetId\)/);
-  // adopting re-points this tab's id, tells the embedding start page, and re-arms the duplicate guard
-  assert.match(controller, /function adoptGame[\s\S]*?S\.forkGameId\(\{ href: location\.href, history, uuid: \(\) => targetId \}\)[\s\S]*?notifyParentGameId\(\);[\s\S]*?disposeDuplicateGuard\(\);[\s\S]*?installDuplicateGuard\(\);/);
+  // adopting re-points this standalone tab's id and re-arms the duplicate guard
+  assert.match(controller, /function adoptGame[\s\S]*?S\.forkGameId\(\{ href: location\.href, history, uuid: \(\) => targetId \}\)[\s\S]*?disposeDuplicateGuard\(\);[\s\S]*?installDuplicateGuard\(\);/);
   // the untouched fresh deal this tab just made is discarded rather than orphaned
   assert.match(controller, /function adoptGame[\s\S]*?gameStore\.discard\(previousId\)/);
 });

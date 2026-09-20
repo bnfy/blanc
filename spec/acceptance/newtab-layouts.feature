@@ -1,7 +1,7 @@
 @newtab-layouts @F35
 Feature: Start page layouts
-  The start page offers five layouts: four arrangements of its usual material
-  and a local mahjong solitaire game. The choice is the person's, persists
+  The start page offers four layouts and a separate Mahjong footer launch.
+  The layout choice is the person's, persists
   across restarts, and travels with their profile like the theme does.
 
   @F35-1 @all
@@ -18,24 +18,28 @@ Feature: Start page layouts
     And the start page renders the "tally" layout
 
   @F35-3 @all
-  Scenario: Mahjong layout embeds a playable deal
-    Given a profile whose start page layout is "mahjong"
+  Scenario: Mahjong opens as a playable managed tab
+    Given a profile whose start page layout is "billboard"
     When I open a new tab
-    Then the start page renders the "mahjong" layout
-    And the embedded mahjong game is ready
+    And I launch Mahjong from the start-page footer
+    Then the original start page remains on "billboard" in a separate tab
+    And the standalone mahjong game is ready
     And rapid Undo cancels pending Mahjong feedback
     And the Mahjong completion dialog remains usable at the minimum desktop size
     And the six-control Mahjong rail fits its table at every desktop breakpoint
     And the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes
 
   @F35-4 @desktop
-  Scenario: An embedded Mahjong timer pauses when another start layout is shown
-    Given a profile whose start page layout is "mahjong"
+  Scenario: Every footer launches Mahjong without changing its layout
+    Given a profile whose start page layout is "billboard"
     When I open a new tab
-    Then the embedded mahjong game is ready
-    When I make a move in embedded Mahjong
-    And I choose the "ledger" start page layout from its footer
-    Then the hidden embedded Mahjong timer stays paused
+    Then each of the four layout footers launches Mahjong in a new tab
+
+  @F35-9 @desktop
+  Scenario: A private footer launches a private standalone game
+    Given a private start page is open
+    When I launch Mahjong from the start-page footer
+    Then Mahjong is a private managed tab
 
   @F35-5 @desktop
   Scenario: Billboard ranks local top sites and remembers a hidden site locally
@@ -59,7 +63,7 @@ Feature: Start page layouts
   @F35-6 @desktop
   Scenario: Every start-page layout replaces mono UI text with Inter
     Given local history contains repeated visits for the Billboard
-    And a profile whose start page layout is "mahjong"
+    And a profile whose start page layout is "billboard"
     When I open a new tab
     Then all start-page templates use Inter instead of JetBrains Mono
     And Inter start-page typography fits at desktop size boundaries
@@ -69,7 +73,7 @@ Feature: Start page layouts
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
-    Then the moving-in checklist appears in every informational layout and not Mahjong
+    Then the moving-in checklist appears in all four start-page layouts
 
   @F35-8 @desktop
   Scenario: Billboard keeps the moving-in checklist clear of recent sites

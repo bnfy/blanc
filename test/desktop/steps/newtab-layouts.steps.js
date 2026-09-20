@@ -125,15 +125,11 @@ Then('the Billboard backfills with {string}', async function (key) {
 Then('all start-page templates use Inter instead of JetBrains Mono', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
-    (value) => value?.page?.samples?.length === 13 && value?.mahjong?.samples?.length === 4,
-    'the new-tab and embedded Mahjong documents to expose their computed fonts',
+    (value) => value?.page?.samples?.length === 13,
+    'the new-tab document to expose its computed fonts',
   );
   assert.deepEqual(usage.page.jetbrains, []);
-  assert.deepEqual(usage.mahjong.jetbrains, [], 'Mahjong UI text outside the tile faces must be Inter');
-  // Tile faces are the one deliberate exception: numerals and wind badges are
-  // game artwork set in JetBrains Mono (owner decision, PR #274).
-  assert.ok(usage.mahjong.tileFaceMono > 0, 'Mahjong tile faces keep JetBrains Mono');
-  for (const sample of [...usage.page.samples, ...usage.mahjong.samples]) {
+  for (const sample of usage.page.samples) {
     assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
   }
 });
@@ -141,7 +137,7 @@ Then('all start-page templates use Inter instead of JetBrains Mono', async funct
 Then('Inter start-page typography fits at desktop size boundaries', async function () {
   const originalBounds = await this.call('windowContentBounds');
   const originalLayout = await this.call('newtabLayout');
-  const layouts = ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'];
+  const layouts = ['ledger', 'billboard', 'shelf', 'tally'];
   const sizes = [
     { width: 1280, height: 800, label: 'default' },
     { width: 961, height: 700, label: 'above the stacked-layout breakpoint' },
@@ -167,14 +163,10 @@ Then('Inter start-page typography fits at desktop size boundaries', async functi
         const fit = await waitForValue(
           () => this.call('readStartPageLayoutFit'),
           (value) => value?.page?.layout === layout &&
-            value.page.viewportWidth === size.width &&
-            (layout !== 'mahjong' || value.mahjong?.viewportWidth === size.width),
+            value.page.viewportWidth === size.width,
           `${layout} layout at the ${size.label} desktop size`,
         );
-        for (const [surface, audit] of [
-          ['new-tab', fit.page],
-          ...(layout === 'mahjong' ? [['Mahjong', fit.mahjong]] : []),
-        ]) {
+        for (const [surface, audit] of [['new-tab', fit.page]]) {
           const context = `${surface} ${layout} at ${size.width}x${size.height}`;
           assert.ok(
             audit.scrollWidth <= audit.clientWidth + 1,
@@ -198,18 +190,18 @@ Then('Inter start-page typography fits at desktop size boundaries', async functi
   }
 });
 
-Then('the embedded mahjong game is ready', async function () {
+Then('the standalone mahjong game is ready', async function () {
   await waitForValue(
-    () => this.call('readMahjongEmbedDom'),
+    () => this.call('readMahjongDom'),
     (dom) =>
       dom?.url?.startsWith('blanc://mahjong/') &&
       dom.tileCount === MAHJONG_TILE_COUNTS[dom.layout] &&
       dom.freeTileCount >= 2 &&
       dom.tileHeight >= 46 &&
       dom.boardFrameHeight >= 400,
-    'the embedded mahjong frame to render its active Daily layout at playable size'
+    'the standalone Mahjong tab to render its active Daily layout at playable size'
   );
-  const game = await this.call('readMahjongEmbedDom');
+  const game = await this.call('readMahjongDom');
   assert.ok(game.boardCenterDeltaX <= 1, `board x center drifted ${game.boardCenterDeltaX}px`);
   assert.ok(game.dockLeft >= game.boardFrameLeft - 1, 'control rail should begin inside the board frame');
   assert.ok(game.dockRight <= game.boardFrameRight + 1, 'control rail should end inside the board frame');
@@ -219,8 +211,6 @@ Then('the embedded mahjong game is ready', async function () {
     Math.abs(game.dockButtonWidth - game.dockButtonHeight) <= 0.5,
     `dock control must be circular (${game.dockButtonWidth}px × ${game.dockButtonHeight}px)`
   );
-  // At the 1280x800 default the embedded frame is ~668px tall (the start
-  // page's footer sits outside it), which is the 56px/14px rail tier.
   assert.ok(game.dockButtonWidth >= 55.5, `dock control is too small (${game.dockButtonWidth}px)`);
   assert.equal(game.dockButtonCount, 6, 'the dock exposes boards, records, undo, hint, shuffle, and sound');
   assert.ok(game.dockButtonGap >= 13.5, `dock controls are too close (${game.dockButtonGap}px)`);
@@ -244,9 +234,7 @@ Then('the embedded mahjong game is ready', async function () {
   );
 });
 
-// The rail's media queries measure the embedded Mahjong frame, which is the
-// window minus the start page's footer (~132px). Expected tier is derived from
-// the frame height the app reports, so the step never hard-codes that offset.
+// The rail's media queries measure the standalone game's viewport.
 function expectedRailTier(frameHeight) {
   if (frameHeight >= 721) return { button: 64, gap: 16, label: 'full 64/16' };
   if (frameHeight >= 660) return { button: 56, gap: 14, label: '56/14' };
@@ -257,10 +245,8 @@ function expectedRailTier(frameHeight) {
 Then('the six-control Mahjong rail fits its table at every desktop breakpoint', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');
-  // Window heights chosen to land the embedded frame on every tier edge:
-  // 743→611 (lowest rail), 791→659, 792→660, 800→668 (the real default),
-  // 852→720, 853→721 (full-size rail), plus 742→610 (bar, not rail).
-  const sizes = [742, 743, 791, 792, 800, 852, 853].map((height) => ({ width: 1280, height }));
+  // Blanc's 68px Island strip leaves the game viewport at window height - 68.
+  const sizes = [678, 679, 727, 728, 788, 789, 800].map((height) => ({ width: 1280, height }));
   const seenTiers = new Set();
   try {
     for (const size of sizes) {
@@ -271,12 +257,12 @@ Then('the six-control Mahjong rail fits its table at every desktop breakpoint', 
         `${size.width}x${size.height} desktop content bounds`
       );
       const game = await waitForValue(
-        () => this.call('readMahjongEmbedDom'),
+        () => this.call('readMahjongDom'),
         (value) => value?.viewportWidth === size.width && value.dockButtonCount === 6,
         `six-control Mahjong dock at ${size.width}x${size.height}`
       );
       const tier = expectedRailTier(game.viewportHeight);
-      const context = `dock at ${size.width}x${size.height} (frame ${game.viewportHeight}px, ${tier ? tier.label : 'bar'})`;
+      const context = `dock at ${size.width}x${size.height} (viewport ${game.viewportHeight}px, ${tier ? tier.label : 'bar'})`;
       assert.equal(game.dockButtonCount, 6, `${context} must expose six controls`);
       if (!tier) {
         assert.ok(game.dockTop >= game.boardFrameBottom - 1, `${context} should sit below the table as a bar`);
@@ -304,7 +290,7 @@ Then('the six-control Mahjong rail fits its table at every desktop breakpoint', 
 Then('the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');
-  const originalZoom = await this.call('newtabZoomFactor');
+  const originalZoom = await this.call('activeTabZoomFactor');
   assert.ok(originalZoom, 'zoom factor should be readable');
   const cases = [
     { width: 1280, height: 800, zoom: 1 },
@@ -320,7 +306,7 @@ Then('the Mahjong records sheet stays contained at the default, minimum, and zoo
         (bounds) => bounds?.width === size.width && bounds?.height === size.height,
         `${size.width}x${size.height} desktop content bounds`
       );
-      assert.equal(await this.call('setNewtabZoomFactor', size.zoom), size.zoom);
+      assert.equal(await this.call('setActiveTabZoomFactor', size.zoom), size.zoom);
       const expectedViewport = Math.round(size.width / size.zoom);
       const records = await waitForValue(
         () => this.call('readMahjongRecordsGeometry'),
@@ -338,7 +324,7 @@ Then('the Mahjong records sheet stays contained at the default, minimum, and zoo
       assert.equal(records.focusReturned, true, `${context} must return focus to the records control`);
     }
   } finally {
-    await this.call('setNewtabZoomFactor', originalZoom);
+    await this.call('setActiveTabZoomFactor', originalZoom);
     await this.call('setWindowContentSize', original.width, original.height);
     await waitForValue(
       () => this.call('windowContentBounds'),
@@ -373,11 +359,11 @@ Then('the Mahjong completion dialog remains usable at the minimum desktop size',
       'scrollable compact Mahjong completion dialog'
     );
     assert.equal(completion.overflowY, 'auto');
-    assert.ok(
-      completion.scrollHeight > completion.clientHeight,
-      'the compact regression should exercise the card scroll path'
-    );
-    assert.ok(completion.scrollTop > 0, 'the final action should be reachable by scrolling');
+    if (completion.scrollHeight > completion.clientHeight) {
+      assert.ok(completion.scrollTop > 0, 'the final action should be reachable by scrolling');
+    } else {
+      assert.equal(completion.actionInitiallyVisible, true, 'the final action should fit without scrolling');
+    }
     assert.equal(completion.actionVisibleAfterScroll, true);
     assert.ok(completion.card.left >= completion.viewport.left - 1);
     assert.ok(completion.card.top >= completion.viewport.top - 1);
@@ -393,19 +379,70 @@ Then('the Mahjong completion dialog remains usable at the minimum desktop size',
   }
 });
 
-When('I make a move in embedded Mahjong', async function () {
-  assert.equal(await this.call('clickMahjongFreeTile'), true);
-  const dom = await waitForValue(
-    () => this.call('readMahjongEmbedDom'),
-    (value) => typeof value?.timer === 'string',
-    'embedded Mahjong to start its timer'
+When('I launch Mahjong from the start-page footer', async function () {
+  const before = await waitForValue(
+    () => this.state(),
+    (state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://newtab/'),
+    'loaded start page before launching Mahjong',
   );
-  assert.equal(typeof dom.timer, 'string');
+  const source = before.tabs.find((tab) => tab.id === before.activeTabId);
+  assert.ok(source?.loadedUrl?.startsWith('blanc://newtab/'));
+  const footer = await waitForValue(
+    () => this.call('readMahjongFooterLink'),
+    (value) => value?.switcherCount === 4 && value.frameCount === 0,
+    'four layout choices and a separate Mahjong footer link',
+  );
+  assert.equal(footer.href, source.private ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/');
+  assert.equal(footer.target, '_blank');
+  this.mahjongSource = { id: source.id, layout: footer.layout, private: source.private, count: before.tabs.length };
+  assert.equal(await this.call('clickMahjongFooterLink'), true);
+  await this.waitForState((state) => {
+    const active = state.tabs.find((tab) => tab.id === state.activeTabId);
+    return state.tabs.length === before.tabs.length + 1 && active?.loadedUrl?.startsWith('blanc://mahjong/');
+  });
 });
 
-Then('the hidden embedded Mahjong timer stays paused', async function () {
-  const before = await this.call('readMahjongEmbedDom');
-  await new Promise((resolve) => setTimeout(resolve, 1_250));
-  const after = await this.call('readMahjongEmbedDom');
-  assert.equal(after?.timer, before?.timer);
+Then('the original start page remains on {string} in a separate tab', async function (layout) {
+  const state = await this.state();
+  const source = state.tabs.find((tab) => tab.id === this.mahjongSource.id);
+  assert.ok(source?.loadedUrl?.startsWith('blanc://newtab/'));
+  assert.equal(this.mahjongSource.layout, layout);
+  assert.equal(await this.call('newtabLayout'), layout);
+  const gameId = state.activeTabId;
+  await this.call('activateTab', source.id);
+  const dom = await waitForValue(() => this.call('readNewtabLayoutDom'), (value) => value?.layout === layout, 'preserved start-page layout');
+  assert.equal(dom.active, layout);
+  await this.call('activateTab', gameId);
+});
+
+Then('each of the four layout footers launches Mahjong in a new tab', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    await openNewTab(this);
+    const before = await this.state();
+    const sourceId = before.activeTabId;
+    const footer = await waitForValue(() => this.call('readMahjongFooterLink'), (value) => value?.layout === layout, `${layout} footer`);
+    assert.equal(footer.switcherCount, 4);
+    assert.equal(footer.frameCount, 0);
+    assert.equal(await this.call('clickMahjongFooterLink'), true);
+    const after = await this.waitForState((state) => state.tabs.length === before.tabs.length + 1 &&
+      state.tabs.find((tab) => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://mahjong/'));
+    assert.ok(after.tabs.find((tab) => tab.id === sourceId)?.loadedUrl?.startsWith('blanc://newtab/'));
+    assert.equal(await this.call('newtabLayout'), layout);
+  }
+});
+
+Given('a private start page is open', async function () {
+  const id = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
+  await this.waitForState((state) => state.activeTabId === id &&
+    state.tabs.find((tab) => tab.id === id)?.loadedUrl?.startsWith('blanc://newtab/'));
+});
+
+Then('Mahjong is a private managed tab', async function () {
+  const state = await this.state();
+  const game = state.tabs.find((tab) => tab.id === state.activeTabId);
+  assert.equal(game?.private, true);
+  assert.equal(game?.sessionKind, 'private');
+  assert.ok(game?.loadedUrl?.startsWith('blanc://mahjong/?private=1'));
+  assert.equal(state.tabs.find((tab) => tab.id === this.mahjongSource.id)?.private, true);
 });

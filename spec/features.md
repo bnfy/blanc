@@ -393,7 +393,7 @@ From the desktop `DEFAULTS`:
   each fixed product event once: `{event:'mahjong_play'}` after Mahjong's first
   real free-tile move and `{event:'newtab_layout', layout}` when each start-page
   layout actually renders. `layout` is strictly one of
-  `ledger|billboard|shelf|tally|mahjong`; no arbitrary label or content crosses
+  `ledger|billboard|shelf|tally`; no arbitrary label or content crosses
   the boundary. Product events are never sent for a private tab. `installId` is
   a random per-install token stored in its own
   `install.json` (not in settings, never synced) — it maps to a device install,
@@ -726,11 +726,10 @@ From the desktop `DEFAULTS`:
 
 ## F35 — Start page layouts
 
-- The start page offers five layouts: **ledger** (the original column),
+- The start page offers four layouts: **ledger** (the original column),
   **billboard** (a live clock over locally ranked frequent-site tiles), **shelf** (a favorites grid
   with group and blocked-count cards), **tally** (the ledger column beside a
-  week-of-blocking bar chart), and **mahjong** (an embedded, local solitaire
-  deal). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
+  week-of-blocking bar chart). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
   derives up to six hostname-level sites from the active local profile's
   on-device history, ranked by visit count with recency as the tie-breaker. A
   full, bounded local page title labels each tile, and a bounded profile-local
@@ -740,11 +739,10 @@ From the desktop `DEFAULTS`:
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
   emit telemetry, or contact a favicon service. Clearing history also clears
   its cached Billboard artwork. Private Billboard tabs receive
-  no history-derived sites. Mahjong replaces the informational feeds with the
-  game. All five re-ink under the light, dark, and private themes.
-- All five start-page layouts use **Inter** for text that previously used the
+  no history-derived sites. All four re-ink under the light, dark, and private themes.
+- All four start-page layouts use **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
-  override is local to the new-tab and embedded Mahjong documents; other
+  override is local to the new-tab and standalone Mahjong documents; other
   internal pages and browser chrome retain their existing typography. The one
   deliberate exception is Mahjong's tile faces: character numerals and wind
   badge letters are game artwork and keep the bundled JetBrains Mono (at its
@@ -758,6 +756,14 @@ From the desktop `DEFAULTS`:
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.
+- Every layout footer has a separate Mahjong link, outside the centered layout
+  switcher. It opens `blanc://mahjong/` in a new managed tab and leaves the
+  start page and selected layout intact. Private tabs open
+  `blanc://mahjong/?private=1` in the private session. Direct game URLs remain
+  valid. A stored `newtabLayout: mahjong` migrates once to Billboard with a
+  fresh Sync clock; later Mahjong values from old clients are rejected. Saved
+  boards remain in local game storage and are offered by Mahjong's Continue
+  prompt rather than opening automatically. Historical layout-use data remains.
 - Mahjong uses quiet, locally synthesized cues for tile selection, matching,
   blocked moves, hints, undo, new deals, and wins. Its in-game sound control is
   on by default and persists only in the Mahjong page's `localStorage`; private
@@ -772,8 +778,8 @@ From the desktop `DEFAULTS`:
   tracked locally alongside the existing weekly total.
 - No layout may ever scroll horizontally, at any window width; narrow windows
   compact insets, wrap rows, and stack the tally columns rather than overflow.
-  At supported browser zoom levels, Mahjong's controls, board, and footer
-  switcher remain reachable through vertical scrolling.
+  At supported browser zoom levels, Mahjong's standalone controls and board
+  remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — with no
   placeholder copy on the three newer layouts.
 - After first run, Personal non-private start pages show one corner
@@ -781,7 +787,7 @@ From the desktop `DEFAULTS`:
   lower-right on ledger, shelf, and tally, and moves upper-right on Billboard
   to preserve the recent-site row and its dismissal actions. It tracks the
   device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
-  permanently, and retires after a brief 2/2 confirmation. Mahjong omits it.
+  permanently, and retires after a brief 2/2 confirmation. The standalone game omits it.
   Tight windows collapse it to a progress-ring trigger so primary content and
   the footer stay reachable.
 - **Acceptance:**
