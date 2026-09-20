@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A house for the in-between — Margin</title>
+  <link rel="icon" href="margin-icon.png" type="image/png">
+  <style>
+    :root { color-scheme: light; font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; color: #202020; background: #fff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(74%, 1060px); margin: 0 auto; padding: clamp(44px, 6vh, 100px) 0 36px; }
+    header { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; border-bottom: 1px solid #d8d8d5; padding-bottom: 16px; }
+    .masthead { font-size: 18px; font-weight: 750; letter-spacing: .29em; }
+    .breadcrumb, .eyebrow, .caption, .issue { color: #797976; font-size: 12px; font-weight: 500; letter-spacing: .07em; }
+    .eyebrow { margin: 18px 0 12px; }
+    h1 { font-size: clamp(42px, 5vw, 68px); letter-spacing: -.035em; font-weight: 450; line-height: 1.08; margin: 0; max-width: 670px; }
+    .dek { font-size: clamp(15px, 1.45vw, 20px); color: #777773; margin: 14px 0 12px; }
+    figure { margin: 0; }
+    img { display: block; width: 100%; aspect-ratio: 2.15; object-fit: cover; border-radius: 2px; }
+    figcaption { margin-top: 14px; }
+    .byline { font-size: 14px; margin: 24px 0 26px; }
+    footer { border-top: 1px solid #d8d8d5; padding-top: 17px; }
+    @media (max-width: 650px) {
+      main { width: min(76%, 520px); padding-top: 48px; }
+      .breadcrumb { display: none; }
+      .eyebrow { margin-top: 24px; }
+      h1 { font-size: clamp(38px, 8vw, 54px); }
+      img { aspect-ratio: 1.2; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header><span class="masthead">MARGIN</span><span class="breadcrumb">JOURNAL / PLACES</span></header>
+    <article>
+      <p class="eyebrow">ARCHITECTURE / ISSUE 07</p>
+      <h1>A house for<br>the in-between</h1>
+      <p class="dek">A quiet pavilion between the olive grove and the sea.</p>
+      <figure>
+        <img src="../references/architecture-hero.png" alt="Modern stone pavilion among olive trees by the sea">
+        <figcaption class="caption">FIELD NOTES / A STUDY IN LIGHT AND LIMESTONE</figcaption>
+      </figure>
+      <p class="byline">Words by Elena Maren</p>
+    </article>
+    <footer class="issue">01 / 06</footer>
+  </main>
+</body>
+</html>

@@ -41,6 +41,17 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(store2.adblockEnabled, false)
     }
 
+    func testSiteAllowlistRoundTrip() {
+        let dir = tmpDir()
+        let store = SettingsStore(directory: dir)
+        store.update(adblockAllowedHosts: ["example.com", "news.example"])
+        store.flush()
+
+        let restored = SettingsStore(directory: dir)
+        XCTAssertEqual(restored.adblockAllowedHosts, ["example.com", "news.example"])
+        XCTAssertTrue(restored.adblockEnabled, "a site exception must not turn off global blocking")
+    }
+
     func testFirstEverSaveCreatesFile() {
         // Regression guard: a first-run save must CREATE settings.json, not throw
         // because the destination doesn't exist yet. `.atomic` handles create.

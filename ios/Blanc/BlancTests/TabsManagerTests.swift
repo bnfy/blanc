@@ -150,6 +150,34 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.settingsStore.adblockEnabled, false)
     }
 
+    func testBlockerToggleAppliesOnlyToCurrentHost() {
+        let m = makeManager()
+        let first = m.createTab(url: URL(string: "https://example.com/one")!)
+        let second = m.createTab(url: URL(string: "https://other.example/two")!)
+        m.setActive(first)
+
+        XCTAssertTrue(m.isActiveSiteProtected)
+        m.toggleProtectionForActiveSite()
+        XCTAssertFalse(m.isActiveSiteProtected)
+        XCTAssertEqual(m.settingsStore.adblockAllowedHosts, ["example.com"])
+
+        m.setActive(second)
+        XCTAssertTrue(m.isActiveSiteProtected)
+        m.setActive(first)
+        m.toggleProtectionForActiveSite()
+        XCTAssertTrue(m.isActiveSiteProtected)
+        XCTAssertTrue(m.settingsStore.adblockAllowedHosts.isEmpty)
+    }
+
+    func testBlockerSiteToggleDoesNotOverrideGlobalOff() {
+        let m = makeManager()
+        m.createTab(url: URL(string: "https://example.com/")!)
+        m.applySettingsPatch(["adblockEnabled": false])
+        m.toggleProtectionForActiveSite()
+        XCTAssertFalse(m.isActiveSiteProtected)
+        XCTAssertTrue(m.settingsStore.adblockAllowedHosts.isEmpty)
+    }
+
     // MARK: - Session restore
 
     func testRestoresTabsFromSession() {

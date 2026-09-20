@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="2400" viewBox="0 0 3200 2400"><defs><filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="25" flood-color="#363B3B" flood-opacity=".13"/></filter></defs><rect x="0" y="0" width="3200" height="2400" rx="0" fill="#F7F6F3" stroke="none" stroke-width="0"/><text x="210" y="120" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="600" fill="#202324" >Blanc for iPhone Duo — concept</text><text x="2990" y="120" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="450" fill="#797E7C" text-anchor="end">Blocker off</text>
+    <text x="290" y="470" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="600" fill="#202324" >Blanc Blocker</text>
+    <rect x="222" y="690" width="2750" height="1360" rx="82" fill="#FBFAF8" stroke="#E1E2DF" stroke-width="3"/>
+    <g filter="url(#shadow)"><rect x="2540" y="555" width="140" height="1078" rx="70" fill="#FCFDFD" stroke="#D9DCDD" stroke-width="2"/></g>
+    <g transform="translate(2570 583) scale(5)"><path d="M9.75 3.5 5.25 8l4.5 4.5" fill="none" stroke="#1D2021" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></g><circle cx="2610" cy="755" r="7" fill="#BDC1C1"/><circle cx="2610" cy="887" r="7" fill="#BDC1C1"/>
+    <circle cx="2610" cy="1019" r="46" fill="#EFF0EF"/><rect x="2582.5" y="991.5" width="55" height="55" rx="14.3" fill="#242728" stroke="none" stroke-width="0"/><text x="2610" y="1028.9" font-family="Inter, Arial, sans-serif" font-size="31.9" font-weight="650" fill="#FFF" text-anchor="middle">M</text>
+    <text x="2610" y="1162" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="550" fill="#555B5D" text-anchor="middle">+2</text>
+    <g transform="translate(2570 1243) scale(5)"><path d="M8 3v10M3 8h10" fill="none" stroke="#1D2021" stroke-width="1.4" stroke-linecap="round"/></g><circle cx="2610" cy="1415" r="46" fill="#ECEEEE"/><g transform="translate(2570 1375) scale(5)" fill="none" stroke="#8F9595" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></g><circle cx="2595" cy="1547" r="5" fill="#1D2021"/><circle cx="2610" cy="1547" r="5" fill="#1D2021"/><circle cx="2625" cy="1547" r="5" fill="#1D2021"/>
+    <g filter="url(#shadow)"><rect x="1000" y="895" width="1530" height="930" rx="55" fill="#FCFDFD" stroke="#D8DBDB" stroke-width="2"/></g>
+    <path d="M2528 1418l43 48-43 48z" fill="#FCFDFD" stroke="#D8DBDB" stroke-width="2"/>
+    <rect x="2527" y="1434" width="12" height="62" rx="0" fill="#FCFDFD" stroke="none" stroke-width="0"/>
+    <g transform="translate(1062.8 976.8) scale(5.4)" fill="none" stroke="#8F9595" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></g>
+    <text x="1195" y="1025" font-family="Inter, Arial, sans-serif" font-size="47" font-weight="650" fill="#202324" >Blanc Blocker</text>
+    <path d="M1060 1087L2470 1087" fill="none" stroke="#DFE0DF" stroke-width="2"/>
+    <text x="1060" y="1180" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="500" fill="#62696A" >atelier-margin.example</text>
+    <text x="1060" y="1285" font-family="Inter, Arial, sans-serif" font-size="69" font-weight="650" fill="#202324" >Off for this site</text>
+    <text x="1060" y="1360" font-family="Inter, Arial, sans-serif" font-size="36" font-weight="400" fill="#62696A" >Ads and trackers are allowed here.</text>
+    <rect x="1060" y="1452" width="1410" height="105" rx="30" fill="#F1F3F3" stroke="none" stroke-width="0"/>
+    <text x="1098" y="1518" font-family="Inter, Arial, sans-serif" font-size="37" font-weight="550" fill="#202324" >Site protection</text>
+    <rect x="2260" y="1470" width="164" height="70" rx="35" fill="#BBC0C0" stroke="none" stroke-width="0"/><circle cx="2302" cy="1505" r="28" fill="#FFF"/>
+    <text x="1060" y="1660" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="450" fill="#777D7E" >Global blocking</text><text x="2470" y="1660" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="550" fill="#454B4C" text-anchor="end">Settings</text>
+  </svg>

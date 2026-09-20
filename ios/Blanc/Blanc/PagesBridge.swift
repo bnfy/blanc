@@ -199,6 +199,13 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     static let userScriptSource = #"""
     (function () {
       if (location.protocol !== 'blanc:') return;
+      if (location.hostname === 'newtab') {
+        const markIOS = function () {
+          document.documentElement?.setAttribute('data-blanc-ios', '');
+        };
+        markIOS();
+        document.addEventListener('DOMContentLoaded', markIOS, { once: true });
+      }
       const pending = new Map();
       let seq = 0;
       window.__blancResolve = function (id, ok, payload) {
@@ -256,6 +263,12 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         start: {
           data: function () { return call('start', 'data'); },
           focusGroup: function (id) { return call('start', 'focusGroup', { id: id }); },
+          // Desktop's start page subscribes before it paints. iOS has no
+          // utility sheet, remote tabs, or startup-status stream yet, but the
+          // subscriptions must exist or newtab.js stops before its first draw.
+          onUtilitySheetVisibility: function () {},
+          onRemoteTabs: function () {},
+          onStatus: function () {},
         },
         shortcuts: {
           list: function () { return call('shortcuts', 'list'); },
