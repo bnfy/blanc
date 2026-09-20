@@ -422,6 +422,8 @@ function setupPages(hooks = {}) {
     'newtab',
     (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
   );
+  handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
+    hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
   handleEvent('pages:start:layout-used', 'newtab', (event, name) => {
     if (!settings.NEWTAB_LAYOUTS.includes(name)) return false;
     return hooks.telemetry?.newtabLayoutUsed?.(event.sender, name) === true;
@@ -469,11 +471,8 @@ function setupPages(hooks = {}) {
   handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
   handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
 
-  // Standalone games invoke from their exact top-level document. The embedded
-  // game has no preload authority; it posts a fixed signal to newtab.js, which
-  // verifies the frame source + origin before the trusted top-level newtab
-  // invokes this same argument-free channel.
-  handleEvent('pages:mahjong:played', ['mahjong', 'newtab'], (event) =>
+  // Standalone games invoke from their exact top-level document.
+  handleEvent('pages:mahjong:played', ['mahjong'], (event) =>
     hooks.telemetry?.mahjongPlayed?.(event.sender) === true);
 
   // Default-browser state lives in LaunchServices/the OS, not settings.json.

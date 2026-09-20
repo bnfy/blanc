@@ -96,11 +96,11 @@ test('retired B icons sanitize on upgrade and cannot be selected again', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-retired-icon-'));
     try {
       fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({
-        appIcon, onboardingVersion: 1, presentationDefaultsResetVersion: 1, newtabLayout: 'mahjong',
+        appIcon, onboardingVersion: 1, presentationDefaultsResetVersion: 1, newtabLayout: 'shelf',
       }));
       const settings = loadSettings(dir, true);
       assert.equal(settings.getSettings().appIcon, 'sunrise', appIcon);
-      assert.equal(settings.getSettings().newtabLayout, 'mahjong', 'Icon retirement preserves unrelated preferences');
+      assert.equal(settings.getSettings().newtabLayout, 'shelf', 'Icon retirement preserves unrelated preferences');
       settings.setSettings({ appIcon: 'sunrise-dark' });
       settings.setSettings({ appIcon });
       assert.equal(settings.getSettings().appIcon, 'sunrise-dark', `${appIcon} cannot replace a valid choice`);

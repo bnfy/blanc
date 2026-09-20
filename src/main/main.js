@@ -8598,6 +8598,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
       openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
       setLayout: (name) => settings.setSettings({ newtabLayout: name }),
+      openMahjong: (wc, background) => {
+        const source = tabs.get(tabIdByWebContentsId.get(wc.id));
+        if (!source || !liveContents(source)) return false;
+        const url = source.private ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/';
+        const id = createTab(url, { private: source.private, groupId: source.groupId });
+        if (!id) return false;
+        if (!background) setActiveTab(id);
+        return true;
+      },
       openIsland: (char) => openIslandTyping(char),
       // Runs inside runInPageRuntime, so the tab lands in the sheet's own
       // window and createTab's dismissal closes the sheet under it.

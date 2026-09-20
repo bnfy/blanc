@@ -94,7 +94,7 @@ Then('the moving-in checklist remains hidden', async function () {
   );
 });
 
-Then('the moving-in checklist appears in every informational layout and not Mahjong', async function () {
+Then('the moving-in checklist appears in all four start-page layouts', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
     assert.equal(await this.call('clickNewtabLayoutSwitcher', layout), true);
     await waitForValue(
@@ -103,12 +103,6 @@ Then('the moving-in checklist appears in every informational layout and not Mahj
       `the moving-in checklist in ${layout}`,
     );
   }
-  assert.equal(await this.call('clickNewtabLayoutSwitcher', 'mahjong'), true);
-  await waitForValue(
-    () => this.call('readMigrationChecklistDom'),
-    (dom) => dom?.layout === 'mahjong' && dom.visible === false,
-    'the moving-in checklist to stay out of Mahjong',
-  );
 });
 
 Then('the Billboard moving-in checklist stays above its recent sites', async function () {

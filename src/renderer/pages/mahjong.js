@@ -16,13 +16,6 @@ if (isPrivate) {
   document.querySelector('.mj-title').href = 'blanc://newtab/?private=1';
 }
 
-// Inside the newtab "mahjong" layout the page runs framed; the back-link
-// would try to navigate the frame itself (and the parent's frame-src rightly
-// blocks it), so the wordmark goes inert there.
-if (window.top !== window.self) {
-  document.querySelector('.mj-title').removeAttribute('href');
-}
-
 // Geometry: half-unit -> px. Layout descriptors all use the same coordinate
 // system, while the virtual board is recalculated per layout and scaled once
 // into the available lacquer table.
@@ -489,10 +482,6 @@ let playReported = false;
 function reportPlayOnce() {
   if (playReported) return;
   playReported = true;
-  if (window.top !== window.self) {
-    window.parent.postMessage('blanc:mahjong-played', 'blanc://newtab');
-    return;
-  }
   window.bowserPages?.mahjong?.played?.().catch(() => {});
 }
 
@@ -1115,7 +1104,7 @@ function paintTimer() {
 }
 
 function comboActionable() {
-  return Boolean(game?.mode === 'tray' && game.status === 'playing' && !document.hidden && embedActive
+  return Boolean(game?.mode === 'tray' && game.status === 'playing' && !document.hidden
     && !tileAnimationBusy && comboAnimationPauseCount === 0 && !activeModal());
 }
 
@@ -1158,7 +1147,7 @@ function paintCombo() {
 
 function startTimer() {
   hasStarted = true;
-  if (runningSince !== null || document.hidden || !embedActive || game?.status !== 'playing') return;
+  if (runningSince !== null || document.hidden || game?.status !== 'playing') return;
   runningSince = Date.now();
   comboClockAt = runningSince;
   clearInterval(tickHandle);
@@ -1314,7 +1303,6 @@ let prefsStore = null;
 let resumeTarget = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
-let embedActive = true;
 let setupChoice = { layoutId: S.dailyDeal(new Date()).layoutId, mode: 'tray', source: 'daily' };
 let setupReturnToWin = false;
 
@@ -1428,7 +1416,6 @@ function adoptGame(targetId) {
     gameStore.discard(previousId);
   }
   saveAfterMutation();
-  notifyParentGameId();
   disposeDuplicateGuard();
   installDuplicateGuard();
   announce('Continuing your unfinished board.');
@@ -1504,7 +1491,7 @@ function closeSetup() {
     setupReturnToWin = false;
     document.getElementById('mjSetup')?.focus();
   }
-  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
+  if (!document.hidden && hasStarted && game?.status === 'playing') startTimer();
 }
 
 function startSetupChoice() {
@@ -1581,7 +1568,7 @@ function openRecords() {
 function closeRecords() {
   setDialogVisible(document.getElementById('mjRecordsSheet'), false);
   document.getElementById('mjRecords')?.focus();
-  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
+  if (!document.hidden && hasStarted && game?.status === 'playing') startTimer();
 }
 
 document.getElementById('mjRecords')?.addEventListener('click', openRecords);
@@ -1645,12 +1632,6 @@ try { strongFree = localStorage.getItem(FREE_HIGHLIGHT_KEY) === 'on'; } catch { 
 setFreeHighlight(strongFree);
 freeHighlight?.addEventListener('change', () => setFreeHighlight(freeHighlight.checked));
 
-function notifyParentGameId() {
-  if (window.top !== window.self) {
-    window.parent.postMessage({ type: 'blanc:mahjong-game-id', id: gameId }, 'blanc://newtab');
-  }
-}
-
 function installDuplicateGuard() {
   if (duplicateGuard || typeof BroadcastChannel !== 'function') return;
   duplicateChannel = new BroadcastChannel('blanc-mahjong-v2-live');
@@ -1677,7 +1658,6 @@ function installDuplicateGuard() {
       if (!game) return;
       game.gameId = gameId;
       saveAfterMutation();
-      notifyParentGameId();
       renderBoard();
       fitBoard();
       announce('This duplicated tab now has its own independent game.');
@@ -1713,7 +1693,6 @@ function bootstrap() {
     if (hadSave) document.getElementById('mjRecoveryNotice').hidden = false;
     else offerResume();
   }
-  notifyParentGameId();
   installDuplicateGuard();
 }
 
@@ -1722,19 +1701,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     pauseTimer();
     saveAfterMutation();
-  } else if (embedActive && hasStarted && game.status === 'playing') {
-    startTimer();
-  }
-});
-
-window.addEventListener('message', (event) => {
-  if (window.top === window.self || event.source !== window.parent || event.origin !== 'blanc://newtab' ||
-      event.data?.type !== 'blanc:mahjong-active' || typeof event.data.active !== 'boolean') return;
-  embedActive = event.data.active;
-  if (!embedActive) {
-    pauseTimer();
-    saveAfterMutation();
-  } else if (!document.hidden && hasStarted && game?.status === 'playing') {
+  } else if (hasStarted && game.status === 'playing') {
     startTimer();
   }
 });
@@ -1747,7 +1714,7 @@ window.addEventListener('pagehide', (event) => {
 
 window.addEventListener('pageshow', (event) => {
   if (event.persisted) installDuplicateGuard();
-  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
+  if (!document.hidden && hasStarted && game?.status === 'playing') startTimer();
 });
 
 bootstrap();

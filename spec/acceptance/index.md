@@ -158,12 +158,13 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
-| F35-3 | Mahjong layout embeds a playable deal | — | ✅ | ⬜ | ⬜ |
-| F35-4 | Hidden embedded Mahjong timer stays paused | — | ✅ | ⬜ | ⬜ |
+| F35-3 | Footer opens a playable standalone Mahjong tab | — | ✅ | ⬜ | ⬜ |
+| F35-4 | All four layout footers preserve their start page when launching Mahjong | — | ✅ | ⬜ | ⬜ |
 | F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
 | F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
-| F35-7 | Moving-in checklist appears on informational layouts, not Mahjong | — | ✅ | ➖ | ➖ |
+| F35-7 | Moving-in checklist appears on all four start-page layouts | — | ✅ | ➖ | ➖ |
 | F35-8 | Billboard keeps the moving-in checklist clear of recent sites | — | ✅ | ➖ | ➖ |
+| F35-9 | Private footer opens Mahjong in a private managed tab | — | ✅ | ➖ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |

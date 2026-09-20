@@ -43,7 +43,7 @@ test('the start-page layout defaults to billboard, validates its enum, and syncs
   });
   const settings = loadSettings(userData);
 
-  assert.deepEqual(settings.NEWTAB_LAYOUTS, ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
+  assert.deepEqual(settings.NEWTAB_LAYOUTS, ['ledger', 'billboard', 'shelf', 'tally']);
   assert.equal(settings.getSettings().newtabLayout, 'billboard');
 
   const newtabHtml = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.html'), 'utf8');
@@ -59,6 +59,7 @@ test('the start-page layout defaults to billboard, validates its enum, and syncs
   assert.equal(settings.setSettings({ newtabLayout: 'marquee' }).newtabLayout, 'tally');
   assert.equal(settings.setSettings({ newtabLayout: 42 }).newtabLayout, 'tally');
   assert.equal(settings.setSettings({ newtabLayout: null }).newtabLayout, 'tally');
+  assert.equal(settings.setSettings({ newtabLayout: 'mahjong' }).newtabLayout, 'tally');
 
   // Unlike the device-local tab presentation settings, the start-page layout
   // is a preference in the same class as the theme: it travels with you.
@@ -77,12 +78,12 @@ test('a local layout choice outranks a future-dated preference already observed 
   const settings = loadSettings(userData);
   const remoteTimestamp = Date.now() + 60_000;
   const remote = {
-    values: { newtabLayout: 'mahjong' },
+    values: { newtabLayout: 'tally' },
     meta: { newtabLayout: remoteTimestamp },
   };
 
   settings.mergeFromSync(remote);
-  assert.equal(settings.getSettings().newtabLayout, 'mahjong');
+  assert.equal(settings.getSettings().newtabLayout, 'tally');
 
   settings.setSettings({ newtabLayout: 'shelf' });
   const local = settings.exportForSync();
@@ -106,7 +107,7 @@ test('concurrent equal-clock layout choices converge deterministically', (t) => 
   const base = JSON.stringify({
     onboardingVersion: 1,
     presentationDefaultsResetVersion: 1,
-    newtabLayout: 'mahjong',
+    newtabLayout: 'ledger',
     _syncMeta: { newtabLayout: baseTimestamp },
     _syncTieBreakers: { newtabLayout: 'base-write' },
   });
@@ -157,7 +158,7 @@ test('unsafe remote timestamps are ignored and never re-exported', (t) => {
 
   for (const timestamp of invalidRemotes) {
     settings.mergeFromSync({
-      values: { newtabLayout: 'mahjong' },
+      values: { newtabLayout: 'tally' },
       meta: { newtabLayout: timestamp },
       tieBreakers: { newtabLayout: 'remote-write' },
     });
@@ -171,7 +172,7 @@ test('unsafe remote timestamps are ignored and never re-exported', (t) => {
   assert.ok(Number.isSafeInteger(local.meta.newtabLayout));
 
   settings.mergeFromSync({
-    values: { newtabLayout: 'mahjong' },
+    values: { newtabLayout: 'tally' },
     meta: { newtabLayout: 1e100 },
     tieBreakers: { newtabLayout: 'remote-write' },
   });
@@ -181,7 +182,7 @@ test('unsafe remote timestamps are ignored and never re-exported', (t) => {
 const settingsSchema = require('../../settings-schema/schema.json');
 
 test('the layout enum reaches the schema and both generated mobile artifacts', () => {
-  assert.deepEqual(settingsSchema.newtabLayouts, ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
+  assert.deepEqual(settingsSchema.newtabLayouts, ['ledger', 'billboard', 'shelf', 'tally']);
   assert.equal(settingsSchema.defaults.newtabLayout, 'billboard');
   assert.equal(settingsSchema.internalDefaults.includes('newtabLayout'), false);
   assert.ok(settingsSchema.settings.some((s) => s.key === 'newtabLayout'));
@@ -193,12 +194,12 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
 
   assert.match(
     swift,
-    /public enum BlancNewtabLayout: String, CaseIterable \{ case ledger, billboard, shelf, tally, mahjong \}/
+    /public enum BlancNewtabLayout: String, CaseIterable \{ case ledger, billboard, shelf, tally \}/
   );
   assert.match(swift, /public static let newtabLayout: BlancNewtabLayout = \.billboard/);
   assert.match(
     kotlin,
-    /enum class BlancNewtabLayout\(val id: String\) \{ LEDGER\("ledger"\), BILLBOARD\("billboard"\), SHELF\("shelf"\), TALLY\("tally"\), MAHJONG\("mahjong"\) \}/
+    /enum class BlancNewtabLayout\(val id: String\) \{ LEDGER\("ledger"\), BILLBOARD\("billboard"\), SHELF\("shelf"\), TALLY\("tally"\) \}/
   );
   assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.BILLBOARD/);
 });
@@ -216,6 +217,53 @@ test('Settings offers every supported start-page layout', () => {
       `missing Settings option for ${layout}`
     );
   }
+  assert.doesNotMatch(html, /<option value="mahjong">/);
+});
+
+test('retired Mahjong layout migrates durably to Billboard and rejects old synced values', (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-mahjong-layout-migrate-'));
+  t.after(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
+  const previousClock = Date.now() + 60_000;
+  fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({
+    onboardingVersion: 1,
+    presentationDefaultsResetVersion: 1,
+    newtabLayout: 'mahjong',
+    _syncMeta: { newtabLayout: previousClock },
+  }));
+  const settings = loadSettings(userData);
+  const current = settings.exportForSync();
+  assert.equal(current.values.newtabLayout, 'billboard');
+  assert.ok(current.meta.newtabLayout > previousClock);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(userData, 'settings.json'))).newtabLayout, 'billboard');
+
+  settings.mergeFromSync({
+    values: { newtabLayout: 'mahjong' },
+    meta: { newtabLayout: current.meta.newtabLayout + 1 },
+  });
+  assert.equal(settings.getSettings().newtabLayout, 'billboard');
+  assert.equal(settings.exportForSync().values.newtabLayout, 'billboard');
+  settings.setSettings({ newtabLayout: 'shelf' });
+  assert.ok(settings.exportForSync().meta.newtabLayout > current.meta.newtabLayout + 1);
+});
+
+test('each start page has a separate Mahjong link and no iframe', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.html'), 'utf8');
+  const script = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.js'), 'utf8');
+  const preload = fs.readFileSync(path.join(__dirname, '../../src/main/tab-preload.js'), 'utf8');
+  const pages = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
+  const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  assert.equal((html.match(/data-layout-pick=/g) || []).length, 4);
+  assert.match(html, /id="mahjongLink" href="blanc:\/\/mahjong\/" target="_blank"/);
+  assert.match(script, /'blanc:\/\/mahjong\/\?private=1'/);
+  assert.match(script, /start\.openMahjong\(event\.metaKey \|\| event\.ctrlKey\)/);
+  assert.match(preload, /openMahjong: \(background = false\) => invoke\('pages:start:open-mahjong'/);
+  assert.match(pages, /handleEvent\('pages:start:open-mahjong', 'newtab'/);
+  assert.match(main, /openMahjong: \(wc, background\) => \{[\s\S]*?source\.private \? 'blanc:\/\/mahjong\/\?private=1'/);
+  assert.doesNotMatch(html, /<iframe|layoutMahjong|mahjongFooterToggle/);
+  assert.doesNotMatch(script, /mahjongFrame|mahjongFooterHidden|postMessage/);
 });
 
 test('privacy choices re-save after first run completes (tour replay)', (t) => {

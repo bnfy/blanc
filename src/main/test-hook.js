@@ -731,7 +731,7 @@ function install(refs) {
         layout: document.body.dataset.layout ?? null,
         active: document.querySelector('[data-layout-pick].active')?.dataset.layoutPick ?? null,
         // The active layout root is the one whose computed display isn't none.
-        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally', 'Mahjong']
+        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
     },
@@ -833,31 +833,7 @@ function install(refs) {
             .map((element) => element.id || element.className || element.tagName),
         };
       })()`);
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      if (!frame) return { page, mahjong: null };
-      // Tile faces (character numerals and wind badge letters inside the
-      // tile SVGs) are game artwork and deliberately keep JetBrains Mono;
-      // the Inter rule covers the game's UI text only. Report the faces
-      // separately so the step can assert both halves of that contract.
-      const mahjong = await frame.executeJavaScript(`(() => {
-        const selectors = ['.mj-meter-label', '.mj-timer', '.mj-dock-action', '.mj-overline'];
-        const isTileFace = (element) => element.closest('.mj-face') !== null;
-        const monoElements = [...document.querySelectorAll('body, body *')]
-          .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'));
-        return {
-          samples: selectors.map((selector) => ({
-            selector,
-            family: getComputedStyle(document.querySelector(selector)).fontFamily,
-          })),
-          jetbrains: monoElements
-            .filter((element) => !isTileFace(element))
-            .slice(0, 20)
-            .map((element) => element.id || element.className || element.tagName),
-          tileFaceMono: monoElements.filter(isTileFace).length,
-        };
-      })()`);
-      return { page, mahjong };
+      return { page };
     },
     async readStartPageLayoutFit() {
       const tab = tabs.get(getActiveTabId());
@@ -921,10 +897,7 @@ function install(refs) {
         };
       })()`;
       const page = await tab.view.webContents.executeJavaScript(audit);
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      const mahjong = frame ? await frame.executeJavaScript(audit) : null;
-      return { page, mahjong };
+      return { page };
     },
     readBillboardSites() {
       const tab = tabs.get(getActiveTabId());
@@ -965,14 +938,12 @@ function install(refs) {
         return true;
       })()`);
     },
-    async readMahjongEmbedDom() {
+    async readMahjongDom() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      if (!frame) return null;
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
       try {
-        return await frame.executeJavaScript(`(() => {
+        return await wc.executeJavaScript(`(() => {
           const tileRect = document.querySelector('.mj-tile:not([hidden])')?.getBoundingClientRect();
           const frameRect = document.querySelector('.mj-board-frame')?.getBoundingClientRect();
           const wrapRect = document.getElementById('mjBoardWrap')?.getBoundingClientRect();
@@ -1020,12 +991,10 @@ function install(refs) {
     },
     async readMahjongCompletionGeometry() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      if (!frame) return null;
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
       try {
-        return await frame.executeJavaScript(`(async () => {
+        return await wc.executeJavaScript(`(async () => {
           const card = document.getElementById('mjWin');
           const wrap = document.getElementById('mjBoardWrap');
           const time = document.getElementById('mjWinTime');
@@ -1090,26 +1059,24 @@ function install(refs) {
         return null;
       }
     },
-    async setNewtabZoomFactor(factor) {
+    async setActiveTabZoomFactor(factor) {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      if (!tab || !/^blanc:\/\/(newtab|mahjong)\//.test(urlOf(tab))) return null;
       const applied = Math.min(3, Math.max(0.5, Number(factor) || 1));
       tab.view.webContents.setZoomFactor(applied);
       return tab.view.webContents.getZoomFactor();
     },
-    async newtabZoomFactor() {
+    async activeTabZoomFactor() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      if (!tab || !/^blanc:\/\/(newtab|mahjong)\//.test(urlOf(tab))) return null;
       return tab.view.webContents.getZoomFactor();
     },
     async readMahjongRecordsGeometry() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      if (!frame) return null;
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
       try {
-        return await frame.executeJavaScript(`(async () => {
+        return await wc.executeJavaScript(`(async () => {
           const sheet = document.getElementById('mjRecordsSheet');
           const card = sheet?.querySelector('.mj-records-card');
           const trigger = document.getElementById('mjRecords');
@@ -1140,12 +1107,10 @@ function install(refs) {
     },
     async clickMahjongFreeTile() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      if (!frame) return false;
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return false;
       try {
-        return await frame.executeJavaScript(`(() => {
+        return await wc.executeJavaScript(`(() => {
           const tile = document.querySelector('.mj-tile:not([data-blocked]):not([hidden])');
           if (!tile) return false;
           tile.click();
@@ -1157,12 +1122,10 @@ function install(refs) {
     },
     async rapidUndoMahjongMatch() {
       const tab = tabs.get(getActiveTabId());
-      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
-      const frame = tab.view.webContents.mainFrame.framesInSubtree
-        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
-      if (!frame) return null;
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
       try {
-        return await frame.executeJavaScript(`(async () => {
+        return await wc.executeJavaScript(`(async () => {
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
           const free = [...document.querySelectorAll('.mj-tile:not([data-blocked]):not([hidden])')];
           let pair = null;
@@ -1203,6 +1166,29 @@ function install(refs) {
         const button = document.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
         if (!button) return false;
         button.click();
+        return true;
+      })()`);
+    },
+    readMahjongFooterLink() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        href: document.getElementById('mahjongLink')?.href ?? null,
+        target: document.getElementById('mahjongLink')?.target ?? null,
+        layout: document.body.dataset.layout,
+        switcherCount: document.querySelectorAll('[data-layout-pick]').length,
+        frameCount: document.querySelectorAll('iframe').length,
+      }))()`);
+    },
+    clickMahjongFooterLink() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const link = document.getElementById('mahjongLink');
+        if (!link) return false;
+        link.click();
         return true;
       })()`);
     },

@@ -1,39 +1,38 @@
-/* Mahjong owns its Sunrise-at-dusk visual language. The shared pages.css
+/* Mahjong owns its classic lacquer visual language. The shared pages.css
    contributes only bundled fonts and the [hidden] contract. */
 
 .mahjong-body {
-  /* Mahjong is the fifth start-page layout, so its former mono role joins the
-     same Inter-only migration while the rest of Blanc remains unchanged. */
+  /* Game chrome uses Inter while the rest of Blanc remains unchanged. */
   --font-mono: var(--font-ui);
   /* Tile faces are exempt from that migration: numerals and wind badge
      letters keep the bundled JetBrains Mono (a 400–800 variable face), so
      this token restates the real mono stack rather than the alias above. */
   --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  --mj-table: #29221b;
-  --mj-table-deep: #1b1713;
-  --mj-table-ink: #1b1713;
-  --mj-panel: rgba(51, 42, 33, 0.94);
-  --mj-panel-solid: #332a21;
-  --mj-panel-soft: rgba(247, 240, 229, 0.07);
-  --mj-line: rgba(212, 173, 102, 0.24);
-  --mj-line-strong: rgba(212, 173, 102, 0.5);
-  --mj-brass: #d4ad66;
-  --mj-brass-bright: #e6c58a;
-  --mj-ivory: #f7f0e5;
-  --mj-ivory-deep: #ddd2c2;
-  --mj-ink: #24201a;
-  --mj-muted: #b7a999;
-  --mj-shadow: rgba(10, 7, 4, 0.42);
-  --mj-tile-top: #fffcf7;
-  --mj-tile-bottom: #ede2d2;
-  --mj-tile-edge: #a58e73;
-  --mj-tile-side: #b59d7b;
+  --mj-table: #0b3d31;
+  --mj-table-deep: #04251f;
+  --mj-table-ink: #021914;
+  --mj-panel: rgba(5, 42, 34, 0.88);
+  --mj-panel-solid: #0a392f;
+  --mj-panel-soft: rgba(240, 229, 197, 0.07);
+  --mj-line: rgba(232, 205, 139, 0.22);
+  --mj-line-strong: rgba(232, 205, 139, 0.48);
+  --mj-brass: #d8b969;
+  --mj-brass-bright: #f2db9a;
+  --mj-ivory: #f8f1dc;
+  --mj-ivory-deep: #e4d7b8;
+  --mj-ink: #132a27;
+  --mj-muted: rgba(246, 237, 211, 0.64);
+  --mj-shadow: rgba(0, 10, 8, 0.48);
+  --mj-tile-top: #fffaf0;
+  --mj-tile-bottom: #eee2c5;
+  --mj-tile-edge: #b7aa88;
+  --mj-tile-side: #85a99c;
   --mj-red: #a63730;
   --mj-green: #1f6d50;
   --mj-blue: #275d86;
   --mj-flower: #9f3657;
   --mj-season: #8a5a18;
-  --mj-focus: #f7f0e5;
+  --mj-focus: #ffe3a0;
   --mj-hint: #8db7c2;
 
   position: relative;
@@ -44,19 +43,21 @@
   min-height: 420px;
   overflow: auto;
   color: var(--mj-ivory);
-  background: #1b1713;
+  background: var(--mj-table-ink);
   font-family: var(--font-ui);
   color-scheme: dark;
 }
 
-/* Locally bundled warm-charcoal grain; the solid ground remains complete if
-   the image is unavailable during development or recovery. */
+/* The original bundled lacquer grain and board vignette. */
 .mahjong-body::before {
   content: "";
   position: fixed;
   z-index: -2;
   inset: 0;
-  background-image: url("mahjong-dusk.webp");
+  background-image:
+    radial-gradient(ellipse at 50% 32%, rgba(65, 146, 111, 0.34), transparent 55%),
+    linear-gradient(155deg, rgba(3, 20, 17, 0.05), rgba(1, 13, 11, 0.72)),
+    url("mahjong-lacquer.webp");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -68,21 +69,47 @@
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(27, 23, 19, 0.06), rgba(27, 23, 19, 0.22));
+  opacity: 0.62;
+  background:
+    radial-gradient(ellipse at 50% 22%, transparent 28%, rgba(0, 15, 12, 0.28) 74%, rgba(0, 8, 7, 0.7) 100%),
+    linear-gradient(90deg, transparent 49.8%, rgba(239, 201, 111, 0.035) 50%, transparent 50.2%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .mahjong-body {
+    --mj-table: #082f28;
+    --mj-table-deep: #031d19;
+    --mj-panel: rgba(3, 29, 25, 0.91);
+    --mj-panel-solid: #072b25;
+    --mj-shadow: rgba(0, 0, 0, 0.62);
+    --mj-tile-top: #f5eedb;
+    --mj-tile-bottom: #dacdae;
+  }
 }
 
 :root[data-theme="private"] .mahjong-body {
-  --mj-table: #211b16;
-  --mj-table-deep: #15110e;
-  --mj-table-ink: #15110e;
-  --mj-panel: rgba(41, 33, 27, 0.96);
-  --mj-panel-solid: #29211b;
-  --mj-shadow: rgba(5, 3, 2, 0.58);
-  background: #15110e;
+  --mj-table: #292239;
+  --mj-table-deep: #15111e;
+  --mj-table-ink: #0b0910;
+  --mj-panel: rgba(27, 22, 38, 0.92);
+  --mj-panel-solid: #211b2e;
+  --mj-panel-soft: rgba(220, 207, 244, 0.07);
+  --mj-line: rgba(203, 177, 228, 0.23);
+  --mj-line-strong: rgba(217, 190, 241, 0.5);
+  --mj-brass: #c4a5d6;
+  --mj-brass-bright: #e4c9f1;
+  --mj-muted: rgba(235, 226, 243, 0.64);
+  --mj-tile-side: #9181a7;
+  --mj-focus: #e9d0f4;
+  background: var(--mj-table-ink);
 }
 
 :root[data-theme="private"] .mahjong-body::before {
-  filter: brightness(0.78);
+  background-image:
+    radial-gradient(ellipse at 50% 30%, rgba(105, 78, 139, 0.36), transparent 55%),
+    linear-gradient(155deg, rgba(11, 8, 16, 0.12), rgba(7, 5, 11, 0.78)),
+    url("mahjong-lacquer.webp");
+  filter: grayscale(0.25) hue-rotate(67deg) saturate(0.72);
 }
 
 .mahjong-body button,
@@ -353,7 +380,10 @@
   overflow: hidden;
   border: 1px solid var(--mj-line);
   border-radius: clamp(17px, 2.2vw, 28px);
-  background: rgba(41, 34, 27, 0.92);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.045), transparent 30%),
+    radial-gradient(ellipse at 50% 38%, rgba(52, 124, 96, 0.24), transparent 62%),
+    rgba(1, 24, 20, 0.42);
   box-shadow: 0 18px 48px var(--mj-shadow);
 }
 
@@ -374,7 +404,7 @@
   bottom: 2.5%;
   height: 14%;
   border-radius: 50%;
-  background: rgba(10, 7, 4, 0.2);
+  background: rgba(0, 9, 7, 0.24);
   filter: blur(22px);
   pointer-events: none;
 }
@@ -414,7 +444,7 @@
   background: linear-gradient(155deg, var(--mj-tile-top), var(--mj-tile-bottom));
   box-shadow:
     -1px 2px 0 var(--mj-tile-side),
-    -3px 4px 0 color-mix(in srgb, var(--mj-tile-side) 78%, #5f4932),
+    -3px 4px 0 color-mix(in srgb, var(--mj-tile-side) 70%, #1c4d42),
     -6px 9px 15px rgba(10, 7, 4, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
   cursor: pointer;
@@ -444,7 +474,7 @@
   filter: brightness(1.03);
   box-shadow:
     -1px 2px 0 var(--mj-tile-side),
-    -3px 4px 0 color-mix(in srgb, var(--mj-tile-side) 78%, #5f4932),
+    -3px 4px 0 color-mix(in srgb, var(--mj-tile-side) 70%, #1c4d42),
     -7px 14px 20px rgba(10, 7, 4, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
@@ -511,7 +541,7 @@
   box-shadow:
     0 0 0 2px var(--mj-brass),
     -1px 2px 0 var(--mj-tile-side),
-    -3px 4px 0 color-mix(in srgb, var(--mj-tile-side) 78%, #5f4932),
+    -3px 4px 0 color-mix(in srgb, var(--mj-tile-side) 70%, #1c4d42),
     -6px 9px 15px rgba(10, 7, 4, 0.34);
 }
 

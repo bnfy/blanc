@@ -56,7 +56,7 @@ test('every start-page template names the Blanc Patron upgrade as an action', ()
   }
 });
 
-test('checklist occupies the corner, compacts at tight viewports, and avoids private and Mahjong', () => {
+test('checklist occupies the corner, compacts at tight viewports, and avoids private tabs', () => {
   const css = read('src/renderer/pages/pages.css');
 
   assert.match(css, /\.migration-checklist-shell \{[\s\S]{0,260}?position: fixed;[\s\S]{0,260}?bottom: 84px;/);
@@ -65,7 +65,7 @@ test('checklist occupies the corner, compacts at tight viewports, and avoids pri
   assert.match(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[\s\S]{0,900}?\.migration-checklist-compact \{[\s\S]{0,300}?display: grid;/);
   assert.match(css, /body\[data-layout="billboard"\] \.migration-checklist \{[\s\S]{0,100}?top: 58px;[\s\S]{0,100}?bottom: auto;/,
     'Billboard compact expansion opens downward from the upper-right trigger');
-  assert.match(css, /body\[data-layout="mahjong"\] \.migration-checklist-shell/);
+  assert.doesNotMatch(css, /body\[data-layout="mahjong"\] \.migration-checklist-shell/);
   assert.match(css, /:root\[data-theme="private"\] \.migration-checklist-shell/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]{0,320}?animation: none;/);
 });

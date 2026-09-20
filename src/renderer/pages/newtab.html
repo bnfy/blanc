@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; frame-src blanc://mahjong;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:;" />
   <title>New Tab</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
@@ -111,12 +111,6 @@
     </div>
   </main>
 
-  <main class="mahjong-embed" id="layoutMahjong">
-    <!-- src is set lazily by applyLayout the first time this layout shows,
-         so the other layouts never pay for loading the game. -->
-    <iframe id="mahjongFrame" title="Mahjong solitaire"></iframe>
-  </main>
-
   <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
     <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
       <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
@@ -156,16 +150,13 @@
       <button type="button" data-layout-pick="ledger">ledger</button> ·
       <button type="button" data-layout-pick="billboard">billboard</button> ·
       <button type="button" data-layout-pick="shelf">shelf</button> ·
-      <button type="button" data-layout-pick="tally">tally</button> ·
-      <button type="button" data-layout-pick="mahjong" class="layout-pill">mahjong<span id="mahjongNewBadge" class="layout-new-badge">new</span></button>
+      <button type="button" data-layout-pick="tally">tally</button>
     </span>
-    <span id="goAnywhere"></span>
+    <span class="footer-right">
+      <a id="mahjongLink" href="blanc://mahjong/" target="_blank">mahjong</a>
+      <span id="goAnywhere"></span>
+    </span>
   </footer>
-
-  <button id="mahjongFooterToggle" class="mahjong-footer-toggle" type="button" aria-controls="layoutFooter" aria-expanded="true" hidden>
-    <span class="mahjong-footer-toggle-icon" aria-hidden="true"></span>
-    <span id="mahjongFooterToggleLabel">hide footer</span>
-  </button>
 
   <!-- First-run onboarding (design system, "New tab v2 + onboarding" handoff;
        six-step variant per the 2026-08-16 spec — privacy consent is step 5).

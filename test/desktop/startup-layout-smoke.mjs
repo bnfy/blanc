@@ -67,7 +67,7 @@ try {
     }, phase);
     await page.waitForFunction((phase) => document.getElementById('startupTitle').textContent ===
       (phase === 'failed' ? 'Blocking could not start.' : 'Preparing blocking…'), phase);
-    for (const layout of ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']) {
+    for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
       await page.evaluate((layout) => { document.body.dataset.layout = layout; }, layout);
       assert.equal(await page.locator('#startupCard').isVisible(), true, `${layout}: ${phase} must be visible`);
       if (phase === 'failed') await page.locator('#startupRetry').click({ trial: true });
@@ -92,7 +92,7 @@ try {
   await readyPage.waitForFunction(() => document.getElementById('bbDate')?.textContent);
   assert.equal(await readyPage.locator('#startupCard').isVisible(), false);
   assert.equal(await readyPage.locator('#layoutBillboard').isVisible(), true, 'saved layout returns after recovery');
-  console.log('startup-layout-smoke PASS: recovery reachable in five layouts at two sizes; saved session restored and queued external URL selected once');
+  console.log('startup-layout-smoke PASS: recovery reachable in four layouts at two sizes; saved session restored and queued external URL selected once');
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaughtLog) ? fs.readFileSync(uncaughtLog, 'utf8').trim() : '';
