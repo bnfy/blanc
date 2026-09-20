@@ -65,13 +65,15 @@ Electron runtime: direct links, HTTP redirects, iframe redirects, direct
 app lookup, confirmation dialog, and OS launch are stubbed. Cancellation must
 not launch anything; callback parameters must not appear in dialog text.
 
-Blanc accepts only reviewed app schemes and standard Microsoft/Google native
-OAuth callback conventions. Custom app schemes always require confirmation,
-including typed links. Unknown schemes are never passed to the OS, and typed
-colon-prefixed terms continue through normal search routing. Additions to the
-allowlist require an app-specific security and login-flow review. Missing
-handlers and launch errors produce a visible message. No persistent permission
-or callback URL is saved.
+Blanc discovers installed app handlers through the OS, without a per-service
+scheme list. Browser-internal and dangerous OS schemes are excluded. Other
+custom app schemes always require confirmation, including typed links; an
+unregistered scheme never reaches the OS. Typed colon-prefixed search terms
+without a slash continue through normal search routing. Missing handlers and
+launch errors produce a visible message. No persistent permission or callback
+URL is saved. After any page-initiated handoff, further attempts stay quiet
+until another native click or activation key; this includes missing-handler
+messages, so timers and redirects cannot trap the user in dialogs.
 
 This coverage verifies the browser handoff contract, not a real account login.
 Before release, validate actual sign-in on macOS, Windows, and Linux with

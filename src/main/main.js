@@ -1340,6 +1340,19 @@ const handOffToOs = createExternalHandoff({
   openExternal: (url) => shell.openExternal(url),
 });
 
+// Electron navigation events do not expose a user-gesture bit. Native input
+// events do, and unlike DOM events they cannot be synthesized by a web page.
+// A fresh click or activation key permits one more page-initiated app prompt.
+app.on('web-contents-created', (_event, wc) => {
+  wc.on('before-mouse-event', (_inputEvent, mouse) => {
+    if (mouse.type === 'mouseDown') handOffToOs.noteUserGesture();
+  });
+  wc.on('before-input-event', (_inputEvent, input) => {
+    if (input.type === 'keyDown' && !input.isAutoRepeat
+      && (input.key === 'Enter' || input.key === ' ')) handOffToOs.noteUserGesture();
+  });
+});
+
 function flushExternalUrls() {
   externalUrlHandoff.flush();
 }
