@@ -76,7 +76,7 @@ test('mahjong provides static hint feedback and suppresses shake for reduced mot
   assert.match(block, /\.mj-tile\.shake\s*\{[^}]*animation:\s*none;/);
 });
 
-test('bonus families use full-scale lacquer artwork and hints clear stale emphasis', () => {
+test('bonus families keep their full-scale artwork and hints clear stale emphasis', () => {
   assert.doesNotMatch(controller, /BLANC_GLYPHS/);
   assert.match(controller, /function bonusFace\(family\)/);
   assert.match(controller, /flower:\s*'mahjong-flower\.png'/);
@@ -368,7 +368,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(styles, /\.mj-burst-score strong::before\s*\{[^}]*left:\s*calc\(100% \+ 8px\)/);
   assert.match(styles, /\.mj-burst-score strong::after\s*\{[^}]*right:\s*calc\(100% \+ 8px\)/);
   assert.doesNotMatch(styles, /\.mj-burst-score::(?:before|after)/);
-  assert.match(styles, /\.mj-burst-score strong\s*\{[^}]*background:\s*linear-gradient[^}]*-webkit-background-clip:\s*text[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-burst-score strong\s*\{[^}]*background:\s*none;[^}]*-webkit-text-fill-color:\s*currentColor;[^}]*text-shadow:\s*none;/);
   assert.match(styles, /@keyframes mj-score-flight/);
   assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
   assert.match(styles, /\.mj-tray-slot\.is-receiving/);
@@ -409,14 +409,23 @@ test('hints pulse a complete pair and include a parked Burst tile', () => {
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\)/);
   assert.match(styles, /\.mj-tile\.hinted\s*\{[^}]*mj-hint-pulse 720ms ease-in-out 3/);
   assert.match(styles, /\.mj-tray-slot\.hinted/);
-  assert.match(styles, /#65f0dc/);
+  assert.match(styles, /--mj-hint:\s*#8db7c2/);
 });
 
-test('mahjong owns a local lacquer presentation with motion and no remote data path', () => {
+test('mahjong owns a local Sunrise-at-dusk presentation with motion and no remote data path', () => {
   assert.match(html, /<link rel="stylesheet" href="mahjong\.css"/);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /<script src="mahjong-state\.js"><\/script>/);
-  assert.match(styles, /url\("mahjong-lacquer\.webp"\)/);
+  assert.match(styles, /url\("mahjong-dusk\.webp"\)/);
+  const backdrop = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-dusk.webp'));
+  assert.equal(backdrop.subarray(0, 4).toString(), 'RIFF');
+  assert.equal(backdrop.subarray(8, 12).toString(), 'WEBP');
+  assert.ok(backdrop.length < 200_000, 'the bundled backdrop should stay lightweight');
+  for (const token of ['#1b1713', '#29221b', '#332a21', '#f7f0e5', '#b7a999', '#d4ad66']) {
+    assert.ok(styles.includes(token), `missing game-local dusk token ${token}`);
+  }
+  assert.doesNotMatch(styles, /#292239|#c4a5d6|hue-rotate\(67deg\)/);
+  assert.doesNotMatch(styles, /\.mj-brand-mark\s*\{[^}]*filter:/);
   for (const hook of ['mj-pair-remove', 'mj-tray-travel', 'mj-score-pulse', 'mj-shuffle-cascade']) {
     assert.match(styles, new RegExp(`@keyframes ${hook}`));
   }
@@ -428,7 +437,7 @@ test('mahjong owns a local lacquer presentation with motion and no remote data p
   assert.match(styles, /@keyframes mj-auto-clear/);
 });
 
-test('layout-card hover and focus preserve readable lacquer text colors', () => {
+test('layout-card hover and focus preserve readable dusk text colors', () => {
   assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\)/);
   assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\) small\s*\{[^}]*color:\s*var\(--mj-muted\)/);
 });
@@ -483,8 +492,7 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
   assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(6,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*aspect-ratio:\s*1;[^}]*border-radius:\s*50%;/);
-  assert.match(desktop, /\.mj-dock > button\s*\{[^}]*radial-gradient\(circle at 35% 23%[^}]*0 3px 0[^}]*inset 0 -9px 13px/);
-  assert.match(desktop, /color-mix\(in srgb,\s*var\(--mj-panel-solid\) 92%,\s*var\(--mj-ivory\)\)[\s\S]*var\(--mj-lacquer-deep\)/);
+  assert.match(desktop, /\.mj-dock > button\s*\{[^}]*background:\s*var\(--mj-panel-solid\);[^}]*box-shadow:\s*0 12px 22px var\(--mj-shadow\);/);
   assert.doesNotMatch(desktop, /rgba\(21,\s*78,\s*63/);
   assert.match(desktop, /\.mj-dock > button:active\s*\{[^}]*translate:\s*0 1px;[^}]*inset 0 2px 6px/);
   assert.match(desktop, /\.mj-dock-icon\s*\{[^}]*width:\s*34px;[^}]*height:\s*34px;[^}]*flex-basis:\s*34px;/);
@@ -506,14 +514,14 @@ test('best records are scoped to the active layout revision', () => {
   assert.match(controller, /layoutId: game\.layoutId,\s*layoutRevision: game\.layoutRevision,\s*mode: game\.mode,/);
 });
 
-test('the completion card keeps its center transform after dialog motion', () => {
+test('the completion card stays centered without an entrance drift', () => {
   const rule = styles.match(/\.mj-win\s*\{([^}]*)\}/)?.[1] || '';
   assert.ok(html.indexOf('id="mjWin"') > html.indexOf('id="mjTrayRail"'));
   assert.match(rule, /position:\s*fixed;/);
   assert.match(rule, /transform:\s*translate\(-50%,\s*-50%\);/);
   assert.match(rule, /max-height:\s*calc\(100% - 28px\);/);
+  assert.match(rule, /animation:\s*none;/);
   assert.doesNotMatch(rule, /(?:^|;)\s*translate:/);
-  assert.match(styles, /@keyframes mj-dialog-in\s*\{[\s\S]*translate:\s*0 12px;[\s\S]*translate:\s*0 0;/);
 });
 
 test('completion results promote the score and separate time from Burst performance', () => {
@@ -528,22 +536,28 @@ test('completion results promote the score and separate time from Burst performa
   assert.match(controller, /separator\.className = 'mj-win-score-separator'/);
   assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
   assert.match(controller, /record\.classList\.toggle\('is-record', game\._outcome === 'record' \|\| game\._outcome === 'first'\)/);
-  assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*radial-gradient[^}]*box-shadow:/);
+  assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*background:\s*var\(--mj-table\);[^}]*box-shadow:/);
   assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(46px, 6\.2vw, 64px\)[^}]*text-shadow:/);
-  assert.match(styles, /\.mj-win-score-separator\s*\{[^}]*-webkit-text-fill-color:\s*#f3deb0;[^}]*text-shadow:\s*0 3px 8px/);
+  assert.match(styles, /\.mj-win-score-separator\s*\{[^}]*-webkit-text-fill-color:\s*var\(--mj-ivory-deep\);[^}]*text-shadow:\s*none/);
   assert.match(styles, /\.mj-win-stats\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@keyframes mj-win-particles/);
   assert.match(styles, /@keyframes mj-win-glint/);
+  for (const [name, cap] of [['mj-win-particles', 0.22], ['mj-win-glint', 0.28]]) {
+    const keyframes = styles.match(new RegExp(`@keyframes ${name}\\s*\\{([\\s\\S]*?)\\n\\}`))?.[1] || '';
+    const opacities = [...keyframes.matchAll(/opacity:\s*([\d.]+)/g)].map((match) => Number(match[1]));
+    assert.equal(opacities.length, 2, `${name} should set entrance and resting opacity`);
+    assert.ok(opacities.every((opacity) => opacity <= cap), `${name} should stay below the dusk opacity cap`);
+  }
 });
 
-test('dialog actions keep readable lacquer contrast through hover and keyboard focus', () => {
-  assert.match(styles, /\.mj-setup-card,\s*\.mj-rescue-card,\s*\.mj-card-overlay\s*\{[^}]*radial-gradient\(circle at 50% -16%[^}]*0 34px 90px[^}]*inset 0 -2px 0/);
+test('dialog actions keep readable dusk contrast through hover and keyboard focus', () => {
+  assert.match(styles, /\.mj-setup-card,\s*\.mj-rescue-card,\s*\.mj-card-overlay\s*\{[^}]*background:\s*var\(--mj-panel-solid\);[^}]*box-shadow:/);
   assert.match(styles, /\.mj-modal h1,\s*\.mj-card-overlay h1\s*\{[^}]*clamp\(30px, 3\.6vw, 40px\)/);
   assert.match(styles, /\.mj-button\s*\{[^}]*min-height:\s*48px;[^}]*font-size:\s*14px;[^}]*font-weight:\s*660/);
   assert.match(styles, /\.mj-rescue-card > p:not\(\.mj-overline\)\s*\{[^}]*font-size:\s*15px;[^}]*line-height:\s*1\.55/);
   assert.match(styles, /\.mj-rescue-actions \.mj-button\s*\{[^}]*min-height:\s*52px/);
   assert.match(styles, /\.mj-button:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\);[^}]*border-color:\s*var\(--mj-brass\);[^}]*translate:\s*0 -1px;/);
-  assert.match(styles, /\.mj-button-primary:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-lacquer-ink\);[^}]*background:\s*#fffaf0;/);
+  assert.match(styles, /\.mj-button-primary:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-table-ink\);[^}]*background:\s*#fffaf0;/);
   assert.match(styles, /\.mj-button:active\s*\{[^}]*translate:\s*0 1px;/);
 });
 
@@ -682,8 +696,8 @@ test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () 
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--font-mono:\s*var\(--font-ui\);/);
 });
 
-test('notices are lacquer pills anchored inside the table instead of loose text at its edge', () => {
-  assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-panel\);[^}]*backdrop-filter:/);
+test('notices are dusk pills anchored inside the table instead of loose text at its edge', () => {
+  assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-panel\);[^}]*box-shadow:/);
   const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
   assert.ok(desktop, 'desktop media block present');
   assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*top:\s*calc\(anchor\(top\) \+ 14px\);[^}]*left:\s*anchor\(center\);[^}]*width:\s*min\(640px, calc\(anchor-size\(width\) - 208px\)\);[^}]*transform:\s*translateX\(-50%\);/);
