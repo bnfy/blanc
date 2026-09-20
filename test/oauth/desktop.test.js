@@ -271,8 +271,15 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
       res.writeHead(302, { Location: 'claude://callback?code=test-only&state=opaque' });
       return res.end();
     }
+    if (url.pathname === '/redirect-canva') {
+      res.writeHead(302, { Location: 'canva://callback?code=test-only&state=opaque' });
+      return res.end();
+    }
     sendHtml(res, `<a id="direct" href="claude://callback?code=test-only&state=opaque">Return to app</a>
       <a id="redirect" href="/redirect">Redirect to app</a>
+      <a id="canva" href="canva://callback?code=test-only&state=opaque">Return to Canva</a>
+      <a id="canva-redirect" href="/redirect-canva">Redirect to Canva</a>
+      <a id="other-app" href="another-installed-app://callback?code=test-only&state=opaque">Return to another app</a>
       <button id="popup" onclick="window.open('/callback', 'oauth', 'popup,width=520,height=680')">Popup</button>
       <button id="tab" onclick="window.open('/callback', '_blank')">New tab</button>
       <button id="frame" onclick="document.querySelector('iframe').src='/redirect'">Frame callback</button>
@@ -312,7 +319,7 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
     globalThis.appHandoffTest = { prompts: [], launches: [], lookups: [], response: 0, promptDelay: 0 };
     electron.app.getApplicationNameForProtocol = (url) => {
       globalThis.appHandoffTest.lookups.push(url);
-      return 'Claude';
+      return { 'claude:': 'Claude', 'canva:': 'Canva', 'another-installed-app:': 'Another App' }[new URL(url).protocol] || '';
     };
     electron.dialog.showMessageBox = async (_, options) => {
       globalThis.appHandoffTest.prompts.push(options);
@@ -363,6 +370,30 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
   assert.ok(state.launches.every((url) => url === 'claude://callback?code=test-only&state=opaque'));
   assert.ok(state.lookups.every((url) => url === 'claude://'));
   assert.doesNotMatch(JSON.stringify(state.prompts), /test-only|opaque/);
+  await app.evaluate(() => { globalThis.appHandoffTest.promptDelay = 0; });
+  for (const [selector, scheme, appName] of [
+    ['canva', 'canva', 'Canva'],
+    ['canva-redirect', 'canva', 'Canva'],
+    ['other-app', 'another-installed-app', 'Another App'],
+  ]) {
+    await clickWebContents(app, root.id, `#${selector}`);
+    const result = await waitForLaunch(++count);
+    assert.equal(result.launches.at(-1), `${scheme}://callback?code=test-only&state=opaque`);
+    assert.equal(result.lookups.at(-1), `${scheme}://`);
+    assert.equal(result.prompts.at(-1).message, `Open ${appName}?`);
+  }
+  assert.doesNotMatch(JSON.stringify((await snapshot()).prompts), /test-only|opaque/);
+  // Scripted iframe redirects must not reopen the native prompt after a
+  // handoff. A genuine subsequent click can intentionally retry it.
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const beforeAutomatic = await snapshot();
+  await evaluateWebContents(app, root.id, "document.querySelector('iframe').src='/redirect-canva'");
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  const afterAutomatic = await snapshot();
+  assert.equal(afterAutomatic.prompts.length, beforeAutomatic.prompts.length);
+  assert.equal(afterAutomatic.lookups.length, beforeAutomatic.lookups.length);
+  await clickWebContents(app, root.id, '#canva');
+  assert.equal((await waitForLaunch(++count)).launches.length, count, 'a new click can retry the handoff');
   await app.evaluate(() => {
     globalThis.appHandoffTest.response = 1;
     globalThis.appHandoffTest.promptDelay = 0;

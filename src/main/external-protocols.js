@@ -3,35 +3,42 @@
 // These familiar links retain the explicit typed-address shortcut.
 const DIRECT_HANDOFF_PROTOCOLS = new Set(['mailto:', 'tel:', 'facetime:', 'sms:']);
 
-// Browser-to-app handoffs need an affirmative allowlist. shell.openExternal
-// passes the complete URL to an installed protocol handler, so treating every
-// unknown scheme as safe would expose all of that handler's command surface to
-// arbitrary web content. Additions here require an app-specific security and
-// login-flow review.
-const APP_HANDOFF_PROTOCOLS = new Set([
-  'claude:',
+// Native apps register their own URL schemes with the OS. A browser cannot
+// enumerate those schemes in advance. Like Chromium's external-protocol
+// handler, reject browser/internal and dangerous OS schemes, then ask the OS
+// whether an application is registered and require explicit user consent.
+// This is deliberately a denylist, not a list of supported services.
+const BROWSER_PROTOCOLS = new Set([
+  'http:', 'https:', 'about:', 'blob:', 'filesystem:', 'blanc:',
+  'data:', 'javascript:', 'vbscript:',
 ]);
-const HANDOFF_PROTOCOLS = new Set([...DIRECT_HANDOFF_PROTOCOLS, ...APP_HANDOFF_PROTOCOLS]);
-const OAUTH_HANDOFF_PROTOCOLS = [
-  // Microsoft Authentication Library's native-app callback convention.
-  /^msauth\.[a-z0-9.-]+:$/,
-  // Google OAuth's reversed-client-id callback convention.
-  /^com\.googleusercontent\.apps\.[a-z0-9-]+:$/,
-];
-
-function isAppHandoffProtocol(protocol) {
-  return APP_HANDOFF_PROTOCOLS.has(protocol)
-    || OAUTH_HANDOFF_PROTOCOLS.some((pattern) => pattern.test(protocol));
-}
+// These are not browser document schemes; consume page-initiated navigation so
+// Chromium cannot try a second, unreviewed route after our OS handoff declines.
+const BLOCKED_OS_PROTOCOLS = new Set([
+  'chrome:', 'chrome-extension:', 'devtools:', 'blanc-chrome:',
+  'blanc-import:', 'file:', 'view-source:',
+  'afp:', 'applescript:', 'disk:', 'disks:', 'hcp:', 'ie.http:', 'mk:',
+  'ms-help:', 'nntp:', 'res:', 'shell:', 'vnd.ms.radio:',
+  // System-command, installer, settings and network-file handlers are not
+  // app-login callbacks. Do not expose them to arbitrary web content.
+  'cmd:', 'powershell:', 'terminal:', 'osascript:', 'ms-msdt:',
+  'ms-appinstaller:', 'ms-settings:', 'search-ms:', 'search:',
+  'smb:', 'ssh:', 'x-apple.systempreferences:',
+]);
+const DENIED_HANDOFF_PROTOCOLS = new Set([...BROWSER_PROTOCOLS, ...BLOCKED_OS_PROTOCOLS]);
 
 function classifyExternalNavigation(url, { trusted = false } = {}) {
   if (typeof url !== 'string' || !/^[a-z][a-z0-9+.-]*:/i.test(url)
-    || /[\u0000-\u0020\u007f]/.test(url)) return { action: 'none' };
+    || /[\u0000-\u0020\u007f\\"`]/.test(url)) return { action: 'none' };
   let protocol;
   try { protocol = new URL(url).protocol; } catch { return { action: 'none' }; }
-  if (!DIRECT_HANDOFF_PROTOCOLS.has(protocol) && !isAppHandoffProtocol(protocol)) {
-    return { action: 'none' };
-  }
+  if (protocol.length === 2) return { action: 'none' };
+  if (BLOCKED_OS_PROTOCOLS.has(protocol)) return { action: 'deny', protocol };
+  if (DENIED_HANDOFF_PROTOCOLS.has(protocol)) return { action: 'none' };
+  // The address bar also accepts search operators such as site:example.com.
+  // A typed custom app URL needs a slash; page-initiated links need not.
+  if (trusted && !DIRECT_HANDOFF_PROTOCOLS.has(protocol)
+    && !/^([a-z][a-z0-9+.-]*):\//i.test(url)) return { action: 'none' };
   return {
     action: trusted && DIRECT_HANDOFF_PROTOCOLS.has(protocol) ? 'open' : 'confirm',
     protocol,
@@ -42,12 +49,21 @@ function classifyExternalNavigation(url, { trusted = false } = {}) {
 // No callback URL, authorization code, or token is displayed or persisted.
 function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, openExternal }) {
   let pending = false;
-  return function handOff(url, { trusted = false, source } = {}) {
+  // One page-initiated handoff may prompt per native activation, across all
+  // tabs and frames. A timer cannot reopen a dismissed dialog indefinitely.
+  let gestureSerial = 0;
+  let promptedForGesture = -1;
+  const handOff = function (url, { trusted = false, source } = {}) {
     const decision = classifyExternalNavigation(url, { trusted });
     if (decision.action === 'none') return false;
+    // A typed search operator still belongs to the address bar, but a web
+    // page's OS-control link must not fall through to Chromium navigation.
+    if (decision.action === 'deny') return !trusted;
+    if (!trusted && promptedForGesture === gestureSerial) return true;
     if (pending) return true;
     const parent = getWindow();
     if (!parent) return true;
+    if (!trusted) promptedForGesture = gestureSerial;
     pending = true;
     const show = (options) => showMessageBox(parent, options);
     void (async () => {
@@ -90,6 +106,8 @@ function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, 
     })();
     return true;
   };
+  handOff.noteUserGesture = () => { gestureSerial += 1; };
+  return handOff;
 }
 
 // Install on managed tabs and real OAuth popup windows. Server redirects do
@@ -105,9 +123,8 @@ function installExternalNavigationHandlers(wc, handOff) {
 }
 
 module.exports = {
-  APP_HANDOFF_PROTOCOLS,
+  DENIED_HANDOFF_PROTOCOLS,
   DIRECT_HANDOFF_PROTOCOLS,
-  HANDOFF_PROTOCOLS,
   classifyExternalNavigation,
   createExternalHandoff,
   installExternalNavigationHandlers,

@@ -979,7 +979,7 @@
 
   /** True when the typed text is a real navigation target rather than a search
    * query — mirrors the navigate branches of normalizeAddressInput (main.js)
-   * and the HANDOFF_PROTOCOLS allowlist (external-protocols.js). When it's an
+   * and the typed external-link policy (external-protocols.js). When it's an
    * address, bare Enter navigates instead of letting a Quick-Switcher match
    * hijack it — a tab whose *title* merely contains "getbowser.com" must not
    * steal Enter away from actually opening getbowser.com. Kept in hand-sync

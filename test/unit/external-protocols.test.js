@@ -2,9 +2,8 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const {
-  APP_HANDOFF_PROTOCOLS,
+  DENIED_HANDOFF_PROTOCOLS,
   DIRECT_HANDOFF_PROTOCOLS,
-  HANDOFF_PROTOCOLS,
   classifyExternalNavigation,
   createExternalHandoff,
   installExternalNavigationHandlers,
@@ -28,41 +27,62 @@ test('typed address-bar input opens without a prompt', () => {
   assert.equal(decision.protocol, 'mailto:');
 });
 
+test('valid apostrophes remain intact in external links', async () => {
+  const h = harness();
+  const url = "mailto:o'brien@example.com";
+  assert.equal(h.handOff(url, { trusted: true }), true);
+  await settle();
+  assert.deepEqual(h.launches, [url]);
+  assert.deepEqual(h.prompts, []);
+});
+
 test('web, script and local file URLs are never handed to the OS', () => {
-  for (const url of [
-    'https://example.com',
-    'javascript:alert(1)',
-    'vbscript:x',
-    'file:///etc/passwd',
-    'not a url',
-    '',
+  for (const [url, action] of [
+    ['https://example.com', 'none'],
+    ['javascript:alert(1)', 'none'],
+    ['vbscript:x', 'none'],
+    ['file:///etc/passwd', 'deny'],
+    ['not a url', 'none'],
+    ['', 'none'],
   ]) {
-    assert.equal(classifyExternalNavigation(url, { trusted: false }).action, 'none', url);
-    assert.equal(classifyExternalNavigation(url, { trusted: true }).action, 'none', url);
+    assert.equal(classifyExternalNavigation(url, { trusted: false }).action, action, url);
+    assert.equal(classifyExternalNavigation(url, { trusted: true }).action, action, url);
   }
 });
 
 test('only familiar typed links bypass confirmation', () => {
   assert.deepEqual([...DIRECT_HANDOFF_PROTOCOLS].sort(), ['facetime:', 'mailto:', 'sms:', 'tel:']);
-  assert.ok(HANDOFF_PROTOCOLS.has('claude:'));
-  assert.deepEqual([...APP_HANDOFF_PROTOCOLS], ['claude:']);
+  assert.ok(DENIED_HANDOFF_PROTOCOLS.has('shell:'));
 });
 
-test('reviewed app and OAuth callback schemes always require confirmation', () => {
-  for (const url of ['claude://login?code=secret',
+test('installed-app candidates need confirmation without a service whitelist', () => {
+  for (const url of ['claude://login?code=secret', 'canva://login?code=secret',
+    'another-installed-app://auth/callback', 'vscode://file/tmp/demo',
     'com.googleusercontent.apps.123-abc:/oauthredirect',
     'msauth.com.example.desktop:/callback']) {
     for (const trusted of [true, false]) assert.equal(classifyExternalNavigation(url, { trusted }).action, 'confirm');
   }
 });
 
-test('unreviewed schemes, search operators, browser internals and malformed URLs never launch', () => {
+test('dangerous OS schemes and privileged internals are consumed without launch', () => {
   for (const url of ['shell:AppsFolder', 'ms-msdt:/x', 'ms-appinstaller:?source=x',
-    'search-ms:query=x', 'powershell:run', 'blanc-import://x', 'blanc://settings/',
-    'chrome://settings', 'view-source:https://example.com', 'blob:https://example.com/x',
-    'ssh://host', 'smb://host', 'steam://run/1', 'vscode://file/tmp/demo',
-    'site:example.com', 'npm:react', 'RFC:3986', 'doi:10.1000/182',
-    'C:\\Windows', ' claude://login', 'clau\nde://login', 'claude://login?x=\u0000']) {
+    'search-ms:query=x', 'powershell:run', 'blanc-import://x',
+    'chrome://settings', 'view-source:https://example.com', 'file:///etc/passwd',
+    'ssh://host', 'smb://host', 'x-apple.systempreferences://settings']) {
+    assert.equal(classifyExternalNavigation(url, { trusted: false }).action, 'deny', url);
+  }
+});
+
+test('browser-owned and malformed URLs are not external handoffs', () => {
+  for (const url of ['blanc://settings/', 'blob:https://example.com/x',
+    'C:\\Windows', ' claude://login', 'clau\nde://login', 'claude://login?x=\u0000',
+    'canva://login?x="quoted"', 'canva://login\\evil']) {
+    assert.equal(classifyExternalNavigation(url, { trusted: false }).action, 'none', url);
+  }
+});
+
+test('typed search operators remain searches, not external-app attempts', () => {
+  for (const url of ['site:example.com', 'npm:react', 'RFC:3986', 'doi:10.1000/182']) {
     assert.equal(classifyExternalNavigation(url, { trusted: true }).action, 'none', url);
   }
 });
@@ -78,6 +98,17 @@ function harness(options = {}) {
   });
   return { handOff, prompts, launches, lookups };
 }
+
+test('web-initiated OS-control links are consumed without prompting or launching', async () => {
+  const h = harness();
+  assert.equal(h.handOff('shell:AppsFolder', { source: 'https://example.com' }), true);
+  assert.equal(h.handOff('blanc-import://payload', { source: 'https://example.com' }), true);
+  assert.equal(h.handOff('shell:AppsFolder', { trusted: true }), false);
+  await settle();
+  assert.deepEqual(h.lookups, []);
+  assert.deepEqual(h.prompts, []);
+  assert.deepEqual(h.launches, []);
+});
 
 test('confirmation shows source origin and app, never callback secrets; opens exact URL', async () => {
   const h = harness();
@@ -102,6 +133,31 @@ test('cancel never launches', async () => {
   assert.deepEqual(h.launches, []);
 });
 
+test('page timers cannot reopen app prompts until another native activation', async () => {
+  const h = harness();
+  h.handOff('canva://first'); await settle();
+  for (let i = 0; i < 5; i++) {
+    h.handOff(`unrelated-app-${i}://callback`);
+    await settle();
+  }
+  assert.equal(h.prompts.length, 1);
+  assert.deepEqual(h.launches, ['canva://first']);
+  h.handOff.noteUserGesture();
+  h.handOff('canva://retry'); await settle();
+  assert.equal(h.prompts.length, 2);
+  assert.deepEqual(h.launches, ['canva://first', 'canva://retry']);
+});
+
+test('unregistered schemes also consume only one prompt per activation', async () => {
+  const h = harness({ getApplicationName: () => '' });
+  h.handOff('unregistered-one://callback'); await settle();
+  h.handOff('unregistered-two://callback'); await settle();
+  assert.equal(h.prompts.length, 1);
+  h.handOff.noteUserGesture();
+  h.handOff('unregistered-two://callback'); await settle();
+  assert.equal(h.prompts.length, 2);
+});
+
 test('captured callback remains launchable while the prompt is pending and the guard resets', async () => {
   let answer, count = 0;
   const h = harness({ showMessageBox: () => { count++; return new Promise((resolve) => { answer = resolve; }); } });
@@ -109,6 +165,8 @@ test('captured callback remains launchable while the prompt is pending and the g
   h.handOff('claude://second'); assert.equal(count, 1);
   answer({ response: 0 }); await settle();
   assert.deepEqual(h.launches, ['claude://login']);
+  h.handOff('claude://second'); assert.equal(count, 1);
+  h.handOff.noteUserGesture();
   h.handOff('claude://second'); assert.equal(count, 2);
   answer({ response: 1 }); await settle();
 });
