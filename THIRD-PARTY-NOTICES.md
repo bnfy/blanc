@@ -48,6 +48,9 @@ Copyright (c) 2024 1Password. Full licence text in
 - `src/renderer/pages/inter-latin.woff2` — Copyright 2020 The Inter Project
   Authors. Full licence text:
   [src/renderer/pages/inter-OFL.txt](src/renderer/pages/inter-OFL.txt).
+- `ios/Blanc/Blanc/Fonts/Inter-{Regular,Medium,SemiBold}.ttf` — Inter Project
+  Authors. The iOS bundle also carries
+  [ios/Blanc/Blanc/Fonts/inter-OFL.txt](ios/Blanc/Blanc/Fonts/inter-OFL.txt).
 - `src/renderer/pages/jetbrains-mono-latin.woff2` — Copyright 2020 The
   JetBrains Mono Project Authors. Full licence text:
   [src/renderer/pages/jetbrains-mono-OFL.txt](src/renderer/pages/jetbrains-mono-OFL.txt).
@@ -55,7 +58,7 @@ Copyright (c) 2024 1Password. Full licence text in
   Authors. Full licence text:
   [src/renderer/pages/caveat-OFL.txt](src/renderer/pages/caveat-OFL.txt).
 
-All three font files remain under the SIL Open Font License, Version 1.1; Blanc's
+These font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 

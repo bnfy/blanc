@@ -133,6 +133,7 @@ final class ContentBlocker {
         if isReady {
             target.attachContentBlockingRules(from: self)
         } else {
+            guard !pendingTargets.contains(where: { $0.target === target }) else { return }
             pendingTargets.append(WeakTarget(target: target))
         }
     }

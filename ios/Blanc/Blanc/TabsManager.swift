@@ -27,6 +27,19 @@ final class TabsManager {
         contentBlocker.isReady && contentBlocker.enabled
     }
 
+    var activeSiteHost: String? {
+        Self.siteHost(for: activeTab?.currentURL)
+    }
+
+    var canToggleActiveSiteProtection: Bool {
+        settingsStore.adblockEnabled && activeSiteHost != nil
+    }
+
+    var isActiveSiteProtected: Bool {
+        guard let url = activeTab?.currentURL else { return false }
+        return shouldBlock(url)
+    }
+
     init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil) {
         let store = SettingsStore(directory: settingsDirectory)
         self.settingsStore = store
@@ -62,16 +75,22 @@ final class TabsManager {
     @discardableResult
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
-        if contentBlocker.enabled, let ruleList = contentBlocker.compiledRuleList {
+        let shouldAttach = shouldBlock(url)
+        if shouldAttach, let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
         let tab = TabModel(url: url, configuration: config)
-        if contentBlocker.enabled && !contentBlocker.isReady {
-            contentBlocker.attach(to: tab.webView)
+        tab.blockerRulesAttached = shouldAttach && contentBlocker.compiledRuleList != nil
+        if shouldAttach && !contentBlocker.isReady {
+            contentBlocker.attach(to: tab)
         }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
+        }
+        tab.navigationDelegate.onMainFrameNavigation = { [weak self, weak tab] destination in
+            guard let self, let tab else { return }
+            self.reconcileRuleList(for: tab, destination: destination, reload: false)
         }
         tabs.append(tab)
         activeTabId = tab.id
@@ -84,7 +103,7 @@ final class TabsManager {
         let wasActive = id == activeTabId
         // If the tab is still queued for a cold-compile drain, drop it so its web view
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
-        contentBlocker.cancelPending(for: tabs[index].webView)
+        contentBlocker.cancelPending(for: tabs[index])
         tabs.remove(at: index)
 
         if tabs.isEmpty {
@@ -103,6 +122,22 @@ final class TabsManager {
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
         persistSession()
+    }
+
+    /// A site is the exact host of the main-frame page. Global blocking is a
+    /// separate Settings control; this toggle never changes it.
+    func toggleProtectionForActiveSite() {
+        guard settingsStore.adblockEnabled, let host = activeSiteHost else { return }
+        var allowed = settingsStore.adblockAllowedHosts
+        if allowed.contains(host) {
+            allowed.remove(host)
+        } else {
+            allowed.insert(host)
+        }
+        settingsStore.update(adblockAllowedHosts: allowed)
+        for tab in tabs where Self.siteHost(for: tab.currentURL) == host {
+            reconcileRuleList(for: tab, destination: tab.currentURL, reload: true)
+        }
     }
 
     func submitActiveTabAddress() {
@@ -150,36 +185,51 @@ final class TabsManager {
             normalizer.searchEngine = value
         }
 
-        if let enabled = patch["adblockEnabled"] as? Bool {
-            adblockUpdate = enabled
-            applyAdblockToggle(enabled)
-        }
+        if let enabled = patch["adblockEnabled"] as? Bool { adblockUpdate = enabled }
 
         // One validated mutation that also schedules the debounced save.
         settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
+        if let adblockUpdate { applyAdblockToggle(adblockUpdate) }
     }
 
     private func applyAdblockToggle(_ enabled: Bool) {
         contentBlocker.setEnabled(enabled)
-        if enabled {
-            if contentBlocker.isReady {
-                for tab in tabs {
-                    if let ruleList = contentBlocker.compiledRuleList {
-                        tab.webView.configuration.userContentController.add(ruleList)
-                        tab.webView.reload()
-                    }
-                }
-            } else {
-                // Cold-compile still in flight: queue each tab; drainPending attaches
-                // once the list is ready (setEnabled(true) re-opened attachment).
-                for tab in tabs {
-                    contentBlocker.attach(to: tab.webView)
+        for tab in tabs {
+            reconcileRuleList(for: tab, destination: tab.currentURL, reload: true)
+        }
+    }
+
+    private static func siteHost(for url: URL?) -> String? {
+        guard let url,
+              ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
+              let host = url.host?.lowercased(), !host.isEmpty else { return nil }
+        return host
+    }
+
+    private func shouldBlock(_ url: URL) -> Bool {
+        guard settingsStore.adblockEnabled, let host = Self.siteHost(for: url) else { return false }
+        return !settingsStore.adblockAllowedHosts.contains(host)
+    }
+
+    private func reconcileRuleList(for tab: TabModel, destination: URL, reload: Bool) {
+        let shouldAttach = shouldBlock(destination)
+        if shouldAttach {
+            if !tab.blockerRulesAttached {
+                if let ruleList = contentBlocker.compiledRuleList {
+                    contentBlocker.cancelPending(for: tab)
+                    tab.webView.configuration.userContentController.add(ruleList)
+                    tab.blockerRulesAttached = true
+                    if reload { tab.webView.reload() }
+                } else {
+                    contentBlocker.attach(to: tab)
                 }
             }
         } else {
-            for tab in tabs {
+            contentBlocker.cancelPending(for: tab)
+            if tab.blockerRulesAttached {
                 tab.webView.configuration.userContentController.removeAllContentRuleLists()
-                tab.webView.reload()
+                tab.blockerRulesAttached = false
+                if reload { tab.webView.reload() }
             }
         }
     }

@@ -122,6 +122,21 @@ final class ContentBlockerTests: XCTestCase {
         XCTAssertEqual(target2.attachCount, 1)
     }
 
+    func testRepeatedNavigationDoesNotQueueDuplicateAttachment() {
+        let store = FakeRuleListStore()
+        store.compileResult = false
+        let blocker = ContentBlocker(store: store)
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
+
+        let target = FakeAttachTarget()
+        blocker.attach(to: target)
+        blocker.attach(to: target)
+        store.flushLookup(found: false)
+        store.flushCompile()
+
+        XCTAssertEqual(target.attachCount, 1)
+    }
+
     func testAttachAfterReadyDoesNotEnqueue() {
         let store = FakeRuleListStore()
         store.lookupResult = true

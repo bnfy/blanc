@@ -11,6 +11,8 @@ final class TabModel: Identifiable {
     var canGoForward = false
     var isLoading = false
     var pageTitle = ""
+    var faviconData: Data?
+    var blockerRulesAttached = false
 
     let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
@@ -49,4 +51,13 @@ final class TabModel: Identifiable {
     func goForward() { webView.goForward() }
     func reload()    { webView.reload() }
     func stop()      { webView.stopLoading() }
+}
+
+extension TabModel: RuleListAttaching {
+    func attachContentBlockingRules(from blocker: ContentBlocker) {
+        guard !blockerRulesAttached, let ruleList = blocker.compiledRuleList else { return }
+        webView.configuration.userContentController.add(ruleList)
+        blockerRulesAttached = true
+        webView.reload()
+    }
 }

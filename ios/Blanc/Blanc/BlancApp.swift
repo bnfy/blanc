@@ -11,6 +11,8 @@ import SwiftUI
 struct BlancApp: App {
     @State private var manager = TabsManager()
 
+    init() { InterFont.register() }
+
     var body: some Scene {
         WindowGroup {
             ContentView(manager: manager)
