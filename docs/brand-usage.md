@@ -37,6 +37,17 @@ The authoritative product/site tokens remain in `site/src/styles/site.css` and
 `src/renderer/styles.css`. Retired feature-specific colorways are not part of
 the general Blanc brand palette.
 
+### Mahjong: Sunrise at dusk
+
+Mahjong is a deliberately scoped in-product exception to the neutral product
+palette. Its game-local table uses warm charcoal `#1B1713`, a `#29221B` board,
+`#332A21` panels, ivory `#F7F0E5` type and restrained gold `#D4AD66` accents.
+The darker private table stays in the same warm family and carries an explicit
+private chip. These values do not replace the shared product or website tokens.
+The header uses the unmodified Sunrise artwork with clear space and no glow.
+The B motif on the white-dragon tile remains an intentional historical game
+detail, not a mark for new Blanc creative.
+
 ### Sunrise palette for website and marketing
 
 The website carries the Sunrise icon's warmth through ivory backgrounds,
