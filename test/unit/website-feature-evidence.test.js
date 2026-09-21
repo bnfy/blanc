@@ -6,7 +6,8 @@ const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const ledger = JSON.parse(read('docs/website-v1.15-claims.json'));
+const ledger = JSON.parse(read('docs/website-v1.21-claims.json'));
+const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -29,6 +30,14 @@ test('the website claim ledger resolves to the current public release and contai
   for (const file of paths) execFileSync('git', ['cat-file', '-e', `${ledger.publicRelease}:${file}`], { cwd: root });
 });
 
+test('the v1.15 claim ledger remains paired with its immutable release evidence', () => {
+  assert.equal(historicalLedger.publicRelease, 'v1.15.0');
+  assert.equal(
+    execFileSync('git', ['rev-parse', historicalLedger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(),
+    historicalLedger.sourceSha
+  );
+});
+
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs']) {
     const file = `site/src/pages/features/${slug}.astro`;
@@ -42,6 +51,8 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
 
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifest = JSON.parse(read('docs/website-captures-v1.15.json'));
+  assert.equal(manifest.release, historicalLedger.publicRelease);
+  assert.equal(manifest.sourceSha, historicalLedger.sourceSha);
   assert.equal(execFileSync('git', ['rev-parse', manifest.release], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
   assert.equal(manifest.settings.usagePing, false);
   assert.equal(manifest.settings.searchSuggestions, false);
