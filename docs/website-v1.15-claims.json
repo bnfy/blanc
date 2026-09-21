@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "publicRelease": "v1.15.0",
-  "sourceSha": "d0c2304c7cef12a6fa0d66c559aebb1198a86434",
+  "publicRelease": "v1.21.0",
+  "sourceSha": "159f274de47ffb32412420ae241d6337a416d0da",
   "websiteBaseline": "6fc13523198920f6c9ed8d6e88c2d13abdff3f3a",
-  "scope": "New and changed website wording for the v1.15 expansion, including editorial benefit headings. Whitespace is normalized; markup is removed. Existing unchanged copy and the historical Blanc 1.0 announcement are not republished as v1.15 claims by this ledger.",
-  "releaseEvidence": "docs/release-incidents/2026-09-02-v1.15.0.md",
+  "scope": "Release-backed website wording through v1.21.0, including editorial benefit headings. Whitespace is normalized; markup is removed. Historical Blanc announcements remain historical records.",
+  "releaseEvidence": "docs/release-incidents/2026-09-21-v1.21.0.md",
   "evidenceResolution": "Every evidence path below is at the immutable publicRelease tag, not the website working tree. Qualifications apply to each entry via its evidenceGroups and must travel with the relevant capability on the destination guide.",
   "prohibitedClaims": [
     "AI organization or automatic semantic grouping",
@@ -553,7 +553,7 @@
     {
       "id": "website-115-044",
       "source": "site/src/pages/download.astro",
-      "exactWording": "Five layouts include Billboard’s local frequent sites and Mahjong with eight boards, Daily deals, and device-local records. Explore the Start Page.",
+      "exactWording": "Four layouts include Billboard’s local frequent sites, and every footer opens standalone Mahjong with eight boards, Daily deals, and device-local records. Explore the Start Page.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -913,7 +913,7 @@
     {
       "id": "website-115-079",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "A playable Mahjong solitaire table in your new tab, with Classic and Burst modes. Hide the footer while you play, then bring it back to change layouts.",
+      "exactWording": "Open a standalone Mahjong solitaire table from any start-page footer, with Classic and Burst modes while your start page stays open.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -2170,7 +2170,7 @@
     {
       "id": "website-115-203",
       "source": "site/src/pages/features/island.astro",
-      "exactWording": "Try a list of Favorites, local frequent sites, or a Mahjong board. Explore the five Start Page layouts.",
+      "exactWording": "Try a list of Favorites, local frequent sites, or launch standalone Mahjong from any footer. Explore the four Start Page layouts.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"

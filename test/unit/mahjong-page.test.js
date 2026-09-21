@@ -271,7 +271,7 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   for (const cue of ['blocked', 'undo', 'hint', 'shuffle', 'deal', 'toggle']) {
     assert.match(controller, new RegExp(`sound\\.play\\([^\\n]*'${cue}'`), `missing ${cue} cue`);
   }
-  for (const cue of ['select', 'pair', 'tray', 'rescue', 'win']) {
+  for (const cue of ['select', 'pair', 'tray', 'mismatch', 'rescue', 'win']) {
     assert.match(controller, new RegExp(`return '${cue}'`), `missing ${cue} result cue`);
   }
   for (const cue of ['comboStep', 'comboFlowing', 'comboBrilliant', 'comboMasterful', 'autoClear']) {
@@ -313,6 +313,7 @@ test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances
   assert.match(controller, /spatialNeighbor\(focusIndex, event\.key\)/);
   assert.match(controller, /element\.inert = covered/);
   assert.match(controller, /if \(event\.key === 'Escape' && modal\.id === 'mjSetupSheet'\)/);
+  assert.match(controller, /if \(event\.key === 'Escape' && modal\.id === 'mjRescue'\) \{[\s\S]*?setDialogVisible\(modal, false\);[\s\S]*?getElementById\('mjUndo'\)\?\.focus\(\)/);
   assert.match(controller, /\['pair', 'tray-pair', 'tray-park', 'rescue'\]\.includes\(result\.type\)/);
   assert.match(controller, /setProperty\('--mj-order', String\(i\)\)/);
   assert.match(controller, /visibilitychange/);
@@ -353,6 +354,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(controller, /generation !== tileAnimationGeneration/);
   assert.match(controller, /immediate \? 0 : duration/);
   assert.match(controller, /mj-tray-slot\[data-tile-index=/);
+  assert.match(controller, /const target = result\.type === 'tray-pair'[\s\S]*?data-tile-index="\$\{result\.indices\[0\]\}"[\s\S]*?: nextTrayTarget\(\)/);
   assert.match(styles, /\.mj-tray-slot\.auto-clearing/);
   assert.match(controller, /classList\.add\('is-impact'\)/);
   assert.match(controller, /scoreMeter\?\.classList\.toggle\('is-heated', count >= 3\)/);
@@ -404,7 +406,13 @@ test('desktop game header promotes session identity and status hierarchy', () =>
   assert.match(responsiveHeader, /\.mj-meters\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/);
 });
 
-test('hints pulse a complete pair and include a parked Burst tile', () => {
+test('hints use safe selection, cycle Classic pairs, and include a parked Burst tile', () => {
+  assert.match(controller, /const moves = E\.hintMoves\(game\)/);
+  assert.match(controller, /game\.mode === 'tray' && game\.tray\.length === 3 && E\.availableMoves\(game\)\.length/);
+  assert.match(controller, /The Burst rack needs a match\. Use Undo or Shuffle/);
+  assert.match(controller, /moves\[game\.mode === 'classic' \? hintCycleIndex % moves\.length : 0\]/);
+  assert.match(controller, /hintCycleIndex = \(hintCycleIndex \+ 1\) % moves\.length/);
+  assert.match(controller, /function resetHintCycle\(\) \{[\s\S]*?hintCycleIndex = 0/);
   assert.match(controller, /document\.querySelector\(`\.mj-tray-slot\[data-tile-index="\$\{trayIndex\}"\]`\)\?\.classList\.add\('hinted'\)/);
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\)/);
   assert.match(styles, /\.mj-tile\.hinted\s*\{[^}]*mj-hint-pulse 720ms ease-in-out 3/);
@@ -631,8 +639,8 @@ test('the Records dock action and sheet are wired with accessible semantics', ()
   assert.match(mahjongStyles, /\.mj-records-table tr\[aria-current="true"\] th\s*\{/);
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-cleared\s*\{/);
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-today\s*\{/);
-  // The rail is sized from the embedded frame's height (the start page's
-  // footer sits outside it), in tiers measured against the Burst table:
+  // The rail is sized from the standalone tab viewport below Blanc's Island
+  // strip, in tiers measured against the Burst table:
   // 611–659 → 52/10, 660–720 → 56/14, ≥721 → the desktop block's 64/16.
   assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*grid-template-rows:\s*repeat\(6, 52px\);[^}]*gap:\s*10px;/);
   assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock > button\s*\{[^}]*width:\s*52px;[^}]*height:\s*52px;[^}]*min-width:\s*52px;[^}]*min-height:\s*52px;/);

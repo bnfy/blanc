@@ -366,8 +366,8 @@ test('Classic hints and Tray auto-matching never pair different-looking variants
   assert.deepEqual(matched.indices, [trayMotifOne, trayMotifTwo]);
   assert.deepEqual(tray.tray, [traySealOne]);
   assert.equal(E.undo(tray), true);
-  assert.deepEqual(tray.tray, [traySealOne]);
-  assert.equal(tray.removed[trayMotifOne], false);
+  assert.deepEqual(tray.tray, [trayMotifOne, traySealOne]);
+  assert.equal(tray.removed[trayMotifOne], true);
   assert.equal(tray.removed[trayMotifTwo], false);
 });
 
@@ -406,7 +406,7 @@ test('the pure combo clock expires exactly at five seconds', () => {
   assert.throws(() => E.advanceComboClock(state, -1), /non-negative/);
 });
 
-test('Tray matches the oldest compatible tile and undo restores the cleared pair', () => {
+test('Tray match undo restores the state before the matching pick', () => {
   const seed = 204;
   const state = E.createGame({ seed, layoutId: 'arch', mode: 'tray' });
   const { solution } = E.generateDeal({ seed, layoutId: 'arch' });
@@ -424,13 +424,16 @@ test('Tray matches the oldest compatible tile and undo restores the cleared pair
   assert.deepEqual(state.tray, [parkedOther]);
 
   assert.equal(E.undo(state), true);
-  assert.deepEqual(state.tray, [parkedOther]);
-  assert.equal(state.removed[first], false);
+  assert.deepEqual(state.tray, [first, parkedOther]);
+  assert.equal(state.removed[first], true);
   assert.equal(state.removed[mate], false);
   assert.equal(state.score, 0);
   assert.equal(E.undo(state), true);
-  assert.deepEqual(state.tray, []);
+  assert.deepEqual(state.tray, [first]);
   assert.equal(state.removed[parkedOther], false);
+  assert.equal(E.undo(state), true);
+  assert.deepEqual(state.tray, []);
+  assert.equal(state.removed[first], false);
 });
 
 test('Tray move discovery includes parked-tile mates and safe singleton picks', () => {
@@ -453,6 +456,29 @@ test('Tray move discovery includes parked-tile mates and safe singleton picks', 
   const moves = E.availableMoves(state);
   assert.ok(moves.length > 0);
   assert.ok(moves.every((move) => move.length === 1 || state.tray.includes(move[0])));
+});
+
+test('hint selection never recommends filling a three-tile Burst rack', () => {
+  const state = E.createGame({ seed: 1205, layoutId: 'peaks', mode: 'tray' });
+  const free = Array.from({ length: state.kinds.length }, (_, index) => index)
+    .filter((index) => E.isFree(state, index));
+  assert.ok(free.length >= 5);
+  for (let offset = 0; offset < 5; offset++) state.kinds[free[offset]] = `chr-${offset + 1}`;
+  for (const index of free.slice(0, 3)) assert.equal(E.selectTile(state, index).type, 'tray-park');
+
+  assert.ok(E.availableMoves(state).some((move) => move.length === 1));
+  assert.deepEqual(E.hintMoves(state), []);
+
+  state.kinds[free[3]] = state.kinds[free[0]];
+  assert.deepEqual(E.hintMoves(state)[0], [free[0], free[3]]);
+});
+
+test('Classic hint selection returns every pair in deterministic order', () => {
+  const state = E.createGame({ seed: 1206, layoutId: 'arch', mode: 'classic' });
+  const hints = E.hintMoves(state);
+  assert.ok(hints.length > 1);
+  assert.deepEqual(hints, E.availableMoves(state));
+  assert.deepEqual(hints, hints.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]));
 });
 
 test('parking unmatched tiles keeps momentum alive and a later match continues it', () => {
@@ -481,14 +507,24 @@ test('parking unmatched tiles keeps momentum alive and a later match continues i
 test('undo restores a composite milestone action and ends momentum', () => {
   let state = E.createGame({ seed: 207, layoutId: 'turtle', mode: 'tray' });
   for (let count = 1; count < 5; count++) clearAvailableTrayPair(state);
-  const before = E.serializeGame(state);
-  const milestone = clearAvailableTrayPair(state);
+  const move = E.availableMoves(state).find((candidate) => candidate.length === 2);
+  assert.ok(move);
+  let matchingIndex;
+  if (state.tray.includes(move[0])) matchingIndex = move[1];
+  else {
+    assert.equal(E.selectTile(state, move[0]).type, 'tray-park');
+    matchingIndex = move[1];
+  }
+  const beforeMatch = E.serializeGame(state);
+  const milestone = E.selectTile(state, matchingIndex);
   state = E.restoreGame(E.serializeGame(state));
   assert.equal(E.undo(state), true);
-  assert.equal(state.score, before.score);
-  assert.equal(state.autoClears, before.autoClears);
+  assert.equal(state.score, beforeMatch.score);
+  assert.equal(state.autoClears, beforeMatch.autoClears);
+  assert.deepEqual(state.tray, beforeMatch.tray);
+  assert.deepEqual(state.removed, beforeMatch.removed);
   assert.equal(state.comboCount, 0);
-  for (const index of [...milestone.indices, ...(milestone.autoClear?.indices || [])]) assert.equal(state.removed[index], false);
+  assert.equal(milestone.milestone, true);
 });
 
 test('milestone automatic clears protect the oldest parked tray tile first', () => {
@@ -765,7 +801,7 @@ test('shuffle actions survive serialization and malformed ones are rejected', ()
 
 test('matching a re-parked position after a shuffle never corrupts pre-shuffle undo', () => {
   // Find a Tray deal where a parked position comes back free with a free mate
-  // after the shuffle, so the post-shuffle match erases only its own park.
+  // after the shuffle, then verify each post-shuffle action remains undoable.
   let exercised = false;
   for (let seed = 4200; seed < 4400 && !exercised; seed++) {
     const state = E.createGame({ seed, layoutId: 'peaks', mode: 'tray' });
@@ -781,6 +817,10 @@ test('matching a re-parked position after a shuffle never corrupts pre-shuffle u
     assert.equal(E.selectTile(state, mateIndex).type, 'tray-pair');
     assert.ok(E.restoreGame(E.serializeGame(state)));
     assert.equal(E.undo(state), true); // the match
+    assert.ok(E.restoreGame(E.serializeGame(state)));
+    assert.equal(E.undo(state), true); // the post-shuffle park
+    assert.deepEqual(state.tray, []);
+    assert.equal(state.removed[parkedIndex], false);
     assert.ok(E.restoreGame(E.serializeGame(state)));
     assert.equal(E.undo(state), true); // the shuffle
     assert.deepEqual(state.tray, [parkedIndex]);

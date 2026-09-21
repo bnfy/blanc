@@ -124,8 +124,9 @@ device preference.
 
 ## Customize the start page
 
-General settings offer Ledger, Billboard, Shelf, Tally, and Mahjong layouts.
-Mahjong includes eight layouts, a Daily board, device-local records and
+General settings offer Ledger, Billboard, Shelf, and Tally layouts. Every
+start-page footer opens Mahjong in its own managed tab. Mahjong includes eight
+layouts, a Daily board, device-local records and
 streaks, unfinished-game resumption across tabs, and undoable Shuffle.
 
 ## Updates and help

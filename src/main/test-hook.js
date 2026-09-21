@@ -1198,6 +1198,99 @@ function install(refs) {
         return null;
       }
     },
+    async auditMahjongCorrectness() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
+      try {
+        return await wc.executeJavaScript(`(async () => {
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          const clickTile = async (index, delay = 420) => {
+            tileButtons[index]?.click();
+            await sleep(delay);
+          };
+          const highlighted = () => [...document.querySelectorAll('.mj-tile.hinted')]
+            .map((tile) => Number(tile.dataset.i)).sort((a, b) => a - b);
+
+          startGame({ layoutId: 'arch', mode: 'classic', seed: 91001 }, { soundCue: false });
+          const classicHints = E.hintMoves(game);
+          document.getElementById('mjHint').click();
+          const firstHint = highlighted();
+          document.getElementById('mjHint').click();
+          const secondHint = highlighted();
+
+          startGame({ layoutId: 'peaks', mode: 'tray', seed: 91002 }, { soundCue: false });
+          const match = E.availableMoves(game).find((move) => move.length === 2 && !game.tray.includes(move[0]));
+          if (!match) return { error: 'no Burst pair' };
+          await clickTile(match[0]);
+          await clickTile(match[1], 820);
+          document.getElementById('mjUndo').click();
+          await sleep(80);
+          const matchUndo = {
+            tray: game.tray.slice(),
+            parked: match[0],
+            mate: match[1],
+            parkedRemoved: game.removed[match[0]],
+            mateRemoved: game.removed[match[1]],
+          };
+
+          startGame({ layoutId: 'peaks', mode: 'tray', seed: 91003 }, { soundCue: false });
+          const free = [...tileButtons]
+            .filter((tile) => tile && !tile.dataset.blocked && !tile.hidden)
+            .map((tile) => Number(tile.dataset.i));
+          if (free.length < 4) return { error: 'not enough free tiles' };
+          for (let index = 0; index < game.kinds.length; index += 1) game.kinds[index] = 'chr-9';
+          for (let offset = 0; offset < 4; offset += 1) game.kinds[free[offset]] = 'chr-' + (offset + 1);
+          renderBoard();
+          refreshTiles();
+          for (const index of free.slice(0, 3)) await clickTile(index);
+          document.getElementById('mjHint').click();
+          await sleep(30);
+          const safeHint = {
+            highlighted: highlighted(),
+            live: document.getElementById('mjLive')?.textContent ?? null,
+          };
+          const parkedSet = new Set(free.slice(0, 4));
+          const mates = game.kinds.map((_, index) => index)
+            .filter((index) => !parkedSet.has(index)).slice(0, 4);
+          for (let offset = 0; offset < 4; offset += 1) game.kinds[mates[offset]] = 'chr-' + (offset + 1);
+          await clickTile(free[3]);
+          const rescue = document.getElementById('mjRescue');
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+          await sleep(30);
+          const rescueEscape = {
+            hidden: rescue.hidden,
+            status: game.status,
+            focus: document.activeElement?.id ?? null,
+          };
+          checkEndStates();
+          const shuffled = shuffleGame();
+          await sleep(620);
+          document.getElementById('mjUndo').click();
+          await sleep(80);
+          const rescueUndo = {
+            shuffled,
+            visible: !rescue.hidden,
+            status: game.status,
+            traySize: game.tray.length,
+          };
+
+          const result = {
+            classicHintCount: classicHints.length,
+            firstHint,
+            secondHint,
+            matchUndo,
+            safeHint,
+            rescueEscape,
+            rescueUndo,
+          };
+          startGame({ layoutId: 'peaks', mode: 'tray', seed: 91004 }, { soundCue: false });
+          return result;
+        })()`);
+      } catch {
+        return null;
+      }
+    },
     clickNewtabLayoutSwitcher(name) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;

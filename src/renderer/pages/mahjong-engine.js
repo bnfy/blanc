@@ -457,6 +457,21 @@
     return singles;
   }
 
+  function hintMoves(state) {
+    if (!state) return [];
+    const moves = availableMoves(state);
+    if (state.mode !== MODES.TRAY) return moves;
+
+    // Legal move discovery intentionally includes the fourth unmatched pick:
+    // players may choose to fill the rack and enter Rescue. A hint must never
+    // recommend that losing move, though. At three parked tiles only an
+    // immediately matching board tile is safe.
+    if ((state.tray || []).length >= TRAY_SIZE - 1) {
+      return moves.filter((move) => move.length === 2 && move.some((index) => state.tray.includes(index)));
+    }
+    return moves;
+  }
+
   // Kept for the v1 renderer and tests while v2 callers adopt availableMoves.
   const movesAvailable = availableMoves;
 
@@ -492,25 +507,6 @@
     if (expired) state.comboCount = 0;
     if (next !== previous || expired) touch(state);
     return { changed: true, expired, remainingMs: next };
-  }
-
-  // A shuffle empties the rack, so tray indices recorded before the most
-  // recent shuffle belong to an earlier epoch. Only the current epoch's park
-  // and its priorTray references are rewritten when a parked tile matches;
-  // the shuffle action itself and everything before it stay intact so undo
-  // can walk back through the shuffle faithfully.
-  function removeParkHistory(state, trayIndex) {
-    const epochStart = state.history.findLastIndex((action) => action.type === 'shuffle') + 1;
-    const parkedAction = state.history.findLastIndex(
-      (action, offset) => offset >= epochStart && action.type === 'tray-park' && action.index === trayIndex
-    );
-    if (parkedAction >= 0) state.history.splice(parkedAction, 1);
-    for (let offset = epochStart; offset < state.history.length; offset++) {
-      const action = state.history[offset];
-      if (action.type !== 'shuffle' && Array.isArray(action.priorTray)) {
-        action.priorTray = action.priorTray.filter((index) => index !== trayIndex);
-      }
-    }
   }
 
   function newlyExposedCount(state, removedIndices) {
@@ -602,7 +598,6 @@
     if (matchOffset >= 0) {
       const matchedIndex = priorTray[matchOffset];
       state.tray.splice(matchOffset, 1);
-      removeParkHistory(state, matchedIndex);
       state.comboCount = state.comboRemainingMs > 0 ? state.comboCount + 1 : 1;
       state.maxCombo = Math.max(state.maxCombo, state.comboCount);
       const userPoints = Math.min(100 + (state.comboCount - 1) * 50, MAX_COMBO_PAIR_POINTS);
@@ -618,7 +613,6 @@
           if (autoClear.source === 'tray') {
             const [trayIndex] = autoClear.indices;
             state.tray.splice(state.tray.indexOf(trayIndex), 1);
-            removeParkHistory(state, trayIndex);
           }
           for (const clearedIndex of autoClear.indices) state.removed[clearedIndex] = true;
           state.autoClears += 1;
@@ -629,7 +623,7 @@
       pushHistory(state, {
         type: 'tray-pair',
         indices: [matchedIndex, index],
-        priorTray: state.tray.slice(),
+        priorTray,
         priorScore,
         priorStatus: STATUSES.PLAYING,
         priorMaxCombo,
@@ -699,6 +693,9 @@
       state.removed[action.indices[1]] = false;
       for (const autoIndex of action.autoClear?.indices || []) state.removed[autoIndex] = false;
       state.tray = action.priorTray.slice();
+      // The pre-pick rack is part of the board state: parked tiles remain off
+      // the board, including a parked tile restored after an automatic clear.
+      for (const trayIndex of state.tray) state.removed[trayIndex] = true;
       state.score = action.priorScore;
       state.maxCombo = action.priorMaxCombo;
       state.autoClears = action.priorAutoClears;
@@ -1044,6 +1041,7 @@
     createGame,
     isFree,
     availableMoves,
+    hintMoves,
     movesAvailable,
     selectTile,
     advanceComboClock,

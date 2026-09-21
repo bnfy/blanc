@@ -296,6 +296,7 @@ let comboFxTimer = null;
 let tileAnimationGeneration = 0;
 let scoreAnimationGeneration = 0;
 let hintTimer = null;
+let hintCycleIndex = 0;
 const transientMotion = new Set();
 
 function scoreElements() {
@@ -337,6 +338,11 @@ function clearHint() {
   hintTimer = null;
   for (const button of tileButtons) button.classList.remove('hinted');
   for (const slot of document.querySelectorAll('.mj-tray-slot')) slot.classList.remove('hinted');
+}
+
+function resetHintCycle() {
+  hintCycleIndex = 0;
+  clearHint();
 }
 
 function trayIndices() {
@@ -638,6 +644,7 @@ function cueForResult(result) {
   if (result.type === 'tray-pair') return 'pair';
   if (result.type === 'tray-park') return 'tray';
   if (result.type === 'pair') return 'pair';
+  if (result.type === 'mismatch') return 'mismatch';
   return 'select';
 }
 
@@ -681,13 +688,13 @@ function startTrayFlight(result, index) {
   if (!['tray-park', 'rescue', 'tray-pair'].includes(result.type)) return 0;
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const source = tileButtons[index];
-  const target = nextTrayTarget();
+  const target = result.type === 'tray-pair'
+    ? document.querySelector(`.mj-tray-slot[data-tile-index="${result.indices[0]}"]`)
+    : nextTrayTarget();
   if (!source || !target) return 0;
   target.classList.add('is-receiving');
   if (result.type === 'tray-pair') {
     target.classList.add('is-matching');
-    document.querySelector(`.mj-tray-slot[data-tile-index="${result.indices[0]}"]`)
-      ?.classList.add('is-matching');
   }
   if (reducedMotion || typeof source.animate !== 'function') return 0;
 
@@ -889,6 +896,7 @@ function activateTile(i, tile = tileButtons[i]) {
   const wasWon = E.isWon(game);
   const result = E.selectTile(game, i);
   if (!result?.ok) return;
+  resetHintCycle();
   dismissResume();
   focusIndex = i;
   const cue = cueForResult(result);
@@ -927,6 +935,13 @@ document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.id === 'mjRecordsSheet') {
       event.preventDefault();
       closeRecords();
+      return;
+    }
+    if (event.key === 'Escape' && modal.id === 'mjRescue') {
+      event.preventDefault();
+      setDialogVisible(modal, false);
+      document.getElementById('mjUndo')?.focus();
+      announce('The Burst rack is still full. Use Undo, Shuffle, or restart.');
       return;
     }
     if (event.key === 'Tab') {
@@ -986,6 +1001,7 @@ document.addEventListener('keydown', (event) => {
 document.getElementById('mjUndo').addEventListener('click', () => {
   const undone = game?.history.at(-1)?.type;
   if (!game || !E.undo(game)) return;
+  resetHintCycle();
   invalidateTileAnimations();
   sound.play('undo');
   resumeTimerAfterUndo();
@@ -1004,13 +1020,20 @@ document.getElementById('mjNoticeUndo').addEventListener('click', () =>
 
 document.getElementById('mjHint').addEventListener('click', () => {
   if (!game) return;
-  const moves = E.availableMoves(game);
-  if (!moves.length) return;
+  const moves = E.hintMoves(game);
+  if (!moves.length) {
+    if (game.mode === 'tray' && game.tray.length === 3 && E.availableMoves(game).length) {
+      clearHint();
+      announce('The Burst rack needs a match. Use Undo or Shuffle instead of filling the last slot.');
+    }
+    return;
+  }
   clearHint();
   game.assists.hint += 1;
   saveAfterMutation();
   sound.play('hint');
-  const move = moves[0];
+  const move = moves[game.mode === 'classic' ? hintCycleIndex % moves.length : 0];
+  if (game.mode === 'classic') hintCycleIndex = (hintCycleIndex + 1) % moves.length;
   const visible = move.filter((index) => tileButtons[index] && !game.removed[index]);
   for (const k of visible) {
     void tileButtons[k].offsetWidth;
@@ -1040,6 +1063,7 @@ function shuffleGame() {
   if (!game || E.isWon(game)) return false;
   const wasRescue = game.status === 'rescue';
   if (!E.shuffleRemaining(game, E.createRng(randomSeed()))) return false;
+  resetHintCycle();
   invalidateTileAnimations();
   sound.play('shuffle');
   saveAfterMutation();
@@ -1316,6 +1340,7 @@ function saveAfterMutation() {
 
 function configureGame(nextGame) {
   invalidateTileAnimations();
+  resetHintCycle();
   game = nextGame;
   game.gameId = gameId;
   game.assists ||= { undo: 0, hint: 0, shuffle: 0 };

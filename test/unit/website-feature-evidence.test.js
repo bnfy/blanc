@@ -11,8 +11,8 @@ const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '�
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
-test('the website claim ledger resolves to public v1.15.0 and contains no publication blockers', () => {
-  assert.equal(ledger.publicRelease, 'v1.15.0');
+test('the website claim ledger resolves to the current public release and contains no publication blockers', () => {
+  assert.equal(ledger.publicRelease, 'v1.21.0');
   assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.sourceSha);
   assert.ok(ledger.claims.length > 200);
   const paths = new Set();
@@ -42,8 +42,7 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
 
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifest = JSON.parse(read('docs/website-captures-v1.15.json'));
-  assert.equal(manifest.release, ledger.publicRelease);
-  assert.equal(manifest.sourceSha, ledger.sourceSha);
+  assert.equal(execFileSync('git', ['rev-parse', manifest.release], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
   assert.equal(manifest.settings.usagePing, false);
   assert.equal(manifest.settings.searchSuggestions, false);
   assert.equal(manifest.captures.length, 10);

@@ -366,6 +366,22 @@ Then('rapid Undo cancels pending Mahjong feedback', async function () {
   assert.equal(result.comboFxClass, 'mj-combo-fx');
 });
 
+Then('Mahjong correctness flows pass in the renderer', async function () {
+  const result = await this.call('auditMahjongCorrectness');
+  assert.ok(result && !result.error, result?.error || 'Mahjong correctness audit should run');
+  assert.ok(result.classicHintCount > 1, 'Classic should expose multiple hint pairs');
+  assert.equal(result.firstHint.length, 2);
+  assert.equal(result.secondHint.length, 2);
+  assert.notDeepEqual(result.secondHint, result.firstHint, 'repeated Classic hints should cycle');
+  assert.deepEqual(result.matchUndo.tray, [result.matchUndo.parked]);
+  assert.equal(result.matchUndo.parkedRemoved, true, 'the original tile should remain parked');
+  assert.equal(result.matchUndo.mateRemoved, false, 'the matching pick should return to the board');
+  assert.deepEqual(result.safeHint.highlighted, [], 'a fourth unmatched pick must not be hinted');
+  assert.match(result.safeHint.live, /rack needs a match.*Undo or Shuffle/i);
+  assert.deepEqual(result.rescueEscape, { hidden: true, status: 'rescue', focus: 'mjUndo' });
+  assert.deepEqual(result.rescueUndo, { shuffled: true, visible: true, status: 'rescue', traySize: 4 });
+});
+
 Then('the Mahjong completion dialog remains usable at the minimum desktop size', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');
