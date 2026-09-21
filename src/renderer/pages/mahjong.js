@@ -449,11 +449,17 @@ function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
     shell.dataset.mode = game.mode;
     shell.dataset.layout = game.layoutId;
     shell.dataset.source = game.dailyKey ? 'daily' : 'random';
+    shell.dataset.zen = String(game.zen === true);
+    shell.dataset.burstRules = game.burstRules;
   }
   const layoutName = document.getElementById('mjLayoutName');
   if (layoutName) layoutName.textContent = E.LAYOUTS[game.layoutId].name;
   const modeName = document.getElementById('mjModeName');
   if (modeName) modeName.textContent = game.mode === 'tray' ? 'Burst' : 'Classic';
+  const rulesBadge = document.getElementById('mjRulesBadge');
+  if (rulesBadge) rulesBadge.textContent = game.mode === 'tray'
+    ? (game.burstRules === E.BURST_RULES.MANUAL ? 'manual' : 'auto')
+    : (game.zen ? 'zen' : 'ranked');
   const dailyBadge = document.getElementById('mjDailyBadge');
   if (dailyBadge) dailyBadge.hidden = !game.dailyKey;
   renderTray();
@@ -1171,7 +1177,7 @@ function paintCombo() {
 
 function startTimer() {
   hasStarted = true;
-  if (runningSince !== null || document.hidden || game?.status !== 'playing') return;
+  if (game?.zen || runningSince !== null || document.hidden || game?.status !== 'playing') return;
   runningSince = Date.now();
   comboClockAt = runningSince;
   clearInterval(tickHandle);
@@ -1179,7 +1185,7 @@ function startTimer() {
 }
 
 function checkpointTimer() {
-  if (!game || runningSince === null) return;
+  if (!game || game.zen || runningSince === null) return;
   const now = Date.now();
   game.elapsedMs += Math.max(0, now - runningSince);
   runningSince = now;
@@ -1210,21 +1216,30 @@ function resetTimer() {
 }
 
 function bestForGame() {
-  if (!recordStore || !game) return null;
+  if (!recordStore || !game || game.zen) return null;
   const records = recordStore.read();
   const record = game.mode === 'classic'
     ? records.classic[game.layoutId] || null
-    : records.tray[game.layoutId] || null;
+    : game.burstRules === E.BURST_RULES.MANUAL
+      ? records.trayManual[game.layoutId] || null
+      : records.tray[game.layoutId] || null;
   if (!record) return null;
   const layoutRevision = record.layoutRevision === undefined ? 1 : record.layoutRevision;
   if (layoutRevision !== game.layoutRevision) return null;
-  if (game.mode === 'tray' && record.scoringRevision !== E.TRAY_SCORING_REVISION) return null;
+  const expectedScoringRevision = game.burstRules === E.BURST_RULES.MANUAL
+    ? E.MANUAL_TRAY_SCORING_REVISION
+    : E.TRAY_SCORING_REVISION;
+  if (game.mode === 'tray' && record.scoringRevision !== expectedScoringRevision) return null;
   return record;
 }
 
 function paintBest() {
   const target = document.getElementById('mjBest');
   if (!target || !game) return;
+  if (game.zen) {
+    target.textContent = 'Zen game';
+    return;
+  }
   const best = bestForGame();
   if (!best) {
     target.textContent = 'No record';
@@ -1238,12 +1253,19 @@ function paintBest() {
 function recordCompletion() {
   if (!game || game.completionRecorded) return true;
   pauseTimer();
+  if (game.zen) {
+    game.completionRecorded = true;
+    game._outcome = 'zen';
+    saveAfterMutation();
+    return true;
+  }
   const before = bestForGame();
   const updated = recordStore?.record({
     gameId,
     layoutId: game.layoutId,
     layoutRevision: game.layoutRevision,
     mode: game.mode,
+    burstRules: game.burstRules,
     elapsedMs: game.elapsedMs,
     score: game.score,
     completed: true,
@@ -1284,9 +1306,20 @@ function showWin() {
   const best = bestForGame();
   const win = document.getElementById('mjWin');
   const isBurst = game.mode === 'tray';
+  const isZen = game.zen === true;
+  const isManual = isBurst && game.burstRules === E.BURST_RULES.MANUAL;
   const time = formatMs(game.elapsedMs);
-  const label = isBurst ? `${game.score.toLocaleString()} points. ${time}` : time;
+  const label = isZen
+    ? 'Zen game complete. This game was not added to Records'
+    : isBurst ? `${game.score.toLocaleString()} points. ${time}` : time;
   win.dataset.mode = isBurst ? 'burst' : 'classic';
+  win.dataset.zen = String(isZen);
+  document.getElementById('mjWinTitle').textContent = isZen ? 'A quiet finish.' : 'A beautiful finish.';
+  document.getElementById('mjWinRules').textContent = isBurst
+    ? `Burst · ${isManual ? 'Manual' : 'Auto'}`
+    : `Classic · ${isZen ? 'Zen' : 'Ranked'}`;
+  document.getElementById('mjWinResult').hidden = isZen;
+  document.getElementById('mjWinZen').hidden = !isZen;
   renderWinScore(document.getElementById('mjWinScore'), { isBurst, score: game.score, time });
   document.getElementById('mjWinUnit').textContent = isBurst ? 'points' : 'clear time';
   document.getElementById('mjWinTime').textContent = time;
@@ -1303,14 +1336,18 @@ function showWin() {
   record.classList.toggle('is-record', game._outcome === 'record' || game._outcome === 'first');
   const dailyLine = document.getElementById('mjWinDaily');
   if (dailyLine) {
-    const dailyResult = game.dailyKey && recordStore
-      ? S.describeDailyResult(recordStore.read(), game.dailyKey, game.mode, formatMs)
+    const dailyResult = !isZen && game.dailyKey && recordStore
+      ? S.describeDailyResult(recordStore.read(), game.dailyKey, game.mode, formatMs, game.burstRules)
       : null;
     dailyLine.hidden = !dailyResult;
     dailyLine.textContent = dailyResult ? `daily ${game.dailyKey} · ${dailyResult}` : '';
   }
   const stats = document.getElementById('mjWinStats');
-  if (stats) stats.hidden = !isBurst;
+  if (stats) {
+    stats.hidden = !isBurst || isZen;
+    stats.classList.toggle('is-manual', isManual);
+  }
+  document.getElementById('mjWinAutoStat').hidden = isManual;
   document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
   document.getElementById('mjWinAutoClears').textContent = String(game.autoClears || 0);
   setDialogVisible(win, true);
@@ -1327,7 +1364,14 @@ let prefsStore = null;
 let resumeTarget = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
-let setupChoice = { layoutId: S.dailyDeal(new Date()).layoutId, mode: 'tray', source: 'daily' };
+let activeSharedChallenge = false;
+let setupChoice = {
+  layoutId: S.dailyDeal(new Date()).layoutId,
+  mode: 'tray',
+  source: 'daily',
+  burstRules: E.BURST_RULES.AUTO,
+  zen: false,
+};
 let setupReturnToWin = false;
 
 function saveAfterMutation() {
@@ -1353,6 +1397,7 @@ function configureGame(nextGame) {
   document.getElementById('mjNotice').hidden = true;
   document.getElementById('mjError').hidden = true;
   document.getElementById('mjRecoveryNotice').hidden = true;
+  document.getElementById('mjShareNotice').hidden = true;
   dismissResume();
   setDialogVisible(document.getElementById('mjWin'), false);
   setDialogVisible(document.getElementById('mjRescue'), false);
@@ -1364,18 +1409,29 @@ function configureGame(nextGame) {
   if (hasStarted && game.status === 'playing') startTimer();
 }
 
-function startGame({ layoutId, mode, seed, dailyKey = null }, { soundCue = true } = {}) {
+function startGame({
+  layoutId,
+  mode,
+  seed,
+  dailyKey = null,
+  burstRules = E.BURST_RULES.AUTO,
+  zen = false,
+}, { soundCue = true, rememberPreferences = true, shared = false } = {}) {
   pauseTimer();
   // Remember the table so the next fresh tab deals the same kind of game.
-  prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random' });
+  if (rememberPreferences) {
+    prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random', burstRules });
+  }
   try {
-    const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey });
+    const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey, burstRules, zen });
     next.gameId = gameId;
     next.dailyKey = dailyKey;
+    activeSharedChallenge = shared;
     configureGame(next);
     saveAfterMutation();
     if (soundCue) sound.play('deal');
-    announce(`${E.LAYOUTS[layoutId].name} ${mode === 'tray' ? 'Burst' : 'Classic'} game ready.`);
+    const rules = mode === 'tray' ? (burstRules === E.BURST_RULES.MANUAL ? 'Manual' : 'Auto') : (zen ? 'Zen' : 'Ranked');
+    announce(`${E.LAYOUTS[layoutId].name} ${mode === 'tray' ? 'Burst' : 'Classic'} ${rules} game ready.`);
   } catch {
     // Never expected (defensive cap in generateDeal); leave no stale board.
     game = null;
@@ -1389,11 +1445,35 @@ function startGame({ layoutId, mode, seed, dailyKey = null }, { soundCue = true 
 }
 
 function startPreferredGame({ soundCue = false } = {}) {
-  const prefs = prefsStore ? prefsStore.read() : { layoutId: 'turtle', mode: 'tray', source: 'daily' };
+  const prefs = prefsStore ? prefsStore.read() : {
+    layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: E.BURST_RULES.AUTO,
+  };
   if (prefs.source === 'daily') {
-    return startGame({ ...S.dailyDeal(new Date()), mode: prefs.mode }, { soundCue });
+    return startGame({ ...S.dailyDeal(new Date()), mode: prefs.mode, burstRules: prefs.burstRules }, { soundCue });
   }
-  return startGame({ layoutId: prefs.layoutId, mode: prefs.mode, seed: randomSeed() }, { soundCue });
+  return startGame({
+    layoutId: prefs.layoutId,
+    mode: prefs.mode,
+    seed: randomSeed(),
+    burstRules: prefs.burstRules,
+  }, { soundCue });
+}
+
+async function copyCurrentDeal() {
+  if (!game) return false;
+  let link;
+  try { link = S.buildShareDealUrl(game); } catch {
+    announce('This deal could not be copied.');
+    return false;
+  }
+  try {
+    await navigator.clipboard.writeText(link);
+    announce('Deal link copied.');
+    return true;
+  } catch {
+    announce('Deal link could not be copied.');
+    return false;
+  }
 }
 
 // --- continue last game ------------------------------------------------------
@@ -1455,7 +1535,13 @@ document.getElementById('mjResumeDismiss')?.addEventListener('click', dismissRes
 function newGameFromControl() {
   const layoutId = game?.layoutId || 'turtle';
   const mode = game?.mode || 'classic';
-  startGame({ layoutId, mode, seed: randomSeed() });
+  startGame({
+    layoutId,
+    mode,
+    seed: randomSeed(),
+    burstRules: game?.burstRules || prefsStore?.read().burstRules || E.BURST_RULES.AUTO,
+    zen: game?.zen === true,
+  });
 }
 
 function paintSetupChoices() {
@@ -1476,6 +1562,15 @@ function paintSetupChoices() {
     button.classList.toggle('selected', selected);
     button.setAttribute('aria-pressed', String(selected));
   }
+  const autoOption = document.getElementById('mjAutoClearOption');
+  const autoToggle = document.getElementById('mjAutoClears');
+  const zenOption = document.getElementById('mjZenOption');
+  const zenToggle = document.getElementById('mjZen');
+  const isBurst = setupChoice.mode === 'tray';
+  if (autoOption) autoOption.hidden = !isBurst;
+  if (autoToggle) autoToggle.checked = setupChoice.burstRules === E.BURST_RULES.AUTO;
+  if (zenOption) zenOption.hidden = isBurst;
+  if (zenToggle) zenToggle.checked = setupChoice.zen === true;
   const modeDescription = document.getElementById('mjModeDescription');
   if (modeDescription) modeDescription.textContent = setupChoice.mode === 'tray'
     ? 'Build rapid matches in a four-slot Burst rack.'
@@ -1484,8 +1579,14 @@ function paintSetupChoices() {
   if (sourceDescription) {
     if (setupChoice.source === 'daily') {
       const daily = S.dailyDeal(new Date());
-      const done = recordStore
-        ? S.describeDailyResult(recordStore.read(), S.dailyDeal(new Date()).dailyKey, setupChoice.mode, formatMs)
+      const done = !setupChoice.zen && recordStore
+        ? S.describeDailyResult(
+            recordStore.read(),
+            S.dailyDeal(new Date()).dailyKey,
+            setupChoice.mode,
+            formatMs,
+            setupChoice.burstRules
+          )
         : null;
       sourceDescription.textContent = `${daily.dailyKey} · ${E.LAYOUTS[setupChoice.layoutId].name} · ${done || 'layout rotates daily'}`;
     } else {
@@ -1498,10 +1599,13 @@ function openSetup() {
   pauseTimer();
   setupReturnToWin = E.isWon(game);
   if (setupReturnToWin) setDialogVisible(document.getElementById('mjWin'), false);
+  const prefs = prefsStore?.read() || { burstRules: E.BURST_RULES.AUTO };
   setupChoice = {
     layoutId: game?.layoutId || 'turtle',
     mode: game?.mode || 'classic',
     source: game?.dailyKey ? 'daily' : 'random',
+    burstRules: prefs.burstRules,
+    zen: false,
   };
   paintSetupChoices();
   setDialogVisible(document.getElementById('mjSetupSheet'), true);
@@ -1522,12 +1626,19 @@ function closeSetup() {
 function startSetupChoice() {
   if (setupChoice.source === 'daily') {
     const daily = S.dailyDeal(new Date());
-    startGame({ ...daily, mode: setupChoice.mode });
+    startGame({
+      ...daily,
+      mode: setupChoice.mode,
+      burstRules: setupChoice.burstRules,
+      zen: setupChoice.zen,
+    });
   } else {
     startGame({
       layoutId: setupChoice.layoutId,
       mode: setupChoice.mode,
       seed: randomSeed(),
+      burstRules: setupChoice.burstRules,
+      zen: setupChoice.zen,
     });
   }
   closeSetup();
@@ -1559,9 +1670,19 @@ function paintRecords() {
     const classic = document.createElement('td');
     classic.textContent = row.classicBestMs == null ? '—' : formatMs(row.classicBestMs);
     const burst = document.createElement('td');
-    burst.textContent = row.trayBestScore == null
-      ? '—'
-      : `${row.trayBestScore.toLocaleString()} · ${formatMs(row.trayBestMs)}`;
+    burst.className = 'mj-record-variants';
+    for (const [label, score, elapsed] of [
+      ['Auto', row.trayAutoBestScore, row.trayAutoBestMs],
+      ['Manual', row.trayManualBestScore, row.trayManualBestMs],
+    ]) {
+      const line = document.createElement('span');
+      const name = document.createElement('small');
+      name.textContent = label;
+      const value = document.createElement('strong');
+      value.textContent = score == null ? '—' : `${score.toLocaleString()} · ${formatMs(elapsed)}`;
+      line.append(name, value);
+      burst.append(line);
+    }
     const cleared = document.createElement('td');
     cleared.textContent = String(row.cleared);
     tr.append(name, classic, burst, cleared);
@@ -1610,6 +1731,7 @@ for (const button of document.querySelectorAll('#mjSetupSheet button[data-layout
 for (const button of document.querySelectorAll('#mjSetupSheet button[data-mode]')) {
   button.addEventListener('click', () => {
     setupChoice.mode = button.dataset.mode;
+    if (setupChoice.mode === 'tray') setupChoice.zen = false;
     paintSetupChoices();
   });
 }
@@ -1621,10 +1743,24 @@ for (const button of document.querySelectorAll('#mjSetupSheet button[data-source
   });
 }
 
+document.getElementById('mjAutoClears')?.addEventListener('change', (event) => {
+  setupChoice.burstRules = event.currentTarget.checked
+    ? E.BURST_RULES.AUTO
+    : E.BURST_RULES.MANUAL;
+  prefsStore?.write({ ...(prefsStore.read()), burstRules: setupChoice.burstRules });
+  paintSetupChoices();
+});
+document.getElementById('mjZen')?.addEventListener('change', (event) => {
+  setupChoice.zen = event.currentTarget.checked;
+  paintSetupChoices();
+});
+
 document.getElementById('mjSetup')?.addEventListener('click', openSetup);
 document.getElementById('mjSetupClose')?.addEventListener('click', closeSetup);
 document.getElementById('mjSetupScrim')?.addEventListener('click', closeSetup);
 document.getElementById('mjStart')?.addEventListener('click', startSetupChoice);
+document.getElementById('mjCopyDeal')?.addEventListener('click', copyCurrentDeal);
+document.getElementById('mjWinCopyDeal')?.addEventListener('click', copyCurrentDeal);
 document.getElementById('mjNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjNoticeNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjWinNew').addEventListener('click', openSetup);
@@ -1637,7 +1773,9 @@ document.getElementById('mjRescueRestart')?.addEventListener('click', () => {
     mode: game.mode,
     seed: game.seed,
     dailyKey: game.dailyKey,
-  });
+    burstRules: game.burstRules,
+    zen: game.zen,
+  }, { rememberPreferences: !activeSharedChallenge, shared: activeSharedChallenge });
   if (started) requestAnimationFrame(() => tileButtons[focusIndex]?.focus({ preventScroll: true }));
 });
 
@@ -1659,7 +1797,7 @@ freeHighlight?.addEventListener('change', () => setFreeHighlight(freeHighlight.c
 
 function installDuplicateGuard() {
   if (duplicateGuard || typeof BroadcastChannel !== 'function') return;
-  duplicateChannel = new BroadcastChannel('blanc-mahjong-v2-live');
+  duplicateChannel = new BroadcastChannel('blanc-mahjong-v3-live');
   duplicateGuard = S.createDuplicateGuard({
     channel: duplicateChannel,
     gameId,
@@ -1699,6 +1837,7 @@ function disposeDuplicateGuard() {
 }
 
 function bootstrap() {
+  const shared = S.parseShareDeal(location.href);
   const identity = S.ensureGameId({ href: location.href, history });
   gameId = identity.gameId;
   gameStore = S.createGameStore({ storage: localStorage, engine: E });
@@ -1711,12 +1850,38 @@ function bootstrap() {
   gameStore.cleanup();
   const restored = gameStore.load(gameId);
   if (restored) {
+    // ensureGameId adds an internal-only parameter to a copied deal. Strip
+    // exactly that validated id when recognizing a resumed shared challenge;
+    // public share parsing remains strict and still rejects arbitrary extras.
+    let restoredShare = shared;
+    try {
+      const resumedUrl = new URL(location.href);
+      if (resumedUrl.searchParams.get(S.GAME_ID_PARAM) === gameId) {
+        resumedUrl.searchParams.delete(S.GAME_ID_PARAM);
+        restoredShare = S.parseShareDeal(resumedUrl);
+      }
+    } catch { /* keep the strict parse result */ }
+    activeSharedChallenge = restoredShare.status === 'valid'
+      && restored.layoutId === restoredShare.deal.layoutId
+      && restored.seed === restoredShare.deal.seed
+      && restored.mode === restoredShare.deal.mode
+      && restored.burstRules === restoredShare.deal.burstRules
+      && restored.zen === restoredShare.deal.zen;
     configureGame(restored);
     announce('Saved game restored.');
+  } else if (shared.status === 'valid') {
+    startGame(shared.deal, { soundCue: false, rememberPreferences: false, shared: true });
+    announce('Shared deal ready.');
   } else {
     startPreferredGame();
-    if (hadSave) document.getElementById('mjRecoveryNotice').hidden = false;
-    else offerResume();
+    if (shared.status === 'invalid') {
+      document.getElementById('mjShareNotice').hidden = false;
+      announce('That shared deal link was invalid. Your remembered game was started instead.');
+    } else if (hadSave) {
+      document.getElementById('mjRecoveryNotice').hidden = false;
+    } else {
+      offerResume();
+    }
   }
   installDuplicateGuard();
 }

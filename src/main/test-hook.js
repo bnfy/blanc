@@ -1028,6 +1028,48 @@ function install(refs) {
         return null;
       }
     },
+    async readMahjongDealState() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
+      try {
+        return await wc.executeJavaScript(`(() => game ? ({
+          layoutId: game.layoutId,
+          seed: game.seed,
+          mode: game.mode,
+          burstRules: game.burstRules,
+          zen: game.zen,
+          dailyKey: game.dailyKey,
+          kinds: game.kinds.slice(),
+        }) : null)()`);
+      } catch {
+        return null;
+      }
+    },
+    async copyMahjongDealFromBoards() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
+      try {
+        return await wc.executeJavaScript(`(async () => {
+          openSetup();
+          document.getElementById('mjCopyDeal')?.click();
+          const live = document.getElementById('mjLive');
+          const deadline = Date.now() + 2000;
+          while (live?.textContent !== 'Deal link copied.' && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+          }
+          const result = {
+            live: live?.textContent ?? null,
+            boardsOpen: !document.getElementById('mjSetupSheet').hidden,
+          };
+          closeSetup();
+          return result;
+        })()`, true);
+      } catch {
+        return null;
+      }
+    },
     async readMahjongCompletionGeometry() {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
@@ -1275,6 +1317,70 @@ function install(refs) {
             traySize: game.tray.length,
           };
 
+          startGame({
+            layoutId: 'peaks', mode: 'tray', seed: 91004,
+            burstRules: E.BURST_RULES.AUTO,
+          }, { soundCue: false });
+          openSetup();
+          const burstControls = {
+            autoVisible: !document.getElementById('mjAutoClearOption').hidden,
+            zenVisible: !document.getElementById('mjZenOption').hidden,
+          };
+          document.getElementById('mjModeClassic').click();
+          const classicControls = {
+            autoVisible: !document.getElementById('mjAutoClearOption').hidden,
+            zenVisible: !document.getElementById('mjZenOption').hidden,
+          };
+          const zenToggle = document.getElementById('mjZen');
+          zenToggle.checked = true;
+          zenToggle.dispatchEvent(new Event('change', { bubbles: true }));
+          const recordEventCountBeforeZen = [...Array(localStorage.length).keys()]
+            .map((index) => localStorage.key(index))
+            .filter((key) => key?.startsWith(S.RECORD_EVENT_PREFIX)).length;
+          startSetupChoice();
+          startTimer();
+          await sleep(80);
+          pauseTimer();
+          const zenTiming = {
+            elapsedMs: game.elapsedMs,
+            timerDisplay: getComputedStyle(document.getElementById('mjTimeMeter')).display,
+            scoreDisplay: getComputedStyle(document.getElementById('mjScoreMeter')).display,
+            badge: document.getElementById('mjRulesBadge').textContent,
+          };
+          game.removed.fill(true);
+          game.status = 'won';
+          game.completionRecorded = false;
+          checkEndStates();
+          const recordEventCountAfterZen = [...Array(localStorage.length).keys()]
+            .map((index) => localStorage.key(index))
+            .filter((key) => key?.startsWith(S.RECORD_EVENT_PREFIX)).length;
+          const zenCompletion = {
+            title: document.getElementById('mjWinTitle').textContent,
+            rules: document.getElementById('mjWinRules').textContent,
+            notice: document.getElementById('mjWinZen').textContent,
+            resultHidden: document.getElementById('mjWinResult').hidden,
+            eventDelta: recordEventCountAfterZen - recordEventCountBeforeZen,
+          };
+
+          openSetup();
+          const zenReset = document.getElementById('mjZen').checked;
+          document.getElementById('mjModeTray').click();
+          const autoToggle = document.getElementById('mjAutoClears');
+          autoToggle.checked = false;
+          autoToggle.dispatchEvent(new Event('change', { bubbles: true }));
+          startSetupChoice();
+          const manualGame = {
+            burstRules: game.burstRules,
+            scoringRevision: game.scoringRevision,
+            badge: document.getElementById('mjRulesBadge').textContent,
+          };
+          openSetup();
+          const manualRemembered = !document.getElementById('mjAutoClears').checked;
+          closeSetup();
+          paintRecords();
+          const burstLabels = [...document.querySelectorAll('#mjRecordsRows .mj-record-variants')]
+            .flatMap((cell) => [...cell.querySelectorAll('small')].map((label) => label.textContent));
+
           const result = {
             classicHintCount: classicHints.length,
             firstHint,
@@ -1283,8 +1389,19 @@ function install(refs) {
             safeHint,
             rescueEscape,
             rescueUndo,
+            burstControls,
+            classicControls,
+            zenTiming,
+            zenCompletion,
+            zenReset,
+            manualGame,
+            manualRemembered,
+            burstLabels,
           };
-          startGame({ layoutId: 'peaks', mode: 'tray', seed: 91004 }, { soundCue: false });
+          startGame({
+            layoutId: 'peaks', mode: 'tray', seed: 91005,
+            burstRules: E.BURST_RULES.AUTO,
+          }, { soundCue: false });
           return result;
         })()`);
       } catch {

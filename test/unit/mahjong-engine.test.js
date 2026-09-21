@@ -276,7 +276,7 @@ test('every layout is solvable and contains every special visual pair across hun
   }
 });
 
-test('createGame supports v2 options while preserving the numeric legacy form', () => {
+test('createGame supports v3 rules while preserving the numeric legacy form', () => {
   const legacy = E.createGame(912);
   assert.equal(legacy.layoutId, 'turtle');
   assert.equal(legacy.mode, 'classic');
@@ -289,12 +289,14 @@ test('createGame supports v2 options while preserving the numeric legacy form', 
     gameId: 'game-912',
     dailyKey: '2026-08-30',
   });
-  assert.equal(tray.version, 2);
+  assert.equal(tray.version, 3);
   assert.equal(tray.layoutId, 'peaks');
   assert.equal(tray.layoutRevision, E.LAYOUTS.peaks.revision);
   assert.equal(tray.mode, 'tray');
   assert.equal(tray.gameId, 'game-912');
   assert.equal(tray.dailyKey, '2026-08-30');
+  assert.equal(tray.burstRules, E.BURST_RULES.AUTO);
+  assert.equal(tray.zen, false);
   assert.equal(tray.kinds.length, 72);
   assert.deepEqual(tray.tray, []);
   assert.deepEqual(tray.assists, { undo: 0, hint: 0, shuffle: 0 });
@@ -394,6 +396,34 @@ test('Tray momentum scoring rises by 50, caps at 500, and milestones add a flat 
     assert.equal(state.score, expectedScore);
   }
   assert.equal(state.maxCombo, 15);
+});
+
+test('Manual Burst keeps milestone bonuses but never performs automatic clears', () => {
+  const state = E.createGame({
+    seed: 118,
+    layoutId: 'turtle',
+    mode: 'tray',
+    burstRules: E.BURST_RULES.MANUAL,
+  });
+  let milestone;
+  for (let count = 1; count <= 5; count++) milestone = clearAvailableTrayPair(state);
+  assert.equal(milestone.milestone, true);
+  assert.equal(milestone.bonusPoints, 100);
+  assert.equal(milestone.autoClear, null);
+  assert.equal(state.autoClears, 0);
+  assert.equal(state.scoringRevision, E.MANUAL_TRAY_SCORING_REVISION);
+  assert.equal(state.removed.filter(Boolean).length, 10);
+});
+
+test('Zen is Classic-only and suppresses no ordinary game mechanics', () => {
+  const zen = E.createGame({ seed: 119, layoutId: 'peaks', mode: 'classic', zen: true });
+  assert.equal(zen.zen, true);
+  assert.equal(zen.burstRules, E.BURST_RULES.AUTO);
+  assert.ok(E.availableMoves(zen).length > 0);
+  assert.throws(
+    () => E.createGame({ seed: 119, layoutId: 'peaks', mode: 'tray', zen: true }),
+    /Classic-only/
+  );
 });
 
 test('the pure combo clock expires exactly at five seconds', () => {
@@ -662,7 +692,7 @@ test('shuffle failure is atomic', () => {
   assert.deepEqual(state, before);
 });
 
-test('v2 serialization round-trips independent state and rejects corruption', () => {
+test('v3 serialization round-trips independent state, migrates v2, and rejects corruption', () => {
   const seed = 3001;
   const state = E.createGame({
     seed,
@@ -681,6 +711,13 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   assert.notEqual(restored, state);
   assert.notEqual(restored.kinds, state.kinds);
   assert.deepEqual(E.restoreGame(JSON.stringify(payload)), state);
+  const v2Payload = { ...payload, version: 2 };
+  delete v2Payload.burstRules;
+  delete v2Payload.zen;
+  const migratedV2 = E.restoreGame(v2Payload);
+  assert.equal(migratedV2.version, 3);
+  assert.equal(migratedV2.burstRules, E.BURST_RULES.AUTO);
+  assert.equal(migratedV2.zen, false);
   for (const kind of E.SPECIAL_VARIANT_KINDS) {
     assert.equal(payload.kinds.filter((candidate) => candidate === kind).length, 2);
     assert.equal(restored.kinds.filter((candidate) => candidate === kind).length, 2);
@@ -702,7 +739,9 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   assert.equal(E.restoreGame({ ...payload, comboRemainingMs: 5001 }), null);
   assert.equal(E.restoreGame({ ...payload, comboCount: 2, maxCombo: 1 }), null);
 
-  const legacyTrayPayload = { ...payload, chain: 4 };
+  const legacyTrayPayload = { ...payload, version: 2, chain: 4 };
+  delete legacyTrayPayload.burstRules;
+  delete legacyTrayPayload.zen;
   for (const key of ['comboCount', 'maxCombo', 'comboRemainingMs', 'autoClears', 'scoringRevision']) {
     delete legacyTrayPayload[key];
   }
