@@ -24,6 +24,7 @@
         <strong id="mjLayoutName">Turtle</strong>
         <span aria-hidden="true">/</span>
         <span id="mjModeName">Classic</span>
+        <span id="mjRulesBadge" class="mj-rules-badge">ranked</span>
       </div>
 
       <div class="mj-meters" aria-label="Game status">
@@ -31,11 +32,11 @@
           <span class="mj-meter-label">pairs</span>
           <strong id="mjPairs" class="mj-pairs">72 left</strong>
         </span>
-        <span class="mj-meter">
+        <span id="mjTimeMeter" class="mj-meter">
           <span class="mj-meter-label">time</span>
           <strong id="mjTimer" class="mj-timer">0:00</strong>
         </span>
-        <span class="mj-meter mj-score-meter">
+        <span id="mjScoreMeter" class="mj-meter mj-score-meter">
           <span class="mj-meter-label">score</span>
           <strong id="mjScore" class="mj-score">0</strong>
         </span>
@@ -92,21 +93,24 @@
       <div class="mj-win-copy">
         <p class="mj-overline">board cleared</p>
         <h1 id="mjWinTitle">A beautiful finish.</h1>
+        <p id="mjWinRules" class="mj-win-rules"></p>
       </div>
-      <div class="mj-win-result">
+      <div id="mjWinResult" class="mj-win-result">
         <strong id="mjWinScore" class="mj-win-score">0</strong>
         <span id="mjWinUnit" class="mj-win-unit">points</span>
         <div id="mjWinBest" class="mj-win-best"></div>
         <div id="mjWinDaily" class="mj-win-daily" hidden></div>
       </div>
+      <p id="mjWinZen" class="mj-win-zen" hidden>This Zen game was not added to Records.</p>
       <div id="mjWinStats" class="mj-win-stats" hidden>
         <span><small>time</small><strong id="mjWinTime">0:00</strong></span>
         <span><small>best combo</small><strong id="mjWinCombo">×0</strong></span>
-        <span><small>auto clears</small><strong id="mjWinAutoClears">0</strong></span>
+        <span id="mjWinAutoStat"><small>auto clears</small><strong id="mjWinAutoClears">0</strong></span>
       </div>
       <div class="mj-overlay-actions">
         <button id="mjWinNew" class="mj-button mj-button-primary" type="button">play another</button>
         <button id="mjWinBoards" class="mj-button" type="button">choose board</button>
+        <button id="mjWinCopyDeal" class="mj-button mj-button-quiet" type="button">copy deal</button>
       </div>
     </section>
 
@@ -131,6 +135,9 @@
       </div>
       <div id="mjRecoveryNotice" class="mj-notice" hidden>
         Your saved game could not be restored, so a fresh deal was prepared.
+      </div>
+      <div id="mjShareNotice" class="mj-notice" hidden>
+        That shared deal link was invalid, so your remembered game was started instead.
       </div>
     </div>
 
@@ -163,7 +170,7 @@
     </nav>
 
     <!-- Backwards-compatible action target while Boards owns the visible
-         new-game entry point in v2. -->
+         new-game entry point. -->
     <button id="mjNew" type="button" hidden>new deal</button>
 
     <section id="mjSetupSheet" class="mj-modal" role="dialog" aria-modal="true" aria-labelledby="mjSetupTitle" hidden>
@@ -232,6 +239,22 @@
           </fieldset>
         </div>
 
+        <label id="mjAutoClearOption" class="mj-accessibility-toggle" for="mjAutoClears" hidden>
+          <input id="mjAutoClears" type="checkbox" checked />
+          <span>
+            <strong>Auto clears</strong>
+            Every fifth combo clears another available pair automatically.
+          </span>
+        </label>
+
+        <label id="mjZenOption" class="mj-accessibility-toggle" for="mjZen" hidden>
+          <input id="mjZen" type="checkbox" />
+          <span>
+            <strong>Zen game</strong>
+            Hide time and score, and keep this game out of Records.
+          </span>
+        </label>
+
         <label class="mj-accessibility-toggle" for="mjFreeHighlight">
           <input id="mjFreeHighlight" type="checkbox" />
           <span>
@@ -242,7 +265,10 @@
 
         <footer class="mj-modal-foot">
           <p>Starting replaces the board currently on this table.</p>
-          <button id="mjStart" class="mj-button mj-button-primary" type="button">start game</button>
+          <div class="mj-modal-foot-actions">
+            <button id="mjCopyDeal" class="mj-button" type="button">copy current deal</button>
+            <button id="mjStart" class="mj-button mj-button-primary" type="button">start game</button>
+          </div>
         </footer>
       </div>
     </section>

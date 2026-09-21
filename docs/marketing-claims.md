@@ -106,13 +106,13 @@ These boundaries are verified for the v1.16.0 public release:
   metadata, never field values or page text, and does not contact 1Password.
   Credential lookup and fill remain explicit user actions. This is not
   automatic fill, a general extension runtime, or a Blanc password manager.
-- **Mahjong:** Mahjong is a user-selected start-page layout with eight
-  solvable-by-construction boards. Daily rotates deterministically across the
+- **Mahjong:** Mahjong opens from every start-page footer into its own managed
+  tab and offers eight solvable-by-construction boards. Daily rotates across the
   eight layouts. Device-local state remembers the last layout, mode, and deal,
   can offer to continue an unfinished board from another tab, and keeps records
   and daily streaks. The game also includes scoring, timed combos, automatic
-  clears, hints, shuffle, undo, sound controls, and a footer that can be hidden
-  while playing. Do not describe it as online multiplayer, cloud-synced, or
+  clears, hints, shuffle, undo, and sound controls. Do not describe it as
+  online multiplayer, cloud-synced, or
   AI-generated.
 - **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
   choices for WebRTC calls. Stable targets about 400 ms and Resilient about one

@@ -793,8 +793,8 @@ From the desktop `DEFAULTS`:
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
-  Billboard's local frequency ranking and dismissal, and confirms that Mahjong
-  embeds a playable 144-tile deal.
+  Billboard's local frequency ranking and dismissal, and confirms that each
+  footer opens a standalone, playable 144-tile Mahjong deal.
 
 ## F36 — First-run onboarding
 

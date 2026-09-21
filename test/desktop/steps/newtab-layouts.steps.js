@@ -366,6 +366,74 @@ Then('rapid Undo cancels pending Mahjong feedback', async function () {
   assert.equal(result.comboFxClass, 'mj-combo-fx');
 });
 
+Then('Mahjong correctness flows pass in the renderer', async function () {
+  const result = await this.call('auditMahjongCorrectness');
+  assert.ok(result && !result.error, result?.error || 'Mahjong correctness audit should run');
+  assert.ok(result.classicHintCount > 1, 'Classic should expose multiple hint pairs');
+  assert.equal(result.firstHint.length, 2);
+  assert.equal(result.secondHint.length, 2);
+  assert.notDeepEqual(result.secondHint, result.firstHint, 'repeated Classic hints should cycle');
+  assert.deepEqual(result.matchUndo.tray, [result.matchUndo.parked]);
+  assert.equal(result.matchUndo.parkedRemoved, true, 'the original tile should remain parked');
+  assert.equal(result.matchUndo.mateRemoved, false, 'the matching pick should return to the board');
+  assert.deepEqual(result.safeHint.highlighted, [], 'a fourth unmatched pick must not be hinted');
+  assert.match(result.safeHint.live, /rack needs a match.*Undo or Shuffle/i);
+  assert.deepEqual(result.rescueEscape, { hidden: true, status: 'rescue', focus: 'mjUndo' });
+  assert.deepEqual(result.rescueUndo, { shuffled: true, visible: true, status: 'rescue', traySize: 4 });
+  assert.deepEqual(result.burstControls, { autoVisible: true, zenVisible: false });
+  assert.deepEqual(result.classicControls, { autoVisible: false, zenVisible: true });
+  assert.deepEqual(result.zenTiming, {
+    elapsedMs: 0,
+    timerDisplay: 'none',
+    scoreDisplay: 'none',
+    badge: 'zen',
+  });
+  assert.deepEqual(result.zenCompletion, {
+    title: 'A quiet finish.',
+    rules: 'Classic · Zen',
+    notice: 'This Zen game was not added to Records.',
+    resultHidden: true,
+    eventDelta: 0,
+  });
+  assert.equal(result.zenReset, false, 'Zen must reset off every time Boards opens');
+  assert.deepEqual(result.manualGame, {
+    burstRules: 'manual',
+    scoringRevision: 3,
+    badge: 'manual',
+  });
+  assert.equal(result.manualRemembered, true, 'the device should remember Manual Burst');
+  assert.deepEqual(
+    [...new Set(result.burstLabels)],
+    ['Auto', 'Manual'],
+    'each Burst record cell should label both rulesets'
+  );
+});
+
+Then('a copied Mahjong deal opens identically in another managed tab', async function () {
+  const source = await this.call('readMahjongDealState');
+  assert.ok(source, 'the source Mahjong deal should be readable');
+  const copied = await this.call('copyMahjongDealFromBoards');
+  assert.deepEqual(copied, { live: 'Deal link copied.', boardsOpen: true });
+  const link = await this.call('readClipboardText');
+  assert.match(link, /^blanc:\/\/mahjong\/\?deal=[a-z]+-\d+&mode=(?:classic|burst)&(?:zen|auto)=(?:on|off)$/);
+  assert.equal(link.includes('game='), false);
+  assert.equal(link.includes('private='), false);
+
+  await this.call('openTab', link);
+  const shared = await waitForValue(
+    () => this.call('readMahjongDealState'),
+    (value) => value?.kinds?.length === source.kinds.length,
+    'shared Mahjong deal in a second managed tab'
+  );
+  assert.deepEqual(shared, source);
+  const { tabs } = await this.call('state');
+  assert.equal(
+    tabs.filter((tab) => tab.url.startsWith('blanc://mahjong/')).length >= 2,
+    true,
+    'both managed Mahjong tabs should remain open'
+  );
+});
+
 Then('the Mahjong completion dialog remains usable at the minimum desktop size', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');

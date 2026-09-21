@@ -271,7 +271,7 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   for (const cue of ['blocked', 'undo', 'hint', 'shuffle', 'deal', 'toggle']) {
     assert.match(controller, new RegExp(`sound\\.play\\([^\\n]*'${cue}'`), `missing ${cue} cue`);
   }
-  for (const cue of ['select', 'pair', 'tray', 'rescue', 'win']) {
+  for (const cue of ['select', 'pair', 'tray', 'mismatch', 'rescue', 'win']) {
     assert.match(controller, new RegExp(`return '${cue}'`), `missing ${cue} result cue`);
   }
   for (const cue of ['comboStep', 'comboFlowing', 'comboBrilliant', 'comboMasterful', 'autoClear']) {
@@ -279,7 +279,7 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   }
   assert.match(controller, /if \(soundCue\) sound\.play\('deal'\)/);
   assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
-  assert.match(controller, /startGame\(\{ \.\.\.S\.dailyDeal\(new Date\(\)\), mode: prefs\.mode \}, \{ soundCue \}\)/);
+  assert.match(controller, /startGame\(\{ \.\.\.S\.dailyDeal\(new Date\(\)\), mode: prefs\.mode, burstRules: prefs\.burstRules \}, \{ soundCue \}\)/);
   assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
   assert.match(controller, /\nbootstrap\(\);\s*$/);
 });
@@ -289,7 +289,7 @@ test('a fresh table deals the remembered table (Daily Burst by default) while th
   assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
   assert.match(controller, /if \(restored\) \{[\s\S]*configureGame\(restored\);[\s\S]*\} else \{[\s\S]*startPreferredGame\(\)/);
   // every explicit start records the table for the next fresh tab
-  assert.match(controller, /function startGame\([\s\S]*?prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random' \}\)/);
+  assert.match(controller, /function startGame\([\s\S]*?prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random', burstRules \}\)/);
   assert.match(html, /id="mjModeTray"[^>]*data-mode="tray"[^>]*>Burst<\/button>/);
   assert.match(html, /burst rack/i);
   assert.match(html, /id="mjBurstScoreWrap"[^>]*>[\s\n]*<strong id="mjBurstScore">0<\/strong>/);
@@ -297,7 +297,7 @@ test('a fresh table deals the remembered table (Daily Burst by default) while th
   assert.match(controller, /Build rapid matches in a four-slot Burst rack\./);
 });
 
-test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances', () => {
+test('v3 exposes setup, Tray rescue, local restoration, and keyboard affordances', () => {
   for (const id of [
     'mjSetupSheet', 'mjLayoutTurtle', 'mjLayoutArch', 'mjLayoutPeaks',
     'mjModeClassic', 'mjModeTray', 'mjSourceRandom', 'mjSourceDaily',
@@ -313,13 +313,14 @@ test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances
   assert.match(controller, /spatialNeighbor\(focusIndex, event\.key\)/);
   assert.match(controller, /element\.inert = covered/);
   assert.match(controller, /if \(event\.key === 'Escape' && modal\.id === 'mjSetupSheet'\)/);
+  assert.match(controller, /if \(event\.key === 'Escape' && modal\.id === 'mjRescue'\) \{[\s\S]*?setDialogVisible\(modal, false\);[\s\S]*?getElementById\('mjUndo'\)\?\.focus\(\)/);
   assert.match(controller, /\['pair', 'tray-pair', 'tray-park', 'rescue'\]\.includes\(result\.type\)/);
   assert.match(controller, /setProperty\('--mj-order', String\(i\)\)/);
   assert.match(controller, /visibilitychange/);
   assert.match(controller, /pagehide/);
   assert.match(controller, /S\.createGameStore/);
   assert.match(controller, /S\.createDuplicateGuard/);
-  assert.match(controller, /new BroadcastChannel\('blanc-mahjong-v2-live'\)/);
+  assert.match(controller, /new BroadcastChannel\('blanc-mahjong-v3-live'\)/);
   for (const id of ['mjCombo', 'mjComboBar', 'mjComboFill', 'mjComboFx', 'mjWinCombo', 'mjWinAutoClears']) {
     assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
   }
@@ -353,6 +354,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(controller, /generation !== tileAnimationGeneration/);
   assert.match(controller, /immediate \? 0 : duration/);
   assert.match(controller, /mj-tray-slot\[data-tile-index=/);
+  assert.match(controller, /const target = result\.type === 'tray-pair'[\s\S]*?data-tile-index="\$\{result\.indices\[0\]\}"[\s\S]*?: nextTrayTarget\(\)/);
   assert.match(styles, /\.mj-tray-slot\.auto-clearing/);
   assert.match(controller, /classList\.add\('is-impact'\)/);
   assert.match(controller, /scoreMeter\?\.classList\.toggle\('is-heated', count >= 3\)/);
@@ -404,7 +406,13 @@ test('desktop game header promotes session identity and status hierarchy', () =>
   assert.match(responsiveHeader, /\.mj-meters\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/);
 });
 
-test('hints pulse a complete pair and include a parked Burst tile', () => {
+test('hints use safe selection, cycle Classic pairs, and include a parked Burst tile', () => {
+  assert.match(controller, /const moves = E\.hintMoves\(game\)/);
+  assert.match(controller, /game\.mode === 'tray' && game\.tray\.length === 3 && E\.availableMoves\(game\)\.length/);
+  assert.match(controller, /The Burst rack needs a match\. Use Undo or Shuffle/);
+  assert.match(controller, /moves\[game\.mode === 'classic' \? hintCycleIndex % moves\.length : 0\]/);
+  assert.match(controller, /hintCycleIndex = \(hintCycleIndex \+ 1\) % moves\.length/);
+  assert.match(controller, /function resetHintCycle\(\) \{[\s\S]*?hintCycleIndex = 0/);
   assert.match(controller, /document\.querySelector\(`\.mj-tray-slot\[data-tile-index="\$\{trayIndex\}"\]`\)\?\.classList\.add\('hinted'\)/);
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\)/);
   assert.match(styles, /\.mj-tile\.hinted\s*\{[^}]*mj-hint-pulse 720ms ease-in-out 3/);
@@ -484,13 +492,13 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
 
 test('starting another board clears a stale recovery notice', () => {
   assert.match(controller, /function configureGame\(nextGame\)[\s\S]*getElementById\('mjRecoveryNotice'\)\.hidden = true;/);
-  assert.match(controller, /startPreferredGame\(\);\s*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;\s*else offerResume\(\);/);
+  assert.match(controller, /startPreferredGame\(\);[\s\S]*?else if \(hadSave\) \{\s*document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;\s*\} else \{\s*offerResume\(\);/);
 });
 
 test('best records are scoped to the active layout revision', () => {
   assert.match(controller, /const layoutRevision = record\.layoutRevision === undefined \? 1 : record\.layoutRevision;/);
   assert.match(controller, /if \(layoutRevision !== game\.layoutRevision\) return null;/);
-  assert.match(controller, /record\.scoringRevision !== E\.TRAY_SCORING_REVISION/);
+  assert.match(controller, /record\.scoringRevision !== expectedScoringRevision/);
   assert.match(controller, /layoutId: game\.layoutId,\s*layoutRevision: game\.layoutRevision,\s*mode: game\.mode,/);
 });
 
@@ -582,8 +590,63 @@ test('completion copy distinguishes first clear from a new record using the stor
 
 test('daily results surface in the setup sheet and the completion card', () => {
   assert.match(html, /id="mjWinDaily"/);
-  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), S\.dailyDeal\(new Date\(\)\)\.dailyKey, setupChoice\.mode, formatMs\)/);
-  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), game\.dailyKey, game\.mode, formatMs\)/);
+  assert.match(controller, /S\.describeDailyResult\([\s\S]*?setupChoice\.mode,[\s\S]*?setupChoice\.burstRules/);
+  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), game\.dailyKey, game\.mode, formatMs, game\.burstRules\)/);
+});
+
+test('Boards exposes mode-specific Auto and Zen controls without persisting Zen', () => {
+  for (const id of ['mjAutoClearOption', 'mjAutoClears', 'mjZenOption', 'mjZen']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(controller, /autoOption\.hidden = !isBurst/);
+  assert.match(controller, /zenOption\.hidden = isBurst/);
+  assert.match(controller, /setupChoice\.mode === 'tray'\) setupChoice\.zen = false/);
+  assert.match(controller, /function openSetup\([\s\S]*?burstRules: prefs\.burstRules,[\s\S]*?zen: false/);
+  assert.match(controller, /prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random', burstRules \}\)/);
+  assert.doesNotMatch(controller, /prefsStore\?\.write\([^\n]*zen/);
+});
+
+test('Zen suppresses timing and records while completion explains the exclusion', () => {
+  assert.match(styles, /\.mj\[data-zen="true"\] #mjTimeMeter,[\s\S]*?#mjScoreMeter\s*\{\s*display:\s*none;/);
+  assert.match(controller, /if \(game\?\.zen \|\| runningSince !== null/);
+  assert.match(controller, /if \(game\.zen\) \{[\s\S]*?game\.completionRecorded = true;[\s\S]*?game\._outcome = 'zen';[\s\S]*?return true;/);
+  assert.match(html, /id="mjWinZen"[^>]*>This Zen game was not added to Records\./);
+  assert.match(controller, /Zen game complete\. This game was not added to Records/);
+});
+
+test('Records stacks separately labeled Auto and Manual Burst results', () => {
+  assert.match(controller, /\['Auto', row\.trayAutoBestScore, row\.trayAutoBestMs\]/);
+  assert.match(controller, /\['Manual', row\.trayManualBestScore, row\.trayManualBestMs\]/);
+  assert.match(styles, /\.mj-record-variants > span\s*\{/);
+  assert.match(controller, /records\.trayManual\[game\.layoutId\]/);
+});
+
+test('share actions use the sanitized Clipboard API without adding a dock control', () => {
+  assert.match(html, /id="mjCopyDeal"[^>]*>copy current deal<\/button>/);
+  assert.match(html, /id="mjWinCopyDeal"[^>]*>copy deal<\/button>/);
+  assert.match(controller, /S\.buildShareDealUrl\(game\)/);
+  assert.match(controller, /await navigator\.clipboard\.writeText\(link\)/);
+  assert.match(controller, /announce\('Deal link copied\.'\)/);
+  assert.match(controller, /announce\('Deal link could not be copied\.'\)/);
+  assert.equal((html.match(/class="mj-dock-action"/g) || []).length, 5);
+  assert.equal((html.match(/class="mj-dock-icon/g) || []).length, 7, 'five actions plus two sound-state icons');
+});
+
+test('bootstrap restores by game id before shared deals and rejects invalid links nonblockingly', () => {
+  const bootstrap = controller.match(/function bootstrap\(\) \{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.ok(bootstrap.indexOf('const restored = gameStore.load(gameId)') < bootstrap.indexOf("shared.status === 'valid'"));
+  assert.match(bootstrap, /if \(restored\) \{[\s\S]*?configureGame\(restored\);[\s\S]*?\} else if \(shared\.status === 'valid'\) \{[\s\S]*?rememberPreferences: false, shared: true/);
+  assert.match(bootstrap, /searchParams\.get\(S\.GAME_ID_PARAM\) === gameId[\s\S]*?searchParams\.delete\(S\.GAME_ID_PARAM\)[\s\S]*?S\.parseShareDeal\(resumedUrl\)/);
+  assert.match(bootstrap, /shared\.status === 'invalid'[\s\S]*?mjShareNotice/);
+  assert.match(html, /id="mjShareNotice"[^>]*>[\s\S]*shared deal link was invalid/);
+});
+
+test('shared games omit Daily identity, keep normal record eligibility, and do not overwrite preferences', () => {
+  assert.match(controller, /startGame\(shared\.deal, \{ soundCue: false, rememberPreferences: false, shared: true \}\)/);
+  assert.match(controller, /if \(rememberPreferences\) \{[\s\S]*?prefsStore\?\.write/);
+  assert.match(controller, /rememberPreferences: !activeSharedChallenge, shared: activeSharedChallenge/);
+  assert.match(controller, /dailyKey = null/);
+  assert.doesNotMatch(controller, /activeSharedChallenge[\s\S]{0,120}recordCompletion/);
 });
 
 test('a fresh tab offers to continue the most recent unfinished board without auto-adopting it', () => {
@@ -631,8 +694,8 @@ test('the Records dock action and sheet are wired with accessible semantics', ()
   assert.match(mahjongStyles, /\.mj-records-table tr\[aria-current="true"\] th\s*\{/);
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-cleared\s*\{/);
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-today\s*\{/);
-  // The rail is sized from the embedded frame's height (the start page's
-  // footer sits outside it), in tiers measured against the Burst table:
+  // The rail is sized from the standalone tab viewport below Blanc's Island
+  // strip, in tiers measured against the Burst table:
   // 611–659 → 52/10, 660–720 → 56/14, ≥721 → the desktop block's 64/16.
   assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*grid-template-rows:\s*repeat\(6, 52px\);[^}]*gap:\s*10px;/);
   assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock > button\s*\{[^}]*width:\s*52px;[^}]*height:\s*52px;[^}]*min-width:\s*52px;[^}]*min-height:\s*52px;/);

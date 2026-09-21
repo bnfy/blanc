@@ -74,24 +74,24 @@ test('the cue set covers every Mahjong interaction sound', () => {
     Object.keys(CUES),
     [
       'select', 'tray', 'pair', 'comboStep', 'comboFlowing', 'comboBrilliant',
-      'comboMasterful', 'autoClear', 'blocked', 'undo', 'hint', 'deal',
+      'comboMasterful', 'autoClear', 'blocked', 'mismatch', 'undo', 'hint', 'deal',
       'shuffle', 'rescue', 'win', 'toggle',
     ]
   );
 });
 
-test('v2 tray, combo, rescue, and shuffle cues remain local and lazy', () => {
+test('v2 tray, combo, mismatch, rescue, and shuffle cues remain local and lazy', () => {
   const sound = createMahjongSound({ AudioContextClass: FakeAudioContext, storage: memoryStorage() });
   assert.equal(FakeAudioContext.instances.length, 0, 'construction must stay silent');
 
-  for (const cue of ['tray', 'comboStep', 'autoClear', 'rescue', 'shuffle']) {
+  for (const cue of ['tray', 'comboStep', 'autoClear', 'mismatch', 'rescue', 'shuffle']) {
     assert.equal(sound.play(cue), true, `${cue} cue should be playable`);
   }
 
   assert.equal(FakeAudioContext.instances.length, 1, 'all cues should reuse one local graph');
   assert.equal(
     FakeAudioContext.instances[0].oscillators.length,
-    CUES.tray.length + CUES.comboStep.length + CUES.autoClear.length + CUES.rescue.length + CUES.shuffle.length,
+    CUES.tray.length + CUES.comboStep.length + CUES.autoClear.length + CUES.mismatch.length + CUES.rescue.length + CUES.shuffle.length,
   );
 });
 
