@@ -63,6 +63,7 @@ Feature: Start page layouts
   @F35-6 @desktop
   Scenario: Every start-page layout uses the approved typography roles
     Given local history contains repeated visits for the Billboard
+    And eight favorites fill the Start Page
     And a profile whose start page layout is "billboard"
     When I open a new tab
     Then the start page uses Newsreader only for invitation headings

@@ -57,6 +57,10 @@ const {
   applyLinuxCaptureOzone,
 } = require('./display-capture-flags');
 const {
+  installBadgeApiPolicy,
+  startApplicationBadgeGuard,
+} = require('./app-badge-policy');
+const {
   WEBRTC_AUDIO_BUFFER_GET_CHANNEL,
   sendWebrtcAudioBufferMode,
 } = require('./webrtc-audio-buffer');
@@ -7955,6 +7959,10 @@ let displayCapturePicker = null;
 let displayCaptureHelperWindow = null; // hidden BrowserWindow; released on the last visible close
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
+  // Remove a badge left by an older build and keep the app-global native badge
+  // empty if a service worker writes it. Page scripts are neutralized before
+  // they run by the frame-only preload installed below.
+  startApplicationBadgeGuard(app);
   profileSessionRegistry = createProfileSessionRegistry({
     defaultSession: session.defaultSession,
     fromPartition: (partition) => session.fromPartition(partition),
@@ -8034,6 +8042,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, CAPTURE_RUNTIME.preload),
       });
+      installBadgeApiPolicy(
+        browsingSession,
+        path.join(__dirname, 'badge-api-preload.js')
+      );
     }
   };
   // The session preload needs the persisted target before page scripts run.
