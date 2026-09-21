@@ -43,6 +43,12 @@ jobs:
       - name: DNS launch smoke (Windows)
         if: runner.os == 'Windows'
         run: npm run test:dns-smoke
+      - name: Window geometry persistence (Linux, headless)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:window-state
+      - name: Window geometry persistence (Windows)
+        if: runner.os == 'Windows'
+        run: npm run test:window-state
 
   published-linux-appimage:
     if: ${{ inputs.release_version != '' }}

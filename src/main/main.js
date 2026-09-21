@@ -3,6 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
+const {
+  shouldClearPersistedWindowState,
+  windowStateName,
+  windowStatePersistenceOptions,
+} = require('./window-state-persistence');
 
 // Electron's default uncaught-exception path raises a native modal dialog,
 // which can leave the acceptance runner reporting green while app.close()
@@ -7189,6 +7194,11 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     height: 800,
     minWidth: 640,
     minHeight: 480,
+    // Electron owns the cross-platform edge cases here: normal bounds,
+    // maximized/fullscreen state, changed displays, and off-screen recovery.
+    // runtime.id is stable across session restore and unique among live
+    // windows, which is exactly the native persistence API's naming contract.
+    ...windowStatePersistenceOptions(runtime.id),
     title: profileWindowTitle(localProfile),
     backgroundColor: chromeBackgroundColor(),
     frame: false,
@@ -7290,7 +7300,11 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     liveViewContents(runtime.fillStatusView)?.close();
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
-    if (!isQuitting && runtime !== primaryRuntime) {
+    const clearPersistedWindowState = shouldClearPersistedWindowState({
+      isQuitting,
+      isPrimaryWindow: runtime === primaryRuntime,
+    });
+    if (clearPersistedWindowState) {
       runtime.closing = true;
       // The close event durably checkpointed before native teardown.
       runtime.workspaceId = null;
@@ -7298,6 +7312,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
       runtime.closedEntries = [];
       windowRuntimes.discardRuntime(runtime);
+      // This window was intentionally removed from Blanc's saved session.
+      // Do not accumulate native placement entries for one-off windows; a
+      // normal app quit takes the other branch and retains every live window.
+      BrowserWindow.clearPersistedState(windowStateName(runtime.id));
       if (!sessionReadOnly) persistSession();
     } else {
       // The primary window's workspaceId deliberately survives detachWindow,
