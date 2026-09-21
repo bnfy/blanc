@@ -66,7 +66,7 @@ Feature: Start page layouts
     And eight favorites fill the Start Page
     And a profile whose start page layout is "billboard"
     When I open a new tab
-    Then the start page uses Newsreader only for invitation headings
+    Then the start page uses Newsreader for the Billboard clock and invitation headings
     And the start-page typography fits at desktop size boundaries
 
   @F35-7 @desktop

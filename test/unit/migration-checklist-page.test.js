@@ -83,6 +83,15 @@ test('moving-in checklist uses Newsreader and Inter without handwritten styling'
     'the checklist no longer draws a freehand underline');
 });
 
+test('checklist dismissal stays attached to the task-label column', () => {
+  const css = read('src/renderer/pages/pages.css');
+
+  assert.match(
+    css,
+    /\.migration-checklist-hide \{[^}]*width: fit-content;[^}]*margin: 7px 0 0 87px;[^}]*padding: 5px 0;[^}]*text-align: left;/s
+  );
+});
+
 test('renderer reflects progress, keeps completed rows actionable, and retires after 1.5 seconds', () => {
   const js = read('src/renderer/pages/newtab.js');
 

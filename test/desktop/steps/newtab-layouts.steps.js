@@ -132,7 +132,7 @@ Then('the Billboard backfills with {string}', async function (key) {
   assert.ok(dom.sites.every((site) => !dom.hidden.includes(site.key)));
 });
 
-Then('the start page uses Newsreader only for invitation headings', async function () {
+Then('the start page uses Newsreader for the Billboard clock and invitation headings', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
     (value) => value?.page?.samples?.length === 13,
@@ -140,13 +140,14 @@ Then('the start page uses Newsreader only for invitation headings', async functi
   );
   assert.deepEqual(usage.page.jetbrains, []);
   assert.equal(usage.page.newsreaderLoaded, true);
-  assert.equal(usage.page.invitation.length, 7);
-  assert.deepEqual(usage.page.newsreaderOutsideInvitation, []);
-  for (const sample of usage.page.invitation) {
+  assert.equal(usage.page.newsreader.length, 8);
+  assert.deepEqual(usage.page.newsreaderOutsideApproved, []);
+  for (const sample of usage.page.newsreader) {
     assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
   }
   for (const sample of usage.page.samples) {
-    assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
+    const expected = sample.selector === '.bb-clock' ? /Newsreader Variable/ : /Inter/;
+    assert.match(sample.family, expected, `${sample.selector} resolved to ${sample.family}`);
   }
 });
 
