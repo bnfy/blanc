@@ -124,6 +124,7 @@ const {
   updateFaviconAfterDomReady,
 } = require('./favicon-policy');
 const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
+const { shouldSamplePageTint } = require('./page-tint-policy');
 const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
@@ -4322,7 +4323,7 @@ async function samplePageTint(tab, { immediate = false, shouldApply = () => true
   // view between scheduling and this run.
   const wc = liveContents(tab);
   if (!tabs.has(tab.id) || !wc) return;
-  if (tab.private || !/^https?:\/\//.test(tab.url)) {
+  if (!shouldSamplePageTint(tab)) {
     if (tab.pageBg) {
       tab.pageBg = null;
       scheduleBroadcastTabs();

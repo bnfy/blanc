@@ -823,8 +823,8 @@ function install(refs) {
           '.tally-caption', '.ledger-footer', '.layout-switcher button',
           '.ob-step-label', '.ob-commands'
         ];
-        const invitationSelector = '.migration-checklist-heading h2, .ob-content h1';
-        const invitation = [...document.querySelectorAll(invitationSelector)];
+        const newsreaderSelector = '.bb-clock, .migration-checklist-heading h2, .ob-content h1';
+        const newsreader = [...document.querySelectorAll(newsreaderSelector)];
         const newsreaderElements = [...document.querySelectorAll('body, body *')]
           .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
         return {
@@ -832,13 +832,13 @@ function install(refs) {
             selector,
             family: getComputedStyle(document.querySelector(selector)).fontFamily,
           })),
-          invitation: invitation.map((element) => ({
+          newsreader: newsreader.map((element) => ({
             selector: element.className || 'onboarding h1',
             family: getComputedStyle(element).fontFamily,
           })),
           newsreaderLoaded: document.fonts.check('22px "Newsreader Variable"'),
-          newsreaderOutsideInvitation: newsreaderElements
-            .filter((element) => !element.matches(invitationSelector))
+          newsreaderOutsideApproved: newsreaderElements
+            .filter((element) => !element.matches(newsreaderSelector))
             .slice(0, 20)
             .map((element) => element.id || element.className || element.tagName),
           jetbrains: [...document.querySelectorAll('body, body *')]
