@@ -104,10 +104,11 @@ page headline, section heading, feature card title, FAQ question, release
 name, and the footer tagline are set in it at regular weight, and the press
 announcement quote takes its italic. The generated share cards and press card
 set their titles in it. Body copy, labels, controls, the legal pages, the
-consent card, and every product replica stay in Inter, and the app keeps its
-existing typefaces. The homepage demo carries one short sentence per scene as
-an Inter figure title, never a second headline-and-subline pair under the
-hero. Use the
+consent card, and every product replica stay in Inter. The desktop app uses
+Newsreader only for its invitation voice, documented below; all other app UI
+keeps its existing typefaces. The homepage demo carries one short sentence per
+scene as an Inter figure title, never a second headline-and-subline pair under
+the hero. Use the
 `--site-font-patron` token, regular weight, restrained negative tracking, and
 generous space around the name. Do not use the display serif for small text or
 replace the canonical Sunrise symbol with a letterform.
@@ -145,8 +146,22 @@ heading level was adopted instead and deployed the same day (bnfy/blanc#281).
 The homepage demo's headline-and-subline pair was merged at the same time
 into one sentence per scene, set as an Inter figure title, because it
 repeated the hero's shape directly beneath it. The generated share cards and
-press card follow the heading face. The app keeps Inter; giving it
-Newsreader needs its own brief. All new social templates follow the current Sunrise identity and Newsreader title rule. Previously approved launch assets require fresh review if changed.
+press card follow the heading face. All new social templates follow the current
+Sunrise identity and Newsreader title rule. Previously approved launch assets
+require fresh review if changed.
+
+### Desktop invitation voice
+
+Newsreader enters the desktop app only where Blanc welcomes or orients the
+user: the “Where to?” title in the Ledger, Shelf, and Tally start-page layouts,
+and the six first-run onboarding titles. These headings use the upright
+optical-size build at regular weight. Inter remains the app's operating voice
+for the Island, command palette, vertical tabs, Settings, utility pages,
+imports, dialogs, warnings, controls, lists, errors, body copy, and metadata.
+Billboard and Mahjong keep their existing identities. Do not extend the serif
+to other product headings without a separate review, and do not treat this
+type exception as permission to bring the website's warm palette into the
+general product UI.
 
 ### Editorial website footer
 

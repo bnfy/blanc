@@ -45,7 +45,11 @@ test('app chrome and internal pages have no live Google Fonts dependency', () =>
   for (const file of files) {
     assert.doesNotMatch(read(file), /fonts\.(?:googleapis|gstatic)\.com/, file);
   }
-  for (const font of ['inter-latin.woff2', 'jetbrains-mono-latin.woff2']) {
+  for (const font of [
+    'inter-latin.woff2',
+    'jetbrains-mono-latin.woff2',
+    'newsreader-latin-opsz-normal.woff2',
+  ]) {
     assert.ok(fs.statSync(path.join(root, 'src/renderer/pages', font)).size > 1_000, font);
   }
 });

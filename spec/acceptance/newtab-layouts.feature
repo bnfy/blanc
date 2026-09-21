@@ -61,12 +61,12 @@ Feature: Start page layouts
     Then the Billboard backfills with "site-48.example"
 
   @F35-6 @desktop
-  Scenario: Every start-page layout replaces mono UI text with Inter
+  Scenario: Every start-page layout uses the approved typography roles
     Given local history contains repeated visits for the Billboard
     And a profile whose start page layout is "billboard"
     When I open a new tab
-    Then all start-page templates use Inter instead of JetBrains Mono
-    And Inter start-page typography fits at desktop size boundaries
+    Then the start page uses Newsreader only for invitation headings
+    And the start-page typography fits at desktop size boundaries
 
   @F35-7 @desktop
   Scenario: The moving-in checklist belongs to informational layouts only

@@ -57,6 +57,16 @@
       "homepage": "https://github.com/googlefonts/caveat"
     },
     {
+      "id": "newsreader-font",
+      "name": "Newsreader Latin optical-size variable webfont",
+      "version": "5.3.0",
+      "type": "file",
+      "file": "src/renderer/pages/newsreader-latin-opsz-normal.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/newsreader-OFL.txt",
+      "homepage": "https://github.com/productiontype/Newsreader"
+    },
+    {
       "id": "easylist-data",
       "name": "EasyList",
       "type": "data",

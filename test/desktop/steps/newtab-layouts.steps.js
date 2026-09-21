@@ -122,19 +122,25 @@ Then('the Billboard backfills with {string}', async function (key) {
   assert.ok(dom.sites.every((site) => !dom.hidden.includes(site.key)));
 });
 
-Then('all start-page templates use Inter instead of JetBrains Mono', async function () {
+Then('the start page uses Newsreader only for invitation headings', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
     (value) => value?.page?.samples?.length === 13,
     'the new-tab document to expose its computed fonts',
   );
   assert.deepEqual(usage.page.jetbrains, []);
+  assert.equal(usage.page.newsreaderLoaded, true);
+  assert.equal(usage.page.invitation.length, 9);
+  assert.deepEqual(usage.page.newsreaderOutsideInvitation, []);
+  for (const sample of usage.page.invitation) {
+    assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
+  }
   for (const sample of usage.page.samples) {
     assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
   }
 });
 
-Then('Inter start-page typography fits at desktop size boundaries', async function () {
+Then('the start-page typography fits at desktop size boundaries', async function () {
   const originalBounds = await this.call('windowContentBounds');
   const originalLayout = await this.call('newtabLayout');
   const layouts = ['ledger', 'billboard', 'shelf', 'tally'];
@@ -202,6 +208,11 @@ Then('the standalone mahjong game is ready', async function () {
     'the standalone Mahjong tab to render its active Daily layout at playable size'
   );
   const game = await this.call('readMahjongDom');
+  assert.deepEqual(game.newsreader, [], 'Mahjong must not inherit the invitation voice');
+  for (const sample of game.fontSamples) {
+    assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
+  }
+  assert.match(game.tileFaceFamily, /JetBrains Mono/, 'Mahjong tile faces keep JetBrains Mono');
   assert.ok(game.boardCenterDeltaX <= 1, `board x center drifted ${game.boardCenterDeltaX}px`);
   assert.ok(game.dockLeft >= game.boardFrameLeft - 1, 'control rail should begin inside the board frame');
   assert.ok(game.dockRight <= game.boardFrameRight + 1, 'control rail should end inside the board frame');

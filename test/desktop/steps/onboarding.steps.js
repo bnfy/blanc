@@ -18,6 +18,54 @@ Then('the onboarding walkthrough is shown', async function () {
   );
 });
 
+Then('every onboarding title fits in Newsreader in light and dark themes', async function () {
+  const originalBounds = await this.call('windowContentBounds');
+  const sizes = [
+    { width: 1280, height: 800, label: 'default' },
+    { width: 640, height: 480, label: 'minimum' },
+  ];
+  assert.ok(originalBounds, 'window content bounds should be available');
+
+  try {
+    for (const size of sizes) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.label} onboarding content bounds`,
+      );
+      const audit = await this.call('auditOnboardingInvitationTypography');
+      for (const theme of ['light', 'dark']) {
+        const result = audit?.[theme];
+        assert.equal(result?.theme, theme);
+        assert.equal(result.fontLoaded, true);
+        assert.equal(result.dialogOverflow, false);
+        assert.equal(result.pageOverflow, false);
+        assert.equal(result.steps.length, 6);
+        for (const step of result.steps) {
+          const context = `${theme} onboarding step ${step.step} at ${size.width}x${size.height}`;
+          assert.match(step.font, /Newsreader Variable/, context);
+          assert.equal(step.size, '22px', context);
+          assert.equal(step.weight, '400', context);
+          assert.equal(step.lineHeight, '25.3px', context);
+          assert.equal(step.tracking, '-0.33px', context);
+          assert.equal(step.opticalSizing, 'auto', context);
+          assert.equal(step.insideContent, true, context);
+          assert.equal(step.horizontalOverflow, false, context);
+          assert.equal(step.focusOutline, true, context);
+        }
+      }
+    }
+  } finally {
+    await this.call('setWindowContentSize', originalBounds.width, originalBounds.height);
+    await waitForValue(
+      () => this.call('windowContentBounds'),
+      (bounds) => bounds?.width === originalBounds.width && bounds?.height === originalBounds.height,
+      'restored onboarding content bounds',
+    );
+  }
+});
+
 Given('a profile that completed first run', async function () {
   // The acceptance profile auto-completes first run at launch; assert the
   // precondition rather than assuming it.

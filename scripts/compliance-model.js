@@ -194,6 +194,7 @@ function runtimeClosure(model) {
 }
 
 function assetVersion(asset, contents, policy) {
+  if (asset.version) return asset.version;
   if (asset.manifest) return readJson(asset.manifest).seedId;
   const version = contents.match(/^! Version:\s*(.+?)\s*$/m)?.[1];
   if (version) return version;
@@ -348,6 +349,7 @@ function runtimeSbom(model, policy) {
     'asset:inter-font',
     'asset:jetbrains-mono-font',
     'asset:caveat-font',
+    'asset:newsreader-font',
     'asset:blanc-adblock-seed',
   ]);
   for (const name of closure.directNames) {

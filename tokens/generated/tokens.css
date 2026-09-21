@@ -74,6 +74,7 @@
   --patron-label: #f7f0e5;
   --patron-halo: rgba(128, 93, 40, 0.24);
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 6px;

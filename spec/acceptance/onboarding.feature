@@ -8,6 +8,7 @@ Feature: First-run onboarding
   Scenario: A fresh profile is offered the walkthrough
     Given a fresh first run is awaiting setup
     Then the onboarding walkthrough is shown
+    And every onboarding title fits in Newsreader in light and dark themes
 
   @F36-2 @all
   Scenario: Skipping still records the privacy choices
