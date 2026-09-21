@@ -815,18 +815,32 @@ function install(refs) {
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
-      const page = await tab.view.webContents.executeJavaScript(`(() => {
+      const page = await tab.view.webContents.executeJavaScript(`(async () => {
+        await document.fonts.load('22px "Newsreader Variable"');
         const selectors = [
           '.ledger-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
           '.bb-blocked', '.shelf-date', '.shelf-label', '.shelf-count',
           '.tally-count', '.tally-caption', '.ledger-footer', '.ob-step-label',
           '.ob-commands'
         ];
+        const invitationSelector = '.ledger-heading, .shelf-heading, .ob-content h1';
+        const invitation = [...document.querySelectorAll(invitationSelector)];
+        const newsreaderElements = [...document.querySelectorAll('body, body *')]
+          .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
         return {
           samples: selectors.map((selector) => ({
             selector,
             family: getComputedStyle(document.querySelector(selector)).fontFamily,
           })),
+          invitation: invitation.map((element) => ({
+            selector: element.className || 'onboarding h1',
+            family: getComputedStyle(element).fontFamily,
+          })),
+          newsreaderLoaded: document.fonts.check('22px "Newsreader Variable"'),
+          newsreaderOutsideInvitation: newsreaderElements
+            .filter((element) => !element.matches(invitationSelector))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
           jetbrains: [...document.querySelectorAll('body, body *')]
             .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
             .slice(0, 20)
@@ -951,6 +965,7 @@ function install(refs) {
           const dockRect = document.querySelector('.mj-dock')?.getBoundingClientRect();
           const dockButtons = [...document.querySelectorAll('.mj-dock > button')]
             .map((button) => button.getBoundingClientRect());
+          const fontSelectors = ['.mj-title', '.mj-session', '.mj-meter-label', '.mj-dock-action', '.mj-tray-kicker'];
           const firstDockButton = dockButtons[0];
           const secondDockButton = dockButtons[1];
           return {
@@ -981,6 +996,15 @@ function install(refs) {
             dockButtonGap: firstDockButton && secondDockButton
               ? secondDockButton.top - firstDockButton.bottom
               : 0,
+            fontSamples: fontSelectors.map((selector) => ({
+              selector,
+              family: getComputedStyle(document.querySelector(selector)).fontFamily,
+            })),
+            newsreader: [...document.querySelectorAll('body, body *')]
+              .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'))
+              .slice(0, 20)
+              .map((element) => element.id || element.className || element.tagName),
+            tileFaceFamily: getComputedStyle(document.querySelector('.mj-face text')).fontFamily,
             viewportWidth: innerWidth,
             viewportHeight: innerHeight,
           };
@@ -1199,6 +1223,103 @@ function install(refs) {
         shown: !(document.getElementById('onboardDialog')?.hidden ?? true),
         step: document.getElementById('onboardDialog')?.dataset.step ?? null,
       }))()`);
+    },
+    async auditOnboardingInvitationTypography() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab?.view?.webContents;
+      if (!wc || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const debuggerWasAttached = wc.debugger.isAttached();
+      if (!debuggerWasAttached) wc.debugger.attach('1.3');
+
+      const resetToFirstStep = () => wc.executeJavaScript(`(async () => {
+        const dialog = document.getElementById('onboardDialog');
+        if (!dialog || dialog.hidden) return false;
+        const waitFor = async (expected) => {
+          for (let i = 0; i < 80; i += 1) {
+            if (dialog.dataset.step === String(expected)) return true;
+            await new Promise((resolve) => setTimeout(resolve, 25));
+          }
+          return false;
+        };
+        while (Number(dialog.dataset.step) > 0) {
+          const expected = Number(dialog.dataset.step) - 1;
+          document.getElementById('obBack').click();
+          if (!(await waitFor(expected))) return false;
+        }
+        return true;
+      })()`);
+
+      const captureTheme = async (theme, forward) => {
+        await wc.debugger.sendCommand('Emulation.setEmulatedMedia', {
+          features: [{ name: 'prefers-color-scheme', value: theme }],
+        });
+        return wc.executeJavaScript(`(async () => {
+          const dialog = document.getElementById('onboardDialog');
+          const content = document.getElementById('obContent');
+          const waitFor = async (predicate) => {
+            for (let i = 0; i < 120; i += 1) {
+              if (predicate()) return true;
+              await new Promise((resolve) => setTimeout(resolve, 25));
+            }
+            return false;
+          };
+          if (!dialog || dialog.hidden) return null;
+          const dark = ${JSON.stringify(theme === 'dark')};
+          if (!(await waitFor(() => matchMedia('(prefers-color-scheme: dark)').matches === dark))) {
+            throw new Error('theme did not settle');
+          }
+          await document.fonts.ready;
+          const order = ${forward ? '[0, 1, 2, 3, 4, 5]' : '[5, 4, 3, 2, 1, 0]'};
+          const steps = [];
+          for (let index = 0; index < order.length; index += 1) {
+            const step = order[index];
+            if (!(await waitFor(() => dialog.dataset.step === String(step)))) {
+              throw new Error('onboarding step did not settle: ' + step);
+            }
+            const section = document.querySelector('#obContent [data-step="' + step + '"]');
+            const title = section.querySelector('h1');
+            const style = getComputedStyle(title);
+            const titleRect = title.getBoundingClientRect();
+            const contentRect = content.getBoundingClientRect();
+            const next = document.getElementById('obNext');
+            next.focus();
+            const focus = getComputedStyle(next);
+            steps.push({
+              step,
+              text: title.textContent,
+              font: style.fontFamily,
+              size: style.fontSize,
+              weight: style.fontWeight,
+              lineHeight: style.lineHeight,
+              tracking: style.letterSpacing,
+              opticalSizing: style.fontOpticalSizing,
+              insideContent: titleRect.left >= contentRect.left - 1 && titleRect.right <= contentRect.right + 1,
+              horizontalOverflow: section.scrollWidth > section.clientWidth + 1,
+              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 2,
+            });
+            if (index < order.length - 1) {
+              document.getElementById(${forward ? "'obNext'" : "'obBack'"}).click();
+            }
+          }
+          return {
+            theme: dark ? 'dark' : 'light',
+            fontLoaded: document.fonts.check('22px "Newsreader Variable"'),
+            dialogOverflow: dialog.scrollWidth > dialog.clientWidth + 1,
+            pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+            steps,
+          };
+        })()`);
+      };
+
+      try {
+        if (!(await resetToFirstStep())) return null;
+        const light = await captureTheme('light', true);
+        const dark = await captureTheme('dark', false);
+        return { light, dark };
+      } finally {
+        await wc.debugger.sendCommand('Emulation.setEmulatedMedia', { features: [] });
+        if (!debuggerWasAttached) wc.debugger.detach();
+      }
     },
     skipOnboarding() {
       const tab = tabs.get(getActiveTabId());

@@ -43,7 +43,7 @@ update procedure.
 Copyright (c) 2024 1Password. Full licence text in
 [src/THIRD_PARTY_NOTICES.txt](src/THIRD_PARTY_NOTICES.txt).
 
-## Inter, JetBrains Mono, and Caveat fonts — SIL OFL 1.1
+## Inter, JetBrains Mono, Caveat, and Newsreader fonts — SIL OFL 1.1
 
 - `src/renderer/pages/inter-latin.woff2` — Copyright 2020 The Inter Project
   Authors. Full licence text:
@@ -54,19 +54,23 @@ Copyright (c) 2024 1Password. Full licence text in
 - `src/renderer/pages/caveat-latin.woff2` — Copyright 2014 The Caveat Project
   Authors. Full licence text:
   [src/renderer/pages/caveat-OFL.txt](src/renderer/pages/caveat-OFL.txt).
+- `src/renderer/pages/newsreader-latin-opsz-normal.woff2` — Copyright 2020 The
+  Newsreader Project Authors. Full licence text:
+  [src/renderer/pages/newsreader-OFL.txt](src/renderer/pages/newsreader-OFL.txt).
 
-All three font files remain under the SIL Open Font License, Version 1.1; Blanc's
+All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
-## Newsreader website font — SIL OFL 1.1
+## Newsreader website source — SIL OFL 1.1
 
 The website uses Newsreader (variable, optical-size axis, regular weight) for
-Blanc Patron's display typography, self-hosted through
-`@fontsource-variable/newsreader` 5.3.0. It is a website-only asset and is not
-bundled in the desktop application. The font remains under the SIL Open Font
-License, Version 1.1; Blanc's MIT grant does not supersede it. The full
-copyright notice and licence ship with the website at
+its display typography, self-hosted through
+`@fontsource-variable/newsreader` 5.3.0. The desktop application bundles the
+same pinned Latin optical-size upright build for its narrowly scoped invitation
+headings, as listed above. The font remains under the SIL Open Font License,
+Version 1.1; Blanc's MIT grant does not supersede it. The full website copyright
+notice and licence ship at
 [site/public/fonts/newsreader-OFL.txt](site/public/fonts/newsreader-OFL.txt).
 Upstream: <https://github.com/productiontype/Newsreader>.
 

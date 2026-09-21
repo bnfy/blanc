@@ -76,6 +76,7 @@ object BlancTokens {
     const val patronSurface: String = "#12100b"
     const val patronLabel: String = "#f7f0e5"
     const val fontUi: String = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
+    const val fontDisplay: String = "\"Newsreader Variable\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
     const val fontMono: String = "\"JetBrains Mono\", ui-monospace, \"SF Mono\", \"Cascadia Code\", Menlo, Consolas, monospace"
     const val fontKbd: String = "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
     const val shadowPopover: String = "inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12)"
