@@ -818,12 +818,12 @@ function install(refs) {
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
         await document.fonts.load('22px "Newsreader Variable"');
         const selectors = [
-          '.ledger-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
-          '.bb-blocked', '.shelf-date', '.shelf-label', '.shelf-count',
-          '.tally-count', '.tally-caption', '.ledger-footer', '.ob-step-label',
-          '.ob-commands'
+          '.start-brand-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
+          '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
+          '.tally-caption', '.ledger-footer', '.layout-switcher button',
+          '.ob-step-label', '.ob-commands'
         ];
-        const invitationSelector = '.ledger-heading, .shelf-heading, .ob-content h1';
+        const invitationSelector = '.migration-checklist-heading h2, .ob-content h1';
         const invitation = [...document.querySelectorAll(invitationSelector)];
         const newsreaderElements = [...document.querySelectorAll('body, body *')]
           .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
@@ -898,6 +898,20 @@ function install(refs) {
             return rect.left < -1 || rect.right > innerWidth + 1;
           })
           .map(describe);
+        const documentBottom = Math.max(root.scrollHeight, body.scrollHeight);
+        const maxScrollY = Math.max(0, documentBottom - innerHeight);
+        const footer = document.getElementById('layoutFooter')?.getBoundingClientRect();
+        const footerOverlaps = footer
+          ? [...body.querySelectorAll('main a, main button, main .shelf-card')]
+              .filter(visible)
+              .filter((element) => {
+                const rect = element.getBoundingClientRect();
+                const topAtBottom = rect.top - maxScrollY;
+                const bottomAtBottom = rect.bottom - maxScrollY;
+                return bottomAtBottom > footer.top + 1 && topAtBottom < footer.bottom - 1;
+              })
+              .map(describe)
+          : [];
         return {
           layout: body.dataset.layout ?? null,
           viewportWidth: innerWidth,
@@ -908,6 +922,7 @@ function install(refs) {
           unreachableText,
           clippedText,
           surfaces,
+          footerOverlaps,
         };
       })()`;
       const page = await tab.view.webContents.executeJavaScript(audit);

@@ -87,9 +87,10 @@ glyphs use bronze (`--site-gold`), with ink hover and keyboard-focus states.
 
 Product screenshots, embedded demos, illustrations, downloadable press art,
 and their asset-preview backing fields retain their existing colors. Never
-substitute website tokens for the shared product `--accent`, `--bg`, or other
-product variables. Both light and private-mode product replicas must retain
-their released colors, including when enlarged.
+substitute website tokens for shared product `--accent`, `--bg`, or other
+product variables outside the explicitly scoped Start Page treatment below.
+Both light and private-mode product replicas must retain their released colors,
+including when enlarged.
 
 ### Blanc Patron website identity
 
@@ -150,18 +151,34 @@ press card follow the heading face. All new social templates follow the current
 Sunrise identity and Newsreader title rule. Previously approved launch assets
 require fresh review if changed.
 
+### Desktop Start Page Sunrise treatment
+
+The four Start Page layouts — Ledger, Billboard, Shelf, and Tally — share the
+Sunrise identity without becoming the same composition. Use the canonical gold
+Sunrise symbol above a single date line, the warm ivory/gold palette documented
+above, and the real layered mountain sunrise in
+`src/renderer/pages/start-page-sunrise.png`. Keep the landscape quiet in the
+upper half so operating UI stays legible. Dark and private tabs may deepen the
+same image into warm dusk with overlays; private mode must retain its explicit
+textual distinction. The treatment is scoped to the Start Page and does not
+warm the Island, Settings, or other utility pages.
+
+Use one straight, subtle footer divider. Do not add a hand-drawn horizon line,
+a typeset Blanc wordmark, or a large “Where to?” heading. Mahjong remains a
+standalone footer action and is never a fifth layout. Preserve the four-layout
+selector order and the existing compact Patron action; visual explorations are
+not a source for new marketing claims or replacement copy.
+
 ### Desktop invitation voice
 
 Newsreader enters the desktop app only where Blanc welcomes or orients the
-user: the “Where to?” title in the Ledger, Shelf, and Tally start-page layouts,
-and the six first-run onboarding titles. These headings use the upright
-optical-size build at regular weight. Inter remains the app's operating voice
-for the Island, command palette, vertical tabs, Settings, utility pages,
-imports, dialogs, warnings, controls, lists, errors, body copy, and metadata.
-Billboard and Mahjong keep their existing identities. Do not extend the serif
-to other product headings without a separate review, and do not treat this
-type exception as permission to bring the website's warm palette into the
-general product UI.
+user: the Start Page moving-in checklist title and the six first-run onboarding
+titles. These headings use the upright optical-size build at regular weight.
+Inter remains the app's operating voice for dates, clocks, navigation, lists,
+metadata, controls, the Island, command palette, vertical tabs, Settings,
+utility pages, imports, dialogs, warnings, errors, and body copy. Billboard and
+Mahjong keep their existing identities. Do not extend the serif to other
+product headings without a separate review.
 
 ### Editorial website footer
 

@@ -59,27 +59,28 @@ test('every start-page template names the Blanc Patron upgrade as an action', ()
 test('checklist occupies the corner, compacts at tight viewports, and avoids private tabs', () => {
   const css = read('src/renderer/pages/pages.css');
 
-  assert.match(css, /\.migration-checklist-shell \{[\s\S]{0,260}?position: fixed;[\s\S]{0,260}?bottom: 84px;/);
-  assert.match(css, /body\[data-layout="billboard"\] \.migration-checklist-shell \{[\s\S]{0,120}?top: 92px;[\s\S]{0,120}?bottom: auto;/,
-    'Billboard keeps the checklist above its recent-site row');
-  assert.match(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[\s\S]{0,900}?\.migration-checklist-compact \{[\s\S]{0,300}?display: grid;/);
-  assert.match(css, /body\[data-layout="billboard"\] \.migration-checklist \{[\s\S]{0,100}?top: 58px;[\s\S]{0,100}?bottom: auto;/,
-    'Billboard compact expansion opens downward from the upper-right trigger');
+  assert.match(css, /\/\* ---------- Sunrise start-page presentation ----------[\s\S]*?\.migration-checklist-shell \{[\s\S]{0,260}?top: clamp\(154px, 22vh, 194px\);[\s\S]{0,260}?bottom: auto;/);
+  assert.match(css, /body\[data-layout="billboard"\] \.migration-checklist-shell \{ top: clamp\(30px, 5vh, 48px\); \}/,
+    'Billboard keeps the checklist in its quiet upper-right margin');
+  assert.match(css, /@media \(max-width: 1120px\) \{[\s\S]{0,900}?\.migration-checklist-compact \{[\s\S]{0,300}?display: grid;/);
+  assert.match(css, /\.migration-checklist \{[\s\S]{0,340}?bottom: 58px;[\s\S]{0,340}?display: none;/,
+    'the compact checklist expands above the footer trigger');
   assert.doesNotMatch(css, /body\[data-layout="mahjong"\] \.migration-checklist-shell/);
   assert.match(css, /:root\[data-theme="private"\] \.migration-checklist-shell/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]{0,320}?animation: none;/);
 });
 
-test('Caveat is local and scoped to checklist display copy', () => {
+test('moving-in checklist uses Newsreader and Inter without handwritten styling', () => {
   const css = read('src/renderer/pages/pages.css');
-  const font = fs.readFileSync(path.join(root, 'src/renderer/pages/caveat-latin.woff2'));
 
-  assert.match(css, /font-family: "Caveat";\s*src: url\("caveat-latin\.woff2"\) format\("woff2"\);/);
-  assert.match(css, /\.migration-checklist-heading h2 \{[\s\S]{0,180}?font-family: "Caveat"/);
-  assert.match(css, /\.migration-checklist-heading h2 \{[\s\S]{0,260}?transform: rotate\(-1\.4deg\)/,
-    'the hand-written heading keeps the mockup’s slight upward tilt');
-  assert.match(css, /\.migration-task-label \{[\s\S]{0,180}?font-family: "Caveat"/);
-  assert.deepEqual([...font.subarray(0, 4)], [119, 79, 70, 50], 'font is WOFF2');
+  assert.match(css, /\.migration-checklist-heading h2 \{[\s\S]{0,180}?font-family: var\(--font-display\)/);
+  assert.match(css, /\.migration-task-label \{[\s\S]{0,180}?font-family: var\(--font-ui\)/);
+  const heading = css.match(/\.migration-checklist-heading h2 \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  const task = css.match(/\.migration-task-label \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  assert.doesNotMatch(heading, /Caveat|rotate/);
+  assert.doesNotMatch(task, /Caveat/);
+  assert.doesNotMatch(css, /\.migration-task-label::after/,
+    'the checklist no longer draws a freehand underline');
 });
 
 test('renderer reflects progress, keeps completed rows actionable, and retires after 1.5 seconds', () => {

@@ -30,6 +30,16 @@ Given('local history contains repeated visits for the Billboard', async function
   this.billboardHistoryCount = await this.call('historyCount');
 });
 
+Given('eight favorites fill the Start Page', async function () {
+  for (let index = 0; index < 8; index += 1) {
+    await this.call(
+      'seedFavorite',
+      `https://favorite-${index}.example/`,
+      `Favorite ${index + 1}`,
+    );
+  }
+});
+
 Given('local history contains sixty ranked sites for the Billboard', async function () {
   this.billboardInitiallyHidden = await this.call('seedBillboardOverflowHistory');
   assert.equal(this.billboardInitiallyHidden.length, 48);
@@ -130,7 +140,7 @@ Then('the start page uses Newsreader only for invitation headings', async functi
   );
   assert.deepEqual(usage.page.jetbrains, []);
   assert.equal(usage.page.newsreaderLoaded, true);
-  assert.equal(usage.page.invitation.length, 9);
+  assert.equal(usage.page.invitation.length, 7);
   assert.deepEqual(usage.page.newsreaderOutsideInvitation, []);
   for (const sample of usage.page.invitation) {
     assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
@@ -182,6 +192,7 @@ Then('the start-page typography fits at desktop size boundaries', async function
           assert.deepEqual(audit.unreachableText, [], `${context} has unreachable text`);
           assert.deepEqual(audit.clippedText, [], `${context} clips text unexpectedly`);
           assert.deepEqual(audit.surfaces, [], `${context} has an off-screen surface`);
+          assert.deepEqual(audit.footerOverlaps, [], `${context} is obscured by the footer`);
         }
       }
     }

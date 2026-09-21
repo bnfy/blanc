@@ -22,7 +22,7 @@ test('start pages remap the mono role to Inter without changing the global token
   assert.match(game, /<body class="mahjong-body"/);
 });
 
-test('Newsreader is bundled only for the start-page invitation headings', () => {
+test('Newsreader is bundled only for the moving-in and onboarding invitation headings', () => {
   const pages = read('src/renderer/pages/pages.css');
   const chrome = read('src/renderer/styles.css');
   const newtab = read('src/renderer/pages/newtab.html');
@@ -41,12 +41,13 @@ test('Newsreader is bundled only for the start-page invitation headings', () => 
   assert.match(pages, /--font-display:\s*"Newsreader Variable"[^;]*serif;/);
   assert.equal(
     (pages.match(/font-family:\s*var\(--font-display\)/g) || []).length,
-    3,
-    'only the two start-page title selectors and onboarding title selector use Newsreader'
+    2,
+    'only the moving-in title and onboarding title selector use Newsreader'
   );
-  assert.match(pages, /\.ledger-heading\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*30px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.05[^}]*letter-spacing:\s*-0\.02em[^}]*font-optical-sizing:\s*auto/s);
-  assert.match(pages, /\.shelf-heading\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*30px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.05[^}]*letter-spacing:\s*-0\.02em[^}]*font-optical-sizing:\s*auto/s);
+  assert.match(pages, /\.migration-checklist-heading h2\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*28px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.05[^}]*letter-spacing:\s*-0\.02em[^}]*font-optical-sizing:\s*auto/s);
   assert.match(pages, /\.ob-content h1\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*22px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.15[^}]*letter-spacing:\s*-0\.015em[^}]*font-optical-sizing:\s*auto[^}]*text-wrap:\s*balance/s);
+  assert.match(newtab, /id="startDate" class="start-brand-date"/);
+  assert.doesNotMatch(newtab, /Where to\?/);
   assert.equal((newtab.match(/<section data-step="[0-5]"/g) || []).length, 6);
   assert.equal((newtab.match(/<h1>/g) || []).length, 6, 'all six plain h1 elements are onboarding titles');
   assert.doesNotMatch(chrome, /Newsreader|--font-display/);
