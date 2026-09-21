@@ -17,6 +17,7 @@
   const V2_GAME_ACCESS_PREFIX = 'mahjong.game-access.v2.';
   const V2_RECORDS_KEY = 'mahjong.records.v2';
   const V2_RECORD_EVENT_PREFIX = 'mahjong.record-event.v2.';
+  const V2_RECORD_MIGRATION_KEY = 'mahjong.record-migration.v3-from-v2';
   const V2_PREFS_KEY = 'mahjong.prefs.v2';
   const LEGACY_BEST_KEY = 'mahjong.best';
   const SOUND_KEY = 'mahjong.sound';
@@ -683,15 +684,23 @@
           const layoutRevision = normalizedLayoutRevision(result.layoutId, result.layoutRevision);
           if (layoutRevision === null) continue;
           if (typeof result.completed !== 'boolean' || !finiteInteger(result.elapsedMs)) continue;
+          let scoringRevision = 0;
+          if (mode === 'tray') {
+            if (rules === 'manual') {
+              if (result.scoringRevision !== MANUAL_TRAY_SCORING_REVISION) continue;
+              scoringRevision = MANUAL_TRAY_SCORING_REVISION;
+            } else {
+              scoringRevision = result.scoringRevision === undefined ? 1 : result.scoringRevision;
+              if (![1, TRAY_SCORING_REVISION].includes(scoringRevision)) continue;
+            }
+          }
           const normalized = {
             layoutId: result.layoutId,
             layoutRevision,
             completed: result.completed,
             elapsedMs: result.elapsedMs,
             score: finiteInteger(result.score) ? result.score : 0,
-            scoringRevision: mode === 'tray'
-              ? (rules === 'manual' ? MANUAL_TRAY_SCORING_REVISION : TRAY_SCORING_REVISION)
-              : 0,
+            scoringRevision,
             burstRules: mode === 'tray' ? rules : 'auto',
             maxCombo: mode === 'tray' && finiteInteger(result.maxCombo) ? result.maxCombo : 0,
             autoClears: mode === 'tray' && rules === 'auto' && finiteInteger(result.autoClears)
@@ -713,6 +722,12 @@
     if (candidate.completed !== current.completed) return candidate.completed;
     if (!candidate.completed) return candidate.updatedAt >= current.updatedAt;
     if (mode === 'classic') return candidate.elapsedMs < current.elapsedMs;
+    if (candidate.scoringRevision !== current.scoringRevision) {
+      const currentRevision = candidate.burstRules === 'manual'
+        ? MANUAL_TRAY_SCORING_REVISION
+        : TRAY_SCORING_REVISION;
+      return candidate.scoringRevision === currentRevision;
+    }
     if (candidate.score !== current.score) return candidate.score > current.score;
     return candidate.elapsedMs < current.elapsedMs;
   }
@@ -730,9 +745,16 @@
     const burstRules = result.mode === 'tray' && BURST_RULES.includes(result.burstRules)
       ? result.burstRules
       : 'auto';
-    const scoringRevision = result.mode === 'tray'
-      ? (burstRules === 'manual' ? MANUAL_TRAY_SCORING_REVISION : TRAY_SCORING_REVISION)
-      : 0;
+    let scoringRevision = 0;
+    if (result.mode === 'tray') {
+      if (burstRules === 'manual') {
+        if (result.scoringRevision !== MANUAL_TRAY_SCORING_REVISION) return next;
+        scoringRevision = MANUAL_TRAY_SCORING_REVISION;
+      } else {
+        scoringRevision = result.scoringRevision === undefined ? 1 : result.scoringRevision;
+        if (![1, TRAY_SCORING_REVISION].includes(scoringRevision)) return next;
+      }
+    }
     const maxCombo = result.mode === 'tray' && finiteInteger(result.maxCombo) ? result.maxCombo : 0;
     const autoClears = result.mode === 'tray' && burstRules === 'auto' && finiteInteger(result.autoClears)
       ? result.autoClears : 0;
@@ -743,7 +765,9 @@
           next.classic[result.layoutId] = { layoutRevision, bestTimeMs: elapsedMs, updatedAt: timestamp };
         }
       } else {
-        const target = burstRules === 'manual' ? next.trayManual : next.tray;
+        const target = burstRules === 'manual'
+          ? next.trayManual
+          : scoringRevision === TRAY_SCORING_REVISION ? next.tray : next.trayLegacy;
         const current = target[result.layoutId];
         if (!current || score > current.bestScore || (score === current.bestScore && elapsedMs < current.bestTimeMs)) {
           target[result.layoutId] = {
@@ -868,30 +892,60 @@
       return safeSet(storage, RECORDS_KEY, JSON.stringify(normalizeRecords(records)));
     }
 
+    function migratedV2EventIds() {
+      let marker;
+      try { marker = JSON.parse(safeGet(storage, V2_RECORD_MIGRATION_KEY)); } catch { marker = null; }
+      if (!isObject(marker) || marker.version !== RECORDS_VERSION || !Array.isArray(marker.eventIds)) {
+        return new Set();
+      }
+      return new Set(marker.eventIds.filter(isValidGameId).map((id) => id.toLowerCase()));
+    }
+
+    function writeMigratedV2EventIds(eventIds) {
+      return safeSet(storage, V2_RECORD_MIGRATION_KEY, JSON.stringify({
+        version: RECORDS_VERSION,
+        eventIds: [...eventIds].sort(),
+      }));
+    }
+
     function migrateV2() {
       if (safeGet(storage, RECORDS_KEY) === null) {
         let legacy;
         try { legacy = JSON.parse(safeGet(storage, V2_RECORDS_KEY)); } catch { legacy = null; }
         if (isObject(legacy) && legacy.version === 2) write(migrateV2RecordsValue(legacy));
       }
-      for (const key of storedKeysWithPrefix(storage, V2_RECORD_EVENT_PREFIX)) {
+      const keys = storedKeysWithPrefix(storage, V2_RECORD_EVENT_PREFIX);
+      const sourceIds = new Set(keys.map((key) => key.slice(V2_RECORD_EVENT_PREFIX.length).toLowerCase())
+        .filter(isValidGameId));
+      const previousIds = migratedV2EventIds();
+      const migratedIds = new Set([...previousIds].filter((id) => sourceIds.has(id)));
+      for (const key of keys) {
         const eventId = key.slice(V2_RECORD_EVENT_PREFIX.length).toLowerCase();
         if (!isValidGameId(eventId)) continue;
+        if (migratedIds.has(eventId)) continue;
         const targetKey = `${RECORD_EVENT_PREFIX}${eventId}`;
-        if (safeGet(storage, targetKey) !== null) continue;
+        let existing;
+        try { existing = JSON.parse(safeGet(storage, targetKey)); } catch { existing = null; }
+        if (isObject(existing) && existing.version === RECORDS_VERSION
+          && existing.eventId?.toLowerCase() === eventId && isObject(existing.result)) {
+          migratedIds.add(eventId);
+          continue;
+        }
         let wrapper;
         try { wrapper = JSON.parse(safeGet(storage, key)); } catch { wrapper = null; }
         if (!isObject(wrapper) || wrapper.version !== 2 || wrapper.eventId?.toLowerCase() !== eventId
           || !finiteInteger(wrapper.updatedAt) || !isObject(wrapper.result)) continue;
         const result = { ...wrapper.result };
         if (result.mode === 'tray') result.burstRules = 'auto';
-        safeSet(storage, targetKey, JSON.stringify({
+        if (safeSet(storage, targetKey, JSON.stringify({
           version: RECORDS_VERSION,
           eventId,
           updatedAt: wrapper.updatedAt,
           result,
-        }));
+        }))) migratedIds.add(eventId);
       }
+      if (migratedIds.size !== previousIds.size
+        || [...migratedIds].some((id) => !previousIds.has(id))) writeMigratedV2EventIds(migratedIds);
       return readRaw();
     }
 
@@ -1154,6 +1208,7 @@
     V2_GAME_ACCESS_PREFIX,
     V2_RECORDS_KEY,
     V2_RECORD_EVENT_PREFIX,
+    V2_RECORD_MIGRATION_KEY,
     V2_PREFS_KEY,
     LEGACY_BEST_KEY,
     SOUND_KEY,

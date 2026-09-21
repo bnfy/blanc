@@ -509,6 +509,23 @@ test('Auto and Manual Burst records and Daily results remain separate while the 
   assert.deepEqual(S.dailyStreak(records, '2026-09-21'), { current: 1, longest: 1, cleared: 1 });
 });
 
+test('legacy Auto scoring stays out of current Auto records and yields to revision 2 Daily results', () => {
+  let records = S.applyResult(S.emptyRecords(), completion('turtle', 'tray', {
+    scoringRevision: 1, score: 9_999, dailyKey: '2026-09-21',
+  }), 1);
+  assert.equal(records.tray.turtle, undefined);
+  assert.equal(records.trayLegacy.turtle.bestScore, 9_999);
+  assert.equal(records.daily['2026-09-21'].tray.auto.scoringRevision, 1);
+
+  records = S.applyResult(records, completion('turtle', 'tray', {
+    scoringRevision: 2, score: 1_200, dailyKey: '2026-09-21',
+  }), 2);
+  assert.equal(records.tray.turtle.bestScore, 1_200);
+  assert.equal(records.trayLegacy.turtle.bestScore, 9_999);
+  assert.equal(records.daily['2026-09-21'].tray.auto.scoringRevision, 2);
+  assert.equal(records.daily['2026-09-21'].tray.auto.score, 1_200);
+});
+
 test('Zen results are rejected before records, events, totals, or dailies are written', () => {
   const storage = new MemoryStorage();
   const store = S.createRecordStore({ storage, now: () => 5, uuid: () => uuid(702) });
@@ -560,6 +577,67 @@ test('v2 records migrate into Auto exactly once and leave downgrade keys intact'
   assert.equal(storage.getItem(S.V2_RECORDS_KEY) !== null, true);
   assert.equal(storage.getItem(`${S.V2_RECORD_EVENT_PREFIX}${eventId}`) !== null, true);
   assert.equal(store.read().totals.cleared.tray.auto.arch, 1, 'repeated reads never double-count');
+});
+
+test('v2 revision-1 events migrate as legacy instead of current Auto records', () => {
+  const eventId = uuid(705);
+  const storage = new MemoryStorage({
+    [S.V2_RECORDS_KEY]: JSON.stringify({
+      version: 2,
+      classic: {},
+      tray: {},
+      trayLegacy: {},
+      daily: {},
+      totals: { cleared: { classic: {}, tray: {} }, countedEvents: [] },
+    }),
+    [`${S.V2_RECORD_EVENT_PREFIX}${eventId}`]: JSON.stringify({
+      version: 2,
+      eventId,
+      updatedAt: 10,
+      result: completion('turtle', 'tray', { scoringRevision: 1, score: 9_999 }),
+    }),
+  });
+  const migrated = S.createRecordStore({ storage }).read();
+  assert.equal(migrated.tray.turtle, undefined);
+  assert.equal(migrated.trayLegacy.turtle.bestScore, 9_999);
+  assert.equal(migrated.trayLegacy.turtle.scoringRevision, 1);
+});
+
+test('pruned v2 events stay migrated and cannot increment totals on later reads', () => {
+  const storage = new MemoryStorage();
+  const eventIds = [];
+  const result = completion('turtle', 'tray');
+  for (let index = 1; index <= S.MAX_RECORD_EVENTS; index++) {
+    const eventId = uuid(1_000 + index);
+    eventIds.push(eventId);
+    storage.setItem(`${S.V2_RECORD_EVENT_PREFIX}${eventId}`, JSON.stringify({
+      version: 2,
+      eventId,
+      updatedAt: index,
+      result,
+    }));
+  }
+  storage.setItem(S.V2_RECORDS_KEY, JSON.stringify({
+    version: 2,
+    classic: {},
+    tray: {},
+    trayLegacy: {},
+    daily: {},
+    totals: {
+      cleared: { classic: {}, tray: { turtle: S.MAX_RECORD_EVENTS } },
+      countedEvents: eventIds,
+    },
+  }));
+  const store = S.createRecordStore({ storage, now: () => 2_000, uuid: () => uuid(2_000) });
+  assert.equal(store.read().totals.cleared.tray.auto.turtle, S.MAX_RECORD_EVENTS);
+  assert.equal(
+    store.record(completion('turtle', 'tray')).totals.cleared.tray.auto.turtle,
+    S.MAX_RECORD_EVENTS + 1
+  );
+  assert.equal(store.read().totals.cleared.tray.auto.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.equal(store.read().totals.cleared.tray.auto.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.notEqual(storage.getItem(S.V2_RECORD_MIGRATION_KEY), null);
+  assert.notEqual(storage.getItem(`${S.V2_RECORD_EVENT_PREFIX}${eventIds[0]}`), null);
 });
 
 test('immutable record events recover both modes after a stale aggregate write', () => {
