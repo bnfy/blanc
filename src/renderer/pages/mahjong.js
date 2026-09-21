@@ -1364,6 +1364,7 @@ let prefsStore = null;
 let resumeTarget = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
+let activeSharedChallenge = false;
 let setupChoice = {
   layoutId: S.dailyDeal(new Date()).layoutId,
   mode: 'tray',
@@ -1396,6 +1397,7 @@ function configureGame(nextGame) {
   document.getElementById('mjNotice').hidden = true;
   document.getElementById('mjError').hidden = true;
   document.getElementById('mjRecoveryNotice').hidden = true;
+  document.getElementById('mjShareNotice').hidden = true;
   dismissResume();
   setDialogVisible(document.getElementById('mjWin'), false);
   setDialogVisible(document.getElementById('mjRescue'), false);
@@ -1414,14 +1416,17 @@ function startGame({
   dailyKey = null,
   burstRules = E.BURST_RULES.AUTO,
   zen = false,
-}, { soundCue = true } = {}) {
+}, { soundCue = true, rememberPreferences = true, shared = false } = {}) {
   pauseTimer();
   // Remember the table so the next fresh tab deals the same kind of game.
-  prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random', burstRules });
+  if (rememberPreferences) {
+    prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random', burstRules });
+  }
   try {
     const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey, burstRules, zen });
     next.gameId = gameId;
     next.dailyKey = dailyKey;
+    activeSharedChallenge = shared;
     configureGame(next);
     saveAfterMutation();
     if (soundCue) sound.play('deal');
@@ -1452,6 +1457,23 @@ function startPreferredGame({ soundCue = false } = {}) {
     seed: randomSeed(),
     burstRules: prefs.burstRules,
   }, { soundCue });
+}
+
+async function copyCurrentDeal() {
+  if (!game) return false;
+  let link;
+  try { link = S.buildShareDealUrl(game); } catch {
+    announce('This deal could not be copied.');
+    return false;
+  }
+  try {
+    await navigator.clipboard.writeText(link);
+    announce('Deal link copied.');
+    return true;
+  } catch {
+    announce('Deal link could not be copied.');
+    return false;
+  }
 }
 
 // --- continue last game ------------------------------------------------------
@@ -1737,6 +1759,8 @@ document.getElementById('mjSetup')?.addEventListener('click', openSetup);
 document.getElementById('mjSetupClose')?.addEventListener('click', closeSetup);
 document.getElementById('mjSetupScrim')?.addEventListener('click', closeSetup);
 document.getElementById('mjStart')?.addEventListener('click', startSetupChoice);
+document.getElementById('mjCopyDeal')?.addEventListener('click', copyCurrentDeal);
+document.getElementById('mjWinCopyDeal')?.addEventListener('click', copyCurrentDeal);
 document.getElementById('mjNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjNoticeNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjWinNew').addEventListener('click', openSetup);
@@ -1751,7 +1775,7 @@ document.getElementById('mjRescueRestart')?.addEventListener('click', () => {
     dailyKey: game.dailyKey,
     burstRules: game.burstRules,
     zen: game.zen,
-  });
+  }, { rememberPreferences: !activeSharedChallenge, shared: activeSharedChallenge });
   if (started) requestAnimationFrame(() => tileButtons[focusIndex]?.focus({ preventScroll: true }));
 });
 
@@ -1813,6 +1837,7 @@ function disposeDuplicateGuard() {
 }
 
 function bootstrap() {
+  const shared = S.parseShareDeal(location.href);
   const identity = S.ensureGameId({ href: location.href, history });
   gameId = identity.gameId;
   gameStore = S.createGameStore({ storage: localStorage, engine: E });
@@ -1825,12 +1850,38 @@ function bootstrap() {
   gameStore.cleanup();
   const restored = gameStore.load(gameId);
   if (restored) {
+    // ensureGameId adds an internal-only parameter to a copied deal. Strip
+    // exactly that validated id when recognizing a resumed shared challenge;
+    // public share parsing remains strict and still rejects arbitrary extras.
+    let restoredShare = shared;
+    try {
+      const resumedUrl = new URL(location.href);
+      if (resumedUrl.searchParams.get(S.GAME_ID_PARAM) === gameId) {
+        resumedUrl.searchParams.delete(S.GAME_ID_PARAM);
+        restoredShare = S.parseShareDeal(resumedUrl);
+      }
+    } catch { /* keep the strict parse result */ }
+    activeSharedChallenge = restoredShare.status === 'valid'
+      && restored.layoutId === restoredShare.deal.layoutId
+      && restored.seed === restoredShare.deal.seed
+      && restored.mode === restoredShare.deal.mode
+      && restored.burstRules === restoredShare.deal.burstRules
+      && restored.zen === restoredShare.deal.zen;
     configureGame(restored);
     announce('Saved game restored.');
+  } else if (shared.status === 'valid') {
+    startGame(shared.deal, { soundCue: false, rememberPreferences: false, shared: true });
+    announce('Shared deal ready.');
   } else {
     startPreferredGame();
-    if (hadSave) document.getElementById('mjRecoveryNotice').hidden = false;
-    else offerResume();
+    if (shared.status === 'invalid') {
+      document.getElementById('mjShareNotice').hidden = false;
+      announce('That shared deal link was invalid. Your remembered game was started instead.');
+    } else if (hadSave) {
+      document.getElementById('mjRecoveryNotice').hidden = false;
+    } else {
+      offerResume();
+    }
   }
   installDuplicateGuard();
 }

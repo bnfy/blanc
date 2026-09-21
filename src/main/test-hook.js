@@ -1028,6 +1028,48 @@ function install(refs) {
         return null;
       }
     },
+    async readMahjongDealState() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
+      try {
+        return await wc.executeJavaScript(`(() => game ? ({
+          layoutId: game.layoutId,
+          seed: game.seed,
+          mode: game.mode,
+          burstRules: game.burstRules,
+          zen: game.zen,
+          dailyKey: game.dailyKey,
+          kinds: game.kinds.slice(),
+        }) : null)()`);
+      } catch {
+        return null;
+      }
+    },
+    async copyMahjongDealFromBoards() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;
+      if (!wc) return null;
+      try {
+        return await wc.executeJavaScript(`(async () => {
+          openSetup();
+          document.getElementById('mjCopyDeal')?.click();
+          const live = document.getElementById('mjLive');
+          const deadline = Date.now() + 2000;
+          while (live?.textContent !== 'Deal link copied.' && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+          }
+          const result = {
+            live: live?.textContent ?? null,
+            boardsOpen: !document.getElementById('mjSetupSheet').hidden,
+          };
+          closeSetup();
+          return result;
+        })()`, true);
+      } catch {
+        return null;
+      }
+    },
     async readMahjongCompletionGeometry() {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://mahjong/') ? liveContents(tab) : null;

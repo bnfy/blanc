@@ -26,6 +26,7 @@ Feature: Start page layouts
     And the standalone mahjong game is ready
     And rapid Undo cancels pending Mahjong feedback
     And Mahjong correctness flows pass in the renderer
+    And a copied Mahjong deal opens identically in another managed tab
     And the Mahjong completion dialog remains usable at the minimum desktop size
     And the six-control Mahjong rail fits its table at every desktop breakpoint
     And the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes

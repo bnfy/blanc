@@ -85,8 +85,8 @@
     url.searchParams.set(GAME_ID_PARAM, gameId);
     const api = historyApi || (typeof history !== 'undefined' ? history : null);
     if (!api || typeof api.replaceState !== 'function') throw new Error('mahjong: history.replaceState is unavailable');
-    // Keep existing benign page parameters (notably `private=1`), while the
-    // only Mahjong state represented in the URL is the opaque instance id.
+    // Keep existing benign page parameters (notably `private=1`) and any
+    // canonical shared-deal parameters while adding the opaque instance id.
     api.replaceState(api.state ?? null, '', `${url.pathname}${url.search}${url.hash}`);
     return { gameId, changed: true, url: url.href };
   }
@@ -97,6 +97,63 @@
 
   function forkGameId(options) {
     return replaceGameId({ ...options, force: true });
+  }
+
+  function parseShareDeal(input) {
+    let url;
+    try { url = input instanceof URL ? new URL(input.href) : new URL(String(input)); } catch {
+      return { status: 'invalid', error: 'invalid-url' };
+    }
+    const shareKeys = new Set(['deal', 'mode', 'zen', 'auto']);
+    const keys = [...url.searchParams.keys()];
+    const hasIntent = keys.some((key) => shareKeys.has(key));
+    if (!hasIntent) return { status: 'absent' };
+    if (url.protocol !== 'blanc:' || url.hostname !== 'mahjong' || url.pathname !== '/'
+      || url.username || url.password || url.port || url.hash) {
+      return { status: 'invalid', error: 'invalid-location' };
+    }
+    if (keys.some((key, index) => !shareKeys.has(key) || keys.indexOf(key) !== index)) {
+      return { status: 'invalid', error: 'invalid-parameters' };
+    }
+    const dealMatch = /^([a-z]+)-(0|[1-9]\d{0,9})$/.exec(url.searchParams.get('deal') || '');
+    if (!dealMatch || !LAYOUT_IDS.includes(dealMatch[1])) {
+      return { status: 'invalid', error: 'invalid-deal' };
+    }
+    const seed = Number(dealMatch[2]);
+    if (!finiteInteger(seed) || seed > 0xffffffff) {
+      return { status: 'invalid', error: 'invalid-seed' };
+    }
+    const mode = url.searchParams.get('mode');
+    if (mode === 'classic' && keys.length === 3 && keys.includes('zen') && !keys.includes('auto')) {
+      const zen = url.searchParams.get('zen');
+      if (!['on', 'off'].includes(zen)) return { status: 'invalid', error: 'invalid-zen' };
+      return {
+        status: 'valid',
+        deal: { layoutId: dealMatch[1], seed, mode: 'classic', burstRules: 'auto', zen: zen === 'on' },
+      };
+    }
+    if (mode === 'burst' && keys.length === 3 && keys.includes('auto') && !keys.includes('zen')) {
+      const auto = url.searchParams.get('auto');
+      if (!['on', 'off'].includes(auto)) return { status: 'invalid', error: 'invalid-auto' };
+      return {
+        status: 'valid',
+        deal: { layoutId: dealMatch[1], seed, mode: 'tray', burstRules: auto === 'on' ? 'auto' : 'manual', zen: false },
+      };
+    }
+    return { status: 'invalid', error: 'inconsistent-rules' };
+  }
+
+  function buildShareDealUrl({ layoutId, seed, mode, burstRules = 'auto', zen = false } = {}) {
+    if (!LAYOUT_IDS.includes(layoutId) || !finiteInteger(seed) || seed > 0xffffffff
+      || !MODES.includes(mode) || !BURST_RULES.includes(burstRules) || typeof zen !== 'boolean'
+      || (mode === 'tray' && zen)) {
+      throw new TypeError('mahjong: invalid share deal');
+    }
+    const sharedMode = mode === 'tray' ? 'burst' : 'classic';
+    const rules = mode === 'tray'
+      ? `auto=${burstRules === 'auto' ? 'on' : 'off'}`
+      : `zen=${zen ? 'on' : 'off'}`;
+    return `blanc://mahjong/?deal=${layoutId}-${seed}&mode=${sharedMode}&${rules}`;
   }
 
   function gameStorageKey(gameId) {
@@ -1225,6 +1282,8 @@
     mintGameId,
     ensureGameId,
     forkGameId,
+    parseShareDeal,
+    buildShareDealUrl,
     gameStorageKey,
     gameAccessKey,
     createGameStore,

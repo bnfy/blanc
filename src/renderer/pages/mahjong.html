@@ -110,6 +110,7 @@
       <div class="mj-overlay-actions">
         <button id="mjWinNew" class="mj-button mj-button-primary" type="button">play another</button>
         <button id="mjWinBoards" class="mj-button" type="button">choose board</button>
+        <button id="mjWinCopyDeal" class="mj-button mj-button-quiet" type="button">copy deal</button>
       </div>
     </section>
 
@@ -134,6 +135,9 @@
       </div>
       <div id="mjRecoveryNotice" class="mj-notice" hidden>
         Your saved game could not be restored, so a fresh deal was prepared.
+      </div>
+      <div id="mjShareNotice" class="mj-notice" hidden>
+        That shared deal link was invalid, so your remembered game was started instead.
       </div>
     </div>
 
@@ -261,7 +265,10 @@
 
         <footer class="mj-modal-foot">
           <p>Starting replaces the board currently on this table.</p>
-          <button id="mjStart" class="mj-button mj-button-primary" type="button">start game</button>
+          <div class="mj-modal-foot-actions">
+            <button id="mjCopyDeal" class="mj-button" type="button">copy current deal</button>
+            <button id="mjStart" class="mj-button mj-button-primary" type="button">start game</button>
+          </div>
         </footer>
       </div>
     </section>

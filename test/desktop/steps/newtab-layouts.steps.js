@@ -409,6 +409,31 @@ Then('Mahjong correctness flows pass in the renderer', async function () {
   );
 });
 
+Then('a copied Mahjong deal opens identically in another managed tab', async function () {
+  const source = await this.call('readMahjongDealState');
+  assert.ok(source, 'the source Mahjong deal should be readable');
+  const copied = await this.call('copyMahjongDealFromBoards');
+  assert.deepEqual(copied, { live: 'Deal link copied.', boardsOpen: true });
+  const link = await this.call('readClipboardText');
+  assert.match(link, /^blanc:\/\/mahjong\/\?deal=[a-z]+-\d+&mode=(?:classic|burst)&(?:zen|auto)=(?:on|off)$/);
+  assert.equal(link.includes('game='), false);
+  assert.equal(link.includes('private='), false);
+
+  await this.call('openTab', link);
+  const shared = await waitForValue(
+    () => this.call('readMahjongDealState'),
+    (value) => value?.kinds?.length === source.kinds.length,
+    'shared Mahjong deal in a second managed tab'
+  );
+  assert.deepEqual(shared, source);
+  const { tabs } = await this.call('state');
+  assert.equal(
+    tabs.filter((tab) => tab.url.startsWith('blanc://mahjong/')).length >= 2,
+    true,
+    'both managed Mahjong tabs should remain open'
+  );
+});
+
 Then('the Mahjong completion dialog remains usable at the minimum desktop size', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');

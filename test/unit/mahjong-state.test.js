@@ -112,6 +112,68 @@ test('forkGameId always replaces a valid existing id', () => {
   assert.equal(replacement, `/?game=${uuid(2)}#board`);
 });
 
+test('share deal links build canonically and parse every rule exactly', () => {
+  const classic = S.buildShareDealUrl({
+    layoutId: 'butterfly', seed: 0, mode: 'classic', zen: true,
+  });
+  assert.equal(classic, 'blanc://mahjong/?deal=butterfly-0&mode=classic&zen=on');
+  assert.deepEqual(S.parseShareDeal(classic), {
+    status: 'valid',
+    deal: { layoutId: 'butterfly', seed: 0, mode: 'classic', burstRules: 'auto', zen: true },
+  });
+
+  const manual = S.buildShareDealUrl({
+    layoutId: 'arch', seed: 0xffffffff, mode: 'tray', burstRules: 'manual', zen: false,
+  });
+  assert.equal(manual, 'blanc://mahjong/?deal=arch-4294967295&mode=burst&auto=off');
+  assert.deepEqual(S.parseShareDeal(manual), {
+    status: 'valid',
+    deal: { layoutId: 'arch', seed: 0xffffffff, mode: 'tray', burstRules: 'manual', zen: false },
+  });
+  assert.equal(
+    S.buildShareDealUrl({ layoutId: 'cross', seed: 7, mode: 'tray', burstRules: 'auto' }),
+    'blanc://mahjong/?deal=cross-7&mode=burst&auto=on'
+  );
+});
+
+test('share parsing rejects malformed or inconsistent links as a whole', () => {
+  const invalid = [
+    'https://example.com/?deal=arch-1&mode=classic&zen=off',
+    'blanc://newtab/?deal=arch-1&mode=classic&zen=off',
+    'blanc://mahjong/?deal=missing-1&mode=classic&zen=off',
+    'blanc://mahjong/?deal=arch-01&mode=classic&zen=off',
+    'blanc://mahjong/?deal=arch-4294967296&mode=classic&zen=off',
+    'blanc://mahjong/?deal=arch-1&mode=classic&auto=on',
+    'blanc://mahjong/?deal=arch-1&mode=burst&zen=off',
+    'blanc://mahjong/?deal=arch-1&mode=burst&auto=maybe',
+    'blanc://mahjong/?deal=arch-1&mode=classic&zen=off&private=1',
+    'blanc://mahjong/?deal=arch-1&deal=peaks-2&mode=classic&zen=off',
+    'blanc://mahjong/?deal=arch-1&mode=classic&zen=off#progress',
+  ];
+  for (const link of invalid) assert.equal(S.parseShareDeal(link).status, 'invalid', link);
+  assert.deepEqual(S.parseShareDeal(`blanc://mahjong/?game=${uuid(1)}&private=1`), { status: 'absent' });
+  assert.throws(() => S.buildShareDealUrl({ layoutId: 'arch', seed: -1, mode: 'classic' }));
+  assert.throws(() => S.buildShareDealUrl({ layoutId: 'arch', seed: 1, mode: 'tray', zen: true }));
+});
+
+test('parsed share deals reproduce identical tile assignments and rules', () => {
+  const source = E.createGame({
+    seed: 4_000_000_001,
+    layoutId: 'fortress',
+    mode: 'tray',
+    burstRules: 'manual',
+  });
+  const parsed = S.parseShareDeal(S.buildShareDealUrl(source));
+  const reproduced = E.createGame(parsed.deal);
+  assert.deepEqual(reproduced.kinds, source.kinds);
+  assert.equal(reproduced.layoutId, source.layoutId);
+  assert.equal(reproduced.seed, source.seed);
+  assert.equal(reproduced.mode, source.mode);
+  assert.equal(reproduced.burstRules, source.burstRules);
+  assert.equal(reproduced.zen, source.zen);
+  assert.equal(reproduced.dailyKey, null);
+});
+
 test('game store serializes, restores, touches, and discards game-id-scoped saves', () => {
   const storage = new MemoryStorage();
   let clock = 1000;

@@ -1330,6 +1330,7 @@
   padding-top: 18px;
   border-top: 1px solid var(--mj-line);
 }
+.mj-modal-foot-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .mj-modal-foot p { margin: 0; color: var(--mj-muted); font-size: 12px; line-height: 1.4; }
 
 .mj-button {
@@ -1648,7 +1649,7 @@
 .mj-win-stats span[hidden] { display: none; }
 .mj-win-stats small { color: var(--mj-muted); font: 660 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
 .mj-win-stats strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
-.mj-overlay-actions { display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 10px; margin-top: 22px; }
+.mj-overlay-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
 .mj-overlay-actions .mj-button { min-height: 52px; }
 .mj-win[data-mode="classic"] .mj-win-result { margin-bottom: 7px; }
 
