@@ -1,5 +1,78 @@
 [
   {
+    "tag": "v1.21.0",
+    "version": "1.21.0",
+    "name": "1.21.0",
+    "publishedAt": "2026-09-21T17:04:33.000Z",
+    "humanDate": "September 21, 2026",
+    "machineDate": "2026-09-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.21.0",
+    "anchor": "v1-21-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Blanc now remembers each window's size, position, and display mode."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Quit and reopen Blanc to restore normal, maximized, or fullscreen windows where you left them on macOS, Windows, and Linux. Windows you explicitly close are forgotten instead of returning later."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Start pages now use the Sunrise visual system across Ledger, Billboard, Shelf, and Tally, with warmer artwork, more consistent controls, and clearer layout-specific character."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Newsreader typography gives start-page invitations and editorial moments a more expressive voice while the rest of Blanc retains its familiar interface type."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Websites can no longer set or clear Blanc's operating-system app badge through the Badging API."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.20.0",
     "version": "1.20.0",
     "name": "1.20.0",
