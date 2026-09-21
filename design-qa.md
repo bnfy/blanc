@@ -2018,3 +2018,48 @@ unchanged.
 No P3 follow-up is required for this component.
 
 final result: passed
+
+# Start Page Sunrise design QA — 2026-09-21
+
+**Final result:** passed
+
+## Scope
+
+Compared the approved Ledger, Billboard, Shelf, and Tally image drafts against
+captures of the implemented Electron Start Page at a 1440×900 window size.
+Each comparison placed the source draft and implementation in the same image.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- The refinement pass aligned the shared Sunrise mark and date horizontally.
+- The moving-in checklist uses the unboxed editorial treatment from the drafts
+  on wide screens and becomes a contained popover only at compact breakpoints.
+- The Billboard clock and recent-site icons match the draft's visual scale.
+- The four layouts preserve distinct compositions over one shared low-sun,
+  layered-mountain backdrop.
+
+## Constraint verification
+
+- The large “Where to?” heading is absent from every layout.
+- The footer uses one straight divider; no freehand horizon line remains.
+- Inter carries operating UI. Newsreader is limited to the moving-in and
+  onboarding invitation titles.
+- Mahjong remains a standalone footer action and is not a selectable layout.
+- Billboard remains the default layout.
+- Existing dynamic content, migration actions, Patron visibility, remote tabs,
+  layout persistence, and footer actions remain intact.
+- Illustrative Patron prose from the visual draft was not introduced; the
+  release-backed compact upgrade action remains unchanged.
+
+## Verification
+
+- Desktop acceptance: 7 Start Page scenarios / 42 steps passed, including the
+  four-layout fit matrix at 1280×800, 961×700, 960×700, 761×600, 760×600,
+  900×585, 900×584, and 640×480.
+- Full unit suite: 1,885 tests passed.
+- Focused final tests: 58/58 passed.
+- ESLint, design-token checks, and git diff whitespace validation passed.
+
+final result: passed

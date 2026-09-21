@@ -45,14 +45,14 @@ function rememberHiddenTopSite(key) {
 // and the ledger's margin copy explains the deal instead of stats.
 if (isPrivate) document.documentElement.dataset.theme = 'private';
 
-// Shared by every layout's date line.
+// Shared by every layout through the single Sunrise header.
 const dateText = isPrivate
   ? 'private tab'
   : new Date()
       .toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
       .toLowerCase();
 
-document.getElementById('dateLine').textContent = dateText;
+document.getElementById('startDate').textContent = dateText;
 
 document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L to go anywhere`;
 
@@ -479,7 +479,6 @@ function renderLedgerGroups(groups) {
 }
 
 function renderBillboard() {
-  document.getElementById('bbDate').textContent = dateText;
   updateClock();
   document.getElementById('bbBlocked').textContent = isPrivate
     ? 'nothing here is saved · nothing followed you home'
@@ -577,7 +576,6 @@ async function fillBillboardSites() {
 }
 
 function renderShelf() {
-  document.getElementById('shDate').textContent = dateText;
   document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString();
 
   const grid = document.getElementById('shFavorites');
@@ -611,7 +609,6 @@ function renderShelf() {
 }
 
 function renderTally() {
-  document.getElementById('tlDate').textContent = dateText;
   document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString();
 
   const favs = document.getElementById('tlFavorites');
@@ -702,7 +699,9 @@ function applyLayout(name) {
   presentPendingMigrationChecklistCompletion();
   window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
-    button.classList.toggle('active', button.dataset.layoutPick === name);
+    const isActive = button.dataset.layoutPick === name;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-pressed', String(isActive));
   }
   stopClock();
   if (!rendered.has(name)) {

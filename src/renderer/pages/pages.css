@@ -630,9 +630,8 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 .inline-link:hover { text-decoration: underline; }
 
 /* ---------- new tab: "ledger" start page ----------
-   From the Start Page exploration (1a) in the Bowser Design System: one
-   left-aligned column that reads like a well-kept notebook — date,
-   "Where to?", favorites, tab groups — with a quiet margin-note footer. */
+   One left-aligned column that reads like a well-kept notebook: favorites,
+   tab groups, remote tabs, and a quiet margin-note footer. */
 
 /* The page must survive overflowing (Tab Sync can add rows per device):
    flex column + min-height pins the footer to the viewport bottom while
@@ -651,22 +650,6 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 }
 
 .ledger { max-width: 520px; }
-.ledger-date {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-}
-.ledger-heading {
-  font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  font-optical-sizing: auto;
-  margin: 10px 0 0;
-}
-
 .launch-card {
   margin-top: 28px;
   padding: 18px;
@@ -916,13 +899,12 @@ body[data-layout="billboard"] .migration-checklist-shell {
 }
 .migration-checklist-heading h2 {
   margin: 0;
-  font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
-  font-size: 30px;
+  font-family: var(--font-display);
+  font-size: 28px;
   font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  transform: rotate(-1.4deg);
-  transform-origin: left center;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
 }
 .migration-progress-ring {
   width: 54px;
@@ -978,26 +960,9 @@ body[data-layout="billboard"] .migration-checklist-shell {
 .migration-task-label {
   position: relative;
   width: fit-content;
-  font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
-  font-size: 26px;
-  line-height: 1.05;
-}
-.migration-task-label::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: -3px;
-  bottom: -3px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.64;
-  transform: rotate(-0.7deg);
-  transform-origin: left center;
-  transition: opacity 120ms ease, transform 120ms ease;
-}
-.migration-task:is(:hover, :focus-visible) .migration-task-label::after {
-  opacity: 1;
-  transform: rotate(0deg) translateY(-1px);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.35;
 }
 .migration-checklist-tasks li.is-complete .migration-task-check::after {
   content: "";
@@ -1011,11 +976,6 @@ body[data-layout="billboard"] .migration-checklist-shell {
   transform: rotate(43deg);
 }
 .migration-checklist-tasks li.is-complete .migration-task-label { opacity: 0.48; }
-.migration-checklist-tasks li.is-complete .migration-task-label::after {
-  bottom: 48%;
-  opacity: 0.48;
-  transform: rotate(-1deg);
-}
 .migration-checklist-hide {
   display: block;
   margin: 10px 0 0 auto;
@@ -1085,8 +1045,7 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
   .js-patron-callout a { transition: none; }
   .patron-cta-arrow { transition: none; }
   .js-patron-callout a:hover .patron-cta-arrow { transform: none; }
-  .migration-checklist,
-  .migration-task-label::after { transition: none; }
+  .migration-checklist { transition: none; }
   .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
 }
 
@@ -2063,12 +2022,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   justify-content: center;
   user-select: none;
 }
-.bb-date {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 0.18em;
-}
 .bb-clock-row { display: flex; align-items: baseline; gap: 14px; margin-top: 18px; }
 .bb-clock {
   font-family: var(--font-mono);
@@ -2196,21 +2149,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   right: 110px;
   top: 120px;
   user-select: none;
-}
-.shelf-head { display: flex; justify-content: space-between; align-items: baseline; }
-.shelf-heading {
-  font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  font-optical-sizing: auto;
-}
-.shelf-date {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
 }
 .shelf-grid {
   display: grid;
@@ -2349,9 +2287,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
    so ellipsis can engage (a 1fr track's min-content floor is otherwise the
    full nowrap text), and the fixed insets/columns gain narrow-window floors. */
 .shelf-tile, .shelf-card { min-width: 0; }
-.shelf-head { gap: 16px; }
-.shelf-heading { flex: 0 0 auto; }
-.shelf-date { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bb-favs, .bb-groups { flex-wrap: wrap; justify-content: center; }
 .bb-fav .label {
   max-width: 112px;
@@ -2400,6 +2335,412 @@ body:not([data-layout="ledger"]) .ledger-footer {
    ("benjaminmoore" beside "nest") a bare gap spaces the columns evenly but
    the icons unevenly. The label ellipsis above caps at the same 96px. */
 .bb-site { width: 112px; }
+
+/* ---------- Sunrise start-page presentation ----------
+   The four information layouts share one calm landscape, one compact brand
+   header, and one footer rail. Content and behavior stay layout-specific. */
+.ledger-body {
+  --bg: #f7f0e5;
+  --surface: rgba(239, 230, 216, 0.78);
+  --surface-raised: rgba(255, 252, 247, 0.88);
+  --border: #ddd2c2;
+  --text: #12100b;
+  --text-dim: #6b6257;
+  --accent: #805d28;
+  --accent-dim: rgba(128, 93, 40, 0.16);
+  --start-footer: rgba(247, 240, 229, 0.82);
+  --font-mono: var(--font-ui);
+  position: relative;
+  min-height: 100vh;
+  padding: 0 0 72px;
+  overflow-x: hidden;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%),
+    url("start-page-sunrise.png");
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ledger-body {
+    --bg: #17130f;
+    --surface: rgba(45, 37, 29, 0.78);
+    --surface-raised: rgba(34, 29, 23, 0.9);
+    --border: #4a3e31;
+    --text: #f7f0e5;
+    --text-dim: #b8aa98;
+    --accent: #d4ad66;
+    --accent-dim: rgba(212, 173, 102, 0.2);
+    --start-footer: rgba(23, 19, 15, 0.84);
+    background-image:
+      linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%),
+      url("start-page-sunrise.png");
+  }
+}
+
+:root[data-theme="private"] .ledger-body {
+  --bg: #100d0b;
+  --surface: rgba(37, 29, 23, 0.82);
+  --surface-raised: rgba(26, 21, 17, 0.94);
+  --border: #594a39;
+  --text: #f8f0e4;
+  --text-dim: #b5a38f;
+  --accent: #d4ad66;
+  --accent-dim: rgba(212, 173, 102, 0.2);
+  --start-footer: rgba(16, 13, 11, 0.88);
+  background-image:
+    linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%),
+    url("start-page-sunrise.png");
+}
+
+.start-brand {
+  position: fixed;
+  z-index: 6;
+  top: clamp(30px, 5vh, 48px);
+  left: clamp(48px, 7.2vw, 110px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-dim);
+  user-select: none;
+}
+.start-brand-mark {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 12px rgba(128, 93, 40, 0.16));
+}
+.start-brand-date {
+  font: 500 11px/1.2 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+body.ledger-body:has(> #startupCard:not([hidden])) > .start-brand { display: none; }
+
+/* Ledger: compact reading column on the left, with the landscape allowed to
+   remain visible through the lower half of the page. */
+body[data-layout="ledger"] .ledger {
+  width: min(510px, calc(100vw - 96px));
+  max-width: none;
+  margin: clamp(148px, 22vh, 190px) 0 100px clamp(48px, 7.2vw, 110px);
+  user-select: none;
+}
+body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
+.ledger-section { margin-top: 34px; }
+.ledger-list { gap: 12px; margin-top: 13px; }
+.ledger-label,
+.shelf-label {
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.fav .tile,
+.shelf-tile .tile,
+.bb-fav .tile {
+  background-color: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--border) 84%, transparent);
+  box-shadow: 0 7px 22px -17px rgba(18, 16, 11, 0.65);
+}
+.fav .name { font-size: 14px; }
+.fav .host,
+.group-row .gcount { color: var(--text-dim); }
+.group-row .gname { font-family: var(--font-ui); }
+.cluster i { background: var(--accent); }
+.ledger-patron { margin-top: 34px; }
+
+/* The existing compact CTA is the only Patron copy shown here. */
+.js-patron-callout a {
+  min-height: 34px;
+  border-color: color-mix(in srgb, var(--patron-gold) 50%, transparent);
+  box-shadow: 0 8px 22px -14px var(--patron-halo);
+}
+
+/* Billboard: a centered clock and recents composition, set slightly above
+   the horizon so the background remains legible rather than decorative noise. */
+.billboard {
+  padding: 120px 80px 118px;
+  transform: translateY(-28px);
+}
+.bb-clock-row { gap: 12px; margin-top: 0; }
+.bb-clock {
+  font-family: var(--font-ui);
+  font-size: clamp(80px, 12vw, 148px);
+  font-weight: 650;
+  letter-spacing: -0.065em;
+  text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
+}
+.bb-meridiem { font-family: var(--font-ui); font-size: 18px; }
+.bb-blocked { margin-top: 10px; font-family: var(--font-ui); font-size: 11.5px; }
+.bb-favs { gap: 16px; margin-top: 34px; }
+.bb-site { width: 100px; }
+.bb-fav { gap: 8px; }
+.bb-fav .tile { width: 42px; height: 42px; font-size: 17px; }
+.bb-fav .tile.has-icon { background-size: 26px; }
+.bb-fav .label { font-family: var(--font-ui); font-size: 11px; }
+.bb-groups { margin-top: 24px; }
+.bb-patron { margin-top: 20px; }
+
+/* Shelf: dense, modular cards with enough space on wide screens for the
+   shared moving-in checklist at the right edge. */
+.shelf {
+  left: clamp(48px, 7.2vw, 110px);
+  right: auto;
+  top: clamp(146px, 21vh, 184px);
+  width: min(880px, calc(100vw - 520px));
+  padding-bottom: 84px;
+}
+.shelf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 0; }
+.shelf-tile,
+.shelf-card {
+  border-color: color-mix(in srgb, var(--border) 86%, transparent);
+  background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
+  box-shadow: 0 14px 36px -30px rgba(18, 16, 11, 0.68);
+  backdrop-filter: blur(8px);
+}
+.shelf-tile { min-height: 108px; border-radius: 10px; padding: 16px; gap: 12px; }
+.shelf-tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+.shelf-tile .name { font-size: 13px; }
+.shelf-tile .host { font-family: var(--font-ui); }
+.shelf-cards { grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr); gap: 12px; margin-top: 12px; }
+.shelf-card { min-height: 100px; border-radius: 10px; padding: 16px; }
+.shelf-count { font-family: var(--font-ui); font-size: 32px; color: var(--accent); }
+.shelf-unit { font-family: var(--font-ui); }
+.shelf-patron { margin-top: 16px; }
+
+/* Tally: readable lists on the left, data on the right, and a reserved lower
+   right zone for the migration checklist. */
+.tally-left {
+  left: clamp(48px, 7.2vw, 110px);
+  top: clamp(152px, 22vh, 194px);
+  width: min(470px, calc(50vw - 90px));
+}
+.tally-right {
+  right: clamp(64px, 10vw, 150px);
+  top: clamp(154px, 22vh, 196px);
+  width: min(310px, calc(38vw - 64px));
+}
+.tally-label { margin-top: 0; }
+.tally-label-groups { margin-top: 32px; }
+.tally-count {
+  margin-top: 10px;
+  font-family: var(--font-ui);
+  font-size: 58px;
+  font-weight: 650;
+  color: var(--text);
+}
+.tally-chart { height: 92px; margin-top: 20px; border-color: var(--border); }
+.tally-bar { border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); background: var(--accent-dim); }
+.tally-bar.today { background: var(--accent); border-color: var(--accent); }
+.tally-days,
+.tally-caption { font-family: var(--font-ui); }
+
+/* Migration checklist: editorial Newsreader title plus Inter controls. The
+   former handwritten underline is intentionally gone. */
+.migration-checklist-shell {
+  top: clamp(154px, 22vh, 194px);
+  right: clamp(48px, 7.2vw, 110px);
+  bottom: auto;
+  width: 286px;
+}
+body[data-layout="billboard"] .migration-checklist-shell { top: clamp(30px, 5vh, 48px); }
+body[data-layout="tally"] .migration-checklist-shell { top: clamp(420px, 58vh, 500px); }
+.migration-checklist {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.migration-checklist-heading { gap: 14px; }
+.migration-checklist-heading h2 {
+  font-size: 27px;
+  letter-spacing: -0.025em;
+}
+.migration-progress-ring {
+  width: 46px;
+  height: 46px;
+  border: 3px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+  color: var(--accent);
+}
+.migration-checklist-tasks { gap: 2px; margin: 10px 0 0 60px; }
+.migration-task { grid-template-columns: 18px minmax(0, 1fr); gap: 9px; padding: 5px 0; }
+.migration-task-check { width: 17px; height: 17px; border-color: var(--accent); }
+.migration-task-label { font-family: var(--font-ui); font-size: 12.5px; font-weight: 550; }
+.migration-checklist-tasks li.is-complete .migration-task-check::after {
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+}
+.migration-checklist-hide { margin-top: 7px; font-size: 10.5px; }
+
+/* One straight footer divider replaces the exploratory freehand flourish. */
+.ledger-footer,
+body:not([data-layout="ledger"]) .ledger-footer {
+  position: fixed;
+  z-index: 12;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 54px;
+  margin: 0;
+  padding: 11px clamp(24px, 4vw, 58px);
+  border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background: var(--start-footer);
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  opacity: 1;
+  backdrop-filter: blur(14px);
+}
+.layout-switcher {
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
+}
+.layout-switcher-label {
+  padding: 0 7px 0 8px;
+  color: var(--text-dim);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.layout-switcher button {
+  min-width: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  line-height: 1.25;
+}
+.layout-switcher button:hover { color: var(--text); background: var(--surface); }
+.layout-switcher button.active,
+.layout-switcher button[aria-pressed="true"] { color: var(--bg); background: var(--text); }
+.ledger-version { font-size: 10px; }
+#goAnywhere { font-family: var(--font-ui); }
+
+/* At medium widths the checklist collapses before it can compete with Shelf
+   or Tally. The same panel remains one click away. */
+@media (max-width: 1120px) {
+  .shelf { right: 48px; width: auto; }
+  .migration-checklist-shell {
+    top: auto;
+    right: 28px;
+    bottom: 72px;
+    width: 48px;
+  }
+  body[data-layout="billboard"] .migration-checklist-shell,
+  body[data-layout="tally"] .migration-checklist-shell { top: auto; bottom: 72px; }
+  .migration-checklist-compact {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    min-width: 0;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--surface-raised);
+    box-shadow: 0 12px 28px -18px rgba(18, 16, 11, 0.72);
+  }
+  .migration-checklist-compact .migration-progress-ring {
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+    font-size: 11px;
+  }
+  .migration-checklist {
+    position: absolute;
+    right: 0;
+    top: auto;
+    bottom: 58px;
+    display: none;
+    width: 276px;
+    padding: 16px 18px 14px;
+    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
+    box-shadow: 0 18px 42px -34px rgba(18, 16, 11, 0.72);
+    backdrop-filter: blur(10px);
+  }
+  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
+}
+
+@media (max-width: 960px) {
+  .start-brand { left: 48px; }
+  body[data-layout="ledger"] .ledger { margin-left: 48px; }
+  .shelf { left: 48px; right: 48px; }
+  .tally-left,
+  .tally-right { margin-inline: 48px; }
+  .tally-left { padding-top: 150px; }
+}
+
+@media (max-width: 760px) {
+  .ledger-body { padding-bottom: 104px; background-size: auto 100%, auto 100%; }
+  .start-brand { top: 22px; left: 30px; }
+  .start-brand-mark { width: 44px; height: 44px; }
+  body[data-layout="ledger"] .ledger {
+    width: calc(100vw - 60px);
+    margin: 118px 30px 122px;
+  }
+  .shelf { top: 118px; left: 30px; right: 30px; }
+  .shelf { padding-bottom: 116px; }
+  .shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shelf-cards { grid-template-columns: 1fr; }
+  .billboard { padding: 110px 30px 140px; transform: none; }
+  .bb-favs { gap: 10px; }
+  .bb-site { width: 86px; }
+  .tally-left,
+  .tally-right { margin-inline: 30px; }
+  .tally-left { padding-top: 122px; }
+  .ledger-footer,
+  body:not([data-layout="ledger"]) .ledger-footer {
+    min-height: 86px;
+    padding: 8px 20px 10px;
+    row-gap: 6px;
+  }
+  .ledger-footer .footer-left { order: 2; }
+  .ledger-footer .layout-switcher { order: 1; flex-basis: 100%; }
+  .ledger-footer .footer-right { order: 3; }
+  .migration-checklist-shell,
+  body[data-layout="billboard"] .migration-checklist-shell,
+  body[data-layout="tally"] .migration-checklist-shell { bottom: 102px; }
+}
+
+@media (max-height: 640px) {
+  .start-brand { position: absolute; top: 16px; }
+  .start-brand-mark { width: 40px; height: 40px; }
+  body[data-layout="ledger"] .ledger { margin-top: 98px; }
+  body[data-layout="billboard"] { padding: 0 0 72px; }
+  .billboard {
+    position: relative;
+    inset: auto;
+    min-height: calc(100vh - 72px);
+    padding: 88px 24px 92px;
+    transform: none;
+  }
+  .bb-clock { font-size: clamp(60px, 11vw, 90px); }
+  .bb-favs { margin-top: 20px; }
+  .bb-groups { margin-top: 14px; }
+  body[data-layout="billboard"] .ledger-footer { position: fixed; margin: 0; }
+  .shelf { top: 92px; }
+  .shelf-tile { min-height: 92px; padding: 12px; }
+  .tally-left { padding-top: 100px; }
+}
 
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant

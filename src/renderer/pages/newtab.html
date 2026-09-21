@@ -24,9 +24,13 @@
     <p id="recoveryError" class="section-hint" role="status" hidden></p>
   </section>
 
+  <header class="start-brand" aria-label="Blanc start page">
+    <img class="start-brand-mark" src="sunrise-mark.png" alt="" />
+    <span id="startDate" class="start-brand-date"></span>
+  </header>
+
   <main class="ledger" id="layoutLedger">
-    <div id="dateLine" class="ledger-date"></div>
-    <h1 class="ledger-heading">Where to?</h1>
+    <h1 class="page-sr-only">Ledger start page</h1>
 
     <section class="ledger-section">
       <a class="ledger-label" href="blanc://bookmarks/">favorites</a>
@@ -52,7 +56,7 @@
        No `hidden` attributes: pages.css's [hidden] rule is !important and
        would outrank the data-layout selectors that show the active one. -->
   <main class="billboard" id="layoutBillboard">
-    <div id="bbDate" class="bb-date"></div>
+    <h1 class="page-sr-only">Billboard start page</h1>
     <div class="bb-clock-row">
       <span id="bbClock" class="bb-clock"></span>
       <span id="bbMeridiem" class="bb-meridiem"></span>
@@ -67,10 +71,7 @@
   </main>
 
   <main class="shelf" id="layoutShelf">
-    <div class="shelf-head">
-      <span class="shelf-heading">Where to?</span>
-      <span id="shDate" class="shelf-date"></span>
-    </div>
+    <h1 class="page-sr-only">Shelf start page</h1>
     <div id="shFavorites" class="shelf-grid"></div>
     <div class="shelf-cards">
       <div class="shelf-card">
@@ -92,8 +93,7 @@
 
   <main class="tally" id="layoutTally">
     <div class="tally-left">
-      <div id="tlDate" class="ledger-date"></div>
-      <h1 class="ledger-heading">Where to?</h1>
+      <h1 class="page-sr-only">Tally start page</h1>
       <div class="ledger-label tally-label">favorites</div>
       <div id="tlFavorites" class="ledger-list"></div>
       <div class="ledger-label tally-label tally-label-groups">pick up where you left off</div>
@@ -146,10 +146,11 @@
       <span id="footerLeft"></span>
       <span id="version" class="ledger-version"></span>
     </span>
-    <span id="layoutSwitcher" class="layout-switcher">layout:
-      <button type="button" data-layout-pick="ledger">ledger</button> ·
-      <button type="button" data-layout-pick="billboard">billboard</button> ·
-      <button type="button" data-layout-pick="shelf">shelf</button> ·
+    <span id="layoutSwitcher" class="layout-switcher" role="group" aria-label="Start page layout">
+      <span class="layout-switcher-label">layout</span>
+      <button type="button" data-layout-pick="ledger">ledger</button>
+      <button type="button" data-layout-pick="billboard">billboard</button>
+      <button type="button" data-layout-pick="shelf">shelf</button>
       <button type="button" data-layout-pick="tally">tally</button>
     </span>
     <span class="footer-right">
