@@ -4,7 +4,7 @@
 (() => {
   'use strict';
 
-  const GAME_STATE_VERSION = 2;
+  const GAME_STATE_VERSION = 3;
   const MODES = Object.freeze({ CLASSIC: 'classic', TRAY: 'tray' });
   const STATUSES = Object.freeze({ PLAYING: 'playing', RESCUE: 'rescue', WON: 'won' });
   const TRAY_SIZE = 4;
@@ -14,6 +14,8 @@
   const AUTO_CLEAR_POINTS = 100;
   const MAX_COMBO_PAIR_POINTS = 500;
   const TRAY_SCORING_REVISION = 2;
+  const MANUAL_TRAY_SCORING_REVISION = 3;
+  const BURST_RULES = Object.freeze({ AUTO: 'auto', MANUAL: 'manual' });
   const SPECIAL_VARIANT_KINDS = Object.freeze([
     'wind-n-motif', 'wind-n-seal',
     'wind-e-motif', 'wind-e-seal',
@@ -358,7 +360,10 @@
 
   function normalizeCreateOptions(seedOrOptions) {
     if (typeof seedOrOptions === 'number') {
-      return { seed: seedOrOptions, layoutId: 'turtle', mode: MODES.CLASSIC, gameId: null, dailyKey: null };
+      return {
+        seed: seedOrOptions, layoutId: 'turtle', mode: MODES.CLASSIC, gameId: null,
+        dailyKey: null, burstRules: BURST_RULES.AUTO, zen: false,
+      };
     }
     const options = seedOrOptions && typeof seedOrOptions === 'object' ? seedOrOptions : {};
     return {
@@ -367,6 +372,8 @@
       mode: options.mode || MODES.CLASSIC,
       gameId: options.gameId || null,
       dailyKey: options.dailyKey || null,
+      burstRules: options.burstRules || BURST_RULES.AUTO,
+      zen: options.zen === true,
     };
   }
 
@@ -375,12 +382,16 @@
     const seed = Number(options.seed) >>> 0;
     if (!layoutFor(options.layoutId)) throw new TypeError(`mahjong: unknown layout ${options.layoutId}`);
     if (![MODES.CLASSIC, MODES.TRAY].includes(options.mode)) throw new TypeError(`mahjong: unknown mode ${options.mode}`);
+    if (!Object.values(BURST_RULES).includes(options.burstRules)) throw new TypeError(`mahjong: unknown Burst rules ${options.burstRules}`);
+    if (options.mode === MODES.TRAY && options.zen) throw new TypeError('mahjong: Zen is Classic-only');
     const { kinds } = generateDeal({ seed, layoutId: options.layoutId });
     const definition = layoutFor(options.layoutId);
     return {
       version: GAME_STATE_VERSION,
       gameId: options.gameId,
       mode: options.mode,
+      burstRules: options.burstRules,
+      zen: options.mode === MODES.CLASSIC && options.zen,
       layoutId: options.layoutId,
       layoutRevision: definition.revision,
       seed,
@@ -394,7 +405,9 @@
       maxCombo: 0,
       comboRemainingMs: 0,
       autoClears: 0,
-      scoringRevision: options.mode === MODES.TRAY ? TRAY_SCORING_REVISION : 0,
+      scoringRevision: options.mode === MODES.TRAY
+        ? (options.burstRules === BURST_RULES.MANUAL ? MANUAL_TRAY_SCORING_REVISION : TRAY_SCORING_REVISION)
+        : 0,
       elapsedMs: 0,
       dailyKey: options.dailyKey,
       status: STATUSES.PLAYING,
@@ -608,7 +621,7 @@
       let bonusPoints = 0;
       if (milestone) {
         bonusPoints = AUTO_CLEAR_POINTS;
-        autoClear = automaticPair(state);
+        if (state.burstRules === BURST_RULES.AUTO) autoClear = automaticPair(state);
         if (autoClear) {
           if (autoClear.source === 'tray') {
             const [trayIndex] = autoClear.indices;
@@ -885,6 +898,8 @@
       version: GAME_STATE_VERSION,
       gameId: restored.gameId,
       mode: restored.mode,
+      burstRules: restored.burstRules,
+      zen: restored.zen,
       layoutId: restored.layoutId,
       layoutRevision: restored.layoutRevision,
       seed: restored.seed,
@@ -920,9 +935,13 @@
     if (typeof raw === 'string') {
       try { raw = JSON.parse(raw); } catch { return null; }
     }
-    if (!raw || typeof raw !== 'object' || raw.version !== GAME_STATE_VERSION) return null;
+    if (!raw || typeof raw !== 'object' || ![2, GAME_STATE_VERSION].includes(raw.version)) return null;
     const definition = layoutFor(raw.layoutId);
     if (!definition || ![MODES.CLASSIC, MODES.TRAY].includes(raw.mode)) return null;
+    const burstRules = raw.version === 2 ? BURST_RULES.AUTO : raw.burstRules;
+    const zen = raw.version === 2 ? false : raw.zen;
+    if (!Object.values(BURST_RULES).includes(burstRules) || typeof zen !== 'boolean'
+      || (raw.mode === MODES.TRAY && zen)) return null;
     // V2 saves created before per-layout revisions implicitly used revision 1.
     // This preserves unchanged Turtle/Peaks games while invalidating the old,
     // portrait Arch assignment after its coordinates changed.
@@ -955,8 +974,10 @@
       || (comboCount === 0 && comboRemainingMs !== 0)
       || (comboCount > 0 && comboRemainingMs === 0)
       || !Number.isInteger(autoClears) || autoClears < 0
-      || !Number.isInteger(scoringRevision) || ![0, 1, TRAY_SCORING_REVISION].includes(scoringRevision)
+      || !Number.isInteger(scoringRevision) || ![0, 1, TRAY_SCORING_REVISION, MANUAL_TRAY_SCORING_REVISION].includes(scoringRevision)
       || (raw.mode === MODES.CLASSIC && scoringRevision !== 0)
+      || (raw.mode === MODES.TRAY && burstRules === BURST_RULES.MANUAL && scoringRevision !== MANUAL_TRAY_SCORING_REVISION)
+      || (raw.mode === MODES.TRAY && burstRules === BURST_RULES.AUTO && scoringRevision === MANUAL_TRAY_SCORING_REVISION)
       || !Number.isFinite(raw.elapsedMs) || raw.elapsedMs < 0
       || !Object.values(STATUSES).includes(raw.status)
       || (raw.completionRecorded !== undefined && typeof raw.completionRecorded !== 'boolean')
@@ -989,6 +1010,8 @@
       version: GAME_STATE_VERSION,
       gameId: raw.gameId,
       mode: raw.mode,
+      burstRules,
+      zen,
       layoutId: raw.layoutId,
       layoutRevision,
       seed: raw.seed >>> 0,
@@ -1024,6 +1047,8 @@
     AUTO_CLEAR_POINTS,
     MAX_COMBO_PAIR_POINTS,
     TRAY_SCORING_REVISION,
+    MANUAL_TRAY_SCORING_REVISION,
+    BURST_RULES,
     SPECIAL_VARIANT_KINDS,
     LAYOUTS,
     TURTLE_LAYOUT,

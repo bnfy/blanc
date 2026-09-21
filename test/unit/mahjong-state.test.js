@@ -32,13 +32,16 @@ class HookedStorage extends MemoryStorage {
 function completion(layoutId, mode, extra = {}) {
   return {
     layoutId, layoutRevision: S.LAYOUT_REVISIONS[layoutId], mode, elapsedMs: 60_000, score: mode === 'tray' ? 1000 : 0,
-    scoringRevision: mode === 'tray' ? 2 : 0, completed: true, assists: { undo: 0, hint: 0, shuffle: 0 }, ...extra,
+    burstRules: 'auto', scoringRevision: mode === 'tray' ? 2 : 0, completed: true,
+    assists: { undo: 0, hint: 0, shuffle: 0 }, ...extra,
   };
 }
 
 function rawEvent(storage, number, result, updatedAt) {
   const eventId = uuid(number);
-  storage.setItem(`${S.RECORD_EVENT_PREFIX}${eventId}`, JSON.stringify({ version: 2, eventId, updatedAt, result }));
+  storage.setItem(`${S.RECORD_EVENT_PREFIX}${eventId}`, JSON.stringify({
+    version: S.RECORDS_VERSION, eventId, updatedAt, result,
+  }));
   return eventId;
 }
 
@@ -119,7 +122,7 @@ test('game store serializes, restores, touches, and discards game-id-scoped save
   original.removed[0] = true;
 
   const wrapper = JSON.parse(storage.getItem(S.gameStorageKey(id)));
-  assert.equal(wrapper.version, 2);
+  assert.equal(wrapper.version, S.STATE_VERSION);
   assert.equal(wrapper.gameId, id);
   assert.deepEqual(wrapper.payload.removed, [false, true]);
   assert.deepEqual(store.list(), [{ gameId: id, lastAccessAt: 1000 }]);
@@ -138,6 +141,37 @@ test('game store serializes, restores, touches, and discards game-id-scoped save
   assert.equal(store.discard(id), true);
   assert.equal(storage.getItem(S.gameStorageKey(id)), null);
   assert.deepEqual(store.list(), []);
+});
+
+test('v2 saved games migrate once under the same id with Auto and non-Zen defaults', () => {
+  const id = uuid(701);
+  const storage = new MemoryStorage();
+  const original = E.createGame({ seed: 701, layoutId: 'peaks', mode: 'tray', gameId: id });
+  const payload = E.serializeGame(original);
+  payload.version = 2;
+  delete payload.burstRules;
+  delete payload.zen;
+  const legacyKey = `${S.V2_GAME_KEY_PREFIX}${id}`;
+  storage.setItem(legacyKey, JSON.stringify({
+    version: 2,
+    gameId: id,
+    savedAt: 100,
+    lastAccessAt: 110,
+    payload,
+  }));
+  storage.setItem(`${S.V2_GAME_ACCESS_PREFIX}${id}`, JSON.stringify({
+    version: 2, gameId: id, lastAccessAt: 120,
+  }));
+
+  const store = S.createGameStore({ storage, engine: E, now: () => 125 });
+  const restored = store.load(id);
+  assert.equal(restored.version, 3);
+  assert.equal(restored.burstRules, 'auto');
+  assert.equal(restored.zen, false);
+  assert.equal(storage.getItem(legacyKey) !== null, true, 'v2 save remains for downgrade recovery');
+  const firstV3 = storage.getItem(S.gameStorageKey(id));
+  store.migrateV2Games();
+  assert.equal(storage.getItem(S.gameStorageKey(id)), firstV3, 'migration is idempotent');
 });
 
 test('load access touches never write a stale payload over a concurrent save', () => {
@@ -393,10 +427,10 @@ test('record revisions preserve unchanged layouts and discard retired Arch geome
           layoutId: 'arch', completed: true, elapsedMs: 50_000,
           score: 0, assists: {}, updatedAt: 5,
         },
-        tray: {
+        tray: { auto: {
           layoutId: 'peaks', completed: true, elapsedMs: 70_000,
           score: 900, assists: {}, updatedAt: 6,
-        },
+        } },
       },
     },
   };
@@ -407,7 +441,7 @@ test('record revisions preserve unchanged layouts and discard retired Arch geome
   assert.equal(normalized.classic.turtle.layoutRevision, 1);
   assert.equal(normalized.tray.peaks, undefined);
   assert.equal(normalized.trayLegacy.peaks.layoutRevision, 1);
-  assert.equal(normalized.daily['2026-08-30'].tray.layoutRevision, 1);
+  assert.equal(normalized.daily['2026-08-30'].tray.auto.layoutRevision, 1);
 
   const revised = S.applyResult(normalized, {
     layoutId: 'arch', layoutRevision: 2, mode: 'classic', completed: true,
@@ -445,10 +479,10 @@ test('daily Classic and Tray results remain separate with sanitized assists', ()
     assists: { hint: 0, undo: 3, shuffle: 1 },
   }, 101);
   assert.equal(records.daily['2026-08-30'].classic.elapsedMs, 70_000);
-  assert.equal(records.daily['2026-08-30'].tray.score, 1_250);
-  assert.equal(records.daily['2026-08-30'].tray.scoringRevision, 2);
-  assert.equal(records.daily['2026-08-30'].tray.maxCombo, 10);
-  assert.equal(records.daily['2026-08-30'].tray.autoClears, 2);
+  assert.equal(records.daily['2026-08-30'].tray.auto.score, 1_250);
+  assert.equal(records.daily['2026-08-30'].tray.auto.scoringRevision, 2);
+  assert.equal(records.daily['2026-08-30'].tray.auto.maxCombo, 10);
+  assert.equal(records.daily['2026-08-30'].tray.auto.autoClears, 2);
   assert.deepEqual(records.daily['2026-08-30'].classic.assists, { undo: 1, hint: 2, shuffle: 0 });
 
   // The better result replaces its own mode only.
@@ -456,8 +490,76 @@ test('daily Classic and Tray results remain separate with sanitized assists', ()
     layoutId: 'turtle', layoutRevision: 1, mode: 'tray', dailyKey: '2026-08-30', completed: true,
     elapsedMs: 100_000, score: 1_500, scoringRevision: 2, maxCombo: 12, autoClears: 2, assists: {},
   }, 102);
-  assert.equal(records.daily['2026-08-30'].tray.score, 1_500);
+  assert.equal(records.daily['2026-08-30'].tray.auto.score, 1_500);
   assert.equal(records.daily['2026-08-30'].classic.elapsedMs, 70_000);
+});
+
+test('Auto and Manual Burst records and Daily results remain separate while the date counts once', () => {
+  let records = S.applyResult(S.emptyRecords(), completion('turtle', 'tray', {
+    burstRules: 'auto', score: 1_200, dailyKey: '2026-09-21', autoClears: 2,
+  }), 1);
+  records = S.applyResult(records, completion('turtle', 'tray', {
+    burstRules: 'manual', scoringRevision: 3, score: 1_500,
+    dailyKey: '2026-09-21', autoClears: 0,
+  }), 2);
+  assert.equal(records.tray.turtle.bestScore, 1_200);
+  assert.equal(records.trayManual.turtle.bestScore, 1_500);
+  assert.equal(records.daily['2026-09-21'].tray.auto.score, 1_200);
+  assert.equal(records.daily['2026-09-21'].tray.manual.score, 1_500);
+  assert.deepEqual(S.dailyStreak(records, '2026-09-21'), { current: 1, longest: 1, cleared: 1 });
+});
+
+test('Zen results are rejected before records, events, totals, or dailies are written', () => {
+  const storage = new MemoryStorage();
+  const store = S.createRecordStore({ storage, now: () => 5, uuid: () => uuid(702) });
+  assert.equal(store.record(completion('peaks', 'classic', {
+    zen: true, dailyKey: '2026-09-21', elapsedMs: 0,
+  })), null);
+  assert.equal([...storage.values.keys()].some((key) => key.startsWith(S.RECORD_EVENT_PREFIX)), false);
+  assert.deepEqual(store.read(), S.emptyRecords());
+});
+
+test('v2 records migrate into Auto exactly once and leave downgrade keys intact', () => {
+  const eventId = uuid(703);
+  const v2 = {
+    version: 2,
+    classic: {},
+    tray: {
+      arch: {
+        layoutRevision: 2, scoringRevision: 2, bestScore: 2_400,
+        bestTimeMs: 90_000, maxCombo: 8, autoClears: 1, updatedAt: 10,
+      },
+    },
+    trayLegacy: {},
+    daily: {
+      '2026-09-20': {
+        tray: {
+          layoutId: 'arch', layoutRevision: 2, completed: true,
+          elapsedMs: 90_000, score: 2_400, scoringRevision: 2,
+          maxCombo: 8, autoClears: 1, assists: {}, updatedAt: 10,
+        },
+      },
+    },
+    totals: { cleared: { classic: {}, tray: { arch: 1 } }, countedEvents: [eventId] },
+  };
+  const storage = new MemoryStorage({
+    [S.V2_RECORDS_KEY]: JSON.stringify(v2),
+    [`${S.V2_RECORD_EVENT_PREFIX}${eventId}`]: JSON.stringify({
+      version: 2,
+      eventId,
+      updatedAt: 10,
+      result: completion('arch', 'tray', { score: 2_400, dailyKey: '2026-09-20' }),
+    }),
+  });
+  const store = S.createRecordStore({ storage, now: () => 20, uuid: () => uuid(704) });
+  const migrated = store.read();
+  assert.equal(migrated.tray.arch.bestScore, 2_400);
+  assert.equal(migrated.trayManual.arch, undefined);
+  assert.equal(migrated.daily['2026-09-20'].tray.auto.score, 2_400);
+  assert.equal(migrated.totals.cleared.tray.auto.arch, 1);
+  assert.equal(storage.getItem(S.V2_RECORDS_KEY) !== null, true);
+  assert.equal(storage.getItem(`${S.V2_RECORD_EVENT_PREFIX}${eventId}`) !== null, true);
+  assert.equal(store.read().totals.cleared.tray.auto.arch, 1, 'repeated reads never double-count');
 });
 
 test('immutable record events recover both modes after a stale aggregate write', () => {
@@ -481,7 +583,7 @@ test('immutable record events recover both modes after a stale aggregate write',
   storage.setItem(S.RECORDS_KEY, staleAggregate);
   const recovered = first.read();
   assert.equal(recovered.daily['2026-08-30'].classic.elapsedMs, 70_000);
-  assert.equal(recovered.daily['2026-08-30'].tray.score, 1_200);
+  assert.equal(recovered.daily['2026-08-30'].tray.auto.score, 1_200);
   const eventKeys = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX));
   assert.equal(eventKeys.length, 2);
 });
@@ -653,17 +755,19 @@ test('game summaries expose resumable saves without touching access times', () =
   assert.equal(S.resumeCandidate([], {}), null);
 });
 
-test('table preferences persist the last layout, mode, and deal source with safe defaults', () => {
+test('table preferences persist Burst rules with safe v2 defaults and never persist Zen', () => {
   const storage = new MemoryStorage();
   const prefs = S.createPrefsStore({ storage });
-  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily' });
-  assert.equal(prefs.write({ layoutId: 'arch', mode: 'classic', source: 'random' }), true);
-  assert.deepEqual(prefs.read(), { layoutId: 'arch', mode: 'classic', source: 'random' });
-  assert.deepEqual(S.createPrefsStore({ storage }).read(), { layoutId: 'arch', mode: 'classic', source: 'random' });
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: 'auto' });
+  assert.equal(prefs.write({ layoutId: 'arch', mode: 'classic', source: 'random', burstRules: 'manual', zen: true }), true);
+  assert.deepEqual(prefs.read(), { layoutId: 'arch', mode: 'classic', source: 'random', burstRules: 'manual' });
+  assert.deepEqual(S.createPrefsStore({ storage }).read(), {
+    layoutId: 'arch', mode: 'classic', source: 'random', burstRules: 'manual',
+  });
   storage.setItem(S.PREFS_KEY, JSON.stringify({ version: 1, layoutId: 'castle', mode: 'zen', source: 'random' }));
-  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'random' });
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'random', burstRules: 'auto' });
   storage.setItem(S.PREFS_KEY, '{not json');
-  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily' });
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: 'auto' });
 });
 
 test('completion outcome distinguishes a first clear, a new record, and no change', () => {
@@ -702,16 +806,18 @@ test('totals count each completion once across repeated reads and are normalised
   store.record(completion('arch', 'tray'));
   for (let i = 0; i < 3; i++) store.read();
   const records = store.read();
-  assert.deepEqual(records.totals.cleared, { classic: { peaks: 2 }, tray: { arch: 1 } });
+  assert.deepEqual(records.totals.cleared, {
+    classic: { peaks: 2 }, tray: { auto: { arch: 1 }, manual: {} },
+  });
   assert.equal(records.totals.countedEvents.length, 3);
   assert.deepEqual(S.emptyRecords().totals, S.emptyTotals());
   const oversized = Array.from({ length: S.MAX_RECORD_EVENTS * 3 }, (_, i) => uuid(10_000 + i));
   assert.equal(
-    S.normalizeRecords({ version: 2, totals: { cleared: {}, countedEvents: oversized } }).totals.countedEvents.length,
+    S.normalizeRecords({ version: S.RECORDS_VERSION, totals: { cleared: {}, countedEvents: oversized } }).totals.countedEvents.length,
     oversized.length,
     'normalisation never truncates seen ids; only compaction after a prune bounds them'
   );
-  const corrupt = S.normalizeRecords({ version: 2, classic: { peaks: { layoutRevision: 1, bestTimeMs: 5 } }, totals: { cleared: { classic: { peaks: -4, castle: 2 }, tray: 'x' }, countedEvents: 'nope' } });
+  const corrupt = S.normalizeRecords({ version: S.RECORDS_VERSION, classic: { peaks: { layoutRevision: 1, bestTimeMs: 5 } }, totals: { cleared: { classic: { peaks: -4, castle: 2 }, tray: 'x' }, countedEvents: 'nope' } });
   assert.deepEqual(corrupt.totals, S.emptyTotals());
   assert.equal(corrupt.classic.peaks.bestTimeMs, 5, 'a corrupt totals block never disturbs best records');
 });
@@ -725,9 +831,13 @@ test('only completed: true events increment totals; false or missing never do', 
   rawEvent(storage, 3, missing, 3);
   const store = S.createRecordStore({ storage, now: () => 10, uuid: () => uuid(99) });
   const records = store.read();
-  assert.deepEqual(records.totals.cleared, { classic: { peaks: 1 }, tray: {} });
+  assert.deepEqual(records.totals.cleared, {
+    classic: { peaks: 1 }, tray: { auto: {}, manual: {} },
+  });
   assert.equal(records.totals.countedEvents.length, 3, 'non-counting events are still marked seen so they are never re-examined');
-  assert.deepEqual(store.read().totals.cleared, { classic: { peaks: 1 }, tray: {} });
+  assert.deepEqual(store.read().totals.cleared, {
+    classic: { peaks: 1 }, tray: { auto: {}, manual: {} },
+  });
 });
 
 test('a failed aggregate write leaves every event in place and never prunes', () => {
@@ -759,11 +869,11 @@ test('an event written between persist and prune is never pruned before it is co
   const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
   const first = store.read();
   assert.equal(first.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
-  assert.equal(first.totals.cleared.tray.cross, undefined, 'the late event is not yet counted');
+  assert.equal(first.totals.cleared.tray.auto.cross, undefined, 'the late event is not yet counted');
   assert.notEqual(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(late)}`), null, 'the late event survived pruning');
   assert.equal(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(1)}`), null, 'the oldest counted event was pruned instead');
   const second = store.read();
-  assert.equal(second.totals.cleared.tray.cross, 1);
+  assert.equal(second.totals.cleared.tray.auto.cross, 1);
   assert.equal(second.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'no double count');
   const retained = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX)).length;
   assert.equal(retained, S.MAX_RECORD_EVENTS);
@@ -807,10 +917,14 @@ test('recordsSummary lays out eight rows in order, marks the current board, and 
   assert.deepEqual(summary.overview, { cleared: 3, streak: 2, longest: 2, dailies: 2 });
   assert.deepEqual(summary.rows.map((row) => row.layoutId), [...S.LAYOUT_IDS]);
   assert.deepEqual(summary.rows.find((row) => row.layoutId === 'cross'), {
-    layoutId: 'cross', classicBestMs: 80_000, trayBestScore: null, trayBestMs: null, cleared: 2, current: false,
+    layoutId: 'cross', classicBestMs: 80_000, trayBestScore: null, trayBestMs: null,
+    trayAutoBestScore: null, trayAutoBestMs: null, trayManualBestScore: null,
+    trayManualBestMs: null, cleared: 2, current: false,
   });
   assert.deepEqual(summary.rows.find((row) => row.layoutId === 'bridge'), {
-    layoutId: 'bridge', classicBestMs: null, trayBestScore: 4200, trayBestMs: 200_000, cleared: 1, current: true,
+    layoutId: 'bridge', classicBestMs: null, trayBestScore: 4200, trayBestMs: 200_000,
+    trayAutoBestScore: 4200, trayAutoBestMs: 200_000, trayManualBestScore: null,
+    trayManualBestMs: null, cleared: 1, current: true,
   });
   assert.equal(summary.rows.filter((row) => row.current).length, 1);
   assert.equal(summary.days.length, 28);

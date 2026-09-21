@@ -380,6 +380,33 @@ Then('Mahjong correctness flows pass in the renderer', async function () {
   assert.match(result.safeHint.live, /rack needs a match.*Undo or Shuffle/i);
   assert.deepEqual(result.rescueEscape, { hidden: true, status: 'rescue', focus: 'mjUndo' });
   assert.deepEqual(result.rescueUndo, { shuffled: true, visible: true, status: 'rescue', traySize: 4 });
+  assert.deepEqual(result.burstControls, { autoVisible: true, zenVisible: false });
+  assert.deepEqual(result.classicControls, { autoVisible: false, zenVisible: true });
+  assert.deepEqual(result.zenTiming, {
+    elapsedMs: 0,
+    timerDisplay: 'none',
+    scoreDisplay: 'none',
+    badge: 'zen',
+  });
+  assert.deepEqual(result.zenCompletion, {
+    title: 'A quiet finish.',
+    rules: 'Classic · Zen',
+    notice: 'This Zen game was not added to Records.',
+    resultHidden: true,
+    eventDelta: 0,
+  });
+  assert.equal(result.zenReset, false, 'Zen must reset off every time Boards opens');
+  assert.deepEqual(result.manualGame, {
+    burstRules: 'manual',
+    scoringRevision: 3,
+    badge: 'manual',
+  });
+  assert.equal(result.manualRemembered, true, 'the device should remember Manual Burst');
+  assert.deepEqual(
+    [...new Set(result.burstLabels)],
+    ['Auto', 'Manual'],
+    'each Burst record cell should label both rulesets'
+  );
 });
 
 Then('the Mahjong completion dialog remains usable at the minimum desktop size', async function () {

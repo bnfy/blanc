@@ -1,18 +1,23 @@
-// Local-only Mahjong v2 persistence, records, daily-deal identity, and
+// Local-only Mahjong v3 persistence, records, daily-deal identity, and
 // duplicate-instance coordination. This module deliberately has no Electron
 // or DOM dependency so the storage contract can be exercised under node.
 (() => {
   'use strict';
 
-  const STATE_VERSION = 2;
-  const RECORDS_VERSION = 2;
+  const STATE_VERSION = 3;
+  const RECORDS_VERSION = 3;
   const GAME_ID_PARAM = 'game';
-  const GAME_KEY_PREFIX = 'mahjong.game.v2.';
-  const GAME_ACCESS_PREFIX = 'mahjong.game-access.v2.';
-  const GAME_INDEX_KEY = 'mahjong.game-index.v2';
-  const RECORDS_KEY = 'mahjong.records.v2';
-  const RECORD_EVENT_PREFIX = 'mahjong.record-event.v2.';
-  const PREFS_KEY = 'mahjong.prefs.v2';
+  const GAME_KEY_PREFIX = 'mahjong.game.v3.';
+  const GAME_ACCESS_PREFIX = 'mahjong.game-access.v3.';
+  const GAME_INDEX_KEY = 'mahjong.game-index.v3';
+  const RECORDS_KEY = 'mahjong.records.v3';
+  const RECORD_EVENT_PREFIX = 'mahjong.record-event.v3.';
+  const PREFS_KEY = 'mahjong.prefs.v3';
+  const V2_GAME_KEY_PREFIX = 'mahjong.game.v2.';
+  const V2_GAME_ACCESS_PREFIX = 'mahjong.game-access.v2.';
+  const V2_RECORDS_KEY = 'mahjong.records.v2';
+  const V2_RECORD_EVENT_PREFIX = 'mahjong.record-event.v2.';
+  const V2_PREFS_KEY = 'mahjong.prefs.v2';
   const LEGACY_BEST_KEY = 'mahjong.best';
   const SOUND_KEY = 'mahjong.sound';
   const MAX_SAVED_GAMES = 32;
@@ -28,8 +33,10 @@
   });
   const MODES = Object.freeze(['classic', 'tray']);
   const SOURCES = Object.freeze(['random', 'daily']);
-  const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily' });
+  const BURST_RULES = Object.freeze(['auto', 'manual']);
+  const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: 'auto' });
   const TRAY_SCORING_REVISION = 2;
+  const MANUAL_TRAY_SCORING_REVISION = 3;
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const DAILY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -162,6 +169,40 @@
       throw new Error('mahjong: persistence requires serializeGame and restoreGame');
     }
     if (typeof now !== 'function') throw new Error('mahjong: now must be a function');
+
+    function migrateV2Games() {
+      for (const key of storedKeysWithPrefix(storage, V2_GAME_KEY_PREFIX)) {
+        const gameId = key.slice(V2_GAME_KEY_PREFIX.length).toLowerCase();
+        if (!isValidGameId(gameId) || safeGet(storage, gameStorageKey(gameId)) !== null) continue;
+        let wrapper;
+        try { wrapper = JSON.parse(safeGet(storage, key)); } catch { wrapper = null; }
+        if (!isObject(wrapper) || wrapper.version !== 2 || wrapper.gameId !== gameId
+          || !finiteInteger(wrapper.savedAt) || !finiteInteger(wrapper.lastAccessAt)
+          || !isObject(wrapper.payload)) continue;
+        let state;
+        let payload;
+        try {
+          state = engine.restoreGame(wrapper.payload);
+          if (!isObject(state) || (state.gameId !== undefined && state.gameId !== gameId)) continue;
+          payload = engine.serializeGame(state);
+          payload.gameId = gameId;
+        } catch { continue; }
+        const migrated = {
+          version: STATE_VERSION,
+          gameId,
+          savedAt: wrapper.savedAt,
+          lastAccessAt: wrapper.lastAccessAt,
+          payload,
+        };
+        if (!safeSet(storage, gameStorageKey(gameId), JSON.stringify(migrated))) continue;
+        let legacyAccess;
+        try { legacyAccess = JSON.parse(safeGet(storage, `${V2_GAME_ACCESS_PREFIX}${gameId}`)); } catch { legacyAccess = null; }
+        const lastAccessAt = isObject(legacyAccess) && finiteInteger(legacyAccess.lastAccessAt)
+          ? Math.max(wrapper.lastAccessAt, legacyAccess.lastAccessAt)
+          : wrapper.lastAccessAt;
+        safeSet(storage, gameAccessKey(gameId), JSON.stringify({ version: STATE_VERSION, gameId, lastAccessAt }));
+      }
+    }
 
     function discard(gameId) {
       if (!isValidGameId(gameId)) return false;
@@ -367,7 +408,8 @@
       return result;
     }
 
-    return Object.freeze({ save, load, discard, cleanup, list, summaries, forkSavedGame });
+    migrateV2Games();
+    return Object.freeze({ save, load, discard, cleanup, list, summaries, forkSavedGame, migrateV2Games });
   }
 
   function resumeCandidate(summaries, { excludeGameId } = {}) {
@@ -383,6 +425,7 @@
       layoutId: LAYOUT_IDS.includes(source.layoutId) ? source.layoutId : DEFAULT_PREFS.layoutId,
       mode: MODES.includes(source.mode) ? source.mode : DEFAULT_PREFS.mode,
       source: SOURCES.includes(source.source) ? source.source : DEFAULT_PREFS.source,
+      burstRules: BURST_RULES.includes(source.burstRules) ? source.burstRules : DEFAULT_PREFS.burstRules,
     };
   }
 
@@ -391,12 +434,22 @@
   // of always dealing Daily Burst.
   function createPrefsStore({ storage = defaultStorage() } = {}) {
     function read() {
-      const raw = safeGet(storage, PREFS_KEY);
+      let raw = safeGet(storage, PREFS_KEY);
+      if (!raw) {
+        const legacy = safeGet(storage, V2_PREFS_KEY);
+        if (legacy) {
+          try {
+            const migrated = normalizePrefs(JSON.parse(legacy));
+            safeSet(storage, PREFS_KEY, JSON.stringify({ version: STATE_VERSION, ...migrated }));
+            raw = safeGet(storage, PREFS_KEY);
+          } catch { /* fall through to defaults */ }
+        }
+      }
       if (!raw) return { ...DEFAULT_PREFS };
       try { return normalizePrefs(JSON.parse(raw)); } catch { return { ...DEFAULT_PREFS }; }
     }
     function write(prefs) {
-      return safeSet(storage, PREFS_KEY, JSON.stringify({ version: 1, ...normalizePrefs(prefs) }));
+      return safeSet(storage, PREFS_KEY, JSON.stringify({ version: STATE_VERSION, ...normalizePrefs(prefs) }));
     }
     return Object.freeze({ read, write });
   }
@@ -412,10 +465,10 @@
     return 'none';
   }
 
-  function describeDailyResult(records, key, mode, formatMs) {
+  function describeDailyResult(records, key, mode, formatMs, burstRules = 'auto') {
     if (!isDailyKey(key) || !MODES.includes(mode) || typeof formatMs !== 'function') return null;
     const day = normalizeRecords(records).daily[key];
-    const result = day && day[mode];
+    const result = mode === 'tray' ? day?.tray?.[burstRules] : day?.classic;
     if (!result || !result.completed) return null;
     const time = formatMs(result.elapsedMs);
     return mode === 'tray'
@@ -432,7 +485,8 @@
   function clearedDailyKeys(records) {
     const clean = normalizeRecords(records);
     return new Set(Object.entries(clean.daily)
-      .filter(([, modes]) => MODES.some((mode) => modes[mode] && modes[mode].completed))
+      .filter(([, modes]) => modes.classic?.completed
+        || modes.tray?.auto?.completed || modes.tray?.manual?.completed)
       .map(([key]) => key));
   }
 
@@ -465,12 +519,19 @@
     const rows = layoutIds.map((layoutId) => {
       const classic = clean.classic[layoutId] || null;
       const tray = clean.tray[layoutId] || null;
+      const trayManual = clean.trayManual[layoutId] || null;
       return {
         layoutId,
         classicBestMs: classic ? classic.bestTimeMs : null,
         trayBestScore: tray ? tray.bestScore : null,
         trayBestMs: tray ? tray.bestTimeMs : null,
-        cleared: (clean.totals.cleared.classic[layoutId] || 0) + (clean.totals.cleared.tray[layoutId] || 0),
+        trayAutoBestScore: tray ? tray.bestScore : null,
+        trayAutoBestMs: tray ? tray.bestTimeMs : null,
+        trayManualBestScore: trayManual ? trayManual.bestScore : null,
+        trayManualBestMs: trayManual ? trayManual.bestTimeMs : null,
+        cleared: (clean.totals.cleared.classic[layoutId] || 0)
+          + (clean.totals.cleared.tray.auto[layoutId] || 0)
+          + (clean.totals.cleared.tray.manual[layoutId] || 0),
         current: layoutId === currentLayoutId,
       };
     });
@@ -490,22 +551,31 @@
   }
 
   function emptyTotals() {
-    return { cleared: { classic: {}, tray: {} }, countedEvents: [] };
+    return { cleared: { classic: {}, tray: { auto: {}, manual: {} } }, countedEvents: [] };
   }
 
   function emptyRecords() {
-    return { version: RECORDS_VERSION, classic: {}, tray: {}, trayLegacy: {}, daily: {}, totals: emptyTotals() };
+    return {
+      version: RECORDS_VERSION,
+      classic: {},
+      tray: {},
+      trayManual: {},
+      trayLegacy: {},
+      daily: {},
+      totals: emptyTotals(),
+    };
   }
 
   function normalizeTotals(value) {
     const clean = emptyTotals();
     if (!isObject(value)) return clean;
     const cleared = isObject(value.cleared) ? value.cleared : {};
-    for (const mode of MODES) {
-      const bucket = isObject(cleared[mode]) ? cleared[mode] : {};
-      for (const layoutId of LAYOUT_IDS) {
-        const count = bucket[layoutId];
-        if (finiteInteger(count, 1)) clean.cleared[mode][layoutId] = Math.min(count, 1_000_000);
+    for (const layoutId of LAYOUT_IDS) {
+      const classicCount = cleared.classic?.[layoutId];
+      if (finiteInteger(classicCount, 1)) clean.cleared.classic[layoutId] = Math.min(classicCount, 1_000_000);
+      for (const rules of BURST_RULES) {
+        const count = cleared.tray?.[rules]?.[layoutId];
+        if (finiteInteger(count, 1)) clean.cleared.tray[rules][layoutId] = Math.min(count, 1_000_000);
       }
     }
     // Never truncate here: phase 1 of mergeEvents must persist every seen id.
@@ -557,7 +627,10 @@
         : null;
       if (trayRevision !== null && finiteInteger(tray.bestScore) && finiteInteger(tray.bestTimeMs, 1)) {
         const scoringRevision = tray.scoringRevision === undefined ? 1 : tray.scoringRevision;
-        const target = scoringRevision === TRAY_SCORING_REVISION ? clean.tray : clean.trayLegacy;
+        const target = scoringRevision === TRAY_SCORING_REVISION
+          ? clean.tray
+          : scoringRevision === 1 ? clean.trayLegacy : null;
+        if (!target) continue;
         target[layoutId] = {
           layoutRevision: trayRevision,
           scoringRevision,
@@ -566,6 +639,22 @@
           maxCombo: finiteInteger(tray.maxCombo) ? tray.maxCombo : 0,
           autoClears: finiteInteger(tray.autoClears) ? tray.autoClears : 0,
           updatedAt: finiteInteger(tray.updatedAt) ? tray.updatedAt : 0,
+        };
+      }
+      const trayManual = value.trayManual && value.trayManual[layoutId];
+      const trayManualRevision = isObject(trayManual)
+        ? normalizedLayoutRevision(layoutId, trayManual.layoutRevision)
+        : null;
+      if (trayManualRevision !== null && trayManual.scoringRevision === MANUAL_TRAY_SCORING_REVISION
+        && finiteInteger(trayManual.bestScore) && finiteInteger(trayManual.bestTimeMs, 1)) {
+        clean.trayManual[layoutId] = {
+          layoutRevision: trayManualRevision,
+          scoringRevision: MANUAL_TRAY_SCORING_REVISION,
+          bestScore: trayManual.bestScore,
+          bestTimeMs: trayManual.bestTimeMs,
+          maxCombo: finiteInteger(trayManual.maxCombo) ? trayManual.maxCombo : 0,
+          autoClears: 0,
+          updatedAt: finiteInteger(trayManual.updatedAt) ? trayManual.updatedAt : 0,
         };
       }
       const legacyTray = value.trayLegacy && value.trayLegacy[layoutId];
@@ -587,29 +676,33 @@
     if (isObject(value.daily)) {
       for (const [key, modes] of Object.entries(value.daily)) {
         if (!isDailyKey(key) || !isObject(modes)) continue;
-        const entry = {};
-        for (const mode of MODES) {
-          const result = modes[mode];
+        const entry = { tray: {} };
+        for (const [mode, rules] of [['classic', null], ['tray', 'auto'], ['tray', 'manual']]) {
+          const result = mode === 'classic' ? modes.classic : modes.tray?.[rules];
           if (!isObject(result) || !LAYOUT_IDS.includes(result.layoutId)) continue;
           const layoutRevision = normalizedLayoutRevision(result.layoutId, result.layoutRevision);
           if (layoutRevision === null) continue;
           if (typeof result.completed !== 'boolean' || !finiteInteger(result.elapsedMs)) continue;
-          entry[mode] = {
+          const normalized = {
             layoutId: result.layoutId,
             layoutRevision,
             completed: result.completed,
             elapsedMs: result.elapsedMs,
             score: finiteInteger(result.score) ? result.score : 0,
             scoringRevision: mode === 'tray'
-              ? (finiteInteger(result.scoringRevision, 1) ? result.scoringRevision : 1)
+              ? (rules === 'manual' ? MANUAL_TRAY_SCORING_REVISION : TRAY_SCORING_REVISION)
               : 0,
+            burstRules: mode === 'tray' ? rules : 'auto',
             maxCombo: mode === 'tray' && finiteInteger(result.maxCombo) ? result.maxCombo : 0,
-            autoClears: mode === 'tray' && finiteInteger(result.autoClears) ? result.autoClears : 0,
+            autoClears: mode === 'tray' && rules === 'auto' && finiteInteger(result.autoClears)
+              ? result.autoClears : 0,
             assists: normalizeAssists(result.assists),
             updatedAt: finiteInteger(result.updatedAt) ? result.updatedAt : 0,
           };
+          if (mode === 'classic') entry.classic = normalized;
+          else entry.tray[rules] = normalized;
         }
-        if (Object.keys(entry).length) clean.daily[key] = entry;
+        if (entry.classic || Object.keys(entry.tray).length) clean.daily[key] = entry;
       }
     }
     return clean;
@@ -620,27 +713,29 @@
     if (candidate.completed !== current.completed) return candidate.completed;
     if (!candidate.completed) return candidate.updatedAt >= current.updatedAt;
     if (mode === 'classic') return candidate.elapsedMs < current.elapsedMs;
-    if (candidate.scoringRevision !== current.scoringRevision) {
-      return candidate.scoringRevision === TRAY_SCORING_REVISION;
-    }
     if (candidate.score !== current.score) return candidate.score > current.score;
     return candidate.elapsedMs < current.elapsedMs;
   }
 
   function applyResult(records, result, timestamp = Date.now()) {
     const next = normalizeRecords(records);
-    if (!isObject(result) || !LAYOUT_IDS.includes(result.layoutId) || !MODES.includes(result.mode)) return next;
+    if (!isObject(result) || result.zen === true
+      || !LAYOUT_IDS.includes(result.layoutId) || !MODES.includes(result.mode)) return next;
     const layoutRevision = normalizedLayoutRevision(result.layoutId, result.layoutRevision);
     if (layoutRevision === null) return next;
     if (!finiteInteger(result.elapsedMs) || !finiteInteger(result.score || 0)) return next;
     const completed = result.completed !== false;
     const elapsedMs = result.elapsedMs;
     const score = result.score || 0;
+    const burstRules = result.mode === 'tray' && BURST_RULES.includes(result.burstRules)
+      ? result.burstRules
+      : 'auto';
     const scoringRevision = result.mode === 'tray'
-      ? (finiteInteger(result.scoringRevision, 1) ? result.scoringRevision : 1)
+      ? (burstRules === 'manual' ? MANUAL_TRAY_SCORING_REVISION : TRAY_SCORING_REVISION)
       : 0;
     const maxCombo = result.mode === 'tray' && finiteInteger(result.maxCombo) ? result.maxCombo : 0;
-    const autoClears = result.mode === 'tray' && finiteInteger(result.autoClears) ? result.autoClears : 0;
+    const autoClears = result.mode === 'tray' && burstRules === 'auto' && finiteInteger(result.autoClears)
+      ? result.autoClears : 0;
     if (completed && elapsedMs > 0) {
       if (result.mode === 'classic') {
         const current = next.classic[result.layoutId];
@@ -648,9 +743,10 @@
           next.classic[result.layoutId] = { layoutRevision, bestTimeMs: elapsedMs, updatedAt: timestamp };
         }
       } else {
-        const current = next.tray[result.layoutId];
-        if (scoringRevision === TRAY_SCORING_REVISION && (!current || score > current.bestScore || (score === current.bestScore && elapsedMs < current.bestTimeMs))) {
-          next.tray[result.layoutId] = {
+        const target = burstRules === 'manual' ? next.trayManual : next.tray;
+        const current = target[result.layoutId];
+        if (!current || score > current.bestScore || (score === current.bestScore && elapsedMs < current.bestTimeMs)) {
+          target[result.layoutId] = {
             layoutRevision, scoringRevision, bestScore: score, bestTimeMs: elapsedMs,
             maxCombo, autoClears, updatedAt: timestamp,
           };
@@ -665,16 +761,54 @@
         elapsedMs,
         score,
         scoringRevision,
+        burstRules,
         maxCombo,
         autoClears,
         assists: normalizeAssists(result.assists),
         updatedAt: timestamp,
       };
       const day = next.daily[result.dailyKey] || {};
-      if (betterDailyResult(candidate, day[result.mode], result.mode)) day[result.mode] = candidate;
+      if (result.mode === 'classic') {
+        if (betterDailyResult(candidate, day.classic, result.mode)) day.classic = candidate;
+      } else {
+        day.tray ||= {};
+        if (betterDailyResult(candidate, day.tray[burstRules], result.mode)) day.tray[burstRules] = candidate;
+      }
       next.daily[result.dailyKey] = day;
     }
     return next;
+  }
+
+  function migrateV2RecordsValue(value) {
+    if (!isObject(value) || value.version !== 2) return emptyRecords();
+    const daily = {};
+    if (isObject(value.daily)) {
+      for (const [key, modes] of Object.entries(value.daily)) {
+        if (!isObject(modes)) continue;
+        const entry = { tray: {} };
+        if (isObject(modes.classic)) entry.classic = { ...modes.classic };
+        if (isObject(modes.tray)) entry.tray.auto = { ...modes.tray, burstRules: 'auto' };
+        if (entry.classic || Object.keys(entry.tray).length) daily[key] = entry;
+      }
+    }
+    return normalizeRecords({
+      version: RECORDS_VERSION,
+      classic: isObject(value.classic) ? value.classic : {},
+      tray: isObject(value.tray) ? value.tray : {},
+      trayManual: {},
+      trayLegacy: isObject(value.trayLegacy) ? value.trayLegacy : {},
+      daily,
+      totals: {
+        cleared: {
+          classic: isObject(value.totals?.cleared?.classic) ? value.totals.cleared.classic : {},
+          tray: {
+            auto: isObject(value.totals?.cleared?.tray) ? value.totals.cleared.tray : {},
+            manual: {},
+          },
+        },
+        countedEvents: Array.isArray(value.totals?.countedEvents) ? value.totals.countedEvents : [],
+      },
+    });
   }
 
   function storedRecordEvents(storage) {
@@ -734,6 +868,33 @@
       return safeSet(storage, RECORDS_KEY, JSON.stringify(normalizeRecords(records)));
     }
 
+    function migrateV2() {
+      if (safeGet(storage, RECORDS_KEY) === null) {
+        let legacy;
+        try { legacy = JSON.parse(safeGet(storage, V2_RECORDS_KEY)); } catch { legacy = null; }
+        if (isObject(legacy) && legacy.version === 2) write(migrateV2RecordsValue(legacy));
+      }
+      for (const key of storedKeysWithPrefix(storage, V2_RECORD_EVENT_PREFIX)) {
+        const eventId = key.slice(V2_RECORD_EVENT_PREFIX.length).toLowerCase();
+        if (!isValidGameId(eventId)) continue;
+        const targetKey = `${RECORD_EVENT_PREFIX}${eventId}`;
+        if (safeGet(storage, targetKey) !== null) continue;
+        let wrapper;
+        try { wrapper = JSON.parse(safeGet(storage, key)); } catch { wrapper = null; }
+        if (!isObject(wrapper) || wrapper.version !== 2 || wrapper.eventId?.toLowerCase() !== eventId
+          || !finiteInteger(wrapper.updatedAt) || !isObject(wrapper.result)) continue;
+        const result = { ...wrapper.result };
+        if (result.mode === 'tray') result.burstRules = 'auto';
+        safeSet(storage, targetKey, JSON.stringify({
+          version: RECORDS_VERSION,
+          eventId,
+          updatedAt: wrapper.updatedAt,
+          result,
+        }));
+      }
+      return readRaw();
+    }
+
     function migrateLegacy(records = readRaw()) {
       const raw = safeGet(storage, LEGACY_BEST_KEY);
       if (raw === null) return records;
@@ -751,7 +912,7 @@
           updatedAt: now(),
         };
       }
-      // Only retire the legacy key after the v2 record has been written. No
+      // Only retire the legacy key after the v3 record has been written. No
       // other preference is read or rewritten, so `mahjong.sound` survives.
       if (write(migrated)) safeRemove(storage, LEGACY_BEST_KEY);
       return migrated;
@@ -770,8 +931,12 @@
         merged = applyResult(merged, event.result, event.updatedAt);
         if (counted.has(event.eventId)) continue;
         const { mode, layoutId } = event.result;
-        if (event.result.completed === true && MODES.includes(mode) && LAYOUT_IDS.includes(layoutId)) {
-          const bucket = merged.totals.cleared[mode];
+        if (event.result.zen !== true && event.result.completed === true
+          && MODES.includes(mode) && LAYOUT_IDS.includes(layoutId)) {
+          const bucket = mode === 'classic'
+            ? merged.totals.cleared.classic
+            : merged.totals.cleared.tray[BURST_RULES.includes(event.result.burstRules)
+              ? event.result.burstRules : 'auto'];
           bucket[layoutId] = (bucket[layoutId] || 0) + 1;
         }
         counted.add(event.eventId);
@@ -803,10 +968,12 @@
     }
 
     function read() {
+      migrateV2();
       return mergeEvents(migrateLegacy(readRaw()));
     }
 
     function record(result) {
+      if (result?.zen === true) return null;
       const updatedAt = now();
       let eventId;
       let clonedResult;
@@ -826,7 +993,7 @@
       return read();
     }
 
-    return Object.freeze({ read, write, record, migrateLegacy });
+    return Object.freeze({ read, write, record, migrateLegacy, migrateV2 });
   }
 
   function isDailyKey(value) {
@@ -983,6 +1150,11 @@
     RECORDS_KEY,
     RECORD_EVENT_PREFIX,
     PREFS_KEY,
+    V2_GAME_KEY_PREFIX,
+    V2_GAME_ACCESS_PREFIX,
+    V2_RECORDS_KEY,
+    V2_RECORD_EVENT_PREFIX,
+    V2_PREFS_KEY,
     LEGACY_BEST_KEY,
     SOUND_KEY,
     MAX_SAVED_GAMES,
@@ -991,7 +1163,9 @@
     LAYOUT_IDS,
     LAYOUT_REVISIONS,
     MODES,
+    BURST_RULES,
     TRAY_SCORING_REVISION,
+    MANUAL_TRAY_SCORING_REVISION,
     isValidGameId,
     mintGameId,
     ensureGameId,
@@ -1011,6 +1185,7 @@
     normalizeAssists,
     normalizeRecords,
     applyResult,
+    migrateV2RecordsValue,
     createRecordStore,
     isDailyKey,
     dailyKey,

@@ -279,7 +279,7 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   }
   assert.match(controller, /if \(soundCue\) sound\.play\('deal'\)/);
   assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
-  assert.match(controller, /startGame\(\{ \.\.\.S\.dailyDeal\(new Date\(\)\), mode: prefs\.mode \}, \{ soundCue \}\)/);
+  assert.match(controller, /startGame\(\{ \.\.\.S\.dailyDeal\(new Date\(\)\), mode: prefs\.mode, burstRules: prefs\.burstRules \}, \{ soundCue \}\)/);
   assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
   assert.match(controller, /\nbootstrap\(\);\s*$/);
 });
@@ -289,7 +289,7 @@ test('a fresh table deals the remembered table (Daily Burst by default) while th
   assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
   assert.match(controller, /if \(restored\) \{[\s\S]*configureGame\(restored\);[\s\S]*\} else \{[\s\S]*startPreferredGame\(\)/);
   // every explicit start records the table for the next fresh tab
-  assert.match(controller, /function startGame\([\s\S]*?prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random' \}\)/);
+  assert.match(controller, /function startGame\([\s\S]*?prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random', burstRules \}\)/);
   assert.match(html, /id="mjModeTray"[^>]*data-mode="tray"[^>]*>Burst<\/button>/);
   assert.match(html, /burst rack/i);
   assert.match(html, /id="mjBurstScoreWrap"[^>]*>[\s\n]*<strong id="mjBurstScore">0<\/strong>/);
@@ -297,7 +297,7 @@ test('a fresh table deals the remembered table (Daily Burst by default) while th
   assert.match(controller, /Build rapid matches in a four-slot Burst rack\./);
 });
 
-test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances', () => {
+test('v3 exposes setup, Tray rescue, local restoration, and keyboard affordances', () => {
   for (const id of [
     'mjSetupSheet', 'mjLayoutTurtle', 'mjLayoutArch', 'mjLayoutPeaks',
     'mjModeClassic', 'mjModeTray', 'mjSourceRandom', 'mjSourceDaily',
@@ -320,7 +320,7 @@ test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances
   assert.match(controller, /pagehide/);
   assert.match(controller, /S\.createGameStore/);
   assert.match(controller, /S\.createDuplicateGuard/);
-  assert.match(controller, /new BroadcastChannel\('blanc-mahjong-v2-live'\)/);
+  assert.match(controller, /new BroadcastChannel\('blanc-mahjong-v3-live'\)/);
   for (const id of ['mjCombo', 'mjComboBar', 'mjComboFill', 'mjComboFx', 'mjWinCombo', 'mjWinAutoClears']) {
     assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
   }
@@ -498,7 +498,7 @@ test('starting another board clears a stale recovery notice', () => {
 test('best records are scoped to the active layout revision', () => {
   assert.match(controller, /const layoutRevision = record\.layoutRevision === undefined \? 1 : record\.layoutRevision;/);
   assert.match(controller, /if \(layoutRevision !== game\.layoutRevision\) return null;/);
-  assert.match(controller, /record\.scoringRevision !== E\.TRAY_SCORING_REVISION/);
+  assert.match(controller, /record\.scoringRevision !== expectedScoringRevision/);
   assert.match(controller, /layoutId: game\.layoutId,\s*layoutRevision: game\.layoutRevision,\s*mode: game\.mode,/);
 });
 
@@ -590,8 +590,35 @@ test('completion copy distinguishes first clear from a new record using the stor
 
 test('daily results surface in the setup sheet and the completion card', () => {
   assert.match(html, /id="mjWinDaily"/);
-  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), S\.dailyDeal\(new Date\(\)\)\.dailyKey, setupChoice\.mode, formatMs\)/);
-  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), game\.dailyKey, game\.mode, formatMs\)/);
+  assert.match(controller, /S\.describeDailyResult\([\s\S]*?setupChoice\.mode,[\s\S]*?setupChoice\.burstRules/);
+  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), game\.dailyKey, game\.mode, formatMs, game\.burstRules\)/);
+});
+
+test('Boards exposes mode-specific Auto and Zen controls without persisting Zen', () => {
+  for (const id of ['mjAutoClearOption', 'mjAutoClears', 'mjZenOption', 'mjZen']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(controller, /autoOption\.hidden = !isBurst/);
+  assert.match(controller, /zenOption\.hidden = isBurst/);
+  assert.match(controller, /setupChoice\.mode === 'tray'\) setupChoice\.zen = false/);
+  assert.match(controller, /function openSetup\([\s\S]*?burstRules: prefs\.burstRules,[\s\S]*?zen: false/);
+  assert.match(controller, /prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random', burstRules \}\)/);
+  assert.doesNotMatch(controller, /prefsStore\?\.write\([^\n]*zen/);
+});
+
+test('Zen suppresses timing and records while completion explains the exclusion', () => {
+  assert.match(styles, /\.mj\[data-zen="true"\] #mjTimeMeter,[\s\S]*?#mjScoreMeter\s*\{\s*display:\s*none;/);
+  assert.match(controller, /if \(game\?\.zen \|\| runningSince !== null/);
+  assert.match(controller, /if \(game\.zen\) \{[\s\S]*?game\.completionRecorded = true;[\s\S]*?game\._outcome = 'zen';[\s\S]*?return true;/);
+  assert.match(html, /id="mjWinZen"[^>]*>This Zen game was not added to Records\./);
+  assert.match(controller, /Zen game complete\. This game was not added to Records/);
+});
+
+test('Records stacks separately labeled Auto and Manual Burst results', () => {
+  assert.match(controller, /\['Auto', row\.trayAutoBestScore, row\.trayAutoBestMs\]/);
+  assert.match(controller, /\['Manual', row\.trayManualBestScore, row\.trayManualBestMs\]/);
+  assert.match(styles, /\.mj-record-variants > span\s*\{/);
+  assert.match(controller, /records\.trayManual\[game\.layoutId\]/);
 });
 
 test('a fresh tab offers to continue the most recent unfinished board without auto-adopting it', () => {
