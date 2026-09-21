@@ -33,6 +33,7 @@
     "test:external-links": "node test/desktop/external-links-smoke.mjs",
     "test:web-store-guard": "node test/desktop/chrome-web-store-guard-smoke.mjs",
     "test:startup-layout": "node test/desktop/startup-layout-smoke.mjs",
+    "test:window-state": "node test/desktop/window-state-persistence-smoke.mjs",
     "test:recovery-reopen": "node test/desktop/startup-layout-smoke.mjs --reopened-window",
     "test:recovery-lifecycle": "node test/desktop/startup-recovery-lifecycle-smoke.mjs",
     "test:window-close-quit": "node test/desktop/window-close-quit-smoke.mjs",
