@@ -492,7 +492,7 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
 
 test('starting another board clears a stale recovery notice', () => {
   assert.match(controller, /function configureGame\(nextGame\)[\s\S]*getElementById\('mjRecoveryNotice'\)\.hidden = true;/);
-  assert.match(controller, /startPreferredGame\(\);\s*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;\s*else offerResume\(\);/);
+  assert.match(controller, /startPreferredGame\(\);[\s\S]*?else if \(hadSave\) \{\s*document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;\s*\} else \{\s*offerResume\(\);/);
 });
 
 test('best records are scoped to the active layout revision', () => {
@@ -619,6 +619,34 @@ test('Records stacks separately labeled Auto and Manual Burst results', () => {
   assert.match(controller, /\['Manual', row\.trayManualBestScore, row\.trayManualBestMs\]/);
   assert.match(styles, /\.mj-record-variants > span\s*\{/);
   assert.match(controller, /records\.trayManual\[game\.layoutId\]/);
+});
+
+test('share actions use the sanitized Clipboard API without adding a dock control', () => {
+  assert.match(html, /id="mjCopyDeal"[^>]*>copy current deal<\/button>/);
+  assert.match(html, /id="mjWinCopyDeal"[^>]*>copy deal<\/button>/);
+  assert.match(controller, /S\.buildShareDealUrl\(game\)/);
+  assert.match(controller, /await navigator\.clipboard\.writeText\(link\)/);
+  assert.match(controller, /announce\('Deal link copied\.'\)/);
+  assert.match(controller, /announce\('Deal link could not be copied\.'\)/);
+  assert.equal((html.match(/class="mj-dock-action"/g) || []).length, 5);
+  assert.equal((html.match(/class="mj-dock-icon/g) || []).length, 7, 'five actions plus two sound-state icons');
+});
+
+test('bootstrap restores by game id before shared deals and rejects invalid links nonblockingly', () => {
+  const bootstrap = controller.match(/function bootstrap\(\) \{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.ok(bootstrap.indexOf('const restored = gameStore.load(gameId)') < bootstrap.indexOf("shared.status === 'valid'"));
+  assert.match(bootstrap, /if \(restored\) \{[\s\S]*?configureGame\(restored\);[\s\S]*?\} else if \(shared\.status === 'valid'\) \{[\s\S]*?rememberPreferences: false, shared: true/);
+  assert.match(bootstrap, /searchParams\.get\(S\.GAME_ID_PARAM\) === gameId[\s\S]*?searchParams\.delete\(S\.GAME_ID_PARAM\)[\s\S]*?S\.parseShareDeal\(resumedUrl\)/);
+  assert.match(bootstrap, /shared\.status === 'invalid'[\s\S]*?mjShareNotice/);
+  assert.match(html, /id="mjShareNotice"[^>]*>[\s\S]*shared deal link was invalid/);
+});
+
+test('shared games omit Daily identity, keep normal record eligibility, and do not overwrite preferences', () => {
+  assert.match(controller, /startGame\(shared\.deal, \{ soundCue: false, rememberPreferences: false, shared: true \}\)/);
+  assert.match(controller, /if \(rememberPreferences\) \{[\s\S]*?prefsStore\?\.write/);
+  assert.match(controller, /rememberPreferences: !activeSharedChallenge, shared: activeSharedChallenge/);
+  assert.match(controller, /dailyKey = null/);
+  assert.doesNotMatch(controller, /activeSharedChallenge[\s\S]{0,120}recordCompletion/);
 });
 
 test('a fresh tab offers to continue the most recent unfinished board without auto-adopting it', () => {
