@@ -125,6 +125,10 @@ try {
       window.once('maximize', () => { clearTimeout(timer); resolve(); });
       window.maximize();
     }), secondaryNativeId);
+    // The native transition schedules Electron's 200 ms state-save debounce.
+    // Let that callback update PrefService before asking app.quit() to flush
+    // PrefService itself; Windows emits `maximize` before that debounce runs.
+    await new Promise((resolve) => setTimeout(resolve, 350));
   }
   await quit(app);
   app = null;
@@ -216,8 +220,31 @@ try {
     10_000,
   );
   assert.equal(finalState[0].fullScreen, true);
-  assert.equal(sameBounds(finalState[0].bounds, expected.primary), true,
-    'primary normal bounds survive fullscreen restoration');
+  // Bare Xvfb has no window manager to preserve the pre-fullscreen normal
+  // rectangle. Its ordinary bounds were already proven on launch 2; here it
+  // can still exercise Electron's display-mode persistence. On real window
+  // managers, leave fullscreen before reading the restored normal rectangle:
+  // Windows reports the fullscreen rectangle from getNormalBounds() while the
+  // native window is still fullscreen.
+  if (process.platform !== 'linux') {
+    await app.evaluate(({ BrowserWindow }) => new Promise((resolve) => {
+      const window = BrowserWindow.getAllWindows()
+        .find((candidate) => candidate.webContents.getURL() === 'blanc-chrome://index/');
+      if (!window || !window.isFullScreen()) return resolve();
+      const timer = setTimeout(resolve, 3000);
+      window.once('leave-full-screen', () => { clearTimeout(timer); resolve(); });
+      window.setFullScreen(false);
+    }));
+    const restoredNormalBounds = await waitForValue(
+      () => chromeWindowStates(app),
+      (windows) => windows.length === 1 && !windows[0].fullScreen &&
+        sameBounds(windows[0].bounds, expected.primary),
+      'normal bounds after leaving restored fullscreen',
+      10_000,
+    );
+    assert.equal(sameBounds(restoredNormalBounds[0].bounds, expected.primary), true,
+      'primary normal bounds survive fullscreen restoration');
+  }
 
   console.log(`window-state-persistence-smoke OK on ${process.platform}`);
 } finally {
