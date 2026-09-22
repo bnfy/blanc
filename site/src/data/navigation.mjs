@@ -56,6 +56,7 @@ export const menus = [
 // as plain rows in the mobile sheet. Security is the trust page, so it stays
 // one click from everywhere even though it also lives inside features.
 export const directLinks = [
+  { href: '/mail', key: 'mail', label: 'mail', mobileLabel: 'Blanc Mail' },
   { href: '/features/security', key: 'security', label: 'security', mobileLabel: 'Security' },
   { href: '/changelog', key: 'changelog', label: "what's new", mobileLabel: "What's new" },
 ];

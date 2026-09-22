@@ -51,13 +51,14 @@ test('resources and direct links point at pages that exist', async () => {
     if (href.startsWith('http')) return true;
     const [pathname] = href.split('#');
     if (pathname === '/' || pathname === '') return true;
-    return fs.existsSync(path.join(ROOT, `site/src/pages${pathname}.astro`));
+    return fs.existsSync(path.join(ROOT, `site/src/pages${pathname}.astro`)) ||
+      fs.existsSync(path.join(ROOT, `site/src/pages${pathname}/index.astro`));
   };
   const resources = menus.find(menu => menu.key === 'company');
   for (const link of [...resources.groups.flatMap(g => g.links), ...directLinks, { href: resources.spotlight.href }, { href: resources.foot.href }, { href: menus[0].foot.href }]) {
     assert.ok(exists(link.href), `${link.href} exists`);
   }
-  assert.deepEqual(directLinks.map(l => l.key), ['security', 'changelog'], 'security stays one click from everywhere');
+  assert.deepEqual(directLinks.map(l => l.key), ['mail', 'security', 'changelog'], 'Mail and security stay one click from everywhere');
   const newsletter = resources.groups.flatMap(g => g.links).find(l => l.label === 'Newsletter');
   const form = fs.readFileSync(path.join(ROOT, 'site/src/components/NewsletterForm.astro'), 'utf8');
   assert.ok(form.includes(`id="${newsletter.href.replace('#', '')}"`), 'the newsletter link targets an id on the footer form');

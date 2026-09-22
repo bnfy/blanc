@@ -5,6 +5,12 @@
 const MANIFEST = [
   '/',
   '/download',
+  '/mail',
+  '/mail/pricing',
+  '/mail/download',
+  '/mail/support',
+  '/mail/privacy',
+  '/mail/terms',
   '/features',
   '/features/ad-blocking',
   '/features/island',

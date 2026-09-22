@@ -52,6 +52,13 @@ function resolveKind(benefitId, allowlist) {
   return KINDS.has(kind) ? kind : null;
 }
 
+function isUnactivatedSuiteLicense(payload, suiteBenefitIDs) {
+  if (!payload || typeof payload !== 'object' || !(suiteBenefitIDs instanceof Set)) return false;
+  const license = payload.license_key ?? payload;
+  // A configured activation limit must never be bypassed by /validate.
+  return license?.limit_activations === null && suiteBenefitIDs.has(readBenefitId(payload));
+}
+
 function isRecordActive(record, now) {
   if (!record) return false;
   if (record.kind === 'founding' || record.kind === 'lifetime') return true;
@@ -96,4 +103,4 @@ function downgradeMirror(patron) {
   return { key: patron.key, activationId: patron.activationId ?? null, activatedAt: patron.activatedAt };
 }
 
-module.exports = { readBenefitId, resolveKind, parseExpiresAt, readLicenseStatus, readExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };
+module.exports = { readBenefitId, resolveKind, isUnactivatedSuiteLicense, parseExpiresAt, readLicenseStatus, readExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };

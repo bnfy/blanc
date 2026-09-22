@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailNav from '../../components/MailNav.astro';
+import '../../styles/mail.css';
+---
+<BaseLayout title="Privacy Policy for Blanc Mail" description="How Blanc Mail for macOS handles Gmail data, local storage, Private Push signals, license validation, and signed updates." path="/mail/privacy" header="legal" analytics={false}>
+  <main class="mail-page mail-prose">
+    <p class="mail-eyebrow">Blanc Mail · Pre-release policy</p><h1>Privacy.</h1><p class="mail-muted">Prepared September 22, 2026 · Effective when Blanc Mail launches.</p><MailNav />
+    <h2>Your Gmail account</h2><p>Blanc Mail connects directly from your Mac to Google after you authorize it. It requests access to read and send mail, and asks for additional permissions when you use features that need them. Google credentials remain in the macOS Keychain. Mail metadata, opened bodies, and recoverable drafts may be stored locally. Bananify does not receive your mail content or OAuth tokens.</p>
+    <h2>Private Push</h2><p>If you enable Private Push, a Bananify relay delivers refresh signals. Gmail's Pub/Sub event includes your email address and an opaque history checkpoint. The relay derives a keyed hash for device lookup and does not store the raw address or mail content. It stores the hashed address, installation identifier, APNs token, app version, and registration expiry. Apple receives a push containing only the registration and checkpoint identifiers. Your Mac fetches actual changes directly from Gmail.</p>
+    <h2>Remote images and attachments</h2><p>Remote images and eligible web fonts load automatically unless you turn that off in Settings. Loading remote content may reveal your IP address and open time to a sender. For images you attach to outgoing mail, Blanc Mail strips identifying metadata; other file types and forwarded attachments are left intact.</p>
+    <h2>Purchases and licenses</h2><p>Polar will process new subscription payments and license keys under <a href="https://polar.sh/legal/privacy">its privacy policy</a>. The app sends a new license key and the public organization identifier to Polar for validation, without your Gmail account or mail. Existing beta keys continue to be checked by postelmail.com. License state stays in the macOS Keychain.</p>
+    <h2>Updates</h2><p>Sparkle checks the existing postelmail.com appcast only after you opt in to automatic checks, or when you request a check. A standard request exposes your IP address and the updater's user agent. Signed updates are verified before installation.</p>
+    <h2>Google Limited Use</h2><p>Blanc Mail's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including Limited Use requirements. Gmail data is used to provide the mail features you request and is not used for advertising.</p>
+    <h2>Contact</h2><p>Privacy questions: <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p>
+  </main>
+</BaseLayout>

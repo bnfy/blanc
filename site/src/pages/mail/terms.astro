@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailNav from '../../components/MailNav.astro';
+import '../../styles/mail.css';
+---
+<BaseLayout title="Terms of Service for Blanc Mail" description="Pre-release terms for using Blanc Mail on macOS, the local trial, Polar subscriptions, and the planned Blanc Suite." path="/mail/terms" header="legal" analytics={false}>
+  <main class="mail-page mail-prose">
+    <p class="mail-eyebrow">Blanc Mail · Pre-release terms</p><h1>Terms.</h1><p class="mail-muted">Prepared September 22, 2026 · Effective when subscriptions open.</p><MailNav />
+    <h2>The app and trial</h2><p>Blanc Mail is made by Bananify for macOS. The first 14 days are a local trial with no card required. When the trial ends, mail remains readable, searchable, and exportable; composing and sending require a valid Mail or Suite license.</p>
+    <h2>Subscriptions</h2><p>Blanc Mail is planned at $4.99 per month or $49.99 per year. Blanc Suite is planned at $7 per month or $70 per year and includes Browser Patron on Browser's supported platforms and Mail on macOS. Existing Browser Patron and founding benefits do not include Mail. A current Patron subscriber may request a confirmed, prorated Suite upgrade; the amount and effective date must be shown before the change.</p>
+    <p>New subscriptions will be sold by <a href="https://polar.sh/legal/terms">Polar</a>, the merchant of record, which handles payment, tax, invoices, cancellations, and refunds. Subscriptions renew until canceled. Benefits continue through the paid period, subject to payment status.</p>
+    <h2>Your mail and account</h2><p>Your Gmail account and mail remain yours. Use the app lawfully and within Google's terms. The <a href="/mail/privacy">Mail privacy policy</a> describes data handling.</p>
+    <h2>Warranty and liability</h2><p>The app is provided “as is” to the extent the law allows. Nothing here limits rights that cannot legally be limited. Any liability for a claim about a paid license is limited to what you paid for that license in the prior twelve months, to the extent the law permits.</p>
+    <h2>Governing law</h2><p>These terms are governed by the laws of New York, USA, without regard to conflict-of-law rules.</p>
+    <h2>Contact</h2><p><!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--></p>
+  </main>
+</BaseLayout>
