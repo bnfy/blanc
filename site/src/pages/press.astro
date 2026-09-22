@@ -46,8 +46,8 @@ const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%20press
 
 const proofPoints = [
   {
-    label: 'Five Start Page layouts',
-    detail: 'Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard uses local frequent sites; Mahjong includes eight boards, rotating Daily deals, and device-local records.',
+    label: 'Four Start Page layouts, plus Mahjong',
+    detail: 'Choose Ledger, Billboard, Shelf, or Tally. Every footer opens standalone Mahjong with eight boards, rotating Daily deals, and device-local records.',
   },
   {
     label: 'A reference beside your page',
@@ -252,11 +252,11 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
   </section>
 
   <section class="press-newsroom" aria-labelledby="press-feature-captures-title">
-    <div class="press-newsroom-heading"><div><p class="section-kicker">current product captures</p><h2 id="press-feature-captures-title">More of the browser, ready to show.</h2></div><p>Captured from the signed public v1.15.0 macOS app with an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.</p></div>
+    <div class="press-newsroom-heading"><div><p class="section-kicker">current product captures</p><h2 id="press-feature-captures-title">More of the browser, ready to show.</h2></div><p>The Start Page and standalone Mahjong captures come from signed public v1.21.0; the remaining interface captures come from signed public v1.15.0. Every capture uses an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.</p></div>
     <div class="layout-gallery press-feature-gallery">
       {[
-        ['billboard', 'Billboard', 'A clock and frequent sites derived from local browsing history.'],
-        ['mahjong', 'Mahjong', 'Turtle in Classic mode, one of eight solvable-by-construction boards in the start page.'],
+        ['billboard-v1.21.0', 'Billboard', 'A clock and frequent sites derived from local browsing history.'],
+        ['mahjong-v1.21.0', 'Standalone Mahjong', 'Bridge in Burst mode, opened in its own managed tab from the Start Page footer.'],
         ['glance', 'Glance', 'Two ordinary tabs sharing one window.'],
         ['workspaces', 'Named Workspaces', 'The switcher with saved sets of tabs and groups.'],
         ['profiles', 'Local profiles', 'Settings with Personal and a separate named profile.'],
@@ -321,7 +321,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
           <div><dt>private tabs</dt><dd>Excluded from history, recently closed tabs, and the next launch</dd></div>
           <div><dt>account</dt><dd>Not required</dd></div>
           <div><dt>sync</dt><dd>Optional and end-to-end encrypted</dd></div>
-          <div><dt>start page</dt><dd>Ledger, Billboard, Shelf, Tally, and Mahjong; Billboard frequent sites stay local</dd></div>
+          <div><dt>start page</dt><dd>Four layouts: Ledger, Billboard, Shelf, and Tally; Billboard frequent sites stay local</dd></div>
           <div><dt>Mahjong</dt><dd>Eight boards, rotating Daily deals, local records and streaks, cross-tab continuation, and undoable Shuffle</dd></div>
           <div><dt>Glance</dt><dd>A temporary reference pane using tabs from the current window and profile</dd></div>
           <div><dt>profiles and windows</dt><dd>Local browsing identities with independent windows; Sync is Personal-only</dd></div>
@@ -374,7 +374,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
       <li><span>02</span><p><strong>Organize a real project.</strong> Open a few related tabs and type <code>/group research</code>. Use <code>/pin</code> for a tab you need nearby, <code>/ungroup</code> to pull one out, or <code>/close-group</code> when the task is finished.</p></li>
       <li><span>03</span><p><strong>Handle everyday browsing.</strong> Try <code>/new</code>, <code>/private</code>, and <code>/find</code>. Type <code>/save reading</code> to add the current page to a Favorites folder named “reading.”</p></li>
       <li><span>04</span><p><strong>Control Blanc without menu hunting.</strong> Use <code>/block-ads</code> to toggle blocking, <code>/allow-ads</code> to exempt the current site, <code>/theme dark</code> to change appearance, and <code>/settings</code> to see every device-level choice.</p></li>
-      <li><span>05</span><p><strong>Choose a starting point.</strong> Open a new tab and try the five footer layouts. In <a href="/features/start-page">Mahjong</a>, try a Daily board and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.</p></li>
+      <li><span>05</span><p><strong>Choose a starting point.</strong> Open a new tab and try the four footer layouts. Then open <a href="/features/start-page">standalone Mahjong</a> from any footer, try a Daily board, and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.</p></li>
       <li><span>06</span><p><strong>Keep a reference in view.</strong> Open two ordinary tabs, press Cmd/Ctrl+Shift+G, and pick one for <a href="/features/glance">Glance</a>. Resize the divider and try Make main.</p></li>
       <li><span>07</span><p><strong>Undo a close.</strong> Close an ordinary tab or named group, then pick it in Recently Closed or press Cmd/Ctrl+Shift+T. <a href="/features/reopen-closed-tabs">Recovery is bounded</a> and may reload the page.</p></li>
       <li><span>08</span><p><strong>Separate identities and sets.</strong> Create a <a href="/features/profiles">named local profile</a> in Settings. With active Patron, save a tab/group set through <code>/workspace</code> and switch to another <a href="/features/workspaces">Named Workspace</a>.</p></li>

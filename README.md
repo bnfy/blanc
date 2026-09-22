@@ -62,16 +62,14 @@ self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
 The evidence and limits for the current release are recorded in the
-[v1.17.2 release report](docs/release-incidents/2026-09-17-v1.17.2.md).
+[v1.21.0 release report](docs/release-incidents/2026-09-21-v1.21.0.md).
 
-> **Current release:** v1.17.2 exits cleanly on Windows and Linux once the last
-> visible window is closed, so a relaunch no longer defers to a stuck
-> background process. It follows v1.17.1, which removed Blanc's own HTTP
-> authentication dialog — sites and proxies that relied on that browser prompt
-> may now fail with a 401 or 407 — and v1.17.0, which preserves live drafts,
-> history, and page state across Named Workspace switches. Use the
-> [v1.17.2 tag](https://github.com/bnfy/blanc/tree/v1.17.2) for the exact
-> source snapshot associated with the public binaries.
+> **Current release:** v1.21.0 remembers each window's native geometry, applies
+> the Sunrise presentation across the four Start Page layouts, and opens
+> Mahjong as a standalone managed tab from every footer. It also prevents sites
+> and service workers from setting Blanc's operating-system badge. Use the
+> [v1.21.0 tag](https://github.com/bnfy/blanc/tree/v1.21.0) for the exact source
+> snapshot associated with the public binaries.
 
 ## Source and license
 

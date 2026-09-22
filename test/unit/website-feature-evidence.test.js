@@ -50,19 +50,25 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
 });
 
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
-  const manifest = JSON.parse(read('docs/website-captures-v1.15.json'));
-  assert.equal(manifest.release, historicalLedger.publicRelease);
-  assert.equal(manifest.sourceSha, historicalLedger.sourceSha);
-  assert.equal(execFileSync('git', ['rev-parse', manifest.release], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
-  assert.equal(manifest.settings.usagePing, false);
-  assert.equal(manifest.settings.searchSuggestions, false);
-  assert.equal(manifest.captures.length, 10);
-  for (const capture of manifest.captures) {
-    const bytes = fs.readFileSync(path.join(root, capture.file));
-    assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
-    assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [1440, 900]);
-    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), capture.sha256, capture.file);
-    assert.equal(capture.verdict, 'verified');
-    assert.ok(capture.state && capture.evidence.length);
+  const manifests = [
+    ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
+    ['docs/website-captures-v1.21.json', ledger.publicRelease, ledger.sourceSha, 5],
+  ];
+  for (const [file, release, sourceSha, expectedCount] of manifests) {
+    const manifest = JSON.parse(read(file));
+    assert.equal(manifest.release, release);
+    assert.equal(manifest.sourceSha, sourceSha);
+    assert.equal(execFileSync('git', ['rev-parse', manifest.release], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
+    assert.equal(manifest.settings.usagePing, false);
+    assert.equal(manifest.settings.searchSuggestions, false);
+    assert.equal(manifest.captures.length, expectedCount);
+    for (const capture of manifest.captures) {
+      const bytes = fs.readFileSync(path.join(root, capture.file));
+      assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
+      assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [capture.width, capture.height]);
+      assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), capture.sha256, capture.file);
+      assert.equal(capture.verdict, 'verified');
+      assert.ok(capture.state && capture.evidence.length);
+    }
   }
 });

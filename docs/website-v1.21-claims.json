@@ -99,7 +99,7 @@
         "src/renderer/overlay.js",
         "test/unit/public-truth.test.js"
       ],
-      "qualification": "Public desktop v1.15.0 only. No AI or automatic semantic organization. Plus makes a regular ungrouped tab. Four app icons are macOS/free. Quiet eligible tabs release renderer memory and reload; this is not a CPU/battery/perfect-state promise. Sync is opt-in, Personal-only and remote tabs are read-only."
+      "qualification": "Public desktop v1.21.0 only. No AI or automatic semantic organization. Plus makes a regular ungrouped tab. Sunrise and Sunrise Dark app icons are macOS/free. Quiet eligible tabs release renderer memory and reload; this is not a CPU/battery/perfect-state promise. Sync is opt-in, Personal-only and remote tabs are read-only."
     },
     "sync": {
       "evidence": [
@@ -117,7 +117,7 @@
     {
       "id": "website-115-001",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Your familiar sites. Or a fresh board.",
+      "exactWording": "Your familiar sites. And a board when you want one.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -127,7 +127,7 @@
     {
       "id": "website-115-002",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Choose from five start-page layouts: Ledger, Billboard, Shelf, Tally, and Mahjong. Jump to the sites you visit often, pick up a group of tabs, or take a moment to play.",
+      "exactWording": "Choose from four start-page layouts: Ledger, Billboard, Shelf, and Tally. Jump to sites you visit often, pick up a group of tabs, or open standalone Mahjong from any footer.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -138,16 +138,6 @@
       "id": "website-115-003",
       "source": "site/src/pages/index.astro",
       "exactWording": "Billboard. Your regular sites, drawn from local history. Private tabs are excluded.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-004",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Mahjong. Eight boards, a rotating Daily deal, and records that stay on this device.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -226,18 +216,20 @@
     },
     {
       "id": "website-115-012",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "The layered Turtle board in Classic mode, with 72 pairs and game controls, in Blanc’s Mahjong start page.",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc helps preserve, separate, and recover the tab sessions you create through user-named groups, local profiles, independent windows, and bounded reopening. You decide what belongs together; Blanc does not infer a task or organize tabs by meaning.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "startPage"
+        "profiles",
+        "reopening",
+        "foundations"
       ],
       "verdict": "qualified"
     },
     {
       "id": "website-115-013",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Your familiar sites. Or a fresh Mahjong board.",
+      "exactWording": "Your familiar sites. And a board when you want one.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -247,7 +239,7 @@
     {
       "id": "website-115-014",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard brings frequent sites from local history; Mahjong offers eight boards, Daily deals, and device-local records.",
+      "exactWording": "Choose Ledger, Billboard, Shelf, or Tally. Billboard brings frequent sites from local history; every footer opens standalone Mahjong with eight boards, Daily deals, and device-local records.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -533,7 +525,7 @@
     {
       "id": "website-115-042",
       "source": "site/src/pages/features.astro",
-      "exactWording": "The Island’s Plus opens a regular, ungrouped tab with its address field focused. macOS offers Sunrise, Sunrise Dark, Paper, and Ink icons without a Patron subscription. Explore the details.",
+      "exactWording": "The Island’s Plus opens a regular, ungrouped tab with its address field focused. macOS offers Sunrise and Sunrise Dark icons without a Patron subscription. Explore the details.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
@@ -656,7 +648,7 @@
     {
       "id": "website-115-054",
       "source": "site/src/pages/faq.astro",
-      "exactWording": "Blanc offers Ledger, Billboard, Shelf, Tally, and Mahjong. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.",
+      "exactWording": "Blanc offers four start-page layouts: Ledger, Billboard, Shelf, and Tally. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -666,7 +658,7 @@
     {
       "id": "website-115-055",
       "source": "site/src/pages/faq.astro",
-      "exactWording": "Mahjong’s eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. The start-page layout preference itself can sync through Personal’s optional Sync.",
+      "exactWording": "Every start-page footer opens Mahjong in a standalone managed tab. Its eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. Your choice among the four start-page layouts can sync through Personal’s optional Sync.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage",
@@ -740,17 +732,18 @@
     {
       "id": "website-115-062",
       "source": "site/src/pages/press.astro",
-      "exactWording": "Captured from the signed public v1.15.0 macOS app with an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.",
+      "exactWording": "The Start Page and standalone Mahjong captures come from signed public v1.21.0; the remaining interface captures come from signed public v1.15.0. Every capture uses an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "profiles"
+        "profiles",
+        "startPage"
       ],
       "verdict": "qualified"
     },
     {
       "id": "website-115-063",
       "source": "site/src/pages/press.astro",
-      "exactWording": "Choose a starting point. Open a new tab and try the five footer layouts. In Mahjong, try a Daily board and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.",
+      "exactWording": "Choose a starting point. Open a new tab and try the four footer layouts. Then open standalone Mahjong from any footer, try a Daily board, and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -792,7 +785,7 @@
     {
       "id": "website-115-067",
       "source": "site/src/pages/press.astro",
-      "exactWording": "Choose Ledger, Billboard, Shelf, Tally, or Mahjong. Billboard uses local frequent sites; Mahjong includes eight boards, rotating Daily deals, and device-local records.",
+      "exactWording": "Choose Ledger, Billboard, Shelf, or Tally. Every footer opens standalone Mahjong with eight boards, rotating Daily deals, and device-local records.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -833,7 +826,7 @@
     {
       "id": "website-115-071",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Five ways to begin. One of them is Mahjong.",
+      "exactWording": "Four ways to begin. Mahjong when you want a break.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -843,7 +836,7 @@
     {
       "id": "website-115-072",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Go straight to a familiar site, pick up a group of tabs, or take a moment with a game. Choose the start page that suits the way you want to begin.",
+      "exactWording": "Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -913,7 +906,7 @@
     {
       "id": "website-115-079",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Open a standalone Mahjong solitaire table from any start-page footer, with Classic and Burst modes while your start page stays open.",
+      "exactWording": "Open a standalone Mahjong solitaire table from any start-page footer. Your start page stays open while the game runs in its own managed tab.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -1071,16 +1064,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-095",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Mahjong — Turtle / Classic",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-096",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Your game and frequent sites stay on this device.",
@@ -1093,7 +1076,7 @@
     {
       "id": "website-115-097",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. The layout preference itself can sync through Personal’s optional Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
+      "exactWording": "Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. Your choice among the four start-page layouts can sync through Personal’s optional Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage",
@@ -1125,7 +1108,7 @@
     {
       "id": "website-115-100",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Choose Ledger, Billboard, Shelf, Tally, or Mahjong in Blanc. Find frequent sites from local history, or play eight boards with Daily deals and local records.",
+      "exactWording": "Choose Ledger, Billboard, Shelf, or Tally in Blanc, then open standalone Mahjong from any start-page footer.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -1145,7 +1128,7 @@
     {
       "id": "website-115-102",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "The billboard layout in public Blanc v1.15.0.",
+      "exactWording": "The billboard layout in public Blanc v1.21.0.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -1155,7 +1138,7 @@
     {
       "id": "website-115-103",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "The ledger layout in public Blanc v1.15.0.",
+      "exactWording": "The ledger layout in public Blanc v1.21.0.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -1165,7 +1148,7 @@
     {
       "id": "website-115-104",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "The shelf layout in public Blanc v1.15.0.",
+      "exactWording": "The shelf layout in public Blanc v1.21.0.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -1175,17 +1158,7 @@
     {
       "id": "website-115-105",
       "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "The tally layout in public Blanc v1.15.0.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-106",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "The layered Turtle board in Classic mode in public Blanc v1.15.0.",
+      "exactWording": "The tally layout in public Blanc v1.21.0.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -2150,7 +2123,7 @@
     {
       "id": "website-115-201",
       "source": "site/src/pages/features/island.astro",
-      "exactWording": "On macOS, Settings offers Sunrise, Sunrise Dark, Paper, and Ink. All four app-icon choices are free; no Patron subscription is required.",
+      "exactWording": "On macOS, Settings offers Sunrise and Sunrise Dark. Both app-icon choices are free; no Patron subscription is required.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
@@ -2439,16 +2412,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-230",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Turtle in Classic mode, one of eight solvable-by-construction boards in the start page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-231",
       "source": "site/src/pages/press.astro",
       "exactWording": "Two ordinary tabs sharing one window.",
@@ -2491,7 +2454,7 @@
     {
       "id": "website-115-235",
       "source": "site/src/pages/press.astro",
-      "exactWording": "Ledger, Billboard, Shelf, Tally, and Mahjong; Billboard frequent sites stay local",
+      "exactWording": "Four layouts: Ledger, Billboard, Shelf, and Tally; Billboard frequent sites stay local",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -2668,6 +2631,97 @@
         "profiles"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "website-115-252",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc is built and maintained by Anthony J. Loria through Bananify Creative. It currently has one human maintainer, so product decisions, development, and support all lead back to the same person.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-253",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Anthony designs and develops Blanc, writes its release notes, and answers its support email through Bananify Creative. Feedback does not travel through departments before it reaches the maintainer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-254",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Public checks, with their limits stated.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-255",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc publishes source, release checks, signed manifests, an SBOM, and compatibility evidence. No independent external security audit has been completed. Those records support specific claims; they are not an external certification or a blanket security guarantee.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-256",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Standalone Mahjong in public Blanc v1.21.0, showing the Bridge board in Burst mode.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "website-115-257",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Standalone Mahjong. Eight boards, a rotating Daily deal, and records that stay on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-258",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Standalone Mahjong in public Blanc v1.21.0, showing the Bridge board in Burst mode.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "website-115-259",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Standalone Mahjong — Bridge / Burst",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "website-115-260",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Bridge in Burst mode, opened in its own managed tab from the Start Page footer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified"
     }
   ]
 }

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.21.0",
+  "sourceSha": "159f274de47ffb32412420ae241d6337a416d0da",
+  "captureDate": "2026-09-22",
+  "timezone": "America/New_York",
+  "source": {
+    "artifact": "/Applications/Blanc.app",
+    "version": "1.21.0",
+    "bundleBuild": "1210",
+    "architecture": "arm64",
+    "executableSha256": "40c07d6461b1ad56ad85b6def27733f36295b02b50f3cd7e20d31652d4a38ede",
+    "publisher": "Developer ID Application: Anthony Loria (XYGUCY4498)",
+    "teamId": "XYGUCY4498",
+    "verification": "Strict deep codesign verification passed and the installed app carried a stapled notarization ticket.",
+    "releaseEvidence": "docs/release-incidents/2026-09-21-v1.21.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": false,
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "sampleData": "Synthetic Favorites, visits, named groups, and blocked-request totals only; no account, Patron entitlement, participant data, or real browsing content."
+  },
+  "method": "npm run capture:start-page:installed launches the installed app in a disposable profile seeded only with the declared synthetic fixtures, selects each shipped Start Page layout, opens the standalone managed Mahjong page from its footer, and captures every page at 1440×900 over Chromium's debugging surface. No application code, layout, game controls, tiles, or text are retouched.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/ledger-v1.21.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "65ba9b375627714384fa1a2deb21f257b5d0c5e9e7105c900317b590e73567d6",
+      "capturedAt": "2026-09-22T16:02:08Z",
+      "state": "Ledger layout with four synthetic Favorites, two synthetic named groups containing two quiet tabs each, weekly blocked-request total 328, and no account or Sync data.",
+      "evidence": [
+        "v1.21.0:src/renderer/pages/newtab.html",
+        "v1.21.0:src/renderer/pages/newtab.js",
+        "v1.21.0:src/renderer/pages/newtab.css",
+        "docs/release-incidents/2026-09-21-v1.21.0.md"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/billboard-v1.21.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "3e0107aa2317451e747122b05ad2979f0996a64a80a60e10a2feaad876575dbd",
+      "capturedAt": "2026-09-22T16:02:08Z",
+      "state": "Billboard layout with a local clock, six synthetic history-ranked sites, two synthetic named groups, weekly blocked-request total 328, and no account or Sync data.",
+      "evidence": [
+        "v1.21.0:src/renderer/pages/newtab.html",
+        "v1.21.0:src/renderer/pages/newtab.js",
+        "v1.21.0:src/renderer/pages/newtab.css",
+        "docs/release-incidents/2026-09-21-v1.21.0.md"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/shelf-v1.21.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "0b3872b8348f96b3d55a3d01d8f4c2f44ed5dbc13601a06626ca60f4f56dadeb",
+      "capturedAt": "2026-09-22T16:02:09Z",
+      "state": "Shelf layout with four synthetic Favorite tiles, two synthetic named groups containing two quiet tabs each, weekly blocked-request total 328, and no account or Sync data.",
+      "evidence": [
+        "v1.21.0:src/renderer/pages/newtab.html",
+        "v1.21.0:src/renderer/pages/newtab.js",
+        "v1.21.0:src/renderer/pages/newtab.css",
+        "docs/release-incidents/2026-09-21-v1.21.0.md"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/tally-v1.21.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "85e70e93eb0258727889575a3921b0bcf15691967b0a56385931a8011847377e",
+      "capturedAt": "2026-09-22T16:02:09Z",
+      "state": "Tally layout with four synthetic Favorites, two synthetic named groups, and a synthetic Monday–Tuesday blocked-request total of 328; no account or Sync data.",
+      "evidence": [
+        "v1.21.0:src/renderer/pages/newtab.html",
+        "v1.21.0:src/renderer/pages/newtab.js",
+        "v1.21.0:src/renderer/pages/newtab.css",
+        "docs/release-incidents/2026-09-21-v1.21.0.md"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/mahjong-v1.21.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "675203949417c5d9492be8e17ccf337a7e2578896ebbd9730319ee1acff81efc",
+      "capturedAt": "2026-09-22T16:02:10Z",
+      "state": "Standalone Mahjong opened from a Start Page footer; Daily Bridge board in Burst mode; 50 pairs left, 0:00, score 0, empty Burst rack, no assists used.",
+      "evidence": [
+        "v1.21.0:src/main/main.js",
+        "v1.21.0:src/renderer/pages/newtab.js",
+        "v1.21.0:src/renderer/pages/mahjong.js",
+        "docs/release-incidents/2026-09-21-v1.21.0.md"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}

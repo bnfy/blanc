@@ -1,12 +1,12 @@
 # Using Blanc
 
-This guide describes public **v1.16.0**. `Cmd/Ctrl` means Command on macOS and
+This guide describes public **v1.21.0**. `Cmd/Ctrl` means Command on macOS and
 Control on Windows or Linux.
 
 ## Install and get started
 
 Download the artifact for your operating system and processor from the
-[official release](https://github.com/bnfy/blanc/releases/tag/v1.16.0).
+[official release](https://github.com/bnfy/blanc/releases/tag/v1.21.0).
 On macOS, open the DMG and copy Blanc to Applications. On Windows, run the
 installer. On Linux, make the AppImage executable and launch it.
 
