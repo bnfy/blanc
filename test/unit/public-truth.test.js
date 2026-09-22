@@ -11,7 +11,8 @@ test('expanded feature guides retain release limitations beside their benefits',
   const start = guide('start-page');
   assert.match(start, /eight|Eight/);
   assert.match(start, /not cloud-synced/);
-  assert.match(start, /layout preference itself can sync/);
+  assert.match(start, /choice among the four start-page layouts can sync/);
+  assert.match(start, /own managed tab/);
   assert.match(start, /Private tabs neither contribute to nor receive/);
   const reopen = guide('reopen-closed-tabs');
   for (const limit of [/At most one eligible closed page per window/, /about 30 seconds/, /may reload/, /25 entries per window/, /one hour/, /Private tabs never enter Recently Closed/]) assert.match(reopen, limit);

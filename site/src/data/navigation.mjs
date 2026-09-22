@@ -10,7 +10,7 @@ export const menus = [
     groups: [
       { title: 'Interface', links: [
         { href: '/features/island', label: 'The island', description: 'One small island. The whole browser.' },
-        { href: '/features/start-page', label: 'Start Page', description: 'Five ways to begin. One of them is Mahjong.' },
+        { href: '/features/start-page', label: 'Start Page', description: 'Four ways to begin. Mahjong when you want a break.' },
         { href: '/features/glance', label: 'Glance', description: 'Keep a reference beside the page you’re using.' },
         { href: '/features/vertical-tabs', label: 'Vertical tabs', description: 'A tab rail when you want one. The island either way.' },
         { href: '/features/tab-groups', label: 'Tab groups', description: 'Keep the tabs you need. Tuck away the rest.' },

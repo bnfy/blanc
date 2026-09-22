@@ -35,8 +35,8 @@ const HEIGHT = 630;
 const CARDS = [
   {
     out: 'feature-start-page.png',
-    capture: 'billboard.png',
-    headline: 'Five ways to begin. One of them is Mahjong.',
+    capture: 'billboard-v1.21.0.png',
+    headline: 'Four ways to begin. Mahjong when you want a break.',
   },
   {
     out: 'feature-glance.png',
