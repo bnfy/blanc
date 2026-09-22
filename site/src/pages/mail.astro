@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MailIcon from '../components/MailIcon.astro';
+import MailNav from '../components/MailNav.astro';
+import '../styles/mail.css';
+---
+<BaseLayout title="Blanc Mail — Email that minds its own business" description="Blanc Mail is a native Gmail client for macOS, coming soon from the makers of Blanc Browser." path="/mail" header="solid" ogImageAlt="The Blanc Sunrise mark on a warm ivory background">
+  <main class="mail-page">
+    <p class="mail-eyebrow">Blanc Mail · Coming soon for macOS</p>
+    <div class="mail-hero">
+      <div>
+        <h1>Email that minds<br />its own business.</h1>
+        <p class="mail-lead">Blanc Mail brings a careful, native Gmail experience to your Mac. Your mail stays between your Mac and Google.</p>
+        <a class="mail-cta" href="/mail/pricing">See planned pricing</a>
+        <a href="/mail/download">Release status →</a>
+      </div>
+      <MailIcon />
+    </div>
+    <MailNav />
+    <section class="mail-section">
+      <p class="mail-eyebrow">Made for the Mac</p>
+      <h2>One place to read, reply, and move on.</h2>
+      <div class="mail-card-grid">
+        <div class="mail-card"><h3>A native window</h3><p>Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.</p></div>
+        <div class="mail-card"><h3>Gmail first</h3><p>Connect your Google account directly. Mail is stored locally for reading and draft recovery.</p></div>
+        <div class="mail-card"><h3>Privacy choices</h3><p>Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.</p></div>
+      </div>
+    </section>
+    <section class="mail-section mail-prose">
+      <h2>One Blanc family.</h2>
+      <p>Blanc Browser is available on macOS, Windows, and Linux. Blanc Mail is a separate macOS app. At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
+      <p class="mail-muted">Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
+    </section>
+  </main>
+</BaseLayout>

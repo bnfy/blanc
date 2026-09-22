@@ -22,9 +22,10 @@ const {
   robots = 'index,follow,max-image-preview:large',
   ogTitle = title,
   ogDescription = description,
-  ogImage = '/og-image.png',
-  ogImageAlt = 'Blanc Browser marketing page showing the Blanc island over real websites.',
+  ogImage = path?.startsWith('/mail') ? '/mail-og.png' : '/og-image.png',
+  ogImageAlt = path?.startsWith('/mail') ? 'The gold Sunrise mark for Blanc Mail.' : 'Blanc Browser marketing page showing the Blanc island over real websites.',
 } = Astro.props;
+const appName = path?.startsWith('/mail') ? 'Blanc Mail' : 'Blanc Browser';
 const canonical = SITE + path;
 const ogImageUrl = SITE + ogImage;
 ---
@@ -36,12 +37,12 @@ const ogImageUrl = SITE + ogImage;
 <meta name="description" content={description}>
 <meta name="robots" content={robots}>
 <meta name="theme-color" content="#F7F0E5">
-{social !== 'none' && <meta name="application-name" content="Blanc Browser">}
+{social !== 'none' && <meta name="application-name" content={appName}>}
 {social === 'rich' && <meta name="apple-mobile-web-app-title" content="Blanc">}
 <link rel="canonical" href={canonical}>
 {social !== 'none' && (
   <>
-    <meta property="og:site_name" content="Blanc Browser">
+    <meta property="og:site_name" content={appName}>
     <meta property="og:type" content="website">
     <meta property="og:title" content={ogTitle}>
     <meta property="og:description" content={ogDescription}>

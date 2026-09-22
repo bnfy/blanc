@@ -1,0 +1,14 @@
+---
+const links = [
+  ['/mail', 'Overview'],
+  ['/mail/pricing', 'Pricing'],
+  ['/mail/download', 'Download'],
+  ['/mail/support', 'Support'],
+  ['/mail/privacy', 'Privacy'],
+  ['/mail/terms', 'Terms'],
+];
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+---
+<nav class="mail-subnav" aria-label="Blanc Mail">
+  {links.map(([href, label]) => <a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a>)}
+</nav>

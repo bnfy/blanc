@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailNav from '../../components/MailNav.astro';
+import '../../styles/mail.css';
+---
+<BaseLayout title="Blanc Mail pricing — macOS" description="Planned Blanc Mail and Blanc Suite pricing. Mail is coming soon for macOS, with a 14-day local trial." path="/mail/pricing" header="solid">
+  <main class="mail-page">
+    <p class="mail-eyebrow">Blanc Mail · Planned pricing</p>
+    <h1>A good home for your mail.</h1>
+    <p class="mail-lead">Start with a 14-day local trial when Mail launches. No card is needed to begin.</p>
+    <MailNav />
+    <div class="mail-plans">
+      <div class="mail-plan"><p class="mail-eyebrow">Mail</p><h2>Blanc Mail</h2><p><strong>$4.99</strong> / month<br />or <strong>$49.99</strong> / year</p><ul><li>Blanc Mail on macOS</li><li>Gmail-first native app</li><li>14-day local trial</li></ul></div>
+      <div class="mail-plan"><p class="mail-eyebrow">Together</p><h2>Blanc Suite</h2><p><strong>$7</strong> / month<br />or <strong>$70</strong> / year</p><ul><li>Blanc Browser Patron on macOS, Windows, and Linux</li><li>Blanc Mail on macOS</li><li>One Suite license for both apps</li></ul></div>
+    </div>
+    <p class="mail-note">Purchases are not open yet. Current Browser Patron subscribers will be offered a confirmed, prorated upgrade to Suite through Polar. Existing Patron and founding benefits continue to apply to Browser only.</p>
+    <section class="mail-section mail-prose"><h2>What happens when a subscription ends?</h2><p>Blanc Mail keeps your mail readable, searchable, and exportable. Composing and sending pause until a valid license is available. Browser's free features remain free.</p></section>
+  </main>
+</BaseLayout>
