@@ -58,6 +58,36 @@ try {
   assert.equal(result.ordinaryClickMenus, 1, 'ordinary right-click should reach the page');
   assert.equal(result.gestureContextMenus, 1, 'right drag should not open a page context menu');
   assert.equal(result.newTab.groupId, null, 'gesture new tab should not inherit its source group');
+  const trackpadResult = await electronApp.evaluate(async () => {
+    const hook = globalThis.__blanc;
+    const before = hook.state();
+    const id = before.activeTabId;
+    await hook.workspacePageScript(id, `
+      window.__gestureAltClicks = 0;
+      document.addEventListener('click', (event) => {
+        if (event.altKey) window.__gestureAltClicks += 1;
+      });
+    `);
+    hook.sendMouseInput(id, { type: 'keyDown', keyCode: 'Alt', modifiers: ['alt'] });
+    hook.sendMouseInput(id, { type: 'mouseDown', x: 300, y: 300, button: 'left', modifiers: ['alt'], clickCount: 1 });
+    hook.sendMouseInput(id, { type: 'mouseUp', x: 300, y: 300, button: 'left', modifiers: ['alt'], clickCount: 1 });
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    const ordinaryAltClicks = await hook.workspacePageScript(id, 'window.__gestureAltClicks');
+    hook.sendMouseInput(id, { type: 'mouseDown', x: 300, y: 300, button: 'left', modifiers: ['alt'], clickCount: 1 });
+    hook.sendMouseInput(id, { type: 'mouseMove', x: 340, y: 300, button: 'left', modifiers: ['alt', 'leftbuttondown'] });
+    hook.sendMouseInput(id, { type: 'mouseUp', x: 340, y: 300, button: 'left', modifiers: ['alt'], clickCount: 1 });
+    hook.sendMouseInput(id, { type: 'keyUp', keyCode: 'Alt' });
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    return {
+      before: before.tabs.length,
+      after: hook.state().tabs.length,
+      ordinaryAltClicks,
+      afterAltClicks: await hook.workspacePageScript(id, 'window.__gestureAltClicks'),
+    };
+  });
+  assert.equal(trackpadResult.ordinaryAltClicks, 1, 'Option-click without a drag should reach the page');
+  assert.equal(trackpadResult.after, trackpadResult.before + 1, 'Option-drag should open exactly one tab');
+  assert.equal(trackpadResult.afterAltClicks, 1, 'Option-drag should not click the page');
   const privateResult = await electronApp.evaluate(async () => {
     const hook = globalThis.__blanc;
     const id = hook.openTab('blanc://newtab/?private=1', { private: true });
