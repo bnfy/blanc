@@ -2352,6 +2352,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --bg: #f7f0e5;
   --surface: rgba(239, 230, 216, 0.78);
   --surface-raised: rgba(255, 252, 247, 0.88);
+  --onboarding-surface: #fffcf7;
   --border: #ddd2c2;
   --text: #12100b;
   --text-dim: #6b6257;
@@ -2379,6 +2380,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --bg: #17130f;
     --surface: rgba(45, 37, 29, 0.78);
     --surface-raised: rgba(34, 29, 23, 0.9);
+    --onboarding-surface: #221d17;
     --border: #4a3e31;
     --text: #f7f0e5;
     --text-dim: #b8aa98;
@@ -2395,6 +2397,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --bg: #100d0b;
   --surface: rgba(37, 29, 23, 0.82);
   --surface-raised: rgba(26, 21, 17, 0.94);
+  --onboarding-surface: #1a1511;
   --border: #594a39;
   --text: #f8f0e4;
   --text-dim: #b5a38f;
@@ -2772,9 +2775,10 @@ body:not([data-layout="ledger"]) .ledger-footer {
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  background: var(--surface-raised);
+  /* Start-page cards are translucent; a modal must fully cover the page. */
+  background: var(--onboarding-surface, var(--surface-raised));
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 18px;
   box-shadow: var(--shadow-popover);
   z-index: 41;
   box-sizing: border-box;
@@ -2930,22 +2934,32 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-error { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--danger); margin-top: 10px; }
 .ob-error:empty { display: none; }
 
-/* Step 3: mini resting pill */
+/* Step 3: decorative scale model of the current resting Island. */
 .ob-minipill-row { margin-top: 22px; display: flex; justify-content: center; }
 .ob-minipill {
-  display: inline-flex;
+  box-sizing: border-box;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 16px;
-  background: var(--surface);
+  gap: 8px;
+  width: min(100%, 392px);
+  height: 44px;
+  padding: 0 12px;
+  background: var(--onboarding-surface, var(--surface-raised));
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 17px;
   box-shadow: var(--shadow-pill);
 }
-.ob-minipill-dots { display: inline-flex; gap: 6px; }
+.ob-minipill-nav, .ob-minipill-actions { display: inline-flex; align-items: center; flex: 0 0 auto; }
+.ob-minipill-icon { width: 20px; height: 20px; display: inline-grid; place-items: center; color: var(--text-dim); }
+.ob-minipill-icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.ob-minipill-nav .ob-minipill-icon { color: var(--border); }
+.ob-minipill-dots { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .ob-minipill-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
 .ob-minipill-dots span.on { background: var(--accent); }
-.ob-minipill-domain { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.ob-minipill-domain { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--font-ui); font-size: 12px; color: var(--text-dim); }
+.ob-minipill-shortcuts { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.ob-minipill-shortcuts span { width: 18px; height: 18px; display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); font-size: 11px; }
+.ob-minipill-sep { width: 1px; height: 16px; background: var(--border); flex: 0 0 auto; }
 .ob-commands { margin-top: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
 
 /* Bordered control rows (steps 4 and 5) with the standard 36x20 toggle */
