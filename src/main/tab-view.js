@@ -14,6 +14,7 @@ const bookmarks = require('./bookmarks');
 const history = require('./history');
 const sync = require('./sync');
 const { attachContextMenu } = require('./context-menu');
+const { createRecognizer } = require('./mouse-gestures');
 const { webrtcPolicyFor } = require('./network-privacy');
 const { effectiveTabMuted, noteMediaStarted } = require('./tab-audio');
 const {
@@ -28,6 +29,14 @@ const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
+let mouseGestureSettings = null;
+const gestureSettings = () => {
+  if (!mouseGestureSettings) {
+    const current = settings.getSettings();
+    mouseGestureSettings = { enabled: current.mouseGesturesEnabled, mapping: current.mouseGestureMapping };
+  }
+  return mouseGestureSettings;
+};
 
 const TAB_WEB_PREFERENCES = {
   contextIsolation: true,
@@ -99,12 +108,16 @@ function initTabView(injected) {
     'isStartupGateActive', 'startupQueuedNavigations',
     'onMainFrameCommit', 'noteWakeSuppressed', 'notePopupChild',
     'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
+    'dispatchMouseGesture',
     'sanitizeCertificate', 'certificateErrorQuery',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
   }
   deps = injected;
+  settings.onSettingsChanged((current) => {
+    mouseGestureSettings = { enabled: current.mouseGesturesEnabled, mapping: current.mouseGestureMapping };
+  });
 }
 
 /**
@@ -152,10 +165,15 @@ function wireTabView(tab, view, { owner, adopted }) {
     isStartupGateActive, startupQueuedNavigations,
     onMainFrameCommit, noteWakeSuppressed, notePopupChild,
     registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
+    dispatchMouseGesture,
     sanitizeCertificate, certificateErrorQuery,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
+  const gesture = createRecognizer();
+  let pendingClick = null;
+  let replayEventsRemaining = 0;
+  let suppressMenuUntil = 0;
   // Snapshot pre-existing listeners so the closing diff records exactly what
   // THIS call adds — Electron's own listeners are never in the recorded set.
   const preWired = new Map(wc.eventNames().map((n) => [n, new Set(wc.listeners(n))]));
@@ -164,6 +182,59 @@ function wireTabView(tab, view, { owner, adopted }) {
   // Workspace residency can transfer a live view without navigation. Resolve
   // its current owner for each event, including shortcuts and popup policy.
   const boundToTab = (fn) => bindWindowRuntime(getOwner, fn);
+  wc.on('before-mouse-event', boundToTab((event, mouse) => {
+    // Replayed clicks pass through once without starting another gesture.
+    if (replayEventsRemaining && ['mouseDown', 'mouseUp'].includes(mouse.type) && mouse.button === 'right') {
+      replayEventsRemaining -= 1;
+      return;
+    }
+    const enabled = gestureSettings().enabled;
+    if (!enabled || getOwner().activeTabId !== id || tab.view?.webContents !== wc) {
+      gesture.cancel(); pendingClick = null; return;
+    }
+    if (mouse.type === 'mouseDown' && mouse.button === 'right') {
+      suppressMenuUntil = 0;
+      pendingClick = null;
+      const modifiers = mouse.modifiers ?? [];
+      if (modifiers.some((m) => ['shift', 'control', 'ctrl', 'alt', 'meta', 'command', 'cmd', 'leftbuttondown', 'middlebuttondown'].includes(m))) {
+        gesture.cancel(); return;
+      }
+      gesture.start(mouse.x, mouse.y);
+      // Chromium may fire a page-owned contextmenu on right-down, before we
+      // know whether this will become a gesture. Delay the press until up.
+      event.preventDefault();
+      pendingClick = { x: mouse.x, y: mouse.y, clickCount: mouse.clickCount || 1 };
+    } else if (mouse.type === 'mouseMove' && gesture.held) {
+      if (mouse.button && mouse.button !== 'right') { gesture.cancel(); pendingClick = null; return; }
+      if (gesture.move(mouse.x, mouse.y)) event.preventDefault();
+    } else if (mouse.type === 'mouseUp' && mouse.button === 'right' && gesture.held) {
+      event.preventDefault();
+      const wasGesture = gesture.moved;
+      const pattern = gesture.finish();
+      const action = gestureSettings().mapping[pattern];
+      if (wasGesture) suppressMenuUntil = Date.now() + 350;
+      if (action) {
+        pendingClick = null;
+        dispatchMouseGesture(getOwner(), tab, action);
+      } else if (wasGesture) {
+        pendingClick = null;
+      } else if (pendingClick) {
+        const { x, y, clickCount } = pendingClick;
+        const upX = mouse.x; const upY = mouse.y;
+        pendingClick = null;
+        setImmediate(() => {
+          if (tab.view?.webContents === wc && !wc.isDestroyed()) {
+            replayEventsRemaining = 2;
+            wc.sendInputEvent({ type: 'mouseDown', x, y, button: 'right', clickCount });
+            wc.sendInputEvent({ type: 'mouseUp', x: upX, y: upY, button: 'right', clickCount });
+          }
+        });
+      }
+    } else if (mouse.type === 'mouseLeave') {
+      gesture.cancel(); pendingClick = null;
+    }
+  }));
+  wc.on('blur', boundToTab(() => { gesture.cancel(); pendingClick = null; }));
   watchCursorFor(wc, () => currentTabBounds(tab), boundToTab);
 
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -464,6 +535,10 @@ function wireTabView(tab, view, { owner, adopted }) {
       if (isForbiddenTopLevelUrl(targetUrl)) return;
       setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
     }),
+  }, () => {
+    if (!gestureSettings().enabled) return true;
+    if (Date.now() < suppressMenuUntil) return false;
+    return !gesture.held;
   });
 
   const wired = [];

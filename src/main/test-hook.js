@@ -718,6 +718,20 @@ function install(refs) {
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
+    setMouseGestures(enabled, mapping) {
+      const partial = { mouseGesturesEnabled: !!enabled };
+      if (mapping !== undefined) partial.mouseGestureMapping = mapping;
+      settings.setSettings(partial);
+      const current = settings.getSettings();
+      return { enabled: current.mouseGesturesEnabled, mapping: current.mouseGestureMapping };
+    },
+    sendMouseInput(tabId, input) {
+      const wc = tabs.get(tabId)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      wc.focus();
+      wc.sendInputEvent(input);
+      return true;
+    },
     tabSleep() { return settings.getSettings().tabSleep; },
     setTabSleep(value) { return settings.setSettings({ tabSleep: value }).tabSleep; },
     tabLayout() { return settings.getSettings().tabLayout; },

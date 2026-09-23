@@ -11,6 +11,7 @@ const {
 const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
+const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
@@ -98,6 +99,8 @@ const DEFAULTS = {
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
+  mouseGesturesEnabled: false,
+  mouseGestureMapping: { ...DEFAULT_MAPPING },
   appIcon: 'sunrise',
   // Device-local migration marker; never user-writable or Profile Synced.
   presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
@@ -283,6 +286,8 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
+  data.mouseGestureMapping = mappingOrDefault(data.mouseGestureMapping);
   if (!WEBRTC_POLICIES.includes(data.webrtcPolicy)) data.webrtcPolicy = DEFAULTS.webrtcPolicy;
   if (!WEBRTC_AUDIO_BUFFERS.includes(data.webrtcAudioBuffer)) {
     data.webrtcAudioBuffer = DEFAULTS.webrtcAudioBuffer;
@@ -332,6 +337,8 @@ function sanitize(partial) {
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
+  if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
+  if (validMapping(partial.mouseGestureMapping)) clean.mouseGestureMapping = { ...partial.mouseGestureMapping };
   if (Number.isFinite(partial.verticalTabsWidth)) {
     clean.verticalTabsWidth = normalizeVerticalTabsWidth(partial.verticalTabsWidth);
   }
