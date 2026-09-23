@@ -99,6 +99,62 @@ try {
   });
   assert.equal(privateResult.private, true, 'gesture new tab should retain private mode');
   assert.equal(privateResult.url, 'blanc://newtab/?private=1', 'private gesture new tab should use the private start page');
+  const settingsFocus = await electronApp.evaluate(async ({ webContents }) => {
+    const hook = globalThis.__blanc;
+    hook.setMouseGestures(true, { L: 'back', R: 'forward', U: 'newTab', D: 'closeTab' });
+    hook.openSettings();
+    const deadline = Date.now() + 5000;
+    while (!hook.utilitySurface()?.ready) {
+      if (Date.now() > deadline) throw new Error('settings sheet did not become ready');
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    const sheet = webContents.fromId(hook.utilitySheetContentsId());
+    return sheet.executeJavaScript(`(async () => {
+      const until = async (predicate) => {
+        const deadline = Date.now() + 5000;
+        while (!predicate()) {
+          if (Date.now() > deadline) throw new Error('gesture editor did not update');
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+      };
+      await until(() => document.querySelectorAll('#mouseGestureRows .settings-select-trigger').length === 4);
+      const first = document.querySelector('#mouseGestureRows .settings-select-trigger');
+      first.focus();
+      first.click();
+      const menu = document.getElementById(first.getAttribute('aria-controls'));
+      menu.querySelector('[data-value="reload"]').click();
+      await until(() => document.getElementById('mouseGestureMessage').textContent.includes('now runs Reload'));
+      const focusAfterEdit = first.isConnected && document.activeElement === first;
+      const second = document.querySelectorAll('#mouseGestureRows .settings-select-trigger')[1];
+      first.click();
+      menu.querySelector('[data-value="back"]').click();
+      second.click();
+      const secondMenu = document.getElementById(second.getAttribute('aria-controls'));
+      await until(() => document.getElementById('mouseGestureMessage').textContent.includes('now runs Back'));
+      const secondPickerSurvived = second.isConnected && !secondMenu.hidden;
+      secondMenu.querySelector('[data-value="nextTab"]').click();
+      first.click();
+      menu.querySelector('[data-value="reload"]').click();
+      await until(() => document.getElementById('mouseGestureMessage').textContent.includes('now runs Reload'));
+      const persisted = (await window.bowserPages.settings.get()).settings.mouseGestureMapping;
+      const remove = document.querySelector('#mouseGestureRows .gesture-remove');
+      remove.focus();
+      remove.click();
+      await until(() => document.getElementById('mouseGestureMessage').textContent.includes('gesture removed'));
+      return {
+        focusAfterEdit,
+        secondPickerSurvived,
+        rapidEditsPersisted: persisted.L === 'reload' && persisted.R === 'nextTab',
+        focusAfterRemove: document.activeElement === document.getElementById('mouseGestureAdd'),
+        remainingRows: document.querySelectorAll('#mouseGestureRows .gesture-row').length,
+      };
+    })()`);
+  });
+  assert.equal(settingsFocus.focusAfterEdit, true, 'editing an action should keep keyboard focus on its picker');
+  assert.equal(settingsFocus.secondPickerSurvived, true, 'saving another action should not close an open picker');
+  assert.equal(settingsFocus.rapidEditsPersisted, true, 'quick action edits should both persist');
+  assert.equal(settingsFocus.focusAfterRemove, true, 'removing a gesture should move focus to Add gesture');
+  assert.equal(settingsFocus.remainingRows, 3, 'removing a gesture should leave the other rows intact');
   console.log('Mouse gesture native-input smoke passed.');
 } finally {
   if (electronApp) await electronApp.close();

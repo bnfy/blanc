@@ -95,6 +95,7 @@
     const save = document.getElementById('mouseGestureSave');
     const message = document.getElementById('mouseGestureMessage');
     let mapping = { ...(settings.mouseGestureMapping ?? defaults) };
+    let mappingWrite = Promise.resolve();
     let drawing = null;
     let drawnPattern = '';
     enabled.checked = settings.mouseGesturesEnabled === true;
@@ -112,42 +113,74 @@
       composer.hidden = true; add.hidden = false; drawing = null; drawnPattern = '';
       padPrompt.textContent = 'Press and drag here'; save.disabled = true;
     };
+    const showEmpty = () => {
+      const empty = document.createElement('p'); empty.className = 'gesture-empty';
+      empty.textContent = 'No gestures assigned.'; rows.append(empty);
+    };
+    const makeRow = (pattern, command) => {
+      const row = document.createElement('div'); row.className = 'gesture-row';
+      const glyph = document.createElement('code');
+      glyph.textContent = glyphFor(pattern);
+      const select = document.createElement('select');
+      select.setAttribute('aria-label', `Action for ${glyph.textContent} gesture`);
+      fillActions(select, command);
+      select.addEventListener('change', async () => {
+        const selectedAction = select.value;
+        await persistMapping(
+          (current) => ({ ...current, [pattern]: selectedAction }),
+          `${glyph.textContent} now runs ${actions[selectedAction]}.`,
+          {
+            redraw: false,
+            onFailure: () => {
+              if (select.isConnected && select.value === selectedAction) select.value = mapping[pattern];
+            },
+          }
+        );
+      });
+      const remove = document.createElement('button'); remove.type = 'button';
+      remove.className = 'gesture-remove'; remove.textContent = '×';
+      remove.setAttribute('aria-label', `Remove ${glyph.textContent} gesture`);
+      remove.addEventListener('click', async () => {
+        await persistMapping((current) => {
+          const next = { ...current }; delete next[pattern]; return next;
+        }, `${glyph.textContent} gesture removed.`, {
+          redraw: false,
+          onSuccess: () => {
+            const restoreFocus = row.contains(document.activeElement);
+            if (row.isConnected) {
+              row.remove();
+              if (!Object.keys(mapping).length) showEmpty();
+            } else showRows();
+            if (restoreFocus && !editor.hidden) add.focus();
+          },
+        });
+      });
+      row.append(glyph, select, remove);
+      return row;
+    };
     const showRows = () => {
       rows.replaceChildren();
-      if (!Object.keys(mapping).length) {
-        const empty = document.createElement('p'); empty.className = 'gesture-empty';
-        empty.textContent = 'No gestures assigned.'; rows.append(empty);
-      }
-      for (const [pattern, command] of Object.entries(mapping)) {
-        const row = document.createElement('div'); row.className = 'gesture-row';
-        const glyph = document.createElement('code');
-        glyph.textContent = glyphFor(pattern);
-        const select = document.createElement('select');
-        select.setAttribute('aria-label', `Action for ${glyph.textContent} gesture`);
-        fillActions(select, command);
-        select.addEventListener('change', async () => {
-          await persistMapping({ ...mapping, [pattern]: select.value }, `${glyph.textContent} now runs ${actions[select.value]}.`);
-        });
-        const remove = document.createElement('button'); remove.type = 'button';
-        remove.className = 'gesture-remove'; remove.textContent = '×';
-        remove.setAttribute('aria-label', `Remove ${glyph.textContent} gesture`);
-        remove.addEventListener('click', async () => {
-          const next = { ...mapping }; delete next[pattern];
-          await persistMapping(next, `${glyph.textContent} gesture removed.`);
-        });
-        row.append(glyph, select, remove); rows.append(row);
-      }
+      if (!Object.keys(mapping).length) showEmpty();
+      for (const [pattern, command] of Object.entries(mapping)) rows.append(makeRow(pattern, command));
     };
-    const persistMapping = async (next, success) => {
-      try {
-        const saved = (await window.bowserPages.settings.set({ mouseGestureMapping: next })).mouseGestureMapping;
-        if (JSON.stringify(saved) !== JSON.stringify(next)) throw new Error('Mapping rejected');
-        mapping = { ...saved }; showRows(); message.textContent = success;
+    const persistMapping = (makeNext, success, { redraw = true, onSuccess, onFailure } = {}) => {
+      const write = mappingWrite.then(async () => {
+        let saved;
+        try {
+          const next = typeof makeNext === 'function' ? makeNext(mapping) : makeNext;
+          saved = (await window.bowserPages.settings.set({ mouseGestureMapping: next })).mouseGestureMapping;
+          if (JSON.stringify(saved) !== JSON.stringify(next)) throw new Error('Mapping rejected');
+        } catch {
+          onFailure?.(); message.textContent = 'Could not save that gesture. Try again.';
+          return false;
+        }
+        mapping = { ...saved };
+        if (redraw) showRows();
+        onSuccess?.(); message.textContent = success;
         return true;
-      } catch {
-        showRows(); message.textContent = 'Could not save that gesture. Try again.';
-        return false;
-      }
+      });
+      mappingWrite = write.then(() => {}, () => {});
+      return write;
     };
     fillActions(action, 'back');
     showRows();
@@ -202,7 +235,22 @@
     save.addEventListener('click', async () => {
       if (!drawnPattern || Object.hasOwn(mapping, drawnPattern)) return;
       const pattern = drawnPattern;
-      if (await persistMapping({ ...mapping, [pattern]: action.value }, `${glyphFor(pattern)} runs ${actions[action.value]}.`)) closeComposer();
+      const selectedAction = action.value;
+      save.disabled = true;
+      const saved = await persistMapping(
+        (current) => ({ ...current, [pattern]: selectedAction }),
+        `${glyphFor(pattern)} runs ${actions[selectedAction]}.`,
+        { redraw: false, onSuccess: () => {
+          rows.querySelector('.gesture-empty')?.remove();
+          rows.append(makeRow(pattern, selectedAction));
+          if (!composer.hidden && !editor.hidden) {
+            const restoreFocus = composer.contains(document.activeElement);
+            closeComposer();
+            if (restoreFocus) add.focus();
+          }
+        } }
+      );
+      if (!saved && drawnPattern === pattern) save.disabled = false;
     });
     pad.addEventListener('pointercancel', () => {
       drawing = null; drawnPattern = ''; save.disabled = true;
