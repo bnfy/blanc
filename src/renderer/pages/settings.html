@@ -81,6 +81,26 @@
               </select>
             </div>
 
+            <div class="setting" id="mouseGesturesSetting">
+              <div class="label">
+                <span>Mouse gestures</span>
+                <span class="hint">Hold the right mouse button, draw a gesture on a page, then release.</span>
+              </div>
+              <label class="toggle"><input id="mouseGesturesEnabled" type="checkbox" aria-label="Enable mouse gestures" /><span class="track"></span></label>
+            </div>
+            <div id="mouseGestureEditor" class="gesture-editor" hidden>
+              <div id="mouseGestureRows" class="gesture-rows"></div>
+              <div class="gesture-tools">
+                <select id="mouseGestureAction" aria-label="Gesture action"></select>
+                <button id="mouseGestureDraw" type="button">Draw gesture…</button>
+                <button id="mouseGestureReset" type="button">Restore defaults</button>
+              </div>
+              <div id="mouseGesturePad" class="gesture-pad" hidden role="group" aria-label="Draw gesture with left mouse button">
+                <span>Drag here with the left mouse button</span>
+              </div>
+              <p id="mouseGestureMessage" class="gesture-message" role="status" aria-live="polite"></p>
+            </div>
+
 
             <div class="setting" id="appIconSetting">
               <div class="label">

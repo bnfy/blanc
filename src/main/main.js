@@ -4986,6 +4986,26 @@ initTabView({
   createTab,
   setActiveTab,
   closeTab,
+  dispatchMouseGesture(owner, tab, action) {
+    if (!owner || owner.closing || owner.activeTabId !== tab.id || liveContents(tab) == null) return;
+    const wc = liveContents(tab);
+    switch (action) {
+      case 'back': if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack(); break;
+      case 'forward': if (wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward(); break;
+      case 'reload': wc.reload(); break;
+      case 'newTab': {
+        const url = tab.private ? PRIVATE_NEW_TAB_URL : newTabUrl();
+        setActiveTab(createTab(url, { private: tab.private }), { focusContent: false, focusAddress: true });
+        break;
+      }
+      case 'closeTab': closeTab(tab.id); break;
+      case 'reopenTab': reopenClosedTab(); break;
+      case 'previousTab': cycleTab(-1); break;
+      case 'nextTab': cycleTab(1); break;
+      case 'island': showOverlay('panel'); break;
+      default: break;
+    }
+  },
   openInternalPage,
   currentChromeLayout,
   currentTabBounds,

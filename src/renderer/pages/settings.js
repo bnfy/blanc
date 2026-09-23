@@ -75,6 +75,98 @@
     document.getElementById('tabSleepSetting')?.remove();
   }
 
+  // Device-local right-button gestures. Drawing uses left pointer input in
+  // Settings so normal settings interactions never activate a page gesture.
+  if (supports('mouseGesturesEnabled')) {
+    const actions = {
+      back: 'Back', forward: 'Forward', reload: 'Reload', newTab: 'New tab',
+      closeTab: 'Close tab', reopenTab: 'Reopen closed tab',
+      previousTab: 'Previous tab', nextTab: 'Next tab', island: 'Open Island',
+    };
+    const defaults = { L: 'back', R: 'forward', U: 'newTab', D: 'closeTab' };
+    const enabled = document.getElementById('mouseGesturesEnabled');
+    const editor = document.getElementById('mouseGestureEditor');
+    const rows = document.getElementById('mouseGestureRows');
+    const action = document.getElementById('mouseGestureAction');
+    const pad = document.getElementById('mouseGesturePad');
+    const message = document.getElementById('mouseGestureMessage');
+    let mapping = { ...(settings.mouseGestureMapping ?? defaults) };
+    let drawing = null;
+    enabled.checked = settings.mouseGesturesEnabled === true;
+    editor.hidden = !enabled.checked;
+    const labels = { U: '↑', D: '↓', L: '←', R: '→' };
+    const showRows = () => {
+      rows.replaceChildren();
+      for (const [pattern, command] of Object.entries(mapping)) {
+        const row = document.createElement('div'); row.className = 'gesture-row';
+        const glyph = document.createElement('code');
+        glyph.textContent = [...pattern].map((letter) => labels[letter]).join('');
+        const name = document.createElement('span'); name.textContent = actions[command];
+        const remove = document.createElement('button'); remove.type = 'button';
+        remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${glyph.textContent} gesture`);
+        remove.addEventListener('click', async () => {
+          delete mapping[pattern];
+          mapping = (await window.bowserPages.settings.set({ mouseGestureMapping: mapping })).mouseGestureMapping;
+          showRows();
+        });
+        row.append(glyph, name, remove); rows.append(row);
+      }
+    };
+    for (const [id, label] of Object.entries(actions)) {
+      const option = document.createElement('option'); option.value = id; option.textContent = label;
+      action.append(option);
+    }
+    showRows();
+    enabled.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ mouseGesturesEnabled: enabled.checked });
+      enabled.checked = saved.mouseGesturesEnabled; editor.hidden = !enabled.checked;
+    });
+    document.getElementById('mouseGestureReset').addEventListener('click', async () => {
+      mapping = (await window.bowserPages.settings.set({ mouseGestureMapping: defaults })).mouseGestureMapping;
+      message.textContent = 'Default gestures restored.'; showRows();
+    });
+    document.getElementById('mouseGestureDraw').addEventListener('click', () => {
+      pad.hidden = false; message.textContent = 'Draw up to three directions.';
+    });
+    pad.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      drawing = { x: event.clientX, y: event.clientY, pattern: '', overflow: false };
+      pad.setPointerCapture(event.pointerId);
+      message.textContent = 'Drawing…';
+    });
+    pad.addEventListener('pointermove', (event) => {
+      if (!drawing) return;
+      const dx = event.clientX - drawing.x; const dy = event.clientY - drawing.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+      const direction = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U');
+      if (drawing.pattern.at(-1) !== direction) {
+        if (drawing.pattern.length < 3) drawing.pattern += direction;
+        else drawing.overflow = true;
+      }
+      drawing.x = event.clientX; drawing.y = event.clientY;
+      message.textContent = [...drawing.pattern].map((letter) => labels[letter]).join('');
+    });
+    pad.addEventListener('pointerup', async () => {
+      if (!drawing) return;
+      const { pattern, overflow } = drawing; drawing = null; pad.hidden = true;
+      if (overflow) { message.textContent = 'Use at most three directions. Try again.'; return; }
+      if (!pattern) { message.textContent = 'Gesture too short. Try again.'; return; }
+      if (Object.hasOwn(mapping, pattern)) { message.textContent = 'That gesture is already assigned. Remove it first.'; return; }
+      if (Object.keys(mapping).length >= 16) { message.textContent = 'Remove a gesture before adding another.'; return; }
+      const next = { ...mapping, [pattern]: action.value };
+      const saved = await window.bowserPages.settings.set({ mouseGestureMapping: next });
+      if (JSON.stringify(saved.mouseGestureMapping) !== JSON.stringify(next)) {
+        message.textContent = 'That pattern is not available.'; return;
+      }
+      mapping = saved.mouseGestureMapping; showRows();
+      message.textContent = `${[...pattern].map((letter) => labels[letter]).join('')} runs ${actions[action.value]}.`;
+    });
+    pad.addEventListener('pointercancel', () => { drawing = null; pad.hidden = true; message.textContent = 'Drawing cancelled.'; });
+  } else {
+    document.getElementById('mouseGesturesSetting')?.remove();
+    document.getElementById('mouseGestureEditor')?.remove();
+  }
+
   // --- Home page ---
   if (supports('homePage')) {
     const homePage = document.getElementById('homePage');

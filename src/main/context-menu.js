@@ -11,8 +11,8 @@ const { VIEW_SOURCE_PREFIX, canViewSource } = require('./view-source');
  *   openBackgroundTab(url) — new tab, not activated
  *   openTab(url)           — new tab, activated
  */
-function attachContextMenu(wc, actions) {
-  wc.on('context-menu', (_event, params) => {
+function attachContextMenu(wc, actions, menuGate = null) {
+  const showContextMenu = (params) => {
     const items = [];
     const push = (item) => items.push(item);
     const sep = () => {
@@ -87,6 +87,10 @@ function attachContextMenu(wc, actions) {
     push({ label: 'Inspect Element', click: () => wc.inspectElement(params.x, params.y) });
 
     Menu.buildFromTemplate(items).popup();
+  };
+  wc.on('context-menu', (_event, params) => {
+    if (menuGate?.(params) === false) return;
+    showContextMenu(params);
   });
 }
 
