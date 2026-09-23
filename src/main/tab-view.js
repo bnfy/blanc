@@ -171,8 +171,11 @@ function wireTabView(tab, view, { owner, adopted }) {
   const id = tab.id;
   const wc = view.webContents;
   const gesture = createRecognizer();
+  const heldModifiers = new Set();
+  let gestureButton = null;
   let pendingClick = null;
   let replayEventsRemaining = 0;
+  let replayButton = null;
   let suppressMenuUntil = 0;
   // Snapshot pre-existing listeners so the closing diff records exactly what
   // THIS call adds — Electron's own listeners are never in the recorded set.
@@ -182,59 +185,78 @@ function wireTabView(tab, view, { owner, adopted }) {
   // Workspace residency can transfer a live view without navigation. Resolve
   // its current owner for each event, including shortcuts and popup policy.
   const boundToTab = (fn) => bindWindowRuntime(getOwner, fn);
+  wc.on('before-input-event', boundToTab((_event, input) => {
+    const modifier = { Alt: 'alt', Shift: 'shift', Control: 'control', Meta: 'meta' }[input.key];
+    if (!modifier) return;
+    if (input.type === 'keyDown') heldModifiers.add(modifier);
+    else if (input.type === 'keyUp') heldModifiers.delete(modifier);
+  }));
   wc.on('before-mouse-event', boundToTab((event, mouse) => {
     // Replayed clicks pass through once without starting another gesture.
-    if (replayEventsRemaining && ['mouseDown', 'mouseUp'].includes(mouse.type) && mouse.button === 'right') {
+    if (replayEventsRemaining && ['mouseDown', 'mouseUp'].includes(mouse.type) && mouse.button === replayButton) {
       replayEventsRemaining -= 1;
+      if (!replayEventsRemaining) replayButton = null;
       return;
     }
     const enabled = gestureSettings().enabled;
     if (!enabled || getOwner().activeTabId !== id || tab.view?.webContents !== wc) {
-      gesture.cancel(); pendingClick = null; return;
+      gesture.cancel(); gestureButton = null; pendingClick = null; return;
     }
-    if (mouse.type === 'mouseDown' && mouse.button === 'right') {
+    // Electron's before-mouse-event omits modifiers on some runtimes, even
+    // when the underlying mouse input carries them. Merge the observed keys.
+    const modifiers = [...new Set([...(mouse.modifiers ?? []), ...heldModifiers])];
+    const trackpadGesture = mouse.button === 'left' && modifiers.includes('alt');
+    if (mouse.type === 'mouseDown' && (mouse.button === 'right' || trackpadGesture)) {
       suppressMenuUntil = 0;
       pendingClick = null;
-      const modifiers = mouse.modifiers ?? [];
-      if (modifiers.some((m) => ['shift', 'control', 'ctrl', 'alt', 'meta', 'command', 'cmd', 'leftbuttondown', 'middlebuttondown'].includes(m))) {
-        gesture.cancel(); return;
+      const disallowed = mouse.button === 'right'
+        ? ['shift', 'control', 'ctrl', 'alt', 'meta', 'command', 'cmd', 'leftbuttondown', 'middlebuttondown']
+        : ['shift', 'control', 'ctrl', 'meta', 'command', 'cmd', 'rightbuttondown', 'middlebuttondown'];
+      if (modifiers.some((m) => disallowed.includes(m))) {
+        gesture.cancel(); gestureButton = null; return;
       }
       gesture.start(mouse.x, mouse.y);
-      // Chromium may fire a page-owned contextmenu on right-down, before we
-      // know whether this will become a gesture. Delay the press until up.
+      gestureButton = mouse.button;
+      // Delay the press until up: a right-down can open a context menu, and an
+      // Option-left drag would otherwise select text before it becomes a gesture.
       event.preventDefault();
-      pendingClick = { x: mouse.x, y: mouse.y, clickCount: mouse.clickCount || 1 };
+      pendingClick = {
+        x: mouse.x, y: mouse.y, clickCount: mouse.clickCount || 1, button: mouse.button,
+        modifiers: trackpadGesture ? [...new Set([...modifiers, 'alt'])] : modifiers,
+      };
     } else if (mouse.type === 'mouseMove' && gesture.held) {
-      if (mouse.button && mouse.button !== 'right') { gesture.cancel(); pendingClick = null; return; }
+      if (mouse.button && mouse.button !== gestureButton) { gesture.cancel(); gestureButton = null; pendingClick = null; return; }
       if (gesture.move(mouse.x, mouse.y)) event.preventDefault();
-    } else if (mouse.type === 'mouseUp' && mouse.button === 'right' && gesture.held) {
+    } else if (mouse.type === 'mouseUp' && mouse.button === gestureButton && gesture.held) {
       event.preventDefault();
       const wasGesture = gesture.moved;
       const pattern = gesture.finish();
+      gestureButton = null;
       const action = gestureSettings().mapping[pattern];
-      if (wasGesture) suppressMenuUntil = Date.now() + 350;
+      if (wasGesture && mouse.button === 'right') suppressMenuUntil = Date.now() + 350;
       if (action) {
         pendingClick = null;
         dispatchMouseGesture(getOwner(), tab, action);
       } else if (wasGesture) {
         pendingClick = null;
       } else if (pendingClick) {
-        const { x, y, clickCount } = pendingClick;
+        const { x, y, clickCount, button, modifiers: clickModifiers } = pendingClick;
         const upX = mouse.x; const upY = mouse.y;
         pendingClick = null;
         setImmediate(() => {
           if (tab.view?.webContents === wc && !wc.isDestroyed()) {
             replayEventsRemaining = 2;
-            wc.sendInputEvent({ type: 'mouseDown', x, y, button: 'right', clickCount });
-            wc.sendInputEvent({ type: 'mouseUp', x: upX, y: upY, button: 'right', clickCount });
+            replayButton = button;
+            wc.sendInputEvent({ type: 'mouseDown', x, y, button, clickCount, modifiers: clickModifiers });
+            wc.sendInputEvent({ type: 'mouseUp', x: upX, y: upY, button, clickCount, modifiers: clickModifiers });
           }
         });
       }
     } else if (mouse.type === 'mouseLeave') {
-      gesture.cancel(); pendingClick = null;
+      gesture.cancel(); gestureButton = null; pendingClick = null;
     }
   }));
-  wc.on('blur', boundToTab(() => { gesture.cancel(); pendingClick = null; }));
+  wc.on('blur', boundToTab(() => { heldModifiers.clear(); gesture.cancel(); gestureButton = null; pendingClick = null; }));
   watchCursorFor(wc, () => currentTabBounds(tab), boundToTab);
 
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
