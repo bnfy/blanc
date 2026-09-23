@@ -2778,7 +2778,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   /* Start-page cards are translucent; a modal must fully cover the page. */
   background: var(--onboarding-surface, var(--surface-raised));
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 18px;
   box-shadow: var(--shadow-popover);
   z-index: 41;
   box-sizing: border-box;
