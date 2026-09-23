@@ -341,14 +341,26 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 }
 .setting input[type="url"] { width: 280px; max-width: 100%; min-width: 0; }
 .gesture-editor { padding: 12px 0 16px; border-bottom: 1px solid var(--border); }
-.gesture-rows { display: grid; gap: 7px; }
-.gesture-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.gesture-row code { min-width: 52px; font-size: 16px; color: var(--accent); }
-.gesture-row span { flex: 1; }
-.gesture-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.gesture-pad { display: grid; place-items: center; height: 145px; margin-top: 12px; border: 1px dashed var(--accent); border-radius: var(--radius); cursor: crosshair; user-select: none; touch-action: none; }
+.gesture-editor-heading { margin-bottom: 8px; font-size: 12px; font-weight: 600; }
+.gesture-rows { display: grid; gap: 4px; max-width: 370px; }
+.gesture-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) 28px; align-items: center; gap: 10px; }
+.gesture-row code { font-size: 16px; color: var(--accent); }
+.gesture-row .settings-select, .gesture-row select { width: 100%; min-width: 0; }
+.gesture-remove { width: 28px; height: 28px; padding: 0; border: 0; background: none; font-size: 19px; line-height: 1; }
+.gesture-empty { color: var(--text-dim); font-size: 12px; }
+.gesture-editor-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.gesture-add { border-style: dashed; color: var(--accent); }
+.gesture-reset { border: 0; background: none; }
+.gesture-composer { margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); }
+.gesture-composer p { margin: 0; color: var(--text-dim); font-size: 12px; }
+.gesture-pad { display: grid; place-items: center; height: 120px; margin-top: 10px; border: 1px dashed var(--accent); border-radius: var(--radius); cursor: crosshair; user-select: none; touch-action: none; }
+.gesture-composer-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.gesture-composer-actions label { font-size: 12px; }
+.gesture-composer-actions select { flex: 1 1 150px; min-width: 0; max-width: 250px; }
+.gesture-composer-actions button:disabled { opacity: .5; cursor: default; }
 .gesture-message { min-height: 1.3em; margin: 8px 0 0; color: var(--text-dim); font-size: 12px; }
-.gesture-editor[hidden], .gesture-pad[hidden] { display: none; }
+.gesture-message:empty { display: none; }
+.gesture-editor[hidden], .gesture-composer[hidden], .gesture-add[hidden] { display: none; }
 
 /* Default-browser row: quiet confirmation once Blanc holds the role. */
 #defaultBrowserState {

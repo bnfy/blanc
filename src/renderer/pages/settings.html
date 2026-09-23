@@ -89,14 +89,25 @@
               <label class="toggle"><input id="mouseGesturesEnabled" type="checkbox" aria-label="Enable mouse gestures" /><span class="track"></span></label>
             </div>
             <div id="mouseGestureEditor" class="gesture-editor" hidden>
-              <div id="mouseGestureRows" class="gesture-rows"></div>
-              <div class="gesture-tools">
-                <select id="mouseGestureAction" aria-label="Gesture action"></select>
-                <button id="mouseGestureDraw" type="button">Draw gesture…</button>
-                <button id="mouseGestureReset" type="button">Restore defaults</button>
+              <div class="gesture-editor-heading">
+                <span>Assigned gestures</span>
               </div>
-              <div id="mouseGesturePad" class="gesture-pad" hidden role="group" aria-label="Draw gesture with left mouse button">
-                <span>Drag here with the left mouse button</span>
+              <div id="mouseGestureRows" class="gesture-rows"></div>
+              <div class="gesture-editor-actions">
+                <button id="mouseGestureAdd" class="gesture-add" type="button">Add gesture</button>
+                <button id="mouseGestureReset" class="gesture-reset" type="button">Restore defaults</button>
+              </div>
+              <div id="mouseGestureComposer" class="gesture-composer" hidden>
+                <p>Draw up to three directions, then choose an action.</p>
+                <div id="mouseGesturePad" class="gesture-pad" role="group" aria-label="Draw a new gesture with the primary button">
+                  <span id="mouseGesturePadPrompt">Press and drag here</span>
+                </div>
+                <div class="gesture-composer-actions">
+                  <label for="mouseGestureAction">Action</label>
+                  <select id="mouseGestureAction"></select>
+                  <button id="mouseGestureSave" type="button" disabled>Save gesture</button>
+                  <button id="mouseGestureCancel" type="button">Cancel</button>
+                </div>
               </div>
               <p id="mouseGestureMessage" class="gesture-message" role="status" aria-live="polite"></p>
             </div>

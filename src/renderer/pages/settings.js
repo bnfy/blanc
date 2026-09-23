@@ -87,52 +87,96 @@
     const enabled = document.getElementById('mouseGesturesEnabled');
     const editor = document.getElementById('mouseGestureEditor');
     const rows = document.getElementById('mouseGestureRows');
+    const add = document.getElementById('mouseGestureAdd');
+    const composer = document.getElementById('mouseGestureComposer');
     const action = document.getElementById('mouseGestureAction');
     const pad = document.getElementById('mouseGesturePad');
+    const padPrompt = document.getElementById('mouseGesturePadPrompt');
+    const save = document.getElementById('mouseGestureSave');
     const message = document.getElementById('mouseGestureMessage');
     let mapping = { ...(settings.mouseGestureMapping ?? defaults) };
     let drawing = null;
+    let drawnPattern = '';
     enabled.checked = settings.mouseGesturesEnabled === true;
     editor.hidden = !enabled.checked;
     const labels = { U: '↑', D: '↓', L: '←', R: '→' };
+    const glyphFor = (pattern) => [...pattern].map((letter) => labels[letter]).join('');
+    const fillActions = (select, selected) => {
+      for (const [id, label] of Object.entries(actions)) {
+        const option = document.createElement('option'); option.value = id; option.textContent = label;
+        select.append(option);
+      }
+      select.value = selected;
+    };
+    const closeComposer = () => {
+      composer.hidden = true; add.hidden = false; drawing = null; drawnPattern = '';
+      padPrompt.textContent = 'Press and drag here'; save.disabled = true;
+    };
     const showRows = () => {
       rows.replaceChildren();
+      if (!Object.keys(mapping).length) {
+        const empty = document.createElement('p'); empty.className = 'gesture-empty';
+        empty.textContent = 'No gestures assigned.'; rows.append(empty);
+      }
       for (const [pattern, command] of Object.entries(mapping)) {
         const row = document.createElement('div'); row.className = 'gesture-row';
         const glyph = document.createElement('code');
-        glyph.textContent = [...pattern].map((letter) => labels[letter]).join('');
-        const name = document.createElement('span'); name.textContent = actions[command];
-        const remove = document.createElement('button'); remove.type = 'button';
-        remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${glyph.textContent} gesture`);
-        remove.addEventListener('click', async () => {
-          delete mapping[pattern];
-          mapping = (await window.bowserPages.settings.set({ mouseGestureMapping: mapping })).mouseGestureMapping;
-          showRows();
+        glyph.textContent = glyphFor(pattern);
+        const select = document.createElement('select');
+        select.setAttribute('aria-label', `Action for ${glyph.textContent} gesture`);
+        fillActions(select, command);
+        select.addEventListener('change', async () => {
+          await persistMapping({ ...mapping, [pattern]: select.value }, `${glyph.textContent} now runs ${actions[select.value]}.`);
         });
-        row.append(glyph, name, remove); rows.append(row);
+        const remove = document.createElement('button'); remove.type = 'button';
+        remove.className = 'gesture-remove'; remove.textContent = '×';
+        remove.setAttribute('aria-label', `Remove ${glyph.textContent} gesture`);
+        remove.addEventListener('click', async () => {
+          const next = { ...mapping }; delete next[pattern];
+          await persistMapping(next, `${glyph.textContent} gesture removed.`);
+        });
+        row.append(glyph, select, remove); rows.append(row);
       }
     };
-    for (const [id, label] of Object.entries(actions)) {
-      const option = document.createElement('option'); option.value = id; option.textContent = label;
-      action.append(option);
-    }
+    const persistMapping = async (next, success) => {
+      try {
+        const saved = (await window.bowserPages.settings.set({ mouseGestureMapping: next })).mouseGestureMapping;
+        if (JSON.stringify(saved) !== JSON.stringify(next)) throw new Error('Mapping rejected');
+        mapping = { ...saved }; showRows(); message.textContent = success;
+        return true;
+      } catch {
+        showRows(); message.textContent = 'Could not save that gesture. Try again.';
+        return false;
+      }
+    };
+    fillActions(action, 'back');
     showRows();
     enabled.addEventListener('change', async () => {
       const saved = await window.bowserPages.settings.set({ mouseGesturesEnabled: enabled.checked });
       enabled.checked = saved.mouseGesturesEnabled; editor.hidden = !enabled.checked;
+      if (!enabled.checked) closeComposer();
     });
     document.getElementById('mouseGestureReset').addEventListener('click', async () => {
-      mapping = (await window.bowserPages.settings.set({ mouseGestureMapping: defaults })).mouseGestureMapping;
-      message.textContent = 'Default gestures restored.'; showRows();
+      closeComposer();
+      await persistMapping(defaults, 'Default gestures restored.');
     });
-    document.getElementById('mouseGestureDraw').addEventListener('click', () => {
-      pad.hidden = false; message.textContent = 'Draw up to three directions.';
+    add.addEventListener('click', () => {
+      if (Object.keys(mapping).length >= 16) {
+        message.textContent = 'Remove a gesture before adding another.'; return;
+      }
+      add.hidden = true; composer.hidden = false; drawnPattern = '';
+      padPrompt.textContent = 'Press and drag here'; save.disabled = true;
+      message.textContent = '';
+    });
+    document.getElementById('mouseGestureCancel').addEventListener('click', () => {
+      closeComposer(); message.textContent = '';
     });
     pad.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
+      drawnPattern = ''; save.disabled = true;
       drawing = { x: event.clientX, y: event.clientY, pattern: '', overflow: false };
       pad.setPointerCapture(event.pointerId);
-      message.textContent = 'Drawing…';
+      padPrompt.textContent = 'Drawing…'; message.textContent = '';
     });
     pad.addEventListener('pointermove', (event) => {
       if (!drawing) return;
@@ -144,24 +188,26 @@
         else drawing.overflow = true;
       }
       drawing.x = event.clientX; drawing.y = event.clientY;
-      message.textContent = [...drawing.pattern].map((letter) => labels[letter]).join('');
+      padPrompt.textContent = glyphFor(drawing.pattern);
     });
-    pad.addEventListener('pointerup', async () => {
+    pad.addEventListener('pointerup', () => {
       if (!drawing) return;
-      const { pattern, overflow } = drawing; drawing = null; pad.hidden = true;
-      if (overflow) { message.textContent = 'Use at most three directions. Try again.'; return; }
-      if (!pattern) { message.textContent = 'Gesture too short. Try again.'; return; }
-      if (Object.hasOwn(mapping, pattern)) { message.textContent = 'That gesture is already assigned. Remove it first.'; return; }
-      if (Object.keys(mapping).length >= 16) { message.textContent = 'Remove a gesture before adding another.'; return; }
-      const next = { ...mapping, [pattern]: action.value };
-      const saved = await window.bowserPages.settings.set({ mouseGestureMapping: next });
-      if (JSON.stringify(saved.mouseGestureMapping) !== JSON.stringify(next)) {
-        message.textContent = 'That pattern is not available.'; return;
-      }
-      mapping = saved.mouseGestureMapping; showRows();
-      message.textContent = `${[...pattern].map((letter) => labels[letter]).join('')} runs ${actions[action.value]}.`;
+      const { pattern, overflow } = drawing; drawing = null;
+      if (overflow) { padPrompt.textContent = 'Press and drag here'; message.textContent = 'Use at most three directions. Try again.'; return; }
+      if (!pattern) { padPrompt.textContent = 'Press and drag here'; message.textContent = 'Gesture too short. Try again.'; return; }
+      if (Object.hasOwn(mapping, pattern)) { padPrompt.textContent = 'Press and drag here'; message.textContent = 'That movement is already assigned. Draw a different one.'; return; }
+      drawnPattern = pattern; save.disabled = false;
+      message.textContent = `${glyphFor(pattern)} is ready. Choose an action and save.`;
     });
-    pad.addEventListener('pointercancel', () => { drawing = null; pad.hidden = true; message.textContent = 'Drawing cancelled.'; });
+    save.addEventListener('click', async () => {
+      if (!drawnPattern || Object.hasOwn(mapping, drawnPattern)) return;
+      const pattern = drawnPattern;
+      if (await persistMapping({ ...mapping, [pattern]: action.value }, `${glyphFor(pattern)} runs ${actions[action.value]}.`)) closeComposer();
+    });
+    pad.addEventListener('pointercancel', () => {
+      drawing = null; drawnPattern = ''; save.disabled = true;
+      padPrompt.textContent = 'Press and drag here'; message.textContent = 'Drawing cancelled.';
+    });
   } else {
     document.getElementById('mouseGesturesSetting')?.remove();
     document.getElementById('mouseGestureEditor')?.remove();
@@ -1082,6 +1128,8 @@
 /** Opaque Settings picker over each remaining .settings-content <select>. */
 function enhanceSettingsSelects(selects) {
   let openPicker = null;
+  let anonymousPickerId = 0;
+  const enhanced = new Map();
   const surface = window.bowserPages?.surface;
 
   const setEscapeArmed = (armed) => {
@@ -1116,11 +1164,23 @@ function enhanceSettingsSelects(selects) {
   document.querySelector('body.sheet .page')?.addEventListener('scroll', closeOpen, { passive: true });
   window.addEventListener('resize', closeOpen);
 
-  for (const select of selects) {
-    if (!(select instanceof HTMLSelectElement)) continue;
-    if (select.dataset.settingsSelectEnhanced === '1') continue;
-    select.dataset.settingsSelectEnhanced = '1';
-    enhanceSettingsSelect(select);
+  const enhanceNew = (candidates) => {
+    for (const select of candidates) {
+      if (!(select instanceof HTMLSelectElement)) continue;
+      if (select.dataset.settingsSelectEnhanced === '1') continue;
+      select.dataset.settingsSelectEnhanced = '1';
+      enhanced.set(select, enhanceSettingsSelect(select));
+    }
+  };
+  enhanceNew(selects);
+  const settingsContent = document.querySelector('.settings-content');
+  if (settingsContent) {
+    new MutationObserver(() => {
+      for (const [select, picker] of enhanced) {
+        if (!select.isConnected) { picker.dispose(); enhanced.delete(select); }
+      }
+      enhanceNew(settingsContent.querySelectorAll('select'));
+    }).observe(settingsContent, { childList: true, subtree: true });
   }
 
   function enhanceSettingsSelect(select) {
@@ -1133,7 +1193,8 @@ function enhanceSettingsSelects(selects) {
     trigger.className = 'settings-select-trigger';
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
-    if (select.id) trigger.id = `${select.id}Trigger`;
+    const pickerId = select.id || `settingsSelect${++anonymousPickerId}`;
+    trigger.id = `${pickerId}Trigger`;
 
     const titleEl = select.closest('.setting')?.querySelector('.label > span:first-child');
     if (titleEl) {
@@ -1150,7 +1211,7 @@ function enhanceSettingsSelects(selects) {
     const menu = document.createElement('ul');
     menu.className = 'settings-select-menu';
     menu.setAttribute('role', 'listbox');
-    menu.id = select.id ? `${select.id}Listbox` : `${trigger.id || 'settingsSelect'}Listbox`;
+    menu.id = `${pickerId}Listbox`;
     menu.hidden = true;
     trigger.setAttribute('aria-controls', menu.id);
     if (titleEl?.id) menu.setAttribute('aria-labelledby', titleEl.id);
@@ -1316,7 +1377,8 @@ function enhanceSettingsSelects(selects) {
     }
 
     select.addEventListener('change', syncFace);
-    new MutationObserver(syncFace).observe(select, {
+    const syncObserver = new MutationObserver(syncFace);
+    syncObserver.observe(select, {
       childList: true,
       subtree: true,
       attributes: true,
@@ -1324,5 +1386,12 @@ function enhanceSettingsSelects(selects) {
     });
 
     syncFace();
+    return {
+      dispose() {
+        if (openPicker === api) api.close();
+        syncObserver.disconnect();
+        menu.remove();
+      },
+    };
   }
 }
