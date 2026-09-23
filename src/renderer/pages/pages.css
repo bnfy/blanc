@@ -2352,6 +2352,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --bg: #f7f0e5;
   --surface: rgba(239, 230, 216, 0.78);
   --surface-raised: rgba(255, 252, 247, 0.88);
+  --onboarding-surface: #fffcf7;
   --border: #ddd2c2;
   --text: #12100b;
   --text-dim: #6b6257;
@@ -2379,6 +2380,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --bg: #17130f;
     --surface: rgba(45, 37, 29, 0.78);
     --surface-raised: rgba(34, 29, 23, 0.9);
+    --onboarding-surface: #221d17;
     --border: #4a3e31;
     --text: #f7f0e5;
     --text-dim: #b8aa98;
@@ -2395,6 +2397,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --bg: #100d0b;
   --surface: rgba(37, 29, 23, 0.82);
   --surface-raised: rgba(26, 21, 17, 0.94);
+  --onboarding-surface: #1a1511;
   --border: #594a39;
   --text: #f8f0e4;
   --text-dim: #b5a38f;
@@ -2772,7 +2775,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  background: var(--surface-raised);
+  /* Start-page cards are translucent; a modal must fully cover the page. */
+  background: var(--onboarding-surface, var(--surface-raised));
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: var(--shadow-popover);
