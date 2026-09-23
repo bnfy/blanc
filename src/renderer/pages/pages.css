@@ -2934,22 +2934,32 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-error { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--danger); margin-top: 10px; }
 .ob-error:empty { display: none; }
 
-/* Step 3: mini resting pill */
+/* Step 3: decorative scale model of the current resting Island. */
 .ob-minipill-row { margin-top: 22px; display: flex; justify-content: center; }
 .ob-minipill {
-  display: inline-flex;
+  box-sizing: border-box;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 16px;
-  background: var(--surface);
+  gap: 8px;
+  width: min(100%, 392px);
+  height: 44px;
+  padding: 0 12px;
+  background: var(--onboarding-surface, var(--surface-raised));
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 17px;
   box-shadow: var(--shadow-pill);
 }
-.ob-minipill-dots { display: inline-flex; gap: 6px; }
+.ob-minipill-nav, .ob-minipill-actions { display: inline-flex; align-items: center; flex: 0 0 auto; }
+.ob-minipill-icon { width: 20px; height: 20px; display: inline-grid; place-items: center; color: var(--text-dim); }
+.ob-minipill-icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.ob-minipill-nav .ob-minipill-icon { color: var(--border); }
+.ob-minipill-dots { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .ob-minipill-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
 .ob-minipill-dots span.on { background: var(--accent); }
-.ob-minipill-domain { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.ob-minipill-domain { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--font-ui); font-size: 12px; color: var(--text-dim); }
+.ob-minipill-shortcuts { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.ob-minipill-shortcuts span { width: 18px; height: 18px; display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); font-size: 11px; }
+.ob-minipill-sep { width: 1px; height: 16px; background: var(--border); flex: 0 0 auto; }
 .ob-commands { margin-top: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
 
 /* Bordered control rows (steps 4 and 5) with the standard 36x20 toggle */
