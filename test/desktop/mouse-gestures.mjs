@@ -85,9 +85,9 @@ try {
       afterAltClicks: await hook.workspacePageScript(id, 'window.__gestureAltClicks'),
     };
   });
-  assert.equal(trackpadResult.ordinaryAltClicks, 1, 'Option-click without a drag should reach the page');
-  assert.equal(trackpadResult.after, trackpadResult.before + 1, 'Option-drag should open exactly one tab');
-  assert.equal(trackpadResult.afterAltClicks, 1, 'Option-drag should not click the page');
+  assert.equal(trackpadResult.ordinaryAltClicks, 1, 'Alt/Option-click without a drag should reach the page');
+  assert.equal(trackpadResult.after, trackpadResult.before + 1, 'Alt/Option-drag should open exactly one tab');
+  assert.equal(trackpadResult.afterAltClicks, 1, 'Alt/Option-drag should not click the page');
   const privateResult = await electronApp.evaluate(async () => {
     const hook = globalThis.__blanc;
     const id = hook.openTab('blanc://newtab/?private=1', { private: true });
