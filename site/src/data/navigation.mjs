@@ -23,6 +23,7 @@ export const menus = [
       ] },
       { title: 'Workflow', links: [
         { href: '/features/command-palette', label: 'Command palette', description: 'One shortcut to move through your whole session.' },
+        { href: '/features/mouse-gestures', label: 'Mouse gestures', description: 'Move through the browser without moving to the toolbar.' },
         { href: '/features/reopen-closed-tabs', label: 'Reopen Closed Tabs', description: 'Get the tab back, not just its address.' },
         { href: '/features/profiles', label: 'Profiles & Windows', description: 'Separate browsing identities. Keep every window independent.' },
         { href: '/features/sync', label: 'Sync', description: 'Your favorites and settings on your other devices, and, if you choose, your open tabs.' },

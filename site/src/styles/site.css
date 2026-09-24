@@ -1215,6 +1215,44 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .feature-close h2 { max-width: 15ch; margin: 0 auto; font-size: clamp(30px, 4vw, 49px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
 .feature-close .cta { margin-top: 28px; }
 .feature-capture { max-width: 960px; margin: 0 auto 120px; }
+.gesture-figure { max-width: 960px; margin: 0 auto 120px; }
+.gesture-board { overflow: hidden; padding: 28px; border-radius: 9px; background: var(--site-accent); color: var(--site-bg); }
+.gesture-board-head { display: flex; justify-content: space-between; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid rgb(247 240 229 / 18%); color: var(--site-gold-on-dark); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.gesture-cross { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 142px minmax(0, 1fr); grid-template-rows: repeat(3, minmax(96px, auto)); gap: 18px; align-items: center; max-width: 720px; min-height: 410px; margin: 12px auto; padding: 18px 0; }
+.gesture-cross::before, .gesture-cross::after { position: absolute; z-index: 0; content: ""; background: rgb(247 240 229 / 16%); }
+.gesture-cross::before { top: 50%; left: 12%; right: 12%; height: 1px; }
+.gesture-cross::after { top: 12%; bottom: 12%; left: 50%; width: 1px; }
+.gesture-default { position: relative; z-index: 1; display: flex; min-width: 0; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid rgb(247 240 229 / 18%); border-radius: 10px; background: #1b1812; box-shadow: 0 14px 36px rgb(0 0 0 / 18%); }
+.gesture-default--up { grid-area: 1 / 2; }
+.gesture-default--left { grid-area: 2 / 1; justify-self: end; }
+.gesture-default--right { grid-area: 2 / 3; justify-self: start; }
+.gesture-default--down { grid-area: 3 / 2; }
+.gesture-arrow { flex: 0 0 auto; color: var(--site-gold-on-dark); font-family: var(--site-font-display); font-size: 32px; font-weight: 400; line-height: 0.8; }
+.gesture-default > span:last-child { display: grid; gap: 3px; min-width: 0; }
+.gesture-default strong { color: var(--site-bg); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.gesture-default small { color: #bdb5a7; font-family: var(--font-mono); font-size: 9px; white-space: nowrap; }
+.gesture-origin { position: relative; z-index: 2; display: grid; grid-area: 2 / 2; place-items: center; width: 112px; height: 112px; justify-self: center; border: 1px solid rgb(247 240 229 / 24%); border-radius: 50%; background: #262117; box-shadow: 0 0 0 11px rgb(194 140 42 / 9%), 0 18px 42px rgb(0 0 0 / 28%); }
+.gesture-origin svg { width: 25px; height: auto; fill: var(--site-gold-on-dark); stroke: var(--site-bg); stroke-linejoin: round; stroke-width: 1; }
+.gesture-origin span { color: #bdb5a7; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; }
+.gesture-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid rgb(247 240 229 / 18%); }
+.gesture-inputs span { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: 18px 20px 0 0; color: #bdb5a7; font-family: var(--font-mono); font-size: 10px; line-height: 1.5; }
+.gesture-inputs span + span { padding-right: 0; padding-left: 20px; border-left: 1px solid rgb(247 240 229 / 18%); }
+.gesture-inputs strong { color: var(--site-bg); font-size: 11px; font-weight: 600; }
+@media (max-width: 600px) {
+  .gesture-board { padding: 18px; }
+  .gesture-board-head { gap: 12px; font-size: 8.5px; }
+  .gesture-cross { grid-template-columns: minmax(0, 1fr) 82px minmax(0, 1fr); grid-template-rows: repeat(3, minmax(82px, auto)); gap: 8px; min-height: 340px; margin: 8px auto; padding: 10px 0; }
+  .gesture-default { gap: 7px; padding: 10px 9px; border-radius: 8px; }
+  .gesture-arrow { font-size: 24px; }
+  .gesture-default strong { font-size: 10px; }
+  .gesture-default small { display: none; }
+  .gesture-origin { width: 76px; height: 76px; box-shadow: 0 0 0 7px rgb(194 140 42 / 9%), 0 14px 32px rgb(0 0 0 / 28%); }
+  .gesture-origin svg { width: 19px; }
+  .gesture-origin span { font-size: 7px; }
+  .gesture-inputs { grid-template-columns: 1fr; }
+  .gesture-inputs span, .gesture-inputs span + span { padding: 13px 0 0; border-left: 0; }
+  .gesture-inputs span + span { margin-top: 13px; border-top: 1px solid rgb(247 240 229 / 18%); }
+}
 .feature-copy-grid { display: grid; grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr); gap: clamp(42px, 9vw, 150px); max-width: 1060px; margin: 0 auto; padding-bottom: 104px; }
 .feature-copy-grid h2, .truth-note h2 { max-width: 12ch; margin: 0; font-size: clamp(29px, 3.7vw, 46px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.06; text-wrap: balance; }
 .feature-copy-list { border-top: 1px solid var(--site-border); }

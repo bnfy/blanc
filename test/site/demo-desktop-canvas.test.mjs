@@ -124,7 +124,7 @@ test('website palette, text contrast, and ink footer symbols hold across pages a
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const routes = ['/', '/features', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors', '/privacy', '/terms',
-    ...['ad-blocking', 'command-palette', 'island', 'private-tabs', 'quiet-tabs', 'security', 'sync', 'tab-groups', 'vertical-tabs'].map(name => `/features/${name}`)];
+    ...['ad-blocking', 'command-palette', 'island', 'mouse-gestures', 'private-tabs', 'quiet-tabs', 'security', 'sync', 'tab-groups', 'vertical-tabs'].map(name => `/features/${name}`)];
   try {
     for (const width of [390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });

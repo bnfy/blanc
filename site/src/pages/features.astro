@@ -3,11 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title={"Blanc Browser Features — Minimal browsing, built in"}
-  description={"Explore Blanc’s Start Page and Mahjong, Glance, tab recovery, local profiles, Named Workspaces, built-in blocking, encrypted sync, and more."}
+  description={"Explore Blanc’s mouse gestures, Start Page and Mahjong, Glance, tab recovery, local profiles, Named Workspaces, built-in blocking, encrypted sync, and more."}
   path="/features"
   page="features"
   current="features"
-  ogDescription={"A focused desktop browser with Glance, built-in blocking, Named Groups, Patron Named Workspaces, Quiet Tabs, encrypted sync, and structural security."}
+  ogDescription={"A focused desktop browser with customizable mouse gestures, Glance, built-in blocking, Named Groups, Quiet Tabs, encrypted sync, and structural security."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {
@@ -59,43 +59,48 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div><p class="feature-label">keyboard first</p><h2>One shortcut to move through your whole session.</h2></div>
       <div class="feature-row-end"><p>Command or Control L finds open tabs, Favorites, history, and Named Groups. Type / to discover and run browser commands.</p><a class="text-link" href="/features/command-palette" data-track="feature_cta_click" data-feature="command-palette" data-cta-position="feature-hub">Explore commands <span aria-hidden="true">↗</span></a></div>
     </article>
-    <article class="feature-hub-row" id="reopen-closed-tabs">
+    <article class="feature-hub-row" id="mouse-gestures">
       <p class="feature-number">07</p>
+      <div><p class="feature-label">draw and release</p><h2>Move through the browser without moving to the toolbar.</h2></div>
+      <div class="feature-row-end"><p>Hold the right mouse button and draw, or use Alt/Option with a one-finger trackpad drag. Start with four defaults, then draw and assign your own gestures.</p><a class="text-link" href="/features/mouse-gestures" data-track="feature_cta_click" data-feature="mouse-gestures" data-cta-position="feature-hub">See mouse gestures <span aria-hidden="true">↗</span></a></div>
+    </article>
+    <article class="feature-hub-row" id="reopen-closed-tabs">
+      <p class="feature-number">08</p>
       <div><p class="feature-label">a second chance</p><h2>Bring back the tab you meant to keep.</h2></div>
       <div class="feature-row-end"><p>Pick a tab or group from this window’s Recently Closed list. Eligible pages can briefly return without a reload; recovery has time limits and excludes private tabs.</p><a class="text-link" href="/features/reopen-closed-tabs" data-track="feature_cta_click" data-feature="reopen-closed-tabs" data-cta-position="feature-hub">How reopening works <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="tab-groups">
-      <p class="feature-number">08</p>
+      <p class="feature-number">09</p>
       <div><p class="feature-label">named groups</p><h2>Name the task. Keep its tabs together.</h2></div>
       <div class="feature-row-end"><p>You create Named Groups and choose the tabs that belong in each. Keep the active group close and fold other groups away in the command panel.</p><a class="text-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="feature-hub">Explore Named Groups <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row feature-hub-row--patron" id="workspaces">
-      <p class="feature-number">09</p>
+      <p class="feature-number">10</p>
       <div><p class="feature-label">named workspaces <span class="feature-patron-badge">Patron</span></p><h2>Save a whole window. Return to it by name.</h2></div>
       <div class="feature-row-end"><p>Named Workspaces save a window’s tabs and groups and keep that set up to date as you browse. Active Patrons can create and save them; existing workspaces stay usable if membership ends.</p><a class="text-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="feature-hub">Explore Named Workspaces <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="vertical-tabs">
-      <p class="feature-number">10</p>
+      <p class="feature-number">11</p>
       <div><p class="feature-label">your preferred view</p><h2>An optional vertical tab rail. The island stays.</h2></div>
       <div class="feature-row-end"><p>Use a resizable left rail when a persistent tab overview helps. The Island remains the address and command surface.</p><a class="text-link" href="/features/vertical-tabs" data-track="feature_cta_click" data-feature="vertical-tabs" data-cta-position="feature-hub">See vertical tabs <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="quiet-tabs">
-      <p class="feature-number">11</p>
+      <p class="feature-number">12</p>
       <div><p class="feature-label">memory, on your terms</p><h2>Free up memory without closing the tab.</h2></div>
       <div class="feature-row-end"><p>Eligible inactive tabs release renderer memory and reload when you return. Choose the delay; tabs with protected activity or uncertain eligibility stay awake.</p><a class="text-link" href="/features/quiet-tabs" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="feature-hub">How Quiet Tabs work <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="profiles">
-      <p class="feature-number">12</p>
+      <p class="feature-number">13</p>
       <div><p class="feature-label">separate browsing identities</p><h2>Keep work logins apart from personal browsing.</h2></div>
       <div class="feature-row-end"><p>Local profiles separate cookies, site data, Favorites, history, download metadata, and remembered permissions. Open independent windows, with device preferences and Patron shared.</p><a class="text-link" href="/features/profiles" data-track="feature_cta_click" data-feature="profiles" data-cta-position="feature-hub">Explore profiles and windows <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="sync">
-      <p class="feature-number">13</p>
+      <p class="feature-number">14</p>
       <div><p class="feature-label">across your devices</p><h2>Pick up on your other devices.</h2></div>
       <div class="feature-row-end"><p>From Personal, opt-in sync carries your favorites and settings, and, if you choose, shows what each device has open. End-to-end encrypted; opening a remote tab creates a local tab.</p><a class="text-link" href="/features/sync" data-track="feature_cta_click" data-feature="sync" data-cta-position="feature-hub">How sync works <span aria-hidden="true">↗</span></a></div>
     </article>
     <article class="feature-hub-row" id="security">
-      <p class="feature-number">14</p>
+      <p class="feature-number">15</p>
       <div><p class="feature-label">private by architecture</p><h2>See the protections behind the page.</h2></div>
       <div class="feature-row-end"><p>Sandboxed pages, signed releases, explicit site permissions, device-bound Touch ID passkeys, and optional user-invoked 1Password fill on macOS.</p><a class="text-link" href="/features/security" data-track="feature_cta_click" data-feature="security" data-cta-position="feature-hub">Read the security story <span aria-hidden="true">↗</span></a></div>
     </article>

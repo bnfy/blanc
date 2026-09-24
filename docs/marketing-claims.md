@@ -70,12 +70,21 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.21.0 public release:
+These boundaries are verified for the v1.22.0 public release:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
   navigation, switching, search, and commands. Do not turn this into a claim
   that Blanc understands what the user is working on.
+- **Mouse gestures:** Mouse gestures are disabled by default and configured in
+  Settings → General. A physical mouse uses right-button drag; a trackpad uses
+  Alt/Option plus a one-finger click-and-drag. Four default directions map to
+  Back, Forward, New tab, and Close tab. The user can draw patterns of up to
+  three directions and assign Back, Forward, Reload, New tab, Close tab,
+  Reopen closed tab, Previous tab, Next tab, or Open Island. The setting and
+  assignments are device-local. Do not imply semantic gesture inference,
+  touch-screen gestures, or that right-button input works as a trackpad
+  trigger on every platform.
 - **New-tab shortcut:** The resting Island's Plus creates one regular,
   ungrouped tab and focuses its address field. It stays bare beside the slash
   keycap and is hidden in vertical-tabs mode, where the rail already has a New
