@@ -25,4 +25,7 @@
 .mail-page .mail-note{background:#efe6d8;border-left:3px solid #805d28;padding:17px 20px;border-radius:0 8px 8px 0}
 .mail-page .mail-prose{max-width:780px}
 .mail-page .mail-prose h2{font-size:34px;margin:46px 0 12px}
+.mail-page.mail-prose{max-width:820px}
+.mail-page.mail-prose h2{font-size:34px;margin:46px 0 12px}
+.mail-page.mail-prose .mail-subnav{margin-bottom:42px}
 @media(max-width:700px){.mail-page .mail-hero,.mail-page .mail-plans{grid-template-columns:1fr}.mail-page .mail-hero .mail-icon{max-width:220px}.mail-page .mail-card-grid{grid-template-columns:1fr}}
