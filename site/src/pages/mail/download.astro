@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailNav from '../../components/MailNav.astro';
+import '../../styles/mail.css';
+---
+<BaseLayout title="Download Blanc Mail for macOS — coming soon" description="Blanc Mail is coming soon for macOS. Signed, notarized downloads will appear after the release checks pass." path="/mail/download" header="solid">
+  <main class="mail-page">
+    <p class="mail-eyebrow">macOS only · Coming soon</p>
+    <h1>Blanc Mail for Mac.</h1>
+    <p class="mail-lead">The first download will appear here after the signed macOS build, Gmail sign-in, Private Push, and Sparkle update checks pass.</p>
+    <MailNav />
+    <section class="mail-section mail-prose"><h2>Requirements</h2><p>macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account. Blanc Mail does not have a Windows or Linux edition planned for launch.</p><p>Blanc Browser already has separate <a href="/download">macOS, Windows, and Linux downloads</a>.</p></section>
+  </main>
+</BaseLayout>
