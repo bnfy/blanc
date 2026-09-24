@@ -26,8 +26,9 @@ Network failure, 429, and 503 retain Browser's existing grace policy.
 The Mail annual sandbox purchase completed: the issued key validates as granted
 with the Mail benefit and was accepted by an Apple Development-signed Mail UI
 fixture, enabling compose and reply. Polar returned `expires_at=null` although
-its subscription dashboard has a September 2027 renewal. The full key is not
-committed. Browser activation, Suite purchase and activation, cancellation,
+its subscription dashboard has a September 2027 renewal. Cancellation is
+scheduled at that date and the key remains granted today. The full key is not
+committed. Browser activation, Suite purchase and activation, end-of-period revocation,
 offline/relaunch, and the confirmed prorated Patron-to-Suite upgrade remain
 pending. Polar blocked a second active subscription for the same customer email;
 the restriction also appeared on a Suite-only checkout link. A separate Gmail
