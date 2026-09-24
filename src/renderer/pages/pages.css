@@ -2494,15 +2494,17 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
   padding: 120px 80px 118px;
   transform: translateY(-28px);
 }
-.bb-clock-row { gap: 12px; margin-top: 0; }
+.bb-clock-row { gap: 8px; margin-top: 0; }
 .bb-clock {
   font-family: var(--font-display);
   font-size: clamp(80px, 12vw, 148px);
   font-weight: 650;
-  letter-spacing: -0.065em;
+  font-variant-numeric: proportional-nums;
+  letter-spacing: -0.01em;
   text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
 }
 .bb-meridiem { font-family: var(--font-ui); font-size: 18px; }
+.bb-meridiem:empty { display: none; }
 .bb-blocked { margin-top: 10px; font-family: var(--font-ui); font-size: 11.5px; }
 .bb-favs { gap: 16px; margin-top: 34px; }
 .bb-site { width: 100px; }
