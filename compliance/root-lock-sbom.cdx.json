@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:root:blanc@1.21.0",
+      "bom-ref": "application:root:blanc@1.22.0",
       "name": "blanc dependency lock",
-      "version": "1.21.0",
+      "version": "1.22.0",
       "description": "Complete root npm supply-chain inventory, including development and optional packages."
     },
     "properties": [
@@ -8709,14 +8709,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron@44.4.3",
+      "bom-ref": "pkg:npm/electron@44.4.5",
       "name": "electron",
-      "version": "44.4.3",
+      "version": "44.4.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "2d3a52153078d2a5425c85f9c4ca3e7201c8fc98e46e3c3b569076e8f71c11bae8a8e9fbd8b06e91e683c0f568d5f058cd2cecd1cf623ee02e70508eed3c3cd5"
+          "content": "4a382869e62c49665f273b9b81053b8eebee5cc4ef9fafded60007746140ff2b8c6e917e23eb2462a209e837570571de59b91ba4da66c19093a628afb655994b"
         }
       ],
       "licenses": [
@@ -8726,7 +8726,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.4.3",
+      "purl": "pkg:npm/electron@44.4.5",
       "properties": [
         {
           "name": "blanc:development",
@@ -8748,7 +8748,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.4.3.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.4.5.tgz"
         }
       ]
     },
@@ -20983,7 +20983,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:root:blanc@1.21.0",
+      "ref": "application:root:blanc@1.22.0",
       "dependsOn": [
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40cucumber/cucumber@13.2.1",
@@ -20993,7 +20993,7 @@
         "pkg:npm/%40ghostery/adblocker@2.18.2",
         "pkg:npm/electron-builder@26.15.3",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.4.3",
+        "pkg:npm/electron@44.4.5",
         "pkg:npm/eslint@10.11.0",
         "pkg:npm/globals@17.12.0",
         "pkg:npm/playwright@1.63.0",
@@ -22203,7 +22203,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.4.3",
+      "ref": "pkg:npm/electron@44.4.5",
       "dependsOn": [
         "pkg:npm/%40electron-internal/extract-zip@1.0.4",
         "pkg:npm/%40electron/get@5.0.0",
