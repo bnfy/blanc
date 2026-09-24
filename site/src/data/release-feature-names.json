@@ -1,4 +1,5 @@
 {
+  "1.22.0": ["Custom mouse gestures", "Refined onboarding", "Billboard clock spacing"],
   "1.21.0": ["Remembered window geometry", "Sunrise start pages", "Website badge blocking"],
   "1.20.0": ["Standalone Mahjong", "Four start-page layouts", "Consented app login handoffs"],
   "1.19.0": ["Default browser setup", "Local HTML opening"],

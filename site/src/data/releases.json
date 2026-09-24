@@ -1,5 +1,88 @@
 [
   {
+    "tag": "v1.22.0",
+    "version": "1.22.0",
+    "name": "1.22.0",
+    "publishedAt": "2026-09-24T02:35:18.000Z",
+    "humanDate": "September 23, 2026",
+    "machineDate": "2026-09-23",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.22.0",
+    "anchor": "v1-22-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "New",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Navigate Blanc with customizable mouse gestures."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Enable Mouse gestures in Settings → General, then hold the right mouse button and draw before releasing. On a trackpad, hold Alt/Option while clicking and dragging with one finger. Blanc includes gestures for Back, Forward, New tab, and Close tab, and lets you draw or reassign gestures for navigation, tabs, Reload, and the Island."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The onboarding dialog now fully covers the start page, uses rounder geometry, and shows a current miniature of the Island."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Billboard clocks use more natural digit spacing, keep the meridiem close to the time, and remain centered in 24-hour locales."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong now keeps hints, Undo, and Rescue aligned with the current board while preserving its standalone-tab behavior and game documentation."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.21.0",
     "version": "1.21.0",
     "name": "1.21.0",
