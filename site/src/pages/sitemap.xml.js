@@ -10,6 +10,7 @@ const MANIFEST = [
   '/features/island',
   '/features/private-tabs',
   '/features/command-palette',
+  '/features/mouse-gestures',
   '/features/tab-groups',
   '/features/vertical-tabs',
   '/features/quiet-tabs',

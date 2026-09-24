@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Mouse Gestures for Faster Browser Navigation | Blanc"
+  description="Draw customizable mouse gestures in Blanc to go back or forward, open and close tabs, reload, switch tabs, reopen a closed tab, or open the Island."
+  path="/features/mouse-gestures"
+  page="feature-mouse-gestures"
+  current="features"
+  ogDescription="Hold, draw, and release to navigate, manage tabs, reload, or open the Island. Mouse and trackpad controls are customizable in Settings."
+  ogImageAlt="Blanc Browser mouse gestures"
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Mouse gestures","item":"https://blancbrowser.com/features/mouse-gestures"}]}
+  </script>
+
+  <main class="feature-page feature-detail-page">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">mouse gestures</span></nav>
+    <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="mouse-gestures-title">
+      <p class="section-kicker">one motion</p>
+      <h1 id="mouse-gestures-title">Move through the browser without moving to the toolbar.</h1>
+      <p>Enable Mouse gestures, hold one button, draw a direction over the page, then release. Go back, open a tab, or run another assigned action while your pointer stays where you are.</p>
+    </section>
+
+    <figure class="gesture-figure product-capture">
+      <div class="gesture-board" role="img" aria-label="The four default Blanc mouse gestures: draw left for Back, right for Forward, up for New tab, and down for Close tab.">
+        <div class="gesture-board-head" aria-hidden="true"><span>default gestures</span><span>hold · draw · release</span></div>
+        <div class="gesture-cross" aria-hidden="true">
+          <div class="gesture-default gesture-default--up"><span class="gesture-arrow">↑</span><span><strong>New tab</strong><small>draw up</small></span></div>
+          <div class="gesture-default gesture-default--left"><span class="gesture-arrow">←</span><span><strong>Back</strong><small>draw left</small></span></div>
+          <div class="gesture-origin">
+            <svg viewBox="0 0 32 40" aria-hidden="true"><path d="M7 3.5v25.7l6.9-6.5 5.2 12.3 5-2.2-5.2-12.1h9.6z" /></svg>
+            <span>start here</span>
+          </div>
+          <div class="gesture-default gesture-default--right"><span class="gesture-arrow">→</span><span><strong>Forward</strong><small>draw right</small></span></div>
+          <div class="gesture-default gesture-default--down"><span class="gesture-arrow">↓</span><span><strong>Close tab</strong><small>draw down</small></span></div>
+        </div>
+        <div class="gesture-inputs" aria-hidden="true">
+          <span><strong>Mouse</strong> right button + drag</span>
+          <span><strong>Trackpad</strong> Alt/Option + one-finger drag</span>
+        </div>
+      </div>
+      <figcaption>Four useful motions are ready when you switch the feature on. Change any of them in Settings.</figcaption>
+    </figure>
+
+    <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="gesture-start-title">
+      <div><p class="section-kicker">start anywhere</p><h2 id="gesture-start-title">The page becomes the control.</h2></div>
+      <div class="feature-copy-list">
+        <article><h3>With a physical mouse</h3><p>Hold the right mouse button, draw the gesture over the active page, then release. A normal right-click without a drag still opens the page’s usual menu.</p></article>
+        <article><h3>With a trackpad</h3><p>Hold Alt on Windows or Option on macOS, click and hold with one finger, then drag and release. A click without the drag stays an ordinary click.</p></article>
+        <article><h3>Only the finished motion runs</h3><p>Blanc waits for release before acting. Unassigned gestures and drawings with more than three directions do nothing.</p></article>
+      </div>
+    </section>
+
+    <section class="feature-copy-grid" aria-labelledby="gesture-custom-title">
+      <div><p class="section-kicker">make it yours</p><h2 id="gesture-custom-title">Draw the shortcut you want to remember.</h2></div>
+      <div class="feature-copy-list">
+        <article><h3>Begin with four defaults</h3><p>Left goes Back, right goes Forward, up opens a New tab, and down closes the current tab. Restore defaults brings these four motions back at any time.</p></article>
+        <article><h3>Add turns when one direction is not enough</h3><p>In Settings → General, choose Add gesture and draw up to three directions. Pick its action, save it, and it is ready on the active page.</p></article>
+        <article><h3>Choose from nine browser actions</h3><p>Assign Back, Forward, Reload, New tab, Close tab, Reopen closed tab, Previous tab, Next tab, or Open Island. Existing gestures can be reassigned or removed.</p></article>
+      </div>
+    </section>
+
+    <aside class="truth-note" aria-labelledby="gesture-note-title">
+      <p class="section-kicker">good to know</p><h2 id="gesture-note-title">Off until you ask for it. Local when you do.</h2>
+      <p>Mouse gestures are disabled by default. Turn them on in Settings → General. Your enabled state and assignments stay on this device rather than following you through Sync.</p>
+      <a class="text-link" href="/features/island" data-track="feature_cta_click" data-feature="mouse-gestures" data-cta-position="related-feature">See the Island these gestures can open <span aria-hidden="true">↗</span></a>
+    </aside>
+
+    <section class="feature-close" aria-labelledby="gesture-close-title">
+      <p class="section-kicker">ready when you are</p><h2 id="gesture-close-title">Put the common move under your hand.</h2>
+      <a class="cta" href="/download" data-track="feature_cta_click" data-feature="mouse-gestures" data-cta-position="feature-close">download blanc</a>
+    </section>
+  </main>
+</BaseLayout>

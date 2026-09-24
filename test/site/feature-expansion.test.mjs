@@ -54,7 +54,7 @@ test('expanded pages load their images and fit 360, 768, and 1440 pixel viewport
   } finally { await context.close(); }
 });
 
-test('homepage showcase and six-card grid stay visible without JavaScript', async () => {
+test('homepage showcase and eight-card grid stay visible without JavaScript', async () => {
   const context = await contextFor({ javaScriptEnabled: false });
   const page = await context.newPage();
   try {
@@ -62,7 +62,7 @@ test('homepage showcase and six-card grid stay visible without JavaScript', asyn
       await page.setViewportSize({ width, height: 900 });
       await page.goto(baseURL);
       assert.equal(await page.locator('.home-start-captures img').count(), 2);
-      assert.equal(await page.locator('.home-feature-grid > article').count(), 6);
+      assert.equal(await page.locator('.home-feature-grid > article').count(), 8);
       assert.ok(await page.locator('.home-start-page').isVisible());
       const columns = await page.locator('.home-feature-grid').evaluate(grid => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
       assert.equal(columns, width <= 760 ? 1 : 3, `${width}px: preserve existing responsive grid`);
@@ -96,13 +96,13 @@ test('new guides have unique metadata, keyboard-reachable captures, and the exis
   } finally { await context.close(); }
 });
 
-test('feature hub has fourteen ordered guides and Press captures download as real PNGs', async () => {
+test('feature hub has fifteen ordered guides and Press captures download as real PNGs', async () => {
   const context = await contextFor();
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/features`);
     const hrefs = await page.locator('.feature-hub-row .text-link').evaluateAll(links => links.map(link => link.getAttribute('href')));
-    assert.deepEqual(hrefs, ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security'].map(route => `/features/${route}`));
+    assert.deepEqual(hrefs, ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security'].map(route => `/features/${route}`));
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
     await page.goto(`${baseURL}/press`);
     const downloads = page.locator('.press-feature-gallery figcaption a[download]');

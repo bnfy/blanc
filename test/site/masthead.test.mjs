@@ -23,7 +23,7 @@ async function openPage(path = '/', width = 1440, reducedMotion = 'reduce') {
   return { page, context };
 }
 
-const featureHrefs = ['/features/island', '/features/start-page', '/features/glance', '/features/vertical-tabs', '/features/tab-groups', '/features/quiet-tabs', '/features/ad-blocking', '/features/private-tabs', '/features/security', '/features/command-palette', '/features/reopen-closed-tabs', '/features/profiles', '/features/sync', '/features/workspaces'];
+const featureHrefs = ['/features/island', '/features/start-page', '/features/glance', '/features/vertical-tabs', '/features/tab-groups', '/features/quiet-tabs', '/features/ad-blocking', '/features/private-tabs', '/features/security', '/features/command-palette', '/features/mouse-gestures', '/features/reopen-closed-tabs', '/features/profiles', '/features/sync', '/features/workspaces'];
 
 test('the masthead is sticky at the top, 64px tall, and never tucks', async () => {
   const { page, context } = await openPage('/features');
@@ -61,7 +61,7 @@ test('the features menu opens on click, lists every feature page, and closes on 
   } finally { await context.close(); }
 });
 
-test('the feature spotlight stays compact beside the fourteen-guide menu', async () => {
+test('the feature spotlight stays compact beside the fifteen-guide menu', async () => {
   const { page, context } = await openPage('/');
   try {
     await page.locator('.site-menu-trigger[data-menu="features"]').click();
