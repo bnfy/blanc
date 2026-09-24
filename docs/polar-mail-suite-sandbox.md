@@ -23,8 +23,15 @@ as an outage; it now invalidates an explicitly rejected key. The regression
 failed before the fix, then all 19 focused licensing tests and ESLint passed.
 Network failure, 429, and 503 retain Browser's existing grace policy.
 
-Purchase submission, issued-key activation in both apps, cancellation,
+The Mail annual sandbox purchase completed: the issued key validates as granted
+with the Mail benefit and was accepted by an Apple Development-signed Mail UI
+fixture, enabling compose and reply. Polar returned `expires_at=null` although
+its subscription dashboard has a September 2027 renewal. The full key is not
+committed. Browser activation, Suite purchase and activation, cancellation,
 offline/relaunch, and the confirmed prorated Patron-to-Suite upgrade remain
-pending. Product and checkout identifiers plus the detailed matrix are recorded
-in the Mail repository's `docs/POLAR_MAIL_SUITE_SANDBOX.md` in
+pending. Polar blocked a second active subscription for the same customer email;
+the restriction also appeared on a Suite-only checkout link. A separate Gmail
+alias is awaiting authorization. Product and checkout
+identifiers plus the detailed matrix are recorded in the Mail repository's
+`docs/POLAR_MAIL_SUITE_SANDBOX.md` in
 [PR #67](https://github.com/bnfy/Postel/pull/67).
