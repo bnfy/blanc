@@ -199,6 +199,13 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     static let userScriptSource = #"""
     (function () {
       if (location.protocol !== 'blanc:') return;
+      if (location.hostname === 'newtab') {
+        const markIOS = function () {
+          document.documentElement?.setAttribute('data-blanc-ios', '');
+        };
+        markIOS();
+        document.addEventListener('DOMContentLoaded', markIOS, { once: true });
+      }
       const pending = new Map();
       let seq = 0;
       window.__blancResolve = function (id, ok, payload) {

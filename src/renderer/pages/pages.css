@@ -3306,3 +3306,10 @@ body:not([data-layout="ledger"]) .ledger-footer {
 @media (prefers-reduced-motion: reduce) {
   .sync-path-arrow { transition: none; }
 }
+
+/* The iOS shell supplies its own navigation; desktop moving-in tasks are unavailable. */
+:root[data-blanc-ios] #migrationChecklistShell,
+:root[data-blanc-ios] #layoutFooter,
+:root[data-blanc-ios] #mahjongFooterToggle {
+  display: none !important;
+}
