@@ -68,7 +68,10 @@ function isRecordActive(record, now) {
 
 function evaluateValidation({ outcome, record, now }) {
   const next = { ...record };
-  if (outcome.kind === 'ok') {
+  if (outcome.kind === 'rejected') {
+    next.lastAttemptedAt = now;
+    next.lastStatus = 'invalid';                         // explicit server rejection gets no outage grace
+  } else if (outcome.kind === 'ok') {
     next.lastAttemptedAt = now;
     const granted = outcome.status === 'granted';
     if (outcome.expiresAt === false && granted) {

@@ -102,8 +102,12 @@ async function validateIfDue() {
     // Read status defensively (top-level or nested) so a validate response that
     // wraps the license key can't be misread as an unparseable body.
     const status = model.readLicenseStatus(body);
-    if (!body || status === null) {
-      outcome = { kind: 'unreachable' };                 // non-ok, malformed, or no readable status → ambiguous
+    if (res.status === 404) {
+      // Polar rejects missing, revoked, expired, or invalid activation keys
+      // with 404. This is an authoritative rejection, not a service outage.
+      outcome = { kind: 'rejected' };
+    } else if (!body || status === null) {
+      outcome = { kind: 'unreachable' };                 // other non-ok or malformed responses remain ambiguous
     } else {
       const benefitOk = model.resolveKind(model.readBenefitId(body), BENEFIT_ALLOWLIST) === 'subscription';
       outcome = { kind: 'ok', status, expiresAt: model.readExpiresAt(body), benefitOk };
