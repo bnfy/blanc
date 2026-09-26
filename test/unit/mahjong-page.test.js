@@ -621,9 +621,9 @@ test('Records stacks separately labeled Auto and Manual Burst results', () => {
   assert.match(controller, /records\.trayManual\[game\.layoutId\]/);
 });
 
-test('share actions use the sanitized Clipboard API without adding a dock control', () => {
+test('Boards share action uses the sanitized Clipboard API without adding finish or dock controls', () => {
   assert.match(html, /id="mjCopyDeal"[^>]*>copy current deal<\/button>/);
-  assert.match(html, /id="mjWinCopyDeal"[^>]*>copy deal<\/button>/);
+  assert.doesNotMatch(html, /id="mjWinCopyDeal"/);
   assert.match(controller, /S\.buildShareDealUrl\(game\)/);
   assert.match(controller, /await navigator\.clipboard\.writeText\(link\)/);
   assert.match(controller, /announce\('Deal link copied\.'\)/);
