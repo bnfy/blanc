@@ -18,6 +18,14 @@
     heading.focus();
   }
 
+  const nav = page.querySelector('.page-nav');
+  if (!nav) return;
+  nav.querySelector('a.current')?.setAttribute('aria-current', 'page');
+  const links = document.createElement('div');
+  links.className = 'page-nav-links';
+  for (const link of [...nav.querySelectorAll('a')]) links.append(link);
+  nav.append(links);
+
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'sheet-close';
@@ -26,7 +34,7 @@
   close.addEventListener('click', () => window.bowserPages.surface.close());
   // Utility sheet pages have a sticky .page-nav — the ✕ rides it so it
   // never scrolls away and never stacks under the nav band.
-  page.querySelector('.page-nav').append(close);
+  nav.append(close);
 
   // Clicks on the scrim (the body itself, outside the card) dismiss.
   document.body.addEventListener('mousedown', (e) => {
