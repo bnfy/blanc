@@ -1535,13 +1535,18 @@ document.getElementById('mjResumeDismiss')?.addEventListener('click', dismissRes
 function newGameFromControl() {
   const layoutId = game?.layoutId || 'turtle';
   const mode = game?.mode || 'classic';
-  startGame({
+  return startGame({
     layoutId,
     mode,
     seed: randomSeed(),
     burstRules: game?.burstRules || prefsStore?.read().burstRules || E.BURST_RULES.AUTO,
     zen: game?.zen === true,
   });
+}
+
+function playAnotherFromWin() {
+  if (!newGameFromControl()) return;
+  requestAnimationFrame(() => tileButtons[focusIndex]?.focus({ preventScroll: true }));
 }
 
 function paintSetupChoices() {
@@ -1760,10 +1765,9 @@ document.getElementById('mjSetupClose')?.addEventListener('click', closeSetup);
 document.getElementById('mjSetupScrim')?.addEventListener('click', closeSetup);
 document.getElementById('mjStart')?.addEventListener('click', startSetupChoice);
 document.getElementById('mjCopyDeal')?.addEventListener('click', copyCurrentDeal);
-document.getElementById('mjWinCopyDeal')?.addEventListener('click', copyCurrentDeal);
 document.getElementById('mjNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjNoticeNew').addEventListener('click', newGameFromControl);
-document.getElementById('mjWinNew').addEventListener('click', openSetup);
+document.getElementById('mjWinNew').addEventListener('click', playAnotherFromWin);
 document.getElementById('mjWinBoards')?.addEventListener('click', openSetup);
 document.getElementById('mjErrorNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjRescueRestart')?.addEventListener('click', () => {
