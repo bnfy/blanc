@@ -19,6 +19,7 @@
     if (entries.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
+      empty.setAttribute('role', 'status');
       empty.textContent = search.value ? 'Nothing matches that search.' : 'No history yet.';
       list.append(empty);
       return;
@@ -48,6 +49,7 @@
       const remove = document.createElement('button');
       remove.className = 'danger';
       remove.textContent = 'Remove';
+      remove.setAttribute('aria-label', `Remove ${e.title} from history`);
       remove.addEventListener('click', async () => {
         await window.bowserPages.history.remove(e.url, e.visitedAt);
         refresh();

@@ -176,6 +176,7 @@ function dispositionIssue() {
 
 function setStep(next) {
   if (!STEPS.includes(next)) return;
+  const changed = step !== next;
   step = next;
   if (stepProgressEl) stepProgressEl.textContent = `Step ${STEPS.indexOf(step) + 1} of ${STEPS.length}`;
   for (const panel of document.querySelectorAll('[data-step-panel]')) {
@@ -194,6 +195,13 @@ function setStep(next) {
     // may then perform its own focus reveal after this handler returns, so
     // reassert the step origin once the new panel has laid out.
     requestAnimationFrame(resetScroll);
+  }
+  if (changed) {
+    const heading = document.querySelector(`[data-step-panel="${step}"] h2`);
+    if (heading) {
+      heading.tabIndex = -1;
+      requestAnimationFrame(() => heading.focus({ preventScroll: true }));
+    }
   }
 }
 

@@ -1,6 +1,8 @@
 (async () => {
   const list = document.getElementById('list');
   const clearFinished = document.getElementById('clearFinished');
+  let refreshGeneration = 0;
+  let lastSignature = null;
 
   const fmtBytes = (n) => {
     if (!n) return '0 B';
@@ -17,14 +19,23 @@
   };
 
   async function refresh() {
+    const generation = ++refreshGeneration;
     const items = await window.bowserPages.downloads.list();
+    if (generation !== refreshGeneration) return;
+    const signature = JSON.stringify(items);
+    if (signature === lastSignature) return;
+    lastSignature = signature;
+    const focusedAction = list.contains(document.activeElement)
+      ? document.activeElement.dataset.actionKey : null;
     list.replaceChildren();
 
     if (items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
+      empty.setAttribute('role', 'status');
       empty.textContent = 'Nothing downloaded yet.';
       list.append(empty);
+      if (focusedAction) clearFinished.focus({ preventScroll: true });
       return;
     }
 
@@ -45,6 +56,11 @@
       if (d.state === 'progressing' && d.totalBytes > 0) {
         const progress = document.createElement('div');
         progress.className = 'progress';
+        progress.setAttribute('role', 'progressbar');
+        progress.setAttribute('aria-label', `Downloading ${d.filename}`);
+        progress.setAttribute('aria-valuemin', '0');
+        progress.setAttribute('aria-valuemax', '100');
+        progress.setAttribute('aria-valuenow', String(Math.round((d.receivedBytes / d.totalBytes) * 100)));
         const bar = document.createElement('div');
         bar.className = 'bar';
         bar.style.width = `${Math.round((d.receivedBytes / d.totalBytes) * 100)}%`;
@@ -61,24 +77,31 @@
 
       const actions = document.createElement('div');
       actions.className = 'actions';
-      const mkBtn = (label, fn, cls) => {
+      const mkBtn = (label, fn, actionKey, cls) => {
         const b = document.createElement('button');
         b.textContent = label;
+        b.dataset.actionKey = `${d.id}:${actionKey}`;
+        b.setAttribute('aria-label', `${label} ${d.filename}`);
         if (cls) b.className = cls;
         b.addEventListener('click', async () => { await fn(); refresh(); });
         return b;
       };
       if (d.state === 'progressing') {
-        actions.append(mkBtn('Cancel', () => window.bowserPages.downloads.cancel(d.id), 'danger'));
+        actions.append(mkBtn('Cancel', () => window.bowserPages.downloads.cancel(d.id), 'cancel', 'danger'));
       }
       if (d.state === 'completed') {
         actions.append(
-          mkBtn('Open', () => window.bowserPages.downloads.open(d.id)),
-          mkBtn('Show in folder', () => window.bowserPages.downloads.show(d.id))
+          mkBtn('Open', () => window.bowserPages.downloads.open(d.id), 'open'),
+          mkBtn('Show in folder', () => window.bowserPages.downloads.show(d.id), 'show')
         );
       }
       row.append(main, meta, actions);
       list.append(row);
+    }
+    if (focusedAction) {
+      const replacement = [...list.querySelectorAll('[data-action-key]')]
+        .find((button) => button.dataset.actionKey === focusedAction);
+      (replacement ?? clearFinished).focus({ preventScroll: true });
     }
   }
 
