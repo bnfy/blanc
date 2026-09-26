@@ -249,9 +249,9 @@ a.patron-checkout {
   display: inline-block;
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--surface-raised);
-  background: var(--accent);
-  border: 1px solid var(--accent);
+  color: var(--bg);
+  background: var(--text);
+  border: 1px solid var(--text);
   border-radius: var(--radius);
   padding: 5px 12px;
   text-decoration: none;
@@ -276,6 +276,11 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   display: inline-block;
 }
 .link-button:hover { color: var(--text); border-color: var(--text-dim); }
+/* Warm sheets: secondary controls read at full contrast, never dimmed
+   (spec §5.3). :where() keeps element-level specificity so every class-level
+   button colour (primary, danger hover, close) still wins. */
+:where(body.sheet) button,
+:where(body.sheet) .link-button { color: var(--text); }
 
 .hint.field-error { color: var(--danger); }
 
@@ -1356,7 +1361,19 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
    stay usable at the 640×480 window minimum. */
 html:has(body.sheet) { background: transparent; }
 body.sheet {
-  background: rgba(14, 14, 14, 0.18);
+  /* Sunrise pages, ink frame (spec 2026-09-26 §5.1): the sheet remaps the
+     semantic tokens to the shared Sunrise palette — the Start Page's
+     .ledger-body technique — so component rules stay theme-agnostic. The
+     card is the raised surface; the scrim keeps its strength in warm ink. */
+  --bg: var(--sunrise-surface-raised);
+  --surface: var(--sunrise-surface);
+  --surface-raised: var(--sunrise-surface-raised);
+  --border: var(--sunrise-border);
+  --text: var(--sunrise-text);
+  --text-dim: var(--sunrise-text-dim);
+  --accent: var(--sunrise-accent);
+  --accent-dim: var(--sunrise-accent-dim);
+  background: rgba(18, 16, 11, 0.18);
   height: 100vh;
   min-height: 0; /* the shared rule's min-height:100% must not stretch the scrim */
   overflow: hidden;
@@ -1487,7 +1504,7 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet .shortcut-row kbd { white-space: normal; }
 }
 @media (prefers-color-scheme: dark) {
-  body.sheet { background: rgba(0, 0, 0, 0.35); }
+  body.sheet { background: rgba(18, 16, 11, 0.35); }
 }
 
 /* ---------- tab-import wizard shell (blanc://tab-import/) ---------- */
@@ -1745,14 +1762,14 @@ body.sheet .tab-import-page .page-nav {
 }
 .tab-import-primary {
   color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--text);
+  border-color: var(--text);
   font-weight: 600;
 }
 .tab-import-primary:hover {
   color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--text);
+  border-color: var(--text);
   filter: brightness(1.12);
 }
 .tab-import-primary:disabled,

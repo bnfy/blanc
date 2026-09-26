@@ -67,3 +67,8 @@ Feature: Internal blanc:// pages
     Given the settings page is open in the utility sheet
     When I scroll the settings sheet to its end
     Then the settings section marker is on Help
+
+  @F16-10 @F16 @all
+  Scenario: Utility pages wear the Sunrise palette
+    Given the favorites page is open in the utility sheet
+    Then the utility sheet uses the Sunrise palette

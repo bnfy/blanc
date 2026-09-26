@@ -587,6 +587,16 @@ Then('the settings section marker is on Help', async function () {
     'settings section marker to reach Help');
 });
 
+// F16-10: acceptance runs pin the light scheme, so light values are expected.
+Then('the utility sheet uses the Sunrise palette', async function () {
+  const palette = await waitForValue(() => this.call('utilitySheetPalette'), Boolean, 'sheet palette');
+  assert.deepStrictEqual(palette, {
+    text: 'rgb(18, 16, 11)', // --sunrise-text #12100b
+    card: 'rgb(255, 252, 247)', // --sunrise-surface-raised #fffcf7
+    currentNav: 'rgb(128, 93, 40)', // --sunrise-accent #805d28
+  });
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed

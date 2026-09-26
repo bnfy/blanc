@@ -1862,6 +1862,15 @@ function install(refs) {
       if (!wc) return null;
       return wc.executeJavaScript(`document.querySelector('.settings-nav a.current')?.dataset.group ?? null`);
     },
+    async utilitySheetPalette() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        text: getComputedStyle(document.body).color,
+        card: getComputedStyle(document.querySelector('.page')).backgroundColor,
+        currentNav: getComputedStyle(document.querySelector('.page-nav a.current')).color,
+      }))()`);
+    },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
