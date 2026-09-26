@@ -1534,7 +1534,7 @@ function install(refs) {
               opticalSizing: style.fontOpticalSizing,
               insideContent: titleRect.left >= contentRect.left - 1 && titleRect.right <= contentRect.right + 1,
               horizontalOverflow: section.scrollWidth > section.clientWidth + 1,
-              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 2,
+              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 1,
             });
             if (index < order.length - 1) {
               document.getElementById(${forward ? "'obNext'" : "'obBack'"}).click();

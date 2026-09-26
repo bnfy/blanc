@@ -225,8 +225,8 @@ select {
   background-size: 10px 6px;
 }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 1px solid var(--text-dim);
+  outline-offset: 0;
 }
 input[type="text"] { flex: 1 1 auto; }
 
@@ -447,8 +447,12 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 }
 .icon-swatch.active { color: var(--text); }
 .icon-swatch:focus-visible { outline: none; }
-.icon-swatch:is(.active, :focus-visible) img {
+.icon-swatch.active img {
   outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.icon-swatch:focus-visible img {
+  outline: 1px solid var(--text-dim);
   outline-offset: 3px;
 }
 
@@ -919,7 +923,7 @@ a.ledger-label:hover { color: var(--accent); }
   filter: brightness(1.16);
 }
 .js-patron-callout a:focus-visible {
-  outline: 2px solid var(--patron-gold);
+  outline: 1px solid var(--text-dim);
   outline-offset: 4px;
   border-radius: 999px;
 }
@@ -1015,7 +1019,7 @@ body[data-layout="billboard"] .migration-checklist-shell {
 .migration-task:focus-visible,
 .migration-checklist-hide:focus-visible,
 .migration-checklist-compact:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--text-dim);
   outline-offset: 3px;
 }
 .migration-task-check {
@@ -2105,7 +2109,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .footer-right { display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap; }
 #mahjongLink { color: var(--text-dim); text-decoration: none; }
 #mahjongLink:hover { color: var(--text); text-decoration: underline; }
-#mahjongLink:focus-visible { color: var(--text); outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+#mahjongLink:focus-visible { color: var(--text); outline: 1px solid var(--text-dim); outline-offset: 3px; border-radius: 2px; }
 
 /* Shared group chip (billboard, shelf, tally) */
 .group-chip {
@@ -2216,7 +2220,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   transform: scale(1);
 }
 .bb-site-dismiss:hover { border-color: var(--text-dim); }
-.bb-site-dismiss:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+.bb-site-dismiss:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 .page-sr-only {
   position: absolute;
   width: 1px;
