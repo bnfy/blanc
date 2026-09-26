@@ -25,7 +25,7 @@ fs.mkdirSync(path.join(root, 'browser-home'));
 const write = (name, value) => fs.writeFileSync(path.join(profile, name), JSON.stringify(value));
 const now = Date.now();
 const DAY = 86_400_000;
-write('settings.json', { onboardingVersion: 1, adblockEnabled: false, usagePing: false, searchSuggestions: false });
+write('settings.json', { onboardingVersion: 1, usagePing: false, searchSuggestions: false });
 write('history.json', {
   entries: [
     ['https://news.ycombinator.com/', 'Hacker News', 0.1],
