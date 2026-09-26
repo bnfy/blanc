@@ -2670,7 +2670,7 @@ function overlayBounds() {
 function permissionViewBounds() {
   const { width, height } = rt().window.getContentBounds();
   const w = Math.min(560, Math.max(0, width - 24));
-  const h = 64; // bar + its 12px bottom margin, drawn by permission.html
+  const h = 84; // two-line prompt + its 12px bottom margin, drawn by permission.html
   return { x: Math.round((width - w) / 2), y: Math.max(0, height - h), width: w, height: h };
 }
 
@@ -2725,6 +2725,7 @@ function attachPermissionView() {
   view.setBounds(permissionViewBounds());
   rt().window.contentView.addChildView(view);
   rt().permissionViewAttached = true;
+  view.webContents.focus();
 }
 
 function detachPermissionView() {
@@ -6967,7 +6968,7 @@ function buildMenuForRuntime(runtime) {
       label: 'Profiles',
       submenu: [
         { label: 'New Profile Window', click: bound(() => openNewProfileWindow()) },
-        { label: 'Manage Profiles…', click: bound(() => openInternalPage('blanc://settings/')) },
+        { label: 'Manage Profiles…', click: bound(() => openInternalPage('blanc://settings/#group-profiles')) },
         { type: 'separator' },
         ...profileItems,
       ],
@@ -8447,7 +8448,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     sender.permissionPrompts.delete(id);
     pending.resolve(!!allow);
     // Last answer dismisses the floating prompt surface entirely.
-    if (sender.permissionPrompts.size === 0) detachPermissionView();
+    if (sender.permissionPrompts.size === 0) {
+      detachPermissionView();
+      const next = sender.overlayMode
+        ? liveViewContents(sender.overlayView)
+        : sender.utilitySheetUrl
+          ? liveUtilitySheet(sender)?.wc
+          : liveContents(tabs.get(sender.activeTabId));
+      next?.focus();
+    }
   });
 
   // downloads.js invokes this from its own session/DownloadItem listeners —
