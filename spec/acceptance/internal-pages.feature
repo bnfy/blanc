@@ -61,3 +61,9 @@ Feature: Internal blanc:// pages
   Scenario: Privileged browser chrome cannot navigate to web content
     When browser chrome attempts to navigate to "https://example.com"
     Then browser chrome remains on its trusted local document
+
+  @F16-9 @F16 @desktop
+  Scenario: Scrolling Settings moves its section marker
+    Given the settings page is open in the utility sheet
+    When I scroll the settings sheet to its end
+    Then the settings section marker is on Help

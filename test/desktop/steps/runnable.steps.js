@@ -571,6 +571,22 @@ Then('the utility sheet uses newly-created contents', async function () {
   assert.notStrictEqual(id, this.destroyedUtilitySheetContentsId);
 });
 
+// F16-9: the Settings sidebar marker must follow the element that actually
+// scrolls — in the utility sheet that is the card (.page), not the window.
+Given('the settings page is open in the utility sheet', async function () {
+  await this.call('openSettings');
+  await untilSurface(this, (s) => s.visible && s.ready, 'settings sheet to open');
+});
+
+When('I scroll the settings sheet to its end', async function () {
+  assert.strictEqual(await this.call('scrollSettingsSheetToEnd'), true);
+});
+
+Then('the settings section marker is on Help', async function () {
+  await waitForValue(() => this.call('settingsCurrentSection'), (value) => value === 'help',
+    'settings section marker to reach Help');
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed

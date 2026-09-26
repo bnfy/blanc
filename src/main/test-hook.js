@@ -1848,6 +1848,20 @@ function install(refs) {
         actions: [...row.querySelectorAll('.actions button')].map((button) => button.textContent)
       }))`);
     },
+    async scrollSettingsSheetToEnd() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const page = document.querySelector('body.sheet .page');
+        page.scrollTop = page.scrollHeight;
+        return true;
+      })()`);
+    },
+    async settingsCurrentSection() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.querySelector('.settings-nav a.current')?.dataset.group ?? null`);
+    },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
