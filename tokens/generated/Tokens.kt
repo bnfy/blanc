@@ -52,6 +52,46 @@ object BlancTokens {
         BlancTheme.DARK -> "rgba(245, 245, 245, 0.12)"
         BlancTheme.PRIVATE -> "rgba(245, 245, 245, 0.12)"
     }
+    fun sunriseBg(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#f7f0e5"
+        BlancTheme.DARK -> "#17130f"
+        BlancTheme.PRIVATE -> "#100d0b"
+    }
+    fun sunriseSurface(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#efe6d8"
+        BlancTheme.DARK -> "#2d251d"
+        BlancTheme.PRIVATE -> "#251d17"
+    }
+    fun sunriseSurfaceRaised(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#fffcf7"
+        BlancTheme.DARK -> "#221d17"
+        BlancTheme.PRIVATE -> "#1a1511"
+    }
+    fun sunriseBorder(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#ddd2c2"
+        BlancTheme.DARK -> "#4a3e31"
+        BlancTheme.PRIVATE -> "#594a39"
+    }
+    fun sunriseText(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#12100b"
+        BlancTheme.DARK -> "#f7f0e5"
+        BlancTheme.PRIVATE -> "#f8f0e4"
+    }
+    fun sunriseTextDim(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#6b6257"
+        BlancTheme.DARK -> "#b8aa98"
+        BlancTheme.PRIVATE -> "#b5a38f"
+    }
+    fun sunriseAccent(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "#805d28"
+        BlancTheme.DARK -> "#d4ad66"
+        BlancTheme.PRIVATE -> "#d4ad66"
+    }
+    fun sunriseAccentDim(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "rgba(128, 93, 40, 0.16)"
+        BlancTheme.DARK -> "rgba(212, 173, 102, 0.2)"
+        BlancTheme.PRIVATE -> "rgba(212, 173, 102, 0.2)"
+    }
     fun danger(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "#ff3b30"
         BlancTheme.DARK -> "#ff453a"

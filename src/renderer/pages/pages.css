@@ -43,11 +43,19 @@
   --accent-dim: rgba(17, 17, 17, 0.08);
   --danger: #ff3b30;
   --on-danger: #ffffff;
-  /* Patron is the one product surface allowed to carry Sunrise warmth. */
+  /* Patron's own gold. Blanc's warm surfaces use the --sunrise-* palette. */
   --patron-gold: #d4ad66;
   --patron-surface: #12100b;
   --patron-label: #f7f0e5;
   --patron-halo: rgba(128, 93, 40, 0.24);
+  --sunrise-bg: #f7f0e5;
+  --sunrise-surface: #efe6d8;
+  --sunrise-surface-raised: #fffcf7;
+  --sunrise-border: #ddd2c2;
+  --sunrise-text: #12100b;
+  --sunrise-text-dim: #6b6257;
+  --sunrise-accent: #805d28;
+  --sunrise-accent-dim: rgba(128, 93, 40, 0.16);
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-display: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
@@ -72,6 +80,14 @@
     --danger: #ff453a;
     --on-danger: #0e0e0e;
     --patron-halo: rgba(212, 173, 102, 0.26);
+    --sunrise-bg: #17130f;
+    --sunrise-surface: #2d251d;
+    --sunrise-surface-raised: #221d17;
+    --sunrise-border: #4a3e31;
+    --sunrise-text: #f7f0e5;
+    --sunrise-text-dim: #b8aa98;
+    --sunrise-accent: #d4ad66;
+    --sunrise-accent-dim: rgba(212, 173, 102, 0.2);
     --select-caret: url("select-caret-dark.svg");
   }
 }
@@ -91,6 +107,14 @@
   --danger: #ff453a;
   --on-danger: #0a0a0a;
   --patron-halo: rgba(212, 173, 102, 0.26);
+  --sunrise-bg: #100d0b;
+  --sunrise-surface: #251d17;
+  --sunrise-surface-raised: #1a1511;
+  --sunrise-border: #594a39;
+  --sunrise-text: #f8f0e4;
+  --sunrise-text-dim: #b5a38f;
+  --sunrise-accent: #d4ad66;
+  --sunrise-accent-dim: rgba(212, 173, 102, 0.2);
   --select-caret: url("select-caret-dark.svg");
 }
 
