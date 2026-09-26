@@ -114,6 +114,7 @@
   <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
     <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
       <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
+      <span class="migration-compact-label" aria-hidden="true">finish setup</span>
       <span class="page-sr-only">Open moving-in checklist</span>
     </button>
     <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
@@ -164,9 +165,9 @@
        Markup and values transcribed from the prototype; the scrim covers the
        page and is deliberately not a dismiss target. -->
   <div id="onboardScrim" class="ob-scrim" hidden></div>
-  <div id="onboardDialog" class="ob-dialog" role="dialog" aria-modal="true" aria-labelledby="obStepLabel" hidden>
+  <div id="onboardDialog" class="ob-dialog" role="dialog" aria-modal="true" aria-labelledby="obActiveTitle" aria-describedby="obStepLabel" hidden>
     <div class="ob-head">
-      <span id="obStepLabel" class="ob-step-label"></span>
+      <span id="obStepLabel" class="ob-step-label" aria-live="polite"></span>
       <button id="obSkip" class="ob-skip" type="button">skip setup</button>
     </div>
     <div id="obContent" class="ob-content">
@@ -253,11 +254,11 @@
         <h1>Pick your ink</h1>
         <p>Paper by day, ink by night. Change anytime with /theme.</p>
         <div class="ob-theme-row">
-          <button id="obThemeLight" class="ob-theme-card" type="button">
+          <button id="obThemeLight" class="ob-theme-card" type="button" aria-pressed="false">
             <span class="ob-theme-preview ob-theme-preview-light"><span></span></span>
             <span class="ob-theme-caption"><span>light</span><span class="ob-theme-mark"></span></span>
           </button>
-          <button id="obThemeDark" class="ob-theme-card" type="button">
+          <button id="obThemeDark" class="ob-theme-card" type="button" aria-pressed="false">
             <span class="ob-theme-preview ob-theme-preview-dark"><span></span></span>
             <span class="ob-theme-caption"><span>dark</span><span class="ob-theme-mark"></span></span>
           </button>

@@ -74,6 +74,8 @@
     dots.forEach((dot, i) => dot.classList.toggle('on', i === state.step));
     sections.forEach((section) => {
       section.hidden = Number(section.dataset.step) !== state.step;
+      const heading = section.querySelector('h1');
+      if (heading) heading.id = section.hidden ? '' : 'obActiveTitle';
     });
 
     // Set-default CTA: primary at rest; confirmed-secondary once set; plain
@@ -98,9 +100,13 @@
 
     themeLight.classList.toggle('selected', state.theme === 'light');
     themeDark.classList.toggle('selected', state.theme === 'dark');
+    themeLight.setAttribute('aria-pressed', String(state.theme === 'light'));
+    themeDark.setAttribute('aria-pressed', String(state.theme === 'dark'));
   }
 
   function renderSources() {
+    const focusedSource = sourceList.contains(document.activeElement)
+      ? document.activeElement.dataset.sourceId : null;
     sourceList.replaceChildren();
     for (const source of state.sources) {
       if (source.unavailable) {
@@ -119,6 +125,8 @@
       const row = document.createElement('button');
       row.type = 'button';
       row.className = 'ob-src-row' + (state.importSource === source.id ? ' selected' : '');
+      row.dataset.sourceId = source.id;
+      row.setAttribute('aria-pressed', String(state.importSource === source.id));
       const radio = document.createElement('span');
       radio.className = 'ob-radio';
       radio.appendChild(document.createElement('span'));
@@ -135,11 +143,32 @@
       });
       sourceList.appendChild(row);
     }
+    if (focusedSource) {
+      [...sourceList.querySelectorAll('button')]
+        .find((button) => button.dataset.sourceId === focusedSource)?.focus();
+    }
   }
+
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const controls = [...dialog.querySelectorAll('button:not([disabled])')]
+      .filter((button) => button.getClientRects().length);
+    if (!controls.length) return;
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   /** Runs fn under the transition lock; re-entry is a silent no-op. */
   async function withBusy(fn) {
     if (state.busy) return;
+    const restoreFocus = dialog.contains(document.activeElement) ? document.activeElement : null;
     state.busy = true;
     sync();
     try {
@@ -147,6 +176,9 @@
     } finally {
       state.busy = false;
       sync();
+      if (!dialog.hidden && restoreFocus?.isConnected && !restoreFocus.disabled) {
+        restoreFocus.focus({ preventScroll: true });
+      }
     }
   }
 
@@ -256,6 +288,12 @@
     scrim.hidden = true;
     dialog.hidden = true;
     setBackgroundInert(false);
+    const layout = document.body.dataset.layout ?? 'ledger';
+    const heading = document.getElementById(`layout${layout[0].toUpperCase()}${layout.slice(1)}`)?.querySelector('h1');
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus();
+    }
     // The initial layout rendered before consent and was deliberately ignored
     // by main. Report it now that the user's saved choice permits measurement;
     // the process sender dedupes it against later re-renders.

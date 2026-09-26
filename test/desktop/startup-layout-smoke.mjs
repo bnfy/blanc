@@ -89,7 +89,7 @@ try {
   const readyUrl = 'blanc://newtab/?startup-layout-check=1';
   await callTestHook(app, 'openTabInWindow', ['primary', readyUrl]);
   const readyPage = await waitForValue(async () => (await app.windows()).find((p) => p.url() === readyUrl), Boolean, 'ready new tab');
-  await readyPage.waitForFunction(() => document.getElementById('bbDate')?.textContent);
+  await readyPage.waitForFunction(() => document.getElementById('startDate')?.textContent);
   assert.equal(await readyPage.locator('#startupCard').isVisible(), false);
   assert.equal(await readyPage.locator('#layoutBillboard').isVisible(), true, 'saved layout returns after recovery');
   console.log('startup-layout-smoke PASS: recovery reachable in four layouts at two sizes; saved session restored and queued external URL selected once');
