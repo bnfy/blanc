@@ -1512,7 +1512,7 @@ body.sheet .page h1:focus { outline: none; }
 }
 
 /* ---------- tab-import wizard shell (blanc://tab-import/) ---------- */
-body.sheet .tab-import-page { max-width: 960px; padding-bottom: 32px; }
+body.sheet .tab-import-page { padding-bottom: 32px; }
 body.sheet .tab-import-page .page-nav {
   margin-bottom: 22px;
   padding-top: 22px;
