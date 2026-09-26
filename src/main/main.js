@@ -6799,9 +6799,13 @@ function formatAccelerator(accelerator) {
   const KEYS = { Left: '←', Right: '→', Up: '↑', Down: '↓', Plus: '+' };
   const label = KEYS[key] ?? key;
   if (process.platform !== 'darwin') {
-    return [...parts.map((m) => (m === 'CmdOrCtrl' || m === 'CommandOrControl' ? 'Ctrl' : m)), label].join('+');
+    const OTHER = { CmdOrCtrl: 'Ctrl', CommandOrControl: 'Ctrl', Control: 'Ctrl' };
+    return [...parts.map((m) => OTHER[m] ?? m), label].join('+');
   }
-  const MAC = { CmdOrCtrl: '⌘', CommandOrControl: '⌘', Cmd: '⌘', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧' };
+  const MAC = {
+    CmdOrCtrl: '⌘', CommandOrControl: '⌘', Command: '⌘', Cmd: '⌘',
+    Control: '⌃', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧',
+  };
   const order = ['⌃', '⌥', '⇧', '⌘'];
   const mods = parts.map((m) => MAC[m] ?? m).sort((a, b) => order.indexOf(a) - order.indexOf(b));
   return [...mods, label].join('');
