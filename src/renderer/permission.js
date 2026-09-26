@@ -41,7 +41,6 @@
       // toggleAttribute — SVGElement has no hidden IDL property.
       permGlyphMic.toggleAttribute('hidden', !(isMedia && activePermissionPrompt.mediaTypes.includes('audio')));
       permGlyphCam.toggleAttribute('hidden', !(isMedia && activePermissionPrompt.mediaTypes.includes('video')));
-      permBlockBtn.focus();
     }
   }
 
@@ -53,11 +52,6 @@
 
   permAllowBtn.addEventListener('click', () => answerPermissionPrompt(true));
   permBlockBtn.addEventListener('click', () => answerPermissionPrompt(false));
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || !activePermissionPrompt) return;
-    event.preventDefault();
-    answerPermissionPrompt(false);
-  });
 
   window.browserAPI.onPermissionPrompt((payload) => {
     // Main replays pending prompts on this document's first load; a replayed

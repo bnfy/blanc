@@ -2906,7 +2906,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   box-sizing: border-box;
   overscroll-behavior: contain;
 }
-.ob-dialog :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ob-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 0; }
 .ob-step-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; }
 .ob-skip {
