@@ -788,7 +788,7 @@
 
     refreshPermissions();
   } else {
-    document.getElementById('permissionList')?.closest('.group-subsection')?.remove();
+    document.getElementById('sitePermissionsCard')?.remove();
   }
 
   // --- Ad-block exceptions ---
@@ -867,7 +867,7 @@
 
     refreshExceptions();
   } else {
-    document.getElementById('exceptionInput')?.closest('.group-subsection')?.remove();
+    document.getElementById('adblockExceptionsBlock')?.remove();
   }
 
   // --- Clear browsing data ---
@@ -889,6 +889,12 @@
       if (prev && prev.tagName === 'H3') prev.remove();
       clearRow.remove();
     }
+  }
+
+  // A Privacy card whose every control was removed above (unsupported on this
+  // platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+    if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 
   // --- Sync ---

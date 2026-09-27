@@ -733,6 +733,8 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   border-radius: var(--radius);
   padding: 12px 20px;
 }
+.card-title { margin: 12px 0 2px; font-size: 13px; font-weight: 600; color: var(--text); }
+.settings-group .settings-card + .settings-card { margin-top: 12px; }
 /* The last row in a card sits right above its own border — a trailing
    hairline there would double up against it. */
 .settings-card > .setting:last-child { border-bottom: none; }
@@ -3314,9 +3316,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .sync-setup-header h3 {
   margin: 0 0 8px;
-  font-size: clamp(22px, 3vw, 28px);
+  font-size: 16px;
   line-height: 1.15;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 .sync-setup-header p {
   margin: 0;
