@@ -305,6 +305,22 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   flex-direction: column;
   gap: 2px;
 }
+.row-icon {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.row-icon img { width: 16px; height: 16px; display: block; }
+.row-icon.fallback {
+  background: var(--surface);
+  color: var(--text-dim);
+  font: 600 9px/1 var(--font-ui);
+}
 .row .title {
   overflow: hidden;
   text-overflow: ellipsis;

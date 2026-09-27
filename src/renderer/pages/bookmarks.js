@@ -285,7 +285,7 @@
     });
     actions.append(folderBtn, remove);
 
-    el.append(main, meta, actions);
+    el.append(window.blancRowIcon.rowIcon(document, b.url, b.favicon), main, meta, actions);
     return el;
   }
 

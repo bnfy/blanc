@@ -597,6 +597,18 @@ Then('the utility sheet uses the Sunrise palette', async function () {
   });
 });
 
+// F9-3: seedFavorite stores a production-accepted PNG unless told otherwise.
+Given('a favorite for {string} with a saved icon', async function (url) {
+  await this.call('seedFavorite', url, 'Icon example');
+});
+
+Then('every favorites row shows a site icon', async function () {
+  const icons = await waitForValue(() => this.call('utilitySheetRowIcons'), (rows) => rows?.length > 0,
+    'favorites rows');
+  assert.ok(icons.every((row) => row.image || row.letter), JSON.stringify(icons));
+  assert.ok(icons.some((row) => row.image), 'the saved PNG favicon renders as an image');
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed

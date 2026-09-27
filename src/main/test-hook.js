@@ -1871,6 +1871,14 @@ function install(refs) {
         currentNav: getComputedStyle(document.querySelector('.page-nav a.current')).color,
       }))()`);
     },
+    async utilitySheetRowIcons() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.row')].map((row) => {
+        const icon = row.querySelector('.row-icon');
+        return { image: !!icon?.querySelector('img'), letter: icon?.classList.contains('fallback') ? icon.textContent : '' };
+      })`);
+    },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
