@@ -2097,3 +2097,39 @@ grouping or site icons.
   `@F16-9` and `@F16-10`. `@F33-2` and `@F38-3` fail identically on untouched
   `origin/main` on this Mac; `@F32-1` fails only as fallout from `@F33-2` and
   passes on its own.
+
+# Non-island polish A2 design QA — 2026-09-27
+
+**Final result:** passed, pending owner review of the captures
+
+## Scope
+
+Favorites, History, Downloads, Settings (Privacy & Security) and the Bring
+Your Tabs empty state, compared with `origin/main` at `c9a873d3`. Pairs and
+review points: `docs/design-reviews/non-island-polish/a2/README.md`.
+
+## Findings
+
+No remaining P0, P1, or P2 findings for A2's scope. Spec findings 5–9 are
+addressed: Privacy is five titled cards, long explanations fold in place,
+Downloads columns align, History groups by day, and Favorites and History
+rows carry site icons.
+
+## Constraint verification
+
+- No copy was reworded: folded explanations keep their exact text, and the
+  Settings markup diff changes only headings (checked by comparing every
+  text node and attribute).
+- History icons come from the existing local hostname cache; no network.
+- Settings removals driven by the iOS capabilities list still find their
+  targets (unit-tested).
+- The Island, strip, rail and Glance header are unchanged.
+
+## Verification
+
+- `npm run test:unit`: 1,962 passed. `npm run lint` and
+  `npm run substrate:check` passed.
+- `npm run test:acceptance:desktop`: 165 of 168 passed, including the new
+  `@F9-3`, `@F10-3` and `@F14-5`. `@F33-2` and `@F38-3` fail identically on
+  untouched `origin/main` (`c9a873d3`) on this Mac; `@F32-1` fails only as
+  fallout from `@F33-2` and passes on its own.
