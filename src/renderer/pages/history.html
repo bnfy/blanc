@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:;" />
   <title>History</title>
   <link rel="icon" type="image/png" href="icon-sunrise.png" />
   <link rel="stylesheet" href="pages.css" />
@@ -20,9 +20,11 @@
       <input id="search" type="text" placeholder="Search history" aria-label="Search history" />
       <button id="clearAll" class="danger">Clear all</button>
     </div>
-    <div id="list" class="row-list"></div>
+    <div id="list" class="row-list aligned with-icons"></div>
   </div>
   <script src="sheet.js"></script>
+  <script src="row-icon.js"></script>
+  <script src="history-groups.js"></script>
   <script src="history.js"></script>
 </body>
 </html>

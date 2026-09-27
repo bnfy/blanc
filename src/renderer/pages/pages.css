@@ -43,11 +43,19 @@
   --accent-dim: rgba(17, 17, 17, 0.08);
   --danger: #ff3b30;
   --on-danger: #ffffff;
-  /* Patron is the one product surface allowed to carry Sunrise warmth. */
+  /* Patron's own gold. Blanc's warm surfaces use the --sunrise-* palette. */
   --patron-gold: #d4ad66;
   --patron-surface: #12100b;
   --patron-label: #f7f0e5;
   --patron-halo: rgba(128, 93, 40, 0.24);
+  --sunrise-bg: #f7f0e5;
+  --sunrise-surface: #efe6d8;
+  --sunrise-surface-raised: #fffcf7;
+  --sunrise-border: #ddd2c2;
+  --sunrise-text: #12100b;
+  --sunrise-text-dim: #6b6257;
+  --sunrise-accent: #805d28;
+  --sunrise-accent-dim: rgba(128, 93, 40, 0.16);
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-display: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
@@ -72,6 +80,14 @@
     --danger: #ff453a;
     --on-danger: #0e0e0e;
     --patron-halo: rgba(212, 173, 102, 0.26);
+    --sunrise-bg: #17130f;
+    --sunrise-surface: #2d251d;
+    --sunrise-surface-raised: #221d17;
+    --sunrise-border: #4a3e31;
+    --sunrise-text: #f7f0e5;
+    --sunrise-text-dim: #b8aa98;
+    --sunrise-accent: #d4ad66;
+    --sunrise-accent-dim: rgba(212, 173, 102, 0.2);
     --select-caret: url("select-caret-dark.svg");
   }
 }
@@ -91,6 +107,14 @@
   --danger: #ff453a;
   --on-danger: #0a0a0a;
   --patron-halo: rgba(212, 173, 102, 0.26);
+  --sunrise-bg: #100d0b;
+  --sunrise-surface: #251d17;
+  --sunrise-surface-raised: #1a1511;
+  --sunrise-border: #594a39;
+  --sunrise-text: #f8f0e4;
+  --sunrise-text-dim: #b5a38f;
+  --sunrise-accent: #d4ad66;
+  --sunrise-accent-dim: rgba(212, 173, 102, 0.2);
   --select-caret: url("select-caret-dark.svg");
 }
 
@@ -201,8 +225,8 @@ select {
   background-size: 10px 6px;
 }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 1px solid var(--text-dim);
+  outline-offset: 0;
 }
 input[type="text"] { flex: 1 1 auto; }
 
@@ -225,9 +249,9 @@ a.patron-checkout {
   display: inline-block;
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--surface-raised);
-  background: var(--accent);
-  border: 1px solid var(--accent);
+  color: var(--bg);
+  background: var(--text);
+  border: 1px solid var(--text);
   border-radius: var(--radius);
   padding: 5px 12px;
   text-decoration: none;
@@ -252,6 +276,11 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   display: inline-block;
 }
 .link-button:hover { color: var(--text); border-color: var(--text-dim); }
+/* Warm sheets: secondary controls read at full contrast, never dimmed
+   (spec §5.3). :where() keeps element-level specificity so every class-level
+   button colour (primary, danger hover, close) still wins. */
+:where(body.sheet) button,
+:where(body.sheet) .link-button { color: var(--text); }
 
 .hint.field-error { color: var(--danger); }
 
@@ -276,6 +305,47 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   flex-direction: column;
   gap: 2px;
 }
+.row-icon {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.row-icon img { width: 16px; height: 16px; display: block; }
+.row-icon.fallback {
+  background: var(--surface);
+  color: var(--text-dim);
+  font: 600 9px/1 var(--font-ui);
+}
+/* Lists whose columns line up across rows. Rows join the list's grid through
+   subgrid, so the widest meta and action cells set each column and a row with
+   hidden or no actions still reserves the space. */
+.row-list.aligned { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content; column-gap: 12px; }
+.row-list.aligned.with-icons { grid-template-columns: 16px minmax(0, 1fr) max-content max-content; }
+.row-list.aligned > .row { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; }
+.row-list.aligned > :not(.row) { grid-column: 1 / -1; }
+.row-list.aligned .meta { text-align: right; }
+.day-heading {
+  margin: 20px 0 6px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.day-heading:first-child { margin-top: 4px; }
+.row .title.file-name { display: flex; min-width: 0; }
+.row .title.file-name .stem { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .title.file-name .ext { flex: none; }
+.row .meta[data-state="completed"]::before { content: "✓ "; }
+.row .meta[data-state="cancelled"]::before { content: "– "; }
+.row .meta[data-state="interrupted"] { color: var(--danger); }
+.row .meta[data-state="interrupted"]::before { content: "! "; }
 .row .title {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -349,6 +419,21 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   min-width: 160px;
 }
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
+.setting .label .hint.folded {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.hint-toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
 .setting > select,
 .setting > .settings-select {
   /* Native selects use their longest option as an intrinsic minimum. Let the
@@ -418,8 +503,12 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 }
 .icon-swatch.active { color: var(--text); }
 .icon-swatch:focus-visible { outline: none; }
-.icon-swatch:is(.active, :focus-visible) img {
+.icon-swatch.active img {
   outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.icon-swatch:focus-visible img {
+  outline: 1px solid var(--text-dim);
   outline-offset: 3px;
 }
 
@@ -659,6 +748,8 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   border-radius: var(--radius);
   padding: 12px 20px;
 }
+.card-title { margin: 12px 0 2px; font-size: 13px; font-weight: 600; color: var(--text); }
+.settings-group .settings-card + .settings-card { margin-top: 12px; }
 /* The last row in a card sits right above its own border — a trailing
    hairline there would double up against it. */
 .settings-card > .setting:last-child { border-bottom: none; }
@@ -890,7 +981,7 @@ a.ledger-label:hover { color: var(--accent); }
   filter: brightness(1.16);
 }
 .js-patron-callout a:focus-visible {
-  outline: 2px solid var(--patron-gold);
+  outline: 1px solid var(--text-dim);
   outline-offset: 4px;
   border-radius: 999px;
 }
@@ -986,7 +1077,7 @@ body[data-layout="billboard"] .migration-checklist-shell {
 .migration-task:focus-visible,
 .migration-checklist-hide:focus-visible,
 .migration-checklist-compact:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--text-dim);
   outline-offset: 3px;
 }
 .migration-task-check {
@@ -1332,7 +1423,19 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
    stay usable at the 640×480 window minimum. */
 html:has(body.sheet) { background: transparent; }
 body.sheet {
-  background: rgba(14, 14, 14, 0.18);
+  /* Sunrise pages, ink frame (spec 2026-09-26 §5.1): the sheet remaps the
+     semantic tokens to the shared Sunrise palette — the Start Page's
+     .ledger-body technique — so component rules stay theme-agnostic. The
+     card is the raised surface; the scrim keeps its strength in warm ink. */
+  --bg: var(--sunrise-surface-raised);
+  --surface: var(--sunrise-surface);
+  --surface-raised: var(--sunrise-surface-raised);
+  --border: var(--sunrise-border);
+  --text: var(--sunrise-text);
+  --text-dim: var(--sunrise-text-dim);
+  --accent: var(--sunrise-accent);
+  --accent-dim: var(--sunrise-accent-dim);
+  background: rgba(18, 16, 11, 0.18);
   height: 100vh;
   min-height: 0; /* the shared rule's min-height:100% must not stretch the scrim */
   overflow: hidden;
@@ -1463,11 +1566,11 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet .shortcut-row kbd { white-space: normal; }
 }
 @media (prefers-color-scheme: dark) {
-  body.sheet { background: rgba(0, 0, 0, 0.35); }
+  body.sheet { background: rgba(18, 16, 11, 0.35); }
 }
 
 /* ---------- tab-import wizard shell (blanc://tab-import/) ---------- */
-body.sheet .tab-import-page { max-width: 960px; padding-bottom: 32px; }
+body.sheet .tab-import-page { padding-bottom: 32px; }
 body.sheet .tab-import-page .page-nav {
   margin-bottom: 22px;
   padding-top: 22px;
@@ -1721,14 +1824,14 @@ body.sheet .tab-import-page .page-nav {
 }
 .tab-import-primary {
   color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--text);
+  border-color: var(--text);
   font-weight: 600;
 }
 .tab-import-primary:hover {
   color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--text);
+  border-color: var(--text);
   filter: brightness(1.12);
 }
 .tab-import-primary:disabled,
@@ -2064,7 +2167,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .footer-right { display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap; }
 #mahjongLink { color: var(--text-dim); text-decoration: none; }
 #mahjongLink:hover { color: var(--text); text-decoration: underline; }
-#mahjongLink:focus-visible { color: var(--text); outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+#mahjongLink:focus-visible { color: var(--text); outline: 1px solid var(--text-dim); outline-offset: 3px; border-radius: 2px; }
 
 /* Shared group chip (billboard, shelf, tally) */
 .group-chip {
@@ -2175,7 +2278,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   transform: scale(1);
 }
 .bb-site-dismiss:hover { border-color: var(--text-dim); }
-.bb-site-dismiss:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+.bb-site-dismiss:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 .page-sr-only {
   position: absolute;
   width: 1px;
@@ -2906,7 +3009,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   box-sizing: border-box;
   overscroll-behavior: contain;
 }
-.ob-dialog :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ob-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 0; }
 .ob-step-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; }
 .ob-skip {
@@ -3229,9 +3331,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .sync-setup-header h3 {
   margin: 0 0 8px;
-  font-size: clamp(22px, 3vw, 28px);
+  font-size: 16px;
   line-height: 1.15;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 .sync-setup-header p {
   margin: 0;

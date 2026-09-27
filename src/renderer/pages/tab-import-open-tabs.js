@@ -10,6 +10,8 @@ const GENERIC_GROUP_NAMES = new Set([
 const UNGROUPED_LANE = '__ungrouped__';
 const EXCLUDED_LANE = '__excluded__';
 const BROWSER_ORDER = ['brave', 'chrome', 'edge', 'vivaldi', 'chromium'];
+// Named in the empty state. Must match BROWSERS in src/main/browser-data-import.js (unit-tested).
+const SUPPORTED_BROWSER_NAMES = ['Google Chrome', 'Microsoft Edge', 'Brave', 'Chromium', 'Vivaldi'];
 const BROWSER_META = Object.freeze({
   brave: { name: 'Brave', image: 'import-browser-brave.png' },
   chrome: { name: 'Google Chrome', image: 'import-browser-chrome.png' },
@@ -370,7 +372,9 @@ async function loadSources() {
   try {
     sourceBrowserGroups = groupedSources(await api.sources());
     if (!sourceBrowserGroups.length) {
-      loading.textContent = 'No supported browser profiles found on this device.';
+      const names = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(SUPPORTED_BROWSER_NAMES);
+      loading.textContent = `Blanc can bring open tabs from ${names}, but none of them has a profile on this device. `
+        + 'To bring bookmarks from another browser, export them to an HTML file, then use “Import HTML…” in Favorites.';
       return;
     }
     selectedSourceBrowserKey = (sourceBrowserGroups.find((group) => group.sources.length)

@@ -305,6 +305,7 @@
         <section class="settings-group" id="group-privacy">
           <h2 class="group-title">Privacy &amp; Security</h2>
           <div class="settings-card">
+            <h3 class="card-title">Blocking</h3>
             <div class="setting">
               <div class="label">
                 <span>Block ads &amp; trackers</span>
@@ -316,6 +317,20 @@
               </label>
             </div>
 
+            <div id="adblockExceptionsBlock">
+              <p class="section-hint">
+                Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
+              </p>
+              <div class="toolbar-row">
+                <input id="exceptionInput" type="text" placeholder="example.com" />
+                <button id="exceptionAdd">Add</button>
+              </div>
+              <div id="exceptionList" class="row-list"></div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3 class="card-title">Calls and connections</h3>
             <div class="setting">
               <div class="label">
                 <span>IP address in video calls</span>
@@ -363,63 +378,54 @@
               </div>
               <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
             </div>
+          </div>
 
-            <div class="group-subsection" id="onePasswordSettings" hidden>
-              <h3 class="section-title">1Password</h3>
-              <p class="section-hint">
-                Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask.
-              </p>
-              <div class="setting">
-                <div class="label">
-                  <span id="onePasswordAppLabel">1Password app</span>
-                  <span class="hint" id="onePasswordAppHint"></span>
-                </div>
-                <button id="onePasswordOpenApp" type="button" hidden>Open 1Password</button>
+          <div class="settings-card" id="onePasswordSettings" hidden>
+            <h3 class="card-title">1Password</h3>
+            <p class="section-hint">
+              Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask.
+            </p>
+            <div class="setting">
+              <div class="label">
+                <span id="onePasswordAppLabel">1Password app</span>
+                <span class="hint" id="onePasswordAppHint"></span>
               </div>
-              <div class="setting">
-                <div class="label">
-                  <span id="onePasswordEnabledLabel">Fill logins from 1Password</span>
-                  <span class="hint" id="onePasswordEnabledHint">In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs</span>
-                </div>
-                <label class="toggle">
-                  <input id="onePasswordEnabled" type="checkbox" aria-labelledby="onePasswordEnabledLabel" aria-describedby="onePasswordEnabledHint" />
-                  <span class="track"></span>
-                </label>
-              </div>
-              <div class="setting">
-                <div class="label">
-                  <span id="onePasswordAccountLabel">1Password account</span>
-                  <span class="hint" id="onePasswordAccountHint">The email address you sign in to 1Password with. An account ID also works. Stored only on this device.</span>
-                </div>
-                <div class="toolbar-row">
-                  <input id="onePasswordAccount" type="text" maxlength="200" autocomplete="off" spellcheck="false" placeholder="you@example.com" aria-labelledby="onePasswordAccountLabel" aria-describedby="onePasswordAccountHint" />
-                  <button id="onePasswordVerify" type="button">Verify</button>
-                </div>
-              </div>
-              <p class="section-hint"><span id="onePasswordVerifyState" role="status"></span></p>
-              <p class="section-hint">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P.</p>
+              <button id="onePasswordOpenApp" type="button" hidden>Open 1Password</button>
             </div>
-
-            <div class="group-subsection">
-              <h3 class="section-title">Ad-block exceptions</h3>
-              <p class="section-hint">
-                Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
-              </p>
+            <div class="setting">
+              <div class="label">
+                <span id="onePasswordEnabledLabel">Fill logins from 1Password</span>
+                <span class="hint" id="onePasswordEnabledHint">In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs</span>
+              </div>
+              <label class="toggle">
+                <input id="onePasswordEnabled" type="checkbox" aria-labelledby="onePasswordEnabledLabel" aria-describedby="onePasswordEnabledHint" />
+                <span class="track"></span>
+              </label>
+            </div>
+            <div class="setting">
+              <div class="label">
+                <span id="onePasswordAccountLabel">1Password account</span>
+                <span class="hint" id="onePasswordAccountHint">The email address you sign in to 1Password with. An account ID also works. Stored only on this device.</span>
+              </div>
               <div class="toolbar-row">
-                <input id="exceptionInput" type="text" placeholder="example.com" />
-                <button id="exceptionAdd">Add</button>
+                <input id="onePasswordAccount" type="text" maxlength="200" autocomplete="off" spellcheck="false" placeholder="you@example.com" aria-labelledby="onePasswordAccountLabel" aria-describedby="onePasswordAccountHint" />
+                <button id="onePasswordVerify" type="button">Verify</button>
               </div>
-              <div id="exceptionList" class="row-list"></div>
             </div>
+            <p class="section-hint"><span id="onePasswordVerifyState" role="status"></span></p>
+            <p class="section-hint">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P.</p>
+          </div>
 
-            <div class="group-subsection">
-              <h3 class="section-title">Site permissions</h3>
-              <p class="section-hint">
-                Sites you've allowed or blocked from using your camera, microphone, location, or notifications.
-              </p>
-              <div id="permissionList" class="row-list"></div>
-            </div>
+          <div class="settings-card" id="sitePermissionsCard">
+            <h3 class="card-title">Site permissions</h3>
+            <p class="section-hint">
+              Sites you've allowed or blocked from using your camera, microphone, location, or notifications.
+            </p>
+            <div id="permissionList" class="row-list"></div>
+          </div>
 
+          <div class="settings-card">
+            <h3 class="card-title">Usage and data</h3>
             <div class="setting">
               <div class="label">
                 <span>Help improve Blanc</span>
@@ -436,7 +442,6 @@
               <span id="resetInstallIdStatus" class="section-hint"></span>
             </div>
 
-            <h3 class="section-title">Clear browsing data</h3>
             <p class="section-hint">
               Removes cookies, cache, and site data for every site. You'll be logged out of everything.
             </p>
@@ -504,6 +509,7 @@
   </div>
   <script src="sheet.js"></script>
   <script src="settings-verify-model.js"></script>
+  <script src="settings-nav-model.js"></script>
   <script src="settings-sync-setup-model.js"></script>
   <script src="settings.js"></script>
 </body>

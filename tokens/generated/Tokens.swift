@@ -74,6 +74,62 @@ public enum BlancTokens {
         case .privateBrowsing: return "rgba(245, 245, 245, 0.12)"
         }
     }
+    public static func sunriseBg(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#f7f0e5"
+        case .dark: return "#17130f"
+        case .privateBrowsing: return "#100d0b"
+        }
+    }
+    public static func sunriseSurface(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#efe6d8"
+        case .dark: return "#2d251d"
+        case .privateBrowsing: return "#251d17"
+        }
+    }
+    public static func sunriseSurfaceRaised(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#fffcf7"
+        case .dark: return "#221d17"
+        case .privateBrowsing: return "#1a1511"
+        }
+    }
+    public static func sunriseBorder(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#ddd2c2"
+        case .dark: return "#4a3e31"
+        case .privateBrowsing: return "#594a39"
+        }
+    }
+    public static func sunriseText(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#12100b"
+        case .dark: return "#f7f0e5"
+        case .privateBrowsing: return "#f8f0e4"
+        }
+    }
+    public static func sunriseTextDim(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#6b6257"
+        case .dark: return "#b8aa98"
+        case .privateBrowsing: return "#b5a38f"
+        }
+    }
+    public static func sunriseAccent(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#805d28"
+        case .dark: return "#d4ad66"
+        case .privateBrowsing: return "#d4ad66"
+        }
+    }
+    public static func sunriseAccentDim(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "rgba(128, 93, 40, 0.16)"
+        case .dark: return "rgba(212, 173, 102, 0.2)"
+        case .privateBrowsing: return "rgba(212, 173, 102, 0.2)"
+        }
+    }
     public static func danger(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "#ff3b30"

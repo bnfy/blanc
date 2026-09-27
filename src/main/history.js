@@ -53,18 +53,8 @@ function updateTitle(url, title) {
   });
 }
 
-function listHistory({ query = '', limit = 500 } = {}) {
-  const q = query.trim().toLowerCase();
-  const entries = ensureStore().data.entries;
-  const filtered = q
-    ? entries.filter((e) => e.url.toLowerCase().includes(q) || e.title.toLowerCase().includes(q))
-    : entries;
-  return filtered.slice(0, limit);
-}
-
-/** Ranked hostname-level candidates for local start-page presentation. */
-function listTopSites({ limit, offset } = {}) {
-  const data = ensureStore().data;
+/** Sanitized icon per hostname key, from the local site-icon cache. */
+function siteIconMap(data) {
   const icons = new Map();
   for (const record of Array.isArray(data.siteIcons) ? data.siteIcons : []) {
     const favicon = validFavicon(record?.favicon);
@@ -72,6 +62,23 @@ function listTopSites({ limit, offset } = {}) {
       icons.set(record.key, favicon);
     }
   }
+  return icons;
+}
+
+function listHistory({ query = '', limit = 500 } = {}) {
+  const q = query.trim().toLowerCase();
+  const data = ensureStore().data;
+  const filtered = q
+    ? data.entries.filter((e) => e.url.toLowerCase().includes(q) || e.title.toLowerCase().includes(q))
+    : data.entries;
+  const icons = siteIconMap(data);
+  return filtered.slice(0, limit).map((e) => ({ ...e, favicon: icons.get(siteKey(e.url)) ?? null }));
+}
+
+/** Ranked hostname-level candidates for local start-page presentation. */
+function listTopSites({ limit, offset } = {}) {
+  const data = ensureStore().data;
+  const icons = siteIconMap(data);
   return rankTopSites(data.entries, { limit, offset }).map((site) => ({
     ...site,
     favicon: icons.get(site.key) ?? null,

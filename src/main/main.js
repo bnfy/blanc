@@ -2697,6 +2697,15 @@ function ensurePermissionView() {
     }
   }));
   view.setBackgroundColor('#00000000');
+  // Electron focuses a brand-new view when it is first attached, which would
+  // take the keyboard from the page on the first prompt. Hand it straight
+  // back; once the prompt has loaded, a click into it keeps focus there.
+  const focusedBefore = webContents.getFocusedWebContents();
+  const handBackFocus = () => {
+    if (focusedBefore && !focusedBefore.isDestroyed()) focusedBefore.focus();
+  };
+  view.webContents.once('focus', handBackFocus);
+  view.webContents.once('did-finish-load', () => view.webContents.removeListener('focus', handBackFocus));
   lockPrivilegedNavigation(view.webContents, CHROME_PERMISSION_URL);
   installChromeShortcuts(view.webContents);
   view.webContents.loadURL(CHROME_PERMISSION_URL);
@@ -2725,7 +2734,8 @@ function attachPermissionView() {
   view.setBounds(permissionViewBounds());
   rt().window.contentView.addChildView(view);
   rt().permissionViewAttached = true;
-  view.webContents.focus();
+  // Deliberately not focused: the site chooses when this appears, and a
+  // keystroke meant for the page must never answer (and persist) a prompt.
 }
 
 function detachPermissionView() {
@@ -6789,9 +6799,13 @@ function formatAccelerator(accelerator) {
   const KEYS = { Left: '←', Right: '→', Up: '↑', Down: '↓', Plus: '+' };
   const label = KEYS[key] ?? key;
   if (process.platform !== 'darwin') {
-    return [...parts.map((m) => (m === 'CmdOrCtrl' || m === 'CommandOrControl' ? 'Ctrl' : m)), label].join('+');
+    const OTHER = { CmdOrCtrl: 'Ctrl', CommandOrControl: 'Ctrl', Control: 'Ctrl' };
+    return [...parts.map((m) => OTHER[m] ?? m), label].join('+');
   }
-  const MAC = { CmdOrCtrl: '⌘', CommandOrControl: '⌘', Cmd: '⌘', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧' };
+  const MAC = {
+    CmdOrCtrl: '⌘', CommandOrControl: '⌘', Command: '⌘', Cmd: '⌘',
+    Control: '⌃', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧',
+  };
   const order = ['⌃', '⌥', '⇧', '⌘'];
   const mods = parts.map((m) => MAC[m] ?? m).sort((a, b) => order.indexOf(a) - order.indexOf(b));
   return [...mods, label].join('');

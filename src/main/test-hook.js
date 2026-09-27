@@ -1534,7 +1534,7 @@ function install(refs) {
               opticalSizing: style.fontOpticalSizing,
               insideContent: titleRect.left >= contentRect.left - 1 && titleRect.right <= contentRect.right + 1,
               horizontalOverflow: section.scrollWidth > section.clientWidth + 1,
-              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 2,
+              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 1,
             });
             if (index < order.length - 1) {
               document.getElementById(${forward ? "'obNext'" : "'obBack'"}).click();
@@ -1837,6 +1837,7 @@ function install(refs) {
     },
     handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
+    openHistorySheet() { openInternalPage('blanc://history/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {
       const wc = getUtilitySheetWebContents();
@@ -1847,6 +1848,55 @@ function install(refs) {
         meta: row.querySelector('.meta')?.textContent ?? '',
         actions: [...row.querySelectorAll('.actions button')].map((button) => button.textContent)
       }))`);
+    },
+    async scrollSettingsSheetToEnd() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const page = document.querySelector('body.sheet .page');
+        page.scrollTop = page.scrollHeight;
+        return true;
+      })()`);
+    },
+    async settingsCurrentSection() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.querySelector('.settings-nav a.current')?.dataset.group ?? null`);
+    },
+    async utilitySheetPalette() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        text: getComputedStyle(document.body).color,
+        card: getComputedStyle(document.querySelector('.page')).backgroundColor,
+        currentNav: getComputedStyle(document.querySelector('.page-nav a.current')).color,
+      }))()`);
+    },
+    async utilitySheetRowIcons() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.row')].map((row) => {
+        const icon = row.querySelector('.row-icon');
+        return { image: !!icon?.querySelector('img'), letter: icon?.classList.contains('fallback') ? icon.textContent : '' };
+      })`);
+    },
+    async historyDayHeadings() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.day-heading')].map((h) => h.textContent)`);
+    },
+    async settingsHintState() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.setting .label .hint:not(.field-error)')]
+        .filter((hint) => hint.offsetParent)
+        .map((hint, index) => ({ index, text: hint.textContent, folded: hint.classList.contains('folded'),
+          hasToggle: hint.nextElementSibling?.classList.contains('hint-toggle') ?? false }))`);
+    },
+    async toggleFirstFoldedHint() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => { const b = document.querySelector('.hint-toggle'); b?.click(); return !!b; })()`);
     },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();

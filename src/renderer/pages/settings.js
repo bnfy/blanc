@@ -788,7 +788,7 @@
 
     refreshPermissions();
   } else {
-    document.getElementById('permissionList')?.closest('.group-subsection')?.remove();
+    document.getElementById('sitePermissionsCard')?.remove();
   }
 
   // --- Ad-block exceptions ---
@@ -867,7 +867,7 @@
 
     refreshExceptions();
   } else {
-    document.getElementById('exceptionInput')?.closest('.group-subsection')?.remove();
+    document.getElementById('adblockExceptionsBlock')?.remove();
   }
 
   // --- Clear browsing data ---
@@ -889,6 +889,12 @@
       if (prev && prev.tagName === 'H3') prev.remove();
       clearRow.remove();
     }
+  }
+
+  // A Privacy card whose every control was removed above (unsupported on this
+  // platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+    if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 
   // --- Sync ---
@@ -1106,35 +1112,23 @@
       }
     };
 
-    // Score each group by how much of *itself* is on screen, highest wins.
-    // (A fixed trigger line — the usual scroll-spy trick — fails here:
-    // Privacy & Security's card is taller than the short trailing sections combined, so
-    // near the page bottom there's no scroll room left for their headers to
-    // ever cross the line, and they'd be skipped.) On a positive tie (two
-    // short trailing sections both fully visible) the later one wins, so
-    // scrolling down keeps advancing; a zero-tie leaves `best` on the first
-    // group rather than cascading to the last.
+    // In the utility sheet the card (.page) scrolls, not the window, so the
+    // marker is scored against — and driven by — that element. Scoring rules
+    // live in settings-nav-model.js.
+    const scroller = document.querySelector('body.sheet .page') ?? window;
+    const viewBox = () => (scroller === window
+      ? { top: 0, bottom: window.innerHeight }
+      : scroller.getBoundingClientRect());
+
     function updateCurrent() {
-      // A deep-linked section owns the marker while its heading is still in
-      // the upper part of the sheet. Percentage scoring alone can select the
-      // next short section when the anchored section is also fully visible.
-      if (anchoredGroup) {
-        const anchoredRect = anchoredGroup.getBoundingClientRect();
-        if (anchoredRect.top >= 0 && anchoredRect.top < window.innerHeight * 0.45) {
-          setCurrent(anchoredGroup.id.replace('group-', ''));
-          return;
-        }
-        anchoredGroup = null;
-      }
-      let best = null;
-      let bestRatio = -1;
-      for (const group of activeGroups) {
+      const sections = activeGroups.map((group) => {
         const rect = group.getBoundingClientRect();
-        const visible = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
-        const ratio = rect.height > 0 ? visible / rect.height : 0;
-        if (ratio > bestRatio || (ratio > 0 && ratio === bestRatio)) { bestRatio = ratio; best = group; }
-      }
-      if (best) setCurrent(best.id.replace('group-', ''));
+        return { id: group.id.replace('group-', ''), top: rect.top, bottom: rect.bottom };
+      });
+      const anchoredId = anchoredGroup ? anchoredGroup.id.replace('group-', '') : null;
+      const result = window.blancSettingsNavModel.currentSection(sections, viewBox(), anchoredId);
+      if (!result.anchored) anchoredGroup = null;
+      if (result.id) setCurrent(result.id);
     }
 
     // A sidebar click pins its target through the smooth-scroll animation.
@@ -1151,7 +1145,7 @@
         ticking = false;
       });
     };
-    window.addEventListener('scroll', scheduleUpdate);
+    scroller.addEventListener('scroll', scheduleUpdate, { passive: true });
     // Setup panels can change height without scrolling (for example, choosing
     // a Sync path). Re-score then too so the sidebar never highlights the next
     // short section after the current section expands.
@@ -1176,6 +1170,45 @@
   // macOS) with opaque in-page menus. Keep the real <select> as the value
   // source so existing change listeners and programmatic .value writes work.
   enhanceSettingsSelects(document.querySelectorAll('.settings-content select'));
+
+  // Long explanations show their first two lines; More reveals the same text
+  // in place. Nothing is summarized or reworded.
+  (function foldLongHints() {
+    const hints = [...document.querySelectorAll('.setting .label .hint:not(.field-error)')];
+    const measure = () => {
+      for (const hint of hints) {
+        if (hint.dataset.userExpanded === 'true' || !hint.offsetParent) continue;
+        hint.classList.add('folded');
+        const overflowing = hint.scrollHeight > hint.clientHeight + 1;
+        let toggle = hint.nextElementSibling?.classList.contains('hint-toggle') ? hint.nextElementSibling : null;
+        if (!overflowing) {
+          hint.classList.remove('folded');
+          toggle?.remove();
+          continue;
+        }
+        if (!toggle) {
+          toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'hint-toggle';
+          toggle.textContent = 'More';
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.addEventListener('click', () => {
+            const open = hint.classList.toggle('folded') === false;
+            hint.dataset.userExpanded = String(open);
+            toggle.textContent = open ? 'Less' : 'More';
+            toggle.setAttribute('aria-expanded', String(open));
+          });
+          hint.after(toggle);
+        }
+      }
+    };
+    measure();
+    let pending = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(measure);
+    });
+  })();
 })();
 
 /** Opaque Settings picker over each remaining .settings-content <select>. */
