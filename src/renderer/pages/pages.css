@@ -339,6 +339,13 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   color: var(--text-dim);
 }
 .day-heading:first-child { margin-top: 4px; }
+.row .title.file-name { display: flex; min-width: 0; }
+.row .title.file-name .stem { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .title.file-name .ext { flex: none; }
+.row .meta[data-state="completed"]::before { content: "✓ "; }
+.row .meta[data-state="cancelled"]::before { content: "– "; }
+.row .meta[data-state="interrupted"] { color: var(--danger); }
+.row .meta[data-state="interrupted"]::before { content: "! "; }
 .row .title {
   overflow: hidden;
   text-overflow: ellipsis;

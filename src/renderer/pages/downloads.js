@@ -46,11 +46,20 @@
       const main = document.createElement('div');
       main.className = 'main';
       const title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = d.filename;
+      title.className = 'title file-name';
+      title.title = d.filename;
+      const { stem, ext } = window.blancDownloadsRow.splitFileName(d.filename);
+      const stemEl = document.createElement('span');
+      stemEl.className = 'stem';
+      stemEl.textContent = stem;
+      const extEl = document.createElement('span');
+      extEl.className = 'ext';
+      extEl.textContent = ext;
+      title.append(stemEl, extEl);
       const url = document.createElement('div');
       url.className = 'url';
-      url.textContent = d.url;
+      url.textContent = window.blancDownloadsRow.sourceLabel(d.url);
+      url.title = d.url;
       main.append(title, url);
 
       if (d.state === 'progressing' && d.totalBytes > 0) {
@@ -70,6 +79,7 @@
 
       const meta = document.createElement('div');
       meta.className = 'meta';
+      meta.dataset.state = d.state;
       meta.textContent =
         d.state === 'progressing'
           ? `${fmtBytes(d.receivedBytes)}${d.totalBytes ? ` / ${fmtBytes(d.totalBytes)}` : ''}`
