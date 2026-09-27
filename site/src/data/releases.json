@@ -1,5 +1,178 @@
 [
   {
+    "tag": "v1.23.0",
+    "version": "1.23.0",
+    "name": "1.23.0",
+    "publishedAt": "2026-09-27T21:37:54.000Z",
+    "humanDate": "September 27, 2026",
+    "machineDate": "2026-09-27",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.23.0",
+    "anchor": "v1-23-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Improved",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Settings, Favorites, History, Downloads, Shortcuts, and Bring Your Tabs now share a clearer Sunrise sheet design. Roomier cards, easier-to-scan headings, and controls that fit the minimum window size make everyday tasks less cramped."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "History groups visits by day, shows site icons, and lines up visit times. Favorites shows saved site icons or a domain-initial tile when no icon is available."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Downloads lines up status and actions across rows, identifies the source site, and keeps the extension visible on long filenames."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Privacy & Security settings are grouped by topic. Longer explanations can be expanded with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "More"
+                  },
+                  {
+                    "type": "text",
+                    "value": " without losing any of their detail."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The moving-in checklist and welcome tour are easier to use in a small window or at increased zoom."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A site permission request no longer takes keyboard focus away from the page or an open Island panel."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Settings section marker now follows scrolling, and Shortcuts shows readable key labels instead of raw accelerator names."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong's completion screen has two clear next steps. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Play Another"
+                  },
+                  {
+                    "type": "text",
+                    "value": " starts a fresh deal with the current layout and rules."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Verify the download",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Authenticate "
+                  },
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " with its Sigstore bundle using the certificate identity "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and OIDC issuer "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The same values are published on "
+                  },
+                  {
+                    "type": "link",
+                    "value": "Blanc's security page",
+                    "url": "https://blancbrowser.com/features/security"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.22.0",
     "version": "1.22.0",
     "name": "1.22.0",
