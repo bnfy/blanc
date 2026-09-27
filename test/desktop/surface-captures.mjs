@@ -1,6 +1,6 @@
 // Dev-only design-review tool: photographs every utility sheet on a throwaway
 // test profile. Usage: node test/desktop/surface-captures.mjs --out <dir>
-// macOS only (screencapture -l, sips). A Blanc window opens and closes while
+// macOS only (screencapture -l or view rendering, sips, ImageMagick). A Blanc window opens and closes while
 // it runs. Images are downscaled to 1024px wide so review sets stay small.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -75,9 +75,48 @@ try {
   }
   const windowNumber = await app.evaluate(({ BrowserWindow }) =>
     Number(BrowserWindow.getAllWindows().find((w) => w.isVisible()).getMediaSourceId().split(':')[1]));
-  const shot = (name) => {
+  // Window capture needs an unlocked, awake display. When macOS refuses it,
+  // fall back to Blanc rendering its own views (strip, tab, sheet, overlay)
+  // and stack them in their real z-order and bounds.
+  const layersDir = path.join(root, 'layers');
+  fs.mkdirSync(layersDir);
+  const composite = async (file) => {
+    const { width, layers } = await app.evaluate(async ({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows().find((w) => w.isVisible());
+      const [contentWidth, contentHeight] = win.getContentSize();
+      const out = [];
+      const add = async (wc, bounds) => {
+        if (!wc || wc.isDestroyed()) return;
+        const image = await wc.capturePage();
+        if (!image.isEmpty()) out.push({ png: image.toPNG().toString('base64'), ...bounds });
+      };
+      await add(win.webContents, { x: 0, y: 0, width: contentWidth, height: contentHeight });
+      for (const view of win.contentView.children) {
+        if (view.webContents) await add(view.webContents, view.getBounds());
+      }
+      return { width: contentWidth, layers: out };
+    });
+    const args = [];
+    let scale = 1;
+    layers.forEach((layer, i) => {
+      const layerFile = path.join(layersDir, `${i}.png`);
+      fs.writeFileSync(layerFile, Buffer.from(layer.png, 'base64'));
+      if (i === 0) {
+        scale = Number(execFileSync('magick', ['identify', '-format', '%w', layerFile]).toString()) / width;
+        args.push(layerFile);
+      } else {
+        args.push(layerFile, '-geometry', `+${Math.round(layer.x * scale)}+${Math.round(layer.y * scale)}`, '-composite');
+      }
+    });
+    execFileSync('magick', [...args, file]);
+  };
+  const shot = async (name) => {
     const file = path.join(outDir, `${name}.png`);
-    execFileSync('screencapture', [`-l${windowNumber}`, '-o', '-x', file]);
+    try {
+      execFileSync('screencapture', [`-l${windowNumber}`, '-o', '-x', file], { stdio: 'ignore' });
+    } catch {
+      await composite(file);
+    }
     execFileSync('sips', ['-Z', '1024', file], { stdio: 'ignore' });
   };
   const setScheme = (scheme) => app.evaluate(async ({ webContents, nativeTheme }, value) => {
@@ -123,7 +162,7 @@ try {
         for (let i = 0; i < (steps ?? 0); i += 1) {
           await inSheet(`(() => { const p = document.querySelector('body.sheet .page'); p.scrollTop = ${i} * (p.clientHeight - 80); return 0; })()`);
           await sleep(300);
-          shot(`${sheet}-${scheme}-${width}x${height}-${String(i + 1).padStart(2, '0')}`);
+          await shot(`${sheet}-${scheme}-${width}x${height}-${String(i + 1).padStart(2, '0')}`);
         }
       }
     }
