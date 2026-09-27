@@ -3528,3 +3528,167 @@ body:not([data-layout="ledger"]) .ledger-footer {
 @media (prefers-reduced-motion: reduce) {
   .sync-path-arrow { transition: none; }
 }
+
+/* ======================================================================
+   SYSTEM V2 PROTOTYPE (throwaway, for owner review of the direction)
+   Scale: radius 8 / 10 / 14 / 20 / full; Inter everywhere; sentence case.
+   ====================================================================== */
+body.sheet {
+  --v2-radius-sm: 8px;
+  --v2-radius-md: 10px;
+  --v2-radius-lg: 14px;
+  --v2-radius-xl: 20px;
+  --radius: var(--v2-radius-md);
+  --font-mono: var(--font-ui);
+  /* Grouped look: the sheet is the ivory page, cards sit raised on it. */
+  --bg: var(--sunrise-bg);
+  --surface: var(--sunrise-surface);
+  --surface-raised: var(--sunrise-surface-raised);
+}
+body.sheet .page {
+  border-radius: var(--v2-radius-xl);
+  padding-inline: 32px;
+  box-shadow: 0 30px 90px rgba(18, 16, 11, 0.22), 0 2px 10px rgba(18, 16, 11, 0.08);
+}
+body.sheet .meta, body.sheet .row .url, body.sheet kbd { font-variant-numeric: tabular-nums; }
+body.sheet h1 { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; }
+
+/* Sheet tabs become a segmented control. */
+body.sheet .page-nav { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 22px; }
+body.sheet .page-nav-links {
+  flex: 0 1 auto;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface);
+}
+body.sheet .page-nav a {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-dim);
+}
+body.sheet .page-nav a:hover { color: var(--text); }
+body.sheet .page-nav a.current {
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: 0 1px 3px rgba(18, 16, 11, 0.12);
+}
+body.sheet .page-nav .sheet-close {
+  flex-basis: 32px; width: 32px; height: 32px; min-height: 32px; padding: 0; margin-left: auto;
+  border-radius: 999px; border: 0; background-color: var(--surface);
+}
+
+/* Controls: taller, rounder, soft-filled secondary buttons. Only plain
+   buttons (no class) and .danger/.link-button take this; classed controls
+   (sync paths, dropdowns, More links, chips) keep their own shapes. */
+body.sheet button:not([class]), body.sheet button.danger, body.sheet .link-button {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: var(--v2-radius-md);
+  border: 1px solid transparent;
+  background-color: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+}
+body.sheet button:not([class]):hover, body.sheet button.danger:hover, body.sheet .link-button:hover {
+  background-color: var(--sunrise-border); border-color: transparent;
+}
+body.sheet button.danger { color: var(--danger); }
+body.sheet button.danger:hover { color: var(--on-danger); background-color: var(--danger); }
+body.sheet .hint-toggle, body.sheet .hint-toggle:hover {
+  min-height: 0; padding: 0; border: 0; background-color: transparent; font-size: 12px; font-weight: 500; color: var(--accent);
+}
+body.sheet .row .actions button {
+  min-height: 26px; padding: 0 10px; font-size: 12px; font-weight: 500;
+  border: 1px solid transparent; border-radius: var(--v2-radius-sm); background-color: var(--surface-raised);
+}
+body.sheet a.patron-checkout, body.sheet .tab-import-primary {
+  min-height: 32px; padding: 7px 16px; border-radius: 999px; font-weight: 600;
+}
+body.sheet input[type="text"], body.sheet input[type="url"], body.sheet input[type="password"] {
+  min-height: 36px;
+  border-radius: var(--v2-radius-md);
+  font-size: 13px;
+  padding: 0 12px;
+}
+body.sheet #patronLicenseKey, body.sheet input[autocomplete="off"][spellcheck="false"] {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+body.sheet .settings-select-trigger { min-height: 32px; padding: 0 34px 0 12px; border-radius: var(--v2-radius-md); font-size: 13px; }
+body.sheet .toggle { width: 40px; height: 24px; }
+body.sheet .toggle .track::after { top: 3px; left: 3px; width: 16px; height: 16px; box-shadow: 0 1px 2px rgba(18, 16, 11, 0.2); }
+body.sheet .toggle input:checked + .track { background: var(--accent); border-color: var(--accent); }
+body.sheet .toggle input:checked + .track::after { background: var(--surface-raised); }
+
+/* Settings: sentence-case sidebar with a pill marker; inset grouped cards. */
+body.sheet .settings-nav a {
+  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none;
+  padding: 7px 12px; border-left: 0; border-radius: var(--v2-radius-md);
+}
+body.sheet .settings-nav a.current { color: var(--text); background: var(--accent-dim); }
+body.sheet .group-title {
+  font-size: 15px; font-weight: 650; letter-spacing: -0.01em; text-transform: none; color: var(--text);
+  margin: 0 0 10px 4px;
+}
+body.sheet .settings-card {
+  border-radius: var(--v2-radius-lg);
+  padding: 6px 20px;
+  box-shadow: 0 1px 2px rgba(18, 16, 11, 0.04);
+}
+body.sheet .card-title { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-top: 14px; }
+
+/* Lists: one grouped card per list with inset separators. */
+body.sheet .row-list:not(:empty) {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--v2-radius-lg);
+  padding: 6px;
+}
+body.sheet .row { border-radius: var(--v2-radius-md); padding: 10px 12px; }
+body.sheet .day-heading { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--text-dim); margin: 14px 12px 4px; }
+body.sheet .row-icon { flex-basis: 20px; width: 20px; height: 20px; border-radius: 6px; }
+body.sheet .row-icon img { width: 20px; height: 20px; }
+body.sheet .row-list.aligned.with-icons { grid-template-columns: 20px minmax(0, 1fr) max-content max-content; }
+body.sheet .row-icon.fallback { font-size: 10px; }
+body.sheet .empty { border-radius: var(--v2-radius-lg); border-style: solid; }
+body.sheet .folder-header { border-radius: var(--v2-radius-md); }
+
+/* Lists that live inside a Settings card stay flat: no card-in-card. */
+body.sheet .settings-card .row-list, body.sheet .settings-card .row-list:not(:empty) {
+  background: none; border: 0; padding: 0;
+}
+body.sheet .settings-card .empty { background: none; border: 0; padding: 10px 0 14px; text-align: left; }
+/* Sync joins the card grammar. */
+body.sheet .sync-settings-card {
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: var(--v2-radius-lg); padding: 18px 20px;
+}
+body.sheet .sync-setup-header p { font-size: 13px; }
+body.sheet .sync-path { border-radius: var(--v2-radius-md); }
+/* Narrow Settings: the section tabs use the same pill marker, no underline. */
+@media (max-width: 719px) {
+  body.sheet .settings-nav a, body.sheet .settings-nav a.current { border-bottom: 0; }
+  body.sheet .page-head { flex-wrap: wrap; }
+  body.sheet .page-head .import-actions { width: 100%; justify-content: flex-start; margin-bottom: 12px; }
+}
+/* History and Favorites: row actions appear over the right edge on hover, so
+   times and dates sit flush right instead of beside an invisible column. */
+body.sheet .row:has(.row-icon) { position: relative; }
+body.sheet .row:has(.row-icon) .actions {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  padding-left: 16px; background: linear-gradient(90deg, transparent, var(--surface) 16px);
+}
+body.sheet .row:has(.row-icon):is(:hover, :focus-within) .meta { visibility: hidden; }
+body.sheet .row-list.aligned.with-icons { grid-template-columns: 20px minmax(0, 1fr) max-content; }
+/* Shortcuts: grouped cards like the other lists. */
+body.sheet .shortcut-list {
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: var(--v2-radius-lg); padding: 2px 16px;
+}
+body.sheet .shortcut-section .section-title { font-size: 15px; margin: 26px 0 10px 4px; }
+body.sheet .shortcut-row:last-child { border-bottom: 0; }
+body.sheet kbd { border-radius: 6px; }
