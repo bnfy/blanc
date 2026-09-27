@@ -306,6 +306,9 @@ From the desktop `DEFAULTS`:
   content **together, live, no restart**.
 - Token *names and values* are shared (→ substrate: design tokens) — do not let the
   palettes fork between platforms.
+- A second themed palette, `sunrise-*`, dresses Blanc's own pages and prompts
+  (utility pages first); surfaces remap the semantic tokens to it rather than
+  hard-coding colors. The frame around the Island stays on the neutral palette.
 - **Acceptance:** Switching to dark recolors chrome, an open `blanc://` page, and
   chrome all at once; entering a private tab applies the private scope.
 
@@ -318,7 +321,9 @@ From the desktop `DEFAULTS`:
   sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
   Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
-  sheet presentation on mobile — no divergence entry needed.
+  sheet presentation on mobile — no divergence entry needed. Utility pages share
+  one nav (Settings, Favorites, History, Downloads, in that order) and wear the
+  `sunrise-*` palette (F15).
 - The newtab ledger: date line, "Where to?", favorites, tab groups ("pick up where
   you left off" — clicking one focuses that group), footer with the weekly blocked
   count + palette hint. **No mascot** (retired in the rebrand — do not reintroduce).
@@ -327,7 +332,8 @@ From the desktop `DEFAULTS`:
 - **Acceptance:** newtab shows today's date, favorites, resumable groups, and the
   weekly blocked count; each page's nav links resolve within `blanc://`; utility
   pages open in the transient surface leaving the tab set untouched, and
-  activating a favorite from the surface opens exactly one real tab.
+  activating a favorite from the surface opens exactly one real tab; utility
+  pages wear the Sunrise palette.
 
 ## F17 — Patron & app icons
 

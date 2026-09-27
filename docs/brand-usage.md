@@ -74,7 +74,8 @@ color. Gold and muted text meet 4.5:1 contrast on the specified ivory, section,
 raised, and pale selection surfaces. Use the dark-background gold token on
 dark sections and navigation; it meets 4.5:1 on both the shared ink and the
 warm ink. The warm ink belongs to the Patron offer alone: the shared
-`--site-accent` stays neutral, and product tokens are never warmed.
+`--site-accent` stays neutral, and product surfaces are warmed only through
+the Sunrise palette described under *Desktop Sunrise surfaces* below.
 Decorative hairlines are not focus indicators; retain high-contrast outlines
 and control states.
 
@@ -88,7 +89,8 @@ glyphs use bronze (`--site-gold`), with ink hover and keyboard-focus states.
 Product screenshots, embedded demos, illustrations, downloadable press art,
 and their asset-preview backing fields retain their existing colors. Never
 substitute website tokens for shared product `--accent`, `--bg`, or other
-product variables outside the explicitly scoped Start Page treatment below.
+product variables; warm product surfaces use the product's own `--sunrise-*`
+tokens, described below.
 Both light and private-mode product replicas must retain their released colors,
 including when enlarged.
 
@@ -160,14 +162,33 @@ above, and the real layered mountain sunrise in
 `src/renderer/pages/start-page-sunrise.png`. Keep the landscape quiet in the
 upper half so operating UI stays legible. Dark and private tabs may deepen the
 same image into warm dusk with overlays; private mode must retain its explicit
-textual distinction. The treatment is scoped to the Start Page and does not
-warm the Island, Settings, or other utility pages.
+textual distinction. The Start Page keeps its landscape and translucent
+surfaces; the product's other warm surfaces follow *Desktop Sunrise surfaces*
+below.
 
 Use one straight, subtle footer divider. Do not add a hand-drawn horizon line,
 a typeset Blanc wordmark, or a large “Where to?” heading. Mahjong remains a
 standalone footer action and is never a fifth layout. Preserve the four-layout
 selector order and the existing compact Patron action; visual explorations are
 not a source for new marketing claims or replacement copy.
+
+### Desktop Sunrise surfaces
+
+**Owner decision, September 26, 2026:** Sunrise dresses Blanc's own pages and
+the questions Blanc asks you; the frame stays ink. Warm (the utility sheets
+since the A1 polish PR; the rest follows in PR B): the utility sheets
+(Settings, Favorites, History, Downloads, Keyboard Shortcuts, Bring Your
+Tabs, tab handoff), the error and certificate pages, the site permission
+prompt, the 1Password capsule and the screen-share picker. Neutral: the
+Island and everything that opens from it, the strip, the vertical tabs rail,
+the Glance header and the window controls.
+
+Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
+remapping the semantic tokens inside a scope class, never by hard-coding
+colors. Gold marks state and navigation; primary buttons stay ink on ivory
+(ivory on ink in dark mode). Inter remains the operating voice; Newsreader
+stays limited to the invitation titles. Keyboard focus on `blanc://` pages is
+one 1px ring in `--text-dim`; Mahjong keeps its own.
 
 ### Desktop invitation voice
 

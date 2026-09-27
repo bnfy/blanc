@@ -1106,35 +1106,23 @@
       }
     };
 
-    // Score each group by how much of *itself* is on screen, highest wins.
-    // (A fixed trigger line — the usual scroll-spy trick — fails here:
-    // Privacy & Security's card is taller than the short trailing sections combined, so
-    // near the page bottom there's no scroll room left for their headers to
-    // ever cross the line, and they'd be skipped.) On a positive tie (two
-    // short trailing sections both fully visible) the later one wins, so
-    // scrolling down keeps advancing; a zero-tie leaves `best` on the first
-    // group rather than cascading to the last.
+    // In the utility sheet the card (.page) scrolls, not the window, so the
+    // marker is scored against — and driven by — that element. Scoring rules
+    // live in settings-nav-model.js.
+    const scroller = document.querySelector('body.sheet .page') ?? window;
+    const viewBox = () => (scroller === window
+      ? { top: 0, bottom: window.innerHeight }
+      : scroller.getBoundingClientRect());
+
     function updateCurrent() {
-      // A deep-linked section owns the marker while its heading is still in
-      // the upper part of the sheet. Percentage scoring alone can select the
-      // next short section when the anchored section is also fully visible.
-      if (anchoredGroup) {
-        const anchoredRect = anchoredGroup.getBoundingClientRect();
-        if (anchoredRect.top >= 0 && anchoredRect.top < window.innerHeight * 0.45) {
-          setCurrent(anchoredGroup.id.replace('group-', ''));
-          return;
-        }
-        anchoredGroup = null;
-      }
-      let best = null;
-      let bestRatio = -1;
-      for (const group of activeGroups) {
+      const sections = activeGroups.map((group) => {
         const rect = group.getBoundingClientRect();
-        const visible = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
-        const ratio = rect.height > 0 ? visible / rect.height : 0;
-        if (ratio > bestRatio || (ratio > 0 && ratio === bestRatio)) { bestRatio = ratio; best = group; }
-      }
-      if (best) setCurrent(best.id.replace('group-', ''));
+        return { id: group.id.replace('group-', ''), top: rect.top, bottom: rect.bottom };
+      });
+      const anchoredId = anchoredGroup ? anchoredGroup.id.replace('group-', '') : null;
+      const result = window.blancSettingsNavModel.currentSection(sections, viewBox(), anchoredId);
+      if (!result.anchored) anchoredGroup = null;
+      if (result.id) setCurrent(result.id);
     }
 
     // A sidebar click pins its target through the smooth-scroll animation.
@@ -1151,7 +1139,7 @@
         ticking = false;
       });
     };
-    window.addEventListener('scroll', scheduleUpdate);
+    scroller.addEventListener('scroll', scheduleUpdate, { passive: true });
     // Setup panels can change height without scrolling (for example, choosing
     // a Sync path). Re-score then too so the sidebar never highlights the next
     // short section after the current section expands.

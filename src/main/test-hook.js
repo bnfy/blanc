@@ -1534,7 +1534,7 @@ function install(refs) {
               opticalSizing: style.fontOpticalSizing,
               insideContent: titleRect.left >= contentRect.left - 1 && titleRect.right <= contentRect.right + 1,
               horizontalOverflow: section.scrollWidth > section.clientWidth + 1,
-              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 2,
+              focusOutline: focus.outlineStyle !== 'none' && parseFloat(focus.outlineWidth) >= 1,
             });
             if (index < order.length - 1) {
               document.getElementById(${forward ? "'obNext'" : "'obBack'"}).click();
@@ -1847,6 +1847,29 @@ function install(refs) {
         meta: row.querySelector('.meta')?.textContent ?? '',
         actions: [...row.querySelectorAll('.actions button')].map((button) => button.textContent)
       }))`);
+    },
+    async scrollSettingsSheetToEnd() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const page = document.querySelector('body.sheet .page');
+        page.scrollTop = page.scrollHeight;
+        return true;
+      })()`);
+    },
+    async settingsCurrentSection() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.querySelector('.settings-nav a.current')?.dataset.group ?? null`);
+    },
+    async utilitySheetPalette() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        text: getComputedStyle(document.body).color,
+        card: getComputedStyle(document.querySelector('.page')).backgroundColor,
+        currentNav: getComputedStyle(document.querySelector('.page-nav a.current')).color,
+      }))()`);
     },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();

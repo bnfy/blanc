@@ -2063,3 +2063,37 @@ There are no remaining actionable P0, P1, or P2 findings.
 - ESLint, design-token checks, and git diff whitespace validation passed.
 
 final result: passed
+
+# Non-island polish A1 design QA — 2026-09-27
+
+**Final result:** passed, pending owner review of the captures
+
+## Scope
+
+The seven utility sheets in light and dark at 1280×800 and 640×480, compared
+with `origin/main` at `4fbe89fc`. Curated pairs and review points are in
+`docs/design-reviews/non-island-polish/a1/README.md`.
+
+## Findings
+
+No remaining P0, P1, or P2 findings for A1's scope. Known and planned for A2:
+the Downloads status column still shifts by row, and History has no day
+grouping or site icons.
+
+## Constraint verification
+
+- Only `body.sheet` pages are warm; the Island, strip, rail and Glance header
+  are unchanged.
+- Primary buttons stay ink; gold marks the current tab, section, toggles and
+  links.
+- Every Sunrise text and background pair is at least 4.5:1 (unit test).
+- Inter stays the operating voice; no Newsreader added.
+
+## Verification
+
+- `npm run test:unit`: 1,948 passed. `npm run lint` and
+  `npm run substrate:check` passed.
+- `npm run test:acceptance:desktop`: 162 of 165 passed, including the new
+  `@F16-9` and `@F16-10`. `@F33-2` and `@F38-3` fail identically on untouched
+  `origin/main` on this Mac; `@F32-1` fails only as fallout from `@F33-2` and
+  passes on its own.

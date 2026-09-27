@@ -571,6 +571,32 @@ Then('the utility sheet uses newly-created contents', async function () {
   assert.notStrictEqual(id, this.destroyedUtilitySheetContentsId);
 });
 
+// F16-9: the Settings sidebar marker must follow the element that actually
+// scrolls — in the utility sheet that is the card (.page), not the window.
+Given('the settings page is open in the utility sheet', async function () {
+  await this.call('openSettings');
+  await untilSurface(this, (s) => s.visible && s.ready, 'settings sheet to open');
+});
+
+When('I scroll the settings sheet to its end', async function () {
+  assert.strictEqual(await this.call('scrollSettingsSheetToEnd'), true);
+});
+
+Then('the settings section marker is on Help', async function () {
+  await waitForValue(() => this.call('settingsCurrentSection'), (value) => value === 'help',
+    'settings section marker to reach Help');
+});
+
+// F16-10: acceptance runs pin the light scheme, so light values are expected.
+Then('the utility sheet uses the Sunrise palette', async function () {
+  const palette = await waitForValue(() => this.call('utilitySheetPalette'), Boolean, 'sheet palette');
+  assert.deepStrictEqual(palette, {
+    text: 'rgb(18, 16, 11)', // --sunrise-text #12100b
+    card: 'rgb(255, 252, 247)', // --sunrise-surface-raised #fffcf7
+    currentNav: 'rgb(128, 93, 40)', // --sunrise-accent #805d28
+  });
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed
