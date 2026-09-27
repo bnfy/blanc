@@ -59,9 +59,20 @@
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-display: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --type-body-size: 13px;
+  --type-page-title-size: 24px;
+  --type-page-title-weight: 650;
+  --type-page-title-tracking: -0.015em;
+  --type-section-title-size: 15px;
+  --type-section-title-weight: 650;
+  --type-card-title-size: 12px;
+  --type-card-title-weight: 600;
   --radius: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
   /* File, not data: URI — the pages' CSP has no img-src data: allowance,
      and CSS can't recolor a background image, hence one SVG per theme. */
   --select-caret: url("select-caret.svg");
@@ -177,6 +188,31 @@ html, body {
 }
 .page-nav a:hover { color: var(--text); }
 .page-nav a.current { color: var(--accent); }
+body.sheet .page-nav {
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+body.sheet .page-nav-links {
+  flex: 0 1 auto;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+}
+body.sheet .page-nav a {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--type-body-size);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+body.sheet .page-nav a.current {
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: 0 1px 3px rgba(18, 16, 11, 0.12);
+}
 
 h1 {
   font-size: 20px;
@@ -210,7 +246,7 @@ input[type="text"], input[type="url"], input[type="password"], select {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12.5px;
   padding: 6px 10px;
 }
@@ -281,6 +317,64 @@ a.patron-checkout:hover { filter: brightness(1.05); }
    button colour (primary, danger hover, close) still wins. */
 :where(body.sheet) button,
 :where(body.sheet) .link-button { color: var(--text); }
+/* Utility-sheet controls share one soft secondary treatment. Classed controls
+   such as Sync choices, select triggers, and disclosure links keep their own
+   shapes; background-color preserves the select trigger's caret image. */
+body.sheet button:not([class]),
+body.sheet button.danger,
+body.sheet .link-button {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: var(--type-body-size);
+  font-weight: 500;
+}
+body.sheet button:not([class]):hover,
+body.sheet button.danger:hover,
+body.sheet .link-button:hover { background-color: var(--border); }
+body.sheet button.danger { color: var(--danger); }
+body.sheet button.danger:hover { color: var(--on-danger); background-color: var(--danger); }
+body.sheet .hint-toggle,
+body.sheet .hint-toggle:hover {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--accent);
+  font-size: 12px;
+}
+body.sheet a.patron-checkout,
+body.sheet .tab-import-primary {
+  min-height: 32px;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+body.sheet input[type="text"],
+body.sheet input[type="url"],
+body.sheet input[type="password"] {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  font-size: var(--type-body-size);
+}
+body.sheet .settings-select-trigger {
+  min-height: 32px;
+  padding: 0 34px 0 12px;
+  border-radius: var(--radius-md);
+  font-size: var(--type-body-size);
+}
+body.sheet .row .actions button {
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-raised);
+  font-size: 12px;
+}
 
 .hint.field-error { color: var(--danger); }
 
@@ -354,7 +448,7 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 .row a.title { color: var(--text); text-decoration: none; }
 .row a.title:hover { color: var(--accent); }
 .row .url {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   overflow: hidden;
@@ -365,11 +459,51 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   flex: 0 0 auto;
   font-size: 11px;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
 }
 .row .actions { flex: 0 0 auto; display: flex; gap: 6px; opacity: 0; }
 .row:hover .actions, .row:focus-within .actions, .row.editing .actions { opacity: 1; }
 .row .actions button { padding: 3px 9px; font-size: 11px; }
+body.sheet .row-list:not(:empty),
+body.sheet .shortcut-list {
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+body.sheet .shortcut-list { padding: 2px 16px; }
+body.sheet .shortcut-row kbd { border-radius: var(--radius-sm); }
+body.sheet .row { padding: 10px 12px; border-radius: var(--radius-md); }
+body.sheet .row-icon { flex-basis: 20px; width: 20px; height: 20px; border-radius: 6px; }
+body.sheet .row-icon img { width: 20px; height: 20px; }
+body.sheet .row-icon.fallback { font-size: 10px; }
+body.sheet .row-list.aligned.with-icons { grid-template-columns: 20px minmax(0, 1fr) max-content; }
+/* History and Favorites actions occupy the right edge only while revealed;
+   their dates remain flush right at rest. Downloads retains aligned columns. */
+body.sheet .row:has(.row-icon) { position: relative; }
+body.sheet .row:has(.row-icon) .actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-left: 16px;
+  background: none;
+}
+body.sheet .row:has(.row-icon):is(:hover, :focus-within) .actions {
+  background: linear-gradient(90deg, transparent, var(--surface) 16px);
+}
+body.sheet .row:has(.row-icon):is(:hover, :focus-within) .meta { visibility: hidden; }
+body.sheet .day-heading {
+  margin: 14px 12px 4px;
+  padding: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+body.sheet .row .meta,
+body.sheet .row .url,
+body.sheet kbd { font-variant-numeric: tabular-nums; }
 
 .profile-row.editing { background: var(--surface); align-items: flex-start; }
 .profile-row .main input { width: 100%; box-sizing: border-box; }
@@ -384,8 +518,16 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   text-align: center;
   line-height: 1.5;
 }
+body.sheet .empty { border-style: solid; border-radius: var(--radius-lg); }
+body.sheet .settings-card .row-list,
+body.sheet .settings-card .row-list:not(:empty) { padding: 0; border: 0; background: none; }
+body.sheet .settings-card .empty { padding: 10px 0 14px; border: 0; background: none; text-align: left; }
 @media (hover: none) {
   .row .actions { opacity: 1; }
+  body.sheet .row:has(.row-icon) .actions {
+    background: linear-gradient(90deg, transparent, var(--surface) 16px);
+  }
+  body.sheet .row:has(.row-icon) .meta { visibility: hidden; }
 }
 
 .progress {
@@ -548,6 +690,17 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 }
 .toggle input:checked + .track { background: var(--accent-dim); border-color: var(--accent); }
 .toggle input:checked + .track::after { transform: translateX(16px); background: var(--accent); }
+body.sheet .toggle { width: 40px; height: 24px; }
+body.sheet .toggle .track::after {
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: var(--text-dim);
+  box-shadow: 0 1px 2px rgba(18, 16, 11, 0.2);
+}
+body.sheet .toggle input:checked + .track { background: var(--accent); border-color: var(--accent); }
+body.sheet .toggle input:checked + .track::after { background: var(--surface-raised); }
 
 .section-title {
   margin-top: 40px;
@@ -573,10 +726,10 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 
 .settings-nav {
   position: sticky;
-  /* The sheet's sticky top band is 69px tall: 32px top gutter + 24px close
-     row + 12px bottom padding + 1px divider. Keep another 16px between it
+  /* The sheet's sticky top band is 79px tall: 32px top gutter + 32px close
+     row + 14px bottom padding + 1px divider. Keep another 16px between it
      and this sidebar so the first link can never slide underneath. */
-  top: 85px;
+  top: 95px;
   flex: 0 0 150px;
   display: flex;
   flex-direction: column;
@@ -594,14 +747,20 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 }
 .settings-nav a:hover { color: var(--text); }
 .settings-nav a.current { color: var(--accent); border-left-color: var(--accent); }
+body.sheet .settings-nav a {
+  padding: 7px 12px;
+  border-left: 0;
+  border-radius: var(--radius-md);
+  font-size: var(--type-body-size);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+body.sheet .settings-nav a.current { color: var(--text); background: var(--accent-dim); }
 
 .settings-content { flex: 1 1 auto; min-width: 0; }
 
-/* Settings fields use Inter, not the shared monospace input face. Settings is
-   prose-like configuration, and the mono treatment read as unnecessarily
-   technical here (it stays elsewhere — search boxes, group labels — by design).
-   The one exception is the Patron license key: a monospace face keeps an
-   opaque key legible character-by-character while typing or checking it. */
+/* Settings fields use the same Inter face as the rest of Blanc. */
 .settings-content input[type="text"],
 .settings-content input[type="url"],
 .settings-content input[type="password"],
@@ -609,7 +768,8 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   font-family: var(--font-ui);
 }
 .settings-content #patronKey {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 
 /* Opaque in-page Settings pickers. Native <select> popups pick up macOS Liquid
@@ -730,9 +890,9 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 
 .settings-group + .settings-group { margin-top: 40px; }
 /* Anchor targets (e.g. the shield popover's "blocking settings →" deep-link,
-   blanc://settings/#group-privacy) must clear the sheet's 69px sticky band —
+   blanc://settings/#group-privacy) must clear the sheet's 79px sticky band —
    same 16px breathing room as .settings-nav's sticky offset above. */
-.settings-group { scroll-margin-top: 85px; }
+.settings-group { scroll-margin-top: 95px; }
 .group-title {
   margin: 0 0 12px;
   font-size: 11px;
@@ -741,6 +901,16 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   text-transform: uppercase;
   color: var(--text-dim);
 }
+body.sheet .group-title,
+body.sheet .shortcut-section .section-title {
+  margin: 0 0 10px 4px;
+  color: var(--text);
+  font-size: var(--type-section-title-size);
+  font-weight: var(--type-section-title-weight);
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+body.sheet .shortcut-section .section-title { margin-top: 26px; }
 
 .settings-card {
   background: var(--surface-raised);
@@ -748,7 +918,18 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   border-radius: var(--radius);
   padding: 12px 20px;
 }
+body.sheet .settings-card {
+  padding: 6px 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(18, 16, 11, 0.04);
+}
 .card-title { margin: 12px 0 2px; font-size: 13px; font-weight: 600; color: var(--text); }
+body.sheet .card-title {
+  margin-top: 14px;
+  color: var(--text-dim);
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
+}
 .settings-group .settings-card + .settings-card { margin-top: 12px; }
 /* The last row in a card sits right above its own border — a trailing
    hairline there would double up against it. */
@@ -770,10 +951,6 @@ a.patron-checkout:hover { filter: brightness(1.05); }
    overlapping it — once the ledger outgrows the window. The top gap
    yields with the window height for the same reason. */
 .ledger-body {
-  /* First stage of the UI type migration: every start-page surface that used
-     the shared mono role now resolves it to Inter. Other internal pages keep
-     the real --font-mono value from :root. */
-  --font-mono: var(--font-ui);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -791,7 +968,7 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 .launch-card-kicker {
   margin-bottom: 7px;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -881,7 +1058,7 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 .ledger-section { margin-top: 50px; }
 .ledger-label {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   letter-spacing: 0.12em;
@@ -917,7 +1094,7 @@ a.ledger-label:hover { color: var(--accent); }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--accent);
   flex: 0 0 auto;
@@ -934,7 +1111,7 @@ a.ledger-label:hover { color: var(--accent); }
   text-overflow: ellipsis;
 }
 .fav .host {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   color: var(--text-dim);
   white-space: nowrap;
@@ -945,19 +1122,19 @@ a.ledger-label:hover { color: var(--accent); }
    global button chrome back to a bare ledger line. */
 .group-row { background: none; border: none; padding: 0; font: inherit; text-align: left; }
 .group-row:hover { background: none; border: none; color: inherit; }
-.group-row .gname { font-family: var(--font-mono); font-size: 13px; color: var(--text); }
-.group-row .gcount { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.group-row .gname { font-family: var(--font-ui); font-size: 13px; color: var(--text); }
+.group-row .gcount { font-family: var(--font-ui); font-size: 11.5px; color: var(--text-dim); }
 .group-row:hover .gname { color: var(--accent); }
 
 .cluster { display: inline-flex; gap: 4px; align-items: center; }
 .cluster i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
 
-.ledger-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.ledger-empty { font-family: var(--font-ui); font-size: 11.5px; color: var(--text-dim); }
 
 /* Compact Patron CTA — one per informational layout, hidden once the user is a
    Patron. This is the sole warm start-page surface: warm ink carries the gold
    Sunrise mark without competing with the larger migration checklist. */
-.js-patron-callout { font-family: var(--font-mono); font-size: 11.5px; }
+.js-patron-callout { font-family: var(--font-ui); font-size: 11.5px; }
 .js-patron-callout a {
   display: inline-flex;
   align-items: center;
@@ -1191,16 +1368,15 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   color: var(--text-dim);
   opacity: 0.8;
   user-select: none;
 }
 .ledger-version { opacity: 0.6; font-size: 11px; }
-/* Keep the platform shortcut role for the command glyph; every former mono
-   footer label now resolves to Inter through .ledger-body above. */
-#goAnywhere { font-family: var(--font-kbd); }
+/* The footer shortcut uses the product's Inter face. */
+#goAnywhere { font-family: var(--font-ui); }
 
 @media (max-width: 720px) {
   .ledger-body { padding: 90px 48px 40px; }
@@ -1247,7 +1423,7 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
   gap: 12px;
   padding: 4px 0;
 }
-.certificate-details dt { color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; }
+.certificate-details dt { color: var(--text-dim); font-family: var(--font-ui); font-size: 11px; }
 .certificate-details dd { margin: 0; overflow-wrap: anywhere; color: var(--text); font-size: 12px; }
 .newtab-links {
   display: flex;
@@ -1288,9 +1464,10 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
   border-bottom: 1px solid var(--border);
   font-size: 13px;
 }
+body.sheet .shortcut-row:last-child { border-bottom: 0; }
 
 .shortcut-row kbd {
-  font-family: var(--font-kbd);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text);
   background: var(--surface);
@@ -1327,10 +1504,12 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
   border-bottom: 1px solid var(--border);
   margin-bottom: 2px;
 }
-.folder-name { font-family: var(--font-mono); font-size: 12.5px; color: var(--text); }
+body.sheet .folder-header { border-radius: var(--radius-md); }
+.folder-name { font-family: var(--font-ui); font-size: 12.5px; color: var(--text); }
 .folder-name-dim { color: var(--text-dim); }
 .folder-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
   font-size: 11px;
   color: var(--text-dim);
   background: var(--surface);
@@ -1340,7 +1519,7 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
 .folder-actions { margin-left: auto; display: flex; gap: 14px; }
 .folder-rename-input { width: 220px; }
 
-/* Quiet-ledger actions (folder headers + favorite rows): mono text, no
+/* Quiet-ledger actions (folder headers + favorite rows): plain text, no
    button chrome — the resting page is pure text and the Import button stays
    the page's one bordered shape. Scoped to each container's DIRECT buttons so
    the folder picker's own `.picker-item` options — nested one level deeper in
@@ -1350,7 +1529,7 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
    shifts. */
 .folder-actions > button,
 .bookmark-actions > button {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   background: transparent;
@@ -1406,7 +1585,7 @@ body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell 
 }
 .picker-item {
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   border: none;
   background: transparent;
@@ -1426,8 +1605,8 @@ body.sheet {
   /* Sunrise pages, ink frame (spec 2026-09-26 §5.1): the sheet remaps the
      semantic tokens to the shared Sunrise palette — the Start Page's
      .ledger-body technique — so component rules stay theme-agnostic. The
-     card is the raised surface; the scrim keeps its strength in warm ink. */
-  --bg: var(--sunrise-surface-raised);
+     page is the ivory canvas; grouped cards sit raised on it. */
+  --bg: var(--sunrise-bg);
   --surface: var(--sunrise-surface);
   --surface-raised: var(--sunrise-surface-raised);
   --border: var(--sunrise-border);
@@ -1435,6 +1614,7 @@ body.sheet {
   --text-dim: var(--sunrise-text-dim);
   --accent: var(--sunrise-accent);
   --accent-dim: var(--sunrise-accent-dim);
+  --radius: var(--radius-md);
   background: rgba(18, 16, 11, 0.18);
   height: 100vh;
   min-height: 0; /* the shared rule's min-height:100% must not stretch the scrim */
@@ -1455,14 +1635,20 @@ body.sheet .page {
      Sticky children stop at a scroll container's padding edge, which left
      this gutter uncovered while settings cards passed underneath it. */
   padding-top: 0;
+  padding-inline: 32px;
   /* The utility sheet itself is vertical-only. The app-icon picker keeps its
      own intentional horizontal scrollport inside `.icon-grid`. */
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 30px 90px rgba(18, 16, 11, 0.22), 0 2px 10px rgba(18, 16, 11, 0.08);
+}
+body.sheet .page h1 {
+  font-size: var(--type-page-title-size);
+  font-weight: var(--type-page-title-weight);
+  letter-spacing: var(--type-page-title-tracking);
 }
 body.sheet .page-nav {
   /* Preserves the original 32px breathing room while making the nav's opaque
@@ -1478,21 +1664,23 @@ body.sheet .page h1:focus { outline: none; }
    control stays visible while the card scrolls, gets reserved flex space,
    and can never be occluded by the nav band itself. */
 .page-nav .sheet-close {
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background: var(--surface);
   color: var(--text-dim);
   font-size: 12px;
   cursor: pointer;
   padding: 0;
 }
 .page-nav .sheet-close:hover { color: var(--text); background: var(--surface); }
+body.sheet .page-nav .sheet-close:hover { background: var(--border); }
 /* 640×480 floor: stack the Settings sidebar over its content instead of
    overflowing beside it (.settings-shell is flex with a 150px fixed rail),
    and let controls shrink. Viewport == sheet view == window content area,
@@ -1501,8 +1689,8 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet { padding: 10px; }
   body.sheet .page { padding-inline: 18px; padding-bottom: 28px; }
   body.sheet .page-nav { padding-top: 18px; margin-bottom: 18px; }
-  body.sheet .page-nav-links { gap: 12px; }
-  body.sheet .page-nav a { font-size: 11px; letter-spacing: 0.02em; }
+  body.sheet .page-nav-links { gap: 2px; }
+  body.sheet .page-nav a { font-size: 12px; padding-inline: 11px; }
   body.sheet .page h1 { margin-bottom: 16px; }
   body.sheet .settings-shell { margin-top: 16px; }
   /* align-items must flip to stretch: in column direction the base rule's
@@ -1522,11 +1710,13 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet .settings-nav a {
     flex: 0 0 auto;
     border-left: 0;
-    border-bottom: 2px solid transparent;
-    padding: 6px 2px;
+    border-bottom: 0;
+    padding: 6px 12px;
   }
-  body.sheet .settings-nav a.current { border-bottom-color: var(--accent); }
+  body.sheet .settings-nav a.current { border-bottom: 0; }
   body.sheet .settings-content { width: 100%; max-width: 100%; min-width: 0; }
+  body.sheet .page-head { flex-wrap: wrap; }
+  body.sheet .page-head .import-actions { width: 100%; justify-content: flex-start; margin-bottom: 12px; }
   body.sheet .setting { flex-wrap: wrap; }
   /* Toolbar rows (sync form, defaults bar) hold fixed-width controls too. */
   body.sheet .toolbar-row { flex-wrap: wrap; }
@@ -1584,13 +1774,13 @@ body.sheet .tab-import-page .page-nav {
 }
 .tab-import-header h1 {
   margin: 0;
-  font-size: 22px;
-  letter-spacing: -0.02em;
+  font-size: var(--type-page-title-size);
+  letter-spacing: var(--type-page-title-tracking);
 }
 .tab-import-header p {
   margin: 0;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -1867,7 +2057,7 @@ body.sheet .tab-import-page .page-nav {
 .tab-import-badge {
   margin-left: auto;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
 }
 .tab-import-preview-row {
@@ -1905,14 +2095,15 @@ body.sheet .tab-import-page .page-nav {
 }
 .tab-import-window-heading h3 {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-family: var(--font-ui);
+  font-size: var(--type-card-title-size);
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
-.tab-import-window-heading span { color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; }
+.tab-import-window-heading span { color: var(--text-dim); font-family: var(--font-ui); font-size: 10.5px; }
 .tab-import-window .row-list { margin: 0; }
+body.sheet .tab-import-window .row-list:not(:empty) { padding: 0; border: 0; background: none; }
 .tab-import-window .row { border-radius: 0; border-inline: 0; border-top: 0; }
 .tab-import-window .row:last-child { border-bottom: 0; }
 .tab-import-window .tab-import-preview-row { padding: 11px 14px; }
@@ -2047,7 +2238,7 @@ body.sheet .tab-import-page .page-nav {
 }
 .tab-import-lane-count {
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
 }
 .tab-import-review-lane.excluded { opacity: 0.78; }
@@ -2073,7 +2264,7 @@ body.sheet .tab-import-page .page-nav {
 .tab-import-summary-metrics strong { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; }
 .tab-import-summary-metrics span {
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
 }
 .tab-import-summary-groups {
@@ -2154,7 +2345,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .footer-left { display: inline-flex; align-items: baseline; gap: 8px; }
 .layout-switcher { display: inline-flex; align-items: baseline; gap: 4px; }
 .layout-switcher button {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   color: var(--text-dim);
   background: none;
@@ -2190,8 +2381,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background: var(--text-dim);
   font-style: normal;
 }
-.group-chip .chip-name { font-family: var(--font-mono); font-size: 12px; }
-.group-chip .chip-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.group-chip .chip-name { font-family: var(--font-ui); font-size: 12px; }
+.group-chip .chip-count { font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); }
 
 /* ---------- billboard ---------- */
 .billboard {
@@ -2204,16 +2395,16 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .bb-clock-row { display: flex; align-items: baseline; gap: 14px; margin-top: 18px; }
 .bb-clock {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 148px;
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.bb-meridiem { font-family: var(--font-mono); font-size: 24px; color: var(--text-dim); }
+.bb-meridiem { font-family: var(--font-ui); font-size: 24px; color: var(--text-dim); }
 .bb-blocked {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12.5px;
   color: var(--text-dim);
   margin-top: 20px;
@@ -2242,12 +2433,12 @@ body:not([data-layout="ledger"]) .ledger-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 15px;
   color: var(--accent);
 }
 .bb-fav .tile.has-icon { background-size: 20px; background-position: center; background-repeat: no-repeat; }
-.bb-fav .label { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.bb-fav .label { font-family: var(--font-ui); font-size: 11.5px; color: var(--text-dim); }
 .bb-site-dismiss {
   position: absolute;
   top: -8px;
@@ -2357,7 +2548,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   color: var(--accent);
 }
@@ -2371,7 +2562,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .shelf-tile .host {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   margin-top: 3px;
@@ -2382,7 +2573,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 14px; }
 .shelf-card { border: 1px solid var(--border); border-radius: 6px; padding: 18px 16px; }
 .shelf-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   letter-spacing: 0.12em;
@@ -2390,12 +2581,12 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf-chiprow { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
 .shelf-stat { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
 .shelf-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 34px;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
-.shelf-unit { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.shelf-unit { font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); }
 
 /* ---------- tally ---------- */
 .tally-left {
@@ -2419,7 +2610,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   user-select: none;
 }
 .tally-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 64px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -2448,13 +2639,13 @@ body:not([data-layout="ledger"]) .ledger-footer {
   display: flex;
   gap: 8px;
   margin-top: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   color: var(--text-dim);
 }
 .tally-days span { flex: 1; text-align: center; }
 .tally-caption {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   color: var(--text-dim);
   margin-top: 20px;
@@ -2530,7 +2721,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --accent: #805d28;
   --accent-dim: rgba(128, 93, 40, 0.16);
   --start-footer: rgba(247, 240, 229, 0.82);
-  --font-mono: var(--font-ui);
   position: relative;
   min-height: 100vh;
   padding: 0 0 72px;
@@ -3010,9 +3200,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
   overscroll-behavior: contain;
 }
 .ob-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 0; }
-.ob-step-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; }
+.ob-step-label { font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; }
 .ob-skip {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   background: none;
@@ -3034,7 +3224,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .ob-content h1:focus-visible { outline-offset: 4px; }
 .ob-content p { font-size: 13px; color: var(--text-dim); margin: 10px 0 0; line-height: 1.55; }
-.ob-kbd { font-family: var(--font-kbd); }
+.ob-kbd { font-family: var(--font-ui); }
 
 /* Step vignettes */
 .ob-vignette { display: flex; justify-content: center; align-items: center; }
@@ -3156,9 +3346,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .ob-radio span { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
 .ob-src-row.selected .ob-radio span { background: var(--accent); }
-.ob-status { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 10px; min-height: 14px; }
+.ob-status { display: block; font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); margin-top: 10px; min-height: 14px; }
 .ob-handoff { margin-top: 14px; }
-.ob-error { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--danger); margin-top: 10px; }
+.ob-error { display: block; font-family: var(--font-ui); font-size: 11px; color: var(--danger); margin-top: 10px; }
 .ob-error:empty { display: none; }
 
 /* Step 3: decorative scale model of the current resting Island. */
@@ -3187,7 +3377,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-minipill-shortcuts { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .ob-minipill-shortcuts span { width: 18px; height: 18px; display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); font-size: 11px; }
 .ob-minipill-sep { width: 1px; height: 16px; background: var(--border); flex: 0 0 auto; }
-.ob-commands { margin-top: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.ob-commands { margin-top: 14px; text-align: center; font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); }
 
 /* Bordered control rows (steps 4 and 5) with the standard 36x20 toggle */
 .ob-control-row {
@@ -3271,7 +3461,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   display: flex;
   justify-content: space-between;
   padding: 8px 10px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
 }
@@ -3317,13 +3507,13 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .mj-tile.shake { animation: none; }
 }
 
-/* Settings → Sync: a visual three-step guide rather than a dense form.
-   The surface deliberately stays unboxed so the numbered path, illustrations,
-   and generous dividers do the organizing. */
+/* Settings → Sync keeps its three-step flow inside the same grouped card
+   grammar as the other Settings sections. */
 .sync-settings-card {
-  padding: 2px 0 0;
-  border: 0;
-  background: transparent;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
 }
 .sync-setup-header {
   max-width: 720px;
@@ -3338,7 +3528,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .sync-setup-header p {
   margin: 0;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: var(--type-body-size);
   line-height: 1.55;
 }
 .sync-paths {
@@ -3357,7 +3547,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: var(--radius-md);
 }
 .sync-path:hover,
 .sync-path:focus-visible {
@@ -3528,167 +3718,3 @@ body:not([data-layout="ledger"]) .ledger-footer {
 @media (prefers-reduced-motion: reduce) {
   .sync-path-arrow { transition: none; }
 }
-
-/* ======================================================================
-   SYSTEM V2 PROTOTYPE (throwaway, for owner review of the direction)
-   Scale: radius 8 / 10 / 14 / 20 / full; Inter everywhere; sentence case.
-   ====================================================================== */
-body.sheet {
-  --v2-radius-sm: 8px;
-  --v2-radius-md: 10px;
-  --v2-radius-lg: 14px;
-  --v2-radius-xl: 20px;
-  --radius: var(--v2-radius-md);
-  --font-mono: var(--font-ui);
-  /* Grouped look: the sheet is the ivory page, cards sit raised on it. */
-  --bg: var(--sunrise-bg);
-  --surface: var(--sunrise-surface);
-  --surface-raised: var(--sunrise-surface-raised);
-}
-body.sheet .page {
-  border-radius: var(--v2-radius-xl);
-  padding-inline: 32px;
-  box-shadow: 0 30px 90px rgba(18, 16, 11, 0.22), 0 2px 10px rgba(18, 16, 11, 0.08);
-}
-body.sheet .meta, body.sheet .row .url, body.sheet kbd { font-variant-numeric: tabular-nums; }
-body.sheet h1 { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; }
-
-/* Sheet tabs become a segmented control. */
-body.sheet .page-nav { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 22px; }
-body.sheet .page-nav-links {
-  flex: 0 1 auto;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 999px;
-  background: var(--surface);
-}
-body.sheet .page-nav a {
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text-dim);
-}
-body.sheet .page-nav a:hover { color: var(--text); }
-body.sheet .page-nav a.current {
-  color: var(--text);
-  background: var(--surface-raised);
-  box-shadow: 0 1px 3px rgba(18, 16, 11, 0.12);
-}
-body.sheet .page-nav .sheet-close {
-  flex-basis: 32px; width: 32px; height: 32px; min-height: 32px; padding: 0; margin-left: auto;
-  border-radius: 999px; border: 0; background-color: var(--surface);
-}
-
-/* Controls: taller, rounder, soft-filled secondary buttons. Only plain
-   buttons (no class) and .danger/.link-button take this; classed controls
-   (sync paths, dropdowns, More links, chips) keep their own shapes. */
-body.sheet button:not([class]), body.sheet button.danger, body.sheet .link-button {
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: var(--v2-radius-md);
-  border: 1px solid transparent;
-  background-color: var(--surface);
-  font-size: 13px;
-  font-weight: 500;
-}
-body.sheet button:not([class]):hover, body.sheet button.danger:hover, body.sheet .link-button:hover {
-  background-color: var(--sunrise-border); border-color: transparent;
-}
-body.sheet button.danger { color: var(--danger); }
-body.sheet button.danger:hover { color: var(--on-danger); background-color: var(--danger); }
-body.sheet .hint-toggle, body.sheet .hint-toggle:hover {
-  min-height: 0; padding: 0; border: 0; background-color: transparent; font-size: 12px; font-weight: 500; color: var(--accent);
-}
-body.sheet .row .actions button {
-  min-height: 26px; padding: 0 10px; font-size: 12px; font-weight: 500;
-  border: 1px solid transparent; border-radius: var(--v2-radius-sm); background-color: var(--surface-raised);
-}
-body.sheet a.patron-checkout, body.sheet .tab-import-primary {
-  min-height: 32px; padding: 7px 16px; border-radius: 999px; font-weight: 600;
-}
-body.sheet input[type="text"], body.sheet input[type="url"], body.sheet input[type="password"] {
-  min-height: 36px;
-  border-radius: var(--v2-radius-md);
-  font-size: 13px;
-  padding: 0 12px;
-}
-body.sheet #patronLicenseKey, body.sheet input[autocomplete="off"][spellcheck="false"] {
-  font-variant-numeric: tabular-nums slashed-zero;
-}
-body.sheet .settings-select-trigger { min-height: 32px; padding: 0 34px 0 12px; border-radius: var(--v2-radius-md); font-size: 13px; }
-body.sheet .toggle { width: 40px; height: 24px; }
-body.sheet .toggle .track::after { top: 3px; left: 3px; width: 16px; height: 16px; box-shadow: 0 1px 2px rgba(18, 16, 11, 0.2); }
-body.sheet .toggle input:checked + .track { background: var(--accent); border-color: var(--accent); }
-body.sheet .toggle input:checked + .track::after { background: var(--surface-raised); }
-
-/* Settings: sentence-case sidebar with a pill marker; inset grouped cards. */
-body.sheet .settings-nav a {
-  font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none;
-  padding: 7px 12px; border-left: 0; border-radius: var(--v2-radius-md);
-}
-body.sheet .settings-nav a.current { color: var(--text); background: var(--accent-dim); }
-body.sheet .group-title {
-  font-size: 15px; font-weight: 650; letter-spacing: -0.01em; text-transform: none; color: var(--text);
-  margin: 0 0 10px 4px;
-}
-body.sheet .settings-card {
-  border-radius: var(--v2-radius-lg);
-  padding: 6px 20px;
-  box-shadow: 0 1px 2px rgba(18, 16, 11, 0.04);
-}
-body.sheet .card-title { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-top: 14px; }
-
-/* Lists: one grouped card per list with inset separators. */
-body.sheet .row-list:not(:empty) {
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--v2-radius-lg);
-  padding: 6px;
-}
-body.sheet .row { border-radius: var(--v2-radius-md); padding: 10px 12px; }
-body.sheet .day-heading { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--text-dim); margin: 14px 12px 4px; }
-body.sheet .row-icon { flex-basis: 20px; width: 20px; height: 20px; border-radius: 6px; }
-body.sheet .row-icon img { width: 20px; height: 20px; }
-body.sheet .row-list.aligned.with-icons { grid-template-columns: 20px minmax(0, 1fr) max-content max-content; }
-body.sheet .row-icon.fallback { font-size: 10px; }
-body.sheet .empty { border-radius: var(--v2-radius-lg); border-style: solid; }
-body.sheet .folder-header { border-radius: var(--v2-radius-md); }
-
-/* Lists that live inside a Settings card stay flat: no card-in-card. */
-body.sheet .settings-card .row-list, body.sheet .settings-card .row-list:not(:empty) {
-  background: none; border: 0; padding: 0;
-}
-body.sheet .settings-card .empty { background: none; border: 0; padding: 10px 0 14px; text-align: left; }
-/* Sync joins the card grammar. */
-body.sheet .sync-settings-card {
-  background: var(--surface-raised); border: 1px solid var(--border);
-  border-radius: var(--v2-radius-lg); padding: 18px 20px;
-}
-body.sheet .sync-setup-header p { font-size: 13px; }
-body.sheet .sync-path { border-radius: var(--v2-radius-md); }
-/* Narrow Settings: the section tabs use the same pill marker, no underline. */
-@media (max-width: 719px) {
-  body.sheet .settings-nav a, body.sheet .settings-nav a.current { border-bottom: 0; }
-  body.sheet .page-head { flex-wrap: wrap; }
-  body.sheet .page-head .import-actions { width: 100%; justify-content: flex-start; margin-bottom: 12px; }
-}
-/* History and Favorites: row actions appear over the right edge on hover, so
-   times and dates sit flush right instead of beside an invisible column. */
-body.sheet .row:has(.row-icon) { position: relative; }
-body.sheet .row:has(.row-icon) .actions {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  padding-left: 16px; background: linear-gradient(90deg, transparent, var(--surface) 16px);
-}
-body.sheet .row:has(.row-icon):is(:hover, :focus-within) .meta { visibility: hidden; }
-body.sheet .row-list.aligned.with-icons { grid-template-columns: 20px minmax(0, 1fr) max-content; }
-/* Shortcuts: grouped cards like the other lists. */
-body.sheet .shortcut-list {
-  background: var(--surface-raised); border: 1px solid var(--border);
-  border-radius: var(--v2-radius-lg); padding: 2px 16px;
-}
-body.sheet .shortcut-section .section-title { font-size: 15px; margin: 26px 0 10px 4px; }
-body.sheet .shortcut-row:last-child { border-bottom: 0; }
-body.sheet kbd { border-radius: 6px; }

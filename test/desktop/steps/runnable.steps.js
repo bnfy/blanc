@@ -592,8 +592,8 @@ Then('the utility sheet uses the Sunrise palette', async function () {
   const palette = await waitForValue(() => this.call('utilitySheetPalette'), Boolean, 'sheet palette');
   assert.deepStrictEqual(palette, {
     text: 'rgb(18, 16, 11)', // --sunrise-text #12100b
-    card: 'rgb(255, 252, 247)', // --sunrise-surface-raised #fffcf7
-    currentNav: 'rgb(128, 93, 40)', // --sunrise-accent #805d28
+    card: 'rgb(247, 240, 229)', // --sunrise-bg #f7f0e5
+    currentNav: 'rgb(18, 16, 11)', // --sunrise-text #12100b
   });
 });
 

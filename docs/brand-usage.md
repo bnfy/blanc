@@ -186,9 +186,19 @@ the Glance header and the window controls.
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
 colors. Gold marks state and navigation; primary buttons stay ink on ivory
-(ivory on ink in dark mode). Inter remains the operating voice; Newsreader
-stays limited to the invitation titles. Keyboard focus on `blanc://` pages is
-one 1px ring in `--text-dim`; Mahjong keeps its own.
+(ivory on ink in dark mode). Keyboard focus on `blanc://` pages is one 1px
+ring in `--text-dim`; Mahjong keeps its own.
+
+**System v2, September 27:** Inter is the product UI face, including
+addresses, counters, keycaps, commands, and license keys. Align changing
+numbers with tabular figures; use a slashed zero for the Patron license key.
+Only Mahjong tile faces keep JetBrains Mono through `--mj-face-font`.
+Newsreader stays limited to the invitation titles. System v2 uses 8px small,
+10px control/row, 14px card/group, 20px sheet/dialog, and full pill radii.
+The Island and Start Page retain their existing 6px base radius and layouts.
+On warm pages, headings are Inter 24px/650, sections are sentence-case
+15px/650, card labels are dim 12px/600, and body text is 13px. Avoid
+uppercase letter-spaced labels on these surfaces.
 
 ### Desktop invitation voice
 

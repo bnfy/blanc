@@ -3,7 +3,7 @@
 .tab-handoff-page { padding-bottom: 24px; }
 .tab-handoff-page .page-nav > span {
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

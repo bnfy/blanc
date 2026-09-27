@@ -722,9 +722,7 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
 });
 
 test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () => {
-  // The v1.13.0 start-page typography pass aliased --font-mono to Inter inside
-  // the game. Tile faces are exempt: numerals and wind badge letters keep the
-  // bundled mono stack through a game-local token that bypasses the alias.
+  // Numerals and wind badge letters alone keep the bundled Mono face.
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"JetBrains Mono", ui-monospace/);
   assert.match(mahjongStyles, /\.mj-face text\s*\{[^}]*font-family:\s*var\(--mj-face-font\)/);
   assert.match(mahjongStyles, /\.mj-character-number\s*\{[^}]*font-family:\s*var\(--mj-face-font\);[^}]*font-weight:\s*800;[^}]*font-variation-settings:\s*"wght" 800;/);
@@ -732,8 +730,7 @@ test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () 
   // must expose the full range or 800 silently clamps to 700.
   assert.match(styles, /font-family:\s*"JetBrains Mono";\s*src:\s*url\("jetbrains-mono-latin\.woff2"\)[^}]*font-weight:\s*400 800;/);
   assert.doesNotMatch(mahjongStyles, /\.mj-character-number\s*\{[^}]*var\(--font-ui\)/);
-  // The chrome alias itself stays: meters, sheets, and dock labels remain Inter.
-  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--font-mono:\s*var\(--font-ui\);/);
+  assert.doesNotMatch(mahjongStyles, /--font-mono/);
 });
 
 test('notices are dusk pills anchored inside the table instead of loose text at its edge', () => {

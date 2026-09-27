@@ -359,3 +359,54 @@ No public release is part of this effort.
 - Aligning the Island's focus rings with D1.
 - Marketing and site imagery that shows utility pages is refreshed only after
   a release ships this work (marketing claims rule).
+
+## 13. System v2 — owner decisions, 2026-09-27
+
+This dated direction supersedes the earlier scope and component details where
+they differ. The owner found A1/A2 too subtle and asked for visibly rounder
+dialogs, Inter throughout product UI, and a more mature shared system. The
+`claude/non-island-polish-v2-proto` stylesheet is a visual reference, not code
+to ship as an appended override block.
+
+### Scope and voice
+
+System v2 covers every utility sheet, the site permission prompt, 1Password
+fill capsule, screen-share picker, error and certificate page, and first-run
+onboarding dialog. The Island and its anchored surfaces, strip, Start Page
+layouts, and Mahjong keep their layouts. The vertical tabs rail and Glance
+header stay neutral alongside the Island but receive typography and state
+polish. Windows/Linux controls are audited on a private validation build
+before changing them.
+
+Sunrise remains the palette for Blanc's own pages and prompts; the frame stays
+neutral. Remove mono from all product UI, including addresses, times, sizes,
+counts, keycaps, slash commands, and the Patron license key. Use Inter with
+tabular figures where values align and a slashed zero for the license key.
+Only Mahjong tile faces retain JetBrains Mono through `--mj-face-font`.
+Newsreader remains limited to the existing invitation titles. The 1px
+`--text-dim` focus rings on `blanc://` pages are settled; Mahjong keeps its
+own focus treatment. Keep #431's Start Page finish-setup pill. Do not reword
+privacy, telemetry, Patron, or permission copy; folding the exact text remains
+allowed.
+
+### Scale and components
+
+The new radius tokens are 8px small, 10px for buttons/fields/rows, 14px for
+cards and grouped lists, 20px for sheets/dialogs, and full for segmented tabs,
+toggles, and primary pills. The existing 6px `--radius` stays available for
+the Island and Start Page. Titles on system v2 pages are Inter 24px/650 with
+slight negative tracking; section titles are sentence case 15px/650; card
+titles are dim 12px/600; body text is 13px. In-scope labels do not use
+uppercase letter spacing.
+
+Utility-sheet navigation becomes a segmented control on `--surface`, with a
+raised current segment, a 32px round soft close button, and a hairline at the
+sticky header's lower edge. Secondary controls are 32px high, 10px round,
+and soft-filled; primary controls are ink pills. Text fields are 36px high.
+Toggles are 40×24px with a gold on-state and a light knob. The sheet canvas is
+`--sunrise-bg`; raised cards and lists have a hairline and 14px corners, while
+lists nested within cards stay flat. Site icons are 20px with 6px corners.
+History and Favorites actions overlay the right edge on reveal, leaving dates
+flush right at rest; Downloads retains aligned status and action columns.
+Sheets and dialogs start from a soft two-layer shadow of
+`0 30px 90px rgba(18,16,11,.22), 0 2px 10px rgba(18,16,11,.08)`.
