@@ -1837,6 +1837,7 @@ function install(refs) {
     },
     handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
+    openHistorySheet() { openInternalPage('blanc://history/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {
       const wc = getUtilitySheetWebContents();
@@ -1870,6 +1871,32 @@ function install(refs) {
         card: getComputedStyle(document.querySelector('.page')).backgroundColor,
         currentNav: getComputedStyle(document.querySelector('.page-nav a.current')).color,
       }))()`);
+    },
+    async utilitySheetRowIcons() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.row')].map((row) => {
+        const icon = row.querySelector('.row-icon');
+        return { image: !!icon?.querySelector('img'), letter: icon?.classList.contains('fallback') ? icon.textContent : '' };
+      })`);
+    },
+    async historyDayHeadings() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.day-heading')].map((h) => h.textContent)`);
+    },
+    async settingsHintState() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.setting .label .hint:not(.field-error)')]
+        .filter((hint) => hint.offsetParent)
+        .map((hint, index) => ({ index, text: hint.textContent, folded: hint.classList.contains('folded'),
+          hasToggle: hint.nextElementSibling?.classList.contains('hint-toggle') ?? false }))`);
+    },
+    async toggleFirstFoldedHint() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => { const b = document.querySelector('.hint-toggle'); b?.click(); return !!b; })()`);
     },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();

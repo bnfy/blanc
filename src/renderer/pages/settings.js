@@ -788,7 +788,7 @@
 
     refreshPermissions();
   } else {
-    document.getElementById('permissionList')?.closest('.group-subsection')?.remove();
+    document.getElementById('sitePermissionsCard')?.remove();
   }
 
   // --- Ad-block exceptions ---
@@ -867,7 +867,7 @@
 
     refreshExceptions();
   } else {
-    document.getElementById('exceptionInput')?.closest('.group-subsection')?.remove();
+    document.getElementById('adblockExceptionsBlock')?.remove();
   }
 
   // --- Clear browsing data ---
@@ -889,6 +889,12 @@
       if (prev && prev.tagName === 'H3') prev.remove();
       clearRow.remove();
     }
+  }
+
+  // A Privacy card whose every control was removed above (unsupported on this
+  // platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+    if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 
   // --- Sync ---
@@ -1164,6 +1170,45 @@
   // macOS) with opaque in-page menus. Keep the real <select> as the value
   // source so existing change listeners and programmatic .value writes work.
   enhanceSettingsSelects(document.querySelectorAll('.settings-content select'));
+
+  // Long explanations show their first two lines; More reveals the same text
+  // in place. Nothing is summarized or reworded.
+  (function foldLongHints() {
+    const hints = [...document.querySelectorAll('.setting .label .hint:not(.field-error)')];
+    const measure = () => {
+      for (const hint of hints) {
+        if (hint.dataset.userExpanded === 'true' || !hint.offsetParent) continue;
+        hint.classList.add('folded');
+        const overflowing = hint.scrollHeight > hint.clientHeight + 1;
+        let toggle = hint.nextElementSibling?.classList.contains('hint-toggle') ? hint.nextElementSibling : null;
+        if (!overflowing) {
+          hint.classList.remove('folded');
+          toggle?.remove();
+          continue;
+        }
+        if (!toggle) {
+          toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'hint-toggle';
+          toggle.textContent = 'More';
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.addEventListener('click', () => {
+            const open = hint.classList.toggle('folded') === false;
+            hint.dataset.userExpanded = String(open);
+            toggle.textContent = open ? 'Less' : 'More';
+            toggle.setAttribute('aria-expanded', String(open));
+          });
+          hint.after(toggle);
+        }
+      }
+    };
+    measure();
+    let pending = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(measure);
+    });
+  })();
 })();
 
 /** Opaque Settings picker over each remaining .settings-content <select>. */

@@ -305,6 +305,47 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   flex-direction: column;
   gap: 2px;
 }
+.row-icon {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.row-icon img { width: 16px; height: 16px; display: block; }
+.row-icon.fallback {
+  background: var(--surface);
+  color: var(--text-dim);
+  font: 600 9px/1 var(--font-ui);
+}
+/* Lists whose columns line up across rows. Rows join the list's grid through
+   subgrid, so the widest meta and action cells set each column and a row with
+   hidden or no actions still reserves the space. */
+.row-list.aligned { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content; column-gap: 12px; }
+.row-list.aligned.with-icons { grid-template-columns: 16px minmax(0, 1fr) max-content max-content; }
+.row-list.aligned > .row { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; }
+.row-list.aligned > :not(.row) { grid-column: 1 / -1; }
+.row-list.aligned .meta { text-align: right; }
+.day-heading {
+  margin: 20px 0 6px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.day-heading:first-child { margin-top: 4px; }
+.row .title.file-name { display: flex; min-width: 0; }
+.row .title.file-name .stem { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .title.file-name .ext { flex: none; }
+.row .meta[data-state="completed"]::before { content: "✓ "; }
+.row .meta[data-state="cancelled"]::before { content: "– "; }
+.row .meta[data-state="interrupted"] { color: var(--danger); }
+.row .meta[data-state="interrupted"]::before { content: "! "; }
 .row .title {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -378,6 +419,21 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   min-width: 160px;
 }
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
+.setting .label .hint.folded {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.hint-toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
 .setting > select,
 .setting > .settings-select {
   /* Native selects use their longest option as an intrinsic minimum. Let the
@@ -692,6 +748,8 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   border-radius: var(--radius);
   padding: 12px 20px;
 }
+.card-title { margin: 12px 0 2px; font-size: 13px; font-weight: 600; color: var(--text); }
+.settings-group .settings-card + .settings-card { margin-top: 12px; }
 /* The last row in a card sits right above its own border — a trailing
    hairline there would double up against it. */
 .settings-card > .setting:last-child { border-bottom: none; }
@@ -3273,9 +3331,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .sync-setup-header h3 {
   margin: 0 0 8px;
-  font-size: clamp(22px, 3vw, 28px);
+  font-size: 16px;
   line-height: 1.15;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 .sync-setup-header p {
   margin: 0;

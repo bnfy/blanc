@@ -27,6 +27,12 @@ Feature: Find in page, favorites, and history
     Then "one.example" appears on the favorites page
     And "two.example" appears on the favorites page
 
+  @F9-3 @F9 @all
+  Scenario: Favorites rows show each site's icon
+    Given a favorite for "https://icon.example/" with a saved icon
+    And the favorites page is open in the utility sheet
+    Then every favorites row shows a site icon
+
   @F10-1 @F10 @all
   Scenario: A visit is recorded with the final page title
     When I visit "read.example" with title "Reader"
@@ -37,3 +43,10 @@ Feature: Find in page, favorites, and history
     Given history has at least one entry
     When I run the slash command "/clear"
     Then history is empty
+
+  @F10-3 @F10 @all
+  Scenario: History groups today's visits with their site icons
+    Given history has at least one entry
+    And the history page is open in the utility sheet
+    Then history shows a "Today" heading
+    And every history row shows a site icon

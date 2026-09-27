@@ -597,6 +597,52 @@ Then('the utility sheet uses the Sunrise palette', async function () {
   });
 });
 
+// F9-3: seedFavorite stores a production-accepted PNG unless told otherwise.
+Given('a favorite for {string} with a saved icon', async function (url) {
+  await this.call('seedFavorite', url, 'Icon example');
+});
+
+Then('every favorites row shows a site icon', async function () {
+  const icons = await waitForValue(() => this.call('utilitySheetRowIcons'), (rows) => rows?.length > 0,
+    'favorites rows');
+  assert.ok(icons.every((row) => row.image || row.letter), JSON.stringify(icons));
+  assert.ok(icons.some((row) => row.image), 'the saved PNG favicon renders as an image');
+});
+
+Given('the history page is open in the utility sheet', async function () {
+  await this.call('openHistorySheet');
+  await untilSurface(this, (s) => s.visible && s.ready, 'history sheet to open');
+});
+
+Then('history shows a {string} heading', async function (label) {
+  await waitForValue(() => this.call('historyDayHeadings'), (headings) => headings?.includes(label),
+    `history heading ${label}`);
+});
+
+Then('every history row shows a site icon', async function () {
+  const icons = await waitForValue(() => this.call('utilitySheetRowIcons'), (rows) => rows?.length > 0,
+    'history rows');
+  assert.ok(icons.every((row) => row.image || row.letter), JSON.stringify(icons));
+});
+
+// F14-5: folding changes how much of an explanation shows, never its words.
+Then('long setting explanations are folded to two lines with a More control', async function () {
+  const hints = await waitForValue(() => this.call('settingsHintState'), (list) => list?.some((h) => h.folded && h.hasToggle),
+    'a folded setting explanation');
+  this.foldedHint = hints.find((h) => h.folded && h.hasToggle);
+});
+
+When('I open the first folded explanation', async function () {
+  assert.strictEqual(await this.call('toggleFirstFoldedHint'), true);
+});
+
+Then('it shows its full text, unchanged', async function () {
+  const hints = await this.call('settingsHintState');
+  const same = hints.find((h) => h.index === this.foldedHint.index);
+  assert.strictEqual(same.folded, false);
+  assert.strictEqual(same.text, this.foldedHint.text);
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed
