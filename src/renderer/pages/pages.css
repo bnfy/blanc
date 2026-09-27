@@ -321,6 +321,24 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   color: var(--text-dim);
   font: 600 9px/1 var(--font-ui);
 }
+/* Lists whose columns line up across rows. Rows join the list's grid through
+   subgrid, so the widest meta and action cells set each column and a row with
+   hidden or no actions still reserves the space. */
+.row-list.aligned { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content; column-gap: 12px; }
+.row-list.aligned.with-icons { grid-template-columns: 16px minmax(0, 1fr) max-content max-content; }
+.row-list.aligned > .row { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; }
+.row-list.aligned > :not(.row) { grid-column: 1 / -1; }
+.row-list.aligned .meta { text-align: right; }
+.day-heading {
+  margin: 20px 0 6px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.day-heading:first-child { margin-top: 4px; }
 .row .title {
   overflow: hidden;
   text-overflow: ellipsis;

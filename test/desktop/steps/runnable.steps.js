@@ -609,6 +609,22 @@ Then('every favorites row shows a site icon', async function () {
   assert.ok(icons.some((row) => row.image), 'the saved PNG favicon renders as an image');
 });
 
+Given('the history page is open in the utility sheet', async function () {
+  await this.call('openHistorySheet');
+  await untilSurface(this, (s) => s.visible && s.ready, 'history sheet to open');
+});
+
+Then('history shows a {string} heading', async function (label) {
+  await waitForValue(() => this.call('historyDayHeadings'), (headings) => headings?.includes(label),
+    `history heading ${label}`);
+});
+
+Then('every history row shows a site icon', async function () {
+  const icons = await waitForValue(() => this.call('utilitySheetRowIcons'), (rows) => rows?.length > 0,
+    'history rows');
+  assert.ok(icons.every((row) => row.image || row.letter), JSON.stringify(icons));
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed

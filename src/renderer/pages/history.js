@@ -3,13 +3,39 @@
   const search = document.getElementById('search');
   const clearAll = document.getElementById('clearAll');
 
-  function formatWhen(ts) {
-    const d = new Date(ts);
-    const today = new Date();
-    const sameDay = d.toDateString() === today.toDateString();
-    return sameDay
-      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  function historyRow(e) {
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const main = document.createElement('div');
+    main.className = 'main';
+    const title = document.createElement('a');
+    title.className = 'title';
+    title.href = e.url;
+    title.textContent = e.title;
+    const url = document.createElement('div');
+    url.className = 'url';
+    url.textContent = e.url;
+    main.append(title, url);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = window.blancHistoryGroups.timeLabel(e.visitedAt);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const remove = document.createElement('button');
+    remove.className = 'danger';
+    remove.textContent = 'Remove';
+    remove.setAttribute('aria-label', `Remove ${e.title} from history`);
+    remove.addEventListener('click', async () => {
+      await window.bowserPages.history.remove(e.url, e.visitedAt);
+      refresh();
+    });
+    actions.append(remove);
+
+    row.append(window.blancRowIcon.rowIcon(document, e.url, e.favicon), main, meta, actions);
+    return row;
   }
 
   async function refresh() {
@@ -25,39 +51,12 @@
       return;
     }
 
-    for (const e of entries) {
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      const main = document.createElement('div');
-      main.className = 'main';
-      const title = document.createElement('a');
-      title.className = 'title';
-      title.href = e.url;
-      title.textContent = e.title;
-      const url = document.createElement('div');
-      url.className = 'url';
-      url.textContent = e.url;
-      main.append(title, url);
-
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = formatWhen(e.visitedAt);
-
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      const remove = document.createElement('button');
-      remove.className = 'danger';
-      remove.textContent = 'Remove';
-      remove.setAttribute('aria-label', `Remove ${e.title} from history`);
-      remove.addEventListener('click', async () => {
-        await window.bowserPages.history.remove(e.url, e.visitedAt);
-        refresh();
-      });
-      actions.append(remove);
-
-      row.append(main, meta, actions);
-      list.append(row);
+    for (const group of window.blancHistoryGroups.groupByDay(entries)) {
+      const heading = document.createElement('h2');
+      heading.className = 'day-heading';
+      heading.textContent = group.label;
+      list.append(heading);
+      for (const e of group.entries) list.append(historyRow(e));
     }
   }
 

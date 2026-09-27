@@ -1837,6 +1837,7 @@ function install(refs) {
     },
     handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
+    openHistorySheet() { openInternalPage('blanc://history/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
     async settingsProfileRows() {
       const wc = getUtilitySheetWebContents();
@@ -1878,6 +1879,11 @@ function install(refs) {
         const icon = row.querySelector('.row-icon');
         return { image: !!icon?.querySelector('img'), letter: icon?.classList.contains('fallback') ? icon.textContent : '' };
       })`);
+    },
+    async historyDayHeadings() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.day-heading')].map((h) => h.textContent)`);
     },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();

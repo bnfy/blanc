@@ -43,3 +43,10 @@ Feature: Find in page, favorites, and history
     Given history has at least one entry
     When I run the slash command "/clear"
     Then history is empty
+
+  @F10-3 @F10 @all
+  Scenario: History groups today's visits with their site icons
+    Given history has at least one entry
+    And the history page is open in the utility sheet
+    Then history shows a "Today" heading
+    And every history row shows a site icon
