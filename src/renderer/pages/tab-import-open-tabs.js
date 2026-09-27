@@ -374,7 +374,7 @@ async function loadSources() {
     if (!sourceBrowserGroups.length) {
       const names = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(SUPPORTED_BROWSER_NAMES);
       loading.textContent = `Blanc can bring open tabs from ${names}, but none of them has a profile on this device. `
-        + 'To bring bookmarks from another browser, export them to an HTML file and use Favorites → Import HTML….';
+        + 'To bring bookmarks from another browser, export them to an HTML file, then use “Import HTML…” in Favorites.';
       return;
     }
     selectedSourceBrowserKey = (sourceBrowserGroups.find((group) => group.sources.length)
