@@ -13,7 +13,7 @@ const privacy = html.match(/<section class="settings-group" id="group-privacy">(
 test('Privacy & Security is five titled cards, in order', () => {
   const titles = [...privacy.matchAll(/<h3 class="card-title">([^<]+)<\/h3>/g)].map((m) => m[1]);
   assert.deepEqual(titles, ['Blocking', 'Calls and connections', '1Password', 'Site permissions', 'Usage and data']);
-  assert.equal((privacy.match(/class="settings-card"/g) || []).length, 5);
+  assert.equal((privacy.match(/class="settings-card(?: [^"]+)?"/g) || []).length, 5);
   assert.doesNotMatch(privacy, /class="group-subsection"/);
 });
 

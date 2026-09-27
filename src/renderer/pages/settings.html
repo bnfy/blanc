@@ -289,7 +289,7 @@
 
         <section class="settings-group" id="group-profiles">
           <h2 class="group-title">Profiles</h2>
-          <div class="settings-card">
+          <div class="settings-card settings-card--content">
             <p class="section-hint">
               Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Patron status stay shared; Sync belongs to Personal only.
             </p>
@@ -304,7 +304,7 @@
 
         <section class="settings-group" id="group-privacy">
           <h2 class="group-title">Privacy &amp; Security</h2>
-          <div class="settings-card">
+          <div class="settings-card settings-card--mixed">
             <h3 class="card-title">Blocking</h3>
             <div class="setting">
               <div class="label">
@@ -380,7 +380,7 @@
             </div>
           </div>
 
-          <div class="settings-card" id="onePasswordSettings" hidden>
+          <div class="settings-card settings-card--mixed" id="onePasswordSettings" hidden>
             <h3 class="card-title">1Password</h3>
             <p class="section-hint">
               Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask.
@@ -416,7 +416,7 @@
             <p class="section-hint">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P.</p>
           </div>
 
-          <div class="settings-card" id="sitePermissionsCard">
+          <div class="settings-card settings-card--content" id="sitePermissionsCard">
             <h3 class="card-title">Site permissions</h3>
             <p class="section-hint">
               Sites you've allowed or blocked from using your camera, microphone, location, or notifications.
@@ -424,7 +424,7 @@
             <div id="permissionList" class="row-list"></div>
           </div>
 
-          <div class="settings-card">
+          <div class="settings-card settings-card--mixed">
             <h3 class="card-title">Usage and data</h3>
             <div class="setting">
               <div class="label">
@@ -437,15 +437,15 @@
               </label>
             </div>
 
-            <div class="toolbar-row">
+            <div class="toolbar-row settings-action-row settings-action-row--reset">
               <button id="resetInstallId">Reset install ID</button>
               <span id="resetInstallIdStatus" class="section-hint"></span>
             </div>
 
-            <p class="section-hint">
+            <p class="section-hint settings-action-note">
               Removes cookies, cache, and site data for every site. You'll be logged out of everything.
             </p>
-            <div class="toolbar-row">
+            <div class="toolbar-row settings-action-row settings-action-row--clear">
               <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
               <span id="clearBrowsingDataStatus" class="section-hint"></span>
             </div>
@@ -454,7 +454,7 @@
 
         <section class="settings-group" id="group-diagnostics">
           <h2 class="group-title">Diagnostics</h2>
-          <div class="settings-card">
+          <div class="settings-card settings-card--content">
             <p class="section-hint">
               Blanc keeps a local, 50-event crash ledger with timestamps, process type, and failure reason. It never includes URLs, page titles, history, profile names, account data, identifiers, quiet-tab state, or closed-tab state, and nothing is sent automatically.
             </p>
@@ -469,7 +469,7 @@
 
         <section class="settings-group" id="group-patron">
           <h2 class="group-title" id="patronTitle">Blanc Patron</h2>
-          <div class="settings-card">
+          <div class="settings-card settings-card--content">
             <p class="section-hint">
               Blanc Patron unlocks Named Workspaces on every platform. A one-time founding
               license activates once, with no further contact. A monthly or annual subscription
@@ -493,14 +493,14 @@
 
         <section class="settings-group" id="group-help">
           <h2 class="group-title">Help</h2>
-          <div class="settings-card">
+          <div class="settings-card settings-card--content">
             <p class="section-hint">
               Something broken, or working in a way it shouldn&rsquo;t? Reports go to Blanc&rsquo;s
               public issue tracker on GitHub. Saying which version you&rsquo;re on, which operating
               system, and what page you were looking at makes a report much faster to act on.
             </p>
             <div class="toolbar-row">
-              <a class="link-button" href="https://github.com/bnfy/blanc/issues/new/choose" rel="noreferrer">Report an issue</a>
+              <a class="link-button" href="https://github.com/bnfy/blanc/issues/new/choose" rel="noreferrer">Report an issue <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </section>

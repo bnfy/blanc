@@ -108,8 +108,8 @@ name, and the footer tagline are set in it at regular weight, and the press
 announcement quote takes its italic. The generated share cards and press card
 set their titles in it. Body copy, labels, controls, the legal pages, the
 consent card, and every product replica stay in Inter. The desktop app uses
-Newsreader only for its invitation voice, documented below; all other app UI
-keeps its existing typefaces. The homepage demo carries one short sentence per
+Newsreader for its invitation voice and utility-sheet headings, documented
+below; its operating text stays in Inter. The homepage demo carries one short sentence per
 scene as an Inter figure title, never a second headline-and-subline pair under
 the hero. Use the
 `--site-font-patron` token, regular weight, restrained negative tracking, and
@@ -186,20 +186,30 @@ the Glance header and the window controls.
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
 colors. Gold marks state and navigation; primary buttons stay ink on ivory
-(ivory on ink in dark mode). Inter remains the operating voice; Newsreader
-stays limited to the invitation titles. Keyboard focus on `blanc://` pages is
-one 1px ring in `--text-dim`; Mahjong keeps its own.
+(ivory on ink in dark mode). Keyboard focus on `blanc://` pages is one 1px
+ring in `--text-dim`; Mahjong keeps its own.
 
-### Desktop invitation voice
+**System v2, September 27:** Inter is the product UI operating face, including
+addresses, counters, keycaps, commands, and license keys. Align changing
+numbers with tabular figures; use a slashed zero for the Patron license key.
+Only Mahjong tile faces keep JetBrains Mono through `--mj-face-font`.
+Newsreader also sets utility-sheet page and section headings. System v2 uses 8px small,
+10px control/row, 14px card/group, 20px sheet/dialog, and full pill radii.
+The Island and Start Page retain their existing 6px base radius and layouts.
+On warm sheets, page headings are Newsreader 30px/500, section headings are
+Newsreader 21px/500, card labels are dim Inter 12px/600, and body text is Inter 13px. Avoid
+uppercase letter-spaced labels on these surfaces.
 
-Newsreader enters the desktop app only where Blanc welcomes or orients the
-user: the Start Page moving-in checklist title and the six first-run onboarding
-titles. These headings use the upright optical-size build at regular weight.
+### Desktop display voice
+
+Newsreader appears where Blanc welcomes or orients the user: the Start Page
+moving-in checklist title and the six first-run onboarding titles. It also
+sets utility-sheet page and section headings. Use upright optical sizing;
+the sheet headings use medium weight for legibility at their smaller sizes.
 Inter remains the app's operating voice for dates, clocks, navigation, lists,
-metadata, controls, the Island, command palette, vertical tabs, Settings,
-utility pages, imports, dialogs, warnings, errors, and body copy. Billboard and
-Mahjong keep their existing identities. Do not extend the serif to other
-product headings without a separate review.
+metadata, controls, the Island, command palette, vertical tabs, card labels,
+dialogs, warnings, errors, and body copy. Billboard and Mahjong keep their
+existing identities. Review any further product use of the serif separately.
 
 ### Editorial website footer
 

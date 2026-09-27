@@ -10,14 +10,6 @@
   font-weight: 100 900;
   font-display: swap;
 }
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("pages/jetbrains-mono-latin.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 :root {
   --bg: #ffffff;
   --surface: #f7f7f7;
@@ -40,8 +32,14 @@
   --on-danger: #ffffff;
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --type-body-size: 13px;
+  --type-page-title-size: 24px;
+  --type-page-title-weight: 650;
+  --type-page-title-tracking: -0.015em;
+  --type-section-title-size: 15px;
+  --type-section-title-weight: 650;
+  --type-card-title-size: 12px;
+  --type-card-title-weight: 600;
 
   /* The full popover shadow is reserved for overlay states. The resting
      island copies the website nav's shorter material shadow exactly and fits
@@ -54,6 +52,11 @@
   --island-panel-radius: 18px;
   --strip-h: 68px;
   --radius: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
   /* The resting pill's proportional scale-up (see #islandPill). Lives here so
      counter-scaled children (#pillDomain's font, #pillFavicon's pixel-grid
      snap) stay coupled to the one factor. Fixed outer geometry below is also
@@ -223,7 +226,7 @@ button svg {
   display: inline-flex;
   align-items: center;
   border-right: 1px solid var(--border);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   line-height: 1;
   letter-spacing: 0.12em;
@@ -613,6 +616,7 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tabs-group-count {
   opacity: 0.65;
   flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
 }
 
 .vertical-tabs-group-active {
@@ -864,7 +868,7 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tabs-new kbd {
   margin-left: auto;
   color: var(--text-dim);
-  font-family: var(--font-kbd);
+  font-family: var(--font-ui);
   font-size: 9.5px;
   font-weight: 400;
   opacity: 0.65;
@@ -969,7 +973,8 @@ body.mac .vertical-tabs-toolbar {
 .island-dot.dot-section-start { margin-left: 4px; }
 
 .pill-overflow {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
   font-size: 11px;
   color: var(--text-dim);
   background: transparent;
@@ -1208,7 +1213,7 @@ body.mac .vertical-tabs-toolbar {
   position: relative;
 }
 .pill-slash {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(10px / var(--pill-zoom));
   line-height: 1;
 }
@@ -1245,7 +1250,7 @@ body.mac .vertical-tabs-toolbar {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   border-radius: 999px;
   padding: 0 6px;
@@ -1329,7 +1334,8 @@ body.mac .vertical-tabs-toolbar {
   border-radius: 999px;
   background: var(--accent);
   color: var(--surface-raised);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
   font-size: 7.5px;
   display: flex;
   align-items: center;
@@ -1496,7 +1502,7 @@ button.insecure-badge {
   margin-top: 2px;
   overflow-wrap: anywhere;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
 }
 .site-info-summary { margin: 12px 0 0; color: var(--text-dim); font-size: 12px; line-height: 1.45; }
@@ -1507,7 +1513,7 @@ button.insecure-badge {
   gap: 10px;
   padding: 3px 0;
 }
-.site-info-details dt { color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; }
+.site-info-details dt { color: var(--text-dim); font-family: var(--font-ui); font-size: 10.5px; }
 .site-info-details dd { margin: 0; overflow-wrap: anywhere; font-size: 11.5px; }
 .site-info-actions {
   display: flex;
@@ -1533,7 +1539,7 @@ button.insecure-badge {
   align-items: center;
   justify-content: center;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 8px;
   font-weight: 600;
   line-height: 1;
@@ -1682,7 +1688,7 @@ body.overlay-body { background: transparent; }
 .display-share-picker, .display-share-picker * { text-decoration: none; }
 .display-share-picker h2 { margin: 0 0 8px; font-size: 20px; font-weight: 600; }
 .display-share-picker p { margin: 0 0 18px; color: var(--text-dim); font-size: 13px; }
-#displayShareOrigin { font-family: var(--font-mono); overflow-wrap: anywhere; }
+#displayShareOrigin { font-family: var(--font-ui); overflow-wrap: anywhere; }
 .display-share-sources {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1939,7 +1945,7 @@ body[data-glance-purpose="change"] .glance-picker {
 }
 .glance-picker-option-title { font-size: 13.5px; color: var(--text); }
 .glance-picker-option-sub {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: var(--text-dim);
 }
@@ -1958,7 +1964,7 @@ body[data-glance-purpose="change"] .glance-picker {
   margin-top: 9px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 9.5px;
   color: var(--text-dim);
 }
@@ -2147,10 +2153,9 @@ body[data-glance-purpose="change"] .glance-picker {
 .island-ghead.static { cursor: default; }
 .island-ghead.static:hover { color: var(--text-dim); }
 .island-ghead .ghead-n { opacity: 0.7; flex: 0 0 auto; }
-/* The cluster shortcut sits in the same row as the plain tab count but must
-   render its ⌘ in the system face — JetBrains Mono draws it malformed. */
+/* The cluster shortcut shares the product's Inter face with tab counts. */
 .island-ghead .ghead-kbd {
-  font-family: var(--font-kbd);
+  font-family: var(--font-ui);
   opacity: 0.7;
   flex: 0 0 auto;
   margin-left: auto;
@@ -2311,7 +2316,7 @@ body[data-glance-purpose="change"] .glance-picker {
   stroke-linejoin: round;
 }
 
-/* Group results in the Quick Switcher use the mono voice. */
+/* Group results in the Quick Switcher use the product's Inter face. */
 /* Recently-closed section: quiet rows that brighten on hover. Recovery tiers
    stay internal; each row exposes only Reopen and Forget. */
 .closed-row { opacity: 0.7; }
@@ -2347,7 +2352,7 @@ body[data-glance-purpose="change"] .glance-picker {
 /* Group results size to their text (flex 0 0 auto), so the overflow fade
    above would wash out every name's tail — exempt them. */
 .island-row .row-title.mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12.5px;
   flex: 0 0 auto;
   -webkit-mask: none;
@@ -2355,7 +2360,7 @@ body[data-glance-purpose="change"] .glance-picker {
 }
 
 .row-kbd {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   margin-left: auto;
   opacity: 0.7;
@@ -2364,7 +2369,7 @@ body[data-glance-purpose="change"] .glance-picker {
 
 /* Slash-command rows */
 .island-row .row-cmd {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12.5px;
   color: var(--accent);
   flex: 0 0 auto;
@@ -2412,7 +2417,7 @@ body[data-glance-purpose="change"] .glance-picker {
 /* "private" tag on private tabs in the switcher list. (Quiet is dim-only —
    2026-08-18 spec.) */
 .island-row .row-private {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   color: var(--text-dim);
   border: 1px solid var(--border);
@@ -2435,7 +2440,7 @@ body[data-glance-purpose="change"] .glance-picker {
 }
 
 .row-enter {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: var(--text-dim);
   opacity: 0.7;
@@ -2443,7 +2448,7 @@ body[data-glance-purpose="change"] .glance-picker {
 }
 
 .island-empty {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-dim);
   padding: 10px;
@@ -2560,7 +2565,7 @@ body[data-glance-purpose="change"] .glance-picker {
 .footer-new.private:hover { opacity: 1; color: var(--text); border-color: var(--text); }
 
 .footer-kbd {
-  font-family: var(--font-kbd);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   opacity: 0.55;
   margin-left: 2px;
@@ -2633,7 +2638,7 @@ body[data-glance-purpose="change"] .glance-picker {
 
 /* Workspace switcher popover — viewport-fixed, placed by overlay.js against
    the footer control (above when it fits, below when the island is too high).
-   Workspace chrome uses Inter (--font-ui), not mono. */
+   Workspace chrome uses Inter (--font-ui). */
 .ws-switcher {
   position: fixed;
   z-index: 5;
@@ -2788,7 +2793,7 @@ body[data-glance-purpose="change"] .glance-picker {
 .ws-switcher-mini.danger:focus-visible { color: var(--danger); }
 
 #islandHint {
-  font-family: var(--font-kbd);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: var(--text-dim);
   opacity: 0.7;
@@ -2880,7 +2885,7 @@ body[data-glance-purpose="change"] .glance-picker {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12.5px;
 }
 #findInput::placeholder { color: var(--text-dim); }
@@ -2891,7 +2896,8 @@ body[data-glance-purpose="change"] .glance-picker {
   padding: 0 6px;
   color: var(--text-dim);
   font-size: 11px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
@@ -2915,7 +2921,7 @@ body[data-glance-purpose="change"] .glance-picker {
 #shieldPop[hidden] { display: none; }
 .shield-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 #shieldPopHost {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2928,7 +2934,7 @@ body[data-glance-purpose="change"] .glance-picker {
 #shieldPopConnection { color: var(--text-dim); font-size: 11.5px; margin-top: 10px; }
 #shieldPopConnection.insecure { color: var(--danger); }
 #shieldPopConnection[hidden] { display: none; }
-#shieldPopCount { color: var(--text-dim); font-size: 11.5px; margin-top: 6px; }
+#shieldPopCount { color: var(--text-dim); font-size: 11.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
 .shield-pop-note { color: var(--text-dim); font-size: 11.5px; margin-top: 4px; }
 .shield-pop-note[hidden] { display: none; }
 #shieldPopToggle {

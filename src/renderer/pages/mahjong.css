@@ -2,11 +2,7 @@
    contributes only bundled fonts and the [hidden] contract. */
 
 .mahjong-body {
-  /* Game chrome uses Inter while the rest of Blanc remains unchanged. */
-  --font-mono: var(--font-ui);
-  /* Tile faces are exempt from that migration: numerals and wind badge
-     letters keep the bundled JetBrains Mono (a 400–800 variable face), so
-     this token restates the real mono stack rather than the alias above. */
+  /* Tile faces alone keep JetBrains Mono; game controls use Inter. */
   --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --mj-table: #0b3d31;
   --mj-table-deep: #04251f;
@@ -215,7 +211,7 @@
   border: 1px solid var(--mj-line-strong);
   border-radius: 999px;
   color: var(--mj-brass-bright);
-  font: 720 10px/1 var(--font-mono);
+  font: 720 10px/1 var(--font-ui);
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
@@ -246,7 +242,7 @@
   color: var(--mj-muted);
   background: var(--mj-panel);
   box-shadow: 0 8px 22px var(--mj-shadow);
-  font: 600 13px/1 var(--font-mono);
+  font: 600 13px/1 var(--font-ui);
   letter-spacing: 0.025em;
   white-space: nowrap;
 }
@@ -266,7 +262,7 @@
   border: 1px solid var(--mj-line);
   border-radius: 999px;
   color: var(--mj-brass-bright);
-  font: 700 8px/1 var(--font-mono);
+  font: 700 8px/1 var(--font-ui);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -299,14 +295,14 @@
 .mj-tray-kicker,
 .mj-overline {
   color: var(--mj-muted);
-  font: 740 9px/1 var(--font-mono);
+  font: 740 9px/1 var(--font-ui);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .mj-meter strong {
   color: var(--mj-ivory);
-  font: 740 16px/1 var(--font-mono);
+  font: 740 16px/1 var(--font-ui);
   font-variant-numeric: tabular-nums;
 }
 
@@ -531,7 +527,7 @@
   stroke: rgba(0, 22, 17, 0.56);
   stroke-width: 0.55px;
   paint-order: stroke fill;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-weight: 820;
   letter-spacing: 0;
 }
@@ -661,13 +657,13 @@
 }
 .mj-combo-callout span {
   color: #f2d58f;
-  font: 760 10px/1 var(--font-mono);
+  font: 760 10px/1 var(--font-ui);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 .mj-combo-callout strong {
   color: #fff6d8;
-  font: 820 clamp(20px, 2.5vw, 30px)/0.9 var(--font-mono);
+  font: 820 clamp(20px, 2.5vw, 30px)/0.9 var(--font-ui);
   letter-spacing: -0.07em;
   -webkit-text-stroke: 0.45px rgba(89, 55, 7, 0.74);
   text-shadow: 0 1px 0 #fff, 0 3px 0 rgba(91, 58, 9, 0.82), 0 7px 15px rgba(0, 8, 6, 0.48);
@@ -682,7 +678,7 @@
   padding: 7px 11px;
   border: 1px solid rgba(233, 204, 132, 0.54); border-radius: 999px; color: var(--mj-brass-bright);
   background: var(--mj-panel-solid); box-shadow: 0 8px 22px var(--mj-shadow);
-  font: 760 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap;
+  font: 760 12px/1 var(--font-ui); font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .mj-auto-chip { left: 50%; top: 48%; translate: -50% -50%; }
 .mj-auto-chip span { margin-left: 4px; color: var(--mj-ivory); font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase; }
@@ -754,7 +750,7 @@
   background: none;
   -webkit-text-fill-color: currentColor;
   -webkit-text-stroke: 0;
-  font: 780 clamp(30px, 3.4vw, 42px)/0.88 var(--font-mono);
+  font: 780 clamp(30px, 3.4vw, 42px)/0.88 var(--font-ui);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.045em;
   text-shadow: none;
@@ -787,7 +783,7 @@
   color: #fff0b8;
   background: var(--mj-panel-solid);
   box-shadow: 0 8px 22px var(--mj-shadow);
-  font: 780 13px/1 var(--font-mono);
+  font: 780 13px/1 var(--font-ui);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
   animation: mj-score-flight 700ms both cubic-bezier(.16,.74,.2,1);
@@ -829,7 +825,7 @@
   color: var(--mj-muted);
   background: var(--mj-table);
   box-shadow: inset 0 3px 7px var(--mj-shadow);
-  font: 600 9px/1 var(--font-mono);
+  font: 600 9px/1 var(--font-ui);
 }
 
 .mj-tray-slot::before {
@@ -875,8 +871,8 @@
 }
 
 .mj-tray-best { justify-self: end; flex-direction: column; align-items: flex-end; gap: 6px; }
-.mj-tray-best span { color: var(--mj-muted); font: 650 8px/1 var(--font-mono); letter-spacing: 0.13em; text-transform: uppercase; }
-.mj-tray-best strong { color: var(--mj-ivory); font: 650 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.mj-tray-best span { color: var(--mj-muted); font: 650 8px/1 var(--font-ui); letter-spacing: 0.13em; text-transform: uppercase; }
+.mj-tray-best strong { color: var(--mj-ivory); font: 650 12px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
 
 .mj-feedback { min-height: 18px; display: grid; place-items: center; }
 /* Notices are dusk pills with their own ground, so a two-sentence offer
@@ -895,7 +891,7 @@
   color: var(--mj-muted);
   background: var(--mj-panel);
   box-shadow: 0 14px 34px var(--mj-shadow);
-  font: 500 11px/1.45 var(--font-mono);
+  font: 500 11px/1.45 var(--font-ui);
   text-align: center;
 }
 .mj-notice button {
@@ -1088,7 +1084,7 @@
   width: 100%;
   margin-bottom: 10px;
   color: var(--mj-muted);
-  font: 680 11px/1 var(--font-mono);
+  font: 680 11px/1 var(--font-ui);
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -1132,7 +1128,7 @@
 
 .mj-choice > span:last-child { display: grid; gap: 4px; }
 .mj-choice strong { font-size: 15px; font-weight: 660; }
-.mj-choice small { color: var(--mj-muted); font: 520 11px/1.35 var(--font-mono); }
+.mj-choice small { color: var(--mj-muted); font: 520 11px/1.35 var(--font-ui); }
 
 .mj-layout-mini {
   position: relative;
@@ -1393,7 +1389,7 @@
   color: var(--mj-brass-bright);
   background: rgba(212, 173, 102, 0.12);
   box-shadow: 0 10px 24px var(--mj-shadow);
-  font: 720 30px/1 var(--font-mono);
+  font: 720 30px/1 var(--font-ui);
 }
 .mj-rescue-card h1 { margin: 10px 0 14px; }
 .mj-rescue-card > p:not(.mj-overline) { max-width: 370px; margin: 0 auto; color: var(--mj-muted); font-size: 15px; line-height: 1.55; text-wrap: balance; }
@@ -1463,7 +1459,7 @@
 .mj-win-rules {
   margin: 0;
   color: var(--mj-muted);
-  font: 680 11px/1 var(--font-mono);
+  font: 680 11px/1 var(--font-ui);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1490,7 +1486,7 @@
 .mj-win-score {
   color: var(--mj-ivory);
   -webkit-text-stroke: 0;
-  font: 800 clamp(46px, 6.2vw, 64px)/0.88 var(--font-mono);
+  font: 800 clamp(46px, 6.2vw, 64px)/0.88 var(--font-ui);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.055em;
   text-shadow: none;
@@ -1501,7 +1497,7 @@
   -webkit-text-stroke: 0;
   text-shadow: none;
 }
-.mj-win-unit { margin-top: 11px; color: var(--mj-muted); font: 720 10px/1 var(--font-mono); letter-spacing: 0.17em; text-transform: uppercase; }
+.mj-win-unit { margin-top: 11px; color: var(--mj-muted); font: 720 10px/1 var(--font-ui); letter-spacing: 0.17em; text-transform: uppercase; }
 .mj-win-best {
   min-height: 28px;
   display: inline-flex;
@@ -1512,7 +1508,7 @@
   border-radius: 999px;
   color: var(--mj-brass-bright);
   background: rgba(212, 173, 102, 0.08);
-  font: 650 11px/1 var(--font-mono);
+  font: 650 11px/1 var(--font-ui);
 }
 .mj-layout-choice:disabled {
   opacity: 0.45;
@@ -1524,7 +1520,7 @@
   display: block;
   margin-top: 9px;
   color: var(--mj-muted);
-  font: 600 10px/1.4 var(--font-mono);
+  font: 600 10px/1.4 var(--font-ui);
   letter-spacing: 0.04em;
 }
 .mj-win-daily[hidden] { display: none; }
@@ -1548,22 +1544,22 @@
   box-shadow: 0 8px 18px var(--mj-shadow);
   text-align: center;
 }
-.mj-records-overview small { color: var(--mj-muted); font: 660 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
-.mj-records-overview strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.mj-records-overview small { color: var(--mj-muted); font: 660 10px/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; }
+.mj-records-overview strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
 
 .mj-records-table {
   width: 100%;
   margin-top: 22px;
   border-collapse: collapse;
   color: var(--mj-ivory);
-  font: 520 12px/1.4 var(--font-mono);
+  font: 520 12px/1.4 var(--font-ui);
   font-variant-numeric: tabular-nums;
 }
 .mj-records-table caption {
   caption-side: top;
   padding-bottom: 9px;
   color: var(--mj-muted);
-  font: 660 10px/1 var(--font-mono);
+  font: 660 10px/1 var(--font-ui);
   letter-spacing: 0.14em;
   text-align: left;
   text-transform: uppercase;
@@ -1577,7 +1573,7 @@
 }
 .mj-records-table th[scope="col"] {
   color: var(--mj-muted);
-  font: 600 10px/1 var(--font-mono);
+  font: 600 10px/1 var(--font-ui);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1598,7 +1594,7 @@
 .mj-record-variants > span + span { margin-top: 5px; }
 .mj-record-variants small {
   color: var(--mj-muted);
-  font: 650 8px/1 var(--font-mono);
+  font: 650 8px/1 var(--font-ui);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1626,7 +1622,7 @@
   outline: 1px solid var(--mj-ivory);
   outline-offset: 1px;
 }
-.mj-records-days p { margin: 9px 0 0; color: var(--mj-muted); font: 520 11px/1.4 var(--font-mono); }
+.mj-records-days p { margin: 9px 0 0; color: var(--mj-muted); font: 520 11px/1.4 var(--font-ui); }
 .mj-win-best.is-record {
   border-color: var(--mj-brass);
   color: var(--mj-brass-bright);
@@ -1647,8 +1643,8 @@
   box-shadow: 0 8px 18px var(--mj-shadow);
 }
 .mj-win-stats span[hidden] { display: none; }
-.mj-win-stats small { color: var(--mj-muted); font: 660 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
-.mj-win-stats strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.mj-win-stats small { color: var(--mj-muted); font: 660 10px/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; }
+.mj-win-stats strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
 .mj-overlay-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
 .mj-overlay-actions .mj-button { min-height: 52px; }
 .mj-win[data-mode="classic"] .mj-win-result { margin-bottom: 7px; }
