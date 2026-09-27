@@ -37,3 +37,10 @@ Feature: Settings and theming
   Scenario: Private tabs use the private theme scope
     When the active tab is private
     Then the chrome uses the private palette
+
+  @F14-5 @F14 @desktop
+  Scenario: Long Settings explanations open in place without changing their text
+    Given the settings page is open in the utility sheet
+    Then long setting explanations are folded to two lines with a More control
+    When I open the first folded explanation
+    Then it shows its full text, unchanged

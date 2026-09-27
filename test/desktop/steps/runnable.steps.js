@@ -625,6 +625,24 @@ Then('every history row shows a site icon', async function () {
   assert.ok(icons.every((row) => row.image || row.letter), JSON.stringify(icons));
 });
 
+// F14-5: folding changes how much of an explanation shows, never its words.
+Then('long setting explanations are folded to two lines with a More control', async function () {
+  const hints = await waitForValue(() => this.call('settingsHintState'), (list) => list?.some((h) => h.folded && h.hasToggle),
+    'a folded setting explanation');
+  this.foldedHint = hints.find((h) => h.folded && h.hasToggle);
+});
+
+When('I open the first folded explanation', async function () {
+  assert.strictEqual(await this.call('toggleFirstFoldedHint'), true);
+});
+
+Then('it shows its full text, unchanged', async function () {
+  const hints = await this.call('settingsHintState');
+  const same = hints.find((h) => h.index === this.foldedHint.index);
+  assert.strictEqual(same.folded, false);
+  assert.strictEqual(same.text, this.foldedHint.text);
+});
+
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
 // bug, so the coverage must drive the real handlers from a real committed

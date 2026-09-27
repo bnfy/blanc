@@ -1885,6 +1885,19 @@ function install(refs) {
       if (!wc) return null;
       return wc.executeJavaScript(`[...document.querySelectorAll('.day-heading')].map((h) => h.textContent)`);
     },
+    async settingsHintState() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`[...document.querySelectorAll('.setting .label .hint:not(.field-error)')]
+        .filter((hint) => hint.offsetParent)
+        .map((hint, index) => ({ index, text: hint.textContent, folded: hint.classList.contains('folded'),
+          hasToggle: hint.nextElementSibling?.classList.contains('hint-toggle') ?? false }))`);
+    },
+    async toggleFirstFoldedHint() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => { const b = document.querySelector('.hint-toggle'); b?.click(); return !!b; })()`);
+    },
     async settingsCreateProfile(name) {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
