@@ -383,7 +383,9 @@ neutral. Remove mono from all product UI, including addresses, times, sizes,
 counts, keycaps, slash commands, and the Patron license key. Use Inter with
 tabular figures where values align and a slashed zero for the license key.
 Only Mahjong tile faces retain JetBrains Mono through `--mj-face-font`.
-Newsreader remains limited to the existing invitation titles. The 1px
+The owner expanded Newsreader to utility-sheet page and section headings on
+September 27 after seeing system v2 on Mac. Lists, controls, card labels, and
+body copy remain Inter. The 1px
 `--text-dim` focus rings on `blanc://` pages are settled; Mahjong keeps its
 own focus treatment. Keep #431's Start Page finish-setup pill. Do not reword
 privacy, telemetry, Patron, or permission copy; folding the exact text remains
@@ -394,9 +396,9 @@ allowed.
 The new radius tokens are 8px small, 10px for buttons/fields/rows, 14px for
 cards and grouped lists, 20px for sheets/dialogs, and full for segmented tabs,
 toggles, and primary pills. The existing 6px `--radius` stays available for
-the Island and Start Page. Titles on system v2 pages are Inter 24px/650 with
-slight negative tracking; section titles are sentence case 15px/650; card
-titles are dim 12px/600; body text is 13px. In-scope labels do not use
+the Island and Start Page. Utility-sheet page titles are Newsreader 30px/500
+with slight negative tracking; section titles are Newsreader 21px/500; card
+titles are dim Inter 12px/600; body text is Inter 13px. In-scope labels do not use
 uppercase letter spacing.
 
 Utility-sheet navigation becomes a segmented control on `--surface`, with a

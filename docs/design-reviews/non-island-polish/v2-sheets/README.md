@@ -11,3 +11,18 @@ Claude's visual prototype from merged PR #437 (`57d1c6c4`) is shown above the in
 5. Minimum-window check: [Settings light](settings-light-640x480-01.png) and [Settings dark](settings-dark-640x480-01.png) at 640×480 CSS pixels.
 
 Captures came from `test/desktop/surface-captures.mjs` with a temporary copy that retained full resolution and seeded no favicon images. No personal profile or browser data was used.
+
+## Mac refinement after owner review
+
+The upper crop in each image is the first system v2 commit, `7ebb3153`; the
+lower crop is the refined worktree. A 4px orange rule divides matching,
+full-resolution crops. The temporary Mac capture profile used fictional sites.
+
+1. [Sync](refinement-sync.png): quiet choices with one separator and more room for the introduction.
+2. [Profiles](refinement-profiles.png): separated form and profile list, with a Newsreader section heading.
+3. [Privacy & Security](refinement-privacy.png): no divider between Blocking and its exception controls.
+4. [Usage and data](refinement-usage.png): reset and clear actions have their own space without a divider.
+5. [Diagnostics and Patron](refinement-diagnostics-patron.png): text, status, and actions have clear groups.
+6. [History](refinement-history.png): visible gap between site icons and titles, plus Newsreader page heading.
+7. [Empty Favorites](refinement-favorites-empty.png): one white card without a warm inner fill.
+8. [Help](refinement-help-report-issue.png): the Report an issue link has explicit vertical padding, centered text and arrow, a quiet outline, and no trailing toolbar gap. The upper crop is the owner's Mac screenshot; the lower crop uses Blanc's isolated capture profile.
