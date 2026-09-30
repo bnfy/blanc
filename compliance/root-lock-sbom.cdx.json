@@ -19769,14 +19769,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@6.28.1",
+      "bom-ref": "pkg:npm/undici@6.29.0",
       "name": "undici",
-      "version": "6.28.1",
+      "version": "6.29.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cd6a5d4d50f9e07e3c088c9b2f4ad6437ba4a5bf5ddb7c0cede1f946d7dd99e3fbd1c587363b5fa3b3f8bd95fee42a0370ee772783eee6e5e9ee535f8dce8344"
+          "content": "47e44e0c1aa9ea2da93df94676afb120e52497e44d7c6807c288a779c2aefc90ae7f6b8ed3a70e2a80db2363fb0e7e8a72cc1d2b0adccdb53a21827a2bc5fec2"
         }
       ],
       "licenses": [
@@ -19786,7 +19786,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/undici@6.28.1",
+      "purl": "pkg:npm/undici@6.29.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -19808,20 +19808,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-6.28.1.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-6.29.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@7.29.0",
+      "bom-ref": "pkg:npm/undici@7.30.0",
       "name": "undici",
-      "version": "7.29.0",
+      "version": "7.30.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "203c5f95e2e699b4ac91f5925004e23759df9f6ac3baf9cc3aa6f909647dda221fa2303451dfae94e000110e7b2cfafdad69acade5327f9970c9aa3eec634d57"
+          "content": "764ad05de1d26a86a69c8b6561b9b31b4c0562b3346700f108883403b68a8d3cb2861f6cbd1cc234513357e566d39ff27a18c2ce30d9df52977c6123612ced0d"
         }
       ],
       "licenses": [
@@ -19831,7 +19831,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/undici@7.29.0",
+      "purl": "pkg:npm/undici@7.30.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -19853,7 +19853,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-7.29.0.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-7.30.0.tgz"
         }
       ]
     },
@@ -21219,7 +21219,7 @@
         "pkg:npm/progress@2.0.3",
         "pkg:npm/semver@7.8.5",
         "pkg:npm/sumchecker@3.0.1",
-        "pkg:npm/undici@7.29.0"
+        "pkg:npm/undici@7.30.0"
       ]
     },
     {
@@ -23008,7 +23008,7 @@
         "pkg:npm/semver@7.8.5",
         "pkg:npm/tar@7.5.22",
         "pkg:npm/tinyglobby@0.2.17",
-        "pkg:npm/undici@6.28.1",
+        "pkg:npm/undici@6.29.0",
         "pkg:npm/which@6.0.1"
       ]
     },
@@ -23606,11 +23606,11 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/undici@6.28.1",
+      "ref": "pkg:npm/undici@6.29.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/undici@7.29.0",
+      "ref": "pkg:npm/undici@7.30.0",
       "dependsOn": []
     },
     {
