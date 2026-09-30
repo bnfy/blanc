@@ -189,6 +189,9 @@
     "nsis": {
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
+    "appImage": {
+      "executableArgs": []
+    },
     "linux": {
       "icon": "build/icon.png",
       "target": [
