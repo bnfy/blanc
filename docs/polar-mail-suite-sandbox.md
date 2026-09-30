@@ -1,4 +1,4 @@
-# Mail and Suite sandbox setup — September 24, 2026
+# Mail and Suite sandbox setup — updated September 29, 2026
 
 Suite sandbox benefit: `c5ebb27b-529f-43f4-946a-5fcde32d4ad0` in the existing
 Bananify Creative sandbox organization `a6ffc65a-8ba3-4973-8a2a-e057aa811f9f`.
@@ -60,10 +60,15 @@ revoked and the Suite benefit/key ID `71dbd1a9-81f8-46c5-bdd8-c291e820ee12`
 was granted. The next invoice shows $7.62 including test tax on October 29.
 No full license key or card data is committed.
 
+The upgraded key activated an Apple Development-signed Mail QA build from
+`eb3c4655` with an in-memory expired trial, showing **Licensed · Blanc Suite**
+and enabling compose/reply. It also activated Patron in an isolated, unpackaged
+Browser v1.23.0 PR build and hid checkout and activation controls. Persistent
+Mail Keychain and production-signed Browser behavior remain unverified.
+
 Polar's admin update dialog did **not** show the prorated amount before its
-final button. The customer-facing confirmed upgrade flow and the upgraded key's
-activation in both apps remain unverified. Annual Suite purchase,
-end-of-period revocation, and actual purchased-key offline/relaunch behavior
-also remain pending. Product and checkout identifiers plus the detailed matrix
+final button. A customer-facing exact quote and explicit confirmation remain
+unverified. Annual Suite purchase, end-of-period revocation, and actual
+purchased-key offline/relaunch behavior also remain pending. Product and checkout identifiers plus the detailed matrix
 are recorded in the Mail repository's `docs/POLAR_MAIL_SUITE_SANDBOX.md` in
 [PR #67](https://github.com/bnfy/Postel/pull/67).
