@@ -43,9 +43,27 @@ build, the same key activated through the real sandbox path and displayed
 **You’re a Patron — thank you**. A production-signed Browser and its production
 benefit IDs remain untested and unconfigured. The actual Mail-only key was
 rejected by Browser in a second isolated profile, with Patron checkout still
-visible. Annual Suite purchase,
-end-of-period revocation, offline/relaunch, and the confirmed prorated
-Patron-to-Suite upgrade remain pending. Product and checkout identifiers plus
-the detailed matrix are recorded in the Mail repository's
-`docs/POLAR_MAIL_SUITE_SANDBOX.md` in
+visible.
+
+On September 29, a fresh Patron Monthly sandbox subscription was purchased for
+`anthony+sandbox-patron2@bnfy.me` with the Stripe test card. Subscription
+`eda7e167-a8ec-40d1-9dd2-9cf13da66891` and order
+`a06a7eea-62db-4630-904f-77bd48dd662e` showed a $4.00 base charge plus
+$0.36 test tax. The Patron benefit/key ID `650ab1a7-1717-4548-aa19-1b89d48f8e1f`
+was granted. With the owner's action-time approval, the existing subscription
+was updated to Suite Monthly using **Prorate & charge now**. Polar kept the same
+subscription ID, marked Suite active at $7/month, and created plan-change order
+`e770fcff-b566-4ef1-8859-cb1cc3d07283`. Its invoice credited the unused
+Patron period $4.00, charged Suite $7.00 for the same period, and collected a
+$3.00 difference plus $0.27 test tax ($3.27 total). The Patron grant became
+revoked and the Suite benefit/key ID `71dbd1a9-81f8-46c5-bdd8-c291e820ee12`
+was granted. The next invoice shows $7.62 including test tax on October 29.
+No full license key or card data is committed.
+
+Polar's admin update dialog did **not** show the prorated amount before its
+final button. The customer-facing confirmed upgrade flow and the upgraded key's
+activation in both apps remain unverified. Annual Suite purchase,
+end-of-period revocation, and actual purchased-key offline/relaunch behavior
+also remain pending. Product and checkout identifiers plus the detailed matrix
+are recorded in the Mail repository's `docs/POLAR_MAIL_SUITE_SANDBOX.md` in
 [PR #67](https://github.com/bnfy/Postel/pull/67).
