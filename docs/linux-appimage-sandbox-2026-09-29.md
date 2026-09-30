@@ -89,11 +89,42 @@ commands, and CRLF input. The 42 unsafe argument forms are checked in both
 primary commands and generated actions. `npm run lint` and `git diff --check`
 passed. The existing registration fixture now includes its launch command.
 
-No Linux candidate AppImage has been built or run for this change. Linux
-package/menu validation and owner confirmation remain pending before merge or
-release under the repository's platform-sensitive release protocol. These
-source changes do not repair already installed menu entries; a rebuilt release
-and refreshed desktop integration are needed.
+On September 29, 2026, the isolated branch's complete unit suite passed all
+1,969 tests after the normal offline blocker-seed preparation. The source fix
+was pushed as `cd2ecc814fe89e1db97224131e5628a64b60ffdc` on
+`codex/appimage-desktop-sandbox` and opened as
+[draft PR #443](https://github.com/bnfy/blanc/pull/443).
+
+[Linux validation run 36648215372](https://github.com/bnfy/blanc/actions/runs/36648215372)
+completed successfully against that exact commit in `mode=validation`,
+`platform=linux`. It built the candidate AppImage, extracted and verified its
+desktop entry, verified packaged blocker/compliance payloads and all eight
+hardened Electron fuse states, and passed the packaged media and installed
+`blanc-import` protocol smoke tests. Release upload and provenance steps were
+skipped; the public release and updater feed were not modified.
+
+The temporary artifact is
+[Blanc-Linux-36648215372-validation](https://github.com/bnfy/blanc/actions/runs/36648215372/artifacts/11069717200),
+containing `Blanc-1.23.0.AppImage` and candidate `latest-linux.yml`. It expires
+October 2, 2026 at 8:03 p.m. America/New_York (October 3 at 00:03 UTC). This
+candidate carries the existing version for private validation, not a new public
+release. The uploaded artifact ZIP is 139,673,907 bytes with SHA-256
+`1dfaab1ef131f0562ed0c07c14c65237f0876c88388d74e65c258e0c423caf35`;
+that is the archive digest, not the AppImage's digest.
+
+The PR's separate required
+[substrate job](https://github.com/bnfy/blanc/actions/runs/36648222871/job/109676069089)
+failed its dependency-advisory policy check on high-severity `undici` findings
+in the desktop, site, and tab-import-worker dependency trees. Those lockfiles
+are unchanged by this patch; no security gate was bypassed.
+
+Real Linux desktop menu integration, actual renderer sandbox observations, and
+owner confirmation remain pending before merge or release under the
+repository's platform-sensitive release protocol. The hosted launch tests do
+not establish that the namespace fallback stayed inactive. These source
+changes do not repair already installed menu entries; a rebuilt release and
+refreshed desktop integration are needed. The runtime setting and fallback
+policy remain unchanged.
 
 Sources: the locked, installed `app-builder-lib` 26.15.3 files
 `out/targets/appimage/AppImageTarget.js`, `appImageUtil.js`, and
