@@ -143,6 +143,7 @@
 
   async function refresh() {
     const items = await window.bowserPages.bookmarks.list();
+    closeMenu();
     list.replaceChildren();
     if (items.length === 0) {
       const empty = document.createElement('div');
@@ -272,6 +273,8 @@
     folderBtn.type = 'button';
     folderBtn.className = 'folder-chip';
     folderBtn.textContent = 'move ▸';
+    folderBtn.setAttribute('aria-haspopup', 'dialog');
+    folderBtn.setAttribute('aria-expanded', 'false');
     // `title` only — see the folder-header buttons above (WCAG 2.5.3).
     folderBtn.title = b.folder ? `In ${b.folder} — move to another folder` : 'Move to a folder';
     folderBtn.addEventListener('click', () => openPicker(folderBtn, b, allNames));
@@ -291,10 +294,33 @@
 
   let openMenu = null;
   let openAnchor = null;
-  function closeMenu() { openMenu?.remove(); openMenu = null; openAnchor = null; }
+  const surface = window.bowserPages?.surface;
+  function closeMenu() {
+    if (!openMenu) return;
+    openMenu?.remove();
+    openAnchor?.setAttribute('aria-expanded', 'false');
+    openMenu = null;
+    openAnchor = null;
+    surface?.armEscape?.(false);
+  }
+  function escapeMenu() {
+    if (!openMenu) return;
+    const anchor = openAnchor;
+    closeMenu();
+    anchor?.focus({ preventScroll: true });
+  }
+  surface?.onEscape?.(escapeMenu);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openMenu) {
+      e.preventDefault();
+      escapeMenu();
+    }
+  });
   document.addEventListener('click', (e) => {
     if (openMenu && !openMenu.contains(e.target) && !e.target.classList.contains('folder-chip')) closeMenu();
   });
+  document.querySelector('.page')?.addEventListener('scroll', closeMenu, { passive: true });
+  window.addEventListener('resize', closeMenu);
 
   function openPicker(anchor, b, allNames) {
     // Same chip toggles the picker closed; a different chip closes the old one
@@ -304,6 +330,15 @@
     if (sameAnchor) return;
     const menu = document.createElement('div');
     menu.className = 'folder-picker';
+    // The top layer escapes row transforms and the sheet's overflow clipping.
+    // Dismissal stays explicit so the existing chip-toggle and sheet Escape
+    // policies keep working, including switching rows in a single click.
+    menu.popover = 'manual';
+    menu.setAttribute('role', 'dialog');
+    menu.setAttribute('aria-label', `Move ${b.title} to a folder`);
+    const options = document.createElement('div');
+    options.className = 'picker-options';
+    menu.append(options);
     const pick = async (fn) => { await fn(); closeMenu(); refresh(); };
 
     for (const nm of allNames) {
@@ -313,7 +348,7 @@
       item.className = 'picker-item';
       item.textContent = `→ ${nm}`;
       item.addEventListener('click', () => pick(() => window.bowserPages.bookmarks.setFolder(b.id, nm)));
-      menu.append(item);
+      options.append(item);
     }
     if (b.folder) {
       const none = document.createElement('button');
@@ -321,7 +356,7 @@
       none.className = 'picker-item';
       none.textContent = '→ none';
       none.addEventListener('click', () => pick(() => window.bowserPages.bookmarks.setFolder(b.id, null)));
-      menu.append(none);
+      options.append(none);
     }
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
@@ -330,16 +365,32 @@
     nameInput.className = 'picker-new';
     nameInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
+        e.preventDefault();
         const v = nameInput.value.trim();
         if (v) pick(() => window.bowserPages.bookmarks.setFolder(b.id, v));
-      } else if (e.key === 'Escape') closeMenu();
+      }
     });
     menu.append(nameInput);
 
     anchor.parentElement.append(menu);
     openMenu = menu;
     openAnchor = anchor;
-    nameInput.focus();
+    anchor.setAttribute('aria-expanded', 'true');
+    menu.showPopover();
+
+    const rect = anchor.getBoundingClientRect();
+    const pad = 8;
+    const gap = 4;
+    const below = Math.max(0, window.innerHeight - rect.bottom - pad - gap);
+    const above = Math.max(0, rect.top - pad - gap);
+    const openUp = menu.offsetHeight > below && above > below;
+    menu.style.maxHeight = `${Math.min(320, openUp ? above : below)}px`;
+    menu.style.left = `${Math.max(pad, Math.min(rect.left, window.innerWidth - menu.offsetWidth - pad))}px`;
+    menu.style.top = `${openUp ? rect.top - menu.offsetHeight - gap : rect.bottom + gap}px`;
+    surface?.armEscape?.(true);
+    // Focusing the new-folder field used to scroll the entire sheet to the
+    // end of an unbounded picker. Its footer now stays visible in place.
+    nameInput.focus({ preventScroll: true });
   }
 
   refresh();
