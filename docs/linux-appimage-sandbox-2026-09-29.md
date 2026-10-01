@@ -166,8 +166,25 @@ That run's separate required PR security check found newly indexed
 dependency within existing ranges in the desktop and tab-import-companion
 lockfiles (`1.1.21`, `2.1.7`, `5.0.12`) and regenerates the root lock SBOM.
 `npm run security:dependencies` passes all four workspaces with the existing
-VEX accounting intact. The final native candidate will be rebuilt from those
-patched inputs; its evidence is recorded below when complete.
+VEX accounting intact.
+
+The final native candidate, `7523cccaebb5422747af6791c72c751b839a26f8`, passed
+[Linux validation run 36871800335](https://github.com/bnfy/blanc/actions/runs/36871800335)
+with the patched lockfiles. Its FUSE 2 absence check, direct launches,
+updater/blockmap validation, desktop commands, packaged payloads/fuses, media,
+and installed URL-protocol checks all passed. The complete 1,970-test unit
+suite, lint, and substrate checks passed again after a fresh dependency
+installation. All seven PR checks passed on that candidate commit, including
+the dependency advisory policy, CodeQL, OAuth compatibility, and tab handoff.
+
+The final temporary artifact is
+[Blanc-Linux-36871800335-validation](https://github.com/bnfy/blanc/actions/runs/36871800335/artifacts/11167815580).
+It expires October 4, 2026 at 9:52:57 a.m. America/New_York (13:52:57 UTC).
+The artifact ZIP is 130,734,488 bytes with SHA-256
+`4c752eb8e97fa39c9445cdcc1f862c98a5ba71d76887dbb66daea8f1568bc128`;
+this authenticates the artifact archive recorded by GitHub, not an AppImage
+manifest or public release. Release publishing/provenance steps were skipped,
+and the public updater feed was not modified.
 
 Actual Linux
 desktop-menu behavior, renderer sandbox observations, an in-app Linux updater
@@ -181,6 +198,21 @@ release assets. Testing should use a fresh directory and a separate profile.
 
 Current-user diagnostics and the conditional Ubuntu workaround are in
 [`linux-appimage-troubleshooting.md`](linux-appimage-troubleshooting.md).
+
+To test this candidate, download and unzip that validation artifact into a
+fresh directory. From that directory, use a separate profile:
+
+```sh
+chmod +x ./Blanc-1.23.0.AppImage
+mkdir ./test-profile
+./Blanc-1.23.0.AppImage "--user-data-dir=$PWD/test-profile"
+```
+
+Record the distribution/version, whether direct launch works, browsing/blocker
+startup, quit/relaunch behavior, and the exact terminal error if it fails.
+The temporary candidate's footer still says v1.23.0; identify it by the run and
+source commit above, not that footer alone. Do not publish its `latest-linux.yml`
+to the stable feed or replace the public v1.23.0 artifact.
 
 Sources: the locked, installed `app-builder-lib` 26.15.3 files
 `out/targets/appimage/AppImageTarget.js`, `appImageUtil.js`, and

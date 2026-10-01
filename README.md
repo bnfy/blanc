@@ -116,6 +116,9 @@ Apple Silicon and/or Intel dmg/zip artifacts, signed & notarized), Windows
 (x86_64 AppImage).
 Installed copies keep themselves current via auto-update.
 
+If the Linux AppImage will not open, see
+[AppImage launch troubleshooting](docs/linux-appimage-troubleshooting.md).
+
 See the [user guide](docs/user-guide.md) for getting started, browsing,
 privacy controls, profiles, sync, and updates.
 
