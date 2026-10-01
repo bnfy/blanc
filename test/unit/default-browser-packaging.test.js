@@ -129,12 +129,14 @@ test('native Windows validation installs, inspects, and uninstalls the candidate
   assert.match(windowsInstallGate, /uninstaller left one or more browser registration entries behind/);
 });
 
-test('packaged Linux desktop entry verifier requires browser URL handlers', () => {
+test('packaged Linux desktop entry verifier requires browser URL handlers', (t) => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-desktop-entry-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const entry = path.join(directory, 'blanc.desktop');
   fs.writeFileSync(entry, [
     '[Desktop Entry]',
     'Name=Blanc',
+    'Exec=AppRun %U',
     'Categories=Network;WebBrowser;',
     'MimeType=x-scheme-handler/http;x-scheme-handler/https;',
     '',

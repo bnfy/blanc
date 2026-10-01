@@ -4,6 +4,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
+// Chromium accepts both '-' and '--'. Match complete names (with optional
+// values), so benign names such as --no-sandbox-helper do not match.
+const UNSAFE_EXEC_SWITCH = /(?:^|[\s"'])--?(?:no-(?:zygote-)?sandbox|disable-(?:setuid|gpu|namespace|seccomp-filter|webnn-compiler)-sandbox)(?=$|[\s"'=])/;
+
 function listValue(source, key) {
   const line = source.split(/\r?\n/).find((candidate) => candidate.startsWith(`${key}=`));
   assert.ok(line, `${key} is missing from the desktop entry`);
@@ -13,8 +17,19 @@ function listValue(source, key) {
 function verifyLinuxDesktopEntry(file) {
   if (!file) throw new Error('desktop entry path is required');
   const source = fs.readFileSync(file, 'utf8');
-  const categories = listValue(source, 'Categories');
-  const mimeTypes = listValue(source, 'MimeType');
+  const desktopEntry = source.split(/(?=^\[)/m)
+    .find((section) => section.startsWith('[Desktop Entry]\n')
+      || section.startsWith('[Desktop Entry]\r\n'));
+  assert.ok(desktopEntry, 'desktop entry is missing [Desktop Entry]');
+  assert.match(desktopEntry, /^Exec=\S.*$/m, 'Exec is missing or empty in the desktop entry');
+  // Check action commands too: menu integration can expose those separately.
+  // sandbox:true in webPreferences cannot undo Chromium's --no-sandbox flag.
+  for (const line of source.split(/\r?\n/).filter((candidate) => candidate.startsWith('Exec='))) {
+    assert.doesNotMatch(line, UNSAFE_EXEC_SWITCH,
+      'desktop entry Exec must not disable Chromium sandboxing');
+  }
+  const categories = listValue(desktopEntry, 'Categories');
+  const mimeTypes = listValue(desktopEntry, 'MimeType');
 
   for (const category of ['Network', 'WebBrowser']) {
     assert.ok(categories.includes(category), `desktop entry is missing ${category} category`);

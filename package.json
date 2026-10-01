@@ -190,6 +190,12 @@
     "nsis": {
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
+    "appImage": {
+      "executableArgs": []
+    },
+    "toolsets": {
+      "appimage": "1.0.3"
+    },
     "linux": {
       "icon": "build/icon.png",
       "target": [

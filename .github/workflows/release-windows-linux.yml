@@ -390,7 +390,72 @@ jobs:
       - name: Install AppImage smoke runtime
         run: |
           sudo apt-get update
-          sudo apt-get install --yes dbus-x11 desktop-file-utils libfuse2 xdg-utils xvfb
+          sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb
+          TOOLSET=$(node -p "require('./package.json').build.toolsets?.appimage || '0.0.0'")
+          if [ "$TOOLSET" = "0.0.0" ]; then
+            # Retain support for immutable release tags using the old runtime.
+            sudo apt-get install --yes libfuse2
+          else
+            # The hosted image may already include FUSE 2. Remove it so the
+            # actual AppImage launch tests cannot pass through that dependency.
+            for package in libfuse2 libfuse2t64; do
+              if dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null | grep -qx installed; then
+                sudo apt-get remove --yes "$package"
+              fi
+            done
+            if ldconfig -p | grep 'libfuse\.so\.2'; then
+              echo "FUSE 2 remains available; dependency-free validation is invalid" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Verify AppImage updater metadata and embedded blockmap
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const { inflateRawSync } = require('node:zlib');
+          const { load } = require('js-yaml');
+          const pkg = require('./package.json');
+          const name = `${pkg.productName}-${pkg.version}.AppImage`;
+          const image = fs.readFileSync(`dist/${name}`);
+          const metadata = load(fs.readFileSync('dist/latest-linux.yml', 'utf8'));
+          assert.equal(metadata.version, pkg.version);
+          assert.equal(metadata.path, name);
+          assert.equal(metadata.files.length, 1);
+          const file = metadata.files[0];
+          assert.equal(file.url, name);
+          assert.equal(file.size, image.length);
+          const digest = crypto.createHash('sha512').update(image).digest('base64');
+          assert.equal(file.sha512, digest);
+          assert.equal(metadata.sha512, digest);
+          const size = image.readUInt32BE(image.length - 4);
+          assert.ok(size > 0 && size < image.length - 4);
+          assert.equal(file.blockMapSize, size);
+          const blockmap = JSON.parse(inflateRawSync(image.subarray(image.length - 4 - size, image.length - 4)));
+          assert.equal(blockmap.version, '2');
+          assert.ok(blockmap.files.length > 0);
+          let end = 0;
+          for (const entry of blockmap.files) {
+            assert.equal(entry.checksums.length, entry.sizes.length);
+            assert.equal(entry.offset, end);
+            for (const length of entry.sizes) {
+              assert.ok(Number.isSafeInteger(length) && length > 0);
+              end += length;
+            }
+          }
+          assert.equal(end, image.length - 4 - size);
+          console.log(`AppImage updater metadata and embedded blockmap verified: ${name}`);
+          NODE
+
+      - name: Verify direct AppImage launch and relaunch
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          APPIMAGE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
+          node scripts/smoke-public-appimage.mjs "$APPIMAGE" "$VERSION"
+          node scripts/smoke-public-appimage.mjs "$APPIMAGE" "$VERSION"
 
       # Build inputs remain pinned to the release tag. After packaging, use
       # the workflow commit's test harness so infrastructure-only fixes can
