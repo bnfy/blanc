@@ -3131,6 +3131,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .wallpaper-toggle:hover,
 .wallpaper-toggle[aria-pressed="true"] { color: var(--text); }
+.wallpaper-toggle:hover { border-color: var(--border); }
 .wallpaper-toggle:focus-visible { outline-offset: 3px; }
 .wallpaper-toggle:disabled { cursor: default; opacity: 0.6; }
 .wallpaper-toggle-track {
