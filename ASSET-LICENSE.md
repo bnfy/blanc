@@ -46,6 +46,8 @@ Platform-packaged forms of the same mark:
 - `site/public/blanc-email-signature.png` and
   `site/public/blanc-email-signature-48.png` — transparent monochrome Sunrise
   signature marks, with light edging for dark backgrounds
+- `site/public/blanc-signature.png` — clean ink Sunrise signature mark at
+  its native 48×48 display size
 - `export/app-icons-1024-square/contact-sheet.png`
 
 A build that replaces these files with its own artwork is unencumbered by this
