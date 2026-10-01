@@ -296,6 +296,90 @@
       ]
     },
     {
+      "type": "file",
+      "bom-ref": "asset:suncalc",
+      "name": "SunCalc solar calculation library",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e313f3d54542c7d302842e565c4aa642c48803309ebf2431835e8ef971122c16"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Copyright Volodymyr Agafonkin"
+        },
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/suncalc.js"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/suncalc-LICENSE.txt"
+        }
+      ],
+      "version": "2.1.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mourner/suncalc"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "bom-ref": "asset:wallpaper-cities",
+      "name": "GeoNames wallpaper city catalog",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "42a961ce13be6989653a721c430ee8d918139acd256fc42f5e8951dd56f63aad"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "CC-BY-4.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "GeoNames contributors; adapted cities15000, admin1CodesASCII and countryInfo exports"
+        },
+        {
+          "name": "blanc:file",
+          "value": "src/main/assets/wallpaper-cities.json"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/main/assets/wallpaper-cities-LICENSE.txt"
+        },
+        {
+          "name": "blanc:licenseUrl",
+          "value": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "version": "2026-10-01",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.geonames.org/"
+        }
+      ]
+    },
+    {
       "type": "library",
       "bom-ref": "pkg:npm/%401password/sdk-core@0.5.0",
       "name": "@1password/sdk-core",
@@ -1823,6 +1907,14 @@
     },
     {
       "ref": "asset:newsreader-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:suncalc",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:wallpaper-cities",
       "dependsOn": []
     },
     {

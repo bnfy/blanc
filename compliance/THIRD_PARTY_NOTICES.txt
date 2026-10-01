@@ -70,6 +70,15 @@ BUNDLED ASSETS AND DATA
 - Ghostery adblocker resources c4c20aa63e3a72113f66777cf35a3f58877a36ee — MPL-2.0
   Source: https://github.com/ghostery/adblocker
 - Blanc compiled blocker seed 194ddc2d204c13b9 — MPL-2.0 AND CC-BY-SA-3.0-or-later
+- SunCalc solar calculation library 2.1.0 — BSD-2-Clause
+  Attribution: Copyright Volodymyr Agafonkin
+  Source: https://github.com/mourner/suncalc
+  Full text: ThirdPartyLicenses/suncalc-LICENSE.txt
+- GeoNames wallpaper city catalog 2026-10-01 — CC-BY-4.0
+  Attribution: GeoNames contributors; adapted cities15000, admin1CodesASCII and countryInfo exports
+  Source: https://www.geonames.org/
+  License: https://creativecommons.org/licenses/by/4.0/
+  Full text: ThirdPartyLicenses/wallpaper-cities-LICENSE.txt
 
 MPL SOURCE AVAILABILITY
 

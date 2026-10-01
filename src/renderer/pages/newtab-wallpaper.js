@@ -1,14 +1,31 @@
-/* Shared local-clock policy; the browser adapter only loads bundled artwork. */
+/* Local solar/clock policy; the browser adapter only loads bundled artwork. */
 (function (root, factory) {
-  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
-  else root.blancNewtabWallpaper = factory();
-})(typeof self !== 'undefined' ? self : this, () => {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory(require('./suncalc'));
+  else root.blancNewtabWallpaper = factory(root.SunCalc);
+})(typeof self !== 'undefined' ? self : this, (solar) => {
   'use strict';
   const ARTWORK = Object.freeze({
     dawn: 'start-page-sunrise.png', day: 'start-page-day.png',
     dusk: 'start-page-dusk.png', night: 'start-page-night.png',
   });
-  function phaseForTime(date) {
+  function validLocation(value) {
+    return value && Number.isFinite(value.latitude) && Math.abs(value.latitude) <= 90 &&
+      Number.isFinite(value.longitude) && Math.abs(value.longitude) <= 180;
+  }
+  function phaseForTime(date, location = null) {
+    if (solar && validLocation(location) && Number.isFinite(date.getTime())) {
+      // Absolute instants keep a chosen city's solar schedule independent of
+      // the device timezone, including travel, DST and International Date Line.
+      const times = solar.getTimes(date, location.latitude, location.longitude);
+      if (times.alwaysDown) return 'night';
+      if (times.alwaysUp) return 'day';
+      const morning = times.dawn || times.sunrise;
+      if (!morning || !times.sunset || date < morning || date >= times.sunset) return 'night';
+      if (date < (times.goldenHourEnd || times.solarNoon)) return 'dawn';
+      if (date >= (times.goldenHour || times.solarNoon)) return 'dusk';
+      return 'day';
+    }
+    // Preserve the existing schedule until the user chooses a city.
     const hour = date.getHours();
     if (hour >= 5 && hour < 8) return 'dawn';
     if (hour >= 8 && hour < 17) return 'day';
@@ -17,7 +34,7 @@
   }
   function createController({ now = () => new Date(), isVisible, loadImage, render,
     reducedMotion = () => false, schedule = setTimeout, cancel = clearTimeout }) {
-    let enabled = false, timer = null, generation = 0, applied = null;
+    let enabled = false, timer = null, generation = 0, applied = null, location = null;
     let receivedPreference = false, animateEnable = false;
     function stop() {
       if (timer !== null) cancel(timer);
@@ -30,7 +47,7 @@
       const date = now();
       // A new local Date on each tick handles timezone and wall-clock changes.
       timer = schedule(refresh, 60_000 - (date.getSeconds() * 1000 + date.getMilliseconds()));
-      const phase = phaseForTime(date);
+      const phase = phaseForTime(date, location);
       if (phase === applied) return;
       const token = generation;
       Promise.resolve().then(() => loadImage(ARTWORK[phase])).then(() => {
@@ -45,6 +62,12 @@
       });
     }
     return {
+      setLocation(value) {
+        const next = validLocation(value) ? { latitude: value.latitude, longitude: value.longitude } : null;
+        if (next?.latitude === location?.latitude && next?.longitude === location?.longitude) return;
+        location = next;
+        refresh();
+      },
       setEnabled(value) {
         const next = value === true;
         const changed = next !== enabled;

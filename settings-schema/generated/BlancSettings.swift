@@ -72,6 +72,7 @@ public struct BlancSettingsDefaults {
     public static let homePage: String = ""
     public static let theme: BlancThemePreference = .system
     public static let newtabDynamicWallpaper: Bool = false
+    public static let newtabWallpaperCity: String = ""
     public static let newtabLayout: BlancNewtabLayout = .billboard
     public static let webrtcPolicy: BlancWebrtcPolicy = .standard
     public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .automatic
