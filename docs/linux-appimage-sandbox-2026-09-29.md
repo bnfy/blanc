@@ -186,12 +186,13 @@ this authenticates the artifact archive recorded by GitHub, not an AppImage
 manifest or public release. Release publishing/provenance steps were skipped,
 and the public updater feed was not modified.
 
-Actual Linux desktop-menu behavior and renderer sandbox observations remain
-pending before merge or release. The in-app updater handoff from public v1.23.0
+Desktop-menu launch and renderer sandbox behavior were observed on a hosted
+runner, not a physical desktop. The owner accepted those observations and
+approved merging on October 1. The in-app updater handoff from public v1.23.0
 passed in a hosted rehearsal, and the owner waived confirmation on the affected
-machine; both are recorded in the October 1 rehearsal section below. A
-successful no-FUSE-2 hosted launch establishes that the dependency is removed
-for the tested environment, not that Michael's machine is fixed.
+machine. All three are recorded in the October 1 sections below. A successful
+no-FUSE-2 hosted launch establishes that the dependency is removed for the
+tested environment, not that Michael's machine is fixed.
 
 The candidate retains version `1.23.0` solely for private validation. It is
 not a public replacement for v1.23.0 and must not overwrite its immutable
@@ -271,6 +272,46 @@ Michael the private candidate in a reply on the article, but the comment system
 appears to have blocked the reply containing the link. The owner then chose to
 ship this fix in the next release without that confirmation. This is a waiver
 of the platform gate, not a pass, and the release incident must record it.
+
+## October 1: renderer sandbox and integrated-menu launch
+
+[Observation run 36901972196](https://github.com/bnfy/blanc/actions/runs/36901972196) built this branch's AppImage at
+`ba6eb6fc` and launched it four ways on a hosted Ubuntu 24.04 runner under
+Xvfb. Each launch was either direct or through the packaged desktop entry,
+installed the way AppImage integrators install it: `Exec=AppRun %U` was
+rewritten to `Exec=<AppImage path> %U` and launched with `gtk-launch`. Each
+launch ran once with Ubuntu's default
+`kernel.apparmor_restrict_unprivileged_userns=1` and once with it set to `0`.
+The harness is commit `3bc577c5f7b0b7eefddd498c9d03f4c08c091172` on the
+throwaway branch `staging/linux-sandbox-observation`. For every Blanc process
+it recorded the command line, the kernel's `Seccomp` and `NoNewPrivs` fields,
+and the user, PID, and network namespaces relative to the browser process,
+read through the runner's sudo.
+
+| Host | Launch | `--no-sandbox` | Renderers sandboxed |
+| --- | --- | --- | --- |
+| Namespaces allowed | Direct | Absent | 4 of 4 |
+| Namespaces allowed | Desktop entry | Absent | 4 of 4 |
+| Ubuntu default | Direct | Added by the launcher | 0 of 4 |
+| Ubuntu default | Desktop entry | Added by the launcher | 0 of 4 |
+
+- A renderer counts as sandboxed only with `Seccomp: 2` and its own user and
+  PID namespaces. With namespaces allowed, every renderer had seccomp
+  filtering, `NoNewPrivs: 1`, and separate user, PID, and network namespaces
+  under the namespace-sandbox zygote. The desktop entry no longer disables the
+  sandbox, which is this PR's desktop-entry fix.
+- On Ubuntu's default, the launcher's `unshare -Ur true` probe fails and it
+  adds `--no-sandbox` on both launch paths, so no renderer is sandboxed. This
+  PR does not change that existing fallback. It also shows the check can tell
+  the two states apart.
+- The GPU process was seccomp-filtered only in the direct launches, which
+  passed `--disable-gpu`. The desktop-entry launches passed no flags, and on
+  this GPU-less Xvfb host their GPU process was not filtered. The renderer
+  results do not depend on it.
+- Not covered: a real desktop session or menu, Wayland, or a distribution
+  other than Ubuntu 24.04. The run artifact
+  `linux-sandbox-observation-36901972196` holds the per-process records and
+  both desktop entries. GitHub keeps it until October 15, 2026.
 
 Sources: the locked, installed `app-builder-lib` 26.15.3 files
 `out/targets/appimage/AppImageTarget.js`, `appImageUtil.js`, and
