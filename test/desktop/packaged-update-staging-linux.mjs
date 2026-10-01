@@ -169,7 +169,9 @@ function pidAlive(pid) {
   try { process.kill(pid, 0); return true; } catch { return false; }
 }
 
-async function readVersionMarker() {
+// Whether the N-1 new-tab page shows `expected`. Only a boolean leaves this
+// function: page text and CDP errors never reach logs or evidence files.
+async function versionMarkerIs(expected) {
   const targets = await waitFor('the N-1 new-tab page over CDP', 90000, async () => {
     try {
       const response = await fetch(`http://127.0.0.1:${cdpPort}/json/list`);
@@ -183,7 +185,7 @@ async function readVersionMarker() {
   const newTab = targets.find((target) => target.url.startsWith('blanc://newtab/'));
   return new Promise((resolve, reject) => {
     const socket = new WebSocket(newTab.webSocketDebuggerUrl);
-    const timeout = setTimeout(() => { socket.close(); reject(new Error('timed out reading the version marker')); }, 15000);
+    const timeout = setTimeout(() => { socket.close(); reject(new Error('timed out reading the N-1 version marker')); }, 15000);
     socket.addEventListener('open', () => socket.send(JSON.stringify({
       id: 1,
       method: 'Runtime.evaluate',
@@ -198,8 +200,8 @@ async function readVersionMarker() {
       if (message.id !== 1) return;
       clearTimeout(timeout);
       socket.close();
-      if (message.error) reject(new Error(message.error.message));
-      else resolve(message.result?.result?.value ?? '');
+      if (message.error) reject(new Error('CDP could not evaluate the N-1 new-tab page'));
+      else resolve(message.result?.result?.value === expected);
     });
     socket.addEventListener('error', () => { clearTimeout(timeout); reject(new Error('CDP WebSocket failed')); });
   });
@@ -358,9 +360,8 @@ try {
   const oldExited = new Promise((resolve) => oldApp.once('exit', (code, signal) => resolve({ code, signal })));
   note('launched public N-1', { file: path.basename(oldInstalled), pid: oldApp.pid });
 
-  const marker = await readVersionMarker();
-  if (marker !== `v${oldVersion}`) throw new Error(`N-1 reported ${marker}, expected v${oldVersion}`);
-  note('N-1 running', { versionMarker: marker });
+  if (!(await versionMarkerIs(`v${oldVersion}`))) throw new Error(`N-1 new-tab page does not show v${oldVersion}`);
+  note('N-1 running', { versionMarker: `v${oldVersion}` });
   screenshot('0-n-minus-one-running.png');
 
   const first = await performHop(0, {
