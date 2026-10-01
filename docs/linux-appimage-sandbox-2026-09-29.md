@@ -186,11 +186,12 @@ this authenticates the artifact archive recorded by GitHub, not an AppImage
 manifest or public release. Release publishing/provenance steps were skipped,
 and the public updater feed was not modified.
 
-Actual Linux
-desktop-menu behavior, renderer sandbox observations, an in-app Linux updater
-handoff, and confirmation on the affected machine remain pending before merge
-or release. A successful no-FUSE-2 hosted launch would establish that dependency
-is removed for the tested environment, not that Michael's machine is fixed.
+Actual Linux desktop-menu behavior and renderer sandbox observations remain
+pending before merge or release. The in-app updater handoff from public v1.23.0
+passed in a hosted rehearsal, and the owner waived confirmation on the affected
+machine; both are recorded in the October 1 rehearsal section below. A
+successful no-FUSE-2 hosted launch establishes that the dependency is removed
+for the tested environment, not that Michael's machine is fixed.
 
 The candidate retains version `1.23.0` solely for private validation. It is
 not a public replacement for v1.23.0 and must not overwrite its immutable
@@ -213,6 +214,63 @@ startup, quit/relaunch behavior, and the exact terminal error if it fails.
 The temporary candidate's footer still says v1.23.0; identify it by the run and
 source commit above, not that footer alone. Do not publish its `latest-linux.yml`
 to the stable feed or replace the public v1.23.0 artifact.
+
+## October 1: in-app updater handoff rehearsal
+
+Public v1.23.0 updated to this branch's static-runtime AppImage through Blanc's
+own updater and its real **Restart Now** prompt, and the relaunched copy then
+updated itself again the same way.
+[Rehearsal run 36888774946](https://github.com/bnfy/blanc/actions/runs/36888774946) passed every step on October 1, 2026. The
+harness is commit `f91446f822401db4c630ed58835a6df97acd7cf7` on the throwaway
+branch `staging/linux-update-rehearsal`, built on this PR's `4ef0610c`.
+
+- Two candidates were built in the runner from this PR's code, differing only
+  in an uncommitted version stamp: `1.24.0-staging.1` (A) and
+  `1.24.0-staging.2` (B). They were served from an isolated loopback staging
+  feed (`BLANC_UPDATE_CHANNEL=staging`) with auto-install and the staging
+  status file deliberately unset, so the ordinary prompt appeared. The status
+  file is only permitted in auto-install mode; supplying it otherwise disables
+  the updater for that launch.
+- The public v1.23.0 AppImage was downloaded from its release and matched that
+  release's `SHA256SUMS`. It ran with FUSE 2 installed, as existing users have
+  it, and with the default userData path under an isolated `HOME`, so each
+  relaunch contended for the same single-instance lock a user's would.
+- Hop 1: v1.23.0 fetched the staging metadata, downloaded A in full, and showed
+  "Update 1.24.0-staging.1 downloaded". A real X key press accepted
+  **Restart Now**; `updater.log` recorded `Install on explicit quitAndInstall`
+  with `isForceRunAfter: true`, the button's own path. v1.23.0 quit, its file
+  was replaced by A (SHA-256 identical to the staged file), and a main process
+  ran from A's mount (`X-AppImage-Version=1.24.0-staging.1`) and was still
+  running 20 seconds later.
+- Hop 2: the relaunched A found B on its startup check, downloaded it, and its
+  prompt was accepted the same way. A's file was replaced by B, and B
+  relaunched and stayed up. electron-updater replaces whichever file
+  `APPIMAGE` names, so this second update proves the relaunch carried its new
+  path. Reading it directly is not possible: Chromium's process title
+  overwrites `/proc/<pid>/environ`, even for root.
+- FUSE 2 was then removed, with no `libfuse.so.2` advertised, and the updated
+  file launched directly with the new-tab version marker `v1.24.0-staging.2`.
+- Control: on the same host, public v1.23.0 failed with
+  `dlopen(): error loading libfuse.so.2` and "AppImages require FUSE to run …
+  --appimage-extract". That matches Michael's account of a FUSE hint followed
+  by success after extraction, so a missing FUSE 2 library is the likely cause.
+  It is still not confirmed on his machine.
+
+Limits: this was Xvfb without a window manager on a hosted Ubuntu 24.04
+runner, not a desktop session. The relaunched main process's command line was
+`blanc --no-sandbox`: the launcher's namespace probe failed on that host, so
+the run says nothing about sandboxed operation. A release is a separate build;
+the rehearsal proves the update path and the runtime, not that file. The
+evidence artifact `linux-update-rehearsal-evidence-36888774946` holds
+screenshots of both prompts and both relaunches, the feed request log,
+`updater.log`, and a summary with per-hop hashes. GitHub keeps it until
+October 15, 2026.
+
+Affected-machine confirmation was waived. On October 1 the owner tried to send
+Michael the private candidate in a reply on the article, but the comment system
+appears to have blocked the reply containing the link. The owner then chose to
+ship this fix in the next release without that confirmation. This is a waiver
+of the platform gate, not a pass, and the release incident must record it.
 
 Sources: the locked, installed `app-builder-lib` 26.15.3 files
 `out/targets/appimage/AppImageTarget.js`, `appImageUtil.js`, and

@@ -103,5 +103,19 @@ stable feed.
   Blanc's Linux runtime checks, but it served this Windows updater run without
   trouble.
 
-Linux staging remains unexercised; the policy and feed tooling support it, but
-no N-1 run has been recorded.
+### Linux — PASS 2026-10-01
+
+- N-1 was public v1.23.0: the published `Blanc-1.23.0.AppImage`,
+  checksum-verified against its release `SHA256SUMS`.
+- N was the static-runtime AppImage from draft PR #443, built twice in the
+  runner as `1.24.0-staging.1` and `1.24.0-staging.2` so the relaunched copy
+  could prove it can update again.
+- [Run 36888774946](https://github.com/bnfy/blanc/actions/runs/36888774946) ran on a hosted Ubuntu 24.04 runner under Xvfb.
+  Both hops discovered, downloaded, showed the ordinary prompt, accepted
+  **Restart Now** with a real key press, replaced the file, and relaunched a
+  process that stayed up. The final file then launched with FUSE 2 removed.
+- Do not supply the status file in this mode: it is only allowed with
+  auto-install, and otherwise disables the updater. The harness observes the
+  feed's request log, the prompt window, and `updater.log` instead.
+- Details and limits are in
+  [`linux-appimage-sandbox-2026-09-29.md`](linux-appimage-sandbox-2026-09-29.md).
