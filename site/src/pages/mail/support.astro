@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailNav from '../../components/MailNav.astro';
+import '../../styles/mail.css';
+---
+<BaseLayout title="Support for Blanc Mail on macOS" description="Get help with Blanc Mail for macOS, Google sign-in, local data, licenses, and updates." path="/mail/support" header="solid" analytics={false}>
+  <main class="mail-page mail-prose">
+    <p class="mail-eyebrow">Blanc Mail</p><h1>Support.</h1><p class="mail-lead">For help with the Mac app or your license, email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p>
+    <MailNav />
+    <h2>Accounts and data</h2><p>Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app's access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.</p>
+    <h2>Uninstalling</h2><p>Quit the app and move Blanc Mail to the Trash. To erase local settings and recovery data too, first resolve any drafts you need, then remove the app's data under your Mac's Application Support folder. Renaming the app does not erase an existing test install's local data or Keychain credentials.</p>
+    <h2>Updates and licensing</h2><p>After launch, Check for Updates in the app will use its signed Sparkle feed. New subscriptions will be handled by Polar. Existing beta keys will continue to work; you can <a href="https://postelmail.com/license">recover a previous key</a> using its purchase email.</p>
+  </main>
+</BaseLayout>

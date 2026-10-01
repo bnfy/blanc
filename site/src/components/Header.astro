@@ -13,7 +13,7 @@ const isCurrent = href => pathname === href || (href === '/download' && current 
 const downloadHref = current === 'download' ? '#download-options' : '/download';
 const menuTitle = menu => (menu.key === 'features' ? 'Features' : 'Company');
 const featuresCurrent = current === 'features' || pathname.startsWith('/features');
-const directCurrent = link => current === link.key || pathname === link.href;
+const directCurrent = link => current === link.key || pathname === link.href || (link.key === 'mail' && pathname.startsWith('/mail/'));
 ---
 {variant === 'legal' ? (
   <header class="legal-top">
@@ -34,7 +34,7 @@ const directCurrent = link => current === link.key || pathname === link.href;
           <a href={link.href} aria-current={directCurrent(link) ? 'page' : undefined}>{link.label}</a>
         ))}
       </div>
-      <a class={current === 'download' ? 'site-nav-cta is-current' : 'site-nav-cta'} href={downloadHref}>download</a>
+      <a class={current === 'download' ? 'site-nav-cta is-current' : 'site-nav-cta'} href={downloadHref}>{pathname.startsWith('/mail') ? 'browser download' : 'download'}</a>
       <button class="site-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="siteMobileMenu">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path class="site-menu-open-icon" d="M4 6h16M4 12h16M4 18h16" />
@@ -55,7 +55,7 @@ const directCurrent = link => current === link.key || pathname === link.href;
         {directLinks.map(link => (
           <a class="site-mobile-plain" href={link.href} aria-current={directCurrent(link) ? 'page' : undefined}>{link.mobileLabel}</a>
         ))}
-        <a class="site-mobile-download" href={downloadHref}>Download on desktop</a>
+        <a class="site-mobile-download" href={downloadHref}>Download Blanc Browser</a>
       </div>
     </nav>
     {menus.map(menu => (

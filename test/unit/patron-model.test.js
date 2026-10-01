@@ -1,7 +1,7 @@
 // test/unit/patron-model.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { readBenefitId, resolveKind, parseExpiresAt } = require('../../src/main/patron-model');
+const { readBenefitId, resolveKind, isUnactivatedSuiteLicense, parseExpiresAt } = require('../../src/main/patron-model');
 
 const ALLOW = { ben_supporter: 'founding', ben_annual: 'subscription', ben_monthly: 'subscription', ben_lifetime: 'lifetime' };
 
@@ -30,6 +30,17 @@ test('resolveKind fails closed on unknown, empty, non-string, and inherited prop
   assert.equal(resolveKind('__proto__', ALLOW), null);
   // a benefit mapped to a NON-kind value must not leak through
   assert.equal(resolveKind('x', { x: 'not_a_kind' }), null);
+});
+
+test('direct validation is limited to configured Suite benefits without device activations', () => {
+  const suite = new Set(['ben_suite']);
+  assert.equal(isUnactivatedSuiteLicense({ benefit_id: 'ben_suite', limit_activations: null }, suite), true);
+  assert.equal(isUnactivatedSuiteLicense({ license_key: { benefit_id: 'ben_suite', limit_activations: null } }, suite), true);
+  assert.equal(isUnactivatedSuiteLicense({ benefit_id: 'ben_patron', limit_activations: null }, suite), false);
+  assert.equal(isUnactivatedSuiteLicense({ benefit_id: 'ben_suite', limit_activations: 1 }, suite), false);
+  assert.equal(isUnactivatedSuiteLicense({ benefit_id: 'ben_suite' }, suite), false);
+  assert.equal(isUnactivatedSuiteLicense(null, suite), false);
+  assert.equal(isUnactivatedSuiteLicense({ benefit_id: 'ben_suite', limit_activations: null }, new Set()), false);
 });
 
 test('parseExpiresAt: three states — null (absent), number (valid), false (malformed)', () => {

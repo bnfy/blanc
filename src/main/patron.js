@@ -1,6 +1,7 @@
 const { app, net } = require('electron');
 const settings = require('./settings');
 const model = require('./patron-model');
+const suiteBenefitIDs = require('./patron-suite-benefits.json');
 
 const PRODUCTION_ORG_ID = '6f675077-6cb1-4965-8db8-15838e5fdb38';
 const SANDBOX_ORG_ID = 'a6ffc65a-8ba3-4973-8a2a-e057aa811f9f';
@@ -20,6 +21,16 @@ const BENEFIT_ALLOWLIST = app.isPackaged
       '2f5e210c-7d63-4ba6-8818-45f3b7fc9b93': 'subscription',  // sandbox Blanc Patron Monthly License
       '27ecc7d8-f31e-4951-8235-22dda51327c4': 'subscription',  // sandbox Blanc Patron Annual License
     };
+// Suite uses its own Polar license-key benefit. It grants the existing Patron
+// capability in Browser on every supported platform; Mail validates the same
+// benefit separately on macOS. Empty lists keep unfinished checkout closed.
+const suiteBenefitSet = new Set();
+for (const id of suiteBenefitIDs[app.isPackaged ? 'production' : 'sandbox']) {
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    BENEFIT_ALLOWLIST[id] = 'subscription';
+    suiteBenefitSet.add(id);
+  }
+}
 
 async function readJson(res) { try { return await res.json(); } catch { return null; } }
 
@@ -34,8 +45,29 @@ async function activate(key) {
       body: JSON.stringify({ key: trimmed, organization_id: ORG_ID, label: 'Blanc' }),
     });
   } catch { return { ok: false, message: 'Could not reach Polar. Check your connection and try again.' }; }
-  if (!res.ok) return { ok: false, message: 'That license key could not be activated.' };
-  const payload = await readJson(res);
+  let payload;
+  let usedSuiteValidation = false;
+  if (res.ok) {
+    payload = await readJson(res);
+  } else {
+    if (suiteBenefitSet.size === 0) return { ok: false, message: 'That license key could not be activated.' };
+    // Polar uses /validate directly for benefits without device activations.
+    // Only an explicitly configured Suite benefit with limit_activations=null
+    // may take this path. A Patron key or activation-limited Suite key cannot.
+    let validated;
+    try {
+      validated = await net.fetch(API_BASE + '/v1/customer-portal/license-keys/validate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: trimmed, organization_id: ORG_ID }),
+      });
+    } catch { return { ok: false, message: 'Could not reach Polar. Check your connection and try again.' }; }
+    if (!validated.ok) return { ok: false, message: 'That license key could not be activated.' };
+    payload = await readJson(validated);
+    if (!model.isUnactivatedSuiteLicense(payload, suiteBenefitSet)) {
+      return { ok: false, message: 'That license key could not be activated.' };
+    }
+    usedSuiteValidation = true;
+  }
   const benefitId = model.readBenefitId(payload);
   const kind = model.resolveKind(benefitId, BENEFIT_ALLOWLIST);
   if (!payload || !kind) return { ok: false, message: 'That license key is not recognized.' };
@@ -49,7 +81,7 @@ async function activate(key) {
     if (typeof lkExpiry === 'number' && lkExpiry <= Date.now()) return { ok: false, message: 'That subscription has expired.' };
   }
   const now = Date.now();
-  const activationId = payload.activation?.id ?? payload.id ?? null;
+  const activationId = usedSuiteValidation ? null : (payload.activation?.id ?? payload.id ?? null);
   const record = { kind, key: trimmed, activationId, benefitId, activatedAt: now,
     ...(kind === 'subscription' ? { lastValidatedAt: now, lastAttemptedAt: now, lastStatus: 'granted' } : {}) };
   settings.setPatron(record);
@@ -70,8 +102,12 @@ async function validateIfDue() {
     // Read status defensively (top-level or nested) so a validate response that
     // wraps the license key can't be misread as an unparseable body.
     const status = model.readLicenseStatus(body);
-    if (!body || status === null) {
-      outcome = { kind: 'unreachable' };                 // non-ok, malformed, or no readable status → ambiguous
+    if (res.status === 404) {
+      // Polar rejects missing, revoked, expired, or invalid activation keys
+      // with 404. This is an authoritative rejection, not a service outage.
+      outcome = { kind: 'rejected' };
+    } else if (!body || status === null) {
+      outcome = { kind: 'unreachable' };                 // other non-ok or malformed responses remain ambiguous
     } else {
       const benefitOk = model.resolveKind(model.readBenefitId(body), BENEFIT_ALLOWLIST) === 'subscription';
       outcome = { kind: 'ok', status, expiresAt: model.readExpiresAt(body), benefitOk };
