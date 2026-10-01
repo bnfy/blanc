@@ -268,6 +268,7 @@ test('feature-bearing releases are identified without a version allowlist', () =
   assert.equal(releaseFeatures.hasNewFeatures(release('0.9.7', '- Add Windows and Linux builds')), true);
   assert.equal(releaseFeatures.hasNewFeatures(release('0.20.0', 'Tab Sync opens tabs from your other devices.')), true);
   assert.equal(releaseFeatures.hasNewFeatures(release('1.2.5', '## Fixed\n- Restore sharp website icons')), false);
+  assert.equal(releaseFeatures.hasNewFeatures(release('1.25.0', '## Fixed\n- Keep the Favorites picker visible\n\n## Refined\n- Plain group headings\n\n## Verify the download\n- Authenticate SHA256SUMS')), false);
   assert.equal(releaseFeatures.hasNewFeatures(release('0.11.0', '- Fix code-review findings')), false);
   assert.equal(releaseFeatures.hasNewFeatures(release('0.19.0', '')), false);
 });

@@ -73,7 +73,7 @@ The evidence and limits recorded when this assessment was published are in the
 > Use the [v1.25.0 tag](https://github.com/bnfy/blanc/tree/v1.25.0) for the exact
 > source associated with the public binaries and the
 > [release report](docs/release-incidents/2026-10-01-v1.25.0.md) for verification
-> and the pending macOS/Windows in-app updater handoffs.
+> and the owner-confirmed macOS/Windows in-app updater handoffs.
 
 ## Source and license
 

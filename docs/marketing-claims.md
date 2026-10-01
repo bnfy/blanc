@@ -71,7 +71,7 @@ its qualifications remain subject to the release-backed claim gate above.
 ## Current Blanc capability boundaries
 
 These boundaries describe the verified v1.25.0 public release; platform
-acceptance limits and pending updater handoffs are recorded in
+acceptance limits and confirmed updater handoffs are recorded in
 [the release report](release-incidents/2026-10-01-v1.25.0.md). Historical
 wallpaper and Linux acceptance waivers remain in the v1.24.0 report:
 
