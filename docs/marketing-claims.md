@@ -70,7 +70,9 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.23.0 public release:
+These boundaries describe the verified v1.24.0 public release; platform
+acceptance limits and waivers are recorded in
+[the release report](release-incidents/2026-10-01-v1.24.0.md):
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
@@ -128,6 +130,19 @@ These boundaries are verified for the v1.23.0 public release:
   second, trading responsiveness for more tolerance of choppy playback. Do not
   promise that either mode eliminates every crackle or fixes source-side,
   network, Bluetooth, driver, or hardware faults.
+- **Time-of-day wallpaper:** Free and off by default. The start-page footer or
+  Settings → General enables bundled Sunrise artwork for dawn (05:00–08:00),
+  day (08:00–17:00), dusk (17:00–20:00), and night (20:00–05:00), using the
+  device's local clock without location permission or artwork requests.
+  It works across all four layouts and private tabs, with two-second fades
+  and immediate changes for reduced motion. Optional Sync carries only the
+  preference; each device computes its own phase. Physical Windows/Linux
+  appearance and lifecycle acceptance was waived, not passed.
+- **Linux AppImage:** v1.24.0 removes the host FUSE 2 library dependency and
+  fixes sandbox-disabling packaged desktop arguments. Existing integrated
+  shortcuts need reintegration. The launcher can still disable Chromium's
+  sandbox when its user-namespace capability probe fails. Do not claim that
+  every Linux launch is sandboxed or that Michael's machine was verified.
 - **Billboard frequently visited sites:** Billboard ranks ordinary browsing
   history on the device and keeps its favicon artwork and hidden-tile choices
   local. Private tabs do not contribute or receive this row. Do not describe

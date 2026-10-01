@@ -36,9 +36,11 @@ Blanc uses Electron and Chromium. Electron is part of the browser's attack
 surface, so Blanc treats runtime configuration, permissions, dependencies,
 and release integrity as explicit controls:
 
-- Public web tabs run with Chromium sandboxing enabled, Node integration
-  disabled, and context isolation enabled. Blanc-owned pages such as Settings
-  and History use a narrow internal connection to the app. Regular websites
+- Public web tabs request Chromium sandboxing, disable Node integration,
+  and enable context isolation. On Linux hosts that block the launcher’s user
+  namespace probe, the AppImage launcher can disable Chromium’s sandbox; see
+  the [Linux investigation](docs/linux-appimage-sandbox-2026-09-29.md).
+  Blanc-owned pages such as Settings and History use a narrow internal connection to the app. Regular websites
   do not get that connection, which helps keep a malicious or compromised site
   from reaching tabs, history, settings, or browser controls.
 - Permissions deny by default. Camera, microphone, location, and notifications
@@ -61,15 +63,17 @@ Blanc has earned the
 self-certification. It is a voluntary assessment of documented project
 practices, not an independent security audit or endorsement. Blanc currently
 has one human maintainer and has not completed an independent external audit.
-The evidence and limits for the current release are recorded in the
+The evidence and limits recorded when this assessment was published are in the
 [v1.21.0 release report](docs/release-incidents/2026-09-21-v1.21.0.md).
 
-> **Current release:** v1.21.0 remembers each window's native geometry, applies
-> the Sunrise presentation across the four Start Page layouts, and opens
-> Mahjong as a standalone managed tab from every footer. It also prevents sites
-> and service workers from setting Blanc's operating-system badge. Use the
-> [v1.21.0 tag](https://github.com/bnfy/blanc/tree/v1.21.0) for the exact source
-> snapshot associated with the public binaries.
+> **Current release:** v1.24.0 adds a free, optional Sunrise wallpaper that
+> follows your local time, with a footer toggle and two-second fades. Linux
+> AppImages no longer need the host FUSE 2 library, and packaged desktop
+> arguments are corrected. It also updates official Electron to 44.5.1.
+> Use the [v1.24.0 tag](https://github.com/bnfy/blanc/tree/v1.24.0) for the exact
+> source associated with the public binaries and the
+> [release report](docs/release-incidents/2026-10-01-v1.24.0.md) for verification
+> and the recorded physical Windows/Linux check waivers.
 
 ## Source and license
 
