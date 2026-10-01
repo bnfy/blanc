@@ -99,8 +99,16 @@ try {
       fs.mkdirSync('output/playwright', { recursive: true });
       await sheet.screenshot({ path: 'output/playwright/favorites-folder-picker.png' });
     }
-    if (edge === 'top') assert.ok(geometry.top >= geometry.buttonBottom, `${label}: open below`);
-    else assert.ok(geometry.bottom <= geometry.buttonTop, `${label}: flip above`);
+    // The picker opens toward the roomier side when it doesn't fit below. At
+    // tiny zoomed sizes the two sides can differ by a pixel or two, and font
+    // metrics differ by platform, so assert the policy rather than a fixed side.
+    const opensBelow = geometry.top >= geometry.buttonBottom;
+    const opensAbove = geometry.bottom <= geometry.buttonTop;
+    const roomAbove = geometry.buttonTop;
+    const roomBelow = geometry.height - geometry.buttonBottom;
+    assert.ok(opensBelow !== opensAbove, `${label}: opens beside its button, never over it`);
+    if (edge === 'top') assert.ok(opensBelow || roomAbove > roomBelow, `${label}: open below unless there is more room above`);
+    else assert.ok(opensAbove || roomBelow >= roomAbove, `${label}: flip above unless there is more room below`);
     await sheet.locator('.picker-options').evaluate((options) => { options.scrollTop = options.scrollHeight; });
     assert.equal(await sheet.locator('.page').evaluate((page) => page.scrollTop), geometry.scrollTop, `${label}: option scrolling stays local`);
     // Drive native before-input-event, not a synthetic renderer keydown.
