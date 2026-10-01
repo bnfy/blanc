@@ -3110,6 +3110,49 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .layout-switcher button:hover { color: var(--text); background: var(--surface); }
 .layout-switcher button.active,
 .layout-switcher button[aria-pressed="true"] { color: var(--bg); background: var(--text); }
+.wallpaper-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: inherit;
+  line-height: 1.25;
+}
+.wallpaper-toggle:hover,
+.wallpaper-toggle[aria-pressed="true"] { color: var(--text); }
+.wallpaper-toggle:focus-visible { outline-offset: 3px; }
+.wallpaper-toggle:disabled { cursor: default; opacity: 0.6; }
+.wallpaper-toggle-track {
+  position: relative;
+  width: 22px;
+  height: 12px;
+  flex: none;
+  border: 1px solid var(--text-dim);
+  border-radius: 999px;
+}
+.wallpaper-toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track {
+  border-color: var(--text);
+  background: var(--text);
+}
+.wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track::after {
+  left: 12px;
+  background: var(--bg);
+}
 .ledger-version { font-size: 10px; }
 #goAnywhere { font-family: var(--font-ui); }
 
@@ -3222,15 +3265,22 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .tally-left,
   .tally-right { margin-inline: 30px; }
   .tally-left { padding-top: 122px; }
+}
+
+/* Make room for the wallpaper switch before the footer columns overlap. */
+@media (max-width: 1040px) {
   .ledger-footer,
   body:not([data-layout="ledger"]) .ledger-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     min-height: 86px;
     padding: 8px 20px 10px;
     row-gap: 6px;
   }
   .ledger-footer .footer-left { order: 2; }
   .ledger-footer .layout-switcher { order: 1; flex-basis: 100%; }
-  .ledger-footer .footer-right { order: 3; }
+  .ledger-footer .footer-right { order: 3; align-items: center; }
   .migration-checklist-shell,
   body[data-layout="billboard"] .migration-checklist-shell,
   body[data-layout="tally"] .migration-checklist-shell { bottom: 102px; }

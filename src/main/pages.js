@@ -423,6 +423,12 @@ function setupPages(hooks = {}) {
     'newtab',
     (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
   );
+  // A narrow footer capability: persist only this boolean and return only
+  // its effective state. Never expose the settings or entitlement records.
+  handle('pages:start:set-dynamic-wallpaper', 'newtab', (enabled) => {
+    if (typeof enabled === 'boolean') settings.setSettings({ newtabDynamicWallpaper: enabled });
+    return settings.isDynamicWallpaperEnabled();
+  });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
   handleEvent('pages:start:layout-used', 'newtab', (event, name) => {

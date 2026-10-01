@@ -12,6 +12,12 @@ Validation covers local boundaries/timezones, clock jumps, hidden timers, reduce
 
 The native window’s completed close event also sends the main-owned hidden signal to retained macOS start pages. The Electron regression failed before this fix and passed afterward: minimize and Dock close cancel the actual minute timer, resume while closed keeps it suspended, and Dock reopen preserves the same WebContents while refreshing the current phase and starting exactly one timer. The 25 focused lifecycle/clock/settings unit tests, lint, substrate guards and startup-layout smoke with `--reopened-window` passed for this follow-up.
 
+## Footer control
+
+A compact wallpaper switch in the shared start-page footer changes the same synced, free `newtabDynamicWallpaper` preference as Settings. Its pressed state reflects initial data and live status, including changes from other normal/private start tabs and Sync. The dedicated newtab-only IPC action accepts a strict boolean and returns only the effective boolean; it exposes no general settings or entitlement records. Switching off immediately restores the original static Sunrise artwork. Narrow windows wrap the footer before its controls overlap.
+
+The updated macOS Electron smoke passed mouse and Space-key toggling in every layout under light, dark and private styling, all 48 phase/layout/style render combinations, 60 footer geometry checks at 640/800/1040/1041/1200 px, settings-file persistence, reload, cross-tab state, Settings parity and malformed IPC writes. The existing minimize, resume and Dock close/reopen timer checks also passed. The full unit suite, lint, substrate consistency and acceptance wiring passed. Review captures live under `output/playwright/wallpaper-footer-review/` (ignored). These are development checks; installed Windows/Linux wallpaper acceptance remains a release gate.
+
 ## Artwork provenance
 
 The built-in image generator edited the existing Sunrise image in three separate calls. Source composition was requested to remain fixed; no original was overwritten. Final files: src/renderer/pages/start-page-day.png, src/renderer/pages/start-page-dusk.png, src/renderer/pages/start-page-night.png.

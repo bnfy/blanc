@@ -33,6 +33,7 @@ if (window.location.protocol === 'blanc:') {
         topSites: (options) => invoke('pages:start:top-sites', options),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         setLayout: (name) => invoke('pages:start:set-layout', name),
+        setDynamicWallpaper: (enabled) => invoke('pages:start:set-dynamic-wallpaper', enabled),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),
         layoutUsed: (name) => invoke('pages:start:layout-used', name),
         openIsland: (char) => invoke('pages:start:open-island', char),
