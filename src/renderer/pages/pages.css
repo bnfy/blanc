@@ -1597,10 +1597,8 @@ body.sheet .shortcut-row:last-child { border-bottom: 0; }
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
   margin-bottom: 2px;
 }
-body.sheet .folder-header { border-radius: var(--radius-md); }
 .folder-name { font-family: var(--font-ui); font-size: 12.5px; color: var(--text); }
 .folder-name-dim { color: var(--text-dim); }
 .folder-count {
@@ -1618,8 +1616,8 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
 /* Quiet-ledger actions (folder headers + favorite rows): plain text, no
    button chrome — the resting page is pure text and the Import button stays
    the page's one bordered shape. Scoped to each container's DIRECT buttons so
-   the folder picker's own `.picker-item` options — nested one level deeper in
-   the row's action container — keep their styling and stay visible. Revealed
+   the folder picker's own `.picker-item` options keep their styling and stay
+   visible. Revealed
    on the enclosing header/row's hover or focus-within (keyboard tabbing
    reveals them too); opacity keeps layout stable so the date column never
    shifts. */
@@ -1645,7 +1643,7 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
 
 /* Favorites rows only. The shared `.row .actions { opacity: 0 }` (used by
    history/downloads too) is left untouched; the container stays visible
-   (the folder picker anchors inside it) and the buttons above carry the
+   (the folder picker belongs to it) and the buttons above carry the
    hide/reveal themselves. Fixed width + right-justify give every row the
    same action column, so dates align down the page. */
 .row .actions.bookmark-actions {
@@ -1666,18 +1664,37 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
   white-space: nowrap;
 }
 .folder-picker {
-  position: absolute;
-  z-index: 20;
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 180px;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  width: min(260px, calc(100vw - 16px));
+  max-height: min(320px, calc(100vh - 16px));
+  min-width: 0;
+  overflow: hidden;
   padding: 6px;
   background: var(--surface-raised);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.folder-picker:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.picker-options {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.picker-options > button {
+  flex: 0 0 auto;
+  overflow-wrap: anywhere;
 }
 .picker-item {
   text-align: left;
@@ -1687,7 +1704,14 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
   background: transparent;
 }
 .picker-item:hover { background: var(--surface); border-color: transparent; }
-.picker-new { margin-top: 4px; font-size: 11.5px; }
+.picker-new {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  font-size: 11.5px;
+}
 
 /* ---------- Utility sheet presentation (body.sheet) ----------
    The sheet WebContentsView is transparent; the page draws the scrim
