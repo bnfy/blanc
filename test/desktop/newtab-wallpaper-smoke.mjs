@@ -73,13 +73,59 @@ try {
   await toggle.check();
   await callTestHook(app, 'closeUtilitySurface');
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'night');
+  // Observe the mounted controller's actual minute timeout, not only its
+  // visibility attribute. Native detached views can still report visible.
+  await privatePage.evaluate(() => {
+    window.wallpaperMinuteTimers = new Set();
+    const schedule = window.setTimeout.bind(window);
+    const cancel = window.clearTimeout.bind(window);
+    window.setTimeout = (fn, delay, ...args) => {
+      let id;
+      id = schedule(() => { wallpaperMinuteTimers.delete(id); fn(...args); }, delay);
+      if (fn.name === 'refresh') wallpaperMinuteTimers.add(id);
+      return id;
+    };
+    window.clearTimeout = (id) => { wallpaperMinuteTimers.delete(id); cancel(id); };
+    wallpaper.refresh();
+  });
+  assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].minimize());
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'false');
+  assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0);
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].restore());
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'true');
+  assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
   await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
   assert.equal((await privatePage.evaluate(() => window.bowserPages.start.data())).dynamicWallpaperEnabled, true);
-  console.log('newtab-wallpaper-smoke PASS: free entitlement, 48 rendered combinations, main-owned hidden-tab visibility, live opt-in/out and resume status');
+  if (process.platform === 'darwin') {
+    const contentsId = await app.evaluate(({ webContents }) => webContents.getAllWebContents()
+      .find((wc) => wc.getURL() === 'blanc://newtab/?private=1').id);
+    const closedWindowId = await app.evaluate(({ BrowserWindow }) => {
+      const window = BrowserWindow.getAllWindows()[0];
+      const id = window.id;
+      window.close();
+      return id;
+    });
+    await waitForValue(() => app.evaluate(({ BrowserWindow }, id) => BrowserWindow.fromId(id) === null, closedWindowId), Boolean, 'window closed');
+    await waitForValue(() => privatePage.evaluate(() => document.body.dataset.wallpaperVisible),
+      (value) => value === 'false', 'retained start page hidden');
+    assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0, 'Dock close cancels the minute timer');
+    await privatePage.evaluate(() => { Date.prototype.getHours = () => 6; });
+    await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
+    // An acknowledged data request follows the resume status on the same IPC
+    // connection, so the assertion observes that status handler's effect.
+    await privatePage.evaluate(() => window.bowserPages.start.data());
+    assert.deepEqual(await privatePage.evaluate(() => ({
+      phase: document.body.dataset.wallpaperPhase, timers: wallpaperMinuteTimers.size,
+    })), { phase: 'night', timers: 0 }, 'resume must not restart a closed window’s wallpaper');
+    await app.evaluate(({ app }) => app.emit('activate'));
+    await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'true'
+      && document.body.dataset.wallpaperPhase === 'dawn');
+    assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1, 'Dock reopen refreshes time and starts one timer');
+    assert.equal(await app.evaluate(({ webContents }, id) => webContents.fromId(id)?.getURL(), contentsId),
+      'blanc://newtab/?private=1', 'Dock reopen preserves the same start-page WebContents');
+  }
+  console.log(`newtab-wallpaper-smoke PASS: free entitlement, 48 rendered combinations, main-owned hidden-tab visibility, live opt-in/out and resume status${process.platform === 'darwin' ? ', Dock close/reopen timer suspension' : ''}`);
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';

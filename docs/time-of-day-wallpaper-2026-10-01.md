@@ -10,6 +10,8 @@ Implementation uses a local-clock controller, image-load fallback, two-second cr
 
 Validation covers local boundaries/timezones, clock jumps, hidden timers, reduced motion, missing-image recovery, stale load cancellation, strict preference sanitation, persistence and sync. Electron acceptance covers 48 render combinations, a non-Patron’s real Settings toggle, private tabs, hidden-tab/window signals, live opt-in/out and resume. The full unit suite passed 1,979 tests; lint, substrate checks and acceptance wiring passed. The startup-layout smoke passed recovery checks in all four layouts at two sizes, saved-session restoration and queued external URL selection. Platform package/release gates remain separate; these checks do not establish a released capability.
 
+The native window’s completed close event also sends the main-owned hidden signal to retained macOS start pages. The Electron regression failed before this fix and passed afterward: minimize and Dock close cancel the actual minute timer, resume while closed keeps it suspended, and Dock reopen preserves the same WebContents while refreshing the current phase and starting exactly one timer. The 25 focused lifecycle/clock/settings unit tests, lint, substrate guards and startup-layout smoke with `--reopened-window` passed for this follow-up.
+
 ## Artwork provenance
 
 The built-in image generator edited the existing Sunrise image in three separate calls. Source composition was requested to remain fixed; no original was overwritten. Final files: src/renderer/pages/start-page-day.png, src/renderer/pages/start-page-dusk.png, src/renderer/pages/start-page-night.png.

@@ -7351,6 +7351,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    // macOS retains detached start pages for Dock reopen. Notify them after
+    // the window is gone; native detachment alone may leave document visible.
+    sendWindowStartPageVisibility(runtime);
     workspaceController.cancel(runtime);
     forgetTabImportForRuntime(runtime.id, 'runtime-destroyed');
     // Destroy the views the window owned — detachWindow only forgets them.
