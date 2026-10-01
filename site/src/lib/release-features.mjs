@@ -1,4 +1,5 @@
 const FEATURE_HEADING = /^(?:added|features?|new features?|what (?:is|['’]s) new(?:\s+in\s+.+)?)$/i;
+const MAINTENANCE_HEADING = /^(?:fixed|refined|changed|removed|security)$/i;
 const FEATURE_LEAD = /^(?:feat(?:\([^)]*\))?:|add(?:s|ed|ing)?\b|introduc(?:e|es|ed|ing)\b|import(?:s|ed|ing)?\b|ship(?:s|ped|ping)?\b|launch(?:es|ed|ing)?\b|support(?:s|ed|ing)?\b)/i;
 const MAINTENANCE_LEAD = /^(?:build|chore|ci|docs|fix|refactor|release|site|test)(?:\([^)]*\))?(?::|\b)/i;
 
@@ -54,6 +55,10 @@ function hasNewFeatures(release) {
 
   const notes = releaseNotes(release);
   if (notes.some((note) => !MAINTENANCE_LEAD.test(note) && FEATURE_LEAD.test(note))) return true;
+
+  // Explicit maintenance sections take precedence over the legacy non-patch
+  // fallback. A fix-only minor release does not add a new product feature.
+  if (sections.some((section) => MAINTENANCE_HEADING.test(String(section.heading || '').trim()))) return false;
 
   const version = String(release.version || release.tag || '').match(/^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/i);
   if (!version || Number(version[3]) !== 0) return false;

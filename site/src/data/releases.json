@@ -1,5 +1,133 @@
 [
   {
+    "tag": "v1.25.0",
+    "version": "1.25.0",
+    "name": "1.25.0",
+    "publishedAt": "2026-10-01T23:01:32.000Z",
+    "humanDate": "October 1, 2026",
+    "machineDate": "2026-10-01",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.25.0",
+    "anchor": "v1-25-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The folder picker opened by "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "move ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Favorites now stays above neighboring rows, opens upward when needed, and stays inside the window. With many folders, its options scroll inside the menu while the "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "new folder…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " field remains visible. Opening the picker no longer scrolls the selected favorite out of view."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Escape closes the folder picker and returns focus to its move button; a second Escape closes Favorites."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Refined",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Favorites group headings now use plain labels and count badges, without the curved bottom divider."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Verify the download",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Authenticate "
+                  },
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " with its Sigstore bundle using the certificate identity "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and OIDC issuer "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The same values are published on "
+                  },
+                  {
+                    "type": "link",
+                    "value": "Blanc's security page",
+                    "url": "https://blancbrowser.com/features/security"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.24.0",
     "version": "1.24.0",
     "name": "1.24.0",
