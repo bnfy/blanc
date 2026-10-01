@@ -53,12 +53,21 @@ test('Blanc generates an AppImage menu command with no sandbox-disabling argumen
   assert.doesNotThrow(() => verifyLinuxDesktopEntry(entryFile(t, source)));
 });
 
-test('the verifier rejects the legacy builder default if the override is lost', async (t) => {
+test('the verifier rejects the legacy builder default if both protections are lost', async (t) => {
   const config = structuredClone(pkg.build);
   delete config.appImage.executableArgs;
+  delete config.toolsets;
   const source = await generatedDesktopEntry(config);
   assert.match(source, /^Exec=AppRun --no-sandbox %U$/m);
   assert.throws(() => verifyLinuxDesktopEntry(entryFile(t, source)), /must not disable Chromium sandboxing/);
+});
+
+test('the static runtime also generates a safe desktop command without the explicit argument override', async (t) => {
+  const config = structuredClone(pkg.build);
+  delete config.appImage.executableArgs;
+  const source = await generatedDesktopEntry(config);
+  assert.match(source, /^Exec=AppRun %U$/m);
+  assert.doesNotThrow(() => verifyLinuxDesktopEntry(entryFile(t, source)));
 });
 
 test('desktop commands reject both switch prefixes, including quoted and assigned forms', async (t) => {

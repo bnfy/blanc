@@ -55,7 +55,7 @@ It uses zstd compression by default instead of the legacy default gzip, and
 retains embedded blockmap generation. The launcher namespace fallback described
 above is shared by both toolsets; migrating alone does not remove it.
 
-The runtime setting remains unchanged while its compatibility is investigated.
+The September 29 candidate kept the runtime setting unchanged while its compatibility was investigated.
 Before adopting 1.0.3, build a separate Linux validation candidate and verify:
 
 - Direct and integrated-menu launches on a host without `libfuse2`, including
@@ -123,8 +123,45 @@ owner confirmation remain pending before merge or release under the
 repository's platform-sensitive release protocol. The hosted launch tests do
 not establish that the namespace fallback stayed inactive. These source
 changes do not repair already installed menu entries; a rebuilt release and
-refreshed desktop integration are needed. The runtime setting and fallback
-policy remain unchanged.
+refreshed desktop integration are needed. The September 29 candidate kept the
+runtime setting and fallback policy unchanged.
+
+## October 1: candidate for the reported direct-launch failure
+
+An OMG! Ubuntu reader reported that direct AppImage launch failed even after
+installing a FUSE package, while extracting the image and running `AppRun`
+worked. The report does not include the terminal error or Ubuntu version.
+Missing FUSE 2 is a plausible cause, not a confirmed diagnosis; the extracted
+launcher also has the namespace fallback described above.
+
+The next private candidate explicitly selects
+`build.toolsets.appimage: "1.0.3"`, using the static mounting runtime supported
+and hash-pinned by the locked official electron-builder release. Electron
+itself remains official and unmodified. The explicit empty desktop arguments
+remain in place, and the generated `AppRun` namespace fallback remains unchanged.
+
+The Linux workflow now removes preinstalled `libfuse2` / `libfuse2t64` for
+static-runtime candidates and rejects an environment that still advertises
+`libfuse.so.2`. It then checks the actual AppImage's SHA-512, version, file size,
+and readable embedded differential blockmap against `latest-linux.yml`, runs
+two direct launch smokes, and runs the existing packaged media and installed
+URL-protocol checks. Immutable release tags using the legacy runtime still
+install their FUSE 2 dependency.
+
+The candidate includes current `origin/main` through `15319a95`, including
+the dependency-audit fixes from PR #444. Local validation passed 1,970 unit
+tests, the 14 focused Linux/default-browser packaging tests, `npm run lint`,
+`npm run substrate:check`, and the workflow's YAML/shell/inline Node syntax
+checks.
+
+Hosted build and launch evidence for this candidate is pending. Actual Linux
+desktop-menu behavior, renderer sandbox observations, an in-app Linux updater
+handoff, and confirmation on the affected machine remain pending before merge
+or release. A successful no-FUSE-2 hosted launch would establish that dependency
+is removed for the tested environment, not that Michael's machine is fixed.
+
+Current-user diagnostics and the conditional Ubuntu workaround are in
+[`linux-appimage-troubleshooting.md`](linux-appimage-troubleshooting.md).
 
 Sources: the locked, installed `app-builder-lib` 26.15.3 files
 `out/targets/appimage/AppImageTarget.js`, `appImageUtil.js`, and
