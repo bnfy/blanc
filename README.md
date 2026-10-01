@@ -66,14 +66,14 @@ has one human maintainer and has not completed an independent external audit.
 The evidence and limits recorded when this assessment was published are in the
 [v1.21.0 release report](docs/release-incidents/2026-09-21-v1.21.0.md).
 
-> **Current release:** v1.24.0 adds a free, optional Sunrise wallpaper that
-> follows your local time, with a footer toggle and two-second fades. Linux
-> AppImages no longer need the host FUSE 2 library, and packaged desktop
-> arguments are corrected. It also updates official Electron to 44.5.1.
-> Use the [v1.24.0 tag](https://github.com/bnfy/blanc/tree/v1.24.0) for the exact
+> **Current release:** v1.25.0 keeps the Favorites folder picker visible above
+> neighboring rows and inside the window, with scrolling for long folder lists
+> and clearer Escape behavior. Group headings use plain labels and count badges.
+> It retains official Electron 44.5.1.
+> Use the [v1.25.0 tag](https://github.com/bnfy/blanc/tree/v1.25.0) for the exact
 > source associated with the public binaries and the
-> [release report](docs/release-incidents/2026-10-01-v1.24.0.md) for verification
-> and the recorded physical Windows/Linux check waivers.
+> [release report](docs/release-incidents/2026-10-01-v1.25.0.md) for verification
+> and the pending macOS/Windows in-app updater handoffs.
 
 ## Source and license
 

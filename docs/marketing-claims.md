@@ -70,9 +70,10 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe the verified v1.24.0 public release; platform
-acceptance limits and waivers are recorded in
-[the release report](release-incidents/2026-10-01-v1.24.0.md):
+These boundaries describe the verified v1.25.0 public release; platform
+acceptance limits and pending updater handoffs are recorded in
+[the release report](release-incidents/2026-10-01-v1.25.0.md). Historical
+wallpaper and Linux acceptance waivers remain in the v1.24.0 report:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
@@ -94,6 +95,14 @@ acceptance limits and waivers are recorded in
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
   categorize tabs semantically, or organize them automatically.
+- **Favorites folder picker:** v1.25.0 keeps the move picker above neighboring
+  rows and inside the window, with internal scrolling for long folder lists
+  and a visible new-folder field. Escape closes the picker and returns focus
+  to its move button; a second Escape closes Favorites. Group headings use
+  plain labels and count badges. These claims are verified by the exact-tag
+  `src/renderer/pages/bookmarks.js`, `src/renderer/pages/pages.css`, and
+  `test/desktop/favorites-folder-picker-smoke.mjs`, the published release notes,
+  and the 12-layout macOS/Linux regression evidence in the release report.
 - **Named Workspaces:** Active Patrons can explicitly save a window or create a
   blank named workspace. A bound workspace saves its tabs and groups as the
   user browses and can later replace the current window's set. This is not
