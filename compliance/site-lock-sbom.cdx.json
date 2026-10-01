@@ -7725,14 +7725,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/devalue@5.8.2",
+      "bom-ref": "pkg:npm/devalue@5.9.4",
       "name": "devalue",
-      "version": "5.8.2",
+      "version": "5.9.4",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0ce6cf3c07ddb456d78f12ea2bcb365e4f59b96cf9f99a051210bb27be9eb38194feb1225f01d399b226a02772a0239c047d54177f82cfa676b180f88729794c"
+          "content": "b0f013e29ced6eeeb9f3afe1ae13a730a4b5ec826bbe0d769978923d24b75b9a8378dd911a0bd9d1d8990a6df57416e77af7d59ae8cd3b720cdb0ad2e18d9186"
         }
       ],
       "licenses": [
@@ -7742,7 +7742,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/devalue@5.8.2",
+      "purl": "pkg:npm/devalue@5.9.4",
       "properties": [
         {
           "name": "blanc:development",
@@ -7764,7 +7764,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/devalue/-/devalue-5.8.2.tgz"
+          "url": "https://registry.npmjs.org/devalue/-/devalue-5.9.4.tgz"
         }
       ]
     },
@@ -14357,7 +14357,7 @@
         "pkg:npm/clsx@2.1.1",
         "pkg:npm/common-ancestor-path@2.0.0",
         "pkg:npm/cookie@2.0.1",
-        "pkg:npm/devalue@5.8.2",
+        "pkg:npm/devalue@5.9.4",
         "pkg:npm/diff@9.0.0",
         "pkg:npm/dset@3.1.4",
         "pkg:npm/es-module-lexer@2.3.1",
@@ -14514,7 +14514,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/devalue@5.8.2",
+      "ref": "pkg:npm/devalue@5.9.4",
       "dependsOn": []
     },
     {
