@@ -6369,14 +6369,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@1.1.18",
+      "bom-ref": "pkg:npm/brace-expansion@1.1.21",
       "name": "brace-expansion",
-      "version": "1.1.18",
+      "version": "1.1.21",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "11d7a9fd7f5f1aa54d9b328156c0d820eb43fb3d6db9ecd5ef42c18dd0acb7d4eabbbea5b27bd1899ea84e27359fefc12305fa4031803bde0f3783764800efb7"
+          "content": "f73780f8a2d934dce0945d933ca450103cb1e986f2edd68092ecbc3223f3a573ec6035a2fc344cf239b0503c689108d8a81a6fe4380f8b00f88786594b2d548f"
         }
       ],
       "licenses": [
@@ -6386,7 +6386,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@1.1.18",
+      "purl": "pkg:npm/brace-expansion@1.1.21",
       "properties": [
         {
           "name": "blanc:development",
@@ -6408,20 +6408,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.18.tgz"
+          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.21.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@2.1.4",
+      "bom-ref": "pkg:npm/brace-expansion@2.1.7",
       "name": "brace-expansion",
-      "version": "2.1.4",
+      "version": "2.1.7",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8467d5ccfc6d85b7f7fb6ca383f441b3ad1c074161a814bfcef755ff8c27e3f0663746cd30c1cf73857f05b1627aa7f54ca0061801e76387928da8c29747f65e"
+          "content": "b996dec3536a7663c34cc27c6a1d72f9bfbd40426b7e45c593745c4d0c375f48d6ff1454bc52ac83509f41d49819d4db5d9584c6d53727771cc6d9dfc35162d2"
         }
       ],
       "licenses": [
@@ -6431,7 +6431,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@2.1.4",
+      "purl": "pkg:npm/brace-expansion@2.1.7",
       "properties": [
         {
           "name": "blanc:development",
@@ -6453,20 +6453,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.4.tgz"
+          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.7.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/brace-expansion@5.0.9",
+      "bom-ref": "pkg:npm/brace-expansion@5.0.12",
       "name": "brace-expansion",
-      "version": "5.0.9",
+      "version": "5.0.12",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "49c43822ebc8105d533253fb66dfaf8c9ffff7394f6f64837315b13376e4f2ceade8619d27b28ed5d09c4e274e3c929e3d6df42c4ff6713ef00b23e1a3dfd6c6"
+          "content": "628bd0debce168b308ac38cd0cc90d4b4d6d79af77aa11211b9c72f1febe47497e770dca8bee6c0a822823de368ae2d94c75a881692d830543854d3d88d12299"
         }
       ],
       "licenses": [
@@ -6476,7 +6476,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@5.0.9",
+      "purl": "pkg:npm/brace-expansion@5.0.12",
       "properties": [
         {
           "name": "blanc:development",
@@ -6498,7 +6498,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz"
+          "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.12.tgz"
         }
       ]
     },
@@ -21862,20 +21862,20 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/brace-expansion@1.1.18",
+      "ref": "pkg:npm/brace-expansion@1.1.21",
       "dependsOn": [
         "pkg:npm/balanced-match@1.0.2",
         "pkg:npm/concat-map@0.0.1"
       ]
     },
     {
-      "ref": "pkg:npm/brace-expansion@2.1.4",
+      "ref": "pkg:npm/brace-expansion@2.1.7",
       "dependsOn": [
         "pkg:npm/balanced-match@1.0.2"
       ]
     },
     {
-      "ref": "pkg:npm/brace-expansion@5.0.9",
+      "ref": "pkg:npm/brace-expansion@5.0.12",
       "dependsOn": [
         "pkg:npm/balanced-match@4.0.4"
       ]
@@ -22936,25 +22936,25 @@
     {
       "ref": "pkg:npm/minimatch@10.2.5",
       "dependsOn": [
-        "pkg:npm/brace-expansion@5.0.9"
+        "pkg:npm/brace-expansion@5.0.12"
       ]
     },
     {
       "ref": "pkg:npm/minimatch@3.1.5",
       "dependsOn": [
-        "pkg:npm/brace-expansion@1.1.18"
+        "pkg:npm/brace-expansion@1.1.21"
       ]
     },
     {
       "ref": "pkg:npm/minimatch@5.1.9",
       "dependsOn": [
-        "pkg:npm/brace-expansion@2.1.4"
+        "pkg:npm/brace-expansion@2.1.7"
       ]
     },
     {
       "ref": "pkg:npm/minimatch@9.0.9",
       "dependsOn": [
-        "pkg:npm/brace-expansion@2.1.4"
+        "pkg:npm/brace-expansion@2.1.7"
       ]
     },
     {

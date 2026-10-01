@@ -154,11 +154,30 @@ tests, the 14 focused Linux/default-browser packaging tests, `npm run lint`,
 `npm run substrate:check`, and the workflow's YAML/shell/inline Node syntax
 checks.
 
-Hosted build and launch evidence for this candidate is pending. Actual Linux
+The first static-runtime candidate, `ed891c06`, passed private Linux validation
+[run 36871216402](https://github.com/bnfy/blanc/actions/runs/36871216402).
+The runner's FUSE 2 absence gate passed, both direct AppImage launches exposed
+Blanc chrome/new-tab targets and the `v1.23.0` version marker, and updater
+metadata/blockmap, packaged media, installed `blanc-import`, payload, and fuse
+checks passed. Release upload and provenance steps were skipped.
+
+That run's separate required PR security check found newly indexed
+`brace-expansion` advisories. The follow-up updates only that transitive
+dependency within existing ranges in the desktop and tab-import-companion
+lockfiles (`1.1.21`, `2.1.7`, `5.0.12`) and regenerates the root lock SBOM.
+`npm run security:dependencies` passes all four workspaces with the existing
+VEX accounting intact. The final native candidate will be rebuilt from those
+patched inputs; its evidence is recorded below when complete.
+
+Actual Linux
 desktop-menu behavior, renderer sandbox observations, an in-app Linux updater
 handoff, and confirmation on the affected machine remain pending before merge
 or release. A successful no-FUSE-2 hosted launch would establish that dependency
 is removed for the tested environment, not that Michael's machine is fixed.
+
+The candidate retains version `1.23.0` solely for private validation. It is
+not a public replacement for v1.23.0 and must not overwrite its immutable
+release assets. Testing should use a fresh directory and a separate profile.
 
 Current-user diagnostics and the conditional Ubuntu workaround are in
 [`linux-appimage-troubleshooting.md`](linux-appimage-troubleshooting.md).
