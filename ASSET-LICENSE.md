@@ -43,8 +43,9 @@ Platform-packaged forms of the same mark:
 - `site/public/logo.png`, `site/public/favicon.svg`,
   `site/public/favicon.ico`, `site/public/favicon-16x16.png`,
   `site/public/favicon-32x32.png`, and `site/public/apple-touch-icon.png`
-- `site/public/blanc-email-signature.png` — transparent monochrome Sunrise
-  signature mark, with light edging for dark backgrounds
+- `site/public/blanc-email-signature.png` and
+  `site/public/blanc-email-signature-48.png` — transparent monochrome Sunrise
+  signature marks, with light edging for dark backgrounds
 - `export/app-icons-1024-square/contact-sheet.png`
 
 A build that replaces these files with its own artwork is unencumbered by this
