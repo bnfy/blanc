@@ -401,6 +401,7 @@ function setupPages(hooks = {}) {
     // below: startPageStatus() supplies it, and the same function feeds the
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
+    wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
     // Per-tab guard: the shared status never carries profile or privacy.
     migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
     // A utility sheet is a separate WebContentsView layered over this tab;

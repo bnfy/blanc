@@ -736,6 +736,8 @@ function install(refs) {
     setTabSleep(value) { return settings.setSettings({ tabSleep: value }).tabSleep; },
     tabLayout() { return settings.getSettings().tabLayout; },
     setTabLayout(layout) { return setTabLayout(layout); },
+    setAppearance(theme) { return settings.setSettings({ theme }).theme; },
+    setNewtabDynamicWallpaper(on) { return settings.setSettings({ newtabDynamicWallpaper: !!on }).newtabDynamicWallpaper; },
     newtabLayout() { return settings.getSettings().newtabLayout; },
     setNewtabLayout(layout) { return settings.setSettings({ newtabLayout: layout }).newtabLayout; },
     readNewtabLayoutDom() {
