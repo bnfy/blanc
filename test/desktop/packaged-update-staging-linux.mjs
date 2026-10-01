@@ -299,18 +299,31 @@ try {
   // Serve the current hop's staging feed on loopback and keep a request log as
   // evidence that each candidate came from it.
   feedServer = http.createServer((request, response) => {
-    const name = decodeURIComponent(new URL(request.url, 'http://127.0.0.1').pathname).replace(/^\/+/, '');
-    const entry = { at: new Date().toISOString(), method: request.method, path: `/${name}`, feed: path.basename(servingFeed) };
+    // Record only values chosen from our own feed listing and fixed method
+    // names, never text taken from the request itself.
+    let requested = '';
+    try {
+      requested = decodeURIComponent(new URL(request.url, 'http://127.0.0.1').pathname).replace(/^\/+/, '');
+    } catch {
+      // A malformed path is simply not one of the feed's files.
+    }
+    const known = fs.readdirSync(servingFeed).find((file) => file === requested) ?? null;
+    const entry = {
+      at: new Date().toISOString(),
+      method: ['GET', 'HEAD'].find((method) => method === request.method) ?? 'OTHER',
+      path: known ? `/${known}` : '/(not in feed)',
+      feed: path.basename(servingFeed),
+    };
     feedRequests.push(entry);
-    const file = path.join(servingFeed, path.basename(name));
-    if (!name || path.basename(name) !== name || !fs.existsSync(file)) {
+    if (!known) {
       response.writeHead(404).end();
       return;
     }
+    const file = path.join(servingFeed, known);
     const size = fs.statSync(file).size;
     response.on('finish', () => { entry.completed = true; entry.bytes = size; });
     response.writeHead(200, { 'Content-Length': size, 'Content-Type': 'application/octet-stream' });
-    if (request.method === 'HEAD') response.end();
+    if (entry.method === 'HEAD') response.end();
     else fs.createReadStream(file).pipe(response);
   });
   await new Promise((resolve) => feedServer.listen(0, '127.0.0.1', resolve));
@@ -397,6 +410,7 @@ try {
   const summary = { result, failure, from: oldVersion, hops: hopResults, timeline };
   fs.writeFileSync(path.join(evidenceDir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
   const chain = [oldVersion, ...hops.map((h) => h.version)].join(' -> ');
-  console.log(`linux-appimage-update-rehearsal ${result}: ${chain}${failure ? ` (${failure})` : ''}`);
+  const reason = failure ? ` (${String(failure).replace(/[\r\n]+/g, ' ')})` : '';
+  console.log(`linux-appimage-update-rehearsal ${result}: ${chain}${reason}`);
   process.exitCode = result === 'PASS' ? 0 : 1;
 }
