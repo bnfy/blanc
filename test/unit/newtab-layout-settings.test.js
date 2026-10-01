@@ -301,3 +301,30 @@ test('privacy choices re-save after first run completes (tour replay)', (t) => {
   assert.equal(settings.getSettings().usagePing, false);
   assert.equal(settings.isFirstRunComplete(), true);
 });
+
+
+test('time-of-day wallpaper is free, strict, persistent and synced without its local phase', async (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-wallpaper-'));
+  t.after(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
+  let settings = loadSettings(userData);
+  assert.equal(settings.getSettings().newtabDynamicWallpaper, false);
+  assert.equal(settings.isDynamicWallpaperEnabled(), false);
+  settings.setSettings({ newtabDynamicWallpaper: 'true' });
+  assert.equal(settings.isDynamicWallpaperEnabled(), false);
+  settings.setSettings({ newtabDynamicWallpaper: true });
+  assert.equal(settings.isPatronActive(), false);
+  assert.equal(settings.isDynamicWallpaperEnabled(), true);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  settings = loadSettings(userData);
+  assert.equal(settings.isDynamicWallpaperEnabled(), true);
+  const exported = settings.exportForSync();
+  assert.equal(exported.values.newtabDynamicWallpaper, true);
+  assert.equal('wallpaperPhase' in exported.values, false);
+  settings.mergeFromSync({ values: { newtabDynamicWallpaper: false }, meta: { newtabDynamicWallpaper: Date.now() + 60_000 } });
+  assert.equal(settings.isDynamicWallpaperEnabled(), false);
+  settings.setSettings({ newtabDynamicWallpaper: true });
+  assert.equal(settings.isDynamicWallpaperEnabled(), true);
+});

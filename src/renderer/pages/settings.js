@@ -19,6 +19,27 @@
   // un-findable by id (getElementById → null → `.addEventListener` throws).
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
+  function renderWallpaperSetting() {
+    if (!supports('newtabDynamicWallpaper')) return;
+    const control = document.getElementById('newtabDynamicWallpaper');
+    control.checked = settings.newtabDynamicWallpaper === true;
+    document.getElementById('dynamicWallpaperHint').textContent =
+      'Sunrise follows your device’s local time. Your choice syncs across devices.';
+  }
+  if (supports('newtabDynamicWallpaper')) {
+    renderWallpaperSetting();
+    document.getElementById('newtabDynamicWallpaper').addEventListener('change', async (event) => {
+      const result = await window.bowserPages.settings.set({ newtabDynamicWallpaper: event.target.checked });
+      settings.newtabDynamicWallpaper = result.newtabDynamicWallpaper;
+      renderWallpaperSetting();
+    });
+    window.bowserPages.settings.onAppearance?.((status) => {
+      settings.newtabDynamicWallpaper = status.newtabDynamicWallpaper === true;
+      renderWallpaperSetting();
+    });
+  } else {
+    document.getElementById('dynamicWallpaperSetting')?.remove();
+  }
 
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');

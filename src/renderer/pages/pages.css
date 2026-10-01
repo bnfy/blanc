@@ -2819,14 +2819,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --accent: #805d28;
   --accent-dim: rgba(128, 93, 40, 0.16);
   --start-footer: rgba(247, 240, 229, 0.82);
+  isolation: isolate;
   position: relative;
   min-height: 100vh;
   padding: 0 0 72px;
   overflow-x: hidden;
   background-color: var(--bg);
-  background-image:
-    linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%),
-    url("start-page-sunrise.png");
+  --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.94) 0%, rgba(247, 240, 229, 0.84) 60%, rgba(247, 240, 229, 0.35) 100%);
+  --start-wallpaper-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%);
+  background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   background-position: center, center bottom;
   background-repeat: no-repeat;
   background-size: cover, cover;
@@ -2846,9 +2847,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --accent: #d4ad66;
     --accent-dim: rgba(212, 173, 102, 0.2);
     --start-footer: rgba(23, 19, 15, 0.84);
-    background-image:
-      linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%),
-      url("start-page-sunrise.png");
+    --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
+    --start-wallpaper-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
+  background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   }
 }
 
@@ -2863,9 +2864,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --accent: #d4ad66;
   --accent-dim: rgba(212, 173, 102, 0.2);
   --start-footer: rgba(16, 13, 11, 0.88);
-  background-image:
-    linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%),
-    url("start-page-sunrise.png");
+  --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
+  --start-wallpaper-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
+  background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
 }
 
 .start-brand {
@@ -3817,4 +3818,27 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 @media (prefers-reduced-motion: reduce) {
   .sync-path-arrow { transition: none; }
+}
+
+/* Local artwork shares the existing theme/private overlay and crop. */
+.start-wallpaper-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--start-wallpaper-overlay), var(--wallpaper-image);
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+  opacity: 0;
+}
+.start-wallpaper-layer.is-visible { opacity: 1; }
+.start-wallpaper-layer.is-fading { transition: opacity 2s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .start-wallpaper-layer.is-fading { transition: none; }
+}
+
+.ledger-body[data-wallpaper-phase="dusk"],
+.ledger-body[data-wallpaper-phase="night"] {
+  --start-wallpaper-overlay: var(--start-wallpaper-evening-overlay);
 }

@@ -4651,7 +4651,7 @@ function stageWorkspace(runtime, workspace) {
       const tab = tabs.get(id);
       if (tab?.view) {
         runtime.window?.contentView.removeChildView(tab.view);
-        tab.view.setVisible(false);
+        setTabViewVisible(tab, false);
       }
       if (tab) tab.lastActiveAt = Date.now();
     }
@@ -5209,6 +5209,32 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   return id;
 }
 
+// Electron can leave a detached document reporting visible. Send a narrow
+// start-page signal alongside the native view change so its clock can stop.
+function startPageViewVisible(tab) {
+  if (!tab || !liveContents(tab)) return false;
+  const owner = windowRuntimes.runtimeForTab(tab.id);
+  return !!owner?.window && !owner.window.isDestroyed()
+    && owner.window.isVisible() && !owner.window.isMinimized()
+    && (owner.activeTabId === tab.id || owner.glanceTabId === tab.id)
+    && tab.view?.getVisible() === true;
+}
+
+function sendWindowStartPageVisibility(runtime) {
+  for (const tab of tabs.values()) {
+    if (tab.runtimeId === runtime.id && tab.url?.startsWith('blanc://newtab')) {
+      liveContents(tab)?.send('pages:start:visibility', startPageViewVisible(tab));
+    }
+  }
+}
+
+function setTabViewVisible(tab, visible) {
+  tab.view.setVisible(visible);
+  if (tab.url?.startsWith('blanc://newtab')) {
+    liveContents(tab)?.send('pages:start:visibility', startPageViewVisible(tab));
+  }
+}
+
 function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
@@ -5284,7 +5310,7 @@ function setActiveTab(id, {
     // so Chromium never background-throttles its timers (the newtab sprite
     // would keep animating at 6fps forever). Hide it explicitly;
     // reactivation always calls setVisible(true).
-    prev.view.setVisible(false);
+    setTabViewVisible(prev, false);
   }
 
   rt().activeTabId = id;
@@ -5295,13 +5321,13 @@ function setActiveTab(id, {
     rt().tabsWantingAddressBarFocus.add(id);
   } else {
     rt().tabsWantingAddressBarFocus.delete(id);
-    next.view.setVisible(true);
+    setTabViewVisible(next, true);
   }
-  if (shouldFocusAddress) next.view.setVisible(false);
+  if (shouldFocusAddress) setTabViewVisible(next, false);
   rt().window.contentView.addChildView(next.view);
   const glanceTab = activeGlanceTab();
   if (glanceTab?.view) {
-    glanceTab.view.setVisible(true);
+    setTabViewVisible(glanceTab, true);
     rt().window.contentView.addChildView(glanceTab.view);
   }
   // The freshly attached tab view must not stack above an open overlay —
@@ -5326,7 +5352,7 @@ function setActiveTab(id, {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
       if (rt().activeTabId !== id || !tabs.has(id) || !next.view) return;
-      next.view.setVisible(true);
+      setTabViewVisible(next, true);
       reclaimAddressBarFocus(id);
     });
   }
@@ -5357,13 +5383,13 @@ async function setGlanceTab(id) {
   const previous = activeGlanceTab();
   if (previous?.view && previous.id !== id) {
     rt().window.contentView.removeChildView(previous.view);
-    previous.view.setVisible(false);
+    setTabViewVisible(previous, false);
     previous.lastActiveAt = Date.now();
   }
 
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
-  tab.view.setVisible(true);
+  setTabViewVisible(tab, true);
   rt().window.contentView.addChildView(tab.view);
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
@@ -5385,7 +5411,7 @@ function closeGlance({ focusContent = true } = {}) {
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
     rt().window.contentView.removeChildView(tab.view);
-    tab.view.setVisible(false);
+    setTabViewVisible(tab, false);
     tab.lastActiveAt = Date.now();
   }
   resizeActiveView();
@@ -5455,7 +5481,7 @@ function activateTabFromRail(id) {
     // setActiveTab deliberately no-ops for an already-active tab; the rail
     // contract still requires that click/keyboard activation focus content.
     rt().tabsWantingAddressBarFocus.delete(id);
-    tab.view.setVisible(true);
+    setTabViewVisible(tab, true);
     resizeActiveView();
     wc.focus();
   }
@@ -7278,6 +7304,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
+  for (const event of ['hide', 'show', 'minimize', 'restore']) {
+    rt().window.on(event, bindWindowRuntime(runtime, () => sendWindowStartPageVisibility(runtime)));
+  }
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
     focusedRuntime = runtime;
     setFocusedLocalProfile(runtime.profileId);
@@ -8514,6 +8543,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // settings change (below), and setPatron() fires those listeners, so
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
+      dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
       migrationChecklist: migrationChecklistState({
@@ -8526,6 +8556,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   };
   const broadcastStartPageStatus = () => {
     const status = startPageStatus();
+    for (const runtime of windowRuntimes.all()) {
+      if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/')) {
+        liveUtilitySheet(runtime)?.wc.send('pages:settings:appearance', {
+          newtabDynamicWallpaper: settings.getSettings().newtabDynamicWallpaper,
+        });
+      }
+    }
     for (const tab of tabs.values()) {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
       liveContents(tab)?.send('pages:start:status', {
@@ -8656,6 +8693,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
+      visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
         startPageStatus().migrationChecklist,
         tabs.get(tabIdByWebContentsId.get(wc.id)),
@@ -9016,6 +9054,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   }, SLEEP_SWEEP_INTERVAL_MS);
 
   powerMonitor.on('resume', () => {
+    broadcastStartPageStatus();
     // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
     lastSleepSweepAt = Date.now();
     forEachWindowRuntime(restampBackgroundTabs);

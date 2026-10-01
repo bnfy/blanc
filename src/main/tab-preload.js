@@ -51,6 +51,7 @@ if (window.location.protocol === 'blanc:') {
         onStatus: (callback) => {
           ipcRenderer.on('pages:start:status', (_event, status) => callback(status));
         },
+        onVisibility: (callback) => ipcRenderer.on('pages:start:visibility', (_event, visible) => callback(visible)),
         onRemoteTabs: (callback) => {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
         },
@@ -134,6 +135,7 @@ if (window.location.protocol === 'blanc:') {
       settings: {
         get: () => invoke('pages:settings:get'),
         set: (partial) => invoke('pages:settings:set', partial),
+        onAppearance: (callback) => ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status)),
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),

@@ -732,7 +732,10 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
   invalidate();
 });
 
+const wallpaper = window.blancNewtabWallpaper.mount(document, window);
 const dataReady = window.bowserPages?.start.data().then((data) => {
+  wallpaper.setVisible(data.wallpaperVisible === true);
+  wallpaper.setEnabled(data.dynamicWallpaperEnabled === true);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
     layout: data.layout ?? 'billboard',
@@ -760,9 +763,13 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
 
 Promise.all([favoritesReady, dataReady]).then(() => applyLayout(state.layout));
 
+window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));
 window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
+  if (status && 'dynamicWallpaperEnabled' in status) {
+    wallpaper.setEnabled(status.dynamicWallpaperEnabled === true);
+  }
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
   if (status && 'migrationChecklist' in status) {
