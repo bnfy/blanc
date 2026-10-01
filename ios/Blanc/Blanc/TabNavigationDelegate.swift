@@ -21,6 +21,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(_ webView: WKWebView,
                  didFinish navigation: WKNavigation!) {
         sync(webView)
+        loadFavicon(from: webView)
     }
 
     func webView(_ webView: WKWebView,
@@ -60,6 +61,46 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
+    /// Read same-origin favicons through the page's WebKit context, so the
+    /// request follows the tab's content-blocking and cookie policy.
+    private func loadFavicon(from webView: WKWebView) {
+        guard let tab, let pageURL = webView.url,
+              ["http", "https"].contains(pageURL.scheme?.lowercased() ?? "") else { return }
+
+        let script = """
+        const link = document.querySelector('link[rel~="icon"][href]');
+        const candidates = [link?.href, new URL('/favicon.ico', location.href).href];
+        for (const candidate of candidates) {
+            if (!candidate) continue;
+            try {
+                const url = new URL(candidate, location.href);
+                if (url.origin !== location.origin) continue;
+                const response = await fetch(url.href, { credentials: 'same-origin' });
+                if (!response.ok) continue;
+                const blob = await response.blob();
+                if (!blob.type.startsWith('image/') || blob.size > 131072) continue;
+                const bitmap = await createImageBitmap(blob);
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                canvas.getContext('2d').drawImage(bitmap, 0, 0, 32, 32);
+                return canvas.toDataURL('image/png');
+            } catch (_) { /* Try the next same-origin icon. */ }
+        }
+        return null;
+        """
+
+        webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { [weak tab] result in
+            guard case .success(let value) = result,
+                  let tab, tab.currentURL == pageURL,
+                  let encoded = value as? String,
+                  let comma = encoded.firstIndex(of: ","),
+                  let data = Data(base64Encoded: String(encoded.suffix(from: encoded.index(after: comma)))),
+                  UIImage(data: data) != nil else { return }
+            tab.faviconData = data
+        }
+    }
+
     /// Updates the tab's URL fields and fires `onURLChange` only when the URL
     /// actually changed — a same-URL reload must not trigger a session write.
     /// Split out of `sync` (internal, not private) so the change-detection is
@@ -69,6 +110,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab.currentURL = newURL
         tab.addressText = newURL.absoluteString
         if changed {
+            tab.faviconData = nil
             onURLChange?(newURL)
         }
     }

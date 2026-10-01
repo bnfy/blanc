@@ -11,6 +11,7 @@ final class TabModel: Identifiable {
     var canGoForward = false
     var isLoading = false
     var pageTitle = ""
+    var faviconData: Data?
 
     let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
