@@ -11,3 +11,11 @@ The missing evidence is installed Windows/Linux wallpaper acceptance across phas
 ## Release gates
 
 Manual Windows/Linux acceptance remains unperformed. Complete it, or obtain a separate explicit release waiver after explaining the remaining evidence and risk, before tagging or publishing a release. The ordinary protected-branch checks and existing release verification remain required. No public release, updater publication, site deployment or Flatpak launch is authorized by this merge instruction.
+
+## Footer follow-up — PR #455
+
+The owner reviewed the footer control, requested improved positioning, a fade when toggling, and a light divider that stays unchanged on hover. After those corrections were committed and pushed, the owner explicitly instructed “squash merge” for PR #455. That instruction authorizes this follow-up merge with the existing manual Windows/Linux acceptance hold still open. It does not authorize a release or mark any unperformed acceptance as passed.
+
+All six protected PR checks passed on `d496d9c4e7dd63d016f031c10daf7bc7abe37c84`. Local validation passed 1,981 unit tests, lint and substrate consistency, plus real macOS Electron checks for 48 phase/layout/style combinations, 60 footer placement checks, both fade directions, rapid reversal, reduced motion, persistence, Settings parity and retained-window timers. An additional computed-style check confirmed the divider stays unchanged on hover in light/dark/private styling with the switch both on and off.
+
+Installed Windows/Linux appearance and transition behavior remains unconfirmed, including any differences in native settings, compositing and lifecycle handling. The release gates above remain required for this follow-up as well.
