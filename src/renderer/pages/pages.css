@@ -2771,14 +2771,12 @@ body:not([data-layout="ledger"]) .ledger-footer {
 /* The clock is exactly 148px at any normal window; the clamp only bites in
    windows too narrow to hold "12:58 pm" at full size. */
 .bb-clock { font-size: clamp(64px, 14vw, 148px); }
-/* The switcher must sit at the TRUE horizontal center: with space-between
-   flex it only looks centered when the side items happen to match widths
-   ("...this week v1.4.0" vs "⌘L to go anywhere" do not). A 1fr auto 1fr grid
-   centers the middle column geometrically, whatever the sides weigh. */
+/* Keep the appearance controls centered independently of the footer's
+   differently sized status and shortcut columns. */
 .ledger-footer { display: grid; grid-template-columns: 1fr auto 1fr; }
 .ledger-footer .footer-left,
 .ledger-footer > #footerLeft { justify-self: start; }
-.ledger-footer .layout-switcher { justify-self: center; }
+.ledger-footer .footer-appearance { justify-self: center; }
 .ledger-footer > .footer-right { justify-self: end; }
 /* Too narrow for one row: wrap as centered lines instead (no overflow). */
 @media (max-width: 760px) {
@@ -3081,6 +3079,13 @@ body:not([data-layout="ledger"]) .ledger-footer {
   opacity: 1;
   backdrop-filter: blur(14px);
 }
+.footer-appearance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.ledger-footer { align-items: center; }
 .layout-switcher {
   align-items: center;
   gap: 2px;
@@ -3110,6 +3115,51 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .layout-switcher button:hover { color: var(--text); background: var(--surface); }
 .layout-switcher button.active,
 .layout-switcher button[aria-pressed="true"] { color: var(--bg); background: var(--text); }
+.wallpaper-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 2px 0 2px 14px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: inherit;
+  line-height: 1.25;
+}
+.wallpaper-toggle:hover,
+.wallpaper-toggle[aria-pressed="true"] { color: var(--text); }
+.wallpaper-toggle:hover { border-color: var(--border); }
+.wallpaper-toggle:focus-visible { outline-offset: 3px; }
+.wallpaper-toggle:disabled { cursor: default; opacity: 0.6; }
+.wallpaper-toggle-track {
+  position: relative;
+  width: 22px;
+  height: 12px;
+  flex: none;
+  border: 1px solid var(--text-dim);
+  border-radius: 999px;
+}
+.wallpaper-toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track {
+  border-color: var(--text);
+  background: var(--text);
+}
+.wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track::after {
+  left: 12px;
+  background: var(--bg);
+}
 .ledger-version { font-size: 10px; }
 #goAnywhere { font-family: var(--font-ui); }
 
@@ -3222,15 +3272,22 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .tally-left,
   .tally-right { margin-inline: 30px; }
   .tally-left { padding-top: 122px; }
+}
+
+/* Make room for the wallpaper switch before the footer columns overlap. */
+@media (max-width: 1040px) {
   .ledger-footer,
   body:not([data-layout="ledger"]) .ledger-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     min-height: 86px;
     padding: 8px 20px 10px;
     row-gap: 6px;
   }
   .ledger-footer .footer-left { order: 2; }
-  .ledger-footer .layout-switcher { order: 1; flex-basis: 100%; }
-  .ledger-footer .footer-right { order: 3; }
+  .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
+  .ledger-footer .footer-right { order: 3; align-items: center; }
   .migration-checklist-shell,
   body[data-layout="billboard"] .migration-checklist-shell,
   body[data-layout="tally"] .migration-checklist-shell { bottom: 102px; }
@@ -3838,7 +3895,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .start-wallpaper-layer.is-fading { transition: none; }
 }
 
-.ledger-body[data-wallpaper-phase="dusk"],
-.ledger-body[data-wallpaper-phase="night"] {
+.start-wallpaper-layer[data-wallpaper-phase="dusk"],
+.start-wallpaper-layer[data-wallpaper-phase="night"] {
   --start-wallpaper-overlay: var(--start-wallpaper-evening-overlay);
 }

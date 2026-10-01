@@ -4,14 +4,14 @@ const { phaseForTime, createController } = require('../../src/renderer/pages/new
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 function fixture(loader = async () => {}) {
   let date = new Date(2026, 9, 1, 7, 59, 30), visible = true, motion = false;
-  const timers = new Map(), frames = [];
+  const timers = new Map(), frames = [], transitions = [];
   let id = 0;
   const controller = createController({ now: () => date, isVisible: () => visible,
-    reducedMotion: () => motion, loadImage: loader, render: (frame) => frames.push(frame),
+    reducedMotion: () => motion, loadImage: loader, render: (frame, transition) => { frames.push(frame); transitions.push(transition); },
     schedule: (fn, delay) => { timers.set(++id, { fn, delay }); return id; },
     cancel: (key) => timers.delete(key),
   });
-  return { controller, timers, frames,
+  return { controller, timers, frames, transitions,
     time(value) { date = value; }, visible(value) { visible = value; }, motion(value) { motion = value; } };
 }
 test('local periods include every boundary and wrap across midnight', () => {
@@ -57,4 +57,36 @@ test('phase follows a changed local timezone for the same instant', () => {
   assert.equal(phase('Etc/UTC'), 'day');
   assert.equal(phase('America/Los_Angeles'), 'dawn');
   assert.equal(phase('Asia/Tokyo'), 'night');
+});
+
+test('preference changes fade both ways while repeated status preserves the off fade', async () => {
+  const f = fixture();
+  f.controller.setEnabled(false);
+  f.controller.setEnabled(true); await tick();
+  assert.equal(f.frames.at(-1).animate, true, 'enabling after initial opt-out fades from static');
+  f.controller.setEnabled(false);
+  assert.equal(f.frames.at(-1), null);
+  assert.deepEqual(f.transitions.at(-1), { animate: true }, 'disabling fades to static');
+  assert.equal(f.timers.size, 0, 'off immediately cancels the minute timer');
+  const count = f.frames.length;
+  f.controller.setEnabled(false);
+  assert.equal(f.frames.length, count, 'an unchanged status does not reset the fade');
+  f.controller.setEnabled(true); await tick();
+  assert.equal(f.frames.at(-1).animate, true);
+});
+
+test('initial load, reduced motion and hidden preference changes switch immediately', async () => {
+  const f = fixture();
+  f.controller.setEnabled(true); await tick();
+  assert.equal(f.frames.at(-1).animate, false, 'initial saved opt-in loads immediately');
+  f.motion(true); f.controller.setEnabled(false);
+  assert.deepEqual(f.transitions.at(-1), { animate: false });
+  f.controller.setEnabled(true); await tick();
+  assert.equal(f.frames.at(-1).animate, false);
+  f.motion(false); f.visible(false); f.controller.setEnabled(false);
+  assert.deepEqual(f.transitions.at(-1), { animate: false });
+  f.controller.setEnabled(true); await tick();
+  assert.equal(f.timers.size, 0);
+  f.visible(true); f.controller.visibilityChanged(); await tick();
+  assert.equal(f.frames.at(-1).animate, false);
 });
