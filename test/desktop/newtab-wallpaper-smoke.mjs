@@ -198,10 +198,14 @@ try {
     wallpaper.refresh();
   });
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
-  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].minimize());
+  // CI's bare Xvfb has no window manager to honor X11 minimization. Exercise
+  // real hide/show events there; native desktop runners retain minimize/restore.
+  const hiddenAction = process.platform === 'linux' ? 'hide' : 'minimize';
+  const visibleAction = process.platform === 'linux' ? 'show' : 'restore';
+  await app.evaluate(({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), hiddenAction);
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'false');
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 0);
-  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].restore());
+  await app.evaluate(({ BrowserWindow }, action) => BrowserWindow.getAllWindows()[0][action](), visibleAction);
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperVisible === 'true');
   assert.equal(await privatePage.evaluate(() => wallpaperMinuteTimers.size), 1);
   await app.evaluate(({ powerMonitor }) => powerMonitor.emit('resume'));
