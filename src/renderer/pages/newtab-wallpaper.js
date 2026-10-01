@@ -18,6 +18,7 @@
   function createController({ now = () => new Date(), isVisible, loadImage, render,
     reducedMotion = () => false, schedule = setTimeout, cancel = clearTimeout }) {
     let enabled = false, timer = null, generation = 0, applied = null;
+    let receivedPreference = false, animateEnable = false;
     function stop() {
       if (timer !== null) cancel(timer);
       timer = null;
@@ -34,8 +35,9 @@
       const token = generation;
       Promise.resolve().then(() => loadImage(ARTWORK[phase])).then(() => {
         if (token !== generation || !enabled || !isVisible()) return;
-        render({ phase, image: ARTWORK[phase], animate: applied !== null && !reducedMotion() });
+        render({ phase, image: ARTWORK[phase], animate: (applied !== null || animateEnable) && !reducedMotion() });
         applied = phase;
+        animateEnable = false;
       }).catch(() => {
         if (token !== generation) return;
         applied = null;
@@ -45,9 +47,21 @@
     return {
       setEnabled(value) {
         const next = value === true;
+        const changed = next !== enabled;
+        const animate = receivedPreference && changed && isVisible() && !reducedMotion();
+        const first = !receivedPreference;
+        receivedPreference = true;
         enabled = next;
-        if (!enabled) { stop(); applied = null; render(null); }
-        else refresh();
+        if (!enabled) {
+          stop();
+          animateEnable = false;
+          // Repeated status broadcasts must not interrupt a fade to static.
+          if (changed || first) render(null, { animate: animate && applied !== null });
+          applied = null;
+        } else {
+          if (changed) animateEnable = animate;
+          refresh();
+        }
       },
       refresh,
       suspend: stop,
@@ -65,7 +79,7 @@
       doc.body.prepend(layer);
       return layer;
     });
-    let active = 0, fadeTimer = null;
+    let active = null, fadeTimer = null;
     function settle() {
       if (fadeTimer !== null) win.clearTimeout(fadeTimer);
       fadeTimer = null;
@@ -85,28 +99,41 @@
         img.onerror = reject;
         img.src = file;
       }),
-      render(frame) {
-        settle();
+      render(frame, { animate = false } = {}) {
+        if (fadeTimer !== null) win.clearTimeout(fadeTimer);
+        fadeTimer = null;
         if (!frame) {
-          layers.forEach((layer) => layer.classList.remove('is-visible'));
+          layers.forEach((layer) => {
+            layer.classList.toggle('is-fading', animate);
+            layer.classList.remove('is-visible');
+          });
+          active = null;
           delete doc.body.dataset.wallpaperPhase;
+          if (animate) fadeTimer = win.setTimeout(settle, 2000);
+          else settle();
           return;
         }
-        const next = 1 - active;
+        // Reuse the same layer when reversing an off fade, so CSS continues
+        // from its current opacity instead of flashing the static background.
+        const previous = layers.findIndex((layer) => layer.dataset.wallpaperPhase === frame.phase);
+        const next = active === null && previous !== -1 ? previous : active === 0 ? 1 : 0;
         const layer = layers[next];
-        layer.style.setProperty('--wallpaper-image', `url("${frame.image}")`);
-        layer.classList.remove('is-visible');
-        // Ensure both images exist before beginning an opacity transition.
+        const reversing = active === null && previous === next;
+        if (!reversing) {
+          layer.classList.remove('is-fading', 'is-visible');
+          layer.style.setProperty('--wallpaper-image', `url("${frame.image}")`);
+          layer.dataset.wallpaperPhase = frame.phase;
+        }
+        // Flush the starting opacity before transitioning a freshly loaded layer.
         void layer.offsetWidth;
-        if (frame.animate) {
-          layers[active].style.zIndex = '-2';
-          layer.style.zIndex = '-1';
-          layer.classList.add('is-fading');
-        } else layers[active].classList.remove('is-visible');
+        if (active !== null) layers[active].style.zIndex = '-2';
+        layer.style.zIndex = '-1';
+        layer.classList.toggle('is-fading', frame.animate);
         layer.classList.add('is-visible');
         active = next;
         doc.body.dataset.wallpaperPhase = frame.phase;
         if (frame.animate) fadeTimer = win.setTimeout(settle, 2000);
+        else settle();
       },
     });
     doc.addEventListener('visibilitychange', () => { settle(); controller.visibilityChanged(); });
@@ -117,9 +144,12 @@
     return {
       ...controller,
       setVisible(value) {
-        viewVisible = value === true;
+        const next = value === true;
+        const changed = next !== viewVisible;
+        viewVisible = next;
         doc.body.dataset.wallpaperVisible = String(viewVisible);
-        settle(); controller.visibilityChanged();
+        if (changed || !viewVisible) settle();
+        controller.visibilityChanged();
       },
     };
   }
