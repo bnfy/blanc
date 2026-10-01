@@ -59,6 +59,41 @@ genuine N-1 result is possible only after a released build containing this
 staging seam exists. Nothing in this workflow tags, publishes, or changes the
 stable feed.
 
+### Linux on GitHub Actions
+
+`.github/workflows/linux-update-rehearsal.yml` rehearses the real AppImage
+handoff on a hosted Ubuntu runner. Run it before releasing any Linux change to
+packaging or the updater:
+
+```bash
+gh workflow run linux-update-rehearsal.yml -f candidate_ref=<branch-or-tag>
+```
+
+N-1 defaults to the latest public release; pass `-f from_version=1.23.0` to
+choose another. The job builds the candidate twice, stamped
+`X.(Y+1).0-staging.1` and `-staging.2` above N-1 and never committed,
+downloads and checksum-verifies the N-1 AppImage, and runs
+`npm run test:packaged:update-staging:linux` under Xvfb. N-1 discovers the
+first candidate, downloads it, and its ordinary **Restart Now** prompt is
+accepted with a real key press; the relaunched copy then installs the second
+candidate the same way. Each hop must replace the file and relaunch a process
+from the new image that is still running 20 seconds later. The second hop is
+the proof that a relaunch knows its own new file: electron-updater replaces
+whatever `APPIMAGE` names, and Chromium's process title overwrites
+`/proc/<pid>/environ`, so it cannot be read directly. When the candidate uses
+the static AppImage runtime, the job then removes FUSE 2 and launches the
+updated file again. The workflow also runs on pull requests that change the
+harness or the updater, and the harness always comes from the workflow commit.
+
+Do not supply the status file in this mode: it is only permitted with
+auto-install, and otherwise disables the updater for that launch. The harness
+observes the feed's request log, the prompt window, and `updater.log` instead.
+Screenshots of each prompt and relaunch, the logs, and per-hop hashes are kept
+as the run's evidence artifact for 14 days. The runner has no window manager or
+desktop session, and Ubuntu 24.04's namespace restriction makes the launcher
+add `--no-sandbox` there, so a pass says nothing about desktop-menu integration
+or sandboxed operation.
+
 ## Recorded N-1 results
 
 The staging seam first shipped in public v1.11.0, which made a genuine N-1 run
