@@ -1,0 +1,231 @@
+name: Linux update rehearsal
+run-name: Linux update rehearsal (${{ inputs.candidate_ref || github.head_ref || github.ref_name }})
+
+# Rehearses the real Linux AppImage updater handoff before a release. The
+# public release users have today (N-1) discovers a candidate built from this
+# repository on an isolated loopback staging feed, downloads it, and accepts the
+# ordinary Restart Now prompt; the relaunched copy then updates itself once
+# more, proving it can take the following update. Nothing here tags, publishes,
+# or touches the production update channel. See docs/staging-update-feed.md.
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_ref:
+        description: Branch, tag, or commit to build as the update (blank = the branch this runs from)
+        required: false
+        default: ''
+        type: string
+      from_version:
+        description: Public release to update from, such as 1.23.0 (blank = latest release)
+        required: false
+        default: ''
+        type: string
+  pull_request:
+    paths:
+      - .github/workflows/linux-update-rehearsal.yml
+      - test/desktop/packaged-update-staging-linux.mjs
+      - scripts/prepare-staging-update-feed.mjs
+      - scripts/smoke-public-appimage.mjs
+      - src/main/updater*.js
+      - src/main/update-checks.js
+      - src/main/update-restart.js
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-update-rehearsal-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Validate inputs before use
+        shell: bash
+        env:
+          CANDIDATE_REF: ${{ inputs.candidate_ref }}
+          FROM_VERSION: ${{ inputs.from_version }}
+        run: |
+          if [ -n "$CANDIDATE_REF" ]; then
+            [[ "$CANDIDATE_REF" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$ && "$CANDIDATE_REF" != *..* ]] || {
+              echo "candidate_ref must be a branch, tag, or commit name" >&2
+              exit 1
+            }
+          fi
+          if [ -n "$FROM_VERSION" ]; then
+            [[ "$FROM_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+              echo "from_version must be a release version such as 1.23.0" >&2
+              exit 1
+            }
+          fi
+
+      # The harness always comes from the workflow commit, so a candidate cut
+      # from an older ref is still rehearsed by the current, reviewed harness.
+      - name: Check out harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: harness
+          persist-credentials: false
+
+      - name: Check out candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.candidate_ref || github.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Install candidate dependencies
+        working-directory: candidate
+        run: npm ci
+
+      - name: Plan versions and runtime
+        id: plan
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FROM_VERSION: ${{ inputs.from_version }}
+        run: |
+          if [ -z "$FROM_VERSION" ]; then
+            FROM_VERSION=$(gh release view -R "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+            FROM_VERSION=${FROM_VERSION#v}
+          fi
+          [[ "$FROM_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "release $FROM_VERSION is not a plain version" >&2
+            exit 1
+          }
+          # Stamp candidates above N-1 so it always sees an update, whatever
+          # version the candidate's own package.json still carries.
+          BASE=$(node -e 'const [a, b] = process.argv[1].split(".").map(Number); console.log(`${a}.${b + 1}.0`)' "$FROM_VERSION")
+          TOOLSET=$(node -p "require('./package.json').build.toolsets?.appimage || '0.0.0'")
+          {
+            echo "from=$FROM_VERSION"
+            echo "a=$BASE-staging.1"
+            echo "b=$BASE-staging.2"
+            if [ "$TOOLSET" = 0.0.0 ]; then echo "static_runtime=false"; else echo "static_runtime=true"; fi
+          } >> "$GITHUB_OUTPUT"
+          echo "Rehearsing $FROM_VERSION -> $BASE-staging.1 -> $BASE-staging.2 (AppImage toolset $TOOLSET)"
+
+      # Versions are stamped in the runner only and never committed. The
+      # packaged compliance gate binds notices/SBOM to the version, so
+      # regenerate them for each stamp.
+      - name: Build candidate A
+        working-directory: candidate
+        env:
+          VERSION_A: ${{ steps.plan.outputs.a }}
+        run: |
+          npm version "$VERSION_A" --no-git-tag-version
+          npm run compliance:build
+          npm run compliance:check
+          npx electron-builder --linux --publish never
+          node "$GITHUB_WORKSPACE/harness/scripts/prepare-staging-update-feed.mjs" \
+            --source "$PWD/dist" --output "$RUNNER_TEMP/feed-a" --platform linux --version "$VERSION_A"
+          mv dist "$RUNNER_TEMP/dist-a"
+
+      - name: Build candidate B
+        working-directory: candidate
+        env:
+          VERSION_B: ${{ steps.plan.outputs.b }}
+        run: |
+          npm version "$VERSION_B" --no-git-tag-version
+          npm run compliance:build
+          npm run compliance:check
+          npx electron-builder --linux --publish never
+          node "$GITHUB_WORKSPACE/harness/scripts/prepare-staging-update-feed.mjs" \
+            --source "$PWD/dist" --output "$RUNNER_TEMP/feed-b" --platform linux --version "$VERSION_B"
+
+      - name: Install the runtime an existing user has (FUSE 2 included)
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xvfb xdotool imagemagick dbus-x11 libfuse2t64
+
+      - name: Download and checksum the N-1 AppImage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FROM_VERSION: ${{ steps.plan.outputs.from }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/public"
+          gh release download "v$FROM_VERSION" -R "$GITHUB_REPOSITORY" \
+            -p "Blanc-$FROM_VERSION.AppImage" -p SHA256SUMS -D "$RUNNER_TEMP/public"
+          cd "$RUNNER_TEMP/public"
+          awk -v file="Blanc-$FROM_VERSION.AppImage" '$2 == file' SHA256SUMS > expected.sha256
+          test -s expected.sha256
+          sha256sum -c expected.sha256
+          chmod +x "Blanc-$FROM_VERSION.AppImage"
+
+      - name: Rehearse two updates through the real Restart Now prompt
+        env:
+          FROM_VERSION: ${{ steps.plan.outputs.from }}
+          VERSION_A: ${{ steps.plan.outputs.a }}
+          VERSION_B: ${{ steps.plan.outputs.b }}
+        run: |
+          node harness/test/desktop/packaged-update-staging-linux.mjs \
+            --old "$RUNNER_TEMP/public/Blanc-$FROM_VERSION.AppImage" \
+            --old-version "$FROM_VERSION" \
+            --feed-a "$RUNNER_TEMP/feed-a" \
+            --version-a "$VERSION_A" \
+            --feed-b "$RUNNER_TEMP/feed-b" \
+            --version-b "$VERSION_B" \
+            --root "$RUNNER_TEMP/rehearsal" \
+            --evidence "$RUNNER_TEMP/evidence"
+
+      # The static AppImage runtime does not need the host's FUSE 2 library;
+      # prove the updated file still launches once it is gone.
+      - name: Remove FUSE 2 from the updated machine
+        if: steps.plan.outputs.static_runtime == 'true'
+        run: |
+          sudo apt-get remove --yes libfuse2t64
+          if ldconfig -p | grep 'libfuse\.so\.2'; then
+            echo "FUSE 2 remains available; the launch check below would be invalid" >&2
+            exit 1
+          fi
+
+      - name: Updated copy launches without FUSE 2
+        if: steps.plan.outputs.static_runtime == 'true'
+        env:
+          VERSION_B: ${{ steps.plan.outputs.b }}
+        run: |
+          node harness/scripts/smoke-public-appimage.mjs \
+            "$RUNNER_TEMP/rehearsal/Applications/Blanc-$VERSION_B.AppImage" \
+            "$VERSION_B" | tee "$RUNNER_TEMP/evidence/updated-copy-without-fuse2.json"
+
+      # Informational: whether the N-1 release itself needed FUSE 2 on this host.
+      - name: Record whether N-1 needs FUSE 2
+        if: steps.plan.outputs.static_runtime == 'true'
+        env:
+          FROM_VERSION: ${{ steps.plan.outputs.from }}
+        run: |
+          set +e
+          OUT=$(timeout 30 env -u DISPLAY "$RUNNER_TEMP/public/Blanc-$FROM_VERSION.AppImage" 2>&1)
+          CODE=$?
+          set -e
+          printf 'exit=%s\n%s\n' "$CODE" "$OUT" > "$RUNNER_TEMP/evidence/n-minus-one-without-fuse2.txt"
+          if printf '%s' "$OUT" | grep -q 'libfuse\.so\.2'; then
+            echo "N-1 v$FROM_VERSION cannot start without FUSE 2 (legacy AppImage runtime)."
+          else
+            echo "N-1 v$FROM_VERSION does not depend on FUSE 2."
+          fi
+
+      - name: Summarize
+        if: always()
+        run: |
+          SUMMARY="$RUNNER_TEMP/evidence/summary.json"
+          [ -f "$SUMMARY" ] || exit 0
+          jq -r '"### Linux update rehearsal: \(.result)",
+            "",
+            (.hops[] | "- \(.from) → \(.to): file replaced, relaunched, still running after 20 s"),
+            (if .failure then "", "Failure: \(.failure)" else empty end)' "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload rehearsal evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-update-rehearsal-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/evidence
+          if-no-files-found: warn
+          retention-days: 14
