@@ -4,6 +4,7 @@ import globals from 'globals';
 // Correctness checks for first-party shipped JavaScript. Generated catalogs
 // retain their source/byte parity checks; test fixtures are checked by tests.
 export default [
+  { ignores: ['src/renderer/pages/suncalc.js'] }, // Verbatim licensed upstream bundle, hashed by compliance.
   {
     files: ['src/**/*.js', 'cloudflare/**/src/**/*.js'],
     ...js.configs.recommended,

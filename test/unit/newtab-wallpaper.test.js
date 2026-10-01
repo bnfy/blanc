@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { phaseForTime, createController } = require('../../src/renderer/pages/newtab-wallpaper');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
+const solar = require('../../src/renderer/pages/suncalc');
+const ny = { latitude: 40.71427, longitude: -74.00597 };
 function fixture(loader = async () => {}) {
   let date = new Date(2026, 9, 1, 7, 59, 30), visible = true, motion = false;
   const timers = new Map(), frames = [], transitions = [];
@@ -18,6 +20,36 @@ test('local periods include every boundary and wrap across midnight', () => {
   for (const [hour, minute, expected] of [[4,59,'night'],[5,0,'dawn'],[7,59,'dawn'],[8,0,'day'],[16,59,'day'],[17,0,'dusk'],[19,59,'dusk'],[20,0,'night'],[0,0,'night']]) {
     assert.equal(phaseForTime(new Date(2026,9,1,hour,minute)), expected);
   }
+});
+test('chosen city switches to night at sunset, including the reported NY screenshot', () => {
+  const date = new Date('2026-10-01T23:09:00Z');
+  const times = solar.getTimes(date, ny.latitude, ny.longitude);
+  assert.ok(times.sunset >= new Date('2026-10-01T22:35:00Z') && times.sunset <= new Date('2026-10-01T22:45:00Z'));
+  for (const [boundary, before, after] of [[times.dawn, 'night', 'dawn'], [times.goldenHourEnd, 'dawn', 'day'], [times.goldenHour, 'day', 'dusk'], [times.sunset, 'dusk', 'night']]) {
+    assert.equal(phaseForTime(new Date(boundary.getTime() - 1), ny), before);
+    assert.equal(phaseForTime(boundary, ny), after);
+  }
+  assert.equal(phaseForTime(date, ny), 'night');
+  assert.equal(phaseForTime(new Date('2026-07-01T00:09:00Z'), ny), 'dusk', 'summer sunset remains later than 8 PM');
+  assert.equal(phaseForTime(new Date('2026-12-01T22:09:00Z'), ny), 'night', 'winter night can begin before 8 PM');
+});
+test('polar day/night and invalid city data remain deterministic', () => {
+  const tromso = { latitude: 69.6492, longitude: 18.9553 };
+  assert.equal(phaseForTime(new Date('2026-06-21T23:00:00Z'), tromso), 'day');
+  assert.equal(phaseForTime(new Date('2026-12-21T12:00:00Z'), tromso), 'night');
+  const date = new Date(2026, 9, 1, 19, 9);
+  for (const bad of [null, {}, { latitude: 91, longitude: 0 }, { latitude: 0, longitude: Infinity }, { latitude: '40', longitude: -74 }]) assert.equal(phaseForTime(date, bad), 'dusk');
+});
+test('changing chosen city refreshes a visible wallpaper without re-enabling it', async () => {
+  const f = fixture();
+  f.time(new Date('2026-10-01T23:09:00Z'));
+  f.controller.setLocation(ny);
+  f.controller.setEnabled(true); await tick();
+  assert.equal(f.frames.at(-1).phase, 'night');
+  f.controller.setLocation({ latitude: 34.0522, longitude: -118.2437 }); await tick();
+  assert.equal(f.frames.at(-1).phase, 'day');
+  assert.equal(f.frames.at(-1).animate, true);
+  assert.equal(f.timers.size, 1);
 });
 test('visible minutes recheck local time, clock jumps and resume; hidden tabs have no timer', async () => {
   const f = fixture(); f.controller.setEnabled(true); await tick();

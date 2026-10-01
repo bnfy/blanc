@@ -100,3 +100,11 @@ permission.
 
 Specific artwork that is not covered by the MIT grant is enumerated in
 [ASSET-LICENSE.md](ASSET-LICENSE.md). No directory is excluded wholesale.
+
+## SunCalc 2.1.0 — BSD 2-Clause
+
+The verbatim browser bundle and full license are distributed in `src/renderer/pages/suncalc.js` and `suncalc-LICENSE.txt`. Upstream: https://github.com/mourner/suncalc. Pinned archive/file hashes are in `suncalc-source.json`.
+
+## GeoNames wallpaper city catalog — CC BY 4.0
+
+GeoNames contributors — https://www.geonames.org/. The bundled catalog is adapted from the cities15000, admin1CodesASCII and countryInfo exports, retaining city labels, coordinates, population ranking and search aliases. Source hashes and snapshot are recorded in `src/main/assets/wallpaper-cities-source.json`. License and adaptation notice: `src/main/assets/wallpaper-cities-LICENSE.txt`; https://creativecommons.org/licenses/by/4.0/. These data remain under CC BY 4.0, separately from Blanc’s MIT software license.

@@ -321,6 +321,18 @@ test('time-of-day wallpaper is free, strict, persistent and synced without its l
   settings = loadSettings(userData);
   assert.equal(settings.isDynamicWallpaperEnabled(), true);
   const exported = settings.exportForSync();
+  settings.setSettings({ newtabWallpaperCity: '5128581' });
+  assert.equal(settings.getWallpaperLocation().label, 'New York City, New York, United States');
+  for (const bad of [null, {}, 'unknown', 5128581, { id: '5128581', latitude: 0 }]) {
+    settings.setSettings({ newtabWallpaperCity: bad });
+    assert.equal(settings.getSettings().newtabWallpaperCity, '5128581');
+  }
+  assert.equal('newtabWallpaperCity' in settings.exportForSync().values, false);
+  settings.mergeFromSync({ values: { newtabWallpaperCity: '5134086' }, meta: { newtabWallpaperCity: Date.now() + 60_000 } });
+  assert.equal(settings.getSettings().newtabWallpaperCity, '5128581');
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  settings = loadSettings(userData);
+  assert.equal(settings.getSettings().newtabWallpaperCity, '5128581');
   assert.equal(exported.values.newtabDynamicWallpaper, true);
   assert.equal('wallpaperPhase' in exported.values, false);
   settings.mergeFromSync({ values: { newtabDynamicWallpaper: false }, meta: { newtabDynamicWallpaper: Date.now() + 60_000 } });

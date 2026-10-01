@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
   "runtimeAllowedLicenseExpressions": [
+    "BSD-2-Clause",
     "BlueOak-1.0.0",
+    "CC-BY-4.0",
     "CC-BY-SA-3.0-or-later",
     "ISC",
     "MIT",
@@ -107,6 +109,29 @@
         "ghostery-resources",
         "npm:@ghostery/adblocker-electron"
       ]
+    },
+    {
+      "id": "suncalc",
+      "name": "SunCalc solar calculation library",
+      "version": "2.1.0",
+      "type": "file",
+      "file": "src/renderer/pages/suncalc.js",
+      "license": "BSD-2-Clause",
+      "licenseFile": "src/renderer/pages/suncalc-LICENSE.txt",
+      "homepage": "https://github.com/mourner/suncalc",
+      "attribution": "Copyright Volodymyr Agafonkin"
+    },
+    {
+      "id": "wallpaper-cities",
+      "name": "GeoNames wallpaper city catalog",
+      "version": "2026-10-01",
+      "type": "data",
+      "file": "src/main/assets/wallpaper-cities.json",
+      "license": "CC-BY-4.0",
+      "licenseFile": "src/main/assets/wallpaper-cities-LICENSE.txt",
+      "homepage": "https://www.geonames.org/",
+      "attribution": "GeoNames contributors; adapted cities15000, admin1CodesASCII and countryInfo exports",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
     }
   ]
 }
