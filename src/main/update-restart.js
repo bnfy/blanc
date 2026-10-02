@@ -12,6 +12,9 @@ function createUpdateRestarter({
   platform = process.platform,
 }) {
   let restartRequested = false;
+  // quitAndInstall returns void when installation is rejected. The updater's
+  // error event is the signal that a later verified retry may restart again.
+  autoUpdater.on?.('error', () => { restartRequested = false; });
 
   return function restartToInstallUpdate() {
     if (restartRequested) return;

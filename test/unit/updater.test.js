@@ -1,4 +1,7 @@
+const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+Object.defineProperty(process, 'platform', { value: 'darwin' });
 const test = require('node:test');
+test.after(() => Object.defineProperty(process, 'platform', hostPlatform));
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');

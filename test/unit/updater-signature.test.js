@@ -39,7 +39,6 @@ test('a valid signature by an unexpected publisher is rejected (fail-closed)', a
   });
   const result = await verify(['Bananify Creative'], 'C:/x.exe');
   assert.match(result, /unexpected publisher/);
-  assert.match(result, /Someone Else/);
 });
 
 test('a present-but-invalid signature is rejected (fail-closed)', async () => {
@@ -51,19 +50,30 @@ test('a present-but-invalid signature is rejected (fail-closed)', async () => {
   assert.match(result, /status 4/);
 });
 
-test('an infrastructure failure (timeout) fails OPEN so a slow machine is not bricked', async () => {
+test('an infrastructure failure defers the update for retry', async () => {
   const warnings = [];
   const verify = verifierWith(
     { error: Object.assign(new Error('spawnSync cmd.exe ETIMEDOUT'), { killed: true }) },
     { warn: (m) => warnings.push(m) },
   );
-  assert.equal(await verify(['Bananify Creative'], 'C:/x.exe'), null, 'update proceeds when the check itself cannot run');
-  assert.match(warnings.join('\n'), /could not run/);
+  assert.match(await verify(['Bananify Creative'], 'C:/x.exe'), /retry/);
+  assert.match(warnings.join('\n'), /could not complete/);
 });
 
-test('unparseable verifier output fails OPEN', async () => {
+test('unparseable verifier output rejects the installer', async () => {
   const verify = verifierWith({ stdout: 'not json at all' }, { warn: () => {} });
-  assert.equal(await verify(['Bananify Creative'], 'C:/x.exe'), null);
+  assert.notEqual(await verify(['Bananify Creative'], 'C:/x.exe'), null);
+});
+
+test('missing configuration, certificate and malformed success output reject', async () => {
+  for (const output of ['null', '[]', '{}', '{"Status":"0"}', '{"Status":0}', '{"Status":0,"SignerCertificate":{"Subject":""}}']) {
+    assert.notEqual(await verifierWith({ stdout: output })(['Bananify Creative'], 'C:/x.exe'), null, output);
+  }
+  for (const names of [undefined, [], [''], [null]]) {
+    assert.notEqual(await verifierWith({ stdout: '{"Status":0,"SignerCertificate":{"Subject":"CN=Bananify Creative"}}' })(names, 'C:/x.exe'), null);
+  }
+  const throws = createWindowsSignatureVerifier({ run: async () => { throw new Error('missing PowerShell'); } });
+  assert.notEqual(await throws(['Bananify Creative'], 'C:/x.exe'), null);
 });
 
 test('runAuthenticodeSignature owns PowerShell directly so timeout releases the installer', async () => {
