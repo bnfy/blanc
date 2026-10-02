@@ -2372,6 +2372,14 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-explain-links { display: grid; }
 .trust-explain-links a { padding: 18px 0; border-bottom: 1px solid var(--site-border); font-size: 14px; color: var(--site-text); text-decoration: none; display: flex; justify-content: space-between; gap: 15px; }
 .trust-explain-links a:hover { color: var(--site-accent); }
+/* Native disclosures with quiet rows; no JavaScript is needed to open them. */
+.home-faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 60px; padding: 18px 0; list-style: none; font: 500 15px/1.5 var(--font-ui); letter-spacing: 0; }
+.home-faq-list summary::-webkit-details-marker { display: none; }
+.home-faq-list summary::marker { content: ''; }
+.home-faq-list summary:hover { color: var(--site-gold); }
+.home-faq-list .faq-toggle { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; color: var(--site-text-dim); }
+.home-faq-list details[open] .faq-toggle-vertical { display: none; }
+.home-faq-list p { line-height: 1.75; margin-bottom: 22px; }
 .trust-home .demo-showcase { margin: 50px 0; scroll-margin-top: 90px; }
 .trust-home .hero-message h2 { font: 400 32px/1.2 'Newsreader Variable', Newsreader, Georgia, serif; }
 .works-page { max-width: 900px; padding: 74px 30px 80px; margin: 0 auto; }
