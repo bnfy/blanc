@@ -92,6 +92,12 @@ account derivation/envelopes or move existing user data.
   registration gates. Its signed candidate artifact expires October 5;
   preserved bytes and windows-signature.json are in the private evidence bundle.
   This is not the staged Restart Now handoff from public v1.25.0.
+- [Native verifier run 37034883292](https://github.com/bnfy/blanc/actions/runs/37034883292)
+  at `34fe4dd6cbc00bd67ca293bcedb854e093c7edab` additionally passed the
+  application's real PowerShell verifier against the signed installer, rejected
+  unexpected publishers and missing files, and verified cached bytes before
+  arming the install guard. The smoke delegates to a test installer seam; it
+  does not claim an Electron Restart Now handoff.
 - Required checks passed on the four focused implementation PRs. Windows PR's
   wallpaper resource-settlement assertion failed once then passed on a targeted
   retry; only bundled Sunrise images were still loading, and OAuth itself
