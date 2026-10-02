@@ -24,6 +24,19 @@ try {
   assert.equal(await start.locator('#obPing').getAttribute('aria-checked'),'true');
   await start.screenshot({path:path.join(output,'onboarding.png')});
   await start.locator('#obSuggestions').click(); await start.locator('#obPing').click();
+  // Privacy details must not replace setup or reset its unsaved choices.
+  const explanationURL = 'https://blancbrowser.com/how-it-works#connections';
+  await app.context().route('https://blancbrowser.com/how-it-works', route => route.fulfill({
+    status: 200, contentType: 'text/html', body: '<!doctype html><title>Privacy explanation fixture</title><p>Locally fulfilled review page</p>',
+  }));
+  await start.locator('.ob-privacy-details a').click();
+  const explanation = await waitForValue(async () => (await app.windows()).find(page => page.url() === explanationURL), Boolean, 'separate explanation tab');
+  assert.notEqual(explanation, start);
+  assert.equal(start.url(), 'blanc://newtab/');
+  assert.equal(await start.locator('#onboardDialog').getAttribute('data-step'), '4');
+  assert.equal(await start.locator('#obSuggestions').getAttribute('aria-checked'), 'false');
+  assert.equal(await start.locator('#obPing').getAttribute('aria-checked'), 'false');
+  await explanation.close();
   await start.locator('#obNext').click(); await start.locator('#obNext').click();
   await start.locator('#onboardDialog').waitFor({state:'hidden'});
   await app.evaluate(({Menu})=>{
@@ -53,7 +66,7 @@ try {
   await tour.goto(`http://127.0.0.1:${server.address().port}/`);
   const web=tour;
   assert.equal(await web.evaluate(()=>typeof window.bowserPages),'undefined');
-  console.log('Settings Help smoke passed: real runtime versions, existing manual updater dialog, defaults on, saved choices retained, ordinary website has no bridge.');
+  console.log('Settings Help smoke passed: real runtime versions, existing manual updater dialog, defaults on, unsaved choices preserved across privacy details, saved choices retained, ordinary website has no bridge.');
 } finally {
   await app?.close(); server.close();
   fs.rmSync(dir,{recursive:true,force:true}); fs.rmSync(`${dir}-Dev`,{recursive:true,force:true});

@@ -59,3 +59,12 @@ Earlier Windows/Linux candidate run 37044861852 belongs to the superseded
 65a202eae4576d795de35df216599cb9c1dff4e2 commit and does not validate this tint
 change. New private native candidates, affected-machine confirmation, and
 the normal release gates remain required before merge or public shipping.
+
+Code-review follow-up: the onboarding privacy explanation now opens in a
+separate managed tab with no opener access. The desktop Help smoke confirms
+that opening and closing it preserves step 4 and both unsaved off choices,
+then verifies persistence, replayed saved choices, running build details and
+the existing updater interface. The Island tint implementation was reviewed
+across controller scheduling, marker-only IPC, frame/window ownership,
+stale capture guards and theme/window lifecycle handling; no actionable
+finding was identified there. Physical-machine review remains required.
