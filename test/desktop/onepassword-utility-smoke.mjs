@@ -14,7 +14,7 @@ const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-onepassword-uti
 let electronApp;
 
 try {
-  electronApp = await _electron.launch({
+  electronApp = await _electron.launch({ chromiumSandbox: true,
     args: [path.resolve('.'), `--user-data-dir=${userDataDir}`],
     env: { ...process.env, BLANC_TEST: '1' },
   });

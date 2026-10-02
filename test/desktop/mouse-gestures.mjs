@@ -11,7 +11,7 @@ const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
 void _ignored;
 let electronApp;
 try {
-  electronApp = await _electron.launch({
+  electronApp = await _electron.launch({ chromiumSandbox: true,
     args: [process.cwd(), `--user-data-dir=${profile}`],
     env: { ...cleanEnv, BLANC_TEST: '1' },
   });

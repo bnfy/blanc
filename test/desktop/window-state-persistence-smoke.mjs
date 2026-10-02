@@ -31,7 +31,7 @@ fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({
   searchSuggestions: false,
 }));
 
-const launch = () => _electron.launch({
+const launch = () => _electron.launch({ chromiumSandbox: true,
   args: [repo, `--user-data-dir=${userData}`],
   env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog },
 });

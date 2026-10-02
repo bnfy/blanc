@@ -30,7 +30,7 @@ const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 const uncaughtLog = path.join(root, 'uncaught.log');
 let app;
 try {
-  app = await _electron.launch({
+  app = await _electron.launch({ chromiumSandbox: true,
     args: [path.resolve('.'), `--user-data-dir=${userDataDir}`, `${origin}/cold-start`],
     env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog },
   });
