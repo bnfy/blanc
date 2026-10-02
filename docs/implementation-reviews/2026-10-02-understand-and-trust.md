@@ -67,3 +67,11 @@ built-site pixel seam checks during every fade, the complete browser harness,
 and site/SEO build passed. All assets remain native captures/proportional
 exports; no source image was retouched. App responsiveness changes are a
 separate unreleased development change, not a public v1.25.0 claim.
+
+Billboard hero refinement: all four hero scenes now use the released Billboard
+layout, with its large clock and frequent-site row. Four sample local history
+entries populate that row; renderer-clock fixtures align the displayed time
+with each wallpaper phase. No OS clock or shipped code was changed. Native
+strip tints remain verified, originals are unretouched, and the caption now
+identifies sample sites. The existing four-second cycle, fade, pause and
+accessibility behavior remains intact.
