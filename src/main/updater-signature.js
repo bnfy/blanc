@@ -71,37 +71,41 @@ function runAuthenticodeSignature(filePath, { execFileImpl = execFile, timeoutMs
 // Build the verifier electron-updater calls after a download: resolves `null`
 // when the installer is trusted, or a message string when it must be rejected.
 //
-// Policy, matching electron-updater's own split:
-//   - the check can't run (timeout / PowerShell broken / unparseable) -> null
-//     (FAIL-OPEN on infrastructure failure). Integrity is already guaranteed by
-//     the sha512 checked during download against the signed latest.yml, and a
-//     slow/broken PowerShell is not attacker-controllable — so this restores the
-//     "don't brick updates" behavior electron-updater intends, just without the
-//     20s cliff.
-//   - the check ran and the signature is invalid or signed by an unexpected
-//     publisher -> message (FAIL-CLOSED on a bad result).
+// Only a completed publisher check can authorize installation. Download hashes
+// establish consistency with the feed, not an independently trusted publisher.
+// An unavailable verifier defers the update so a later check can retry.
 function createWindowsSignatureVerifier({ run = runAuthenticodeSignature, logger } = {}) {
   const warn = (msg) => (logger ?? console).warn?.(msg);
   return async (publisherNames, filePath) => {
-    const { error, stdout } = await run(filePath);
-    if (error) {
-      warn(`[updater] signature check could not run (${error.message}); skipping publisher check — integrity still enforced by sha512`);
-      return null;
+    const names = Array.isArray(publisherNames) ? publisherNames : [publisherNames];
+    if (!names.length || names.some((name) => typeof name !== 'string' || !name.trim())) {
+      return 'trusted installer publisher configuration is missing';
     }
     let data;
     try {
-      data = JSON.parse(stdout);
-    } catch (e) {
-      warn(`[updater] signature output was unparseable (${e.message}); skipping publisher check`);
-      return null;
+      const result = await run(filePath);
+      if (!result || result.error || typeof result.stdout !== 'string') {
+        warn('[updater] installer publisher verification could not complete; deferring installation');
+        return 'installer publisher could not be verified; retry Check for Updates';
+      }
+      data = JSON.parse(result.stdout.trim());
+    } catch {
+      warn('[updater] installer publisher verification failed or returned malformed output; deferring installation');
+      return 'installer publisher could not be verified; retry Check for Updates';
     }
-    if (data?.Status !== 0) {
-      return `installer signature is not valid (status ${data?.Status})`;
+    if (!data || Array.isArray(data) || typeof data !== 'object' || typeof data.Status !== 'number') {
+      return 'installer signature verification returned invalid data';
     }
-    const subjectCN = extractCommonName(data?.SignerCertificate?.Subject ?? '');
-    const names = Array.isArray(publisherNames) ? publisherNames : [publisherNames];
-    const trusted = subjectCN.length > 0 && names.some((n) => extractCommonName(String(n)) === subjectCN);
-    return trusted ? null : `installer signed by an unexpected publisher: ${data?.SignerCertificate?.Subject}`;
+    if (data.Status !== 0) {
+      return `installer signature is not valid (status ${data.Status})`;
+    }
+    const subject = data.SignerCertificate?.Subject;
+    if (typeof subject !== 'string' || !subject.trim()) {
+      return 'installer signer certificate is missing';
+    }
+    const subjectCN = extractCommonName(subject);
+    const trusted = subjectCN.length > 0 && names.some((name) => extractCommonName(name) === subjectCN);
+    return trusted ? null : 'installer signed by an unexpected publisher';
   };
 }
 
