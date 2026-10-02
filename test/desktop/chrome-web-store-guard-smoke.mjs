@@ -31,7 +31,7 @@ const prepareProfile = (name, { restored = false } = {}) => {
   return userDataDir;
 };
 
-const launch = (userDataDir) => _electron.launch({
+const launch = (userDataDir) => _electron.launch({ chromiumSandbox: true,
   args: [path.resolve('.'), `--user-data-dir=${userDataDir}`],
   env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog },
 });

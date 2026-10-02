@@ -13,7 +13,7 @@ import testHookCall from './support/test-hook-call.js';
 const { callTestHook } = testHookCall;
 
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-dns-smoke-'));
-const app = await _electron.launch({
+const app = await _electron.launch({ chromiumSandbox: true,
   args: [path.resolve('.'), `--user-data-dir=${userDataDir}`],
   env: { ...process.env, BLANC_TEST: '1' },
 });
