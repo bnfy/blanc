@@ -21,7 +21,7 @@ const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 const uncaught = path.join(root, 'uncaught.log');
 let app;
 try {
-  app = await _electron.launch({ args: [path.resolve('.'), `--user-data-dir=${profile}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught } });
+  app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught } });
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   const footerToggle = page.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
   await page.waitForFunction(() => !document.getElementById('dynamicWallpaperToggle').disabled);

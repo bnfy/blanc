@@ -1,4 +1,6 @@
 const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer } = require('electron');
+const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
+if (!enforceLinuxSandbox({ app, dialog })) return;
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
