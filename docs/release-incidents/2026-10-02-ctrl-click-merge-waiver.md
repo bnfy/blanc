@@ -13,3 +13,11 @@ Automated evidence at code commit `57d17091e5954dfee8a04e8e1c4baa487e601a5a`:
 After that missing evidence and risk were stated, the owner answered **“Approve waiver for merge only”** to the explicit question asking whether to waive the physical packaged-app check for merging PR #470 only.
 
 This written approval waives that check solely for merging PR #470 after the required checks pass. It does not waive physical packaged-app verification for release, updater handoffs, tagging, or any other public release gate, and it does not authorize publishing a release.
+
+Subsequent owner-requested hosted verification passed the installed Windows app
+and directly launched Linux AppImage on October 2, 2026. The exact private
+candidate, 40 click cases and three restricted-tab recreations per platform,
+signing checks, artifact identifiers, and remaining physical-machine/updater
+evidence are recorded in the
+[packaged verification record](../verification/2026-10-02-modified-link-packaged.md).
+This follow-up does not expand the waiver.
