@@ -29,7 +29,7 @@ async function withRecovery(windows, check) {
   const uncaughtLog = path.join(root, 'uncaught.log');
   let app;
   try {
-    app = await _electron.launch({ args: [repo, `--user-data-dir=${userData}`],
+    app = await _electron.launch({ chromiumSandbox: true, args: [repo, `--user-data-dir=${userData}`],
       env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog } });
     const page = await recoveryPage(app);
     await check(app, page, profile);

@@ -105,6 +105,13 @@ test('createTabView tolerates being called before the tab record exists', () => 
   assert.deepEqual(calls[0].webPreferences.session, { partition: 'normal:default' });
 });
 
+test('createTabView applies retained document sandbox flags when rebuilding a tab', () => {
+  const { createTabView, calls } = loadCreateTabView();
+  createTabView({ private: true, profileId: 'work', openerSandboxFlags: 4294836015 });
+  assert.equal(calls[0].webPreferences.openerSandboxFlags, 4294836015);
+  assert.equal(calls[0].webPreferences.sandbox, true, 'the Electron process sandbox remains enabled');
+});
+
 test('the private-session ternary lives in tab-view.js and nowhere else', () => {
   // main.js must import getPrivateBrowsingSession rather than keep its own —
   // test-hook.js compares tab sessions against it by identity, so a second

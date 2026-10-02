@@ -83,6 +83,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
 
       - name: Verify dependency compliance inputs
@@ -229,6 +232,12 @@ jobs:
           }
           $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
+      - name: Verify native update verifier and cached installer gate
+        if: ${{ inputs.mode == 'validation' }}
+        run: |
+          node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
+          node test/desktop/windows-update-trust-smoke.cjs
+
       - name: Verify installed blanc-import protocol
         shell: pwsh
         run: |
@@ -330,6 +339,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
 
       - name: Verify dependency compliance inputs
@@ -514,3 +526,41 @@ jobs:
           path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
+
+  linux-sandbox:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install disposable desktop test environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb libgtk-3-bin
+      - name: Build private AppImage without publishing
+        run: npx electron-builder --linux --publish never
+      - name: Extract private candidate
+        run: |
+          IMAGE="$PWD/dist/Blanc-$(node -p "require('./package.json').version").AppImage"
+          "$IMAGE" --appimage-extract >/dev/null
+          node scripts/verify-linux-desktop-entry.js squashfs-root/blanc.desktop
+      - name: Refusal, real launcher paths, namespace and seccomp evidence
+        run: |
+          IMAGE="$PWD/dist/Blanc-$(node -p "require('./package.json').version").AppImage"
+          dbus-run-session -- xvfb-run -a node scripts/verify-linux-sandbox-candidate.mjs "$IMAGE" "$PWD/squashfs-root/blanc"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: sandbox-evidence-${{ matrix.os }}-${{ github.run_id }}
+          path: sandbox-evidence/*.json
+          retention-days: 14

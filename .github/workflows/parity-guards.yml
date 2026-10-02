@@ -35,6 +35,9 @@ jobs:
           node settings-schema/build.mjs --check
           node copy/build.mjs --check
           node adblock/build.mjs --check
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
       - name: Dependency compliance artifacts match the lockfiles
         run: npm run compliance:check
@@ -57,6 +60,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
       - name: Acceptance step definitions resolve (dry-run)
         run: npm run test:acceptance:dry
@@ -74,6 +80,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
       - name: Google OAuth compatibility contract
         run: xvfb-run -a npm run test:oauth:desktop
@@ -81,6 +90,31 @@ jobs:
         run: xvfb-run -a npm run test:favorites-picker:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
+
+  modified-link-clicks:
+    # Electron can defer WebContents creation for Ctrl/Cmd-click and middle-click.
+    # Exercise the native input path on both platforms reported in #468.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Modified link clicks (Linux, headless)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:modified-links:desktop
+      - name: Modified link clicks (Windows)
+        if: runner.os == 'Windows'
+        run: npm run test:modified-links:desktop
 
   tab-handoff:
     # Separate from deployment/signing: use the real local Workers runtime,
@@ -99,11 +133,16 @@ jobs:
             package-lock.json
             cloudflare/tab-import-worker/package-lock.json
             extensions/blanc-tab-import/package-lock.json
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
       - run: npm ci --prefix cloudflare/tab-import-worker
       - run: npm ci --prefix extensions/blanc-tab-import
       - name: SQLite-backed one-time handoff and desktop decryption
         run: npm run test:runtime --prefix cloudflare/tab-import-worker
+      - name: Sync v1 limits in the local Workers runtime
+        run: node test/worker/sync-runtime-smoke.mjs
       - name: Firefox manifest and archive
         run: |
           npm run lint:firefox --prefix extensions/blanc-tab-import
