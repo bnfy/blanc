@@ -6,7 +6,7 @@ const os = require('node:os');
 const { EventEmitter } = require('node:events');
 const { createWindowsUpdateTrustGate } = require('../../src/main/windows-update-trust');
 
-test('Windows cached completion cannot show Restart Now or install before asynchronous trust; failure retries', async (t) => {
+test('Windows cached completion cannot show Restart Now or install before asynchronous trust; failure retries', { timeout: 5000 }, async (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-windows-runtime-'));
   const descriptor = Object.getOwnPropertyDescriptor(process, 'platform');
   const interval = global.setInterval;
@@ -46,8 +46,9 @@ test('Windows cached completion cannot show Restart Now or install before asynch
   while (!finish) await new Promise((resolve) => setImmediate(resolve));
   assert.equal(dialogs.length, 0);
   assert.equal(autoUpdater.autoInstallOnAppQuit, false);
+  const failed = new Promise((resolve) => autoUpdater.once('error', resolve));
   finish('timeout');
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  await failed;
   assert.equal(dialogs.length, 0);
   finish = null;
   autoUpdater.emit('update-available', info); autoUpdater.emit('update-downloaded', info);
@@ -57,7 +58,7 @@ test('Windows cached completion cannot show Restart Now or install before asynch
   assert.equal(dialogs[0].message, 'Update 1.26.0 downloaded');
   assert.equal(autoUpdater.autoInstallOnAppQuit, true);
   autoUpdater.emit('update-available', info); autoUpdater.emit('update-downloaded', info);
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  while (!autoUpdater.autoInstallOnAppQuit) await new Promise((resolve) => setImmediate(resolve));
   assert.equal(dialogs.length, 1, 'same ready version does not prompt twice on focus checks');
   assert.equal(checks, 2);
   autoUpdater.quitAndInstall();
