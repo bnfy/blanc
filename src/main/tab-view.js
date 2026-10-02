@@ -517,13 +517,20 @@ function wireTabView(tab, view, { owner, adopted }) {
         outlivesOpener: true,
         overrideBrowserWindowOptions: { webPreferences: { plugins: true } },
         createWindow: boundToTab((options) => {
-          const childView = new WebContentsView({ webContents: options.webContents });
+          // Ctrl/Cmd-click and middle-click can defer WebContents creation.
+          // Let createTab construct and load those tabs in the source profile's
+          // normal/private session. Existing window.open children must instead
+          // be adopted without a competing loadURL, preserving their opener.
+          const childView = options.webContents
+            ? new WebContentsView({ webContents: options.webContents })
+            : null;
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
-            private: tab.private, groupId: tab.groupId, view: childView, openerTabId: tab.id,
+            private: tab.private, groupId: tab.groupId, view: childView,
+            openerTabId: childView ? tab.id : null,
           });
           if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
-          return childView.webContents;
+          return liveContents(tabs.get(newId));
         }),
       };
     }));

@@ -82,6 +82,29 @@ jobs:
       - name: Dynamic wallpaper and offline city selection regression
         run: xvfb-run -a npm run test:wallpaper:desktop
 
+  modified-link-clicks:
+    # Electron can defer WebContents creation for Ctrl/Cmd-click and middle-click.
+    # Exercise the native input path on both platforms reported in #468.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Modified link clicks (Linux, headless)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:modified-links:desktop
+      - name: Modified link clicks (Windows)
+        if: runner.os == 'Windows'
+        run: npm run test:modified-links:desktop
+
   tab-handoff:
     # Separate from deployment/signing: use the real local Workers runtime,
     # synthetic tab metadata, and an isolated Electron profile. No credentials.
