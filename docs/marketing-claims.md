@@ -70,10 +70,12 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe the verified v1.25.0 public release; platform
-acceptance limits and confirmed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-01-v1.25.0.md). Historical
-wallpaper and Linux acceptance waivers remain in the v1.24.0 report:
+These boundaries describe the verified v1.26.0 public release; platform
+acceptance limits and updater status are recorded in
+[the release report](release-incidents/2026-10-02-v1.26.0.md). Historical
+wallpaper and Linux acceptance waivers remain in the v1.24.0 report. The
+v1.26.0 report records the named physical-machine waiver and pending adjacent
+public updater handoffs; hosted verification does not establish those outcomes:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for

@@ -1,42 +1,40 @@
 # Linux AppImage launch troubleshooting
 
-## Audit candidate: sandbox required (not yet released)
+## Public v1.26.0: sandbox required
 
-The security-readiness candidate refuses Linux launches carrying Chromium
-sandbox-disabling switches, including a launcher's automatic `--no-sandbox`
-fallback. It prints guidance and shows a native error before any browser
-surfaces initialize. Permitted launches call Electron's official
-`app.enableSandbox()` before readiness. The generated launcher and Electron
-runtime remain upstream builds.
+Blanc v1.26.0 refuses Linux launches carrying Chromium sandbox-disabling
+switches, including a launcher's automatic `--no-sandbox` fallback. It prints
+guidance and shows a native error before browser surfaces initialize.
+Permitted launches call official Electron's `app.enableSandbox()` before
+readiness. The generated launcher and Electron runtime remain upstream builds.
 
 Do not add disabling switches to recover browsing. Report the distribution,
 kernel, launch method, and actual error. On a managed machine, ask its
-administrator for a supported sandbox configuration; this change does not
-modify user-namespace or AppArmor policy on the user's machine. Allowed and
-restricted Ubuntu 22.04/24.04, real desktop integration, renderer namespaces,
-seccomp, and updater handoff need native candidate evidence before release.
+administrator for a supported sandbox configuration; Blanc does not modify
+user-namespace or AppArmor policy on your machine. Restricted systems may
+refuse to launch. Hosted Ubuntu 22.04/24.04 candidate sandbox checks passed;
+physical desktop checks were explicitly waived for v1.26.0 and remain
+unperformed. See the [release evidence and exact waiver](release-incidents/2026-10-02-v1.26.0.md).
 
-The public versions described below predate this candidate enforcement.
-
-Public Blanc v1.24.0 no longer needs the host FUSE 2 library. Download the
-[current AppImage](https://github.com/bnfy/blanc/releases/tag/v1.24.0), make it
-executable, and run it from a terminal so its actual error is visible:
+Download the [current AppImage](https://github.com/bnfy/blanc/releases/tag/v1.26.0),
+make it executable, and run it from a terminal so its actual error is visible:
 
 ```sh
-chmod +x ./Blanc-1.24.0.AppImage
-./Blanc-1.24.0.AppImage
+chmod +x ./Blanc-1.26.0.AppImage
+./Blanc-1.26.0.AppImage
 ```
 
+Since v1.24.0, Blanc's static AppImage mounting runtime no longer needs the
+host FUSE 2 library. It still requires Electron's normal system libraries,
+access to kernel mounting facilities, and a working Chromium sandbox.
 If you previously integrated Blanc into your app menu, integrate the new
-AppImage again to replace the old shortcut's arguments.
+AppImage again to replace the old shortcut's arguments. Report the exact
+terminal error if launch fails; namespace, sandbox, permissions and missing
+library errors need their own diagnosis.
 
-The static mounting runtime still requires Electron's normal system libraries
-and access to the kernel mounting facilities. If launch fails, report the
-Ubuntu/distribution version and exact terminal error. Errors about user
-namespaces, sandbox initialization, permissions, or other missing libraries
-need their own diagnosis. The existing launcher can disable Chromium's sandbox
-when its user-namespace probe fails; the mounting-runtime fix does not resolve
-that separate behavior. See the
+Older public v1.24.0/v1.25.0 launchers could disable Chromium's sandbox when
+their user-namespace probe failed. The mounting-runtime fix did not resolve
+that separate behavior; v1.26.0 refuses such launches. See the
 [investigation and validation record](linux-appimage-sandbox-2026-09-29.md) and
 [v1.24.0 release evidence](release-incidents/2026-10-01-v1.24.0.md).
 
@@ -54,7 +52,8 @@ sudo apt install libfuse2t64
 
 On Ubuntu 22.04, the package is named `libfuse2`. Other distributions use their
 own package names; consult their package documentation. Alternatively, download
-v1.24.0 to avoid that host library dependency.
+the current AppImage to avoid that host library dependency; its sandbox
+requirements still apply.
 
 Extraction is a workaround for an older image. Use a fresh directory so it
 does not mix with another application's extracted files:
