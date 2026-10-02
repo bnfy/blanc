@@ -162,6 +162,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('tabs:updated', listener);
     return () => ipcRenderer.removeListener('tabs:updated', listener);
   },
+  onPageTint: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('chrome:page-tint', listener);
+    return () => ipcRenderer.removeListener('chrome:page-tint', listener);
+  },
   onDownloadsActivity: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:downloads', listener);

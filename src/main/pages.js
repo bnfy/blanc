@@ -304,12 +304,22 @@ function setupPages(hooks = {}) {
 
   handle('pages:settings:get', 'settings', () => ({
     settings: clientSettings(),
+    // Only non-secret metadata from this running process, never paths,
+    // environment variables, account details or persisted settings.
+    appInfo: {
+      blancVersion: app.getVersion(),
+      electronVersion: process.versions.electron,
+      chromiumVersion: process.versions.chrome,
+      platform: process.platform,
+      architecture: process.arch,
+    },
     onePasswordAvailable: onePasswordAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
   }));
+  handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
   handle('pages:settings:set', 'settings', (partial) => {
     const next = partial && typeof partial === 'object' ? { ...partial } : {};
     if (!onePasswordAvailable()) {
