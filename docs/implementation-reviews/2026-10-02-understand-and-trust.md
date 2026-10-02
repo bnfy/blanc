@@ -55,3 +55,15 @@ interval is now four seconds (previously eight) with a 1.2-second fade
 (previously two). The built-site harness verifies all four phases and return
 to dawn within twenty seconds, plus pause, reduced-motion, no-JavaScript,
 responsive, consent and demo behavior. Site/SEO build and browser checks pass.
+
+Hero tint correction: each signed-public-app phase was reloaded with its
+sample local-hour fixture before capture. The released sampler's native
+Island strip color was checked against the wallpaper's rendered top edge:
+dawn #f8f1e7, day #e3e8e9, dusk #f0e7df, night #e9e4db. The screenshot and
+traffic-light clipping backdrop now share one fading layer for each phase;
+there is no fixed daylight-colored patch. PNG/WebP hashes and tint values
+are recorded in the capture manifest. Native/exported-pixel evidence checks,
+built-site pixel seam checks during every fade, the complete browser harness,
+and site/SEO build passed. All assets remain native captures/proportional
+exports; no source image was retouched. App responsiveness changes are a
+separate unreleased development change, not a public v1.25.0 claim.

@@ -29,7 +29,7 @@ if (preview) {
   }
   async function select(index) {
     const request = ++generation;
-    try { await scenes[index].decode(); } catch { return; }
+    try { await scenes[index].querySelector('img').decode(); } catch { return; }
     if (request !== generation) return;
     current = index;
     scenes.forEach((scene, i) => scene.classList.toggle('is-current', i === index));

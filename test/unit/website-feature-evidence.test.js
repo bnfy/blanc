@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const sharp = require('sharp');
 const { execFileSync } = require('node:child_process');
 const { runInNewContext } = require('node:vm');
 const root = path.resolve(__dirname, '../..');
@@ -90,7 +91,7 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
 });
 
 
-test('hero wallpaper scenes retain actual public captures and phase provenance', () => {
+test('hero wallpaper scenes retain actual public captures and phase provenance', async () => {
   const manifest = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
   assert.equal(manifest.release, ledger.publicRelease);
   assert.equal(manifest.sourceSha, ledger.sourceSha);
@@ -104,6 +105,14 @@ test('hero wallpaper scenes retain actual public captures and phase provenance',
   for (const capture of manifest.captures) {
     const fixture = new Date(2026, 9, 2, capture.localHourFixture);
     assert.equal(policy.phaseForTime(fixture), capture.phase);
+    assert.match(capture.chromeTint, /^#[0-9a-f]{6}$/);
+    const expected = [1, 3, 5].map(i => parseInt(capture.chromeTint.slice(i, i + 2), 16));
+    for (const item of [capture, capture.displayAsset]) {
+      const { data } = await sharp(path.join(root, item.file)).extract({
+        left: Math.round(item.width * 0.15), top: Math.round(item.height * 0.02), width: 1, height: 1,
+      }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      assert.ok(expected.every((value, i) => Math.abs(value - data[i]) <= 2), `${capture.phase}: native tint matches the screenshot strip`);
+    }
     for (const item of [capture, capture.displayAsset]) {
       const bytes = fs.readFileSync(path.join(root, item.file));
       assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);

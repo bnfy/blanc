@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import sharp from 'sharp';
 import { _electron } from 'playwright';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-site-trust-'));
 const fixture=path.join(root,'host.cjs');
@@ -96,6 +97,16 @@ try {
     const cycleStarted=Date.now();
     for(const phase of ['day','dusk','night','dawn']) {
       await page.waitForFunction(phase=>document.getElementById('heroWallpaper').dataset.phase===phase,phase,{timeout:6000});
+      const box=await page.locator('.hero-wallpaper-frame').boundingBox();
+      const rendered=await page.screenshot();
+      const {width}=await sharp(rendered).metadata();
+      const scale=width/await page.evaluate(()=>innerWidth);
+      const pixels=[];
+      for(const x of [0.035,0.15]) {
+        const {data}=await sharp(rendered).extract({left:Math.round((box.x+box.width*x)*scale),top:Math.round((box.y+box.height*0.025)*scale),width:1,height:1}).removeAlpha().raw().toBuffer({resolveWithObject:true});
+        pixels.push([...data]);
+      }
+      assert.ok(pixels[0].every((value,i)=>Math.abs(value-pixels[1][i])<=3),`${phase}: clipped corner and Island strip stay seamless during the fade (${pixels})`);
     }
     assert.ok(Date.now()-cycleStarted<20000,'all four wallpapers cycle within twenty seconds');
     await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='day',null,{timeout:6000});
