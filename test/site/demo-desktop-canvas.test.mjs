@@ -80,7 +80,9 @@ test('mobile demo captions use their content height without an empty spacer abov
           const frame = document.querySelector('.demo-showcase').getBoundingClientRect();
           const message = document.getElementById('demoHeroMessage').getBoundingClientRect();
           const title = document.getElementById('demoHeadline').getBoundingClientRect();
-          return { blankHeight: message.height - title.height, topGap: title.top - frame.top, overflow: document.documentElement.scrollWidth > innerWidth };
+          const note = document.getElementById('demoSceneNote');
+          const contentBottom = note.hidden ? title.bottom : note.getBoundingClientRect().bottom;
+          return { blankHeight: message.height - (contentBottom - title.top), topGap: title.top - frame.top, overflow: document.documentElement.scrollWidth > innerWidth };
         });
         assert.ok(geometry.blankHeight < 1, `${width}px chapter ${option}: no reserved blank caption space`);
         assert.ok(geometry.topGap <= 34, `${width}px chapter ${option}: compact top padding, got ${geometry.topGap}`);
@@ -216,7 +218,7 @@ test('gold marks remain visible with reduced motion and mobile navigation stays 
   } finally { await page.close(); }
 });
 
-const chapters = ['the island', 'glance split view', 'ad blocker', 'browser commands', 'tab groups', 'workspaces'];
+const chapters = ['the island', 'glance split view', 'ad blocker', 'browser commands', 'tab groups', 'workspaces', '1Password (macOS)'];
 test('each chapter keeps its desktop geometry and captures at phone widths', { timeout: 60000 }, async () => {
   const baseline = new Map();
   for (const width of [1440, 320, 390, 430]) {
@@ -351,9 +353,9 @@ test('the complete animated sequence runs without coordinate drift or responsive
     });
     await page.locator('#demoScrubToggle').evaluate(button => button.click());
     // More than one authored loop, including typing, menus, Glance, and blocker actions.
-    await page.clock.runFor(82000);
+    await page.clock.runFor(100000);
     const evidence = await page.evaluate(() => window.demoEvidence);
-    for (const text of ['Drag the divider', 'Make either tab', 'Without the ad layer', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
+    for (const text of ['Drag to resize', 'Choose which tab', 'Known ads blocked', 'Browse commands', 'Netflix is now in Social.', 'Netflix is now in Watch.', 'Reopen a workspace', 'Fill a login with your keyboard.', 'Choose a matching login.', 'Your login is filled.']) {
       assert.ok(evidence.headlines.some(headline => headline.startsWith(text)), `missing scene: ${text}`);
     }
     assert.deepEqual(evidence.badShots, []);

@@ -17,6 +17,7 @@ export const menus = [
         { href: '/features/quiet-tabs', label: 'Quiet tabs', description: 'Tabs you are not using give their memory back.' },
       ] },
       { title: 'Privacy and security', links: [
+        { href: '/features/1password', label: '1Password (macOS)', description: 'Keep your 1Password logins close.' },
         { href: '/features/ad-blocking', label: 'Ad blocking', description: 'A clearer control for a quieter site.' },
         { href: '/features/private-tabs', label: 'Private tabs', description: 'Private tabs that stay out of the record.' },
         { href: '/features/security', label: 'Security', description: 'Private by architecture.' },
