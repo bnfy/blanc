@@ -50,3 +50,14 @@ and resting-Island image descriptions on the blocking and private-tab guides.
 The dated 1.0 announcement’s slim-band description was independently checked
 at `v1.0.0:src/main/main.js` and `src/main/chrome-layout.js` (64px then); it does
 not claim the current 68px geometry for that historical release.
+
+Before publication, the approved wording was rechecked against newly public
+**v1.26.0**, commit `4624b229c1a50814c42714e6175902671497e391`, and its completed
+[release record](release-incidents/2026-10-02-v1.26.0.md). The resting-band
+geometry, expanded-panel placement, Enter handler and first-run optional-send
+gates remain unchanged. Review covered `src/main/chrome-layout.js`,
+`src/main/window-runtime-registry.js`, `src/renderer/styles.css`,
+`src/renderer/overlay.js`, `src/main/settings.js`, `src/main/main.js` and
+`src/renderer/pages/onboarding.js` at that immutable tag. The approved public
+wording is unchanged; existing captures and the original JSON evidence ledger
+retain their accurately labelled v1.25.0 provenance.
