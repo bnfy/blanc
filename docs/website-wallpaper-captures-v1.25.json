@@ -4,7 +4,7 @@
   "captureDate": "2026-10-02",
   "method": "Unretouched native captures of the signed, Gatekeeper-accepted installed public app in one disposable fixture profile. Its released wallpaper controller and Billboard clock use sample renderer-clock fixtures; reduced motion settles each actual released phase before capture. Each phase is reloaded to trigger the released top-edge sampler, and the native Island strip is verified against the rendered wallpaper edge before capture. No shipped code, controls, block totals or OS clock are changed.",
   "settings": {
-    "theme": "light",
+    "theme": "light and dark",
     "layout": "billboard",
     "newtabDynamicWallpaper": true,
     "usagePing": false,
@@ -28,6 +28,23 @@
         "width": 1440,
         "height": 900,
         "sha256": "9093c62c81cb17e4b27901aaa5182cf616ef37683c121aadfcd41cfe00825eaf"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "dawn",
+      "theme": "dark",
+      "localHourFixture": 6,
+      "chromeTint": "#37342f",
+      "file": "site/public/feature-captures/home-wallpaper-dawn-dark-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "c640844ee12ac02d3f696122f39ab205426e333203e407818e77f8de5502ad28",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-dark-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "27a60169feab9e9b4fd459a9dd7246c2499bae6a2768256a5caec80400535470"
       }
     },
     {
@@ -43,6 +60,23 @@
         "width": 1440,
         "height": 900,
         "sha256": "082cb880eb98124bb932ea1bf26e0ee72e9d37603267fa8ae0e2d6fee54ef2d2"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "day",
+      "theme": "dark",
+      "localHourFixture": 12,
+      "chromeTint": "#292d31",
+      "file": "site/public/feature-captures/home-wallpaper-day-dark-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "4ca69f30cb7015f9e2b83260a3fdd4cb8d951bdcfdb51ca282750ffa99ead11b",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-dark-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "51cebc8b40d2a5a6a386af6bea350f2af5c71869537c3c047d2154cefac7b5fb"
       }
     },
     {
@@ -58,6 +92,23 @@
         "width": 1440,
         "height": 900,
         "sha256": "a8fd2cd8c91f87d8a22dec950b647c241dacb09ae29a0601990eed48080d345d"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "dusk",
+      "theme": "dark",
+      "localHourFixture": 18,
+      "chromeTint": "#251e1f",
+      "file": "site/public/feature-captures/home-wallpaper-dusk-dark-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "c1d1e91378f894a35b24227e89f45055c728e732cf1006fb1f793796cec6ac18",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-dark-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "0ccfb625858cb7a6cd3cda425f9422caecfcffebb501fd5051b0d607ca6b2b81"
       }
     },
     {
@@ -73,6 +124,23 @@
         "width": 1440,
         "height": 900,
         "sha256": "6ad9a07fdf4c568820babb137ad3e2ea89b5472fb121b5e81ca9c60dd4159161"
+      },
+      "theme": "light"
+    },
+    {
+      "phase": "night",
+      "theme": "dark",
+      "localHourFixture": 23,
+      "chromeTint": "#111114",
+      "file": "site/public/feature-captures/home-wallpaper-night-dark-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "2cd3fcab4eb856b971d710a8e39d216b823cc4c6c3ae9b790a8e3deb7a24192b",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-dark-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "8a98ea5f31a7899c215b9bd3ec1ac410a3c0974c30d4bcf2901b220417cdc3eb"
       }
     }
   ]

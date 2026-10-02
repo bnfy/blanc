@@ -150,7 +150,7 @@
         "src/renderer/renderer.js",
         "src/renderer/styles.css"
       ],
-      "qualification": "Optional bundled artwork follows the local clock through four phases; the released transition is two seconds and respects reduced motion. The homepage uses unretouched Billboard captures with sample renderer-clock fixtures and an explicitly accelerated preview, rather than claiming the app cycles through a whole day in seconds."
+      "qualification": "Optional bundled artwork follows the local clock through four phases; the released transition is two seconds and respects reduced motion. The homepage uses unretouched light- and dark-mode Billboard captures with sample renderer-clock fixtures and an explicitly accelerated preview, rather than claiming the app cycles through a whole day in seconds."
     }
   },
   "claims": [
@@ -4029,7 +4029,7 @@
     {
       "id": "hero-wallpaper-125-2",
       "source": "site/src/pages/index.astro",
-      "exactWording": "This preview cycles faster through dawn, day, dusk and night.",
+      "exactWording": "This preview cycles faster through dawn, day, dusk and night in light and dark mode.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "wallpaper"

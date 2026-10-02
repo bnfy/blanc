@@ -99,7 +99,7 @@ test('hero wallpaper scenes retain actual public captures and phase provenance',
   assert.equal(manifest.settings.layout, 'billboard');
   assert.equal(manifest.settings.usagePing, false);
   assert.equal(manifest.settings.searchSuggestions, false);
-  assert.deepEqual(manifest.captures.map(item => item.phase), ['dawn', 'day', 'dusk', 'night']);
+  assert.deepEqual(manifest.captures.map(item => [item.phase, item.theme]), ['dawn', 'day', 'dusk', 'night'].flatMap(phase => [[phase, 'light'], [phase, 'dark']]));
   const releasedModule = { exports: {} };
   runInNewContext(execFileSync('git', ['show', `${ledger.publicRelease}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
   const policy = releasedModule.exports;

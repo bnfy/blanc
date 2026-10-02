@@ -75,3 +75,10 @@ with each wallpaper phase. No OS clock or shipped code was changed. Native
 strip tints remain verified, originals are unretouched, and the caption now
 identifies sample sites. The existing four-second cycle, fade, pause and
 accessibility behavior remains intact.
+
+Dark-mode hero refinement: eight signed-public-app Billboard captures now
+cycle in light/dark pairs for dawn, day, dusk and night, four seconds per
+scene with a 1.2-second fade. Every dark scene carries its own verified native
+strip tint (#37342f, #292d31, #251e1f, #111114). The caption identifies both
+modes; static/reduced-motion fallback remains light dawn. The native captures
+and proportional exports remain unchanged and use the same isolated fixtures.
