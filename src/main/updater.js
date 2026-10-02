@@ -153,7 +153,7 @@ function promptRestart(info) {
     message: `Update ${info.version} downloaded`,
     detail: 'Restart to apply it. Blanc will reopen when installation completes.',
   }).then(({ response }) => {
-    if (response === 0) restartToInstallUpdate();
+    if (response === 0 && updateDownloaded && downloadedUpdateInfo === info) restartToInstallUpdate();
   });
 }
 
@@ -195,6 +195,10 @@ function setupAutoUpdater() {
     logger: autoUpdater.logger,
     createVerifier: windowsTrustGate ? () => windowsTrustGate.verifySignature : createWindowsSignatureVerifier,
     onVerifyStart: () => {
+      if (windowsTrustGate) {
+        updateDownloaded = false;
+        downloadedUpdateInfo = null;
+      }
       downloadVerificationInProgress = true;
       downloadStallWatchdog?.disarm();
       activeDownloadCancellation = null;
