@@ -122,7 +122,7 @@ function createWindowsUpdateTrustGate({
     return originalInstall.apply(this, args);
   };
 
-  return { verifySignature, acceptDownloaded, invalidate };
+  return { verifySignature, acceptDownloaded, invalidate, isReady: () => ready !== null };
 }
 
 module.exports = { createWindowsUpdateTrustGate, installerDigest, installerDigestSync };

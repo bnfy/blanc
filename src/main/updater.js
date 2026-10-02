@@ -146,6 +146,7 @@ const updateChecks = createUpdateCheckCoordinator({
 });
 
 function promptRestart(info) {
+  if (windowsTrustGate && !windowsTrustGate.isReady()) return Promise.resolve();
   return showDialog({
     type: 'info',
     buttons: ['Restart Now', 'Later'],
@@ -153,7 +154,8 @@ function promptRestart(info) {
     message: `Update ${info.version} downloaded`,
     detail: 'Restart to apply it. Blanc will reopen when installation completes.',
   }).then(({ response }) => {
-    if (response === 0 && updateDownloaded && downloadedUpdateInfo === info) restartToInstallUpdate();
+    if (response === 0 && updateDownloaded && downloadedUpdateInfo === info
+      && (!windowsTrustGate || windowsTrustGate.isReady())) restartToInstallUpdate();
   });
 }
 
@@ -320,7 +322,16 @@ async function checkForUpdatesManually() {
     });
     return;
   }
-  if (updateDownloaded && downloadedUpdateInfo) {
+  if (windowsTrustGate && downloadVerificationInProgress) {
+    manualDownloadPending = true;
+    await showDialog({
+      type: 'info',
+      message: 'Verifying the update',
+      detail: 'Blanc will prompt you when the update is ready to restart.',
+    });
+    return;
+  }
+  if (updateDownloaded && downloadedUpdateInfo && (!windowsTrustGate || windowsTrustGate.isReady())) {
     await promptRestart(downloadedUpdateInfo);
     return;
   }
