@@ -22,7 +22,7 @@ try {
   const get = await worker.fetch(url); assert.deepEqual(await get.json(), { version, blob });
   assert.equal((await send(JSON.stringify({ blob, ifVersion: null }))).status, 409);
   assert.equal((await send('{malformed')).status, 400);
-  assert.equal((await send(JSON.stringify({ blob: { ct: 'é'.repeat(300000) } }))).status, 413);
+  assert.equal((await send(JSON.stringify({ blob: { ct: 'é'.repeat(262141) } }))).status, 413);
   const oversized = new ReadableStream({ start(controller) {
     controller.enqueue(new TextEncoder().encode('{"blob":{},"extra":"'));
     for (let n = 0; n < 9; n++) controller.enqueue(new Uint8Array(64 * 1024).fill(120));
