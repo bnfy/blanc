@@ -2,6 +2,11 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import { version } from '../../../package.json';
+import chromiumMark from '../assets/summary-icons/chromium.svg?raw';
+import electronMark from '../assets/summary-icons/electron.svg?raw';
+import appleMark from '../assets/summary-icons/apple.svg?raw';
+import linuxMark from '../assets/summary-icons/linux.svg?raw';
+import codeMark from '../assets/summary-icons/code-xml.svg?raw';
 import wallpaperCaptures from '../../../docs/website-wallpaper-captures-v1.25.json';
 const wallpaperTints = Object.fromEntries(wallpaperCaptures.captures.map(({ phase, theme, chromeTint }) => [theme === 'dark' ? `${phase}-dark` : phase, chromeTint]));
 
@@ -168,10 +173,11 @@ const graph = {
 
 <main class="home-main trust-home">
   <section class="trust-facts" aria-label="Blanc at a glance">
-    <div><span>Built on</span><strong>Chromium + Electron</strong><a href="/how-it-works#engine">How they fit together ↗</a></div>
-    <div><span>Available for</span><strong>macOS · Windows · Linux</strong><a href="/download">Choose your download ↗</a></div>
-    <div><span>Open source</span><strong>MIT for Blanc’s own code</strong><a href="/faq#open-source">Licensing and exceptions ↗</a></div>
-    <div><span>Free to browse</span><strong>Optional Patron support</strong><a href="#home-patron-title">What Patron adds ↗</a></div>
+    <svg class="trust-icon-filter" width="0" height="0" aria-hidden="true" focusable="false"><defs><filter id="trust-icon-black" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -20 -20 -20 60 0" /></filter></defs></svg>
+    <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={chromiumMark} /><Fragment set:html={electronMark} /></span><span>Built on</span><strong>Chromium + Electron</strong><a href="/how-it-works#engine">How they fit together ↗</a></div>
+    <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={appleMark} /><svg viewBox="2 2 20 20" fill="currentColor"><path d="M2 2h9v9H2zm11 0h9v9h-9zM2 13h9v9H2zm11 0h9v9h-9z" /></svg><Fragment set:html={linuxMark} /></span><span>Available for</span><strong>macOS · Windows · Linux</strong><a href="/download">Choose your download ↗</a></div>
+    <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={codeMark} /></span><span>Open source</span><strong>MIT for Blanc’s own code</strong><a href="/faq#open-source">Licensing and exceptions ↗</a></div>
+    <div><span class="trust-fact-icons" aria-hidden="true"><img src="/sunrise-hero-mark.png" width="30" height="30" alt="" /></span><span>Free to browse</span><strong>Optional Patron support</strong><a href="#home-patron-title">What Patron adds ↗</a></div>
   </section>
   <section class="demo-showcase" id="demoShowcase" hidden aria-labelledby="demoHeadline">
   <div class="hero-message" id="demoHeroMessage">

@@ -2354,6 +2354,11 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-facts { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--site-border); padding: 25px 0; gap: 22px; }
 .trust-facts div { display: flex; flex-direction: column; gap: 9px; }
 .trust-facts span { font-size: 12px; color: var(--site-text-dim); }
+.trust-facts .trust-fact-icons { display: flex; align-items: center; gap: 12px; height: 30px; margin-bottom: 3px; color: #000; }
+.trust-fact-icons svg { display: block; width: 26px; height: 26px; flex: none; }
+.trust-fact-icons svg:not([fill]) { fill: currentColor; }
+.trust-fact-icons img { display: block; object-fit: contain; flex: none; filter: url(#trust-icon-black); }
+.trust-icon-filter { position: absolute; overflow: hidden; pointer-events: none; }
 .trust-facts strong { font-size: 14px; font-weight: 600; }
 .trust-facts a { font-size: 12px; color: var(--site-accent); text-underline-offset: 4px; }
 .trust-benefits { padding: 80px 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 40px; }

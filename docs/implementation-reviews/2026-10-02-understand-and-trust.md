@@ -82,3 +82,15 @@ scene with a 1.2-second fade. Every dark scene carries its own verified native
 strip tint (#37342f, #292d31, #251e1f, #111114). The caption identifies both
 modes; static/reduced-motion fallback remains light dawn. The native captures
 and proportional exports remain unchanged and use the same isolated fixtures.
+
+Summary icon refinement: small local Chromium/Electron and platform marks,
+a code glyph for open source, and the existing Sunrise mark for optional
+Patron support now precede the four facts. All are decorative to assistive
+technology, with text and link targets retained. Sources are pinned and
+notices recorded; the page makes no additional requests to logo services.
+
+Owner color correction: every summary mark now uses the same black treatment,
+including Sunrise through a presentation-only SVG color filter.
+Original Sunrise pixels remain unchanged. Chromium uses the shared three-sector
+monochrome browser vector; its decorative title is adapted. Platform marks
+share the same visible bounds, including the Windows glyph’s corrected viewBox.
