@@ -61,7 +61,7 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
   vm.runInContext(source, context);
   return {
     links, local, session, context, banner, scripts, status, location,
-    googleScripts: () => scripts.filter(script => script.src?.includes('googletagmanager.com')),
+    googleScripts: () => scripts.filter(script => script.src && new URL(script.src).hostname === 'www.googletagmanager.com'),
     reloads: () => reloads,
     openChoice: () => choiceButton.handlers.click(),
     storageEvent: () => windowEvents.storage({ key: 'measurement-consent-v2' }),
@@ -132,7 +132,7 @@ test('unset, denied and inaccessible storage load no Google script or event queu
     assert.equal(p.googleScripts().length, 0);
     assert.equal(p.context.window.gtag, undefined);
     assert.equal(p.banner.hidden, true);
-    assert.ok(p.scripts.some(script => script.src.includes('cloudflareinsights.com')));
+    assert.ok(p.scripts.some(script => new URL(script.src).hostname === 'static.cloudflareinsights.com'));
     p.click();
     assert.equal(new URL(p.links[0].href).pathname, '/dl/mac-arm64');
     assert.equal(new URL(p.links[0].href).searchParams.has('oppref'), false);

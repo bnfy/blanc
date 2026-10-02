@@ -18,7 +18,10 @@ async function run({choice,storageBlocked=false,js=true},fn) {
   try {
     const page=await app.firstWindow(); const requests=[]; const errors=[];
     page.on('request',r=>requests.push(r.url())); page.on('pageerror',e=>errors.push(e.message));
-    await app.context().route('https://**/*',route=>route.fulfill({status:200,contentType:route.request().url().includes('api.github.com')?'application/json':'application/javascript',body:route.request().url().includes('api.github.com')?JSON.stringify({assets:[{name:'Blanc-1.25.0-arm64.dmg'},{name:'Blanc-Setup-1.25.0.exe'},{name:'Blanc-1.25.0.AppImage'}]}):'void 0;'}));
+    await app.context().route('https://**/*',route=>{
+      const isReleaseAPI=new URL(route.request().url()).hostname==='api.github.com';
+      return route.fulfill({status:200,contentType:isReleaseAPI?'application/json':'application/javascript',body:isReleaseAPI?JSON.stringify({assets:[{name:'Blanc-1.25.0-arm64.dmg'},{name:'Blanc-Setup-1.25.0.exe'},{name:'Blanc-1.25.0.AppImage'}]}):'void 0;'});
+    });
     if(js) await page.addInitScript(({choice,storageBlocked})=>{
       if(storageBlocked) Object.defineProperty(window,'localStorage',{get(){throw new Error('Blocked fixture storage');}});
       else if(choice && localStorage.getItem('measurement-consent-v2') === null) localStorage.setItem('measurement-consent-v2',choice);
@@ -33,9 +36,9 @@ try {
       await page.goto(`${origin}/download?oppref=discardable-fixture`);
       await page.locator('[data-consent-open]').waitFor();
       assert.equal(await page.locator('#consent').isVisible(),false);
-      const google=()=>requests.filter(u=>u.includes('googletagmanager.com'));
+      const google=()=>requests.filter(u=>new URL(u).hostname==='www.googletagmanager.com');
       assert.equal(google().length,state.choice==='granted'&&!state.storageBlocked?1:0);
-      assert.ok(requests.some(u=>u.includes('cloudflareinsights.com')));
+      assert.ok(requests.some(u=>new URL(u).hostname==='static.cloudflareinsights.com'));
       assert.match(await page.locator('[data-download-link]').first().getAttribute('href'),/^\/dl\//);
       if(state.storageBlocked)return;
       await page.locator('[data-consent-open]').click(); await page.locator('#consentAllow').click();
