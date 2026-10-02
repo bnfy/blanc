@@ -116,7 +116,7 @@
       "default": "on in packaged builds",
       "recipient": "GitHub Releases",
       "data": ["current version", "platform update request", "ordinary network metadata"],
-      "retentionByBlanc": "update metadata and downloaded signed artifact as required by updater",
+      "retentionByBlanc": "update metadata and downloaded platform artifacts as required by updater; native publisher verification differs by platform",
       "code": ["src/main/updater.js", "package.json"]
     },
     {
