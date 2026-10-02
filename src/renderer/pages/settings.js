@@ -19,18 +19,12 @@
   // un-findable by id (getElementById → null → `.addEventListener` throws).
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
-  const supportsWallpaperCity = supports('newtabDynamicWallpaper') &&
-    typeof window.bowserPages.settings.searchWallpaperCities === 'function';
   function renderWallpaperSetting() {
     if (!supports('newtabDynamicWallpaper')) return;
     const control = document.getElementById('newtabDynamicWallpaper');
     control.checked = settings.newtabDynamicWallpaper === true;
     document.getElementById('dynamicWallpaperHint').textContent =
-      settings.wallpaperLocation
-        ? 'Follows sunrise and sunset in your wallpaper city. The on/off choice syncs; your city stays on this device.'
-        : supportsWallpaperCity
-          ? 'Uses your local clock: night begins at 8 PM. Choose a wallpaper city to follow sunrise and sunset.'
-          : 'Sunrise follows your device’s local time. Your choice syncs across devices.';
+      'Wallpaper follows this machine’s local time. The on/off choice syncs across devices.';
   }
   if (supports('newtabDynamicWallpaper')) {
     renderWallpaperSetting();
@@ -41,94 +35,10 @@
     });
     window.bowserPages.settings.onAppearance?.((status) => {
       settings.newtabDynamicWallpaper = status.newtabDynamicWallpaper === true;
-      if ('wallpaperLocation' in status) settings.wallpaperLocation = status.wallpaperLocation;
       renderWallpaperSetting();
     });
   } else {
     document.getElementById('dynamicWallpaperSetting')?.remove();
-  }
-
-  if (supportsWallpaperCity) {
-    const input = document.getElementById('wallpaperCitySearch');
-    const results = document.getElementById('wallpaperCityResults');
-    const status = document.getElementById('wallpaperCityStatus');
-    const clear = document.getElementById('wallpaperCityClear');
-    let generation = 0;
-    let renderedId;
-    function renderCity() {
-      const city = settings.wallpaperLocation;
-      if (renderedId !== (city?.id || '')) {
-        generation += 1;
-        results.replaceChildren();
-        input.value = city?.label || '';
-        renderedId = city?.id || '';
-      }
-      clear.disabled = !city;
-      status.textContent = city
-        ? `Following ${city.label}. Night begins at sunset.`
-        : 'No city selected. Night begins at 8 PM using your local clock.';
-    }
-    async function chooseCity(id) {
-      generation += 1;
-      results.replaceChildren();
-      try {
-        const saved = await window.bowserPages.settings.set({ newtabWallpaperCity: id });
-        settings.wallpaperLocation = saved.wallpaperLocation;
-        renderedId = undefined;
-        renderCity();
-        renderWallpaperSetting();
-      } catch {
-        status.textContent = 'Could not save your wallpaper city. Try again.';
-      }
-    }
-    input.addEventListener('input', async () => {
-      const token = ++generation;
-      results.replaceChildren();
-      if (input.value.trim().length < 2) { renderCity(); return; }
-      try {
-        const cities = await window.bowserPages.settings.searchWallpaperCities(input.value);
-        if (token !== generation) return;
-        for (const city of cities) {
-          const row = document.createElement('li');
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'wallpaper-city-result';
-          button.textContent = city.label;
-          button.addEventListener('click', () => chooseCity(city.id));
-          row.append(button);
-          results.append(row);
-        }
-        status.textContent = cities.length ? 'Choose a city below.' : 'No matching cities. Try a nearby city or add a country name.';
-      } catch {
-        if (token === generation) status.textContent = 'City search is unavailable. Try again.';
-      }
-    });
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowDown' && results.firstElementChild) {
-        event.preventDefault();
-        results.querySelector('button').focus();
-      }
-    });
-    results.addEventListener('keydown', (event) => {
-      if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
-      const buttons = [...results.querySelectorAll('button')];
-      const index = buttons.indexOf(event.target);
-      if (index < 0) return;
-      event.preventDefault();
-      const next = index + (event.key === 'ArrowDown' ? 1 : -1);
-      if (next < 0) input.focus();
-      else buttons[Math.min(next, buttons.length - 1)].focus();
-    });
-    clear.addEventListener('click', () => chooseCity(''));
-    window.bowserPages.settings.onAppearance?.((appearance) => {
-      if ('wallpaperLocation' in appearance) {
-        settings.wallpaperLocation = appearance.wallpaperLocation;
-        renderCity();
-      }
-    });
-    renderCity();
-  } else {
-    document.getElementById('wallpaperCitySetting')?.remove();
   }
 
   // --- Core: theme / search engine / adblock (always supported) ---

@@ -136,7 +136,6 @@ if (window.location.protocol === 'blanc:') {
       settings: {
         get: () => invoke('pages:settings:get'),
         set: (partial) => invoke('pages:settings:set', partial),
-        searchWallpaperCities: (query) => invoke('pages:settings:wallpaper-cities', query),
         onAppearance: (callback) => ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status)),
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
         syncGet: () => invoke('pages:settings:sync-get'),

@@ -755,7 +755,6 @@ wallpaperToggle.addEventListener('click', async () => {
   }
 });
 const dataReady = window.bowserPages?.start.data().then((data) => {
-  wallpaper.setLocation(data.wallpaperLocation);
   wallpaper.setVisible(data.wallpaperVisible === true);
   applyDynamicWallpaper(data.dynamicWallpaperEnabled);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
@@ -789,7 +788,6 @@ window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible
 window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
-  if (status && 'wallpaperLocation' in status) wallpaper.setLocation(status.wallpaperLocation);
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }

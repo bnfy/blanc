@@ -13,6 +13,7 @@ fs.mkdirSync(`${profile}-Dev`);
 fs.writeFileSync(path.join(`${profile}-Dev`, 'settings.json'), JSON.stringify({
   onboardingVersion: 1, presentationDefaultsResetVersion: 1,
   adblockEnabled: false, usagePing: false, searchSuggestions: false,
+  newtabWallpaperCity: '5128581', // Retired dev preference must be removed.
 }));
 const output = process.env.BLANC_WALLPAPER_REVIEW_DIR;
 if (output) fs.mkdirSync(output, { recursive: true });
@@ -27,6 +28,7 @@ try {
   const data = await page.evaluate(() => window.bowserPages.start.data());
   assert.equal(data.patronActive, false);
   assert.equal(data.dynamicWallpaperEnabled, false, 'wallpaper remains opt-in');
+  assert.equal('newtabWallpaperCity' in JSON.parse(fs.readFileSync(path.join(`${profile}-Dev`, 'settings.json'))), false);
   assert.equal(await footerToggle.getAttribute('aria-pressed'), 'false');
   for (const value of ['true', 1, null, { newtabDynamicWallpaper: true, usagePing: true }]) {
     assert.equal(await page.evaluate((value) => window.bowserPages.start.setDynamicWallpaper(value), value), false,
@@ -172,6 +174,7 @@ try {
   await toggle.waitFor({ state: 'visible' });
   assert.equal(await toggle.isEnabled(), true, 'free setting is enabled without Patron');
   await sheet.waitForFunction(() => document.getElementById('newtabDynamicWallpaper').checked);
+  assert.equal(await sheet.getByLabel('Wallpaper city', { exact: true }).count(), 0, 'scheduling has no separate city control');
   assert.equal(await toggle.isChecked(), true);
   await toggle.uncheck();
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
@@ -182,6 +185,8 @@ try {
   await callTestHook(app, 'closeUtilitySurface');
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'night'
     && document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed') === 'true');
+  await privatePage.evaluate(() => { Date.prototype.getHours = () => 19; wallpaper.refresh(); });
+  await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'night');
   // Observe the mounted controller's actual minute timeout, not only its
   // visibility attribute. Native detached views can still report visible.
   await privatePage.evaluate(() => {

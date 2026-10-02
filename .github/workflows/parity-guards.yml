@@ -79,7 +79,7 @@ jobs:
         run: xvfb-run -a npm run test:oauth:desktop
       - name: Favorites folder picker layering and interaction regression
         run: xvfb-run -a npm run test:favorites-picker:desktop
-      - name: Dynamic wallpaper and offline city selection regression
+      - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
 
   tab-handoff:

@@ -1,9 +1,0 @@
-{
-  "name": "SunCalc",
-  "version": "2.1.0",
-  "source": "https://registry.npmjs.org/suncalc/-/suncalc-2.1.0.tgz",
-  "archiveSha256": "1692a133b1d8d6c30e15e66024fda3bbc2cc049ea885dfd32b7d32b15dcc7e1b",
-  "fileSha256": "e313f3d54542c7d302842e565c4aa642c48803309ebf2431835e8ef971122c16",
-  "license": "BSD-2-Clause",
-  "note": "Verbatim package/suncalc.cjs browser/CommonJS bundle; no modifications."
-}
