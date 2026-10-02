@@ -329,6 +329,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-change-theme-color', boundToTab((_e, color) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
+    scheduleSampleTint(tab);
     scheduleBroadcastTabs();
   }));
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {

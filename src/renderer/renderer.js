@@ -458,7 +458,7 @@
         : ({ light: '#ffffff', dark: '#0e0e0e' }[pendingThemeAppearance] ?? 'var(--bg)');
       // The normal strip transition is for site-to-site faux-header changes.
       // A theme preview should land in this interaction frame, not animate
-      // for another 160ms after the command has already completed.
+      // for another transition after the command has already completed.
       stripEl.classList.toggle('theme-optimistic', !tab?.private && themeHandoffPending);
       stripEl.style.setProperty('--page-bg', optimisticBg);
       // On Windows/Linux the window controls use the current theme tokens.
@@ -908,6 +908,12 @@
   window.browserAPI.onTabsUpdated((payload) => {
     state = payload;
     render();
+  });
+  window.browserAPI.onPageTint(({ id, color }) => {
+    const tab = activeTab();
+    if (!tab || tab.id !== id || tab.private || !/^#[0-9a-f]{6}$/i.test(color)) return;
+    tab.pageBg = color;
+    applyStripTint(tab);
   });
   window.browserAPI.onGlanceLayout((layout) => {
     glanceLayout = layout;
