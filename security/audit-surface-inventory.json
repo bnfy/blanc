@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
-  "implementationCommit": "7ac039fce28978f845f5acca52bd91a14f79f454",
+  "implementationCommit": "610666e87444094be1758044aa4652ba05429e06",
   "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered.",
   "preloads": [
     "src/main/badge-api-preload.js",
@@ -656,7 +656,7 @@
     },
     {
       "file": "src/main/updater.js",
-      "sha256": "fb7bdc99854cfdd6b85a11b6c5dd92b7b6bd0699e64c58a242e1db95d6e56320",
+      "sha256": "0e6e4cefa8f60c50d78003c606cd81698139131b4f33373a8796bf4f2c7db690",
       "literalChannels": [
         "browser-window-focus",
         "checking-for-update",
@@ -684,7 +684,7 @@
     },
     {
       "file": "src/main/windows-update-trust.js",
-      "sha256": "44a89d6edba6f44ffefbd7f29410d28997cdc9c3f1934f2c5144c1449810b04c",
+      "sha256": "f84bed262f8dec9c4ebfd610689276dfbf1a4fa66ffaa67862cbcc41e15e347b",
       "literalChannels": [],
       "role": "privileged implementation or service"
     }

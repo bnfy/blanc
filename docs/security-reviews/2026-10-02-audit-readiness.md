@@ -27,7 +27,8 @@ released build. Independent draft PRs against protected main:
 - [#474, sync v1 byte limits](https://github.com/bnfy/blanc/pull/474).
 
 No merge, release, production deployment or independent retest occurred.
-The source identity in the inventory is the implementation revision with all
+The source identity in the inventory is final app/Worker implementation
+`610666e87444094be1758044aa4652ba05429e06`, including pending-state/UI guards, with all
 current app/Worker changes; later CI and documentation commits do not alter
 those hashed boundaries.
 
@@ -36,7 +37,7 @@ those hashed boundaries.
 | Finding | Source and isolated evidence | Residual / later milestones |
 | --- | --- | --- |
 | R1 Linux sandbox | Existing AppRun can add `--no-sandbox` on namespace-probe failure. The candidate rejects all seven unsafe switches shared with the desktop-entry verifier, including single-dash and assigned forms, before application modules or browser surfaces initialize. Permitted Linux calls official `app.enableSandbox()` before readiness. | Upstream launcher/runtime unchanged. Headless packaged matrix evidence is recorded below; real Ubuntu desktop session, affected-machine confirmation, release and independent retest remain pending. Public v1.25.0 is unchanged. |
-| R2 Windows update verification | Source still accepted execution/parse failures at the public baseline. Locked electron-updater 6.8.9 bypasses its signature callback on cached installers and may skip it without publisher configuration. Candidate rejects errors, exceptions, malformed output, missing certificates/configuration. SHA-512 proofs bind expected publishers to bytes; cached completion must verify before UI/install-on-quit. Common synchronous install guard rechecks bytes. | 120-second timeout and publisher matching preserved. NSIS retains shutdown/relaunch ownership. Mocked tests do not prove production feed substitution or end-to-end exploitation. Signed staged Restart Now handoff beginning in public v1.25.0, affected-machine confirmation, release and independent retest remain pending. |
+| R2 Windows update verification | Source still accepted execution/parse failures at the public baseline. Locked electron-updater 6.8.9 bypasses its signature callback on cached installers and may skip it without publisher configuration. Candidate rejects errors, exceptions, malformed output, missing certificates/configuration. SHA-512 proofs bind expected publishers to bytes; cached completion must verify before UI/install-on-quit. Common synchronous install guard rechecks bytes. Fresh checks disarm any previously ready installer; both fresh and cached pending checks disable restart UI, and stale dialogs cannot install. | 120-second timeout and publisher matching preserved. NSIS retains shutdown/relaunch ownership. Mocked tests do not prove production feed substitution or end-to-end exploitation. Signed staged Restart Now handoff beginning in public v1.25.0, affected-machine confirmation, release and independent retest remain pending. |
 | R3 locator authorization | Unchanged by design: locator-only synthetic GET/PUT/DELETE works. AES-GCM still protects plaintext under the independent encryption key. | OPEN. Locator possession authorizes ciphertext retrieval, replacement and deletion. No separate credential, revoke/rotate migration or authenticated v2 exists here. v2 planning is neither acceptance nor closure. Keep explicitly disclosed in RFP. |
 | R4 assessment documentation | Threat model refreshed from v1.17.0 to public v1.25.0 plus separately pinned candidate. Source-hashed preload/IPC inventory and network-counter retention corrected. | Candidate documentation is not auditor approval. Dynamic channels and all payload/trust predicates require manual review. |
 | R5 limits/concurrency | Candidate caps streamed PUT bodies at 513 KiB and serialized blobs at 512 KiB, in UTF-8 bytes. Declared oversize rejects early; actual stream cap cancels without blob storage. Tests cover boundaries, misleading lengths, chunking, Unicode, malformed JSON and legacy ciphertext. | PARTIAL SOURCE REMEDIATION, not deployed. Same-version writers can both succeed; one update can be lost. Pending write can recreate data after deletion. Coarse KV counters remain non-atomic. No guarantee of “no data loss.” |
@@ -50,8 +51,10 @@ account derivation/envelopes or move existing user data.
 
 ## Validation evidence
 
-- Final integrated lint and full unit coverage: all 2,000 tests passed at
-  `7ac039fce28978f845f5acca52bd91a14f79f454`.
+- Final lint, full unit coverage and substrate passed: all 2,001 tests at
+  `610666e87444094be1758044aa4652ba05429e06`, including fresh/cached pending
+  UI and quit guards for a previously ready installer. Earlier 2,000-test runs
+  are preserved separately.
 - Local locked Wrangler 4.144.0 test harness passed sync legacy responses,
   conflicts, malformed JSON, Unicode and chunked request limits, unchanged
   ciphertext after rejection and locator-only deletion, using disposable KV.
@@ -98,6 +101,12 @@ account derivation/envelopes or move existing user data.
   unexpected publishers and missing files, and verified cached bytes before
   arming the install guard. The smoke delegates to a test installer seam; it
   does not claim an Electron Restart Now handoff.
+- [Final pending-state native run 37036996853](https://github.com/bnfy/blanc/actions/runs/37036996853)
+  at `610666e87444094be1758044aa4652ba05429e06` passed Windows signing,
+  packaged gates, real verifier and cached-installer smoke after the final UI
+  and previously-ready installer corrections. Restart Now during fresh/cached
+  pending verification is covered by isolated runtime tests; a physical staged
+  handoff is still pending.
 - Required checks passed on the four focused implementation PRs. Windows PR's
   wallpaper resource-settlement assertion failed once then passed on a targeted
   retry; only bundled Sunrise images were still loading, and OAuth itself
@@ -177,10 +186,17 @@ Android/bridge execution invalidates that reachability decision. This is not
 an upstream fix or blanket suppression. See the linked node-forge review and
 security/openvex.json.
 
+The v1 sync cipher helper receives only key/plaintext, sets no associated data,
+and is called without store or server-version context. Source-confirmed lack of
+that binding is an external-review question: cross-store/context replay and
+rollback impact on each client merge path remain untested. Do not treat
+AES-GCM payload authentication as storage authorization, context binding or
+freshness; any protocol change needs a compatible versioned migration.
+
 ## Remaining acceptance gates
 
 Keep PRs draft until affected-machine confirmation is obtained for sensitive
-platform changes. No merger/release waiver has been requested or given.
+platform changes. No merge or release waiver has been requested or given.
 Remaining work includes real Ubuntu 22.04/24.04 desktop sessions; signed staged
 Windows Restart Now from public v1.25.0; native updater/cache/error recovery;
 resolution/triage of existing macOS native-suite failures; deployed Worker
