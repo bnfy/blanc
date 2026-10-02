@@ -104,6 +104,8 @@ jobs:
       - run: npm ci --prefix extensions/blanc-tab-import
       - name: SQLite-backed one-time handoff and desktop decryption
         run: npm run test:runtime --prefix cloudflare/tab-import-worker
+      - name: Sync v1 limits in the local Workers runtime
+        run: node test/worker/sync-runtime-smoke.mjs
       - name: Firefox manifest and archive
         run: |
           npm run lint:firefox --prefix extensions/blanc-tab-import
