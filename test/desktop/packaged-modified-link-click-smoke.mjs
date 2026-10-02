@@ -35,7 +35,7 @@ const server = http.createServer((req, res) => {
     ...(policy?.sandbox ? { 'Content-Security-Policy': `sandbox ${policy.sandbox}` } : {}),
   });
   res.end(url.pathname === '/source'
-    ? `<a id="link" target="_blank" href="${url.searchParams.get('target')}">Open target</a>`
+    ? '<!doctype html><a id="link" target="_blank" href="/target">Open target</a>'
     : `<!doctype html><p id="target">Target loaded</p><script>
       window.clickResult = { referrer: document.referrer };
       try { localStorage.setItem('click-marker', 'ok'); window.clickResult.storage = 'allowed'; }
@@ -71,15 +71,16 @@ try {
       for (const [index, click] of clicks.entries()) {
         const label = `${isPrivate ? 'private' : 'regular'}/${policy.name}/${click.label}`;
         const targetUrl = `${origin}/target?case=${isPrivate}-${policy.name}-${index}`;
-        const sourceUrl = `${origin}/source?policy=${policy.name}&target=${encodeURIComponent(targetUrl)}`;
+        const sourceUrl = `${origin}/source?policy=${policy.name}&case=${isPrivate}-${index}`;
         const sourceId = await chrome.evaluate(({ url, isPrivate }) => window.browserAPI.createTab(url, {
           private: isPrivate,
         }), { url: sourceUrl, isPrivate });
         const source = await pageAt(sourceUrl);
         await source.locator('#link').waitFor();
-        await source.locator('#link').evaluate((link, referrerPolicy) => {
+        await source.locator('#link').evaluate((link, { targetUrl, referrerPolicy }) => {
+          link.href = targetUrl;
           link.referrerPolicy = referrerPolicy;
-        }, policy.referrerPolicy ?? '');
+        }, { targetUrl, referrerPolicy: policy.referrerPolicy ?? '' });
         await chrome.evaluate((id) => window.browserAPI.groupTabByName(id, 'Packaged clicks'), sourceId);
         const before = await readTabs();
         const sourceGroup = before.tabs.find((tab) => tab.id === sourceId).groupId;
