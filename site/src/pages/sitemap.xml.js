@@ -8,6 +8,7 @@ const MANIFEST = [
   '/how-it-works',
   '/features',
   '/features/ad-blocking',
+  '/features/1password',
   '/features/island',
   '/features/private-tabs',
   '/features/command-palette',

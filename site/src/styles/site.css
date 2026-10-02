@@ -132,8 +132,8 @@ a { color: inherit; }
 .demo-showcase { width: 100%; max-width: 1040px; margin-top: 58px; padding: 42px 28px 26px; background-color: var(--site-surface); background-image: linear-gradient(180deg, var(--site-surface-raised) 0%, var(--site-surface) 62%); border: 1px solid var(--site-border); border-radius: 24px; }
 /* One sentence per scene, set as a figure title so the hero keeps the page's
    only display headline. */
-.hero-message { width: 100%; min-height: 56px; display: flex; flex-direction: column; justify-content: flex-end; }
-.hero-message h2 { max-width: 62ch; margin: 0 auto; font-family: var(--font-ui); font-size: clamp(18px, 1.5vw, 21px); font-weight: 500; letter-spacing: -0.015em; line-height: 1.35; text-wrap: balance; }
+.hero-message { width: 100%; min-height: 56px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.hero-message h2 { max-width: 36ch; margin: 0 auto; font-family: var(--font-ui); font-size: clamp(18px, 1.5vw, 21px); font-weight: 500; letter-spacing: -0.015em; line-height: 1.35; text-wrap: balance; }
 .hero .hero-copy { max-width: 650px; margin: 16px auto 0; color: var(--site-text-dim); font-size: clamp(16px, 1.25vw, 18px); line-height: 1.45; text-wrap: balance; }
 .hero-message.scene-change { animation: hero-message-change 420ms ease both; }
 @keyframes hero-message-change { from { opacity: 0.2; } to { opacity: 1; } }
@@ -280,8 +280,8 @@ a { color: inherit; }
   background: var(--demo-strip-bg, var(--site-surface));
 }
 #demoStage .demo-page { padding: 100px 64px 0; }
-#demoStage .demo-bb-clock { font-size: 76px; }
-#demoStage .demo-bb-favs { gap: 30px; }
+#demoStage .demo-bb-clock { font-size: 90px; }
+#demoStage .demo-bb-favs { gap: 16px; }
 #demoStage .demo-page,
 #demoStage .demo-shot { top: var(--demo-strip-h); height: auto; }
 /* The resting pill is drawn at the shipped 44px size and centered inside the
@@ -393,6 +393,32 @@ a { color: inherit; }
 .demo-context-item.cue { color: #fff; background: #0a84ff; }
 .demo-context-separator { display: block; height: 1px; margin: 4px; background: rgba(60,60,67,0.22); }
 .demo-context-submenu { position: absolute; top: 142px; left: calc(100% - 2px); width: 170px; }
+
+/* Sample website, separate from Blanc's source-backed login controls below. */
+.demo-login { position: absolute; inset: 0; z-index: 1; background: var(--bg); text-align: left; }
+.demo-login[hidden], .demo-credential-menu[hidden], .demo-fill-notice[hidden], .demo-fill-hint[hidden] { display: none; }
+.demo-login-form { width: 300px; margin: 110px auto 0; color: var(--text); font-family: var(--font-ui); }
+.demo-login-site { margin: 0; font-size: 12px; color: var(--text-dim); }
+.demo-login-form h3 { margin: 12px 0 22px; font-family: var(--font-ui); font-size: 24px; font-weight: 600; line-height: 1.2; }
+.demo-login-form label { display: block; margin: 16px 0 7px; font-size: 13px; line-height: 1.25; }
+.demo-login-form input { display: block; width: 100%; height: 38px; padding: 0 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: 13px var(--font-ui); box-sizing: border-box; }
+.demo-login-form input::placeholder { color: #909090; }
+.demo-login-form input.demo-login-focus { border-color: var(--text-dim); }
+.demo-login-submit { width: 100%; height: 38px; margin-top: 18px; border: 0; border-radius: 6px; background: var(--accent); color: var(--bg); font: 13px var(--font-ui); }
+.demo-login-sample { margin: 12px 0 0; color: var(--text-dim); font-size: 11px; text-align: center; }
+/* macOS native Menu rows: username above item title · vault, matching
+   v1.26.0 credentialMenuLabels(). No extension popup or extra Fill control. */
+.demo-credential-menu { position: absolute; z-index: 13; width: 278px; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, var(--font-ui), sans-serif; text-align: left; pointer-events: none; }
+.demo-credential-choice { display: flex; flex-direction: column; gap: 3px; padding: 6px 12px; border-radius: 4px; font-size: 13px; line-height: 1.2; }
+.demo-credential-choice small { color: rgba(60,60,67,.7); font-size: 11px; }
+.demo-credential-choice.active { background: #0a84ff; color: #fff; }
+.demo-credential-choice.active small { color: rgba(255,255,255,.8); }
+/* Dimensions, copy and neutral tokens from public fill-status.html/styles.css. */
+.demo-fill-notice { position: absolute; z-index: 13; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 4px 5px 4px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--accent); font: 12.5px var(--font-ui); white-space: nowrap; }
+.demo-fill-dismiss { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; color: var(--text-dim); }
+.demo-fill-dismiss svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+.demo-fill-hint { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; color: var(--text-dim); flex: 0 0 auto; }
+.demo-fill-hint svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Expanded panels keep their deeper popover rim. The resting face below uses
    the exact website-nav shadow now shipped by Blanc. */
@@ -517,17 +543,35 @@ a { color: inherit; }
    centered — shown behind the quiet pill while the demo is on a blank tab.
    Sits above the page render and below the island (z-index 5). The clock and
    tile sizes are scaled down from pages.css to fit the demo stage. */
-.demo-newtab { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); user-select: none; }
+/* Public v1.26.0 Sunrise Billboard, including its short-window layout.
+   Warm tokens are scoped to the start page; the Island stays neutral. */
+.demo-newtab { --bg: #f7f0e5; --surface: rgba(239,230,216,.78); --surface-raised: rgba(255,252,247,.88); --border: #ddd2c2; --text: #12100b; --text-dim: #6b6257; --accent: #805d28; position: absolute; inset: var(--island-strip-height) 0 0; z-index: 1; background: linear-gradient(180deg,rgba(247,240,229,.76) 0%,rgba(247,240,229,.28) 49%,rgba(247,240,229,.04) 100%), url('/demo-assets/start-page-sunrise.png') center bottom / cover no-repeat; color: var(--text); font-family: var(--font-ui); user-select: none; }
 .demo-newtab[hidden] { display: none; }
-.demo-bb-date { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.18em; }
-.demo-bb-clock-row { display: flex; align-items: baseline; gap: 9px; margin-top: 10px; }
-.demo-bb-clock { font-family: var(--font-mono); font-size: clamp(52px, 9vw, 76px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text); }
-.demo-bb-meridiem { font-family: var(--font-mono); font-size: 15px; color: var(--text-dim); }
-.demo-bb-blocked { max-width: 92%; margin-top: 13px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); text-align: center; }
-.demo-bb-favs { display: flex; gap: clamp(18px, 3vw, 30px); margin-top: 30px; }
-.demo-bb-fav { display: flex; flex-direction: column; align-items: center; gap: 7px; }
-.demo-bb-fav .tile { width: 30px; height: 30px; border-radius: 6px; background: var(--surface) center / 19px no-repeat; border: 1px solid var(--border); }
-.demo-bb-fav .label { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); }
+.demo-start-brand { position: absolute; top: 16px; left: 65px; display: flex; align-items: center; gap: 16px; }
+.demo-start-brand img { object-fit: contain; filter: drop-shadow(0 5px 12px rgba(128,93,40,.16)); }
+.demo-bb-date { font: 500 11px/1.2 var(--font-ui); color: var(--text-dim); letter-spacing: .08em; }
+.demo-bb-body { display: flex; flex-direction: column; align-items: center; padding: 88px 24px 92px; }
+.demo-bb-clock-row { display: flex; align-items: baseline; gap: 8px; }
+.demo-bb-clock { font-family: var(--site-font-display); font-size: 90px; font-weight: 650; letter-spacing: -.01em; line-height: 1; font-variant-numeric: proportional-nums; text-shadow: 0 2px 24px rgba(255,252,247,.34); }
+.demo-bb-meridiem { font-family: var(--font-ui); font-size: 18px; color: var(--text-dim); }
+.demo-bb-meridiem:empty { display: none; }
+.demo-bb-blocked { margin-top: 10px; font: 11.5px var(--font-ui); color: var(--text-dim); }
+.demo-bb-favs { display: flex; gap: 16px; margin-top: 20px; }
+.demo-bb-fav { display: flex; width: 100px; flex-direction: column; align-items: center; gap: 8px; }
+.demo-bb-fav .tile { width: 42px; height: 42px; border-radius: 6px; background: var(--surface-raised) center / 26px no-repeat; border: 1px solid var(--border); }
+.demo-bb-fav .label { font: 11px var(--font-ui); color: var(--text-dim); }
+.demo-start-footer { position: absolute; inset: auto 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 54px; padding: 0 36px; border-top: 1px solid var(--border); background: rgba(247,240,229,.82); color: var(--text-dim); font: 10.5px var(--font-ui); backdrop-filter: blur(14px); }
+.demo-start-footer > span { white-space: nowrap; }
+.demo-start-footer small { font-size: 10px; }
+.demo-start-appearance { display: inline-flex; align-items: center; gap: 14px; }
+.demo-start-layouts { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-raised); }
+.demo-start-layouts small { padding: 0 8px; font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.demo-start-layouts > span { padding: 4px 8px; border-radius: 999px; }
+.demo-start-layouts .active { background: var(--text); color: var(--bg); }
+.demo-start-wallpaper { display: inline-flex; align-items: center; gap: 6px; padding-left: 14px; border-left: 1px solid var(--border); }
+.demo-start-wallpaper i { position: relative; width: 22px; height: 12px; border: 1px solid var(--text-dim); border-radius: 999px; }
+.demo-start-wallpaper i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+.demo-start-go { margin-left: 14px; }
 .demo-island .priv-chip { display: none; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11.5px; padding: 2px 5px 2px 9px; border-radius: 999px; border: 1px dashed var(--accent); color: var(--accent); }
 .demo-island .priv-chip svg { display: block; width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .demo-island.private .priv-chip { display: flex; }
@@ -2361,7 +2405,7 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-icon-filter { position: absolute; overflow: hidden; pointer-events: none; }
 .trust-facts strong { font-size: 14px; font-weight: 600; }
 .trust-facts a { font-size: 12px; color: var(--site-accent); text-underline-offset: 4px; }
-.trust-benefits { padding: 80px 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 40px; }
+.trust-benefits { padding: 80px 0; display: grid; grid-template-columns: repeat(2,1fr); gap: 40px; }
 .trust-section-head { grid-column: 1 / -1; margin-bottom: 10px; }
 .trust-section-head h2, .trust-explain h2 { font: 400 clamp(30px,3vw,44px)/1.15 'Newsreader Variable', Newsreader, Georgia, serif; margin: 14px 0; }
 .trust-number { font: 12px/1.5 'JetBrains Mono', monospace; color: var(--site-accent); }
@@ -2381,7 +2425,7 @@ body[data-page="press"] > .legal-top { display: none; }
 .home-faq-list details[open] .faq-toggle-vertical { display: none; }
 .home-faq-list p { line-height: 1.75; margin-bottom: 22px; }
 .trust-home .demo-showcase { margin: 50px 0; scroll-margin-top: 90px; }
-.trust-home .hero-message h2 { font: 400 32px/1.2 'Newsreader Variable', Newsreader, Georgia, serif; }
+.trust-home .hero-message h2 { font: 400 clamp(22px, 2.5vw, 32px)/1.2 'Newsreader Variable', Newsreader, Georgia, serif; }
 .works-page { max-width: 900px; padding: 74px 30px 80px; margin: 0 auto; }
 .works-page h1 { font: 400 clamp(42px,6vw,66px)/1.1 'Newsreader Variable', Newsreader, Georgia, serif; margin: 18px 0 24px; }
 .works-page h2 { font: 400 34px/1.2 'Newsreader Variable', Newsreader, Georgia, serif; margin: 0 0 22px; }
@@ -2422,3 +2466,11 @@ body[data-page="press"] > .legal-top { display: none; }
 
 .trust-hero-mark { object-fit: contain; }
 .trust-facts a, .trust-number, .works-page a { color: var(--site-gold); }
+
+.demo-scene-note { max-width: 48ch; margin: 10px auto 0; font: 13px/1.6 var(--font-ui); color: var(--site-text-dim); text-align: center; text-wrap: balance; }
+.feature-hero .feature-availability { font-size: 14px; line-height: 1.65; }
+#onepassword-setup { scroll-margin-top: 90px; }
+
+.demo-shortcut:not([hidden]) { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+.demo-shortcut kbd { display: inline-flex; align-items: center; gap: 8px; min-width: 46px; height: 42px; justify-content: center; padding: 0 12px; background: var(--site-surface-raised); border: 1px solid var(--site-border); border-radius: 8px; box-shadow: 0 2px 0 var(--site-border); font: 20px/1 var(--font-ui); color: var(--site-text); }
+.demo-key-name { font-size: 11px; }

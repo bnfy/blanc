@@ -109,9 +109,10 @@ announcement quote takes its italic. The generated share cards and press card
 set their titles in it. Body copy, labels, controls, the legal pages, the
 consent card, and every product replica stay in Inter. The desktop app uses
 Newsreader for its invitation voice and utility-sheet headings, documented
-below; its operating text stays in Inter. The homepage demo carries one short sentence per
-scene as an Inter figure title, never a second headline-and-subline pair under
-the hero. Use the
+below; its operating text stays in Inter. The homepage demo carries one short, centered sentence per scene, never a
+second headline-and-subline pair under the hero. The current trust homepage
+uses its Newsreader heading treatment for these captions, sized down on narrow
+screens; the enlarged viewer uses a compact centered figure title. Use the
 `--site-font-patron` token, regular weight, restrained negative tracking, and
 generous space around the name. Do not use the display serif for small text or
 replace the canonical Sunrise symbol with a letterform.

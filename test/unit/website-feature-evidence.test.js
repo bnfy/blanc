@@ -42,7 +42,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 });
 
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
-  for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs']) {
+  for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/pages/features/${slug}.astro`;
     const claims = new Set(ledger.claims.filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
