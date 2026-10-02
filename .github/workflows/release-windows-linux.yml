@@ -229,6 +229,10 @@ jobs:
           }
           $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
+      - name: Verify native update verifier and cached installer gate
+        if: ${{ inputs.mode == 'validation' }}
+        run: node test/desktop/windows-update-trust-smoke.cjs
+
       - name: Verify installed blanc-import protocol
         shell: pwsh
         run: |
