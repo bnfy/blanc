@@ -109,6 +109,22 @@ test('staged explicit installation remains available after verification without 
   assert.equal(f.installs[0].isForceRunAfter, true);
 });
 
+test('a superseded invalid signature cannot evict a newer accepted cached installer', async (t) => {
+  let finish;
+  let calls = 0;
+  let cleared = 0;
+  const f = fixture(t, { verify: async () => ++calls === 1 ? new Promise((resolve) => { finish = resolve; }) : null });
+  f.updater.downloadedUpdateHelper.clear = async () => { cleared++; };
+  const obsolete = f.gate.acceptDownloaded(f.info);
+  while (!finish) await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(await f.gate.acceptDownloaded(f.info), null);
+  finish('installer signature is not valid (status 3)');
+  assert.match(await obsolete, /superseded/);
+  assert.equal(cleared, 0);
+  assert.equal(f.gate.isReady(), true);
+  assert.equal(fs.existsSync(f.file), true);
+});
+
 test('fresh verification disarms a previously ready installer until downloaded acceptance succeeds', async (t) => {
   let pending = false;
   let finish;

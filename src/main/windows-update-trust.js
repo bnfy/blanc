@@ -63,14 +63,14 @@ function createWindowsUpdateTrustGate({
     autoUpdater.autoInstallOnAppQuit = false;
   }
 
-  async function verifySignature(publishers, file) {
+  async function verifySignature(publishers, file, attempt = ++acceptance) {
     const run = generation;
     ready = null;
     autoUpdater.autoInstallOnAppQuit = false;
     try {
       const before = await digest(file);
       const result = await verify(publishers, file);
-      if (run !== generation) return 'installer verification was superseded; retry Check for Updates';
+      if (run !== generation || attempt !== acceptance) return 'installer verification was superseded; retry Check for Updates';
       if (result !== null) {
         // Infrastructure/output failures retain bytes for another publisher
         // check. Definitively invalid signatures must force a new download.
@@ -79,7 +79,7 @@ function createWindowsUpdateTrustGate({
         return typeof result === 'string' ? result : 'installer publisher could not be verified';
       }
       const after = await digest(file);
-      if (run !== generation) return 'installer verification was superseded; retry Check for Updates';
+      if (run !== generation || attempt !== acceptance) return 'installer verification was superseded; retry Check for Updates';
       if (before !== after) {
         await discardCachedInstaller(file);
         return 'installer changed during publisher verification';
@@ -118,7 +118,7 @@ function createWindowsUpdateTrustGate({
       }
       const publisherKey = JSON.stringify(publishers);
       if (verifiedDigests.get(fingerprint) !== publisherKey) {
-        const result = await verifySignature(publishers, file);
+        const result = await verifySignature(publishers, file, attempt);
         if (result !== null) return result;
         fingerprint = await digest(file);
       }
