@@ -234,7 +234,9 @@ jobs:
 
       - name: Verify native update verifier and cached installer gate
         if: ${{ inputs.mode == 'validation' }}
-        run: node test/desktop/windows-update-trust-smoke.cjs
+        run: |
+          node --test test/unit/windows-update-retry.test.js
+          node test/desktop/windows-update-trust-smoke.cjs
 
       - name: Verify installed blanc-import protocol
         shell: pwsh

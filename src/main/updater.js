@@ -130,6 +130,7 @@ function handleDownloadStall() {
 const restartToInstallUpdate = createUpdateRestarter({ autoUpdater });
 const updateChecks = createUpdateCheckCoordinator({
   checkForUpdates: async () => {
+    await windowsTrustGate?.waitForCacheMaintenance();
     const result = await autoUpdater.checkForUpdates();
     if (shouldArmDownloadStallWatchdog(result, {
       alreadyDownloading: Boolean(activeDownloadCancellation),

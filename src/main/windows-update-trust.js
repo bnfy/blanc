@@ -39,9 +39,21 @@ function createWindowsUpdateTrustGate({
   let generation = 0;
   let acceptance = 0;
   let ready = null;
+  let cacheMaintenance = Promise.resolve();
   const verifiedDigests = new Map();
   const originalInstall = autoUpdater.install;
   autoUpdater.autoInstallOnAppQuit = false;
+
+  function discardCachedInstaller(file) {
+    const helper = autoUpdater.downloadedUpdateHelper;
+    if (!helper || helper.file !== file || typeof helper.clear !== 'function') return cacheMaintenance;
+    // Clear only the updater-owned cache, after earlier maintenance finishes.
+    // Checks wait for this promise so cleanup cannot erase a replacement download.
+    cacheMaintenance = cacheMaintenance.then(async () => {
+      if (autoUpdater.downloadedUpdateHelper === helper && helper.file === file) await helper.clear();
+    }).catch(() => logger?.warn?.('[updater] rejected installer cache could not be cleared; a later check will retry'));
+    return cacheMaintenance;
+  }
 
   function invalidate() {
     generation += 1;
@@ -58,10 +70,20 @@ function createWindowsUpdateTrustGate({
     try {
       const before = await digest(file);
       const result = await verify(publishers, file);
-      if (result !== null) return typeof result === 'string' ? result : 'installer publisher could not be verified';
+      if (run !== generation) return 'installer verification was superseded; retry Check for Updates';
+      if (result !== null) {
+        // Infrastructure/output failures retain bytes for another publisher
+        // check. Definitively invalid signatures must force a new download.
+        if (typeof result === 'string' && (result.startsWith('installer signature is not valid (status ')
+          || result === 'installer signed by an unexpected publisher')) await discardCachedInstaller(file);
+        return typeof result === 'string' ? result : 'installer publisher could not be verified';
+      }
       const after = await digest(file);
       if (run !== generation) return 'installer verification was superseded; retry Check for Updates';
-      if (before !== after) return 'installer changed during publisher verification';
+      if (before !== after) {
+        await discardCachedInstaller(file);
+        return 'installer changed during publisher verification';
+      }
       verifiedDigests.set(after, JSON.stringify(publishers));
       return null;
     } catch {
@@ -76,6 +98,8 @@ function createWindowsUpdateTrustGate({
     autoUpdater.autoInstallOnAppQuit = false;
     const file = info?.downloadedFile;
     try {
+      await cacheMaintenance;
+      if (run !== generation || attempt !== acceptance) return 'installer verification was superseded; retry Check for Updates';
       if (typeof file !== 'string' || !file || file !== autoUpdater.installerPath) {
         return 'downloaded installer path could not be verified';
       }
@@ -85,6 +109,13 @@ function createWindowsUpdateTrustGate({
         return 'trusted installer publisher configuration is missing';
       }
       let fingerprint = await digest(file);
+      // Upstream skips its checksum on an in-process cache hit. Compare the
+      // digest we already read with its expected feed hash as well as the signer.
+      const expectedHash = autoUpdater.downloadedUpdateHelper?.downloadedFileInfo?.sha512;
+      if (expectedHash && Buffer.from(fingerprint, 'hex').toString('base64') !== expectedHash) {
+        if (run === generation && attempt === acceptance) await discardCachedInstaller(file);
+        return 'downloaded installer checksum changed; retry Check for Updates';
+      }
       const publisherKey = JSON.stringify(publishers);
       if (verifiedDigests.get(fingerprint) !== publisherKey) {
         const result = await verifySignature(publishers, file);
@@ -93,6 +124,7 @@ function createWindowsUpdateTrustGate({
       }
       if (run !== generation || attempt !== acceptance) return 'installer verification was superseded; retry Check for Updates';
       if (file !== autoUpdater.installerPath || verifiedDigests.get(fingerprint) !== publisherKey) {
+        await discardCachedInstaller(file);
         return 'downloaded installer changed after publisher verification';
       }
       if (typeof originalInstall !== 'function' || typeof autoUpdater.addQuitHandler !== 'function') {
@@ -110,19 +142,22 @@ function createWindowsUpdateTrustGate({
   }
 
   autoUpdater.install = function (...args) {
+    const installation = ready;
     try {
       if (!ready || autoUpdater.installerPath !== ready.file || digestSync(ready.file) !== ready.fingerprint) {
         throw new Error('installer is not verified or its bytes changed; retry Check for Updates');
       }
     } catch (error) {
       invalidate();
+      if (installation) discardCachedInstaller(installation.file);
       autoUpdater.emit('error', error);
       return false;
     }
     return originalInstall.apply(this, args);
   };
 
-  return { verifySignature, acceptDownloaded, invalidate, isReady: () => ready !== null };
+  return { verifySignature, acceptDownloaded, invalidate, isReady: () => ready !== null,
+    waitForCacheMaintenance: () => cacheMaintenance };
 }
 
 module.exports = { createWindowsUpdateTrustGate, installerDigest, installerDigestSync };
