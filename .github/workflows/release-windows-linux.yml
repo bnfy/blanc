@@ -178,7 +178,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-modified-link-click-smoke.mjs; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -257,6 +257,10 @@ jobs:
             npm run test:packaged:tab-handoff-protocol
             if ($LASTEXITCODE -ne 0) {
               throw "Installed blanc-import protocol smoke failed."
+            }
+            node test/desktop/packaged-modified-link-click-smoke.mjs
+            if ($LASTEXITCODE -ne 0) {
+              throw "Installed modified link click smoke failed."
             }
           } finally {
             if (Test-Path $uninstaller) {
@@ -466,7 +470,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-modified-link-click-smoke.mjs; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -483,6 +487,13 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
+
+      - name: Verify packaged modified link clicks
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            xvfb-run -a node test/desktop/packaged-modified-link-click-smoke.mjs
 
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
