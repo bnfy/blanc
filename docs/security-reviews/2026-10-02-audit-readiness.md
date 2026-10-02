@@ -70,8 +70,10 @@ recheck the existing cache. A separate supersession regression proves a delayed
 bad signature cannot evict a newer accepted cached installer.
 
 [Private Windows run 37040930798](https://github.com/bnfy/blanc/actions/runs/37040930798)
-was dispatched against this exact source to run these regressions on Windows
-and repeat signing, real verifier/cache and package gates. It is pending.
+passed against this exact source: all 12 native Windows retry/trust regressions,
+signing, real PowerShell verifier/cache, packaged payload/fuses/media and
+installed protocol/browser registration gates. Its private artifact expires
+October 5 and is preserved with logs in the follow-up evidence bundle.
 Run 37040669963 was cancelled when its intermediate source was superseded;
 it is not counted as completed validation. Physical-machine confirmation and
 the signed staged Restart Now handoff from public v1.25.0 remain pending.
