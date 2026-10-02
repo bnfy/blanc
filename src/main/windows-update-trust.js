@@ -53,6 +53,8 @@ function createWindowsUpdateTrustGate({
 
   async function verifySignature(publishers, file) {
     const run = generation;
+    ready = null;
+    autoUpdater.autoInstallOnAppQuit = false;
     try {
       const before = await digest(file);
       const result = await verify(publishers, file);
