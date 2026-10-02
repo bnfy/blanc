@@ -4,6 +4,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
+import { parseBlancProcess } from './linux-sandbox-evidence.js';
 if (process.platform !== 'linux' || process.env.GITHUB_ACTIONS !== 'true') throw new Error('disposable Linux CI only');
 const image = path.resolve(process.argv[2]);
 const extracted = path.resolve(process.argv[3]);
@@ -19,8 +20,8 @@ const nested = path.join(evidence, 'nested-launcher.sh');
 fs.writeFileSync(nested, `#!/bin/sh\nexec ${quote(image)} "$@"\n`, { mode: 0o700 });
 function processes() {
   return spawnSync('ps', ['-eo', 'pid=,ppid=,args='], { encoding: 'utf8' }).stdout.split('\n').flatMap((line) => {
-    const m = line.match(/^\s*(\d+)\s+(\d+)\s+(.*)$/);
-    return m && /\/blanc(?:\s|$)/.test(m[3]) ? [{ pid: Number(m[1]), args: m[3], type: m[3].match(/ --type=(\S+)/)?.[1] ?? 'browser' }] : [];
+    const record = parseBlancProcess(line);
+    return record ? [record] : [];
   });
 }
 function inspect(proc) {
