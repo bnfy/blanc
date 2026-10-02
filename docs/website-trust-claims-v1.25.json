@@ -2659,7 +2659,7 @@
     {
       "id": "trust-125-246",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Know what you’re installing",
+      "exactWording": "How Blanc works",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2669,7 +2669,7 @@
     {
       "id": "trust-125-247",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Clear about the engine.Clear about the connections.",
+      "exactWording": "A closer look at Blanc.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2679,7 +2679,7 @@
     {
       "id": "trust-125-248",
       "source": "site/src/pages/index.astro",
-      "exactWording": "New Blanc releases replace the app, including its bundled Electron and Chromium builds. Optional search suggestions and pseudonymous usage measurement have controls in first-run setup and Settings.",
+      "exactWording": "Explore the technology behind Blanc, how updates work and the services it connects to. Search suggestions and usage measurement are optional, with choices in setup and Settings.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
