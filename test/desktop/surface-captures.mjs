@@ -53,7 +53,7 @@ write('downloads.json', { items: [
 
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 void ignored;
-const app = await _electron.launch({
+const app = await _electron.launch({ chromiumSandbox: true,
   args: [path.resolve('.'), `--user-data-dir=${userDataDir}`],
   // An empty browser home: Bring Your Tabs must never list the real browsers
   // and profile names on the machine that runs this.

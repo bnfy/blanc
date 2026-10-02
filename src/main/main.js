@@ -1,4 +1,6 @@
 const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer } = require('electron');
+const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
+if (!enforceLinuxSandbox({ app, dialog })) return;
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -4487,6 +4489,7 @@ function closedMemberRecord(id) {
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
     localFile: tab.localFile === true,
+    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
     // Batch entries (Close Other Tabs) span groups; each member re-resolves
     // this against the surviving groups at restore time. Group entries carry
@@ -4917,6 +4920,7 @@ function duplicateTab(id) {
   const newId = createTab(source.url, {
     allowLocalFile: source.localFile === true,
     private: source.private,
+    openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
     pinned: source.pinned,
     muted: source.muted,
@@ -5053,7 +5057,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null } = {}) {
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
@@ -5091,6 +5095,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   if (!bornQuiet) view ??= createTabView({
     private: isPrivate,
     profileId: owner.profileId,
+    openerSandboxFlags,
   });
 
   const tab = {
@@ -5103,6 +5108,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
     localFile: admittedLocalFile,
+    // Trusted Electron inheritance, kept in main memory for view recreation.
+    // Neither this nor the initial referrer comes from tabs:create IPC.
+    openerSandboxFlags,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
@@ -5203,7 +5211,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // the tab's first — used by duplicateTab below instead of a plain
     // loadURL when the source tab has real back/forward history to clone.
     if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
-    else wc.loadURL(url).catch(() => {});
+    else wc.loadURL(url, httpReferrer ? { httpReferrer } : {}).catch(() => {});
   }
   if (!isTabCreationBatched()) scheduleMenuRebuild();
   return id;
@@ -5565,6 +5573,7 @@ function reopenGroupEntry(entry) {
       groupId: group.id, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon,
       allowLocalFile: member.localFile === true,
+      openerSandboxFlags: member.openerSandboxFlags,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -5595,6 +5604,7 @@ function reopenBatchEntry(entry) {
       groupId, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon,
       allowLocalFile: member.localFile === true,
+      openerSandboxFlags: member.openerSandboxFlags,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -5816,7 +5826,10 @@ function reopenEntry(entry) {
   const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
     ? entry.groupId
     : null;
-  const common = { pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId };
+  const common = {
+    pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId,
+    openerSandboxFlags: entry.openerSandboxFlags,
+  };
 
   if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
     const wcId = entry.wcId;
