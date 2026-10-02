@@ -2533,7 +2533,7 @@
     {
       "id": "trust-125-235",
       "source": "site/src/pages/index.astro",
-      "exactWording": "A little less browser.More room for the web.",
+      "exactWording": "A little less browser.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"

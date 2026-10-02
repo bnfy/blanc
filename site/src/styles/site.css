@@ -2327,14 +2327,15 @@ body[data-page="press"] > .legal-top { display: none; }
 .site-nav-links { display: flex; gap: clamp(14px, 2vw, 27px); align-items: center; }
 .site-nav-links > a { font: 500 13px/1.4 Inter, sans-serif; letter-spacing: 0; text-transform: none; }
 .site-nav-links > a[aria-current="page"] { color: var(--site-accent); text-decoration: underline; text-underline-offset: 5px; }
-.trust-hero { max-width: 1440px; margin: 0 auto; padding: 74px 48px 48px; display: grid; grid-template-columns: .85fr 1.3fr; gap: 44px; align-items: center; }
-.trust-hero-mark { width: 66px; height: 66px; margin-bottom: 25px; }
+.trust-hero { max-width: 1160px; margin: 0 auto; padding: 64px 48px 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 44px; justify-items: center; text-align: center; }
+.trust-hero-copy { width: 100%; max-width: 760px; }
+.trust-hero-mark { display: block; width: 66px; height: 66px; margin: 0 auto 25px; }
 .trust-hero h1 { font: 400 clamp(38px, 4.1vw, 62px)/1.03 'Newsreader Variable', Newsreader, Georgia, serif; letter-spacing: -.035em; margin: 16px 0 22px; }
-.trust-hero-copy > p:not(.section-kicker) { font-size: 17px; line-height: 1.65; color: var(--site-text-dim); max-width: 38ch; }
-.trust-hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 28px 0 15px; }
+.trust-hero-copy > p:not(.section-kicker) { font-size: 17px; line-height: 1.65; color: var(--site-text-dim); max-width: 55ch; margin-inline: auto; }
+.trust-hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: center; margin: 28px 0 15px; }
 .trust-demo-button { gap: 8px; border: 1px solid var(--site-border); background: transparent; color: var(--site-text); cursor: pointer; }
 .trust-hero-copy > .trust-hero-note { font-size: 12px !important; max-width: none !important; }
-.trust-product-shot { margin: 0; min-width: 0; }
+.trust-product-shot { width: 100%; max-width: 1040px; margin: 0; min-width: 0; }
 .trust-product-shot img { width: 100%; height: auto; display: block; border-radius: 14px; box-shadow: 0 12px 40px #805d2814; border: 1px solid var(--site-border); }
 .trust-product-shot figcaption { font-size: 11px; line-height: 1.6; color: var(--site-text-dim); margin: 12px 4px 0; }
 .trust-home { max-width: 1344px; margin: 0 auto; padding: 0 48px; }
@@ -2375,8 +2376,7 @@ body[data-page="press"] > .legal-top { display: none; }
   .site-mobile-menu a { padding: 12px; font: 500 15px/1.4 Inter, sans-serif; text-decoration: none; color: var(--site-text); }
   .site-header:not([data-enhanced]) .site-nav { flex-wrap: wrap; }
   .site-header:not([data-enhanced]) .site-nav-links { display: flex; flex-wrap: wrap; order: 3; width: 100%; padding-block: 12px; }
-  .trust-hero { grid-template-columns: 1fr; padding-top: 45px; gap: 30px; }
-  .trust-hero-copy > p:not(.section-kicker) { max-width: 55ch; }
+  .trust-hero { padding-top: 45px; gap: 30px; }
   .trust-product-shot { max-width: 800px; }
   .trust-facts { grid-template-columns: repeat(2,1fr); gap: 28px; }
   .trust-benefits { gap: 24px; }
