@@ -136,7 +136,7 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
   assert.match(read('src/main/onepassword-client.js'), /stdio:\s*'ignore'/);
 });
 
-test('public claims describe shipped consent mode, 1Password boundaries, bundled blocker inputs, private downloads, and double opt-in', () => {
+test('public claims describe explicit website consent, 1Password boundaries, bundled blocker inputs, private downloads, and double opt-in', () => {
   const privacy = read('site/src/pages/privacy.astro');
   const siteScript = read('site/src/scripts/site.js');
   assert.match(privacy, /<h3>Usage measurement<\/h3>/);
@@ -148,7 +148,8 @@ test('public claims describe shipped consent mode, 1Password boundaries, bundled
   assert.match(privacy, /double opt-in/);
   assert.match(privacy, /private tab remains only in memory/i);
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
-  assert.match(privacy, /restricted state.*cookieless pings/is);
+  assert.match(privacy, /load no Google Analytics script.*until you explicitly choose Allow/is);
+  assert.match(privacy, /No thanks stops event dispatch.*reloads the page/is);
   assert.match(privacy, /1Password login fill on macOS \(off by default\)/);
   assert.match(privacy, /bounded check in an isolated world/i);
   assert.match(privacy, /reads form structure only—never field values, page text, or content/i);
@@ -163,8 +164,8 @@ test('public claims describe shipped consent mode, 1Password boundaries, bundled
   assert.match(terms, /not affiliated with, endorsed by, or certified by 1Password/);
   assert.match(terms, /1Password is not a party to these terms/);
   assert.match(privacy, /30-day quarantine/);
-  assert.match(siteScript, /GA4 Consent Mode/);
-  assert.match(siteScript, /analytics_storage: 'denied'/);
+  assert.match(siteScript, /if \(loaded \|\| !allowed\(\)\) return/);
+  assert.match(siteScript, /analytics_storage: 'granted'/);
 });
 
 test('every third-party GitHub Action is pinned to a full commit SHA', () => {

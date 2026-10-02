@@ -19,8 +19,16 @@ const openAIAttribution = (() => {
   };
 
   let pendingOppref = null;
+  let disabled = false;
   try {
-    const landingOppref = new URL(location.href).searchParams.get('oppref');
+    const landingUrl = new URL(location.href);
+    const landingOppref = landingUrl.searchParams.get('oppref');
+    // Consume the landing reference once. A later reload/regrant must not
+    // resurrect a reference that the visitor has withdrawn.
+    if (landingUrl.searchParams.has('oppref')) {
+      landingUrl.searchParams.delete('oppref');
+      window.history?.replaceState(null, '', landingUrl.href);
+    }
     if (validOppref(landingOppref)) pendingOppref = landingOppref;
 
     const consent = localStorage.getItem(CONSENT_KEY);
@@ -30,15 +38,17 @@ const openAIAttribution = (() => {
       pendingOppref = null;
       sessionStorage.removeItem(STORAGE_KEY);
     }
-  } catch { /* Storage restrictions disable attribution, never downloads. */ }
+  } catch { pendingOppref = null; disabled = true; /* Never block downloads. */ }
 
   return {
     grant() {
+      disabled = false;
       try {
         if (pendingOppref) sessionStorage.setItem(STORAGE_KEY, pendingOppref);
       } catch { /* Storage restrictions disable attribution. */ }
     },
     deny() {
+      disabled = true;
       pendingOppref = null;
       try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* No stored attribution. */ }
       // A prior click may have opened another tab or a download, leaving this
@@ -52,7 +62,7 @@ const openAIAttribution = (() => {
       const url = clearDownloadReference(link);
       if (!url) return;
       try {
-        if (localStorage.getItem(CONSENT_KEY) !== 'granted') return;
+        if (disabled || localStorage.getItem(CONSENT_KEY) !== 'granted') return;
         const oppref = sessionStorage.getItem(STORAGE_KEY);
         if (!validOppref(oppref)) return;
 
@@ -140,8 +150,7 @@ const openAIAttribution = (() => {
 })();
 
 // Cloudflare Web Analytics: a cookieless page-view beacon with no persistent
-// identifier, so it sits under the same restricted-measurement basis as the
-// denied-state GA4 pings and needs no consent gate. It only loads on non-legal
+// identifier. Google analytics and ad attribution are separately opt-in. It only loads on non-legal
 // pages because site.js itself is gated by BaseLayout's `analytics` prop.
 // The token is public (it names the site, not an account); leave it empty to
 // ship without the beacon. EasyPrivacy blocks cloudflareinsights.com, so Blanc
@@ -157,75 +166,107 @@ try {
   }
 } catch {}
 
-// GA4 Consent Mode: gtag loads with analytics_storage denied by default.
-// Cookieless pings give GA4 modelling signal; full measurement requires opt-in.
-try {
+// Optional measurement loads only after a saved, explicit grant. No denied-state
+// Google script, pings, or event queue exists on an unconsented visit.
+(() => {
   const GA_ID = 'G-MN8BLY6GE9';
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function () { window.dataLayer.push(arguments); };
-  window.gtag('consent', 'default', { analytics_storage: 'denied' });
-  window.gtag('js', new Date());
-  window.gtag('config', GA_ID);
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
-  document.head.appendChild(script);
-
+  const CONSENT_KEY = 'measurement-consent-v2';
   const banner = document.getElementById('consent');
   const allowButton = document.getElementById('consentAllow');
   const denyButton = document.getElementById('consentDeny');
-  const choiceButtons = document.querySelectorAll('[data-consent-open]');
-  // Version the broader choice so an earlier analytics-only Allow is not
-  // silently treated as consent to the newly added ad-conversion purpose.
-  const consent = localStorage.getItem('measurement-consent-v2');
-  if (consent === 'granted') {
-    window.gtag('consent', 'update', { analytics_storage: 'granted' });
-  }
-
-  let leaveTimer = null;
-  const showConsent = ({ focus = false } = {}) => {
+  const closeButton = document.getElementById('consentClose');
+  const status = document.getElementById('consentStatus');
+  let loaded = false;
+  let disabled = false;
+  let returnFocus = null;
+  const readChoice = () => {
+    try { return localStorage.getItem(CONSENT_KEY); } catch { return null; }
+  };
+  const allowed = () => !disabled && readChoice() === 'granted';
+  const showStatus = message => { if (status) status.textContent = message; };
+  const loadMeasurement = () => {
+    if (loaded || !allowed()) return;
+    loaded = true;
+    window['ga-disable-' + GA_ID] = false;
+    window.dataLayer = [];
+    window.gtag = function () { if (allowed()) window.dataLayer.push(arguments); };
+    window.gtag('consent', 'default', { analytics_storage: 'granted' });
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID);
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(script);
+  };
+  const hideChoice = () => {
+    if (banner) banner.hidden = true;
+    returnFocus?.focus?.({ preventScroll: true });
+  };
+  const showChoice = trigger => {
     if (!banner) return;
-    if (leaveTimer) clearTimeout(leaveTimer);
-    banner.classList.remove('is-leaving');
+    returnFocus = trigger;
+    showStatus(allowed() ? 'Optional measurement is on.' : 'Optional measurement is off.');
     banner.hidden = false;
-    if (focus) requestAnimationFrame(() => allowButton?.focus());
+    allowButton?.focus?.({ preventScroll: true });
   };
-  const dismissConsent = (choice) => {
-    localStorage.setItem('measurement-consent-v2', choice);
-    banner.classList.add('is-leaving');
-    leaveTimer = setTimeout(() => {
-      banner.hidden = true;
-      banner.classList.remove('is-leaving');
-      leaveTimer = null;
-    }, 180);
+  const saveChoice = choice => {
+    try {
+      localStorage.setItem(CONSENT_KEY, choice);
+      return readChoice() === choice;
+    } catch { return false; }
   };
-
-  if (consent !== 'granted' && consent !== 'denied') showConsent();
-  choiceButtons.forEach((button) => {
-    button.addEventListener('click', () => showConsent({ focus: true }));
+  const stopMeasurement = () => {
+    disabled = true;
+    window['ga-disable-' + GA_ID] = true;
+    if (window.dataLayer) window.dataLayer.length = 0;
+    openAIAttribution.deny();
+  };
+  document.querySelectorAll('[data-consent-open]').forEach(button => {
+    button.addEventListener('click', () => showChoice(button));
   });
-  if (banner && allowButton && denyButton) {
-    allowButton.addEventListener('click', () => {
-      dismissConsent('granted');
-      window.gtag('consent', 'update', { analytics_storage: 'granted' });
-      openAIAttribution.grant();
-    });
-    denyButton.addEventListener('click', () => {
-      dismissConsent('denied');
-      window.gtag('consent', 'update', { analytics_storage: 'denied' });
-      openAIAttribution.deny();
-    });
-  }
-
-  document.addEventListener('click', (event) => {
+  closeButton?.addEventListener('click', hideChoice);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && banner && !banner.hidden) { event.preventDefault(); hideChoice(); }
+  });
+  allowButton?.addEventListener('click', () => {
+    if (!saveChoice('granted')) {
+      stopMeasurement();
+      showStatus('Could not save this choice. Optional measurement stays off. Check browser storage and try again.');
+      return;
+    }
+    disabled = false;
+    window['ga-disable-' + GA_ID] = false;
+    openAIAttribution.grant();
+    loadMeasurement();
+    hideChoice();
+  });
+  denyButton?.addEventListener('click', () => {
+    stopMeasurement();
+    if (!saveChoice('denied')) {
+      showStatus('Measurement is off on this page, but the choice could not be saved. Check browser storage and try again.');
+      return;
+    }
+    hideChoice();
+    // A reload unloads the granted Google library; the saved denial prevents it
+    // from loading again. Existing in-flight requests cannot be recalled.
+    if (loaded) location.reload?.();
+  });
+  window.addEventListener?.('storage', event => {
+    if ((event.key === CONSENT_KEY || event.key === null) && readChoice() !== 'granted') {
+      stopMeasurement();
+      if (loaded) location.reload?.();
+    }
+  });
+  document.addEventListener('click', event => {
+    if (!allowed() || typeof window.gtag !== 'function') return;
     const target = event.target.closest('[data-track]');
-    if (!target || typeof window.gtag !== 'function') return;
-    const payload = {
+    if (!target) return;
+    window.gtag('event', target.dataset.track, {
       source_page: document.body.dataset.page || location.pathname,
       cta_position: target.dataset.ctaPosition || undefined,
       platform: target.dataset.platform || undefined,
       feature: target.dataset.feature || undefined,
-    };
-    window.gtag('event', target.dataset.track, payload);
+    });
   });
-} catch (error) { /* A broken analytics path must never affect the site. */ }
+  try { loadMeasurement(); } catch { /* Measurement never blocks browsing. */ }
+})();

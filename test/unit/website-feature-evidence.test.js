@@ -6,14 +6,15 @@ const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const ledger = JSON.parse(read('docs/website-v1.21-claims.json'));
+const ledger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
+const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
 test('the website claim ledger resolves to the current public release and contains no publication blockers', () => {
-  assert.equal(ledger.publicRelease, 'v1.21.0');
+  assert.equal(ledger.publicRelease, 'v1.25.0');
   assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.sourceSha);
   assert.ok(ledger.claims.length > 200);
   const paths = new Set();
@@ -52,7 +53,7 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
-    ['docs/website-captures-v1.21.json', ledger.publicRelease, ledger.sourceSha, 5],
+    ['docs/website-captures-v1.21.json', previousLedger.publicRelease, previousLedger.sourceSha, 5],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));
@@ -71,4 +72,17 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
       assert.ok(capture.state && capture.evidence.length);
     }
   }
+});
+
+test('the new homepage capture is tied to public v1.25.0 and its faithful export', () => {
+  const manifest = JSON.parse(read('docs/website-trust-capture-v1.25.json'));
+  assert.equal(manifest.release, ledger.publicRelease);
+  assert.equal(manifest.sourceSha, ledger.sourceSha);
+  for (const item of [manifest, manifest.displayAsset]) {
+    const bytes = fs.readFileSync(path.join(root, item.file));
+    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
+  }
+  const homepage = read('site/src/pages/index.astro');
+  assert.ok(homepage.includes(manifest.displayAsset.file.replace('site/public', '')));
+  assert.match(homepage, /Blanc v1\.25\.0 on macOS/);
 });

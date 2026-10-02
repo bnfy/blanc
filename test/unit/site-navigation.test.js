@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
-/* The masthead's mega menus and the mobile sheet are both fed by
+/* The masthead and feature catalogue are fed by
  * site/src/data/navigation.mjs. These checks keep that module honest: every
  * feature page is reachable, each description is the page's own headline, and
  * every href points at a page that exists. */
@@ -57,7 +57,7 @@ test('resources and direct links point at pages that exist', async () => {
   for (const link of [...resources.groups.flatMap(g => g.links), ...directLinks, { href: resources.spotlight.href }, { href: resources.foot.href }, { href: menus[0].foot.href }]) {
     assert.ok(exists(link.href), `${link.href} exists`);
   }
-  assert.deepEqual(directLinks.map(l => l.key), ['security', 'changelog'], 'security stays one click from everywhere');
+  assert.deepEqual(directLinks.map(l => l.key), ['features', 'how-it-works', 'security', 'faq', 'changelog'], 'the technical explanation and security stay one click from everywhere');
   const newsletter = resources.groups.flatMap(g => g.links).find(l => l.label === 'Newsletter');
   const form = fs.readFileSync(path.join(ROOT, 'site/src/components/NewsletterForm.astro'), 'utf8');
   assert.ok(form.includes(`id="${newsletter.href.replace('#', '')}"`), 'the newsletter link targets an id on the footer form');

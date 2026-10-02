@@ -5,6 +5,7 @@
 const MANIFEST = [
   '/',
   '/download',
+  '/how-it-works',
   '/features',
   '/features/ad-blocking',
   '/features/island',
