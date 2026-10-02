@@ -826,6 +826,12 @@ a { color: inherit; }
 .site-nav-cta:focus-visible { outline: 2px solid var(--site-accent); outline-offset: 3px; }
 .site-nav-cta.is-current { pointer-events: none; }
 .site-menu-toggle, .site-mobile-menu { display: none; }
+/* The enhanced menu starts at 900px, so its icon geometry must also cover tablets. */
+.site-menu-toggle { place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 8px; color: var(--site-text); background: transparent; cursor: pointer; }
+.site-menu-toggle:hover, .site-menu-toggle[aria-expanded="true"] { background: var(--site-surface); }
+.site-menu-toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.site-menu-close-icon, .site-menu-toggle[aria-expanded="true"] .site-menu-open-icon { display: none; }
+.site-menu-toggle[aria-expanded="true"] .site-menu-close-icon { display: block; }
 
 /* Mega panels: full width, dropping from the bar, the horizon hairline on top. */
 .site-mega { position: absolute; left: 0; right: 0; top: 100%; background: var(--site-surface-raised); border-bottom: 1px solid var(--site-border); box-shadow: 0 30px 60px -40px rgba(14,14,14,0.35); opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 160ms ease, transform 200ms cubic-bezier(.2,.8,.2,1), visibility 0s linear 160ms; }
@@ -1516,11 +1522,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .site-brand::after { display: none; }
   .site-brand:is(:hover, :focus-visible) .site-brand-mark { opacity: 1; }
   .site-nav-links, .site-nav-cta, .site-mega { display: none; }
-  .site-menu-toggle { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 8px; color: var(--site-text); background: transparent; cursor: pointer; }
-  .site-menu-toggle:hover, .site-menu-toggle[aria-expanded="true"] { background: var(--site-surface); }
-  .site-menu-toggle svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-  .site-menu-close-icon, .site-menu-toggle[aria-expanded="true"] .site-menu-open-icon { display: none; }
-  .site-menu-toggle[aria-expanded="true"] .site-menu-close-icon { display: block; }
   .site-mobile-menu:not([hidden]) { display: grid; }
   .site-mobile-menu { position: absolute; top: 100%; left: 0; right: 0; max-height: calc(100dvh - 52px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; padding: 8px 12px 16px; background: var(--site-surface-raised); border-bottom: 1px solid var(--site-border); box-shadow: 0 30px 60px -40px rgba(14,14,14,0.35); }
   .site-mobile-menu details { border-bottom: 1px solid var(--site-border); }
@@ -2369,7 +2370,7 @@ body[data-page="press"] > .legal-top { display: none; }
 @media (max-width: 1100px) { .trust-hero { gap: 28px; padding-inline: 30px; } .trust-home { padding-inline: 30px; } }
 @media (max-width: 900px) {
   .site-header[data-enhanced] .site-nav-links { display: none; }
-  .site-header[data-enhanced] .site-menu-toggle { display: flex; }
+  .site-header[data-enhanced] .site-menu-toggle { display: grid; }
   .site-mobile-menu { position: absolute; top: calc(100% + 8px); right: 0; display: grid; padding: 20px; width: min(340px,calc(100vw - 32px)); background: var(--site-bg); border: 1px solid var(--site-border); border-radius: 16px; box-shadow: 0 8px 30px #805d2814; max-height: calc(100dvh - 95px); overflow: auto; }
   .site-mobile-menu a { padding: 12px; font: 500 15px/1.4 Inter, sans-serif; text-decoration: none; color: var(--site-text); }
   .site-header:not([data-enhanced]) .site-nav { flex-wrap: wrap; }
