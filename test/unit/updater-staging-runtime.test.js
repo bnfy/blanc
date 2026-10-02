@@ -1,9 +1,12 @@
+const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+Object.defineProperty(process, 'platform', { value: 'darwin' });
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+test.after(() => Object.defineProperty(process, 'platform', hostPlatform));
 
 function loadUpdater(fakeUpdater, logsDir) {
   const electronId = require.resolve('electron');
