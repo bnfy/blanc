@@ -162,7 +162,20 @@ try {
     assert.equal(await page.locator('.site-nav-links').isVisible(),true);
     assert.equal(await page.locator('.site-menu-toggle').isVisible(),false);
     assert.match(await page.locator('.trust-hero-actions a').getAttribute('href'),/download/);
-    await page.screenshot({path:path.join(output,'homepage-no-js.png')});
+    for(const [width,height,zoom] of [[390,844,1],[900,900,1],[1280,900,1],[1280,900,2]]) {
+      await app.evaluate(({BrowserWindow},{width,height,zoom})=>{const w=BrowserWindow.getAllWindows()[0];w.setContentSize(width,height);w.webContents.setZoomFactor(zoom);},{width,height,zoom});
+      await page.setViewportSize({width:Math.round(width/zoom),height:Math.round(height/zoom)});
+      const layout=await page.evaluate(()=>{
+        const header=document.querySelector('.site-header').getBoundingClientRect();
+        const hero=document.querySelector('.trust-hero').getBoundingClientRect();
+        const links=[...document.querySelectorAll('.site-nav-links > a')].map(link=>link.getBoundingClientRect().bottom);
+        return {headerBottom:header.bottom,heroTop:hero.top,linksBottom:Math.max(...links),overflow:document.documentElement.scrollWidth>innerWidth+1};
+      });
+      assert.ok(layout.headerBottom>=layout.linksBottom-1, `No-JS header contains wrapped navigation at ${width}/${zoom}`);
+      assert.ok(layout.heroTop>=layout.headerBottom-1, `No-JS hero starts below navigation at ${width}/${zoom}`);
+      assert.equal(layout.overflow,false,`No-JS layout has no overflow at ${width}/${zoom}`);
+      await page.screenshot({path:path.join(output,width===390?'homepage-no-js.png':`homepage-no-js-${width}-${zoom}.png`)});
+    }
   });
   console.log('Website browser checks passed: consent network states, no automatic prompt, withdrawal reload, no-JS fallback, keyboard menu/demo, reduced motion, mobile/desktop and 200% zoom, control-free wallpaper autoplay/focus/hover pause/offscreen suspension/reduced-motion and static fallback.');
 }finally{fs.rmSync(root,{recursive:true,force:true});}

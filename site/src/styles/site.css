@@ -2391,7 +2391,7 @@ body[data-page="press"] > .legal-top { display: none; }
   .site-header[data-enhanced] .site-menu-toggle { display: grid; }
   .site-mobile-menu { position: absolute; top: calc(100% + 8px); right: 0; display: grid; padding: 20px; width: min(340px,calc(100vw - 32px)); background: var(--site-bg); border: 1px solid var(--site-border); border-radius: 16px; box-shadow: 0 8px 30px #805d2814; max-height: calc(100dvh - 95px); overflow: auto; }
   .site-mobile-menu a { padding: 12px; font: 500 15px/1.4 Inter, sans-serif; text-decoration: none; color: var(--site-text); }
-  .site-header:not([data-enhanced]) .site-nav { flex-wrap: wrap; }
+  .site-header:not([data-enhanced]) .site-nav { flex-wrap: wrap; height: auto; min-height: 64px; }
   .site-header:not([data-enhanced]) .site-nav-links { display: flex; flex-wrap: wrap; order: 3; width: 100%; padding-block: 12px; }
   .trust-hero { padding-top: 45px; gap: 30px; }
   .trust-product-shot { max-width: 800px; }

@@ -94,3 +94,8 @@ including Sunrise through a presentation-only SVG color filter.
 Original Sunrise pixels remain unchanged. Chromium uses the shared three-sector
 monochrome browser vector; its decorative title is adapted. Platform marks
 share the same visible bounds, including the Windows glyph’s corrected viewBox.
+
+Code-review follow-up: the unenhanced navigation now grows to contain its
+wrapped links when JavaScript is unavailable, keeping the hero below the
+header. The browser harness asserts link containment, hero separation and
+no horizontal overflow at 390px, 900px, desktop width and 200% desktop zoom.
