@@ -120,7 +120,7 @@ try {
 
   const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
   void _ignored;
-  app = await _electron.launch({
+  app = await _electron.launch({ chromiumSandbox: true,
     args: [path.resolve('.'), `--user-data-dir=${profile}`, deepLinkFor(first)],
     env: {
       ...cleanEnv,

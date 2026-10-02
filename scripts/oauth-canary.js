@@ -217,7 +217,7 @@ async function main() {
   try {
     for (const canary of canaries) {
       process.stdout.write(`Launching Blanc for ${canary.name} with an isolated profile and normal ad blocking…\n`);
-      app = await _electron.launch({
+      app = await _electron.launch({ chromiumSandbox: true,
         args: [REPO_ROOT, `--user-data-dir=${userDataDir}`, canary.url],
         env: { ...process.env, BLANC_TEST: '0' },
         timeout: 120_000,

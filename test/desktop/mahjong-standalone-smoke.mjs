@@ -7,7 +7,7 @@ import path from 'node:path';
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-mahjong-standalone-'));
 const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
 void _ignored;
-const app = await _electron.launch({
+const app = await _electron.launch({ chromiumSandbox: true,
   args: [path.resolve('.'), `--user-data-dir=${profile}`],
   env: { ...cleanEnv, BLANC_TEST: '1' },
 });

@@ -1,5 +1,23 @@
 # Linux AppImage launch troubleshooting
 
+## Audit candidate: sandbox required (not yet released)
+
+The security-readiness candidate refuses Linux launches carrying Chromium
+sandbox-disabling switches, including a launcher's automatic `--no-sandbox`
+fallback. It prints guidance and shows a native error before any browser
+surfaces initialize. Permitted launches call Electron's official
+`app.enableSandbox()` before readiness. The generated launcher and Electron
+runtime remain upstream builds.
+
+Do not add disabling switches to recover browsing. Report the distribution,
+kernel, launch method, and actual error. On a managed machine, ask its
+administrator for a supported sandbox configuration; this change does not
+modify user-namespace or AppArmor policy on the user's machine. Allowed and
+restricted Ubuntu 22.04/24.04, real desktop integration, renderer namespaces,
+seccomp, and updater handoff need native candidate evidence before release.
+
+The public versions described below predate this candidate enforcement.
+
 Public Blanc v1.24.0 no longer needs the host FUSE 2 library. Download the
 [current AppImage](https://github.com/bnfy/blanc/releases/tag/v1.24.0), make it
 executable, and run it from a terminal so its actual error is visible:

@@ -84,6 +84,9 @@ jobs:
         working-directory: candidate
         run: npm ci
 
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        run: bash harness/scripts/ci-enable-linux-sandbox.sh
+
       - name: Plan versions and runtime
         id: plan
         working-directory: candidate
