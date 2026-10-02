@@ -3,10 +3,20 @@
   "@id": "https://raw.githubusercontent.com/bnfy/blanc/main/security/openvex.json",
   "author": "Blanc maintainers",
   "role": "Document Creator",
-  "timestamp": "2026-09-13T23:59:00Z",
-  "version": 1,
+  "timestamp": "2026-10-02T15:27:02Z",
+  "version": 2,
   "tooling": "Manual maintainer review",
   "statements": [
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+        "name": "GHSA-86w9-cpqp-85rv"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Reviewed by Codex on 2026-10-02: node-forge 1.4.0 occurs only under development-only web-ext 10.6.0 / @devicefarmer/adbkit 3.3.9 in the tab-import companion lockfile. adbkit contains affected RSA verification in its TCP/USB authentication server, but Blanc's lint, build, and sign commands never load the Android runner or start that server. These dependencies are absent from the desktop dependency graph and companion archive. Evidence and re-review conditions: docs/security-reviews/2026-10-02-node-forge.md. This does not cover direct adbkit use or web-ext's Android run target."
+    },
     {
       "vulnerability": {
         "@id": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
