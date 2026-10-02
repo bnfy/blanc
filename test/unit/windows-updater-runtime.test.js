@@ -61,6 +61,16 @@ test('Windows cached completion cannot show Restart Now or install before asynch
   while (!autoUpdater.autoInstallOnAppQuit) await new Promise((resolve) => setImmediate(resolve));
   assert.equal(dialogs.length, 1, 'same ready version does not prompt twice on focus checks');
   assert.equal(checks, 2);
+  finish = null;
+  const fresh = autoUpdater.verifyUpdateCodeSignature(['Bananify Creative'], file);
+  assert.equal(autoUpdater.autoInstallOnAppQuit, false);
+  await subject.checkForUpdatesManually();
+  assert.equal(dialogs.at(-1).message, 'Downloading Blanc 1.26.0', 'manual check cannot offer Restart Now while a fresh verification is pending');
+  while (!finish) await new Promise((resolve) => setImmediate(resolve));
+  finish(null);
+  assert.equal(await fresh, null);
+  autoUpdater.emit('update-downloaded', info);
+  while (!autoUpdater.autoInstallOnAppQuit) await new Promise((resolve) => setImmediate(resolve));
   autoUpdater.quitAndInstall();
   assert.equal(installs, 1);
 });
