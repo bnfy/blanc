@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
-  "implementationCommit": "88280bbea46e5a68b264741eb8461131e94d2e4a",
+  "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
   "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered.",
   "preloads": [
     "src/main/badge-api-preload.js",
@@ -147,7 +147,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "8981a6aaecf4574a6d0d0f022224938f570c402ff7953893d7b70909afae5a7a",
+      "sha256": "8984770617531270009b46732d54447be67df0d34535f73a1c60771db2441409",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -216,7 +216,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "55944ee608e8977343f3ff651bc5a2742094db07f80eaec50b09e610570208b1",
+      "sha256": "6831cb5b2696bd6bd2ec84a698e30734f376d2619b4263bcb96a5ee91a3cf55e",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -619,7 +619,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "b4425e281f7f4f7c1534a1e9851fb860c58aa4e8fc458ece177407c49e6c207d",
+      "sha256": "7ef407bdbdbe0e219988191b931b59b30dfa890ceaf1202bf4db55848889dd85",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

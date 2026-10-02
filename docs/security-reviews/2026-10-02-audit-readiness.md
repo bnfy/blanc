@@ -19,15 +19,20 @@ node-forge VEX decision. The older dirty primary checkout was preserved.
 The integrated implementation revision is recorded by
 [the surface inventory](../../security/audit-surface-inventory.json); its hashes
 pin the reviewed source rather than implying the documentation commit is a
-released build. Independent draft PRs against protected main:
+released build. Merged app/Worker source is
+`90cdccebbf0ca2bd0d12c7d312c1be506183a527`. Focused PRs against protected main:
 
 - [#471, CodeQL font-recipient guard](https://github.com/bnfy/blanc/pull/471).
 - [#472, Windows update trust](https://github.com/bnfy/blanc/pull/472).
 - [#473, Linux launch enforcement](https://github.com/bnfy/blanc/pull/473).
 - [#474, sync v1 byte limits](https://github.com/bnfy/blanc/pull/474).
+- [#475, assessment and evidence](https://github.com/bnfy/blanc/pull/475).
 
-No merge, release, production deployment or independent retest occurred.
-The source identity in the inventory is final app/Worker implementation
+The initial candidate delivery performed no merge, release, production
+deployment or independent retest. The later source-only squash-merge instruction
+is recorded in [the authorization record](../release-incidents/2026-10-02-security-audit-source-merge.md);
+release, deployment and independent retest remain separate pending milestones.
+The pre-integration app/Worker candidate was
 `88280bbea46e5a68b264741eb8461131e94d2e4a`, including post-review Windows
 retry recovery. Prior native evidence at `610666e8` is retained as historical
 evidence; it does not validate these later retry corrections.
@@ -36,11 +41,11 @@ evidence; it does not validate these later retry corrections.
 
 | Finding | Source and isolated evidence | Residual / later milestones |
 | --- | --- | --- |
-| R1 Linux sandbox | Existing AppRun can add `--no-sandbox` on namespace-probe failure. The candidate rejects all seven unsafe switches shared with the desktop-entry verifier, including single-dash and assigned forms, before application modules or browser surfaces initialize. Permitted Linux calls official `app.enableSandbox()` before readiness. | Upstream launcher/runtime unchanged. Headless packaged matrix evidence is recorded below; real Ubuntu desktop session, affected-machine confirmation, release and independent retest remain pending. Public v1.25.0 is unchanged. |
-| R2 Windows update verification | Source still accepted execution/parse failures at the public baseline. Locked electron-updater 6.8.9 bypasses its signature callback on cached installers and may skip it without publisher configuration. Candidate rejects errors, exceptions, malformed output, missing certificates/configuration. SHA-512 proofs bind expected publishers to bytes; cached completion must verify before UI/install-on-quit. Common synchronous install guard rechecks bytes. Fresh checks disarm any previously ready installer; both fresh and cached pending checks disable restart UI, and stale dialogs cannot install. Post-review fixes reset the restart latch on updater errors, evict definitively rejected cached installers, recheck in-process cache checksums and serialize cleanup before retry. Temporary verifier failures retain bytes; obsolete verifier results cannot evict a newer accepted installer. | 120-second timeout and publisher matching preserved. NSIS retains shutdown/relaunch ownership. Mocked tests do not prove production feed substitution or end-to-end exploitation. Signed staged Restart Now handoff beginning in public v1.25.0, affected-machine confirmation, release and independent retest remain pending. |
+| R1 Linux sandbox | Existing AppRun can add `--no-sandbox` on namespace-probe failure. Merged source rejects all seven unsafe switches shared with the desktop-entry verifier, including single-dash and assigned forms, before application modules or browser surfaces initialize. Permitted Linux calls official `app.enableSandbox()` before readiness. | Upstream launcher/runtime unchanged. Headless packaged matrix evidence is recorded below; real Ubuntu desktop session, affected-machine confirmation, release and independent retest remain pending. Public v1.25.0 is unchanged. |
+| R2 Windows update verification | Source still accepted execution/parse failures at the public baseline. Locked electron-updater 6.8.9 bypasses its signature callback on cached installers and may skip it without publisher configuration. Merged source rejects errors, exceptions, malformed output, missing certificates/configuration. SHA-512 proofs bind expected publishers to bytes; cached completion must verify before UI/install-on-quit. Common synchronous install guard rechecks bytes. Fresh checks disarm any previously ready installer; both fresh and cached pending checks disable restart UI, and stale dialogs cannot install. Post-review fixes reset the restart latch on updater errors, evict definitively rejected cached installers, recheck in-process cache checksums and serialize cleanup before retry. Temporary verifier failures retain bytes; obsolete verifier results cannot evict a newer accepted installer. | 120-second timeout and publisher matching preserved. NSIS retains shutdown/relaunch ownership. Mocked tests do not prove production feed substitution or end-to-end exploitation. Signed staged Restart Now handoff beginning in public v1.25.0, affected-machine confirmation, release and independent retest remain pending. |
 | R3 locator authorization | Unchanged by design: locator-only synthetic GET/PUT/DELETE works. AES-GCM still protects plaintext under the independent encryption key. | OPEN. Locator possession authorizes ciphertext retrieval, replacement and deletion. No separate credential, revoke/rotate migration or authenticated v2 exists here. v2 planning is neither acceptance nor closure. Keep explicitly disclosed in RFP. |
-| R4 assessment documentation | Threat model refreshed from v1.17.0 to public v1.25.0 plus separately pinned candidate. Source-hashed preload/IPC inventory and network-counter retention corrected. | Candidate documentation is not auditor approval. Dynamic channels and all payload/trust predicates require manual review. |
-| R5 limits/concurrency | Candidate caps streamed PUT bodies at 513 KiB and serialized blobs at 512 KiB, in UTF-8 bytes. Declared oversize rejects early; actual stream cap cancels without blob storage. Tests cover boundaries, misleading lengths, chunking, Unicode, malformed JSON and legacy ciphertext. | PARTIAL SOURCE REMEDIATION, not deployed. Same-version writers can both succeed; one update can be lost. Pending write can recreate data after deletion. Coarse KV counters remain non-atomic. No guarantee of “no data loss.” |
+| R4 assessment documentation | Threat model refreshed from v1.17.0 to public v1.25.0 plus separately pinned merged source. Source-hashed preload/IPC inventory and network-counter retention corrected. | Merged documentation is not auditor approval. Dynamic channels and all payload/trust predicates require manual review. |
+| R5 limits/concurrency | Merged source caps streamed PUT bodies at 513 KiB and serialized blobs at 512 KiB, in UTF-8 bytes. Declared oversize rejects early; actual stream cap cancels without blob storage. Tests cover boundaries, misleading lengths, chunking, Unicode, malformed JSON and legacy ciphertext. | PARTIAL SOURCE REMEDIATION, not deployed. Same-version writers can both succeed; one update can be lost. Pending write can recreate data after deletion. Coarse KV counters remain non-atomic. No guarantee of “no data loss.” |
 | R6 operational evidence | Read-only GitHub protections and Worker deployment/version records inspected; expiring observation evidence preserved. Dependency gate passes with existing narrowly scoped VEX. | Native/UI failures and deployed-service/source linkage gaps below remain open. A green workflow is not an empty alert queue, deployed remediation or independent assessment. |
 
 Electron's [sandbox documentation](https://www.electronjs.org/docs/latest/tutorial/sandbox)
@@ -50,6 +55,29 @@ patch or fork Electron/Chromium, alter app/signing identities, modify sync
 account derivation/envelopes or move existing user data.
 
 ## Validation evidence
+
+### Protected source integration
+
+PRs #471–#474 were squash-merged after their current-head checks passed.
+The merged code, scripts, tests, dependency manifests and workflows at
+`90cdccebbf0ca2bd0d12c7d312c1be506183a527` are byte-identical to tested combined
+candidate `469212495628bcde55d36bd42292e9479a900bb6`: lint, all 2,015 unit
+tests and substrate passed. Hosted Windows/Linux modified-link checks passed;
+the sync PR also passed its disposable local Worker-runtime smoke. The surface
+inventory was checked against all 44 boundaries on merged source; all 10
+registered preload entry points remain listed. Newer-main changes preserve
+trusted opener sandbox/referrer state in main-process memory; they add no
+literal IPC channels to these boundaries.
+
+Current-main Linux branch `5982fb9a` also passed local macOS modified-link
+validation (80 click/sandbox/referrer cases and three restricted-tab
+recreations) and hosted Windows/Linux checks. Linux updater rehearsals
+[37044854067](https://github.com/bnfy/blanc/actions/runs/37044854067) and
+[37045662982](https://github.com/bnfy/blanc/actions/runs/37045662982) passed
+on their recorded branch sources; logs/reports are preserved. The latter
+includes Windows source integration. These hosted rehearsals do not establish
+physical Linux desktop behavior or a staged Windows NSIS handoff. Earlier
+private candidate evidence below retains its original source pins.
 
 ### Post-review Windows retry corrections
 
@@ -203,9 +231,11 @@ release-verification.md and dated release incidents. Procedural release
 immutability must not be represented as an enabled GitHub immutable-release
 setting; API readback reported false.
 
-CodeQL alert 61 was open in a test guard; candidate preserves the forbidden
-font-recipient behavior without its URL-shaped regex. Closure needs main
-analysis. Dependabot alerts API reported disabled; update PR configuration is
+CodeQL alert 61 was open in a test guard; PR #471 preserves the forbidden
+font-recipient behavior without its URL-shaped regex. After squash merge, the
+GitHub API reported `state: fixed`, with `fixed_at: 2026-10-02T18:12:13Z`
+on main. This closes that specific test-file alert, not R1–R6 or an independent
+audit finding. Dependabot alerts API reported disabled; update PR configuration is
 not the same as enabled advisory alerts. Companion advisory
 GHSA-86w9-cpqp-85rv remains unpatched upstream. The existing OpenVEX decision
 specifically excludes adbkit's TCP-USB bridge AUTH_SIGNATURE/AUTH_RSAPUBLICKEY
@@ -224,8 +254,11 @@ freshness; any protocol change needs a compatible versioned migration.
 
 ## Remaining acceptance gates
 
-Keep PRs draft until affected-machine confirmation is obtained for sensitive
-platform changes. No merge or release waiver has been requested or given.
+The owner subsequently requested source-only squash merges despite the
+disclosed pending affected-machine checks, as recorded in
+[the authorization record](../release-incidents/2026-10-02-security-audit-source-merge.md).
+That instruction does not certify these checks or authorize a release or
+production deployment.
 Remaining work includes real Ubuntu 22.04/24.04 desktop sessions; signed staged
 Windows Restart Now from public v1.25.0; native updater/cache/error recovery;
 resolution/triage of existing macOS native-suite failures; deployed Worker

@@ -3,11 +3,12 @@
 Public desktop baseline: Blanc v1.25.0,
 [`ff55d5948f5c71e802ba2ac464659ef96e055ca9`](https://github.com/bnfy/blanc/tree/v1.25.0).
 
-Last source review: October 2, 2026. Implementation candidate and operational
+Last source review: October 2, 2026. Source remediation and operational
 observations are recorded in the [readiness continuation](security-reviews/2026-10-02-audit-readiness.md).
 The [surface inventory](../security/audit-surface-inventory.json) pins its exact
-implementation commit and hashes, preloads and literal IPC channels. Candidate
-changes are unmerged and unreleased; desktop tags do not pin deployed Workers.
+implementation commit and hashes, preloads and literal IPC channels. Source
+integration and its authorization are recorded separately from public
+release and deployment evidence; desktop tags do not pin deployed Workers.
 
 This is an internal threat model and readiness assessment, not an independent
 security audit or proof of end-to-end exploitability. R1–R6 from the original
