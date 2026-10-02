@@ -237,7 +237,7 @@
           <span class="ob-dots-out"><span></span><span></span><span></span></span>
         </div>
         <h1>Block ads &amp; trackers</h1>
-        <p>Pages load faster and nothing follows you around. Turn it off per-site with /off-leash.</p>
+        <p>Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</p>
         <div class="ob-control-row">
           <span>Block ads &amp; trackers</span>
           <button id="obAdblock" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Block ads and trackers"><span class="ob-knob"></span></button>
@@ -245,15 +245,16 @@
       </section>
       <section data-step="4" hidden>
         <h1>Choose what Blanc may send</h1>
-        <p>Blanc ships signed blocking lists with each app release and checks for app updates. These two optional features are yours to choose:</p>
+        <p>Blanc checks for app updates and ships its blocking lists with each release. These optional choices start sending only after you save them by continuing. You can turn either off now or later in Settings:</p>
         <div class="ob-control-row ob-control-row-tall">
-          <span>Search suggestions<small>Eligible address-bar prefixes go to your search provider. Never in private tabs or for sensitive-looking text.</small></span>
+          <span>Search suggestions<small>Eligible typed prefixes go to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking text are excluded.</small></span>
           <button id="obSuggestions" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Search suggestions"><span class="ob-knob"></span></button>
         </div>
         <div class="ob-control-row ob-control-row-tall">
-          <span>Help improve Blanc<small>Anonymous launch and feature-use counts: random install ID, app version, fixed feature names. No browsing data or private-tab activity.</small></span>
+          <span>Help improve Blanc<small>Pseudonymous launch and feature counts go to Blanc’s Cloudflare collector and its optional Google Analytics mirror: random install/session IDs (install ID hashed by the collector), version, platform, architecture, coarse OS and fixed feature names. No browsing data; private-tab feature activity is excluded.</small></span>
           <button id="obPing" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Help improve Blanc"><span class="ob-knob"></span></button>
         </div>
+        <p class="ob-privacy-details"><a href="https://blancbrowser.com/how-it-works#connections" rel="noreferrer">Connections and privacy controls ↗</a></p>
         <span id="obPrivacyError" class="ob-error" role="status"></span>
       </section>
       <section data-step="5" hidden>

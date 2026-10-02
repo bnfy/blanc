@@ -135,6 +135,7 @@ if (window.location.protocol === 'blanc:') {
       surface,
       settings: {
         get: () => invoke('pages:settings:get'),
+        checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
         onAppearance: (callback) => ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status)),
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),

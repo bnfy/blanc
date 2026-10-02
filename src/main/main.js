@@ -8611,6 +8611,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!runtime) throw new Error('pages IPC sender has no window runtime');
       return withWindowRuntime(runtime, work);
     },
+    // setupPages derives the requesting window before invoking this hook,
+    // using the same manual updater flow as the native menu.
+    checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
     onHistoryCleared: clearSessionMeta,
     // Parent for the favorites-import file dialog (evaluated lazily at click).
