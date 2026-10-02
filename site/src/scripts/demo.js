@@ -886,7 +886,7 @@
     { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Type a slash to search browser commands, or search open tabs, groups, Favorites and history.' },
     { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse every browser command, or start typing to narrow the directory to exactly what you need.' },
     { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'One field searches your whole session: open tabs, tab groups, Favorites and history.' },
-    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Enter switches, and Blanc gets the interface out of the way as soon as you choose where to go.' },
+    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Choose a match with Enter. The panel closes and your selected tab comes forward.' },
 
     // The shipped native menu is the workflow: right-click a background row,
     // pick an existing radio item, see membership update, then use the same

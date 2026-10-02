@@ -16,7 +16,7 @@ const paletteCommands = slashCommandCopy.commands.map(({ command, hint }) => ({ 
   current="features"
   ogDescription={"Search the web with your chosen engine, switch tabs, search history and favorites, open groups, or run slash commands without leaving the page."}
   ogImage="/feature-command-palette.png"
-  ogImageAlt={"Blanc's compact island over a real web page, the control surface that opens the command palette and quick switcher."}
+  ogImageAlt={"Blanc's compact island above a real web page, the control surface that opens the command palette and quick switcher."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Command palette","item":"https://blancbrowser.com/features/command-palette"}]}
@@ -55,7 +55,7 @@ const paletteCommands = slashCommandCopy.commands.map(({ command, hint }) => ({ 
     <div><p class="section-kicker">jump, don't hunt</p><h2 id="jump-title">The same input gets you to the next thing.</h2></div>
     <div class="feature-copy-list">
       <article><h3>Find a tab with a few letters.</h3><p>The Quick Switcher matches across open tabs, favorites, browsing history, and named groups. Choose a result to focus it without sorting through a tab strip.</p></article>
-      <article><h3>Search with the engine you chose.</h3><p>Live suggestions from your default search engine appear beside your local matches. Choose one, or press Enter to search exactly what you typed. Suggestions can be turned off before first use or later in Settings.</p></article>
+      <article><h3>Search with the engine you chose.</h3><p>Live provider suggestions appear alongside local matches when enabled. For search text, Enter opens the highlighted result. A strong match from your tabs, Favorites, history or groups can come first. Choose the search result showing your exact text to search the web. Provider suggestions can be turned off before first use or later in Settings.</p></article>
       <article><h3>Run a browser action with /.</h3><p>Type <code>/</code> to see commands for everyday browser work, including <code>/private</code>, <code>/find</code>, <code>/group work</code>, and <code>/allow-ads</code>.</p></article>
       <article><h3>Keep the page where it is.</h3><p>The command palette floats over the page instead of moving content to make room. Dismiss it with Escape when you are done.</p></article>
       <article><h3>Reach the tab you just closed or the set you saved.</h3><p>Use <a href="/features/reopen-closed-tabs" data-track="feature_cta_click" data-feature="reopen-closed-tabs" data-cta-position="related-feature">Recently Closed</a> to pick a tab or group, or <a href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="related-feature">Named Workspaces</a> to switch saved sets.</p></article>
