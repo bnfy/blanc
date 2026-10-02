@@ -62,6 +62,10 @@ try {
           wallpaper.refresh();
         }, hour);
         await current.waitForFunction((phase) => document.body.dataset.wallpaperPhase === phase, phase);
+        // Theme/layout image updates settle independently of wallpaper loading.
+        // Wait for those resources before checking for broken assets.
+        await current.waitForFunction(() => [...document.querySelectorAll('img')]
+          .every((img) => img.complete && img.naturalWidth > 0));
         const check = await current.evaluate(() => ({
           visible: [...document.querySelectorAll('.start-wallpaper-layer')].filter((el) => el.classList.contains('is-visible')).length,
           images: [...document.querySelectorAll('img')].filter((img) => !img.complete || img.naturalWidth === 0).map((img) => img.src),
