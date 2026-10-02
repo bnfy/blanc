@@ -25,7 +25,7 @@ if (preview) {
     timer = setTimeout(async () => {
       await select((current + 1) % scenes.length);
       schedule();
-    }, 8000);
+    }, 4000);
   }
   async function select(index) {
     const request = ++generation;

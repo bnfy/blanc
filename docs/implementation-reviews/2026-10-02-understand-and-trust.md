@@ -35,8 +35,8 @@ The separate desktop change must not ship before `/how-it-works` is live.
 October 2 hero refinements: centered layout and shorter tagline, matching CTA
 shapes, a correctly sized mobile menu icon, seamless header at the top, and
 CSS-only clipping of native traffic lights. The optional dynamic wallpaper
-preview crossfades through actual dawn/day/dusk/night captures every eight
-seconds, with no visible controls. Hover or keyboard focus holds the scene;
+preview crossfades through actual dawn/day/dusk/night captures every four
+seconds with a 1.2-second fade, with no visible controls. Hover or keyboard focus holds the scene;
 offscreen/hidden pages suspend cycling; reduced motion and JavaScript-disabled
 visitors receive a static scene. The caption explicitly qualifies the faster
 preview relative to the app's local-clock phases. This adds no measurement,
@@ -49,3 +49,9 @@ suspension, reduced-motion and no-JavaScript static fallback. Desktop and
 390px mobile control-free previews were visually reviewed. The disposable
 browser host disables background throttling so macOS window occlusion cannot
 stall test screenshots; production motion still suspends on hidden pages.
+
+The owner requested a faster wallpaper cycle on October 2. The website
+interval is now four seconds (previously eight) with a 1.2-second fade
+(previously two). The built-site harness verifies all four phases and return
+to dawn within twenty seconds, plus pause, reduced-motion, no-JavaScript,
+responsive, consent and demo behavior. Site/SEO build and browser checks pass.

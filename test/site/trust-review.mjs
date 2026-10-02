@@ -93,23 +93,28 @@ try {
     await page.mouse.move(0,0);
     const preview=page.locator('#heroWallpaper');
     await page.locator('.hero-wallpaper-frame').evaluate(element=>element.scrollIntoView({block:'center'}));
-    await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='day',null,{timeout:15000});
+    const cycleStarted=Date.now();
+    for(const phase of ['day','dusk','night','dawn']) {
+      await page.waitForFunction(phase=>document.getElementById('heroWallpaper').dataset.phase===phase,phase,{timeout:6000});
+    }
+    assert.ok(Date.now()-cycleStarted<20000,'all four wallpapers cycle within twenty seconds');
+    await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='day',null,{timeout:6000});
     assert.equal(await preview.locator('button').count(),0,'wallpaper has no controls');
     await preview.focus();
     assert.equal(await preview.getAttribute('data-running'),'false');
-    await page.waitForTimeout(8500);
+    await page.waitForTimeout(4500);
     assert.equal(await preview.getAttribute('data-phase'),'day','keyboard focus holds the scene');
     await page.locator('#watchDemo').focus();
     await page.mouse.move(0,0);
-    await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='dusk',null,{timeout:15000});
+    await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='dusk',null,{timeout:6000});
     await page.locator('.hero-wallpaper-frame').hover();
     assert.equal(await preview.getAttribute('data-running'),'false');
-    await page.waitForTimeout(8500);
+    await page.waitForTimeout(4500);
     assert.equal(await preview.getAttribute('data-phase'),'dusk','hover holds the scene');
     await page.screenshot({path:path.join(output,'wallpaper-no-controls.png')});
     await page.mouse.move(0,0);
     await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
-    await page.waitForTimeout(8500);
+    await page.waitForTimeout(4500);
     assert.equal(await preview.getAttribute('data-phase'),'dusk','offscreen wallpaper does not advance');
   });
   await run({},async({app,page})=>{
@@ -120,7 +125,7 @@ try {
     const preview=page.locator('#heroWallpaper');
     await page.locator('.hero-wallpaper-frame').evaluate(element=>element.scrollIntoView({block:'center'}));
     assert.equal(await preview.getAttribute('data-running'),'false');
-    await page.waitForTimeout(8500);
+    await page.waitForTimeout(4500);
     assert.equal(await preview.getAttribute('data-phase'),'dawn','reduced motion has no automatic cycle');
     assert.equal(await page.locator('[data-wallpaper-scene="dawn"]').evaluate(element=>getComputedStyle(element).transitionDuration),'0s');
     for(const [width,height,zoom] of [[390,844,1],[1280,900,2]]) {

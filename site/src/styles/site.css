@@ -2342,7 +2342,7 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-product-shot img { width: 100%; height: auto; display: block; clip-path: polygon(6.25% 0, 100% 0, 100% 100%, 0 100%, 0 4%, 6.25% 4%); }
 .trust-product-shot figcaption { font-size: 11px; line-height: 1.6; color: var(--site-text-dim); margin: 12px 4px 0; }
 .hero-wallpaper-frame { position: relative; background: #e3e8e9; }
-.hero-wallpaper-scene { opacity: 0; transition: opacity 2s ease; }
+.hero-wallpaper-scene { opacity: 0; transition: opacity 1.2s ease; }
 .hero-wallpaper-scene:not(:first-child) { position: absolute; inset: 0; }
 .hero-wallpaper-scene.is-current { opacity: 1; }
 .trust-product-shot:focus-visible .hero-wallpaper-frame { outline: 2px solid var(--site-accent); outline-offset: 4px; }
