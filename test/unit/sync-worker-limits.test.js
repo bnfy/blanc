@@ -29,8 +29,9 @@ test('serialized blob UTF-8 byte limit allows the boundary and refuses one more 
   const env = storage();
   assert.equal((await send(env, blobBody(BLOB + 1))).status, 413);
   assert.equal(env.writes.length, 0);
-  const unicode = JSON.stringify({ blob: { ct: 'é'.repeat(300000) } });
+  const unicode = JSON.stringify({ blob: { ct: 'é'.repeat(262141) } });
   assert.ok(unicode.length < BLOB);
+  assert.ok(Buffer.byteLength(unicode) <= TOTAL, 'Unicode overflow reaches the blob check within the request cap');
   assert.equal((await send(env, unicode)).status, 413);
   assert.equal(env.records.has(key), false);
 });
