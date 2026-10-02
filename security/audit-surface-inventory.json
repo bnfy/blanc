@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
-  "implementationCommit": "610666e87444094be1758044aa4652ba05429e06",
+  "implementationCommit": "88280bbea46e5a68b264741eb8461131e94d2e4a",
   "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered.",
   "preloads": [
     "src/main/badge-api-preload.js",
@@ -649,6 +649,14 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/update-restart.js",
+      "sha256": "caf58874c80d945134aea4b41829b04e3b2f86dcc4327ea18dae60cb82e4b454",
+      "literalChannels": [
+        "error"
+      ],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "src/main/updater-signature.js",
       "sha256": "c391b3ba4b28e16fca90fce171bf74d74fb0b7a871d33810508a3138ffe1a8c6",
       "literalChannels": [],
@@ -656,7 +664,7 @@
     },
     {
       "file": "src/main/updater.js",
-      "sha256": "0e6e4cefa8f60c50d78003c606cd81698139131b4f33373a8796bf4f2c7db690",
+      "sha256": "f83d77be6c794ef7c69149fbefe1be00f29184f5046605d9feaf6dc0f52fe8a2",
       "literalChannels": [
         "browser-window-focus",
         "checking-for-update",
@@ -684,7 +692,7 @@
     },
     {
       "file": "src/main/windows-update-trust.js",
-      "sha256": "f84bed262f8dec9c4ebfd610689276dfbf1a4fa66ffaa67862cbcc41e15e347b",
+      "sha256": "f303b078e1d7a4d1f30fbe219b403c1afec5a089045092e547a653cbb74311b5",
       "literalChannels": [],
       "role": "privileged implementation or service"
     }
