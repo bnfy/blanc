@@ -231,7 +231,7 @@ function setupAutoUpdater() {
   });
   autoUpdater.on('checking-for-update', () => noteStagingStatus('checking'));
   autoUpdater.on('update-available', (info) => {
-    if (windowsTrustGate) {
+    if (windowsTrustGate && (!updateDownloaded || downloadedUpdateInfo?.version !== info?.version)) {
       windowsTrustGate.invalidate();
       updateDownloaded = false;
       downloadedUpdateInfo = null;
