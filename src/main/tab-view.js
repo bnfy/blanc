@@ -77,8 +77,8 @@ const liveContents = (tab) => liveViewContents(tab?.view);
 /**
  * The ONLY place a tab's WebContentsView is constructed. Never returns null,
  * never navigates, never registers a listener.
- * @param {{private?: boolean}} tab a tab record, or any object with a boolean
- *   `private`. Safe to call before the record exists (createTab does).
+ * @param {{private?: boolean, profileId?: string, openerSandboxFlags?: number}} tab
+ *   a main-process tab record. Safe to call before the record exists (createTab does).
  * @returns {import('electron').WebContentsView}
  */
 function createTabView(tab) {
@@ -87,7 +87,12 @@ function createTabView(tab) {
     ? getPrivateBrowsingSession(profileId)
     : getNormalBrowsingSession(profileId);
   return new WebContentsView({
-    webPreferences: { ...TAB_WEB_PREFERENCES, session: browsingSession },
+    webPreferences: {
+      ...TAB_WEB_PREFERENCES, session: browsingSession,
+      // Electron's Chromium document sandbox inheritance, separate from the
+      // process sandbox above. Retain it when a quiet tab's view is rebuilt.
+      openerSandboxFlags: tab?.openerSandboxFlags ?? 0,
+    },
   });
 }
 
@@ -492,7 +497,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
     installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs));
-    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
+    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition, referrer }) => {
       if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
       if (isUtilityUrl(targetUrl)) {
@@ -528,6 +533,11 @@ function wireTabView(tab, view, { owner, adopted }) {
           const newId = createTab(targetUrl, {
             private: tab.private, groupId: tab.groupId, view: childView,
             openerTabId: childView ? tab.id : null,
+            // Custom creation bypasses Electron's normal construction and
+            // navigation. Keep the inherited HTML/CSP sandbox and referrer
+            // policy; never accept arbitrary replacement web preferences.
+            openerSandboxFlags: options.webPreferences?.openerSandboxFlags ?? 0,
+            httpReferrer: childView ? null : referrer,
           });
           if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
           return liveContents(tabs.get(newId));

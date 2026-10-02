@@ -125,6 +125,21 @@ test('buildGroupEntry is one entry with per-member snapshots and no private memb
   assert.equal(entry.view, null);
 });
 
+test('closed tab, group, and batch entries retain sandbox restrictions only in main', () => {
+  const tab = baseTab({ openerSandboxFlags: 4294836015 });
+  const entries = [
+    buildTabEntry(tab, SNAP),
+    buildGroupEntry({ id: 'g', name: 'Sandbox' }, [tab]),
+    buildBatchEntry([tab]),
+  ];
+  assert.equal(entries[0].openerSandboxFlags, tab.openerSandboxFlags);
+  assert.equal(entries[1].tabs[0].openerSandboxFlags, tab.openerSandboxFlags);
+  assert.equal(entries[2].tabs[0].openerSandboxFlags, tab.openerSandboxFlags);
+  for (const projected of projectEntries(entries)) {
+    assert.deepEqual(Object.keys(projected).sort(), ['favicon', 'id', 'tabCount', 'title']);
+  }
+});
+
 test('buildBatchEntry is one entry carrying per-member groupIds, no private members', () => {
   const members = [
     { url: 'https://a.test/', title: 'A', favicon: null, pinned: false, muted: true, private: false, snapshot: SNAP, groupId: 'g1' },

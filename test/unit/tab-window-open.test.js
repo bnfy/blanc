@@ -96,6 +96,25 @@ test('a foreground click with deferred contents also loads and activates a norma
   assert.deepEqual(h.activated, ['child']);
 });
 
+test('deferred contents retain Chromium document sandbox flags and the full referrer policy', () => {
+  const h = harness();
+  const referrer = { url: 'https://example.test/source', policy: 'origin' };
+  const response = h.handler({ url: 'https://example.test/target', disposition: 'background-tab', referrer });
+  response.createWindow({ webPreferences: { openerSandboxFlags: 4294836015, nodeIntegration: true } });
+  assert.equal(h.created[0].options.openerSandboxFlags, 4294836015);
+  assert.equal(h.created[0].options.httpReferrer, referrer);
+  assert.equal(h.created[0].options.webPreferences, undefined, 'only the inherited sandbox flags are accepted');
+});
+
+test('a no-referrer navigation keeps its empty URL and policy', () => {
+  const h = harness();
+  const referrer = { url: '', policy: 'no-referrer' };
+  const response = h.handler({ url: 'https://example.test/target', disposition: 'background-tab', referrer });
+  response.createWindow({});
+  assert.equal(h.created[0].options.httpReferrer, referrer);
+  assert.equal(h.created[0].options.openerSandboxFlags, 0);
+});
+
 test('featureful new-window requests still use Electron popup creation', () => {
   const h = harness({ isPrivate: true });
   const response = h.handler({ url: 'https://example.test/login', disposition: 'new-window' });
