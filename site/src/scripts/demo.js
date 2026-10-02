@@ -1,4 +1,4 @@
-/* ---- large live demo: data-driven, self-playing on a fixed loop ----
+/* ---- large live demo: data-driven, user-started playback on a fixed loop ----
    Each scene declares the full workspace state (which sites are pinned,
    grouped, or loose) plus the hero message that explains the current beat, so
    pinning and grouping read as real state changes rather than option flashes. */
@@ -92,7 +92,7 @@
   }
   fillBillboard(
     { date: 'demoBbDate', clock: 'demoBbClock', meridiem: 'demoBbMeridiem', blocked: 'demoBbBlocked' },
-    '2,412 ads blocked this week · nothing followed you home'
+    'Known ads and trackers blocked · sample demo'
   );
 
   /* ---- island motion (1.1.0) ----
@@ -100,7 +100,7 @@
      approximating the look of them. */
   const panelEl = demo.querySelector('.panel');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let paused = reduceMotion.matches;
+  let paused = true;
   let cursorMoveTimer = null;
   let cursorClickTimer = null;
 
@@ -1236,5 +1236,22 @@
     if (event.matches) setPaused(true);
   });
   updatePlaybackControl();
-  tick();
+  const watch = document.getElementById('watchDemo');
+  const showcase = document.getElementById('demoShowcase');
+  if (watch && showcase) {
+    watch.hidden = false;
+    watch.addEventListener('click', () => {
+      const firstStart = showcase.hidden;
+      showcase.hidden = false;
+      watch.setAttribute('aria-expanded', 'true');
+      fitCanvas();
+      if (firstStart) {
+        paused = reduceMotion.matches;
+        tick();
+        updatePlaybackControl();
+      }
+      showcase.scrollIntoView({ behavior: 'instant', block: 'start' });
+      playbackToggleEl?.focus({ preventScroll: true });
+    });
+  }
 })();

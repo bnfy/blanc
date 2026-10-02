@@ -53,10 +53,12 @@ export const menus = [
   },
 ];
 
-// Direct links sit in the bar between the menus and the download pill, and
-// as plain rows in the mobile sheet. Security is the trust page, so it stays
-// one click from everywhere even though it also lives inside features.
+// The masthead uses direct links; the feature catalogue above remains available
+// to tools that verify feature-page coverage and released copy.
 export const directLinks = [
-  { href: '/features/security', key: 'security', label: 'security', mobileLabel: 'Security' },
-  { href: '/changelog', key: 'changelog', label: "what's new", mobileLabel: "What's new" },
+  { href: '/features', key: 'features', label: 'Features' },
+  { href: '/how-it-works', key: 'how-it-works', label: 'How it works' },
+  { href: '/features/security', key: 'security', label: 'Security' },
+  { href: '/faq', key: 'faq', label: 'FAQ' },
+  { href: '/changelog', key: 'changelog', label: "What's new" },
 ];

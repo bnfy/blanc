@@ -100,3 +100,16 @@ permission.
 
 Specific artwork that is not covered by the MIT grant is enumerated in
 [ASSET-LICENSE.md](ASSET-LICENSE.md). No directory is excluded wholesale.
+
+## Website summary icons
+
+The website’s shared Chromium/Chrome browser symbol, Electron, Apple and
+Linux glyphs come from Simple Icons (CC0); its Code XML icon comes from
+Lucide (ISC). The Chromium symbol uses the common three-sector browser-mark
+geometry; only its decorative title is changed. Names and marks retain their
+upstream trademark rights. Full notices are preserved in
+`site/public/licenses/summary-icons.txt`; pinned sources and file hashes are
+recorded in `docs/website-summary-icons.json`. The four-pane platform glyph
+is original geometry, and the Patron mark uses Blanc’s reserved Sunrise
+identity through a black presentation filter. These are website assets and
+are not bundled in the desktop app.
