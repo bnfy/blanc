@@ -2331,7 +2331,7 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-hero h1 { font: 400 clamp(38px, 4.1vw, 62px)/1.03 'Newsreader Variable', Newsreader, Georgia, serif; letter-spacing: -.035em; margin: 16px 0 22px; }
 .trust-hero-copy > p:not(.section-kicker) { font-size: 17px; line-height: 1.65; color: var(--site-text-dim); max-width: 38ch; }
 .trust-hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 28px 0 15px; }
-.trust-demo-button { border: 1px solid var(--site-border); background: transparent; color: var(--site-text); border-radius: 999px; padding: 13px 21px; font: 500 14px/1.4 Inter, sans-serif; cursor: pointer; }
+.trust-demo-button { gap: 8px; border: 1px solid var(--site-border); background: transparent; color: var(--site-text); cursor: pointer; }
 .trust-hero-copy > .trust-hero-note { font-size: 12px !important; max-width: none !important; }
 .trust-product-shot { margin: 0; min-width: 0; }
 .trust-product-shot img { width: 100%; height: auto; display: block; border-radius: 14px; box-shadow: 0 12px 40px #805d2814; border: 1px solid var(--site-border); }
