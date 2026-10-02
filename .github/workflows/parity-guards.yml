@@ -109,7 +109,9 @@ jobs:
       - run: npm ci
       - name: Modified link clicks (Linux, headless)
         if: runner.os == 'Linux'
-        run: xvfb-run -a npm run test:modified-links:desktop
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:modified-links:desktop
       - name: Modified link clicks (Windows)
         if: runner.os == 'Windows'
         run: npm run test:modified-links:desktop

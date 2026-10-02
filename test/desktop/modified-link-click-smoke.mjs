@@ -62,6 +62,7 @@ async function documentResult(id, label) {
 }
 try {
   app = await _electron.launch({
+    chromiumSandbox: true,
     args: [path.resolve('.'), `--user-data-dir=${profile}`],
     env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught },
   });
