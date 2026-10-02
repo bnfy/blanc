@@ -62,15 +62,15 @@ try {
           wallpaper.refresh();
         }, hour);
         await current.waitForFunction((phase) => document.body.dataset.wallpaperPhase === phase, phase);
-        // Theme/layout image updates settle independently of wallpaper loading.
-        // Wait for those resources before checking for broken assets.
-        await current.waitForFunction(() => [...document.querySelectorAll('img')]
-          .every((img) => img.complete && img.naturalWidth > 0));
-        const check = await current.evaluate(() => ({
+        // Theme changes can reselect picture sources after an earlier load
+        // check. Poll and retain one snapshot so the assertions cannot race
+        // a second renderer read; missing assets still fail with their URLs.
+        const check = await waitForValue(() => current.evaluate(() => ({
           visible: [...document.querySelectorAll('.start-wallpaper-layer')].filter((el) => el.classList.contains('is-visible')).length,
-          images: [...document.querySelectorAll('img')].filter((img) => !img.complete || img.naturalWidth === 0).map((img) => img.src),
+          images: [...document.querySelectorAll('img')].filter((img) => !img.complete || img.naturalWidth === 0).map((img) => img.currentSrc || img.src),
           private: document.documentElement.dataset.theme === 'private',
-        }));
+        })), (snapshot) => snapshot.images.length === 0,
+        `loaded start-page images in ${layout}/${style}/${phase}`, 30_000);
         assert.equal(check.visible, 1); assert.deepEqual(check.images, []);
         assert.equal(check.private, style === 'private');
         if (output) await current.screenshot({ path: path.join(output, `${phase}-${layout}-${style}.png`) });
