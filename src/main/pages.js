@@ -22,7 +22,6 @@ const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
-const { searchCities } = require('./wallpaper-cities');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
@@ -296,7 +295,6 @@ function setupPages(hooks = {}) {
     } = settings.getSettings();
     return {
       ...rest,
-      wallpaperLocation: settings.getWallpaperLocation(),
       ...(onePasswordAvailable() ? { onePasswordEnabled, onePasswordAccount } : {}),
       patronActive: settings.isPatronActive(),
       supporterActive: settings.isPatronActive(), // temporary alias until Phase 4 renames renderer refs
@@ -324,7 +322,6 @@ function setupPages(hooks = {}) {
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
   });
-  handle('pages:settings:wallpaper-cities', 'settings', (query) => searchCities(query));
   handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
   if (onePasswordAvailable()) {
     // App presence is a HINT (movable installs false-negative); Verify is

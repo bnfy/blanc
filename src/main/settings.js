@@ -12,7 +12,6 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
-const { cityForId } = require('./wallpaper-cities');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
@@ -94,8 +93,6 @@ const DEFAULTS = {
   // alternatives from the design system's "New tab v2" handoff.
   newtabLayout: 'billboard',
   newtabDynamicWallpaper: false,
-  // Chosen city stays on this device and never enters Profile Sync.
-  newtabWallpaperCity: '',
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Preferred rail width. The live layout may temporarily cap it to preserve
@@ -213,6 +210,11 @@ function ensureStore() {
       storedSettings?.presentationDefaultsResetVersion,
     ) ? storedSettings.presentationDefaultsResetVersion : 0;
     store = new JsonStore('settings', DEFAULTS);
+    // Remove the unreleased city preference from development profiles. The
+    // wallpaper follows this machine's clock and retains no location choice.
+    if (Object.prototype.hasOwnProperty.call(store.data, 'newtabWallpaperCity')) {
+      store.updateAndFlush((data) => { delete data.newtabWallpaperCity; });
+    }
     // Profiles created before the first-run card already made their privacy
     // choices through Settings (or accepted the then-current defaults).
     // An explicit marker — including version 0 — belongs to the new flow and
@@ -289,7 +291,6 @@ function getSettings() {
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
-  if (!cityForId(data.newtabWallpaperCity)) data.newtabWallpaperCity = '';
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
@@ -341,7 +342,6 @@ function sanitize(partial) {
   }
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
   if (typeof partial.newtabDynamicWallpaper === 'boolean') clean.newtabDynamicWallpaper = partial.newtabDynamicWallpaper;
-  if (partial.newtabWallpaperCity === '' || cityForId(partial.newtabWallpaperCity)) clean.newtabWallpaperCity = partial.newtabWallpaperCity;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
@@ -587,7 +587,6 @@ module.exports = {
   setSupporter,
   isPatronActive,
   isDynamicWallpaperEnabled,
-  getWallpaperLocation: () => cityForId(getSettings().newtabWallpaperCity),
   setPatron,
   getPatronRecord,
   exportForSync,

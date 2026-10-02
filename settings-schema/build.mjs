@@ -72,7 +72,6 @@ function genSwift() {
   out += `    public static let homePage: String = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    public static let theme: BlancThemePreference = .${swiftCase(spec.defaults.theme)}\n`;
   out += `    public static let newtabDynamicWallpaper: Bool = ${spec.defaults.newtabDynamicWallpaper}\n`;
-  out += `    public static let newtabWallpaperCity: String = ${JSON.stringify(spec.defaults.newtabWallpaperCity)}\n`;
   out += `    public static let newtabLayout: BlancNewtabLayout = .${swiftCase(spec.defaults.newtabLayout)}\n`;
   out += `    public static let webrtcPolicy: BlancWebrtcPolicy = .${swiftCase(spec.defaults.webrtcPolicy)}\n`;
   out += `    public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .${swiftCase(spec.defaults.webrtcAudioBuffer)}\n`;
@@ -111,7 +110,6 @@ function genKotlin() {
   out += `    const val homePage = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    val theme = BlancThemePreference.${upper(spec.defaults.theme)}\n`;
   out += `    const val newtabDynamicWallpaper = ${spec.defaults.newtabDynamicWallpaper}\n`;
-  out += `    const val newtabWallpaperCity = ${JSON.stringify(spec.defaults.newtabWallpaperCity)}\n`;
   out += `    val newtabLayout = BlancNewtabLayout.${upper(spec.defaults.newtabLayout)}\n`;
   out += `    val webrtcPolicy = BlancWebrtcPolicy.${upper(spec.defaults.webrtcPolicy)}\n`;
   out += `    val webrtcAudioBuffer = BlancWebrtcAudioBuffer.${upper(spec.defaults.webrtcAudioBuffer)}\n`;
@@ -164,7 +162,6 @@ function parseSettingsJs() {
     homePage: s(/^\s*homePage:\s*'([^']*)'/m),
     theme: s(/^\s*theme:\s*'([^']*)'/m),
     newtabDynamicWallpaper: s(/^\s*newtabDynamicWallpaper:\s*(true|false)/m),
-    newtabWallpaperCity: s(/^\s*newtabWallpaperCity:\s*'([^']*)'/m),
     newtabLayout: s(/^\s*newtabLayout:\s*'([^']*)'/m),
     webrtcPolicy: s(/^\s*webrtcPolicy:\s*'([^']*)'/m),
     webrtcAudioBuffer: s(/^\s*webrtcAudioBuffer:\s*'([^']*)'/m),
@@ -218,7 +215,6 @@ function check() {
   eq('homePage', jd.homePage, d.homePage);
   eq('theme', jd.theme, d.theme);
   eq('newtabDynamicWallpaper', jd.newtabDynamicWallpaper, String(d.newtabDynamicWallpaper));
-  eq('newtabWallpaperCity', jd.newtabWallpaperCity, d.newtabWallpaperCity);
   eq('newtabLayout', jd.newtabLayout, d.newtabLayout);
   eq('webrtcPolicy', jd.webrtcPolicy, d.webrtcPolicy);
   eq('webrtcAudioBuffer', jd.webrtcAudioBuffer, d.webrtcAudioBuffer);

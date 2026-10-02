@@ -8547,7 +8547,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
-      wallpaperLocation: settings.getWallpaperLocation(),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
       migrationChecklist: migrationChecklistState({
@@ -8564,8 +8563,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/')) {
         liveUtilitySheet(runtime)?.wc.send('pages:settings:appearance', {
           newtabDynamicWallpaper: settings.getSettings().newtabDynamicWallpaper,
-          newtabWallpaperCity: settings.getSettings().newtabWallpaperCity,
-          wallpaperLocation: settings.getWallpaperLocation(),
         });
       }
     }

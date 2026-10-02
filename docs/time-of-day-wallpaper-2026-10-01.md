@@ -1,6 +1,8 @@
 # Time-of-day wallpaper — October 1, 2026
 
-The owner changed the approved plan during implementation: this feature is free for everyone, with no Patron label or entitlement requirement. It is optional, defaults off, and only the boolean preference syncs. Phases use the device’s local clock: dawn 05:00–08:00, day 08:00–17:00, dusk 17:00–20:00, night 20:00–05:00. No location permission or remote artwork requests.
+The owner changed the approved plan during implementation: this feature is free for everyone, with no Patron label or entitlement requirement. It is optional, defaults off, and only the boolean preference syncs. Public v1.25.0 phases use the device’s local clock: dawn 05:00–08:00, day 08:00–17:00, dusk 17:00–20:00, night 20:00–05:00. No location permission or remote artwork requests.
+
+On October 2 the owner clarified that wallpaper timing must use the machine clock automatically, with no separate city control. The unreleased correction removes the city picker, saved city, offline catalog and solar library from PR #467. It starts night at 19:00, so dusk runs 17:00–19:00 and night 19:00–05:00. Dawn/day are unchanged. The existing on/off switch remains; scheduling is automatic and is recalculated after clock/timezone changes and resume. This timing change is not yet in the public release.
 
 The existing start-page-sunrise.png remains byte-for-byte unchanged as dawn. Day/night are 1586 × 992; dusk is 1584 × 993. CSS uses the existing shared cover crop and theme/private overlays. Evening light mode strengthens its ivory veil for content readability while retaining the selected light theme.
 
