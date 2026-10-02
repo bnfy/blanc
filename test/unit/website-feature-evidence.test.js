@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
+const { runInNewContext } = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const ledger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
@@ -83,6 +84,32 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
   const homepage = read('site/src/pages/index.astro');
-  assert.ok(homepage.includes(manifest.displayAsset.file.replace('site/public', '')));
+  const wallpaper = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
+  assert.ok(homepage.includes(wallpaper.captures[0].displayAsset.file.replace('site/public', '')));
   assert.match(homepage, /Blanc v1\.25\.0 on macOS/);
+});
+
+
+test('hero wallpaper scenes retain actual public captures and phase provenance', () => {
+  const manifest = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
+  assert.equal(manifest.release, ledger.publicRelease);
+  assert.equal(manifest.sourceSha, ledger.sourceSha);
+  assert.equal(manifest.settings.newtabDynamicWallpaper, true);
+  assert.equal(manifest.settings.usagePing, false);
+  assert.equal(manifest.settings.searchSuggestions, false);
+  assert.deepEqual(manifest.captures.map(item => item.phase), ['dawn', 'day', 'dusk', 'night']);
+  const releasedModule = { exports: {} };
+  runInNewContext(execFileSync('git', ['show', `${ledger.publicRelease}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
+  const policy = releasedModule.exports;
+  for (const capture of manifest.captures) {
+    const fixture = new Date(2026, 9, 2, capture.localHourFixture);
+    assert.equal(policy.phaseForTime(fixture), capture.phase);
+    for (const item of [capture, capture.displayAsset]) {
+      const bytes = fs.readFileSync(path.join(root, item.file));
+      assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
+    }
+    const bytes = fs.readFileSync(path.join(root, capture.file));
+    assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], [capture.width, capture.height]);
+    assert.ok(read('site/src/pages/index.astro').includes(capture.displayAsset.file.replace('site/public', '')));
+  }
 });

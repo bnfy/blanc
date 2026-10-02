@@ -7,7 +7,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-site-trust-'));
 const fixture=path.join(root,'host.cjs');
-fs.writeFileSync(fixture,`const {app,BrowserWindow}=require('electron');app.whenReady().then(()=>{new BrowserWindow({show:false,width:1280,height:900,webPreferences:{javascript:process.env.SITE_JS!=='0',contextIsolation:true,sandbox:true,nodeIntegration:false}}).loadURL('about:blank');});app.on('window-all-closed',()=>app.quit());`);
+fs.writeFileSync(fixture,`const {app,BrowserWindow}=require('electron');app.whenReady().then(()=>{new BrowserWindow({show:false,width:1280,height:900,webPreferences:{javascript:process.env.SITE_JS!=='0',contextIsolation:true,sandbox:true,nodeIntegration:false,backgroundThrottling:false}}).loadURL('about:blank');});app.on('window-all-closed',()=>app.quit());`);
 const origin=process.env.BLANC_SITE_PREVIEW_URL || 'http://127.0.0.1:4328';
 const output=process.env.BLANC_REVIEW_OUTPUT_DIR || path.join(os.tmpdir(),'blanc-trust-review');fs.mkdirSync(output,{recursive:true});
 const { ELECTRON_RUN_AS_NODE: ignored, ...env }=process.env;
@@ -86,17 +86,64 @@ try {
     await page.setViewportSize({width:1280,height:900});
     await page.screenshot({path:path.join(output,'homepage-desktop.png')});
   });
+  await run({},async({app,page})=>{
+    await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].showInactive());
+    await page.emulateMedia({reducedMotion:'no-preference'});
+    await page.goto(origin);
+    await page.mouse.move(0,0);
+    const preview=page.locator('#heroWallpaper');
+    await page.locator('.hero-wallpaper-frame').evaluate(element=>element.scrollIntoView({block:'center'}));
+    await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='day',null,{timeout:15000});
+    assert.equal(await preview.locator('button').count(),0,'wallpaper has no controls');
+    await preview.focus();
+    assert.equal(await preview.getAttribute('data-running'),'false');
+    await page.waitForTimeout(8500);
+    assert.equal(await preview.getAttribute('data-phase'),'day','keyboard focus holds the scene');
+    await page.locator('#watchDemo').focus();
+    await page.mouse.move(0,0);
+    await page.waitForFunction(()=>document.getElementById('heroWallpaper').dataset.phase==='dusk',null,{timeout:15000});
+    await page.locator('.hero-wallpaper-frame').hover();
+    assert.equal(await preview.getAttribute('data-running'),'false');
+    await page.waitForTimeout(8500);
+    assert.equal(await preview.getAttribute('data-phase'),'dusk','hover holds the scene');
+    await page.screenshot({path:path.join(output,'wallpaper-no-controls.png')});
+    await page.mouse.move(0,0);
+    await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+    await page.waitForTimeout(8500);
+    assert.equal(await preview.getAttribute('data-phase'),'dusk','offscreen wallpaper does not advance');
+  });
+  await run({},async({app,page})=>{
+    await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].showInactive());
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.goto(origin);
+    await page.mouse.move(0,0);
+    const preview=page.locator('#heroWallpaper');
+    await page.locator('.hero-wallpaper-frame').evaluate(element=>element.scrollIntoView({block:'center'}));
+    assert.equal(await preview.getAttribute('data-running'),'false');
+    await page.waitForTimeout(8500);
+    assert.equal(await preview.getAttribute('data-phase'),'dawn','reduced motion has no automatic cycle');
+    assert.equal(await page.locator('[data-wallpaper-scene="dawn"]').evaluate(element=>getComputedStyle(element).transitionDuration),'0s');
+    for(const [width,height,zoom] of [[390,844,1],[1280,900,2]]) {
+      await page.setViewportSize({width:Math.round(width/zoom),height:Math.round(height/zoom)});
+      await app.evaluate(({BrowserWindow},{width,height,zoom})=>{const w=BrowserWindow.getAllWindows()[0];w.setContentSize(width,height);w.webContents.setZoomFactor(zoom);},{width,height,zoom});
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Wallpaper has no overflow at ${width}/${zoom}`);
+      await page.locator('.hero-wallpaper-frame').evaluate(element=>element.scrollIntoView({block:'center'}));
+      await page.screenshot({path:path.join(output,`wallpaper-${width}-${zoom}.png`)});
+    }
+  });
   await run({js:false},async({app,page})=>{
     await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setContentSize(390,844));
     await page.setViewportSize({width:390,height:844});
     await page.goto(origin);
     assert.equal(await page.locator('#watchDemo').isVisible(),false);
     assert.equal(await page.locator('#demoShowcase').isVisible(),false);
-    assert.equal(await page.locator('.trust-product-shot img').isVisible(),true);
+    assert.equal(await page.locator('.hero-wallpaper-scene.is-current').isVisible(),true);
+    assert.equal(await page.locator('#heroWallpaper button').count(),0);
+    assert.equal(await page.locator('.hero-wallpaper-scene.is-current').getAttribute('data-wallpaper-scene'),'dawn');
     assert.equal(await page.locator('.site-nav-links').isVisible(),true);
     assert.equal(await page.locator('.site-menu-toggle').isVisible(),false);
     assert.match(await page.locator('.trust-hero-actions a').getAttribute('href'),/download/);
     await page.screenshot({path:path.join(output,'homepage-no-js.png')});
   });
-  console.log('Website browser checks passed: consent network states, no automatic prompt, withdrawal reload, no-JS fallback, keyboard menu/demo, reduced motion, mobile/desktop and 200% zoom.');
+  console.log('Website browser checks passed: consent network states, no automatic prompt, withdrawal reload, no-JS fallback, keyboard menu/demo, reduced motion, mobile/desktop and 200% zoom, control-free wallpaper autoplay/focus/hover pause/offscreen suspension/reduced-motion and static fallback.');
 }finally{fs.rmSync(root,{recursive:true,force:true});}

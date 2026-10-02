@@ -1,0 +1,75 @@
+{
+  "release": "v1.25.0",
+  "sourceSha": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
+  "captureDate": "2026-10-02",
+  "method": "Unretouched native captures of the signed, Gatekeeper-accepted installed public app in one disposable fixture profile. Its released wallpaper controller uses sample local-hour fixtures (Date.getHours only); reduced motion settles each actual released phase before capture. No shipped code, controls, block totals or OS clock are changed.",
+  "settings": {
+    "theme": "light",
+    "layout": "ledger",
+    "newtabDynamicWallpaper": true,
+    "usagePing": false,
+    "searchSuggestions": false,
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "fixtures": "Four sample Favorites. No personal browsing, account or permission records; blocking totals are not seeded.",
+  "displayMethod": "Proportional 1440px WebP exports at quality 90; source PNGs retained. CSS presentation clips only the upper-left native traffic-light corner.",
+  "captures": [
+    {
+      "phase": "dawn",
+      "localHourFixture": 6,
+      "file": "site/public/feature-captures/home-wallpaper-dawn-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "9186cf743f31a0a6939c50214bfda05baad5d41ea134eccd886624102a0213d6",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "6b99be4c493a2bc07de59908eebe6334fc4b60e156a5e024cd9885ba66f040f2"
+      }
+    },
+    {
+      "phase": "day",
+      "localHourFixture": 12,
+      "file": "site/public/feature-captures/home-wallpaper-day-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "9c4abbe0724f9bfdc79951701b0b4b008153c55325f82ee0d7ec0d9a50aa6b81",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "0a401ec2f61a133d0941524868143fd85ddb9cc2bbd7c1ca24c1481cbe273df2"
+      }
+    },
+    {
+      "phase": "dusk",
+      "localHourFixture": 18,
+      "file": "site/public/feature-captures/home-wallpaper-dusk-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "93c298e6b921c5f516d12a914a4a481be75fed294a3f526eb195c8bfd701385a",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "fee1d565622a833a432a50fb6bf6069415d7cc65c1f600e990e3d669784d14e9"
+      }
+    },
+    {
+      "phase": "night",
+      "localHourFixture": 23,
+      "file": "site/public/feature-captures/home-wallpaper-night-v1.25.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "5e66bab6f9e0188cdae1f131f7b65ae5e80810a118c84cea4b4b6d5b366a1253",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-v1.25.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "a3585b3be7d869da3200204e891103cd145082ebeff698b659521e8de2f093d3"
+      }
+    }
+  ]
+}

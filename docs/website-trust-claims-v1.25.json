@@ -135,6 +135,18 @@
         "bench/memory/README.md"
       ],
       "qualification": "See docs/website-trust-claims-v1.25.md for each claim’s evidence and limits. Website opt-in behavior is a preview implementation, not an app-release claim. Captures remain version-labelled; memory figures are dated macOS runs; licensing is bounded, private tabs do not anonymize traffic, optional usage is pseudonymous and user choices stay device-local."
+    },
+    "wallpaper": {
+      "evidence": [
+        "src/renderer/pages/newtab-wallpaper.js",
+        "src/renderer/pages/pages.css",
+        "src/main/settings.js",
+        "src/renderer/pages/start-page-sunrise.png",
+        "src/renderer/pages/start-page-day.png",
+        "src/renderer/pages/start-page-dusk.png",
+        "src/renderer/pages/start-page-night.png"
+      ],
+      "qualification": "Optional bundled artwork follows the local clock through four phases; the released transition is two seconds and respects reduced motion. The homepage uses unretouched captures with sample hour fixtures and an explicitly accelerated preview, rather than claiming the app cycles through a whole day in seconds."
     }
   },
   "claims": [
@@ -2563,10 +2575,10 @@
     {
       "id": "trust-125-238",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc v1.25.0 on macOS. A real release capture with sample Favorites.",
+      "exactWording": "Blanc v1.25.0 on macOS. Real release captures with sample Favorites.",
       "subject": "Blanc or website",
       "evidenceGroups": [
-        "trust"
+        "wallpaper"
       ],
       "verdict": "qualified"
     },
@@ -3997,6 +4009,26 @@
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "hero-wallpaper-125-1",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Optional wallpaper follows your local clock.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "hero-wallpaper-125-2",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "This preview cycles faster through dawn, day, dusk and night.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "wallpaper"
       ],
       "verdict": "qualified"
     }

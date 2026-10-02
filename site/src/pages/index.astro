@@ -115,11 +115,14 @@ const graph = {
     </div>
     <p class="trust-hero-note">Free for macOS, Windows and Linux. Patron is optional.</p>
   </div>
-  <figure class="trust-product-shot">
-    <div class="trust-product-frame">
-      <img src="/feature-captures/home-v1.25.0.webp" width="1440" height="900" fetchpriority="high" alt="Blanc v1.25.0 on macOS, with the floating command island above the Ledger start page and four sample Favorites." />
+  <figure class="trust-product-shot" id="heroWallpaper" data-phase="dawn">
+    <div class="trust-product-frame hero-wallpaper-frame" id="heroWallpaperFrame">
+      <img class="hero-wallpaper-scene is-current" data-wallpaper-scene="dawn" src="/feature-captures/home-wallpaper-dawn-v1.25.0.webp" width="1440" height="900" fetchpriority="high" alt="Blanc v1.25.0 Start Page with time-of-day wallpaper, the floating command island and four sample Favorites." />
+      <img class="hero-wallpaper-scene" data-wallpaper-scene="day" src="/feature-captures/home-wallpaper-day-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
+      <img class="hero-wallpaper-scene" data-wallpaper-scene="dusk" src="/feature-captures/home-wallpaper-dusk-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
+      <img class="hero-wallpaper-scene" data-wallpaper-scene="night" src="/feature-captures/home-wallpaper-night-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
     </div>
-    <figcaption>Blanc v1.25.0 on macOS. A real release capture with sample Favorites.</figcaption>
+    <figcaption><strong>Optional wallpaper follows your local clock.</strong> This preview cycles faster through dawn, day, dusk and night.<br /><span>Blanc v1.25.0 on macOS. Real release captures with sample Favorites.</span></figcaption>
   </figure>
 </header>
 
@@ -329,4 +332,5 @@ const graph = {
 </main>
 
   <script src="../scripts/demo.js"></script>
+  <script src="../scripts/hero-wallpaper.js"></script>
 </BaseLayout>
