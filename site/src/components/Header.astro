@@ -9,7 +9,7 @@ const isCurrent = link => current === link.key || pathname === link.href || (lin
 {variant === 'legal' ? (
   <header class="legal-top"><a class="legal-home" href="/" aria-label="Blanc home"><BrandMark class="mark" /><span class="wordmark">Blanc</span></a></header>
 ) : (
-  <header class="site-header site-header--solid is-raised">
+  <header class:list={['site-header', `site-header--${variant}`, { 'is-raised': variant === 'solid' }]}>
     <nav class="site-nav" aria-label="Primary navigation">
       <a class="site-brand" href="/" aria-label="Blanc Browser home"><BrandMark class="site-brand-mark" /></a>
       <div class="site-nav-links">{directLinks.map(link => <a href={link.href} aria-current={isCurrent(link) ? 'page' : undefined}>{link.label}</a>)}</div>
@@ -30,6 +30,12 @@ const isCurrent = link => current === link.key || pathname === link.href || (lin
     const toggle = header.querySelector<HTMLButtonElement>('.site-menu-toggle');
     const panel = header.querySelector<HTMLElement>('.site-mobile-menu');
     const desktop = matchMedia('(min-width: 901px)');
+    const seamless = header.classList.contains('site-header--island');
+    function updateRaised() {
+      if (seamless) header?.classList.toggle('is-raised', window.scrollY > 12);
+    }
+    updateRaised();
+    window.addEventListener('scroll', updateRaised, { passive: true });
     function setOpen(open: boolean, restoreFocus = false) {
       if (!toggle || !panel) return;
       panel.hidden = !open;
@@ -47,6 +53,6 @@ const isCurrent = link => current === link.key || pathname === link.href || (lin
     document.addEventListener('pointerdown', event => { if (event.target instanceof Node && !header.contains(event.target)) setOpen(false); });
     document.addEventListener('focusin', event => { if (event.target instanceof Node && !header.contains(event.target)) setOpen(false); });
     desktop.addEventListener('change', () => setOpen(false));
-    window.addEventListener('pageshow', () => setOpen(false));
+    window.addEventListener('pageshow', () => { setOpen(false); updateRaised(); });
   }
 </script>

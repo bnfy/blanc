@@ -803,12 +803,13 @@ a { color: inherit; }
 /* ---------- masthead ---------- */
 /* A sticky ivory bar with a hairline beneath. On the homepage it is
    transparent over the hero until the page moves 12px; everywhere else it is
-   raised from the start. The mark keeps the gold crossfade. Two mega menus
-   drop from the bar with the horizon hairline along their top edge. */
+   raised from the start. The mark keeps the gold crossfade. Direct links and
+   the explicit mobile menu share this treatment. */
 .site-header { position: sticky; top: 0; z-index: 30; isolation: isolate; }
 .site-nav { display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 28px; background: transparent; border-bottom: 1px solid transparent; transition: background 200ms ease, border-color 200ms ease; }
 .site-header.is-raised .site-nav { background: rgba(var(--site-surface-raised-rgb), 0.86); border-bottom-color: var(--site-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .site-header.has-open-menu .site-nav { background: var(--site-surface-raised); border-bottom-color: var(--site-border); }
+.site-header--island:not(.is-raised) .site-nav { background: transparent; border-bottom-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .site-brand { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-right: 12px; border-radius: 10px; color: var(--site-text); text-decoration: none; }
 .site-brand-mark { width: 24px; height: 24px; display: block; transition: opacity 220ms ease; }
 .site-brand::after { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); background: url("/sunrise-hero-mark.png") center / contain no-repeat; opacity: 0; pointer-events: none; transition: opacity 220ms ease; }
