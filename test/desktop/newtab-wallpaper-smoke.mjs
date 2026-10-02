@@ -185,6 +185,10 @@ try {
   await callTestHook(app, 'closeUtilitySurface');
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'night'
     && document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed') === 'true');
+  // Start from dusk so the 7 PM check cannot accept the previous night frame
+  // while the controller is still loading the newly requested artwork.
+  await privatePage.evaluate(() => { Date.prototype.getHours = () => 18; wallpaper.refresh(); });
+  await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'dusk');
   await privatePage.evaluate(() => { Date.prototype.getHours = () => 19; wallpaper.refresh(); });
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'night');
   // Observe the mounted controller's actual minute timeout, not only its
