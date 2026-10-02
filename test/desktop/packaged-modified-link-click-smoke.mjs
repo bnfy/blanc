@@ -66,6 +66,12 @@ try {
   });
   chrome = await pageAt('blanc-chrome://index/');
   await chrome.waitForFunction(() => typeof window.browserAPI?.getAllTabs === 'function');
+  // Preload exposes IPC before chrome's did-finish-load startup selection.
+  // Finish that selection before arranging the source of a background click.
+  await chrome.waitForLoadState('load');
+  await waitForValue(readTabs, (state) => state.tabs.some((tab) =>
+    tab.id === state.activeTabId && tab.url === 'blanc://newtab/' && !tab.isLoading),
+  'initial packaged tab is ready');
   for (const isPrivate of [false, true]) {
     for (const policy of policies) {
       for (const [index, click] of clicks.entries()) {
@@ -82,7 +88,9 @@ try {
           link.referrerPolicy = referrerPolicy;
         }, { targetUrl, referrerPolicy: policy.referrerPolicy ?? '' });
         await chrome.evaluate((id) => window.browserAPI.groupTabByName(id, 'Packaged clicks'), sourceId);
-        const before = await readTabs();
+        await chrome.evaluate((id) => window.browserAPI.switchTab(id), sourceId);
+        const before = await waitForValue(readTabs, (state) => state.activeTabId === sourceId,
+          `${label} source is active`);
         const sourceGroup = before.tabs.find((tab) => tab.id === sourceId).groupId;
         assert.ok(sourceGroup, `${label} source is grouped`);
         const windowCount = pages().filter((page) => page.url() === 'blanc-chrome://index/').length;
