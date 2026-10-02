@@ -3,8 +3,6 @@
 /adblock/sources/ghostery-resources.json text eol=lf
 /adblock/generated/*.json text eol=lf
 /src/main/assets/adblock-engine-seed.json text eol=lf
-/src/main/assets/wallpaper-cities* text eol=lf
-/src/renderer/pages/suncalc* text eol=lf
 /compliance/*.json text eol=lf
 /compliance/*.txt text eol=lf
 /compliance/evidence/*.txt text eol=lf
