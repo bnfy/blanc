@@ -79,9 +79,21 @@ adjacent public updater handoffs; hosted verification does not establish those
 physical-machine outcomes:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
-  conventional toolbar with a compact Island. The user opens its panel for
-  navigation, switching, search, and commands. Do not turn this into a claim
-  that Blanc understands what the user is working on.
+  conventional toolbar with a compact Island. Its resting controls occupy a
+  reserved 68px band above the page; its expanded panel overlays the page.
+  Do not claim the resting Island floats over the web content or reserves no
+  toolbar space. The user opens its panel for navigation, switching, search,
+  and commands. Blanc does not understand what the user is working on.
+- **Quick Switcher search:** For search text, Enter opens the highlighted
+  result, which can be a strong match from tabs, Favorites, history or groups.
+  The user can choose the exact-text web-search result explicitly. Do not
+  promise that Enter always searches the typed text. Address-shaped input
+  navigates unless the user explicitly selects a result.
+- **Fresh optional connections:** Search suggestions and usage measurement
+  are preselected on in fresh-install setup. Optional sends are gated until
+  the user saves their choices; either can be turned off before continuing
+  or later in Settings. Saved choices are retained on upgrades. Do not imply
+  these features default off or that optional means no network connections.
 - **Mouse gestures:** Mouse gestures are disabled by default and configured in
   Settings → General. A physical mouse uses right-button drag; a trackpad uses
   Alt/Option plus a one-finger click-and-drag. Four default directions map to
