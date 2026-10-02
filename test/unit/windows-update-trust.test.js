@@ -108,3 +108,23 @@ test('staged explicit installation remains available after verification without 
   assert.equal(f.installs[0].isSilent, true);
   assert.equal(f.installs[0].isForceRunAfter, true);
 });
+
+test('fresh verification disarms a previously ready installer until downloaded acceptance succeeds', async (t) => {
+  let pending = false;
+  let finish;
+  const f = fixture(t, { verify: async () => pending ? new Promise((resolve) => { finish = resolve; }) : null });
+  assert.equal(await f.gate.acceptDownloaded(f.info), null);
+  assert.equal(f.updater.autoInstallOnAppQuit, true);
+  pending = true;
+  const checking = f.gate.verifySignature(['Bananify Creative'], f.file);
+  assert.equal(f.updater.autoInstallOnAppQuit, false, 'disarmed synchronously before file reads or PowerShell');
+  f.app.emit('quit', 0);
+  assert.equal(f.installs.length, 0);
+  while (!finish) await new Promise((resolve) => setImmediate(resolve));
+  finish(null);
+  assert.equal(await checking, null);
+  assert.equal(f.updater.autoInstallOnAppQuit, false, 'verification alone never arms installation');
+  assert.equal(await f.gate.acceptDownloaded(f.info), null);
+  f.app.emit('quit', 0);
+  assert.equal(f.installs.length, 1);
+});
