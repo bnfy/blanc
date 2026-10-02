@@ -28,16 +28,16 @@ released build. Independent draft PRs against protected main:
 
 No merge, release, production deployment or independent retest occurred.
 The source identity in the inventory is final app/Worker implementation
-`610666e87444094be1758044aa4652ba05429e06`, including pending-state/UI guards, with all
-current app/Worker changes; later CI and documentation commits do not alter
-those hashed boundaries.
+`88280bbea46e5a68b264741eb8461131e94d2e4a`, including post-review Windows
+retry recovery. Prior native evidence at `610666e8` is retained as historical
+evidence; it does not validate these later retry corrections.
 
 ## Findings and distinct milestones
 
 | Finding | Source and isolated evidence | Residual / later milestones |
 | --- | --- | --- |
 | R1 Linux sandbox | Existing AppRun can add `--no-sandbox` on namespace-probe failure. The candidate rejects all seven unsafe switches shared with the desktop-entry verifier, including single-dash and assigned forms, before application modules or browser surfaces initialize. Permitted Linux calls official `app.enableSandbox()` before readiness. | Upstream launcher/runtime unchanged. Headless packaged matrix evidence is recorded below; real Ubuntu desktop session, affected-machine confirmation, release and independent retest remain pending. Public v1.25.0 is unchanged. |
-| R2 Windows update verification | Source still accepted execution/parse failures at the public baseline. Locked electron-updater 6.8.9 bypasses its signature callback on cached installers and may skip it without publisher configuration. Candidate rejects errors, exceptions, malformed output, missing certificates/configuration. SHA-512 proofs bind expected publishers to bytes; cached completion must verify before UI/install-on-quit. Common synchronous install guard rechecks bytes. Fresh checks disarm any previously ready installer; both fresh and cached pending checks disable restart UI, and stale dialogs cannot install. | 120-second timeout and publisher matching preserved. NSIS retains shutdown/relaunch ownership. Mocked tests do not prove production feed substitution or end-to-end exploitation. Signed staged Restart Now handoff beginning in public v1.25.0, affected-machine confirmation, release and independent retest remain pending. |
+| R2 Windows update verification | Source still accepted execution/parse failures at the public baseline. Locked electron-updater 6.8.9 bypasses its signature callback on cached installers and may skip it without publisher configuration. Candidate rejects errors, exceptions, malformed output, missing certificates/configuration. SHA-512 proofs bind expected publishers to bytes; cached completion must verify before UI/install-on-quit. Common synchronous install guard rechecks bytes. Fresh checks disarm any previously ready installer; both fresh and cached pending checks disable restart UI, and stale dialogs cannot install. Post-review fixes reset the restart latch on updater errors, evict definitively rejected cached installers, recheck in-process cache checksums and serialize cleanup before retry. Temporary verifier failures retain bytes; obsolete verifier results cannot evict a newer accepted installer. | 120-second timeout and publisher matching preserved. NSIS retains shutdown/relaunch ownership. Mocked tests do not prove production feed substitution or end-to-end exploitation. Signed staged Restart Now handoff beginning in public v1.25.0, affected-machine confirmation, release and independent retest remain pending. |
 | R3 locator authorization | Unchanged by design: locator-only synthetic GET/PUT/DELETE works. AES-GCM still protects plaintext under the independent encryption key. | OPEN. Locator possession authorizes ciphertext retrieval, replacement and deletion. No separate credential, revoke/rotate migration or authenticated v2 exists here. v2 planning is neither acceptance nor closure. Keep explicitly disclosed in RFP. |
 | R4 assessment documentation | Threat model refreshed from v1.17.0 to public v1.25.0 plus separately pinned candidate. Source-hashed preload/IPC inventory and network-counter retention corrected. | Candidate documentation is not auditor approval. Dynamic channels and all payload/trust predicates require manual review. |
 | R5 limits/concurrency | Candidate caps streamed PUT bodies at 513 KiB and serialized blobs at 512 KiB, in UTF-8 bytes. Declared oversize rejects early; actual stream cap cancels without blob storage. Tests cover boundaries, misleading lengths, chunking, Unicode, malformed JSON and legacy ciphertext. | PARTIAL SOURCE REMEDIATION, not deployed. Same-version writers can both succeed; one update can be lost. Pending write can recreate data after deletion. Coarse KV counters remain non-atomic. No guarantee of “no data loss.” |
@@ -51,7 +51,34 @@ account derivation/envelopes or move existing user data.
 
 ## Validation evidence
 
-- Final lint, full unit coverage and substrate passed: all 2,001 tests at
+### Post-review Windows retry corrections
+
+Two P2 review findings were reproduced with the locked updater: a synchronous
+install rejection left the Restart Now latch set, and a corrupted in-process
+cache was repeatedly selected without another download. Both are source-fixed
+at `88280bbea46e5a68b264741eb8461131e94d2e4a`.
+
+Lint and all 2,006 unit tests passed; substrate passed for these boundaries.
+Sixteen targeted updater/restart regressions passed. Against unchanged pre-fix
+source `17991f55`, the four new integration regressions had three expected
+failures and one passing temporary-failure control. They use the real locked
+DownloadedUpdateHelper, BaseUpdater download/install/quit methods and the app's
+menu/restart flow. Signature, network and NSIS execution are synthetic; this
+is not a native staged handoff. Recovery waits for cache cleanup, redownloads
+bad bytes and reaches one silent force-run NSIS seam; valid temporary failures
+recheck the existing cache. A separate supersession regression proves a delayed
+bad signature cannot evict a newer accepted cached installer.
+
+[Private Windows run 37040930798](https://github.com/bnfy/blanc/actions/runs/37040930798)
+was dispatched against this exact source to run these regressions on Windows
+and repeat signing, real verifier/cache and package gates. It is pending.
+Run 37040669963 was cancelled when its intermediate source was superseded;
+it is not counted as completed validation. Physical-machine confirmation and
+the signed staged Restart Now handoff from public v1.25.0 remain pending.
+
+### Earlier readiness evidence
+
+- The first implementation cut passed lint, full unit coverage and substrate: all 2,001 tests at
   `610666e87444094be1758044aa4652ba05429e06`, including fresh/cached pending
   UI and quit guards for a previously ready installer. Earlier 2,000-test runs
   are preserved separately.
