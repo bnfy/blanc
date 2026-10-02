@@ -131,7 +131,8 @@ const {
   updateFaviconAfterDomReady,
 } = require('./favicon-policy');
 const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
-const { shouldSamplePageTint } = require('./page-tint-policy');
+const { shouldSamplePageTint, isPageTintSignal } = require('./page-tint-policy');
+const { createPageTintController } = require('./page-tint-controller');
 const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
@@ -1552,7 +1553,8 @@ function beginChromeThemeAppearance(appearance) {
 function refreshActivePageTintForThemeChange() {
   const generation = ++rt().themeTintRefreshGeneration;
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
-  if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
+  if (!tab || !shouldSamplePageTint(tab)) return;
+  rt().pageTintController?.pause();
 
   // The captured top-edge pixels and meta theme-color both describe the old
   // color scheme. Drop them before the page repaints so the strip cannot keep
@@ -1561,19 +1563,16 @@ function refreshActivePageTintForThemeChange() {
   tab.pageBg = null;
   tab.themeColor = null;
   if (hadTint) broadcastTabs();
+  scheduleSampleTint(tab);
 
   // Color-scheme media queries repaint asynchronously in the tab renderer.
-  // Sample across the likely repaint/transition window: the first gets the
-  // common case quickly, while later passes let a site with its own CSS
-  // transition settle. The generation guard prevents an older theme change's
-  // captures from winning after a newer one.
+  // Repaint requests share the single-flight controller. Its pause guard
+  // invalidates old captures; these retries also recover if an early request
+  // coincided with navigation or a not-yet-visible view.
   for (const delay of [32, 160, 400, 800]) {
     setTimeout(() => {
       if (generation !== rt().themeTintRefreshGeneration) return;
-      samplePageTint(tab, {
-        immediate: true,
-        shouldApply: () => generation === rt().themeTintRefreshGeneration,
-      });
+      scheduleSampleTint(tab);
     }, delay);
   }
 }
@@ -4336,38 +4335,50 @@ function dominantColor(image) {
 /** Sample the top two pixel rows of a tab's rendered page — the edge that
  * visually abuts the chrome strip. Fails harmlessly for hidden views;
  * setActiveTab resamples on activation. */
-async function samplePageTint(tab, { immediate = false, shouldApply = () => true } = {}) {
-  // Reached from a bare 150 ms timer too, so a tab may close or discard its
-  // view between scheduling and this run.
+function activePageTintTarget(runtime) {
+  const window = runtime.window;
+  if (runtime.closing || !window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return null;
+  const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
-  if (!tabs.has(tab.id) || !wc) return;
-  if (!shouldSamplePageTint(tab)) {
-    if (tab.pageBg) {
-      tab.pageBg = null;
-      scheduleBroadcastTabs();
-    }
-    return;
-  }
+  if (!shouldSamplePageTint(tab) || !wc || wc.isLoading() || tab.view?.getVisible() !== true) return null;
+  return tab;
+}
+
+async function samplePageTint(tab, { shouldApply = () => true } = {}) {
+  const owner = tab && windowRuntimes.runtimeForTab(tab.id);
+  const wc = liveContents(tab);
+  if (!owner || activePageTintTarget(owner) !== tab || !wc) return false;
+  const url = tab.url;
+  const epoch = tab.navEpoch;
   const { width } = tab.view?.getBounds() ?? {};
-  if (!width || wc.isLoading()) return;
+  if (!width) return false;
   try {
     const image = await wc.capturePage({ x: 0, y: 0, width, height: 2 });
     const color = dominantColor(image);
-    if (shouldApply() && color && color !== tab.pageBg) {
+    // A slow GPU capture must not overwrite a newer document, a quiet/closed
+    // view, a different active tab, or another native window's presentation.
+    if (!shouldApply() || activePageTintTarget(owner) !== tab || liveContents(tab) !== wc
+      || tab.url !== url || tab.navEpoch !== epoch) return false;
+    if (color && color !== tab.pageBg) {
       tab.pageBg = color;
-      if (immediate) broadcastTabs();
-      else scheduleBroadcastTabs();
+      // Color-only updates avoid rebuilding tabs and menus during a fade.
+      owner.window.webContents.send('chrome:page-tint', { id: tab.id, color });
+      return true;
     }
-  } catch {
-    /* view hidden or gone — nothing to paint from */
-  }
+  } catch { /* A native view can disappear during capture. */ }
+  return false;
 }
 
-/** Give the page a beat to paint after load before sampling its color. */
 function scheduleSampleTint(tab) {
-  const owner = windowRuntimes.runtimeForTab(tab.id);
-  if (!owner) return;
-  setTimeout(bindWindowRuntime(owner, () => samplePageTint(tab)), 150);
+  const owner = tab && windowRuntimes.runtimeForTab(tab.id);
+  if (!owner || owner.activeTabId !== tab.id) return;
+  if (!owner.pageTintController) {
+    owner.pageTintController = createPageTintController({
+      getTarget: () => activePageTintTarget(owner),
+      sample: (target, shouldApply) => samplePageTint(target, { shouldApply }),
+    });
+  }
+  owner.pageTintController.request();
 }
 
 // --- Tab groups (Island Tab Groups design) ---
@@ -5294,6 +5305,7 @@ function setActiveTab(id, {
   }
 
   const prevId = rt().activeTabId;
+  if (prevId !== id) rt().pageTintController?.pause();
   const prev = prevId ? tabs.get(prevId) : null;
   // EXPLICIT activation of the reference tab (Make main, an island row,
   // Cmd/Ctrl+digit) swaps the two visible roles. Interacting inside the
@@ -5353,7 +5365,7 @@ function setActiveTab(id, {
   // activation keeps reclaiming focus until the user navigates or switches.
   if (focusContent) liveContents(next)?.focus();
   // Background tabs can't be pixel-sampled; catch up when they surface.
-  if (!next.pageBg) scheduleSampleTint(next);
+  scheduleSampleTint(next);
   broadcastTabs();
   scheduleMenuRebuild();
   if (shouldFocusAddress) {
@@ -7316,9 +7328,16 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
-  rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
+  rt().window.on('resize', bindWindowRuntime(runtime, () => {
+    resizeActiveView();
+    scheduleSampleTint(tabs.get(runtime.activeTabId));
+  }));
   for (const event of ['hide', 'show', 'minimize', 'restore']) {
-    rt().window.on(event, bindWindowRuntime(runtime, () => sendWindowStartPageVisibility(runtime)));
+    rt().window.on(event, bindWindowRuntime(runtime, () => {
+      sendWindowStartPageVisibility(runtime);
+      if (event === 'hide' || event === 'minimize') runtime.pageTintController?.pause();
+      else scheduleSampleTint(tabs.get(runtime.activeTabId));
+    }));
   }
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
     focusedRuntime = runtime;
@@ -7364,6 +7383,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    runtime.pageTintController?.dispose();
+    runtime.pageTintController = null;
     // macOS retains detached start pages for Dock reopen. Notify them after
     // the window is gone; native detachment alone may leave document visible.
     sendWindowStartPageVisibility(runtime);
@@ -8234,6 +8255,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     ...nativeMediaPermissionOptions,
   });
   let permissionPromptCounter = 0;
+  ipcMain.on('page-tint:changed', (event, ...args) => {
+    if (args.length) return;
+    const tab = tabs.get(tabIdByWebContentsId.get(event.sender.id));
+    const runtime = tab && windowRuntimes.runtimeForTab(tab.id);
+    if (!isPageTintSignal(event, { tab, runtime, webContents: liveContents(tab) })) return;
+    scheduleSampleTint(tab);
+  });
+
   // Resolve the tab owning a requesting webContents through the maintained
   // index — never by walking `tabs` and dereferencing each view.
   function tabForWebContents(wc) {
@@ -8611,6 +8640,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!runtime) throw new Error('pages IPC sender has no window runtime');
       return withWindowRuntime(runtime, work);
     },
+    // setupPages derives the requesting window before invoking this hook,
+    // using the same manual updater flow as the native menu.
+    checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
     onHistoryCleared: clearSessionMeta,
     // Parent for the favorites-import file dialog (evaluated lazily at click).

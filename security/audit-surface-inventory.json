@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
@@ -216,7 +216,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "6831cb5b2696bd6bd2ec84a698e30734f376d2619b4263bcb96a5ee91a3cf55e",
+      "sha256": "cfcd400cfa7954e1278733e0bbc879c4f3ef8516b780da46152237d5a100b413",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -252,6 +252,7 @@
         "chrome:open-island-typing",
         "chrome:open-main-menu",
         "chrome:open-shield",
+        "chrome:page-tint",
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
@@ -290,6 +291,7 @@
         "overlay:hide",
         "overlay:show",
         "overlay:toggle",
+        "page-tint:changed",
         "page-title-updated",
         "pages:settings:appearance",
         "pages:start:remote-tabs",
@@ -368,6 +370,18 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/page-tint-controller.js",
+      "sha256": "31983bda9cb3e462f6ca88bef09e9ab02cf9962d0f294c0b4f573e49a4a20ef7",
+      "literalChannels": [],
+      "role": "bounded per-window sampling lifecycle"
+    },
+    {
+      "file": "src/main/page-tint-policy.js",
+      "sha256": "bef10df06b717292e20a13b54bc0ad7e32ac0f4794c5f159322d7dfd9665439b",
+      "literalChannels": [],
+      "role": "foreground/main-frame eligibility policy"
+    },
+    {
       "file": "src/main/pages-ipc-trust.js",
       "sha256": "9b31ed197018b0e5539fcb72db432efa95998f5350a3c9189b48b1f0a736632c",
       "literalChannels": [],
@@ -375,8 +389,10 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "f3d1c9aa46269be27aa1911ad5b6728920475a36f5678d4eb6aa2a871f9aed31",
-      "literalChannels": [],
+      "sha256": "320f99d1a69473d1d78f91fed387cc1f6ffeda4a425ac7213a35d68b9819cf72",
+      "literalChannels": [
+        "pages:settings:check-for-updates"
+      ],
       "role": "privileged implementation or service"
     },
     {
@@ -387,7 +403,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "867fd7fda78519fcb5478d503e5c60fe91c44d4b9e54864cb8aacae6a7c25ee8",
+      "sha256": "670e182df280912a5c8b55ce45795c238044d4ce4350d902c3fc13e323756acd",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
@@ -414,6 +430,7 @@
         "chrome:open-island-typing",
         "chrome:open-main-menu",
         "chrome:open-shield",
+        "chrome:page-tint",
         "chrome:preview-vertical-tabs-width",
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
@@ -525,8 +542,9 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "745de8c665b9bf9b9df787684cba550d419f7f3aa037bd1df0830e5ffdf78429",
+      "sha256": "970f590d192d5dfa264d0aa8314244db025fbe48855056838e1bb116fc47c0ca",
       "literalChannels": [
+        "page-tint:changed",
         "pages:app-version",
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:clear-favicon",
@@ -560,6 +578,7 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:appearance",
+        "pages:settings:check-for-updates",
         "pages:settings:get",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
@@ -619,7 +638,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "7ef407bdbdbe0e219988191b931b59b30dfa890ceaf1202bf4db55848889dd85",
+      "sha256": "654d8238f02ad7d1513eb5b420dbddfcb7f9543887e87ff0c9688c5d9ea0c6ad",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

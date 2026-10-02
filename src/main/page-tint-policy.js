@@ -17,4 +17,11 @@ function shouldSamplePageTint(tab) {
   }
 }
 
-module.exports = { shouldSamplePageTint };
+// Marker-only IPC; the renderer never supplies a tint or chooses a target.
+function isPageTintSignal(event, { tab, runtime, webContents }) {
+  return !!event?.sender?.mainFrame && event.senderFrame === event.sender.mainFrame
+    && event.sender === webContents && !!runtime && !runtime.closing
+    && runtime.activeTabId === tab?.id && runtime.id === tab?.runtimeId
+    && shouldSamplePageTint(tab);
+}
+module.exports = { shouldSamplePageTint, isPageTintSignal };

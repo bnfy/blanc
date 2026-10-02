@@ -2,6 +2,60 @@
 // the capabilities used by that document; main independently binds every IPC
 // call to the exact live WebContents and expected host.
 const { contextBridge, ipcRenderer } = require('electron');
+// Isolated-world invalidation only: no API is exposed to ordinary websites,
+// and no DOM values, URLs, colors, or pixels cross this channel. Main chooses
+// its own live foreground view and coalesces all requests before sampling.
+if (typeof process !== 'undefined' && process.isMainFrame && (/^https?:$/.test(window.location.protocol)
+  || (window.location.protocol === 'blanc:' && window.location.host === 'newtab'))) {
+  let pending = null;
+  let lastSignal = -Infinity;
+  let observing = false;
+  const atTop = (node) => {
+    const element = node?.nodeType === 1 ? node : node?.parentElement;
+    if (!element) return false;
+    if (element === document.documentElement || element === document.body || document.head?.contains(element)) return true;
+    const box = element.getBoundingClientRect();
+    return box.top <= 32 && box.bottom >= 0 && box.width > 0;
+  };
+  const signal = () => {
+    if (document.hidden || pending !== null) return;
+    pending = setTimeout(() => {
+      pending = null;
+      if (document.hidden) return;
+      lastSignal = performance.now();
+      ipcRenderer.send('page-tint:changed');
+    }, Math.max(0, 100 - (performance.now() - lastSignal)));
+  };
+  const observer = new MutationObserver((records) => {
+    // Large framework batches still produce only one bounded notification.
+    if (records.length > 20 || records.some(record => atTop(record.target))) signal();
+  });
+  const stop = () => {
+    observer.disconnect(); observing = false;
+    if (pending !== null) clearTimeout(pending);
+    pending = null;
+  };
+  const start = () => {
+    if (document.hidden || observing || !document.documentElement) return;
+    observing = true;
+    observer.observe(document.documentElement, {
+      subtree: true, childList: true, characterData: true, attributes: true,
+      attributeFilter: ['class', 'style', 'data-wallpaper-phase'],
+    });
+    signal();
+  };
+  window.addEventListener('scroll', signal, { passive: true });
+  window.addEventListener('resize', signal, { passive: true });
+  for (const event of ['load', 'transitionrun', 'animationstart']) {
+    document.addEventListener(event, event => { if (atTop(event.target)) signal(); }, true);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+  window.addEventListener('pagehide', stop);
+  window.addEventListener('pageshow', start);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+}
+
 
 if (window.location.protocol === 'blanc:') {
   const host = window.location.host;
@@ -135,6 +189,7 @@ if (window.location.protocol === 'blanc:') {
       surface,
       settings: {
         get: () => invoke('pages:settings:get'),
+        checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
         onAppearance: (callback) => ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status)),
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),

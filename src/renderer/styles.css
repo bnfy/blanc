@@ -181,7 +181,7 @@ button svg {
   /* Faux header: --page-bg is the active page's sampled top-edge color
      (set from renderer.js); without one the strip stays theme --bg. */
   background: var(--page-bg, transparent);
-  transition: background-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 80ms linear;
 }
 
 /* Glance keeps the existing Island centered over the dominant page pane.
