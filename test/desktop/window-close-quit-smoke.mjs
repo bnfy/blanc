@@ -37,7 +37,7 @@ const describeWindows = (app) => app.evaluate(({ BrowserWindow }) =>
 
 let app;
 try {
-  app = await _electron.launch({ args: [repo, `--user-data-dir=${userData}`], env: { ...env, BLANC_TEST: '1' } });
+  app = await _electron.launch({ chromiumSandbox: true, args: [repo, `--user-data-dir=${userData}`], env: { ...env, BLANC_TEST: '1' } });
   await app.firstWindow();
   await waitForValue(() => app.evaluate(() => !!globalThis.__blanc?.startupReady?.()), Boolean, 'startup released', 15000);
   const exited = new Promise((resolve) => app.process().once('exit', (code) => resolve(code)));

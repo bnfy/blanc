@@ -40,7 +40,7 @@ const CHROME_INDEX_URL = 'blanc-chrome://index/';
 // packaged smoke seeds a completed marker instead, because its keystroke does
 // have to get past the modal.)
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-cold-launch-'));
-const app = await _electron.launch({
+const app = await _electron.launch({ chromiumSandbox: true,
   args: [path.resolve('.'), `--user-data-dir=${userDataDir}`],
   env: { ...process.env, BLANC_TEST: '1' },
 });

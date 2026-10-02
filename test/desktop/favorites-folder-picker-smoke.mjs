@@ -34,7 +34,7 @@ fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 let app;
 try {
-  app = await _electron.launch({ args: [path.resolve('.'), `--user-data-dir=${userData}`], env: { ...env, BLANC_TEST: '1' } });
+  app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${userData}`], env: { ...env, BLANC_TEST: '1' } });
   app.context().setDefaultTimeout(5000);
   await app.firstWindow();
   await waitForValue(() => app.evaluate(() => !!globalThis.__blanc?.startupReady?.()), Boolean, 'startup', 30_000);

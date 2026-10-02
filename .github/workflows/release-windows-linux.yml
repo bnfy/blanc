@@ -83,6 +83,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
 
       - name: Verify dependency compliance inputs
@@ -330,6 +333,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
 
       - name: Verify dependency compliance inputs

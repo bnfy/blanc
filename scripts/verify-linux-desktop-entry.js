@@ -6,7 +6,7 @@ const path = require('node:path');
 
 // Chromium accepts both '-' and '--'. Match complete names (with optional
 // values), so benign names such as --no-sandbox-helper do not match.
-const UNSAFE_EXEC_SWITCH = /(?:^|[\s"'])--?(?:no-(?:zygote-)?sandbox|disable-(?:setuid|gpu|namespace|seccomp-filter|webnn-compiler)-sandbox)(?=$|[\s"'=])/;
+const { UNSAFE_EXEC_SWITCH } = require('../src/main/linux-sandbox-launch');
 
 function listValue(source, key) {
   const line = source.split(/\r?\n/).find((candidate) => candidate.startsWith(`${key}=`));
