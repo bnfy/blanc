@@ -2336,7 +2336,9 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-demo-button { gap: 8px; border: 1px solid var(--site-border); background: transparent; color: var(--site-text); cursor: pointer; }
 .trust-hero-copy > .trust-hero-note { font-size: 12px !important; max-width: none !important; }
 .trust-product-shot { width: 100%; max-width: 1040px; margin: 0; min-width: 0; }
-.trust-product-shot img { width: 100%; height: auto; display: block; border-radius: 14px; box-shadow: 0 12px 40px #805d2814; border: 1px solid var(--site-border); }
+.trust-product-frame { overflow: hidden; border-radius: 14px; background: var(--site-bg); box-shadow: 0 12px 40px #805d2814; border: 1px solid var(--site-border); }
+/* Clip only the native macOS traffic-light corner; preserve the released Island and page. */
+.trust-product-shot img { width: 100%; height: auto; display: block; clip-path: polygon(6.25% 0, 100% 0, 100% 100%, 0 100%, 0 4%, 6.25% 4%); }
 .trust-product-shot figcaption { font-size: 11px; line-height: 1.6; color: var(--site-text-dim); margin: 12px 4px 0; }
 .trust-home { max-width: 1344px; margin: 0 auto; padding: 0 48px; }
 .trust-facts { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--site-border); padding: 25px 0; gap: 22px; }

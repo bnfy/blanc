@@ -22,6 +22,7 @@
     "width": 1440,
     "height": 900,
     "sha256": "d361709b97f55daa14c1458e7dccd0f79de2fc599615739aa2a8b09781f92002",
-    "method": "Proportional 1440px WebP export at quality 90; no cropping, fabricated controls or retouching. The native PNG is retained as source evidence."
+    "method": "Proportional 1440px WebP export at quality 90; no cropping, fabricated controls or retouching. The native PNG is retained as source evidence.",
+    "presentation": "The homepage clips only the upper-left native macOS traffic-light corner in CSS (6.25% of image width by 4% of height). The released Island and page remain visible; both source image files are unchanged."
   }
 }
