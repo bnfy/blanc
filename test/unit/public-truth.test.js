@@ -44,7 +44,10 @@ test('app chrome and internal pages have no live Google Fonts dependency', () =>
       .map((name) => `src/renderer/pages/${name}`),
   ];
   for (const file of files) {
-    assert.doesNotMatch(read(file), /fonts\.(?:googleapis|gstatic)\.com/, file);
+    // Scan HTML source for forbidden recipients, rather than parsing a URL host.
+    for (const host of ['fonts.googleapis.com', 'fonts.gstatic.com']) {
+      assert.equal(read(file).includes(host), false, `${file}: ${host}`);
+    }
   }
   for (const font of [
     'inter-latin.woff2',
