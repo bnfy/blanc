@@ -77,6 +77,13 @@ try {
   electron.context().setDefaultNavigationTimeout(15000);
   electron.process().stderr.on('data', data => { errors = (errors + data).slice(-16000); });
   console.log('uBO test Electron PID', electron.process().pid);
+  electron.process().once('exit', (code, signal) => console.log('uBO fixture process exit:', { stage, code, signal }));
+  await electron.evaluate(({ app, BrowserWindow }) => {
+    for (const event of ['before-quit', 'window-all-closed', 'will-quit']) app.on(event, () => console.log('uBO fixture app lifecycle:', event));
+    const observe = win => { const id = win.id; win.on('closed', () => console.log('uBO fixture window closed:', id)); };
+    for (const win of BrowserWindow.getAllWindows()) observe(win);
+    app.on('browser-window-created', (_event, win) => observe(win));
+  });
   await popupFocusTrace.install(electron);
   await electron.firstWindow();
   await electron.evaluate(({ app, webContents }) => {
@@ -432,6 +439,7 @@ try {
   await dashboard.locator('[data-pane="settings.html"]').dispatchEvent('click');
   const settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'backup settings');
   stage = 'backup and restore';
+  stage = 'backup import and native reload';
   const backupFile = path.join(dir, 'ubo-backup.txt');
   await electron.evaluate(({ session }, savePath) => {
     session.defaultSession.once('will-download', (_event, item) => item.setSavePath(savePath));
@@ -709,7 +717,7 @@ try {
   console.log('uBO fixture performance:', JSON.stringify(timing));
 } catch (error) {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
-  console.error('uBO test failure:', error);
+  console.error('uBO test failure:', { stage, processExitCode: electron?.process().exitCode, processSignal: electron?.process().signalCode }, error);
   if (electron) console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
   console.error('Subscription response revisions:', subscriptionResponses);
   if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => {
