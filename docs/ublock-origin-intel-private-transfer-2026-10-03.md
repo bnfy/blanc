@@ -11,7 +11,7 @@ To close that gap without exporting an Apple key, the proposed transfer is:
 1. Create an **unpublished draft** named `ubo-private-intel-1273-0872ed72`, bound
    to source `0872ed7225d3561e98fdee2f80cee1d12a72af09`. Upload only the reviewed
    `Blanc-1.27.0.dmg`; no updater metadata or public version tag is created.
-2. Run `.github/workflows/ublock-installed-mac-signed.yml` on the PR branch.
+2. Run `.github/workflows/ublock-origin.yml` with `installed_signed_intel=true` on the PR branch.
    Its native Intel runner authenticates the download and pins the exact DMG,
    executable and ASAR hashes. It installs from the read-only DMG, checks the
    pinned Developer ID, Gatekeeper, ticket, fuses and uBO bytes, then runs the
@@ -41,3 +41,8 @@ to the exact question covering this temporary unpublished draft, native Intel
 test and removal of the draft, asset and temporary tag. This supersedes the
 normal no-release-object rule only for the transfer described above. Public
 publication, CodeQL deferral and platform acceptance gates remain unchanged.
+
+GitHub cannot dispatch a new workflow absent from the default branch. The
+prepared job therefore uses the existing uBO workflow with a separate explicit
+input. It retains the existing read-only repository token and has no publication
+step. Draft visibility will be checked by the actual download.
