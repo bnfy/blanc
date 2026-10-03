@@ -92,6 +92,15 @@ async function restartChoice(provider) {
   console.log('Installed provider restart:', provider);
   const oldPid = await pid();
   restartAttempt = { provider, oldPid };
+  if (process.platform === 'linux') {
+    try {
+      const imageDirectory = path.dirname(fs.readlinkSync(`/proc/${oldPid}/exe`));
+      const cwd = fs.readlinkSync(`/proc/${oldPid}/cwd`);
+      restartAttempt.workingDirectoryInsideImage = cwd === imageDirectory || cwd.startsWith(imageDirectory + '/');
+      restartAttempt.outerLauncherSelected = path.extname(executable) === '.AppImage';
+      console.log('AppImage restart metadata:', JSON.stringify(restartAttempt));
+    } catch { restartAttempt.launchMetadataUnavailable = true; }
+  }
   await clickWhenSettled(chrome.locator('#pillShield'), 'Island shield');
   const overlay = await at('blanc-chrome://overlay/');
   await overlay.locator('#shieldPopChangeProvider').click();
@@ -187,7 +196,7 @@ try {
     report.checks.lastWindowExit = true;
   }
   report.passed = true;
-} catch (error) { console.error('Installed uBO failure at:', stage, error); console.error('Packaged launch output:', app?.output()); report.failure = { stage, name: error.name };
+} catch (error) { console.error('Installed uBO failure at:', stage, error); console.error('Packaged launch output:', app?.output()); report.failure = { stage, name: error.name, ...(typeof error.message === 'string' && /^ubo-[a-z-]+$/.test(error.message) ? { code: error.message } : {}) };
   if (restartAttempt) {
     report.restartFailure = { ...restartAttempt, oldProcessAlive: alive(restartAttempt.oldPid), matchingProcesses: matchingProcesses() };
     console.error('Installed restart observation:', JSON.stringify(report.restartFailure));

@@ -577,6 +577,7 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             BLANC_UBLOCK_EVIDENCE="$PWD/dist/ublock-installed-linux.json" \
+            BLANC_UBLOCK_NATIVE_LOG="$PWD/dist/ublock-installed-linux-native.log" \
             dbus-run-session -- xvfb-run -a npm run test:ublock:installed
 
       - name: Verify candidate uBO scripting policy from actual AppImage bytes
@@ -631,6 +632,7 @@ jobs:
           path: |
             dist/ublock-noscript-linux.json
             dist/ublock-installed-linux.json
+            dist/ublock-installed-linux-native.log
 
       - name: Upload private Linux validation artifact
         if: ${{ inputs.mode == 'validation' }}
