@@ -505,71 +505,53 @@ const structuredData = {
         </div>
       </div>
     </section>
-    <section class="beat" id="privacy" aria-labelledby="privacy-title">
+    <section class="beat privacy-section" id="privacy" aria-labelledby="privacy-title">
       <div class="frame">
         <div class="frame-inner">
-          <p class="frame-kicker">Privacy and control</p><h2 id="privacy-title">
-            See the controls.<br />Make the choice.
-          </h2><p class="lead">
-            Ad and tracker blocking is built into Blanc. Open the shield to
-            inspect the current site and change its blocking setting.
-          </p><div class="privacy-layout">
-            <figure>
-              <div class="privacy-study" data-blocking="on">
-                <div class="privacy-orbit" aria-hidden="true">
-                  <svg
-                    viewBox="0 0 80 80"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    ><path
-                      d="M40 8 65 18v20c0 17-12 28-25 35C27 66 15 55 15 38V18Z"
-                    ></path><path d="m23 56 34-36"></path></svg>
-                </div><div class="blocking-panel">
-                  <div class="blocking-panel-head">
-                    <div>
-                      <strong>example.com</strong><p>
-                        Ad &amp; tracker blocking <b id="blocking-label">on</b>
-                      </p>
-                    </div><button
-                      type="button"
-                      role="switch"
-                      aria-checked="true"
-                      aria-label="Preview blocking for example.com"
-                      id="blocking-preview"><span></span></button>
-                  </div><p class="connection-state">
-                    <span aria-hidden="true">⌑</span> Uses HTTPS
-                  </p><p id="blocking-count">3 requests blocked</p><small
-                    >Changing this reloads the page in Blanc.</small
-                  ><a href="/trust#ad-blocking">Blocking details →</a>
+          <div class="privacy-intro">
+            <header class="privacy-heading">
+              <p class="frame-kicker">Privacy and control</p>
+              <h2 id="privacy-title">Your blocking.<br />Your choice.</h2>
+              <p class="lead">Choose Blanc Blocker or uBlock Origin, behind Blanc’s new Horizon Shield.</p>
+            </header>
+            <figure class="horizon-study" aria-labelledby="horizon-caption">
+              <div class="horizon-stage" aria-hidden="true">
+                <div class="horizon-light"></div>
+                <div class="horizon-turn">
+                  <img class="horizon-face horizon-front" src="/horizon-shield.webp" alt="" width="960" height="960" loading="lazy" decoding="async" />
+                  <img class="horizon-edge" src="/horizon-shield.webp" alt="" width="960" height="960" loading="lazy" decoding="async" />
+                  <img class="horizon-face horizon-back" src="/horizon-shield.webp" alt="" width="960" height="960" loading="lazy" decoding="async" />
                 </div>
-              </div><figcaption class="caption">
-                Try the site switch. An illustration with a sample count; it
-                doesn’t change this website.
-              </figcaption>
-            </figure><div class="privacy-copy">
-              <article>
-                <h3>Direct site controls.</h3><p>
-                  Check the connection, blocking state and per-page count in one
-                  place.
-                </p>
-              </article><article>
-                <h3>Clear privacy choices.</h3><p>
-                  Open a private tab when you choose. Optional connections start
-                  only after you save your setup choices. Enabled usage
-                  measurement sends pseudonymous launch and fixed feature-use
-                  events to Blanc’s collector, with an optional Google Analytics
-                  mirror; no URLs, searches or page contents.
-                </p>
-              </article>
+                <div class="horizon-shadow"></div>
+              </div>
+              <figcaption id="horizon-caption">Horizon Shield</figcaption>
+            </figure>
+            <div class="blocking-options">
+              <div class="blocking-option">
+                <h3>Blanc Blocker</h3>
+                <p>Ad and tracker blocking is built into Blanc. Open the shield to inspect the current site and change its blocking setting.</p>
+              </div>
+              <div class="blocking-option">
+                <h3>uBlock Origin</h3>
+                <p>For regular tabs, with its own settings, filter lists and request logger.</p>
+              </div>
+              <p class="blocking-provider-note">Private tabs use Blanc Blocker. Switching providers requires a restart; each keeps its own site settings.</p>
             </div>
-          </div><p class="material-limit">
-            Blocking reduces known ads and tracking; coverage is not universal.
-            Fresh setup preselects search suggestions and usage measurement.
-            Both can be turned off before saving or later in Settings. <a
-              href="/trust#connections"
-              >Connections, defaults and security evidence →</a>
-          </p>
+          </div>
+          <div class="privacy-disclosure">
+            <div>
+              <h3>Clear privacy choices.</h3>
+              <p>Open a private tab when you choose. Optional connections start only after you save your setup choices. Enabled usage measurement sends pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror; no URLs, searches or page contents.</p>
+            </div>
+            <p class="material-limit">
+              Blocking reduces known ads and tracking; coverage is not universal.
+              Fresh setup preselects search suggestions and usage measurement.
+              Both can be turned off before saving or later in Settings. <a
+                href="/trust#connections"
+                >Connections, defaults and security evidence →</a>
+              <a href="/trust#ad-blocking">Blocking details →</a>
+            </p>
+          </div>
         </div>
       </div>
     </section>

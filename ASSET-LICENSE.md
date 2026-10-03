@@ -31,6 +31,7 @@ Product marks:
 
 - `assets/horizon-shield.png` — layered gold Horizon Shield source artwork
 - `src/renderer/shield-horizon.png` — transparent Island toolbar export
+- `site/public/horizon-shield.webp` — transparent website export
 
 App-icon colorways:
 

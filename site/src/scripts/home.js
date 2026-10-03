@@ -1,3 +1,5 @@
+import "./horizon-shield.js";
+
 (() => {
   const body = document.body;
   const layoutAssets = {
@@ -547,20 +549,6 @@ document.querySelectorAll("[data-group-toggle]").forEach((button) =>
     panel.setAttribute("aria-hidden", String(expanded));
   }),
 );
-const blockingPreview = document.getElementById("blocking-preview");
-blockingPreview.addEventListener("click", () => {
-  const enabled = blockingPreview.getAttribute("aria-checked") !== "true";
-  blockingPreview.setAttribute("aria-checked", String(enabled));
-  document.querySelector(".privacy-study").dataset.blocking = enabled
-    ? "on"
-    : "off";
-  document.getElementById("blocking-label").textContent = enabled
-    ? "on"
-    : "off";
-  document.getElementById("blocking-count").textContent = enabled
-    ? "3 requests blocked"
-    : "Blocking paused for this site";
-});
 const gestureStage = document.querySelector(".gesture-stage");
 document.querySelectorAll("[data-gesture-preview]").forEach((button) =>
   button.addEventListener("click", () => {

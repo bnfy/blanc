@@ -16,7 +16,7 @@ const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '�
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
-test('the website claim ledger resolves to the current public release and contains no publication blockers', () => {
+test('the public-release claim ledger resolves to v1.26.0; release-gated launch claims are tracked separately', () => {
   assert.equal(ledger.publicRelease, 'v1.26.0');
   assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.sourceSha);
   assert.ok(ledger.claims.length > 200);

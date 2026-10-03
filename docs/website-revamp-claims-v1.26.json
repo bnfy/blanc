@@ -3,7 +3,7 @@
   "publicRelease": "v1.26.0",
   "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
   "websiteBaseline": "ea73189cedea7c632629dbcc855c0fde5e28effa",
-  "scope": "Production website revamp: rendered homepage, retained pages, consolidated Support and Trust. The previous ledger remains immutable history. Formatting-only wording changes are recorded against the new source.",
+  "scope": "Production website revamp: rendered homepage, retained pages, consolidated Support and Trust. The previous ledger remains immutable history. Formatting-only wording changes are recorded against the new source. Release-gated Horizon Shield/provider launch claims are deliberately separate in docs/website-blocking-launch.json.",
   "releaseEvidence": "docs/release-incidents/2026-10-02-v1.26.0.md",
   "evidenceResolution": "Every evidence path below is at the immutable publicRelease tag, not the website working tree. Qualifications apply to each entry via its evidenceGroups and must travel with the relevant capability on the destination guide.",
   "prohibitedClaims": [
@@ -4651,64 +4651,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-026",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "See the controls. Make the choice.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-027",
       "source": "site/src/pages/index.astro",
       "exactWording": "Ad and tracker blocking is built into Blanc. Open the shield to inspect the current site and change its blocking setting.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-028",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Ad & tracker blocking on",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-029",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Try the site switch. An illustration with a sample count; it doesn’t change this website.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-030",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Direct site controls.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-031",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Check the connection, blocking state and per-page count in one place.",
       "subject": "Blanc",
       "evidenceGroups": [
         "security",
@@ -8211,6 +8156,66 @@
       ],
       "verdict": "qualified",
       "migration": "The detached historical workspace screenshot and caption were removed from the redesigned homepage Patron offer. Named Workspaces capability, membership boundaries and historical capture provenance remain in consolidated Support and the capture manifest."
+    },
+    {
+      "id": "revamp-copy-026",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "See the controls. Make the choice.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the illustrative per-site switch with the release-gated Horizon Shield and provider launch design. Current site controls remain documented in Trust. Candidate claims are recorded separately in docs/website-blocking-launch.json."
+    },
+    {
+      "id": "revamp-copy-028",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Ad & tracker blocking on",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the illustrative per-site switch with the release-gated Horizon Shield and provider launch design. Current site controls remain documented in Trust. Candidate claims are recorded separately in docs/website-blocking-launch.json."
+    },
+    {
+      "id": "revamp-copy-029",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Try the site switch. An illustration with a sample count; it doesn’t change this website.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the illustrative per-site switch with the release-gated Horizon Shield and provider launch design. Current site controls remain documented in Trust. Candidate claims are recorded separately in docs/website-blocking-launch.json."
+    },
+    {
+      "id": "revamp-copy-030",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Direct site controls.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the illustrative per-site switch with the release-gated Horizon Shield and provider launch design. Current site controls remain documented in Trust. Candidate claims are recorded separately in docs/website-blocking-launch.json."
+    },
+    {
+      "id": "revamp-copy-031",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Check the connection, blocking state and per-page count in one place.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the illustrative per-site switch with the release-gated Horizon Shield and provider launch design. Current site controls remain documented in Trust. Candidate claims are recorded separately in docs/website-blocking-launch.json."
     }
   ]
 }
