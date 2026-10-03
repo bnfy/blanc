@@ -147,6 +147,11 @@ function shieldProviderModel(status, privateTab = false) {
     else if (status?.phase === 'initializing') detail = `${label(active)} is starting…`;
     // A pending choice never establishes that the current provider is
     // filtering. Preserve failure/disable/startup guidance alongside restart.
+    if (status?.fallback === 'manifest-v2-retired') {
+      const current = !unavailable && !off && status.phase === 'ready'
+        ? 'Blanc Blocker is protecting this tab.' : detail;
+      detail = `This browser engine can’t run uBlock Origin. ${current} Your uBO settings are saved.`;
+    }
     if (status?.restartPending) {
       const current = !unavailable && !off && status.phase === 'ready'
         ? `${label(active)} is still active.` : detail;
@@ -154,13 +159,14 @@ function shieldProviderModel(status, privateTab = false) {
     }
   }
   return {
-    active, selected, hidden: status?.exposed === false, disabled: privateTab || !status || status?.exposed === false,
+    active, selected, choice: status?.fallback && !privateTab ? active : selected,
+    restartPending: !privateTab && status?.restartPending === true, hidden: status?.exposed === false, disabled: privateTab || !status || status?.exposed === false,
     activeLabel: status?.enabled === false ? 'Off' : privateTab || status?.phase === 'ready' ? 'Active' : status?.phase === 'initializing' ? 'Starting' : 'Unavailable',
     ublockAvailable: !privateTab && status?.supported === true,
     canOpenUblock: active === 'ublock-origin' && status?.phase === 'ready',
     detail,
     availability: !privateTab && status?.exposed !== false && status?.supported === false
-      ? 'uBlock Origin is unavailable on this build.' : '',
+      ? status?.fallback ? '' : 'uBlock Origin is unavailable on this build.' : '',
     scope: privateTab || status?.exposed === false ? '' : 'Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.\nEach blocker keeps its own site settings.',
   };
 }

@@ -14,3 +14,12 @@ test('dependency updates and build overrides cannot silently invalidate uBO supp
   const changed = structuredClone(metadata); changed.devDependencies.electron = '^44.6.0';
   assert.throws(() => verifyRuntimePins({ metadata: changed, lock, matrix }), /specification drift/);
 });
+
+test('runtime capability is explicit and a retired runtime cannot advertise uBO support', () => {
+  const missing = structuredClone(matrix); delete missing.manifestV2;
+  assert.throws(() => verifyRuntimePins({ metadata, lock, matrix: missing }), /declare.*Manifest V2/);
+  const retired = structuredClone(matrix); retired.manifestV2 = 'retired';
+  verifyRuntimePins({ metadata, lock, matrix: retired });
+  retired.platforms['darwin-arm64'].enabled = true;
+  assert.throws(() => verifyRuntimePins({ metadata, lock, matrix: retired }), /retired Manifest V2 cannot enable/);
+});

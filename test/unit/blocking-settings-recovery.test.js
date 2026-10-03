@@ -22,3 +22,26 @@ test('Settings exposes Retry and Continue for Blanc startup failure without expo
   assert(!element('blockingProviderStatus').textContent.includes('uBlock'));
   assert.equal(element('blockingRecovery').hidden, true);
 });
+
+test('Settings explains retired MV2 without promising protection when blocking is off or failed', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
+  const render = source.match(/const renderBlocking = \(state\) => \{[\s\S]*?\n    \};/)[0];
+  const elements = new Map();
+  const element = id => { if (!elements.has(id)) elements.set(id, { hidden: false, textContent: '', querySelector: () => ({}) }); return elements.get(id); };
+  const context = { document: { getElementById: element }, selector: element('adblockProvider'), label: id => id === 'blanc' ? 'Blanc Blocker' : 'uBlock Origin' };
+  vm.runInNewContext(render + '\nthis.render = renderBlocking;', context);
+  const state = { active: 'blanc', selected: 'ublock-origin', fallback: 'manifest-v2-retired', exposed: true, supported: false, phase: 'ready', enabled: true, restartPending: false };
+  context.render(state);
+  assert.equal(context.selector.value, 'blanc');
+  assert.match(element('blockingProviderStatus').textContent, /Blanc Blocker is active/);
+  assert.match(element('blockingProviderStatus').textContent, /Your uBO settings are saved/);
+  assert.equal(element('ublockTools').hidden, true);
+  assert.equal(element('blockingRecovery').hidden, true);
+  context.render({ ...state, enabled: false });
+  assert.match(element('blockingProviderStatus').textContent, /Blocking is off/);
+  assert(!element('blockingProviderStatus').textContent.includes('is active'));
+  context.render({ ...state, phase: 'failed', error: 'blanc-initialization-failed' });
+  assert.match(element('blockingProviderStatus').textContent, /Blanc Blocker could not continue/);
+  assert.equal(element('blockingRecovery').hidden, false);
+  assert.equal(element('ublockRetry').textContent, 'Retry Blanc Blocker');
+});

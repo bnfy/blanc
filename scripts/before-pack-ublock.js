@@ -8,7 +8,8 @@ module.exports = function beforePackUblock(context) {
   if ((metadata.blancUblockInternalValidation || context.packager.info.metadata.blancUblockInternalValidation) && !internal) throw new Error('uBlock internal validation marker forbidden in public build');
   const gate = require('../ublock/distribution.json');
   const cleared = gate.cleared && gate.assessment && gate.correspondingSource && gate.noticeReview;
-  const bundled = internal || !!cleared;
+  const retired = require('../src/main/ublock-platforms.json').manifestV2 === 'retired';
+  const bundled = !retired && (internal || !!cleared);
   context.packager.config.extraMetadata = { ...metadata, blancUblockBundled: bundled, ...(internal ? { blancUblockInternalValidation: true } : {}) };
   Object.assign(context.packager.info.metadata, context.packager.config.extraMetadata);
   if (bundled) {

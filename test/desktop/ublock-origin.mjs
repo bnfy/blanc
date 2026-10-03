@@ -108,8 +108,11 @@ try {
   const dashboardId = (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id;
   await call('blockingOpen', 'dashboard');
   assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes('/dashboard.html')).map(tab => tab.id), [dashboardId], 'repeat dashboard actions reuse the owning profile tab');
-  assert.equal(await dashboard.frameLocator('#iframe').locator('[data-setting-name="cloudStorageEnabled"]').isDisabled(), true);
-  assert.equal(await dashboard.frameLocator('#iframe').locator('[data-setting-name="prefetchingDisabled"]').isDisabled(), true);
+  // Upstream enables/disables these controls after its asynchronous settings
+  // response; visible HTML alone does not establish that initialization ended.
+  await waitForValue(async () => Promise.all(['cloudStorageEnabled', 'prefetchingDisabled'].map(name =>
+    dashboard.frameLocator('#iframe').locator(`[data-setting-name="${name}"]`).isDisabled())),
+  disabled => disabled.every(Boolean), 'unsupported controls disabled after settings response', 5000);
   await dashboard.locator('[data-pane="1p-filters.html"]').dispatchEvent('click');
   const filters = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'original My filters');
   await filters.locator('.CodeMirror').waitFor();
@@ -334,6 +337,12 @@ try {
     }
   }
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id);
+  // The original popup can reload an existing dashboard to its requested URL.
+  // Its tab-click handlers are installed only after async dashboardConfig and
+  // the initial pane selection; static navigation HTML is not readiness.
+  await dashboard.waitForLoadState('load');
+  await dashboard.locator('.tabButton.selected').waitFor();
+  await dashboard.frameLocator('#iframe').locator('body').waitFor();
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
   await lists.locator('#autoUpdate').waitFor();
@@ -776,6 +785,10 @@ try {
 } catch (error) {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
   console.error('uBO test failure:', { stage, processExitCode: electron?.process().exitCode, processSignal: electron?.process().signalCode }, error);
+  if (electron) console.error('Dashboard state:', await electron.evaluate(async ({ webContents }) => {
+    const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/dashboard.html'));
+    return wc?.executeJavaScript(`({ hash: location.hash, ready: !document.body.classList.contains('notReady'), selected: document.querySelector('.tabButton.selected')?.dataset.pane, frame: document.querySelector('#iframe')?.contentWindow.location.pathname, unsavedPrompt: document.querySelector('#unsavedWarning')?.classList.contains('on'), unsaved: document.querySelector('#iframe')?.contentWindow.hasUnsavedData?.() })`);
+  }).catch(() => null));
   if (electron) console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
   console.error('Subscription response revisions:', subscriptionResponses);
   if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => {

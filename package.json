@@ -21,6 +21,7 @@
     "test:unit": "node --test test/unit/*.test.js",
     "test:shield-provider:desktop": "node test/desktop/shield-provider.mjs",
     "test:ublock:desktop": "node test/desktop/ublock-origin.mjs",
+    "test:ublock-retirement:desktop": "node test/desktop/ublock-retirement.mjs",
     "ublock:check": "node scripts/check-ublock-package.cjs && node scripts/build-ublock-adaptation.cjs",
     "ublock:distribution": "node scripts/check-ublock-distribution.cjs",
     "test:mouse-gestures:desktop": "node test/desktop/mouse-gestures.mjs",

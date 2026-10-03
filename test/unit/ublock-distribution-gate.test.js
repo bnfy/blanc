@@ -5,12 +5,13 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../../scripts/before-pack-ublock.js'), 'utf8');
-function pack({ internal = false, configuration = {}, embedded = {}, gate = {}, runtime = require('../../src/main/ublock-platforms.json').electron, files = require('../../package.json').build.files.slice() } = {}) {
+function pack({ retired = false, internal = false, configuration = {}, embedded = {}, gate = {}, runtime = require('../../src/main/ublock-platforms.json').electron, files = require('../../package.json').build.files.slice() } = {}) {
   const checked = [];
   const module = { exports: {} };
   vm.runInNewContext(source, { module, process: { env: internal ? { BLANC_UBLOCK_INTERNAL_BUILD: '1' } : {} },
     require: name => {
       if (name === '../ublock/distribution.json') return gate;
+      if (name === '../src/main/ublock-platforms.json') return { manifestV2: retired ? 'retired' : 'supported' };
       if (name === './check-capture-preloads.cjs') return {};
       if (name === './check-ublock-runtime.cjs') return require('../../scripts/check-ublock-runtime.cjs');
       if (name === 'app-builder-lib/out/util/config/config') return require(name);
@@ -124,4 +125,12 @@ test('signed bundled candidates require concrete clearance even when every publi
     assert(build.env.BLANC_UBLOCK_INTERNAL_BUILD.includes('inputs.ublock_candidate'), job);
     assert(workflow.jobs[job].needs.includes('validate-inputs'), job);
   }
+});
+
+test('retired MV2 releases omit the unusable extension even with previous distribution clearance', () => {
+  const candidate = pack({ retired: true, gate: { cleared: true, assessment: true, correspondingSource: true, noticeReview: true } });
+  candidate.execute();
+  assert.equal(candidate.context.packager.info.metadata.blancUblockBundled, false);
+  assert.equal(candidate.checked.length, 0);
+  assert(candidate.context.packager.config.files.every(set => set.filter.includes('!ublock{,/**/*}')));
 });

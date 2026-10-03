@@ -98,7 +98,9 @@ Electron's [extension documentation](https://www.electronjs.org/docs/latest/api/
 explicitly lists MV2 background support today; no durable retention commitment
 has been found. Any Electron update must update the reviewed runtime record and
 pass the real blocking/tools suite on every enabled platform before release.
-An unsupported combination must preserve local settings/recovery access and
+A reviewed release that retires native MV2 support must activate Blanc Blocker
+for existing uBO selections while preserving their saved settings. Other
+unsupported combinations and runtime failures retain local recovery access and
 require the user to choose another provider or explicitly continue unfiltered.
 Never hold back Chromium security updates indefinitely to keep MV2 alive.
 
@@ -230,3 +232,69 @@ separate from the two-second background-decision failure policy, which remains
 fail closed. A fallback must identify the effective provider, retain separate
 uBO configuration and respect the global blocking switch; it must not silently
 substitute a provider or replay POST pages.
+
+
+## Reviewed MV2 retirement and current candidate work
+
+The owner confirmed availability to test macOS, Windows and Linux. This is
+availability, not installed-candidate acceptance; no signed uBO candidate has
+been cleared for distribution. FSF ticket #2769466 still contains only its
+automated acknowledgment as of this check.
+
+The official-runtime matrix now explicitly records `manifestV2: supported`.
+A future reviewed runtime can declare `retired` only with all uBO platform
+flags disabled. The build excludes the obsolete extension, and an existing uBO
+selection starts Blanc Blocker for normal and private tabs. The stored uBO
+selection and configuration stay intact; no page reload, POST replay or site
+exception migration occurs. The global blocking-off setting is respected.
+Shield and Settings explain the effective provider, and the chooser does not
+ask for a futile restart. Blanc initialization failures retain Retry/Continue.
+This fallback is never inferred from a request timeout, package corruption,
+background failure or mismatched runtime record; those keep their existing
+failure/recovery behavior. Electron 44.5.1 remains marked supported.
+
+The new `test:ublock-retirement:desktop` suite launches the complete app in a
+fresh profile with a process-local retired matrix, without adding a production
+test override. On official Electron 44.5.1/macOS arm64 it proved startup-gate
+release, real Blanc request cancellation before fixture-server receipt in both
+normal and private tabs, no native uBO background, the shield explanation and
+Done button, unchanged saved uBO selection, and a successful network control
+after explicitly turning global blocking off. The same suite is wired into all
+four native CI jobs. These are development tests, not installed acceptance.
+
+The Windows failure at `d0414522` occurred because the test checked unsupported
+controls immediately after their static HTML appeared, before uBO's asynchronous
+settings response disabled them. The assertion now waits for both controls to
+actually be disabled, with a bounded deadline. No production permission policy
+or request deadline changed. The later unchanged-code head `42f9fc45` passed
+all four native suites and ordinary packaging in
+[run 37143598478](https://github.com/bnfy/blanc/actions/runs/37143598478).
+The current fallback changes still require their own exact-commit CI result.
+
+Local fallback follow-up: lint, substrate, upstream/adaptation pins and the
+full unit suite passed (2,170 tests), with the two Settings recovery cases also
+passing after the added retirement assertion. Distribution, platform enablement
+and CodeQL decisions remain unchanged.
+
+
+The local shield and dashboard suites passed. One main desktop run timed out
+selecting Filter lists after repeated original-popup Dashboard navigation; the
+next run passed. Inspection showed the test could click static navigation
+before the reloaded dashboard installed its async handlers. The fixture now
+waits for initial pane selection and loaded frame content, retains bounded
+failure diagnostics, and is being rerun. No production handler or test deadline
+was weakened. This failed attempt is retained rather than counted as a pass.
+
+The [component rebuild evidence](evidence/2026-10-03-ubo-component-rebuilds/README.md)
+now binds js-beautify's exact normalized output and CSS Tree's one-byte version
+metadata difference to their pinned preferred sources and compiler lockfiles.
+That closes specific source-build uncertainties, not the licensing decision.
+
+
+The subsequent local run stopped earlier because a native outside key-down
+arrived on the chrome WebContents while the popup was loading; the bounded focus
+trace records dismissal from `wirePopupDismissal` while the provider remained
+ready. This is the intended outside-input behavior, not evidence of a provider
+failure. Do not suppress that production policy to make automation pass. The
+isolated hosted jobs must validate the final readiness correction; the earlier
+complete local core run passed but does not certify that correction.

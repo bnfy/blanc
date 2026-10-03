@@ -63,3 +63,15 @@ reproduction for CSS Tree, js-beautify and HSLuv, font input provenance and
 complete component notices remain open. The host/native SDK boundary and reserved
 artwork terms also remain separate licensing questions. No distribution gate,
 platform enable flag or component buildReproduced field was cleared.
+
+
+## Preferred-source follow-up
+
+[Durable component rebuild evidence](evidence/2026-10-03-ubo-component-rebuilds/README.md)
+now reproduces js-beautify from its locked source build with one final LF,
+and maps CSS Tree's entire implementation to its locked ES module build with
+only the preserved CDN comment and a one-byte embedded version difference.
+The raw and shipped digests, compiler/minifier versions and exact normalization
+are retained in results.json. CSS Tree is not claimed as an unmodified exact
+rebuild; HSLuv's compiler rebuild remains unperformed. No clearance field or
+upstream executable byte was changed.

@@ -330,3 +330,18 @@ test('the active tab and the popover report the same connection', () => {
     assert.equal(popover.connection, serialized[0].connection);
   }
 });
+
+test('MV2 retirement identifies the effective blocker without a futile restart or loss of the saved choice', () => {
+  const state = { active: 'blanc', selected: 'ublock-origin', phase: 'ready', enabled: true, supported: false, fallback: 'manifest-v2-retired', restartPending: false };
+  const model = shieldProviderModel(state);
+  assert.equal(model.active, 'blanc'); assert.equal(model.selected, 'ublock-origin');
+  assert.equal(model.choice, 'blanc'); assert.equal(model.restartPending, false);
+  assert.match(model.detail, /Blanc Blocker is protecting/);
+  assert.match(model.detail, /uBO settings are saved/);
+  assert.equal(model.canOpenUblock, false); assert.equal(model.ublockAvailable, false);
+  for (const update of [{ enabled: false }, { phase: 'initializing' }, { phase: 'failed' }]) {
+    assert(!shieldProviderModel({ ...state, ...update }).detail.includes('is protecting'));
+  }
+  const privateTab = shieldProviderModel(state, true);
+  assert.equal(privateTab.choice, 'blanc'); assert(!privateTab.detail.includes('settings are saved'));
+});

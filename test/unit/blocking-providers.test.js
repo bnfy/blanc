@@ -162,3 +162,72 @@ test('ordinary packages hide uBO unless a prior selection needs recovery', () =>
   preferences.adblockProvider = 'ublock-origin';
   assert.equal(manager.status('default').exposed, true);
 });
+
+function retiredManager({ runtime = '44.5.1', enabled = true } = {}) {
+  const operations = [];
+  const preferences = { adblockProvider: 'ublock-origin', adblockEnabled: enabled };
+  const startup = { phase: 'initializing' };
+  const module = { exports: {} };
+  const builtin = {
+    attachAdBlockerToSession: (session, options) => operations.push({ session, enabled: options.enabled }),
+    detachAdBlockerFromSession() {}, providerForSession: session => session,
+    setAdBlockEnabled: value => operations.push({ enabled: value }), coordinator: { setProvider() {} },
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
+    module, process: { env: { BLANC_UBLOCK_TEST: '1' }, platform: 'darwin', arch: 'arm64', versions: { electron: runtime } },
+    require: name => {
+      if (name === 'electron') return { app: { isPackaged: true, getAppPath: () => '/fixture' } };
+      if (name === '../../package.json') return { blancUblockBundled: false };
+      if (name === './adblock') return builtin;
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', manifestV2: 'retired', platforms: { 'darwin-arm64': { enabled: false } } };
+      if (name === './ublock-provider') return { createUblockProvider() { throw new Error('retired runtime must not load uBO'); } };
+      return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
+    },
+  });
+  const manager = module.exports.createBlockingProviders({ settings: { getSettings: () => preferences }, hooks: { startupStatus: () => startup } });
+  return { manager, preferences, operations, startup };
+}
+test('reviewed MV2 retirement attaches Blanc to every session while preserving the saved uBO selection', async () => {
+  const { manager, preferences, operations, startup } = retiredManager();
+  const sessions = { personal: { normal: {}, private: {} }, work: { normal: {}, private: {} } };
+  await manager.attachAll(Object.keys(sessions), id => sessions[id]);
+  assert.equal(manager.active, 'blanc');
+  assert.equal(manager.status('personal').phase, 'initializing');
+  startup.phase = 'ready';
+  const state = manager.status('personal');
+  assert.equal(state.fallback, 'manifest-v2-retired');
+  assert.equal(state.selected, 'ublock-origin'); assert.equal(state.active, 'blanc');
+  assert.equal(state.restartPending, false); assert.equal(state.supported, false);
+  assert.equal(state.phase, 'ready');
+  assert.equal(preferences.adblockProvider, 'ublock-origin');
+  for (const [profileId, owned] of Object.entries(sessions)) {
+    for (const privateTab of [false, true]) {
+      const session = privateTab ? owned.private : owned.normal;
+      assert.equal(manager.effectiveForTab({ profileId, private: privateTab }), session);
+      assert(operations.some(op => op.session === session && op.enabled === true));
+    }
+    assert.equal(manager.forTab({ profileId, private: false }), null);
+  }
+  startup.phase = 'failed';
+  assert.equal(manager.status('personal').phase, 'failed', 'Blanc startup failure is not presented as protection');
+});
+test('retirement honors global-off and switching permanently to Blanc needs no restart', async () => {
+  const { manager, preferences, operations, startup } = retiredManager({ enabled: false });
+  await manager.attach('personal', { normal: {}, private: {} });
+  assert(operations.every(op => op.enabled === false));
+  assert.equal(manager.status('personal').enabled, false);
+  startup.phase = 'disabled';
+  assert.equal(manager.status('personal').phase, 'disabled');
+  preferences.adblockProvider = 'blanc';
+  manager.setEnabled(false);
+  assert.equal(manager.status('personal').restartPending, false);
+  assert.equal(manager.status('personal').fallback, null);
+  preferences.adblockEnabled = true; manager.setEnabled(true);
+  assert.equal(operations.at(-1).enabled, true);
+});
+test('a retirement declaration for another runtime cannot mask an unreviewed runtime or initialization failure', async () => {
+  const { manager } = retiredManager({ runtime: '99.0.0' });
+  assert.equal(manager.active, 'ublock-origin');
+  assert.equal(manager.status('personal').fallback, null);
+  await assert.rejects(manager.attach('personal', { normal: {}, private: {} }), /ubo-platform-unverified/);
+});

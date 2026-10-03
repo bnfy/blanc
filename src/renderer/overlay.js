@@ -1763,8 +1763,8 @@
     shieldPopLabel.textContent = 'Ad & tracker blocking';
     shieldPopOnOff.textContent = v.variant === 'ublock' ? '' : v.on ? 'on' : 'off';
     const controls = v.controls;
-    shieldPop.dataset.restartPending = String(controls.selected !== controls.active);
-    for (const input of shieldPopProvider.querySelectorAll('input')) input.checked = input.value === (shieldChoosing ? shieldDraft : controls.selected);
+    shieldPop.dataset.restartPending = String(controls.restartPending);
+    for (const input of shieldPopProvider.querySelectorAll('input')) input.checked = input.value === (shieldChoosing ? shieldDraft : controls.choice);
     shieldPopProvider.disabled = controls.disabled || shieldSaving;
     shieldPopChangeProvider.hidden = controls.hidden === true;
     shieldPopChangeProvider.disabled = controls.disabled;
@@ -1829,7 +1829,7 @@
     if (!controls || controls.disabled) return;
     resetShieldChoice();
     shieldChoosing = true;
-    shieldDraft = controls.selected;
+    shieldDraft = controls.choice;
     renderShieldPop();
     (shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopProvider.querySelector('input:not(:disabled)') || shieldPopBack).focus();
   });

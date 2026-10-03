@@ -85,7 +85,7 @@
     const renderBlocking = (state) => {
       if (!state) return;
       document.getElementById('blockingProviderSetting').hidden = state.exposed === false;
-      selector.value = state.selected;
+      selector.value = state.fallback ? state.active : state.selected;
       selector.querySelector('[value="ublock-origin"]').disabled = !state.supported;
       const status = document.getElementById('blockingProviderStatus');
       status.textContent = state.restartPending
@@ -95,6 +95,11 @@
           : state.phase === 'unsupported'
             ? `uBlock Origin unavailable: ${state.reason}.`
             : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
+      if (state.fallback === 'manifest-v2-retired') {
+        const protection = state.enabled && state.phase === 'ready' ? 'Blanc Blocker is active.'
+          : state.enabled ? status.textContent : 'Blocking is off.';
+        status.textContent = `This browser engine can’t run uBlock Origin. ${protection} Your uBO settings are saved.`;
+      }
       if (state.internalCandidate) status.textContent += ' Internal validation candidate; platform support is not certified.';
       const ubo = state.active === 'ublock-origin';
       document.getElementById('ublockTools').hidden = !ubo;

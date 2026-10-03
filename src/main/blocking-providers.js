@@ -8,9 +8,13 @@ const { isBrowserResource } = require('./blocking-resources');
 const { createUblockProvider } = require('./ublock-provider');
 
 function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) {
-  const active = settings.getSettings().adblockProvider;
+  const requested = settings.getSettings().adblockProvider;
+  // Retirement is an explicit release decision for this exact official
+  // runtime, never inferred from an initialization error or decision timeout.
+  const retired = matrix.manifestV2 === 'retired' && matrix.electron === process.versions.electron;
+  const active = retired && requested === 'ublock-origin' ? 'blanc' : requested;
   let lastEnabled = settings.getSettings().adblockEnabled;
-  let lastSelected = active;
+  let lastSelected = requested;
   const diagnostics = [];
   const profiles = new Map();
   const sessions = new Map();
@@ -19,7 +23,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   const internalCandidate = app.isPackaged && metadata.blancUblockInternalValidation === true;
   const test = !app.isPackaged && process.env.BLANC_UBLOCK_TEST === '1';
   const platform = matrix.platforms[`${process.platform}-${process.arch}`];
-  const supported = !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
+  const supported = !retired && !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
   function status(profileId) {
     const provider = profiles.get(profileId)?.provider;
     const selected = settings.getSettings().adblockProvider;
@@ -28,9 +32,11 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     const builtinPhase = ['ready', 'failed', 'initializing'].includes(startup?.phase) ? startup.phase
       : ['disabled', 'continued', 'skipped'].includes(startup?.phase) ? 'disabled' : 'initializing';
     return {
-      selected, active, restartPending: selected !== active,
+      selected, active, restartPending: (retired && selected === 'ublock-origin' ? 'blanc' : selected) !== active,
+      fallback: retired && selected === 'ublock-origin' ? 'manifest-v2-retired' : null,
       exposed: !app.isPackaged || internalCandidate || bundled && Object.values(matrix.platforms).some(value => value.enabled) || selected === 'ublock-origin' || active === 'ublock-origin',
-      internalCandidate, supported, reason: supported ? null : platform?.reason || 'Runtime/platform acceptance pending',
+      internalCandidate, supported, reason: retired ? 'This browser engine no longer supports Manifest V2 extensions'
+        : supported ? null : platform?.reason || 'Runtime/platform acceptance pending',
       enabled: settings.getSettings().adblockEnabled,
       ...provider?.status(),
       phase: active === 'ublock-origin' ? provider?.status().phase ?? (supported ? (startupFailed ? 'failed' : 'initializing') : 'unsupported') : builtinPhase,
@@ -118,7 +124,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     // the verified principal only to erase its native store; no website views
     // remain, and filtering selection is unchanged. Failure retains the
     // existing crash-resumable deletion marker rather than claiming success.
-    if (!provider && bundled && fs.existsSync(destination)) {
+    if (!provider && bundled && !retired && fs.existsSync(destination)) {
       if (!owned) throw new Error('ubo-deletion-session-unavailable');
       builtin.detachAdBlockerFromSession(owned.normal);
       provider = createUblockProvider({ session: owned.normal, profileId, hooks });
@@ -127,7 +133,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       sessions.set(profileId, owned);
       builtin.coordinator.setProvider(owned.normal, provider);
     }
-    // An ordinary build may omit uBO altogether. Profile deletion still clears
+    // A retired runtime cannot load uBO; an ordinary build may omit it altogether. Profile deletion still clears
     // both entire native sessions in main; no absent extension is loaded just
     // to erase data, and the durable deletion marker covers that storage step.
     if (provider) { await provider.eraseStorage(); provider.dispose(); }
