@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { hash, readVerifiedPackage } = require('../src/main/ublock-package');
+if (require.main === module) require('./check-ublock-runtime.cjs').checkRuntime();
 const root = path.join(__dirname, '..', 'ublock');
 function enumerate(directory, prefix = '') {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {

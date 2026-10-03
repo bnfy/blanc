@@ -239,3 +239,66 @@ are observable lifecycle conditions rather than retries or arbitrary sleeps.
 The native blur policy, production filtering deadlines and all tool assertions
 remain unchanged. Local shield and core suites passed; final-revision hosted
 confirmation is required and recorded in the PR body.
+
+
+## Second external review: packaging, preloads and profile readiness
+
+The later review against `4a98a36b` correctly identified that the original
+packaging verification was insufficient. Checking only for absence of uBO did
+not prove that the desktop allowlist survived builder normalization. A bare
+exclusion matcher triggered electron-builder's default `**/*` inclusion.
+
+- The hook now uses the installed builder's normalization and appends exclusions
+  only within existing positive FileSets. Missing/exclusion-only allowlists fail
+  explicitly. The regression runs `getMainFileMatchers` on the real package
+  configuration and rejects docs, tests, site, marketing, iOS and dotfiles.
+  A separate after-pack ASAR inventory rejects unexpected first-party files.
+  An actual ordinary macOS ASAR contained 334 first-party files (20,474,760 bytes),
+  no uBO payload, and passed the allowlist, blocker, capture and compliance hooks.
+  The internal ASAR also passed the inventory and exact uBO payload checks.
+  Both unsigned inspection builds stopped at the unchanged after-sign provisioning
+  gate; neither is installed-candidate/signing evidence.
+- Capture scope wrappers now reside under `src/main/` inside the signed ASAR.
+  They are reproducibly generated from the unchanged locked macOS/Windows/Linux
+  implementations. Startup and package checks compare their exact bytes; writable
+  user-data preload files are never registered. Tests reject wrapper/source
+  corruption and prove extension documents cannot run the capture relay. Original
+  runtime pins and implementations are unchanged; native media acceptance remains
+  a platform release gate.
+- `ublock:check` binds the matrix to package.json and the installed-runtime entry
+  in package-lock.json. Bundled candidates additionally check the builder's
+  actual framework version, including overrides. Version drift fails build/CI
+  checks before a mismatched candidate can ship. Public platform flags stay off.
+- Newly opened profile sessions hold GET navigation until their own provider is
+  ready. Failure retains the gate; successful retry or explicit disabling releases
+  GETs. POSTs are never replayed. Replay revalidates profile, private state, current
+  WebContents and document generation. Profile deletion drops its pending queue.
+  Concurrent attachments await the same initialization. The real uBO suite now
+  opens a new named profile with an HTTP home page and proves its first page
+  reaches the fixture server once, rather than landing on a blocked error page.
+- Blanc sessions retain the three request/header callbacks required by filtering,
+  CSP and independent browser policies. The five observation listeners are now
+  registered only for uBO, and removed by their coordinator on provider teardown.
+  Browser policies survive. Three nested tab-query lookups in main were replaced
+  with direct identity/projection reads.
+
+Local evidence: focused security/lifecycle checks, lint, pinned uBO/adaptation
+checks, and real-blocking first-profile navigation passed. The full suite before
+observation optimization passed 2,118 tests; final-head results are recorded below
+when available. The preceding `e3c0502d` native run `37125520066` passed macOS ARM,
+macOS Intel and Windows, but Linux timed out on the first shield click. This was
+not the earlier popup-close failure. Shield fixtures now await actual page commit
+instead of accepting an initially false loading flag, and include bounded geometry
+and overlay-mode diagnostics on failure. This does not certify the Linux issue as
+resolved. Final native validation remains pending.
+
+
+Final focused checks included a 256-entry navigation bound and stale-view pruning.
+The local suite passed 2,121 tests before that small bound addition; its focused
+regressions passed afterward. Substrate, lint, dashboard and shield passed. A
+later core run reproduced popup closure immediately after focus while uBO stayed
+ready. Fixture diagnostics now include fixed close/IPC labels and numeric main
+call sites to identify the closure cause; a subsequent core run passed, which is
+not proof of resolution. The completed external review at `e3c0502d` adds further
+findings, including CSS probe timing, WebSockets and profile startup failure
+isolation. Those are being verified and are not cleared by this commit.

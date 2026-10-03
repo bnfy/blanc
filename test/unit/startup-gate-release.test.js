@@ -26,6 +26,7 @@ function load({ tabList, queued, deferredWakes = [], blockerAttached = true, ses
   const guarded = [];
   const ungated = [];
   const sandbox = {
+    profileNavigationGates: { reconcile() {}, owns: () => false },
     tabs: new Map(tabList.map((tab, index) => [`t${index}`, tab])),
     startupQueuedNavigations: new Map(queued),
     startupNavigationGateActive: true,

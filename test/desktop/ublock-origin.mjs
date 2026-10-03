@@ -355,9 +355,15 @@ try {
   console.log('uBO lifecycle passed; exercising profiles and restart persistence');
   stage = 'profiles and OAuth';
   const primaryRuntime = (await call('windowRuntimes'))[0].id;
+  const initialProfileUrl = fixture + '?named-profile-first-load';
+  await call('setHomePage', initialProfileUrl);
   const named = await call('createProfileWindow', 'uBO isolated profile');
+  await call('setHomePage', '');
   assert(named.ok);
   await waitForValue(() => call('blockingStatusInWindow', named.runtimeId), state => state.phase === 'ready', 'named profile ready', 20000);
+  const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness');
+  await initialProfilePage.waitForFunction(() => window.fixtureAllowed === true);
+  assert.equal(hits.filter(url => url === '/?named-profile-first-load').length, 1, 'first profile GET must reach the server once after readiness');
   await call('blockingOpenInWindow', named.runtimeId, 'dashboard');
   const namedDashboard = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/dashboard.html') && item !== dashboard), Boolean, 'named dashboard');
   assert.equal(new URL(namedDashboard.url()).host, new URL(dashboard.url()).host, 'profiles share the pinned extension identity');

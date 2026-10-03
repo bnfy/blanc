@@ -1372,6 +1372,17 @@ let activeTabHandoffRequest = null;
 // offline filter failure always has a usable recovery surface.
 let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
+const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
+  coordinator: blockingCoordinator, queued: startupQueuedNavigations,
+  resolveContents: id => {
+    const tab = tabs.get(tabIdByWebContentsId.get(id));
+    const wc = liveContents(tab);
+    return wc && wc.id === id ? { tab, wc } : null;
+  },
+  ready: profileId => blockingProviders?.status(profileId).phase === 'ready',
+  enabled: () => settings.getSettings().adblockEnabled,
+  startupActive: () => startupNavigationGateActive,
+});
 
 function installStartupNavigationGate(sessions) {
   startupNavigationGateActive = true;
@@ -1406,13 +1417,16 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
     }
   }
 
+  profileNavigationGates.reconcile();
+
   const deferredWakes = [...pendingWakes];
   pendingWakes.clear();
   for (const tabId of deferredWakes) wakeTab(tabId).catch(() => {});
 
   const queued = [...startupQueuedNavigations.entries()];
-  startupQueuedNavigations.clear();
   for (const [webContentsId, url] of queued) {
+    if (profileNavigationGates.owns(webContentsId)) continue;
+    startupQueuedNavigations.delete(webContentsId);
     // A throwing predicate does not skip an entry — it propagates out of find
     // and leaves every queued tab behind the startup gate. This two-step read
     // handles missing and already-destroyed views alike.
@@ -5151,11 +5165,11 @@ function noteUblockCreatedTarget(sourceContentsId, targetContentsId, url) {
   const source = tabs.get(tabIdByWebContentsId.get(sourceContentsId)) ?? ublockAuxiliaryTabs.get(sourceContentsId);
   const provider = blockingProviders?.forTab(source);
   if (!provider || provider.status().phase !== 'ready') return;
-  const sourceTab = provider.registry.query().find(item => provider.registry.fromContents(sourceContentsId)?.id === provider.registry.tabFor(item.id)?.id);
-  const targetTab = provider.registry.query().find(item => provider.registry.fromContents(targetContentsId)?.id === provider.registry.tabFor(item.id)?.id);
+  const sourceTab = provider.registry.idForTab(provider.registry.fromContents(sourceContentsId));
+  const targetTab = provider.registry.idForTab(provider.registry.fromContents(targetContentsId));
   if (!sourceTab || !targetTab) return;
   provider.emit('webNavigation.onCreatedNavigationTarget', {
-    sourceTabId: sourceTab.id, sourceFrameId: -1, tabId: targetTab.id,
+    sourceTabId: sourceTab, sourceFrameId: -1, tabId: targetTab,
     url, timeStamp: Date.now(),
   });
 }
@@ -5199,8 +5213,8 @@ initTabView({
   extensionContextItems: (tab, params) => {
     const provider = blockingProviders?.forTab(tab);
     if (!provider || provider.status().phase !== 'ready') return [];
-    const projected = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id);
-    if (!projected) return [];
+    if (provider.registry.idForTab(tab) === undefined) return [];
+    const projected = provider.registry.project(tab);
     const contents = liveContents(tab); const generation = tab.navEpoch; const menuFrame = params.frame || contents?.mainFrame;
     return [...provider.menus.values()].filter(item => require('./ublock-host-policy').contextMenuMatches(item, params)).map(item => ({
       id: item.id, label: String(item.title || '').slice(0, 200),
@@ -5283,7 +5297,7 @@ initTabView({
   recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
   sanitizeCertificate,
   certificateErrorQuery,
-  isStartupGateActive: () => startupNavigationGateActive,
+  isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
   onMainFrameCommit,
   noteWakeSuppressed,
@@ -8098,6 +8112,7 @@ async function clearNamedProfileSessions(profileId) {
   for (const window of BrowserWindow.getAllWindows()) {
     if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
   }
+  profileNavigationGates.forget(profileId);
   await blockingProviders?.dispose(profileId, owned);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),
@@ -8440,6 +8455,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
     },
     onStateChange: () => {
+      profileNavigationGates.reconcile();
       forEachWindowRuntime(() => {
         liveUtilitySheet(rt())?.wc.send('pages:blocking:status', blockingProviders?.status(rt().profileId));
         if (rt().window && !rt().window.isDestroyed()) broadcastTabs();
@@ -8508,7 +8524,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const { scopedCapturePreload } = require('./scoped-session-preload');
     const capturePath = `src/main/${CAPTURE_RUNTIME.preload}`;
     const capturePreload = scopedCapturePreload({
-      sourceRoot: app.getAppPath(), userData: app.getPath('userData'), relativePath: capturePath,
+      sourceRoot: app.getAppPath(), relativePath: capturePath,
       pin: require('./capture-runtime-lock.json').files[capturePath],
     });
     for (const browsingSession of targetSessions) {
@@ -9234,7 +9250,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
     });
     if (adblockEngineReady) {
-      blockingProviders.attach(owned.profileId, owned).catch(() => {});
+      if (blockingProviders.active === 'ublock-origin') profileNavigationGates.hold(owned.profileId, owned.normal);
+      blockingProviders.attach(owned.profileId, owned).then(() => profileNavigationGates.reconcile(), () => {});
     }
     configuredProfileSessions.add(owned.profileId);
     return owned;

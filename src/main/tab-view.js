@@ -430,7 +430,7 @@ function wireTabView(tab, view, { owner, adopted }) {
       return;
     }
     if (errorCode === -3) return;
-    if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
+    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {
           url: validatedURL,

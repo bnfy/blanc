@@ -43,3 +43,8 @@ ublock/adaptation.patch -whitespace
 /ublock/adaptation.* text eol=lf
 
 /src/renderer/ublock-dashboard.css text eol=lf
+
+# Reproducible signed session-preload scope wrappers (original runtimes stay pinned).
+/src/main/scoped-capture-preload.js text eol=lf
+/src/main/scoped-capture-preload-linux.js text eol=lf
+/src/main/scoped-capture-preload-playout.js text eol=lf

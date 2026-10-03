@@ -85,7 +85,6 @@ function providerForSession(session) {
       if (event !== 'onBeforeRequest' && event !== 'onHeadersReceived') return {};
       return new Promise(resolve => blocker[event](details, resolve));
     },
-    observe() {},
     siteState: async tab => ({ enabled: !settings.getSettings().adblockExceptions.includes(blockableHostname(tab?.url)) }),
     setSite: async (_tab, url, value) => {
       const hostname = blockableHostname(url); if (!hostname) return;

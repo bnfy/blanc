@@ -10,7 +10,7 @@ function createBlockingCoordinator() {
   const sessions = new WeakMap();
   function ensure(session) {
     if (sessions.has(session)) return sessions.get(session);
-    const state = { provider: null, gate: null, beforeSendHeaders: null };
+    const state = { provider: null, gate: null, beforeSendHeaders: null, observing: false };
     sessions.set(session, state);
     for (const event of CALLBACK_EVENTS) {
       session.webRequest[event]({ urls: ['<all_urls>'] }, (details, callback) => {
@@ -30,16 +30,26 @@ function createBlockingCoordinator() {
         run().then(respond, () => respond({ cancel: true }));
       });
     }
-    for (const event of OBSERVE_EVENTS) {
-      session.webRequest[event]({ urls: ['<all_urls>'] }, details => {
-        Promise.resolve(state.provider?.observe?.(event, details)).catch(() => {});
-      });
-    }
     return state;
+  }
+  function setProvider(session, provider) {
+    const state = ensure(session);
+    state.provider = provider;
+    const observing = typeof provider?.observe === 'function';
+    if (observing === state.observing) return;
+    state.observing = observing;
+    // Only uBO needs the five observation stages. Blanc's network/CSP
+    // decisions and independent browser policies keep the three callbacks.
+    for (const event of OBSERVE_EVENTS) {
+      session.webRequest[event]({ urls: ['<all_urls>'] }, observing ? details => {
+        const current = state.provider;
+        Promise.resolve().then(() => state.provider === current && current?.observe?.(event, details)).catch(() => {});
+      } : null);
+    }
   }
   return {
     ensure,
-    setProvider: (session, provider) => { ensure(session).provider = provider; },
+    setProvider,
     setGate: (session, gate) => { ensure(session).gate = gate; },
     setBeforeSendHeaders: (session, policy) => { ensure(session).beforeSendHeaders = policy; },
   };

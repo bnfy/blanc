@@ -119,6 +119,8 @@ async function closeShield(overlay, key = false) {
 }
 async function fixture(privateTab = false) {
   const id = await call('openTab', url, { private: privateTab });
+  const page = await waitForValue(async () => (await electron.windows()).find(item => item.url() === url), Boolean, 'fixture navigation committed');
+  await page.getByText('Provider switching fixture', { exact: true }).waitFor();
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === id && !tab.isLoading), Boolean, 'fixture loaded');
   return id;
 }
@@ -426,7 +428,15 @@ try {
   console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, Done/back/close, saved and draft restart actions in both directions, original uBO popup and panel teardown, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
 } catch (error) {
   console.error('Shield stage:', stage, stderr, uiErrors);
-  if (electron) console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
+  if (electron) {
+    console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
+    console.error('Shield overlay mode:', await call('overlayMode').catch(() => 'unavailable'));
+    const chrome = (await electron.windows().catch(() => [])).find(page => page.url() === 'blanc-chrome://index/');
+    console.error('Shield geometry:', await chrome?.evaluate(() => ['islandPill', 'pillShield'].map(id => {
+      const element = document.getElementById(id); const css = getComputedStyle(element); const rect = element.getBoundingClientRect();
+      return { id, hidden: element.hidden, visibility: css.visibility, display: css.display, transform: css.transform, x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    })).catch(() => []));
+  }
   throw error;
 } finally {
   clearTimeout(watchdog);

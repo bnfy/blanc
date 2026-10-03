@@ -719,6 +719,7 @@ function install(refs) {
     // the bare global toggle this whole change exists to fix.
     toggleAdblock() { return runBlockAdsCommand(); },
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
+    setHomePage(url) { settings.setSettings({ homePage: url }); },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },

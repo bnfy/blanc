@@ -1,20 +1,25 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const { hash, installVerifiedFiles } = require('./ublock-package');
-
-// Preserve the platform capture implementation byte for byte. A separately
-// verified host wrapper only changes its document scope, avoiding execution
-// of website instrumentation inside native extension pages/backgrounds.
-function scopedCapturePreload({ sourceRoot, userData, relativePath, pin }) {
-  const source = fs.readFileSync(path.join(sourceRoot, relativePath));
-  if (hash(source) !== pin) throw new Error('capture-preload-integrity');
-  const bytes = Buffer.concat([
+const crypto = require('node:crypto');
+const { captureRuntimeForPlatform } = require('./capture-platform');
+const allowed = new Set(['darwin', 'win32', 'linux'].map(platform => `src/main/${captureRuntimeForPlatform(platform).preload}`));
+function captureWrapperBytes(source) {
+  return Buffer.concat([
     Buffer.from("if (location.protocol !== 'chrome-extension:' && navigator.mediaDevices) {\n"), source, Buffer.from('\n}\n'),
   ]);
-  fs.mkdirSync(userData, { recursive: true, mode: 0o700 });
-  const destination = path.join(fs.realpathSync(userData), 'managed-session-preloads', path.basename(relativePath, '.js'));
-  installVerifiedFiles(new Map([['preload.js', bytes]]), destination);
-  return path.join(destination, 'preload.js');
 }
-module.exports = { scopedCapturePreload };
+function captureWrapperPath(relativePath) {
+  if (!allowed.has(relativePath)) throw new Error('capture-preload-path');
+  return `src/main/scoped-${path.basename(relativePath)}`;
+}
+// Both the locked implementation and its document-scope wrapper live in the
+// signed app. No executable preload is extracted to writable profile storage.
+function scopedCapturePreload({ sourceRoot, relativePath, pin }) {
+  const source = fs.readFileSync(path.join(sourceRoot, relativePath));
+  if (crypto.createHash('sha256').update(source).digest('hex') !== pin) throw new Error('capture-preload-integrity');
+  const destination = path.join(sourceRoot, captureWrapperPath(relativePath));
+  if (!fs.readFileSync(destination).equals(captureWrapperBytes(source))) throw new Error('capture-wrapper-integrity');
+  return destination;
+}
+module.exports = { scopedCapturePreload, captureWrapperBytes, captureWrapperPath };

@@ -3,7 +3,7 @@
 // Fixture-only, bounded native event history. Never records webpage URLs,
 // headers or bodies; managed tool names come from a fixed allowlist.
 async function install(electron) {
-  await electron.evaluate(({ app, webContents }) => {
+  await electron.evaluate(({ app, webContents, ipcMain }) => {
     const events = globalThis.fixturePopupFocusEvents = [];
     const seen = new WeakSet();
     const toolNames = new Set(['/popup-fenix.html', '/dashboard.html', '/logger-ui.html']);
@@ -16,16 +16,30 @@ async function install(electron) {
       } catch {}
       return { id: wc.id, type: wc.getType(), tool };
     };
+    const record = (wc, event, extra = {}) => {
+      events.push({ time: Date.now(), event, id: wc.id, source: describe(wc), focused: describe(webContents.getFocusedWebContents()), ...extra });
+      if (events.length > 64) events.shift();
+    };
     const watch = wc => {
       if (seen.has(wc)) return;
       seen.add(wc);
-      const id = wc.id;
+      for (const operation of ['focus', 'close']) {
+        const original = wc[operation];
+        wc[operation] = function(...args) {
+          const stack = new Error().stack || '';
+          const mainLines = [...stack.matchAll(/src[\\/]main[\\/]main\.js:(\d+):/g)].slice(0, 3).map(match => Number(match[1]));
+          record(wc, operation + '-call', { mainLines });
+          return original.apply(this, args);
+        };
+      }
       for (const name of ['focus', 'blur', 'did-finish-load', 'destroyed']) wc.on(name, () => {
-        events.push({ time: Date.now(), event: name, id, source: describe(wc), focused: describe(webContents.getFocusedWebContents()) });
-        if (events.length > 64) events.shift();
+        record(wc, name);
       });
     };
     for (const wc of webContents.getAllWebContents()) watch(wc);
+    ipcMain.on('ublock:popup', (event, value) => {
+      if (['close', 'back'].includes(value?.action)) record(event.sender, 'popup-ipc', { action: value.action });
+    });
     app.on('web-contents-created', (_event, wc) => watch(wc));
   });
 }

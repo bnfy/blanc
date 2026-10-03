@@ -68,6 +68,8 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       builtin.coordinator.setProvider(owned.normal, provider);
       provider.setEnabled(settings.getSettings().adblockEnabled);
       await provider.initialize();
+    } else if (profiles.get(profileId).provider.status().phase === 'initializing') {
+      await profiles.get(profileId).provider.initialize();
     } else if (profiles.get(profileId).provider.status().phase === 'failed') {
       await profiles.get(profileId).provider.retry();
     }
