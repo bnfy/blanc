@@ -13,6 +13,31 @@ function enumerate(directory, prefix = '') {
     return [{ path: name, size: bytes.length, sha256: hash(bytes) }];
   }).sort((a, b) => a.path.localeCompare(b.path, 'en'));
 }
+function sourceInputs(directory) {
+  const recordPath = 'preferred-sources.json';
+  const recordBytes = fs.readFileSync(path.join(directory, recordPath));
+  const record = JSON.parse(recordBytes);
+  if (record.format !== 1 || record.version !== '1.75.0' || !Array.isArray(record.components)
+    || record.components.length > 100) throw new Error('ubo-preferred-sources-invalid');
+  const sources = [
+    { path: 'sources/uBlock-1.75.0.tar.gz', url: 'https://codeload.github.com/gorhill/uBlock/tar.gz/refs/tags/1.75.0', sha256: 'a518c7d6e6b3f81d1a738befeb617abba59f93bd6b1e626da079a1003e9db52b' },
+    { path: 'LICENSE.txt', sha256: hash(fs.readFileSync(path.join(directory, 'LICENSE.txt'))) },
+    { path: recordPath, sha256: hash(recordBytes) },
+  ];
+  const seen = new Set(sources.map(source => source.path));
+  for (const component of record.components) {
+    const member = component.sourcePath;
+    if (typeof member !== 'string' || !/^sources\/[a-zA-Z0-9_.+-]+\.tar\.gz$/.test(member)
+      || seen.has(member) || !/^[a-f0-9]{40}$/.test(component.revision)
+      || !/^[a-f0-9]{64}$/.test(component.sha256)
+      || !/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(component.repository)
+      || component.url !== `https://codeload.github.com/${component.repository}/tar.gz/${component.revision}`
+      || hash(fs.readFileSync(path.join(directory, member))) !== component.sha256) throw new Error('ubo-preferred-source-integrity');
+    seen.add(member);
+    sources.push({ path: member, url: component.url, sha256: component.sha256 });
+  }
+  return sources;
+}
 if (process.argv.includes('--write')) {
   const pin = {
     format: 1, version: '1.75.0',
@@ -20,14 +45,14 @@ if (process.argv.includes('--write')) {
       url: 'https://github.com/gorhill/uBlock/releases/download/1.75.0/uBlock0_1.75.0.chromium.zip',
       sha256: '393cf95709d1074d4022970e9014e434395c53a822387f1e25f43be97cf4b582',
     },
-    sources: [
-      { path: 'sources/uBlock-1.75.0.tar.gz', url: 'https://codeload.github.com/gorhill/uBlock/tar.gz/refs/tags/1.75.0', sha256: 'a518c7d6e6b3f81d1a738befeb617abba59f93bd6b1e626da079a1003e9db52b' },
-      { path: 'LICENSE.txt', sha256: hash(fs.readFileSync(path.join(root, 'LICENSE.txt'))) },
-    ],
+    sources: sourceInputs(root),
     files: enumerate(path.join(root, 'upstream')),
   };
   fs.writeFileSync(path.join(root, 'pinned.json'), JSON.stringify(pin, null, 2) + '\n');
 }
 const verified = readVerifiedPackage(root);
+if (JSON.stringify(sourceInputs(root)) !== JSON.stringify(verified.pin.sources)) throw new Error('ubo-source-record-unlisted');
 if (JSON.stringify(enumerate(path.join(root, 'upstream'))) !== JSON.stringify(verified.pin.files)) throw new Error('ubo-package-unlisted');
 console.log('Verified uBlock Origin ' + verified.pin.version + ': ' + verified.files.size + ' pinned files and matching upstream source archive.');
+
+module.exports = { sourceInputs };

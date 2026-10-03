@@ -53,3 +53,13 @@ platforms; it contains no private key. The managed storage directory does not
 participate in the extension ID. This replaces the unpublished prototype's
 path-derived ID; existing prototype-only native extension stores are not a
 released migration baseline.
+
+
+`preferred-sources.json` now binds immutable CSS Tree 2.2.1, js-beautify 1.14.7
+and HSLuv 0.1.0 archives. Their full MIT license texts are at the archive root
+`LICENSE` paths; CSS Tree credits Roman Dvornov, js-beautify credits Einar
+Lielmanis/Liam Newman/contributors, and HSLuv credits Alexei Boronine/Florian
+Dormont. These inputs and the record itself are hash-checked by `pinned.json`.
+Running `check-ublock-package.cjs --write` preserves and verifies this inventory.
+Availability of these preferred sources does not establish exact build
+reproduction or close the remaining distribution assessment.

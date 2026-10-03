@@ -100,3 +100,30 @@ subscription-fixture failure. Fresh scan confirmation remains required.
 The cleanup marker still uses exclusive `wx` creation, covered by race/symlink
 regressions. The scan's continued finding is not a reason to revert that fix or
 to dismiss it without reviewing its path. No alert disposition changed.
+
+
+## Shipping follow-up from `4068f053`
+
+The current baseline is **39 open upstream alerts**, individually recorded with
+source digests in `ublock/codeql-baseline.json`. The first-party cleanup alert is
+resolved: `4068f053` claims the marker with one exclusive operation before
+cleanup, then removes it on failure so the next launch retries. This supersedes
+the earlier “written only after cleanup” wording above.
+
+Deployed adaptation hardening now covers parsed HTTP(S) navigation in click-to-load
+and strict-block pages (72–75, 86–89), allowed schemes for viewer/diff fetches
+(97–98), and a null-prototype reverse-lookup response (100). Tool handoffs (108,
+110) require a native-extension, single-use, current-document/frame-bound
+cryptographic capability. The original picker/inspector bootstrap rejects forged
+messages without consuming its listener. Focused tests execute these adapted
+functions and reject forged, sibling, stale, unmapped/private, disabled and
+replayed handoffs. The native picker remains functional while a hostile parent
+repeatedly transfers forged ports and receives no tool data. The original DOM
+inspector loads, populates its tree and reconnects after navigation. Its host
+port preserves message order, revalidates each message and bounds pending work.
+
+These are specific deployed mitigations, not upstream byte edits or GitHub
+alert dismissals. The remaining source-context findings still need individual
+completion/disposition. CodeQL continues to scan the complete original snapshot.
+See `ublock-origin-shipping-2026-10-03.md` for the candidate gates and licensing
+review questions.

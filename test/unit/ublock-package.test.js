@@ -93,7 +93,27 @@ test('adapted resource secrets and content session IDs use isolated cryptographi
 test('every byte-checked text host input and package record is LF-pinned for default Windows Git checkouts', () => {
   const { HOST_INPUTS } = require('../../src/main/ublock-package');
   const { execFileSync } = require('node:child_process');
-  const files = [...HOST_INPUTS.filter(name => /\.(js|css|json|svg|md|txt)$/.test(name)), ...['LICENSE.txt', 'pinned.json', 'README.md', 'source-audit.json', 'distribution.json', 'adaptation.json', 'adaptation.patch'].map(name => 'ublock/' + name)];
+  const files = [...HOST_INPUTS.filter(name => /\.(js|css|json|svg|md|txt)$/.test(name)), ...['LICENSE.txt', 'pinned.json', 'README.md', 'source-audit.json', 'preferred-sources.json', 'codeql-baseline.json', 'distribution.json', 'adaptation.json', 'adaptation.patch'].map(name => 'ublock/' + name)];
   const output = execFileSync('git', ['check-attr', 'eol', '--', ...files], { cwd: root, encoding: 'utf8' });
   for (const name of files) assert(output.includes(name + ': eol: lf'), name);
+});
+
+test('source inventory regeneration retains immutable component archives and rejects tampering', t => {
+  const { sourceInputs } = require('../../scripts/check-ublock-package.cjs');
+  const sources = sourceInputs(path.join(root, 'ublock'));
+  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0.tar.gz']) assert(sources.some(source => source.path === member), member);
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(),'ubo-source-record-'));
+  t.after(() => fs.rmSync(temporary,{recursive:true,force:true}));
+  fs.mkdirSync(path.join(temporary,'sources'));
+  fs.copyFileSync(path.join(root,'ublock/LICENSE.txt'),path.join(temporary,'LICENSE.txt'));
+  const record = JSON.parse(fs.readFileSync(path.join(root,'ublock/preferred-sources.json')));
+  record.components = [record.components[0]];
+  fs.copyFileSync(path.join(root,'ublock',record.components[0].sourcePath),path.join(temporary,record.components[0].sourcePath));
+  fs.writeFileSync(path.join(temporary,'preferred-sources.json'),JSON.stringify(record));
+  sourceInputs(temporary);
+  fs.writeFileSync(path.join(temporary,record.components[0].sourcePath),'altered');
+  assert.throws(() => sourceInputs(temporary), /preferred-source-integrity/);
+  record.components[0].sourcePath = '../escape.tar.gz';
+  fs.writeFileSync(path.join(temporary,'preferred-sources.json'),JSON.stringify(record));
+  assert.throws(() => sourceInputs(temporary), /preferred-source-integrity/);
 });

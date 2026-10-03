@@ -14,6 +14,25 @@
     {
       "path": "LICENSE.txt",
       "sha256": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
+    },
+    {
+      "path": "preferred-sources.json",
+      "sha256": "b67b84f37fb3bed43ecb54a8fd8678708adf674b4224f34167f8b7b3e0ccf1ff"
+    },
+    {
+      "path": "sources/css-tree-2.2.1.tar.gz",
+      "url": "https://codeload.github.com/csstree/csstree/tar.gz/50004d59219e5ea2ce709b323139ebea35b349cd",
+      "sha256": "390f9cf64fcaa40844464a0b7846e220300234c0293dc2b1438ed01f547ffb89"
+    },
+    {
+      "path": "sources/js-beautify-1.14.7.tar.gz",
+      "url": "https://codeload.github.com/beautifier/js-beautify/tar.gz/01c1c8982ce172ea251db832e4f5e385fb986ee1",
+      "sha256": "ab8dcf70a2969aa28d71d86e0eda478c405de091c6d9dde8a482bafc6f08538e"
+    },
+    {
+      "path": "sources/hsluv-0.1.0.tar.gz",
+      "url": "https://codeload.github.com/hsluv/hsluv/tar.gz/9cd8574fad8874828b3a8119843527d62d79887a",
+      "sha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee"
     }
   ],
   "files": [
