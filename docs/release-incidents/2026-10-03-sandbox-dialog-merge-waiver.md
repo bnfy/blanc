@@ -5,7 +5,7 @@ This records the merge gate for [PR #494](https://github.com/bnfy/blanc/pull/494
 Owner-assisted physical check at code commit `e8058f6bff60711cbbddf6b92c3a38009de0b243`, in Parallels Desktop on the owner's Mac:
 
 - The guest was Ubuntu 26.04 LTS on aarch64, GNOME on Wayland, with `kernel.apparmor_restrict_unprivileged_userns=1`, left unchanged. The AppImage was built in the guest from the exact commit with `npx electron-builder --linux AppImage --arm64 --publish never`. Its SHA-256, `2184fb09038d9b3b588e84864ece10a8f58f98a25ba4c91ae57dc1c432c15cdf`, was verified before and after testing.
-- A plain launch was refused because of the AppArmor restriction. The dialog showed exactly **Open Setup Guide** and **Quit**, with the correct URL.
+- A plain launch, with no switches added, was refused. The dialog showed exactly **Open Setup Guide** and **Quit**, with the correct URL. The run recorded the AppArmor restriction at `1` but did not isolate the cause of the refusal.
 - **Open Setup Guide** opened the guide in Firefox, and Blanc exited 1.
 - A launch with the guide URL as an argument showed only **Quit**, with the address to open in another browser. It exited 1 and opened nothing.
 - Escape closed the dialog, and Blanc exited 1.
@@ -21,7 +21,7 @@ Automated evidence at the same commit:
 
 - **A physical X11 desktop:** the three-button dialog and Copy Link were checked only on Xvfb.
 - **The shipped x86_64 AppImage on real hardware:** the physical check used an arm64 build of the same commit.
-- **Stock Ubuntu 24.04:** the Ubuntu 26.04 guest has the same AppArmor restriction enabled, but 24.04 itself wasn't tested.
+- **Stock Ubuntu 24.04:** not tested. The Ubuntu 26.04 guest's refusal doesn't establish how 24.04 behaves.
 
 Differences there could affect only the refusal dialog. At worst a button misbehaves, while the dialog still shows the setup URL and Blanc still prints it to standard error. These checks remain unverified, not passed.
 
