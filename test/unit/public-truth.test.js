@@ -17,7 +17,7 @@ test('expanded feature guides retain release limitations beside their benefits',
   const reopen = guide('reopen-closed-tabs');
   for (const limit of [/At most one eligible closed page per window/, /about 30 seconds/, /may reload/, /25 entries per window/, /one hour/, /Private tabs never enter Recently Closed/]) assert.match(reopen, limit);
   const workspaces = guide('workspaces');
-  assert.match(workspaces, /requires an active subscription/);
+  assert.match(workspaces, /requires an active Patron subscription/);
   assert.match(workspaces, /membership lapses, existing workspaces remain openable, switchable, and automatically updated/);
   assert.match(workspaces, /device-local and profile-scoped/);
   assert.match(workspaces, /do not sync across devices/);

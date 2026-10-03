@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "publicRelease": "v1.25.0",
-  "sourceSha": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
-  "websiteBaseline": "5b8fa03bda00cbd7fbcafba16384e63c7e85ff9a",
-  "scope": "Current website trust redesign. Earlier image captures retain their own release provenance; the hero uses public v1.25.0. Exact wording normalized without markup. October 2 messaging clarification covers the resting Island band, highlighted-result Enter behavior and fresh optional defaults.",
-  "releaseEvidence": "docs/release-incidents/2026-10-01-v1.25.0.md",
+  "publicRelease": "v1.26.0",
+  "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
+  "websiteBaseline": "d881ef778f4af29145ba24db7ee25c4480cfffbc",
+  "scope": "Current copy plus Reddit feedback clarification. Historical v1.25.0 and earlier captures and ledgers retain their original provenance.",
+  "releaseEvidence": "docs/release-incidents/2026-10-02-v1.26.0.md",
   "evidenceResolution": "Every evidence path below is at the immutable publicRelease tag, not the website working tree. Qualifications apply to each entry via its evidenceGroups and must travel with the relevant capability on the destination guide.",
   "prohibitedClaims": [
     "AI organization or automatic semantic grouping",
@@ -99,7 +99,7 @@
         "src/renderer/overlay.js",
         "test/unit/public-truth.test.js"
       ],
-      "qualification": "Public desktop v1.21.0 only. No AI or automatic semantic organization. Plus makes a regular ungrouped tab. Sunrise and Sunrise Dark app icons are macOS/free. Quiet eligible tabs release renderer memory and reload; this is not a CPU/battery/perfect-state promise. Sync is opt-in, Personal-only and remote tabs are read-only."
+      "qualification": "Public desktop v1.26.0 only. No AI or automatic semantic organization. Plus makes a regular ungrouped tab. Sunrise and Sunrise Dark app icons are macOS/free. Quiet eligible tabs release renderer memory and reload; this is not a CPU/battery/perfect-state promise. Sync is opt-in, Personal-only and remote tabs are read-only."
     },
     "sync": {
       "evidence": [
@@ -134,7 +134,7 @@
         "THIRD-PARTY-NOTICES.md",
         "bench/memory/README.md"
       ],
-      "qualification": "See docs/website-trust-claims-v1.25.md for each claim’s evidence and limits. Website opt-in behavior is a preview implementation, not an app-release claim. Captures remain version-labelled; memory figures are dated macOS runs; licensing is bounded, private tabs do not anonymize traffic, optional usage is pseudonymous and user choices stay device-local."
+      "qualification": "See docs/website-trust-claims-v1.26.md for each claim’s evidence and limits. Website opt-in behavior is a preview implementation, not an app-release claim. Captures remain version-labelled; memory figures are dated macOS runs; licensing is bounded, private tabs do not anonymize traffic, optional usage is pseudonymous and user choices stay device-local."
     },
     "wallpaper": {
       "evidence": [
@@ -160,9 +160,28 @@
         "src/renderer/overlay.js",
         "src/main/settings.js",
         "src/main/main.js",
-        "src/renderer/pages/onboarding.js"
+        "src/renderer/pages/onboarding.js",
+        "src/renderer/renderer.js"
       ],
       "qualification": "Public v1.25.0 reserves a 68px top band for the resting Island; the expanded panel overlays the page. For search text, Enter opens the highlighted result, which can be a strong local match; the exact-text web-search result is explicitly selectable. Address-shaped input navigates unless a result is explicitly selected. Provider suggestions are optional. Fresh suggestions and usage choices are preselected on, optional sends are gated until saving, and existing saved choices are retained. The website demo is a recreation."
+    },
+    "releaseAuthentication": {
+      "evidence": [
+        "scripts/release.sh",
+        "scripts/after-sign-verify.js",
+        ".github/workflows/release-windows-linux.yml",
+        "scripts/verify-release-manifest.mjs"
+      ],
+      "qualification": "Completed public verification is pinned separately to the post-release record revision. Authentication proves publisher/bytes, not independent audit or reproducible builds. Physical checks and waivers remain distinguished."
+    },
+    "process": {
+      "evidence": [
+        "docs/governance.md",
+        "docs/security-assessment.md",
+        "docs/security-reviews/2026-10-02-audit-readiness.md",
+        "cloudflare/sync-worker/src/index.js"
+      ],
+      "qualification": "Maintainer/internal evidence plus the owner-provided October 2 AI development-process statement; no independent audit completed or promised. Sync limits in source are undeployed; R3 and R5 remain open. This group does not imply a deployed-service/source match."
     },
     "onepassword": {
       "evidence": [
@@ -580,16 +599,6 @@
       "id": "website-115-050",
       "source": "site/src/pages/download.astro",
       "exactWording": "Optional Named Workspaces",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-051",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Blanc Patron lets you create and save named sets of tabs and groups. Existing workspaces remain usable after membership lapses; they stay on this device.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -1376,29 +1385,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-139",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "Named Workspaces is included with Blanc Patron on macOS, Windows, and Linux. Creating or saving a new workspace requires an active subscription.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-140",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Existing workspaces remain yours",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-141",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing them continue to work.",
       "subject": "Blanc",
       "evidenceGroups": [
         "workspaces"
@@ -2048,16 +2037,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-205",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "1Password login fill on macOS.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-206",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "Optional 1Password fill on macOS.",
@@ -2599,32 +2578,12 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-237",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Free for macOS, Windows and Linux. Patron is optional.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-238",
       "source": "site/src/pages/index.astro",
       "exactWording": "Blanc v1.25.0 on macOS. Real release captures with sample sites.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-239",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, search and commands in one place.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
       ],
       "verdict": "qualified"
     },
@@ -2741,39 +2700,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-251",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Browsing is free. Blanc’s own code is MIT licensed; names, logos and third-party material have separate terms. Optional Patron supports development and adds Named Workspaces.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-252",
       "source": "site/src/pages/index.astro",
       "exactWording": "Upgrade to{' '}Blanc Patron.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-253",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Keep sets of tabs and groups ready to switch between with Named Workspaces. Your subscription supports Blanc’s development.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-254",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -3024,16 +2953,6 @@
       "id": "trust-125-279",
       "source": "site/src/pages/faq.astro",
       "exactWording": "What does optional Patron add?",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-280",
-      "source": "site/src/pages/faq.astro",
-      "exactWording": "Blanc is free to browse. Patron costs US$30 per year or US$4 per month, plus applicable tax, and supports development. It adds the ability to create saved Named Workspaces containing sets of tabs and groups. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses; existing sets remain available.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -4225,6 +4144,1228 @@
       "verdict": "qualified"
     },
     {
+      "id": "reddit-393",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free browser. Patron adds saved Named Workspaces.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-394",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Optional wallpaper follows your local clock. This preview cycles faster through dawn, day, dusk and night in light and dark mode.Blanc v1.25.0 on macOS. Real release captures with sample sites.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-401",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Active Patron adds the ability to create saved Named Workspaces. Blanc’s own code is MIT licensed; names, logos and third-party material have separate terms.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-402",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc Patron is the optional subscription supporting Blanc’s development. Browsing essentials and ordinary tab groups are free; Patron adds saved Named Workspaces.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-403",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-404",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Download Blanc for macOS, Windows, or Linux.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-405",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Choose your desktop. Free browser. Patron adds saved Named Workspaces.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-406",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A compact everyday workflow",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-407",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Open your inbox and a few articles. Preview a tab’s dot, select it, then use the full list or Cmd/Ctrl+L to find an article by name. Save a Favorite, group related tabs, and use built-in blocking while you browse.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-408",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Check the integrations you rely on",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-409",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc has no general third-party extension runtime. Its optional, user-invoked 1Password bridge and device-bound Touch ID passkeys are macOS-only. Synced provider passkeys, including iCloud Keychain, are not supported. If your workflow depends on an extension, check that limitation before switching.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-410",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Free essentials; optional saved sets",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-411",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-412",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-413",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "See what changed in the latest release",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-414",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "What you're actually downloading.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-415",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "macOS, signed and notarized",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-416",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every macOS build is code-signed and notarized with Apple, so Gatekeeper verifies it before first launch. This applies to the macOS builds specifically.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-417",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Updates arrive in place",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-418",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Installed release builds check GitHub Releases and update themselves automatically — no separate updater, no account.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-419",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Bounded usage counts, with an off switch",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-420",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "On a fresh profile usage measurement is presented on, but nothing sends until you save the choice and you can turn it off before continuing. When enabled, Blanc counts launches, the first real Mahjong move, and which fixed start-page layouts render—never browsing history, URLs, searches, page content, game state, or private-tab feature activity. Read the privacy policy.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-421",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Check the publisher, not just the filename.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-422",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Public Windows releases are Authenticode-signed and the release pipeline refuses an unsigned installer. Windows should report the publisher named on the official release. Stop if the signature is absent, invalid, or names someone else. Download only here or from the official GitHub release; checksums, signature evidence, and an SBOM accompany new releases.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-423",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A smaller browser surface. The browser essentials, built in.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-424",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Tabs, navigation and page controls share a compact Island in a slim top band. Its expanded panel opens over the page.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-425",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc can block ads and known trackers without asking you to start with an extension.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-426",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Private activity stays out of Blanc history, session restore, and reopen-closed.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-427",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc Patron adds saved sets of tabs and groups on this device. Ordinary tab groups remain free.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-428",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every download button points to the latest Blanc release on GitHub. If your download does not start, open the release page.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-429",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Read how Blanc handles your data, verify a release, or email support@blancbrowser.com if you need a hand.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-430",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "independent by design",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-431",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "A browser with a studio accountable for it.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-432",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "A direct line to the person building it.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-433",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Independently controlled, without an ads business.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-434",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc has no venture funding and no investors setting its product agenda or exit timetable. It is not funded by selling ads or turning browsing activity into an audience product. That keeps the incentives simple: make a browser people want to keep using.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-435",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Human accountability, with AI assistance.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-436",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-437",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "No independent external security audit has been completed. The next step is preparing an audit scope and funding proposal; no audit date is promised. Read the audit status and verification evidence.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-438",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "The browser is complete without a subscription.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-439",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-440",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Questions reach a human.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-441",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Email support@blancbrowser.com, or see the public changelog for what shipped most recently.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-442",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Audit status and platform verification",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-443",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-444",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Is AI used to build or review Blanc?",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-445",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-446",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "Has Blanc had an independent security audit?",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-447",
+      "source": "site/src/pages/faq.astro",
+      "exactWording": "No independent external security audit has been completed. Public source, maintainer reviews, automated tests and authenticated release artifacts provide specific evidence; they do not substitute for an independent audit. The next step is preparing a scope and funding proposal, without promising a date.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-448",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. Named Workspaces are available on macOS, Windows and Linux.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-449",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-450",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Private by architecture.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-451",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc’s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-452",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "The shield shows blocking inside the browser. This illustration uses a sample count of two blocked requests.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-453",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "what runs, and what does not",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-454",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "The browser itself is the security layer.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-455",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blocking lives in the network layer.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-456",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Ad and tracker blocking runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. How blocking works.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-457",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Every page runs sandboxed.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-458",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Web pages run inside Chromium’s sandbox, isolated from the browser and from your files. Blanc’s own pages — settings, history, favorites — live on a privileged internal scheme that ordinary web content cannot link into, and the browser re-checks who is calling on every internal request.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-459",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "No extension runtime — on purpose.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-460",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-461",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "How Blanc handles sensitive data.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-462",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Sync the server cannot read.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-463",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Sync is off by default. Favorites, eligible settings, and optional open-tab snapshots are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-464",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Passkeys live in the Secure Enclave.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-465",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "On a Mac with Touch ID, Blanc creates device-bound passkeys inside Apple’s Secure Enclave. The private key never leaves the chip, and Blanc is signed with an Apple-issued Developer ID and provisioned to hold its own keychain access group. macOS only for now.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-466",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Permissions ask first.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-467",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Camera, microphone, location, notifications — each request raises a Blanc prompt, and each decision is remembered for that site. Decisions made in a private tab are never written to disk.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-468",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Usage measurement waits for your choice.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-469",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A fresh profile presents usage measurement on, but sends nothing until you save the choice and lets you turn it off before continuing. If left enabled, packaged builds count launches and a fixed allowlist of local feature actions using the narrow pseudonymous payload listed in the privacy policy—never URLs, searches, page content, game state, or private-tab feature activity. The choice stays device-local and can be switched off at any time.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-470",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Respecting the VPN you already chose.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-471",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "WebRTC stays in its lane.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-472",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "WebRTC can reveal network addresses that sidestep a proxy. Blanc limits it to your default connection by default, and an optional “disable direct UDP” mode blocks a specific direct-UDP path around an application proxy. It is not a promise of anonymity — it reduces one well-known proxy-bypass risk.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-473",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "DNS you can encrypt — or hand to your VPN.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-474",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc can send DNS lookups over an encrypted connection (DoH) to Cloudflare, Quad9, Mullvad, or a provider you name — or stay out of the way and leave DNS to your system or VPN. Encryption hides your lookups from the network in transit; it does not hide the sites themselves, and it makes the resolver a party you choose to trust. Automatic mode upgrades opportunistically and is not a guarantee.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-475",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A public security baseline.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-476",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc’s current OpenSSF self-assessment records all 24 Level 1 controls and all 19 Level 2 controls as met. The public record covers how the project handles source, changes, dependencies, vulnerability reports, build provenance, and releases.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-477",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Check that a download is really ours.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-478",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Every release ships its evidence.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-479",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc releases on GitHub include a SHA256SUMS manifest covering every artifact, a Sigstore bundle authenticating that manifest, a software bill of materials, and platform signatures — an Apple Developer ID on macOS, an Authenticode signature on Windows. Step-by-step verification instructions live in the repository.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-480",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "The signing identity, on the record.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-481",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Release manifests are signed keylessly via Sigstore. A genuine Blanc release verifies against exactly this identity and issuer — published here, independently of any release, so a tampered download cannot vouch for itself:",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-482",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "anthony@bnfy.me via https://github.com/login/oauth",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-483",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "public v1.26.0 · October 2, 2026",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-484",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Verify the package for your platform.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-485",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Developer ID signature, notarization, Gatekeeper assessment and the app’s stapled ticket.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-486",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Official DMG · Mac verification steps · v1.26.0 verification record",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-487",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Valid, timestamped Authenticode signature with the exact expected publisher; installer digest bound to windows-signature.json.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-488",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Official installer and signature report · Windows verification steps · v1.26.0 native checks",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-489",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "AppImage checksum authenticated by the Sigstore-signed SHA256SUMS manifest. Linux has no equivalent OS-level publisher signature here.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-490",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Official AppImage, manifest and Sigstore bundle · Manifest verification steps · v1.26.0 public-download checks",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-491",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "These checks authenticate the publisher and downloaded bytes. They do not establish that the application is free of security flaws or provide an independent review of its architecture. The release record distinguishes hosted checks, physical-machine confirmations and owner waivers.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-492",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "An external audit is still pending.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-493",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "No independent external security audit has been completed. Internal and AI-assisted security reviews are maintainer evidence. The next step is preparing a scope and funding proposal, without promising an audit date.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-494",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Known work belongs in the scope",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-495",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Sync v1 encrypts data, but possession of its account locator authorizes ciphertext retrieval, replacement and deletion. Concurrent writes and deletion can race. Merged request-size limits are not yet deployed. These unresolved findings remain part of the public maintainer assessment.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-496",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Private by architecture, not by magic.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-497",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "No browser can make you anonymous on its own. Blanc reduces what runs inside the browser and what leaves your device; it does not hide your traffic from your network, your employer, or your internet provider. If you use a VPN you trust, Blanc runs quietly underneath it.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-498",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "A quieter browser, with the quiet parts documented.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-499",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "A clearer control for a quieter site.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-500",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc’s own mark — opens direct controls for the site you are visiting.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-501",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "The shield opens site controls for the connection, blocking state and page count. This illustration uses a sample count of three blocked requests.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-502",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "the blocker is part of the browser",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-503",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Start protected, not set up.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-504",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Built around the web, not a browser store.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-505",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blanc Blocker loads its lists directly in the browser. You do not need to find, install, or manage an extension before browsing.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-506",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Know the site, not just the count.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-507",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Open the shield to see whether the page uses HTTPS and how many requests Blanc blocked. It reports only what the address proves, without turning the browser into a security dashboard.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-508",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Let a site through when you choose.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-509",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Need a site exception? Use the switch in the shield popover, or type /allow-ads. Blanc keeps the choice specific to that site instead of making it an all-or-nothing setting.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-510",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blocking is a strong default, not a guarantee.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-511",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blanc uses EasyList and EasyPrivacy to reduce ads and known tracking. No blocker can promise to remove every advertisement or tracker, and some sites may need an exception to work as intended.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-512",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "help improve coverage",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-513",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "An ad got through? Send a reproducible example.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-514",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Report a missed ad with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email support@blancbrowser.com.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-515",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Reports help distinguish filter coverage, a blocker integration defect and an ad format the blocker does not support. A report is closed with reproduction and verification evidence, or a documented limitation.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-516",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "built into every download",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-517",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Browse with less following you around.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "website-115-205",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "1Password login fill on macOS.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "trust-125-239",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, search and commands in one place.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
       "id": "messaging-125-016",
       "source": "site/src/scripts/demo.js",
       "exactWording": "Press Enter to open the highlighted match.",
@@ -4713,6 +5854,520 @@
         "onepassword"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "reddit-tab-discovery-final-1",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Preview a tab.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-tab-discovery-final-2",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Switch with a click.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-tab-discovery-final-3",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "See all your tabs.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-tabs-nojs-fallback",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Hover or focus a dot to preview a tab. Select it to switch. +N opens the full list.",
+      "claimType": "JavaScript-disabled fallback",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-demo-sample-label",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Illustrated demo · Sample tabs and counts",
+      "claimType": "illustration provenance label",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reddit-tabs-accessible-description",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Each dot is a tab. Hover to see its icon and title. Keyboard focus shows the icon; a screen reader announces the tab title. Click or press Enter to switch. +N opens the full list. Use Cmd+L on Mac or Ctrl+L on Windows and Linux to search tabs by name.",
+      "claimType": "accessible product navigation explanation",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Public v1.26.0 tabDot sets a title tooltip and an accessible Switch to title label; focus-visible reveals the favicon and the button activates on Enter. The description stays outside the inert replica and moves with the frame into the enlarged viewer."
     }
-  ]
+  ],
+  "completedReleaseEvidenceRevision": "8e48359fae44865857a5bd3a8a955af96af71650",
+  "supersededClaims": [
+    {
+      "id": "website-115-051",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "website-115-139",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "website-115-141",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "trust-125-237",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "trust-125-251",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "trust-125-253",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "trust-125-254",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "trust-125-280",
+      "historicalLedger": "docs/website-trust-claims-v1.25.json",
+      "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    }
+  ],
+  "supersededCandidateClaims": [
+    {
+      "id": "website-115-205",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Fill a login when you ask.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "trust-125-239",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "One floating island holds your tabs, search and browser commands, so the page stays in front.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "messaging-125-016",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Choose a match with Enter. The panel closes and your selected tab comes forward.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-518",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Hover or focus a dot to preview its favicon and title.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-519",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Select that dot to bring its tab forward.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-520",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Open +N to see the full tab list.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-521",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "One floating island holds your tabs, search and browser commands, so the page stays in front.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-522",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "The island stays fixed while you scroll, then meets you when the cursor moves close.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-523",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Open two tabs side by side with Glance: watch Netflix while the page you were reading stays open.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-524",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Drag the divider to resize the Glance split view until the balance feels right.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-525",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Make either tab the main page, swapping roles without closing a tab or losing its place.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-526",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "A noisy page before Blanc, competing with three separate ad placements.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-527",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Built-in ad blocking, one click away: the Blanc Blocker shield controls ads and known trackers for the current site.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-528",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "One per-site switch reloads the page with ads and known trackers blocked.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-529",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Without the ad layer, the ad slots collapse and the story returns to the foreground.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-530",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Type a slash to search browser commands, or search open tabs, groups, Favorites and history.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-531",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Browse every browser command, or start typing to narrow the directory to exactly what you need.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-532",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "One field searches your whole session: open tabs, tab groups, Favorites and history.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-533",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Organize tabs into named groups: right-click any tab to move it into a group or create a new one.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-534",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Existing named tab groups are direct choices in Move to Group.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-535",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Netflix joins Social, and the checkmark confirms the move; Remove from Group and New Group… stay in the same menu.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-536",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "New Group… opens the /group handoff to create a named tab group, still bound to Netflix.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-537",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Netflix moves into Watch; every other pin, group and loose tab stays put.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-538",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Patron members can save and reopen complete browser workspaces: a window with its tabs, pins and active page.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-demo-539",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Reopen the whole browser workspace and its tabs, pins and active page arrive together.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation",
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Candidate aligned with current published homepage refinement d881ef77; original wording retained here for traceability."
+    },
+    {
+      "id": "reddit-395",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Small dots, recognizable tabs.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner found the standalone homepage card confusing; replaced by a short caption attached to the product preview."
+    },
+    {
+      "id": "reddit-396",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "The demo shows the same three moves. These instructions stay visible with motion or JavaScript off.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner found the standalone homepage card confusing; replaced by a short caption attached to the product preview."
+    },
+    {
+      "id": "reddit-397",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Hover or keyboard-focus a dot in Blanc to reveal its favicon and title.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner found the standalone homepage card confusing; replaced by a short caption attached to the product preview."
+    },
+    {
+      "id": "reddit-398",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Click the dot, or press Enter while it is focused, to bring the page forward.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner found the standalone homepage card confusing; replaced by a short caption attached to the product preview."
+    },
+    {
+      "id": "reddit-399",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "When +N appears, it opens the full tab list. Click the address or press Cmd+L on Mac, Ctrl+L on Windows or Linux, to find tabs by name.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner found the standalone homepage card confusing; replaced by a short caption attached to the product preview."
+    },
+    {
+      "id": "reddit-400",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Illustrated interaction with sample sites, tab titles and blocker counts.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner requested demonstration through motion rather than added explanation; visible primer removed and discovery captions shortened."
+    },
+    {
+      "id": "reddit-tab-discovery-1",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Hover or focus a dot to preview its tab.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner requested demonstration through motion rather than added explanation; visible primer removed and discovery captions shortened."
+    },
+    {
+      "id": "reddit-tab-discovery-2",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Select the dot to switch tabs.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner requested demonstration through motion rather than added explanation; visible primer removed and discovery captions shortened."
+    },
+    {
+      "id": "reddit-tab-discovery-3",
+      "source": "site/src/scripts/demo.js",
+      "exactWording": "Open +N for the full tab list.",
+      "claimType": "illustrated product interaction",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner requested demonstration through motion rather than added explanation; visible primer removed and discovery captions shortened."
+    },
+    {
+      "id": "reddit-inline-tabs-explanation",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Each dot in the Island is a tab. Hover or focus one to see its icon and title, then select it to switch. When +N appears, it opens the full tab list.",
+      "claimType": "product navigation explanation",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Owner requested demonstration through motion rather than added explanation; visible primer removed and discovery captions shortened."
+    }
+  ],
+  "originalImplementationBaseline": "8e48359fae44865857a5bd3a8a955af96af71650"
 }

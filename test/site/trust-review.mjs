@@ -65,13 +65,15 @@ try {
     assert.equal(await page.locator('#demoScrubToggle').getAttribute('aria-label'),'Pause demo');
     await page.locator('#demoScrubToggle').press('Enter');
     assert.equal(await page.locator('#demoScrubToggle').getAttribute('aria-label'),'Play demo');
-    await page.goto(origin+'/how-it-works');
+    for(const route of ['/how-it-works','/','/download','/about','/faq','/features/workspaces','/features/security','/features/ad-blocking']) {
+    await page.goto(origin+route);
     for(const [width,height,zoom] of [[1280,900,1],[390,844,1],[1280,900,2]]) {
       await page.setViewportSize({width:Math.round(width/zoom),height:Math.round(height/zoom)});
       await app.evaluate(({BrowserWindow},{width,height,zoom})=>{const w=BrowserWindow.getAllWindows()[0];w.setContentSize(width,height);w.webContents.setZoomFactor(zoom);},{width,height,zoom});
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`No overflow at ${width}/${zoom}`);
-      await page.screenshot({path:path.join(output,`how-it-works-${width}-${zoom}.png`)});
+      await page.screenshot({path:path.join(output,`${route.replaceAll('/','_')||'home'}-${width}-${zoom}.png`)});
+    }
     }
     await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.setContentSize(390,844);w.webContents.setZoomFactor(1);});
     await page.setViewportSize({width:390,height:844});

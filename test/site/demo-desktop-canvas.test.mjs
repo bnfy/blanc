@@ -19,8 +19,8 @@ async function openPage(width, reducedMotion = 'reduce') {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(baseURL);
+  await page.getByRole('button', { name: 'Watch demo', exact: false }).click();
   await page.waitForFunction(() => Number(document.getElementById('demoFrame').style.getPropertyValue('--demo-scale')) > 0);
-  await page.getByRole('button', { name: 'No thanks', exact: true }).click();
   return { page, errors };
 }
 
@@ -80,7 +80,9 @@ test('mobile demo captions use their content height without an empty spacer abov
           const frame = document.querySelector('.demo-showcase').getBoundingClientRect();
           const message = document.getElementById('demoHeroMessage').getBoundingClientRect();
           const title = document.getElementById('demoHeadline').getBoundingClientRect();
-          return { blankHeight: message.height - title.height, topGap: title.top - frame.top, overflow: document.documentElement.scrollWidth > innerWidth };
+          const note = document.getElementById('demoSceneNote');
+          const contentBottom = note.hidden ? title.bottom : note.getBoundingClientRect().bottom;
+          return { blankHeight: message.height - (contentBottom - title.top), topGap: title.top - frame.top, overflow: document.documentElement.scrollWidth > innerWidth };
         });
         assert.ok(geometry.blankHeight < 1, `${width}px chapter ${option}: no reserved blank caption space`);
         assert.ok(geometry.topGap <= 34, `${width}px chapter ${option}: compact top padding, got ${geometry.topGap}`);
@@ -164,19 +166,13 @@ test('website palette, text contrast, and ink footer symbols hold across pages a
 
 test('gold marks remain visible with reduced motion and mobile navigation stays usable', async () => {
   const { page } = await openPage(1440);
-  const mark = page.locator('.hero-sunrise-mark');
-  const markStyle = () => mark.evaluate(element => {
-    const s = getComputedStyle(element);
-    return { background: s.backgroundImage, mask: s.maskImage, animation: s.animationName, transform: s.transform };
-  });
+  const mark = page.locator('.trust-hero-mark');
   try {
-    await mark.hover();
-    assert.deepEqual(await markStyle(), {
-      background: `url("${baseURL}/sunrise-hero-mark.png")`, mask: 'none', animation: 'none', transform: 'none',
-    });
+    assert.equal(await mark.getAttribute('src'), '/sunrise-hero-mark.png');
+    await page.waitForFunction(() => document.querySelector('.trust-hero-mark').naturalWidth > 0);
+    assert.equal(await mark.isVisible(), true);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.waitForFunction(() => getComputedStyle(document.querySelector('.hero-sunrise-mark')).transform.startsWith('matrix(1.18,'));
-    assert.equal((await markStyle()).animation, 'none');
+    assert.equal(await mark.isVisible(), true);
     const navBrand = page.locator('.site-brand');
     await navBrand.hover();
     await page.waitForFunction(() => getComputedStyle(document.querySelector('.site-brand'), '::after').opacity === '1');
@@ -200,7 +196,7 @@ test('gold marks remain visible with reduced motion and mobile navigation stays 
     assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').opacity), '0');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    assert.equal(await mark.isVisible(), false);
+    assert.equal(await mark.isVisible(), true);
     assert.equal(await page.locator('.site-brand-mark').evaluate(el => getComputedStyle(el).maskImage), 'none');
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
     assert.equal(await page.locator('#siteMobileMenu').isVisible(), true);
@@ -216,18 +212,28 @@ test('gold marks remain visible with reduced motion and mobile navigation stays 
   } finally { await page.close(); }
 });
 
-const chapters = ['the island', 'glance split view', 'ad blocker', 'browser commands', 'tab groups', 'workspaces'];
+const chapters = ['Finding your tabs', 'the island', 'glance split view', 'ad blocker', 'browser commands', 'tab groups', 'workspaces', '1Password (macOS)'];
 test('each chapter keeps its desktop geometry and captures at phone widths', { timeout: 60000 }, async () => {
   const baseline = new Map();
   for (const width of [1440, 320, 390, 430]) {
     const { page, errors } = await openPage(width);
     try {
       assert.equal(await page.locator('#demoEnlarge').isVisible(), width > 640);
+      assert.equal(await page.locator('.tab-explainer').count(),0,'text fallback is reserved for JavaScript-disabled visitors');
       for (const chapter of chapters) {
         if (width <= 640) await page.getByLabel('Demo chapter', { exact: true }).selectOption({ label: chapter });
         else await page.getByRole('button', { name: `Jump to ${chapter}`, exact: true }).click();
         await page.waitForTimeout(100); // Settle the scene's deferred end-state actions.
         const state = await geometry(page);
+        if (width === 1440) {
+          const styling = await page.evaluate(() => {
+            const caption=getComputedStyle(document.getElementById('demoHeadline'));
+            return {font:caption.fontFamily,weight:caption.fontWeight,barHeight:document.getElementById('demoScrub').getBoundingClientRect().height};
+          });
+          assert.match(styling.font,/Newsreader/,'demo captions retain the published heading face');
+          assert.equal(styling.weight,'400');
+          assert.equal(styling.barHeight,46,'Replay preserves the published compact control bar');
+        }
         assert.equal(state.width, 900);
         assert.equal(state.height, '506.25px');
         assert.ok(Math.abs(state.ratio - 16 / 9) < 0.002);
@@ -253,6 +259,38 @@ test('each chapter keeps its desktop geometry and captures at phone widths', { t
       assert.deepEqual(errors, []);
     } finally { await page.close(); }
   }
+});
+
+test('tab-discovery instructions remain accessible without adding visible copy, including in the viewer', async () => {
+  const { page, errors } = await openPage(820);
+  const description = page.locator('#demoTabDiscovery');
+  const assertDescription = async container => {
+    assert.equal(await container.getAttribute('aria-describedby'), 'demoTabDiscovery');
+    const tree = await container.ariaSnapshot();
+    assert.match(tree, /Hover to see its icon and title/);
+    assert.match(tree, /Keyboard focus shows the icon; a screen reader announces the tab title/);
+    assert.match(tree, /Click or press Enter to switch/);
+    assert.match(tree, /\+N opens the full list/);
+    assert.equal(await description.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return !element.closest('[inert]') && rect.width <= 1 && rect.height <= 1
+        && style.position === 'absolute' && style.clip !== 'auto';
+    }), true, 'instructions are exposed to assistive technology but visually clipped');
+  };
+  try {
+    await assertDescription(page.locator('#demoShowcase'));
+    await page.setViewportSize({ width: 390, height: 844 });
+    await assertDescription(page.locator('#demoShowcase'));
+    await page.setViewportSize({ width: 820, height: 844 });
+    await page.locator('#demoEnlarge').click();
+    await assertDescription(page.locator('#demoViewer'));
+    await page.keyboard.press('Escape');
+    await page.locator('#demoMount #demoTabDiscovery').waitFor({ state: 'attached' });
+    await assertDescription(page.locator('#demoShowcase'));
+    assert.equal(await description.count(), 1);
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
 });
 
 test('desktop larger viewer preserves one scene, supports panning, resizing, focus, and restoration', { timeout: 30000 }, async () => {
@@ -327,7 +365,7 @@ test('the complete animated sequence runs without coordinate drift or responsive
     await page.clock.install();
     await page.clock.pauseAt(new Date());
     await page.locator('#demoScrubToggle').evaluate(button => button.click());
-    await page.locator('#demoChapterSelect').selectOption('0');
+    await page.locator('#demoChapterSelect').selectOption('island-rest');
     await page.clock.runFor(100);
     await page.evaluate(() => {
       window.demoEvidence = { headlines: [], badShots: [], badDirections: [], cursorPositions: [] };
@@ -351,9 +389,9 @@ test('the complete animated sequence runs without coordinate drift or responsive
     });
     await page.locator('#demoScrubToggle').evaluate(button => button.click());
     // More than one authored loop, including typing, menus, Glance, and blocker actions.
-    await page.clock.runFor(82000);
+    await page.clock.runFor(100000);
     const evidence = await page.evaluate(() => window.demoEvidence);
-    for (const text of ['Drag the divider', 'Make either tab', 'Without the ad layer', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
+    for (const text of ['Drag to resize', 'Choose which tab', 'Known ads blocked', 'Browse commands', 'Netflix is now in Social.', 'Netflix is now in Watch.', 'Reopen a workspace', 'Fill a login with your keyboard.', 'Choose a matching login.', 'Your login is filled.']) {
       assert.ok(evidence.headlines.some(headline => headline.startsWith(text)), `missing scene: ${text}`);
     }
     assert.deepEqual(evidence.badShots, []);
@@ -363,7 +401,7 @@ test('the complete animated sequence runs without coordinate drift or responsive
     // Stage-local cursor coordinates reach the far side of the desktop canvas,
     // rather than being clamped to the phone's display pixels.
     assert.ok(evidence.cursorPositions.some(([x]) => x > 500));
-    await page.locator('#demoChapterSelect').selectOption('2');
+    await page.locator('#demoChapterSelect').selectOption('glance-open');
     await page.clock.runFor(2500);
     const aimError = await page.evaluate(() => {
       const stage = document.getElementById('demoStage');
@@ -377,5 +415,52 @@ test('the complete animated sequence runs without coordinate drift or responsive
     });
     assert.ok(aimError < 2, `cursor missed the Glance divider by ${aimError}px`);
     assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+
+test('finding tabs shows preview, selection and overflow in order, with stable replay', async () => {
+  const { page, errors } = await openPage(390, 'no-preference');
+  try {
+    await page.clock.install();
+    await page.clock.pauseAt(new Date());
+    await page.locator('#demoChapterSelect').selectOption('tabs-preview');
+    await page.clock.runFor(1000);
+    assert.equal(await page.locator('#demoStage').getAttribute('data-scene'), 'tabs-preview');
+    assert.equal(await page.locator('[data-demo-dot="notion"] .demo-dot-peek').evaluate(el=>getComputedStyle(el).opacity), '1');
+    assert.match(await page.locator('[data-demo-dot="notion"] .demo-dot-title').innerText(), /Blanc launch notes/);
+    await page.clock.runFor(5000);
+    assert.equal(await page.locator('#demoStage').getAttribute('data-scene'), 'tabs-select');
+    assert.equal(await page.locator('#demoDomain').innerText(), 'notion.so');
+    assert.equal(await page.locator('[data-demo-dot="notion"]').evaluate(el=>el.classList.contains('cur')), true);
+    await page.clock.runFor(4000);
+    assert.equal(await page.locator('#demoStage').getAttribute('data-scene'), 'tabs-list');
+    assert.equal(await page.locator('#demoIsland').evaluate(el=>el.classList.contains('open')), true);
+    assert.equal(await page.locator('#demoList [data-demo-tab]').count(), 10);
+    await page.locator('#demoScrubToggle').click();
+    await page.locator('#demoReplay').click();
+    await page.clock.runFor(1);
+    assert.equal(await page.locator('#demoStage').getAttribute('data-scene'), 'tabs-preview');
+    assert.equal(await page.locator('#demoScrubToggle').getAttribute('aria-label'), 'Play demo');
+    await page.clock.runFor(16000);
+    assert.equal(await page.locator('#demoStage').getAttribute('data-scene'), 'tabs-preview');
+    await page.setViewportSize({ width:1440, height:844 });
+    await page.clock.runFor(40);
+    await page.getByRole('button', { name:'Jump to glance split view', exact:true }).focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#demoStage').getAttribute('data-scene'), 'glance-open');
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('tab explanation survives JavaScript off and narrow layouts', async () => {
+  const page = await browser.newPage({javaScriptEnabled:false,viewport:{width:360,height:844}});
+  try {
+    await page.goto(baseURL);
+    assert.equal(await page.locator('.tab-explainer').isVisible(), true);
+    assert.match(await page.locator('.tab-explainer').innerText(), /Hover or focus a dot to preview a tab/);
+    assert.match(await page.locator('.tab-explainer').innerText(), /\+N opens the full list/);
+    assert.equal(await page.locator('#watchDemo').isVisible(), false);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth), false);
   } finally { await page.close(); }
 });

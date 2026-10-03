@@ -1,0 +1,67 @@
+{
+  "version": "1.26.0",
+  "state": "Quiet ordinary HTTPS page, three tabs, no pending downloads or contextual activity.",
+  "fixture": "Blanc website URL and bundled favicon; page responses fulfilled locally. No user data.",
+  "treatment": "Only document/strip backgrounds made transparent; no Island DOM, geometry, colors or icons modified. Uniform scaling in onboarding.",
+  "sources": {
+    "src/renderer/index.html": "99e2424ee58326f49b11a5a8490ca477cf77c4549dbef6fd43349922d7742fbe",
+    "src/renderer/styles.css": "b999b595b8737e0afcec657f1b5c6947d9d0f50bfffe76d8568c6cb72e94147b",
+    "src/renderer/renderer.js": "ac006ea6658681e274253b44822895e5633312e68ca42585fe2c8cea5e8a9eca"
+  },
+  "captures": [
+    {
+      "theme": "light",
+      "file": "src/renderer/pages/onboarding-island-light.png",
+      "width": 984,
+      "height": 136,
+      "sha256": "6052171fa1a492e26b2543f327ebeeeff9b97932eb61aa61aa060bae3e05093f",
+      "geometry": {
+        "x": 404.109375,
+        "y": 11.5,
+        "width": 471.78125,
+        "height": 44,
+        "transform": "none",
+        "zoom": "1.15",
+        "controls": [
+          "Back",
+          "Forward",
+          "Switch to New Tab",
+          "Switch to Blanc",
+          "Switch to Blanc",
+          "New tab",
+          "Blanc Blocker — protected, nothing blocked yet — click for site controls",
+          "Reload",
+          "Favorite this page",
+          "Close tab"
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "file": "src/renderer/pages/onboarding-island-dark.png",
+      "width": 984,
+      "height": 136,
+      "sha256": "df2302e0378ce187990191764de0ab530c8a92eaa2d44b25f05e1124c3ba4749",
+      "geometry": {
+        "x": 404.109375,
+        "y": 11.5,
+        "width": 471.78125,
+        "height": 44,
+        "transform": "none",
+        "zoom": "1.15",
+        "controls": [
+          "Back",
+          "Forward",
+          "Switch to New Tab",
+          "Switch to Blanc",
+          "Switch to Blanc",
+          "New tab",
+          "Blanc Blocker — protected, nothing blocked yet — click for site controls",
+          "Reload",
+          "Favorite this page",
+          "Close tab"
+        ]
+      }
+    }
+  ]
+}

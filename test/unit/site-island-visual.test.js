@@ -68,7 +68,8 @@ test('resting website figures show the quiet Plus shortcut in horizontal layouts
 
 test('the masthead is a sticky top bar and the tuck-on-scroll island is gone', () => {
   assert.match(styles, /\.site-header \{ position: sticky; top: 0; z-index: 30;/);
-  assert.doesNotMatch(styles, /is-tucked|inset: auto 0 0/);
+  assert.doesNotMatch(styles, /is-tucked/);
+  assert.doesNotMatch(styles, /\.site-header[^{}]*\{[^}]*inset: auto 0 0/s);
   assert.doesNotMatch(styles, /body\.has-consent \.site-header|--consent-h/);
   assert.match(styles, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(styles, /\.site-mega::before \{[^}]*var\(--site-gold-on-dark\)/);

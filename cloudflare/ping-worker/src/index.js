@@ -30,7 +30,7 @@ import {
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
-import { markFirstSeen } from './first-seen.js';
+import { markFirstSeen, markNextDayReturn } from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
@@ -68,6 +68,12 @@ const OPENAI_CONVERSIONS_ENDPOINT = 'https://bzr.openai.com/v1/events';
 const DAY_SEEN_TTL = 90 * 24 * 3600; // ~3 months of daily-cohort history
 const WEEK_SEEN_TTL = 400 * 24 * 3600; // ~13 months of weekly cohorts
 const MONTH_SEEN_TTL = 400 * 24 * 3600; // ~13 months of monthly cohorts (retention) — trimmed from 800d, 2026-07-11 audit
+
+// First new-install cohort whose next-day returns are fully counted: the
+// return:d1 write path must be live for the whole of the following UTC day.
+// Earlier cohorts have no return counter and are omitted from /stats rather
+// than reported as 0%. Set to the UTC day the write path first deploys.
+const NEXT_DAY_RETURN_FIRST_COHORT = '2026-10-03';
 
 // Keyed hash of the install id — the only form that ever touches storage or
 // GA. HMAC-SHA-256 under a worker secret, hex-encoded. Returns null (uniques
@@ -207,6 +213,9 @@ function weekBucket(dt) {
   const week = 1 + Math.round((d - week1Thursday) / (7 * 86400000));
   return `${isoYear}-W${String(week).padStart(2, '0')}`;
 }
+function prevDayBucket(dt) {
+  return dayBucket(new Date(dt.getTime() - 86400000));
+}
 function prevMonthBucket(dt) {
   const d = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth() - 1, 1));
   return monthBucket(d);
@@ -292,6 +301,7 @@ async function handlePing(request, env, ctx, now) {
       // One extra KV read per install per launch-day at most — the event:
       // dedup and markActive reads already dwarf it.
       markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump),
+      markNextDayReturn(env.PINGS, hashedId, dayBucket(now), prevDayBucket(now), bump),
       markActive(env.PINGS, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
       markActive(env.PINGS, 'week', weekBucket(now), hashedId, WEEK_SEEN_TTL),
       markActive(env.PINGS, 'month', monthBucket(now), hashedId, MONTH_SEEN_TTL)
@@ -477,6 +487,26 @@ async function handlePurgeLegacy(request, env) {
   }
 }
 
+// Next-day return per new-install cohort day: installs first seen on D that
+// launched again on D+1 (UTC). `complete` is false while D+1 is still today
+// (or D is today), so a partial reading is never mistaken for a final rate.
+function nextDayReturnByCohort(newByDay, returnD1ByDay, today) {
+  const byDay = {};
+  for (const day of Object.keys(newByDay).sort().slice(-30)) {
+    if (day < NEXT_DAY_RETURN_FIRST_COHORT) continue;
+    const newInstalls = newByDay[day];
+    const returnedNextDay = returnD1ByDay[day] ?? 0;
+    const nextDay = dayBucket(new Date(Date.parse(`${day}T00:00:00Z`) + 86400000));
+    byDay[day] = {
+      newInstalls,
+      returnedNextDay,
+      rate: newInstalls ? Number((returnedNextDay / newInstalls).toFixed(4)) : 0,
+      complete: nextDay < today,
+    };
+  }
+  return { firstCohort: NEXT_DAY_RETURN_FIRST_COHORT, byDay };
+}
+
 // GET /stats — bearer-token-gated readout so the counts are visible
 // without opening the Cloudflare dashboard's KV browser.
 async function handleStats(request, env, now) {
@@ -486,7 +516,7 @@ async function handleStats(request, env, now) {
 
   const [
     total, byDay, byVersion, byPlatform, byOsVersion,
-    daily, weekly, monthly, dlFlat, newByDay, productUsage,
+    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, productUsage,
   ] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
@@ -501,6 +531,7 @@ async function handleStats(request, env, now) {
     readMap(env.PINGS, 'dl:'),
     // No other key family starts 'new:'.
     readMap(env.PINGS, 'new:day:'),
+    readMap(env.PINGS, 'return:d1:'),
     readProductUsage(env.PINGS),
   ]);
 
@@ -543,6 +574,7 @@ async function handleStats(request, env, now) {
     newInstalls: {
       byDay: pickRecent(newByDay, 60),
     },
+    nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, dayBucket(now)),
     productUsage,
   };
   return new Response(JSON.stringify(stats, null, 2), {

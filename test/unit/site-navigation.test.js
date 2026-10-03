@@ -29,11 +29,11 @@ test('every feature page is reachable from the features menu with its own headli
   const { menus } = await import(pathToFileURL(path.join(ROOT, 'site/src/data/navigation.mjs')).href);
   const features = menus.find(menu => menu.key === 'features');
   const links = features.groups.flatMap(group => group.links);
-  assert.equal(links.length, 15);
-  assert.deepEqual(features.groups.map(group => group.links.length), [6, 3, 6]);
+  assert.equal(links.length, 16);
+  assert.deepEqual(features.groups.map(group => group.links.length), [6, 4, 6]);
   assert.deepEqual(features.groups.map(group => group.links.map(link => link.href)), [
     ['island', 'start-page', 'glance', 'vertical-tabs', 'tab-groups', 'quiet-tabs'],
-    ['ad-blocking', 'private-tabs', 'security'],
+    ['1password', 'ad-blocking', 'private-tabs', 'security'],
     ['command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'profiles', 'sync', 'workspaces'],
   ].map(group => group.map(slug => `/features/${slug}`)));
   const pages = fs.readdirSync(path.join(ROOT, 'site/src/pages/features')).filter(f => f.endsWith('.astro')).map(f => `/features/${f.replace('.astro', '')}`);

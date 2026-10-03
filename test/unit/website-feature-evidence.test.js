@@ -8,7 +8,8 @@ const { execFileSync } = require('node:child_process');
 const { runInNewContext } = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const ledger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
+const ledger = JSON.parse(read('docs/website-trust-claims-v1.26.json'));
+const captureLedger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
 const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
@@ -16,7 +17,7 @@ const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '�
 const normalize = text => text.replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
 test('the website claim ledger resolves to the current public release and contains no publication blockers', () => {
-  assert.equal(ledger.publicRelease, 'v1.25.0');
+  assert.equal(ledger.publicRelease, 'v1.26.0');
   assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.sourceSha);
   assert.ok(ledger.claims.length > 200);
   const paths = new Set();
@@ -33,6 +34,14 @@ test('the website claim ledger resolves to the current public release and contai
   for (const file of paths) execFileSync('git', ['cat-file', '-e', `${ledger.publicRelease}:${file}`], { cwd: root });
 });
 
+test('current authentication claims link completed evidence rather than the preparation record', () => {
+  const completed = execFileSync('git', ['show', `${ledger.completedReleaseEvidenceRevision}:${ledger.releaseEvidence}`], {cwd:root,encoding:'utf8'});
+  assert.ok(completed.includes(ledger.sourceSha));
+  assert.match(completed, /Publication and independent verification/);
+  assert.match(completed, /Adjacent public updater handoffs/);
+  assert.ok(read('site/src/pages/features/security.astro').includes(ledger.completedReleaseEvidenceRevision));
+});
+
 test('the v1.15 claim ledger remains paired with its immutable release evidence', () => {
   assert.equal(historicalLedger.publicRelease, 'v1.15.0');
   assert.equal(
@@ -42,7 +51,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 });
 
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
-  for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs']) {
+  for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/pages/features/${slug}.astro`;
     const claims = new Set(ledger.claims.filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
@@ -78,8 +87,8 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
 
 test('the new homepage capture is tied to public v1.25.0 and its faithful export', () => {
   const manifest = JSON.parse(read('docs/website-trust-capture-v1.25.json'));
-  assert.equal(manifest.release, ledger.publicRelease);
-  assert.equal(manifest.sourceSha, ledger.sourceSha);
+  assert.equal(manifest.release, captureLedger.publicRelease);
+  assert.equal(manifest.sourceSha, captureLedger.sourceSha);
   for (const item of [manifest, manifest.displayAsset]) {
     const bytes = fs.readFileSync(path.join(root, item.file));
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
@@ -93,15 +102,15 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
 
 test('hero wallpaper scenes retain actual public captures and phase provenance', async () => {
   const manifest = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
-  assert.equal(manifest.release, ledger.publicRelease);
-  assert.equal(manifest.sourceSha, ledger.sourceSha);
+  assert.equal(manifest.release, captureLedger.publicRelease);
+  assert.equal(manifest.sourceSha, captureLedger.sourceSha);
   assert.equal(manifest.settings.newtabDynamicWallpaper, true);
   assert.equal(manifest.settings.layout, 'billboard');
   assert.equal(manifest.settings.usagePing, false);
   assert.equal(manifest.settings.searchSuggestions, false);
   assert.deepEqual(manifest.captures.map(item => [item.phase, item.theme]), ['dawn', 'day', 'dusk', 'night'].flatMap(phase => [[phase, 'light'], [phase, 'dark']]));
   const releasedModule = { exports: {} };
-  runInNewContext(execFileSync('git', ['show', `${ledger.publicRelease}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
+  runInNewContext(execFileSync('git', ['show', `${captureLedger.publicRelease}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
   const policy = releasedModule.exports;
   for (const capture of manifest.captures) {
     const fixture = new Date(2026, 9, 2, capture.localHourFixture);

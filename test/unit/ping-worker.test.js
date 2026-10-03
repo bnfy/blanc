@@ -365,3 +365,36 @@ test('/stats exposes the OS-version breakdown', async () => {
   const stats = await res.json();
   assert.deepEqual(stats.launches.byOsVersion, { 'darwin:26': 1, 'darwin:27': 1 });
 });
+
+test('/stats reports next-day return per new-install cohort from the first tracked day', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', STATS_TOKEN: 't' };
+  const OTHER_ID = '11111111-2222-4333-8444-555555555555';
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-03T15:00:00Z') });
+  await ping(env, PING_BODY);
+  await ping(env, { ...PING_BODY, installId: OTHER_ID });
+  // An earlier cohort with no return counter must be omitted, not shown as 0%.
+  await env.PINGS.put('new:day:2026-10-02', '5');
+
+  t.mock.timers.setTime(Date.parse('2026-10-04T09:00:00Z'));
+  await ping(env, { ...PING_BODY, sessionId: 43 });
+  await ping(env, { ...PING_BODY, sessionId: 44 }); // second launch the same day
+
+  const read = async () => (await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} },
+  )).json();
+
+  let stats = await read();
+  assert.equal(stats.nextDayReturn.firstCohort, '2026-10-03');
+  assert.deepEqual(Object.keys(stats.nextDayReturn.byDay), ['2026-10-03']);
+  assert.deepEqual(stats.nextDayReturn.byDay['2026-10-03'], {
+    newInstalls: 2, returnedNextDay: 1, rate: 0.5, complete: false,
+  });
+
+  t.mock.timers.setTime(Date.parse('2026-10-05T00:30:00Z'));
+  stats = await read();
+  assert.equal(stats.nextDayReturn.byDay['2026-10-03'].complete, true);
+  for (const key of env.PINGS.map.keys()) {
+    assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
+  }
+});

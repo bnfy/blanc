@@ -37,9 +37,10 @@ surface, so Blanc treats runtime configuration, permissions, dependencies,
 and release integrity as explicit controls:
 
 - Public web tabs request Chromium sandboxing, disable Node integration,
-  and enable context isolation. On Linux hosts that block the launcher’s user
-  namespace probe, the AppImage launcher can disable Chromium’s sandbox; see
-  the [Linux investigation](docs/linux-appimage-sandbox-2026-09-29.md).
+  and enable context isolation. Since v1.26.0, Blanc refuses to start on Linux
+  when a launcher disables Chromium’s sandbox, including the AppImage
+  launcher’s fallback on hosts that block its user-namespace probe; see
+  [Linux launch troubleshooting](docs/linux-appimage-troubleshooting.md).
   Blanc-owned pages such as Settings and History use a narrow internal connection to the app. Regular websites
   do not get that connection, which helps keep a malicious or compromised site
   from reaching tabs, history, settings, or browser controls.
