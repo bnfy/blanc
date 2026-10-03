@@ -25,16 +25,31 @@ function validPopupMessage(value) {
 // A view blur can be caused by a navigation completing under the popup.
 // Dismiss only for native user input outside it or actual window deactivation.
 function wirePopupDismissal({ window, outsideContents, dismiss }) {
-  const listeners = [];
-  const on = (target, event, callback) => {
-    target.on(event, callback);
-    listeners.push(() => target.removeListener(event, callback));
+  const watched = new Map();
+  let disposed = false;
+  const watch = (wc, isOutside = () => true) => {
+    if (disposed || !wc || wc.isDestroyed() || watched.has(wc)) return;
+    const mouse = (_event, input) => { if (input.type === 'mouseDown' && isOutside()) dismiss(); };
+    const key = (_event, input) => { if (input.type === 'keyDown' && isOutside()) dismiss(); };
+    const remove = () => {
+      wc.removeListener('before-mouse-event', mouse);
+      wc.removeListener('before-input-event', key);
+      wc.removeListener('destroyed', remove);
+      watched.delete(wc);
+    };
+    watched.set(wc, remove);
+    wc.on('before-mouse-event', mouse);
+    wc.on('before-input-event', key);
+    wc.once('destroyed', remove);
   };
-  on(window, 'blur', dismiss);
-  for (const wc of new Set(outsideContents.filter(wc => wc && !wc.isDestroyed()))) {
-    on(wc, 'before-mouse-event', (_event, input) => { if (input.type === 'mouseDown') dismiss(); });
-    on(wc, 'before-input-event', (_event, input) => { if (input.type === 'keyDown') dismiss(); });
-  }
-  return () => { for (const off of listeners.splice(0)) off(); };
+  window.on('blur', dismiss);
+  for (const wc of outsideContents) watch(wc);
+  return { watch, dispose() {
+    if (disposed) return;
+    disposed = true;
+    window.removeListener('blur', dismiss);
+    for (const remove of [...watched.values()]) remove();
+  } };
 }
+
 module.exports = { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal };

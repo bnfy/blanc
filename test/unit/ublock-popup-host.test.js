@@ -60,7 +60,7 @@ test('popup dismissal ignores view focus and mouse movement, but responds to out
   page.isDestroyed = () => false;
   const destroyed = { isDestroyed: () => true, on() { throw new Error('destroyed view registered'); } };
   let dismissed = 0;
-  const off = wirePopupDismissal({ window, outsideContents: [page, page, null, destroyed], dismiss: () => dismissed++ });
+  const { dispose: off } = wirePopupDismissal({ window, outsideContents: [page, page, null, destroyed], dismiss: () => dismissed++ });
   popup.emit('blur'); page.emit('focus'); page.emit('blur');
   page.emit('before-mouse-event', {}, { type: 'mouseMove' });
   page.emit('before-input-event', {}, { type: 'keyUp' });
@@ -74,4 +74,52 @@ test('popup dismissal ignores view focus and mouse movement, but responds to out
   assert.equal(page.listenerCount('before-mouse-event'), 0);
   assert.equal(window.listenerCount('blur'), 0);
   window.emit('blur'); page.emit('before-mouse-event', {}, { type: 'mouseDown' }); assert.equal(dismissed, 3);
+});
+
+
+test('popup watches later views, revalidates ownership and releases destroyed or disposed observers', () => {
+  const { EventEmitter } = require('node:events');
+  const window = new EventEmitter(), fresh = new EventEmitter(), replacement = new EventEmitter();
+  fresh.isDestroyed = replacement.isDestroyed = () => false;
+  let dismissed = 0, owned = true;
+  const dismissal = wirePopupDismissal({ window, outsideContents: [], dismiss: () => dismissed++ });
+  dismissal.watch(fresh, () => owned);
+  dismissal.watch(fresh);
+  assert.equal(fresh.listenerCount('before-mouse-event'), 1);
+  fresh.emit('before-mouse-event', {}, { type: 'mouseDown' });
+  assert.equal(dismissed, 1, 'a view created after opening is observed');
+  owned = false;
+  fresh.emit('before-input-event', {}, { type: 'keyDown' });
+  assert.equal(dismissed, 1, 'a moved or parked tab cannot dismiss its former window popup');
+  fresh.emit('destroyed');
+  assert.equal(fresh.listenerCount('before-mouse-event'), 0);
+  assert.equal(fresh.listenerCount('before-input-event'), 0);
+  assert.equal(fresh.listenerCount('destroyed'), 0);
+  dismissal.watch(replacement);
+  replacement.emit('before-mouse-event', {}, { type: 'mouseDown' });
+  assert.equal(dismissed, 2, 'a replacement renderer after wake is observed');
+  dismissal.dispose(); dismissal.dispose(); dismissal.watch(fresh);
+  assert.equal(replacement.listenerCount('before-mouse-event'), 0);
+  assert.equal(replacement.listenerCount('destroyed'), 0);
+  assert.equal(fresh.listenerCount('before-mouse-event'), 0, 'a closed popup cannot attach new observers');
+  assert.equal(window.listenerCount('blur'), 0);
+});
+
+
+test('main popup observation validates the current tab view and owning window on each input', () => {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  const method = source.match(/function watchUblockPopupOutsideContents\(tab\) \{[\s\S]*?\n\}/)?.[0];
+  assert(method);
+  const wc = {}, runtime = { id: 'owner' }, tab = { id: 7, runtimeId: 'owner', wc };
+  let watched = null, valid = null;
+  const popup = { runtime, dismissal: { watch(contents, guard) { watched = contents; valid = guard; } } };
+  const tabs = new Map([[tab.id, tab]]);
+  const context = { tabs, ublockPopups: new Map([[runtime.id, popup]]), liveContents: tab => tab.wc };
+  vm.runInNewContext(`${method}; this.watch = watchUblockPopupOutsideContents;`, context);
+  context.watch(tab); assert.equal(watched, wc); assert(valid());
+  tab.wc = {}; assert(!valid(), 'discarded document cannot dismiss the popup'); tab.wc = wc;
+  tab.runtimeId = 'other'; assert(!valid(), 'cross-window input cannot dismiss the popup'); tab.runtimeId = 'owner';
+  tabs.delete(tab.id); assert(!valid(), 'closed or held tab cannot dismiss the popup');
+  tabs.set(tab.id, { ...tab }); assert(!valid(), 'replacement tab identity is rejected');
 });

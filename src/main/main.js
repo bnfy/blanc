@@ -339,7 +339,7 @@ function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
   const popup = ublockPopups.get(runtimeId);
   if (!popup) return;
   ublockPopups.delete(runtimeId);
-  popup.removeDismissalListeners?.();
+  popup.dismissal?.dispose();
   popup.runtime.window?.removeListener('closed', popup.onClosed);
   popup.runtime.window?.removeListener('resize', popup.onResize);
   if (!popup.runtime.window?.isDestroyed()) popup.runtime.window?.contentView.removeChildView(popup.view);
@@ -353,6 +353,13 @@ function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
       restoreTrigger: restore ? 'shield' : null,
     });
   }
+}
+function watchUblockPopupOutsideContents(tab) {
+  const popup = ublockPopups.get(tab.runtimeId);
+  const wc = liveContents(tab);
+  if (!popup || !wc) return;
+  popup.dismissal.watch(wc, () => tabs.get(tab.id) === tab
+    && tab.runtimeId === popup.runtime.id && liveContents(tab) === wc);
 }
 function restorableUblockTool(url, profileId = rt().profileId) {
   const provider = blockingProviders?.forTab({ private: false, profileId });
@@ -441,12 +448,12 @@ async function openUblockPopup(anchor) {
   wc.on('before-input-event', (event, input) => {
     if (input.key === 'Escape') { event.preventDefault(); closeUblockPopup(runtime.id, { restoreFocus: true }); }
   });
-  popup.removeDismissalListeners = wirePopupDismissal({
+  popup.dismissal = wirePopupDismissal({
     window: runtime.window,
-    outsideContents: [runtime.window.webContents, runtime.overlayView?.webContents,
-      ...[...tabs.values()].filter(item => item.runtimeId === runtime.id).map(liveContents)],
+    outsideContents: [runtime.window.webContents, runtime.overlayView?.webContents],
     dismiss: () => { if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id); },
   });
+  for (const item of tabs.values()) if (item.runtimeId === runtime.id) watchUblockPopupOutsideContents(item);
   runtime.window.once('closed', popup.onClosed);
   runtime.window.on('resize', popup.onResize);
   runtime.window.contentView.addChildView(view);
@@ -2377,6 +2384,7 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     tab.view = view;
     if (!retained) wireTabView(tab, view, { owner, adopted: false });
     wc = view.webContents;
+    watchUblockPopupOutsideContents(tab);
     tabIdByWebContentsId.set(wc.id, id);
     wc.setAudioMuted(effectiveTabMuted(tab));
     wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -5453,6 +5461,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // Adoption: the caller (reopenEntry) already removed the held firewall's
   // recorded listeners; wireTabView below re-installs the tab set.
   wireTabView(tab, view, { owner, adopted });
+  watchUblockPopupOutsideContents(tab);
   if (openerTabId) noteUblockCreatedTarget(liveContents(tabs.get(openerTabId))?.id, wc.id, url);
 
   if (adopting) {

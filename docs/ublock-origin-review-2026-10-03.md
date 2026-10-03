@@ -527,3 +527,31 @@ integrity and all three native suites (shield/provider, full blocking/lifecycle,
 Dashboard) passed. The full core suite includes backup import and cold restart.
 A fresh four-platform run must still verify the correction; no earlier failed
 run or installed acceptance gate is being relabelled as passed.
+
+
+### Late-created popup outside observers
+
+The external verification confirmed all 15 findings fixed at `0a65dc34`.
+Exact-head run `37132326840` passed all four desktop platforms and ordinary
+packaging; CodeQL remained failing on the 40 open alerts. Distribution,
+installed acceptance and legal gates were not cleared by those results.
+
+A further gap remained in deliberate outside dismissal: only tab views present
+when the popup opened were observed. The popup now registers views created or
+woken while it is open, including retained views, and revalidates the current
+tab object, WebContents and owning window on input. It removes observers when a
+view is destroyed or the popup closes, deduplicates repeated registration, and
+refuses new observers after disposal. This is local native UI event handling;
+private browsing data does not enter the uBO bridge or registry.
+
+The local real-Electron shield suite passed its added case: create a quiet
+background tab after the popup opens, wake it into a new view, confirm controls
+stay open, issue actual outside mouse input, and confirm popup dismissal and
+listener cleanup. The full unit run passed 2,141 tests; the additional actual
+main-helper ownership regression also passed separately. Focused event tests
+cover a replacement view, moved/closed/stale tabs, destruction and idempotent
+teardown. Lint and pinned-package integrity passed after regenerating the host adaptation
+record for the changed popup helper; all 658 upstream files remain pinned and
+the filtering engine is unchanged.
+The two-second blocking-decision failure rule and the implementation-only
+owner authorization wording are unchanged.

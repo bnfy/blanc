@@ -49,7 +49,7 @@
     },
     {
       "path": "src/main/ublock-popup-host.js",
-      "sha256": "2d818d82ec3862b279477f6d18f1ed1f19c55e2a2d3e05ed2903ceac8c0c8a41"
+      "sha256": "4ff3065b4c5f00bbf2ea97efe8a8358af45e9f0b167ce8283ba878368942db49"
     },
     {
       "path": "src/main/ublock-dashboard-mainworld.js",

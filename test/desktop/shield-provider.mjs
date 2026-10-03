@@ -382,6 +382,23 @@ try {
   }, regularContents);
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'outside click dismisses native popup');
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners, 'outside dismissal removes its observers');
+  stage = 'outside input on a later woken view';
+  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  const laterPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup before later tab creation');
+  await laterPopup.locator('body:not(.loading)').waitFor();
+  const laterTab = await call('createQuietTab', url, 'Later outside-click fixture');
+  assert.equal(await call('wakeTab', laterTab), true);
+  const laterContents = (await call('state')).tabs.find(tab => tab.id === laterTab).webContentsId;
+  assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), laterContents), outsideListeners + 1, 'newly woken view is observed while controls remain open');
+  assert((await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), 'creating and waking a background tab does not dismiss controls');
+  await electron.evaluate(({ webContents }, id) => {
+    const wc = webContents.fromId(id);
+    wc.sendInputEvent({ type: 'mouseDown', x: 300, y: 150, button: 'left', clickCount: 1 });
+    wc.sendInputEvent({ type: 'mouseUp', x: 300, y: 150, button: 'left', clickCount: 1 });
+  }, laterContents);
+  await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'later view outside click dismisses popup');
+  assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), laterContents), outsideListeners, 'later view observers removed after dismissal');
+  await call('closeTab', laterTab);
   overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
   await escapePopup.locator('body:not(.loading)').waitFor();
@@ -444,7 +461,7 @@ try {
   assert.equal((await call('blockingStatus')).active, 'blanc');
   assert.equal((await call('blockingStatus')).restartPending, false);
   assert.deepEqual(uiErrors, [], 'Blanc chrome UI has no uncaught renderer errors');
-  console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, Done/back/close, saved and draft restart actions in both directions, original uBO popup and panel teardown, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
+  console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, Done/back/close, saved and draft restart actions in both directions, original uBO popup and panel teardown, outside input on newly created/woken views, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
 } catch (error) {
   console.error('Shield stage:', stage, stderr, uiErrors);
   if (electron) {
