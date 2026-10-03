@@ -14,6 +14,9 @@ function harness() {
   let owner = runtime, focusCalls = 0;
   const deferred = [];
   const sandbox = {
+    matchBrowserShortcut: input => input.key?.toLowerCase() === 't' && (input.control || input.meta) ? 'new-tab' : null,
+    liveViewContents: view => view?.wc,
+    ownsBrowserShortcutSurface: () => true,
     rt: () => runtime, tabs: new Map([[tab.id, tab]]),
     windowRuntimes: { runtimeForTab: () => owner },
     hasLiveWindow: () => true, liveContents: tab => tab?.wc,
@@ -21,7 +24,7 @@ function harness() {
     focusAddressBar: () => { focusCalls++; },
     setImmediate: callback => deferred.push(callback),
   };
-  vm.runInNewContext(`${functions}\nthis.cancel = cancelAddressBarFocusReclaim; this.reclaim = reclaimAddressBarFocus;`, sandbox);
+  vm.runInNewContext(`${functions}\nthis.cancel = cancelAddressBarFocusReclaim; this.reclaim = reclaimAddressBarFocus; this.overlayInput = cancelAddressBarFocusForOverlayInput;`, sandbox);
   return { sandbox, tab, runtime, deferred, focusCalls: () => focusCalls, move: () => { owner = {}; } };
 }
 
@@ -44,5 +47,31 @@ test('deferred address focus refuses changed ownership, identity, and permission
     invalidate(h);
     h.deferred.shift()();
     assert.equal(h.focusCalls(), 1);
+  }
+});
+
+test('typing, composition and Tab in the current address surface cancel late reclaim without consuming input', () => {
+  for (const input of [{ type: 'keyDown', key: 'h' }, { type: 'keyDown', key: 'Tab' },
+    { type: 'keyDown', key: 'Process', isComposing: true }, { type: 'keyDown', key: 'v', control: true }]) {
+    const h = harness();
+    h.runtime.overlayMode = 'panel';
+    const wc = {}; h.runtime.overlayView = { wc };
+    h.sandbox.reclaim('tab');
+    h.sandbox.overlayInput(input, wc);
+    h.deferred.shift()();
+    assert.equal(h.focusCalls(), 1);
+    assert.equal(h.runtime.tabsWantingAddressBarFocus.size, 0);
+  }
+});
+
+test('modifier keys, browser commands, hidden or replaced overlays cannot invalidate address reclaim', () => {
+  for (const change of [h => ({ type: 'keyDown', key: 'Control' }),
+    h => ({ type: 'keyDown', key: 'T', control: true }),
+    h => { h.runtime.overlayMode = null; return { type: 'keyDown', key: 'h' }; },
+    h => { h.runtime.overlayView = { wc: {} }; return { type: 'keyDown', key: 'h' }; }]) {
+    const h = harness(); h.runtime.overlayMode = 'panel';
+    const wc = {}; h.runtime.overlayView = { wc };
+    h.sandbox.overlayInput(change(h), wc);
+    assert.equal(h.runtime.tabsWantingAddressBarFocus.size, 1);
   }
 });

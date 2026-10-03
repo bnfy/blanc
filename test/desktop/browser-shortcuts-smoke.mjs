@@ -82,6 +82,22 @@ try {
     await press('close-tab', 'W', ['control']);
     await wait(state, value => value.tabOrder.length === count, 'exactly one tab closed');
   }
+  // A late blank-tab focus replay cannot select and overwrite a typed prefix.
+  await press('new-tab', 'T', ['control']);
+  const overlayPage = await wait(async () => (await app.windows()).find(page => page.url() === 'blanc-chrome://overlay/'), Boolean, 'address overlay');
+  const addressInput = overlayPage.locator('#addressInput');
+  await addressInput.waitFor({ state: 'visible' });
+  await addressInput.fill('https://exa');
+  await app.evaluate(({ webContents }) => {
+    const wc = webContents.getAllWebContents().find(wc => wc.getURL() === 'blanc-chrome://overlay/');
+    wc.send('overlay:show', { mode: 'panel' });
+  });
+  // Wait for the replay to be processed, then continue as a person typing.
+  await overlayPage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await addressInput.pressSequentially('mple.com');
+  assert.equal(await addressInput.inputValue(), 'https://example.com');
+  await press('close-tab', 'W', ['control'], 'overlay');
+  await wait(state, value => value.tabOrder.length === count, 'typed blank tab closed');
   // A repeated request in the same turn must remain one visible pending sheet.
   await app.evaluate(() => { globalThis.__blanc.openSettings(); globalThis.__blanc.openSettings(); });
   await sheetReady();

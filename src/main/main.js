@@ -2899,6 +2899,7 @@ function createOverlay() {
   // popover (or one of its editors) is open, forward Esc to the overlay so
   // it can cancel/close the popover first — the island stays up.
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    cancelAddressBarFocusForOverlayInput(input, liveViewContents(overlay));
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       if (rt().workspaceSwitcherOpen && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
@@ -6275,6 +6276,16 @@ function cancelAddressBarFocusReclaim(runtime = rt()) {
     setTabViewVisible(tab, true);
   }
   runtime.tabsWantingAddressBarFocus.clear();
+}
+
+function cancelAddressBarFocusForOverlayInput(input, wc, runtime = rt()) {
+  if (input.type !== 'keyDown' || ['Control', 'Shift', 'Alt', 'Meta'].includes(input.key) ||
+      matchBrowserShortcut(input) || (runtime.overlayMode !== 'panel' && runtime.overlayMode !== 'palette')) return;
+  // Typing, composition, editing and Tab navigation take ownership of focus.
+  // A late blank-tab commit must not select or steal that user's input.
+  if (wc && wc === liveViewContents(runtime.overlayView) && ownsBrowserShortcutSurface(runtime, wc)) {
+    cancelAddressBarFocusReclaim(runtime);
+  }
 }
 
 function shouldReclaimAddressBarFocus(id) {
