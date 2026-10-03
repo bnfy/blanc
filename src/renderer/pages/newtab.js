@@ -55,6 +55,8 @@ const dateText = isPrivate
 document.getElementById('startDate').textContent = dateText;
 
 document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L to go anywhere`;
+document.getElementById('obIslandShortcut').textContent = isMac ? '⌘L' : 'Ctrl+L';
+document.getElementById('obIslandShortcut').setAttribute('aria-label', isMac ? 'Command L' : 'Control L');
 
 if (isPrivate) {
   document.getElementById('footerLeft').textContent =
