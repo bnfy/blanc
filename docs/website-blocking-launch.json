@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "status": "release-gated-draft",
+  "publicRelease": "v1.26.0",
+  "candidateSha": "7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6",
+  "candidatePR": "https://github.com/bnfy/blanc/pull/490",
+  "source": "site/src/pages/index.astro",
+  "qualification": "Owner will deploy the redesigned site only after the app release containing these features goes live. This is launch copy, not a statement about the current public v1.26.0. Private tabs use Blanc Blocker; provider changes require restart; settings are separate.",
+  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors.",
+  "claims": [
+    {
+      "exactWording": "Your blocking. Your choice.",
+      "verdict": "pending-public-release",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js"
+      ]
+    },
+    {
+      "exactWording": "Choose how Blanc blocks ads and trackers.",
+      "verdict": "pending-public-release",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js"
+      ],
+      "assetEvidence": "03621de6:docs/verification/2026-10-03-horizon-shield.md"
+    },
+    {
+      "exactWording": "Customizable filter lists, advanced settings and a request logger for regular tabs.",
+      "verdict": "pending-public-release",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js",
+        "src/main/ublock-provider.js"
+      ]
+    },
+    {
+      "exactWording": "Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.",
+      "verdict": "pending-public-release",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js"
+      ]
+    }
+  ],
+  "artwork": {
+    "source": "assets/horizon-shield.png",
+    "approvedRevision": "03621de6",
+    "file": "site/public/horizon-shield.webp",
+    "width": 960,
+    "height": 960,
+    "sha256": "642269205dfb144a2ba522d0ab9cead41d4e52ccac0c48ffb9a1c8726abb73ec",
+    "export": "Sharp: trim threshold 8, resize contain 960×960 with transparent padding, WebP quality 90 / alphaQuality 100 / effort 6. No repainting or geometry changes.",
+    "license": "Reserved Blanc product identity per ASSET-LICENSE.md. Horizon Shield is Blanc artwork, not the uBlock Origin logo.",
+    "model": {
+      "source": "site/src/scripts/horizon-shield-model.js",
+      "outline": "site/src/data/horizon-shield-outline.json",
+      "outlineSha256": "467ccb0325d8219e29c992d99754370965b11ba0250bb8481c1e0597ce994fbd",
+      "rebuild": "node site/scripts/build-horizon-outline.mjs",
+      "geometry": "Closed gold relief mesh. Front and back use identical approved artwork/UVs and matching relief turned 180 degrees; solid beveled walls join them. Silhouette is alpha-traced with subpixel edge smoothing.",
+      "ownerDirection": "October 3: make the shield solid 3D; use the same front artwork on the back; remove the visible caption; close all side surfaces."
+    }
+  },
+  "reviewedCandidateFiles": [
+    {
+      "path": "src/main/blocking-providers.js",
+      "sha256": "3dd065308ef5ecf96f693f437fbb02915e812ee37fc2d2f5052af9b5b62f6230",
+      "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/main/blocking-providers.js"
+    },
+    {
+      "path": "src/main/ublock-provider.js",
+      "sha256": "8af6391f867900cbe28d20cd66f4fda3082a78bf0364bdf8dfc744ca87fb8f3b",
+      "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/main/ublock-provider.js"
+    },
+    {
+      "path": "src/renderer/pages/settings.html",
+      "sha256": "0a35e1fc0cafea7b8ae3057130d87aa7148d85eb1e49b011b21d3f428d1d6321",
+      "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/renderer/pages/settings.html"
+    }
+  ]
+}

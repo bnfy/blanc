@@ -1,0 +1,68 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ReleaseEvidence from "../components/ReleaseEvidence.astro";
+import Foundations from "../components/guides/foundations.astro";
+import GuideTopics from "../components/GuideTopics.astro";
+import "../styles/reference.css";
+---
+
+<BaseLayout
+  title="Blanc Privacy & Security — Controls and evidence"
+  description="Understand Blanc’s engine, privacy choices, connections and release verification. Read the evidence and the limits, including the status of an independent audit."
+  path="/trust"
+  page="trust"
+  current="privacy"
+>
+  <main id="main-content" class="reference-page trust-page">
+    <header class="reference-heading">
+      <p class="section-kicker">Privacy &amp; security</p><h1>
+        Trust comes<br />with the details.
+      </h1><p>The choices, the connections, and the evidence behind Blanc.</p>
+    </header>
+    <div class="trust-overview">
+      <article>
+        <span aria-hidden="true">01</span><h2>Built-in blocking.</h2><p>
+          Known ads and trackers are blocked at the network layer. Coverage is
+          not universal; you can allow an individual site.
+        </p>
+      </article><article>
+        <span aria-hidden="true">02</span><h2>Your choices, visible.</h2><p>
+          Fresh setup preselects search suggestions and usage measurement. You
+          can turn either off before saving, or later in Settings.
+        </p>
+      </article><article>
+        <span aria-hidden="true">03</span><h2>Evidence you can inspect.</h2><p>
+          Source and authenticated release records are public. An independent
+          external security audit has not been completed. <a
+            href="#security-audit-title"
+            >Read the audit status and known Sync issues.</a>
+        </p>
+      </article>
+    </div>
+    <nav class="reference-contents" aria-label="On this page">
+      <a href="#engine">The engine</a><a href="#connections">Connections</a><a
+        href="#controls">Your controls</a
+      ><a href="#release-verification-title">Verify a download</a><a
+        href="#security-audit-title">Audit status &amp; limitations</a
+      ><a href="#ad-blocking">Blocking</a><a href="#private-tabs"
+        >Private tabs</a>
+    </nav>
+    <div class="foundations">
+      <h2 class="reference-section-title">How Blanc works.</h2><Foundations />
+    </div>
+    <div class="trust-evidence answer-body"><ReleaseEvidence /></div><section
+      class="answer-group"
+    >
+      <h2>Look closer</h2><GuideTopics page="trust" />
+    </section>
+    <aside class="reference-contact">
+      <h2>Something we should know?</h2><p>
+        For a security concern, use the reporting instructions in the
+        repository.
+      </p><a href="https://github.com/bnfy/blanc/security/policy"
+        >Report a security concern ↗</a
+      ><a href="/privacy">Read the privacy policy →</a><a href="/support"
+        >Visit Support →</a>
+    </aside>
+  </main><script src="../scripts/answers.js"></script>
+</BaseLayout>

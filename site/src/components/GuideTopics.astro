@@ -1,0 +1,26 @@
+---
+import topics from "../data/guide-topics.json";
+const components = import.meta.glob("./guides/*.astro", { eager: true });
+const { page } = Astro.props;
+---
+
+{
+  topics
+    .filter((topic) => topic.page === page)
+    .map((topic) => {
+      const Guide = components[`./guides/${topic.id}.astro`].default;
+      return (
+        <details class="answer-topic" id={topic.id} data-search-topic>
+          <>
+            <summary>
+              {topic.label}
+              <span aria-hidden="true">+</span>
+            </summary>
+            <div class="answer-body">
+              <Guide />
+            </div>
+          </>
+        </details>
+      );
+    })
+}

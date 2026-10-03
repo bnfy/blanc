@@ -81,3 +81,17 @@ machine fetching its own artifacts, with no other user's response to disclose.
 
 Remove the VEX statement once a patched http-cache-semantics is available and
 both lockfiles adopt it.
+
+## Website revamp cross-check (PR #491)
+
+Codex independently reviewed source `4b9c7bcac6a31146609af5178662faf8f85f0966`
+on October 3, 2026 and reached the same bounded disposition. The website
+revamp makes `output: 'static'` explicit and guards the deploy payload against
+server and `_worker.js` output. Astro's remote-image code constructs its own
+requests without visitor headers and calls `storable()` / `timeToLive()`,
+not `satisfiesWithoutRevalidation` on incoming user cache directives.
+
+The combined dependency tests retain both reviews' boundaries, including
+absence of new first-party package consumers and the static deployment path.
+This does not authorize server-side Astro, a shared/proxy cache, newly enabled
+got caching, or new first-party/runtime consumers.

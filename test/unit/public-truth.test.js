@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 
 test('expanded feature guides retain release limitations beside their benefits', () => {
-  const guide = slug => read(`site/src/pages/features/${slug}.astro`);
+  const guide = slug => read(`site/src/components/guides/${slug}.astro`).replace(/\s+/g, " ");
   const start = guide('start-page');
   assert.match(start, /eight|Eight/);
   assert.match(start, /not cloud-synced/);
@@ -93,7 +93,7 @@ test('ChatGPT ad attribution is consent-gated and server-side only', () => {
 });
 
 test('private-tab copy matches the isolated in-memory session', () => {
-  const page = read('site/src/pages/features/private-tabs.astro');
+  const page = read('site/src/components/guides/private-tabs.astro');
   assert.doesNotMatch(page, /shared with regular tabs/i);
   assert.match(page, /separate in-memory browsing session/i);
   assert.match(page, /files you explicitly save remain on disk/i);
@@ -101,9 +101,9 @@ test('private-tab copy matches the isolated in-memory session', () => {
 
 test('marketing fixtures use bundled favicon assets only', () => {
   const marketingFiles = [
-    ...fs.readdirSync(path.join(root, 'site/src/pages/features'))
+    ...fs.readdirSync(path.join(root, 'site/src/components/guides'))
       .filter((name) => name.endsWith('.astro'))
-      .map((name) => `site/src/pages/features/${name}`),
+      .map((name) => `site/src/components/guides/${name}`),
     'site/src/pages/index.astro',
     'site/src/scripts/demo.js',
   ];
@@ -177,7 +177,7 @@ test('public Patron copy states the named-workspace boundary consistently', () =
     'README.md',
     'docs/superpowers/plans/assets/launch-copy.md',
     'site/src/pages/about.astro',
-    'site/src/pages/faq.astro',
+    'site/src/data/support-questions.json',
     'site/src/pages/index.astro',
     'site/src/pages/press.astro',
     'site/src/pages/terms.astro',
@@ -185,7 +185,7 @@ test('public Patron copy states the named-workspace boundary consistently', () =
   const detailedBoundaryFiles = [
     'README.md',
     'site/src/pages/about.astro',
-    'site/src/pages/faq.astro',
+    'site/src/data/support-questions.json',
     'site/src/pages/index.astro',
     'site/src/pages/terms.astro',
   ];
@@ -232,9 +232,9 @@ test('public Patron copy states the named-workspace boundary consistently', () =
 
 test('public supply-chain copy distinguishes inspection from binary authentication', () => {
   const readme = read('README.md');
-  const faq = read('site/src/pages/faq.astro');
+  const faq = read('site/src/data/support-questions.json');
 
-  for (const [relativePath, source] of [['README.md', readme], ['site/src/pages/faq.astro', faq]]) {
+  for (const [relativePath, source] of [['README.md', readme], ['site/src/data/support-questions.json', faq]]) {
     assert.doesNotMatch(source, /verify (?:that )?the published binary matches|verify the published binary against/i, relativePath);
     assert.doesNotMatch(source, /provenance attestations for native artifacts|native artifacts carry GitHub provenance/i, relativePath);
     assert.match(source, /Windows and Linux CI\s+artifacts (?:receive|carry) GitHub provenance attestations/i, relativePath);
@@ -245,7 +245,7 @@ test('public supply-chain copy distinguishes inspection from binary authenticati
 test('public extension copy includes the shipped macOS 1Password boundary', () => {
   const publicCopy = [
     ['README.md', read('README.md')],
-    ['site/src/pages/faq.astro', read('site/src/pages/faq.astro')],
+    ['site/src/data/support-questions.json', read('site/src/data/support-questions.json')],
     ['launch copy', read('docs/superpowers/plans/assets/launch-copy.md')],
   ];
 
@@ -337,7 +337,7 @@ test('official launch artifacts track the release declared by the README', () =>
 test('platform specs match the shipped first-run telemetry contract', () => {
   const matrix = read('spec/parity-matrix.md');
   const services = read('spec/acceptance/platform-services.feature');
-  const faq = read('site/src/pages/faq.astro');
+  const faq = read('site/src/data/support-questions.json');
   const launchCopy = read('docs/superpowers/plans/assets/launch-copy.md');
   const telemetryRow = matrix.split('\n').find((line) => line.startsWith('| F21 |')) || '';
   assert.doesNotMatch(telemetryRow, /Opt-in, off by default/i);
@@ -400,8 +400,8 @@ test('published memory figures agree across the site, the fact sheet, and the ru
 });
 
 test('quiet-tabs copy promises a reload, and no page claims tabs are never discarded', () => {
-  const page = read('site/src/pages/features/quiet-tabs.astro');
-  const hub = read('site/src/pages/features.astro');
+  const page = read('site/src/components/guides/quiet-tabs.astro');
+  const hub = read('site/src/pages/index.astro');
 
   assert.match(page, /reloads? (?:it|them|the page)/i);
   // Spec §7: wake is a network re-fetch. "Resume" would be a promise Blanc
@@ -412,14 +412,14 @@ test('quiet-tabs copy promises a reload, and no page claims tabs are never disca
   assert.doesNotMatch(page, /\basleep\b/i);
   // The honest limits are stated, not omitted.
   assert.match(page, /Private tabs come back where they were, not how they were/);
-  assert.match(hub, /\/features\/quiet-tabs/);
+  assert.match(hub, /Quiet Tabs/);
 
   const marketing = [
-    ...fs.readdirSync(path.join(root, 'site/src/pages/features'))
+    ...fs.readdirSync(path.join(root, 'site/src/components/guides'))
       .filter((name) => name.endsWith('.astro'))
-      .map((name) => `site/src/pages/features/${name}`),
+      .map((name) => `site/src/components/guides/${name}`),
     'site/src/pages/index.astro',
-    'site/src/pages/features.astro',
+    'site/src/pages/index.astro',
     'site/src/pages/download.astro',
     'site/src/pages/about.astro',
   ];

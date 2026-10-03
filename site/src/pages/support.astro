@@ -1,0 +1,116 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GuideTopics from "../components/GuideTopics.astro";
+import questions from "../data/support-questions.json";
+import "../styles/reference.css";
+---
+
+<BaseLayout
+  title="Blanc Support — Setup, everyday tools and answers"
+  description="Find your way around Blanc: import bookmarks, manage tabs, set up 1Password, activate Patron, and get straightforward answers about the browser."
+  path="/support"
+  page="support"
+  current="support"
+>
+  <main id="main-content" class="reference-page">
+    <header class="reference-heading">
+      <p class="section-kicker">Blanc Support</p><h1>
+        A little help<br />goes a long way.
+      </h1><p>Find an answer. Get back to what you were doing.</p>
+    </header>
+    <div class="support-search" hidden data-search-ui>
+      <label for="answer-search">Search Support</label><div>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+          ><circle cx="10" cy="10" r="6.5"></circle><path d="m15 15 6 6"
+          ></path></svg
+        ><input
+          id="answer-search"
+          type="search"
+          placeholder="Try bookmarks, tabs or 1Password"
+          autocomplete="off"
+          aria-describedby="search-count"
+        /><button type="button" id="clear-search" hidden>Clear</button>
+      </div><p id="search-count" role="status" aria-live="polite"></p>
+    </div>
+    <nav class="support-shortcuts" aria-label="Common questions">
+      <a href="#bookmark-import">Bring your bookmarks <span>↗</span></a><a
+        href="#updates">Update Blanc <span>↗</span></a
+      ><a href="#1password">Set up 1Password <span>↗</span></a><a
+        href="#patron">Activate Patron <span>↗</span></a>
+    </nav>
+    <section class="answer-group">
+      <h2>Using Blanc</h2><GuideTopics page="support" />
+    </section>
+    <section class="answer-group">
+      <h2>Straight answers</h2>{
+        questions.map(({ id, q, a }) => (
+          <details
+            class="answer-topic"
+            id={id === "1password" ? "1password-faq" : id}
+            data-search-topic
+          >
+            <>
+              <summary>
+                {q}
+                <span aria-hidden="true">+</span>
+              </summary>
+              <div class="answer-body">
+                {a.map((paragraph) => (
+                  <p>{paragraph}</p>
+                ))}
+                {id === "independent-audit" && (
+                  <p>
+                    <a href="/trust#security-audit-title">
+                      Audit status and known limitations →
+                    </a>
+                  </p>
+                )}
+                {id === "electron" && (
+                  <p>
+                    <a href="/trust#blocking-memory-title">
+                      Read the dated benchmark and its method →
+                    </a>
+                  </p>
+                )}
+                {id === "open-source" && (
+                  <p>
+                    <a href="https://github.com/bnfy/blanc/tree/v1.26.0">
+                      Source, license and third-party notices →
+                    </a>
+                  </p>
+                )}
+                {id === "patron" && (
+                  <p>
+                    <a href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf">
+                      Become a Patron →
+                    </a>
+                  </p>
+                )}
+              </div>
+            </>
+          </details>
+        ))
+      }
+    </section>
+    <p class="search-empty" id="search-empty" hidden>
+      No matching answers. Try a different word, or get in touch below.
+    </p>
+    <aside class="reference-contact">
+      <h2>Still need a hand?</h2><p>
+        Include your Blanc version, operating system and what happened. Keep
+        passwords and private browsing information out of your message.
+      </p><!--email_off-->
+      <a href="mailto:support@blancbrowser.com">Contact Support ↗</a
+      ><!--/email_off-->
+      <a href="https://github.com/bnfy/blanc/issues/new/choose"
+        >Report an issue ↗</a
+      ><a href="/trust">Privacy &amp; security →</a>
+    </aside>
+  </main>
+  <script src="../scripts/answers.js"></script>
+</BaseLayout>

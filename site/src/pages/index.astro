@@ -1,402 +1,914 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import BrandMark from '../components/BrandMark.astro';
-import { version } from '../../../package.json';
-import chromiumMark from '../assets/summary-icons/chromium.svg?raw';
-import electronMark from '../assets/summary-icons/electron.svg?raw';
-import appleMark from '../assets/summary-icons/apple.svg?raw';
-import linuxMark from '../assets/summary-icons/linux.svg?raw';
-import codeMark from '../assets/summary-icons/code-xml.svg?raw';
-import wallpaperCaptures from '../../../docs/website-wallpaper-captures-v1.25.json';
-const wallpaperTints = Object.fromEntries(wallpaperCaptures.captures.map(({ phase, theme, chromeTint }) => [theme === 'dark' ? `${phase}-dark` : phase, chromeTint]));
-
-const graph = {
-  '@context': 'https://schema.org',
-  '@graph': [
+import PlatformLogo from "../components/PlatformLogo.astro";
+import BrandMark from "../components/BrandMark.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/home.css";
+import pkg from "../../../package.json";
+import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
+import electronMark from "../assets/summary-icons/electron.svg?raw";
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
     {
-      '@type': 'Organization',
-      '@id': 'https://blancbrowser.com/#organization',
-      name: 'Blanc',
-      url: 'https://blancbrowser.com/',
-      logo: 'https://blancbrowser.com/logo.png',
+      "@type": "Organization",
+      "@id": "https://blancbrowser.com/#organization",
+      name: "Blanc",
+      url: "https://blancbrowser.com/",
+      logo: "https://blancbrowser.com/logo.png",
       sameAs: [
-        'https://github.com/bnfy/blanc',
-        'https://www.facebook.com/blancbrowser/',
-        'https://www.threads.net/@blancbrowser',
-        'https://www.instagram.com/blancbrowser/',
+        "https://github.com/bnfy/blanc",
+        "https://www.facebook.com/blancbrowser/",
+        "https://www.threads.net/@blancbrowser",
+        "https://www.instagram.com/blancbrowser/",
       ],
     },
     {
-      '@type': 'WebSite',
-      '@id': 'https://blancbrowser.com/#website',
-      url: 'https://blancbrowser.com/',
-      name: 'Blanc Browser',
-      alternateName: 'Blanc',
-      description: 'A minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands.',
+      "@type": "WebSite",
+      "@id": "https://blancbrowser.com/#website",
+      url: "https://blancbrowser.com/",
+      name: "Blanc Browser",
+      alternateName: "Blanc",
+      description:
+        "A minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands.",
       publisher: {
-        '@id': 'https://blancbrowser.com/#organization',
+        "@id": "https://blancbrowser.com/#organization",
       },
     },
     {
-      '@type': 'SoftwareApplication',
-      '@id': 'https://blancbrowser.com/#software',
-      name: 'Blanc Browser',
-      alternateName: 'Blanc',
-      url: 'https://blancbrowser.com/',
-      description: 'Blanc is a minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands.',
-      applicationCategory: 'BrowserApplication',
-      operatingSystem: 'macOS, Windows, Linux',
-      softwareVersion: version,
-      downloadUrl: 'https://github.com/bnfy/blanc/releases/latest',
+      "@type": "SoftwareApplication",
+      "@id": "https://blancbrowser.com/#software",
+      name: "Blanc Browser",
+      alternateName: "Blanc",
+      url: "https://blancbrowser.com/",
+      description:
+        "Blanc is a minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands.",
+      applicationCategory: "BrowserApplication",
+      operatingSystem: "macOS, Windows, Linux",
+      softwareVersion: pkg.version,
+      downloadUrl: "https://github.com/bnfy/blanc/releases/latest",
       offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
       },
       publisher: {
-        '@id': 'https://blancbrowser.com/#organization',
+        "@id": "https://blancbrowser.com/#organization",
       },
     },
   ],
 };
 ---
+
 <BaseLayout
-  title="Blanc Browser — Minimal Desktop Browser with Ad Blocking"
-  description="Blanc is a minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands."
+  title="Blanc Browser — A little less browser."
+  description="A minimal desktop browser with one compact Island for tabs, navigation and commands. Free for macOS, Windows and Linux, with built-in ad and tracker blocking."
   path="/"
   page="home"
-  header="island"
+  current="home"
   social="rich"
-  ogTitle="Blanc Browser — Minimal Desktop Browser with Ad Blocking"
-  ogDescription="A minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands."
+  ogImageAlt="Blanc’s compact Island and a Sunrise Start Page inside a desktop browser."
 >
-  <script type="application/ld+json" is:inline set:html={JSON.stringify(graph)} slot="head" />
-
-  <Fragment slot="before-header">
-    <aside
-      class="product-hunt-launch"
-      id="productHuntLaunch"
-      data-expires-at="2026-09-18T07:00:00Z"
-      aria-label="Blanc launched on Product Hunt today"
-      hidden
-    >
-      <a
-        href="https://www.producthunt.com/products/blanc-3?launch=blanc-3"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-track="product_hunt_launch_click"
-        data-cta-position="homepage-launch-banner"
-      >
-        <span class="product-hunt-launch-badge" aria-hidden="true">
-          <span class="product-hunt-launch-mark">P</span>
-        </span>
-        <span class="product-hunt-launch-message">Blanc is live on Product Hunt<span class="product-hunt-launch-today"> today</span>.</span>
-        <span class="product-hunt-launch-cta"><span class="product-hunt-launch-cta-long">See the launch</span><span class="product-hunt-launch-cta-short">View</span> <span aria-hidden="true">↗</span></span>
-      </a>
-    </aside>
-    <script is:inline>
-      (() => {
-        const banner = document.getElementById('productHuntLaunch');
-        if (!banner) return;
-
-        const expiresAt = Date.parse(banner.dataset.expiresAt || '');
-        if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) return;
-
-        banner.hidden = false;
-        window.setTimeout(() => {
-          banner.hidden = true;
-        }, expiresAt - Date.now());
-      })();
-    </script>
-  </Fragment>
-
-<header class="trust-hero">
-  <div class="trust-hero-copy">
-    <img class="trust-hero-mark" src="/sunrise-hero-mark.png" width="66" height="66" alt="" />
-    <p class="section-kicker">An independent desktop browser</p>
-    <h1>A little less browser.</h1>
-    <p>Blanc brings tabs, search and commands into one floating island, with built-in blocking for known ads and trackers.</p>
-    <div class="trust-hero-actions">
-      <a class="cta" href="/download" data-download-cta data-track="download_click" data-cta-position="hero">Download Blanc</a>
-      <button class="cta trust-demo-button" id="watchDemo" type="button" aria-controls="demoShowcase" aria-expanded="false" hidden>Watch demo <span aria-hidden="true">↗</span></button>
-    </div>
-    <p class="trust-hero-note">Free browser. Patron adds saved Named Workspaces.</p>
-  </div>
-  <figure class="trust-product-shot" id="heroWallpaper" data-phase="dawn">
-    <div class="trust-product-frame hero-wallpaper-frame" id="heroWallpaperFrame">
-      <div class="hero-wallpaper-scene is-current" data-wallpaper-scene="dawn" style={`background:${wallpaperTints.dawn}`}>
-        <img src="/feature-captures/home-wallpaper-dawn-v1.25.0.webp" width="1440" height="900" fetchpriority="high" alt="Blanc v1.25.0 Billboard Start Page with time-of-day wallpaper, the floating command island, a large clock and four sample frequent sites." />
+  <script
+    type="application/ld+json"
+    is:inline
+    slot="head"
+    set:html={JSON.stringify(structuredData)}
+  />
+  <main class="home-revamp" id="main-content">
+    <section class="beat" id="opening" aria-labelledby="opening-title">
+      <div class="frame">
+        <div class="hero-copy">
+          <img src="/sunrise-hero-mark.png" alt="" /><p class="frame-kicker">
+            Blanc Browser
+          </p><h1 id="opening-title">A little less browser.</h1><p class="lead">
+            Tabs, navigation and page controls come together in one compact
+            Island in a slim band above the page. A desktop browser for macOS,
+            Windows and Linux.
+          </p><div class="actions">
+            <a class="planned-action" href="/download">Download Blanc</a><a
+              class="planned-link"
+              href="#island">See the Island in action</a>
+          </div><p class="hero-offer">
+            Free browser. Patron adds saved Named Workspaces.
+          </p>
+        </div><figure
+          class="hero-product"
+          id="hero-daylight"
+          data-phase="dawn"
+          data-appearance="light"
+        >
+          <div class="daylight-aura" aria-hidden="true">
+            <span data-aura="dawn" class="is-current"></span><span
+              data-aura="day"></span><span data-aura="dusk"></span><span
+              data-aura="night"></span>
+          </div><div class="device-composition device-laptop">
+            <img
+              class="device-shell"
+              fetchpriority="high"
+              src="/revamp/space-black-laptop-v2.webp"
+              width="1536"
+              height="1024"
+              alt=""
+              aria-hidden="true"
+            /><div
+              class="device-aperture"
+              id="hero-daylight-screen"
+              role="img"
+              aria-label="Blanc v1.25.0 Billboard Start Page with dawn wallpaper in light appearance"
+            >
+              <div
+                class="hero-wallpaper-scene is-current"
+                data-hero-scene="dawn"
+                style="background:#f8f1e7"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-dawn-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="dawn-dark"
+                style="background:#37342f"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-dawn-dark-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="day"
+                style="background:#e3e8e9"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-day-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="day-dark"
+                style="background:#292d31"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-day-dark-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="dusk"
+                style="background:#f0e7df"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-dusk-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="dusk-dark"
+                style="background:#251e1f"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-dusk-dark-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="night"
+                style="background:#e9e4db"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-night-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div><div
+                class="hero-wallpaper-scene"
+                data-hero-scene="night-dark"
+                style="background:#111114"
+              >
+                <img
+                  class="device-screen"
+                  src="/feature-captures/home-wallpaper-night-dark-v1.25.0.webp"
+                  width="1440"
+                  height="900"
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                />
+              </div>
+            </div>
+          </div><figcaption class="daylight-caption">
+            <div class="daylight-heading">
+              <label for="hero-time">A day in Blanc.</label><div
+                class="daylight-actions"
+              >
+                <button
+                  type="button"
+                  id="hero-appearance"
+                  aria-label="Show dark appearance"
+                  aria-pressed="false"
+                  ><span aria-hidden="true">◐</span><span
+                    class="appearance-label">Light</span
+                  ></button
+                ><button
+                  type="button"
+                  id="hero-daylight-play"
+                  aria-label="Play the wallpaper day"
+                  ><span aria-hidden="true" class="daylight-play-icon">▶</span
+                  ></button>
+              </div>
+            </div><div class="daylight-track">
+              <input
+                type="range"
+                id="hero-time"
+                min="0"
+                max="3"
+                step="1"
+                value="0"
+                aria-label="Preview the time of day"
+                aria-valuetext="Dawn, 6 am"
+                aria-describedby="hero-wallpaper-note"
+              /><div class="daylight-ticks" aria-hidden="true">
+                <span class="is-current">Dawn</span><span>Day</span><span
+                  >Dusk</span
+                ><span>Night</span>
+              </div>
+            </div><p id="hero-wallpaper-note">
+              Optional wallpaper follows your local clock. Blanc v1.25.0 on
+              macOS; preview cycles faster.
+            </p>
+          </figcaption>
+        </figure>
       </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="dawn-dark" style={`background:${wallpaperTints['dawn-dark']}`}>
-        <img src="/feature-captures/home-wallpaper-dawn-dark-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="day" style={`background:${wallpaperTints.day}`}>
-        <img src="/feature-captures/home-wallpaper-day-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="day-dark" style={`background:${wallpaperTints['day-dark']}`}>
-        <img src="/feature-captures/home-wallpaper-day-dark-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="dusk" style={`background:${wallpaperTints.dusk}`}>
-        <img src="/feature-captures/home-wallpaper-dusk-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="dusk-dark" style={`background:${wallpaperTints['dusk-dark']}`}>
-        <img src="/feature-captures/home-wallpaper-dusk-dark-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="night" style={`background:${wallpaperTints.night}`}>
-        <img src="/feature-captures/home-wallpaper-night-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-      <div class="hero-wallpaper-scene" data-wallpaper-scene="night-dark" style={`background:${wallpaperTints['night-dark']}`}>
-        <img src="/feature-captures/home-wallpaper-night-dark-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
-      </div>
-    </div>
-    <figcaption><strong>Optional wallpaper follows your local clock.</strong> This preview cycles faster through dawn, day, dusk and night in light and dark mode.<br /><span>Blanc v1.25.0 on macOS. Real release captures with sample sites.</span><noscript><span class="tab-explainer">Hover or focus a dot to preview a tab. Select it to switch. +N opens the full list.</span></noscript></figcaption>
-  </figure>
-</header>
-
-<dialog class="demo-viewer" id="demoViewer" aria-labelledby="demoViewerTitle" aria-describedby="demoTabDiscovery">
-  <div class="demo-viewer-header">
-    <span id="demoViewerTitle">Desktop demo</span>
-    <button class="demo-viewer-close" id="demoViewerClose" type="button" autofocus>Close <span aria-hidden="true">×</span></button>
-  </div>
-  <div class="demo-viewer-message">
-    <h2 id="demoViewerHeadline"></h2>
-    <div class="demo-shortcut" id="demoViewerShortcut" role="group" aria-label="Option Command P" hidden><kbd><span aria-hidden="true">⌥</span><span class="demo-key-name">option</span></kbd><kbd><span aria-hidden="true">⌘</span><span class="demo-key-name">command</span></kbd><kbd>P</kbd></div>
-    <p class="demo-scene-note" id="demoViewerNote" hidden></p>
-  </div>
-  <div class="demo-viewer-canvas" id="demoViewerCanvas" tabindex="0" role="region" aria-label="Desktop scene. Scroll to explore in Actual size mode."></div>
-  <div class="demo-viewer-footer">
-    <div class="demo-viewer-sizing" role="group" aria-label="Demo size">
-      <button id="demoViewerFit" type="button" aria-pressed="true">Fit</button>
-      <button id="demoViewerActual" type="button" aria-pressed="false">Actual size</button>
-    </div>
-    <div id="demoViewerControls"></div>
-  </div>
-</dialog>
-
-<main class="home-main trust-home">
-  <section class="trust-facts" aria-label="Blanc at a glance">
-    <svg class="trust-icon-filter" width="0" height="0" aria-hidden="true" focusable="false"><defs><filter id="trust-icon-black" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -20 -20 -20 60 0" /></filter></defs></svg>
-    <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={chromiumMark} /><Fragment set:html={electronMark} /></span><span>Built on</span><strong>Chromium + Electron</strong><a href="/how-it-works#engine">How they fit together ↗</a></div>
-    <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={appleMark} /><svg viewBox="2 2 20 20" fill="currentColor"><path d="M2 2h9v9H2zm11 0h9v9h-9zM2 13h9v9H2zm11 0h9v9h-9z" /></svg><Fragment set:html={linuxMark} /></span><span>Available for</span><strong>macOS · Windows · Linux</strong><a href="/download">Choose your download ↗</a></div>
-    <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={codeMark} /></span><span>Open source</span><strong>MIT for Blanc’s own code</strong><a href="/faq#open-source">Licensing and exceptions ↗</a></div>
-    <div><span class="trust-fact-icons" aria-hidden="true"><img src="/sunrise-hero-mark.png" width="30" height="30" alt="" /></span><span>Free to browse</span><strong>Optional Patron support</strong><a href="#home-patron-title">What Patron adds ↗</a></div>
-  </section>
-  <section class="demo-showcase" id="demoShowcase" hidden aria-labelledby="demoHeadline" aria-describedby="demoTabDiscovery">
-  <div class="hero-message" id="demoHeroMessage">
-    <h2 id="demoHeadline">Tabs, search and commands in one place.</h2>
-    <div class="demo-shortcut" id="demoShortcut" role="group" aria-label="Option Command P" hidden><kbd><span aria-hidden="true">⌥</span><span class="demo-key-name">option</span></kbd><kbd><span aria-hidden="true">⌘</span><span class="demo-key-name">command</span></kbd><kbd>P</kbd></div>
-    <p class="demo-scene-note" id="demoSceneNote" hidden></p>
-  </div>
-
-  <div class="demo-mount" id="demoMount">
-  <div class="demo-frame" id="demoFrame">
-  <p class="sr-only" id="demoTabDiscovery">Each dot is a tab. Hover to see its icon and title. Keyboard focus shows the icon; a screen reader announces the tab title. Click or press Enter to switch. +N opens the full list. Use Cmd+L on Mac or Ctrl+L on Windows and Linux to search tabs by name.</p>
-  <div class="demo-stage" id="demoStage" inert>
-    <div class="demo-page">
-      <div class="bar w1"></div>
-      <div class="bar w2"></div>
-      <div class="bar w3"></div>
-      <div class="bar w4"></div>
-    </div>
-    <img class="demo-shot" id="demoShot" alt="" aria-hidden="true" fetchpriority="high">
-    <div class="demo-glance" id="demoGlance" hidden aria-hidden="true">
-      <div class="demo-glance-header" id="demoGlanceHeader">
-        <div class="demo-glance-copy">
-          <span class="demo-glance-eyebrow">GLANCE</span>
-          <span class="demo-glance-tab-identity">
-            <span class="demo-glance-favicon" id="demoGlanceFavicon" style="background-image:url('/favicons/notion.so.ico')"></span>
-            <span id="demoGlanceTitle">Notion</span>
-          </span>
+    </section>
+    <section class="beat" id="island" aria-labelledby="island-title">
+      <span id="features" class="anchor-alias" aria-hidden="true"></span>
+      <div class="frame">
+        <div class="frame-inner">
+          <div class="split-title">
+            <div>
+              <p class="frame-kicker">The Island</p><h2 id="island-title">
+                One place to<br />get around.
+              </h2>
+            </div><p class="lead">
+              Open the Island to choose a tab, find a page or use a command.
+              Close it to return to the page in front of you.
+            </p>
+          </div><figure
+            class="island-demo"
+            id="island-demo"
+            aria-describedby="demoTabDiscovery"
+          >
+            <div class="island-cinema" id="island-stage" data-state="resting">
+              <div
+                class="island-pixels"
+                role="img"
+                aria-label="Blanc v1.26.0: the resting Island above a Scandinavian design article"
+              >
+                <img
+                  class="island-native island-base"
+                  src="/revamp/rest.png"
+                  width="2560"
+                  height="1600"
+                  alt=""
+                  draggable="false"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div class="island-page-haze" aria-hidden="true"></div><div
+                  class="island-layer"
+                  data-layer="tabs"
+                >
+                  <img
+                    class="island-native"
+                    src="/revamp/tabs.png"
+                    width="2560"
+                    height="1600"
+                    alt=""
+                    draggable="false"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="island-layer" data-layer="commands">
+                  <img
+                    class="island-native"
+                    src="/revamp/command-filtered.png"
+                    width="2560"
+                    height="1600"
+                    alt=""
+                    draggable="false"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </div>
+              <button
+                class="island-hotspot"
+                type="button"
+                aria-label="Open the Island preview"
+                aria-expanded="false"></button>
+            </div>
+            <div class="island-demo-controls">
+              <div
+                class="gallery-controls island-selector"
+                role="group"
+                aria-label="Explore the Island"
+              >
+                <button type="button" data-island="resting" aria-pressed="true"
+                  >At rest</button
+                ><button type="button" data-island="tabs" aria-pressed="false"
+                  >Open the Island</button
+                ><button
+                  type="button"
+                  data-island="commands"
+                  aria-pressed="false">Find a command</button>
+              </div><button
+                id="island-play"
+                class="demo-play"
+                type="button"
+                aria-label="Play the Island sequence"
+                ><span class="play-glyph" aria-hidden="true">▶</span><span
+                  class="play-label">Play sequence</span
+                ></button>
+            </div>
+            <p class="sr-only" id="demoTabDiscovery">
+              Each dot is a tab. Hover to see its icon and title. Keyboard focus
+              shows the icon; a screen reader announces the tab title. Click or
+              press Enter to switch. +N opens the full list. Use Cmd+L on Mac or
+              Ctrl+L on Windows and Linux to search tabs by name.
+            </p>
+            <figcaption id="island-caption" class="caption" aria-live="polite">
+              Each dot is a tab. Hover or focus a dot in Blanc to preview it;
+              select it to switch. Open the Island for the full list.
+            </figcaption>
+          <p class="capture-note">Blanc v1.26.0. Sample page: <a href="https://en.wikipedia.org/wiki/Scandinavian_design">Wikipedia</a> · <a href="/revamp/credits.txt">Image credits</a>.</p>
+          </figure>
         </div>
-        <div class="demo-glance-actions">
-          <button class="demo-glance-action demo-glance-promote demo-glance-make-main" id="demoGlanceMakeMain" type="button" tabindex="-1">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
-            <span>Make main</span>
-          </button>
-          <button class="demo-glance-action" type="button" tabindex="-1">Change</button>
-          <button class="demo-glance-close" type="button" tabindex="-1"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></button>
-        </div>
       </div>
-      <div class="demo-glance-divider" id="demoGlanceDivider"><span></span></div>
-      <img class="demo-glance-shot" id="demoGlanceShot" alt="">
-    </div>
-    <div class="demo-newtab" id="demoNewtab" hidden aria-hidden="true">
-      <div class="demo-start-brand"><img src="/demo-assets/sunrise-mark.png" width="40" height="40" alt="" loading="lazy" /><span class="demo-bb-date" id="demoBbDate"></span></div>
-      <div class="demo-bb-body">
-        <div class="demo-bb-clock-row"><span class="demo-bb-clock" id="demoBbClock"></span><span class="demo-bb-meridiem" id="demoBbMeridiem"></span></div>
-        <span class="demo-bb-blocked" id="demoBbBlocked"></span>
-        <div class="demo-bb-favs">
-          <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="label">Gmail</span></span>
-          <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/notion.so.ico')"></span><span class="label">Notion</span></span>
-          <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/github.com.ico')"></span><span class="label">GitHub</span></span>
-          <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/netflix.com.ico')"></span><span class="label">Netflix</span></span>
-        </div>
-      </div>
-      <div class="demo-start-footer">
-        <span>0 ads blocked this week <small>v1.26.0</small></span>
-        <div class="demo-start-appearance"><span class="demo-start-layouts"><small>layout</small><span>ledger</span><span class="active">billboard</span><span>shelf</span><span>tally</span></span><span class="demo-start-wallpaper"><i></i>dynamic wallpaper</span></div>
-        <span>mahjong <span class="demo-start-go">⌘L to go anywhere</span></span>
-      </div>
-    </div>
-    <div class="demo-login" id="demoLogin" hidden aria-hidden="true">
-      <div class="demo-login-form">
-        <p class="demo-login-site">Example account</p>
-        <h3>Sign in</h3>
-        <label for="demoLoginEmail">Email address</label>
-        <input id="demoLoginEmail" type="text" placeholder="Email address" readonly tabindex="-1" autocomplete="off" />
-        <label for="demoLoginPassword">Password</label>
-        <input id="demoLoginPassword" type="password" placeholder="Password" readonly tabindex="-1" autocomplete="off" />
-        <button class="demo-login-submit" type="button" tabindex="-1">Sign in</button>
-        <p class="demo-login-sample">Sample website and login</p>
-      </div>
-    </div>
-    <!--email_off-->
-    <div class="demo-credential-menu" id="demoCredentialMenu" hidden aria-hidden="true">
-      <div class="demo-context-card">
-        <div class="demo-credential-choice active" id="demoCredentialChoice"><span>alex@example.com</span><small>Example account · Personal</small></div>
-        <div class="demo-credential-choice"><span>alex@work.example</span><small>Example account · Work</small></div>
-      </div>
-    </div>
-    <!--/email_off-->
-    <div class="demo-fill-notice" id="demoFillNotice" hidden aria-hidden="true">
-      <span>Filled from 1Password</span>
-      <span class="demo-fill-dismiss"><svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5" /></svg></span>
-    </div>
-    <div class="demo-island" id="demoIsland" aria-hidden="true">
-      <div class="pill">
-        <div class="pnav">
-          <button class="pbtn" tabindex="-1" aria-label="Back"><svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg></button>
-          <button class="pbtn" tabindex="-1" disabled aria-label="Forward"><svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg></button>
-        </div>
-        <div class="dots" id="demoDots"></div>
-        <span class="pill-fav" id="demoFav"></span>
-        <span class="domain" id="demoDomain"></span>
-        <span class="pill-shortcuts">
-          <span class="pill-slash" id="demoSlash" hidden>/</span>
-          <span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span>
-        </span>
-        <span class="demo-fill-hint" id="demoFillHint" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="6.4" r="3.1"/><path d="M8.3 8.7 13.2 13.6M10.9 11.3l1.7-1.7M12.7 13.1l1.3-1.3"/></svg></span>
-        <span class="shield" id="demoShield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count" id="demoShieldCount"></span></span>
-        <span class="psep"></span>
-        <div class="pacts">
-          <button class="pbtn" tabindex="-1" aria-label="Reload"><svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg></button>
-          <button class="pbtn heart" id="demoHeart" tabindex="-1" aria-label="Favorite this page"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg></button>
-          <button class="pbtn" tabindex="-1" aria-label="Close tab"><svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></button>
-        </div>
-      </div>
-
-      <div class="demo-shield-popover" id="demoShieldPopover" aria-hidden="true">
-        <div class="demo-shield-popover-head">
-          <div><strong id="demoShieldHost"></strong><span>Ad &amp; tracker blocking <b id="demoShieldState">on</b></span></div>
-          <span class="demo-shield-switch" id="demoShieldSwitch"><i></i></span>
-        </div>
-        <p id="demoShieldConnection">Uses HTTPS</p>
-        <p id="demoShieldBlocked"></p>
-        <small>Changing this reloads the page.</small>
-        <span class="demo-shield-settings">blocking settings →</span>
-      </div>
-
-      <div class="panel">
-        <div class="panel-row">
-          <div class="field"><span class="typed" id="demoTyped"></span><span class="caret"></span></div>
-          <div class="pacts-row">
-            <button class="abtn" tabindex="-1" disabled aria-label="Back"><svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg></button>
-            <button class="abtn" tabindex="-1" disabled aria-label="Forward"><svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg></button>
-            <button class="abtn" tabindex="-1" aria-label="Reload"><svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg></button>
-            <button class="abtn heart" tabindex="-1" aria-label="Favorite this page"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg></button>
-            <button class="abtn" tabindex="-1" aria-label="Collapse island"><svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg></button>
+    </section>
+    <section class="beat" id="tabs" aria-labelledby="tabs-title">
+      <div class="frame">
+        <div class="frame-inner">
+          <p class="frame-kicker">Tabs and sessions</p><h2 id="tabs-title">
+            Keep your place.<br />Choose what stays in view.
+          </h2><p class="lead">
+            Name your groups, switch between them, or use a vertical tab list
+            when you want to see more of the session.
+          </p><div class="asymmetry">
+            <figure class="primary-visual">
+              <div
+                class="group-study"
+                aria-label="Interactive illustration of named tab groups"
+              >
+                <div class="group-field" aria-hidden="true">
+                  Search or type a URL <span>⌘ L</span>
+                </div>
+                <div class="group-demo-row">
+                  <img
+                    src="/favicons/github.com.ico"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />Blanc on GitHub
+                </div>
+                <div class="group-demo-section">
+                  <button
+                    type="button"
+                    data-group-toggle
+                    aria-expanded="true"
+                    aria-controls="demo-group-reading"
+                    ><span class="group-chevron" aria-hidden="true">⌄</span
+                    >Reading <span class="group-count">2</span></button
+                  ><div class="group-fold" id="demo-group-reading">
+                    <div>
+                      <div class="group-demo-row">
+                        <span class="letter-favicon" aria-hidden="true">K</span
+                        >Kinfolk — a slower perspective
+                      </div><div class="group-demo-row">
+                        <span class="letter-favicon" aria-hidden="true">M</span
+                        >Monocle — design &amp; culture
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="group-demo-section">
+                  <button
+                    type="button"
+                    data-group-toggle
+                    aria-expanded="true"
+                    aria-controls="demo-group-making"
+                    ><span class="group-chevron" aria-hidden="true">⌄</span
+                    >Making <span class="group-count">2</span></button
+                  ><div class="group-fold" id="demo-group-making">
+                    <div>
+                      <div class="group-demo-row">
+                        <img
+                          src="/favicons/notion.so.ico"
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />Notes &amp; ideas
+                      </div><div class="group-demo-row">
+                        <span class="letter-favicon" aria-hidden="true">A</span
+                        >Are.na — collected references
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="group-footer">/group names the group</div>
+              </div><figcaption class="caption">
+                Try folding a group. You choose the names and the tabs that
+                belong together. Illustration with sample pages.
+              </figcaption>
+            </figure><article class="side-story">
+              <h3>Closed it<br />too soon?</h3><p>
+                Recently Closed gives ordinary tabs a way back while they remain
+                in the undo buffer.
+              </p><div class="reopen-study">
+                <p class="reopen-label">
+                  Recently Closed <span id="reopen-count">1</span>
+                </p><div class="reopen-example" id="reopen-example">
+                  <img
+                    src="/favicons/github.com.ico"
+                    width="16"
+                    height="16"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  /><span>Blanc on GitHub</span><button
+                    type="button"
+                    id="reopen-preview"
+                    aria-label="Reopen the example tab">↶</button>
+                </div><p
+                  class="reopen-result"
+                  id="reopen-result"
+                  role="status"
+                  hidden
+                >
+                  Back in your tabs. <button type="button" id="reopen-reset"
+                    >Replay</button>
+                </p>
+              </div><p class="caption">
+                Illustration. Recovery is limited; private tabs are excluded. <a
+                  href="/support#reopen-closed-tabs">How it works →</a>
+              </p>
+            </article>
+          </div><p class="material-limit">
+            Tab groups are free. Named Workspaces add saved window sets with
+            active Blanc Patron support.
+          </p><div class="session-bridge">
+            <h3>Keep work and<br />personal apart.</h3><div>
+              <p>
+                Use local profiles for separate logins, Favorites and history.
+                Optional Sync carries your Personal profile’s Favorites and
+                selected settings between devices.
+              </p><p class="material-limit">
+                Named profiles stay on this device. Sync is off by default and
+                available only to Personal.
+              </p>
+            </div>
           </div>
         </div>
-        <div class="list" id="demoList"></div>
-        <div class="foot-bar">
-          <button class="foot-new" tabindex="-1" aria-label="New tab"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg><span>new tab</span><span class="foot-kbd">⌘T</span></button>
-          <button class="foot-new private" tabindex="-1" aria-label="New private tab"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg><span>private</span><span class="foot-kbd">⌘⇧N</span></button>
-          <span class="foot-spacer"></span>
-          <button class="foot-act ws bound" id="demoWorkspace" tabindex="-1" aria-label="Workspace research" aria-expanded="false">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="4.75" width="8.75" height="8.5" rx="1.5"/><path d="M5.25 4.75V3.25a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-1.5"/></svg>
-            <span id="demoWorkspaceLabel">research</span>
-          </button>
-          <button class="foot-act" tabindex="-1" aria-label="Favorites"><svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg></button>
-          <button class="foot-act" tabindex="-1" aria-label="History"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg></button>
-          <button class="foot-act" tabindex="-1" aria-label="Downloads"><svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg></button>
-          <button class="foot-act" tabindex="-1" aria-label="Vertical tabs"><svg viewBox="0 0 16 16"><rect x="2.5" y="2.75" width="11" height="10.5" rx="1.5"/><path d="M6 2.75v10.5"/></svg></button>
-          <button class="foot-act" tabindex="-1" aria-label="Settings"><svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg></button>
-        </div>
-        <div class="demo-workspace-switcher" id="demoWorkspaceSwitcher" hidden>
-          <div class="demo-ws-row on"><span class="demo-ws-tick">✓</span><span>research</span><span class="demo-ws-count">8</span></div>
-          <div class="demo-ws-row"><span class="demo-ws-tick"></span><span>writing</span><span class="demo-ws-count">4</span></div>
-          <div class="demo-ws-row"><span class="demo-ws-tick"></span><span>weekend</span><span class="demo-ws-count">6</span></div>
-          <div class="demo-ws-sep"></div>
-          <div class="demo-ws-command">new…</div>
-          <div class="demo-ws-command">save as…</div>
-        </div>
-        <div class="foot" id="demoFoot">⌘L summons · / for commands</div>
       </div>
-    </div>
-    <div class="demo-tab-context" id="demoTabContext" hidden aria-hidden="true"></div>
-    <div class="demo-cursor" id="demoCursor" hidden aria-hidden="true"><span class="demo-cursor-shape"></span></div>
-  </div>
-  </div>
-  </div>
-  <div id="demoControlsMount">
-  <p class="demo-sample-note">Illustrated demo · Sample tabs and counts</p>
-  <div class="demo-scrub" id="demoScrub" role="group" aria-label="Demo chapters">
-    <span class="demo-scrub-current" id="demoScrubCurrent">the island</span>
-    <select class="demo-chapter-select" id="demoChapterSelect" aria-label="Demo chapter"></select>
-    <div class="demo-scrub-track" id="demoScrubTrack">
-      <div class="demo-scrub-fill" id="demoScrubFill"></div>
-    </div>
-    <button class="demo-replay" id="demoReplay" type="button">Replay</button>
-    <button class="demo-scrub-toggle" id="demoScrubToggle" type="button" data-paused="false" aria-label="Pause demo" title="Pause demo">
-      <svg viewBox="0 0 16 16" aria-hidden="true">
-        <g class="demo-pause-icon"><rect x="3.5" y="3" width="3" height="10" rx="0.75"/><rect x="9.5" y="3" width="3" height="10" rx="0.75"/></g>
-        <path class="demo-play-icon" d="M5 2.5 13 8l-8 5.5z"/>
-      </svg>
-    </button>
-  </div>
-  </div>
-  <button class="demo-enlarge" id="demoEnlarge" type="button" aria-haspopup="dialog">View larger <span aria-hidden="true">↗</span></button>
-  </section>
-
-
-  <section class="trust-benefits" aria-labelledby="benefitsTitle">
-    <div class="trust-section-head"><p class="section-kicker">A calmer everyday browser</p><h2 id="benefitsTitle">The essentials, within reach.</h2></div>
-    <article><span class="trust-number" aria-hidden="true">01</span><h3>Find your way</h3><p>Navigation, search and tab switching share a compact island in a slim band above the page. Open its panel for the Quick Switcher or a slash command.</p><a class="text-link" href="/features/island">Explore navigation ↗</a></article>
-    <article><span class="trust-number" aria-hidden="true">02</span><h3>Block the known noise</h3><p>Blanc Blocker uses bundled EasyList and EasyPrivacy rules at the network layer. Turn it off for a site when needed. No blocker can stop every tracker.</p><a class="text-link" href="/features/ad-blocking">Explore blocking ↗</a></article>
-    <article><span class="trust-number" aria-hidden="true">03</span><h3>Keep tabs manageable</h3><p>Name your groups, reopen recently closed tabs and let inactive tabs go quiet to reclaim memory. Patron adds saved Named Workspaces.</p><a class="text-link" href="/features">Explore tab management ↗</a></article>
-    <article><span class="trust-number" aria-hidden="true">04</span><h3>Keep your 1Password logins close</h3><p>On macOS, fill matching logins from your installed 1Password app and account. Enable the built-in integration in Settings, then press ⌥⌘P on a login form.</p><a class="text-link" href="/features/1password">Set up 1Password ↗</a></article>
-  </section>
-  <section class="trust-explain" aria-labelledby="trustTitle">
-    <div><p class="section-kicker">How Blanc works</p><h2 id="trustTitle">A closer look at Blanc.</h2><p>Explore the technology behind Blanc, how updates work and the services it connects to. Fresh setup preselects search suggestions and usage measurement. These optional connections start only after you save your choices; you can turn either off before continuing or later in Settings.</p></div>
-    <div class="trust-explain-links"><a href="/how-it-works">Technology and updates <span aria-hidden="true">↗</span></a><a href="/how-it-works#connections">Connections and privacy controls <span aria-hidden="true">↗</span></a><a href="/features/security">Security and verified releases <span aria-hidden="true">↗</span></a><a href="/privacy">Privacy policy <span aria-hidden="true">↗</span></a></div>
-  </section>
-  <section class="home-faq" aria-labelledby="home-faq-title">
-    <div class="home-faq-head"><p class="section-kicker">A few useful answers</p><h2 id="home-faq-title">Before you download.</h2><a class="text-link" href="/faq">Read the full FAQ ↗</a></div>
-    <div class="home-faq-list faq-list">
-      <details><summary><span>Is Blanc based on Chromium?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Yes. Chromium renders websites, Electron bundles the engine and desktop runtime, and Blanc supplies the browser interface and features.</p></details>
-      <details><summary><span>Does Blanc work with 1Password?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Yes, on macOS. Blanc has built-in login fill for your installed 1Password app and account. It is off by default and fills only when you ask. Windows and Linux do not currently offer this integration. <a href="/features/1password">See setup and shortcuts.</a></p></details>
-      <details><summary><span>Does Blanc send usage data?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>If you save Help improve Blanc as on, packaged builds send pseudonymous launch and fixed feature-use events to a Blanc-owned Cloudflare collector, with an optional Google Analytics mirror. No URLs, searches or page contents are in those events. <a href="/how-it-works#connections">See the connections and controls.</a></p></details>
-      <details><summary><span>Is Blanc free and open source?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Browsing essentials and ordinary tab groups are free. Active Patron adds the ability to create saved Named Workspaces. Blanc’s own code is MIT licensed; names, logos and third-party material have separate terms.</p></details>
-    </div>
-  </section>
-  <section class="home-patron" aria-labelledby="home-patron-title">
-    <div class="home-patron-copy">
-      <BrandMark class="home-patron-mark" />
-      <h2 id="home-patron-title"><span class="home-patron-intro">Upgrade to</span>{' '}<span class="home-patron-name">Blanc Patron.</span></h2>
-      <p>Blanc Patron is the optional subscription supporting Blanc’s development. Browsing essentials and ordinary tab groups are free; Patron adds saved Named Workspaces.</p>
-      <p class="home-patron-boundary">Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep lifetime Patron access.</p>
-      <a class="text-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-patron">Explore Named Workspaces <span aria-hidden="true">↗</span></a>
-    </div>
-    <div class="home-patron-offer">
-      <p class="home-patron-price"><strong><span class="home-patron-currency">US$</span><span class="home-patron-amount">30</span></strong><span class="home-patron-period"> / year</span></p>
-      <p class="home-patron-monthly">or US$4 / month</p>
-      <p class="home-patron-tax">Plus applicable tax.</p>
-      <a class="cta" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf" target="_blank" rel="noopener" data-track="supporter_click" data-feature="patron" data-cta-position="home-patron-close">Upgrade to Blanc Patron</a>
-      <p class="home-patron-reassurance">Blanc is free to browse. Patron is optional.</p>
-    </div>
-  </section>
-</main>
-
-  <script src="../scripts/demo.js"></script>
-  <script src="../scripts/hero-wallpaper.js"></script>
+    </section>
+    <section class="beat privacy-section" id="privacy" aria-labelledby="privacy-title">
+      <div class="frame">
+        <div class="frame-inner">
+          <div class="privacy-intro">
+            <header class="privacy-heading">
+              <p class="frame-kicker">Privacy and control</p>
+              <h2 id="privacy-title">Your blocking.<br />Your choice.</h2>
+              <p class="lead">Choose how Blanc blocks ads and trackers.</p>
+            </header>
+            <figure class="horizon-study" aria-label="Horizon Shield">
+              <div class="horizon-stage" aria-hidden="true">
+                <div class="horizon-light"></div>
+                <div class="horizon-turn">
+                  <img class="horizon-fallback" src="/horizon-shield.webp" alt="" width="960" height="960" loading="lazy" decoding="async" />
+                </div>
+                <div class="horizon-shadow"></div>
+              </div>
+            </figure>
+            <div class="blocking-options">
+              <div class="blocking-option">
+                <h3>Blanc Blocker</h3>
+                <p>Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.</p>
+              </div>
+              <div class="blocking-option">
+                <h3>uBlock Origin</h3>
+                <p>Customizable filter lists, advanced settings and a request logger for regular tabs.</p>
+              </div>
+              <p class="blocking-provider-note">Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.</p>
+            </div>
+          </div>
+          <div class="privacy-disclosure">
+            <div>
+              <h3>Clear privacy choices.</h3>
+              <p>Open a private tab when you choose. Optional connections start only after you save your setup choices. Enabled usage measurement sends pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror; no URLs, searches or page contents.</p>
+            </div>
+            <p class="material-limit">
+              Blocking reduces known ads and tracking; coverage is not universal.
+              Fresh setup preselects search suggestions and usage measurement.
+              Both can be turned off before saving or later in Settings. <a
+                href="/trust#connections"
+                >Connections, defaults and security evidence →</a>
+              <a href="/trust#ad-blocking">Blocking details →</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="beat" id="start" aria-labelledby="start-title">
+      <div class="frame start-frame">
+        <div class="frame-inner">
+          <div class="split-title">
+            <div>
+              <p class="frame-kicker">Your starting point</p><h2
+                id="start-title"
+              >
+                Start with a view<br />that suits you.
+              </h2>
+            </div><p class="lead">
+              Choose Ledger, Billboard, Shelf or Tally. Keep a simple list, a
+              large clock, a shelf of favorites or a view of blocking activity.
+            </p>
+          </div><div
+            class="gallery-controls"
+            role="group"
+            aria-label="Choose a Start Page layout"
+          >
+            <button type="button" data-layout="ledger" aria-pressed="true"
+              >Ledger</button
+            ><button type="button" data-layout="billboard" aria-pressed="false"
+              >Billboard</button
+            ><button type="button" data-layout="shelf" aria-pressed="false"
+              >Shelf</button
+            ><button type="button" data-layout="tally" aria-pressed="false"
+              >Tally</button>
+          </div>
+        </div><figure>
+          <div class="device-composition device-desktop">
+            <img
+              class="device-shell"
+              src="/revamp/champagne-desktop-v2.webp"
+              width="1374"
+              height="1145"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+            /><div class="device-aperture">
+              <img
+                id="layout-image"
+                class="layout-shot device-screen"
+                src="/feature-captures/ledger-v1.21.0.png"
+                width="1440"
+                height="900"
+                alt="Blanc v1.21.0 Ledger Start Page capture"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div><figcaption class="layout-meta">
+            <p id="layout-caption" class="caption" aria-live="polite">
+              Ledger — a simple list of Favorites.
+            </p><p class="capture-note">
+              Layout and game previews captured in Blanc v1.21.0 on macOS.
+            </p>
+          </figcaption><div class="start-discovery">
+            <button
+              type="button"
+              id="mahjong-peek"
+              aria-expanded="false"
+              aria-controls="layout-image"
+              ><span class="tile-pair" aria-hidden="true"
+                ><span
+                  ><img
+                    src="/sunrise-hero-mark.png"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  /></span
+                ><span
+                  ><img
+                    src="/sunrise-hero-mark.png"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  /></span
+                ></span
+              ><span class="break-label">A little break.</span><span
+                class="break-arrow"
+                aria-hidden="true">↗</span
+              ></button
+            ><button type="button" id="mahjong-back" hidden
+              >Back to Ledger <span aria-hidden="true">↩</span></button>
+          </div>
+        </figure>
+      </div>
+    </section>
+    <section class="beat" id="tools" aria-labelledby="tools-title">
+      <div class="frame">
+        <div class="frame-inner">
+          <p class="frame-kicker">Everyday tools</p><h2 id="tools-title">
+            Small conveniences.<br />Useful every day.
+          </h2><div class="tool-feature">
+            <h3>Keep a reference beside your page.</h3><p class="lead">
+              Keep two of your open pages in view. Adjust the split, swap them,
+              or close the reference when you’re done.
+            </p><figure class="glance-demo" id="glance-demo">
+              <div class="glance-viewport" id="glance-viewport">
+                <div
+                  class="glance-window"
+                  id="glance-window"
+                  style="--split:62%"
+                >
+                  <section
+                    class="glance-pane glance-main"
+                    aria-label="Main page illustration"
+                  >
+                    <div class="glance-chrome">
+                      <div class="glance-pill-crop">
+                        <img
+                          src="/feature-captures/glance.png"
+                          alt=""
+                          aria-hidden="true"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    </div>
+                    <div class="glance-document" id="glance-main-document">
+                      <div class="sample-page" data-page="answers">
+                        <p class="sample-kicker">The hard questions</p><h4>
+                          Straight<br />answers.
+                        </h4><p>The questions worth asking about Blanc.</p><div
+                          class="sample-answer"
+                        >
+                          <h5>Is Blanc open source?</h5><p>
+                            Yes. Blanc-owned code is MIT-licensed. Names,
+                            identity assets and third-party material retain
+                            their separate terms.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <div
+                    class="glance-divider"
+                    id="glance-divider"
+                    role="slider"
+                    tabindex="0"
+                    aria-label="Resize the Glance split"
+                    aria-valuemin="50"
+                    aria-valuemax="78"
+                    aria-valuenow="62"
+                    aria-valuetext="Main page 62 percent, reference 38 percent"
+                    aria-orientation="horizontal"
+                    aria-describedby="glance-hint"
+                  >
+                    <span aria-hidden="true"></span>
+                  </div>
+                  <section
+                    class="glance-pane glance-reference"
+                    aria-label="Reference page illustration"
+                  >
+                    <div class="glance-reference-chrome">
+                      <span>Glance</span><span class="reference-name"
+                        >About Blanc</span
+                      ><span class="glance-close-mark" aria-hidden="true"
+                        >×</span>
+                    </div>
+                    <div class="glance-document" id="glance-reference-document">
+                      <div class="sample-page" data-page="about">
+                        <p class="sample-kicker">Independent by design</p><h4>
+                          A browser with a studio accountable for it.
+                        </h4><p>
+                          Blanc is built by Bananify, an independent software
+                          studio.
+                        </p><div class="sample-answer">
+                          <h5>A direct line to the person building it.</h5><p>
+                            Product decisions, design and support lead back to
+                            the same human maintainer.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+              <figcaption class="glance-footer">
+                <p id="glance-hint">
+                  Drag the divider. An interactive desktop illustration.
+                </p><div class="glance-actions">
+                  <button type="button" id="glance-swap"
+                    >Swap pages <span aria-hidden="true">⇄</span></button
+                  ><button type="button" id="glance-reset">Reset</button><button
+                    type="button"
+                    id="glance-close">Close reference</button
+                  ><button type="button" id="glance-reopen" hidden
+                    >Open reference <span aria-hidden="true">↗</span></button>
+                </div>
+              </figcaption>
+              <p class="sr-only" id="glance-status" aria-live="polite"></p>
+            </figure>
+          </div><div class="gesture-study">
+            <div>
+              <h3>Let a small movement<br />take you somewhere.</h3><p>
+                Enable mouse gestures, then draw a direction to go back, move
+                forward or open a tab.
+              </p><p class="material-limit">
+                Off by default. Use right-button drag with a mouse, or
+                Alt/Option plus click-and-drag with a trackpad.
+              </p>
+            </div><figure>
+              <div class="gesture-stage" data-gesture="back">
+                <svg viewBox="0 0 320 180" aria-hidden="true"
+                  ><path class="gesture-track" d="M240 90H80"></path><path
+                    class="gesture-arrow"
+                    d="m99 71-19 19 19 19"></path><circle
+                    class="gesture-pointer"
+                    cx="240"
+                    cy="90"
+                    r="8"></circle></svg
+                ><span id="gesture-label" aria-live="polite">Back</span>
+              </div><div
+                class="gesture-controls"
+                role="group"
+                aria-label="Preview a mouse gesture"
+              >
+                <button
+                  type="button"
+                  data-gesture-preview="back"
+                  aria-pressed="true">← Back</button
+                ><button
+                  type="button"
+                  data-gesture-preview="forward"
+                  aria-pressed="false">Forward →</button
+                ><button
+                  type="button"
+                  data-gesture-preview="new"
+                  aria-pressed="false">↑ New tab</button>
+              </div><figcaption class="caption">
+                Select a motion to replay this illustration.
+              </figcaption>
+            </figure>
+          </div><div class="tools-list">
+            <article>
+              <h3>Use your 1Password logins.</h3><p>
+                On macOS, the optional integration fills a matching login when
+                you ask.
+              </p><p class="material-limit">
+                Off by default; requires the installed 1Password app and account
+                on macOS. Lookup and filling remain explicit actions. <a
+                  href="/support#1password">Setup and shortcuts →</a>
+              </p>
+            </article><article>
+              <h3>Free memory from inactive tabs.</h3><p>
+                Quiet Tabs can release memory from eligible inactive background
+                pages while retaining their tabs.
+              </p><p class="material-limit">
+                A quiet page reloads when revisited. Active, unfinished or
+                otherwise ineligible pages stay awake.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="beat" id="closing" aria-labelledby="closing-title">
+      <div class="frame">
+        <div class="trust-intro">
+          <p class="frame-kicker">The person and the project</p><h2
+            id="closing-title"
+          >
+            Know what you’re<br />bringing onto your computer.
+          </h2><p class="lead">
+            Blanc is built by Bananify, an independent software studio. Its
+            source and release records are available to inspect. AI assists
+            implementation and security review; Anthony J. Loria remains
+            accountable for product decisions and release approval.
+          </p><div class="trust-links">
+            <a href="/about">Meet the studio →</a><a
+              href="https://github.com/bnfy/blanc">Read the source →</a
+            >
+          </div><p class="material-limit">
+            Blanc-owned code is MIT-licensed. Names, identity assets and
+            third-party material retain their separate terms. No independent
+            external security audit has been completed.
+          </p>
+          <section class="home-foundations" aria-label="About the browser">
+            <div>
+              <span class="foundation-label"
+                ><span class="foundation-icons" aria-hidden="true"
+                  ><Fragment set:html={chromiumMark} /><Fragment
+                    set:html={electronMark}
+                  /></span
+                >Built on</span
+              ><strong>Chromium + Electron</strong><a
+                href="/trust#engine">How they fit together ↗</a>
+            </div><div>
+              <span>Open source</span><strong>MIT for Blanc’s own code</strong><a
+                href="/support#open-source">Licensing and exceptions ↗</a>
+            </div><div>
+              <span>Official downloads</span><strong
+                >Release evidence, in public</strong
+              ><a href="/trust#release-verification-title">Check your download ↗</a>
+            </div>
+          </section>
+        </div><section
+          class="patron-section"
+          id="patron"
+          aria-labelledby="patron-title"
+        >
+          <span
+            class="patron-anchor"
+            id="home-patron-title"
+            aria-hidden="true"
+          ></span>
+          <div class="patron-layout">
+            <div class="patron-intro">
+              <BrandMark class="patron-mark" />
+              <h2 class="patron-title" id="patron-title">Blanc Patron.</h2>
+              <p class="patron-description">
+                Support Blanc and save named window sets with Named Workspaces.
+                The browser remains free; Patron is an optional subscription.
+              </p>
+              <a class="patron-help" href="/support#workspaces"
+                >Explore Named Workspaces →</a>
+            </div>
+            <div class="patron-offer">
+              <p class="patron-price">
+                <span class="patron-annual"
+                  ><span class="patron-currency">US$</span><span
+                    class="patron-amount">30</span><span class="patron-period"
+                    > / year</span></span>
+                <span class="patron-monthly"
+                  >or US$4 / month, plus applicable tax.</span>
+              </p>
+              <a
+                class="patron-cta"
+                href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf"
+                >Become a Patron <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+          <p class="patron-boundary">
+            Creating a named workspace requires an active Patron subscription.
+            If membership lapses, existing workspaces remain openable,
+            switchable, and automatically updated. Renaming and removing
+            existing workspaces continue to work if it lapses. Earlier
+            one-time supporters keep their lifetime Patron access.
+          </p>
+        </section><div class="download-close">
+          <h3>Ready to try Blanc?</h3><div
+            class="platforms"
+            aria-label="Available desktop platforms"
+          >
+            <span><PlatformLogo platform="apple" />macOS</span><span
+              ><PlatformLogo platform="windows" />Windows</span
+            ><span><PlatformLogo platform="linux" />Linux</span>
+          </div><a class="planned-action" href="/download"
+            >Choose your download</a
+          ><p class="closing-links" style="margin-top:20px">
+            <a href="/support">Support</a> · <a href="/changelog">What’s new</a>
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="../scripts/home.js"></script>
 </BaseLayout>

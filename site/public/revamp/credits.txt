@@ -1,0 +1,32 @@
+Blanc website Island captures — captured October 2, 2026
+
+rest.png, tabs.png and command-filtered.png show the official Blanc v1.26.0
+macOS app with sample tabs. The native pixels are unchanged. The website
+clips the viewport and uses a CSS white veil below the Island; transitions
+between stills are website choreography, not recorded application motion.
+
+Sample webpage: “Scandinavian design”, Wikipedia contributors.
+https://en.wikipedia.org/wiki/Scandinavian_design
+Contributors and revision history:
+https://en.wikipedia.org/w/index.php?title=Scandinavian_design&action=history
+Article text: Creative Commons Attribution-ShareAlike 4.0 International.
+https://creativecommons.org/licenses/by-sa/4.0/
+The captured article portion and its displayed adaptation retain that license;
+this does not relicense Blanc's code or identity assets.
+
+Photographs visible in the uncropped screenshot:
+- “Design in Scandinavia exhibition”, 1954, Brooklyn Museum.
+  Wikimedia Commons records the institution's “no known copyright restrictions”
+  designation; this is not a claim of a new license grant from Blanc.
+  https://commons.wikimedia.org/wiki/File:Design_in_Scandinavia_exhibition.jpg
+- “Roskilde Svane Apothek 1899”, anonymous, source: Royal Danish Library.
+  Wikimedia Commons marks it public domain.
+  https://commons.wikimedia.org/wiki/File:Roskilde_Svane_Apothek_1899.jpg
+
+Wikipedia and other third-party marks remain their owners' property. Their
+appearance in a browser screenshot does not imply endorsement of Blanc.
+
+Hardware illustrations were generated separately with OpenAI image generation.
+Apple, Windows and Linux symbols: Font Awesome Free 6.7.2, CC BY 4.0.
+https://fontawesome.com/license/free
+The original icon attribution and terms are retained in LICENSE.txt and the SVGs.
