@@ -188,8 +188,8 @@
     <div id="shieldPopChooser" hidden>
       <fieldset id="shieldPopProvider" aria-describedby="shieldPopRestartNote shieldPopPrivateNote shieldPopAvailability">
         <legend class="sr-only">Choose a blocker</legend>
-        <label><input type="radio" name="shieldProvider" value="blanc" /><span class="shield-provider-name"><strong>Blanc Blocker</strong><small>EasyList + EasyPrivacy</small></span><span class="shield-provider-active" data-provider="blanc" hidden>Active</span></label>
-        <label><input type="radio" name="shieldProvider" value="ublock-origin" /><span class="shield-provider-name"><strong>uBlock Origin</strong><small>Advanced filtering and controls</small></span><span class="shield-provider-active" data-provider="ublock-origin" hidden>Active</span></label>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>Blanc Blocker</strong><span class="shield-provider-active" data-provider="blanc" hidden>Active</span></span><small>EasyList + EasyPrivacy</small></span><input type="radio" name="shieldProvider" value="blanc" /></label>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>uBlock Origin</strong><span class="shield-provider-active" data-provider="ublock-origin" hidden>Active</span></span><small>Advanced filtering and controls</small></span><input type="radio" name="shieldProvider" value="ublock-origin" /></label>
       </fieldset>
       <div class="shield-pop-chooser-note">
         <p id="shieldPopRestartNote">Changes take effect after restarting Blanc.</p>
@@ -197,8 +197,7 @@
       </div>
       <p id="shieldPopAvailability" class="shield-pop-note" hidden></p>
       <p id="shieldPopChooserError" role="alert" hidden></p>
-      <button id="shieldPopApply" class="shield-pop-primary">Use Blanc Blocker</button>
-      <button id="shieldPopCancel" class="shield-pop-cancel">Cancel</button>
+      <div class="shield-pop-actions"><button id="shieldPopApply" class="shield-pop-primary">Done</button></div>
     </div>
   </section>
   <section id="capturePop" class="capture-pop" hidden>

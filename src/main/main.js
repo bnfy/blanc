@@ -43,6 +43,7 @@ const {
 } = require('./adblock');
 const { createBlockingProviders } = require('./blocking-providers');
 const { createBlockingRecovery } = require('./blocking-recovery');
+const { createAppRestarter } = require('./app-restart');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
@@ -3878,8 +3879,17 @@ function adblockWeekStats() {
 
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
-app.on('before-quit', () => {
+const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
+  isQuitting = false;
+  for (const runtime of windowRuntimes.all()) {
+    if (runtime.window && !runtime.window.isDestroyed()) runtime.window.show();
+  }
+} });
+app.on('will-quit', () => {
   blockingProviders?.stop();
+  onePasswordBroker?.stop();
+});
+app.on('before-quit', () => {
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
       const existing = namedWorkspaces.get(runtime.workspaceId);
@@ -3891,7 +3901,6 @@ app.on('before-quit', () => {
   for (const runtime of windowRuntimes.all()) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
   }
-  onePasswordBroker?.stop();
   for (const snapshot of [...sleepSnapshots.values()]) {
     const wc = snapshot.view?.webContents;
     if (wc && !wc.isDestroyed()) wc.close();
@@ -6756,14 +6765,21 @@ function registerIpcHandlers() {
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
   });
-  chromeHandle('chrome:blocking-provider', (_event, provider) => {
+  chromeHandle('chrome:blocking-provider', async (_event, provider, restart = false) => {
     const tab = tabs.get(rt().activeTabId);
     const status = blockingProviders?.status(rt().profileId);
-    if (rt().overlayMode !== 'shield' || !tab || tab.private || !status) return false;
+    if (isQuitting || typeof restart !== 'boolean' || rt().overlayMode !== 'shield' || !tab || tab.private || !status) return false;
     if (provider !== 'blanc' && provider !== 'ublock-origin') return false;
     if (provider === 'ublock-origin' && !status.supported) return false;
+    const previous = settings.getSettings().adblockProvider;
     settings.setSettings({ adblockProvider: provider });
+    if (!settings.flushSettings()) {
+      settings.setSettings({ adblockProvider: previous });
+      broadcastTabs();
+      return false;
+    }
     broadcastTabs();
+    if (restart && provider !== status.active) return restartApp();
     return true;
   });
   chromeHandle('chrome:blocking-popup', async () => {

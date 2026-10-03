@@ -138,17 +138,15 @@ async function assertShortWindow(overlay) {
     await waitForValue(() => call('windowContentBounds'), bounds => bounds.width === 640 && bounds.height === 480, 'minimum content size applied');
     await overlay.waitForFunction(() => {
       const card = document.querySelector('#shieldPop');
-      return card.scrollHeight > card.clientHeight && card.getBoundingClientRect().bottom <= innerHeight;
+      return card.getBoundingClientRect().bottom <= innerHeight;
     });
     await assertAnchored(overlay);
     assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'resizing preserves the pending choice');
     await assertDraftOnly('blanc');
-    // Native Tab navigation must scroll both bottom actions into the clipped
-    // popover viewport; visual visibility alone would not prove they are usable.
+    // Native Tab navigation must reach the single contextual action.
     await providerRadio(overlay, 'ublock-origin').press('Tab');
     await overlay.waitForFunction(() => document.activeElement?.id === 'shieldPopApply');
-    for (const id of ['shieldPopApply', 'shieldPopCancel']) {
-      if (id === 'shieldPopCancel') await overlay.locator('#shieldPopApply').press('Tab');
+    for (const id of ['shieldPopApply']) {
       await overlay.waitForFunction(value => document.activeElement?.id === value, id);
       assert(await overlay.locator('#' + id).isEnabled(), id + ' remains enabled in a short window');
       const reachable = await overlay.locator('#' + id).evaluate(button => {
@@ -171,6 +169,26 @@ async function assertShortWindow(overlay) {
   await assertAnchored(overlay);
   await providerRadio(overlay, 'ublock-origin').click();
   await assertDraftOnly('blanc');
+}
+async function restartFromChooser(overlay, keyboard = false) {
+  assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Restart Blanc');
+  const marker = path.join(dir, 'restart-call.json');
+  fs.rmSync(marker, { force: true });
+  // Let the real app quit normally. Capture only the final spawn request so
+  // the harness can launch/reconnect deterministically without orphaning a
+  // debug process. A separate native smoke exercises actual app.relaunch.
+  await electron.evaluate(({ app }, marker) => {
+    app.relaunch = () => process.mainModule.require('node:fs').writeFileSync(marker, JSON.stringify({ requested: true }));
+  }, marker);
+  const closed = new Promise(resolve => electron.once('close', resolve));
+  const button = overlay.locator('#shieldPopApply');
+  if (keyboard) await button.focus();
+  await (keyboard ? button.press('Enter') : button.click()).catch(error => {
+    if (!/closed|destroyed/i.test(error.message)) throw error;
+  });
+  await closed;
+  assert.equal(JSON.parse(fs.readFileSync(marker)).requested, true, 'normal quit schedules one relaunch');
+  electron = null;
 }
 async function assertFits(overlay) {
   const geometry = await overlay.locator('#shieldPop').evaluate(card => ({
@@ -195,8 +213,9 @@ try {
   assert.match(await overlay.locator('#shieldPopChooser').innerText(), /unavailable/i);
   assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('ublock-origin')), false);
   assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('forged-provider')), false);
+  assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('blanc', 'yes')), false);
   await assertDraftOnly('blanc');
-  await overlay.locator('#shieldPopCancel').click();
+  await overlay.locator('#shieldPopBack').click();
   await summary(overlay, true);
   await closeShield(overlay);
   await electron.close(); electron = null;
@@ -206,6 +225,12 @@ try {
   const initial = await fixture();
   overlay = await openShield();
   const before = visits;
+  await chooser(overlay, 'blanc', true);
+  assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Done');
+  await overlay.locator('#shieldPopApply').click();
+  await waitForValue(() => call('overlayMode'), mode => mode === null, 'Done closes the unchanged chooser');
+  await assertDraftOnly('blanc');
+  overlay = await openShield();
   await chooser(overlay, 'blanc', true);
   assert.match(await overlay.locator('#shieldPopProvider').innerText(), /EasyList\s*\+\s*EasyPrivacy/);
   await providerRadio(overlay, 'blanc').press('ArrowDown');
@@ -224,7 +249,7 @@ try {
   await overlay.waitForFunction(() => window.__shieldTestBroadcastReceived === true);
   assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'tabs broadcast preserves the draft');
   await assertDraftOnly('blanc');
-  await overlay.locator('#shieldPopCancel').click();
+  await overlay.locator('#shieldPopBack').click();
   await summary(overlay, true);
   await assertDraftOnly('blanc');
   await chooser(overlay, 'blanc');
@@ -252,7 +277,22 @@ try {
   assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'appearance updates preserve draft');
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-dark.png' });
   await setAppearance(overlay, 'light');
+  assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Restart Blanc');
+  await electron.evaluate(() => {
+    const settings = process.mainModule.require(process.mainModule.require('electron').app.getAppPath() + '/src/main/settings.js');
+    globalThis.__restoreSettingsFlush = settings.flushSettings;
+    settings.flushSettings = () => false;
+  });
   await overlay.locator('#shieldPopApply').click();
+  await overlay.locator('#shieldPopChooserError').waitFor({ state: 'visible' });
+  assert.equal((await call('blockingStatus')).selected, 'blanc', 'failed persistence does not change provider or quit');
+  assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Restart Blanc');
+  await electron.evaluate(() => {
+    process.mainModule.require(process.mainModule.require('electron').app.getAppPath() + '/src/main/settings.js').flushSettings = globalThis.__restoreSettingsFlush;
+    delete globalThis.__restoreSettingsFlush;
+  });
+  assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('ublock-origin')), true);
+  await overlay.locator('#shieldPopBack').click();
   await summary(overlay, true);
   await waitForValue(() => call('blockingStatus'), state => state.selected === 'ublock-origin' && state.active === 'blanc' && state.restartPending, 'uBO pending');
   await waitForValue(persistedProvider, value => value === 'ublock-origin', 'uBO selection persisted');
@@ -260,8 +300,8 @@ try {
   assert.equal(visits, before, 'drafts, cancellation and apply must not reload the page');
   await assertFits(overlay);
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-restart.png' });
-  await closeShield(overlay, true);
-  await electron.close(); electron = null;
+  await chooser(overlay, 'ublock-origin');
+  await restartFromChooser(overlay);
 
   stage = 'uBO active and original popup';
   await launch(true);
@@ -340,18 +380,13 @@ try {
   await providerRadio(overlay, 'ublock-origin').press('ArrowUp');
   assert(await providerRadio(overlay, 'blanc').isChecked(), 'keyboard can select Blanc');
   await assertDraftOnly('ublock-origin');
-  await overlay.locator('#shieldPopApply').focus();
-  await overlay.locator('#shieldPopApply').press('Enter');
-  await summary(overlay, true);
-  await waitForValue(() => call('blockingStatus'), state => state.selected === 'blanc' && state.active === 'ublock-origin' && state.restartPending, 'Blanc pending');
-  await waitForValue(persistedProvider, value => value === 'blanc', 'Blanc selection persisted');
-  assert(await overlay.locator('#shieldPopUblock').isVisible(), 'active uBO controls remain available before restart');
-  await electron.close(); electron = null;
+  await restartFromChooser(overlay, true);
+  assert.equal(persistedProvider(), 'blanc');
   await launch(true);
   assert.equal((await call('blockingStatus')).active, 'blanc');
   assert.equal((await call('blockingStatus')).restartPending, false);
   assert.deepEqual(uiErrors, [], 'Blanc chrome UI has no uncaught renderer errors');
-  console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, cancel/back/close, both apply directions and restarts, original uBO popup and panel teardown, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
+  console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, Done/back/close, saved and draft restart actions in both directions, original uBO popup and panel teardown, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
 } catch (error) {
   console.error('Shield stage:', stage, stderr, uiErrors);
   throw error;

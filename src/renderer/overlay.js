@@ -1772,8 +1772,11 @@
       badge.hidden = badge.dataset.provider !== controls.active;
       badge.textContent = controls.activeLabel;
     }
-    shieldPopApply.disabled = shieldSaving || controls.disabled || shieldDraft === controls.selected || (shieldDraft === 'ublock-origin' && !controls.ublockAvailable);
-    shieldPopApply.textContent = shieldSaving ? 'Saving…' : `Use ${providerName(shieldDraft)}`;
+    const needsRestart = shieldDraft !== controls.active;
+    shieldPopApply.disabled = shieldSaving || controls.disabled || (needsRestart && shieldDraft === 'ublock-origin' && !controls.ublockAvailable);
+    shieldPopApply.textContent = shieldSaving ? (needsRestart ? 'Restarting…' : 'Saving…') : needsRestart ? 'Restart Blanc' : 'Done';
+    document.getElementById('shieldPopRestartNote').textContent = needsRestart
+      ? 'Restart Blanc to use your selected blocker.' : 'Changes take effect after restarting Blanc.';
     shieldPopProvider.querySelector('[value="ublock-origin"]').disabled = !controls.ublockAvailable;
     if (shieldPopProviderStatus.textContent !== controls.detail) shieldPopProviderStatus.textContent = controls.detail;
     shieldPopProviderScope.textContent = controls.scope;
@@ -1830,7 +1833,6 @@
     (shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopProvider.querySelector('input:not(:disabled)') || shieldPopBack).focus();
   });
   shieldPopBack.addEventListener('click', cancelShieldChoice);
-  document.getElementById('shieldPopCancel').addEventListener('click', cancelShieldChoice);
   shieldPopProvider.addEventListener('change', (event) => {
     if (!shieldChoosing || shieldSaving || !['blanc', 'ublock-origin'].includes(event.target.value)) return;
     shieldDraft = event.target.value;
@@ -1843,15 +1845,16 @@
     shieldSaving = true;
     renderShieldPop();
     try {
-      const accepted = await window.browserAPI.selectBlockingProvider(shieldDraft);
+      const needsRestart = shieldDraft !== state.shieldPopover.controls.active;
+      const accepted = await window.browserAPI.selectBlockingProvider(shieldDraft, needsRestart);
       if (generation !== shieldSaveGeneration || mode !== 'shield') return;
       if (!accepted) throw new Error('unavailable');
-      cancelShieldChoice();
+      window.browserAPI.closeOverlay('escape');
     } catch {
       if (generation !== shieldSaveGeneration || mode !== 'shield') return;
       shieldSaving = false;
       renderShieldPop();
-      shieldPopChooserError.textContent = 'Could not save this choice. Try again or choose another blocker.';
+      shieldPopChooserError.textContent = 'Could not complete the change. Your choice is shown above; try again when you’re ready.';
       shieldPopChooserError.hidden = false;
     }
   });

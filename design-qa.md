@@ -2351,3 +2351,48 @@ was not needed. The existing shield glyph is preserved.
 No unresolved P0/P1/P2 visual findings remain for this selected summary.
 
 final result: passed
+
+## Neutral blocker chooser and contextual restart — 2026-10-02
+
+User selected neutral option 2 and requested an immediate restart CTA when a
+provider change needs restart. Implemented the selected compact left-aligned
+header, genuine gold Sunrise asset, white/graphite palette, flat provider rows,
+right-aligned native radios, inline Active label, and compact footer action.
+Reference: `output/playwright/shield-neutral-approved.png` (revised restart mock).
+Comparison: `output/playwright/shield-neutral-comparison.png`, reference left,
+native implementation right, normalized to the same card width. Native text
+uses bundled Inter and the existing compact density. The real card is slightly
+taller to preserve readable control spacing. No source mock pixels enter the app.
+
+Owner rejected the initial full-row hover fill, then the custom radio halo.
+Both were removed. Final hover evidence is
+`output/playwright/shield-neutral-live-overlay.png`: pointer over uBO's row,
+plain native radio, no row fill, no custom halo or full-row focus rectangle.
+Keyboard focus uses the browser's automatic input outline. Final live preview
+was fully restarted to avoid stale chrome-scheme CSS. Earlier hover captures
+are superseded and are not final design evidence. Short shield connection and
+existing shield glyph remain intact. Native capture outer edges were transparent.
+
+Done closes an unchanged selection (or cancels a pending provider selection by
+saving the active provider). Restart Blanc saves synchronously, then requests
+normal app quit and schedules relaunch only after quit succeeds. Selecting a
+radio alone never saves or restarts. Failed persistence restores the previous
+selection and keeps the app open. Stay cancels the restart intent without
+arming a later unrelated quit. Blocking/provider services stop at will-quit,
+so a cancelled shutdown does not prematurely stop protection.
+
+Validation: lint; 2,081 unit tests; substrate checks; four existing shield
+acceptance scenarios / 31 steps; native shield provider suite covering both
+restart directions, pending and draft choices, Done/Back/Close, failed settings
+persistence, private/unavailable/forged guards, no page reload, small windows,
+native appearance and keyboard access. The desktop harness intercepts only
+relaunch spawning after a real quit and launches the next instance explicitly;
+a separate official Electron 44.5.1 smoke exercised actual app.relaunch and
+observed its second process. This is local development evidence, not packaged
+or multi-platform release acceptance. Advanced uBO popup redesign stays outside
+this change.
+
+Visual review of the final plain controls found no remaining blocking layout,
+contrast, clipping, hover-fill or halo issues.
+
+final result: passed

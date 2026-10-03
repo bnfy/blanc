@@ -582,6 +582,7 @@ module.exports = {
   getSettings,
   setExistingProfileHint,
   setSettings,
+  flushSettings: () => ensureStore().flush(),
   onSettingsChanged,
   isFirstRunComplete,
   completeFirstRunPrivacyChoices,
