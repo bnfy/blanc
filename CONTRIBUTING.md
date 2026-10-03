@@ -93,7 +93,8 @@ Bananify Creative-owned software use the repository's [MIT License](LICENSE);
 third-party files retain their existing terms. Preserve notices and consult
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and
 [ASSET-LICENSE.md](ASSET-LICENSE.md). The Blanc name and identity artwork remain
-reserved; the software license does not grant trademark rights.
+reserved; the software license does not grant trademark rights. See
+[TRADEMARKS.md](TRADEMARKS.md).
 
 Keep discussion respectful and focused on the work. Explain disagreements
 with evidence, avoid personal attacks, and respect contributors' privacy.

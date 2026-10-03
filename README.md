@@ -90,8 +90,8 @@ which requires attribution to The EasyList authors and carries share-alike terms
 on the redistributed lists and Blanc's derived filter data. And the Blanc and
 Bananify Creative names and logos are trademarks that a copyright licence does
 not convey — ship your build under your own name and mark. Details in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and
-[ASSET-LICENSE.md](ASSET-LICENSE.md).
+[TRADEMARKS.md](TRADEMARKS.md), [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md),
+and [ASSET-LICENSE.md](ASSET-LICENSE.md).
 
 Published macOS releases are signed and notarized, and published Windows
 releases carry timestamped Authenticode signatures. The release process signs

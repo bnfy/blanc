@@ -96,7 +96,8 @@ The MIT License grants copyright permissions only. It conveys no rights in the
 registered or unregistered. You may build, modify, and redistribute the
 software; you may not present a modified build as Blanc, or use the Blanc or
 Bananify Creative names or logos to endorse or identify your build without
-permission.
+permission. [TRADEMARKS.md](TRADEMARKS.md) sets out which uses need no
+permission, how to rename a fork, and the conditions for community packages.
 
 Specific artwork that is not covered by the MIT grant is enumerated in
 [ASSET-LICENSE.md](ASSET-LICENSE.md). No directory is excluded wholesale.
