@@ -4,16 +4,16 @@
   "ublock": "1.75.0",
   "platforms": {
     "darwin-arm64": {
-      "enabled": false,
-      "reason": "Complete desktop and installed candidate acceptance pending"
+      "enabled": true,
+      "reason": "Signed installed build 1272 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
     },
     "darwin-x64": {
       "enabled": false,
       "reason": "Intel macOS desktop and installed candidate acceptance pending"
     },
     "win32-x64": {
-      "enabled": false,
-      "reason": "Windows desktop and signed installed candidate acceptance pending"
+      "enabled": true,
+      "reason": "Signed installed build 1272 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
     },
     "linux-x64": {
       "enabled": false,

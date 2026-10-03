@@ -21,7 +21,10 @@
     "validationRun": 37158994208,
     "validationResult": "success",
     "installerSha256": "4122fdd7541ae10aad48a1e0756452e97e8e8d0c5ab3b74dd1695a087cfd77d1",
-    "installedSuite": "passed on native hosted x64 and unchanged second attempt in existing Windows ARM64 VM"
+    "installedSuite": "passed on native hosted x64 and unchanged second attempt in existing Windows ARM64 VM",
+    "restartNow": "passed in existing ARM64 VM under x64 emulation: actual prompt, installer-owned automatic relaunch and exact signed-byte verification",
+    "shortcutRelaunch": "owner confirmed final close, Start Menu relaunch as v1.27.0 and second close; no owned process remained",
+    "originalDataRestored": true
   },
   "ci": {
     "ublockRun": 37158984018,
@@ -32,8 +35,6 @@
     "alertsDismissed": false
   },
   "remaining": [
-    "Windows real Restart Now updater-button handoff.",
-    "Windows normal shortcut relaunch after actual updater handoff.",
     "Linux x86-64 installed desktop acceptance unavailable on the existing ARM64 VM.",
     "Intel Mac installed acceptance unperformed.",
     "Owner affected-machine confirmation before public enablement, merge and release."

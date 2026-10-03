@@ -1,5 +1,16 @@
 # Full uBO shipping readiness — October 3, 2026
 
+**Current checkpoint:** owner-directed distribution clearance supersedes the
+original licensing hold below. Signed installed build 1272 and actual Mac and
+Windows updater handoffs now pass; the Windows owner confirmed close, Start-menu
+relaunch at v1.27.0 and a second close. The proposed release enables Apple Silicon
+and Windows x64, retaining Blanc Blocker on Intel Mac and Linux. See the
+[current support matrix](ublock-origin-support-matrix-2026-10-03.md) and
+[durable installed evidence](evidence/ublock-installed-acceptance-2026-10-03/README.md).
+Final exact-head CI and owner release confirmation remain; all 39 approved
+CodeQL dispositions stay deferred until the PR leaves draft. Earlier checkpoints
+below are historical and do not reinstate the superseded distribution hold.
+
 This is the review package for PR #490, not distribution clearance. The owner
 requested completion toward shipping on October 3. The implementation remains
 full uBO 1.75.0 on official Electron 44.5.1, with Blanc Blocker as the default and

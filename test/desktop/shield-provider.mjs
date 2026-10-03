@@ -27,6 +27,25 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const url = `http://127.0.0.1:${server.address().port}/`;
 const { ELECTRON_RUN_AS_NODE: ignored, BLANC_UBLOCK_TEST: ignoredFlag, ...env } = process.env;
 void ignored; void ignoredFlag;
+// Release availability must not decide what the unavailable fixture tests.
+// Like the retirement suite, bootstrap a child-local module record rather
+// than changing release flags on disk or adding a production override.
+const root = path.resolve('.');
+const appDir = path.join(dir, 'fixture-app');
+fs.mkdirSync(appDir);
+for (const member of ['src', 'ublock', 'node_modules', 'build', 'assets', 'adblock', 'scripts']) {
+  fs.symlinkSync(path.join(root, member), path.join(appDir, member), process.platform === 'win32' ? 'junction' : 'dir');
+}
+const metadata = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+fs.writeFileSync(path.join(appDir, 'package.json'), JSON.stringify({ ...metadata, main: 'shield-fixture.cjs' }));
+fs.copyFileSync(path.join(root, 'package-lock.json'), path.join(appDir, 'package-lock.json'));
+fs.writeFileSync(path.join(appDir, 'shield-fixture.cjs'), `
+  if (process.env.BLANC_UBLOCK_TEST !== '1') {
+    const matrix = require(${JSON.stringify(path.join(root, 'src/main/ublock-platforms.json'))});
+    matrix.platforms[process.platform + '-' + process.arch] = { enabled: false, reason: 'Unavailable fixture' };
+  }
+  require(${JSON.stringify(path.join(root, 'src/main/main.js'))});
+`);
 let electron;
 let stage = 'launch';
 let stderr = '';
@@ -49,7 +68,7 @@ const call = (method, ...args) => hooks.callTestHook(electron, method, args);
 const providerRadio = (overlay, provider) => overlay.locator(`[name="shieldProvider"][value="${provider}"]`);
 async function launch(supported) {
   electron = await _electron.launch({
-    args: [path.resolve('.'), `--user-data-dir=${dir}`], chromiumSandbox: true,
+    args: [supported ? root : appDir, `--user-data-dir=${dir}`], chromiumSandbox: true,
     // Playwright otherwise forces light media in every attached renderer,
     // masking Electron's real nativeTheme propagation after a settings change.
     colorScheme: null,

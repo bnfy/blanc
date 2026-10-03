@@ -44,3 +44,26 @@ With explicit owner approval, the original Mac profile, updater caches and logs 
 `windows-arm-vm-1272-attempt1-failed.json` retains the existing ARM64 VM's first repeat: the formerly failing provider restart passed, then the Dashboard Apply control timed out. The native hosted x64 suite passes; these observations are kept distinct. The VM repeat is being investigated, and the Windows updater handoff remains pending.
 
 The unchanged second Windows VM attempt, with native stderr captured reliably, passes all installed checks (`windows-arm-vm-1272-attempt2-passed.json`), including provider round trip, filter persistence and last-window process exit. The first timeout remains recorded; this retry does not erase it. This ARM64/emulation observation complements the native hosted x64 acceptance. Windows Restart Now and normal shortcut relaunch are still pending.
+
+### Real Windows Restart Now and normal shortcut relaunch
+
+`windows-arm-vm-1272-restart-now.json` records the authenticated public v1.26.0
+→ signed candidate handoff in the existing Windows 11 ARM64 VM, running the
+x64 app under emulation. The actual downloaded-update prompt was activated
+with auto-install smoke mode off. The old process exited and NSIS automatically
+reopened v1.27.0; executable and ASAR hashes match the timestamp-signed candidate.
+This is not a direct installer-over-running-app substitute.
+
+The owner then confirmed closing the final window, opening Blanc from the
+Windows Start menu at v1.27.0, and closing it again. The shortcut target points
+to this isolated installation, and the subsequent process check found no owned
+Blanc process. The original profile and updater cache were restored intact with
+their directory identities verified; the private feed was stopped. The normal
+Mac app/session are also restored. No personal data or raw logs are committed.
+
+This complements native hosted Windows x64 installed/no-scripting acceptance;
+it does not turn the ARM64 guest into native x64 hardware. Earlier failures and
+successful retries remain recorded. The final rollout proposes Apple Silicon
+and Windows x64 only, as described in the [support matrix](../../ublock-origin-support-matrix-2026-10-03.md).
+Intel and Linux installed uBO gates remain open. Owner release confirmation and
+final exact-head CI still precede public merge/release.

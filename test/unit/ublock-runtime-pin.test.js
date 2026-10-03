@@ -19,6 +19,7 @@ test('runtime capability is explicit and a retired runtime cannot advertise uBO 
   const missing = structuredClone(matrix); delete missing.manifestV2;
   assert.throws(() => verifyRuntimePins({ metadata, lock, matrix: missing }), /declare.*Manifest V2/);
   const retired = structuredClone(matrix); retired.manifestV2 = 'retired';
+  for (const platform of Object.values(retired.platforms)) platform.enabled = false;
   verifyRuntimePins({ metadata, lock, matrix: retired });
   retired.platforms['darwin-arm64'].enabled = true;
   assert.throws(() => verifyRuntimePins({ metadata, lock, matrix: retired }), /retired Manifest V2 cannot enable/);
