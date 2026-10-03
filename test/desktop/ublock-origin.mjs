@@ -163,7 +163,7 @@ try {
   await call('blockingPopup');
   let toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'picker popup');
   await toolsPopup.locator('body:not(.loading)').waitFor();
-  await toolsPopup.locator('#gotoPick').dispatchEvent('click');
+  await Promise.all([toolsPopup.waitForEvent('close'), toolsPopup.locator('#gotoPick').dispatchEvent('click')]);
   console.log('picker launched');
   const picker = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/epicker-ui.html')), Boolean, 'original element picker', 10000);
   await picker.waitForFunction(() => document.querySelector('svg#sea path')?.getAttribute('d')?.length > 0);
@@ -175,7 +175,8 @@ try {
   await call('blockingPopup');
   toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'zapper popup');
   stage = 'original zapper';
-  await toolsPopup.locator('#gotoZap').dispatchEvent('click');
+  await toolsPopup.locator('body:not(.loading)').waitFor();
+  await Promise.all([toolsPopup.waitForEvent('close'), toolsPopup.locator('#gotoZap').dispatchEvent('click')]);
   const zapper = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/epicker-ui.html') && frame.url().includes('zap=1')), Boolean, 'original element zapper');
   await zapper.waitForFunction(() => document.querySelector('svg#sea path')?.getAttribute('d')?.length > 0);
   await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true })));

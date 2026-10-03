@@ -224,3 +224,18 @@ names only. No webpage URL, request content or production diagnostic is added.
 The traced shield and core suites passed locally. Hosted evidence is needed
 to distinguish a native view-focus transition from a fixture interaction race;
 popup stability remains unresolved until that evidence supports a fix.
+
+The traced run `37125185116` at `d8a9d6f4` passed all four native jobs; the
+intermittent failure did not reproduce. Three consecutive traced local core
+runs also passed. Source review identified that the fixtures advanced on
+picker-frame removal or managed-tab creation before observing the original
+popup's native close. That permits a subsequent page lookup to select a stale
+popup, and races a second popup-open with the previous teardown.
+
+The fixtures now register the popup's close-event waiter before invoking Back,
+Dashboard, Logger, picker and zapper, and await that event before advancing.
+Each new tool popup also waits for upstream's loading state to clear. These
+are observable lifecycle conditions rather than retries or arbitrary sleeps.
+The native blur policy, production filtering deadlines and all tool assertions
+remain unchanged. Local shield and core suites passed; final-revision hosted
+confirmation is required and recorded in the PR body.
