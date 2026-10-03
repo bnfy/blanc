@@ -139,6 +139,36 @@ That pre-readiness sequence was not rerun on `e5627375`, and this change does
 not claim to fix it. Production packaged coverage verifies input after panel
 readiness and late focus/selection preservation.
 
+## Additional Linux desktop attempt and cleanup
+
+Disposable x64 Ubuntu 22.04.5 and 24.04.5 guests were provisioned in Parallels
+on the ARM Mac. Both independently verified the exact candidate AppImage digest
+`8bafb4fc2936bc48397e8a9f2e7dd2915d91708dcb144aa0e08b504809937dc1`.
+Ubuntu 22.04's user-namespace probe succeeded, but LightDM failed during desktop
+setup before Blanc launched. Ubuntu 24.04 reached XFCE; its default namespace
+probe failed with Operation not permitted and AppArmor's unprivileged namespace
+restriction enabled. Its launcher treated command text with arguments as a
+file-open request; no Blanc process or renderer was observed. No sandbox policy
+was changed. Actual Blanc refusal and native desktop regression remain untested
+in these guests. Setup failures are not Blanc failures or passing evidence.
+
+The additional provisioning was ended after the owner reported excessive delay.
+At the owner's request, both test VM registrations/bundles, external virtual
+disks, downloaded images, seed ISOs, candidate setup copies and disposable SSH
+key were deleted. About 12.28 GiB of allocated setup files were removed. The
+original Windows VM remains running and the original ARM Ubuntu VM remains
+stopped. Only small private setup diagnostics remain in the ignored
+`dist/validation/linux-feedback-e5627375/`; all 26 retained files passed their
+checksum manifest. This does not waive the remaining desktop/owner gate.
+
+The subsequent evidence-only head `9ced2b3180092b965bb8ee30fe19e72905f5812b`
+passed the full [source matrix](https://github.com/bnfy/blanc/actions/runs/37151696351),
+[CodeQL](https://github.com/bnfy/blanc/actions/runs/37151696331) and
+[site build](https://github.com/bnfy/blanc/actions/runs/37151696359). Its only
+change from the tested runtime was this report. That source run again recorded
+five native-input passes each on Windows/Linux, one macOS menu pass and seven
+Store paths per platform.
+
 ## Private candidates
 
 These artifacts retain version 1.26.0 for private testing and do not belong to
@@ -218,13 +248,15 @@ earlier disconnect or the reporter's broader freeze.
 ## Outstanding affected-machine gate
 
 The corrected candidate completed automated/package validation and delegated
-Parallels testing. Explicit owner acceptance of this evidence and affected-machine
-Windows/Linux confirmation remain pending before merge. No physical Linux
-desktop test was performed: the installed Parallels Ubuntu guest is ARM64 while
-the candidate AppImage is x64. Hosted Ubuntu 22.04/24.04 checks do not establish
-physical desktop confirmation. Prior public v1.26.0 waivers do not cover this
-candidate. Any candidate-specific waiver must explicitly acknowledge the missing
-evidence and risk and be recorded before merge/tag/release.
+Parallels Windows testing. Explicit owner acceptance of this evidence and the
+repository-required affected-machine confirmation remain pending before merge.
+The additional x64 Linux desktop attempt did not reach Blanc regression testing;
+no physical Linux desktop is available. Hosted Ubuntu 22.04/24.04 checks do not
+establish interactive physical desktop confirmation. The missing evidence leaves
+Linux desktop interaction and machine-specific behavior unverified. Prior public
+v1.26.0 waivers do not cover this candidate. Any candidate-specific waiver must
+explicitly acknowledge the missing evidence and risk and be recorded before
+merge/tag/release.
 
 No merge, tag, public release, updater handoff, website deployment or public
 reply was performed. Publication and adjacent updater validation remain separate
