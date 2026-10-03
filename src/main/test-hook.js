@@ -435,6 +435,7 @@ function install(refs) {
     },
     profileTabSession(id) { return profileTabSessionSnapshot(String(id)); },
     startupReady() { return isSessionPersistenceReady(); },
+    browserCommandState() { return refs.browserCommandState(); },
     /** The strip-reported island rect (window coords) — geometry only. Lets
      * tests assert the morph/proximity anchor tracks the real pill (it went
      * stale across window resizes when only a pill ResizeObserver fed it). */
@@ -546,8 +547,7 @@ function install(refs) {
     async navigateTab(id, url) {
       const tab = tabs.get(id);
       if (!tab?.view?.webContents) return false;
-      await tab.view.webContents.loadURL(String(url));
-      return true;
+      return refs.navigateTabToAddress(id, String(url));
     },
     executeTab(id, source) {
       const tab = tabs.get(id);
@@ -837,8 +837,9 @@ function install(refs) {
           '.start-brand-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
           '.tally-caption', '.ledger-footer', '.layout-switcher button',
-          '.ob-step-label', '.ob-commands'
+          '.ob-step-label', '.ob-content p'
         ];
+        if (selectors.some((selector) => !document.querySelector(selector))) return null;
         const newsreaderSelector = '.bb-clock, .migration-checklist-heading h2, .ob-content h1';
         const newsreader = [...document.querySelectorAll(newsreaderSelector)];
         const newsreaderElements = [...document.querySelectorAll('body, body *')]
@@ -2441,10 +2442,15 @@ function install(refs) {
       );
     },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
-    destroyUtilitySheetContents() {
+    async destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
       if (!wc || wc.isDestroyed()) return false;
-      wc.close();
+      // close() initiates native teardown; destruction and cache cleanup can
+      // arrive later. The harness should return after the promised action.
+      await new Promise(resolve => {
+        wc.once('destroyed', resolve);
+        wc.close();
+      });
       return true;
     },
     readBrowserImportDom() {

@@ -35,13 +35,14 @@ if (process.env.BLANC_TEST === '1' && process.env.BLANC_TEST_UNCAUGHT_LOG) {
 installMacOSQuitVisibilityGate({ app, BrowserWindow });
 const {
   setupAdBlocker,
-  installNavigationCrashGuard,
+  installBeforeRequestPolicy,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
-const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
+const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
+const { queueTabNavigation, reloadContents } = require('./tab-navigation');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -304,6 +305,9 @@ const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+if (acceptanceTestMode) require('../../scripts/preflight-electron-runtime').verifyElectronRuntime({
+  root: app.getAppPath(), runningVersion: process.versions.electron,
+});
 // Test-only: the most recent forced fill decision's resolution, so the
 // acceptance keyboard scenarios can assert WHICH verb a real keypress
 // produced. Written solely by showFillStatusForTest's continuation.
@@ -1278,11 +1282,11 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   startupNavigationGateActive = false;
   // A successful blocker attachment has already replaced the temporary
   // listener with its composed network policy. If startup continues without
-  // the blocker, replace the gate with the standalone crash guard instead of
+  // the blocker, replace the gate with the ordinary request policy instead of
   // leaving the session without an onBeforeRequest policy.
   if (!blockerAttached) {
     for (const browsingSession of sessions) {
-      installNavigationCrashGuard(browsingSession);
+      installBeforeRequestPolicy(browsingSession);
     }
   }
 
@@ -2017,6 +2021,11 @@ function installHeldFirewall(entry, wc, owner) {
     else wc.on(event, handler);
     entry.firewallListeners.push([event, handler]);
   };
+  // Hidden parked guests cannot deliver an accelerator to the active window.
+  // This denies commands without retaining the removed active tab handlers.
+  guard('before-input-event', (event, input) => {
+    if (matchBrowserShortcut(input)) event.preventDefault();
+  });
   // Frozen at close: main-frame navigation is refused outright. Subframes
   // are left alone so the page survives restore intact (§3.4).
   guard('will-navigate', (event) => { if (event.isMainFrame) event.preventDefault(); });
@@ -2137,16 +2146,11 @@ async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
   if (wc) {
-    let destination = chromeWebStoreErrorPageUrl(failedUrl ?? '', 'wake-failed');
-    if (!destination) {
-      const q = new URLSearchParams({
-        url: failedUrl ?? '',
-        code: 'wake-failed',
-        desc: 'The page could not be reloaded',
-        title: tab.title ?? '',
-      });
-      destination = `blanc://error/?${q}`;
-    }
+    const q = new URLSearchParams({
+      url: failedUrl ?? '', code: 'wake-failed',
+      desc: 'The page could not be reloaded', title: tab.title ?? '',
+    });
+    const destination = `blanc://error/?${q}`;
     await wc.loadURL(destination).catch(() => {});
   }
   if (tab.wakeGeneration !== generation) return false;
@@ -2735,6 +2739,7 @@ function attachPermissionView() {
   view.setBounds(permissionViewBounds());
   rt().window.contentView.addChildView(view);
   rt().permissionViewAttached = true;
+  cancelAddressBarFocusReclaim();
   // Deliberately not focused: the site chooses when this appears, and a
   // keystroke meant for the page must never answer (and persist) a prompt.
 }
@@ -3002,6 +3007,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
       && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
     hideOverlay({ refocusContent: false, reason: 'cancel' });
   }
+  if (mode !== 'panel' && mode !== 'palette') cancelAddressBarFocusReclaim();
   bumpSurfaceGeneration();
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
@@ -3058,6 +3064,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
 // existing precedent, passing '/group '.
 function openIslandTyping(char) {
   if (!isValidPrefillChar(char)) return;
+  cancelAddressBarFocusReclaim();
   showOverlay('panel', { prefill: char });
 }
 
@@ -3065,6 +3072,7 @@ function openIslandTyping(char) {
 const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
+  cancelAddressBarFocusReclaim();
   if (!rt().overlayMode) return;
   bumpSurfaceGeneration();
   const closingMode = rt().overlayMode;
@@ -3072,6 +3080,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
+  if (closingMode === 'panel' || closingMode === 'palette') revealAddressBarTab();
   if (closingMode === 'display-share' && reason !== 'display-share-resolved') {
     displayCapturePicker?.cancel(closingPurpose?.requestId);
   }
@@ -3125,7 +3134,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       : null;
     if (restoreTrigger) rt().window.webContents.focus();
     rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
-    if (refocusContent && !restoreTrigger) tabs.get(rt().activeTabId)?.view.webContents.focus();
+    if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
   }
 }
 
@@ -3160,7 +3169,7 @@ const utilitySheetNavigations = new WeakMap();
 function utilitySheetNavigationState(view) {
   let state = utilitySheetNavigations.get(view);
   if (!state) {
-    state = { generation: 0, settledGeneration: 0, tail: Promise.resolve() };
+    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve() };
     utilitySheetNavigations.set(view, state);
   }
   return state;
@@ -3183,11 +3192,13 @@ function scheduleUtilitySheetNavigation(runtime, sheet, url) {
       runtime.utilitySheetUrl !== url ||
       liveViewContents(sheet.view) !== sheet.wc
     ) return;
+    state.runningGeneration = generation;
     try {
       await sheet.wc.loadURL(url);
     } catch {
-      // A superseded/failed internal-page load is reflected by ready:false in
-      // the test surface; it is not an uncaught main-process failure.
+      if (state.generation === generation && runtime.utilitySheetView === sheet.view) {
+        discardFailedUtilitySheet(runtime, sheet);
+      }
     }
   };
   state.tail = state.tail.then(navigate, navigate).finally(() => {
@@ -3203,6 +3214,15 @@ function utilitySheetNavigationReady(runtime, sheet) {
     state.settledGeneration === state.generation &&
     !sheet.wc.isLoadingMainFrame() &&
     sameUtilityPage(sheet.wc.getURL(), runtime.utilitySheetUrl);
+}
+
+function discardFailedUtilitySheet(runtime, sheet) {
+  cancelUtilitySheetNavigation(sheet.view);
+  if (runtime.utilitySheetView !== sheet.view) return;
+  bindWindowRuntime(runtime, () => hideUtilitySheet())();
+  runtime.utilitySheetView = null;
+  runtime.utilitySheetUrl = null;
+  if (!sheet.wc.isDestroyed()) sheet.wc.close();
 }
 
 function createUtilitySheet() {
@@ -3248,6 +3268,7 @@ function createUtilitySheet() {
   // native object into loadURL/addChildView.
   wc.once('destroyed', bindWindowRuntime(runtime, () => {
     if (runtime.utilitySheetView !== view) return;
+    hideUtilitySheet();
     cancelUtilitySheetNavigation(view);
     if (hasLiveWindow()) runtime.window.contentView.removeChildView(view);
     runtime.utilitySheetView = null;
@@ -3273,6 +3294,13 @@ function createUtilitySheet() {
       handOffToOs(targetUrl);
     }
   }));
+  wc.on('did-fail-load', bindWindowRuntime(runtime, (_event, code, _description, url, isMainFrame) => {
+    const state = utilitySheetNavigations.get(view);
+    if (isMainFrame && code !== -3 && runtime.utilitySheetView === view &&
+        sameUtilityPage(runtime.utilitySheetUrl, url) && state?.runningGeneration === state?.generation) {
+      discardFailedUtilitySheet(runtime, { view, wc });
+    }
+  }));
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
   return { view, wc };
 }
@@ -3291,7 +3319,14 @@ function showUtilityPage(url) {
   // Toggle: a direct re-invocation (menu/accelerator) of the shown page
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
-  if (runtime.utilitySheetUrl && sheet && sameUtilityPage(runtime.utilitySheetUrl, url)) return hideUtilitySheet();
+  if (runtime.utilitySheetUrl && sheet && sameUtilityPage(runtime.utilitySheetUrl, url)) {
+    if (utilitySheetNavigationReady(runtime, sheet) && sheet.view.getVisible()) return hideUtilitySheet();
+    // Repeated invocation while loading is one request, not a toggle or a
+    // second loadURL racing the first document's commit.
+    cancelAddressBarFocusReclaim(runtime);
+    focusUtilitySheet(runtime, sheet);
+    return;
+  }
   if (runtime.utilitySheetUrl) discardUtilityImportState(runtime);
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
@@ -3304,6 +3339,7 @@ function showUtilityPage(url) {
     sheet = createUtilitySheet();
   }
   if (!sheet) return;
+  cancelAddressBarFocusReclaim(runtime);
   bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = url;
   runtime.utilitySheetEscapeArmed = false;
@@ -3316,8 +3352,13 @@ function showUtilityPage(url) {
   // has no visible Allow/Block until the sheet happens to be dismissed.
   bindWindowRuntime(runtime, restackPermissionView)();
   resizeActiveView();
-  sheet.wc.focus();
+  focusUtilitySheet(runtime, sheet);
   broadcastStartPageUtilitySheetVisibility(runtime, true);
+}
+
+function focusUtilitySheet(runtime, sheet) {
+  const prompt = runtime.permissionViewAttached ? liveViewContents(runtime.permissionView) : null;
+  (prompt ?? sheet.wc).focus();
 }
 
 function discardUtilityImportState(runtime, { discardTabHandoff = true } = {}) {
@@ -3618,7 +3659,12 @@ function navigateTabToAddress(id, rawText) {
   }
   // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
   // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
-  liveContents(tab)?.loadURL(target)?.catch(() => {});
+  const wc = liveContents(tab);
+  const owner = windowRuntimes.runtimeForTab(id);
+  return queueTabNavigation(wc, {
+    isCurrent: () => tabs.get(id) === tab && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === owner,
+    run: contents => contents.loadURL(target),
+  });
 }
 
 /** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
@@ -4125,8 +4171,8 @@ function resizeActiveView() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const glanceTab = activeGlanceTab();
   const glance = glanceTab ? glanceGeometry(layout) : null;
-  if (tab?.view) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
-  if (glanceTab?.view && glance) glanceTab.view.setBounds(glance.glance);
+  if (liveContents(tab)) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
+  if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(glance.glance);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   if (rt().permissionViewAttached && rt().permissionView) {
     rt().permissionView.setBounds(permissionViewBounds());
@@ -4241,7 +4287,68 @@ function installGlanceShortcut(webContents, owner = rt()) {
   }));
 }
 
+function activeBrowserCommandTab(runtime) {
+  const tab = tabs.get(runtime.activeTabId);
+  return tab && windowRuntimes.runtimeForTab(tab.id) === runtime &&
+    !tab.sleeping && liveContents(tab) ? tab : null;
+}
+
+function reloadBrowserCommandTab(runtime, bypassCache = false) {
+  const tab = activeBrowserCommandTab(runtime);
+  const wc = liveContents(tab);
+  return queueTabNavigation(wc, {
+    isCurrent: () => activeBrowserCommandTab(runtime) === tab && liveContents(tab) === wc,
+    run: contents => reloadContents(contents, bypassCache),
+  });
+}
+
+const executeBrowserCommand = createBrowserCommandExecutor({
+  'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
+  'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
+  'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
+  'close-tab': runtime => { const tab = activeBrowserCommandTab(runtime); if (tab) closeTab(tab.id); },
+  'reopen-tab': reopenClosedTab,
+  'next-tab': () => cycleTab(1),
+  'previous-tab': () => cycleTab(-1),
+  address: toggleIsland,
+  find: openFindBar,
+  reload: runtime => reloadBrowserCommandTab(runtime),
+  'hard-reload': runtime => reloadBrowserCommandTab(runtime, true),
+  history: () => openInternalPage('blanc://history/'),
+  downloads: () => openInternalPage('blanc://downloads/'),
+  settings: () => openInternalPage('blanc://settings/'),
+});
+
+// Test-only, bounded, credential-free command delivery diagnostics.
+const browserCommandDeliveries = [];
+function observeBrowserCommand(delivery) {
+  if (!acceptanceTestMode) return;
+  browserCommandDeliveries.push(delivery);
+  if (browserCommandDeliveries.length > 100) browserCommandDeliveries.shift();
+}
+
+function ownsBrowserShortcutSurface(runtime, wc) {
+  if (!runtime.window || runtime.window.isDestroyed() || runtime.closing || runtime.resident) return false;
+  if (wc === runtime.window.webContents) return true;
+  if (wc === liveViewContents(runtime.overlayView)) return !!runtime.overlayMode;
+  if (wc === liveViewContents(runtime.utilitySheetView)) return !!runtime.utilitySheetUrl;
+  if (wc === liveViewContents(runtime.permissionView)) return !!runtime.permissionViewAttached;
+  const tabId = tabIdByWebContentsId.get(wc.id);
+  const tab = tabs.get(tabId);
+  return !!tab && windowRuntimes.runtimeForTab(tabId) === runtime &&
+    liveContents(tab) === wc && !tab.sleeping &&
+    (runtime.activeTabId === tabId || runtime.glanceTabId === tabId);
+}
+
 function installChromeShortcuts(webContents, owner = rt()) {
+  const getRuntime = () => typeof owner === 'function' ? owner() : owner;
+  installBrowserShortcuts({
+    webContents,
+    getRuntime,
+    ownsSurface: ownsBrowserShortcutSurface,
+    execute: (id, runtime) => bindWindowRuntime(runtime, () => executeBrowserCommand(id, runtime))(),
+    observe: observeBrowserCommand,
+  });
   installVerticalTabsShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
   // Escape dismisses a visible fill capsule no matter which surface holds
@@ -4664,8 +4771,7 @@ function stageWorkspace(runtime, workspace) {
     for (const id of runtime.tabOrder) {
       const tab = tabs.get(id);
       if (tab?.view) {
-        runtime.window?.contentView.removeChildView(tab.view);
-        setTabViewVisible(tab, false);
+        detachTabView(tab);
       }
       if (tab) tab.lastActiveAt = Date.now();
     }
@@ -5222,7 +5328,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // the tab's first — used by duplicateTab below instead of a plain
     // loadURL when the source tab has real back/forward history to clone.
     if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
-    else wc.loadURL(url, httpReferrer ? { httpReferrer } : {}).catch(() => {});
+    else queueTabNavigation(wc, {
+      startImmediately: true,
+      isCurrent: () => tabs.get(id) === tab && liveContents(tab) === wc,
+      run: contents => contents.loadURL(url, httpReferrer ? { httpReferrer } : {}),
+    });
   }
   if (!isTabCreationBatched()) scheduleMenuRebuild();
   return id;
@@ -5254,13 +5364,57 @@ function setTabViewVisible(tab, visible) {
   }
 }
 
+// Release native focus while the guest still belongs to the live window.
+// Avoid restoring focus against a detached Aura hierarchy during native
+// WebContents destruction (Windows/Linux).
+function detachTabView(tab) {
+  const wc = liveContents(tab);
+  if (!wc || tabs.get(tab.id) !== tab || windowRuntimes.runtimeForTab(tab.id) !== rt() ||
+      !hasLiveWindow()) return false;
+  if (wc.isFocused()) rt().window.webContents.focus();
+  setTabViewVisible(tab, false);
+  rt().window.contentView.removeChildView(tab.view);
+  return true;
+}
+
+// Aura restores focus while destroying WebContents. Keep its hidden native
+// hierarchy rooted until that destruction finishes, including a background
+// guest that was previously detached. The destroyed callback removes only
+// this retired view from the same still-live window.
+function prepareTabViewForClose(tab) {
+  const wc = liveContents(tab);
+  const owner = rt();
+  const view = tab?.view;
+  if (!view || tabs.get(tab.id) !== tab || windowRuntimes.runtimeForTab(tab.id) !== owner || !hasLiveWindow()) return false;
+  const window = owner.window;
+  const removeRetiredView = () => {
+    if (owner.window !== window || window.isDestroyed() || liveViewContents(view) ||
+        !window.contentView.children.includes(view)) return;
+    window.contentView.removeChildView(view);
+  };
+  // External destruction can reach closeTab from inside a native destructor.
+  // Leave its empty view rooted until that stack has returned as well.
+  if (!wc) { setImmediate(removeRetiredView); return true; }
+  if (process.platform === 'darwin' || isQuitting || owner.closing || !hasLiveWindow()) return detachTabView(tab);
+  unwireTabView(wc);
+  wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  wc.on('before-input-event', (event, input) => {
+    if (matchBrowserShortcut(input)) event.preventDefault();
+  });
+  if (wc.isFocused()) window.webContents.focus();
+  setTabViewVisible(tab, false);
+  if (!window.contentView.children.includes(view)) window.contentView.addChildView(view);
+  wc.once('destroyed', () => setImmediate(removeRetiredView));
+  return true;
+}
+
 function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
   dismissUtilitySheet = true,
 } = {}) {
   const next = tabs.get(id);
-  if (!next || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  if (!next || next.sleeping || windowRuntimes.runtimeForTab(id) !== rt()) return;
   // The wake's synchronous prefix creates its view before returning. This is
   // deliberately before every guard below, including the no-window path.
   if (next.asleep) wakeTab(id).catch(() => {});
@@ -5324,13 +5478,10 @@ function setActiveTab(id, {
     // error so the tab cannot be left eligible without an idle timestamp.
     prev.lastActiveAt = Date.now();
   }
-  if (prev?.view && prev.id !== rt().glanceTabId) {
-    rt().window.contentView.removeChildView(prev.view);
-    // A detached view's document still reports visibilityState 'visible',
-    // so Chromium never background-throttles its timers (the newtab sprite
-    // would keep animating at 6fps forever). Hide it explicitly;
-    // reactivation always calls setVisible(true).
-    setTabViewVisible(prev, false);
+  cancelAddressBarFocusReclaim();
+  if (liveContents(prev) && prev.id !== rt().glanceTabId) {
+    // Explicit hiding also stops a detached document's foreground timers.
+    detachTabView(prev);
   }
 
   rt().activeTabId = id;
@@ -5369,9 +5520,13 @@ function setActiveTab(id, {
   broadcastTabs();
   scheduleMenuRebuild();
   if (shouldFocusAddress) {
+    const view = next.view;
+    const generation = rt().addressFocusGeneration;
     reclaimAddressBarFocus(id);
     setImmediate(() => {
-      if (rt().activeTabId !== id || !tabs.has(id) || !next.view) return;
+      if (generation !== rt().addressFocusGeneration || next.view !== view ||
+          rt().activeTabId !== id || tabs.get(id) !== next || windowRuntimes.runtimeForTab(id) !== rt() ||
+          !hasLiveWindow() || rt().closing || !liveContents(next)) return;
       setTabViewVisible(next, true);
       reclaimAddressBarFocus(id);
     });
@@ -5402,8 +5557,7 @@ async function setGlanceTab(id) {
   hideUtilitySheet({ refocusContent: false });
   const previous = activeGlanceTab();
   if (previous?.view && previous.id !== id) {
-    rt().window.contentView.removeChildView(previous.view);
-    setTabViewVisible(previous, false);
+    detachTabView(previous);
     previous.lastActiveAt = Date.now();
   }
 
@@ -5430,8 +5584,7 @@ function closeGlance({ focusContent = true } = {}) {
   bumpSurfaceGeneration();
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
-    rt().window.contentView.removeChildView(tab.view);
-    setTabViewVisible(tab, false);
+    detachTabView(tab);
     tab.lastActiveAt = Date.now();
   }
   resizeActiveView();
@@ -5645,6 +5798,10 @@ function closeTab(id) {
   const tab = tabs.get(id);
   if (tab) fillHintScheduler?.clearTab(tab);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  const wasActive = id === rt().activeTabId;
+  const wasGlance = id === rt().glanceTabId;
+  // Invalidate pending blank-tab focus before parking or native teardown.
+  if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim(rt(), { reveal: false });
   forgetTabWebContentsIds(id);
 
   // Capture the prompt condition BEFORE cancelling — cancellation erases the
@@ -5691,13 +5848,11 @@ function closeTab(id) {
     }
   }
 
-  const wasActive = id === rt().activeTabId;
-  const wasGlance = id === rt().glanceTabId;
-  if (wasGlance) rt().glanceTabId = null;
-  if (wasGlance && hasLiveWindow() && tab.view) {
-    rt().window.contentView.removeChildView(tab.view);
+  if (tab.view) {
+    if (!parked) prepareTabViewForClose(tab);
+    else if (wasActive || wasGlance) detachTabView(tab);
   }
-  if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
+  if (wasGlance) rt().glanceTabId = null;
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
@@ -6128,6 +6283,7 @@ function openFindBar() {
  * whether anything was typed, so it hands the decision over. */
 function toggleIsland() {
   if (!hasLiveWindow()) return;
+  cancelAddressBarFocusReclaim();
   rt().window.focus();
   if (rt().overlayMode === 'panel' || rt().overlayMode === 'palette') {
     rt().overlayView?.webContents.focus();
@@ -6145,20 +6301,47 @@ function focusAddressBar() {
   rt().window.focus();
   // Reasserts must not downgrade an already-summoned palette to a panel —
   // nor promote a non-island mode (find, shield) into staying up.
-  showOverlay(rt().overlayMode === 'palette' ? 'palette' : 'panel');
+  if (rt().overlayMode === 'panel' || rt().overlayMode === 'palette') {
+    // Native child focus can settle late. Reclaim the existing surface without
+    // replaying overlay:show, which would reset DOM focus/selection mid-input.
+    liveViewContents(rt().overlayView)?.focus();
+    return;
+  }
+  showOverlay('panel');
+}
+
+function cancelAddressBarFocusReclaim(runtime = rt(), { reveal = true } = {}) {
+  runtime.addressFocusGeneration += 1;
+  // Cancelling a blank tab's deferred focus must also release the temporary
+  // hide used while attaching it; otherwise closing Settings reveals a blank
+  // native pane even though the tab's document is still alive.
+  const tab = tabs.get(runtime.activeTabId);
+  if (reveal && runtime.tabsWantingAddressBarFocus.has(tab?.id)) revealAddressBarTab(runtime);
+  runtime.tabsWantingAddressBarFocus.clear();
+}
+
+function revealAddressBarTab(runtime = rt()) {
+  const tab = tabs.get(runtime.activeTabId);
+  if (tab && windowRuntimes.runtimeForTab(tab.id) === runtime && liveContents(tab) &&
+      tab.view?.getVisible() === false) setTabViewVisible(tab, true);
 }
 
 function shouldReclaimAddressBarFocus(id) {
-  return rt().activeTabId === id && rt().tabsWantingAddressBarFocus.has(id);
+  return hasLiveWindow() && !rt().closing && windowRuntimes.runtimeForTab(id) === rt() &&
+    rt().activeTabId === id && rt().tabsWantingAddressBarFocus.has(id) &&
+    !rt().utilitySheetUrl && !rt().permissionViewAttached && !!liveContents(tabs.get(id));
 }
 
 function reclaimAddressBarFocus(id, { consume = false } = {}) {
   if (!shouldReclaimAddressBarFocus(id)) return;
+  const generation = rt().addressFocusGeneration;
+  const wc = liveContents(tabs.get(id));
   // WebContentsView focus can settle after Electron emits focus/navigation
   // callbacks, so reassert once on the next main-process turn as well.
   focusAddressBar();
   setImmediate(() => {
-    if (!shouldReclaimAddressBarFocus(id)) return;
+    if (generation !== rt().addressFocusGeneration || liveContents(tabs.get(id)) !== wc ||
+        !shouldReclaimAddressBarFocus(id)) return;
     focusAddressBar();
     if (consume) rt().tabsWantingAddressBarFocus.delete(id);
   });
@@ -6883,7 +7066,10 @@ function listShortcuts() {
         }
         continue;
       }
-      rows.push({ category, label: item.label, keys: formatAccelerator(item.accelerator) });
+      const definition = item.id?.startsWith('browser-')
+        ? browserCommandDefinition(item.id.slice('browser-'.length)) : null;
+      const bindings = definition ? [definition.primary, ...definition.aliases] : [item.accelerator];
+      rows.push({ category, label: item.label, keys: bindings.map(formatAccelerator).join(' / ') });
     }
   };
   for (const top of Menu.getApplicationMenu()?.items ?? []) {
@@ -6987,6 +7173,23 @@ function buildMenuForRuntime(runtime) {
   // so each one must re-establish the runtime context at invocation time
   // (same reasoning as the tab-webContents listeners above).
   const bound = (fn) => bindWindowRuntime(runtime, fn);
+  const command = (id) => {
+    const definition = browserCommandDefinition(id);
+    return {
+      id: `browser-${id}`,
+      accelerator: definition.primary,
+      click: (_item, window) => {
+        const target = window
+          ? windowRuntimes.all().find(candidate => candidate.window === window)
+          : focusedRuntime ?? runtime;
+        if (!target) return;
+        bindWindowRuntime(target, () => {
+          const handled = executeBrowserCommand(id, target);
+          observeBrowserCommand({ id, runtimeId: target.id, webContentsId: null, handled });
+        })();
+      },
+    };
+  };
   const appMenu = isMac
     ? [{
         label: app.name,
@@ -7009,21 +7212,20 @@ function buildMenuForRuntime(runtime) {
     {
       label: 'File',
       submenu: [
-        { label: 'New Window', accelerator: 'CmdOrCtrl+N', click: bound(() => openNewWindow({ profileId: runtime.profileId })) },
+        { label: 'New Window', ...command('new-window') },
         { label: 'New Profile Window', click: bound(() => openNewProfileWindow()) },
-        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: bound(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })) },
-        { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: bound(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })) },
-        { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: bound(() => rt().activeTabId && closeTab(rt().activeTabId)) },
+        { label: 'New Tab', ...command('new-tab') },
+        { label: 'New Private Tab', ...command('new-private-tab') },
+        { label: 'Close Tab', ...command('close-tab') },
         {
           label: 'Reopen Closed Tab',
-          accelerator: 'CmdOrCtrl+Shift+T',
+          ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
-          click: bound(reopenClosedTab),
         },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
         { type: 'separator' },
-        { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: bound(() => openInternalPage('blanc://downloads/')) },
-        { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: bound(() => openInternalPage('blanc://settings/')) },
+        { label: 'Downloads', ...command('downloads') },
+        { label: 'Settings', ...command('settings') },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
@@ -7042,15 +7244,15 @@ function buildMenuForRuntime(runtime) {
     {
       label: 'View',
       submenu: [
-        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: bound(toggleIsland) },
-        { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: bound(openFindBar) },
+        { label: mn('Search & Commands'), ...command('address') },
+        { label: 'Find…', ...command('find') },
         ...(ONE_PASSWORD_AVAILABLE ? [{
           label: 'Fill Login from 1Password',
           accelerator: ONE_PASSWORD_ACCELERATOR,
           click: bound(fillLoginFromOnePassword),
         }] : []),
-        { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reload()) },
-        { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reloadIgnoringCache()) },
+        { label: 'Reload Tab', ...command('reload') },
+        { label: 'Hard Reload Tab (Bypass Cache)', ...command('hard-reload') },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
@@ -7104,8 +7306,8 @@ function buildMenuForRuntime(runtime) {
           click: bound(switchToLastActiveTab),
         },
         { type: 'separator' },
-        { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: bound(() => cycleTab(1)) },
-        { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: bound(() => cycleTab(-1)) },
+        { label: 'Next Tab', ...command('next-tab') },
+        { label: 'Previous Tab', ...command('previous-tab') },
         { label: 'Next Tab in Group', accelerator: 'Alt+CmdOrCtrl+Right', click: bound(() => cycleTabInCluster(1)) },
         { label: 'Previous Tab in Group', accelerator: 'Alt+CmdOrCtrl+Left', click: bound(() => cycleTabInCluster(-1)) },
         { label: 'Next Group', accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
@@ -7169,7 +7371,7 @@ function buildMenuForRuntime(runtime) {
         // favorites — otherwise the two separators would collapse into one gap.
         ...(favItems.length ? [{ type: 'separator' }] : []),
         { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
-        { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: bound(() => openInternalPage('blanc://history/')) },
+        { label: 'Show History', ...command('history') },
       ],
     },
     {
@@ -8093,7 +8295,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
   for (const browsingSession of browsingSessions) {
-    installNavigationCrashGuard(browsingSession);
+    installBeforeRequestPolicy(browsingSession);
     certificateObserver.observe(browsingSession);
   }
   const chromeSes = session.fromPartition(CHROME_PARTITION);
@@ -8828,7 +9030,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
     for (const targetSession of targetSessions) {
-      installNavigationCrashGuard(targetSession);
+      installBeforeRequestPolicy(targetSession);
       certificateObserver.observe(targetSession);
     }
     pagesRegistration.addSessions(targetSessions);
@@ -8883,7 +9085,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // (electronApp.evaluate() reaches straight into the main process) —
       // test-hook.js wraps every installed method with this at install time.
       bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn),
-      liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
+      browserCommandState: () => ({
+        deliveries: [...browserCommandDeliveries],
+        focusedWebContentsId: webContents.getFocusedWebContents()?.id ?? null,
+        activeTabId: rt().activeTabId,
+        utility: rt().utilitySheetUrl,
+        overlayMode: rt().overlayMode,
+        activeViewVisible: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getVisible() : false,
+        addressFocusGeneration: rt().addressFocusGeneration,
+      }),
+      navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,

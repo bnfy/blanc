@@ -24,9 +24,9 @@ const {
   updateFaviconFromPage,
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
+const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navigation');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -423,12 +423,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
-    const guardedErrorUrl = chromeWebStoreErrorPageUrl(validatedURL, errorCode);
-    if (guardedErrorUrl) {
-      wc.loadURL(guardedErrorUrl).catch(() => {});
-      return;
-    }
-    if (errorCode === -3) return;
+    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) return;
     if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {
@@ -437,7 +432,10 @@ function wireTabView(tab, view, { owner, adopted }) {
           desc: errorDescription,
         })
       : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    queueTabNavigation(wc, {
+      isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+      run: contents => contents.loadURL(`blanc://error/?${q}`),
+    });
   }));
   // Chromium remains authoritative. Capture only bounded presentation data
   // for top-level failures and always reject; subframe failures stay denied
@@ -467,7 +465,10 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (details.reason === 'clean-exit') return;
     recordRendererCrash('tab', details);
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    queueTabNavigation(wc, {
+      isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+      run: contents => contents.loadURL(`blanc://error/?${q}`),
+    });
   }));
   // Electron's polarity is deliberately inverted: preventing this event lets
   // the underlying unload proceed.

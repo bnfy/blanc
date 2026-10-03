@@ -33,7 +33,7 @@ function load({ tabList, queued, deferredWakes = [], blockerAttached = true, ses
       woken.push(id);
       return Promise.resolve(false);
     },
-    installNavigationCrashGuard: (session) => guarded.push(session),
+    installBeforeRequestPolicy: (session) => guarded.push(session),
   };
   vm.runInNewContext(
     `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
@@ -78,7 +78,7 @@ test('deferred wakes drain before ordinary startup navigations replay', () => {
   assert.equal(result.pendingWakes.size, 0);
 });
 
-test('continuing without the blocker replaces the startup gate with the crash guard', () => {
+test('continuing without the blocker replaces the startup gate with the ordinary request policy', () => {
   const sessions = [{ id: 'normal' }, { id: 'private' }];
   const result = load({
     tabList: [],
