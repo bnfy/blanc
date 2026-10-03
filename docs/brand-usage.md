@@ -184,6 +184,15 @@ prompt, the 1Password capsule and the screen-share picker. Neutral: the
 Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
 
+**Horizon Shield, owner-approved October 3, 2026:** the Island's blocker button
+uses the layered gold Horizon Shield as a scoped exception to the neutral icon
+palette. Use `src/renderer/shield-horizon.png` at 16×16 CSS pixels within the
+existing 24px button; the Island's shared zoom still applies. Keep the count as
+a separate badge and desaturate the artwork when blocking is off. The source is
+`assets/horizon-shield.png`. This product mark does not replace Sunrise or warm
+the surrounding Island. It is approved for the next desktop release; public
+screenshots and marketing must continue to follow the release boundary.
+
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
 colors. Gold marks state and navigation; primary buttons stay ink on ivory
