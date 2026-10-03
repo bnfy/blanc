@@ -70,3 +70,17 @@ test('reload waits for the native lifecycle and preserves an unload objection', 
     assert.equal(wc.listenerCount('will-prevent-unload'), 0);
   }
 });
+
+
+test('a fresh guest starts before activation, while a subsequent navigation stays serialized', async () => {
+  const wc = contents(), calls = [];
+  const first = queueTabNavigation(wc, { startImmediately: true, isCurrent: () => true, run: () => {
+    calls.push('initial'); wc.loading = true;
+    return new Promise(resolve => { wc.finish = resolve; });
+  } });
+  assert.deepEqual(calls, ['initial'], 'initial native navigation starts before focus/UI broadcasts');
+  const second = queueTabNavigation(wc, { startImmediately: true, isCurrent: () => true, run: () => calls.push('next') });
+  assert.deepEqual(calls, ['initial']);
+  await Promise.all([first, second]);
+  assert.deepEqual(calls, ['initial', 'next']);
+});

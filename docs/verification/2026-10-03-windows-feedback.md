@@ -74,3 +74,12 @@ The corrected `59e75421` source matrix passed all 81 native input/menu commands
 on Windows, Linux and macOS. Windows/Linux then hit a polling-harness error
 parsing an empty pre-commit Store URL; the polling guard now waits for a real
 Store URL. This does not weaken the title, live-document or absent-API checks.
+
+Private run [37141192162](https://github.com/bnfy/blanc/actions/runs/37141192162)
+passed at `59e75421`, including signed Windows, Linux packaging, packaged
+Settings crash recovery and both Ubuntu sandbox jobs. At `61a12f8f` the complete
+Windows/Linux source command + Store jobs passed. The follow-up restores the
+original synchronous first navigation for a fresh guest: deferring that first
+load had invalidated a fill capsule and briefly changed the blank-tab prompt.
+All three affected acceptance scenarios passed again, with serialization still
+applied to subsequent navigation/reload. Fresh complete checks remain pending.

@@ -4,9 +4,10 @@
 // A newer request cancels an in-flight load, waits for its promise to settle,
 // then rechecks the guest identity/owner before starting. No page data is held.
 const navigations = new WeakMap();
-function queueTabNavigation(wc, { run, isCurrent }) {
+function queueTabNavigation(wc, { run, isCurrent, startImmediately = false }) {
   if (!wc || wc.isDestroyed()) return Promise.resolve(false);
   let state = navigations.get(wc);
+  const fresh = !state;
   if (!state) {
     state = { generation: 0, running: 0, tail: Promise.resolve() };
     navigations.set(wc, state);
@@ -15,7 +16,7 @@ function queueTabNavigation(wc, { run, isCurrent }) {
   if (state.running && wc.isLoadingMainFrame()) wc.stop();
   const navigate = async () => {
     // Leave the previous native event stack before another navigation call.
-    await new Promise(resolve => setImmediate(resolve));
+    if (!startImmediately || !fresh) await new Promise(resolve => setImmediate(resolve));
     if (generation !== state.generation || wc.isDestroyed() || !isCurrent()) return false;
     state.running = generation;
     try {
@@ -27,8 +28,15 @@ function queueTabNavigation(wc, { run, isCurrent }) {
       if (state.running === generation) state.running = 0;
     }
   };
-  state.tail = state.tail.then(navigate, navigate);
-  return state.tail;
+  const previous = state.tail;
+  let finish;
+  const pending = new Promise(resolve => { finish = resolve; });
+  state.tail = pending;
+  // Only a brand-new guest starts synchronously. Its initial navigation
+  // belongs before activation/focus broadcasts, as in the original path.
+  if (startImmediately && fresh) navigate().then(finish, () => finish(false));
+  else previous.then(navigate, navigate).then(finish, () => finish(false));
+  return pending;
 }
 
 function tabNavigationSuperseded(wc) {

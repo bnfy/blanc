@@ -5329,6 +5329,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // loadURL when the source tab has real back/forward history to clone.
     if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
     else queueTabNavigation(wc, {
+      startImmediately: true,
       isCurrent: () => tabs.get(id) === tab && liveContents(tab) === wc,
       run: contents => contents.loadURL(url, httpReferrer ? { httpReferrer } : {}),
     });
