@@ -13,7 +13,7 @@ async function preview({ reduced = false, present = true, fail = false } = {}) {
   const { initHorizonShield } = await load('site/src/scripts/horizon-shield.js');
   const styles = new Map(), events = new Map(), callbacks = new Map(), turns = [];
   let sequence = 0, observer, change, loads = 0;
-  const bounds = { top: 250, height: 400 };
+  const bounds = { top: 900, height: 400 };
   const preference = { matches: reduced, addEventListener: (_, fn) => { change = fn; } };
   const study = {
     getBoundingClientRect: () => bounds,
@@ -51,7 +51,10 @@ test('the solid shield completes one scroll-driven turn, reverses and clamps at 
   assert.equal(p.loads(), 0, 'the WebGL chunk stays unloaded before the artwork enters');
   p.enter(true); await p.ready();
   assert.equal(p.loads(), 1);
-  p.bounds.top = 25;
+  p.bounds.top = 800;
+  p.events.get('scroll')(); p.flush();
+  assert.ok(p.angle() > 0 && p.angle() < 90, 'the turn begins while most of the shield is still below the viewport');
+  p.bounds.top = 350;
   p.events.get('scroll')(); p.events.get('scroll')();
   assert.equal(p.callbacks.size, 1, 'scroll bursts share a single animation frame');
   p.flush();
@@ -60,7 +63,7 @@ test('the solid shield completes one scroll-driven turn, reverses and clamps at 
   p.bounds.top = -500;
   p.events.get('scroll')(); p.flush();
   assert.equal(p.angle(), 360);
-  p.bounds.top = 25;
+  p.bounds.top = 350;
   p.events.get('scroll')(); p.flush();
   assert.equal(p.angle(), 180, 'upward scrolling reverses the same turn');
   p.bounds.top = 1500; p.enter(false);
@@ -75,7 +78,7 @@ test('reduced motion stays upright and does not eagerly load WebGL', async () =>
   assert.equal(p.loads(), 0);
   assert.equal(p.callbacks.size, 0);
   assert.equal(p.angle(), 0);
-  p.bounds.top = 25; p.reduce(false); await p.ready();
+  p.bounds.top = 350; p.reduce(false); await p.ready();
   assert.equal(p.angle(), 180);
   assert.equal(p.loads(), 1);
   p.events.get('scroll')(); p.reduce(true); p.flush();

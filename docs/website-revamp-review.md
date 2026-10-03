@@ -186,14 +186,20 @@ surfaces use the same original artwork and UVs, turned 180 degrees, with two
 recessed seams and closed beveled gold walls between them. The visible caption
 is removed; the figure retains an accessible name.
 
-Three.js 0.186.1 renders the model with metal lighting. Its separate chunk loads
-only near the section (548,108 bytes minified; 135,345 bytes gzip). This lazy
+Three.js 0.186.1 renders the model with softer lighting and a satin gold finish:
+reduced exposure, environment and edge lighting, rougher surfaces, and no
+clearcoat reduce glare while retaining the original brushed artwork and relief.
+Its separate chunk loads
+only near the section (about 548 kB minified; 135 kB gzip). This lazy
 chunk triggers Vite's 500 kB advisory, but is not part of the initial page load.
 There is no animation loop: scroll/resize request a frame only when needed,
 with DPR capped at 2. Scroll controls one clamped 0°–360° turn and reverses when
-scrolling back. Reduced motion keeps it upright and avoids loading WebGL on
-initial load. Initialization failure or context loss shows the static original
-artwork. There are no extra disclosure controls or fake blocking counters.
+scrolling back. The turn begins when the figure’s top reaches 90% of the
+viewport height and finishes when its bottom reaches 20%, so motion is already
+visible as the artwork enters. Reduced motion keeps it upright and avoids
+loading WebGL on initial load. Initialization failure or context loss shows
+the static original artwork. There are no extra disclosure controls or fake
+blocking counters.
 
 The owner explicitly requested finished launch copy without “In development”
 or “Upcoming” badges, and will deploy the redesigned site only after the new
@@ -224,6 +230,12 @@ side triangles. Both side profiles were visually inspected after correcting
 side winding. The dependency audit and regenerated site SBOM compliance check
 also passed. No browser console warnings or errors were captured. The development
 site remains open at `http://127.0.0.1:4321/#privacy`.
+
+The earlier scroll start and softer satin finish were checked in the development
+browser. Both faces retain the brushed texture with reduced highlights, and the
+turn is visibly underway as the section enters. All five shield tests and the
+production/SEO build pass after this refinement; the browser logged no warnings
+or errors.
 
 The branch also incorporates main through `03621de6`, bringing in the approved
 shield asset and resolving the duplicate http-cache-semantics review while

@@ -12,7 +12,7 @@ export async function createShieldRenderer(mount) {
   renderer.setClearColor(0, 0);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1;
+  renderer.toneMappingExposure = 0.92;
   const scene = new Scene();
   const camera = new PerspectiveCamera(32, 1, 0.1, 30);
   camera.position.set(0, 0.03, 3.95);
@@ -20,11 +20,11 @@ export async function createShieldRenderer(mount) {
   const pmrem = new PMREMGenerator(renderer);
   const environment = pmrem.fromScene(room, 0.04);
   scene.environment = environment.texture;
-  scene.environmentIntensity = 0.9;
+  scene.environmentIntensity = 0.7;
   room.dispose(); pmrem.dispose();
-  const key = new DirectionalLight(0xfff4dd, 1.1);
+  const key = new DirectionalLight(0xfff4dd, 0.8);
   key.position.set(-3, 5, 5); scene.add(key);
-  const edgeLight = new DirectionalLight(0xffffff, 1.5);
+  const edgeLight = new DirectionalLight(0xffffff, 0.85);
   edgeLight.position.set(4, 1, -3); scene.add(edgeLight);
   let texture;
   try { texture = await new TextureLoader().loadAsync('/horizon-shield.webp'); }
@@ -32,13 +32,13 @@ export async function createShieldRenderer(mount) {
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
   const gold = new MeshPhysicalMaterial({
-    color: new Color('#dcb361'), metalness: 1, roughness: 0.4,
-    clearcoat: 0.18, clearcoatRoughness: 0.32,
+    color: new Color('#dcb361'), metalness: 1, roughness: 0.56,
+    clearcoat: 0,
   });
   const face = new MeshPhysicalMaterial({
-    map: texture, color: 0xffffff, metalness: 0.35, roughness: 0.46,
-    emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0.18,
-    clearcoat: 0.12, clearcoatRoughness: 0.4,
+    map: texture, color: 0xffffff, metalness: 0.35, roughness: 0.64,
+    emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0.1,
+    clearcoat: 0,
   });
   const geometry = Object.fromEntries(Object.entries(createShieldGeometry()).map(([name, data]) => {
     const mesh = new BufferGeometry();

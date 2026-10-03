@@ -7,8 +7,11 @@ export function initHorizonShield(study, { view = window, loadRenderer = default
   const angle = () => {
     if (reducedMotion.matches) return 0;
     const bounds = study.getBoundingClientRect();
-    const travel = bounds.height + view.innerHeight * 0.05;
-    return Math.max(0, Math.min(1, (view.innerHeight * 0.25 - bounds.top) / travel)) * Math.PI * 2;
+    // Begin just inside the viewport; finish when the bottom reaches its upper fifth.
+    const start = view.innerHeight * 0.9;
+    const end = view.innerHeight * 0.2;
+    const travel = bounds.height + start - end;
+    return Math.max(0, Math.min(1, (start - bounds.top) / travel)) * Math.PI * 2;
   };
   const render = () => {
     const rotation = angle();
