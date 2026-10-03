@@ -26,5 +26,5 @@ test('unknown routes return the branded noindex page with a real 404 status', as
     /<meta[^>]+name="robots"[^>]+content="([^"]*)"/i,
     /<meta[^>]+content="([^"]*)"[^>]+name="robots"/i,
   ]), /\bnoindex\b/i);
-  assert.match(html, /href="\/features"/);
+  assert.match(html, /href="\/#features"/);
 });

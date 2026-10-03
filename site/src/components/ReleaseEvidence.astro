@@ -1,0 +1,103 @@
+<section
+  class="release-verification"
+  aria-labelledby="release-verification-title"
+>
+  <p class="section-kicker">public v1.26.0 · October 2, 2026</p><h2
+    id="release-verification-title"
+  >
+    Verify the package for your platform.
+  </h2>
+  <table role="table">
+    <caption>Authentication evidence for the official v1.26.0 downloads</caption
+    ><thead role="rowgroup"
+      ><tr role="row"
+        ><th role="columnheader" scope="col">Platform</th><th role="columnheader" scope="col">What is checked</th><th role="columnheader"
+          scope="col">Artifacts and evidence</th
+        ></tr
+      ></thead
+    ><tbody role="rowgroup">
+      <tr role="row"
+        ><th role="rowheader" scope="row">macOS</th><td role="cell"
+          >Developer ID signature, notarization, Gatekeeper assessment and the
+          app’s stapled ticket.</td
+        ><td role="cell"
+          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.26.0"
+            >Official DMG</a
+          > · <a
+            href="https://github.com/bnfy/blanc/blob/v1.26.0/docs/release-verification.md"
+            >Mac verification steps</a
+          > · <a
+            href="https://github.com/bnfy/blanc/blob/8e48359fae44865857a5bd3a8a955af96af71650/docs/release-incidents/2026-10-02-v1.26.0.md#publication-and-independent-verification"
+            >v1.26.0 verification record</a
+          ></td
+        ></tr
+      >
+      <tr role="row"
+        ><th role="rowheader" scope="row">Windows</th><td role="cell"
+          >Valid, timestamped Authenticode signature with the exact expected
+          publisher; installer digest bound to windows-signature.json.</td
+        ><td role="cell"
+          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.26.0"
+            >Official installer and signature report</a
+          > · <a
+            href="https://github.com/bnfy/blanc/blob/v1.26.0/docs/release-verification.md"
+            >Windows verification steps</a
+          > · <a
+            href="https://github.com/bnfy/blanc/blob/8e48359fae44865857a5bd3a8a955af96af71650/docs/release-incidents/2026-10-02-v1.26.0.md#publication-and-independent-verification"
+            >v1.26.0 native checks</a
+          ></td
+        ></tr
+      >
+      <tr role="row"
+        ><th role="rowheader" scope="row">Linux</th><td role="cell"
+          >AppImage checksum authenticated by the Sigstore-signed SHA256SUMS
+          manifest. Linux has no equivalent OS-level publisher signature here.</td
+        ><td role="cell"
+          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.26.0"
+            >Official AppImage, manifest and Sigstore bundle</a
+          > · <a
+            href="https://github.com/bnfy/blanc/blob/v1.26.0/docs/release-verification.md"
+            >Manifest verification steps</a
+          > · <a
+            href="https://github.com/bnfy/blanc/blob/8e48359fae44865857a5bd3a8a955af96af71650/docs/release-incidents/2026-10-02-v1.26.0.md#publication-and-independent-verification"
+            >v1.26.0 public-download checks</a
+          ></td
+        ></tr
+      >
+    </tbody>
+  </table>
+  <p>
+    These checks authenticate the publisher and downloaded bytes. They do not
+    establish that the application is free of security flaws or provide an
+    independent review of its architecture. The release record distinguishes
+    hosted checks, physical-machine confirmations and owner waivers.
+  </p>
+</section>
+<section class="feature-copy-grid" aria-labelledby="security-audit-title">
+  <div>
+    <p class="section-kicker">independent review</p><h2
+      id="security-audit-title"
+    >
+      An external audit is still pending.
+    </h2>
+  </div>
+  <div class="feature-copy-list">
+    <article>
+      <h3>The status, plainly</h3><p>
+        No independent external security audit has been completed. Internal and
+        AI-assisted security reviews are maintainer evidence. The next step is
+        preparing a scope and funding proposal, without promising an audit date.
+      </p>
+    </article><article>
+      <h3>Known work belongs in the scope</h3><p>
+        Sync v1 encrypts data, but possession of its account locator authorizes
+        ciphertext retrieval, replacement and deletion. Concurrent writes and
+        deletion can race. Merged request-size limits are not yet deployed.
+        These unresolved findings remain part of the <a
+          href="https://github.com/bnfy/blanc/blob/main/docs/security-assessment.md"
+          >public maintainer assessment</a
+        >.
+      </p>
+    </article>
+  </div>
+</section>

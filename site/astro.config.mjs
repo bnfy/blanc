@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   site: 'https://blancbrowser.com',
+  devToolbar: { enabled: false },
   // Astro 7 changes the default to 'jsx' (JSX-rule whitespace stripping),
   // which glues inline elements together — "in our repository" rendered as
   // "inour repository", and the Intel download card's accessible name lost

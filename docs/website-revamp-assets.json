@@ -1,0 +1,119 @@
+{
+  "newAssets": [
+    {
+      "file": "site/public/revamp/space-black-laptop-v2.webp",
+      "originalSha256": "ad29a564efe665973799b826432a8ce73db7077a5c95d31a7c38a4300524be5f",
+      "source": "local approved storyboard",
+      "name": "space-black-laptop-v2.png",
+      "format": "lossless WebP",
+      "sha256": "c802712109c2b03f56711dbbfc0c24187d2f0a49be93721e8187308f8f31ba99",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 599262
+    },
+    {
+      "file": "site/public/revamp/rest.png",
+      "originalSha256": "6097da7f7d2b2cd9f4882dda6c83a772123fc78be5220eaa19ea49c16b77cf41",
+      "source": "local approved storyboard",
+      "name": "rest.png",
+      "format": "original PNG",
+      "sha256": "6097da7f7d2b2cd9f4882dda6c83a772123fc78be5220eaa19ea49c16b77cf41",
+      "width": 2560,
+      "height": 1600,
+      "bytes": 551029
+    },
+    {
+      "file": "site/public/revamp/tabs.png",
+      "originalSha256": "d636a7c46a916c0f4b39e1242d78e2ae938f72717609491cbc8df9c9df6f63a8",
+      "source": "local approved storyboard",
+      "name": "tabs.png",
+      "format": "original PNG",
+      "sha256": "d636a7c46a916c0f4b39e1242d78e2ae938f72717609491cbc8df9c9df6f63a8",
+      "width": 2560,
+      "height": 1600,
+      "bytes": 582671
+    },
+    {
+      "file": "site/public/revamp/command-filtered.png",
+      "originalSha256": "5ec871182b9569fb7996ac1b38498f5ffa4672085e69145514b1737339848198",
+      "source": "local approved storyboard",
+      "name": "command-filtered.png",
+      "format": "original PNG",
+      "sha256": "5ec871182b9569fb7996ac1b38498f5ffa4672085e69145514b1737339848198",
+      "width": 2560,
+      "height": 1600,
+      "bytes": 566249
+    },
+    {
+      "file": "site/public/revamp/champagne-desktop-v2.webp",
+      "originalSha256": "e041f239d0089a4800a16e0e8172d2ea4b9bb0dba8e72129eafe61065f3ccb03",
+      "source": "local approved storyboard",
+      "name": "champagne-desktop-v2.png",
+      "format": "lossless WebP",
+      "sha256": "6b66146dfa0c8dbe72bdbfca465d320e10e4b3a97b7b06d43b61ceda554476a7",
+      "width": 1374,
+      "height": 1145,
+      "bytes": 743554
+    }
+  ],
+  "upstreamBrandIcons": "Font Awesome Free 6.7.2, CC BY 4.0",
+  "captureBoundary": "Existing historical captures retain their source versions; Island captures come from verified installed v1.26.0; hardware generated independently.",
+  "hardwareGeneration": {
+    "tool": "OpenAI image generation",
+    "purpose": "Separate hardware shells only; original screenshots are not generated or recolored.",
+    "prompts": "docs/website-revamp-hardware-prompts.json"
+  },
+  "islandCaptureProvenance": {
+    "captured_date": "2026-10-02",
+    "app": "/Applications/Blanc.app",
+    "version": "1.26.0",
+    "release_tag": "v1.26.0",
+    "release_sha": "4624b229c1a50814c42714e6175902671497e391",
+    "method": "Native CUA screenshots of the installed public app, existing Launch demo profile, separate sample window; no product DOM or image pixels edited. Sample window closed after capture.",
+    "verification": "Strict deep codesign passed outside sandbox. Installed index.html, renderer.js, styles.css, overlay.html, overlay.js match exact release-tag bytes. Packaged package.json differs due packaging transformation.",
+    "source_size": [
+      2560,
+      1600
+    ],
+    "page": "https://en.wikipedia.org/wiki/Scandinavian_design",
+    "sample_tabs": [
+      "Scandinavian design — Wikipedia",
+      "Typography — Wikipedia",
+      "bnfy/blanc — GitHub"
+    ],
+    "presentation": "CSS viewport displays the center 1400×610px region of the native 2560×1600px capture, at the same origin in every state. A CSS white veil mutes webpage context below the Island. Native source files remain unchanged. CSS clipping/fading between captured states is website choreography, not recorded app motion.",
+    "caveats": [
+      "System sharing badge at upper-left is outside the center crop.",
+      "The filtered-command capture includes the native automation pointer highlight.",
+      "This is local review material; public use of displayed third-party content needs media-rights review."
+    ],
+    "files": {
+      "rest.png": {
+        "sha256": "6097da7f7d2b2cd9f4882dda6c83a772123fc78be5220eaa19ea49c16b77cf41",
+        "bytes": 551029
+      },
+      "tabs.png": {
+        "sha256": "d636a7c46a916c0f4b39e1242d78e2ae938f72717609491cbc8df9c9df6f63a8",
+        "bytes": 582671
+      },
+      "command-filtered.png": {
+        "sha256": "5ec871182b9569fb7996ac1b38498f5ffa4672085e69145514b1737339848198",
+        "bytes": 566249
+      },
+      "commands.png": {
+        "sha256": "4f9f17feeb879aaf204a8e9f3aaef86f18af83374b326181b316a74e0f5a7de5",
+        "bytes": 408599
+      }
+    }
+  },
+  "rightsReview": {
+    "checked": "2026-10-02",
+    "status": "Attribution and reuse terms recorded in the shipped credits file, linked beside the Island demo. Original prototype caveat is retained above as history.",
+    "credits": "site/public/revamp/credits.txt",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Scandinavian_design",
+      "https://commons.wikimedia.org/wiki/File:Design_in_Scandinavia_exhibition.jpg",
+      "https://commons.wikimedia.org/wiki/File:Roskilde_Svane_Apothek_1899.jpg"
+    ]
+  }
+}

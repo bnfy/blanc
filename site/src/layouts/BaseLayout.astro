@@ -1,10 +1,8 @@
 ---
 import '@fontsource-variable/inter';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/500.css';
-import '@fontsource/jetbrains-mono/700.css';
 import '@fontsource-variable/newsreader/opsz.css';
 import '../styles/site.css';
+import '../styles/revamp.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
@@ -35,7 +33,7 @@ const ogImageUrl = SITE + ogImage;
 <title>{title}</title>
 <meta name="description" content={description}>
 <meta name="robots" content={robots}>
-<meta name="theme-color" content="#F7F0E5">
+<meta name="theme-color" content="#F8F2E8">
 {social !== 'none' && <meta name="application-name" content="Blanc Browser">}
 {social === 'rich' && <meta name="apple-mobile-web-app-title" content="Blanc">}
 <link rel="canonical" href={canonical}>

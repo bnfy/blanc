@@ -3289,51 +3289,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
-      "name": "@fontsource/jetbrains-mono",
-      "version": "5.3.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "7ea0df07923d7f5a754d5e3ce9a52007db7cccff383f43b516d411e4e97dbe3c0fcbe4be1081a55589b572f8f65b9b217193138369d915d54ca07e7016ef1ad4"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "OFL-1.1"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/@fontsource/jetbrains-mono"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@fontsource/jetbrains-mono/-/jetbrains-mono-5.3.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/%40img/colour@1.1.0",
       "name": "@img/colour",
       "version": "1.1.0",
@@ -13672,7 +13627,6 @@
       "dependsOn": [
         "pkg:npm/%40fontsource-variable/inter@5.3.0",
         "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
-        "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
         "pkg:npm/astro@7.3.2",
         "pkg:npm/sharp@0.35.4"
       ]
@@ -14003,10 +13957,6 @@
     },
     {
       "ref": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
       "dependsOn": []
     },
     {

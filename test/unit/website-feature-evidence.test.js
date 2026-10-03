@@ -8,13 +8,13 @@ const { execFileSync } = require('node:child_process');
 const { runInNewContext } = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const ledger = JSON.parse(read('docs/website-trust-claims-v1.26.json'));
+const ledger = JSON.parse(read('docs/website-revamp-claims-v1.26.json'));
 const captureLedger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
 const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
-const normalize = text => text.replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
+const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
 test('the website claim ledger resolves to the current public release and contains no publication blockers', () => {
   assert.equal(ledger.publicRelease, 'v1.26.0');
@@ -39,7 +39,7 @@ test('current authentication claims link completed evidence rather than the prep
   assert.ok(completed.includes(ledger.sourceSha));
   assert.match(completed, /Publication and independent verification/);
   assert.match(completed, /Adjacent public updater handoffs/);
-  assert.ok(read('site/src/pages/features/security.astro').includes(ledger.completedReleaseEvidenceRevision));
+  assert.ok(read('site/src/components/ReleaseEvidence.astro').includes(ledger.completedReleaseEvidenceRevision));
 });
 
 test('the v1.15 claim ledger remains paired with its immutable release evidence', () => {
@@ -52,7 +52,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
-    const file = `site/src/pages/features/${slug}.astro`;
+    const file = `site/src/components/guides/${slug}.astro`;
     const claims = new Set(ledger.claims.filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
@@ -96,7 +96,7 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
   const homepage = read('site/src/pages/index.astro');
   const wallpaper = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
   assert.ok(homepage.includes(wallpaper.captures[0].displayAsset.file.replace('site/public', '')));
-  assert.match(homepage, /Blanc v1\.25\.0 on macOS/);
+  assert.match(normalize(homepage), /Blanc v1\.25\.0 on macOS/);
 });
 
 
