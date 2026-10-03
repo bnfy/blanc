@@ -20,3 +20,17 @@
   Cache-Control: no-store
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow
+
+# Public email signature images must load inside webmail on other origins.
+# Detach the global rule; adding another value would produce an invalid list.
+/blanc-signature-hires.png
+  ! Cross-Origin-Resource-Policy
+
+/blanc-signature.png
+  ! Cross-Origin-Resource-Policy
+
+/blanc-email-signature.png
+  ! Cross-Origin-Resource-Policy
+
+/blanc-email-signature-48.png
+  ! Cross-Origin-Resource-Policy
