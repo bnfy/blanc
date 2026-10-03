@@ -88,13 +88,14 @@
       selector.value = state.fallback ? state.active : state.selected;
       selector.querySelector('[value="ublock-origin"]').disabled = !state.supported;
       const status = document.getElementById('blockingProviderStatus');
+      const unavailable = 'uBlock Origin isn’t available in this build.';
       status.textContent = state.restartPending
         ? `${label(state.selected)} selected. Restart Blanc to apply; ${label(state.active)} is active.`
         : state.phase === 'failed'
           ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
           : state.phase === 'unsupported'
-            ? `uBlock Origin unavailable: ${state.reason}.`
-            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false || state.fallback ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
+            ? unavailable
+            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false || state.fallback ? '' : ' ' + unavailable}`;
       if (state.fallback) {
         const protection = state.enabled && state.phase === 'ready' ? 'Blanc Blocker is active.'
           : state.enabled ? status.textContent : 'Blocking is off.';

@@ -102,3 +102,19 @@ prove preservation of a real user's settings. The personal installation and
 public feed were unchanged. Squirrel left its root-owned temporary replacement
 for normal administrator-authenticated inspection/disposal; the harness removed
 its isolated profile and status files. No privileged cleanup bypass was used.
+
+## User-facing unavailable-platform wording
+
+A renderer-only follow-up replaces Settings' raw internal platform acceptance
+reason with “uBlock Origin isn’t available in this build.” The unavailable
+option remains disabled; effective Blanc protection and the saved-configuration
+fallback notice are unchanged. No style, provider policy, runtime, sandbox,
+platform flag or uBO executable input changes.
+
+Existing signed candidates predate this wording change and can still display
+the old internal reason when a platform is unavailable. Their supported-uBO
+flows, source/notice delivery, filtering and persistence behavior are unchanged;
+those remain valid inputs for the owner acceptance. The final release must
+include the plain wording. Local lint and all 48 Settings/shield/provider tests
+passed, and the actual Settings render callback was checked across 24
+unavailable-state cases plus supported/hidden-provider cases.
