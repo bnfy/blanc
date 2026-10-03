@@ -26,8 +26,11 @@ void ignored;
 let app;
 let steps = 0;
 let failed = false;
+let lastCommandDiagnostics = null;
 const press = async (command, key, modifiers, surface = 'active') => {
-  const before = (await call(app, 'browserCommandState')).deliveries.length;
+  const commandState = await call(app, 'browserCommandState');
+  const before = commandState.deliveries.length;
+  lastCommandDiagnostics = { requested: { command, key, modifiers, surface }, state: commandState };
   await app.evaluate(({ Menu, webContents, BrowserWindow }, { command, key, modifiers, surface }) => {
     const windows = BrowserWindow.getAllWindows();
     const window = surface === 'otherChrome' ? windows.filter(candidate => candidate.webContents.getURL() === 'blanc-chrome://index/').sort((a, b) => a.id - b.id).at(-1)
@@ -50,6 +53,7 @@ const press = async (command, key, modifiers, surface = 'active') => {
     wc.sendInputEvent({ type: 'keyUp', keyCode: key, modifiers });
   }, { command, key, modifiers, surface });
   const delivered = await wait(() => call(app, 'browserCommandState'), value => value.deliveries.length > before, `${command} delivery`);
+  lastCommandDiagnostics.state = delivered;
   assert.equal(delivered.deliveries.length, before + 1, `${command} must execute once`);
   assert.equal(delivered.deliveries.at(-1).id, command);
   assert.equal(delivered.deliveries.at(-1).handled, true);
@@ -195,6 +199,7 @@ try {
 } catch (error) {
   failed = true;
   console.error('Browser command regression failed:', error);
+  console.error('Last recorded command diagnostics:', JSON.stringify(lastCommandDiagnostics));
   if (app) {
     console.error('Electron exit status:', app.process().exitCode, app.process().signalCode);
     console.error('Command failure diagnostics:', JSON.stringify(await call(app, 'browserCommandState').catch(() => null)));
