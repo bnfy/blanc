@@ -320,6 +320,9 @@ function setupPages(hooks = {}) {
     appIcons: settings.APP_ICON_LABELS,
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
+  handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
+  handle('pages:blocking:retry', 'settings', () => hooks.blocking?.retry() ?? false);
+  handle('pages:blocking:open', 'settings', (tool) => hooks.blocking?.open(tool) ?? false);
   handle('pages:settings:set', 'settings', (partial) => {
     const next = partial && typeof partial === 'object' ? { ...partial } : {};
     if (!onePasswordAvailable()) {

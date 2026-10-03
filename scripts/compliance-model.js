@@ -207,7 +207,8 @@ function assetVersion(asset, contents, policy) {
 function assetComponents(policy) {
   const components = [];
   for (const asset of policy.assets) {
-    if (!policy.runtimeAllowedLicenseExpressions.includes(asset.license)) {
+    if (!policy.runtimeAllowedLicenseExpressions.includes(asset.license)
+      && policy.runtimeAssetLicenseExceptions?.[asset.id] !== asset.license) {
       throw new Error(`${asset.id}: unaudited runtime asset license ${asset.license}`);
     }
     if (asset.licenseFile && !fs.statSync(path.join(ROOT, asset.licenseFile), { throwIfNoEntry: false })?.isFile()) {

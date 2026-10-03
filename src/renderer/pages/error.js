@@ -5,6 +5,7 @@
   const desc = params.get('desc') || '';
   const certificateFailure = params.get('kind') === 'certificate';
   const chromeWebStoreFailure = params.get('kind') === 'chrome-web-store';
+  if (code === '-20') document.getElementById('blockingSettingsLink').hidden = false;
 
   document.getElementById('errorUrl').textContent = url;
   if (chromeWebStoreFailure) {

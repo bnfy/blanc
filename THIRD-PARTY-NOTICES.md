@@ -101,6 +101,17 @@ permission.
 Specific artwork that is not covered by the MIT grant is enumerated in
 [ASSET-LICENSE.md](ASSET-LICENSE.md). No directory is excluded wholesale.
 
+## Optional uBlock Origin candidate — GPL-3.0-or-later
+
+Raymond Hill and contributors' full uBlock Origin 1.75.0 Chromium package is
+preserved under `ublock/upstream/`, with per-file hashes, upstream license and
+the matching source-tag archive. The host-adapted extension remains GPL-covered;
+Blanc's separately authored host sources retain MIT. Upstream libraries, fonts,
+and filter data retain the notices inside that package. Reproduction instructions
+and dated adaptation records are in `ublock/README.md` and `ublock/adaptation.*`.
+Public distribution is blocked pending the concrete combined-work and complete
+corresponding-source assessment in `docs/ublock-origin-distribution.md`.
+
 ## Website summary icons
 
 The website’s shared Chromium/Chrome browser symbol, Electron, Apple and

@@ -39,7 +39,10 @@ const {
   attachAdBlockerToSession,
   setAdBlockEnabled,
   onRequestBlocked,
+  coordinator: blockingCoordinator,
 } = require('./adblock');
+const { createBlockingProviders } = require('./blocking-providers');
+const { createBlockingRecovery } = require('./blocking-recovery');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
@@ -304,6 +307,7 @@ const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+const ublockTestMode = acceptanceTestMode && process.env.BLANC_UBLOCK_TEST === '1';
 // Test-only: the most recent forced fill decision's resolution, so the
 // acceptance keyboard scenarios can assert WHICH verb a real keypress
 // produced. Written solely by showFillStatusForTest's continuation.
@@ -323,6 +327,62 @@ const windowRuntimeContext = new AsyncLocalStorage();
 let primaryRuntime = null;
 let focusedRuntime = null;
 let profileSessionRegistry = null;
+let blockingProviders = null;
+const ublockAuxiliaryTabs = new Map();
+const ublockPopups = new Map();
+function closeUblockPopup(runtimeId) {
+  const popup = ublockPopups.get(runtimeId);
+  if (!popup) return;
+  ublockPopups.delete(runtimeId);
+  popup.runtime.window?.removeListener('closed', popup.onClosed);
+  if (!popup.runtime.window?.isDestroyed()) popup.runtime.window?.contentView.removeChildView(popup.view);
+  popup.view.webContents?.close();
+}
+function openUblockTool(tool) {
+  if (!['dashboard', 'logger'].includes(tool)) return false;
+  const provider = blockingProviders?.forTab({ private: false, profileId: rt().profileId });
+  if (!provider?.extensionId || provider.status().phase !== 'ready') return false;
+  const page = tool === 'logger' ? 'logger-ui.html' : 'dashboard.html';
+  const id = createTab(`chrome-extension://${provider.extensionId}/${page}`, { managedExtension: true });
+  setActiveTab(id);
+  return true;
+}
+async function openUblockPopup(anchor) {
+  const runtime = rt();
+  if (ublockPopups.has(runtime.id)) { closeUblockPopup(runtime.id); return; }
+  const tab = tabs.get(runtime.activeTabId);
+  const provider = blockingProviders?.forTab(tab);
+  if (!provider?.extensionId || provider.status().phase !== 'ready') { openInternalPage('blanc://settings/'); return; }
+  if (tab.asleep) await wakeTab(tab.id);
+  if (runtime.activeTabId !== tab.id || !liveContents(tab)) return;
+  provider.refresh();
+  const tabId = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
+  const view = new WebContentsView({ webPreferences: {
+    session: profileSessionRegistry.normal(runtime.profileId),
+    sandbox: true, contextIsolation: true, nodeIntegration: false,
+  } });
+  const wc = view.webContents;
+  const popup = { runtime, tabId: tab.id, view };
+  popup.onClosed = () => closeUblockPopup(runtime.id);
+  ublockPopups.set(runtime.id, popup);
+  const [width, height] = runtime.window.getContentSize();
+  const popupWidth = Math.min(width, 365);
+  const popupHeight = Math.min(height - 68, 650);
+  const right = Number.isFinite(anchor?.right) ? anchor.right : 20;
+  view.setBounds({ x: Math.max(0, width - right - popupWidth), y: 68, width: popupWidth, height: popupHeight });
+  wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  wc.on('will-navigate', event => event.preventDefault());
+  wc.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape') { event.preventDefault(); closeUblockPopup(runtime.id); }
+  });
+  wc.on('blur', () => setImmediate(() => {
+    if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id);
+  }));
+  runtime.window.once('closed', popup.onClosed);
+  runtime.window.contentView.addChildView(view);
+  try { await wc.loadURL(`chrome-extension://${provider.extensionId}/popup-fenix.html?tabId=${tabId}`); wc.focus(); }
+  catch { closeUblockPopup(runtime.id); }
+}
 let installProfileSessionPolicies = () => {};
 
 /** Wrap a callback so it (and everything it schedules) resolves to `runtime`. */
@@ -1212,8 +1272,12 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
     'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
   try {
-    for (const entry of staleExtensionState) {
-      fs.rmSync(path.join(app.getPath('userData'), entry), { recursive: true, force: true });
+    const migration = path.join(app.getPath('userData'), 'legacy-extension-cleanup-v1');
+    if (!fs.existsSync(migration) && !fs.existsSync(path.join(app.getPath('userData'), 'managed-ublock'))) {
+      for (const entry of staleExtensionState) {
+        fs.rmSync(path.join(app.getPath('userData'), entry), { recursive: true, force: true });
+      }
+      fs.writeFileSync(migration, '1\n', { mode: 0o600 });
     }
   } catch (err) {
     console.warn('[cleanup] could not clear stale extension state:', err.message);
@@ -1252,30 +1316,27 @@ const startupQueuedNavigations = new Map();
 
 function installStartupNavigationGate(sessions) {
   startupNavigationGateActive = true;
-  const listener = (details, callback) => {
+  const listener = (details) => {
     if (
       !startupNavigationGateActive ||
       details.resourceType !== 'mainFrame' ||
       !/^https?:/i.test(details.url)
     ) {
-      callback({});
-      return;
+      return false;
     }
-    if (Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
+    if (details.method === 'GET' && Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
     }
-    callback({ cancel: true });
+    return true;
   };
   for (const browsingSession of sessions) {
-    browsingSession.webRequest.onBeforeRequest(
-      { urls: ['http://*/*', 'https://*/*'] },
-      listener
-    );
+    blockingCoordinator.setGate(browsingSession, listener);
   }
 }
 
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   startupNavigationGateActive = false;
+  for (const browsingSession of sessions) blockingCoordinator.setGate(browsingSession, null);
   // A successful blocker attachment has already replaced the temporary
   // listener with its composed network policy. If startup continues without
   // the blocker, replace the gate with the standalone crash guard instead of
@@ -3696,6 +3757,8 @@ function serializeTabs() {
         blockedCount: rest.blockedCount,
         excepted,
         adblockEnabled,
+        provider: !tab.private && blockingProviders?.active === 'ublock-origin' ? 'ublock-origin' : 'blanc',
+        readiness: !tab.private ? blockingProviders?.status(tab.profileId).phase : 'ready',
       });
       // Derived exactly once, here. A quiet tab has no view, but it reached
       // quiet only after committing, so its stored URL is honest in that one
@@ -3764,6 +3827,7 @@ function adblockWeekStats() {
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
+  blockingProviders?.stop();
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
       const existing = namedWorkspaces.get(runtime.workspaceId);
@@ -4086,6 +4150,10 @@ function currentTabsPayload() {
 }
 
 function broadcastTabs() {
+  blockingProviders?.refresh();
+  for (const [id, popup] of ublockPopups) {
+    if (popup.runtime.activeTabId !== popup.tabId || popup.runtime.window?.isDestroyed()) closeUblockPopup(id);
+  }
   if (tabStateBroadcastSuppressionDepth > 0) return;
   if (acceptanceTestMode) acceptanceTabStateBroadcastCount += 1;
   persistSession();
@@ -4979,9 +5047,31 @@ function noteWakeSuppressed(tab) {
   return !!tab?.waking;
 }
 /** Count an unmanaged popup against its opener until its webContents dies. */
-function notePopupChild(openerTabId, childWindow) {
+function noteUblockCreatedTarget(sourceContentsId, targetContentsId, url) {
+  const source = tabs.get(tabIdByWebContentsId.get(sourceContentsId)) ?? ublockAuxiliaryTabs.get(sourceContentsId);
+  const provider = blockingProviders?.forTab(source);
+  if (!provider || provider.status().phase !== 'ready') return;
+  const sourceTab = provider.registry.query().find(item => provider.registry.fromContents(sourceContentsId)?.id === provider.registry.tabFor(item.id)?.id);
+  const targetTab = provider.registry.query().find(item => provider.registry.fromContents(targetContentsId)?.id === provider.registry.tabFor(item.id)?.id);
+  if (!sourceTab || !targetTab) return;
+  provider.emit('webNavigation.onCreatedNavigationTarget', {
+    sourceTabId: sourceTab.id, sourceFrameId: -1, tabId: targetTab.id,
+    url, timeStamp: Date.now(),
+  });
+}
+function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
   if (!openerTabId || !childWindow) return;
   const owner = windowRuntimes.runtimeForTab(openerTabId) ?? rt();
+  const opener = tabs.get(openerTabId);
+  const child = childWindow.webContents;
+  if (opener && !opener.private && child.session === profileSessionRegistry?.normal(owner.profileId)) {
+    const record = { id: `ubo-auxiliary-${child.id}`, profileId: owner.profileId, private: false,
+      runtimeId: `ubo-auxiliary-${childWindow.id}`, auxiliary: childWindow, blockedCount: 0 };
+    ublockAuxiliaryTabs.set(child.id, record);
+    child.once('destroyed', () => { ublockAuxiliaryTabs.delete(child.id); blockingProviders?.refresh(); });
+    blockingProviders?.refresh();
+    noteUblockCreatedTarget(sourceContentsId ?? liveContents(opener)?.id, child.id, targetUrl || child.getURL());
+  }
   popupChildCounts.set(openerTabId, (popupChildCounts.get(openerTabId) ?? 0) + 1);
   childWindow.webContents.once('destroyed', bindWindowRuntime(owner, () => {
     const next = (popupChildCounts.get(openerTabId) ?? 1) - 1;
@@ -4994,6 +5084,38 @@ function notePopupChild(openerTabId, childWindow) {
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
+  allowManagedExtensionNavigation: (tab, wc, url, source, event) => {
+    const provider = blockingProviders?.forTab(tab);
+    if (!provider?.extensionId || tab.private) return false;
+    const prefix = `chrome-extension://${provider.extensionId}/`;
+    if (wc.session !== profileSessionRegistry.normal(tab.profileId)) return false;
+    if (wc.getURL().startsWith(prefix) && url.startsWith(prefix) && source.startsWith(prefix)) return true;
+    // Upstream's picker is a native web-accessible resource in a subframe.
+    // Chrome still enforces its per-launch WAR secret and manifest allowlist.
+    return event?.isMainFrame === false && provider.status().phase === 'ready'
+      && settings.getSettings().adblockEnabled
+      && url.startsWith(`${prefix}web_accessible_resources/epicker-ui.html?`);
+  },
+  extensionContextItems: (tab, params) => {
+    const provider = blockingProviders?.forTab(tab);
+    if (!provider || provider.status().phase !== 'ready') return [];
+    const projected = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id);
+    if (!projected) return [];
+    const contents = liveContents(tab); const generation = tab.navEpoch; const menuFrame = params.frame || contents?.mainFrame;
+    return [...provider.menus.values()].filter(item => require('./ublock-host-policy').contextMenuMatches(item, params)).map(item => ({
+      id: item.id, label: String(item.title || '').slice(0, 200),
+      click: () => {
+        if (!contents || liveContents(tab) !== contents || tab.navEpoch !== generation || heldWebContents.has(contents.id)
+          || !menuFrame || menuFrame.isDestroyed() || menuFrame.detached || !contents.mainFrame.framesInSubtree.includes(menuFrame)) return;
+        provider.emit('contextMenus.onClicked', {
+          menuItemId: item.id, pageUrl: params.pageURL, frameUrl: params.frameURL,
+          frameId: params.frame?.parent ? params.frame.frameTreeNodeId : 0,
+          linkUrl: params.linkURL, srcUrl: params.srcURL, selectionText: params.selectionText,
+          mediaType: params.mediaType,
+        }, projected);
+      },
+    }));
+  },
   tabs,
   windowRuntimes,
   bindWindowRuntime,
@@ -5068,7 +5190,8 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+  if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
@@ -5191,9 +5314,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
+  blockingProviders?.refresh();
   // Adoption: the caller (reopenEntry) already removed the held firewall's
   // recorded listeners; wireTabView below re-installs the tab set.
   wireTabView(tab, view, { owner, adopted });
+  if (openerTabId) noteUblockCreatedTarget(liveContents(tabs.get(openerTabId))?.id, wc.id, url);
 
   if (adopting) {
     // The document predates this record (§3.3): re-attach chrome's listener
@@ -6316,6 +6441,7 @@ function activeSiteHostname(tab) {
  * both callers already reload asynchronously from the renderer's point of view.
  */
 function reloadTabAfterSettingsFanout(tab) {
+  if (liveContents(tab) && lastMainFrameMethod.get(liveContents(tab).id) === 'POST') return;
   if (!tab?.view) return;
   setImmediate(() => {
     // Re-read webContents inside the deferred turn: closing the tab in that
@@ -6323,7 +6449,8 @@ function reloadTabAfterSettingsFanout(tab) {
     // undefined — dereferencing it here threw an uncaught TypeError that
     // killed the main process. closeTab (see its own `if (wc && ...)` guard)
     // already treats this as nullable; this path did not.
-    liveContents(tab)?.reload();
+    const wc = liveContents(tab);
+    if (wc && lastMainFrameMethod.get(wc.id) !== 'POST') wc.reload();
   });
 }
 
@@ -6334,9 +6461,20 @@ function reloadTabAfterSettingsFanout(tab) {
  * already made or markup already rendered — without it the command looks inert
  * until the user reloads by hand.
  */
-function runBlockAdsCommand() {
+async function runBlockAdsCommand() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const current = settings.getSettings();
+  const provider = blockingProviders?.forTab(tab);
+  if (provider) {
+    const id = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
+    const state = await provider.siteState(id);
+    if (!state.enabled) {
+      settings.setSettings({ adblockEnabled: true });
+      await provider.setSite(id, tab.url, true);
+    } else settings.setSettings({ adblockEnabled: !current.adblockEnabled });
+    reloadTabAfterSettingsFanout(tab); broadcastTabs();
+    return { provider: 'ublock-origin' };
+  }
   const result = resolveBlockAdsCommand({
     hostname: activeSiteHostname(tab),
     exceptions: current.adblockExceptions,
@@ -6361,9 +6499,15 @@ function runBlockAdsCommand() {
  * one isExcepted will find (and internal pages, which have no ads to allow, are
  * skipped rather than filed by scheme).
  */
-function runAllowAdsCommand() {
+async function runAllowAdsCommand() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
+  const provider = blockingProviders?.forTab(tab);
+  if (provider) {
+    const id = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
+    await provider.setSite(id, tab.url, false);
+    reloadTabAfterSettingsFanout(tab); broadcastTabs(); return activeSiteHostname(tab);
+  }
   const hostname = activeSiteHostname(tab);
   if (!hostname) return null;
   const { adblockExceptions } = settings.getSettings();
@@ -6529,6 +6673,12 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
+    const provider = blockingProviders?.forTab(tabs.get(rt().activeTabId));
+    if (trigger === 'shield' && provider) {
+      hideOverlay({ refocusContent: false });
+      openUblockPopup(anchor).catch(() => {});
+      return;
+    }
     if (rt().overlayMode === 'shield') {
       // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
       // closing there would read as the second button being broken.
@@ -7779,9 +7929,22 @@ async function destroyProfileWindow(runtime) {
   // destroyed". Settle visibility first, then perform the intentional forced
   // close that prevents a tab's beforeunload handler retaining deleted data.
   if (window.isVisible()) {
-    await new Promise((resolve) => {
-      window.once('hide', resolve);
+    await new Promise((resolve, reject) => {
+      let timer;
+      let settled = false;
+      const hidden = () => {
+        if (settled) return;
+        settled = true; clearTimeout(timer); window.removeListener('hide', hidden); setImmediate(resolve);
+      };
+      window.once('hide', hidden);
       window.hide();
+      // Official Electron can update native visibility without emitting hide
+      // for a window already occluded by another application/window.
+      if (!window.isVisible()) hidden();
+      else if (!settled) timer = setTimeout(() => {
+        window.removeListener('hide', hidden);
+        reject(new Error('Profile window could not be hidden safely.'));
+      }, 2000);
     });
   }
   if (window.isDestroyed()) return;
@@ -7798,6 +7961,13 @@ async function destroyProfileWindow(runtime) {
 
 async function clearNamedProfileSessions(profileId) {
   const owned = profileSessionRegistry.forProfile(profileId);
+  // OAuth children can outlive their opener and are absent from the normal
+  // runtime list. Close every remaining native window on these exact sessions
+  // before detaching filtering or erasing the deleted profile's cookie jar.
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
+  }
+  blockingProviders?.dispose(profileId);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),
     browsingSession.clearCache(),
@@ -8092,6 +8262,63 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
+  blockingProviders = createBlockingProviders({
+    settings,
+    hooks: {
+      closePopup: (profileId) => {
+        for (const [runtimeId, popup] of ublockPopups) if (popup.runtime.profileId === profileId) closeUblockPopup(runtimeId);
+      },
+      listTabs: () => [...tabs.values(), ...ublockAuxiliaryTabs.values()],
+      listWindows: () => [...windowRuntimes.all(), ...[...ublockAuxiliaryTabs.values()].map(tab => ({
+        id: tab.runtimeId, profileId: tab.profileId, window: tab.auxiliary,
+        tabOrder: [tab.id], activeTabId: tab.id,
+      }))],
+      liveContents: tab => tab.auxiliary && !tab.auxiliary.isDestroyed() ? tab.auxiliary.webContents : liveContents(tab),
+      isHeld: (wc) => heldWebContents.has(wc.id)
+        || runtimeForPageWebContents(wc)?.resident === true,
+      methodFor: (wc) => lastMainFrameMethod.get(wc.id),
+      createTab: async (runtime, url, options) => withWindowRuntime(runtime, () => {
+        const id = createTab(url, { managedExtension: /^chrome-extension:/.test(url) });
+        if (options.active !== false) setActiveTab(id);
+        return tabs.get(id);
+      }),
+      updateTab: async (tab, options) => withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => {
+        if (tab.auxiliary) {
+          if (options.active) tab.auxiliary.focus();
+          if (typeof options.url === 'string') tab.auxiliary.webContents.loadURL(options.url).catch(() => {});
+          return;
+        }
+        if (options.active) setActiveTab(tab.id);
+        if (typeof options.url === 'string') liveContents(tab)?.loadURL(options.url).catch(() => {});
+      }),
+      closeTab: async (tab) => tab.auxiliary ? tab.auxiliary.close()
+        : withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => closeTab(tab.id)),
+      moveTab: async (tab, options) => withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => {
+        if (tab.auxiliary) throw new Error('ubo-move-auxiliary-unavailable');
+        const runtime = rt();
+        if (options.windowId !== undefined && options.windowId !== runtime.window?.id) throw new Error('ubo-move-window-unavailable');
+        const from = runtime.tabOrder.indexOf(tab.id);
+        runtime.tabOrder.splice(from, 1);
+        runtime.tabOrder.splice(Math.max(0, Math.min(options.index ?? from, runtime.tabOrder.length)), 0, tab.id);
+        broadcastTabs();
+      }),
+      createWindow: async (profileId) => {
+        openNewWindow({ profileId });
+        return windowRuntimes.all().filter(runtime => runtime.profileId === profileId).at(-1);
+      },
+    },
+    onStateChange: () => {
+      forEachWindowRuntime(() => {
+        liveUtilitySheet(rt())?.wc.send('pages:blocking:status', blockingProviders?.status(rt().profileId));
+        if (rt().window && !rt().window.isDestroyed()) broadcastTabs();
+      }, { liveOnly: true });
+    },
+    onBlocked: (tab) => {
+      if (!tab || tab.private) return;
+      tab.blockedCount += 1;
+      if (!tab.auxiliary) withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), scheduleBroadcastTabs);
+    },
+  });
   for (const browsingSession of browsingSessions) {
     installNavigationCrashGuard(browsingSession);
     certificateObserver.observe(browsingSession);
@@ -8146,6 +8373,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // child depending on the relying site, so the Chrome compatibility surface
   // must cover both paths.
   const installSessionPreloads = (targetSessions) => {
+    const { scopedCapturePreload } = require('./scoped-session-preload');
+    const capturePath = `src/main/${CAPTURE_RUNTIME.preload}`;
+    const capturePreload = scopedCapturePreload({
+      sourceRoot: app.getAppPath(), userData: app.getPath('userData'), relativePath: capturePath,
+      pin: require('./capture-runtime-lock.json').files[capturePath],
+    });
     for (const browsingSession of targetSessions) {
       browsingSession.registerPreloadScript({
         type: 'frame',
@@ -8160,7 +8393,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // stay unconfirmable and fail toward stuck-on, never silently-off.
       browsingSession.registerPreloadScript({
         type: 'frame',
-        filePath: path.join(__dirname, CAPTURE_RUNTIME.preload),
+        filePath: capturePreload,
       });
       installBadgeApiPolicy(
         browsingSession,
@@ -8196,7 +8429,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     installClientHintFallback = (targetSessions) => {
       for (const browsingSession of targetSessions) {
-        browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+        blockingCoordinator.setBeforeSendHeaders(browsingSession, (details) => {
         // Compose with the Client Hints handler rather than registering a
         // second listener: Electron allows one listener per webRequest event.
         // A POST result is not safely refetchable, so retain the method until
@@ -8217,7 +8450,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         setHeader(h, 'sec-ch-ua-model', '""');
         setHeader(h, 'sec-ch-ua-mobile', '?0');
         setHeader(h, 'sec-ch-ua-wow64', '?0');
-        callback({ requestHeaders: h });
+        return { requestHeaders: h };
         });
       }
     };
@@ -8561,6 +8794,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   });
   let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
   let adblockStartupController = null;
+  const blockingRecovery = createBlockingRecovery({
+    startup: () => adblockStartupController, providers: () => blockingProviders,
+  });
   let adblockEngineReady = false;
   let releaseStartup = async () => {};
   let chooseSessionRecovery = async () => ({ ok: false, error: 'not-ready' });
@@ -8627,6 +8863,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    blocking: {
+      status: () => blockingProviders.status(rt().profileId),
+      retry: () => blockingRecovery.retry(),
+      open: (tool) => openUblockTool(tool),
+    },
     sessions: browsingSessions,
     developmentBrandMarkPath,
     developmentDockIconPath,
@@ -8863,11 +9104,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
     });
     if (adblockEngineReady) {
-      for (const targetSession of targetSessions) {
-        attachAdBlockerToSession(targetSession, {
-          enabled: settings.getSettings().adblockEnabled,
-        });
-      }
+      blockingProviders.attach(owned.profileId, owned).catch(() => {});
     }
     configuredProfileSessions.add(owned.profileId);
     return owned;
@@ -8879,6 +9116,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      blockingStatus: () => blockingProviders.status(rt().profileId),
+      blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
+      blockingOpen: openUblockTool,
+      blockingRetry: () => blockingProviders.retry(),
+      blockingPopup: openUblockPopup,
       // Playwright calls globalThis.__blanc.* from OUTSIDE any ALS context
       // (electronApp.evaluate() reaches straight into the main process) —
       // test-hook.js wraps every installed method with this at install time.
@@ -9153,7 +9395,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         }
       }
     }
-    setAdBlockEnabled(s.adblockEnabled);
+    blockingProviders.setEnabled(s.adblockEnabled);
+    blockingRecovery.continueIfDisabled(s.adblockEnabled).catch(() => {
+      console.warn('[blocking] startup continuation failed');
+    });
     applyTheme();
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
@@ -9298,7 +9543,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
-    !acceptanceTestMode && settings.getSettings().adblockEnabled;
+    (!acceptanceTestMode || ublockTestMode) && settings.getSettings().adblockEnabled;
   const navigationGateRequested = blockingRequested || recoveryRequired;
   // Materialize every restored profile's session pair before the temporary
   // navigation gate is installed; a named workspace must never race startup
@@ -9593,16 +9838,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     });
   };
 
-  const attachAdblockToAllProfileSessions = () => {
+  const attachAdblockToAllProfileSessions = async () => {
     adblockEngineReady = true;
-    for (const browsingSession of profileSessionRegistry.all()) {
-      attachAdBlockerToSession(browsingSession, {
-        enabled: settings.getSettings().adblockEnabled,
-      });
+    for (const profileId of configuredProfileSessions) {
+      await blockingProviders.attach(profileId, profileSessionRegistry.forProfile(profileId));
     }
   };
 
-  if (acceptanceTestMode) {
+  if (acceptanceTestMode && !ublockTestMode) {
     adblockStartupState = { phase: 'skipped', attempt: 0, error: null };
     broadcastStartPageStatus();
     await releaseStartup({ blocking: false, preservePreference: true });
@@ -9612,9 +9855,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     await releaseStartup({ blocking: false, preservePreference: true });
     // Keep the engine warm so enabling the setting later in this run works,
     // but never hold browsing for a feature the user turned off.
-    setupAdBlocker(ses, { enabled: false }).then(() => {
-      attachAdblockToAllProfileSessions();
-      setAdBlockEnabled(settings.getSettings().adblockEnabled);
+    setupAdBlocker(privateSes, { enabled: false }).then(async () => {
+      await attachAdblockToAllProfileSessions();
+      blockingProviders.setEnabled(settings.getSettings().adblockEnabled);
     }).catch((err) => {
       console.warn('[adblock] background initialization failed:', err.message);
     });
@@ -9628,10 +9871,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           packagedAdblockInitializationFailuresRemaining -= 1;
           throw new Error('packaged smoke: simulated first initialization failure');
         }
-        await setupAdBlocker(ses, {
+        await setupAdBlocker(privateSes, {
           enabled: settings.getSettings().adblockEnabled,
         });
-        attachAdblockToAllProfileSessions();
+        await attachAdblockToAllProfileSessions();
       },
       onStateChange: (state) => {
         adblockStartupState = state;

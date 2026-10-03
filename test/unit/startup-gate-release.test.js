@@ -24,6 +24,7 @@ test('the gate-release function and liveContents are still liftable', () => {
 function load({ tabList, queued, deferredWakes = [], blockerAttached = true, sessions = [] }) {
   const woken = [];
   const guarded = [];
+  const ungated = [];
   const sandbox = {
     tabs: new Map(tabList.map((tab, index) => [`t${index}`, tab])),
     startupQueuedNavigations: new Map(queued),
@@ -34,13 +35,14 @@ function load({ tabList, queued, deferredWakes = [], blockerAttached = true, ses
       return Promise.resolve(false);
     },
     installNavigationCrashGuard: (session) => guarded.push(session),
+    blockingCoordinator: { setGate: (session, value) => { assert.equal(value, null); ungated.push(session); } },
   };
   vm.runInNewContext(
     `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
     sandbox
   );
   sandbox.__fn(sessions, { blockerAttached });
-  return { guarded, woken, pendingWakes: sandbox.pendingWakes };
+  return { guarded, ungated, woken, pendingWakes: sandbox.pendingWakes };
 }
 
 const liveTab = (wcId, loaded) => ({
@@ -87,6 +89,7 @@ test('continuing without the blocker replaces the startup gate with the crash gu
     sessions,
   });
   assert.deepEqual(result.guarded, sessions);
+  assert.deepEqual(result.ungated, sessions);
 });
 
 test('profile sync starts only after the complete saved tab set is restored', () => {

@@ -28,7 +28,8 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 41);
+  assert.equal(sbom.components.length, 42);
+  assert.ok(refs.has('asset:ublock-origin'));
   assert.ok(refs.has('pkg:npm/electron@44.5.1'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk-core@0.5.0'));
@@ -85,7 +86,9 @@ test('missing license metadata and a disallowed shipped license fail closed', ()
 test('runtime license policy selects EasyList CC BY-SA and contains no strong-copyleft npm package', () => {
   const generated = createComplianceArtifacts();
   const expressions = generated.runtime.sbom.components.flatMap((component) =>
-    component.licenses.map((choice) => choice.expression || choice.license.id));
+    component['bom-ref'] === 'asset:ublock-origin' ? [] : component.licenses.map((choice) => choice.expression || choice.license.id));
+  assert.equal(generated.policy.runtimeAssetLicenseExceptions['ublock-origin'], 'GPL-3.0-or-later');
+  assert.equal(generated.policy.runtimeAllowedLicenseExpressions.includes('GPL-3.0-or-later'), false);
   for (const expression of expressions) {
     assert.ok(
       generated.policy.runtimeAllowedLicenseExpressions.includes(expression),
@@ -190,12 +193,12 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 41);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 42);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 36, '32 runtime npm records plus four font licenses');
+  assert.equal(licenses.length, 37, '32 runtime npm records plus four fonts and uBlock GPL');
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
   assert.ok(licenses.includes('lazy-val--1.0.5.txt'));

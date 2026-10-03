@@ -71,7 +71,14 @@ function countPhrase(blocked) {
   return `${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'}`;
 }
 
-function shieldChipState({ url, blockedCount, excepted, adblockEnabled }) {
+function shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider = 'blanc', readiness = 'ready' }) {
+  if (provider === 'ublock-origin') {
+    if (!blockableHostname(url)) return { mode: 'hidden', count: 0, title: '' };
+    if (readiness !== 'ready') return { mode: 'off', count: 0, title: 'uBlock Origin unavailable — open Settings for recovery' };
+    if (!adblockEnabled) return { mode: 'off', count: 0, title: 'uBlock Origin is off — click for controls' };
+    const count = blockedCount ?? 0;
+    return { mode: count ? 'count' : 'quiet', count, title: `uBlock Origin — ${count} ${count === 1 ? 'request' : 'requests'} blocked — click for controls` };
+  }
   if (!blockableHostname(url)) return { mode: 'hidden', count: 0, title: '' };
   if (excepted) {
     return { mode: 'off', count: 0, title: 'Blanc Blocker off for this site — click for site controls' };

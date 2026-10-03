@@ -29,3 +29,9 @@
 /src/main/permissions.js text eol=lf
 /src/renderer/display-capture-helper.html text eol=lf
 /src/main/overlay-view-lifecycle.js text eol=lf
+ublock/upstream/** -text
+ublock/sources/** -text
+
+# Verified upstream bytes and their exact generated patch retain upstream whitespace.
+ublock/upstream/** -whitespace
+ublock/adaptation.patch -whitespace

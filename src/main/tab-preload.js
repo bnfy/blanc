@@ -189,6 +189,10 @@ if (window.location.protocol === 'blanc:') {
       surface,
       settings: {
         get: () => invoke('pages:settings:get'),
+        blockingStatus: () => invoke('pages:blocking:status'),
+        blockingRetry: () => invoke('pages:blocking:retry'),
+        blockingOpen: (tool) => invoke('pages:blocking:open', tool),
+        onBlockingStatus: (callback) => ipcRenderer.on('pages:blocking:status', (_event, status) => callback(status)),
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
         onAppearance: (callback) => ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status)),

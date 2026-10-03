@@ -73,15 +73,33 @@ test('profile deletion settles native visibility before force-destroying its win
       calls.push('hide');
       listeners.get('hide')?.();
     },
+    removeListener(event) { listeners.delete(event); },
     destroy() {
       calls.push('destroy');
       listeners.get('closed')?.();
     },
   };
-  const sandbox = {};
+  const sandbox = { clearTimeout, setTimeout, setImmediate };
   vm.runInNewContext(`${destroyProfileWindowSource}\nthis.__destroy = destroyProfileWindow;`, sandbox);
 
   await sandbox.__destroy({ window });
 
   assert.deepEqual(calls, ['once:hide', 'hide', 'once:closed', 'destroy']);
+});
+
+test('profile deletion handles a native visibility change without a hide event', async () => {
+  let visible = true;
+  const listeners = new Map();
+  let destroyed = false;
+  const window = {
+    isDestroyed: () => destroyed, isVisible: () => visible,
+    once: (name, listener) => listeners.set(name, listener),
+    removeListener: name => listeners.delete(name),
+    hide: () => { visible = false; },
+    destroy: () => { assert.equal(visible, false); destroyed = true; listeners.get('closed')(); },
+  };
+  const sandbox = { clearTimeout, setTimeout, setImmediate };
+  vm.runInNewContext(`${destroyProfileWindowSource}\nthis.__destroy = destroyProfileWindow;`, sandbox);
+  await sandbox.__destroy({ window });
+  assert(destroyed); assert(!listeners.has('hide'));
 });

@@ -296,6 +296,46 @@
       ]
     },
     {
+      "type": "application",
+      "bom-ref": "asset:ublock-origin",
+      "name": "uBlock Origin managed extension (distribution clearance pending)",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0eccd4e1033a9125c39fc6cc6dea879f0db4d1986105dd8855cfa3e7b68acf60"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/"
+        },
+        {
+          "name": "blanc:file",
+          "value": "ublock/pinned.json"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "ublock/LICENSE.txt"
+        }
+      ],
+      "version": "1.75.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/gorhill/uBlock"
+        }
+      ]
+    },
+    {
       "type": "library",
       "bom-ref": "pkg:npm/%401password/sdk-core@0.5.0",
       "name": "@1password/sdk-core",
@@ -1823,6 +1863,10 @@
     },
     {
       "ref": "asset:newsreader-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:ublock-origin",
       "dependsOn": []
     },
     {

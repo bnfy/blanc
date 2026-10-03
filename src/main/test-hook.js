@@ -409,6 +409,13 @@ function install(refs) {
   }
 
   globalThis.__blanc = {
+    blockingStatus() { return refs.blockingStatus(); },
+    blockingStatusInWindow(id) { return refs.runInWindowRuntime(id, () => refs.blockingStatus()); },
+    blockingMapping() { return refs.blockingMapping(); },
+    blockingOpen(tool) { return refs.blockingOpen(tool); },
+    blockingOpenInWindow(id, tool) { return refs.runInWindowRuntime(id, () => refs.blockingOpen(tool)); },
+    blockingRetry() { return refs.blockingRetry(); },
+    blockingPopup() { return refs.blockingPopup({ right: 20 }); },
     workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
     workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
     workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },

@@ -220,6 +220,7 @@ RELEASE_SOURCES=(
   tokens
   copy
   adblock
+  ublock
   compliance
   docs/press
   docs/grants
@@ -245,6 +246,7 @@ if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
 fi
 
 echo "==> Installing locked dependencies and running the press verification gate"
+npm run ublock:distribution
 npm ci
 npm ci --prefix site
 npm run release:verify:press

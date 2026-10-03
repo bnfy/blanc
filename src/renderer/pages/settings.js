@@ -79,6 +79,52 @@
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
+  if (typeof window.bowserPages.settings.blockingStatus === 'function') {
+    const selector = document.getElementById('adblockProvider');
+    const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
+    const renderBlocking = (state) => {
+      if (!state) return;
+      selector.value = state.selected;
+      selector.querySelector('[value="ublock-origin"]').disabled = !state.supported;
+      const status = document.getElementById('blockingProviderStatus');
+      status.textContent = state.restartPending
+        ? `${label(state.selected)} selected. Restart Blanc to apply; ${label(state.active)} is active.`
+        : state.phase === 'failed'
+          ? `uBlock Origin could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
+          : state.phase === 'unsupported'
+            ? `uBlock Origin unavailable: ${state.reason}.`
+            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
+      if (state.internalCandidate) status.textContent += ' Internal validation candidate; platform support is not certified.';
+      const ubo = state.active === 'ublock-origin';
+      document.getElementById('ublockTools').hidden = !ubo;
+      document.getElementById('ublockLimits').hidden = !ubo;
+      for (const id of ['ublockRetry', 'ublockUseBlanc', 'ublockContinue']) document.getElementById(id).hidden = !['failed', 'unsupported'].includes(state.phase);
+    };
+    renderBlocking(await window.bowserPages.settings.blockingStatus());
+    window.bowserPages.settings.onBlockingStatus(renderBlocking);
+    selector.addEventListener('change', async () => {
+      await window.bowserPages.settings.set({ adblockProvider: selector.value });
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+    for (const [id, tool] of [['ublockDashboard', 'dashboard'], ['ublockLogger', 'logger']]) {
+      document.getElementById(id).addEventListener('click', () => window.bowserPages.settings.blockingOpen(tool));
+    }
+    document.getElementById('ublockRetry').addEventListener('click', async () => {
+      try { await window.bowserPages.settings.blockingRetry(); } catch {}
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+    document.getElementById('ublockUseBlanc').addEventListener('click', async () => {
+      await window.bowserPages.settings.set({ adblockProvider: 'blanc' });
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+    document.getElementById('ublockContinue').addEventListener('click', async () => {
+      await window.bowserPages.settings.set({ adblockEnabled: false });
+      adblockEnabled.checked = false;
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+  } else {
+    document.getElementById('blockingProviderSetting')?.remove();
+  }
 
   for (const [key, label] of Object.entries(searchEngines)) {
     const opt = document.createElement('option');

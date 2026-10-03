@@ -53,7 +53,9 @@ test('node-forge VEX remains limited to the reviewed, unused Android tooling', (
 
   const desktop = readJson('package.json');
   for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
-    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
+    // The uBO payload is pinned, contains no Android bridge, and its two
+    // reproduction scripts require only Node built-ins + the shipped host.
+    assert.match(pattern, /^(?:src\/|adblock\/sources\/|ublock\/|scripts\/(?:check-ublock-package|build-ublock-adaptation)\.cjs$|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
       'a broader desktop source allowlist requires VEX payload review');
   }
 });

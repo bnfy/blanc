@@ -88,6 +88,13 @@ jobs:
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
 
+      - name: Require uBlock distribution clearance for public release
+        if: ${{ inputs.mode == 'release' }}
+        run: npm run ublock:distribution
+
+      - name: Verify managed uBlock inputs and adaptation
+        run: npm run ublock:check
+
       - name: Verify dependency compliance inputs
         run: npm run compliance:check
 
@@ -115,6 +122,7 @@ jobs:
       - name: Build Windows installer
         shell: bash
         env:
+          BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && '1' || '0' }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
@@ -162,6 +170,9 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
+
+      - name: Verify packaged uBlock payload and corresponding-source records
+        run: node scripts/verify-packaged-ublock.js dist/win-unpacked/resources/app.asar
 
       - name: Verify packaged compliance payload
         run: node scripts/verify-packaged-compliance.js dist/win-unpacked/resources
@@ -350,6 +361,13 @@ jobs:
       - name: Verify 1Password macOS-only boundary
         run: xvfb-run -a npm run test:onepassword:utility
 
+      - name: Verify managed uBlock inputs and adaptation
+        run: npm run ublock:check
+
+      - name: Require uBlock distribution clearance for public release
+        if: ${{ inputs.mode == 'release' }}
+        run: npm run ublock:distribution
+
       - name: Verify tag matches package version
         if: ${{ inputs.mode == 'release' }}
         env:
@@ -362,6 +380,8 @@ jobs:
           }
 
       - name: Build
+        env:
+          BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && '1' || '0' }}
         run: npx electron-builder --linux --publish never
 
       - name: Verify build artifacts
@@ -390,6 +410,9 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar
+
+      - name: Verify packaged uBlock payload and corresponding-source records
+        run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
 
       - name: Verify packaged compliance payload
         run: node scripts/verify-packaged-compliance.js dist/linux-unpacked/resources
@@ -548,6 +571,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb libgtk-3-bin
       - name: Build private AppImage without publishing
+        env:
+          BLANC_UBLOCK_INTERNAL_BUILD: '1'
         run: npx electron-builder --linux --publish never
       - name: Extract private candidate
         run: |

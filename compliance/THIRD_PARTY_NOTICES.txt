@@ -47,6 +47,10 @@ EMBEDDED FRAMEWORK
 
 BUNDLED ASSETS AND DATA
 
+- uBlock Origin managed extension (distribution clearance pending) 1.75.0 — GPL-3.0-or-later
+  Attribution: Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/
+  Source: https://github.com/gorhill/uBlock
+  Full text: ThirdPartyLicenses/LICENSE.txt
 - Inter Latin webfont — OFL-1.1
   Source: https://github.com/rsms/inter
   Full text: ThirdPartyLicenses/inter-OFL.txt
