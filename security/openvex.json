@@ -3,10 +3,20 @@
   "@id": "https://raw.githubusercontent.com/bnfy/blanc/main/security/openvex.json",
   "author": "Blanc maintainers",
   "role": "Document Creator",
-  "timestamp": "2026-10-02T15:27:02Z",
-  "version": 2,
+  "timestamp": "2026-10-03T11:38:09Z",
+  "version": 3,
   "tooling": "Manual maintainer review",
   "statements": [
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-ch52-4w7c-c8xp",
+        "name": "GHSA-ch52-4w7c-c8xp"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Reviewed by Codex on 2026-10-03 for PR #491: http-cache-semantics 4.2.0 is a development-only desktop dependency through electron-builder / @electron/get / got / cacheable-request, and an Astro 7.3.2 dependency used for static-image build processing. Blanc does not expose the shared-cache satisfiesWithoutRevalidation path to user-controlled max-stale directives: desktop build downloads are clients rather than a multi-user cache service, got caching is not configured, and Astro constructs image requests without visitor headers and uses storable/timeToLive rather than the affected stale-reuse method. The package is absent from the desktop runtime, Worker and companion graphs; the deployed site is static and carries no Astro server. Evidence, automated boundary guards and re-review conditions: docs/security-reviews/2026-10-03-http-cache-semantics.md. This disposition does not cover server-side Astro deployment, a shared/proxy cache, newly configured got caching or new first-party/runtime consumers."
+    },
     {
       "vulnerability": {
         "@id": "https://github.com/advisories/GHSA-86w9-cpqp-85rv",

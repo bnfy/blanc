@@ -11,11 +11,20 @@ const baseline = (file) =>
     ["show", `a3e4a9dbf166730856b6f5fc87417770c7886d7b:${file}`],
     { cwd: root, encoding: "utf8" },
   );
-const text = (html) =>
+// Compare checked-in prose only; this helper never produces renderable HTML.
+const comparisonText = (html) =>
   html
-    .replace(/<[^>]+>/g, "")
+    .replace(/<[^>]*(?:>|$)/g, "")
     .replace(/\s+/g, "")
     .trim();
+test("prose comparison handles complete and incomplete markup", () => {
+  for (const markup of [
+    "<p>Reviewed <strong>evidence</strong></p>",
+    "Reviewed evidence<script",
+    "Reviewed evidence<<script>",
+  ])
+    assert.equal(comparisonText(markup), "Reviewedevidence");
+});
 test("the October 2 transparency answers survive consolidation verbatim", () => {
   const original = JSON.parse(
     baseline("site/src/pages/faq.astro").match(
@@ -38,7 +47,7 @@ test("release evidence, audit status and known Sync findings stay visible outsid
       new RegExp(`<section[^>]*aria-labelledby="${id}"[\\s\\S]*?</section>`),
     )[0];
     assert.ok(
-      text(evidence).includes(text(section)),
+      comparisonText(evidence).includes(comparisonText(section)),
       `${id} loses reviewed evidence`,
     );
   }

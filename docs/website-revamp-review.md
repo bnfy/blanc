@@ -132,6 +132,13 @@ Review images are stored in the task's `blanc-production-review` artifact folder
 
 ## Delivery boundary
 
+October 3 PR follow-up: the test-only prose comparison now handles unterminated
+markup as well as complete tags, with a regression case for the CodeQL finding.
+The separate http-cache-semantics dependency finding is documented in
+`docs/security-reviews/2026-10-03-http-cache-semantics.md` and OpenVEX with guarded
+build-only/static-site boundaries. The full unit suite now passes **2,046 tests**;
+dependency policy, lint, compliance and the static production build also pass.
+
 No desktop product release is required. After approval of this concrete preview,
 follow the root AGENTS.md website protocol: commit and push, create the PR,
 wait for protected checks, merge normally, deploy the exact new main commit,
