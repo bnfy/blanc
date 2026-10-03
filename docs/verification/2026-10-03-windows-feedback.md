@@ -1,10 +1,9 @@
 # Windows reliability feedback — October 3, 2026
 
 Implementation and verification for [draft PR #499](https://github.com/bnfy/blanc/pull/499).
-Public comparison baseline: v1.26.0. The earlier verified implementation was
-`91a00a1badac18a30a43b5613dd1df0317dba51c`. A later stress test reproduced a
-native crash, so its packages are superseded by the focus teardown correction
-described below. New platform/package evidence is pending. No version was bumped.
+Public comparison baseline: v1.26.0. Current runtime/packaging commit:
+`bb3566e34931f85838a8dc233073c845a98bc933`. Earlier `91a00a1b` packages are
+superseded by its native focus teardown correction. No version was bumped.
 
 ## Implemented behavior
 
@@ -51,8 +50,34 @@ checkout had stale 44.4.3 dependencies despite locking 44.5.1. Work used a clean
 
 ## Automated verification
 
-Results apply to the implementation commit above, except the explicitly noted
-unchanged dependency audit.
+Current results apply to `bb3566e3`:
+
+| Check | Result |
+| --- | --- |
+| Lint and full unit suite | Pass; 2,065 tests, zero failures/skips |
+| Desktop acceptance (local macOS) | 168 scenarios / 1,005 steps passed |
+| Native shortcut/lifecycle regression | 97 commands per run; Windows and Linux each passed twice on the unchanged SHA; macOS passed |
+| Real Store browsing | Seven paths per platform; API absent, no uncaught exceptions; Windows/Linux repeat also passed |
+| Substrate, OAuth, modified links, tab handoff and acceptance wiring | All passed |
+| Private macOS package | Pinned signature/profile, payload, fuses and strict deep signature passed; production browser/Settings and release regressions passed |
+| Private Windows/Linux packages | All jobs passed; actual runtime, production address input/tab churn/Settings crash recovery, payload/fuses and exact timestamped Windows publisher passed |
+| Hosted Ubuntu 22.04 / 24.04 | Launcher/refusal, namespace and seccomp checks passed |
+| CodeQL and site build | Passed; no deployment |
+
+[Source run 37148003301](https://github.com/bnfy/blanc/actions/runs/37148003301)
+passed its first matrix. Because earlier teardown failures were intermittent,
+only Linux's native job was repeated (attempt 2), then only Windows' native
+job was repeated (attempt 3); both passed. Each repeat also passed Store checks.
+[Private package run 37147999864](https://github.com/bnfy/blanc/actions/runs/37147999864)
+passed all jobs. These runs contain the production focus correction, unlike
+the earlier evidence below. The general reporter freeze remains unreproduced;
+these results are bounded regression evidence, not proof that all freezes are fixed.
+
+### Earlier verification at `91a00a1b`
+
+The following results preceded the focus teardown stress reproduction and
+are retained for traceability. The dependency audit applies to the unchanged
+production dependency graph.
 
 | Check | Result |
 | --- | --- |
@@ -96,13 +121,13 @@ address those reproductions. During the intermediate `118265a9` Linux run,
 the debugger connection closed at private-tab close; no uncaught JavaScript
 exception was recorded and the process exit code/signal were unavailable.
 A repeat at that unchanged SHA passed. This unexplained failure remains part
-of the evidence; the final `91a00a1b` native matrix passed on its first attempts.
+of the evidence; the earlier `91a00a1b` native matrix passed on its first attempts.
 The screenshot's original general freeze remains unreproduced. Passing these
 checks does not establish that every reported freeze is resolved.
 
-The evidence-only commit `c4c711a9` triggered [run 37146142045](https://github.com/bnfy/blanc/actions/runs/37146142045). Windows lost its debugger connection at the private-tab-close transition, and repeating only that job at the unchanged SHA failed at the same transition. The last recorded command was Ctrl+W from the overlay; process exit code/signal and final hook state were unavailable. No uncaught JavaScript exception was recorded. Linux/macOS native commands and Store checks, substrate, OAuth, modified-link, tab-handoff, CodeQL and site build passed. This repeat Windows failure is unresolved and blocks a clean validation claim. A test-only follow-up adds bounded process output, delayed exit/liveness observation and local crash dumps with uploads disabled, retained as private three-day Actions artifacts on failure. It does not modify the packaged candidate.
+The evidence-only commit `c4c711a9` triggered [run 37146142045](https://github.com/bnfy/blanc/actions/runs/37146142045). Windows lost its debugger connection at the private-tab-close transition, and repeating only that job at the unchanged SHA failed at the same transition. The last recorded command was Ctrl+W from the overlay; process exit code/signal and final hook state were unavailable. No uncaught JavaScript exception was recorded. Linux/macOS native commands and Store checks, substrate, OAuth, modified-link, tab-handoff, CodeQL and site build passed. At that point the repeated Windows failure blocked a clean validation claim. The later confirmed Linux crash and focus correction are recorded below; Windows now passes twice, but its original disconnect had no native dump and its precise cause is unestablished. A test-only follow-up adds bounded process output, delayed exit/liveness observation and local crash dumps with uploads disabled, retained as private three-day Actions artifacts on failure. It does not modify the packaged candidate.
 
-## Delegated Parallels Windows check
+## Earlier delegated Parallels Windows check (`91a00a1b`)
 
 The owner requested testing in Parallels and explicitly authorized its native
 keyboard interface when the Computer Use input bridge could observe Windows
@@ -115,14 +140,14 @@ reactivated and observed before subsequent keyboard tests.
 Environment: Parallels Desktop 27.0.2 (58673), Windows 11 Pro Insider Preview
 build 26220.9472 ARM64, running the private x64 Blanc build through Windows
 emulation. This is VM evidence, not the original reporter's physical machine.
-The final candidate was installed with a fresh isolated profile, leaving the
+The earlier `91a00a1b` candidate was installed with a fresh isolated profile, leaving the
 normal profile unlaunched. Installer exit code was zero; independent guest
 SHA-256, exact Authenticode publisher and timestamp checks passed:
 
 - Installer: `20d33795fefab61a31e7bbfde376badb4a5faa330cb10c7e0affa27c0e362626`.
 - Installed executable: `00c3325f78b490501293a198305c36e45582f075b559f938269e2a2847ece838`.
 
-Observed on the final candidate:
+Observed on the earlier candidate:
 
 - Navigated to example.com, then actual Store listing and 1Password detail pages. The detail remained alive through several minutes of later interactions, tab switching, close/reopen and F5 reload. No extension installation was attempted.
 - Ctrl+, opened Settings after browsing. Plain Tab focused General controls; Shift+Tab and Enter opened Help. Help displayed Electron 44.5.1, Chromium 152.0.7977.130, Windows x64 and the new guidance.
@@ -151,28 +176,30 @@ source diagnostics and production VM observations provide different evidence.
 
 These validation artifacts retain version 1.26.0 for private testing and do
 not belong to the public v1.26.0 release. All earlier candidate artifacts,
-including runs `37141711275`, `37143456829` and `37144217491`, predate the final
-runtime; use the artifacts below.
+including runs `37141711275`, `37143456829`, `37144217491` and
+`37144894232`, predate the current runtime; use the artifacts below.
 
 | Candidate | Download | Expires (UTC) | Actions artifact SHA-256 |
 | --- | --- | --- | --- |
-| Windows installer | [11282110791](https://github.com/bnfy/blanc/actions/runs/37144894232/artifacts/11282110791) | 2026-10-06 18:41:26 | `3eeb9f202c3e82acb3254397e19b1135c02a7599155368aade3184932648dc3c` |
-| Linux AppImage | [11281528994](https://github.com/bnfy/blanc/actions/runs/37144894232/artifacts/11281528994) | 2026-10-06 18:42:54 | `3983cfde464e5b69d23a8aab3cd221addc1a6525acbd6f505cc743a3ed483f5d` |
+| Windows installer | [11283335468](https://github.com/bnfy/blanc/actions/runs/37147999864/artifacts/11283335468) | 2026-10-06 19:32:48 | `9987aac99c1f862356a8295c324a11a962be972cd16c7188ee99a7846db14399` |
+| Linux AppImage | [11283143200](https://github.com/bnfy/blanc/actions/runs/37147999864/artifacts/11283143200) | 2026-10-06 19:33:29 | `bcd2b07c3371612959194fba6a753eb5872b5736818ea7b5e431fe2ce819604c` |
 
 The archive digests differ from individual installer/AppImage digests.
 Windows includes `windows-signature.json`, which binds its installer digest
-to the publisher and timestamp. [Ubuntu 22.04 evidence](https://github.com/bnfy/blanc/actions/runs/37144894232/artifacts/11281593644)
-and [Ubuntu 24.04 evidence](https://github.com/bnfy/blanc/actions/runs/37144894232/artifacts/11281773347)
+to the publisher and timestamp. [Ubuntu 22.04 evidence](https://github.com/bnfy/blanc/actions/runs/37147999864/artifacts/11283093161)
+and [Ubuntu 24.04 evidence](https://github.com/bnfy/blanc/actions/runs/37147999864/artifacts/11282367701)
 expire October 17. The local signed macOS candidate is not notarized public
 release or updater evidence. Private local logs, native-key dispatch records,
 installation/restoration checks and this report are retained in
-`dist/validation/windows-feedback-91a00a1b/` and its adjacent ZIP.
+`dist/validation/windows-feedback-bb3566e3/` and its adjacent ZIP. The prior
+`windows-feedback-91a00a1b` bundle remains historical.
 
 ## Outstanding affected-machine gate
 
-The delegated VM check is complete with the limitations above. The repeated hosted Windows private-tab-close failure also remains unresolved; the draft cannot be represented as fully validated. Explicit owner
-acceptance of this evidence and affected-machine Windows/Linux confirmation
-remain pending before merge. No physical Linux desktop test was performed;
+Automated checks pass on the corrected runtime, and the rebuilt Windows
+candidate completed the delegated Parallels test below. Explicit owner acceptance
+of this evidence and affected-machine Windows/Linux confirmation remain pending
+before merge. No physical Linux desktop test was performed;
 the installed Parallels Ubuntu guest is ARM64, while this candidate AppImage
 is x64. Hosted Ubuntu 22.04/24.04 checks do not establish physical desktop
 confirmation. Prior v1.26.0 waivers do not cover this candidate.
@@ -207,7 +234,40 @@ Unfocused guests leave the permission/overlay focus unchanged. Active close
 invalidates deferred address focus before parking or destruction. Ownership,
 view liveness, private isolation and shutdown guards remain in force.
 
-Local native macOS 97-command coverage and targeted lifecycle ordering tests
-passed. This is a candidate correction; the Windows/Linux matrix and rebuilt
-packages must pass before it can be represented as validated. The older private
-artifacts above do not contain this production change.
+Local native macOS 97-command coverage and actual lifecycle ordering tests
+passed. The Windows/Linux native matrix passed twice per platform at the
+unchanged correction SHA, and rebuilt production packages passed. This validates
+the tested transitions; it does not establish the precise cause of earlier
+Windows debugger disconnects or every freeze in the user report.
+
+
+## Rebuilt Parallels candidate (`bb3566e3`)
+
+The exact rebuilt installer and installed executable independently passed guest
+SHA-256 and exact timestamped Authenticode checks. Installation exited zero;
+the original 116 application files matched their backup before replacement.
+Only a fresh isolated profile was launched.
+
+- Installer: `4180a15f9b7cce896636e83cef806141313530ac26628d7b9043c62d78498e27`.
+- Installed executable: `777fe2224672ae668dfa7be75072e31321b9f742887992764b2a01a85344425a`.
+
+The owner unlocked the Mac and testing continued using the same authorized
+native keyboard interface and Computer Use observations. On this corrected
+runtime:
+
+- Navigated to example.com, the actual Store extensions listing and 1Password detail page. F5 and Ctrl+Shift+R reloaded the detail page; it survived subsequent tab and Settings interactions. No extension installation was attempted.
+- Ctrl+, opened Settings after example.com and Store browsing. Ordinary Tab and Enter selected Help, which displayed the exact 44.5.1 runtime and the new extension/password-manager limits.
+- Ctrl+Tab from Settings switched the active tab and dismissed the sheet. Ctrl+W from Settings closed the Store listing; Ctrl+Shift+T reopened it. Alt+D selected the full address before detail-page navigation.
+- Thirteen Ctrl+T → Ctrl+Shift+Tab → Ctrl+Tab → Ctrl+W cycles completed with 15 ms key holds. Twenty Ctrl+Shift+N → Ctrl+W private-tab pairs followed, including one private tab observed before its close. The two ordinary tabs remained with the Store active.
+- Ctrl+PageUp visibly selected example.com; Ctrl+PageDown returned to the Store. Ctrl+H opened History, then Ctrl+J opened Downloads from that sheet.
+- File → Settings opened through the native menu after stress. Seven plain Tab presses and Enter opened Help. Ctrl+, toggled the loaded Settings sheet closed; Settings reopened after the timing probe described below.
+- A guest process check recorded nine Blanc processes reporting Responding=true and the isolated session containing only example.com and the Store detail, with the latter active. This is bounded process/UI evidence, not a measurement of every uncaught exception.
+- Alt+F4 closed normally. The original application was restored; all 116 files matched their pre-test SHA-256 values, its signature was valid, and no Blanc process remained. Original executable SHA-256: `29ea79b3aa61cc866ff3b686d53ab9704142c544bbfd6682eebe897c317b7252`. The normal profile was never launched. The candidate and isolated profile remain separately retained for investigation.
+
+The immediate-input limitation was independently reproduced here: a single
+15 ms-key-hold batch of Ctrl+T followed by `https://example.com/focusbb`
+left `ps://example.com/focusbb` in the address field. It was not submitted.
+The panel stayed open, its disposable tab closed, and Settings still reopened.
+Typing after panel readiness and at 100 ms key holds succeeded during browsing.
+This candidate does not fix input sent before initial address focus is ready.
+The original reporter's general Windows freeze remains unreproduced.
