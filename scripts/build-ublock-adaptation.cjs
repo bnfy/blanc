@@ -1,18 +1,24 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const { hash, readVerifiedPackage, adaptPackage } = require('../src/main/ublock-package');
+const { hash, readVerifiedPackage, adaptPackage, readHostSources, HOST_INPUTS } = require('../src/main/ublock-package');
 const root = path.join(__dirname, '..');
 const upstream = readVerifiedPackage(path.join(root, 'ublock'));
-const host = ['ublock-host-mainworld.js', 'ublock-bridge-mainworld.js', 'ublock-css-mainworld.js', 'ublock-bridge-preload.js', 'ublock-package.js', 'ublock-host-policy.js', 'ublock-provider.js', 'ublock-registry.js', 'ublock-documents.js'];
-const read = name => fs.readFileSync(path.join(root, 'src/main', name));
-const adapted = adaptPackage(upstream.files, { adapter: read(host[0]), bridge: read(host[1]) });
+const host = HOST_INPUTS;
+const read = name => fs.readFileSync(path.join(root, name));
+const adapted = adaptPackage(upstream.files, readHostSources(root));
 const changes = [];
 let patch = '';
 for (const [name, bytes] of adapted) {
   const before = upstream.files.get(name);
   if (before?.equals(bytes)) continue;
   changes.push({ path: name, upstreamSha256: before ? hash(before) : null, adaptedSha256: hash(bytes) });
+  // Binary additions are reproduced from the hash-bound host inputs above.
+  // Never serialize font/image bytes as a lossy UTF-8 text hunk.
+  if (/\.(png|woff2)$/.test(name)) {
+    patch += `Binary files ${before ? 'a/' + name : '/dev/null'} and b/${name} differ\n`;
+    continue;
+  }
   const oldLines = before ? before.toString('utf8').split('\n') : [];
   const newLines = bytes.toString('utf8').split('\n');
   if (oldLines.at(-1) === '') oldLines.pop();
@@ -33,7 +39,7 @@ for (const [name, bytes] of adapted) {
 }
 const manifest = { format: 1, version: upstream.pin.version,
   modifiedBy: 'Blanc, 2026-10-02',
-  host: host.map(name => ({ path: `src/main/${name}`, sha256: hash(read(name)) })), changes,
+  host: host.map(name => ({ path: name, sha256: hash(read(name)) })), changes,
   patchSha256: hash(Buffer.from(patch)),
 };
 for (const [name, expected] of Object.entries({

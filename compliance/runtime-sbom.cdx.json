@@ -336,6 +336,46 @@
       ]
     },
     {
+      "type": "file",
+      "bom-ref": "asset:ublock-popup-icons",
+      "name": "Lucide uBO popup icons",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "af4a00d8c3699158dcafd40af0d9c0c1fbf81d1dfb36b8e002b9a18d87256252"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Lucide Contributors 2022; portions by Cole Bemis 2013–2022 (Feather, MIT)"
+        },
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/ublock-popup-icons/README.md"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt"
+        }
+      ],
+      "version": "0.468.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/lucide-icons/lucide/tree/0.468.0"
+        }
+      ]
+    },
+    {
       "type": "library",
       "bom-ref": "pkg:npm/%401password/sdk-core@0.5.0",
       "name": "@1password/sdk-core",
@@ -1867,6 +1907,10 @@
     },
     {
       "ref": "asset:ublock-origin",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:ublock-popup-icons",
       "dependsOn": []
     },
     {

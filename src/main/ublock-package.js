@@ -26,6 +26,23 @@ function readVerifiedPackage(root) {
   return { pin, files };
 }
 
+const POPUP_ICONS = ['pipette', 'zap', 'list', 'settings', 'chevron-left', 'chevron-right', 'chevron-down', 'x', 'ellipsis', 'lock-keyhole', 'undo-2', 'rotate-cw'];
+const HOST_INPUTS = [
+  ...['ublock-host-mainworld.js', 'ublock-bridge-mainworld.js', 'ublock-css-mainworld.js', 'ublock-bridge-preload.js', 'ublock-package.js', 'ublock-host-policy.js', 'ublock-provider.js', 'ublock-registry.js', 'ublock-documents.js', 'ublock-popup-mainworld.js', 'ublock-popup-preload.js', 'ublock-popup-host.js'].map(name => 'src/main/' + name),
+  'src/renderer/ublock-popup.css', 'src/renderer/sunrise-hero-mark.png', 'src/renderer/pages/inter-latin.woff2',
+  ...POPUP_ICONS.map(name => 'src/renderer/ublock-popup-icons/' + name + '.svg'),
+  'src/renderer/ublock-popup-icons/README.md', 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt',
+];
+function readHostSources(root) {
+  const read = name => fs.readFileSync(path.join(root, name));
+  return {
+    adapter: read('src/main/ublock-host-mainworld.js'), bridge: read('src/main/ublock-bridge-mainworld.js'),
+    popupScript: read('src/main/ublock-popup-mainworld.js'), popupStyle: read('src/renderer/ublock-popup.css'),
+    popupMark: read('src/renderer/sunrise-hero-mark.png'), popupFont: read('src/renderer/pages/inter-latin.woff2'),
+    popupIcons: new Map(POPUP_ICONS.map(name => [name, read('src/renderer/ublock-popup-icons/' + name + '.svg')])),
+  };
+}
+
 function adaptPackage(files, hostSources) {
   const result = new Map(files);
   const replace = (text, from, to) => {
@@ -71,6 +88,22 @@ function adaptPackage(files, hostSources) {
   result.set('js/vapi-common.js', Buffer.from(replace(result.get('js/vapi-common.js').toString('utf8'),
     'vAPI.closePopup = function() {',
     'vAPI.closePopup = function() {\n    self.BlancUboHost.closePopup(); return; // Blanc owns the popup view lifecycle')));
+  // Presentation only: retain every original popup handler and filtering rule.
+  let popup = result.get('popup-fenix.html').toString('utf8');
+  popup = replace(popup, '<link rel="stylesheet" href="css/popup-fenix.css">', '<link rel="stylesheet" href="css/popup-fenix.css">\n<link rel="stylesheet" href="blanc-popup.css">');
+  popup = replace(popup, '<script src="js/popup-fenix.js" type="module"></script>', '<script src="blanc-popup.js"></script>\n<script src="js/popup-fenix.js" type="module"></script>');
+  result.set('popup-fenix.html', Buffer.from(popup));
+  let popupScript = result.get('js/popup-fenix.js').toString('utf8');
+  popupScript = replace(popupScript, '    renderTooltips();\n};', '    renderTooltips();\n    self.BlancUboPopupUI?.update(popupData);\n};');
+  popupScript = replace(popupScript, '    for ( let i = 0; i < maxNumberOfSections; i++ ) {\n        const bit = 1 << (more ?', '    if ( self.BlancUboPopupUI ) {\n        newBits = (more ? (1 << maxNumberOfSections) - 1 : 0b00101) & offbits | onbits;\n    } else for ( let i = 0; i < maxNumberOfSections; i++ ) {\n        const bit = 1 << (more ?');
+  popupScript = replace(popupScript, "dom.on('#moreButton', 'click', ( ) => { toggleSections(true); });", "if ( self.BlancUboPopupUI ) self.BlancUboPopupUI.expand = toggleSections;\ndom.on('#moreButton', 'click', ( ) => { toggleSections(true); });");
+  popupScript = replace(popupScript, "let url = dom.attr(ev.target, 'href');", "let url = dom.attr(ev.currentTarget, 'href'); // Blanc: preserve links with presentation children");
+  result.set('js/popup-fenix.js', Buffer.from(popupScript));
+  result.set('blanc-popup.js', Buffer.from(hostSources.popupScript));
+  result.set('blanc-popup.css', Buffer.from(hostSources.popupStyle));
+  result.set('blanc-sunrise.png', Buffer.from(hostSources.popupMark));
+  result.set('blanc-inter.woff2', Buffer.from(hostSources.popupFont));
+  for (const name of POPUP_ICONS) result.set('blanc-icons/' + name + '.svg', Buffer.from(hostSources.popupIcons.get(name)));
   const manifest = JSON.parse(result.get('manifest.json'));
   manifest.content_scripts[0].js.unshift('blanc-state.js');
   result.set('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
@@ -158,4 +191,4 @@ function installVerifiedPackage({ root, destination, hostSources }) {
   return { path: destination, version: pin.version, scripts: new Map([...adapted].filter(([name]) => name.endsWith('.js'))) };
 }
 
-module.exports = { hash, readVerifiedPackage, adaptPackage, installVerifiedPackage, installVerifiedFiles };
+module.exports = { hash, readVerifiedPackage, adaptPackage, installVerifiedPackage, installVerifiedFiles, readHostSources, HOST_INPUTS };

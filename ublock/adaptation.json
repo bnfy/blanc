@@ -5,7 +5,7 @@
   "host": [
     {
       "path": "src/main/ublock-host-mainworld.js",
-      "sha256": "7256fd7501571f9ca20de51d8cafbbed2c27ddc2aa8cc76d236c7c56f8be1698"
+      "sha256": "4a9511ec4242bc5380f17055cafb4df165f589fa1080e3ff03f9e727edac7e1a"
     },
     {
       "path": "src/main/ublock-bridge-mainworld.js",
@@ -21,7 +21,7 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "f296ce5f41c417a357337b02817342baba51aa1f8a9230ef5e45d8747a2ceaa4"
+      "sha256": "dd5dbd3738229cce8030a9e5a552278f2d08a9617a7418c16fb7460ca6fc41fb"
     },
     {
       "path": "src/main/ublock-host-policy.js",
@@ -29,7 +29,7 @@
     },
     {
       "path": "src/main/ublock-provider.js",
-      "sha256": "feeb89f6f75a3b4b02eb9dfcfca800ed69102b6d1d1e93033ff668a7b1106870"
+      "sha256": "877b237b954439d00dfd36d54920cd9789d855550d369c4a2c50e9a2419102a4"
     },
     {
       "path": "src/main/ublock-registry.js",
@@ -38,6 +38,86 @@
     {
       "path": "src/main/ublock-documents.js",
       "sha256": "367b335f4101810312be554f6b6c09fa4362deaa1dbbafecc7c081b682a2268c"
+    },
+    {
+      "path": "src/main/ublock-popup-mainworld.js",
+      "sha256": "4e204ac3b66f575e5ce940018f3268a50f732045378bf5b1b65e4548451fbb14"
+    },
+    {
+      "path": "src/main/ublock-popup-preload.js",
+      "sha256": "9b00c6b57b611029e59c9c01332131c3febed05d009773ea4dcf887616c5b4d1"
+    },
+    {
+      "path": "src/main/ublock-popup-host.js",
+      "sha256": "082a5de01991916dfa702346b38534f54432993142598ed2f6c2287c024f593a"
+    },
+    {
+      "path": "src/renderer/ublock-popup.css",
+      "sha256": "5623417c4f1d73550a428f3057307aa2f261d0ade4f94049a77f444737da35f8"
+    },
+    {
+      "path": "src/renderer/sunrise-hero-mark.png",
+      "sha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a"
+    },
+    {
+      "path": "src/renderer/pages/inter-latin.woff2",
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/pipette.svg",
+      "sha256": "3703307928af762a71bf141ba7582b15cb909f3d90916bcfe3c0becdf3ab4e70"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/zap.svg",
+      "sha256": "6dd11565c1b7dfd277840499505ec96c2cc9201aa2a003beacb25225602b6831"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/list.svg",
+      "sha256": "e7b0d1d0515c85a22e9996c2a2dee1a89f4729fda46570bb52eafd6e61b31833"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/settings.svg",
+      "sha256": "3c7bee2696ce0c2d48d34e813f4fcda31f0ad21ab9309aee3751cde4280ad737"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/chevron-left.svg",
+      "sha256": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/chevron-right.svg",
+      "sha256": "2758143d7b2434e4aa7307dfd34405c87909ff4052f21b5f3f40d45224b4f19b"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/chevron-down.svg",
+      "sha256": "66ea878e72ed3488bb3b464c39dfdccee8d1f78e560dccea40e5e12da0e87e87"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/x.svg",
+      "sha256": "4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/ellipsis.svg",
+      "sha256": "4f495cc72013ffdfec677f03b33a150f7b4dd741979283fd6853a09024bca112"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/lock-keyhole.svg",
+      "sha256": "fc0b8b7590d1d9e9bb0112c5c2e15a78ade0bfeca6d6f8c79fbbe149236d74be"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/undo-2.svg",
+      "sha256": "efad2edbbd2be6038cc23fd64df2d012fad5cc6460dfbf227cfa3d990e9e897f"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/rotate-cw.svg",
+      "sha256": "ddcfe6d87240475946935e77411cd4d15a06f3d28a9b921bafed224ebe953668"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/README.md",
+      "sha256": "af4a00d8c3699158dcafd40af0d9c0c1fbf81d1dfb36b8e002b9a18d87256252"
+    },
+    {
+      "path": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt",
+      "sha256": "1e7290b35280a048667bbf0ebabac1c7fd52a75300e8b2946ac165715997f2bc"
     }
   ],
   "changes": [
@@ -117,6 +197,11 @@
       "adaptedSha256": "842a847afb4f5f87b0f97c505b46192826f90454a060c0f9e6ed99febf0980cc"
     },
     {
+      "path": "js/popup-fenix.js",
+      "upstreamSha256": "270367a63218142984a0cad4cb21f788091c3f1035e51b8a80e67ee603b2b3d7",
+      "adaptedSha256": "e099d097be78c76c00adf9b00b5c9557e099de1515136a37af6bfc444b74f3ed"
+    },
+    {
       "path": "js/start.js",
       "upstreamSha256": "5011f3ac9a8a269136fea086987303fcf3b910487685b35116d1aec261436667",
       "adaptedSha256": "ebdf299c461bcb7545bd92d6cf2e2ba4754b3898dc2f5c7111228d9ffd0ce853"
@@ -154,7 +239,7 @@
     {
       "path": "popup-fenix.html",
       "upstreamSha256": "57f698f5f352f07aa4442cabb8c880b17edb332591ad9a3a55880470e84be14e",
-      "adaptedSha256": "9a0a9c11040b2b900229c96648659c0b4e56dc1865cc0c211b7f7fe0fa8b76e7"
+      "adaptedSha256": "adb63f585db3d31908f0a84085adec3bf82a6067ac8190d3e2cb2e0354989ece"
     },
     {
       "path": "settings.html",
@@ -192,6 +277,86 @@
       "adaptedSha256": "3eef636b98ec5328a9c063ba47a08013d4f5c05eaf492ae84785345d35411b92"
     },
     {
+      "path": "blanc-popup.js",
+      "upstreamSha256": null,
+      "adaptedSha256": "4e204ac3b66f575e5ce940018f3268a50f732045378bf5b1b65e4548451fbb14"
+    },
+    {
+      "path": "blanc-popup.css",
+      "upstreamSha256": null,
+      "adaptedSha256": "5623417c4f1d73550a428f3057307aa2f261d0ade4f94049a77f444737da35f8"
+    },
+    {
+      "path": "blanc-sunrise.png",
+      "upstreamSha256": null,
+      "adaptedSha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a"
+    },
+    {
+      "path": "blanc-inter.woff2",
+      "upstreamSha256": null,
+      "adaptedSha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+    },
+    {
+      "path": "blanc-icons/pipette.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "3703307928af762a71bf141ba7582b15cb909f3d90916bcfe3c0becdf3ab4e70"
+    },
+    {
+      "path": "blanc-icons/zap.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "6dd11565c1b7dfd277840499505ec96c2cc9201aa2a003beacb25225602b6831"
+    },
+    {
+      "path": "blanc-icons/list.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "e7b0d1d0515c85a22e9996c2a2dee1a89f4729fda46570bb52eafd6e61b31833"
+    },
+    {
+      "path": "blanc-icons/settings.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "3c7bee2696ce0c2d48d34e813f4fcda31f0ad21ab9309aee3751cde4280ad737"
+    },
+    {
+      "path": "blanc-icons/chevron-left.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93"
+    },
+    {
+      "path": "blanc-icons/chevron-right.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "2758143d7b2434e4aa7307dfd34405c87909ff4052f21b5f3f40d45224b4f19b"
+    },
+    {
+      "path": "blanc-icons/chevron-down.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "66ea878e72ed3488bb3b464c39dfdccee8d1f78e560dccea40e5e12da0e87e87"
+    },
+    {
+      "path": "blanc-icons/x.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117"
+    },
+    {
+      "path": "blanc-icons/ellipsis.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "4f495cc72013ffdfec677f03b33a150f7b4dd741979283fd6853a09024bca112"
+    },
+    {
+      "path": "blanc-icons/lock-keyhole.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "fc0b8b7590d1d9e9bb0112c5c2e15a78ade0bfeca6d6f8c79fbbe149236d74be"
+    },
+    {
+      "path": "blanc-icons/undo-2.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "efad2edbbd2be6038cc23fd64df2d012fad5cc6460dfbf227cfa3d990e9e897f"
+    },
+    {
+      "path": "blanc-icons/rotate-cw.svg",
+      "upstreamSha256": null,
+      "adaptedSha256": "ddcfe6d87240475946935e77411cd4d15a06f3d28a9b921bafed224ebe953668"
+    },
+    {
       "path": "blanc-state.js",
       "upstreamSha256": null,
       "adaptedSha256": "ff9caeb13d1469d533bda778c2ca040f3da873389040bd39e949cc52cedd251d"
@@ -199,7 +364,7 @@
     {
       "path": "blanc-host.js",
       "upstreamSha256": null,
-      "adaptedSha256": "7256fd7501571f9ca20de51d8cafbbed2c27ddc2aa8cc76d236c7c56f8be1698"
+      "adaptedSha256": "4a9511ec4242bc5380f17055cafb4df165f589fa1080e3ff03f9e727edac7e1a"
     },
     {
       "path": "blanc-bridge.html",
@@ -212,5 +377,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "9a1412eb680e6b244d69dd2c6250d66827904591d228f177fab7e56f7e76110e"
+  "patchSha256": "dcbf147b440076c25dc07cb8237e812ef47c944f4f3a99fa648be8627f1c832e"
 }

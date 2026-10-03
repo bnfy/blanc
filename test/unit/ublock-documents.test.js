@@ -34,3 +34,18 @@ test('native injection cannot execute in a replacement document and preserves up
   vm.runInNewContext(code, { self: replacement }); assert.equal(replacement.injected, undefined);
   assert.throws(() => guardScript('x', ['"; injected=true; //']), /token-invalid/);
 });
+
+test('HTTP documents receive immutable cryptographic tokens without secure-context randomUUID', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/ublock-host-mainworld.js'), 'utf8');
+  const code = source.match(/const documentTokenCode = `([\s\S]*?)`;/)[1];
+  const crypto = { getRandomValues: require('node:crypto').webcrypto.getRandomValues.bind(require('node:crypto').webcrypto) };
+  const first = {}, second = {};
+  const token = vm.runInNewContext(code, { self: first, crypto });
+  assert.match(token, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+  assert.equal(vm.runInNewContext(code, { self: first, crypto }), token);
+  assert.notEqual(vm.runInNewContext(code, { self: second, crypto }), token);
+  assert.equal(Object.getOwnPropertyDescriptor(first, '__blancUboDocumentV1').writable, false);
+  assert.equal(Object.getOwnPropertyDescriptor(first, '__blancUboDocumentV1').configurable, false);
+  assert.equal(vm.runInNewContext(guardScript('42;', [token]), { self: first }), 42);
+});

@@ -258,3 +258,38 @@ contains byte-identical copies of ten chooser source/asset records and the
 internal validation marker. This local unsigned payload check explicitly omits
 signing and its signed-app verification hook through invocation-only builder
 options; the production release configuration and gates are unchanged.
+
+## Approved neutral uBO popup — October 2
+
+The owner's option 2 is implemented on the original uBO popup. It uses Inter,
+the genuine small Sunrise mark, neutral flat tool rows, Pick/Zap explanations,
+Logger and Dashboard links, and a More controls disclosure. More reveals native
+site switches and request/domain details without enabling advanced-user mode.
+Dashboard and Logger open as managed tabs in the owning profile. Full settings
+screen styling still requires its own owner-approved mockups.
+
+A dedicated sandboxed popup preload exposes only measured layout, close and back.
+Main validates the exact view, session, main frame, URL, tab and window before
+acting. Bounds follow the existing shield circle and fit the content, including
+card borders; short windows scroll. Native popup links resolve their owning
+anchor even when a label/icon is clicked. Original handlers and filtering engine
+are preserved. HTTP-page script injection now uses immutable cryptographic
+getRandomValues tokens, which work outside secure contexts; document-generation
+and profile authorization checks remain in place.
+
+New assets have exact source hashes, reproducible binary copies, LF checkout rules,
+a separate pinned Lucide license, and generated packaged notices/SBOM records.
+Blanc's MIT and reserved identity asset policies and uBO's GPL gate are unchanged.
+
+| Check | Local record | Result |
+| --- | --- | --- |
+| Lint | `/private/tmp/ubo-popup-lint.txt` | Passed |
+| Complete unit suite | `/private/tmp/ubo-popup-all-unit.txt` | 2,085 passed |
+| Substrate | `/private/tmp/ubo-popup-substrate.txt` | Passed |
+| Native shield/popup interactions | `/private/tmp/ubo-popup-shield.txt` | Passed |
+| Real-blocking uBO, Electron 44.5.1 | `/private/tmp/ubo-popup-desktop.txt` | Passed |
+| Unsigned internal macOS package | `/private/tmp/ubo-popup-package.txt` | Bytes, licenses, adaptation, compliance and fuses passed |
+
+Visual evidence and residual P3 density difference are recorded in `design-qa.md`.
+These are local internal validation results; public distribution and platform
+support remain gated pending their separate approvals and installed evidence.

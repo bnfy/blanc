@@ -8,6 +8,19 @@
   if (location.pathname === '/background.html') Object.defineProperty(runtime, 'reload', {
     value: () => call('extension.restart', []), configurable: true,
   });
+  // getRandomValues is available on ordinary HTTP pages; randomUUID requires
+  // a secure context. Keep a cryptographic, immutable token in the extension's
+  // isolated world so stale-document injection guards work on both.
+  const documentTokenCode = `
+    if (!Object.hasOwn(self, '__blancUboDocumentV1')) {
+      const bytes = crypto.getRandomValues(new Uint8Array(16));
+      bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
+      const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+      const token = [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
+      Object.defineProperty(self, '__blancUboDocumentV1', { value: token });
+    }
+    self.__blancUboDocumentV1;
+  `;
   const nativeTabs = chrome.tabs;
   const connectEvent = runtime.onConnect;
   const nativeAddConnect = connectEvent.addListener.bind(connectEvent);
@@ -130,7 +143,7 @@
       const promise = call('tabs.authorizeInjection', [tabId, options]).then(async ({ webContentsId, lease }) => {
         const target = { allFrames: !!options.allFrames, frameId: options.frameId ?? 0,
           matchAboutBlank: !!options.matchAboutBlank, runAt: options.runAt || 'document_idle' };
-        const tokens = await inject(webContentsId, { ...target, code: "if (!Object.hasOwn(self, '__blancUboDocumentV1')) Object.defineProperty(self, '__blancUboDocumentV1', { value: crypto.randomUUID() }); self.__blancUboDocumentV1;" });
+        const tokens = await inject(webContentsId, { ...target, code: documentTokenCode });
         const { code } = await call('tabs.commitInjection', [lease, tokens]);
         return inject(webContentsId, { ...target, code });
       });

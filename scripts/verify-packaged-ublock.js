@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { extractFile, listPackage, statFile } = require('@electron/asar');
-const { readVerifiedPackage, hash, adaptPackage } = require('../src/main/ublock-package');
+const { readVerifiedPackage, hash, adaptPackage, readHostSources } = require('../src/main/ublock-package');
 const ROOT = path.join(__dirname, '..');
 function verifyPackagedUblock(asarPath, { root = ROOT } = {}) {
   const { pin, files } = readVerifiedPackage(path.join(root, 'ublock'));
@@ -24,9 +24,10 @@ function verifyPackagedUblock(asarPath, { root = ROOT } = {}) {
     exact(entry.path); assert.equal(hash(read(entry.path)), entry.sha256);
   }
   for (const member of ['scripts/check-ublock-package.cjs', 'scripts/build-ublock-adaptation.cjs']) exact(member);
-  const output = adaptPackage(files, {
-    adapter: read('src/main/ublock-host-mainworld.js'), bridge: read('src/main/ublock-bridge-mainworld.js'),
-  });
+  const sources = readHostSources(root);
+  sources.adapter = read('src/main/ublock-host-mainworld.js');
+  sources.bridge = read('src/main/ublock-bridge-mainworld.js');
+  const output = adaptPackage(files, sources);
   for (const entry of adaptation.changes) assert.equal(hash(output.get(entry.path)), entry.adaptedSha256);
   assert.equal(hash(read('ublock/adaptation.patch')), adaptation.patchSha256);
   console.log(`verify-packaged-ublock: ${pin.version}, ${files.size} upstream files, source, license, host and adaptation verified.`);

@@ -2410,3 +2410,59 @@ Lint, 29 shield-model unit tests, the native provider/chooser suite and diff
 checks passed. Existing private guards and request isolation are unchanged.
 
 final result: passed
+
+## uBO popup — selected option 2, October 2
+
+Visual target: the second displayed generated image,
+`/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-710c5e51-1768-4b14-9329-ad370d06c1f6.png`.
+The implementation retains the original uBO DOM IDs, engine, state and action handlers.
+Dashboard remains the original settings document and is a separate pending mockup.
+
+### Evidence and iteration
+
+The source was opened directly, then compared in one normalized image with a
+native Electron capture. Source: 1254×1254; card crop 810×995 normalized to 760px
+wide without stretching. Native view: 404 CSS px wide at 2× density; card: 380 CSS
+px wide. `output/playwright/ubo-popup-option-2-comparison-final.png` places the
+source and actual enabled, collapsed, light popup side by side. Actual fixture
+host/counts differ from the illustrative source and are supplied by uBO, not mocked.
+
+Initial P2 findings were a missing divider between Logger and Dashboard, a
+smaller site switch/brand mark/tool icon scale, inherited button letter spacing,
+and a view-height calculation that omitted card borders. These were corrected.
+An initial capture also hovered Zap; that state was discarded for the default-state
+comparison. Final native capture removes the hover and includes all borders.
+Focused header, tools and footer are readable in the combined comparison.
+
+### Required fidelity surfaces
+
+- Typography: bundled Inter with compact title, 14px tool headings, 12px support
+  text and native counts. No fallback or wrapping failures; the small natural
+  height difference reflects actual font metrics and native hit areas.
+- Spacing/layout: flat tool rows, fine dividers, two equal tool links, short
+  shield-to-card attachment, content-sized native bounds and constrained scrolling.
+  The source card is about 467 CSS px tall after normalization; actual is about
+  485 CSS px. This minor density difference is P3, with the same hierarchy/content.
+- Colors: white, graphite and neutral gray; gold appears only in the genuine mark.
+  Dark capture (`ubo-popup-dark-popup.png`) preserves the hierarchy and contrast.
+  Native dynamic-rule colors retain their upstream semantic meaning.
+- Assets: existing reserved Sunrise PNG, bundled Inter, exact Lucide SVGs with
+  upstream license. No generated logo approximation or image halo. Native site
+  switch follows Blanc's existing switch styling.
+- Copy: the selected Pick/Zap explanations, Logger, Dashboard and More controls
+  are present. Counts and host are live. More becomes Fewer controls when open.
+
+### Functional validation and bounds
+
+Native shield suite exercises expansion, JavaScript switch, site switch via
+keyboard, back, nested-label Dashboard/Logger clicks, Escape, focus restoration,
+provider restart, private/unavailable guards and small windows. More does not
+activate advanced-user mode. The real-blocking uBO suite covers original picker,
+zapper, dashboard panels, backups and requests. Pure tests reject foreign sessions,
+frames, tabs, URLs and malformed popup IPC. New HTTP-token test covers ordinary
+insecure origins. Native popup/Blanc chrome recorded no uncaught UI errors.
+
+Full Dashboard/settings styling and installed Windows/Linux/native input acceptance
+remain outside this popup QA. The support and distribution gates remain closed.
+
+final result: passed

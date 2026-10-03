@@ -35,3 +35,9 @@ ublock/sources/** -text
 # Verified upstream bytes and their exact generated patch retain upstream whitespace.
 ublock/upstream/** -whitespace
 ublock/adaptation.patch -whitespace
+
+# Managed host inputs and adaptation hashes must reproduce on Windows.
+/src/main/ublock-*.js text eol=lf
+/src/renderer/ublock-popup.css text eol=lf
+/src/renderer/ublock-popup-icons/* text eol=lf
+/ublock/adaptation.* text eol=lf

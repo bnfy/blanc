@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { fileURLToPath } = require('node:url');
-const { installVerifiedPackage, installVerifiedFiles } = require('./ublock-package');
+const { installVerifiedPackage, installVerifiedFiles, readHostSources } = require('./ublock-package');
 const { createUblockRegistry } = require('./ublock-registry');
 const { validBridgeSender } = require('./ublock-host-policy');
 const { captureDocuments, currentDocuments, guardScript } = require('./ublock-documents');
@@ -425,10 +425,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       const installed = installVerifiedPackage({
         root: path.join(app.getAppPath(), 'ublock'),
         destination: path.join(managedRoot, 'extension'),
-        hostSources: {
-          adapter: fs.readFileSync(path.join(__dirname, 'ublock-host-mainworld.js')),
-          bridge: fs.readFileSync(path.join(__dirname, 'ublock-bridge-mainworld.js')),
-        },
+        hostSources: readHostSources(app.getAppPath()),
       });
       scripts = installed.scripts;
       let backgroundReadyResolve;

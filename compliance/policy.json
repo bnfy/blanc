@@ -11,7 +11,9 @@
     "Python-2.0"
   ],
   "metadataOverrides": {},
-  "runtimeAssetLicenseExceptions": { "ublock-origin": "GPL-3.0-or-later" },
+  "runtimeAssetLicenseExceptions": {
+    "ublock-origin": "GPL-3.0-or-later"
+  },
   "licenseFileFallbacks": {
     "@1password/sdk@0.5.0": {
       "license": "MIT",
@@ -119,6 +121,17 @@
         "ghostery-resources",
         "npm:@ghostery/adblocker-electron"
       ]
+    },
+    {
+      "id": "ublock-popup-icons",
+      "name": "Lucide uBO popup icons",
+      "version": "0.468.0",
+      "type": "file",
+      "file": "src/renderer/ublock-popup-icons/README.md",
+      "license": "ISC",
+      "licenseFile": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt",
+      "homepage": "https://github.com/lucide-icons/lucide/tree/0.468.0",
+      "attribution": "Lucide Contributors 2022; portions by Cole Bemis 2013\u20132022 (Feather, MIT)"
     }
   ]
 }

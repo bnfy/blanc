@@ -365,7 +365,7 @@ try {
     const packageApi = require(path.join(app.getAppPath(), 'src/main/ublock-package'));
     const installed = packageApi.installVerifiedPackage({ root: path.join(app.getAppPath(), 'ublock'),
       destination: path.join(app.getPath('userData'), 'managed-ublock', profileId, 'extension'),
-      hostSources: { adapter: fs.readFileSync(path.join(app.getAppPath(), 'src/main/ublock-host-mainworld.js')), bridge: fs.readFileSync(path.join(app.getAppPath(), 'src/main/ublock-bridge-mainworld.js')) } });
+      hostSources: packageApi.readHostSources(app.getAppPath()) });
     const owned = session.fromPartition('persist:blanc-profile-' + profileId);
     const extension = await owned.extensions.loadExtension(installed.path);
     if (extension.id !== expectedId) throw new Error('Deleted native principal identity changed');

@@ -5,7 +5,7 @@ License (see [LICENSE](LICENSE)). The components below are redistributed with
 Blanc under their own terms, which the MIT grant does not supersede.
 
 The notices that ship inside packaged Blanc builds are in
-[src/THIRD_PARTY_NOTICES.txt](src/THIRD_PARTY_NOTICES.txt); this file is the
+[compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt); this file is the
 repository-level version of the same record.
 
 ## EasyList and EasyPrivacy filter lists — CC BY-SA 3.0 or later
@@ -41,7 +41,7 @@ update procedure.
 ## 1Password JavaScript SDK — MIT
 
 Copyright (c) 2024 1Password. Full licence text in
-[src/THIRD_PARTY_NOTICES.txt](src/THIRD_PARTY_NOTICES.txt).
+[compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt).
 
 ## Inter, JetBrains Mono, Caveat, and Newsreader fonts — SIL OFL 1.1
 
@@ -74,12 +74,16 @@ notice and licence ship at
 [site/public/fonts/newsreader-OFL.txt](site/public/fonts/newsreader-OFL.txt).
 Upstream: <https://github.com/productiontype/Newsreader>.
 
-## Lucide Panel Left icon — ISC
+## Lucide desktop icons — ISC
 
 `src/renderer/panel-left.svg` is adapted from Lucide's Panel Left icon.
+The uBO popup SVGs in `src/renderer/ublock-popup-icons/` are exact Lucide 0.468.0
+assets. Their upstream ISC notice (including Feather attribution) is in that
+directory's `lucide-LICENSE.txt` and the packaged
+`ThirdPartyLicenses/lucide-LICENSE.txt`.
 Copyright (c) 2026 Lucide Icons and Contributors. It remains under Lucide's ISC
 License; the full notice ships in
-[src/THIRD_PARTY_NOTICES.txt](src/THIRD_PARTY_NOTICES.txt). Upstream:
+[compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt). Upstream:
 <https://github.com/lucide-icons/lucide>.
 
 ## Runtime dependencies

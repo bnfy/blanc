@@ -28,7 +28,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 42);
+  assert.equal(sbom.components.length, 43);
   assert.ok(refs.has('asset:ublock-origin'));
   assert.ok(refs.has('pkg:npm/electron@44.5.1'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
@@ -193,16 +193,18 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 42);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 43);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 37, '32 runtime npm records plus four fonts and uBlock GPL');
+  assert.equal(licenses.length, 38, '32 runtime npm records plus four fonts, uBlock GPL and Lucide');
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
   assert.ok(licenses.includes('lazy-val--1.0.5.txt'));
   assert.ok(licenses.includes('inter-OFL.txt'));
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/LICENSE.txt'), 'utf8'));
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/lucide-LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt'), 'utf8'));
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));
   assert.ok(licenses.includes('caveat-OFL.txt'));
   assert.ok(licenses.includes('newsreader-OFL.txt'));

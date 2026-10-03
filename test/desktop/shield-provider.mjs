@@ -35,7 +35,7 @@ function observePageErrors(page) {
   if (observedPages.has(page)) return;
   observedPages.add(page);
   page.on('pageerror', error => {
-    if (page.url().startsWith('blanc-chrome://') && uiErrors.length < 20) {
+    if ((page.url().startsWith('blanc-chrome://') || page.url().includes('/popup-fenix.html')) && uiErrors.length < 20) {
       uiErrors.push({ stage, surface: page.url(), message: error.message });
     }
   });
@@ -329,6 +329,36 @@ try {
   await overlay.locator('#shieldPopUblock').click();
   const popup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup');
   await popup.locator('#switch').waitFor();
+  assert.equal(await popup.locator('#blancMore').getAttribute('aria-expanded'), 'false');
+  await popup.locator('#blancMore').press('Enter');
+  await popup.locator('#no-scripting').waitFor({ state: 'visible' });
+  assert.equal(await popup.locator('body').evaluate(body => body.classList.contains('advancedUser')), false, 'More controls never enables advanced-user mode');
+  await popup.locator('#no-scripting').press('Space');
+  await popup.waitForFunction(() => document.querySelector('#no-scripting').classList.contains('on'));
+  await popup.locator('#no-scripting').press('Space');
+  await popup.waitForFunction(() => !document.querySelector('#no-scripting').classList.contains('on'));
+  await popup.locator('#blancMore').click();
+  await popup.locator('#no-scripting').waitFor({ state: 'hidden' });
+  await popup.locator('#switch').press('Space');
+  await popup.waitForFunction(() => document.body.classList.contains('off'));
+  assert.equal(await popup.locator('#switch').getAttribute('aria-checked'), 'false');
+  await popup.locator('#switch').press('Space');
+  await popup.waitForFunction(() => !document.body.classList.contains('off'));
+  await popup.locator('#blancBack').click();
+  await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
+  await overlay.locator('#shieldPopUblock').click();
+  const dashboardPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'styled popup reopened');
+  await dashboardPopup.locator('a[href="dashboard.html"] span').last().click();
+  await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/dashboard.html')), Boolean, 'Dashboard link opens a managed tab');
+  await call('activateTab', regular);
+  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  const loggerPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for logger');
+  await loggerPopup.locator('a[href="logger-ui.html#_"] span').last().click();
+  await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/logger-ui.html')), Boolean, 'Logger link opens a managed tab');
+  await call('activateTab', regular);
+  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
+  await escapePopup.locator('#switch').waitFor();
   await electron.evaluate(({ webContents }) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/popup-fenix.html'));
     wc.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });

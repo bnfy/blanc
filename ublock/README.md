@@ -12,7 +12,10 @@ authored MIT host/bridge sources under `src/main/ublock-*.js`, and the upstream
 package. The resulting modified extension is subject to upstream's GPL.
 `adaptation.patch` records the changes and additions; `adaptation.json` records
 their input/output hashes and change date. No filtering-engine module is patched.
-Changes concern browser API hosting, startup, popup lifetime, unavailable privacy
+Binary font/mark additions are copied from the exact hash-bound host inputs by
+`readHostSources`; the patch records their names without lossy text hunks.
+The popup uses bundled Inter, Lucide SVGs, and the reserved Blanc Sunrise mark.
+Changes concern browser API hosting, startup, popup presentation/lifetime, unavailable privacy
 controls, and the restriction to bundled executable resources.
 
 To reproduce with Node 22 from this source checkout:
@@ -20,7 +23,7 @@ To reproduce with Node 22 from this source checkout:
 ```
 node scripts/check-ublock-package.cjs
 node scripts/build-ublock-adaptation.cjs
-node -e "const fs=require('fs'),p=require('path'),u=require('./src/main/ublock-package');u.installVerifiedPackage({root:p.resolve('ublock'),destination:p.resolve('ubo-reproduced'),hostSources:{adapter:fs.readFileSync('src/main/ublock-host-mainworld.js'),bridge:fs.readFileSync('src/main/ublock-bridge-mainworld.js')}})"
+node -e "const fs=require('fs'),p=require('path'),u=require('./src/main/ublock-package');u.installVerifiedPackage({root:p.resolve('ublock'),destination:p.resolve('ubo-reproduced'),hostSources:u.readHostSources(process.cwd())})"
 ```
 
 Use a real directory with no symlink ancestors for the reproduction destination.

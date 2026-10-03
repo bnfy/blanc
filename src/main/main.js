@@ -44,6 +44,7 @@ const {
 const { createBlockingProviders } = require('./blocking-providers');
 const { createBlockingRecovery } = require('./blocking-recovery');
 const { createAppRestarter } = require('./app-restart');
+const { popupGeometry, validPopupSender, validPopupMessage } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
@@ -338,6 +339,7 @@ function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
   if (!popup) return;
   ublockPopups.delete(runtimeId);
   popup.runtime.window?.removeListener('closed', popup.onClosed);
+  popup.runtime.window?.removeListener('resize', popup.onResize);
   if (!popup.runtime.window?.isDestroyed()) popup.runtime.window?.contentView.removeChildView(popup.view);
   popup.view.webContents?.close();
   if (popup.runtime.window && !popup.runtime.window.isDestroyed()) {
@@ -359,6 +361,28 @@ function openUblockTool(tool) {
   setActiveTab(id);
   return true;
 }
+function layoutUblockPopup(popup) {
+  if (!popup.runtime.window || popup.runtime.window.isDestroyed() || !popup.view.webContents || popup.view.webContents.isDestroyed()) return;
+  const { bounds, state } = popupGeometry(popup.runtime, popup.anchor, popup.naturalHeight);
+  popup.view.setBounds(bounds);
+  popup.view.webContents.send('ublock:popup-state', state);
+}
+ipcMain.on('ublock:popup', (event, message) => {
+  if (!validPopupMessage(message)) return;
+  const popup = [...ublockPopups.values()].find(item => item.view.webContents === event.sender);
+  if (!popup || !validPopupSender(event, popup, profileSessionRegistry.normal(popup.runtime.profileId))) return;
+  if (message.action === 'layout') {
+    popup.naturalHeight = message.height; layoutUblockPopup(popup); return;
+  }
+  const { runtime, anchor, tabId } = popup;
+  closeUblockPopup(runtime.id, { restoreFocus: message.action === 'close' });
+  if (message.action === 'back') withWindowRuntime(runtime, () => {
+    const tab = tabs.get(tabId);
+    if (!tab || tab.private || !activeShieldPopover()) return;
+    setShieldAnchor(anchor); runtime.shieldTrigger = 'shield';
+    broadcastTabs(); showOverlay('shield');
+  });
+});
 async function openUblockPopup(anchor) {
   const runtime = rt();
   if (ublockPopups.has(runtime.id)) { closeUblockPopup(runtime.id); return; }
@@ -373,17 +397,17 @@ async function openUblockPopup(anchor) {
   const tabId = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
   const view = new WebContentsView({ webPreferences: {
     session: profileSessionRegistry.normal(runtime.profileId),
+    preload: path.join(__dirname, 'ublock-popup-preload.js'),
     sandbox: true, contextIsolation: true, nodeIntegration: false,
   } });
   const wc = view.webContents;
-  const popup = { runtime, tabId: tab.id, view };
+  view.setBackgroundColor('#00000000');
+  const popup = { runtime, tabId: tab.id, view, anchor: anchor || {}, naturalHeight: 490,
+    url: `chrome-extension://${provider.extensionId}/popup-fenix.html?tabId=${tabId}` };
+  popup.onResize = () => layoutUblockPopup(popup);
   popup.onClosed = () => closeUblockPopup(runtime.id);
   ublockPopups.set(runtime.id, popup);
-  const [width, height] = runtime.window.getContentSize();
-  const popupWidth = Math.min(width, 365);
-  const popupHeight = Math.max(0, Math.min(height - runtime.chromeHeight, 650));
-  const right = Number.isFinite(anchor?.right) ? anchor.right : width - 20;
-  view.setBounds({ x: Math.max(0, Math.min(width - popupWidth, right - popupWidth)), y: runtime.chromeHeight, width: popupWidth, height: popupHeight });
+  layoutUblockPopup(popup);
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
   wc.on('will-navigate', event => event.preventDefault());
   wc.on('before-input-event', (event, input) => {
@@ -393,16 +417,17 @@ async function openUblockPopup(anchor) {
     if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id);
   }));
   runtime.window.once('closed', popup.onClosed);
+  runtime.window.on('resize', popup.onResize);
   runtime.window.contentView.addChildView(view);
   try {
-    await wc.loadURL(`chrome-extension://${provider.extensionId}/popup-fenix.html?tabId=${tabId}`);
+    await wc.loadURL(popup.url);
     if (ublockPopups.get(runtime.id) !== popup) return;
     if (runtime.surfaceGeneration !== generation || runtime.activeTabId !== tab.id
         || runtime.window?.isDestroyed() || wc.isDestroyed()) {
       closeUblockPopup(runtime.id);
       return;
     }
-    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield', nativePopup: true });
+    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
     wc.focus();
   }
   catch {
@@ -6717,6 +6742,10 @@ function registerIpcHandlers() {
   chromeOn('chrome:island-rect', (event, rect) => {
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+    const popup = ublockPopups.get(rt().id);
+    if (popup && event.sender === rt().window?.webContents && rect?.shieldAnchor?.trigger === 'shield') {
+      popup.anchor = rect.shieldAnchor; layoutUblockPopup(popup);
+    }
     if (event.sender === rt().window?.webContents && rt().overlayMode === 'shield'
         && rect?.shieldAnchor?.trigger === rt().shieldTrigger) {
       setShieldAnchor(rect.shieldAnchor);
@@ -6787,7 +6816,7 @@ function registerIpcHandlers() {
     if (rt().overlayMode !== 'shield' || !tab || tab.private) return false;
     const provider = blockingProviders?.forTab(tab);
     if (provider?.status().phase !== 'ready') return false;
-    const anchor = { right: rt().shieldAnchorRight };
+    const anchor = { right: rt().shieldAnchorRight, center: rt().shieldAnchorCenter, bottom: rt().shieldAnchorBottom };
     hideOverlay({ refocusContent: false });
     await openUblockPopup(anchor);
     return true;
