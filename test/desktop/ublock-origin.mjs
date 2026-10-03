@@ -542,7 +542,10 @@ try {
   const named = await call('createProfileWindow', 'uBO isolated profile');
   await call('setHomePage', '');
   assert(named.ok);
-  await waitForValue(() => call('blockingStatusInWindow', named.runtimeId), state => state.phase === 'ready', 'named profile ready', 20000);
+  // A new profile's provider may take up to ~32 s before it reports failure
+  // itself (CSS host 2 s + background 15 s + bridge 15 s in ublock-provider.js).
+  // Wait past that budget so slow runners fail on a real error, not the clock.
+  await waitForValue(() => call('blockingStatusInWindow', named.runtimeId), state => state.phase === 'ready', 'named profile ready', 40000);
   const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness');
   await initialProfilePage.waitForFunction(() => window.fixtureAllowed === true);
   assert.equal(hits.filter(url => url === '/?named-profile-first-load').length, 1, 'first profile GET must reach the server once after readiness');
