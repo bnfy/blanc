@@ -2442,10 +2442,15 @@ function install(refs) {
       );
     },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
-    destroyUtilitySheetContents() {
+    async destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
       if (!wc || wc.isDestroyed()) return false;
-      wc.close();
+      // close() initiates native teardown; destruction and cache cleanup can
+      // arrive later. The harness should return after the promised action.
+      await new Promise(resolve => {
+        wc.once('destroyed', resolve);
+        wc.close();
+      });
       return true;
     },
     readBrowserImportDom() {
