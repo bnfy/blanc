@@ -1,8 +1,9 @@
 # Stock Brave reproduction: uBO `$permissions` with three directives
 
 Observed **2026-10-03, 18:04–18:07 UTC**. Prepared for owner review before an
-upstream report. Nothing was posted upstream; no CodeQL alert was dismissed and
-no scanning policy was changed.
+upstream report. The reproduction run posted nothing upstream, dismissed no
+CodeQL alert, and changed no scanning policy. The subsequent upstream report is
+linked below; the original observations remain unchanged.
 
 ## Result
 
@@ -175,5 +176,19 @@ documents pipe-separated directives and their conversion to comma separators.
 It also recommends separate filters for independent exception handling; that
 recommendation does not change the observed serialization defect.
 
-This folder is durable evidence for PR #490 / alert #82. Any upstream report or
-GitHub disposition remains subject to owner review.
+## Upstream report follow-up
+
+On October 3, 2026, the submitted report was verified through GitHub's read-only
+issue API: [uBlockOrigin/uBlock-issues#4145](https://github.com/uBlockOrigin/uBlock-issues/issues/4145),
+opened by `bnfy` at 18:15:38 UTC. It includes the broken header, browser parsing
+error, reproduction and control results, and troubleshooting text recorded here.
+The issue was open when checked; no upstream fix or release is claimed.
+
+When updating the bundled uBO to an official release containing an equivalent
+fix, re-run the stock-browser reproduction and Blanc's Permissions-Policy
+regression before removing the corresponding host-adaptation patch. An issue
+being filed or closed alone is not evidence that the bundled release is fixed.
+
+This folder is durable evidence for PR #490 / alert #82. Linking the report does
+not change that alert's recommendation, dismiss it, or provide distribution
+clearance. Any GitHub disposition remains subject to owner review.
