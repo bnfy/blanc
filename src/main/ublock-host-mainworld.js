@@ -31,6 +31,7 @@
   const networkEvents = new Map();
   const contents = new Map();
   const contentPorts = new Map();
+  const toolCapabilities = new Map();
   let sequence = 0;
   let bridge;
   let isReady = false;
@@ -126,6 +127,7 @@
   define('webNavigation', {
     onCreatedNavigationTarget: event('webNavigation.onCreatedNavigationTarget'),
     onCommitted: event('webNavigation.onCommitted'),
+    onDOMContentLoaded: event('webNavigation.onDOMContentLoaded'),
     getFrame: method('webNavigation.getFrame'), getAllFrames: method('webNavigation.getAllFrames'),
   });
   define('windows', {
@@ -154,6 +156,50 @@
   for (const name of ['insertCSS', 'removeCSS']) {
     tabs[name] = method(`tabs.${name}`);
   }
+  tabs.connect = (tabId, options = {}) => {
+    const listeners = { message: new Set(), disconnect: new Set() };
+    let port, stopped = false, queued = 0, documentToken, webContentsId;
+    let incoming = Promise.resolve(), outgoing = Promise.resolve();
+    const emit = (name, ...args) => { for (const listener of listeners[name]) listener(...args); };
+    const close = () => {
+      if (stopped) return;
+      stopped = true; port?.disconnect(); emit('disconnect', facade);
+      listeners.message.clear(); listeners.disconnect.clear();
+    };
+    const authorize = async () => {
+      const target = await call('tabs.authorizeMessaging', [tabId, { frameId: options.frameId ?? 0 }]);
+      if (stopped || target.webContentsId !== webContentsId
+        || await probeContent(webContentsId, options.frameId ?? 0) !== documentToken) throw new Error('ubo-port-stale');
+    };
+    const ready = call('tabs.authorizeMessaging', [tabId, { frameId: options.frameId ?? 0 }]).then(async target => {
+      webContentsId = target.webContentsId;
+      documentToken = await probeContent(webContentsId, options.frameId ?? 0);
+      if (stopped || !documentToken) throw new Error('ubo-port-stale');
+      await authorize();
+      port = nativeTabs.connect(webContentsId, options);
+      port.onDisconnect.addListener(close);
+      port.onMessage.addListener(message => {
+        if (queued >= 64 || JSON.stringify(message).length > 1024 * 1024) return close();
+        queued++;
+        incoming = incoming.then(authorize).then(() => { if (!stopped) emit('message', message, facade); }).catch(close).finally(() => { queued--; });
+      });
+    });
+    // A Chrome Port is synchronous; defer only its native connection until the
+    // sender-bound regular-profile/frame authorization has completed.
+    const facade = {
+      name: options.name || '', disconnect: close,
+      onMessage: { addListener: fn => listeners.message.add(fn), removeListener: fn => listeners.message.delete(fn) },
+      onDisconnect: { addListener: fn => listeners.disconnect.add(fn), removeListener: fn => listeners.disconnect.delete(fn) },
+      postMessage(message) {
+        if (stopped) throw new Error('ubo-port-disconnected');
+        if (queued >= 64 || JSON.stringify(message).length > 1024 * 1024) return close();
+        queued++;
+        outgoing = outgoing.then(() => ready).then(authorize).then(() => { if (!stopped) port.postMessage(message); }).catch(close).finally(() => { queued--; });
+      },
+    };
+    ready.catch(close);
+    return facade;
+  };
   tabs.sendMessage = (tabId, message, options, callback) => {
     if (typeof options === 'function') { callback = options; options = {}; }
     const promise = call('tabs.authorizeMessaging', [tabId, options || {}]).then(({ webContentsId }) =>
@@ -175,6 +221,50 @@
   }
   if (background) define('webRequest', requests);
   const trustedPage = sender => sender.id === runtime.id && typeof sender.url === 'string' && sender.url.startsWith(runtime.getURL(''));
+  // A capability travels only through native extension messaging and the
+  // isolated content-script -> tool MessagePort handoff, never through DOM URLs.
+  const probeContent = async (webContentsId, frameId) => {
+    let timer;
+    try {
+      return await Promise.race([
+        new Promise(resolve => nativeTabs.executeScript(webContentsId, {
+          code: 'self.vAPI?.sessionId;', frameId, matchAboutBlank: true, runAt: 'document_start',
+        }, value => { void runtime.lastError; resolve(value?.[0]); })),
+        new Promise(resolve => { timer = setTimeout(() => resolve(undefined), 2000); }),
+      ]);
+    } finally { clearTimeout(timer); }
+  };
+  const toolMessage = async (message, sender) => {
+    if (!filteringEnabled || sender.id !== runtime.id || !['picker', 'inspector'].includes(message.tool)) return false;
+    const original = sender.tab?.id;
+    const tabId = contents.get(original);
+    if (tabId === undefined || !Number.isInteger(sender.frameId) || sender.frameId < 0) return false;
+    const now = Date.now();
+    for (const [token, entry] of toolCapabilities) if (entry.expires <= now) toolCapabilities.delete(token);
+    if (message.action === 'issue') {
+      if (trustedPage(sender) || toolCapabilities.size >= 256) return false;
+      const authorized = await call('tabs.authorizeMessaging', [tabId, { frameId: sender.frameId }]);
+      if (authorized.webContentsId !== original) return false;
+      const documentToken = await probeContent(original, sender.frameId);
+      if (!documentToken || !filteringEnabled || contents.get(original) !== tabId || toolCapabilities.size >= 256) return false;
+      const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+      toolCapabilities.set(token, { tool: message.tool, original, tabId, frameId: sender.frameId, documentToken, expires: Date.now() + 30000 });
+      return token;
+    }
+    if (message.action !== 'consume' || !trustedPage(sender)) return false;
+    const target = new URL(sender.url);
+    const toolPath = message.tool === 'picker' ? '/web_accessible_resources/epicker-ui.html' : '/web_accessible_resources/dom-inspector.html';
+    if (target.pathname !== toolPath || typeof message.token !== 'string') return false;
+    const entry = toolCapabilities.get(message.token);
+    if (!entry || entry.original !== original || entry.tabId !== tabId || entry.tool !== message.tool) return false;
+    const frame = await call('webNavigation.getFrame', [{ tabId, frameId: sender.frameId }]);
+    if (frame?.parentFrameId !== entry.frameId) return false;
+    const documentToken = await probeContent(original, entry.frameId);
+    if (!filteringEnabled || contents.get(original) !== tabId || documentToken !== entry.documentToken
+      || entry.expires <= Date.now() || toolCapabilities.get(message.token) !== entry) return false;
+    toolCapabilities.delete(message.token); // One successful consumer, including concurrent handoffs.
+    return true;
+  };
   if (background) {
     // Reserve our own transport port. Upstream's privileged content/UI port
     // boundary remains in place and cannot receive host-control messages.
@@ -231,6 +321,7 @@
       bridge = port;
       port.onDisconnect.addListener(() => {
         bridge = undefined;
+        toolCapabilities.clear();
         for (const item of pending.values()) { clearTimeout(item.timer); item.reject(new Error('ubo-host-disconnected')); }
         pending.clear();
         queued.length = 0; queuedBytes = 0;
@@ -242,9 +333,13 @@
           pending.delete(message.id); clearTimeout(item.timer);
           if (message.error) item.reject(new Error(message.error)); else item.resolve(message.value);
         } else if (message.kind === 'event') {
+          // Native runtime messaging reaches extension pages in this session;
+          // content scripts remain on their authenticated tab-specific ports.
+          runtime.sendMessage({ blancHostEvent: 1, name: message.name, args: message.args }, () => { void runtime.lastError; });
           for (const listener of events.get(message.name) || []) listener(...message.args);
         } else if (message.kind === 'enabled') {
           filteringEnabled = message.value === true;
+          if (!filteringEnabled) toolCapabilities.clear();
           if (!filteringEnabled) for (const id of new Set(contentPorts.values())) {
             nativeTabs.sendMessage(id, { blancFilteringDisabled: true }, () => { void runtime.lastError; });
           }
@@ -289,12 +384,35 @@
       if (isReady) send({ kind: 'ready', node: typeof require !== 'undefined' || typeof process !== 'undefined' });
     });
     runtime.onMessage.addListener((message, sender, respond) => {
+      if (message?.blancTool === 1) {
+        toolMessage(message, sender).then(respond, () => respond(false));
+        return true;
+      }
       if (message?.blancHost !== 1 || !trustedPage(sender)) return;
       call(message.method, message.args).then(respond, () => respond(undefined));
       return true;
     });
   }
+  if (!background) runtime.onMessage.addListener((message, sender) => {
+    if (message?.blancHostEvent !== 1 || sender.id !== runtime.id
+      || sender.url !== runtime.getURL('background.html') || !Array.isArray(message.args)
+      || message.args.length > 4 || !events.has(message.name)) return;
+    for (const listener of events.get(message.name)) listener(...message.args);
+  });
   self.BlancUboHost = {
+    navigationURL(value) {
+      try {
+        const target = new URL(value);
+        return ['http:', 'https:'].includes(target.protocol) ? target.href : null;
+      } catch { return null; }
+    },
+    async authorizeToolPort(tool, event) {
+      if (event.source !== self.parent || event.ports?.length !== 1
+        || !/^[a-f0-9]{32}$/.test(event.data?.blancToolCapability || '')) return false;
+      try {
+        return await runtime.sendMessage({ blancTool: 1, action: 'consume', tool, token: event.data.blancToolCapability }) === true;
+      } catch { return false; }
+    },
     // Close only the initiating native popup; delayed requests from an old
     // document must never dismiss a newly opened view in the same profile.
     closePopup() { self.blancUboPopup?.close(); },

@@ -5252,11 +5252,11 @@ initTabView({
     if (wc.session !== profileSessionRegistry.normal(tab.profileId)) return false;
     if (wc.getURL().startsWith(prefix) && url.startsWith(prefix) && source.startsWith(prefix)) return true;
     if (event?.isMainFrame && restorableUblockTool(tab.url, tab.profileId) && ublockTool(url, provider.extensionId)) return true;
-    // Upstream's picker is a native web-accessible resource in a subframe.
+    // Upstream's picker and DOM inspector are native web-accessible tool frames.
     // Chrome still enforces its per-launch WAR secret and manifest allowlist.
     return event?.isMainFrame === false && provider.status().phase === 'ready'
       && settings.getSettings().adblockEnabled
-      && url.startsWith(`${prefix}web_accessible_resources/epicker-ui.html?`);
+      && ['epicker-ui.html', 'dom-inspector.html'].some(name => url.startsWith(`${prefix}web_accessible_resources/${name}?`));
   },
   extensionContextItems: (tab, params) => {
     const provider = blockingProviders?.forTab(tab);

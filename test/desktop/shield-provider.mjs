@@ -65,6 +65,7 @@ async function launch(supported) {
   await waitForValue(() => call('blockingStatus'), state => supported ? state.phase === 'ready' : state.phase === 'disabled', 'provider settled', 20000);
 }
 async function openShield() {
+  await popupFocusTrace.focusFixtureWindow(electron);
   const chrome = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/'), Boolean, 'chrome');
   await chrome.locator('#pillShield').click();
   const overlay = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://overlay/'), Boolean, 'overlay');

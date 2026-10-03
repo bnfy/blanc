@@ -167,6 +167,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       on('did-navigate-in-page', (_event, url, isMain) => {
         if (valid() && isMain) emit('tabs.onUpdated', entry.tabId, { url }, registry.project(tab));
       });
+      on('dom-ready', () => { if (valid()) emit('webNavigation.onDOMContentLoaded', { tabId: entry.tabId, ...registry.frameData(wc.mainFrame), timeStamp: Date.now() }); });
       on('did-finish-load', () => { if (valid()) emit('tabs.onUpdated', entry.tabId, { status: 'complete' }, registry.project(tab)); });
       on('page-title-updated', () => { if (valid()) emit('tabs.onUpdated', entry.tabId, { title: tab.title }, registry.project(tab)); });
       watched.set(wc.id, { wc, listeners, tabId: entry.tabId, windowId: projected.windowId });

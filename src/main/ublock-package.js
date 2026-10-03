@@ -104,6 +104,49 @@ function adaptPackage(files, hostSources) {
             (0.25 + n * 0.75) * Number.MAX_SAFE_INTEGER
         ).toString(36).slice(-8);`,
     "    return 'a' + Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); // Blanc: CSS-safe cryptographic identifier")));
+  // Security changes are reproduced separately from the immutable release.
+  // Restrict privileged navigation targets and resource viewers to web URLs.
+  result.set('js/click2load.js', Buffer.from(replace(result.get('js/click2load.js').toString('utf8'),
+    "const frameURL = url.searchParams.get('aliasURL') || actualURL;",
+    "const frameURL = self.BlancUboHost.navigationURL(url.searchParams.get('aliasURL') || actualURL);\nif (!frameURL || !self.BlancUboHost.navigationURL(actualURL)) return;")));
+  let strict = result.get('js/document-blocked.js').toString('utf8');
+  strict = replace(strict, 'const urlToFragment = raw => {',
+    "details.url = self.BlancUboHost.navigationURL(details.url) || '';\nif (details.to) details.to = self.BlancUboHost.navigationURL(details.to) || '';\n\nconst urlToFragment = raw => {");
+  strict = replace(strict, 'const proceedToURL = function() {', "const proceedToURL = function() {\n    if (!details.url) return;");
+  strict = replace(strict, 'const proceedTemporary = async function() {', "const proceedTemporary = async function() {\n    if (!details.url) return;");
+  strict = replace(strict, 'const proceedPermanent = async function() {', "const proceedPermanent = async function() {\n    if (!details.url) return;");
+  result.set('js/document-blocked.js', Buffer.from(strict));
+  result.set('js/code-viewer.js', Buffer.from(replace(result.get('js/code-viewer.js').toString('utf8'),
+    '        response = await fetch(url, fetchOptions);',
+    "        const target = new URL(url, document.location.href);\n        const own = new URL(vAPI.getURL(''));\n        if (!['http:', 'https:'].includes(target.protocol) && !(target.protocol === own.protocol && target.host === own.host)) throw new Error('Unsupported resource URL');\n        response = await fetch(target.href, { ...fetchOptions, credentials: 'omit' });")));
+  result.set('js/diff-updater.js', Buffer.from(replace(result.get('js/diff-updater.js').toString('utf8'),
+    '        return new URL(path, url);',
+    "        const target = new URL(path, url);\n        if (['http:', 'https:'].includes(target.protocol)) return target;")));
+  result.set('js/reverselookup-worker.js', Buffer.from(replace(result.get('js/reverselookup-worker.js').toString('utf8'),
+    '    const response = {};', '    const response = Object.create(null); // Blanc: literal filter keys cannot change the result prototype')));
+  // Authenticate the tools with a single-use native-extension capability. An
+  // invalid first window message must not consume the bootstrap listener.
+  for (const [tool, scriptlet, ui, startName] of [
+    ['picker', 'epicker', 'epicker-ui', 'epickerStart'],
+    ['inspector', 'dom-inspector', 'dom-inspector', 'startInspector'],
+  ]) {
+    let content = result.get('js/scriptlets/' + scriptlet + '.js').toString('utf8');
+    const indentation = tool === 'picker' ? '    ' : '        ';
+    const marker = indentation + 'return new Promise(resolve => {';
+    content = replace(content, marker,
+      indentation + "const blancToolCapability = await chrome.runtime.sendMessage({ blancTool: 1, action: 'issue', tool: '" + tool + "' });\n" +
+      indentation + "if (typeof blancToolCapability !== 'string') return;\n" + marker);
+    content = replace(content, "{ what: '" + startName + "' },", "{ what: '" + startName + "', blancToolCapability },");
+    result.set('js/scriptlets/' + scriptlet + '.js', Buffer.from(content));
+    let widget = result.get('js/' + ui + '.js').toString('utf8');
+    widget = replace(widget, "globalThis.addEventListener('message', ev => {", 'const blancToolBootstrap = async ev => {');
+    const portName = tool === 'picker' ? 'pickerContentPort' : 'inspectorContentPort';
+    widget = replace(widget, '    ' + portName + ' = ev.ports[0];',
+      "    if (await self.BlancUboHost.authorizeToolPort('" + tool + "', ev) !== true || " + portName + " !== undefined) return;\n" +
+      "    globalThis.removeEventListener('message', blancToolBootstrap);\n    " + portName + ' = ev.ports[0];');
+    widget = replace(widget, "}, { once: true });", "};\nglobalThis.addEventListener('message', blancToolBootstrap);");
+    result.set('js/' + ui + '.js', Buffer.from(widget));
+  }
   // Presentation only: retain every original popup handler and filtering rule.
   let popup = result.get('popup-fenix.html').toString('utf8');
   popup = replace(popup, '<link rel="stylesheet" href="css/popup-fenix.css">', '<link rel="stylesheet" href="css/popup-fenix.css">\n<link rel="stylesheet" href="blanc-popup.css">');

@@ -93,6 +93,10 @@ try {
     app.on('web-contents-created', (_event, wc) => observe(wc));
   });
   const call = (method, ...args) => testCalls.callTestHook(electron, method, args);
+  const openFixturePopup = async () => {
+    await popupFocusTrace.focusFixtureWindow(electron);
+    return call('blockingPopup');
+  };
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', 20000);
   timing.startupReadyMs = Date.now() - started;
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');
@@ -177,7 +181,7 @@ try {
   const mapping = await call('blockingMapping');
   const regularWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
   const stableId = mapping.find(item => item.webContentsId === regularWC).tabId;
-  await call('blockingPopup');
+  await openFixturePopup();
   const popup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'original popup');
   await popup.locator('body:not(.loading)').waitFor();
   await popup.locator('#switch').waitFor();
@@ -219,19 +223,36 @@ try {
   await page.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
   console.log('uBO core and isolation passed; exercising tools');
   stage = 'original tools';
-  await call('blockingPopup');
+  await page.evaluate(() => {
+    window.uboForgedPortReplies = 0;
+    window.uboForgedPortAttempts = 0;
+    const timer = setInterval(() => {
+      for (const frame of document.querySelectorAll('iframe')) {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = () => { window.uboForgedPortReplies++; };
+        frame.contentWindow.postMessage({ what: 'epickerStart', blancToolCapability: '0'.repeat(32) }, '*', [channel.port2]);
+        window.uboForgedPortAttempts++;
+        setTimeout(() => channel.port1.close(), 1000);
+      }
+      if (window.uboForgedPortAttempts >= 16) clearInterval(timer);
+    }, 5);
+    setTimeout(() => clearInterval(timer), 15000);
+  });
+  await openFixturePopup();
   let toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'picker popup');
   await toolsPopup.locator('body:not(.loading)').waitFor();
   await Promise.all([toolsPopup.waitForEvent('close'), toolsPopup.locator('#gotoPick').dispatchEvent('click')]);
   console.log('picker launched');
   const picker = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/epicker-ui.html')), Boolean, 'original element picker', 10000);
   await picker.waitForFunction(() => document.querySelector('svg#sea path')?.getAttribute('d')?.length > 0);
+  await waitForValue(() => page.evaluate(() => window.uboForgedPortAttempts), count => count > 0, 'hostile parent handoff attempted');
+  assert.equal(await page.evaluate(() => window.uboForgedPortReplies), 0, 'a forged parent port cannot receive picker data');
   await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true })));
   // Exercise the original handler without CDP waiting for an input ack from
   // the iframe that this same handler destroys. Native keyboard UI remains
   // part of the installed-candidate platform gate.
   await waitForValue(async () => page.frames().some(frame => frame.url().includes('/epicker-ui.html')), value => !value, 'picker dismissed');
-  await call('blockingPopup');
+  await openFixturePopup();
   toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'zapper popup');
   stage = 'original zapper';
   await toolsPopup.locator('body:not(.loading)').waitFor();
@@ -275,12 +296,27 @@ try {
   await waitForValue(async () => logger.locator('body').innerText(), text => text.includes('blocked-ubo.js'), 'logger blocked request', 10000);
   assert(!(await logger.locator('body').innerText()).includes('private-marker'));
   assert(!(await logger.locator('body').innerText()).includes('private-network-marker'));
+  stage = 'original DOM inspector';
+  const inspectorTab = await logger.locator('#pageSelector option').evaluateAll(options => options.find(option => Number(option.value) > 0 && option.textContent.includes('uBO acceptance fixture'))?.value);
+  assert(inspectorTab, 'fixture tab appears in the original logger selector');
+  await logger.locator('#pageSelector').selectOption(inspectorTab);
+  await logger.locator('#showdom').dispatchEvent('click');
+  const inspector = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'original DOM inspector');
+  await waitForValue(() => logger.locator('#domTree').innerText(), text => text.includes('body'), 'DOM inspector tree populated');
+  assert(inspector);
+  // A new document must reconnect the original logger channel through the
+  // host's sender-validated DOMContentLoaded event, without exposing private tabs.
+  await page.reload();
+  await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation');
+  await waitForValue(() => logger.locator('#domTree').innerText(), text => text.includes('body'), 'DOM inspector reconnected tree');
+  await logger.locator('#showdom').dispatchEvent('click');
+  await waitForValue(async () => page.frames().some(frame => frame.url().includes('/dom-inspector.html')), value => !value, 'DOM inspector dismissed');
   stage = 'original popup tool reuse';
   for (const [tool, pathname] of [['dashboard', '/dashboard.html'], ['logger', '/logger-ui.html']]) {
     const original = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
     for (let attempt = 0; attempt < 2; attempt++) {
       await call('activateTab', regular);
-      await call('blockingPopup');
+      await openFixturePopup();
       const controls = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' native popup');
       await controls.locator('body:not(.loading)').waitFor();
       // Upstream closes this document synchronously after opening the tool.
@@ -693,13 +729,17 @@ try {
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'offline cold launch', 20000);
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getURL().split('/')[2]), originalIdentity);
   for (const [tool, pathname] of [['dashboard', '/dashboard.html'], ['logger', '/logger-ui.html']]) {
-    const restored = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
-    assert(restored, pathname + ' restored after restart');
+    const restored = await waitForValue(async () => (await call('state')).tabs.find(tab => tab.url.includes(pathname)), Boolean, pathname + ' restored after restart');
     assert.equal(restored.asleep, true, tool + ' starts quiet after cold restore');
-    await call('blockingPopup');
+    await openFixturePopup();
     const restoredPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' cold restore popup');
     await restoredPopup.locator('body:not(.loading)').waitFor();
-    await restoredPopup.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click');
+    await Promise.all([
+      restoredPopup.waitForEvent('close'),
+      restoredPopup.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click').catch(error => {
+        if (!restoredPopup.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
+      }),
+    ]);
     await waitForValue(() => call('state'), state => state.activeTabId === restored.id && state.tabs.find(tab => tab.id === restored.id)?.asleep === false, tool + ' quiet tab selected by original popup');
     assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [restored.id]);
     assert.equal(await call('allowAdsOnActive'), null, 'tools never become site exceptions');

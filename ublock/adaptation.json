@@ -5,7 +5,7 @@
   "host": [
     {
       "path": "src/main/ublock-host-mainworld.js",
-      "sha256": "bfbcea7458786b9209686965ad8260eea8caaa7e0e988c2b33310a4f73aa86b8"
+      "sha256": "9969141a40dc6f4b61b5b30cbee08ef7cdfd97d4a09dcfd194900b6592ef977e"
     },
     {
       "path": "src/main/ublock-bridge-mainworld.js",
@@ -21,7 +21,7 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "897ba73fda1febc06db8de402b4caca2b3bb405887e4723b8526620792a64c09"
+      "sha256": "795a8c70aa71ae0f87ec076a445fcd624b94d9e514636edbe294dffb7ee509a7"
     },
     {
       "path": "src/main/ublock-host-policy.js",
@@ -29,7 +29,7 @@
     },
     {
       "path": "src/main/ublock-provider.js",
-      "sha256": "c20a60373789223e411c56801e9780a3f2216ae54254dad665ae3256d13d4fb7"
+      "sha256": "8af6391f867900cbe28d20cd66f4fda3082a78bf0364bdf8dfc744ca87fb8f3b"
     },
     {
       "path": "src/main/ublock-registry.js",
@@ -252,6 +252,36 @@
       "adaptedSha256": "9772ca86c580c69ef44e4529929970ccd2030b6ebedb1fd9d7028269ace018de"
     },
     {
+      "path": "js/click2load.js",
+      "upstreamSha256": "56c6cc8f64cba39932d9d8c3b945060591616a628bef24e6b9a21694426fe14b",
+      "adaptedSha256": "56ac8ef50184d500e0ea1c016eb285581206f9d1c00cc81c0cabcfde33df8d9e"
+    },
+    {
+      "path": "js/code-viewer.js",
+      "upstreamSha256": "ce822033f4f579fdf3694faadcef086b8204cb934e49c0b877320adc49cf8c57",
+      "adaptedSha256": "9c4788b04b9a174a3af07a331b9297ee1b98197b9b141752c9cfbd5681068fbb"
+    },
+    {
+      "path": "js/diff-updater.js",
+      "upstreamSha256": "7d291341c2bb917858158c10c69ab002759630720e0c029bd4a962b5404a95bf",
+      "adaptedSha256": "1b80160820078ed5a1e3750261d672c7a2776d74592297fa817dfb3fa7710a45"
+    },
+    {
+      "path": "js/document-blocked.js",
+      "upstreamSha256": "8913039e7220a0e21ef2dd49ffec5a8032b0c7664ac73c5c36e1d90a0236f806",
+      "adaptedSha256": "75eb6015665da0997b4d1bdec3aa544c35e72b5048f7133f01f3a5ba22dd1477"
+    },
+    {
+      "path": "js/dom-inspector.js",
+      "upstreamSha256": "f8e5bdac7ff4ba2df0ad53e7fc4d376a9037f6be8ab7ad75a2d9f4f52809e106",
+      "adaptedSha256": "78f0be83ec1956553c0441f078282f1425377d8108609b91c6dd27f0cbc0a85d"
+    },
+    {
+      "path": "js/epicker-ui.js",
+      "upstreamSha256": "8d55a95c049db0428e9122194004a64e347d7694d7c20e9a84bccba1a87675d6",
+      "adaptedSha256": "2521d21351124794ff1c195d3cce8748b9c30bdeb015cae4f2491f52e6adf6be"
+    },
+    {
       "path": "js/messaging.js",
       "upstreamSha256": "adf231bc2c670d71ae894f1f117f2a5958e4fdc405fd8cf01d5522c6c1a852ad",
       "adaptedSha256": "842a847afb4f5f87b0f97c505b46192826f90454a060c0f9e6ed99febf0980cc"
@@ -260,6 +290,21 @@
       "path": "js/popup-fenix.js",
       "upstreamSha256": "270367a63218142984a0cad4cb21f788091c3f1035e51b8a80e67ee603b2b3d7",
       "adaptedSha256": "e099d097be78c76c00adf9b00b5c9557e099de1515136a37af6bfc444b74f3ed"
+    },
+    {
+      "path": "js/reverselookup-worker.js",
+      "upstreamSha256": "f183bf9b654de9ce09604f7341521e61556681a83caed2e3415114171e17ae90",
+      "adaptedSha256": "7f910fb886a760dce4ba87794cb9cf815079877a36d8e04a5976b0aa7e9fb6bc"
+    },
+    {
+      "path": "js/scriptlets/dom-inspector.js",
+      "upstreamSha256": "a3cc079ca08142ff36e01b2d8e15069b99b26fe600ef276bec38291ea76f6c88",
+      "adaptedSha256": "294839385e650c6b60dc2bba8b8f7f93fe28e6fd24d20bb8b89ae4ad65b6bee2"
+    },
+    {
+      "path": "js/scriptlets/epicker.js",
+      "upstreamSha256": "50cde7060f22fc67389fc87e159d12fcef09c44053a707f5c74d9a5ea1028e4d",
+      "adaptedSha256": "ab1723df94361e705e7fac63092834365b1d91f78d80e914c4b1ee431b7eab14"
     },
     {
       "path": "js/start.js",
@@ -504,7 +549,7 @@
     {
       "path": "blanc-host.js",
       "upstreamSha256": null,
-      "adaptedSha256": "bfbcea7458786b9209686965ad8260eea8caaa7e0e988c2b33310a4f73aa86b8"
+      "adaptedSha256": "9969141a40dc6f4b61b5b30cbee08ef7cdfd97d4a09dcfd194900b6592ef977e"
     },
     {
       "path": "blanc-bridge.html",
@@ -517,5 +562,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "f7b73e6c26a3bd5867ea930d0c5a5f2e1a60c84431603120e26a4e271b2bd727"
+  "patchSha256": "f8b396511133b24df6bf13d1bbdbded384825582e7c1a77ade7d236ffc51806e"
 }
