@@ -457,3 +457,21 @@ all four desktop jobs and ordinary packaging in
 Every platform log confirms both fallback regressions ran. The earlier Intel
 failure did not recur; its exact failure code remains unknown. This pass is not
 claimed as a production fix for that incident or as signed installed acceptance.
+
+
+## Private candidate scripting-policy automation
+
+The private Windows/Linux validation workflow now runs the packaged no-scripting
+probe when `ublock_candidate` is explicitly enabled. Windows executes the
+probe against the app installed by the real NSIS installer before uninstalling
+that test installation. Linux extracts the built AppImage and tests its actual
+executable/ASAR bytes. The latter is extracted-package evidence, not a claim of
+integrated-menu AppImage or installed-desktop acceptance. Existing direct
+AppImage and Ubuntu sandbox checks remain separate.
+
+Both jobs preserve sanitized probe JSON as a three-day Actions artifact even
+if a later check fails. A failed probe still fails the job; successful candidate
+installer artifacts are uploaded only after all required steps pass. This wiring
+has YAML parsing, shell syntax and the existing distribution-gate unit checks;
+the new Windows/Linux steps have not run yet. It changes no clearance fields,
+platform flags, public release behavior or CodeQL dispositions.

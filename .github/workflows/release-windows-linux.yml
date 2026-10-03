@@ -265,8 +265,10 @@ jobs:
           node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
           node test/desktop/windows-update-trust-smoke.cjs
 
-      - name: Verify installed blanc-import protocol
+      - name: Verify installed blanc-import protocol and candidate uBO scripting policy
         shell: pwsh
+        env:
+          UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
         run: |
           $version = node -p "require('./package.json').version"
           $product = node -p "require('./package.json').productName"
@@ -293,6 +295,14 @@ jobs:
             npm run test:packaged:tab-handoff-protocol
             if ($LASTEXITCODE -ne 0) {
               throw "Installed blanc-import protocol smoke failed."
+            }
+            if ($env:UBLOCK_CANDIDATE -eq 'true') {
+              $env:BLANC_PACKAGED_ASAR = Join-Path $installedRoot 'resources/app.asar'
+              $env:BLANC_UBLOCK_EVIDENCE = Join-Path $PWD 'dist/ublock-noscript-windows.json'
+              npm run test:ublock-noscript:packaged
+              if ($LASTEXITCODE -ne 0) {
+                throw "Installed uBO no-scripting probe failed."
+              }
             }
           } finally {
             if (Test-Path $uninstaller) {
@@ -336,6 +346,15 @@ jobs:
             dist/windows-signature.json
             dist/latest.yml
 
+      - name: Preserve Windows candidate scripting-policy evidence
+        if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Windows-uBO-scripting-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 3
+          path: dist/ublock-noscript-windows.json
+
       - name: Upload private signed Windows validation artifact
         if: ${{ inputs.mode == 'validation' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -348,6 +367,7 @@ jobs:
             dist/Blanc-Setup-*.exe.blockmap
             dist/windows-signature.json
             dist/latest.yml
+            dist/ublock-noscript-windows.json
 
   linux:
     needs: validate-inputs
@@ -535,6 +555,23 @@ jobs:
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
 
+      - name: Verify candidate uBO scripting policy from actual AppImage bytes
+        if: ${{ inputs.mode == 'validation' && inputs.ublock_candidate }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          APPIMAGE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
+          UBLOCK_EVIDENCE="$PWD/dist/ublock-noscript-linux.json"
+          UBLOCK_PROBE="$PWD/test/desktop/packaged-ublock-noscript.mjs"
+          UBLOCK_EXTRACT=$(mktemp -d)
+          trap 'rm -rf "$UBLOCK_EXTRACT"' EXIT
+          cd "$UBLOCK_EXTRACT"
+          "$APPIMAGE" --appimage-extract >/dev/null
+          BLANC_PACKAGED_EXECUTABLE="$UBLOCK_EXTRACT/squashfs-root/blanc" \
+            BLANC_PACKAGED_ASAR="$UBLOCK_EXTRACT/squashfs-root/resources/app.asar" \
+            BLANC_UBLOCK_EVIDENCE="$UBLOCK_EVIDENCE" \
+            dbus-run-session -- xvfb-run -a node "$UBLOCK_PROBE"
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         env:
@@ -555,6 +592,15 @@ jobs:
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
 
+      - name: Preserve Linux candidate scripting-policy evidence
+        if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Linux-uBO-scripting-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 3
+          path: dist/ublock-noscript-linux.json
+
       - name: Upload private Linux validation artifact
         if: ${{ inputs.mode == 'validation' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -565,6 +611,7 @@ jobs:
           path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
+            dist/ublock-noscript-linux.json
 
   linux-sandbox:
     needs: validate-inputs
