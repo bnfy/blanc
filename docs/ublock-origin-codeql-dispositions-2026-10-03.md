@@ -14,8 +14,9 @@ CodeQL still sees the original upstream source at these locations.
 probes against verified source bytes and checks every baseline source digest.
 The focused security tests exercise actual adapted functions and bootstrap code.
 The native real-blocking suite exercises original tools, resource permissions,
-blocking and the combined Permissions Policy regression. A separate local
-sandboxed noscript probe is recorded below; this is macOS arm64 evidence, not
+blocking and the combined Permissions Policy regression. A maintained native
+`test:ublock-noscript:desktop` regression and a fresh macOS arm64 result are
+[recorded below](evidence/2026-10-03-ubo-codeql-contexts/README.md); this is not
 all-platform installed acceptance.
 
 | Alert | Upstream location | Recommendation | Specific evidence / limit |
@@ -25,7 +26,7 @@ all-platform installed acceptance.
 | 74 | `js/document-blocked.js:88` | Mitigated in deployed adaptation | Parsed HTTP(S) target required before href/navigation or exception creation; executable/local/internal/encoded malformed schemes rejected by actual host tests. Ordinary external web navigation remains intentional. |
 | 75 | `js/document-blocked.js:207` | Mitigated in deployed adaptation | Parsed HTTP(S) target required before href/navigation or exception creation; executable/local/internal/encoded malformed schemes rejected by actual host tests. Ordinary external web navigation remains intentional. |
 | 76 | `js/logger-ui.js:1086` | Security-context false positive recommended | Sink prefixes select value with a literal fragment marker. Hash parsing accepts only an existing owned-tab option; this cannot become an executable URL or HTML parsing operation. |
-| 77 | `js/scriptlets/noscript-spoof.js:70` | No exploit observed under required scripting policy | Native Electron 44.5.1 probe used the actual no-scripting switch and noscript reconstruction: fallback rendered; original/inserted scripts, error attribute, JavaScript link and meta redirect did not execute; Node unavailable. Upstream refuses reconstruction when noScriptingCSP differs from its default. Re-test if that policy changes. |
+| 77 | `js/scriptlets/noscript-spoof.js:70` | No exploit observed under required scripting policy | Maintained native Electron 44.5.1 regression uses the actual no-scripting switch, active-payload controls and noscript reconstruction: fallback rendered; original/inserted scripts, error attribute, JavaScript link and meta redirect did not execute; Node unavailable. Upstream refuses reconstruction when noScriptingCSP differs from its default. Re-test if that policy changes. |
 | 78 | `lib/codemirror/mode/xml/xml.js:82` | Security-context false positive recommended | CodeMirror XML tokenizer recognizes comments and returns token styles; it neither removes unsafe HTML nor authorizes DOM insertion. It is not an HTML sanitizer. |
 | 79 | `js/logger-ui.js:2781` | No privileged execution sink; export limitation retained | Markdown table formatting reaches the export textarea through textContent, then explicit clipboard copy. It is not complete Markdown/HTML sanitization for a later external consumer; pasted exports must still be treated as untrusted text. |
 | 80 | `js/scriptlet-filtering-core.js:95` | Security-context false positive recommended | requote is used by decompile to create filter text for diagnostics. Executable scriptlet arguments instead use JSON.stringify in patchScriptlet; toLogger consumes details.filters as text, separately from injected code. |
@@ -83,8 +84,9 @@ isolated temporary profile, sandbox enabled and Node disabled:
 [Durable probe evidence](evidence/2026-10-03-ubo-codeql-contexts/README.md)
 now preserves the three earlier native JSON outputs and a fresh, reproducible
 source-context report. The native probe fixture itself was not retained and
-those native observations were not rerun for this evidence commit; that limit
-is explicit in the evidence README. These are not release attestations or
+those earlier native observations were not rerun for their evidence commit.
+The subsequent maintained noscript regression now supplies a fresh reproducible
+run, with the original logs retained as historical observations. These are not release attestations or
 all-platform installed acceptance. The source-level recommendations remain
 inspectable against the pinned package.
 

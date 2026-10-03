@@ -343,3 +343,17 @@ bound. The fixture now also fails immediately if the provider reports failure
 and records observed new-profile latency. No production deadline changed; CI
 must still prove that the profile becomes ready and its initial GET reaches the
 fixture server exactly once.
+
+
+The unchanged Intel retry at `0966d6e4` passed (run 37144642740, attempt 2).
+That establishes an intermittent earlier failure, not a production fix or a
+clean first attempt. The later 40-second test budget and readiness diagnostics
+still require their own exact-commit CI result.
+
+Alert #77 now has a maintained native regression and fresh local macOS arm64
+[output](evidence/2026-10-03-ubo-codeql-contexts/noscript-repeatable-macos-arm64.json).
+Active controls prove the inline script/error/link payloads execute before
+no-scripting is enabled; uBO's required default CSP then prevents them while
+its original noscript reconstruction displays fallback content. Turning the
+switch off permits the original script again. This adds no production code and
+changes no alert disposition. It is wired into the four-platform desktop job.

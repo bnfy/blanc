@@ -76,9 +76,11 @@ jobs:
             xvfb-run -a npm run test:ublock:desktop
             xvfb-run -a npm run test:ublock-dashboard:desktop
             xvfb-run -a npm run test:ublock-retirement:desktop
+            xvfb-run -a npm run test:ublock-noscript:desktop
           else
             npm run test:shield-provider:desktop
             npm run test:ublock:desktop
             npm run test:ublock-dashboard:desktop
             npm run test:ublock-retirement:desktop
+            npm run test:ublock-noscript:desktop
           fi
