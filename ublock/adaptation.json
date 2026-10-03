@@ -61,7 +61,7 @@
     },
     {
       "path": "src/renderer/ublock-dashboard.css",
-      "sha256": "aed33d46db975ea997b440d58447ee0bcba09f925d4b0362138433e14dea9c0d"
+      "sha256": "18c211f1fecce61176b2dcedb6763d067d6ce8f6453304b0e2fc957929d3956d"
     },
     {
       "path": "src/renderer/sunrise-hero-mark.png",
@@ -341,7 +341,7 @@
     {
       "path": "blanc-dashboard.css",
       "upstreamSha256": null,
-      "adaptedSha256": "aed33d46db975ea997b440d58447ee0bcba09f925d4b0362138433e14dea9c0d"
+      "adaptedSha256": "18c211f1fecce61176b2dcedb6763d067d6ce8f6453304b0e2fc957929d3956d"
     },
     {
       "path": "blanc-popup.js",
@@ -499,5 +499,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "689f3b91e7107a4773e0623fffcc1619c9a4c08cd349c0595099c551b0d52ac7"
+  "patchSha256": "18bd36daf7cd7a062c24f39770cc6b72ace8f7d2953be02c962b88bc6a562e6a"
 }

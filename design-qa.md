@@ -2541,3 +2541,25 @@ panels and advanced-settings presentation. Installed Windows/Linux acceptance an
 public GPL/source-boundary clearance remain required. Platform gates stay closed.
 
 final result: passed
+
+## 2026-10-03 — Dashboard desktop density correction
+
+The owner's live screenshot exposed a sizing error in the previous QA conclusion:
+normalizing the presentation mockup to a large CSS viewport produced oversized
+48 px headings and 20 px body text. This section supersedes that sizing approval.
+Blanc's existing pages.css uses 13 px body text and 20 px headings; the uBO
+Dashboard now uses 14 px body text, 24 px page headings, 16–18 px sections,
+36 px buttons, 16 px checkboxes, a 28 px Sunrise, and 28 px content gutters.
+The approved layout and neutral palette remain; native editor text stays 14 px.
+Responsive layouts share that type scale rather than introducing larger overrides.
+
+Verified the actual 1200 × 800 native window with a 1200 × 732 Dashboard view
+and webContents zoom factor 1. No artificial child-view resizing or CSS zoom was
+used. Captures cover all seven panels, light/dark, 720 px width and 720 × 600
+My rules; native computer-use screenshot confirmed scale beside the real Island.
+Evidence: output/playwright/ubo-dashboard-density-*.png. Programmatic composites
+have an empty chrome strip; the native app screenshot is the Island comparison.
+
+Passed npm run ublock:check and npm run test:ublock-dashboard:desktop, including
+native controls, narrow layouts, real blocking and restart persistence. No runtime,
+filtering engine, provider gate, or user zoom changes. Corrected dev preview left open.
