@@ -49,7 +49,7 @@ const QUESTIONS = [
     "id": "patron",
     "q": "What does optional Patron add?",
     "a": [
-      "Blanc is free to browse. Patron costs US$30 per year or US$4 per month, plus applicable tax, and supports development. It adds the ability to create saved Named Workspaces containing sets of tabs and groups. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses; existing sets remain available.",
+      "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
       "Blocking, private tabs, favorites, ordinary tab groups, Quiet Tabs and optional encrypted Sync remain free. Patron does not restrict access to the open-source code."
     ]
   },
@@ -74,6 +74,16 @@ const QUESTIONS = [
     "a": [
       "No. Blanc does not proxy or anonymize traffic. You can use it with a system VPN. Secure DNS controls how names are resolved; it does not hide website requests or replace a VPN. Private tabs keep certain browsing records out of the local profile, but websites and your network can still observe connections."
     ]
+  },
+  {
+    "id": "development",
+    "q": "Is AI used to build or review Blanc?",
+    "a": ["AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit."]
+  },
+  {
+    "id": "independent-audit",
+    "q": "Has Blanc had an independent security audit?",
+    "a": ["No independent external security audit has been completed. Public source, maintainer reviews, automated tests and authenticated release artifacts provide specific evidence; they do not substitute for an independent audit. The next step is preparing a scope and funding proposal, without promising a date."]
   },
   {
     "id": "ai",
@@ -129,6 +139,7 @@ const QUESTIONS = [
         <section class="faq-page-item" id={id}>
           <h2>{q}</h2>
           <div>{a.map((paragraph) => <p>{paragraph}</p>)}
+            {id === 'independent-audit' && <p><a href="/features/security#security-audit-title">Audit status and platform verification</a></p>}
             {id === 'electron' && <p><a href="https://github.com/bnfy/blanc/tree/v1.25.0/bench/memory" target="_blank" rel="noopener">Benchmark harness and raw runs</a></p>}
             {id === 'open-source' && <p><a href="https://github.com/bnfy/blanc/tree/v1.25.0" target="_blank" rel="noopener">Source, license and third-party notices</a></p>}
           </div>
