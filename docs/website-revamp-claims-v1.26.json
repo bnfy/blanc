@@ -211,6 +211,16 @@
         "test/desktop/mouse-gestures.mjs"
       ],
       "qualification": "Off by default, explicit right-button mouse drag or Alt/Option plus drag on a trackpad. Default L/R/U patterns perform Back/Forward/New tab. Website buttons replay a labelled illustration and do not handle real browser gestures."
+    },
+    "builtInBlocking": {
+      "evidence": [
+        "src/main/adblock.js",
+        "src/main/adblock-snapshot.js",
+        "src/main/adblock-scriptlets.js",
+        "adblock/sources/pinned.json",
+        "package.json"
+      ],
+      "qualification": "Blanc Blocker uses Ghostery’s Electron blocking engine, release-bundled EasyList/EasyPrivacy snapshots and bundled scriptlet resources. This identifies components, not universal blocking coverage. No claim of live filter updates or third-party endorsement. Verified at public v1.26.0 and retained in the uBO candidate."
     }
   },
   "claims": [
@@ -4653,13 +4663,12 @@
     {
       "id": "revamp-copy-027",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Ad and tracker blocking is built into Blanc. Open the shield to inspect the current site and change its blocking setting.",
+      "exactWording": "Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "security",
-        "trust"
+        "builtInBlocking"
       ],
-      "verdict": "qualified"
+      "verdict": "verified"
     },
     {
       "id": "revamp-copy-032",

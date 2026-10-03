@@ -17,7 +17,7 @@
       ]
     },
     {
-      "exactWording": "Choose Blanc Blocker or uBlock Origin, behind Blanc’s new Horizon Shield.",
+      "exactWording": "Choose how Blanc blocks ads and trackers.",
       "verdict": "pending-public-release",
       "evidence": [
         "src/renderer/pages/settings.html",
@@ -26,7 +26,7 @@
       "assetEvidence": "03621de6:docs/verification/2026-10-03-horizon-shield.md"
     },
     {
-      "exactWording": "For regular tabs, with its own settings, filter lists and request logger.",
+      "exactWording": "Customizable filter lists, advanced settings and a request logger for regular tabs.",
       "verdict": "pending-public-release",
       "evidence": [
         "src/renderer/pages/settings.html",
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "exactWording": "Private tabs use Blanc Blocker. Switching providers requires a restart; each keeps its own site settings.",
+      "exactWording": "Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.",
       "verdict": "pending-public-release",
       "evidence": [
         "src/renderer/pages/settings.html",

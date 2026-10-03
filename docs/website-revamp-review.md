@@ -205,7 +205,11 @@ release evidence, including platform availability. The v1.26 claim ledger does
 not establish that these new capabilities are shipped.
 
 Private-tab behavior, separate provider site settings and the required restart
-remain visible. Existing setup defaults, optional connection gating, measurement
+remain visible. The concise Blanc Blocker description names Ghostery’s engine,
+EasyList ad filters, EasyPrivacy tracker filters and bundled scriptlets. These
+components were verified against v1.26.0 `adblock.js`, `adblock-snapshot.js`,
+`adblock-scriptlets.js` and the pinned source manifest; the uBO candidate
+retains that stack. Existing setup defaults, optional connection gating, measurement
 disclosures and links to Trust remain on the homepage. The prior illustrative
 site switch was removed; current site controls remain described in Trust.
 
