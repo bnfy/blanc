@@ -17,6 +17,7 @@ test('restart waits through deferred quit and deduplicates repeated clicks', asy
   assert.deepEqual(f.calls, ['quit']);
   f.app.emit('before-quit', { defaultPrevented: true });
   assert.deepEqual(f.calls, ['quit']);
+  f.app.emit('will-quit', { defaultPrevented: false });
   f.app.emit('quit');
   assert.equal(await pending, true);
   assert.deepEqual(f.calls, ['quit', 'relaunch']);
@@ -34,14 +35,14 @@ test('Leave permits quit and relaunch after existing page handlers decide', asyn
     const event = { defaultPrevented: false };
     page.emit('will-prevent-unload', event);
     event.defaultPrevented = true;
-    queueMicrotask(() => app.emit('quit'));
+    queueMicrotask(() => { app.emit('will-quit', { defaultPrevented: false }); app.emit('quit'); });
   });
   assert.equal(await f.restart(), true);
   assert.deepEqual(f.calls, ['quit', 'relaunch']);
 });
 test('quit failure cancels the intent and permits retry', async () => {
   let fail = true;
-  const f = fixture(app => { if (fail) throw new Error('quit failed'); app.emit('quit'); });
+  const f = fixture(app => { if (fail) throw new Error('quit failed'); app.emit('will-quit', { defaultPrevented: false }); app.emit('quit'); });
   assert.equal(await f.restart(), false);
   fail = false;
   assert.equal(await f.restart(), true);
@@ -79,6 +80,23 @@ test('a Leave decision after ten seconds still completes the requested restart',
   const f = fixture(); const pending = f.restart();
   t.mock.timers.tick(30000);
   f.page.emit('will-prevent-unload', { defaultPrevented: true });
-  await Promise.resolve(); f.app.emit('quit');
+  await Promise.resolve(); f.app.emit('will-quit', { defaultPrevented: false }); f.app.emit('quit');
   assert.equal(await pending, true); assert.deepEqual(f.calls, ['quit', 'relaunch']);
+});
+
+test('native relaunch is prepared before quit and only once', async () => {
+  const f = fixture(); const pending = f.restart();
+  assert.deepEqual(f.calls, ['quit']);
+  f.app.emit('will-quit', { defaultPrevented: false });
+  assert.deepEqual(f.calls, ['quit', 'relaunch']);
+  f.app.emit('will-quit', { defaultPrevented: false });
+  f.app.emit('quit'); assert.equal(await pending, true);
+  assert.deepEqual(f.calls, ['quit', 'relaunch']);
+});
+test('a cancelled final shutdown does not arm a later unrelated quit', async () => {
+  const f = fixture(); const pending = f.restart();
+  f.app.emit('will-quit', { defaultPrevented: true });
+  assert.equal(await pending, false);
+  f.app.emit('will-quit', { defaultPrevented: false }); f.app.emit('quit');
+  assert.deepEqual(f.calls, ['quit', 'cancelled']);
 });

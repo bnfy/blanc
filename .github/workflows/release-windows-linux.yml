@@ -265,7 +265,7 @@ jobs:
           node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
           node test/desktop/windows-update-trust-smoke.cjs
 
-      - name: Verify installed blanc-import protocol and candidate uBO scripting policy
+      - name: Verify installed blanc-import protocol and candidate uBO acceptance
         shell: pwsh
         env:
           UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
@@ -302,6 +302,11 @@ jobs:
               npm run test:ublock-noscript:packaged
               if ($LASTEXITCODE -ne 0) {
                 throw "Installed uBO no-scripting probe failed."
+              }
+              $env:BLANC_UBLOCK_EVIDENCE = Join-Path $PWD 'dist/ublock-installed-windows.json'
+              npm run test:ublock:installed
+              if ($LASTEXITCODE -ne 0) {
+                throw "Installed uBO provider and restart acceptance failed."
               }
             }
           } finally {
@@ -346,14 +351,16 @@ jobs:
             dist/windows-signature.json
             dist/latest.yml
 
-      - name: Preserve Windows candidate scripting-policy evidence
+      - name: Preserve Windows candidate uBO evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Blanc-Windows-uBO-scripting-${{ github.run_id }}
           if-no-files-found: ignore
           retention-days: 3
-          path: dist/ublock-noscript-windows.json
+          path: |
+            dist/ublock-noscript-windows.json
+            dist/ublock-installed-windows.json
 
       - name: Upload private signed Windows validation artifact
         if: ${{ inputs.mode == 'validation' }}
@@ -368,6 +375,7 @@ jobs:
             dist/windows-signature.json
             dist/latest.yml
             dist/ublock-noscript-windows.json
+            dist/ublock-installed-windows.json
 
   linux:
     needs: validate-inputs

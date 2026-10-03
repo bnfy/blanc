@@ -25,6 +25,7 @@
     "test:ublock-unavailable:desktop": "node test/desktop/ublock-retirement.mjs --unavailable",
     "test:ublock-noscript:desktop": "node test/desktop/ublock-noscript.mjs",
     "test:ublock-noscript:packaged": "node test/desktop/packaged-ublock-noscript.mjs",
+    "test:ublock:installed": "node test/desktop/packaged-ublock-acceptance.mjs",
     "ublock:check": "node scripts/check-ublock-package.cjs && node scripts/build-ublock-adaptation.cjs",
     "ublock:distribution": "node scripts/check-ublock-distribution.cjs",
     "test:mouse-gestures:desktop": "node test/desktop/mouse-gestures.mjs",
@@ -161,7 +162,7 @@
     "beforePack": "scripts/before-pack-ublock.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
-      "bundleVersion": "1270",
+      "bundleVersion": "1271",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,

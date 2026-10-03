@@ -1,6 +1,6 @@
 // Restart intent lasts through the user's Leave/Stay decision. A wall-clock
 // timeout must never disarm relaunch while a valid quit is still pending.
-/** Restart only after normal quit completes; never arm a future unrelated quit. */
+/** Relaunch for the current normal quit intent, after page unload decisions. */
 function createAppRestarter({ app, webContents, onCancelled = () => {} }) {
   let pending = null;
   return function restartApp() {
@@ -10,8 +10,10 @@ function createAppRestarter({ app, webContents, onCancelled = () => {} }) {
     const result = pending;
     const observers = [];
     let settled = false;
+    let prepared = false;
     const cleanup = () => {
       app.removeListener('quit', quit);
+      app.removeListener('will-quit', willQuit);
       for (const [contents, listener] of observers) contents.removeListener('will-prevent-unload', listener);
       pending = null;
     };
@@ -26,11 +28,17 @@ function createAppRestarter({ app, webContents, onCancelled = () => {} }) {
       if (settled) return;
       settled = true;
       cleanup();
-      // 'quit' cannot be cancelled. Scheduling here avoids an orphan relaunch
-      // after a page's Stay decision or a cancelled normal shutdown.
-      app.relaunch();
-      resolve(true);
+      resolve(prepared);
     };
+    const willQuit = event => {
+      // Page unload decisions have completed. Prepare the native helper while
+      // Electron still owns its shutdown resources, before the quit event.
+      // Blanc's existing will-quit handlers are registered before this one.
+      if (event.defaultPrevented) { cancel(); return; }
+      app.relaunch();
+      prepared = true;
+    };
+    app.once('will-quit', willQuit);
     app.once('quit', quit);
     for (const contents of webContents.getAllWebContents()) {
       const listener = event => {
