@@ -188,6 +188,10 @@ try {
   await openFixturePopup();
   const popup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'original popup');
   await popup.locator('body:not(.loading)').waitFor();
+  await popup.waitForFunction(() => {
+    const mark = document.querySelector('#blancMark');
+    return mark?.src === 'blanc://ubo-brand/sunrise.png' && mark.complete && mark.naturalWidth > 0;
+  });
   await popup.locator('#switch').waitFor();
   assert.match(await popup.locator('body').innerText(), /1/);
   await popup.locator('#switch').dispatchEvent('click');

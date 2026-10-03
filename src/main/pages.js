@@ -22,6 +22,7 @@ const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
+const { ublockBrandResourcePath } = require('./ublock-brand-resource');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
@@ -61,6 +62,8 @@ function setupPages(hooks = {}) {
   });
 
   const serveBlanc = (request) => {
+    const branding = ublockBrandResourcePath(request.url);
+    if (branding) return net.fetch(pathToFileURL(branding).toString());
     const { host, pathname } = new URL(request.url);
     if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
 

@@ -49,6 +49,10 @@ async function openDashboard() {
   dashboard = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/dashboard.html')), Boolean, 'Dashboard');
   await call('focusWindow');
   await dashboard.locator('.tabButton.selected').waitFor();
+  await dashboard.waitForFunction(() => {
+    const mark = document.querySelector('#dashboard-nav .logo img');
+    return mark?.src === 'blanc://ubo-brand/sunrise.png' && mark.complete && mark.naturalWidth > 0;
+  });
   // The restored last pane can still be loading after the outer tab becomes visible.
   await dashboard.frameLocator('#iframe').locator('#blancPaneHeader h1').waitFor();
   await dashboard.frameLocator('#iframe').locator('#blancPaneHeader h1').evaluate(node => node.ownerDocument.fonts.ready);

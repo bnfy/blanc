@@ -30,7 +30,7 @@
   if (page === 'dashboard.html') {
     const logo = document.querySelector('#dashboard-nav .logo');
     const mark = logo.querySelector('img');
-    mark.src = 'blanc-sunrise.png';
+    mark.src = 'blanc://ubo-brand/sunrise.png';
     mark.alt = '';
     mark.removeAttribute('data-i18n-title');
     logo.append(element('strong', null, 'uBlock Origin'));

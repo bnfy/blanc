@@ -6,7 +6,7 @@
   const icon = name => `<span class="blanc-icon" style="--icon:url('blanc-icons/${name}.svg')" aria-hidden="true"></span>`;
   const card = document.createElement('section');
   card.id = 'blancPopup'; card.setAttribute('aria-label', 'uBlock Origin controls');
-  card.innerHTML = `<header id="blancHeader"><button id="blancBack" aria-label="Back to site protection">${icon('chevron-left')}</button><img id="blancMark" src="blanc-sunrise.png" alt=""><div><h1>uBlock Origin</h1><div id="blancHost"></div></div><button id="blancClose" aria-label="Close uBlock Origin controls">${icon('x')}</button></header>`;
+  card.innerHTML = `<header id="blancHeader"><button id="blancBack" aria-label="Back to site protection">${icon('chevron-left')}</button><img id="blancMark" src="blanc://ubo-brand/sunrise.png" alt=""><div><h1>uBlock Origin</h1><div id="blancHost"></div></div><button id="blancClose" aria-label="Close uBlock Origin controls">${icon('x')}</button></header>`;
   document.body.prepend(card);
   const pointer = document.createElement('div'); pointer.id = 'blancPointer'; pointer.hidden = true; document.body.prepend(pointer);
   node('blancHost').append(node('hostname'));

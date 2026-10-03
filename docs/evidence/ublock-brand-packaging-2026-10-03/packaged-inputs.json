@@ -1,0 +1,79 @@
+{
+  "format": 1,
+  "date": "2026-10-03",
+  "version": "1.26.0",
+  "electron": "44.5.1",
+  "ublock": "1.75.0",
+  "build": "Undistributed unsigned Linux x64 directory package, produced on macOS arm64",
+  "internalValidation": true,
+  "asarSha256": "ae3fb44bae29a3532aa46c82ca7407350b10447a1675deff438ac0dbaf29adee",
+  "firstPartyMark": {
+    "path": "src/renderer/sunrise-hero-mark.png",
+    "sha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a",
+    "presentInAdaptedExtension": false,
+    "endpoint": "blanc://ubo-brand/sunrise.png"
+  },
+  "packagedPinnedSourceInputs": [
+    {
+      "path": "ublock/sources/uBlock-1.75.0.tar.gz",
+      "size": 4067594,
+      "sha256": "a518c7d6e6b3f81d1a738befeb617abba59f93bd6b1e626da079a1003e9db52b"
+    },
+    {
+      "path": "ublock/LICENSE.txt",
+      "size": 35126,
+      "sha256": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
+    },
+    {
+      "path": "ublock/licenses/LGPL-3.0.txt",
+      "size": 7652,
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
+      "path": "ublock/preferred-sources.json",
+      "size": 5413,
+      "sha256": "a7e816a5fb2f8d896b68be9365c617de0433b21371ec332726b0072a8078521a"
+    },
+    {
+      "path": "ublock/sources/css-tree-2.2.1.tar.gz",
+      "size": 238315,
+      "sha256": "390f9cf64fcaa40844464a0b7846e220300234c0293dc2b1438ed01f547ffb89"
+    },
+    {
+      "path": "ublock/sources/js-beautify-1.14.7.tar.gz",
+      "size": 1071936,
+      "sha256": "ab8dcf70a2969aa28d71d86e0eda478c405de091c6d9dde8a482bafc6f08538e"
+    },
+    {
+      "path": "ublock/sources/hsluv-0.1.0.tar.gz",
+      "size": 3204509,
+      "sha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee"
+    },
+    {
+      "path": "ublock/sources/uAssets-1.75.0-main.tar.gz",
+      "size": 3401968,
+      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7"
+    },
+    {
+      "path": "ublock/sources/uAssets-1.75.0-prod.tar.gz",
+      "size": 3789763,
+      "sha256": "09dff5368b8d135432ca2e5967c8850261747e3c32ebbf988dcc5af009bad97e"
+    },
+    {
+      "path": "ublock/sources/swatinem-diff-b58391504759.tar.gz",
+      "size": 3448,
+      "sha256": "4cc5f75d595fc7051760bc22f7a671dc15b4d7ec0fd13be884e603e46cf7e089"
+    }
+  ],
+  "checks": {
+    "upstreamFiles": 658,
+    "sourceInventoryBytesMatch": true,
+    "hostAndAdaptationVerified": true,
+    "packagedComplianceLicenseRecords": 39,
+    "gplAndLgplCopiesMatch": true
+  },
+  "limits": [
+    "Linux executable not run on this Mac; no installed or sandbox acceptance.",
+    "This inventories packaged sources and notices; it does not certify legal boundaries or completeness for all preferred third-party sources."
+  ]
+}

@@ -21,7 +21,7 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "77d0f29806c002e0cdda120d37357c9f63a1138506c99737535780d3e697db50"
+      "sha256": "b2d74c4b54808c06054acacff3bcd3edb54d2dfff56a877b211027e17d70c609"
     },
     {
       "path": "src/main/ublock-host-policy.js",
@@ -41,7 +41,7 @@
     },
     {
       "path": "src/main/ublock-popup-mainworld.js",
-      "sha256": "4e204ac3b66f575e5ce940018f3268a50f732045378bf5b1b65e4548451fbb14"
+      "sha256": "83385df8c043b684a8a29e248b8cfe82e3666a846d9a5ed3ae8619b40efb7cf3"
     },
     {
       "path": "src/main/ublock-popup-preload.js",
@@ -53,7 +53,7 @@
     },
     {
       "path": "src/main/ublock-dashboard-mainworld.js",
-      "sha256": "90d6a4772e04242d478fce728066f7d2aa08082d132a567f70e5a28d73311d33"
+      "sha256": "216222ef82290406d000fb557b87f72c163eee0b72ca93b7c1bb727328ca6bf7"
     },
     {
       "path": "ublock/identity.json",
@@ -70,10 +70,6 @@
     {
       "path": "src/renderer/ublock-dashboard.css",
       "sha256": "18c211f1fecce61176b2dcedb6763d067d6ce8f6453304b0e2fc957929d3956d"
-    },
-    {
-      "path": "src/renderer/sunrise-hero-mark.png",
-      "sha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a"
     },
     {
       "path": "src/renderer/pages/inter-latin.woff2",
@@ -404,7 +400,7 @@
     {
       "path": "blanc-dashboard.js",
       "upstreamSha256": null,
-      "adaptedSha256": "90d6a4772e04242d478fce728066f7d2aa08082d132a567f70e5a28d73311d33"
+      "adaptedSha256": "216222ef82290406d000fb557b87f72c163eee0b72ca93b7c1bb727328ca6bf7"
     },
     {
       "path": "blanc-dashboard.css",
@@ -414,17 +410,12 @@
     {
       "path": "blanc-popup.js",
       "upstreamSha256": null,
-      "adaptedSha256": "4e204ac3b66f575e5ce940018f3268a50f732045378bf5b1b65e4548451fbb14"
+      "adaptedSha256": "83385df8c043b684a8a29e248b8cfe82e3666a846d9a5ed3ae8619b40efb7cf3"
     },
     {
       "path": "blanc-popup.css",
       "upstreamSha256": null,
       "adaptedSha256": "5623417c4f1d73550a428f3057307aa2f261d0ade4f94049a77f444737da35f8"
-    },
-    {
-      "path": "blanc-sunrise.png",
-      "upstreamSha256": null,
-      "adaptedSha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a"
     },
     {
       "path": "blanc-inter.woff2",
@@ -567,5 +558,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "99849f680d1c351bd161ecc506c30aae5dffe9dd051c5c9c3907a05b843c10da"
+  "patchSha256": "d967de63e8dc1e965a2f34691362e9ad672bb4722b2113d339eb4f11688ecbb6"
 }

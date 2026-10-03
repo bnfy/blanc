@@ -21007,7 +21007,7 @@
 +  if (page === 'dashboard.html') {
 +    const logo = document.querySelector('#dashboard-nav .logo');
 +    const mark = logo.querySelector('img');
-+    mark.src = 'blanc-sunrise.png';
++    mark.src = 'blanc://ubo-brand/sunrise.png';
 +    mark.alt = '';
 +    mark.removeAttribute('data-i18n-title');
 +    logo.append(element('strong', null, 'uBlock Origin'));
@@ -21264,7 +21264,7 @@
 +  const icon = name => `<span class="blanc-icon" style="--icon:url('blanc-icons/${name}.svg')" aria-hidden="true"></span>`;
 +  const card = document.createElement('section');
 +  card.id = 'blancPopup'; card.setAttribute('aria-label', 'uBlock Origin controls');
-+  card.innerHTML = `<header id="blancHeader"><button id="blancBack" aria-label="Back to site protection">${icon('chevron-left')}</button><img id="blancMark" src="blanc-sunrise.png" alt=""><div><h1>uBlock Origin</h1><div id="blancHost"></div></div><button id="blancClose" aria-label="Close uBlock Origin controls">${icon('x')}</button></header>`;
++  card.innerHTML = `<header id="blancHeader"><button id="blancBack" aria-label="Back to site protection">${icon('chevron-left')}</button><img id="blancMark" src="blanc://ubo-brand/sunrise.png" alt=""><div><h1>uBlock Origin</h1><div id="blancHost"></div></div><button id="blancClose" aria-label="Close uBlock Origin controls">${icon('x')}</button></header>`;
 +  document.body.prepend(card);
 +  const pointer = document.createElement('div'); pointer.id = 'blancPointer'; pointer.hidden = true; document.body.prepend(pointer);
 +  node('blancHost').append(node('hostname'));
@@ -21462,7 +21462,6 @@
 +#unprocessedRequestWarning { font-size:12px; }
 +#blancPopup :focus-visible { outline:1px solid var(--blanc-ink); outline-offset:3px; border-radius:3px; }
 +#blancPopup :is(button,a,[role=button]):hover:not([aria-disabled=true]) { color:var(--blanc-dim); }
-Binary files /dev/null and b/blanc-sunrise.png differ
 Binary files /dev/null and b/blanc-inter.woff2 differ
 --- /dev/null
 +++ b/blanc-icons/pipette.svg

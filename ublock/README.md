@@ -12,11 +12,13 @@ authored MIT host/bridge sources under `src/main/ublock-*.js`, and the upstream
 package. The resulting modified extension is subject to upstream's GPL.
 `adaptation.patch` records the changes and additions; `adaptation.json` records
 their input/output hashes and change date. No filtering-engine module is patched.
-Binary font/mark additions are copied from the exact hash-bound host inputs by
+Binary font additions are copied from the exact hash-bound host inputs by
 `readHostSources`; the patch records their names without lossy text hunks.
-The popup and Dashboard use bundled Inter, pinned Lucide SVGs, and the reserved
-Blanc Sunrise mark. Dashboard panels keep native controls and editors; Filter lists
-uses the approved two-column presentation. Native list states and filtering logic
+The popup and Dashboard use bundled Inter and pinned Lucide SVGs. Their Sunrise
+image references the exact read-only `blanc://ubo-brand/sunrise.png` endpoint
+served from Blanc's signed first-party resources; no reserved artwork bytes are
+copied into the adapted extension. The image keeps its existing size and styling. Dashboard panels keep native
+controls and editors; Filter lists uses the approved two-column presentation. Native list states and filtering logic
 are unchanged.
 Changes concern browser API hosting, startup, popup/Dashboard presentation and popup lifetime, unavailable privacy
 controls, and the restriction to bundled executable resources.

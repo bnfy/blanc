@@ -505,3 +505,32 @@ packing or runtime; npm graphs/versions and build cache options are unchanged.
 No RSA verification, Android tooling or shared HTTP-cache path was added.
 The node-forge/http-cache-semantics reachability conclusions remain applicable.
 This source/notice improvement does not itself assert distribution clearance.
+
+
+## Reserved artwork packaging boundary
+
+The adapted uBO package no longer contains `blanc-sunrise.png` or any copy of
+Blanc's reserved Sunrise image bytes. Its existing popup/dashboard image elements
+reference an exact first-party `blanc://ubo-brand/sunrise.png` endpoint served
+from the signed Blanc resources. Only that PNG is exposed: no HTML, script,
+query-bearing path or IPC surface. The image layout and appearance are unchanged.
+The native dashboard test and popup regression check that the actual image loads.
+
+This keeps the reserved artwork outside the modified extension directory; it
+is a concrete packaging change, not a legal determination about the entire
+combined app. The first-party MIT baseline and reserved identity grants remain
+unchanged. The owner has directed proceeding without outside licensing
+clearance; source/notice verification and platform acceptance are still tracked
+as engineering release requirements, rather than an awaited FSF permission.
+
+
+The [packaged-input evidence](evidence/ublock-brand-packaging-2026-10-03/README.md)
+confirms actual ASAR delivery of all pinned source inputs and full GPL/LGPL
+license copies, with the Sunrise retained in Blanc resources and absent from
+the adapted extension. This unsigned Linux directory package was inspected on
+macOS; it is not Linux installed acceptance. Lint, substrate and all 2,180 unit
+tests passed. The native Dashboard suite and actual popup image assertion passed.
+The wider tools suite had two window-blur dismissal failures (picker and Logger
+reuse); those attempts are retained as failures, with the provider still ready.
+Exact-head hosted CI must validate the complete suite. No production dismissal,
+blocking deadline, distribution flag, platform gate or CodeQL state was changed.
