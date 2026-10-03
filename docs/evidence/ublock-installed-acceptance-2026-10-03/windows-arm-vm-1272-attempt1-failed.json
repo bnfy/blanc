@@ -1,0 +1,29 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": false,
+  "os": "win32",
+  "harnessArchitecture": "x64",
+  "osRelease": "10.0.26220",
+  "executableSha256": "85d67d506eaa653292e5c97a8fd2ea340c7a1e773c6b211f3f01600e91f855aa",
+  "checks": {
+    "restart-ublock-origin": true
+  },
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required.",
+    "Windows x64 application and Node harness ran under emulation in the existing ARM64 VM; native hosted x64 acceptance passed separately."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "win32",
+    "architecture": "x64"
+  },
+  "failure": {
+    "stage": "original Dashboard custom filter",
+    "name": "TimeoutError"
+  },
+  "guestArchitecture": "arm64"
+}
