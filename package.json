@@ -35,6 +35,7 @@
     "capture:mahjong:installed": "node scripts/capture-installed-mahjong.mjs",
     "test:tab-handoff": "node test/desktop/tab-handoff-smoke.mjs",
     "test:packaged:tab-handoff-protocol": "node test/desktop/packaged-tab-handoff-protocol-smoke.mjs",
+    "test:packaged:modified-links": "node test/desktop/packaged-modified-link-click-smoke.mjs",
     "test:cold-launch": "node test/desktop/cold-launch-smoke.mjs",
     "test:external-links": "node test/desktop/external-links-smoke.mjs",
     "test:web-store-guard": "node test/desktop/chrome-web-store-guard-smoke.mjs",
