@@ -21,6 +21,13 @@ longer loads JetBrains Mono. White navigation hides on downward scrolling and
 returns on upward scrolling or keyboard focus. The background retains Blanc's
 warm ivory, with the original gold Sunrise mark.
 
+The hero flows directly into the Island. Features links land at that first
+product section; the extra feature-jump row is removed. Compact wallpaper
+controls remain under the laptop. The engine, licensing and official-download
+references sit together in the project section, with their text and destinations
+preserved. The band has smaller type, two engine marks and no separate card
+dividers; links show an underline on hover or keyboard focus.
+
 The indexed route count falls from 27 to 10:
 
 - `/` — visual product story and in-page Features tour.
@@ -40,7 +47,7 @@ Release-note data remains immutable; old internal links resolve while rendering.
 
 | Existing element | New placement / guard |
 | --- | --- |
-| Chromium + Electron icons and explanation | Homepage foundations, directly below the feature shortcuts; `/trust#engine` |
+| Chromium + Electron icons and explanation | Homepage project section, beside licensing and official-download evidence; `/trust#engine` |
 | Who develops Blanc; AI assistance and human accountability | Home closing section, About, existing Support answer |
 | No independent external security audit; internal review distinction | Visible Trust introduction and audit section; Home and About |
 | Known Sync account-locator, concurrent-write/deletion issues and undeployed limits | Full original audit-status section, outside disclosures on Trust |
@@ -131,6 +138,12 @@ Dev preview: `http://127.0.0.1:4321/`.
 Review images are stored in the task's `blanc-production-review` artifact folder.
 
 ## Delivery boundary
+
+October 3 visual refinement: the quieter hero transition and relocated trust
+references were reviewed on desktop and at 390px. Wallpaper keyboard input,
+appearance switching, Features navigation and focus indicators were verified.
+All 17 targeted navigation, claims and trust tests and the production/SEO build
+pass. No marketing claim wording or product captures changed.
 
 October 3 PR follow-up: the test-only prose comparison now handles unterminated
 markup as well as complete tags, with a regression case for the CodeQL finding.

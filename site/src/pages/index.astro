@@ -5,7 +5,6 @@ import "../styles/home.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
-import codeMark from "../assets/summary-icons/code-xml.svg?raw";
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
@@ -274,39 +273,8 @@ const structuredData = {
         </figure>
       </div>
     </section>
-    <nav id="features" class="tour-nav" aria-label="Explore Blanc">
-      <a href="#island">The Island</a><a href="#tabs">Your tabs</a><a
-        href="#privacy">Privacy</a
-      ><a href="#start">Start Page</a><a href="#tools">Everyday tools</a>
-    </nav>
-    <section class="home-foundations" aria-label="About the browser">
-      <div>
-        <span class="foundation-icons" aria-hidden="true"
-          ><Fragment set:html={chromiumMark} /><Fragment
-            set:html={electronMark}
-          /></span
-        ><span>Built on</span><strong>Chromium + Electron</strong><a
-          href="/trust#engine">How they fit together ↗</a>
-      </div><div>
-        <span class="foundation-icons" aria-hidden="true"
-          ><Fragment set:html={codeMark} /></span
-        ><span>Open source</span><strong>MIT for Blanc’s own code</strong><a
-          href="/support#open-source">Licensing and exceptions ↗</a>
-      </div><div>
-        <span class="foundation-icons" aria-hidden="true"
-          ><img
-            src="/sunrise-hero-mark.png"
-            width="24"
-            height="24"
-            alt=""
-            loading="lazy"
-            decoding="async"
-          /></span
-        ><span>Official downloads</span><strong
-          >Release evidence, in public</strong
-        ><a href="/trust#release-verification-title">Check your download ↗</a>
-      </div>
-    </section><section class="beat" id="island" aria-labelledby="island-title">
+    <section class="beat" id="island" aria-labelledby="island-title">
+      <span id="features" class="anchor-alias" aria-hidden="true"></span>
       <div class="frame">
         <div class="frame-inner">
           <div class="split-title">
@@ -877,13 +845,31 @@ const structuredData = {
           </p><div class="trust-links">
             <a href="/about">Meet the studio →</a><a
               href="https://github.com/bnfy/blanc">Read the source →</a
-            ><a href="/trust#release-verification-title"
-              >Inspect release evidence →</a>
+            >
           </div><p class="material-limit">
             Blanc-owned code is MIT-licensed. Names, identity assets and
             third-party material retain their separate terms. No independent
             external security audit has been completed.
           </p>
+          <section class="home-foundations" aria-label="About the browser">
+            <div>
+              <span class="foundation-label"
+                ><span class="foundation-icons" aria-hidden="true"
+                  ><Fragment set:html={chromiumMark} /><Fragment
+                    set:html={electronMark}
+                  /></span
+                >Built on</span
+              ><strong>Chromium + Electron</strong><a
+                href="/trust#engine">How they fit together ↗</a>
+            </div><div>
+              <span>Open source</span><strong>MIT for Blanc’s own code</strong><a
+                href="/support#open-source">Licensing and exceptions ↗</a>
+            </div><div>
+              <span>Official downloads</span><strong
+                >Release evidence, in public</strong
+              ><a href="/trust#release-verification-title">Check your download ↗</a>
+            </div>
+          </section>
         </div><div class="patron-band" id="patron">
           <span id="home-patron-title" class="anchor-alias" aria-hidden="true"
           ></span><div>

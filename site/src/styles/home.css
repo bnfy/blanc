@@ -888,29 +888,6 @@
     margin-right: 0;
   }
 }
-.home-revamp .tour-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 25px;
-  justify-content: center;
-  padding: 22px 24px;
-  border-bottom: 1px solid var(--line);
-  font-size: 12px;
-  background: var(--paper);
-}
-.home-revamp .tour-nav a {
-  text-decoration: none;
-  color: var(--dim);
-  padding: 5px 0;
-}
-.home-revamp .tour-nav a:hover {
-  color: var(--ink);
-  text-decoration: underline;
-}
-.home-revamp .tour-nav {
-  max-width: 1160px;
-  margin: auto;
-}
 .home-revamp .gallery-controls {
   position: relative;
   isolation: isolate;
@@ -951,11 +928,6 @@
   pointer-events: none;
 }
 @media (max-width: 760px) {
-  .home-revamp .tour-nav {
-    gap: 3px 18px;
-    justify-content: flex-start;
-    padding: 17px 24px;
-  }
   .home-revamp .gallery-controls {
     gap: 2px;
   }
@@ -1570,8 +1542,8 @@
 .home-revamp .daylight-caption {
   position: relative;
   z-index: 2;
-  max-width: 440px;
-  margin: -8px auto 0;
+  max-width: 400px;
+  margin: 0 auto;
   padding: 0 10px;
 }
 .home-revamp .daylight-heading {
@@ -1579,11 +1551,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 .home-revamp .daylight-heading label {
-  font: 400 26px/1.15 var(--site-font-display);
-  letter-spacing: -0.025em;
+  font: 400 14px/1.5 var(--font-ui);
 }
 .home-revamp .daylight-actions {
   display: flex;
@@ -1596,7 +1567,7 @@
   color: var(--dim);
   font: 500 12px/1.5 var(--font-ui);
   padding: 6px 0;
-  min-height: 32px;
+  min-height: 36px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -1605,7 +1576,7 @@
   color: var(--ink);
 }
 .home-revamp #hero-daylight-play {
-  width: 28px;
+  width: 32px;
   justify-content: center;
 }
 .home-revamp .daylight-play-icon {
@@ -1693,7 +1664,7 @@
   font-size: 11px;
   color: var(--dim);
   text-align: center;
-  margin-top: 17px;
+  margin-top: 12px;
 }
 .home-revamp .hero-product {
   padding-bottom: 63px;
@@ -1708,9 +1679,6 @@
     padding: 0;
     max-width: 340px;
     margin-top: 9px;
-  }
-  .home-revamp .daylight-heading label {
-    font-size: 25px;
   }
   .home-revamp .hero-product {
     padding-bottom: 45px;
@@ -2173,42 +2141,6 @@
     transition: none;
   }
 }
-.home-revamp .home-foundations {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-  max-width: 1000px;
-  margin: auto;
-  padding: 28px 40px 0;
-  text-align: center;
-}
-.home-revamp .home-foundations a {
-  font: 400 12px/1.5 var(--font-ui);
-  text-decoration: none;
-  color: var(--ink);
-}
-.home-revamp .home-foundations span {
-  display: block;
-  color: var(--dim);
-  font-size: 10px;
-  margin-bottom: 5px;
-}
-.home-revamp .home-foundations a:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-@media (max-width: 760px) {
-  .home-revamp .home-foundations {
-    gap: 14px;
-    padding: 24px 24px 0;
-  }
-  .home-revamp .home-foundations a {
-    font-size: 10px;
-  }
-  .home-revamp .home-foundations span {
-    font-size: 9px;
-  }
-}
 .home-revamp .reopen-study {
   max-width: 350px;
   background: #fff;
@@ -2274,43 +2206,55 @@
   color: var(--gold);
 }
 .home-revamp .home-foundations {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   max-width: 1160px;
-  padding: 34px 40px 0;
+  margin: auto;
+  padding: 24px 40px 0;
   text-align: left;
-  gap: 54px;
+  gap: 40px;
+}
+.home-revamp .trust-intro .home-foundations {
+  padding: 0;
+  margin-top: 36px;
 }
 .home-revamp .home-foundations > div {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 9px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 26px;
+  gap: 5px;
 }
-.home-revamp .home-foundations span {
-  font-size: 12px;
+.home-revamp .home-foundations > div > span {
+  color: var(--dim);
+  font: 400 11px/18px var(--font-ui);
   margin: 0;
 }
 .home-revamp .home-foundations strong {
-  font: 500 16px/1.4 var(--font-ui);
+  font: 500 14px/1.5 var(--font-ui);
 }
 .home-revamp .home-foundations a {
-  font: 400 12px/1.5 var(--font-ui);
+  font: 400 11px/1.5 var(--font-ui);
   color: var(--gold);
+  text-decoration: none;
+}
+.home-revamp .home-foundations a:is(:hover, :focus-visible) {
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: 3px;
+}
+.home-revamp .home-foundations .foundation-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .home-revamp .home-foundations .foundation-icons {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 24px;
+  gap: 5px;
   color: #111;
-  margin-bottom: 8px;
 }
-.home-revamp .foundation-icons :is(svg, img) {
-  width: 23px;
-  height: 23px;
+.home-revamp .foundation-icons svg {
+  width: 16px;
+  height: 16px;
   display: block;
   flex: none;
 }
@@ -2320,17 +2264,13 @@
 @media (max-width: 760px) {
   .home-revamp .home-foundations {
     padding: 24px 24px 0;
-    gap: 24px;
-    grid-template-columns: 1fr 1fr;
-  }
-  .home-revamp .home-foundations > div:last-child {
-    grid-column: 1/-1;
-  }
-  .home-revamp .home-foundations strong {
-    font-size: 14px;
+    gap: 22px;
+    grid-template-columns: 1fr;
   }
   .home-revamp .home-foundations a {
-    font-size: 11px;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
   }
 }
 
