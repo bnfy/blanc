@@ -79,7 +79,7 @@ test('profile deletion settles native visibility before force-destroying its win
       listeners.get('closed')?.();
     },
   };
-  const sandbox = { clearTimeout, setTimeout, setImmediate };
+  const sandbox = { clearTimeout, setTimeout, setImmediate, process: { platform: 'linux' } };
   vm.runInNewContext(`${destroyProfileWindowSource}\nthis.__destroy = destroyProfileWindow;`, sandbox);
 
   await sandbox.__destroy({ window });
@@ -98,8 +98,19 @@ test('profile deletion handles a native visibility change without a hide event',
     hide: () => { visible = false; },
     destroy: () => { assert.equal(visible, false); destroyed = true; listeners.get('closed')(); },
   };
-  const sandbox = { clearTimeout, setTimeout, setImmediate };
+  const sandbox = { clearTimeout, setTimeout, setImmediate, process: { platform: 'linux' } };
   vm.runInNewContext(`${destroyProfileWindowSource}\nthis.__destroy = destroyProfileWindow;`, sandbox);
   await sandbox.__destroy({ window });
   assert(destroyed); assert(!listeners.has('hide'));
+});
+
+test('macOS profile deletion waits for the deferred native hide event', async () => {
+  const { EventEmitter } = require('node:events');
+  const window = new EventEmitter(); let visible = true, hidden = false, destroyed = false;
+  window.isDestroyed = () => destroyed; window.isVisible = () => visible;
+  window.hide = () => { visible = false; setImmediate(() => { hidden = true; window.emit('hide'); }); };
+  window.destroy = () => { assert(hidden, 'native hide must be consumed before destroy'); destroyed = true; window.emit('closed'); };
+  const context = { clearTimeout, setTimeout, setImmediate, process: { platform: 'darwin' } };
+  vm.runInNewContext(`${destroyProfileWindowSource}\nthis.destroy = destroyProfileWindow;`, context);
+  await context.destroy({ window }); assert(destroyed);
 });

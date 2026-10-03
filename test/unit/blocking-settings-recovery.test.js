@@ -1,0 +1,24 @@
+'use strict';
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+test('Settings exposes Retry and Continue for Blanc startup failure without exposing uBO', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
+  const render = source.match(/const renderBlocking = \(state\) => \{[\s\S]*?\n    \};/)[0];
+  const elements = new Map();
+  const element = id => { if (!elements.has(id)) elements.set(id, { hidden: false, textContent: '', querySelector: () => ({}) }); return elements.get(id); };
+  const context = { document: { getElementById: element }, selector: element('adblockProvider'), label: id => id === 'blanc' ? 'Blanc Blocker' : 'uBlock Origin' };
+  vm.runInNewContext(render + '\nthis.render = renderBlocking;', context);
+  context.render({ active: 'blanc', selected: 'blanc', exposed: false, supported: false, phase: 'failed', enabled: true, error: 'blanc-initialization-failed' });
+  assert.equal(element('ublockTools').hidden, true);
+  assert.equal(element('blockingProviderSetting').hidden, true);
+  for (const id of ['blockingRecovery', 'ublockRetry', 'ublockContinue']) assert.equal(element(id).hidden, false, id);
+  assert.equal(element('ublockUseBlanc').hidden, true);
+  const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8');
+  assert(!html.match(/id="ublockTools"[\s\S]*?<\/div>/)[0].includes('ublockRetry'));
+  context.render({ active: 'blanc', selected: 'blanc', exposed: false, supported: false, phase: 'ready', enabled: true });
+  assert(!element('blockingProviderStatus').textContent.includes('uBlock'));
+  assert.equal(element('blockingRecovery').hidden, true);
+});

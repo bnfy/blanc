@@ -84,6 +84,7 @@
     const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
     const renderBlocking = (state) => {
       if (!state) return;
+      document.getElementById('blockingProviderSetting').hidden = state.exposed === false;
       selector.value = state.selected;
       selector.querySelector('[value="ublock-origin"]').disabled = !state.supported;
       const status = document.getElementById('blockingProviderStatus');
@@ -93,12 +94,13 @@
           ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
           : state.phase === 'unsupported'
             ? `uBlock Origin unavailable: ${state.reason}.`
-            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
+            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
       if (state.internalCandidate) status.textContent += ' Internal validation candidate; platform support is not certified.';
       const ubo = state.active === 'ublock-origin';
       document.getElementById('ublockTools').hidden = !ubo;
       document.getElementById('ublockLimits').hidden = !ubo;
       const failed = ['failed', 'unsupported'].includes(state.phase);
+      document.getElementById('blockingRecovery').hidden = !failed;
       document.getElementById('ublockRetry').hidden = !failed;
       document.getElementById('ublockRetry').textContent = `Retry ${label(state.active)}`;
       document.getElementById('ublockUseBlanc').hidden = !failed || !ubo;

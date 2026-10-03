@@ -37,8 +37,12 @@ and all host JavaScript source. Before clearing the gate:
    obligations where applicable, and the download-page/source offering.
 
 `scripts/check-ublock-distribution.cjs` fails closed. Public release workflows
-must pass it; platform acceptance flags must remain disabled meanwhile. Internal
-owner validation is permitted, and must not publish a release or updater feed.
+must pass it; platform acceptance flags must remain disabled meanwhile. Local,
+undistributed owner inspection is permitted. Signed Windows/Linux candidates that
+bundle uBO require the same completed distribution clearance, plus explicit
+`ublock_candidate: true` on the private validation workflow. Ordinary validation
+defaults to the ordinary release payload. No candidate may publish a release or
+updater feed.
 No first-party license or asset grant is changed by this candidate.
 
 ## Concrete source and notice findings
@@ -79,7 +83,7 @@ distribution determination and the specific missing source/build/notice inputs
 above. No runtime fork, first-party license change or identity-asset waiver is
 an authorized shortcut. Public uBO distribution fails closed. Ordinary Blanc packages exclude the
 entire `ublock/` payload and its adaptation-build scripts, record
-`blancUblockBundled: false`, keep selection unavailable, and generate notices
+`blancUblockBundled: false`, hide selection unless a previous uBO choice needs recovery, and generate notices
 and a runtime SBOM for the actual included components. The after-pack check
 rejects any upstream uBO file in that baseline. The release manifest uses the
 verified packaged runtime SBOM rather than the source inventory. An internal package created solely for owner inspection is explicitly marked

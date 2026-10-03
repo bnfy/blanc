@@ -89,3 +89,11 @@ test('adapted resource secrets and content session IDs use isolated cryptographi
   assert.notEqual(first, second);
   assert.deepEqual(requests, [16, 16, 16, 16, 16, 16]);
 });
+
+test('every byte-checked text host input and package record is LF-pinned for default Windows Git checkouts', () => {
+  const { HOST_INPUTS } = require('../../src/main/ublock-package');
+  const { execFileSync } = require('node:child_process');
+  const files = [...HOST_INPUTS.filter(name => /\.(js|css|json|svg|md|txt)$/.test(name)), ...['LICENSE.txt', 'pinned.json', 'README.md', 'source-audit.json', 'distribution.json', 'adaptation.json', 'adaptation.patch'].map(name => 'ublock/' + name)];
+  const output = execFileSync('git', ['check-attr', 'eol', '--', ...files], { cwd: root, encoding: 'utf8' });
+  for (const name of files) assert(output.includes(name + ': eol: lf'), name);
+});

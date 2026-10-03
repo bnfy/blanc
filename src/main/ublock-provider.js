@@ -11,6 +11,7 @@ const { validBridgeSender } = require('./ublock-host-policy');
 const { captureDocuments, currentDocuments, guardScript } = require('./ublock-documents');
 
 const DEADLINE_MS = 2000;
+const OPERATION_DEADLINE_MS = 10000;
 const MAX_PENDING = 256;
 const instances = new Map();
 let ipcInstalled = false;
@@ -101,9 +102,13 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     if (phase !== 'ready') return Promise.reject(new Error(error || 'ubo-not-ready'));
     if (pending.size >= MAX_PENDING) { fail('ubo-request-capacity'); return Promise.reject(new Error('ubo-request-capacity')); }
     const id = ++sequence;
+    const critical = message.kind === 'request' && ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'].includes(message.name);
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => fail('ubo-decision-timeout'), DEADLINE_MS);
-      pending.set(id, { resolve, reject, timer, transport: 'background' });
+      const timer = setTimeout(() => {
+        if (critical) fail('ubo-decision-timeout');
+        else { pending.delete(id); reject(new Error('ubo-operation-timeout')); }
+      }, critical ? DEADLINE_MS : OPERATION_DEADLINE_MS);
+      pending.set(id, { resolve, reject, timer, critical, transport: 'background' });
       try { send({ ...message, id }); } catch { fail('ubo-background-unavailable'); }
     });
   }
@@ -195,7 +200,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     const id = ++sequence;
     if (pending.size >= MAX_PENDING) throw new Error('ubo-request-capacity');
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => fail('ubo-css-timeout'), DEADLINE_MS);
+      const timer = setTimeout(() => fail('ubo-css-timeout'), OPERATION_DEADLINE_MS);
       pending.set(id, { timer, reject, transport: 'css', validDocument, onError: () => {
         reject(new Error('ubo-css-failed'));
         if (validDocument()) fail('ubo-css-failed');
@@ -345,7 +350,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       const item = pending.get(message.id);
       if (!item || item.transport !== 'background') return;
       pending.delete(message.id); clearTimeout(item.timer);
-      if (message.error) { item.reject(new Error('ubo-decision-failed')); fail('ubo-decision-failed'); } else item.resolve(message.value);
+      if (message.error) { item.reject(new Error('ubo-decision-failed')); if (item.critical) fail('ubo-decision-failed'); } else item.resolve(message.value);
       return;
     }
     if (message.kind === 'call' && Number.isSafeInteger(message.id) && typeof message.method === 'string') {
@@ -384,7 +389,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       }
       cssExtension = await loadManaged(cssPath);
       cssHelper = new WebContentsView({ webPreferences: {
-        session, sandbox: true, contextIsolation: true, nodeIntegration: false,
+        session, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false,
         preload: path.join(__dirname, 'ublock-bridge-preload.js'),
       } });
       const cssReady = new Promise(resolve => { cssReadyResolve = resolve; });
@@ -429,6 +434,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       const created = (_event, wc) => {
         if (wc.session !== session || wc.getType() !== 'backgroundPage') return;
         background = wc;
+        // This verified extension background drives filter updates and bounded
+        // host replies. It has no browser window or ordinary webpage views.
+        wc.setBackgroundThrottling(false);
         wc.once('dom-ready', () => { backgroundDomReady = true; resolveBackground(); });
         wc.once('render-process-gone', () => { if (!cleaning && background === wc) fail('ubo-background-crashed'); });
         wc.once('destroyed', () => { if (!cleaning && background === wc) fail('ubo-background-lost'); });
@@ -444,7 +452,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       } finally { app.removeListener('web-contents-created', created); clearTimeout(backgroundTimer); }
 
       helper = new WebContentsView({ webPreferences: {
-        session, sandbox: true, contextIsolation: true, nodeIntegration: false,
+        session, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false,
         preload: path.join(__dirname, 'ublock-bridge-preload.js'),
       } });
       instances.set(helper.webContents.id, receive);

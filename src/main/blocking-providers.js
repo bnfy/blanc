@@ -29,6 +29,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       : ['disabled', 'continued', 'skipped'].includes(startup?.phase) ? 'disabled' : 'initializing';
     return {
       selected, active, restartPending: selected !== active,
+      exposed: !app.isPackaged || internalCandidate || bundled && Object.values(matrix.platforms).some(value => value.enabled) || selected === 'ublock-origin' || active === 'ublock-origin',
       internalCandidate, supported, reason: supported ? null : platform?.reason || 'Runtime/platform acceptance pending',
       enabled: settings.getSettings().adblockEnabled,
       ...provider?.status(),
@@ -44,7 +45,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     return tab.private || active === 'blanc' ? (owned ? builtin.providerForSession(tab.private ? owned.private : owned.normal) : null) : forTab(tab);
   }
   function refresh() { for (const entry of profiles.values()) entry.provider?.refresh(); }
-  async function attach(profileId, owned) {
+  function prepare(profileId, owned) {
     sessions.set(profileId, owned);
     builtin.attachAdBlockerToSession(owned.private, { enabled: settings.getSettings().adblockEnabled });
     if (active !== 'ublock-origin') {
@@ -52,8 +53,14 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       return;
     }
     builtin.detachAdBlockerFromSession(owned.normal);
-    if (!supported) {
+    if (!profiles.has(profileId)) {
       builtin.coordinator.setProvider(owned.normal, { decide: (_event, details) => !settings.getSettings().adblockEnabled || isBrowserResource(details.url, app.getAppPath()) ? {} : { cancel: true } });
+    }
+  }
+  async function attach(profileId, owned) {
+    prepare(profileId, owned);
+    if (active !== 'ublock-origin') return;
+    if (!supported) {
       onStateChange?.(status(profileId)); throw new Error('ubo-platform-unverified');
     }
     if (!profiles.has(profileId)) {
@@ -73,6 +80,17 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     } else if (profiles.get(profileId).provider.status().phase === 'failed') {
       await profiles.get(profileId).provider.retry();
     }
+  }
+  async function attachAll(profileIds, sessionsFor) {
+    const ids = [...profileIds];
+    // Attach every private blocker and normal-session failure gate before
+    // yielding. One failed background must never leave another profile raw.
+    for (const id of ids) prepare(id, sessionsFor(id));
+    const failures = [];
+    for (const id of ids) {
+      try { await attach(id, sessionsFor(id)); } catch (error) { failures.push(error); }
+    }
+    if (failures.length) throw new AggregateError(failures, 'blocking-profile-initialization-failed');
   }
   function setEnabled(value) {
     const selected = settings.getSettings().adblockProvider;
@@ -122,6 +140,6 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     fs.rmSync(destination, { recursive: true, force: true });
   }
   function stop() { for (const entry of profiles.values()) entry.provider.dispose(); profiles.clear(); sessions.clear(); }
-  return { active, status, attach, forTab, effectiveForTab, refresh, setEnabled, retry, dispose, stop, notify: () => onStateChange?.() };
+  return { active, status, attach, attachAll, forTab, effectiveForTab, refresh, setEnabled, retry, dispose, stop, notify: () => onStateChange?.() };
 }
 module.exports = { createBlockingProviders };

@@ -1,5 +1,7 @@
+// Restart intent lasts through the user's Leave/Stay decision. A wall-clock
+// timeout must never disarm relaunch while a valid quit is still pending.
 /** Restart only after normal quit completes; never arm a future unrelated quit. */
-function createAppRestarter({ app, webContents, onCancelled = () => {}, timeoutMs = 10000 }) {
+function createAppRestarter({ app, webContents, onCancelled = () => {} }) {
   let pending = null;
   return function restartApp() {
     if (pending) return pending;
@@ -7,10 +9,8 @@ function createAppRestarter({ app, webContents, onCancelled = () => {}, timeoutM
     pending = new Promise(done => { resolve = done; });
     const result = pending;
     const observers = [];
-    let timer;
     let settled = false;
     const cleanup = () => {
-      clearTimeout(timer);
       app.removeListener('quit', quit);
       for (const [contents, listener] of observers) contents.removeListener('will-prevent-unload', listener);
       pending = null;
@@ -41,8 +41,6 @@ function createAppRestarter({ app, webContents, onCancelled = () => {}, timeoutM
       contents.on('will-prevent-unload', listener);
       observers.push([contents, listener]);
     }
-    timer = setTimeout(cancel, timeoutMs);
-    timer.unref?.();
     try { app.quit(); } catch { cancel(); }
     return result;
   };

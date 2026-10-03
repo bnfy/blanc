@@ -22,11 +22,11 @@ window.blancUboBridge.listen(async message => {
     if (operations.size >= 256) throw new Error('ubo-css-capacity');
     // Fixed probe only. Native documentIds scope the following insertion to
     // these exact documents, even if their frame IDs navigate in the meantime.
-    const results = await chrome.scripting.executeScript({ target: message.options.target, func: () => 0 });
+    const results = await chrome.scripting.executeScript({ target: message.options.target, injectImmediately: true, func: () => 0 });
     const documentIds = results.map(result => result.documentId);
     if (!documentIds.length || documentIds.some(id => typeof id !== 'string')) throw new Error('ubo-document-unavailable');
     const target = { tabId: message.options.target.tabId, documentIds };
-    const timer = setTimeout(() => operations.delete(message.id), 2000);
+    const timer = setTimeout(() => operations.delete(message.id), 10000);
     operations.set(message.id, { options: { ...message.options, target }, timer });
     window.blancUboBridge.send({ kind: 'css-target', id: message.id });
   } catch {

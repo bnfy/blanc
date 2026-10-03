@@ -48,3 +48,12 @@ ublock/adaptation.patch -whitespace
 /src/main/scoped-capture-preload.js text eol=lf
 /src/main/scoped-capture-preload-linux.js text eol=lf
 /src/main/scoped-capture-preload-playout.js text eol=lf
+
+# Byte-checked source/host records, including default Windows checkouts.
+/ublock/*.json text eol=lf
+/ublock/*.md text eol=lf
+/ublock/LICENSE.txt text eol=lf
+/ublock/identity.json text eol=lf
+/ublock/source-audit.json text eol=lf
+/ublock/pinned.json text eol=lf
+/src/main/blocking-resources.js text eol=lf

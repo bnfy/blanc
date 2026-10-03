@@ -73,3 +73,12 @@ test('Stay preserves Quiet and Reopen state until the irreversible quit phase', 
   app.emit('will-quit');
   assert.equal(snapshots.size, 0); assert.equal(closes, 1); assert.equal(downgrades, 1); assert.equal(stops, 1);
 });
+
+test('a Leave decision after ten seconds still completes the requested restart', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const f = fixture(); const pending = f.restart();
+  t.mock.timers.tick(30000);
+  f.page.emit('will-prevent-unload', { defaultPrevented: true });
+  await Promise.resolve(); f.app.emit('quit');
+  assert.equal(await pending, true); assert.deepEqual(f.calls, ['quit', 'relaunch']);
+});

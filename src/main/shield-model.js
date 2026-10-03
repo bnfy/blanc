@@ -138,7 +138,7 @@ function shieldProviderModel(status, privateTab = false) {
   const active = privateTab ? 'blanc' : status?.active ?? 'blanc';
   const selected = privateTab ? 'blanc' : status?.selected ?? active;
   let detail = 'Active';
-  if (privateTab) detail = 'Blanc’s browser engine can’t load uBO in temporary private sessions. Blanc Blocker protects this tab.';
+  if (privateTab) detail = status?.exposed === false ? 'Blanc Blocker protects this private tab.' : 'Blanc’s browser engine can’t load uBO in temporary private sessions. Blanc Blocker protects this tab.';
   else {
     const unavailable = status?.phase === 'failed' || status?.phase === 'unsupported';
     const off = status?.enabled === false || status?.phase === 'disabled';
@@ -154,14 +154,14 @@ function shieldProviderModel(status, privateTab = false) {
     }
   }
   return {
-    active, selected, disabled: privateTab || !status,
+    active, selected, hidden: status?.exposed === false, disabled: privateTab || !status || status?.exposed === false,
     activeLabel: status?.enabled === false ? 'Off' : privateTab || status?.phase === 'ready' ? 'Active' : status?.phase === 'initializing' ? 'Starting' : 'Unavailable',
     ublockAvailable: !privateTab && status?.supported === true,
     canOpenUblock: active === 'ublock-origin' && status?.phase === 'ready',
     detail,
-    availability: !privateTab && status?.supported === false
+    availability: !privateTab && status?.exposed !== false && status?.supported === false
       ? 'uBlock Origin is unavailable on this build.' : '',
-    scope: privateTab ? '' : 'Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.\nEach blocker keeps its own site settings.',
+    scope: privateTab || status?.exposed === false ? '' : 'Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.\nEach blocker keeps its own site settings.',
   };
 }
 

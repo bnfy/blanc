@@ -5,7 +5,7 @@ const cleared = gate.cleared && gate.assessment && gate.correspondingSource && g
 if (process.env.BLANC_UBLOCK_INTERNAL_BUILD === '1') {
   console.error('Internal uBlock validation packages cannot enter the public release pipeline.');
   process.exitCode = 1;
-} else if (!cleared && Object.values(matrix.platforms).some(platform => platform.enabled)) {
+} else if (!cleared && (process.argv.includes('--bundled') || Object.values(matrix.platforms).some(platform => platform.enabled))) {
   console.error('uBlock distribution blocked: enabled platforms require GPL boundary/source/notice clearance.');
   process.exitCode = 1;
 } else if (!cleared) {

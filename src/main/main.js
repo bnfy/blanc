@@ -42,6 +42,7 @@ const {
   coordinator: blockingCoordinator,
 } = require('./adblock');
 const { createBlockingProviders } = require('./blocking-providers');
+const { ublockTool } = require('./ublock-tool-url');
 const { createBlockingRecovery } = require('./blocking-recovery');
 const { createAppRestarter } = require('./app-restart');
 const { popupGeometry, validPopupSender, validPopupMessage, shouldDismissPopupOnBlur } = require('./ublock-popup-host');
@@ -352,12 +353,29 @@ function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
     });
   }
 }
+function restorableUblockTool(url, profileId = rt().profileId) {
+  const provider = blockingProviders?.forTab({ private: false, profileId });
+  return provider?.status().phase === 'ready' && !!ublockTool(url, provider.extensionId);
+}
 function openUblockTool(tool) {
   if (!['dashboard', 'logger'].includes(tool)) return false;
   const provider = blockingProviders?.forTab({ private: false, profileId: rt().profileId });
   if (!provider?.extensionId || provider.status().phase !== 'ready') return false;
   const page = tool === 'logger' ? 'logger-ui.html' : 'dashboard.html';
+  const existing = [...tabs.values()].find(tab => !tab.private && tab.profileId === rt().profileId && ublockTool(tab.url, provider.extensionId) === tool);
+  if (existing) {
+    const owner = windowRuntimes.runtimeForTab(existing.id);
+    if (owner) {
+      withWindowRuntime(owner, () => {
+        createMainWindow(owner, { ensureStartTab: false });
+        setActiveTab(existing.id);
+        owner.window?.show(); owner.window?.focus();
+      });
+      return true;
+    }
+  }
   const id = createTab(`chrome-extension://${provider.extensionId}/${page}`, { managedExtension: true });
+  if (!id) return false;
   setActiveTab(id);
   return true;
 }
@@ -5046,6 +5064,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
+      managedExtension: restorableUblockTool(url),
     }));
     pruneEmptyGroups();
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
@@ -5204,6 +5223,7 @@ initTabView({
     const prefix = `chrome-extension://${provider.extensionId}/`;
     if (wc.session !== profileSessionRegistry.normal(tab.profileId)) return false;
     if (wc.getURL().startsWith(prefix) && url.startsWith(prefix) && source.startsWith(prefix)) return true;
+    if (event?.isMainFrame && restorableUblockTool(tab.url, tab.profileId) && ublockTool(url, provider.extensionId)) return true;
     // Upstream's picker is a native web-accessible resource in a subframe.
     // Chrome still enforces its per-launch WAR secret and manifest allowlist.
     return event?.isMainFrame === false && provider.status().phase === 'ready'
@@ -6080,6 +6100,7 @@ function reopenEntry(entry) {
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId,
     openerSandboxFlags: entry.openerSandboxFlags,
+    managedExtension: restorableUblockTool(entry.url),
   };
 
   if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
@@ -6580,6 +6601,10 @@ async function runBlockAdsCommand() {
   const current = settings.getSettings();
   const provider = blockingProviders?.forTab(tab);
   if (provider) {
+    if (provider.status().phase !== 'ready') {
+      settings.setSettings({ adblockEnabled: !current.adblockEnabled });
+      broadcastTabs(); return { provider: 'ublock-origin' };
+    }
     const id = provider.registry.idForTab(tab);
     const state = await provider.siteState(id);
     if (!state.enabled) {
@@ -8085,7 +8110,9 @@ async function destroyProfileWindow(runtime) {
       window.hide();
       // Official Electron can update native visibility without emitting hide
       // for a window already occluded by another application/window.
-      if (!window.isVisible()) hidden();
+      // On macOS wait for the actual hide event: isVisible may flip before
+      // Electron's deferred visibility listener has consumed that event.
+      if (process.platform !== 'darwin' && !window.isVisible()) hidden();
       else if (!settled) timer = setTimeout(() => {
         window.removeListener('hide', hidden);
         reject(new Error('Profile window could not be hidden safely.'));
@@ -9892,6 +9919,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
           allowLocalFile: saved.localFiles?.[index] === true,
+          managedExtension: restorableUblockTool(url),
         }));
         pruneEmptyGroups();
         // This window's tabs now exist, so it's safe to check whether the
@@ -9987,9 +10015,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
   const attachAdblockToAllProfileSessions = async () => {
     adblockEngineReady = true;
-    for (const profileId of configuredProfileSessions) {
-      await blockingProviders.attach(profileId, profileSessionRegistry.forProfile(profileId));
-    }
+    await blockingProviders.attachAll(configuredProfileSessions, id => profileSessionRegistry.forProfile(id));
   };
 
   if (acceptanceTestMode && !ublockTestMode) {

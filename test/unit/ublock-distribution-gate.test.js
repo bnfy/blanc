@@ -44,8 +44,8 @@ test('an explicit internal package embeds its marker without clearing the public
   assert.equal(candidate.checked.length, 2);
 });
 
-function publicGate({ internal = false, cleared = false, enabled = false } = {}) {
-  const process = { env: internal ? { BLANC_UBLOCK_INTERNAL_BUILD: '1' } : {}, exitCode: 0 };
+function publicGate({ internal = false, cleared = false, enabled = false, bundled = false } = {}) {
+  const process = { argv: bundled ? ['node', 'check', '--bundled'] : [], env: internal ? { BLANC_UBLOCK_INTERNAL_BUILD: '1' } : {}, exitCode: 0 };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../scripts/check-ublock-distribution.cjs'), 'utf8'), {
     process, console: { log() {}, error() {} }, require: name => name.includes('distribution')
       ? { cleared, assessment: cleared, correspondingSource: cleared, noticeReview: cleared }
@@ -110,4 +110,18 @@ test('an internal build checks the builder actual runtime, including version ove
   const candidate = pack({ internal: true, runtime: '44.6.0' });
   assert.throws(candidate.execute, /build runtime differs/);
   assert.equal(candidate.checked.length, 0, 'refuse before loading or adapting the upstream payload');
+});
+
+test('signed bundled candidates require concrete clearance even when every public platform is disabled', () => {
+  assert.equal(publicGate({ bundled: true }), 1);
+  assert.equal(publicGate({ bundled: true, cleared: true }), 0);
+  const workflow = require('js-yaml').load(fs.readFileSync(path.join(__dirname, '../../.github/workflows/release-windows-linux.yml'), 'utf8'));
+  assert.equal(workflow.on.workflow_dispatch.inputs.ublock_candidate.default, false);
+  const preflight = workflow.jobs['validate-inputs'].steps.find(step => step.run?.includes('check-ublock-distribution.cjs --bundled'));
+  assert(preflight); assert(preflight.if.includes('inputs.ublock_candidate'));
+  for (const job of ['windows', 'linux', 'linux-sandbox']) {
+    const build = workflow.jobs[job].steps.find(step => step.env?.BLANC_UBLOCK_INTERNAL_BUILD);
+    assert(build.env.BLANC_UBLOCK_INTERNAL_BUILD.includes('inputs.ublock_candidate'), job);
+    assert(workflow.jobs[job].needs.includes('validate-inputs'), job);
+  }
 });

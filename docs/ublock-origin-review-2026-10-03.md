@@ -302,3 +302,64 @@ call sites to identify the closure cause; a subsequent core run passed, which is
 not proof of resolution. The completed external review at `e3c0502d` adds further
 findings, including CSS probe timing, WebSockets and profile startup failure
 isolation. Those are being verified and are not cleared by this commit.
+
+
+## Completed-review follow-up
+
+The completed external review at `e3c0502d` is addressed by the payload/preload
+commit above and this follow-up. Every public platform flag and distribution
+clearance field remains false; no signed uBO installer has been distributed.
+
+- All profile sessions receive a normal-session failure gate and their private
+  Blanc Blocker before initialization yields. One failed background no longer
+  stops initialization of other profiles. The real provider factory regression
+  verifies a failing first profile, ready second profile, and both private
+  sessions attached before the first asynchronous initialization.
+- `<all_urls>` and wildcard host matching include WebSockets. The real fixture
+  proves a blocked socket never reaches its upgrade handler and an allowed
+  socket does. Upstream filtering-engine bytes remain unchanged.
+- Network decisions retain their two-second failure deadline. Site queries,
+  storage erasure and lifecycle observations have a separate bounded timeout;
+  an expired optional query cannot mark unrelated filtering failed. CSS has a
+  ten-second operation bound. Document identity probes run immediately, while
+  actual script injection retains the requested runAt and token guard. The real
+  fixture streams a five-second document, deliberately delays the native CSS
+  probe 2.5 seconds, proves allowed networking works during the CSS operation,
+  and verifies CSS plus document-idle injection without provider failure.
+- Verified uBO background and hidden bridge/CSS helper timers are unthrottled;
+  ordinary webpage timer policy is unchanged. A repeat run previously downloaded
+  the updated fixture subscription but stalled before the updater-cycle finish.
+  Following this change, two complete local core runs passed, including the
+  original subscription-update control. This is local evidence, not certification
+  of every platform. [Electron's timer/visibility API](https://www.electronjs.org/docs/latest/api/web-contents#contentssetbackgroundthrottlingallowed)
+  documents the behavior being controlled.
+- Ordinary excluded packages hide the provider selector and shield chooser,
+  including uBO-specific private-tab text. A previous uBO selection still shows
+  recovery. Blanc startup failures expose Retry and Continue in a separate
+  recovery row, independent of the uBO tools row.
+- Private Windows/Linux validation defaults to the ordinary release payload.
+  An explicit uBO candidate input is valid only in validation mode and requires
+  completed distribution clearance before any signing/build job. Local unsigned,
+  undistributed source inspection remains possible. An additional CI job builds
+  an actual ordinary Linux package and verifies its ASAR inventory independently.
+- Dashboard/Logger opening reuses the owning profile's existing tab. Only those
+  two documents under the current verified extension identity can be reopened
+  or restored; private and foreign/other extension documents remain excluded.
+  Native tests exercise reuse, close/reopen and cold-start persistence.
+- `/block-ads` can disable a failed provider without querying its background.
+  Restart intent survives a long Leave/Stay prompt; Stay still cancels it and
+  preserves Quiet/Reopen state. macOS profile deletion waits for the actual
+  native hide event before destruction.
+- Every byte-checked text host input and package record has LF attributes,
+  checked with Git's actual attribute resolution. AGENTS.md and CLAUDE.md now
+  reflect the owner's authorized narrow uBO exception and current storage
+  migration, retaining the MIT/identity boundaries. CI paths are limited to
+  integration, browser substrate, packaging and relevant fixtures.
+
+Local final checks passed: 2,132 unit tests; lint; substrate; real blocking;
+shield/provider UI; dashboard. The later cold-start tool-wake assertion has its
+own native follow-up result. Earlier flaky popup focus and Linux shield evidence
+is retained above; fresh hosted results are required rather than inferred from
+these local passes. CodeQL remains uncleared, and its upstream findings were not
+excluded or dismissed. Distribution clearance and installed-platform acceptance
+remain prerequisites for public uBO availability.

@@ -20,6 +20,7 @@ fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
 }));
 const hits = [];
 const methods = [];
+const socketUpgrades = [];
 let subscriptionRevision = 1;
 const subscriptionResponses = [];
 const server = http.createServer((request, response) => {
@@ -27,6 +28,10 @@ const server = http.createServer((request, response) => {
   methods.push({ url: request.url, method: request.method });
   const pathname = new URL(request.url, 'http://fixture').pathname;
   response.setHeader('Cache-Control', 'no-store');
+  if (pathname === '/slow-document') {
+    response.write('<!doctype html><script>window.slowDocumentStarted=true</script><div id=slow-marker>Slow fixture</div>');
+    setTimeout(() => response.end('<p>Finished</p>'), 5000); return;
+  }
   if (pathname === '/fixture-sw.js') { response.setHeader('Content-Type', 'application/javascript'); response.end("self.addEventListener('install',e=>e.waitUntil(self.skipWaiting())); self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));"); return; }
   if (pathname === '/redirect-start') { response.writeHead(302, { Location: '/redirect-final' }); response.end(); return; }
   if (pathname.endsWith('.js')) {
@@ -44,6 +49,10 @@ const server = http.createServer((request, response) => {
   if (pathname === '/fixture-list.txt') { subscriptionResponses.push(subscriptionRevision); response.end('! Title: Blanc fixture list\n! Expires: 1 hour\n/subscription-blocked.js$script\n' + (subscriptionRevision > 1 ? '/subscription-new.js$script\n' : '')); return; }
   if (pathname === '/subscription-fixture') { response.end('<!doctype html><script src="/subscription-blocked.js"></script><p>Subscription fixture</p>'); return; }
   response.end('<!doctype html><title>uBO acceptance fixture</title><div id="ad">Cosmetic fixture</div><div id="procedure">Procedural fixture</div><div id="control">Allowed</div><script src="/blocked-ubo.js"></script><script src="/redirect-ubo.js"></script><script src="/allowed-control.js"></script>' + (request.url.includes('private-marker') ? '<script src="/ads/cbr.js?private-network-marker"></script>' : ''));
+});
+server.on('upgrade', (request, socket) => {
+  socketUpgrades.push(request.url);
+  socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const fixture = `http://127.0.0.1:${server.address().port}/`;
@@ -80,15 +89,19 @@ try {
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', 20000);
   timing.startupReadyMs = Date.now() - started;
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');
+  assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getBackgroundThrottling()), false);
   await call('blockingOpen', 'dashboard');
   const dashboard = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/dashboard.html')), Boolean, 'original dashboard');
   await dashboard.frameLocator('#iframe').locator('[data-setting-name="collapseBlocked"]').waitFor({ timeout: 5000 });
+  const dashboardId = (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id;
+  await call('blockingOpen', 'dashboard');
+  assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes('/dashboard.html')).map(tab => tab.id), [dashboardId], 'repeat dashboard actions reuse the owning profile tab');
   assert.equal(await dashboard.frameLocator('#iframe').locator('[data-setting-name="cloudStorageEnabled"]').isDisabled(), true);
   assert.equal(await dashboard.frameLocator('#iframe').locator('[data-setting-name="prefetchingDisabled"]').isDisabled(), true);
   await dashboard.locator('[data-pane="1p-filters.html"]').dispatchEvent('click');
   const filters = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'original My filters');
   await filters.locator('.CodeMirror').waitFor();
-  await filters.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.setValue('/blocked-ubo.js$script\n/redirect-ubo.js$script,redirect=noop.js\n127.0.0.1###ad\n127.0.0.1##div:has-text(Procedural fixture)\n127.0.0.1##+js(set, fixturePinned, true)\n/strict-fixture$document\n/csp-fixture$csp=script-src \'none\'\n'));
+  await filters.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.setValue('/blocked-ubo.js$script\n/redirect-ubo.js$script,redirect=noop.js\n127.0.0.1###ad\n127.0.0.1##div:has-text(Procedural fixture)\n127.0.0.1##+js(set, fixturePinned, true)\n/strict-fixture$document\n/blocked-websocket$websocket\n/csp-fixture$csp=script-src \'none\'\n'));
   await filters.locator('#userFiltersApply').dispatchEvent('click');
   await filters.locator('#userFiltersApply').waitFor({ state: 'visible' });
   await waitForValue(() => filters.locator('#userFiltersApply').isDisabled(), Boolean, 'filters applied');
@@ -99,6 +112,44 @@ try {
   assert(!hits.includes('/redirect-ubo.js'));
   assert(hits.includes('/allowed-control.js'));
   await page.waitForFunction(() => window.fixturePinned === true && getComputedStyle(document.querySelector('#procedure')).display === 'none');
+  stage = 'WebSocket filtering';
+  for (const name of ['blocked-websocket', 'allowed-websocket']) {
+    await page.evaluate(url => new Promise(resolve => {
+      const socket = new WebSocket(url); socket.onerror = () => resolve(); socket.onopen = () => { socket.close(); resolve(); };
+    }), fixture.replace('http:', 'ws:') + name);
+  }
+  assert(!socketUpgrades.includes('/blocked-websocket'), 'blocked WebSocket must never reach fixture upgrade handler');
+  assert(socketUpgrades.includes('/allowed-websocket'), 'allowed WebSocket proves native upgrade observation');
+  stage = 'slow document injection';
+  const slowTab = await call('openTab', fixture + 'slow-document');
+  const slowPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'slow-document'), Boolean, 'streaming document');
+  await slowPage.waitForFunction(() => window.slowDocumentStarted === true);
+  const slowWC = (await call('state')).tabs.find(tab => tab.id === slowTab).webContentsId;
+  const slowStableId = (await call('blockingMapping')).find(item => item.webContentsId === slowWC).tabId;
+  await electron.evaluate(async ({ webContents }) => {
+    const cssHost = webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html'));
+    await cssHost.executeJavaScript(`self.fixtureNativeCSS = chrome.scripting.executeScript.bind(chrome.scripting); chrome.scripting.executeScript = async options => { self.fixtureCSSStarted = true; await new Promise(resolve => setTimeout(resolve, 2500)); return self.fixtureNativeCSS(options); }; true`);
+  });
+  const delayedCSS = electron.evaluate(async ({ webContents }, id) => {
+    const background = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    await background.executeJavaScript(`chrome.tabs.insertCSS(${id}, {code:'#slow-marker { display: none !important; }',cssOrigin:'user'})`);
+  }, slowStableId);
+  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html')).executeJavaScript('self.fixtureCSSStarted === true')), Boolean, 'delayed CSS operation started');
+  await slowPage.evaluate(() => fetch('/allowed-control.js?during-css').then(response => response.text()));
+  assert(hits.includes('/allowed-control.js?during-css'), 'network filtering remains usable during slow non-network work');
+  await delayedCSS;
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/bridge.html')).executeJavaScript('chrome.scripting.executeScript = self.fixtureNativeCSS; true'));
+
+  await slowPage.waitForFunction(() => getComputedStyle(document.querySelector('#slow-marker')).display === 'none');
+  assert.equal(await slowPage.evaluate(() => document.readyState), 'loading', 'CSS must apply before parsing completes');
+  const idleResults = await electron.evaluate(async ({ webContents }, id) => {
+    const background = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    return background.executeJavaScript(`chrome.tabs.executeScript(${id}, {code:'window.slowIdleInjection=true',runAt:'document_idle'})`);
+  }, slowStableId);
+  assert.deepEqual(idleResults, [true], 'script completes in uBO’s isolated world on the current document');
+  assert.equal((await call('blockingStatus')).phase, 'ready');
+  await call('closeTab', slowTab);
+  await call('activateTab', regular);
   stage = 'web-accessible resource guard';
   const resourceIdentity = await electron.evaluate(async ({ webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
@@ -479,6 +530,9 @@ try {
   const failedId = await call('openTab', fixture + 'failure-gated');
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === failedId)?.isLoading, value => value === false, 'failed navigation settled');
   assert(!hits.includes('/failure-gated'));
+  await call('toggleAdblock');
+  assert.equal((await call('blockingStatus')).enabled, false, '/block-ads must disable a failed provider');
+  await call('setAdblock', true);
   await call('blockingRetry');
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'background retry', 20000);
   await call('activateTab', (await call('state')).tabs.find(tab => tab.webContentsId === awakeWC).id);
@@ -502,6 +556,27 @@ try {
   timing.rendererMemoryKiB = await electron.evaluate(({ app }) => app.getAppMetrics().filter(item => item.type === 'Tab').reduce((total, item) => total + (item.memory?.workingSetSize || 0), 0));
   timing.allowedRequestMs = await awake.evaluate(() => performance.getEntriesByType('resource').find(item => item.name.endsWith('/allowed-control.js'))?.duration ?? null);
   await awake.evaluate(async () => { await navigator.serviceWorker.register('/fixture-sw.js'); await navigator.serviceWorker.ready; });
+  stage = 'managed tool reopen';
+  for (const [tool, pathname] of [['dashboard', '/dashboard.html'], ['logger', '/logger-ui.html']]) {
+    await call('blockingOpen', tool);
+    const toolTab = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
+    assert(toolTab, tool);
+    await call('closeTab', toolTab.id);
+    await call('reopenClosed');
+    await waitForValue(async () => (await call('state')).tabs.some(tab => tab.url.includes(pathname)), Boolean, tool + ' reopened');
+    // Playwright keeps a crashed-page flag after native extension reloads the
+    // same WebContents. Check the actual reopened native document, rather than
+    // the driver object retained from our earlier deliberate renderer crash.
+    await waitForValue(async () => {
+      const current = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
+      return electron.evaluate(async ({ webContents }, id) => {
+        const wc = webContents.getAllWebContents().find(item => item.id === id);
+        if (!wc || wc.isDestroyed() || wc.isCrashed()) return false;
+        return wc.executeJavaScript('Boolean(document.body && document.body.getBoundingClientRect().height > 0 && document.body.innerText.length > 0)').catch(() => false);
+      }, current.webContentsId);
+    }, Boolean, tool + ' native document reopened');
+  }
+  await call('activateTab', (await call('state')).tabs.find(tab => tab.webContentsId === awakeWC).id);
   stage = 'offline restart';
   const originalIdentity = await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getURL().split('/')[2]);
   const closeTimer = setTimeout(() => electron.process().kill('SIGKILL'), 5000);
@@ -516,6 +591,14 @@ try {
   await electron.firstWindow();
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'offline cold launch', 20000);
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getURL().split('/')[2]), originalIdentity);
+  for (const [tool, pathname] of [['dashboard', '/dashboard.html'], ['logger', '/logger-ui.html']]) {
+    const restored = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
+    assert(restored, pathname + ' restored after restart');
+    await call('blockingOpen', tool);
+    assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [restored.id]);
+    const restoredPage = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes(pathname)), Boolean, tool + ' restored document');
+    await restoredPage.locator('body').waitFor();
+  }
   await call('openTab', fixture + '?restart-persistence');
   const restartedPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + '?restart-persistence'), Boolean, 'restart fixture');
   await restartedPage.waitForFunction(() => window.fixturePinned === true && getComputedStyle(document.querySelector('#ad')).display === 'none');

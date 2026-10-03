@@ -112,3 +112,53 @@ test('unsupported uBO keeps recovery documents usable while remote traffic stays
   preferences.adblockEnabled = false;
   assert.equal(gate.decide('onBeforeRequest', { url: 'https://example.org/' }).cancel, undefined);
 });
+
+test('one failing profile leaves all sessions protected and still initializes the others', async () => {
+  const owned = { first: { normal: {}, private: {} }, second: { normal: {}, private: {} } };
+  const attached = new Set(), gates = new Map(), initialized = [];
+  const module = { exports: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
+    module, process: { env: { BLANC_UBLOCK_TEST: '1' }, platform: 'darwin', arch: 'arm64', versions: { electron: '44.5.1' } },
+    require: name => {
+      if (name === 'electron') return { app: { isPackaged: false, getAppPath: () => '/app' } };
+      if (name === './adblock') return { attachAdBlockerToSession: session => attached.add(session), detachAdBlockerFromSession() {}, coordinator: { setProvider: (session, provider) => gates.set(session, provider) } };
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', platforms: {} };
+      if (name === './ublock-provider') return { createUblockProvider: ({ profileId }) => {
+        let phase = 'initializing';
+        return { setEnabled() {}, status: () => ({ phase }), decide: () => phase === 'ready' ? {} : { cancel: true }, initialize: async () => {
+          assert(attached.has(owned.first.private)); assert(attached.has(owned.second.private));
+          assert.equal(gates.get(owned.first.normal).decide('onBeforeRequest', { url: 'https://example.org/' }).cancel, true);
+          assert.equal(gates.get(owned.second.normal).decide('onBeforeRequest', { url: 'https://example.org/' }).cancel, true);
+          initialized.push(profileId); phase = profileId === 'first' ? 'failed' : 'ready';
+          if (phase === 'failed') throw new Error('background failed');
+        } };
+      } };
+      return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
+    },
+  });
+  const manager = module.exports.createBlockingProviders({ settings: { getSettings: () => ({ adblockProvider: 'ublock-origin', adblockEnabled: true }) }, hooks: {} });
+  await assert.rejects(manager.attachAll(['first', 'second'], id => owned[id]), /blocking-profile-initialization-failed/);
+  assert.deepEqual(initialized, ['first', 'second']);
+  assert.equal(manager.status('first').phase, 'failed'); assert.equal(manager.status('second').phase, 'ready');
+  assert.equal(gates.get(owned.first.normal).decide().cancel, true);
+  assert.equal(gates.get(owned.second.normal).decide().cancel, undefined);
+});
+
+test('ordinary packages hide uBO unless a prior selection needs recovery', () => {
+  const preferences = { adblockProvider: 'blanc', adblockEnabled: true };
+  const module = { exports: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
+    module, process: { env: {}, platform: 'linux', arch: 'x64', versions: { electron: '44.5.1' } },
+    require: name => {
+      if (name === 'electron') return { app: { isPackaged: true } };
+      if (name === '../../package.json') return {};
+      if (name === './adblock' || name === './ublock-provider') return {};
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', platforms: {} };
+      return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
+    },
+  });
+  const manager = module.exports.createBlockingProviders({ settings: { getSettings: () => preferences }, hooks: {} });
+  assert.equal(manager.status('default').exposed, false);
+  preferences.adblockProvider = 'ublock-origin';
+  assert.equal(manager.status('default').exposed, true);
+});

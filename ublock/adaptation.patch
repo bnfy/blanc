@@ -12333,7 +12333,7 @@ Binary files /dev/null and b/blanc-inter.woff2 differ
 +        const index = queued.findIndex(item => item.kind === 'call' && item.id === id);
 +        if (index !== -1) { queuedBytes -= JSON.stringify(queued[index]).length * 2; queued.splice(index, 1); }
 +        reject(new Error('ubo-host-timeout'));
-+      }, 2000);
++      }, ['tabs.insertCSS', 'tabs.removeCSS'].includes(method) ? 10000 : 2000);
 +      pending.set(id, { resolve, reject, timer, bytes });
 +      send({ kind: 'call', id, method, args });
 +    });
@@ -12355,12 +12355,12 @@ Binary files /dev/null and b/blanc-inter.woff2 differ
 +    };
 +  };
 +  const match = (pattern, value) => {
-+    if (pattern === '<all_urls>') return /^(https?|file|ftp):/.test(value);
-+    const parsed = /^(\*|https?|file|ftp|chrome-extension):\/\/([^/]*)(\/.*)$/.exec(pattern);
++    if (pattern === '<all_urls>') return /^(https?|wss?|file|ftp):/.test(value);
++    const parsed = /^(\*|https?|wss?|file|ftp|chrome-extension):\/\/([^/]*)(\/.*)$/.exec(pattern);
 +    if (!parsed) return false;
 +    let url;
 +    try { url = new URL(value); } catch { return false; }
-+    if (parsed[1] === '*' ? !['http:', 'https:'].includes(url.protocol) : `${parsed[1]}:` !== url.protocol) return false;
++    if (parsed[1] === '*' ? !['http:', 'https:', 'ws:', 'wss:'].includes(url.protocol) : `${parsed[1]}:` !== url.protocol) return false;
 +    const host = parsed[2];
 +    if (host !== '*' && host !== url.hostname && !(host.startsWith('*.') && (url.hostname === host.slice(2) || url.hostname.endsWith(host.slice(1))))) return false;
 +    const expression = parsed[3].split('*').map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*');
@@ -12396,7 +12396,7 @@ Binary files /dev/null and b/blanc-inter.woff2 differ
 +      const promise = call('tabs.authorizeInjection', [tabId, options]).then(async ({ webContentsId, lease }) => {
 +        const target = { allFrames: !!options.allFrames, frameId: options.frameId ?? 0,
 +          matchAboutBlank: !!options.matchAboutBlank, runAt: options.runAt || 'document_idle' };
-+        const tokens = await inject(webContentsId, { ...target, code: documentTokenCode });
++        const tokens = await inject(webContentsId, { ...target, runAt: 'document_start', code: documentTokenCode });
 +        const { code } = await call('tabs.commitInjection', [lease, tokens]);
 +        return inject(webContentsId, { ...target, code });
 +      });

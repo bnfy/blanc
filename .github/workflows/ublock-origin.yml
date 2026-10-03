@@ -2,16 +2,47 @@ name: Full uBlock Origin candidate
 on:
   pull_request:
     paths:
-      - 'src/**'
+      - 'src/main/**'
+      - 'src/renderer/renderer.js'
+      - 'src/renderer/overlay*'
+      - 'src/renderer/index.html'
+      - 'src/renderer/styles.css'
+      - 'src/renderer/pages/settings*'
+      - 'src/renderer/ublock-*'
+      - 'src/renderer/ublock-popup-icons/**'
       - 'ublock/**'
-      - 'test/**'
-      - 'scripts/**'
+      - 'test/desktop/ublock*'
+      - 'test/desktop/shield-provider*'
+      - 'test/desktop/support/**'
+      - 'test/unit/ublock*'
+      - 'test/unit/blocking*'
+      - 'test/unit/shield*'
+      - 'scripts/*ublock*'
+      - 'scripts/*capture-preload*'
+      - 'scripts/verify-packaged-*'
+      - 'scripts/generate-compliance*'
+      - 'adblock/**'
+      - 'compliance/**'
+      - '.gitattributes'
       - 'package*.json'
       - '.github/workflows/ublock-origin.yml'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
+  ordinary-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Build ordinary public payload with its production allowlist
+        run: npx electron-builder --linux --dir --publish never
+      - name: Verify ordinary payload and exclusion boundary
+        run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
     strategy:
       fail-fast: false

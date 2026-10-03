@@ -1766,6 +1766,7 @@
     shieldPop.dataset.restartPending = String(controls.selected !== controls.active);
     for (const input of shieldPopProvider.querySelectorAll('input')) input.checked = input.value === (shieldChoosing ? shieldDraft : controls.selected);
     shieldPopProvider.disabled = controls.disabled || shieldSaving;
+    shieldPopChangeProvider.hidden = controls.hidden === true;
     shieldPopChangeProvider.disabled = controls.disabled;
     document.getElementById('shieldPopCurrentProvider').textContent = providerName(controls.active);
     for (const badge of shieldPopProvider.querySelectorAll('.shield-provider-active')) {
