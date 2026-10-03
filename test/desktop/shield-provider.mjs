@@ -468,10 +468,18 @@ try {
   if (electron) {
     console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
     console.error('Shield overlay mode:', await call('overlayMode').catch(() => 'unavailable'));
+    console.error('Fixture native visibility:', await electron.evaluate(({ BrowserWindow, webContents }) => ({
+      focusedWindow: BrowserWindow.getFocusedWindow()?.id ?? null,
+      focusedContents: webContents.getFocusedWebContents()?.id ?? null,
+      windows: BrowserWindow.getAllWindows().map(win => ({ id: win.id,
+        contents: win.webContents.id, visible: win.isVisible(), minimized: win.isMinimized(),
+        focused: win.isFocused(), chromeFocused: win.webContents.isFocused(),
+      })),
+    })).catch(() => null));
     const chrome = (await Promise.resolve().then(() => electron.windows()).catch(() => [])).find(page => page.url() === 'blanc-chrome://index/');
     console.error('Shield geometry:', await chrome?.evaluate(() => ['islandPill', 'pillShield'].map(id => {
       const element = document.getElementById(id); const css = getComputedStyle(element); const rect = element.getBoundingClientRect();
-      return { id, hidden: element.hidden, visibility: css.visibility, display: css.display, transform: css.transform, x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      return { id, documentVisibility: document.visibilityState, documentFocused: document.hasFocus(), hidden: element.hidden, visibility: css.visibility, display: css.display, transform: css.transform, x: rect.x, y: rect.y, width: rect.width, height: rect.height };
     })).catch(() => []));
   }
   throw error;

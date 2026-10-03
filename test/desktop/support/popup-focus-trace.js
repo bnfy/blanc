@@ -63,14 +63,21 @@ async function install(electron) {
 // Direct fixture/DevTools calls do not imply the foreground window state a
 // native shield click has. Keep real production blur dismissal enabled.
 async function focusFixtureWindow(electron) {
-  await electron.evaluate(({ app, BrowserWindow }) => {
+  const target = await electron.evaluate(({ app, BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows().sort((a, b) => a.id - b.id)
       .find(win => win.webContents.getURL() === 'blanc-chrome://index/');
     if (!win) throw new Error('Fixture chrome window unavailable');
     win.show(); app.focus({ steal: true }); win.focus();
+    // BrowserWindow focus can remain in its child webpage. Native input tests
+    // target the chrome renderer; establish that exact focus before dispatch.
+    win.webContents.focus();
+    return win.id;
   });
   const { waitForValue } = require('./poll');
-  await waitForValue(() => electron.evaluate(({ BrowserWindow }) => Boolean(BrowserWindow.getFocusedWindow())), Boolean, 'fixture window focused');
+  await waitForValue(() => electron.evaluate(({ BrowserWindow }, id) => {
+    const win = BrowserWindow.fromId(id);
+    return win?.isVisible() && BrowserWindow.getFocusedWindow()?.id === id;
+  }, target), Boolean, 'fixture chrome window focused');
 }
 async function read(electron) {
   return electron.evaluate(() => globalThis.fixturePopupFocusEvents ?? []);

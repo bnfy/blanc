@@ -173,3 +173,35 @@ the expanded native real-blocking suite and the rebuilt unsigned owner-local
 Linux x64 ASAR checks passed. The earlier dashboard/shield results remain
 unchanged; the next exact-head native run repeats all three suites on all four
 platforms. No public platform or distribution clearance flag changed.
+
+
+## Native focus follow-up and licensing outreach
+
+Run [37140368951](https://github.com/bnfy/blanc/actions/runs/37140368951)
+at `81292f67` passed both macOS architectures, Windows and ordinary packaging,
+but Linux timed out on the first unavailable-provider shield click, before uBO
+loaded. Playwright stalled waiting for native click stability although the button
+had visible, nonzero geometry. This failure is retained; it is not a filtering
+failure or installed Linux acceptance.
+
+The fixture now focuses the chrome WebContents before dispatch and waits for the
+exact visible native fixture window, instead of accepting any focused window.
+Failure diagnostics include bounded window IDs and document visibility/focus.
+No force-click, production blur exception, timeout extension or sandbox change
+was added. Local real-blocking/core and shield suites passed this correction.
+The subsequent main merge at `7ca81589` independently passed all four native jobs
+and ordinary packaging in run
+[37140935663](https://github.com/bnfy/blanc/actions/runs/37140935663).
+The intermittent earlier failure is still relevant; exact-head CI will repeat
+these suites after this test correction.
+
+On October 3 the owner approved sending the concrete guidance request to FSF
+Licensing from `anthony@bnfy.me`. Mimestream confirmed the message in Sent and
+FSF acknowledged ticket **#2769466**. The request references immutable review
+snapshot `81292f67`, makes no payment commitment, and requests a concrete
+boundary/source/artwork assessment or a referral. An acknowledgment is not a
+licensing determination; all distribution-clearance fields remain false.
+
+The CodeQL API comparison after the main merge still matched all 39 baseline
+alert numbers, rules and upstream paths; no first-party alert was present.
+No dismissals or exclusions were applied.
