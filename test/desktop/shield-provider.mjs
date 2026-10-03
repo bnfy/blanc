@@ -400,6 +400,7 @@ try {
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'later view outside click dismisses popup');
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), laterContents), outsideListeners, 'later view observers removed after dismissal');
   await call('closeTab', laterTab);
+  stage = 'original uBO popup Escape';
   overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
   await escapePopup.locator('body:not(.loading)').waitFor();
@@ -466,6 +467,7 @@ try {
 } catch (error) {
   console.error('Shield stage:', stage, stderr, uiErrors);
   if (electron) {
+    console.error('Provider state:', await call('blockingStatus').catch(() => 'unavailable'));
     console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
     console.error('Shield overlay mode:', await call('overlayMode').catch(() => 'unavailable'));
     console.error('Fixture native visibility:', await electron.evaluate(({ BrowserWindow, webContents }) => ({

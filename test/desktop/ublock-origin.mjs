@@ -529,10 +529,14 @@ try {
   await call('openTab', fixture + 'strict-fixture');
   await waitForValue(async () => (await electron.windows()).some(item => item.url().includes('/document-blocked.html')), Boolean, 'strict-block page');
   assert(!hits.includes('/strict-fixture'));
+  stage = 'quiet tab wake';
   assert(await call('sleepTab', regular));
   assert(!(await call('blockingMapping')).some(item => item.webContentsId === regularWC));
+  // Native destruction precedes Playwright's target-detached notification.
+  // Wait for that old page to leave before resolving a new page by the same URL.
+  await waitForValue(() => page.isClosed(), Boolean, 'quiet fixture renderer detached');
   await call('activateTab', regular);
-  const awake = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture), Boolean, 'quiet fixture awakened');
+  const awake = await waitForValue(async () => (await electron.windows()).find(item => item !== page && item.url() === fixture), Boolean, 'quiet fixture awakened');
   await awake.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
   console.log('uBO lifecycle passed; exercising profiles and restart persistence');
   stage = 'profiles and OAuth';

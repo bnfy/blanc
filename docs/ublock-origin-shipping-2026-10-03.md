@@ -98,10 +98,12 @@ Electron's [extension documentation](https://www.electronjs.org/docs/latest/api/
 explicitly lists MV2 background support today; no durable retention commitment
 has been found. Any Electron update must update the reviewed runtime record and
 pass the real blocking/tools suite on every enabled platform before release.
-A reviewed release that retires native MV2 support must activate Blanc Blocker
-for existing uBO selections while preserving their saved settings. Other
-unsupported combinations and runtime failures retain local recovery access and
-require the user to choose another provider or explicitly continue unfiltered.
+A build where uBO is unavailable must activate Blanc Blocker for existing uBO
+selections while preserving their saved settings and explaining the switch.
+This covers reviewed MV2 retirement, disabled/unlisted platforms, unreviewed
+runtimes and intentionally omitted payloads. Failures while initializing or
+running an available uBO retain fail-closed recovery: retry, choose another
+provider for restart or explicitly continue unfiltered.
 Never hold back Chromium security updates indefinitely to keep MV2 alive.
 
 ## Candidate and release gates
@@ -405,3 +407,22 @@ Local follow-up validation completed: lint, substrate, all 2,178 unit tests and
 the full real-blocking uBO desktop suite passed. The latter still exercises
 available-provider decision deadlines, background crash/retry, native storage
 and profile isolation, tools, POST safety and offline restart persistence.
+
+
+At source head `fba2aa3c`, [run 37146642327](https://github.com/bnfy/blanc/actions/runs/37146642327)
+passed ordinary packaging, Windows and Linux. Both macOS jobs failed before the
+new unavailable-build regression ran: Apple Silicon selected a stale Playwright
+page during quiet-tab wake, and Intel lost the popup while preparing its Escape
+check. The Intel native trace shows the provider's `closePopup` hook, but the
+fixture did not record provider status, so the failure code is unknown. Neither
+failure is counted as a pass or dismissed as infrastructure noise.
+
+The test follow-up waits for Playwright to observe the old quiet page's closure
+before resolving the new page at the same URL, names the quiet/Escape stages
+accurately, and records bounded provider status on shield failure. It changes no
+production code, deadlines or recovery policy. The first-run failures remain
+part of the release reliability record; the corrected suites require fresh CI.
+
+The test follow-up passed local lint, the full shield/provider suite and the full
+uBO real-blocking suite on macOS arm64. The Intel failure has not been reproduced
+locally; new failure diagnostics are intended to establish its cause if repeated.
