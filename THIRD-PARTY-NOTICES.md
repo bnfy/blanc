@@ -131,3 +131,10 @@ Wikipedia article content and photographs with separate reuse terms. Their
 attribution, source links, display treatment and licenses are recorded in
 `site/public/revamp/credits.txt`, linked beside the Island demo. The Wikipedia
 article text remains CC BY-SA 4.0; it is not included in Blanc's MIT grant.
+
+## Website 3D rendering — Three.js 0.186.1
+
+The homepage's Horizon Shield uses Three.js and its RoomEnvironment helper.
+Copyright © 2010–2026 three.js authors; MIT licensed. The complete notice ships
+at `site/public/licenses/three-MIT.txt`. The shield artwork remains a reserved
+Blanc product mark; the rendering library does not confer rights to that mark.

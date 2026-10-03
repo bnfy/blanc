@@ -51,7 +51,15 @@
     "height": 960,
     "sha256": "642269205dfb144a2ba522d0ab9cead41d4e52ccac0c48ffb9a1c8726abb73ec",
     "export": "Sharp: trim threshold 8, resize contain 960×960 with transparent padding, WebP quality 90 / alphaQuality 100 / effort 6. No repainting or geometry changes.",
-    "license": "Reserved Blanc product identity per ASSET-LICENSE.md. Horizon Shield is Blanc artwork, not the uBlock Origin logo."
+    "license": "Reserved Blanc product identity per ASSET-LICENSE.md. Horizon Shield is Blanc artwork, not the uBlock Origin logo.",
+    "model": {
+      "source": "site/src/scripts/horizon-shield-model.js",
+      "outline": "site/src/data/horizon-shield-outline.json",
+      "outlineSha256": "467ccb0325d8219e29c992d99754370965b11ba0250bb8481c1e0597ce994fbd",
+      "rebuild": "node site/scripts/build-horizon-outline.mjs",
+      "geometry": "Closed gold relief mesh. Front and back use identical approved artwork/UVs and matching relief turned 180 degrees; solid beveled walls join them. Silhouette is alpha-traced with subpixel edge smoothing.",
+      "ownerDirection": "October 3: make the shield solid 3D; use the same front artwork on the back; remove the visible caption; close all side surfaces."
+    }
   },
   "reviewedCandidateFiles": [
     {

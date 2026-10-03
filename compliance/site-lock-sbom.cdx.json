@@ -12362,6 +12362,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/three@0.186.1",
+      "name": "three",
+      "version": "0.186.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6e515ea9be3dc110921941a3ee0b697e74861f2da5c0393de11854992d5cfe14dbcbbd24bc285b5a9909e0f9b5dfdd0bab3cef4e6ce05ca1cf11a7c9c026fc8c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/three@0.186.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/three"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/three/-/three-0.186.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/tiny-inflate@1.0.3",
       "name": "tiny-inflate",
       "version": "1.0.3",
@@ -13628,7 +13673,8 @@
         "pkg:npm/%40fontsource-variable/inter@5.3.0",
         "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
         "pkg:npm/astro@7.3.2",
-        "pkg:npm/sharp@0.35.4"
+        "pkg:npm/sharp@0.35.4",
+        "pkg:npm/three@0.186.1"
       ]
     },
     {
@@ -15090,6 +15136,10 @@
         "pkg:npm/picocolors@1.1.1",
         "pkg:npm/sax@1.6.1"
       ]
+    },
+    {
+      "ref": "pkg:npm/three@0.186.1",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/tiny-inflate@1.0.3",

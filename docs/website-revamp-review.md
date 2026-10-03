@@ -178,13 +178,22 @@ not a claim that Cloudflare redirects or the canonical deployment have shipped.
 
 ## Horizon Shield and blocking choices — October 3
 
-Privacy and Control now features the approved gold Horizon Shield at a large
-scale, beside Blanc Blocker and uBlock Origin. The original transparent source
-is exported faithfully to a 960px WebP (160,406 bytes). A perspective turn ties
-one 0°–360° rotation to the artwork's passage through the viewport; scrolling
-back reverses it. Front and back faces use the same approved artwork. Reduced
-motion keeps it upright, and the script schedules no scroll work offscreen.
-There are no extra disclosure controls or fake blocking counters.
+Privacy and Control features the approved gold Horizon Shield at a large scale,
+beside Blanc Blocker and uBlock Origin. The original transparent source is
+exported faithfully to a 960px WebP (160,406 bytes), which remains the fallback.
+A solid relief mesh follows its alpha silhouette: matching front and back
+surfaces use the same original artwork and UVs, turned 180 degrees, with two
+recessed seams and closed beveled gold walls between them. The visible caption
+is removed; the figure retains an accessible name.
+
+Three.js 0.186.1 renders the model with metal lighting. Its separate chunk loads
+only near the section (548,108 bytes minified; 135,345 bytes gzip). This lazy
+chunk triggers Vite's 500 kB advisory, but is not part of the initial page load.
+There is no animation loop: scroll/resize request a frame only when needed,
+with DPR capped at 2. Scroll controls one clamped 0°–360° turn and reverses when
+scrolling back. Reduced motion keeps it upright and avoids loading WebGL on
+initial load. Initialization failure or context loss shows the static original
+artwork. There are no extra disclosure controls or fake blocking counters.
 
 The owner explicitly requested finished launch copy without “In development”
 or “Upcoming” badges, and will deploy the redesigned site only after the new
@@ -200,12 +209,16 @@ remain visible. Existing setup defaults, optional connection gating, measurement
 disclosures and links to Trust remain on the homepage. The prior illustrative
 site switch was removed; current site controls remain described in Trust.
 
-Verification: `npm run site:build` passed with SEO/link/image checks. All 19
-focused website, motion and dependency-boundary tests passed. Browser checks at
+Verification: `npm run site:build` passed with SEO/link/image checks. All 21
+focused website, model, motion and dependency-boundary tests passed. Browser checks at
 855×792 and 390×844 showed loaded artwork, no horizontal overflow and readable
 copy. The browser demonstrated the 0° and 360° endpoints and reverse scrolling;
-reduced-motion initialization and preference changes passed executable unit
-coverage. No browser console warnings or errors were captured. The development
+reduced-motion initialization, preference changes, lazy loading and failure
+fallback passed executable unit coverage. Geometry tests verify identical front
+and back UVs/relief, actual thickness, closed welded edges, and outward-facing
+side triangles. Both side profiles were visually inspected after correcting
+side winding. The dependency audit and regenerated site SBOM compliance check
+also passed. No browser console warnings or errors were captured. The development
 site remains open at `http://127.0.0.1:4321/#privacy`.
 
 The branch also incorporates main through `03621de6`, bringing in the approved

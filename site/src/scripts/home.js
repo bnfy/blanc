@@ -1,4 +1,5 @@
-import "./horizon-shield.js";
+import { initHorizonShield } from "./horizon-shield.js";
+initHorizonShield(document.querySelector(".horizon-study"));
 
 (() => {
   const body = document.body;
