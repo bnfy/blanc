@@ -43,7 +43,8 @@ const loaded = async (id, label) => {
   const result = await wait(() => app.evaluate(async ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     if (!wc || wc.isLoadingMainFrame()) return null;
-    if (new URL(wc.getURL()).hostname !== 'chromewebstore.google.com') return null;
+    // Newly created or quiet-restored guests can have no committed URL yet.
+    if (!wc.getURL().startsWith('https://chromewebstore.google.com/')) return null;
     return wc.executeJavaScript('({ api: typeof window.chrome?.webstorePrivate, title: document.title, body: document.body.innerText.length, origin: location.origin, url: location.href })');
   }, wcId), value => value?.body > 100 && value.title, label, 45_000);
   assert.match(result.title, /Chrome Web Store/, `${label}: real Store document`);

@@ -69,3 +69,8 @@ are not in-app updater handoff evidence. No handoff or release is claimed.
 The screenshot does not establish a reproducible cause for every reported
 freeze; this work addresses command/focus/lifecycle paths and adds regression
 coverage, rather than claiming all freezes are resolved.
+
+The corrected `59e75421` source matrix passed all 81 native input/menu commands
+on Windows, Linux and macOS. Windows/Linux then hit a polling-harness error
+parsing an empty pre-commit Store URL; the polling guard now waits for a real
+Store URL. This does not weaken the title, live-document or absent-API checks.
