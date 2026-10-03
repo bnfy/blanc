@@ -105,6 +105,15 @@ try {
     await popupFocusTrace.focusFixtureWindow(electron);
     return call('blockingPopup');
   };
+  // Upstream closes its popup synchronously after opening a tool, which can
+  // precede CDP's dispatch acknowledgement. Accept only that closure; each
+  // caller then requires the tool's own result.
+  const clickClosingPopup = (popup, selector) => Promise.all([
+    popup.waitForEvent('close'),
+    popup.locator(selector).dispatchEvent('click').catch(error => {
+      if (!popup.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
+    }),
+  ]);
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', 20000);
   timing.startupReadyMs = Date.now() - started;
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');
@@ -256,7 +265,7 @@ try {
   await openFixturePopup();
   let toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'picker popup');
   await toolsPopup.locator('body:not(.loading)').waitFor();
-  await Promise.all([toolsPopup.waitForEvent('close'), toolsPopup.locator('#gotoPick').dispatchEvent('click')]);
+  await clickClosingPopup(toolsPopup, '#gotoPick');
   console.log('picker launched');
   const picker = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/epicker-ui.html')), Boolean, 'original element picker', 10000);
   await picker.waitForFunction(() => document.querySelector('svg#sea path')?.getAttribute('d')?.length > 0);
@@ -271,7 +280,7 @@ try {
   toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'zapper popup');
   stage = 'original zapper';
   await toolsPopup.locator('body:not(.loading)').waitFor();
-  await Promise.all([toolsPopup.waitForEvent('close'), toolsPopup.locator('#gotoZap').dispatchEvent('click')]);
+  await clickClosingPopup(toolsPopup, '#gotoZap');
   const zapper = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/epicker-ui.html') && frame.url().includes('zap=1')), Boolean, 'original element zapper');
   await zapper.waitForFunction(() => document.querySelector('svg#sea path')?.getAttribute('d')?.length > 0);
   await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true })));
@@ -334,15 +343,7 @@ try {
       await openFixturePopup();
       const controls = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' native popup');
       await controls.locator('body:not(.loading)').waitFor();
-      // Upstream closes this document synchronously after opening the tool.
-      // On ARM macOS that can precede CDP's dispatch acknowledgement. Require
-      // closure and the intended owned-tab selection below, even in that case.
-      await Promise.all([
-        controls.waitForEvent('close'),
-        controls.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click').catch(error => {
-          if (!controls.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
-        }),
-      ]);
+      await clickClosingPopup(controls, `a[href^="${pathname.slice(1)}"]`);
       await waitForValue(() => call('state'), state => state.activeTabId === original.id, tool + ' selected by original popup');
       assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [original.id], tool + ' popup reuses one tab across fragments');
     }
@@ -778,12 +779,7 @@ try {
     await openFixturePopup();
     const restoredPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' cold restore popup');
     await restoredPopup.locator('body:not(.loading)').waitFor();
-    await Promise.all([
-      restoredPopup.waitForEvent('close'),
-      restoredPopup.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click').catch(error => {
-        if (!restoredPopup.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
-      }),
-    ]);
+    await clickClosingPopup(restoredPopup, `a[href^="${pathname.slice(1)}"]`);
     await waitForValue(() => call('state'), state => state.activeTabId === restored.id && state.tabs.find(tab => tab.id === restored.id)?.asleep === false, tool + ' quiet tab selected by original popup');
     assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [restored.id]);
     assert.equal(await call('allowAdsOnActive'), null, 'tools never become site exceptions');
