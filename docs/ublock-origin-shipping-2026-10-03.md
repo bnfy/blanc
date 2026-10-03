@@ -109,10 +109,9 @@ Never hold back Chromium security updates indefinitely to keep MV2 alive.
 ## Candidate and release gates
 
 1. Complete the source/licensing determination and record the security review
-   plan. The owner has approved 38 individual dismissals for the post-draft
-   stage; #77 remains open for signed installed-build testing and a separate
-   owner decision. Do not require that final decision before the very candidate
-   testing it depends on, or infer it from the other 38 approvals.
+   plan. The owner has approved all 39 individual dismissals for the post-draft
+   stage. The explicit #77 approval supersedes its earlier hold and accepts the
+   signed macOS arm64 evidence, including the build-output launch limitation.
 2. Run lint, substrate, full units, native tools/blocking suites and actual
    ordinary and uBO package payload/compliance verification at the candidate SHA.
 3. Only after distribution clearance, dispatch private signed Windows/Linux
@@ -120,12 +119,12 @@ Never hold back Chromium security updates indefinitely to keep MV2 alive.
 4. Obtain installed candidate evidence for macOS arm64/x64, Windows x64 and Linux
    x64. Include persistence, quiet/reopen/tools, close/relaunch, Linux renderer
    sandbox (direct and integrated-menu AppImage), and staged updater handoff
-   where required. Include the [alert #77 installed noscript protocol](ublock-origin-codeql-dispositions-2026-10-03.md#alert-77-signed-installed-build-acceptance-still-pending)
+   where required. Include the [candidate noscript protocol](ublock-origin-codeql-dispositions-2026-10-03.md#alert-77-approved-deferred-dismissal)
    on each platform proposed for enablement. CI alone does not establish these
    desktop results.
-5. Obtain the separate owner decision on #77. At the agreed post-draft stage,
-   apply the other 38 recorded dismissals individually, using the reviewer's
-   exact per-alert reasons/comments. This document does not remove draft status
+5. At the agreed post-draft stage, apply all 39 recorded dismissals individually
+   using the exact approved reasons/comments. The owner supplied #77's exact
+   comment; the other 38 remain in the reviewer's record. This document does not remove draft status
    or dismiss an alert. Resolve all merge-blocking security findings before merge.
 6. Enable only platforms with complete evidence; publish the support matrix with
    actual uBO/Electron versions and integration limits. Use the existing protected
@@ -475,3 +474,14 @@ installer artifacts are uploaded only after all required steps pass. This wiring
 has YAML parsing, shell syntax and the existing distribution-gate unit checks;
 the new Windows/Linux steps have not run yet. It changes no clearance fields,
 platform flags, public release behavior or CodeQL dispositions.
+
+
+## Explicit owner approval of #77 — October 3
+
+The owner approved alert #77 for deferred **Won't fix** when PR #490 leaves
+draft, explicitly superseding the earlier hold. The owner accepted the signed,
+notarized macOS arm64 no-scripting evidence committed in `130dabe3`, including
+its build-output launch limitation. The [per-alert record](ublock-origin-codeql-dispositions-2026-10-03.md#alert-77-approved-deferred-dismissal)
+now contains the exact supplied comment. All 39 alerts have owner decisions;
+none has been dismissed. Do not dismiss anything before PR #490 leaves draft.
+Installed-platform testing and source/licensing requirements remain separate.

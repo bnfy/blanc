@@ -1,28 +1,28 @@
 # Individual uBO CodeQL review and owner decisions — October 3, 2026
 
-This records technical recommendations and the owner's subsequently supplied
-review decisions for the **39 specific immutable upstream alerts**. On October 3,
-the owner relayed approval of 38 individual dismissals, deferred until PR #490
-leaves draft. **Alert #77 is held open pending signed installed-build evidence
-and a separate owner decision.** All 39 remain open and scanning remains enabled;
-PR #490 is still draft. No dismissal, scan exclusion or distribution clearance
-is granted by editing this document.
+This records technical recommendations and the owner's supplied review
+decisions for the **39 specific immutable upstream alerts**. On October 3,
+the owner explicitly approved #77 for deferred **Won't fix**, superseding the
+earlier hold and accepting the signed, notarized macOS arm64 probe evidence
+committed in `130dabe3`, including its build-output launch limitation.
+All 39 now have owner decisions. No alert has been dismissed; scanning remains
+enabled and PR #490 remains draft. **Do not dismiss anything before PR #490
+leaves draft.** Editing this document does not grant distribution clearance.
 
-The decision summary names the GitHub reason for 29 of the approved alerts.
-For the nine non-blocking alerts it refers to the reviewer's per-alert record;
-those exact reasons, and the verbatim dismissal comments for all 38 approvals,
-were not included in the supplied summary. They must be obtained from that record before
-execution, not reconstructed as words the owner approved. The evidence column
-remains a technical assessment, not an approved dismissal comment.
+The supplied summaries name the GitHub reason for 30 approved alerts and give
+an exact dismissal comment for #77, recorded below. For the nine non-blocking
+alerts they refer to the reviewer's per-alert record. Those exact reasons, and
+the verbatim comments for the original 38 approvals, must be obtained from that
+record before execution, not reconstructed as words the owner approved.
+The evidence column remains a technical assessment, not an approved comment.
 
-The live comparison at code head `31b33196` still matches the same 39 baseline
-numbers, rules and paths. This decision applies to that pinned source/adaptation
-review; changed upstream bytes, changed mitigations or a new alert require a
-fresh review. Draft removal is deferred and must not be inferred from this
-record. When the agreed dismissal stage is reached, apply the 38 decisions
-individually using their recorded reason/comment; leave #77 open until its
-separate decision. Licensing/source clearance and platform acceptance remain
-independent release gates.
+The live comparison at code head `31b33196` matched the same 39 baseline
+numbers, rules and paths. These decisions apply to the pinned source/adaptation
+review; changed upstream bytes, mitigations or a new alert require fresh review.
+At the agreed post-draft stage, apply all 39 decisions individually with their
+recorded reasons/comments. Draft removal must not be inferred from this record.
+Source/licensing clearance and installed-platform acceptance remain independent
+release requirements.
 
 The fresh merge-ref scan at `ae991e43` had exactly the baseline alert numbers,
 rules and locations, with no new Blanc alert. The baseline binds each original
@@ -45,7 +45,7 @@ all-platform installed acceptance.
 | 74 | `js/document-blocked.js:88` | Mitigated in deployed adaptation | Approved; defer while PR is draft | Won't fix | Parsed HTTP(S) target required before href/navigation or exception creation; executable/local/internal/encoded malformed schemes rejected by actual host tests. Ordinary external web navigation remains intentional. |
 | 75 | `js/document-blocked.js:207` | Mitigated in deployed adaptation | Approved; defer while PR is draft | Won't fix | Parsed HTTP(S) target required before href/navigation or exception creation; executable/local/internal/encoded malformed schemes rejected by actual host tests. Ordinary external web navigation remains intentional. |
 | 76 | `js/logger-ui.js:1086` | Security-context false positive recommended | Approved; defer while PR is draft | False positive | Sink prefixes select value with a literal fragment marker. Hash parsing accepts only an existing owned-tab option; this cannot become an executable URL or HTML parsing operation. |
-| 77 | `js/scriptlets/noscript-spoof.js:70` | No exploit observed under required scripting policy | **Held open — signed installed-build test and separate owner decision required** | None approved | Maintained native Electron 44.5.1 regression uses the actual no-scripting switch, active-payload controls and noscript reconstruction: fallback rendered; original/inserted scripts, error attribute, JavaScript link and meta redirect did not execute; Node unavailable. Upstream refuses reconstruction when noScriptingCSP differs from its default. Re-test if that policy changes. |
+| 77 | `js/scriptlets/noscript-spoof.js:70` | No exploit observed under required scripting policy | Approved explicitly; earlier hold superseded; defer while PR is draft | Won't fix | Owner accepted [signed, notarized macOS arm64 packaged evidence](evidence/ublock-noscript-signed-macos-2026-10-03/README.md) in `130dabe3`, including its build-output launch limitation. Actual uBO no-scripting switch, execution controls, fallback reconstruction and enforced default CSP were exercised; Node access was unavailable. Original upstream source remains byte-exact. Re-test if uBO changes its noScriptingCSP default. Exact approved comment is recorded below. |
 | 78 | `lib/codemirror/mode/xml/xml.js:82` | Security-context false positive recommended | Approved; defer while PR is draft | False positive | CodeMirror XML tokenizer recognizes comments and returns token styles; it neither removes unsafe HTML nor authorizes DOM insertion. It is not an HTML sanitizer. |
 | 79 | `js/logger-ui.js:2781` | No privileged execution sink; export limitation retained | Approved; defer while PR is draft | Won't fix | Markdown table formatting reaches the export textarea through textContent, then explicit clipboard copy. It is not complete Markdown/HTML sanitization for a later external consumer; pasted exports must still be treated as untrusted text. |
 | 80 | `js/scriptlet-filtering-core.js:95` | Security-context false positive recommended | Approved; defer while PR is draft | False positive | requote is used by decompile to create filter text for diagnostics. Executable scriptlet arguments instead use JSON.stringify in patchScriptlet; toLogger consumes details.filters as text, separately from injected code. |
@@ -80,12 +80,20 @@ all-platform installed acceptance.
 | 110 | `js/epicker-ui.js:899` | Authenticated deployed tool handshake | Approved; defer while PR is draft | Exact reason in reviewer record; not supplied here | Same document/frame/profile-bound native capability as inspector, scoped to picker. Hostile webpage parent repeatedly transferred forged ports to the actual picker and got no replies; genuine picker continued to work. Invalid first messages do not consume the bootstrap listener. |
 | 111 | `js/reverselookup-worker.js:303` | Dedicated Worker context; origin-check false positive recommended | Approved; defer while PR is draft | Exact reason in reviewer record; not supplied here | reverselookup.js creates a dedicated Worker at fixed js/reverselookup-worker.js. Inputs arrive through its retained private handle; worker-local dictionaries/results are assessed individually in 100–102. |
 
-## Alert #77: signed installed-build acceptance still pending
+## Alert #77: approved deferred dismissal
 
-The owner has not accepted this alert's residual risk. Passing development/CI
-noscript probes is supporting evidence only. Before requesting the final owner
-decision, record the following against each candidate platform proposed for
-public enablement:
+The owner explicitly approved **Won't fix** when PR #490 leaves draft. This
+supersedes the earlier hold: the owner accepted the signed, notarized macOS
+arm64 evidence in `130dabe3`, even though the app ran from build output rather
+than an installed copy. The evidence remains [available here](evidence/ublock-noscript-signed-macos-2026-10-03/README.md).
+
+Use this exact owner-supplied dismissal comment:
+
+> No script execution observed with uBO's no-scripting switch: signed, notarized macOS arm64 build passed the packaged probe. Original kept byte-exact; re-test if uBO changes its noScriptingCSP default.
+
+No dismissal is authorized before the PR leaves draft. This security disposition
+does not claim installed-machine results or clear other platforms. Continue the
+following candidate protocol for platform acceptance and regression evidence:
 
 1. Bind the installed candidate to its source commit, installer/app SHA-256,
    verified publisher/signature (and macOS notarization or Linux authenticated
@@ -113,14 +121,13 @@ public enablement:
    Save sanitized results under `docs/evidence/` with the platform/artifact
    identity and procedure. Any failure or unsupported observation stays open;
    CI, an unsigned build or a direct source run cannot replace these results.
-6. Present those results and their limits for a separate owner decision on #77.
-   Do not automatically dismiss it when tests pass or when the PR leaves draft.
+6. Record candidate results and limits for platform acceptance. The security
+   disposition for #77 is already approved; do not request it again. Its GitHub
+   dismissal remains deferred until PR #490 leaves draft.
 
 Signed bundled candidates themselves remain subject to distribution clearance.
-That clearance can permit candidate testing while #77 remains open; #77's final
-security decision is required before merge/shipping, not fabricated beforehand
-to make installed testing possible. No candidate has been certified by this
-checklist.
+The owner's approval of #77 does not supply source/licensing clearance or
+installed-platform acceptance. No candidate has been certified by this checklist.
 
 ## Native noscript and header probes
 
@@ -163,4 +170,6 @@ The [signed macOS probe record](evidence/ublock-noscript-signed-macos-2026-10-03
 adds successful packaged-app execution/CSP evidence for #77 at `43ae6748`, with
 Gatekeeper and stapled-ticket verification. It is an unpacked local candidate,
 not installed-platform acceptance. The earlier harness failures are retained.
-Alert #77 remains held open for the separate owner decision.
+The owner subsequently accepted this evidence and supplied the approved
+**Won't fix** comment above. The earlier hold is superseded; the GitHub action
+remains deferred until PR #490 leaves draft.

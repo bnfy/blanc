@@ -61,5 +61,12 @@ The harness validates the executable/ASAR relationship and packaged uBO metadata
 Verify the candidate's signature and provenance separately. On Linux, direct
 AppImage and desktop-menu sandbox acceptance are additional tests.
 
-**Alert #77 remains open.** This evidence is available for the owner's review;
-it does not apply a dismissal or substitute for the requested installed checks.
+**Owner decision:** the owner explicitly accepted this signed, notarized macOS
+arm64 evidence in `130dabe3`, including the build-output launch limitation,
+and approved #77 for deferred **Won't fix** when PR #490 leaves draft.
+This supersedes the earlier hold. No alert has been dismissed. Installed-platform
+acceptance remains separate.
+
+Exact approved dismissal comment:
+
+> No script execution observed with uBO's no-scripting switch: signed, notarized macOS arm64 build passed the packaged probe. Original kept byte-exact; re-test if uBO changes its noScriptingCSP default.
