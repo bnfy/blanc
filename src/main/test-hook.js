@@ -547,8 +547,7 @@ function install(refs) {
     async navigateTab(id, url) {
       const tab = tabs.get(id);
       if (!tab?.view?.webContents) return false;
-      await tab.view.webContents.loadURL(String(url));
-      return true;
+      return refs.navigateTabToAddress(id, String(url));
     },
     executeTab(id, source) {
       const tab = tabs.get(id);

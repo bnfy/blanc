@@ -33,11 +33,32 @@ The single network listener still applies blocker state and site exceptions.
 
 - The first full desktop acceptance run passed 167/168 scenarios. Its typography
   probe referenced the retired `.ob-commands` onboarding selector. The probe
-  now samples the current onboarding paragraph; the complete rerun is pending.
+  now samples the current onboarding paragraph; all 168 scenarios passed in
+  the complete rerun.
 - A private macOS signed unpacked build passed pinned-certificate/profile,
-  payload, browser registration, and fuse checks. The final build and packaged
-  Settings crash-recovery regression are pending. These are private candidates,
+  payload, browser registration, and fuse checks. The final pre-follow-up build and packaged
+  Settings crash-recovery regression also passed. These are private candidates,
   not notarized public-release or updater evidence.
+
+## Hosted findings and follow-up
+
+The first source matrix run exposed additional real transition failures:
+rapid new-tab navigation could recursively replace a failed error page on
+Linux, back-to-back native reloads terminated the hosted macOS process, and
+Windows delivered Ctrl+W from a parked guest through Electron's native menu
+fallback. The candidate now serializes programmatic tab navigation/reload,
+checks identity/ownership before starting deferred work, suppresses superseded
+and recursive error presentation, and consumes browser accelerators in the
+held firewall without retaining active handlers. The unchanged rapid input
+sequence passes locally; the updated hosted matrix remains pending.
+
+Private platform validation run
+[37140680291](https://github.com/bnfy/blanc/actions/runs/37140680291)
+passed signed Windows and Linux packaging, packaged Settings/tab crash recovery,
+and Ubuntu 22.04/24.04 sandbox checks at `f1b39b6c`. Those artifacts predate the
+transition follow-up and must not be used as final candidate confirmation.
+The hardened packaged macOS compatibility and existing release-regression
+smokes passed before that follow-up. Fresh final evidence will be recorded.
 
 ## Remaining gates
 

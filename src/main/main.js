@@ -41,7 +41,8 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
-const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts } = require('./browser-shortcuts');
+const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
+const { queueTabNavigation, reloadContents } = require('./tab-navigation');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -2020,6 +2021,11 @@ function installHeldFirewall(entry, wc, owner) {
     else wc.on(event, handler);
     entry.firewallListeners.push([event, handler]);
   };
+  // Hidden parked guests cannot deliver an accelerator to the active window.
+  // This denies commands without retaining the removed active tab handlers.
+  guard('before-input-event', (event, input) => {
+    if (matchBrowserShortcut(input)) event.preventDefault();
+  });
   // Frozen at close: main-frame navigation is refused outright. Subframes
   // are left alone so the page survives restore intact (§3.4).
   guard('will-navigate', (event) => { if (event.isMainFrame) event.preventDefault(); });
@@ -3652,7 +3658,12 @@ function navigateTabToAddress(id, rawText) {
   }
   // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
   // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
-  liveContents(tab)?.loadURL(target)?.catch(() => {});
+  const wc = liveContents(tab);
+  const owner = windowRuntimes.runtimeForTab(id);
+  return queueTabNavigation(wc, {
+    isCurrent: () => tabs.get(id) === tab && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === owner,
+    run: contents => contents.loadURL(target),
+  });
 }
 
 /** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
@@ -4281,6 +4292,15 @@ function activeBrowserCommandTab(runtime) {
     !tab.sleeping && liveContents(tab) ? tab : null;
 }
 
+function reloadBrowserCommandTab(runtime, bypassCache = false) {
+  const tab = activeBrowserCommandTab(runtime);
+  const wc = liveContents(tab);
+  return queueTabNavigation(wc, {
+    isCurrent: () => activeBrowserCommandTab(runtime) === tab && liveContents(tab) === wc,
+    run: contents => reloadContents(contents, bypassCache),
+  });
+}
+
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
@@ -4291,8 +4311,8 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'previous-tab': () => cycleTab(-1),
   address: toggleIsland,
   find: openFindBar,
-  reload: runtime => liveContents(activeBrowserCommandTab(runtime))?.reload(),
-  'hard-reload': runtime => liveContents(activeBrowserCommandTab(runtime))?.reloadIgnoringCache(),
+  reload: runtime => reloadBrowserCommandTab(runtime),
+  'hard-reload': runtime => reloadBrowserCommandTab(runtime, true),
   history: () => openInternalPage('blanc://history/'),
   downloads: () => openInternalPage('blanc://downloads/'),
   settings: () => openInternalPage('blanc://settings/'),
@@ -5308,7 +5328,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // the tab's first — used by duplicateTab below instead of a plain
     // loadURL when the source tab has real back/forward history to clone.
     if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
-    else wc.loadURL(url, httpReferrer ? { httpReferrer } : {}).catch(() => {});
+    else queueTabNavigation(wc, {
+      isCurrent: () => tabs.get(id) === tab && liveContents(tab) === wc,
+      run: contents => contents.loadURL(url, httpReferrer ? { httpReferrer } : {}),
+    });
   }
   if (!isTabCreationBatched()) scheduleMenuRebuild();
   return id;
@@ -9021,7 +9044,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         activeViewVisible: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getVisible() : false,
         addressFocusGeneration: rt().addressFocusGeneration,
       }),
-      liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
+      navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
