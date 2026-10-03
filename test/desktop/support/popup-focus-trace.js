@@ -38,7 +38,7 @@ async function install(electron) {
     };
     for (const wc of webContents.getAllWebContents()) watch(wc);
     ipcMain.on('ublock:popup', (event, value) => {
-      if (['close', 'back'].includes(value?.action)) record(event.sender, 'popup-ipc', { action: value.action });
+      if (['close', 'back', 'layout'].includes(value?.action)) record(event.sender, 'popup-ipc', { action: value.action, ...(value.action === 'layout' ? { height: value.height } : {}) });
     });
     app.on('web-contents-created', (_event, wc) => watch(wc));
   });

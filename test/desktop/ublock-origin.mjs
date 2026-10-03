@@ -101,6 +101,7 @@ try {
   await dashboard.locator('[data-pane="1p-filters.html"]').dispatchEvent('click');
   const filters = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'original My filters');
   await filters.locator('.CodeMirror').waitFor();
+  await filters.waitForFunction(() => typeof self.hasUnsavedData === 'function' && self.hasUnsavedData() === false);
   await filters.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.setValue('/blocked-ubo.js$script\n/redirect-ubo.js$script,redirect=noop.js\n127.0.0.1###ad\n127.0.0.1##div:has-text(Procedural fixture)\n127.0.0.1##+js(set, fixturePinned, true)\n/strict-fixture$document\n/blocked-websocket$websocket\n/csp-fixture$csp=script-src \'none\'\n'));
   await filters.locator('#userFiltersApply').dispatchEvent('click');
   await filters.locator('#userFiltersApply').waitFor({ state: 'visible' });
@@ -345,11 +346,14 @@ try {
   await lists.locator('#buttonApply').dispatchEvent('click');
   await waitForValue(() => lists.locator('#buttonApply').evaluate(item => item.classList.contains('disabled')), Boolean, 'fixture list selection saved');
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id);
-  // Finish the unrelated first-install updater cycle before starting this
-  // single-list fixture, including the reload started by updateStop. Upstream
-  // coalesces concurrent reloads; a new update must begin after that load,
-  // otherwise its completion can join the preceding snapshot.
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript("(async () => { (await import('./js/assets.js')).default.updateStop(); await µBlock.loadFilterLists(); return true; })()"));
+  // Do not call updateStop here: it is a shutdown operation, not an awaitable
+  // barrier. An in-flight fetch can survive it and install a two-minute timer
+  // after the cycle state resets, delaying the subsequent manual update. Let
+  // the original dashboard-started cycle finish before exercising its clock.
+  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())")), Boolean, 'native updater cycle complete', 30000);
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript('µBlock.loadFilterLists().then(() => true)'));
   subscriptionRevision = 2;
   const listRequests = hits.filter(url => new URL(url, fixture).pathname === '/fixture-list.txt').length;
   const subscriptionRow = lists.locator(`[data-key="${fixture}fixture-list.txt"]`).first();

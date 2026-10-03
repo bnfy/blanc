@@ -395,3 +395,30 @@ the final engine reload. Native timer/fetch diagnostics are now bounded and
 record fixed asset categories, timing and cycle completion without browsing
 URLs or filter text. Three local traced runs passed; that does not resolve the
 Intel failure. The next hosted run must identify or clear it.
+
+### Updater trace at `55cd5472`
+
+Linux reproduced the subscription failure. The native trace proves this was the
+fixture's artificial `updateStop()` barrier: it ran at 1791037243949 while a
+remote fetch was in flight; that fetch returned and scheduled a 120,000 ms
+timer at 1791037243965; the manual fixture update started at 1791037244002, then
+its 100 ms timer was refused because the old timer was still pending. The new
+list reached cache but the cycle could not finish inside the 30 second fixture
+wait. Upstream uses `updateStop()` during shutdown; Blanc's production code does
+not call it. The fixture now waits for the dashboard-started cycle's native
+completion, then its filter reload, before clicking the original list clock.
+No updater, filtering, timer or production network-policy code is changed.
+A temporary debugger experiment was removed; the existing fixture already
+disables remote DNS, which explains its immediate CDN errors. Both Linux and
+ARM macOS traces show the same artificial stop race. Windows passed this run.
+Fresh native CI confirmation is still required.
+
+The corrected natural-cycle fixture passed locally, including its newly fetched
+rule being blocked before reaching the HTTP fixture server. The core fixture
+also waits for My filters hydration before making its initial edit.
+
+A subsequent local core run hit the earlier native popup-focus intermittency
+before subscriptions: the zapper popup focused, then native focus returned to
+chrome within seven milliseconds and the blur handler closed it. That run is
+recorded as a failure, not updater evidence. Popup diagnostics now include the
+fixed layout operation and numeric height to trace possible resize transitions.
