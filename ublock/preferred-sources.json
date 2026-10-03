@@ -99,6 +99,20 @@
       ],
       "buildReproduced": false,
       "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
+    },
+    {
+      "name": "swatinem-diff-b58391504759",
+      "repository": "Swatinem/diff",
+      "revision": "b583915047596e2c67fe9f117d9cb775bd88dcd7",
+      "url": "https://codeload.github.com/Swatinem/diff/tar.gz/b583915047596e2c67fe9f117d9cb775bd88dcd7",
+      "sha256": "4cc5f75d595fc7051760bc22f7a671dc15b4d7ec0fd13be884e603e46cf7e089",
+      "file": "swatinem-diff-b58391504759.tar.gz",
+      "sourcePath": "sources/swatinem-diff-b58391504759.tar.gz",
+      "runtimePath": "lib/diff/swatinem_diff.js",
+      "role": "Original readable diff source cited by uBO; uBO-modified source remains in upstream/ and the uBO tag archive",
+      "exactBundledMatches": [],
+      "buildReproduced": false,
+      "licenseNotice": "LGPLv3 as declared by the pinned upstream README and package.json; full GNU LGPLv3 text in licenses/LGPL-3.0.txt"
     }
   ]
 }

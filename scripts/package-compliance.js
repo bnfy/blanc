@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const {
   ROOT,
+  assetLicenseFiles,
   createComplianceArtifacts,
 } = require('./compliance-model');
 
@@ -164,11 +165,10 @@ async function packageCompliance(context) {
     );
   }
 
-  for (const asset of generated.policy.assets.filter((item) => item.licenseFile)) {
-    await fs.copyFile(
-      path.join(ROOT, asset.licenseFile),
-      path.join(licenseDir, path.basename(asset.licenseFile))
-    );
+  for (const asset of generated.policy.assets) {
+    for (const licenseFile of assetLicenseFiles(asset)) {
+      await fs.copyFile(path.join(ROOT, licenseFile), path.join(licenseDir, path.basename(licenseFile)));
+    }
   }
 
   await copyElectronLegalFiles(context, resources);

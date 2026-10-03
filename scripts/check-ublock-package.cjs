@@ -22,6 +22,7 @@ function sourceInputs(directory) {
   const sources = [
     { path: 'sources/uBlock-1.75.0.tar.gz', url: 'https://codeload.github.com/gorhill/uBlock/tar.gz/refs/tags/1.75.0', sha256: 'a518c7d6e6b3f81d1a738befeb617abba59f93bd6b1e626da079a1003e9db52b' },
     { path: 'LICENSE.txt', sha256: hash(fs.readFileSync(path.join(directory, 'LICENSE.txt'))) },
+    { path: 'licenses/LGPL-3.0.txt', url: 'https://www.gnu.org/licenses/lgpl-3.0.txt', sha256: 'e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118' },
     { path: recordPath, sha256: hash(recordBytes) },
   ];
   const seen = new Set(sources.map(source => source.path));

@@ -57,3 +57,6 @@ ublock/adaptation.patch -whitespace
 /ublock/source-audit.json text eol=lf
 /ublock/pinned.json text eol=lf
 /src/main/blocking-resources.js text eol=lf
+
+# Full license texts are byte-checked with the uBO source inputs.
+/ublock/licenses/*.txt text eol=lf

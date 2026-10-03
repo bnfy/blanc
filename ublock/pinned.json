@@ -16,8 +16,13 @@
       "sha256": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
     },
     {
+      "path": "licenses/LGPL-3.0.txt",
+      "url": "https://www.gnu.org/licenses/lgpl-3.0.txt",
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118"
+    },
+    {
       "path": "preferred-sources.json",
-      "sha256": "f8169393a183c5a19e0f4db36818ee61fad33c644411eeb891cc62ab89c992f6"
+      "sha256": "a7e816a5fb2f8d896b68be9365c617de0433b21371ec332726b0072a8078521a"
     },
     {
       "path": "sources/css-tree-2.2.1.tar.gz",
@@ -43,6 +48,11 @@
       "path": "sources/uAssets-1.75.0-prod.tar.gz",
       "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/11527b7c1a4d432095cc3890dac2c35d9ebd122f",
       "sha256": "09dff5368b8d135432ca2e5967c8850261747e3c32ebbf988dcc5af009bad97e"
+    },
+    {
+      "path": "sources/swatinem-diff-b58391504759.tar.gz",
+      "url": "https://codeload.github.com/Swatinem/diff/tar.gz/b583915047596e2c67fe9f117d9cb775bd88dcd7",
+      "sha256": "4cc5f75d595fc7051760bc22f7a671dc15b4d7ec0fd13be884e603e46cf7e089"
     }
   ],
   "files": [

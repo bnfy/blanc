@@ -111,7 +111,13 @@ Raymond Hill and contributors' full uBlock Origin 1.75.0 Chromium package is
 preserved under `ublock/upstream/`, with per-file hashes, upstream license and
 the matching source-tag archive. The host-adapted extension remains GPL-covered;
 Blanc's separately authored host sources retain MIT. Upstream libraries, fonts,
-and filter data retain the notices inside that package. Reproduction instructions
+and filter data retain the notices inside that package. The adapted Swatinem
+`diff` implementation by Arpad Borsos declares LGPLv3; uBO's modification notice
+remains in `lib/diff/swatinem_diff.js`. Its cited original source revision
+`b583915047596e2c67fe9f117d9cb775bd88dcd7` is included in
+`ublock/sources/swatinem-diff-b58391504759.tar.gz`, alongside uBO's readable
+modified source. The full GNU LGPLv3 text is in `ublock/licenses/LGPL-3.0.txt`
+and in bundled candidates' `ThirdPartyLicenses/`; the GPLv3 text is also included. Reproduction instructions
 and dated adaptation records are in `ublock/README.md` and `ublock/adaptation.*`.
 Public distribution is blocked pending the concrete combined-work and complete
 corresponding-source assessment in `docs/ublock-origin-distribution.md`.

@@ -72,3 +72,14 @@ preferred text/templates with upstream's recorded timestamp substitution.
 See `docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json`.
 These source archives are distribution inputs only; no archived build script is
 extracted or executed by Blanc at runtime or during packaging.
+
+
+The LGPLv3 diff notice is supplemented by the full unmodified GNU LGPLv3 text
+in `licenses/LGPL-3.0.txt` (SHA-256
+`e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118`).
+The original Swatinem source revision cited in uBO's header is pinned in
+`preferred-sources.json`; uBO's readable modified implementation remains in the
+unaltered package and source-tag archive. Bundled candidates copy the full
+LGPL and GPL texts into `ThirdPartyLicenses/` as well. Ordinary builds omit
+both uBO-specific texts with the payload. This fixes a concrete notice gap;
+it does not assert completion of the combined-work/source assessment.

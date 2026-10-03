@@ -204,6 +204,10 @@ function assetVersion(asset, contents, policy) {
   return undefined;
 }
 
+function assetLicenseFiles(asset) {
+  return [asset.licenseFile, ...(asset.additionalLicenseFiles || [])].filter(Boolean);
+}
+
 function assetComponents(policy) {
   const components = [];
   for (const asset of policy.assets) {
@@ -211,8 +215,10 @@ function assetComponents(policy) {
       && policy.runtimeAssetLicenseExceptions?.[asset.id] !== asset.license) {
       throw new Error(`${asset.id}: unaudited runtime asset license ${asset.license}`);
     }
-    if (asset.licenseFile && !fs.statSync(path.join(ROOT, asset.licenseFile), { throwIfNoEntry: false })?.isFile()) {
-      throw new Error(`${asset.id}: missing license file ${asset.licenseFile}`);
+    for (const licenseFile of assetLicenseFiles(asset)) {
+      if (!fs.statSync(path.join(ROOT, licenseFile), { throwIfNoEntry: false })?.isFile()) {
+        throw new Error(`${asset.id}: missing license file ${licenseFile}`);
+      }
     }
     let bytes;
     try {
@@ -235,6 +241,7 @@ function assetComponents(policy) {
         file: asset.file,
         attribution: asset.attribution,
         licenseFile: asset.licenseFile,
+        additionalLicenseFiles: asset.additionalLicenseFiles?.join(', '),
         licenseUrl: asset.licenseUrl,
       }),
     };
@@ -412,7 +419,9 @@ function notices(runtime, policy, application) {
     if (asset.attribution) lines.push(`  Attribution: ${asset.attribution}`);
     if (asset.homepage) lines.push(`  Source: ${asset.homepage}`);
     if (asset.licenseUrl) lines.push(`  License: ${asset.licenseUrl}`);
-    if (asset.licenseFile) lines.push(`  Full text: ThirdPartyLicenses/${path.basename(asset.licenseFile)}`);
+    for (const licenseFile of assetLicenseFiles(asset)) {
+      lines.push(`  Full text: ThirdPartyLicenses/${path.basename(licenseFile)}`);
+    }
   }
   lines.push(
     '',
@@ -466,6 +475,7 @@ function createComplianceArtifacts({ includeUblock = true } = {}) {
 
 module.exports = {
   ROOT,
+  assetLicenseFiles,
   auditedLicense,
   createComplianceArtifacts,
   integrityHash,

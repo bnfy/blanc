@@ -485,3 +485,23 @@ its build-output launch limitation. The [per-alert record](ublock-origin-codeql-
 now contains the exact supplied comment. All 39 alerts have owner decisions;
 none has been dismissed. Do not dismiss anything before PR #490 leaves draft.
 Installed-platform testing and source/licensing requirements remain separate.
+
+
+## LGPL diff source and notice follow-up
+
+The Swatinem diff source revision cited by uBO's unchanged header is now pinned
+and bundled as a source input. Its upstream README/package metadata declare
+LGPLv3. The full unmodified GNU LGPLv3 text is byte-pinned, retained in the ASAR
+and copied beside GPLv3 into bundled candidates' `ThirdPartyLicenses/`.
+The packaged verifier checks all asset license copies byte-for-byte, including
+a regression rejecting a nonempty but incorrect LGPL copy. Ordinary packages
+continue to omit these uBO-only notices. Upstream executable bytes and the
+adaptation are unchanged.
+
+This changes the pinned input inventory, so the VEX payload reachability guard
+was re-reviewed before its digest was refreshed: the new source archive and
+license text are inert distribution inputs, never extracted or executed during
+packing or runtime; npm graphs/versions and build cache options are unchanged.
+No RSA verification, Android tooling or shared HTTP-cache path was added.
+The node-forge/http-cache-semantics reachability conclusions remain applicable.
+This source/notice improvement does not itself assert distribution clearance.

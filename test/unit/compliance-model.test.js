@@ -198,7 +198,8 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 38, '32 runtime npm records plus four fonts, uBlock GPL and Lucide');
+  assert.equal(licenses.length, 39, '32 runtime npm records plus four fonts, uBlock GPL/LGPL and Lucide');
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), 'utf8'));
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
   assert.ok(licenses.includes('lazy-val--1.0.5.txt'));
@@ -214,6 +215,10 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
   fs.writeFileSync(path.join(payload, 'package.json'), JSON.stringify({ blancUblockBundled: true }));
   await createPackage(payload, path.join(resources, 'app.asar'));
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
+  const lgpl = path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt');
+  fs.writeFileSync(lgpl, 'Incorrect nonempty license text');
+  assert.throws(() => verifyPackagedCompliance(resources), /packaged license differs from source/);
+  fs.copyFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), lgpl);
 
   fs.writeFileSync(path.join(resources, 'runtime-sbom.cdx.json'), '{}');
   assert.throws(() => verifyPackagedCompliance(resources), /packaged runtime SBOM is stale/);
@@ -234,5 +239,6 @@ test('ordinary packaging records only distributed components when uBO is exclude
   const sbom = JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json')));
   assert(!sbom.components.some(item => /uBlock Origin/.test(item.name)));
   assert(!fs.existsSync(path.join(resources, 'ThirdPartyLicenses/LICENSE.txt')));
+  assert(!fs.existsSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt')));
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 });

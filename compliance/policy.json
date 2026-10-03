@@ -41,7 +41,10 @@
       "license": "GPL-3.0-or-later",
       "licenseFile": "ublock/LICENSE.txt",
       "homepage": "https://github.com/gorhill/uBlock",
-      "attribution": "Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/"
+      "attribution": "Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/; adapted Swatinem diff code declares LGPLv3 (Arpad Borsos), with full license text separately included",
+      "additionalLicenseFiles": [
+        "ublock/licenses/LGPL-3.0.txt"
+      ]
     },
     {
       "id": "inter-font",
