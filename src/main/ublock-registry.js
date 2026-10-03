@@ -43,7 +43,7 @@ function createUblockRegistry({ profileId, listTabs, listWindows, liveContents }
     const current = windows.find(item => item.window?.isFocused?.()) ?? windows.at(-1);
     const urls = filter.url === undefined ? null : Array.isArray(filter.url) ? filter.url : [filter.url];
     const matches = (pattern, value) => typeof pattern === 'string' && new RegExp('^' + pattern.split('*')
-      .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$').test(value);
+      .map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$').test(value.split('#', 1)[0]);
     return records().map(project).filter(tab =>
       (filter.active === undefined || filter.active === tab.active)
       && (filter.discarded === undefined || filter.discarded === tab.discarded)

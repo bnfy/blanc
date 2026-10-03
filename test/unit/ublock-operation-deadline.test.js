@@ -35,3 +35,20 @@ test('a slow site query or completion observer expires without taking filtering 
     assert.deepEqual(f.failures, []); assert.equal(f.pending.size, 0);
   }
 });
+
+
+test('queue overflow rejects only excess work and existing decisions can still finish', async () => {
+  const f = fixture();
+  const decisions = Array.from({ length: 256 }, () => f.ask({ kind: 'request', name: 'onBeforeRequest' }));
+  const first = [...f.pending.values()][0];
+  await assert.rejects(f.ask({ kind: 'request', name: 'onBeforeRequest' }), /ubo-request-capacity/);
+  assert.equal(f.pending.size, 256);
+  assert.deepEqual(f.failures, []);
+  f.pending.delete(1); first.resolve({ cancel: true });
+  assert.deepEqual(await decisions[0], { cancel: true });
+  const next = f.ask({ kind: 'request', name: 'onHeadersReceived' });
+  assert.equal(f.pending.size, 256);
+  for (const [id, item] of f.pending) { f.pending.delete(id); item.resolve({}); }
+  await Promise.all([...decisions, next]);
+  assert.deepEqual(f.failures, []);
+});

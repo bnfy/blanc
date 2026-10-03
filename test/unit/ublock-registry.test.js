@@ -55,3 +55,23 @@ test('request lookup avoids tab scans and rejects stale views and changed princi
   tab.private = false; tab.profileId = 'foreign';
   assert.equal(registry.request({ id: 4, webContentsId: 11 }).tabId, -1);
 });
+
+
+test('tool URL queries ignore fragments across live and quiet tabs within the owning profile', () => {
+  const url = 'chrome-extension://owned/dashboard.html';
+  const tabs = [
+    { id: 'live', profileId: 'personal', url: url + '#settings' },
+    { id: 'quiet', profileId: 'personal', url: url + '#3p-filters.html', asleep: true },
+    { id: 'private', profileId: 'personal', url, private: true },
+    { id: 'foreign', profileId: 'named', url },
+    { id: 'other-tool', profileId: 'personal', url: 'chrome-extension://owned/logger-ui.html#_+2' },
+    { id: 'search', profileId: 'personal', url: url + '?different=1#settings' },
+  ];
+  const registry = createUblockRegistry({ profileId: 'personal', listTabs: () => tabs, listWindows: () => [],
+    liveContents: tab => tab.id === 'live' ? { id: 1, isDestroyed: () => false, getURL: () => tab.url } : null });
+  assert.deepEqual(registry.query({ url }).map(tab => tab.id), [1, 2]);
+  assert.equal(registry.query({ url: 'chrome-extension://owned/logger-ui.html' }).length, 1);
+  assert.equal(registry.query({ url: url + '?different=1' }).length, 1);
+  assert.equal(registry.query({ url: 'chrome-extension://foreign/dashboard.html' }).length, 0);
+  assert.equal(registry.query({ url: [url, 'https://example.test/*'] }).length, 2);
+});

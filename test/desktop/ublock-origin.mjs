@@ -268,6 +268,19 @@ try {
   await waitForValue(async () => logger.locator('body').innerText(), text => text.includes('blocked-ubo.js'), 'logger blocked request', 10000);
   assert(!(await logger.locator('body').innerText()).includes('private-marker'));
   assert(!(await logger.locator('body').innerText()).includes('private-network-marker'));
+  stage = 'original popup tool reuse';
+  for (const [tool, pathname] of [['dashboard', '/dashboard.html'], ['logger', '/logger-ui.html']]) {
+    const original = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await call('activateTab', regular);
+      await call('blockingPopup');
+      const controls = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' native popup');
+      await controls.locator('body:not(.loading)').waitFor();
+      await controls.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click');
+      await waitForValue(() => call('state'), state => state.activeTabId === original.id, tool + ' selected by original popup');
+      assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [original.id], tool + ' popup reuses one tab across fragments');
+    }
+  }
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id);
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
@@ -535,8 +548,20 @@ try {
   await child.waitForFunction(() => window.fixturePinned === true && getComputedStyle(document.querySelector('#ad')).display === 'none');
   assert.equal(hits.filter(url => url === '/blocked-ubo.js').length, blockedBeforeChild);
   await electron.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(win => win.webContents.getURL().endsWith('/oauth-child')).close());
-  stage = 'deadline and crash recovery';
-  // Suspending the real request listener proves the two-second boundary;
+  stage = 'bounded request capacity';
+  await call('activateTab', regular);
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
+    "chrome.webRequest.onBeforeRequest.addListener(details => details.url.includes('/capacity-allowed.js') ? new Promise(resolve => setTimeout(() => resolve({}), 750)) : {}, {urls:['<all_urls>']}, ['blocking']); true"));
+  const burst = await awake.evaluate(async () => Promise.all(Array.from({ length: 300 }, (_, index) => fetch('/capacity-allowed.js?request=' + index).then(() => true, () => false))));
+  assert(burst.some(value => value === false), 'excess decisions must be cancelled rather than bypass filtering');
+  assert(burst.some(Boolean), 'admitted decisions still complete');
+  assert.equal((await call('blockingStatus')).phase, 'ready', 'queue pressure alone must not fail the profile');
+  assert.equal(await awake.evaluate(() => new Promise(resolve => { const script = document.createElement('script'); script.onload = () => resolve(true); script.onerror = () => resolve(false); script.src = '/blocked-ubo.js?after-capacity'; document.body.append(script); })), false);
+  assert(!hits.includes('/blocked-ubo.js?after-capacity'));
+  assert.equal(await awake.evaluate(() => fetch('/allowed-control.js?after-capacity').then(() => true, () => false)), true);
+  assert(hits.includes('/allowed-control.js?after-capacity'));
+  stage = 'decision deadline';
+  // Suspending the real request listener proves the two-second boundary:
   // requests cannot reach the server while the provider is unresponsive.
   await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
     "chrome.webRequest.onBeforeRequest.addListener(() => new Promise(() => {}), {urls:['<all_urls>']}, ['blocking']); true"));
@@ -577,6 +602,9 @@ try {
   const failedId = await call('openTab', fixture + 'failure-gated');
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === failedId)?.isLoading, value => value === false, 'failed navigation settled');
   assert(!hits.includes('/failure-gated'));
+  assert.equal((await call('allowAdsOnActive')).error, 'blocking-not-ready');
+  const recovery = await waitForValue(async () => (await electron.windows()).find(item => item.url().startsWith('blanc://settings/')), Boolean, '/allow-ads recovery');
+  await recovery.locator('#ublockRetry').waitFor({ state: 'visible' });
   await call('toggleAdblock');
   assert.equal((await call('blockingStatus')).enabled, false, '/block-ads must disable a failed provider');
   await call('setAdblock', true);
@@ -608,6 +636,16 @@ try {
     await call('blockingOpen', tool);
     const toolTab = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
     assert(toolTab, tool);
+    await call('duplicateActive');
+    const duplicate = await waitForValue(async () => (await call('state')).tabs.find(tab => tab.url.includes(pathname) && tab.id !== toolTab.id), Boolean, tool + ' duplicated');
+    assert.notEqual(duplicate.webContentsId, toolTab.webContentsId);
+    await call('activateTab', duplicate.id);
+    await waitForValue(async () => electron.evaluate(async ({ webContents }, id) => {
+      const wc = webContents.fromId(id);
+      return wc?.executeJavaScript('Boolean(document.body && document.body.innerText.length > 0)').catch(() => false);
+    }, duplicate.webContentsId), Boolean, tool + ' duplicate document');
+    await call('closeTab', duplicate.id);
+    await call('activateTab', toolTab.id);
     await call('closeTab', toolTab.id);
     await call('reopenClosed');
     await waitForValue(async () => (await call('state')).tabs.some(tab => tab.url.includes(pathname)), Boolean, tool + ' reopened');
@@ -641,10 +679,17 @@ try {
   for (const [tool, pathname] of [['dashboard', '/dashboard.html'], ['logger', '/logger-ui.html']]) {
     const restored = (await call('state')).tabs.find(tab => tab.url.includes(pathname));
     assert(restored, pathname + ' restored after restart');
-    await call('blockingOpen', tool);
+    assert.equal(restored.asleep, true, tool + ' starts quiet after cold restore');
+    await call('blockingPopup');
+    const restoredPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' cold restore popup');
+    await restoredPopup.locator('body:not(.loading)').waitFor();
+    await restoredPopup.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click');
+    await waitForValue(() => call('state'), state => state.activeTabId === restored.id && state.tabs.find(tab => tab.id === restored.id)?.asleep === false, tool + ' quiet tab selected by original popup');
     assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [restored.id]);
+    assert.equal(await call('allowAdsOnActive'), null, 'tools never become site exceptions');
     const restoredPage = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes(pathname)), Boolean, tool + ' restored document');
     await restoredPage.locator('body').waitFor();
+    await call('activateTab', (await call('state')).tabs.find(tab => tab.url === fixture).id);
   }
   await call('openTab', fixture + '?restart-persistence');
   const restartedPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + '?restart-persistence'), Boolean, 'restart fixture');

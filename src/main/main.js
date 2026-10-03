@@ -357,24 +357,33 @@ function restorableUblockTool(url, profileId = rt().profileId) {
   const provider = blockingProviders?.forTab({ private: false, profileId });
   return provider?.status().phase === 'ready' && !!ublockTool(url, provider.extensionId);
 }
-function openUblockTool(tool) {
+function openUblockTool(tool, requestedUrl = null) {
   if (!['dashboard', 'logger'].includes(tool)) return false;
   const provider = blockingProviders?.forTab({ private: false, profileId: rt().profileId });
   if (!provider?.extensionId || provider.status().phase !== 'ready') return false;
   const page = tool === 'logger' ? 'logger-ui.html' : 'dashboard.html';
+  let targetUrl = null;
+  if (requestedUrl !== null) {
+    if (ublockTool(requestedUrl, provider.extensionId) !== tool) return false;
+    const parsed = new URL(requestedUrl);
+    if (tool === 'logger') parsed.searchParams.delete('popup');
+    targetUrl = parsed.href;
+  }
   const existing = [...tabs.values()].find(tab => !tab.private && tab.profileId === rt().profileId && ublockTool(tab.url, provider.extensionId) === tool);
   if (existing) {
     const owner = windowRuntimes.runtimeForTab(existing.id);
     if (owner) {
       withWindowRuntime(owner, () => {
         createMainWindow(owner, { ensureStartTab: false });
+        if (targetUrl && existing.asleep) wakeTab(existing.id, { navigateTo: targetUrl }).catch(() => {});
+        else if (targetUrl && liveContents(existing)?.getURL() !== targetUrl) liveContents(existing)?.loadURL(targetUrl).catch(() => {});
         setActiveTab(existing.id);
         owner.window?.show(); owner.window?.focus();
       });
       return true;
     }
   }
-  const id = createTab(`chrome-extension://${provider.extensionId}/${page}`, { managedExtension: true });
+  const id = createTab(targetUrl || `chrome-extension://${provider.extensionId}/${page}`, { managedExtension: true });
   if (!id) return false;
   setActiveTab(id);
   return true;
@@ -1333,17 +1342,10 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
     });
   });
 
-  // Chrome-extension support used to live here (electron-chrome-extensions
-  // + web store, plus crash-loop recovery for extension profile state). It
-  // was removed: the password managers it existed for are blocked from
-  // working in any non-allowlisted browser at the OS/vendor level, and the
-  // extension runtime was the app's main source of hard crashes. Leftover
-  // extension profile state from older versions is cleared below. (The
-  // profile's 'Service Worker' dir is left alone — it also holds ordinary
-  // websites' service workers, and with no extension runtime a stale
-  // extension worker registration in there is inert.) The separate opt-in
-  // 1Password SDK integration does not restore an extension runtime: its
-  // native bridge is isolated in one utility process and runs only on Fill.
+  // Migrate state left by the retired general extension/store integration.
+  // Preserve website Service Workers and all managed uBO state; the narrowly
+  // gated uBO provider is independent of the retired extension-store runtime.
+  // The opt-in 1Password SDK runs separately in its Plugin utility process.
   const staleExtensionState = [
     'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
@@ -5131,6 +5133,7 @@ function duplicateTab(id) {
   const activeIndex = snapshot ? snapshot.index : (history?.getActiveIndex() ?? 0);
   const newId = createTab(source.url, {
     allowLocalFile: source.localFile === true,
+    managedExtension: /^chrome-extension:/i.test(source.url) && !source.private && restorableUblockTool(source.url, source.profileId),
     private: source.private,
     openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
@@ -6642,13 +6645,27 @@ async function runAllowAdsCommand() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
   const provider = blockingProviders?.forTab(tab);
-  if (provider) {
-    const id = provider.registry.idForTab(tab);
-    await provider.setSite(id, tab.url, false);
-    reloadTabAfterSettingsFanout(tab); broadcastTabs(); return activeSiteHostname(tab);
+  // Recovery also works from the internal error document shown on a failed
+  // navigation, without storing an exception for that document.
+  if ((provider || (!tab.private && blockingProviders?.active === 'ublock-origin'))
+    && (!provider || provider.status().phase !== 'ready')) {
+    openSettingsSection('blocking');
+    return { error: 'blocking-not-ready' };
   }
-  const hostname = activeSiteHostname(tab);
+  // Check the model URL before contacting uBO: internal pages must never
+  // become trusted-site entries, even while a previous page is unloading.
+  const hostname = blockableHostname(tab.url);
   if (!hostname) return null;
+  if (provider) {
+    try {
+      const id = provider.registry.idForTab(tab);
+      await provider.setSite(id, tab.url, false);
+    } catch {
+      openSettingsSection('blocking');
+      return { error: 'blocking-site-change-failed' };
+    }
+    reloadTabAfterSettingsFanout(tab); broadcastTabs(); return hostname;
+  }
   const { adblockExceptions } = settings.getSettings();
   settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
   reloadTabAfterSettingsFanout(tab);
@@ -8456,14 +8473,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (options.active !== false) setActiveTab(id);
         return tabs.get(id);
       }),
-      updateTab: async (tab, options) => withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => {
+      updateTab: async (tab, options) => withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), async () => {
         if (tab.auxiliary) {
           if (options.active) tab.auxiliary.focus();
           if (typeof options.url === 'string') tab.auxiliary.webContents.loadURL(options.url).catch(() => {});
           return;
         }
+        if (typeof options.url === 'string' && tab.asleep) await wakeTab(tab.id, { navigateTo: options.url });
+        else if (typeof options.url === 'string') liveContents(tab)?.loadURL(options.url).catch(() => {});
         if (options.active) setActiveTab(tab.id);
-        if (typeof options.url === 'string') liveContents(tab)?.loadURL(options.url).catch(() => {});
       }),
       closeTab: async (tab) => tab.auxiliary ? tab.auxiliary.close()
         : withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => closeTab(tab.id)),
@@ -8476,6 +8494,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         runtime.tabOrder.splice(Math.max(0, Math.min(options.index ?? from, runtime.tabOrder.length)), 0, tab.id);
         broadcastTabs();
       }),
+      openTool: async (profileId, url) => {
+        const provider = blockingProviders?.forTab({ private: false, profileId });
+        const tool = ublockTool(url, provider?.extensionId);
+        const owners = windowRuntimes.all().filter(runtime => runtime.profileId === profileId && runtime.window && !runtime.window.isDestroyed());
+        const owner = owners.find(runtime => runtime.window.isFocused()) ?? owners.at(-1);
+        if (!tool || !owner) return null;
+        const opened = withWindowRuntime(owner, () => openUblockTool(tool, url));
+        return opened ? [...tabs.values()].find(tab => !tab.private && tab.profileId === profileId && ublockTool(tab.url, provider.extensionId) === tool) : null;
+      },
       createWindow: async (profileId) => {
         openNewWindow({ profileId });
         return windowRuntimes.all().filter(runtime => runtime.profileId === profileId).at(-1);

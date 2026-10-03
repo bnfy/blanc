@@ -422,3 +422,72 @@ before subscriptions: the zapper popup focused, then native focus returned to
 chrome within seven milliseconds and the blur handler closed it. That run is
 recorded as a failure, not updater evidence. Popup diagnostics now include the
 fixed layout operation and numeric height to trace possible resize transitions.
+
+
+### Remaining review fixes after `c5e44f16`
+
+The external verification accepted the ordinary payload, signed capture wrappers,
+public UI hiding, profile isolation, startup gates and recovery changes at
+`c5e44f16`. Its exact-head native run `37129712965` passed the four desktop jobs
+and the real ordinary Linux package job. Three functional gaps remained, plus
+the queue-capacity part of the profile-failure finding.
+
+- Native `vAPI.tabs.open({ select: true })` searches without a URL fragment.
+  The host registry now follows that behavior, retaining query strings and the
+  existing private/profile isolation. The original Dashboard link therefore
+  selects its existing tab even after a panel changes its fragment.
+- The original Logger link additionally defaults to upstream's detached-window
+  request with `?popup=1`. The host routes that verified tool request into the
+  owning profile's managed Logger tab, strips only the detached-window parameter,
+  retains its requested tab-selection fragment, and never creates an extra
+  browser window. Foreign identities fail before a window can be created.
+  Upstream's popup handlers and filtering engine remain unchanged.
+- Tool selection accepts an owned quiet tab without requiring a live renderer;
+  the browser's normal wake path recreates its view. Duplicate Tab grants only
+  verified Dashboard/Logger documents in regular tabs the same managed-navigation
+  permission used by reopen/restore. Generic and private extension documents do
+  not receive that grant.
+- `/allow-ads` checks the model's blockable site before any exception write. If
+  uBO is failed, unsupported, initializing, or rejects a site change, the command
+  opens the existing Privacy & Security settings; a failed navigation's internal
+  error document can reach recovery without becoming a trusted-site exception.
+  No Blanc exception is substituted for a failed uBO write.
+- At the bounded 256-operation ceiling, excess operations reject and their
+  network requests are cancelled. Already admitted decisions retain their
+  deadlines and the healthy provider stays ready. A real 300-request burst
+  proves cancellation, successful admitted requests, continuing allowed traffic
+  and a blocked script that never reaches the fixture server afterward.
+- A genuine blocking decision timeout still fails the provider at two seconds
+  and holds affected traffic until Retry or explicit disabling. This is the
+  October 2 implementation plan's fail-closed requirement; it is not removed to
+  make the remaining review finding appear resolved. Optional operations retain
+  separate bounded timeouts.
+- `AGENTS.md` and `CLAUDE.md` now explicitly distinguish the owner's October 2
+  implementation authorization from distribution approval and acceptance waivers.
+  The legacy-cleanup comment describes the retired general extension runtime
+  separately from the optional managed uBO provider.
+
+Local official Electron 44.5.1 verification passed the expanded real-blocking
+suite, including repeated original popup links, managed Duplicate Tab, actual
+cold-restart quiet-tool selection through the original popup, failed `/allow-ads`
+recovery, bounded request pressure and the original two-second timeout/crash
+recovery. The complete Dashboard suite also passed. Early iterations identified
+a missing detached-Logger route and two fixture mistakes (testing a script filter
+with `fetch`, and expecting a hostname on the internal failure page); those
+failed runs were corrected before claiming verification. Final lint, unit,
+substrate, shield and exact-head hosted results are recorded separately below.
+
+Distribution flags remain disabled. GPL/corresponding-source clearance, the 40
+open CodeQL findings, installed candidate confirmation and the previously observed
+native popup-focus intermittency remain acceptance gates. A passing native run
+alone does not clear these requirements.
+
+
+Final local lint and all 2,140 unit tests passed; substrate, pinned-package
+integrity, the expanded core native suite and the complete Dashboard suite also
+passed. The shield suite reproduced the existing native popup focus loss after
+its Back/reopen check; the ready popup blurred with no focused WebContents and
+was dismissed. Its diagnostic handler itself assumed `electron.windows()` was
+a Promise and masked the original error. That diagnostic now safely handles the
+synchronous API without altering any assertion or popup behavior. This native
+focus issue remains open even if a subsequent run passes.

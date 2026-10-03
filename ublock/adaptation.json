@@ -29,11 +29,11 @@
     },
     {
       "path": "src/main/ublock-provider.js",
-      "sha256": "0cede6c9ee7127c0bcc929ca4e5c5ef3ee7e74d163d2f8b9ca970d0a716a28ea"
+      "sha256": "c20a60373789223e411c56801e9780a3f2216ae54254dad665ae3256d13d4fb7"
     },
     {
       "path": "src/main/ublock-registry.js",
-      "sha256": "0262abbd9d92c2a1bc61daf6728c2186a36acfa7886eab185400a771833cf129"
+      "sha256": "6407fead4677c03392be8003413a328cffdfb705f22bada5d5c579119536e11d"
     },
     {
       "path": "src/main/ublock-documents.js",

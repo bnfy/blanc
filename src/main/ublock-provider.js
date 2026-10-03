@@ -8,6 +8,7 @@ const { isBrowserResource } = require('./blocking-resources');
 const { installVerifiedPackage, installVerifiedFiles, readHostSources } = require('./ublock-package');
 const { createUblockRegistry } = require('./ublock-registry');
 const { validBridgeSender } = require('./ublock-host-policy');
+const { ublockTool } = require('./ublock-tool-url');
 const { captureDocuments, currentDocuments, guardScript } = require('./ublock-documents');
 
 const DEADLINE_MS = 2000;
@@ -100,7 +101,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   }
   function ask(message) {
     if (phase !== 'ready') return Promise.reject(new Error(error || 'ubo-not-ready'));
-    if (pending.size >= MAX_PENDING) { fail('ubo-request-capacity'); return Promise.reject(new Error('ubo-request-capacity')); }
+    // Reject excess work without invalidating already pending decisions. The
+    // coordinator cancels this request; existing decisions retain their deadline.
+    if (pending.size >= MAX_PENDING) return Promise.reject(new Error('ubo-request-capacity'));
     const id = ++sequence;
     const critical = message.kind === 'request' && ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'].includes(message.name);
     return new Promise((resolve, reject) => {
@@ -278,7 +281,11 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       refresh(); return registry.project(tab);
     }
     case 'tabs.update': {
-      const { tab } = owned(id);
+      // Selecting a discarded tool wakes its renderer through the browser hook.
+      // A quiet tab remains owned even while it has no live WebContents.
+      const tab = registry.tabFor(id);
+      const wc = tab && hooks.liveContents(tab);
+      if (!tab || (wc && hooks.isHeld?.(wc))) throw new Error('ubo-tab-unavailable');
       if (options.url !== undefined) validateUrl(options.url);
       await hooks.updateTab(tab, options); refresh(); return registry.project(tab);
     }
@@ -306,7 +313,20 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       return values.find(value => value.id === id);
     }
     case 'windows.update': { const runtime = windowFor(id); if (!runtime) throw new Error('ubo-window-unavailable'); if (options.focused) runtime.window.focus(); return { id }; }
-    case 'windows.create': { const runtime = await hooks.createWindow(profileId); if (id?.url) await hooks.createTab(runtime, validateUrl(id.url), { active: true }); return { id: runtime.window.id }; }
+    case 'windows.create': {
+      // Upstream defaults to a detached Logger. Blanc hosts original tools as
+      // profile-owned tabs, including that popup route, without extra windows.
+      const url = id?.url ? validateUrl(id.url) : null;
+      if (ublockTool(url, extension.id)) {
+        const tab = await hooks.openTool(profileId, url);
+        if (!tab || registry.idForTab(tab) === undefined) throw new Error('ubo-tool-unavailable');
+        const projected = registry.project(tab);
+        return { id: projected.windowId, tabs: [projected] };
+      }
+      const runtime = await hooks.createWindow(profileId);
+      if (url) await hooks.createTab(runtime, url, { active: true });
+      return { id: runtime.window.id };
+    }
     case 'contextMenus.create': {
       if (!id || typeof id.id !== 'string' || id.id.length > 128 || menus.size >= 32) throw new Error('ubo-menu-invalid');
       menus.set(id.id, id); return id.id;
