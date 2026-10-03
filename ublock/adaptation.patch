@@ -10311,7 +10311,7 @@
  <meta name="color-scheme" content="light dark" />
 --- a/manifest.json
 +++ b/manifest.json
-@@ -39,75 +39,76 @@
+@@ -39,80 +39,82 @@
      {
        "all_frames": true,
        "js": [
@@ -10384,6 +10384,13 @@
 -    "<all_urls>"
 -  ],
 -  "short_name": "uBlock\u2080",
+-  "storage": {
+-    "managed_schema": "managed_storage.json"
+-  },
+-  "version": "1.75.0",
+-  "web_accessible_resources": [
+-    "/web_accessible_resources/*"
+-  ]
 +        "blanc-state.js",
 +        "/js/vapi.js",
 +        "/js/vapi-client.js",
@@ -10454,9 +10461,15 @@
 +    "<all_urls>"
 +  ],
 +  "short_name": "uBlock₀",
-   "storage": {
-     "managed_schema": "managed_storage.json"
-   },
++  "storage": {
++    "managed_schema": "managed_storage.json"
++  },
++  "version": "1.75.0",
++  "web_accessible_resources": [
++    "/web_accessible_resources/*"
++  ],
++  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtxBB2qwMMouEGONjphxwuIpIMG52BtBVlqskd/oClZjq7ttgWOjaVxfduilgWp1SeLGJ3/g1RyO03js94zagHWSiFp0An3hX74dIUL9Saik8rbtzuzvT34gyobBxoGpaF0GHtOGk6eyuDtjEWoaJtp9GiI688dS8PPpIANX4FGkR3bYgiqwxrVvkO/pi6DBg3dUKDdqx/DfM/xLvpl867cQfjHzekIysj03yJ6+Z/dObNfZ6E/Gl7PyAGrgqdmGG4Ks1RhRfSkU+iraHYEjLARBLXW4TIwANL3TYtMdcsv2Ii0FAF2SydK9YjaRFPKM14mnSq/BELNQnpCc+Gt5SzwIDAQAB"
+ }
 --- a/no-dashboard.html
 +++ b/no-dashboard.html
 @@ -1,6 +1,8 @@
@@ -12343,7 +12356,7 @@ Binary files /dev/null and b/blanc-inter.woff2 differ
 +  };
 +  const match = (pattern, value) => {
 +    if (pattern === '<all_urls>') return /^(https?|file|ftp):/.test(value);
-+    const parsed = /^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/.exec(pattern);
++    const parsed = /^(\*|https?|file|ftp|chrome-extension):\/\/([^/]*)(\/.*)$/.exec(pattern);
 +    if (!parsed) return false;
 +    let url;
 +    try { url = new URL(value); } catch { return false; }

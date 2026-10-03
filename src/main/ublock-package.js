@@ -29,6 +29,7 @@ function readVerifiedPackage(root) {
 const UI_ICONS = ['pipette', 'zap', 'list', 'settings', 'chevron-left', 'chevron-right', 'chevron-down', 'x', 'ellipsis', 'lock-keyhole', 'undo-2', 'rotate-cw', 'house', 'external-link', 'search', 'check', 'refresh-cw', 'download', 'upload', 'save', 'book-open', 'info', 'circle-help'];
 const HOST_INPUTS = [
   ...['ublock-host-mainworld.js', 'ublock-bridge-mainworld.js', 'ublock-css-mainworld.js', 'ublock-bridge-preload.js', 'ublock-package.js', 'ublock-host-policy.js', 'ublock-provider.js', 'ublock-registry.js', 'ublock-documents.js', 'ublock-popup-mainworld.js', 'ublock-popup-preload.js', 'ublock-popup-host.js', 'ublock-dashboard-mainworld.js'].map(name => 'src/main/' + name),
+  'ublock/identity.json', 'src/main/blocking-resources.js',
   'src/renderer/ublock-popup.css', 'src/renderer/ublock-dashboard.css', 'src/renderer/sunrise-hero-mark.png', 'src/renderer/pages/inter-latin.woff2',
   ...UI_ICONS.map(name => 'src/renderer/ublock-popup-icons/' + name + '.svg'),
   'src/renderer/ublock-popup-icons/README.md', 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt',
@@ -36,6 +37,7 @@ const HOST_INPUTS = [
 function readHostSources(root) {
   const read = name => fs.readFileSync(path.join(root, name));
   return {
+    identity: JSON.parse(read('ublock/identity.json')),
     adapter: read('src/main/ublock-host-mainworld.js'), bridge: read('src/main/ublock-bridge-mainworld.js'),
     dashboardScript: read('src/main/ublock-dashboard-mainworld.js'), dashboardStyle: read('src/renderer/ublock-dashboard.css'),
     popupScript: read('src/main/ublock-popup-mainworld.js'), popupStyle: read('src/renderer/ublock-popup.css'),
@@ -130,6 +132,8 @@ function adaptPackage(files, hostSources) {
   result.set('blanc-inter.woff2', Buffer.from(hostSources.popupFont));
   for (const name of UI_ICONS) result.set('blanc-icons/' + name + '.svg', Buffer.from(hostSources.popupIcons.get(name)));
   const manifest = JSON.parse(result.get('manifest.json'));
+  if (hostSources.identity?.format !== 1 || typeof hostSources.identity.key !== 'string') throw new Error('ubo-identity-invalid');
+  manifest.key = hostSources.identity.key;
   manifest.content_scripts[0].js.unshift('blanc-state.js');
   result.set('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
   result.set('blanc-state.js', Buffer.from(`// Added by Blanc on 2026-10-02: master blocking switch lifecycle.

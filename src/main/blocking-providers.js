@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const builtin = require('./adblock');
 const matrix = require('./ublock-platforms.json');
+const { isBrowserResource } = require('./blocking-resources');
 const { createUblockProvider } = require('./ublock-provider');
 
 function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) {
@@ -13,10 +14,12 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   const diagnostics = [];
   const profiles = new Map();
   const sessions = new Map();
-  const internalCandidate = app.isPackaged && require('../../package.json').blancUblockInternalValidation === true;
+  const metadata = app.isPackaged ? require('../../package.json') : {};
+  const bundled = !app.isPackaged || metadata.blancUblockBundled === true;
+  const internalCandidate = app.isPackaged && metadata.blancUblockInternalValidation === true;
   const test = !app.isPackaged && process.env.BLANC_UBLOCK_TEST === '1';
   const platform = matrix.platforms[`${process.platform}-${process.arch}`];
-  const supported = test || (internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron);
+  const supported = !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
   function status(profileId) {
     const provider = profiles.get(profileId)?.provider;
     const selected = settings.getSettings().adblockProvider;
@@ -50,7 +53,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     }
     builtin.detachAdBlockerFromSession(owned.normal);
     if (!supported) {
-      builtin.coordinator.setProvider(owned.normal, { decide: () => settings.getSettings().adblockEnabled ? { cancel: true } : {} });
+      builtin.coordinator.setProvider(owned.normal, { decide: (_event, details) => !settings.getSettings().adblockEnabled || isBrowserResource(details.url, app.getAppPath()) ? {} : { cancel: true } });
       onStateChange?.(status(profileId)); throw new Error('ubo-platform-unverified');
     }
     if (!profiles.has(profileId)) {
@@ -95,7 +98,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     // the verified principal only to erase its native store; no website views
     // remain, and filtering selection is unchanged. Failure retains the
     // existing crash-resumable deletion marker rather than claiming success.
-    if (!provider && fs.existsSync(destination)) {
+    if (!provider && bundled && fs.existsSync(destination)) {
       if (!owned) throw new Error('ubo-deletion-session-unavailable');
       builtin.detachAdBlockerFromSession(owned.normal);
       provider = createUblockProvider({ session: owned.normal, profileId, hooks });
@@ -104,6 +107,9 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       sessions.set(profileId, owned);
       builtin.coordinator.setProvider(owned.normal, provider);
     }
+    // An ordinary build may omit uBO altogether. Profile deletion still clears
+    // both entire native sessions in main; no absent extension is loaded just
+    // to erase data, and the durable deletion marker covers that storage step.
     if (provider) { await provider.eraseStorage(); provider.dispose(); }
     profiles.delete(profileId);
     if (owned) for (const value of [owned.normal, owned.private]) {

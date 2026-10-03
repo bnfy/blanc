@@ -42,6 +42,14 @@ asset. `source-audit.json`, reproduced with `python3 scripts/audit-ublock-source
 records exact archive matches for 644 of 658 package files. This is coverage
 evidence, not preferred-source or license clearance; see
 `docs/ublock-origin-distribution.md`. Public distribution is blocked
-by `distribution.json` until that assessment and the combined-work boundary are
+by `distribution.json` for the uBO payload until that assessment and the combined-work boundary are
 resolved. MIT for Blanc-owned files and the reserved identity assets remain as
 documented in the repository's LICENSE and ASSET-LICENSE.md.
+
+Ordinary Blanc packages omit this entire directory until clearance. Internal
+validation packages explicitly include it and carry a non-release marker.
+`identity.json` supplies a fixed public manifest key shared across profiles and
+platforms; it contains no private key. The managed storage directory does not
+participate in the extension ID. This replaces the unpublished prototype's
+path-derived ID; existing prototype-only native extension stores are not a
+released migration baseline.

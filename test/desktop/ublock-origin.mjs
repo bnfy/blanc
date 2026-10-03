@@ -94,6 +94,20 @@ try {
   assert(!hits.includes('/redirect-ubo.js'));
   assert(hits.includes('/allowed-control.js'));
   await page.waitForFunction(() => window.fixturePinned === true && getComputedStyle(document.querySelector('#procedure')).display === 'none');
+  stage = 'web-accessible resource guard';
+  const resourceIdentity = await electron.evaluate(async ({ webContents }) => {
+    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    return bg.executeJavaScript('({id:chrome.runtime.id, secret:vAPI.warSecret.short()})');
+  });
+  const resourceLoaded = url => page.evaluate(url => new Promise(resolve => {
+    const image = new Image(); image.onload = () => resolve(true); image.onerror = () => resolve(false); image.src = url;
+  }), url);
+  const resourceURL = `chrome-extension://${resourceIdentity.id}/web_accessible_resources/1x1.gif`;
+  assert.equal(await resourceLoaded(resourceURL + '?probe=missing'), false, 'a page cannot fetch a managed resource without a secret');
+  assert.equal(await resourceLoaded(resourceURL.replace('/web_', '/%77eb_') + '?probe=encoded'), false, 'an encoded path cannot bypass resource authorization');
+  assert.equal(await resourceLoaded(resourceURL + '?secret=invalid'), false, 'a page cannot fetch a managed resource with a forged secret');
+  assert.equal(await resourceLoaded(resourceURL + '?secret=' + resourceIdentity.secret), true, 'upstream permits a valid resource capability');
+  assert.equal(await resourceLoaded(resourceURL + '?secret=' + resourceIdentity.secret + '&reuse=1'), false, 'a short resource capability is one-use');
   const mapping = await call('blockingMapping');
   const regularWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
   const stableId = mapping.find(item => item.webContentsId === regularWC).tabId;
@@ -123,6 +137,7 @@ try {
   assert.equal(privateContent.sessionPath, null);
   assert(!hits.includes('/ads/cbr.js?private-network-marker'));
   await call('setAdblock', false);
+  assert.equal(await resourceLoaded(resourceURL + '?secret=forged-disabled'), false, 'disabling filtering does not disable resource authorization');
   await page.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display !== 'none' && getComputedStyle(document.querySelector('#procedure')).display !== 'none');
   await page.evaluate(() => { const item = document.createElement('div'); item.id = 'newProcedure'; item.textContent = 'Procedural fixture'; document.body.append(item); });
   assert.equal(await page.locator('#newProcedure').evaluate(item => getComputedStyle(item).display), 'block');
@@ -179,6 +194,10 @@ try {
   await call('blockingOpen', 'logger');
   const logger = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/logger-ui.html')), Boolean, 'original logger');
   await logger.locator('#netInspector').waitFor();
+  await waitForValue(() => electron.evaluate(async ({ webContents }) => {
+    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    return bg.executeJavaScript("import('/js/logger.js').then(module => module.default.enabled)");
+  }), Boolean, 'logger registered with background', 10000);
   await call('activateTab', regular);
   await page.reload();
   await waitForValue(async () => logger.locator('body').innerText(), text => text.includes('blocked-ubo.js'), 'logger blocked request', 10000);
@@ -283,7 +302,7 @@ try {
   await electron.evaluate(({ session }, savePath) => {
     session.defaultSession.once('will-download', (_event, item) => item.setSavePath(savePath));
   }, backupFile);
-  await settingsPane.locator('#export').dispatchEvent('click');
+  await settingsPane.locator('#export').click();
   await waitForValue(() => fs.existsSync(backupFile) && fs.statSync(backupFile).size > 10, Boolean, 'original backup downloaded');
   const backup = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
   assert(backup.userFilters.includes('/blocked-ubo.js'));
@@ -317,7 +336,8 @@ try {
   assert(named.ok);
   await waitForValue(() => call('blockingStatusInWindow', named.runtimeId), state => state.phase === 'ready', 'named profile ready', 20000);
   await call('blockingOpenInWindow', named.runtimeId, 'dashboard');
-  const namedDashboard = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/dashboard.html') && item.url().split('/')[2] !== dashboard.url().split('/')[2]), Boolean, 'named dashboard');
+  const namedDashboard = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/dashboard.html') && item !== dashboard), Boolean, 'named dashboard');
+  assert.equal(new URL(namedDashboard.url()).host, new URL(dashboard.url()).host, 'profiles share the pinned extension identity');
   await namedDashboard.frameLocator('#iframe').locator('[data-setting-name="collapseBlocked"]').waitFor();
   await namedDashboard.locator('[data-pane="1p-filters.html"]').dispatchEvent('click');
   const namedFilters = await waitForValue(async () => namedDashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'named filters');

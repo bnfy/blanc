@@ -4,7 +4,7 @@ const { app, WebContentsView, ipcMain, webContents } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
-const { fileURLToPath } = require('node:url');
+const { isBrowserResource } = require('./blocking-resources');
 const { installVerifiedPackage, installVerifiedFiles, readHostSources } = require('./ublock-package');
 const { createUblockRegistry } = require('./ublock-registry');
 const { validBridgeSender } = require('./ublock-host-policy');
@@ -16,7 +16,7 @@ const instances = new Map();
 let ipcInstalled = false;
 const headersToElectron = values => {
   if (!Array.isArray(values) || values.length > 512) throw new Error('ubo-response-invalid');
-  const result = {};
+  const result = Object.create(null);
   let bytes = 0;
   for (const header of values) {
     if (typeof header.name !== 'string' || typeof header.value !== 'string'
@@ -62,14 +62,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let disposed = false;
   let focusedWindowId = -1;
   const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase, error });
-  function browserResource(url) {
-    if (/^(blanc:|about:|blob:|data:)/.test(url)) return true;
-    if (!url.startsWith('file:')) return false;
-    try {
-      const relative = path.relative(app.getAppPath(), fileURLToPath(url)).split(path.sep).join('/');
-      return relative.startsWith('src/renderer/');
-    } catch { return false; }
-  }
+  const browserResource = url => isBrowserResource(url, app.getAppPath());
   function managedFetch(details) {
     // Chromium's native extension webRequest API excludes the extension's
     // own fetches. Keep subscription updates outside recursive filtering.
@@ -411,7 +404,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
         pending.delete(message.id); clearTimeout(item.timer);
         if (message.error) { if (item.onError) item.onError(); else item.reject(new Error('ubo-css-failed')); } else {
           if (message.target && (!Array.isArray(message.target.documentIds) || message.target.documentIds.length > 1024
-            || message.target.documentIds.some(id => typeof id !== 'string' || id.length > 128))) return fail('ubo-css-target-invalid');
+            || message.target.documentIds.some(id => typeof id !== 'string' || id.length > 128))) { item.reject(new Error('ubo-css-target-invalid')); fail('ubo-css-target-invalid'); return; }
           item.resolve(message.target);
         }
       });
@@ -470,14 +463,23 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     // provider failure. Their scheme is served by Blanc's exact allowlist.
     if (browserResource(details.url)) return {};
     if (managedFetch(details)) return {};
-    // The verified package must load its own pages/scripts before its engine
-    // can become ready. Website traffic remains closed during initialization.
+    // Internal extension bootstrapping stays available, but page-initiated
+    // web-accessible resources must pass upstream's capability guard even when
+    // the user has disabled filtering. Their secret is not an adblock setting.
+    let guardedResource = false;
     if (details.url.startsWith('chrome-extension://')) {
-      return loadingIds.has(new URL(details.url).hostname) ? {} : { cancel: true };
+      const target = new URL(details.url);
+      if (!loadingIds.has(target.hostname)) return { cancel: true };
+      // Electron decodes file paths after matching webRequest patterns. Reject
+      // noncanonical own-resource paths before a percent-encoded WAR path can
+      // escape upstream's literal /web_accessible_resources/* listener. Native
+      // extension-origin fetches were already admitted above.
+      if (target.hostname === extension?.id && target.pathname.includes('%')) return { cancel: true };
+      guardedResource = target.hostname === extension?.id && target.pathname.startsWith('/web_accessible_resources/');
+      if (!guardedResource) return {};
     }
-    if (!enabled) return {};
+    if (!enabled && !guardedResource) return {};
     if (phase !== 'ready') return { cancel: true };
-    refresh();
     const converted = registry.request(details);
     // The extension's own filter-data fetches use its native background.
     const result = await ask({ kind: 'request', name, details: converted });

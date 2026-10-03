@@ -116,12 +116,16 @@ async function copyElectronLegalFiles(context, resources) {
 }
 
 async function packageCompliance(context) {
-  const generated = createComplianceArtifacts();
+  const includeUblock = context.packager.info?.metadata?.blancUblockBundled !== false;
+  const baseline = createComplianceArtifacts();
+  const generated = createComplianceArtifacts({ includeUblock });
   const noticeRelative = 'compliance/THIRD_PARTY_NOTICES.txt';
   const sbomRelative = 'compliance/runtime-sbom.cdx.json';
-  const notice = await fs.readFile(path.join(ROOT, noticeRelative), 'utf8');
-  const sbom = await fs.readFile(path.join(ROOT, sbomRelative), 'utf8');
-  if (notice !== generated.files[noticeRelative] || sbom !== generated.files[sbomRelative]) {
+  const committedNotice = await fs.readFile(path.join(ROOT, noticeRelative), 'utf8');
+  const notice = generated.files[noticeRelative];
+  const committedSbom = await fs.readFile(path.join(ROOT, sbomRelative), 'utf8');
+  const sbom = generated.files[sbomRelative];
+  if (committedNotice !== baseline.files[noticeRelative] || committedSbom !== baseline.files[sbomRelative]) {
     throw new Error('package-compliance: committed runtime notices/SBOM are stale; run npm run compliance:build');
   }
 

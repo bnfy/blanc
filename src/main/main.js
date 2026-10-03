@@ -394,7 +394,7 @@ async function openUblockPopup(anchor) {
   if (runtime.surfaceGeneration !== generation || runtime.activeTabId !== tab.id
       || runtime.window?.isDestroyed() || !liveContents(tab)) return;
   provider.refresh();
-  const tabId = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
+  const tabId = provider.registry.idForTab(tab);
   const view = new WebContentsView({ webPreferences: {
     session: profileSessionRegistry.normal(runtime.profileId),
     preload: path.join(__dirname, 'ublock-popup-preload.js'),
@@ -3908,10 +3908,22 @@ let sessionPersistenceSuspended = false;
 const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
   isQuitting = false;
   for (const runtime of windowRuntimes.all()) {
-    if (runtime.window && !runtime.window.isDestroyed()) runtime.window.show();
+    if (runtime.window && !runtime.window.isDestroyed()) { runtime.closing = false; runtime.window.show(); }
   }
 } });
 app.on('will-quit', () => {
+  for (const snapshot of [...sleepSnapshots.values()]) {
+    const wc = snapshot.view?.webContents;
+    if (wc && !wc.isDestroyed()) wc.close();
+  }
+  sleepSnapshots.clear(); // retained views, POST bodies, and form values
+  for (const runtime of windowRuntimes.all()) {
+    for (const entry of runtime.closedEntries ?? []) {
+      if (entry.view) downgradeHeldEntry(entry);
+      clearTimeout(entry.expiryTimer);
+      entry.expiryTimer = null;
+    }
+  }
   blockingProviders?.stop();
   onePasswordBroker?.stop();
 });
@@ -3927,18 +3939,7 @@ app.on('before-quit', () => {
   for (const runtime of windowRuntimes.all()) {
     forgetTabImportForRuntime(runtime.id, 'cancel');
   }
-  for (const snapshot of [...sleepSnapshots.values()]) {
-    const wc = snapshot.view?.webContents;
-    if (wc && !wc.isDestroyed()) wc.close();
-  }
-  sleepSnapshots.clear(); // retained views, POST bodies, and form values
-  for (const runtime of windowRuntimes.all()) {
-    for (const entry of runtime.closedEntries ?? []) {
-      if (entry.view) downgradeHeldEntry(entry);
-      clearTimeout(entry.expiryTimer);
-      entry.expiryTimer = null;
-    }
-  }
+
 });
 
 /** Builds one window's persistable session entry — the exact shape
@@ -6558,7 +6559,7 @@ async function runBlockAdsCommand() {
   const current = settings.getSettings();
   const provider = blockingProviders?.forTab(tab);
   if (provider) {
-    const id = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
+    const id = provider.registry.idForTab(tab);
     const state = await provider.siteState(id);
     if (!state.enabled) {
       settings.setSettings({ adblockEnabled: true });
@@ -6596,7 +6597,7 @@ async function runAllowAdsCommand() {
   if (!tab) return null;
   const provider = blockingProviders?.forTab(tab);
   if (provider) {
-    const id = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
+    const id = provider.registry.idForTab(tab);
     await provider.setSite(id, tab.url, false);
     reloadTabAfterSettingsFanout(tab); broadcastTabs(); return activeSiteHostname(tab);
   }

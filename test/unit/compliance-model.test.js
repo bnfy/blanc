@@ -153,11 +153,11 @@ test('packaging helpers use platform resource roots and find only legal notice f
   };
   assert.equal(
     resourcesDirectory({ ...context, electronPlatformName: 'darwin' }),
-    '/tmp/out/Blanc.app/Contents/Resources'
+    path.join('/tmp/out', 'Blanc.app', 'Contents/Resources')
   );
   assert.equal(
     resourcesDirectory({ ...context, electronPlatformName: 'win32' }),
-    '/tmp/out/resources'
+    path.join('/tmp/out', 'resources')
   );
   assert.equal(safeLicenseFilename('@scope/pkg', '1.2.3'), 'scope__pkg--1.2.3.txt');
 
@@ -208,8 +208,31 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));
   assert.ok(licenses.includes('caveat-OFL.txt'));
   assert.ok(licenses.includes('newsreader-OFL.txt'));
+  const { createPackage } = require('@electron/asar');
+  const payload = path.join(appOutDir, 'fixture-source');
+  fs.mkdirSync(payload);
+  fs.writeFileSync(path.join(payload, 'package.json'), JSON.stringify({ blancUblockBundled: true }));
+  await createPackage(payload, path.join(resources, 'app.asar'));
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 
   fs.writeFileSync(path.join(resources, 'runtime-sbom.cdx.json'), '{}');
   assert.throws(() => verifyPackagedCompliance(resources), /packaged runtime SBOM is stale/);
+});
+
+test('ordinary packaging records only distributed components when uBO is excluded', async (t) => {
+  const appOutDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-excluded-ubo-compliance-'));
+  t.after(() => fs.rmSync(appOutDir, { recursive: true, force: true }));
+  const context = { electronPlatformName: 'win32', appOutDir, packager: { appInfo: { productFilename: 'Blanc' }, info: { metadata: { blancUblockBundled: false } } } };
+  fs.writeFileSync(path.join(appOutDir, 'LICENSE.electron.txt'), 'Electron MIT fixture');
+  fs.writeFileSync(path.join(appOutDir, 'LICENSES.chromium.html'), 'Chromium fixture');
+  await packageCompliance(context);
+  const resources = resourcesDirectory(context);
+  const payload = path.join(appOutDir, 'fixture-source');
+  fs.mkdirSync(payload);
+  fs.writeFileSync(path.join(payload, 'package.json'), JSON.stringify({ blancUblockBundled: false }));
+  await require('@electron/asar').createPackage(payload, path.join(resources, 'app.asar'));
+  const sbom = JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json')));
+  assert(!sbom.components.some(item => /uBlock Origin/.test(item.name)));
+  assert(!fs.existsSync(path.join(resources, 'ThirdPartyLicenses/LICENSE.txt')));
+  assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 });

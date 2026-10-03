@@ -8,7 +8,10 @@ const { safeLicenseFilename } = require('./package-compliance');
 
 function verifyPackagedCompliance(resourcesDir) {
   if (!resourcesDir) throw new Error('packaged resources directory is required');
-  const generated = createComplianceArtifacts();
+  const { extractFile } = require('@electron/asar');
+  const metadata = JSON.parse(extractFile(path.join(resourcesDir, 'app.asar'), 'package.json'));
+  const includeUblock = metadata.blancUblockBundled !== false;
+  const generated = createComplianceArtifacts({ includeUblock });
   const notice = fs.readFileSync(path.join(resourcesDir, 'THIRD_PARTY_NOTICES.txt'), 'utf8');
   const sbom = fs.readFileSync(path.join(resourcesDir, 'runtime-sbom.cdx.json'), 'utf8');
   assert.equal(notice, generated.files['compliance/THIRD_PARTY_NOTICES.txt'], 'packaged notices are stale');
@@ -39,7 +42,7 @@ function verifyPackagedCompliance(resourcesDir) {
     assert.ok(fs.statSync(path.join(resourcesDir, file)).size > 0, `packaged framework notice is missing: ${file}`);
   }
   assert.equal(
-    fs.readFileSync(path.join(ROOT, 'compliance/runtime-sbom.cdx.json'), 'utf8'),
+    includeUblock ? fs.readFileSync(path.join(ROOT, 'compliance/runtime-sbom.cdx.json'), 'utf8') : generated.files['compliance/runtime-sbom.cdx.json'],
     sbom,
     'packaged runtime SBOM differs from the release input'
   );

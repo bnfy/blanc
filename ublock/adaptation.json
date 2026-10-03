@@ -5,7 +5,7 @@
   "host": [
     {
       "path": "src/main/ublock-host-mainworld.js",
-      "sha256": "4a9511ec4242bc5380f17055cafb4df165f589fa1080e3ff03f9e727edac7e1a"
+      "sha256": "5eb6de0c48f3ed527c5f3f4537cfd3cc3ebf43d71d70f1369eef3dac34442ec4"
     },
     {
       "path": "src/main/ublock-bridge-mainworld.js",
@@ -21,19 +21,19 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "b15365a9fcd0ef31dbbe43d8ddbb2324d17d23fdbe3217ddac03affef84f3ee1"
+      "sha256": "897ba73fda1febc06db8de402b4caca2b3bb405887e4723b8526620792a64c09"
     },
     {
       "path": "src/main/ublock-host-policy.js",
-      "sha256": "39cabe080c2da4c4227d385e33b31cf72276c7b84e94e1b981c64bcc72d03f8f"
+      "sha256": "65ab01013438c29c59d26239a5c74564203407d59e949758f35b667c230372fe"
     },
     {
       "path": "src/main/ublock-provider.js",
-      "sha256": "877b237b954439d00dfd36d54920cd9789d855550d369c4a2c50e9a2419102a4"
+      "sha256": "27d07d2365ed1014ffe90521db01d6022e2c0fa95bed31f3dfa2875b333dc185"
     },
     {
       "path": "src/main/ublock-registry.js",
-      "sha256": "f0b066f841941908675f929f21df8d93f56f06e7db818a007c047dced7ba90a4"
+      "sha256": "0262abbd9d92c2a1bc61daf6728c2186a36acfa7886eab185400a771833cf129"
     },
     {
       "path": "src/main/ublock-documents.js",
@@ -54,6 +54,14 @@
     {
       "path": "src/main/ublock-dashboard-mainworld.js",
       "sha256": "90d6a4772e04242d478fce728066f7d2aa08082d132a567f70e5a28d73311d33"
+    },
+    {
+      "path": "ublock/identity.json",
+      "sha256": "a0d03d12801554917ea978abe308e7a09585c9acc24dc344f4209c2248645ffe"
+    },
+    {
+      "path": "src/main/blocking-resources.js",
+      "sha256": "1c5a0dac44753a5359bc2f185bb7736aea9d6ba9c779bc271314820330338548"
     },
     {
       "path": "src/renderer/ublock-popup.css",
@@ -296,7 +304,7 @@
     {
       "path": "manifest.json",
       "upstreamSha256": "57c0aef971a2a5d84c7ed77cf53d5ad5f3631c5ae201349882f5cf30725ce254",
-      "adaptedSha256": "79b340f68bc0afa33eef40f813a9a09c6511ec6114a2330d35823e0d5b6d3940"
+      "adaptedSha256": "2df283bb04394bf781895f67673891abf9101fe832a06fc52516b4a3306ada40"
     },
     {
       "path": "no-dashboard.html",
@@ -496,7 +504,7 @@
     {
       "path": "blanc-host.js",
       "upstreamSha256": null,
-      "adaptedSha256": "4a9511ec4242bc5380f17055cafb4df165f589fa1080e3ff03f9e727edac7e1a"
+      "adaptedSha256": "5eb6de0c48f3ed527c5f3f4537cfd3cc3ebf43d71d70f1369eef3dac34442ec4"
     },
     {
       "path": "blanc-bridge.html",
@@ -509,5 +517,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "4155c96512dd6182b9fd6f08d3e0508d99bafa6f57a9f620e5b7132ef0d2f141"
+  "patchSha256": "614a2beb2d0bd13f30a6df84a190c6a0a9d57cc430e51beff674f441a84aa7b3"
 }

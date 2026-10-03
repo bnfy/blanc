@@ -427,8 +427,9 @@ function notices(runtime, policy, application) {
   return lines.join('\n');
 }
 
-function createComplianceArtifacts() {
+function createComplianceArtifacts({ includeUblock = true } = {}) {
   const policy = readJson('compliance/policy.json');
+  if (!includeUblock) policy.assets = policy.assets.filter(asset => asset.id !== 'ublock-origin');
   if (policy.schemaVersion !== 1) throw new Error('unsupported compliance policy schema');
   for (const [key, fallback] of Object.entries(policy.licenseFileFallbacks || {})) {
     if (!/^.+@\d+\.\d+\.\d+(?:-.+)?$/.test(key) || !fallback.license || !fallback.reason) {

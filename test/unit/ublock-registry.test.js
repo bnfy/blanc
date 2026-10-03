@@ -36,3 +36,22 @@ test('request metadata retains actual frame ancestry, initiator, headers and red
   assert.equal(value.responseHeaders.length, 2);
   assert.equal(value.timeStamp, 1700000000250);
 });
+
+test('request lookup avoids tab scans and rejects stale views and changed principals', () => {
+  let scans = 0;
+  let wc = { id: 10, isDestroyed: () => false };
+  const tab = { id: 'a', profileId: 'personal', private: false };
+  const registry = createUblockRegistry({ profileId: 'personal', listTabs: () => { scans++; return [tab]; }, listWindows: () => [], liveContents: () => wc });
+  const request = () => registry.request({ id: 1, webContentsId: 10, url: 'https://a.test/', resourceType: 'script' });
+  const initial = scans;
+  for (let i = 0; i < 100; i++) assert.equal(request().tabId, 1);
+  assert.equal(scans, initial);
+  wc = { id: 11, isDestroyed: () => false };
+  assert.equal(request().tabId, -1);
+  registry.refresh();
+  assert.equal(registry.request({ id: 2, webContentsId: 11 }).tabId, 1);
+  tab.private = true;
+  assert.equal(registry.request({ id: 3, webContentsId: 11 }).tabId, -1);
+  tab.private = false; tab.profileId = 'foreign';
+  assert.equal(registry.request({ id: 4, webContentsId: 11 }).tabId, -1);
+});

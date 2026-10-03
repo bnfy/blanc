@@ -47,3 +47,29 @@ test('quit failure cancels the intent and permits retry', async () => {
   assert.equal(await f.restart(), true);
   assert.deepEqual(f.calls, ['quit', 'cancelled', 'quit', 'relaunch']);
 });
+
+test('Stay preserves Quiet and Reopen state until the irreversible quit phase', async () => {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  const lifecycle = source.slice(source.indexOf('let isQuitting = false;'), source.indexOf('/** Builds one window'));
+  const app = new EventEmitter(), page = new EventEmitter();
+  let closes = 0, downgrades = 0, stops = 0, relaunches = 0;
+  const quiet = { view: { webContents: { isDestroyed: () => false, close: () => closes++ } }, secret: 'retained page state' };
+  const snapshots = new Map([['quiet', quiet]]);
+  const entry = { view: {}, expiryTimer: null };
+  const runtime = { closing: false, closedEntries: [entry], window: { isDestroyed: () => false, show() {} } };
+  app.relaunch = () => relaunches++;
+  app.quit = () => { app.emit('before-quit'); runtime.closing = true; page.emit('will-prevent-unload', { defaultPrevented: false }); };
+  const context = { app, webContents: { getAllWebContents: () => [page] }, createAppRestarter,
+    sleepSnapshots: snapshots, windowRuntimes: { all: () => [runtime] }, forEachWindowRuntime: fn => fn(runtime),
+    namedWorkspaces: { flushPending() {} }, forgetTabImportForRuntime() {}, clearTimeout,
+    downgradeHeldEntry: () => downgrades++, blockingProviders: { stop: () => stops++ }, onePasswordBroker: null,
+  };
+  vm.runInNewContext(lifecycle + '\nthis.restart = restartApp; this.quitting = () => isQuitting;', context);
+  assert.equal(await context.restart(), false);
+  assert.equal(context.quitting(), false); assert.equal(runtime.closing, false);
+  assert.equal(snapshots.get('quiet'), quiet); assert.equal(runtime.closedEntries[0], entry);
+  assert.equal(closes, 0); assert.equal(downgrades, 0); assert.equal(stops, 0); assert.equal(relaunches, 0);
+  app.emit('will-quit');
+  assert.equal(snapshots.size, 0); assert.equal(closes, 1); assert.equal(downgrades, 1); assert.equal(stops, 1);
+});

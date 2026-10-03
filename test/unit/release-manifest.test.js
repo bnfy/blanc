@@ -227,7 +227,7 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.doesNotMatch(allWorkflows, /uses:\s+[^\n]+@[vV]\d+(?:\s|$)/);
   assert.match(allWorkflows, /actions\/checkout@[0-9a-f]{40}/);
   assert.match(allWorkflows, /actions\/setup-node@[0-9a-f]{40}/);
-  assert.match(releaseScript, /cp compliance\/runtime-sbom\.cdx\.json "\$VERIFY_DIR\/Blanc-\$VERSION\.cdx\.json"/);
+  assert.match(releaseScript, /cp "dist\/\$NATIVE_MAC_DIR\/Blanc\.app\/Contents\/Resources\/runtime-sbom\.cdx\.json" "\$VERIFY_DIR\/Blanc-\$VERSION\.cdx\.json"/);
   assert.doesNotMatch(releaseScript, /npm sbom/);
   assert.match(releaseScript, /cosign sign-blob/);
   assert.match(releaseScript, /cosign verify-blob/);
@@ -296,7 +296,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
   assert.match(releaseScript, /scripts\/release-bin:\$PATH.*cosign sign-blob/);
   assert.match(safariOpener, /exec \/usr\/bin\/open -a Safari "\$@"/);
-  assert.notEqual(fs.statSync(safariOpenerPath).mode & 0o111, 0);
+  if (process.platform !== 'win32') assert.notEqual(fs.statSync(safariOpenerPath).mode & 0o111, 0);
 });
 
 test('Windows manifest requires a valid signed-artifact attestation', () => {

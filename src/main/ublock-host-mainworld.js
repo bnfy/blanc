@@ -103,7 +103,7 @@
   };
   const match = (pattern, value) => {
     if (pattern === '<all_urls>') return /^(https?|file|ftp):/.test(value);
-    const parsed = /^(\*|https?|file|ftp):\/\/([^/]*)(\/.*)$/.exec(pattern);
+    const parsed = /^(\*|https?|file|ftp|chrome-extension):\/\/([^/]*)(\/.*)$/.exec(pattern);
     if (!parsed) return false;
     let url;
     try { url = new URL(value); } catch { return false; }

@@ -18,10 +18,11 @@ function pack({ internal = false, configuration = {}, embedded = {}, gate = {} }
   const context = { packager: { config: { extraMetadata: configuration }, info: { metadata: embedded } } };
   return { execute: () => module.exports(context), checked, context };
 }
-test('ordinary packaging refuses unresolved distribution obligations after verifying candidate inputs', () => {
-  const candidate = pack();
-  assert.throws(candidate.execute, /distribution blocked/);
-  assert.equal(candidate.checked.length, 2);
+test('ordinary packaging excludes uncleared upstream assets while Blanc builds remain usable', () => {
+  const candidate = pack(); candidate.execute();
+  assert.equal(candidate.context.packager.info.metadata.blancUblockBundled, false);
+  assert(candidate.context.packager.config.files.includes('!ublock{,/**/*}'));
+  assert.equal(candidate.checked.length, 0);
 });
 test('public packaging rejects stale validation markers from both metadata sources', () => {
   const gate = { cleared: true, assessment: true, correspondingSource: true, noticeReview: true };

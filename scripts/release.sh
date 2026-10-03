@@ -414,7 +414,7 @@ node scripts/verify-release-manifest.mjs \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
-cp compliance/runtime-sbom.cdx.json "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
+cp "dist/$NATIVE_MAC_DIR/Blanc.app/Contents/Resources/runtime-sbom.cdx.json" "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."

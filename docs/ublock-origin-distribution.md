@@ -77,6 +77,10 @@ available evidence does not establish the required source/notice completeness
 or resolve the combined-work terms. Clearing the gate requires a reviewed
 distribution determination and the specific missing source/build/notice inputs
 above. No runtime fork, first-party license change or identity-asset waiver is
-an authorized shortcut. Public releases and ordinary packaging fail closed;
-an internal package created solely for owner inspection is explicitly marked
+an authorized shortcut. Public uBO distribution fails closed. Ordinary Blanc packages exclude the
+entire `ublock/` payload and its adaptation-build scripts, record
+`blancUblockBundled: false`, keep selection unavailable, and generate notices
+and a runtime SBOM for the actual included components. The after-pack check
+rejects any upstream uBO file in that baseline. The release manifest uses the
+verified packaged runtime SBOM rather than the source inventory. An internal package created solely for owner inspection is explicitly marked
 by its build command, and is not a release or updater artifact.

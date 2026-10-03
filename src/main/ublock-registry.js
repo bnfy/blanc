@@ -5,14 +5,18 @@
 function createUblockRegistry({ profileId, listTabs, listWindows, liveContents }) {
   const identities = new Map();
   let sequence = 0;
+  const contents = new Map();
   function records() {
     return listTabs().filter(tab => !tab.private && tab.profileId === profileId);
   }
   function refresh() {
     const current = new Set();
+    contents.clear();
     for (const tab of records()) {
       current.add(tab.id);
       if (!identities.has(tab.id)) identities.set(tab.id, ++sequence);
+      const wc = liveContents(tab);
+      if (wc && !wc.isDestroyed()) contents.set(wc.id, { tab, wc });
     }
     for (const id of identities.keys()) if (!current.has(id)) identities.delete(id);
   }
@@ -77,7 +81,11 @@ function createUblockRegistry({ profileId, listTabs, listWindows, liveContents }
     });
   }
   function request(details) {
-    const tab = fromContents(details.webContentsId);
+    // Lifecycle refresh owns the index. A network decision does no tab-list
+    // scan, but still rejects a changed principal, discarded view, or old WC.
+    const entry = contents.get(details.webContentsId);
+    const tab = entry && !entry.tab.private && entry.tab.profileId === profileId
+      && liveContents(entry.tab) === entry.wc && !entry.wc.isDestroyed() ? entry.tab : undefined;
     const frame = details.frame;
     const headers = value => Object.entries(value || {}).flatMap(([name, values]) =>
       (Array.isArray(values) ? values : [values]).map(value => ({ name, value: String(value) })));
@@ -100,6 +108,7 @@ function createUblockRegistry({ profileId, listTabs, listWindows, liveContents }
       ip: details.ip, fromCache: !!details.fromCache,
     };
   }
+  refresh();
   return { refresh, idForTab, tabFor, project, query, ownedContents, fromContents, frames, mapping, request, frameData };
 }
 

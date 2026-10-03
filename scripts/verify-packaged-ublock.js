@@ -6,6 +6,19 @@ const { extractFile, listPackage, statFile } = require('@electron/asar');
 const { readVerifiedPackage, hash, adaptPackage, readHostSources } = require('../src/main/ublock-package');
 const ROOT = path.join(__dirname, '..');
 function verifyPackagedUblock(asarPath, { root = ROOT } = {}) {
+  const inventory = listPackage(asarPath).map(raw => raw.replaceAll('\\', '/').replace(/^\//, ''));
+  const metadata = JSON.parse(extractFile(asarPath, 'package.json').toString());
+  if (metadata.blancUblockBundled === false) {
+    assert(!metadata.blancUblockInternalValidation, 'Excluded uBO cannot carry an internal marker');
+    assert(!inventory.some(member => member === 'ublock' || member.startsWith('ublock/')), 'Uncleared uBO payload in ordinary Blanc build');
+    console.log('verify-packaged-ublock: optional upstream payload excluded.');
+    return;
+  }
+  assert.equal(metadata.blancUblockBundled, true, 'Missing uBO payload declaration');
+  if (!metadata.blancUblockInternalValidation) {
+    const gate = JSON.parse(extractFile(asarPath, 'ublock/distribution.json'));
+    assert(gate.cleared && gate.assessment && gate.correspondingSource && gate.noticeReview, 'Uncleared public uBO payload');
+  }
   const { pin, files } = readVerifiedPackage(path.join(root, 'ublock'));
   const read = member => extractFile(asarPath, member.split('/').join(path.sep));
   const exact = member => assert(read(member).equals(fs.readFileSync(path.join(root, member))), 'Packaged uBO input mismatch: ' + member);
