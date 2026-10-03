@@ -19,3 +19,5 @@ Platform acceptance and public enablement remain pending. No release, public upd
 - `macos-blur-fix-diagnostic.json`: deferring production overlay blur dismissal until the native callback returns, and rejecting callbacks after window shutdown or a newer surface generation, passes the provider round trip and native close/reopen/Quit in an instrumented, ad-hoc signed disposable copy. This is causal diagnostic evidence, not signed acceptance.
 
 The usual unpackaged UI harness intentionally skips production overlay blur dismissal, so it could not detect this path. The new production-handler unit regression and installed suite cover it. Rebuilt signed build 1272 and Windows candidate acceptance are still pending; no platform is cleared by the diagnostic result.
+
+Local verification of the merged source and fix passed: full lint, 2,213 unit tests, substrate/compliance checks, the real-blocking uBO desktop suite, and the shield provider desktop suite. The new blur regression fails against the previous synchronous handler. These are local checks; signed installed acceptance is still a separate gate.
