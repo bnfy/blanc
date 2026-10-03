@@ -69,7 +69,7 @@ const report = {
   package: { version: metadata.version, ublock: pin.version, electron: matrix.electron,
     internalCandidate: metadata.blancUblockInternalValidation === true,
     executableSha256: digest(fs.readFileSync(executable)), asarSha256: digest(fs.readFileSync(asar)) },
-  os: process.platform, architecture: process.arch, osRelease: os.release(),
+  os: process.platform, architecture: null, harnessArchitecture: process.arch, osRelease: os.release(),
   limits: ['Signature, notarization, installed location and OS sandbox verification require separate evidence.',
     'Meta refresh has no executable positive control; only non-execution is observed.',
     'This tests the listed payloads, not every possible script or HTML construct.'],
@@ -90,7 +90,15 @@ try {
     const page = await pageAt(route); await page.waitForLoadState('load'); return page;
   };
   const settings = await open('blanc://settings/');
+  const appInfo = await settings.evaluate(async () => (await window.bowserPages.settings.get()).appInfo);
+  assert.equal(appInfo.blancVersion, metadata.version);
+  assert.equal(appInfo.electronVersion, matrix.electron);
+  assert.equal(appInfo.platform, process.platform);
+  report.architecture = appInfo.architecture;
+  report.runtimeInfo = appInfo;
   const status = await waitForValue(() => settings.evaluate(() => window.bowserPages.settings.blockingStatus()), state => {
+    report.provider = { active: state.active, phase: state.phase, electron: state.electron, ublock: state.ublock };
+    if (typeof state.error === 'string' && /^[a-z0-9-]{1,64}$/.test(state.error)) report.provider.error = state.error;
     assert.notEqual(state.phase, 'failed', state.error || 'provider failed');
     assert.equal(state.active, 'ublock-origin', 'Candidate silently fell back to Blanc');
     return state.phase === 'ready';

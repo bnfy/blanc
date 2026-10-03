@@ -575,3 +575,36 @@ normalizes all three ASAR JSON member paths to `path.sep`, as the production
 packaged verifier already does. This is a test-only correction; no runtime,
 signing, sandbox, blocking policy or alert disposition changed. Windows is
 rerun from the corrected fixture; this failed attempt is not counted as a pass.
+
+
+## v1.27.0 signed/private candidate results
+
+The [durable candidate records](evidence/ublock-v1.27.0-candidates-2026-10-03/README.md)
+retain artifact/source digests, actual DMG signature/notarization and payload
+checks, passing Mac arm64/Windows installed/Linux extracted-package probes, and
+two failed Intel-under-Rosetta startup attempts. Windows retry run 37153103797
+passed after its test-only path correction; the first failed Windows attempt is
+retained. Linux and both hosted Ubuntu sandbox checks passed in run 37152590931.
+All four desktop jobs and ordinary packaging passed for source `2bbcbc84`.
+
+The owner confirmed Apple Silicon, Windows and Linux test availability. Their
+installed feature/persistence/normal-exit/relaunch and staged updater acceptance
+are still pending. Intel remains disabled: the idle Rosetta retry also reports
+`ubo-startup-timeout`; it is not attributed to concurrent build load. No
+production timeout or sandbox policy changed. The probe now obtains actual app
+architecture through existing Settings IPC and saves only bounded error codes.
+
+All candidate update metadata SHA-512 digests, installer/ZIP SHA-256 values and
+isolated staging-feed copies match. No public updater metadata was published.
+The latest read-only CodeQL comparison has the same 39 open vendored alerts,
+zero additions or first-party alerts, with every dismissal still deferred while
+the PR remains draft.
+
+
+The isolated Mac v1.26.0 → v1.27.0 updater rehearsal passed after authenticating
+the old public ZIP's checksum manifest. Discovery/download, Squirrel replacement,
+stable strict signature and replacement relaunch were verified; updated bytes
+match the signed DMG candidate. The [record](evidence/ublock-v1.27.0-candidates-2026-10-03/macos-updater-rehearsal.json)
+explicitly retains the auto-install limitation: the owner still needs the
+ordinary Restart Now interaction and affected-machine acceptance. No personal
+installation or public updater feed was changed.
