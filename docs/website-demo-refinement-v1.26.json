@@ -1,0 +1,223 @@
+{
+  "capturedAt": "2026-10-02",
+  "source": "https://www.reddit.com/r/space/comments/1wf9xae/i_was_lucky_enough_to_capture_both_eclipses_last/",
+  "provider": "Codex in-app browser",
+  "viewport": {
+    "width": 853,
+    "height": 792
+  },
+  "crop": {
+    "x": 0,
+    "y": 56,
+    "width": 853,
+    "height": 736
+  },
+  "file": "site/public/shots/desktop/reddit.jpg",
+  "dimensions": {
+    "width": 853,
+    "height": 736
+  },
+  "sha256": "dc79f48a1b38b3cf231c8e64c5baed0bb6ee7a98ab688b00cd3f84ed9605bcb1",
+  "transform": "Viewport crop excluding account navigation; JPEG pixels copied unchanged. No retouching or DOM changes.",
+  "qualification": "A public website image for the illustrative demo, not a Blanc release capture or evidence of blocker behavior. Public post and photo credit u/DanielJStein remain visible. Third-party material retains its own rights under ASSET-LICENSE.md.",
+  "favicon": {
+    "source": "https://www.redditstatic.com/shreddit/assets/favicon/64x64.png",
+    "sourceSha256": "f60ae5a33ee8d16c71a0ff6b45e3c2524f9ccaf3cd33e6636c6493dd4ec2d953",
+    "file": "site/public/favicons/reddit.com.ico",
+    "sha256": "ded98d93850f900187717ebd3b1c67b2352d6ebf731f30093e8e32f136e0176a",
+    "transform": "Original 64x64 PNG pixels wrapped in an ICO container."
+  },
+  "capabilityReview": {
+    "release": "v1.26.0",
+    "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
+    "evidence": [
+      "src/main/chrome-layout.js",
+      "src/renderer/overlay.js",
+      "src/main/main.js",
+      "src/main/workspaces.js",
+      "src/main/onepassword-availability.js",
+      "src/renderer/pages/settings.html",
+      "src/main/credential-fill-controller.js",
+      "src/main/tab-context-menu-model.js"
+    ],
+    "qualification": "User-directed grouping; Enter opens the highlighted match; Glance and workspace behavior verified against the immutable public tag. Workspaces save tab setup, not every running page state; Patron is required to create/save a new workspace. The grouping chapter keeps Netflix active while moving its highlighted tab into Social and then Watch; the native menu omits background-only Glance and Quiet actions."
+  },
+  "captions": [
+    {
+      "wording": "Tabs, search and commands in one place.",
+      "evidenceGroup": "navigation",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Your controls stay close as you scroll.",
+      "evidenceGroup": "navigation",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Keep two tabs open with Glance.",
+      "evidenceGroup": "glance",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Drag to resize your Glance view.",
+      "evidenceGroup": "glance",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Choose which tab takes the lead.",
+      "evidenceGroup": "glance",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "A page with blocking turned off.",
+      "evidenceGroup": "trust",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Control blocking for this site.",
+      "evidenceGroup": "trust",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Turn blocking on with one switch.",
+      "evidenceGroup": "trust",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Known ads blocked. More room to read.",
+      "evidenceGroup": "trust",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Find browser commands with a slash.",
+      "evidenceGroup": "navigation",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Browse commands, or type to filter.",
+      "evidenceGroup": "navigation",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Find tabs, groups, Favorites and history.",
+      "evidenceGroup": "navigation",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Press Enter to open the highlighted match.",
+      "evidenceGroup": "navigation",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Right-click a tab to organize it.",
+      "evidenceGroup": "foundations",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Move it into an existing group.",
+      "evidenceGroup": "foundations",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Netflix is now in Social.",
+      "evidenceGroup": "foundations",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Create a new group with /group.",
+      "evidenceGroup": "foundations",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Netflix is now in Watch.",
+      "evidenceGroup": "foundations",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Save Named Workspaces with Patron.",
+      "evidenceGroup": "workspaces",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Reopen a workspace with its tabs and pins.",
+      "evidenceGroup": "workspaces",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Fill a login with your keyboard.",
+      "evidenceGroup": "onepassword",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "macOS · After setup and authorization · Sample login",
+      "evidenceGroup": "onepassword",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Choose a matching login.",
+      "evidenceGroup": "onepassword",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Your login is filled.",
+      "evidenceGroup": "onepassword",
+      "verdict": "qualified"
+    },
+    {
+      "wording": "Filled from 1Password",
+      "evidenceGroup": "onepassword",
+      "verdict": "qualified"
+    }
+  ],
+  "onePasswordDemo": {
+    "kind": "Illustrative animation, not a release capture or live credential test",
+    "sourceRelease": "v1.26.0",
+    "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
+    "website": "Fictional demo.example sign-in form with reserved example identifiers; no network request or submission",
+    "states": [
+      "Empty form and Option + Command + P shortcut",
+      "Native matching-login menu with username above item title · vault",
+      "Masked filled fields and exact bottom-center Filled from 1Password capsule"
+    ],
+    "qualification": "macOS only; requires the installed 1Password desktop app and account, SDK integration enabled, explicit Blanc setup and authorization. Off by default; explicit matching Login fill only. No saving, payment-card fill, synced settings or provider passkeys. Demo uses a labelled fictional login after setup and authorization, reproducing the public v1.26.0 hint, native menu labels and fill capsule. It is an illustrative animation, not a live credential test or release screenshot.",
+    "evidence": [
+      "src/main/credential-picker.js",
+      "src/main/credential-fill-controller.js",
+      "src/main/onepassword-policy.js",
+      "src/renderer/fill-status.html",
+      "src/renderer/fill-status-copy.js",
+      "src/renderer/fill-status.js",
+      "src/renderer/styles.css",
+      "src/renderer/index.html"
+    ]
+  },
+  "startPageDemo": {
+    "release": "v1.26.0",
+    "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
+    "kind": "Illustrative replica of the released Sunrise Billboard at a short desktop-window height",
+    "evidence": [
+      "src/renderer/pages/newtab.html",
+      "src/renderer/pages/newtab.js",
+      "src/renderer/pages/pages.css"
+    ],
+    "qualification": "The static Sunrise background is the default artwork; dynamic wallpaper is shown off. Clock follows the local clock. Four frequent sites and a zero blocking total are sample fixtures; no personal history is read. Warm palette stays scoped to the start page, with neutral Island controls. Patron-active fixture hides the optional upgrade CTA, matching the workspace chapters.",
+    "assets": [
+      {
+        "file": "site/public/demo-assets/start-page-sunrise.png",
+        "source": "src/renderer/pages/start-page-sunrise.png",
+        "release": "v1.26.0",
+        "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
+        "sha256": "4757c6450f317f4380ec416065c70e314d3046ca53eccb877fd51d0412216451",
+        "transform": "Unchanged release asset pixels"
+      },
+      {
+        "file": "site/public/demo-assets/sunrise-mark.png",
+        "source": "src/renderer/pages/sunrise-mark.png",
+        "release": "v1.26.0",
+        "sourceSha": "4624b229c1a50814c42714e6175902671497e391",
+        "sha256": "19b1facbed9f2302b592f5180b9f7866b4e2bd74471263e78c685676776e7a17",
+        "transform": "Unchanged release asset pixels"
+      }
+    ]
+  }
+}

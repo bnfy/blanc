@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
-/* The masthead's mega menus and the mobile sheet are both fed by
+/* The masthead and feature catalogue are fed by
  * site/src/data/navigation.mjs. These checks keep that module honest: every
  * feature page is reachable, each description is the page's own headline, and
  * every href points at a page that exists. */
@@ -28,11 +28,11 @@ test('every feature page is reachable from the features menu with its own headli
   const { menus } = await import(path.join(ROOT, 'site/src/data/navigation.mjs'));
   const features = menus.find(menu => menu.key === 'features');
   const links = features.groups.flatMap(group => group.links);
-  assert.equal(links.length, 15);
-  assert.deepEqual(features.groups.map(group => group.links.length), [6, 3, 6]);
+  assert.equal(links.length, 16);
+  assert.deepEqual(features.groups.map(group => group.links.length), [6, 4, 6]);
   assert.deepEqual(features.groups.map(group => group.links.map(link => link.href)), [
     ['island', 'start-page', 'glance', 'vertical-tabs', 'tab-groups', 'quiet-tabs'],
-    ['ad-blocking', 'private-tabs', 'security'],
+    ['1password', 'ad-blocking', 'private-tabs', 'security'],
     ['command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'profiles', 'sync', 'workspaces'],
   ].map(group => group.map(slug => `/features/${slug}`)));
   const pages = fs.readdirSync(path.join(ROOT, 'site/src/pages/features')).filter(f => f.endsWith('.astro')).map(f => `/features/${f.replace('.astro', '')}`);
@@ -58,7 +58,7 @@ test('resources and direct links point at pages that exist', async () => {
   for (const link of [...resources.groups.flatMap(g => g.links), ...directLinks, { href: resources.spotlight.href }, { href: resources.foot.href }, { href: menus[0].foot.href }]) {
     assert.ok(exists(link.href), `${link.href} exists`);
   }
-  assert.deepEqual(directLinks.map(l => l.key), ['mail', 'security', 'changelog'], 'Mail and security stay one click from everywhere');
+  assert.deepEqual(directLinks.map(l => l.key), ['mail', 'features', 'how-it-works', 'security', 'faq', 'changelog'], 'Mail, the technical explanation, and security stay one click from everywhere');
   const newsletter = resources.groups.flatMap(g => g.links).find(l => l.label === 'Newsletter');
   const form = fs.readFileSync(path.join(ROOT, 'site/src/components/NewsletterForm.astro'), 'utf8');
   assert.ok(form.includes(`id="${newsletter.href.replace('#', '')}"`), 'the newsletter link targets an id on the footer form');

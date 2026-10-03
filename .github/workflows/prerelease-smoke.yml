@@ -36,6 +36,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
       - name: DNS launch smoke (Linux, headless)
         if: runner.os == 'Linux'
@@ -93,6 +96,8 @@ jobs:
           echo "$EXPECTED  $ARTIFACT" | sha256sum --check --strict
           gh attestation verify "$ARTIFACT" --repo "$GITHUB_REPOSITORY"
           chmod +x "$ARTIFACT"
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        run: bash scripts/ci-enable-linux-sandbox.sh
       - name: Launch published AppImage
         env:
           VERSION: ${{ inputs.release_version }}

@@ -77,6 +77,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     closedAt: now,
     url: tab.url,
     localFile: tab.localFile === true,
+    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,
     pinned: !!tab.pinned,
@@ -123,6 +124,7 @@ function buildGroupEntry(group, members, now = 0) {
       .map((m) => ({
         url: m.url,
         localFile: m.localFile === true,
+        openerSandboxFlags: m.openerSandboxFlags ?? 0,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         favicon: typeof m.favicon === 'string' ? m.favicon : null,
         pinned: !!m.pinned,
@@ -150,6 +152,7 @@ function buildBatchEntry(members, now = 0) {
       .map((m) => ({
         url: m.url,
         localFile: m.localFile === true,
+        openerSandboxFlags: m.openerSandboxFlags ?? 0,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         favicon: typeof m.favicon === 'string' ? m.favicon : null,
         pinned: !!m.pinned,

@@ -52,6 +52,7 @@ object BlancSettingsDefaults {
     const val adblockEnabled = true
     const val homePage = ""
     val theme = BlancThemePreference.SYSTEM
+    const val newtabDynamicWallpaper = false
     val newtabLayout = BlancNewtabLayout.BILLBOARD
     val webrtcPolicy = BlancWebrtcPolicy.STANDARD
     val webrtcAudioBuffer = BlancWebrtcAudioBuffer.AUTOMATIC

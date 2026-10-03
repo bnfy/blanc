@@ -1,0 +1,33 @@
+{
+  "reviewedAt": "2026-10-02",
+  "purpose": "Decorative identifiers beside existing engine, platform, licensing and optional Patron text. No endorsement or new product capability claim.",
+  "notices": "site/public/licenses/summary-icons.txt",
+  "files": [
+    {
+      "file": "site/src/assets/summary-icons/chromium.svg",
+      "sha256": "61122576853708083b81a83731d62a0ff4576d04b83042b34c06b992bbe955e3",
+      "source": "https://github.com/simple-icons/simple-icons/blob/1089fb7d2bf0e323f834c205ab76265005a6d5e8/icons/googlechrome.svg",
+      "adaptation": "Shared Chromium/Chrome monochrome geometry; decorative SVG title changed, vector path unchanged. Identifies the bundled engine, not the Chrome app."
+    },
+    {
+      "file": "site/src/assets/summary-icons/electron.svg",
+      "sha256": "fdf1b8ce32ada155bd490c9da008974af47fa808177e219d449d1d091f0f1d4e",
+      "source": "https://github.com/simple-icons/simple-icons/blob/1089fb7d2bf0e323f834c205ab76265005a6d5e8/icons/electron.svg"
+    },
+    {
+      "file": "site/src/assets/summary-icons/apple.svg",
+      "sha256": "2a1509dccd25e6d2bc7a11a8e52941077e1a48555e192ce638699b9f083c2a7c",
+      "source": "https://github.com/simple-icons/simple-icons/blob/1089fb7d2bf0e323f834c205ab76265005a6d5e8/icons/apple.svg"
+    },
+    {
+      "file": "site/src/assets/summary-icons/linux.svg",
+      "sha256": "7e55f2779ae11a83c9dad2d0414a65d8ca7867d0716ce58bfe41ed299ae1447f",
+      "source": "https://github.com/simple-icons/simple-icons/blob/1089fb7d2bf0e323f834c205ab76265005a6d5e8/icons/linux.svg"
+    },
+    {
+      "file": "site/src/assets/summary-icons/code-xml.svg",
+      "sha256": "a6d2110227be375be21da7324d3c09262c1bf019d06bdeab356d515342ab7cce",
+      "source": "https://github.com/lucide-icons/lucide/blob/2b9bbdf444512dcf955a6a9fee99937176cf7535/icons/code-xml.svg"
+    }
+  ]
+}

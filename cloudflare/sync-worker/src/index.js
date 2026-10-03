@@ -1,11 +1,13 @@
 // Blanc's E2EE profile-sync store. Holds ONLY AES-GCM ciphertext keyed by an
 // opaque accountId derived client-side from a passphrase we never see — this
-// Worker cannot read, index, or merge any user data. Mirrors the honesty of
-// cloudflare/ping-worker: no IPs, no ids, no browsing data. See the design
+// Worker cannot decrypt or merge user data. The locator is a bearer capability;
+// account and raw client-IP rate counters remain in KV for up to 120 seconds.
+// This does not establish platform logging/metadata retention. See the design
 // spec in the main repo (docs/superpowers/specs/2026-07-07-profile-sync-design.md).
 
 const STORES = new Set(['bookmarks', 'settings', 'session', 'icons']); // history may follow later
 const MAX_BLOB_BYTES = 512 * 1024;                 // favorites+settings are tiny; raise for history
+const MAX_REQUEST_BYTES = 513 * 1024;              // blob plus v1 JSON envelope
 const RATE_LIMIT = 30;                             // GETs per accountId per minute — anti-hammering of one account
 const IP_RATE_LIMIT = 120;                         // requests per client IP per minute — the anti-guessing throttle
 
@@ -37,12 +39,12 @@ async function handleGet(env, accountId, store) {
 }
 
 // Optimistic concurrency: reject if the caller's ifVersion isn't current. The
-// read-then-write isn't a true transaction (KV limitation), but merges are
-// commutative/idempotent, so a lost race just 409s the next sync and
-// reconverges — no data loss. Durable Objects would make it strict.
+// read-then-write isn't a transaction: racing writers can both succeed and one
+// write can be lost. Reconciliation does not guarantee recovery of that data.
+// Atomic concurrency and deletion fencing require a separate protocol project.
 async function handlePut(env, accountId, store, body) {
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
-  if (JSON.stringify(body.blob).length > MAX_BLOB_BYTES) return json({ error: 'too large' }, 413);
+  if (new TextEncoder().encode(JSON.stringify(body.blob)).byteLength > MAX_BLOB_BYTES) return json({ error: 'too large' }, 413);
   const cur = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   const version = crypto.randomUUID();
@@ -53,6 +55,34 @@ async function handlePut(env, accountId, store, body) {
 async function handleDelete(env, accountId) {
   await Promise.all([...STORES].map((s) => env.SYNC.delete(blobKey(accountId, s))));
   return new Response(null, { status: 204 });
+}
+
+async function readBoundedJson(request) {
+  const declared = request.headers.get('Content-Length');
+  if (declared && /^\d+$/.test(declared) && Number(declared) > MAX_REQUEST_BYTES) {
+    try { await request.body?.cancel(); } catch {}
+    return { response: json({ error: 'too large' }, 413) };
+  }
+  if (!request.body) return { response: json({ error: 'bad json' }, 400) };
+  const reader = request.body.getReader();
+  let size = 0;
+  const bytes = new Uint8Array(MAX_REQUEST_BYTES);
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_REQUEST_BYTES) {
+        try { await reader.cancel(); } catch {}
+        return { response: json({ error: 'too large' }, 413) };
+      }
+      bytes.set(value, size - value.byteLength);
+    }
+    return { body: JSON.parse(new TextDecoder().decode(bytes.subarray(0, size))) };
+  } catch {
+    try { await reader.cancel(); } catch {}
+    return { response: json({ error: 'bad json' }, 400) };
+  } finally { reader.releaseLock(); }
 }
 
 export default {
@@ -77,9 +107,9 @@ export default {
     }
     if (request.method === 'GET') return handleGet(env, accountId, store);
     if (request.method === 'PUT') {
-      let body;
-      try { body = await request.json(); } catch { return json({ error: 'bad json' }, 400); }
-      return handlePut(env, accountId, store, body);
+      const parsed = await readBoundedJson(request);
+      if (parsed.response) return parsed.response;
+      return handlePut(env, accountId, store, parsed.body);
     }
     return new Response('method not allowed', { status: 405 });
   },

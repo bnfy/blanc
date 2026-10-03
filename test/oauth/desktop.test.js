@@ -203,7 +203,7 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
     fs.rmSync(`${userDataDir}-Dev`, { recursive: true, force: true });
   });
 
-  app = await _electron.launch({
+  app = await _electron.launch({ chromiumSandbox: true,
     args: [REPO_ROOT, `--user-data-dir=${userDataDir}`, `${relying.base}/relying`],
     env: { ...process.env, BLANC_TEST: '1' },
   });
@@ -295,7 +295,7 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
     fs.rmSync(userDataDir, { recursive: true, force: true });
     fs.rmSync(`${userDataDir}-Dev`, { recursive: true, force: true });
   });
-  app = await _electron.launch({
+  app = await _electron.launch({ chromiumSandbox: true,
     args: [REPO_ROOT, `--user-data-dir=${userDataDir}`, `${server.base}/login`],
     env: { ...process.env, BLANC_TEST: '1' },
   });

@@ -181,7 +181,7 @@ button svg {
   /* Faux header: --page-bg is the active page's sampled top-edge color
      (set from renderer.js); without one the strip stays theme --bg. */
   background: var(--page-bg, transparent);
-  transition: background-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 80ms linear;
 }
 
 /* Glance keeps the existing Island centered over the dominant page pane.
@@ -1269,10 +1269,8 @@ body.mac .vertical-tabs-toolbar {
 #pillPrivateChip svg,
 #pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
-/* Blanc Blocker. A shield in a 24px hover-circle, cut edge-to-edge by the
-   master mark's own diagonal — 43.99°, measured off blanc-symbol.svg's two
-   counter edges, so it sits parallel to the logo rather than near it. The
-   count leaves the flow and becomes a badge on the circle's shoulder. */
+/* Horizon Shield: layered gold artwork in the existing 24px hover-circle.
+   The count remains a separate badge on the shield's shoulder. */
 .shield {
   appearance: none;
   position: relative;
@@ -1295,35 +1293,14 @@ body.mac .vertical-tabs-toolbar {
    hover-highlightable ghost. */
 .shield[hidden] { display: none; }
 .shield:hover { background: var(--border); }
-/* Back in the icon language: stroked, square, on the 16 grid like every other
-   glyph in the pill. .pill-btn svg doesn't reach here — the blocker is not a
-   .pill-btn — so the stroke treatment is stated outright. */
-.shield svg {
+.shield-art {
   display: block;
   width: 16px;
   height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  object-fit: contain;
   flex: 0 0 auto;
 }
-/* The badge overlays the shield's top-right shoulder. The glyph is 16px inside
-   a 24px button, so the DS's -1/-4 — drawn against the button — left it
-   floating out in the gap beyond the corner.
-
-   Anchored from the LEFT, deliberately: the badge widens with the digit count,
-   and a right anchor grows it leftward across the glyph (at two digits it
-   swallowed the shield whole). From the left it grows outward instead, so the
-   chosen overlap holds at 1, 2 or 3 digits.
-
-   The depth is set by the diagonal, not by taste. The cut terminates at this
-   exact shoulder, so a badge pushed any further in covers the top end and the
-   cut reads as fading out rather than running edge to edge — which would undo
-   the reason the glyph is a cut shield at all. This is the deepest overlap
-   that leaves it whole. The ring punches the outline out from under the badge
-   so the two don't muddle. */
+/* Grow the badge outward so multi-digit counts leave the gold layers visible. */
 #pillShieldCount {
   position: absolute;
   top: 1.25px;
@@ -1353,6 +1330,7 @@ body.mac .vertical-tabs-toolbar {
    dim, which is what separates off from quiet at a glance now that neither
    carries a background or border. */
 .shield.shield-off { color: var(--text-dim); opacity: 0.45; }
+.shield-off .shield-art { filter: grayscale(1); }
 
 /* Live-capture chip: same anatomy as the shield, but the one pill state
    that earns an alarm color (--danger) — steady, no pulse, no count. */

@@ -70,12 +70,30 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.23.0 public release:
+These boundaries describe the verified v1.26.0 public release; platform
+acceptance limits and updater status are recorded in
+[the release report](release-incidents/2026-10-02-v1.26.0.md). Historical
+wallpaper and Linux acceptance waivers remain in the v1.24.0 report. The
+v1.26.0 report records the named physical-machine waiver and owner-confirmed
+adjacent public updater handoffs; hosted verification does not establish those
+physical-machine outcomes:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
-  conventional toolbar with a compact Island. The user opens its panel for
-  navigation, switching, search, and commands. Do not turn this into a claim
-  that Blanc understands what the user is working on.
+  conventional toolbar with a compact Island. Its resting controls occupy a
+  reserved 68px band above the page; its expanded panel overlays the page.
+  Do not claim the resting Island floats over the web content or reserves no
+  toolbar space. The user opens its panel for navigation, switching, search,
+  and commands. Blanc does not understand what the user is working on.
+- **Quick Switcher search:** For search text, Enter opens the highlighted
+  result, which can be a strong match from tabs, Favorites, history or groups.
+  The user can choose the exact-text web-search result explicitly. Do not
+  promise that Enter always searches the typed text. Address-shaped input
+  navigates unless the user explicitly selects a result.
+- **Fresh optional connections:** Search suggestions and usage measurement
+  are preselected on in fresh-install setup. Optional sends are gated until
+  the user saves their choices; either can be turned off before continuing
+  or later in Settings. Saved choices are retained on upgrades. Do not imply
+  these features default off or that optional means no network connections.
 - **Mouse gestures:** Mouse gestures are disabled by default and configured in
   Settings → General. A physical mouse uses right-button drag; a trackpad uses
   Alt/Option plus a one-finger click-and-drag. Four default directions map to
@@ -92,6 +110,14 @@ These boundaries are verified for the v1.23.0 public release:
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
   categorize tabs semantically, or organize them automatically.
+- **Favorites folder picker:** v1.25.0 keeps the move picker above neighboring
+  rows and inside the window, with internal scrolling for long folder lists
+  and a visible new-folder field. Escape closes the picker and returns focus
+  to its move button; a second Escape closes Favorites. Group headings use
+  plain labels and count badges. These claims are verified by the exact-tag
+  `src/renderer/pages/bookmarks.js`, `src/renderer/pages/pages.css`, and
+  `test/desktop/favorites-folder-picker-smoke.mjs`, the published release notes,
+  and the 12-layout macOS/Linux regression evidence in the release report.
 - **Named Workspaces:** Active Patrons can explicitly save a window or create a
   blank named workspace. A bound workspace saves its tabs and groups as the
   user browses and can later replace the current window's set. This is not
@@ -128,6 +154,19 @@ These boundaries are verified for the v1.23.0 public release:
   second, trading responsiveness for more tolerance of choppy playback. Do not
   promise that either mode eliminates every crackle or fixes source-side,
   network, Bluetooth, driver, or hardware faults.
+- **Time-of-day wallpaper:** Free and off by default. The start-page footer or
+  Settings → General enables bundled Sunrise artwork for dawn (05:00–08:00),
+  day (08:00–17:00), dusk (17:00–20:00), and night (20:00–05:00), using the
+  device's local clock without location permission or artwork requests.
+  It works across all four layouts and private tabs, with two-second fades
+  and immediate changes for reduced motion. Optional Sync carries only the
+  preference; each device computes its own phase. Physical Windows/Linux
+  appearance and lifecycle acceptance was waived, not passed.
+- **Linux AppImage:** v1.24.0 removes the host FUSE 2 library dependency and
+  fixes sandbox-disabling packaged desktop arguments. Existing integrated
+  shortcuts need reintegration. The launcher can still disable Chromium's
+  sandbox when its user-namespace capability probe fails. Do not claim that
+  every Linux launch is sandboxed or that Michael's machine was verified.
 - **Billboard frequently visited sites:** Billboard ranks ordinary browsing
   history on the device and keeps its favicon artwork and hidden-tile choices
   local. Private tabs do not contribute or receive this row. Do not describe

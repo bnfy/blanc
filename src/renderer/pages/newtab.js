@@ -55,6 +55,8 @@ const dateText = isPrivate
 document.getElementById('startDate').textContent = dateText;
 
 document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L to go anywhere`;
+document.getElementById('obIslandShortcut').textContent = isMac ? '⌘L' : 'Ctrl+L';
+document.getElementById('obIslandShortcut').setAttribute('aria-label', isMac ? 'Command L' : 'Control L');
 
 if (isPrivate) {
   document.getElementById('footerLeft').textContent =
@@ -732,7 +734,31 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
   invalidate();
 });
 
+const wallpaper = window.blancNewtabWallpaper.mount(document, window);
+const wallpaperToggle = document.getElementById('dynamicWallpaperToggle');
+let dynamicWallpaperEnabled = false;
+let wallpaperUpdatePending = false;
+function applyDynamicWallpaper(enabled) {
+  dynamicWallpaperEnabled = enabled === true;
+  wallpaper.setEnabled(dynamicWallpaperEnabled);
+  wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
+  wallpaperToggle.disabled = wallpaperUpdatePending;
+}
+wallpaperToggle.addEventListener('click', async () => {
+  wallpaperUpdatePending = true;
+  wallpaperToggle.disabled = true;
+  try {
+    applyDynamicWallpaper(await window.bowserPages.start.setDynamicWallpaper(!dynamicWallpaperEnabled));
+  } catch {
+    // Keep the last acknowledged state when the write fails.
+  } finally {
+    wallpaperUpdatePending = false;
+    wallpaperToggle.disabled = false;
+  }
+});
 const dataReady = window.bowserPages?.start.data().then((data) => {
+  wallpaper.setVisible(data.wallpaperVisible === true);
+  applyDynamicWallpaper(data.dynamicWallpaperEnabled);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
     layout: data.layout ?? 'billboard',
@@ -760,9 +786,13 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
 
 Promise.all([favoritesReady, dataReady]).then(() => applyLayout(state.layout));
 
+window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));
 window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
+  if (status && 'dynamicWallpaperEnabled' in status) {
+    applyDynamicWallpaper(status.dynamicWallpaperEnabled);
+  }
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
   if (status && 'migrationChecklist' in status) {

@@ -14,8 +14,8 @@ redistributed components are listed in
 
 ## Blanc identity artwork — all rights reserved
 
-The following files are the Blanc logo and its app-icon compositions. They are
-the visual identity of the software rather than part of it, and are reserved by
+The following files are the Blanc logo, app-icon compositions, and product
+marks. They are the visual identity of the software rather than part of it, and are reserved by
 Bananify Creative. They may be reproduced to refer to Blanc — press coverage,
 reviews, articles, store listings — but not as the identity of a modified or
 derivative build, and not modified into a new mark.
@@ -26,6 +26,11 @@ Source mark:
   `Assets/blanc-mark.svg`
 - `assets/sunrise-app-icon.png` — the static Sunrise platform source
 - `build/icon.png` — 1024×1024 raster template
+
+Product marks:
+
+- `assets/horizon-shield.png` — layered gold Horizon Shield source artwork
+- `src/renderer/shield-horizon.png` — transparent Island toolbar export
 
 App-icon colorways:
 
@@ -43,6 +48,13 @@ Platform-packaged forms of the same mark:
 - `site/public/logo.png`, `site/public/favicon.svg`,
   `site/public/favicon.ico`, `site/public/favicon-16x16.png`,
   `site/public/favicon-32x32.png`, and `site/public/apple-touch-icon.png`
+- `site/public/blanc-email-signature.png` and
+  `site/public/blanc-email-signature-48.png` — transparent monochrome Sunrise
+  signature marks, with light edging for dark backgrounds
+- `site/public/blanc-signature.png` — clean ink Sunrise signature mark at
+  its native 48×48 display size
+- `site/public/blanc-signature-hires.png` — transparent 1024×1024 ink Sunrise
+  signature mark for resizing in an email editor
 - `export/app-icons-1024-square/contact-sheet.png`
 
 A build that replaces these files with its own artwork is unencumbered by this

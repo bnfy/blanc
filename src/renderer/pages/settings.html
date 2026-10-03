@@ -57,6 +57,14 @@
               </select>
             </div>
 
+            <div class="setting" id="dynamicWallpaperSetting">
+              <div class="label">
+                <span>Time-of-day wallpaper</span>
+                <span class="hint" id="dynamicWallpaperHint">Wallpaper follows this machine’s local time.</span>
+              </div>
+              <label class="toggle"><input id="newtabDynamicWallpaper" type="checkbox" aria-label="Time-of-day wallpaper" aria-describedby="dynamicWallpaperHint" /><span class="track"></span></label>
+            </div>
+
             <div class="setting" id="tabLayoutSetting">
               <div class="label">
                 <span>Tab layout</span>
@@ -151,7 +159,7 @@
             <div class="setting">
               <div class="label">
                 <span>Search suggestions</span>
-                <span class="hint">Send typed search prefixes to your selected engine; always off in private tabs</span>
+                <span class="hint">Send eligible typed prefixes to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking input are excluded. Submitting a search sends the completed query even when suggestions are off.</span>
               </div>
               <label class="toggle">
                 <input id="searchSuggestions" type="checkbox" />
@@ -429,7 +437,7 @@
             <div class="setting">
               <div class="label">
                 <span>Help improve Blanc</span>
-                <span class="hint">Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. The install id is stored on our side only as a one-way hash. Turn this off to stop sending it.</span>
+                <span class="hint">Counts active users and which start-page layouts and local features get used. Sends a random install and session id, app version, platform, architecture, coarse OS major, and fixed feature names; never URLs, searches, page content, or private-tab activity. This is pseudonymous measurement sent to a Blanc-owned Cloudflare collector. It stores a keyed hash of the install id; an optional Google Analytics mirror receives that hash and the same limited fields. Turn this off to stop future events.</span>
               </div>
               <label class="toggle">
                 <input id="usagePing" type="checkbox" />
@@ -493,6 +501,35 @@
 
         <section class="settings-group" id="group-help">
           <h2 class="group-title">Help</h2>
+          <div class="settings-card settings-card--content" id="appAboutCard" hidden>
+            <h3 class="card-title">About Blanc</h3>
+            <dl class="about-build-details">
+              <div><dt>Blanc</dt><dd id="aboutBlanc"></dd></div>
+              <div><dt>Electron</dt><dd id="aboutElectron"></dd></div>
+              <div><dt>Chromium</dt><dd id="aboutChromium"></dd></div>
+              <div><dt>Platform</dt><dd id="aboutPlatform"></dd></div>
+              <div><dt>Architecture</dt><dd id="aboutArchitecture"></dd></div>
+            </dl>
+            <p class="section-hint">Blanc uses Chromium through Electron to render websites. Updates to Electron and Chromium arrive with new Blanc releases and replace the whole app. Applying an update requires restarting Blanc.</p>
+            <div class="toolbar-row"><button id="checkForUpdates" hidden>Check for updates…</button><span id="updateCheckStatus" class="section-hint" role="status"></span></div>
+            <div class="about-links">
+              <a href="https://blancbrowser.com/how-it-works" rel="noreferrer">How Blanc works ↗</a>
+              <a href="https://github.com/bnfy/blanc" rel="noreferrer">Source code ↗</a>
+              <a href="https://blancbrowser.com/privacy" rel="noreferrer">Privacy policy ↗</a>
+              <a href="https://blancbrowser.com/changelog" rel="noreferrer">Release notes ↗</a>
+            </div>
+          </div>
+          <div class="settings-card settings-card--content" id="browserCompatibilityCard">
+            <h3 class="card-title">Extensions and password managers</h3>
+            <p class="section-hint">You can browse Chrome Web Store pages, but Blanc cannot install Chrome extensions.</p>
+            <p class="section-hint">On macOS, Blanc offers explicit login fill from the installed 1Password app. Windows and Linux do not offer 1Password login fill. This integration does not save passwords or fill automatically.</p>
+          </div>
+          <div class="settings-card settings-card--content">
+            <h3 class="card-title">Connections Blanc can make</h3>
+            <p class="section-hint">Blanc connects to websites you open and GitHub for app updates. Searches and enabled suggestions go to your selected search provider; DNS lookups use your system or selected DNS provider. Selecting Google sends searches and eligible suggestion prefixes to Google.</p>
+            <p class="section-hint">Enabled usage measurement goes to a Blanc-owned Cloudflare collector and, when configured, its Google Analytics mirror. Sync, Patron, macOS 1Password and tab handoff make separate connections when configured or requested. This describes behavior; it is not a live network monitor.</p>
+            <a class="link-button" href="https://blancbrowser.com/how-it-works#connections" rel="noreferrer">Data, recipients and controls ↗</a>
+          </div>
           <div class="settings-card settings-card--content">
             <p class="section-hint">
               Something broken, or working in a way it shouldn&rsquo;t? Reports go to Blanc&rsquo;s

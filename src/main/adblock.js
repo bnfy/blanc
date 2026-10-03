@@ -14,7 +14,7 @@ const {
 } = require('./adblock-exceptions');
 const { createAdblockEventBridge } = require('./adblock-events');
 const { loadAdblockEngine } = require('./adblock-engine-loader');
-const { createBeforeRequestPolicy } = require('./chrome-web-store-guard');
+const { createBeforeRequestPolicy } = require('./before-request-policy');
 
 const bundledSourcesPath = () => path.join(app.getAppPath(), 'adblock', 'sources');
 
@@ -83,12 +83,6 @@ function applyBlockingWithExceptions(session) {
     if (isExcepted(details)) return callback({});
     blocker.onHeadersReceived(details, callback);
   });
-}
-
-/** Install the crash guard before startup releases any browsing. */
-function installNavigationCrashGuard(session) {
-  if (!session) return;
-  installBeforeRequestPolicy(session);
 }
 
 /**
@@ -169,7 +163,7 @@ function setAdBlockEnabled(enabled) {
     if (!enabled && isEnabled) {
       blocker.disableBlockingInSession(session);
       // Ghostery clears the session's request listener when it disables
-      // blocking. Restore the independent browser-crash guard immediately.
+      // blocking. Restore the ordinary request policy immediately.
       installBeforeRequestPolicy(session);
     }
   }
@@ -181,7 +175,7 @@ function getBlocker() {
 
 module.exports = {
   setupAdBlocker,
-  installNavigationCrashGuard,
+  installBeforeRequestPolicy,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   getBlocker,

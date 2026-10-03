@@ -3,81 +3,119 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 const QUESTIONS = [
   {
-    id: 'start-page-data',
-    q: 'What stays local on the start page?',
-    a: [
-      'Blanc offers four start-page layouts: Ledger, Billboard, Shelf, and Tally. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.',
-      'Every start-page footer opens Mahjong in a standalone managed tab. Its eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. Your choice among the four start-page layouts can sync through Personal’s optional Sync.',
-      'If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move once per app session, without browsing data or game state. Private-tab feature activity is excluded.',
-    ],
+    "id": "architecture",
+    "q": "What is Blanc built on?",
+    "a": [
+      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
+      "This lets one small team maintain an app for macOS, Windows and Linux. The trade-off is a bundled runtime and a multi-process memory footprint; it is not a separate web engine or a native system-webview browser."
+    ]
   },
   {
-    id: 'bookmark-import',
-    q: 'Can I bring bookmarks from another browser?',
-    a: [
-      'Yes. First-run setup can look for installed browsers. You can also open Favorites, choose Look for other browsers, select a detected profile, and use Import from browser. Import HTML… accepts an exported bookmarks file.',
-      'Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Sync.',
-    ],
+    "id": "updates",
+    "q": "How do browser and engine updates work?",
+    "a": [
+      "Installed builds check the official GitHub release channel. A new Blanc release replaces the whole app and carries its selected Electron and Chromium builds. Applying an update requires restarting Blanc; Chromium does not update independently inside an older app.",
+      "Linux builds are AppImages. Make the file executable and keep it in a location you can write to for in-app replacement. AppImage requirements vary by distribution. If automatic updating is unavailable, download the current official AppImage and replace the old file."
+    ]
   },
   {
-    q: 'Is Blanc open source?',
-    a: [
-      'Yes. Blanc is released under the MIT License.',
-      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what usage measurement sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
-      'The MIT licence covers Blanc’s own code: you may modify it, redistribute it, and publish your own builds. Publishing a build carries two conditions MIT does not cover. The bundled EasyList and EasyPrivacy filter lists are redistributed under CC BY-SA 3.0 or later, which requires attribution to The EasyList authors and carries share-alike terms on the redistributed lists and Blanc’s derived filter data. And the Blanc name and logo are trademarks that a copyright licence does not convey — publish under your own name and mark, not as Blanc.',
-      'Published macOS releases are signed and notarized, and published Windows releases carry a timestamped Authenticode signature checked at release time. The checksum manifest is signed with Sigstore under a verified OIDC identity, while Windows and Linux CI artifacts carry GitHub provenance attestations. Those records authenticate published artifacts; they do not make a local build reproducible.',
-    ],
+    "id": "privacy",
+    "q": "What connections does Blanc make?",
+    "a": [
+      "Blanc connects to the websites you visit, GitHub for app updates, and your selected search and DNS providers. A search sends the completed query to your search provider. If Google is selected, Google receives it; enabled search suggestions can also send eligible typed prefixes. Private tabs exclude suggestion requests.",
+      "Help improve Blanc sends pseudonymous events to a Blanc-owned Cloudflare collector: a launch event plus bounded, once-per-app-session counts for the first real Mahjong move and each start-page layout that renders. Layout events add one fixed layout name. Events contain random install and session IDs, app version, platform, architecture, coarse OS major and fixed feature names; they contain no URLs, searches, history, page contents or game state. The collector replaces the install ID with a keyed hash. If its optional Google Analytics mirror is configured, Google receives that hash and the same limited event fields.",
+      "Both optional choices are presented on in fresh first-run setup. Sending starts only after you save the choices, and existing saved choices are retained. You can turn either off in Settings. Optional Sync, Patron, 1Password and tab handoff make their own connections when configured or requested.",
+      "This website has separate controls: optional Google analytics and ad attribution remain off until you allow them through footer Privacy choices, or an existing saved grant applies. Cloudflare’s cookieless page counts and aggregate download counts remain enabled."
+    ]
   },
   {
-    q: "It's Electron. Isn't that just Chrome with extra memory?",
-    a: [
-      'Blanc is Chromium-based, and yes, that means it uses Electron. The memory assumption is the part worth measuring rather than assuming.',
-      'Blanc includes a published benchmark harness and its raw runs. It sums phys_footprint across each browser’s whole process tree rather than summing RSS, which counts the engine framework once per renderer and systematically penalizes whichever engine isolates more per site.',
-      'Two qualifications travel with the figures: Brave is the fair peer because it also blocks by default, and the gap is not only blocking — with Blanc Blocker switched off, Blanc still came in under Chrome.',
-    ],
+    "id": "open-source",
+    "q": "Is Blanc open source?",
+    "a": [
+      "Yes. The MIT License covers Bananify Creative-owned software, documentation and media. You can inspect, modify, redistribute and build that material. Blanc and Bananify names, logos and reserved identity assets have separate terms; MIT does not grant trademark rights. Third-party material retains its own terms, including the bundled EasyList and EasyPrivacy lists.",
+      "Published macOS releases are signed and notarized; Windows releases carry a timestamped Authenticode signature. A Sigstore-authenticated checksum manifest helps authenticate release artifacts. Windows and Linux CI artifacts carry GitHub provenance attestations. A local build does not prove that a published binary matches its source byte for byte; those records do not make local builds reproducible."
+    ]
   },
   {
-    q: 'Does Blanc phone home?',
-    a: [
-      'Packaged builds can send a launch event plus bounded, once-per-app-session counts for the first real Mahjong move and each start-page layout that actually renders. Every event carries a random install ID, session ID, app version, platform, architecture, and coarse OS major; layout events add only one fixed layout name. It contains no page, URL, search, history, game-state, or custom-text data, and feature-use events are excluded from private tabs.',
-      'On a fresh profile, the choice is presented during first-run setup and must be saved before an event can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
-      'The install ID lives in a device-local file and is never synced. Sync never carries it.',
-    ],
+    "id": "electron",
+    "q": "How much memory does Electron use?",
+    "a": [
+      "Memory use depends on the pages, number of tabs, background activity and operating system. Electron uses multiple processes, so a single process’s memory figure does not describe the whole browser. Quiet Tabs can reclaim inactive-tab renderers and rebuild them when needed.",
+      "Blanc’s published benchmark is dated measurements from August 9, 2026 on macOS 27, arm64 and 8 GiB RAM, using its published harness and raw runs. It measures phys_footprint across each browser’s process tree, rather than summing RSS, which can count shared engine memory repeatedly.",
+      "Brave is a useful comparison because it also blocks by default. That run also included Blanc with blocking disabled. These results describe those browser versions and workloads on that machine; they are not Windows or Linux results, a current-release benchmark, or a promise that Blanc will always use less memory."
+    ]
   },
   {
-    q: 'Why does a free browser have a subscription?',
-    a: [
-      'Blanc Patron is $30 a year or $4 a month, and it is optional. Everything that makes Blanc a browser is free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys.',
-      'On every platform, Patron adds the ability to save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses, so your own data is never held hostage.',
-      'Patron exists because Blanc has no ad business and no investors, and an independent browser needs a way to pay for itself that is not selling the people using it. Nothing that was free has moved behind payment.',
-    ],
+    "id": "patron",
+    "q": "What does optional Patron add?",
+    "a": [
+      "Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "Blocking, private tabs, favorites, ordinary tab groups, Quiet Tabs and optional encrypted Sync remain free. Patron does not restrict access to the open-source code."
+    ]
   },
   {
-    q: 'Why no extensions?',
-    a: [
-      'It is deliberate, not a roadmap gap. Blanc previously included an extension runtime, but it caused native crashes, required an unsandboxed chrome window, and imposed a licensing constraint on the project.',
-      'The feature most people want extensions for is blocking, and that is built into Blanc at the network layer instead — below the extension system and outside Manifest V3’s rule caps.',
-      'On macOS, Blanc can optionally fill matching Login items through the installed 1Password desktop app, but that is a narrow, user-invoked SDK integration—not an extension runtime or a Blanc password store.',
-    ],
+    "id": "1password",
+    "q": "Does Blanc work with 1Password?",
+    "a": [
+      "Yes, on macOS. Blanc includes an optional integration that fills matching Login items from your installed 1Password desktop app and account when you ask. It is off by default. Windows and Linux do not currently offer this integration.",
+      "In 1Password Settings → Developer, enable Integrate with other apps under Integrate with the 1Password SDKs. In Blanc, open Settings → Privacy & Security → 1Password, enable Fill logins from 1Password, enter your sign-in email or account ID, and choose Verify. On a login form, press ⌥⌘P (Option + Command + P), or choose View → Fill Login from 1Password. You can also run /1password from the Island."
+    ]
   },
   {
-    q: "Why is there no built-in VPN?",
-    a: [
-      "Running a VPN means becoming a service business with your traffic in the middle — done honestly it takes audits, infrastructure, and a support organization; done halfway it is a proxy wearing a trench coat. Blanc’s privacy work goes where the browser actually is: blocking at the network layer, sandboxing every page, and shipping no third-party extension runtime. It can also stop WebRTC from opening direct UDP paths around an application proxy, and its encrypted-DNS setting can defer DNS to your system or VPN resolver instead of choosing a browser-level provider. If you already use a VPN you trust, Blanc runs under it like any other app on your device.",
-    ],
+    "id": "extensions",
+    "q": "Can I install browser extensions?",
+    "a": [
+      "Blanc does not offer a general third-party extension runtime. Ad and tracker blocking is built into the network layer. On macOS, the optional 1Password integration is a narrow, user-invoked bridge to the installed 1Password app, not an extension runtime or a Blanc password store."
+    ]
   },
   {
-    q: "Does Blanc have AI features?",
-    a: [
-      "No. There is no assistant, no sidebar copilot, no summarizer reading the page over your shoulder — and none planned as an upsell. Blanc is a browser: it renders the web, blocks the noise, and stays out of the way. Any AI you want to use is a website away; it just won’t be bundled into the chrome.",
-    ],
+    "id": "vpn",
+    "q": "Does Blanc include a VPN?",
+    "a": [
+      "No. Blanc does not proxy or anonymize traffic. You can use it with a system VPN. Secure DNS controls how names are resolved; it does not hide website requests or replace a VPN. Private tabs keep certain browsing records out of the local profile, but websites and your network can still observe connections."
+    ]
   },
   {
-    q: 'Who makes Blanc?',
-    a: [
-      'Bananify, an independent software studio. Blanc is built without venture funding or investors setting the product agenda.',
-    ],
+    "id": "development",
+    "q": "Is AI used to build or review Blanc?",
+    "a": ["AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit."]
   },
+  {
+    "id": "independent-audit",
+    "q": "Has Blanc had an independent security audit?",
+    "a": ["No independent external security audit has been completed. Public source, maintainer reviews, automated tests and authenticated release artifacts provide specific evidence; they do not substitute for an independent audit. The next step is preparing a scope and funding proposal, without promising a date."]
+  },
+  {
+    "id": "ai",
+    "q": "Does Blanc include AI?",
+    "a": [
+      "Blanc has no built-in AI assistant or page summarizer. Named Groups and Named Workspaces are user-directed; Blanc does not infer tasks or organize tabs by meaning. You can visit AI websites as you can other websites."
+    ]
+  },
+  {
+    "id": "start-page-data",
+    "q": "What stays local on the start page?",
+    "a": [
+      "Blanc offers four start-page layouts: Ledger, Billboard, Shelf, and Tally. Billboard derives frequent sites from ordinary local history. Ranking, cached site artwork, and hidden-tile choices stay on the device; private tabs neither contribute to nor receive this row.",
+      "Every start-page footer opens Mahjong in a standalone managed tab. Its eight boards include rotating Daily deals, records, streaks, and unfinished-game continuation across tabs. Game state and records stay on this device and are not cloud-synced. Your choice among the four start-page layouts can sync through Personal’s optional Sync.",
+      "If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move once per app session, without browsing data or game state. Private-tab feature activity is excluded."
+    ]
+  },
+  {
+    "id": "bookmark-import",
+    "q": "Can I bring bookmarks from another browser?",
+    "a": [
+      "Yes. First-run setup can look for installed browsers. You can also open Favorites, choose Look for other browsers, select a detected profile, and use Import from browser. Import HTML… accepts an exported bookmarks file.",
+      "Imports happen on this device. This imports bookmarks into Favorites; it does not import passwords, cookies, or every part of another browser’s session. Favorites may later sync if you separately enable Personal’s Sync."
+    ]
+  },
+  {
+    "id": "maker",
+    "q": "Who makes Blanc?",
+    "a": [
+      "Bananify, an independent software studio. Source code, official releases and security reporting are linked from How Blanc works."
+    ]
+  }
 ];
 ---
 <BaseLayout
@@ -87,20 +125,24 @@ const QUESTIONS = [
   page="faq"
   header="solid"
   ogTitle="Straight answers about Blanc Browser"
-  ogDescription="Source availability, Electron memory, telemetry, Patron pricing, and extension support — answered plainly."
+  ogDescription="Chromium and Electron, whole-app updates, privacy choices, licensing, and optional Patron — explained plainly."
 >
   <main class="faq-page">
     <header class="faq-page-head">
-      <p class="section-kicker">the hard questions</p>
-      <h1>Straight answers.</h1>
-      <p>The questions worth asking about Blanc, answered plainly — including the ones where the honest answer is a trade-off rather than a win.</p>
+      <p class="section-kicker">How Blanc works, in plain language</p>
+      <h1>Questions about Blanc.</h1>
+      <p>The engine, updates, privacy choices and licensing, followed by everyday features. For the full explanation, read <a href="/how-it-works">How Blanc works</a>.</p>
     </header>
 
     <div class="faq-page-list">
       {QUESTIONS.map(({ q, a, id }) => (
         <section class="faq-page-item" id={id}>
           <h2>{q}</h2>
-          <div>{a.map((paragraph) => <p>{paragraph}</p>)}</div>
+          <div>{a.map((paragraph) => <p>{paragraph}</p>)}
+            {id === 'independent-audit' && <p><a href="/features/security#security-audit-title">Audit status and platform verification</a></p>}
+            {id === 'electron' && <p><a href="https://github.com/bnfy/blanc/tree/v1.25.0/bench/memory" target="_blank" rel="noopener">Benchmark harness and raw runs</a></p>}
+            {id === 'open-source' && <p><a href="https://github.com/bnfy/blanc/tree/v1.25.0" target="_blank" rel="noopener">Source, license and third-party notices</a></p>}
+          </div>
         </section>
       ))}
     </div>

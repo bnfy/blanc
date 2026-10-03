@@ -109,9 +109,10 @@ announcement quote takes its italic. The generated share cards and press card
 set their titles in it. Body copy, labels, controls, the legal pages, the
 consent card, and every product replica stay in Inter. The desktop app uses
 Newsreader for its invitation voice and utility-sheet headings, documented
-below; its operating text stays in Inter. The homepage demo carries one short sentence per
-scene as an Inter figure title, never a second headline-and-subline pair under
-the hero. Use the
+below; its operating text stays in Inter. The homepage demo carries one short, centered sentence per scene, never a
+second headline-and-subline pair under the hero. The current trust homepage
+uses its Newsreader heading treatment for these captions, sized down on narrow
+screens; the enlarged viewer uses a compact centered figure title. Use the
 `--site-font-patron` token, regular weight, restrained negative tracking, and
 generous space around the name. Do not use the display serif for small text or
 replace the canonical Sunrise symbol with a letterform.
@@ -182,6 +183,15 @@ Tabs, tab handoff), the error and certificate pages, the site permission
 prompt, the 1Password capsule and the screen-share picker. Neutral: the
 Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
+
+**Horizon Shield, owner-approved October 3, 2026:** the Island's blocker button
+uses the layered gold Horizon Shield as a scoped exception to the neutral icon
+palette. Use `src/renderer/shield-horizon.png` at 16×16 CSS pixels within the
+existing 24px button; the Island's shared zoom still applies. Keep the count as
+a separate badge and desaturate the artwork when blocking is off. The source is
+`assets/horizon-shield.png`. This product mark does not replace Sunrise or warm
+the surrounding Island. It is approved for the next desktop release; public
+screenshots and marketing must continue to follow the release boundary.
 
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding

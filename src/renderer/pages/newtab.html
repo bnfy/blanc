@@ -147,12 +147,18 @@
       <span id="footerLeft"></span>
       <span id="version" class="ledger-version"></span>
     </span>
-    <span id="layoutSwitcher" class="layout-switcher" role="group" aria-label="Start page layout">
-      <span class="layout-switcher-label">layout</span>
-      <button type="button" data-layout-pick="ledger">ledger</button>
-      <button type="button" data-layout-pick="billboard">billboard</button>
-      <button type="button" data-layout-pick="shelf">shelf</button>
-      <button type="button" data-layout-pick="tally">tally</button>
+    <span class="footer-appearance">
+      <span id="layoutSwitcher" class="layout-switcher" role="group" aria-label="Start page layout">
+        <span class="layout-switcher-label">layout</span>
+        <button type="button" data-layout-pick="ledger">ledger</button>
+        <button type="button" data-layout-pick="billboard">billboard</button>
+        <button type="button" data-layout-pick="shelf">shelf</button>
+        <button type="button" data-layout-pick="tally">tally</button>
+      </span>
+      <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled>
+        <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+        <span>dynamic wallpaper</span>
+      </button>
     </span>
     <span class="footer-right">
       <a id="mahjongLink" href="blanc://mahjong/" target="_blank">mahjong</a>
@@ -204,25 +210,15 @@
       </section>
       <section data-step="2" hidden>
         <h1>Meet the island</h1>
-        <p>Everything lives in one floating pill — address, tabs, commands. Press <span class="ob-kbd">⌘L</span> to summon it anywhere, type / for commands.</p>
-        <div class="ob-minipill-row">
-          <span class="ob-minipill" aria-hidden="true">
-            <span class="ob-minipill-nav">
-              <span class="ob-minipill-icon"><svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg></span>
-              <span class="ob-minipill-icon"><svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg></span>
-            </span>
-            <span class="ob-minipill-dots"><span></span><span class="on"></span></span>
-            <span class="ob-minipill-domain">Search or type a URL</span>
-            <span class="ob-minipill-shortcuts"><span>/</span><span>+</span></span>
-            <span class="ob-minipill-sep"></span>
-            <span class="ob-minipill-actions">
-              <span class="ob-minipill-icon"><svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg></span>
-              <span class="ob-minipill-icon"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg></span>
-              <span class="ob-minipill-icon"><svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></span>
-            </span>
-          </span>
-        </div>
-        <div class="ob-commands">/history · /clear · /group · /theme</div>
+        <p>Tabs, search and navigation, all in one place.</p>
+        <figure class="ob-tab-discovery" aria-labelledby="obTabDiscoveryCaption">
+          <picture class="ob-island-example" aria-hidden="true">
+            <source media="(prefers-color-scheme: dark)" srcset="onboarding-island-dark.png" />
+            <img class="ob-quiet-island" src="onboarding-island-light.png" width="984" height="136" alt="" />
+          </picture>
+          <figcaption id="obTabDiscoveryCaption" class="page-sr-only">Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</figcaption>
+        </figure>
+        <p class="ob-island-hint"><span class="ob-kbd" id="obIslandShortcut">Ctrl+L</span> to open it.</p>
       </section>
       <section data-step="3" hidden>
         <div class="ob-vignette ob-vignette-shield">
@@ -231,7 +227,7 @@
           <span class="ob-dots-out"><span></span><span></span><span></span></span>
         </div>
         <h1>Block ads &amp; trackers</h1>
-        <p>Pages load faster and nothing follows you around. Turn it off per-site with /off-leash.</p>
+        <p>Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</p>
         <div class="ob-control-row">
           <span>Block ads &amp; trackers</span>
           <button id="obAdblock" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Block ads and trackers"><span class="ob-knob"></span></button>
@@ -239,15 +235,16 @@
       </section>
       <section data-step="4" hidden>
         <h1>Choose what Blanc may send</h1>
-        <p>Blanc ships signed blocking lists with each app release and checks for app updates. These two optional features are yours to choose:</p>
+        <p>Blanc checks for app updates and ships its blocking lists with each release. These optional choices start sending only after you save them by continuing. You can turn either off now or later in Settings:</p>
         <div class="ob-control-row ob-control-row-tall">
-          <span>Search suggestions<small>Eligible address-bar prefixes go to your search provider. Never in private tabs or for sensitive-looking text.</small></span>
+          <span>Search suggestions<small>Eligible typed prefixes go to your selected search provider, including Google if selected. Private tabs and recognized sensitive-looking text are excluded.</small></span>
           <button id="obSuggestions" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Search suggestions"><span class="ob-knob"></span></button>
         </div>
         <div class="ob-control-row ob-control-row-tall">
-          <span>Help improve Blanc<small>Anonymous launch and feature-use counts: random install ID, app version, fixed feature names. No browsing data or private-tab activity.</small></span>
+          <span>Help improve Blanc<small>Pseudonymous launch and feature counts go to Blanc’s Cloudflare collector and its optional Google Analytics mirror: random install/session IDs (install ID hashed by the collector), version, platform, architecture, coarse OS and fixed feature names. No browsing data; private-tab feature activity is excluded.</small></span>
           <button id="obPing" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Help improve Blanc"><span class="ob-knob"></span></button>
         </div>
+        <p class="ob-privacy-details"><a href="https://blancbrowser.com/how-it-works#connections" target="_blank" rel="noopener noreferrer">Connections and privacy controls ↗</a></p>
         <span id="obPrivacyError" class="ob-error" role="status"></span>
       </section>
       <section data-step="5" hidden>
@@ -274,6 +271,7 @@
 
   <script src="type-to-open.js"></script>
   <script src="onboarding.js"></script>
+  <script src="newtab-wallpaper.js"></script>
   <script src="newtab.js"></script>
 </body>
 </html>

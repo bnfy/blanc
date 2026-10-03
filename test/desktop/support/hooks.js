@@ -56,7 +56,7 @@ async function launchApp() {
   const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
   void _ignored;
 
-  const electronApp = await _electron.launch({
+  const electronApp = await _electron.launch({ chromiumSandbox: true,
     // insecure.test maps to loopback at the resolver so the F12-7 scenario can
     // load a genuinely non-loopback-HOSTNAMED page offline: the connection
     // model classifies by hostname, and every fixtures-server URL is

@@ -17,6 +17,7 @@ export const menus = [
         { href: '/features/quiet-tabs', label: 'Quiet tabs', description: 'Tabs you are not using give their memory back.' },
       ] },
       { title: 'Privacy and security', links: [
+        { href: '/features/1password', label: '1Password (macOS)', description: 'Keep your 1Password logins close.' },
         { href: '/features/ad-blocking', label: 'Ad blocking', description: 'A clearer control for a quieter site.' },
         { href: '/features/private-tabs', label: 'Private tabs', description: 'Private tabs that stay out of the record.' },
         { href: '/features/security', label: 'Security', description: 'Private by architecture.' },
@@ -53,11 +54,13 @@ export const menus = [
   },
 ];
 
-// Direct links sit in the bar between the menus and the download pill, and
-// as plain rows in the mobile sheet. Security is the trust page, so it stays
-// one click from everywhere even though it also lives inside features.
+// The masthead uses direct links; the feature catalogue above remains available
+// to tools that verify feature-page coverage and released copy.
 export const directLinks = [
-  { href: '/mail', key: 'mail', label: 'mail', mobileLabel: 'Blanc Mail' },
-  { href: '/features/security', key: 'security', label: 'security', mobileLabel: 'Security' },
-  { href: '/changelog', key: 'changelog', label: "what's new", mobileLabel: "What's new" },
+  { href: '/mail', key: 'mail', label: 'Mail' },
+  { href: '/features', key: 'features', label: 'Features' },
+  { href: '/how-it-works', key: 'how-it-works', label: 'How it works' },
+  { href: '/features/security', key: 'security', label: 'Security' },
+  { href: '/faq', key: 'faq', label: 'FAQ' },
+  { href: '/changelog', key: 'changelog', label: "What's new" },
 ];

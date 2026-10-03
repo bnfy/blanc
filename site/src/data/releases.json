@@ -1,5 +1,457 @@
 [
   {
+    "tag": "v1.26.0",
+    "version": "1.26.0",
+    "name": "1.26.0",
+    "publishedAt": "2026-10-02T21:01:24.000Z",
+    "humanDate": "October 2, 2026",
+    "machineDate": "2026-10-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.26.0",
+    "anchor": "v1-26-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Settings → Help now shows the running Blanc, Electron and Chromium versions, platform and architecture. Links explain how Blanc works, privacy choices, source code and release notes. Check for updates uses the existing update flow; applying an update still requires restarting."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Refined",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The background behind the Island follows wallpaper fades and page color changes after loading. Sampling stays on the device; private tabs retain their theme background."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Setup and privacy settings explain search suggestions and pseudonymous usage measurement, their recipients, and when sending starts. Fresh defaults and saved choices are retained. Opening the privacy explanation preserves unsaved setup choices."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Ctrl/Cmd-click and middle-click open eligible website links in new tabs while preserving their navigation and sandbox restrictions."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A rejected Windows update can be retried through Check for Updates without leaving the restart action stuck."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Security",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows requires a completed publisher check and matching verified installer bytes before installation. If verification cannot complete, installation is deferred for a later retry."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Linux refuses launches that disable Chromium's sandbox, including an AppImage launcher's automatic fallback. On systems that cannot provide the required sandbox, Blanc shows guidance instead of opening browsing windows. This does not change the system's user-namespace or AppArmor configuration."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Verify the download",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Authenticate "
+                  },
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " with its Sigstore bundle using the certificate identity "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and OIDC issuer "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The same values are published on "
+                  },
+                  {
+                    "type": "link",
+                    "value": "Blanc's security page",
+                    "url": "https://blancbrowser.com/features/security"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.25.0",
+    "version": "1.25.0",
+    "name": "1.25.0",
+    "publishedAt": "2026-10-01T23:01:32.000Z",
+    "humanDate": "October 1, 2026",
+    "machineDate": "2026-10-01",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.25.0",
+    "anchor": "v1-25-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The folder picker opened by "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "move ▸"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Favorites now stays above neighboring rows, opens upward when needed, and stays inside the window. With many folders, its options scroll inside the menu while the "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "new folder…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " field remains visible. Opening the picker no longer scrolls the selected favorite out of view."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Escape closes the folder picker and returns focus to its move button; a second Escape closes Favorites."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Refined",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Favorites group headings now use plain labels and count badges, without the curved bottom divider."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Verify the download",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Authenticate "
+                  },
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " with its Sigstore bundle using the certificate identity "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and OIDC issuer "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The same values are published on "
+                  },
+                  {
+                    "type": "link",
+                    "value": "Blanc's security page",
+                    "url": "https://blancbrowser.com/features/security"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.24.0",
+    "version": "1.24.0",
+    "name": "1.24.0",
+    "publishedAt": "2026-10-01T21:48:51.000Z",
+    "humanDate": "October 1, 2026",
+    "machineDate": "2026-10-01",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.24.0",
+    "anchor": "v1-24-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A free, optional time-of-day wallpaper for the start page. Sunrise now follows your local clock through dawn, day, dusk, and night, with no location permission or network requests. Enable "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "dynamic wallpaper"
+                  },
+                  {
+                    "type": "text",
+                    "value": " beside the layout picker or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Time-of-day wallpaper"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The wallpaper works in every start-page layout and private tabs. Turning it on or off fades over two seconds; reduced-motion settings switch immediately. If you use Sync, your wallpaper preference follows your devices."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Linux AppImages no longer require FUSE 2. The packaged desktop shortcut also passes URLs correctly and no longer adds unintended command-line arguments. Existing shortcuts may need to be integrated again to receive that correction."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Security",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated the official Electron runtime to 44.5.1, including upstream security fixes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Updated dependency inputs to address brace-expansion advisories and the website's devalue advisories."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Verify the download",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Authenticate "
+                  },
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " with its Sigstore bundle using the certificate identity "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and OIDC issuer "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". The same values are published on "
+                  },
+                  {
+                    "type": "link",
+                    "value": "Blanc's security page",
+                    "url": "https://blancbrowser.com/features/security"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.23.0",
     "version": "1.23.0",
     "name": "1.23.0",

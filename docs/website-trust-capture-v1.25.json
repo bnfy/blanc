@@ -1,0 +1,28 @@
+{
+  "release": "v1.25.0",
+  "sourceSha": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
+  "captureDate": "2026-10-02",
+  "file": "site/public/feature-captures/home-v1.25.0.png",
+  "width": 2560,
+  "height": 1600,
+  "sha256": "3b3e70c5a92fb6d174568c823da5a02611977e45486d7f2fe48e5b260e49714d",
+  "method": "Unretouched native macOS window capture of the unchanged installed public Blanc.app. Strict deep codesign and Gatekeeper assessment passed. The capture selected only the disposable process’s own window by its debugging listener PID.",
+  "settings": {
+    "theme": "light",
+    "layout": "ledger",
+    "usagePing": false,
+    "searchSuggestions": false,
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "fixtures": "Four sample Favorites (MDN, GitHub, Wikipedia, Hacker News). No personal browsing, account or permission records. Blocking totals were not seeded; visible zero is not a performance measurement.",
+  "qualification": "This image shows the released app. Settings Help and onboarding previews are separate development artifacts and are not presented as shipped v1.25.0 behavior.",
+  "displayAsset": {
+    "file": "site/public/feature-captures/home-v1.25.0.webp",
+    "width": 1440,
+    "height": 900,
+    "sha256": "d361709b97f55daa14c1458e7dccd0f79de2fc599615739aa2a8b09781f92002",
+    "method": "Proportional 1440px WebP export at quality 90; no cropping, fabricated controls or retouching. The native PNG is retained as source evidence.",
+    "presentation": "The homepage clips only the upper-left native macOS traffic-light corner in CSS (6.25% of image width by 4% of height). The released Island and page remain visible; both source image files are unchanged."
+  }
+}

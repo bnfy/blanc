@@ -68,25 +68,27 @@ test('resting website figures show the quiet Plus shortcut in horizontal layouts
 
 test('the masthead is a sticky top bar and the tuck-on-scroll island is gone', () => {
   assert.match(styles, /\.site-header \{ position: sticky; top: 0; z-index: 30;/);
-  assert.doesNotMatch(styles, /is-tucked|inset: auto 0 0/);
+  assert.doesNotMatch(styles, /is-tucked/);
+  assert.doesNotMatch(styles, /\.site-header[^{}]*\{[^}]*inset: auto 0 0/s);
   assert.doesNotMatch(styles, /body\.has-consent \.site-header|--consent-h/);
   assert.match(styles, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(styles, /\.site-mega::before \{[^}]*var\(--site-gold-on-dark\)/);
   assert.doesNotMatch(header, /tuckDistance|is-tucked/);
-  assert.match(header, /import \{ menus, directLinks \} from '\.\.\/data\/navigation\.mjs'/);
-  assert.match(header, /aria-controls=\{`site-menu-\$\{menu\.key\}`\}/);
+  assert.match(header, /import \{ directLinks \} from '\.\.\/data\/navigation\.mjs'/);
+  assert.match(header, /aria-controls="siteMobileMenu"/);
+  assert.doesNotMatch(header, /pointerenter|mouseenter|site-mega/);
 });
 
 test('homepage keeps the Sunrise mark above the hero eyebrow', () => {
   const homepage = source('site/src/pages/index.astro');
   assert.match(homepage, /import BrandMark from '\.\.\/components\/BrandMark\.astro'/);
-  assert.match(homepage, /<BrandMark class="hero-sunrise-mark" \/>\s*<p class="hero-eyebrow">/);
+  assert.match(homepage, /class="trust-hero-mark" src="\/sunrise-hero-mark\.png"[^>]*\/>\s*<p class="section-kicker">/);
   assert.match(styles, /\.hero-sunrise-mark \{ width: 32px; height: 32px; margin: 0 auto 14px; color: var\(--site-text\); \}/);
 });
 
 test('optional measurement uses the selected upper-right toast and stays reopenable', () => {
-  assert.match(consent, /Help improve Blanc/);
-  assert.match(consent, /Allow analytics and limited ad measurement to see what visitors explore/);
+  assert.match(consent, /Privacy choices/);
+  assert.match(consent, /stay off until you allow them/);
   assert.match(consent, />Allow<\/button>/);
   assert.match(consent, />No thanks<\/button>/);
   assert.match(consent, /role="dialog"/);
@@ -100,6 +102,6 @@ test('optional measurement uses the selected upper-right toast and stays reopena
   assert.match(layout, /\{analytics && <Consent \/>\}/);
   assert.match(layout, /\{analytics && <script src="\.\.\/scripts\/site\.js"><\/script>\}/);
   assert.match(siteScript, /querySelectorAll\('\[data-consent-open\]'\)/);
-  assert.match(siteScript, /showConsent\(\{ focus: true \}\)/);
-  assert.match(siteScript, /analytics_storage: 'denied'/);
+  assert.match(siteScript, /showChoice\(button\)/);
+  assert.match(siteScript, /analytics_storage: 'granted'/);
 });

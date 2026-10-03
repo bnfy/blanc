@@ -24,9 +24,9 @@ const {
   updateFaviconFromPage,
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
+const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navigation');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -77,8 +77,8 @@ const liveContents = (tab) => liveViewContents(tab?.view);
 /**
  * The ONLY place a tab's WebContentsView is constructed. Never returns null,
  * never navigates, never registers a listener.
- * @param {{private?: boolean}} tab a tab record, or any object with a boolean
- *   `private`. Safe to call before the record exists (createTab does).
+ * @param {{private?: boolean, profileId?: string, openerSandboxFlags?: number}} tab
+ *   a main-process tab record. Safe to call before the record exists (createTab does).
  * @returns {import('electron').WebContentsView}
  */
 function createTabView(tab) {
@@ -87,7 +87,12 @@ function createTabView(tab) {
     ? getPrivateBrowsingSession(profileId)
     : getNormalBrowsingSession(profileId);
   return new WebContentsView({
-    webPreferences: { ...TAB_WEB_PREFERENCES, session: browsingSession },
+    webPreferences: {
+      ...TAB_WEB_PREFERENCES, session: browsingSession,
+      // Electron's Chromium document sandbox inheritance, separate from the
+      // process sandbox above. Retain it when a quiet tab's view is rebuilt.
+      openerSandboxFlags: tab?.openerSandboxFlags ?? 0,
+    },
   });
 }
 
@@ -324,6 +329,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-change-theme-color', boundToTab((_e, color) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
+    scheduleSampleTint(tab);
     scheduleBroadcastTabs();
   }));
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
@@ -417,12 +423,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
-    const guardedErrorUrl = chromeWebStoreErrorPageUrl(validatedURL, errorCode);
-    if (guardedErrorUrl) {
-      wc.loadURL(guardedErrorUrl).catch(() => {});
-      return;
-    }
-    if (errorCode === -3) return;
+    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) return;
     if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {
@@ -431,7 +432,10 @@ function wireTabView(tab, view, { owner, adopted }) {
           desc: errorDescription,
         })
       : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    queueTabNavigation(wc, {
+      isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+      run: contents => contents.loadURL(`blanc://error/?${q}`),
+    });
   }));
   // Chromium remains authoritative. Capture only bounded presentation data
   // for top-level failures and always reject; subframe failures stay denied
@@ -461,7 +465,10 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (details.reason === 'clean-exit') return;
     recordRendererCrash('tab', details);
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    queueTabNavigation(wc, {
+      isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+      run: contents => contents.loadURL(`blanc://error/?${q}`),
+    });
   }));
   // Electron's polarity is deliberately inverted: preventing this event lets
   // the underlying unload proceed.
@@ -492,7 +499,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
     installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs));
-    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
+    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition, referrer }) => {
       if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
       if (isUtilityUrl(targetUrl)) {
@@ -517,13 +524,25 @@ function wireTabView(tab, view, { owner, adopted }) {
         outlivesOpener: true,
         overrideBrowserWindowOptions: { webPreferences: { plugins: true } },
         createWindow: boundToTab((options) => {
-          const childView = new WebContentsView({ webContents: options.webContents });
+          // Ctrl/Cmd-click and middle-click can defer WebContents creation.
+          // Let createTab construct and load those tabs in the source profile's
+          // normal/private session. Existing window.open children must instead
+          // be adopted without a competing loadURL, preserving their opener.
+          const childView = options.webContents
+            ? new WebContentsView({ webContents: options.webContents })
+            : null;
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
-            private: tab.private, groupId: tab.groupId, view: childView, openerTabId: tab.id,
+            private: tab.private, groupId: tab.groupId, view: childView,
+            openerTabId: childView ? tab.id : null,
+            // Custom creation bypasses Electron's normal construction and
+            // navigation. Keep the inherited HTML/CSP sandbox and referrer
+            // policy; never accept arbitrary replacement web preferences.
+            openerSandboxFlags: options.webPreferences?.openerSandboxFlags ?? 0,
+            httpReferrer: childView ? null : referrer,
           });
           if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
-          return childView.webContents;
+          return liveContents(tabs.get(newId));
         }),
       };
     }));

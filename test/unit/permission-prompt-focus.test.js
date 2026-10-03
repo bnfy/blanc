@@ -167,7 +167,9 @@ test('attaching the prompt view shows it without focusing it', () => {
     webContents: { focus() { view.focusCalls += 1; } },
   };
   const runtime = { window: { contentView: { addChildView: (child) => added.push(child) } }, permissionViewAttached: false };
+  let cancelledReclaim = false;
   const sandbox = {
+    cancelAddressBarFocusReclaim: () => { cancelledReclaim = true; },
     hasLiveWindow: () => true,
     ensurePermissionView: () => view,
     permissionViewBounds: () => ({ x: 0, y: 736, width: 560, height: 84 }),
@@ -177,5 +179,6 @@ test('attaching the prompt view shows it without focusing it', () => {
   vm.runInContext(`${attachSource}; attachPermissionView();`, sandbox);
   assert.deepEqual(added, [view], 'the prompt view must be attached');
   assert.equal(runtime.permissionViewAttached, true);
+  assert.equal(cancelledReclaim, true);
   assert.equal(view.focusCalls, 0);
 });

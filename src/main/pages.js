@@ -304,12 +304,22 @@ function setupPages(hooks = {}) {
 
   handle('pages:settings:get', 'settings', () => ({
     settings: clientSettings(),
+    // Only non-secret metadata from this running process, never paths,
+    // environment variables, account details or persisted settings.
+    appInfo: {
+      blancVersion: app.getVersion(),
+      electronVersion: process.versions.electron,
+      chromiumVersion: process.versions.chrome,
+      platform: process.platform,
+      architecture: process.arch,
+    },
     onePasswordAvailable: onePasswordAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
   }));
+  handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
   handle('pages:settings:set', 'settings', (partial) => {
     const next = partial && typeof partial === 'object' ? { ...partial } : {};
     if (!onePasswordAvailable()) {
@@ -401,6 +411,7 @@ function setupPages(hooks = {}) {
     // below: startPageStatus() supplies it, and the same function feeds the
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
+    wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
     // Per-tab guard: the shared status never carries profile or privacy.
     migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
     // A utility sheet is a separate WebContentsView layered over this tab;
@@ -422,6 +433,12 @@ function setupPages(hooks = {}) {
     'newtab',
     (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
   );
+  // A narrow footer capability: persist only this boolean and return only
+  // its effective state. Never expose the settings or entitlement records.
+  handle('pages:start:set-dynamic-wallpaper', 'newtab', (enabled) => {
+    if (typeof enabled === 'boolean') settings.setSettings({ newtabDynamicWallpaper: enabled });
+    return settings.isDynamicWallpaperEnabled();
+  });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
   handleEvent('pages:start:layout-used', 'newtab', (event, name) => {

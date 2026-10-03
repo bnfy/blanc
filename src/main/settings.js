@@ -49,7 +49,7 @@ const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
 // device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
-const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
+const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -92,6 +92,7 @@ const DEFAULTS = {
   // How blanc://newtab arranges itself — the shipped ledger plus three
   // alternatives from the design system's "New tab v2" handoff.
   newtabLayout: 'billboard',
+  newtabDynamicWallpaper: false,
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Preferred rail width. The live layout may temporarily cap it to preserve
@@ -209,6 +210,11 @@ function ensureStore() {
       storedSettings?.presentationDefaultsResetVersion,
     ) ? storedSettings.presentationDefaultsResetVersion : 0;
     store = new JsonStore('settings', DEFAULTS);
+    // Remove the unreleased city preference from development profiles. The
+    // wallpaper follows this machine's clock and retains no location choice.
+    if (Object.prototype.hasOwnProperty.call(store.data, 'newtabWallpaperCity')) {
+      store.updateAndFlush((data) => { delete data.newtabWallpaperCity; });
+    }
     // Profiles created before the first-run card already made their privacy
     // choices through Settings (or accepted the then-current defaults).
     // An explicit marker — including version 0 — belongs to the new flow and
@@ -284,6 +290,7 @@ function getSettings() {
     if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
+  if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
@@ -334,6 +341,7 @@ function sanitize(partial) {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
+  if (typeof partial.newtabDynamicWallpaper === 'boolean') clean.newtabDynamicWallpaper = partial.newtabDynamicWallpaper;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
@@ -462,6 +470,10 @@ function setSupporter(record) {
   for (const fn of listeners) fn(getSettings());
 }
 
+function isDynamicWallpaperEnabled() {
+  return getSettings().newtabDynamicWallpaper === true;
+}
+
 function isPatronActive() {
   return isRecordActive(ensureStore().data.patron, Date.now());
 }
@@ -574,6 +586,7 @@ module.exports = {
   isAppIconAllowed,
   setSupporter,
   isPatronActive,
+  isDynamicWallpaperEnabled,
   setPatron,
   getPatronRecord,
   exportForSync,

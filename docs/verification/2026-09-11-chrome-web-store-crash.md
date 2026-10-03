@@ -53,3 +53,12 @@ Chrome Web Store page no longer exposes the unsupported API.
 
 This guard is not present in public v1.16.1. Shipping it requires a new version
 and the normal immutable release and updater evidence.
+
+## Workaround retirement candidate — October 3, 2026
+
+Electron 44.4.0 shipped #53776. The 44.5.1 candidate's exact installed package
+and actual executable were verified, and a sandboxed real Store listing/detail
+probe confirmed the unsupported API absent and 30-second survival before guard
+removal. Candidate evidence and remaining platform gates are recorded in
+`2026-10-03-windows-feedback.md`. This does not change historical release evidence
+or claim that public v1.26.0 has already removed the guard.

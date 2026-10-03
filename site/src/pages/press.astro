@@ -96,9 +96,49 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
   platforms: entry.platforms,
 }));
 ---
+<style>
+  .press-coverage {
+    display: grid;
+    grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.35fr);
+    gap: clamp(28px, 5vw, 72px);
+    padding: 48px 0;
+    border-bottom: 1px solid var(--site-border);
+    scroll-margin-top: 96px;
+  }
+  .press-coverage h2,
+  .press-coverage h3 {
+    margin: 0;
+    font-family: var(--site-font-display);
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .press-coverage h2 { font-size: clamp(34px, 4vw, 48px); }
+  .press-coverage h3 { font-size: clamp(28px, 3vw, 38px); }
+  .press-coverage h3 a { color: var(--site-text); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  .press-coverage h3 a:hover { color: var(--site-gold); }
+  .press-coverage a:focus-visible { outline: 2px solid var(--site-gold); outline-offset: 6px; }
+  .press-coverage-meta {
+    margin: 0 0 16px;
+    color: var(--site-text-dim);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .press-coverage-meta span { margin: 0 6px; }
+  .press-coverage-story > p:not(.press-coverage-meta) {
+    margin: 18px 0 12px;
+    color: var(--site-text-dim);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  @media (max-width: 700px) {
+    .press-coverage { grid-template-columns: 1fr; }
+  }
+</style>
 <BaseLayout
   title="Blanc Browser Press Kit — Screenshots, Facts, and Review Assets"
-  description="Download current Blanc Browser screenshots, product facts, release verification links, benchmark data, and press contact information."
+  description="Read Blanc Browser in the news and download current screenshots, product facts, release verification links, benchmark data, and press contact information."
   path="/press"
   page="press"
   header="legal"
@@ -121,9 +161,10 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
     <div class="press-hero-copy">
       <p class="section-kicker">Blanc press kit · independent browser</p>
       <h1 id="press-title">Blanc replaces browser clutter with one small island.</h1>
-      <p>No permanent tab row, no required account, and no AI assistant competing for attention. Open the island when you need it; give the rest of the window back to the web.</p>
+      <p>No permanent tab row, no required account, and no AI assistant competing for attention. Browser controls stay together in a slim band above the page, with a panel that opens when you need more.</p>
       <div class="press-actions" aria-label="Press actions">
         <a class="press-primary-action" href={DOWNLOAD_OPTIONS_URL}>download Blanc to review</a>
+        <a class="press-secondary-action" href="#in-the-news">in the news <span aria-hidden="true">↓</span></a>
         <a class="press-secondary-action" href="#announcement">read the launch story <span aria-hidden="true">→</span></a>
         <a class="press-secondary-action" href="#newsroom">download press assets <span aria-hidden="true">→</span></a>
       </div>
@@ -136,13 +177,26 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
     </dl>
   </section>
 
+  <section class="press-coverage" id="in-the-news" aria-labelledby="press-coverage-title">
+    <div>
+      <p class="section-kicker">independent coverage</p>
+      <h2 id="press-coverage-title">In the news</h2>
+    </div>
+    <article class="press-coverage-story" aria-labelledby="omg-ubuntu-title">
+      <p class="press-coverage-meta">OMG! Ubuntu <span aria-hidden="true">·</span> <time datetime="2026-09-30">September 30, 2026</time></p>
+      <h3 id="omg-ubuntu-title"><a href="https://www.omgubuntu.co.uk/2026/09/blanc-web-browser-new">New FOSS web browser Blanc opts for a different kind of UI</a></h3>
+      <p>A look at Blanc’s floating Island interface and how it approaches everyday browsing.</p>
+      <a class="press-secondary-action" href="https://www.omgubuntu.co.uk/2026/09/blanc-web-browser-new">read on OMG! Ubuntu <span aria-hidden="true">↗</span></a>
+    </article>
+  </section>
+
   <section class="press-product" id="product" aria-labelledby="press-product-title">
     <div class="press-product-heading">
       <div>
         <p class="section-kicker">try the island</p>
-        <h2 id="press-product-title">Open it when you need it. Get it out of the way when you don’t.</h2>
+        <h2 id="press-product-title">Open the panel when you need more controls.</h2>
       </div>
-      <p>Use this enlarged recreation exactly as a reader would: open the island, search, switch tabs, choose a named group, then press Escape and let the website take over again.</p>
+      <p>Use this enlarged recreation to open the panel, search, switch tabs and choose a named group. Press Escape to return to the resting controls above the page.</p>
     </div>
 
     <PressIslandDemo />
@@ -277,7 +331,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
       <p class="press-announcement-dateline"><span>New York · August 2, 2026</span><span>For immediate release</span></p>
       <p class="press-announcement-lead">Bananify today released Blanc 1.0, a free independent browser for macOS, Windows, and Linux built around one simple conviction: the website should be the main event.</p>
       <p>Bananify founder Anthony J. Loria created Blanc after watching the browser itself become increasingly difficult to ignore. Permanent controls, crowded tab rows, sidebars, recommendations, AI assistants, and a growing list of extras now compete with the reason people opened the browser in the first place.</p>
-      <p>Blanc takes the opposite approach. Navigation, tabs, named groups, and commands gather inside one small island that expands only when called. Finish the task and the island gets out of the way, leaving the page—not the browser—at center stage.</p>
+      <p>Navigation, tab switching, named groups and commands gather around one compact island. The resting controls stay in a slim band above the page; the expanded panel opens over it and closes when you are done.</p>
       <p class="press-announcement-manifesto">No more crowded tab-row anxiety. Every open tab stays within reach without occupying the top of every window all day.</p>
       <p>The result is a throwback in spirit, not capability: the direct, open feeling of the earlier web paired with protections people now expect. Blanc blocks ads, trackers, and fingerprinting requests at the network layer. Private tabs stay out of history and are not restored later. Sync is optional and end-to-end encrypted.</p>
       <p>At a time when fewer companies control more of people&rsquo;s data and attention, Blanc makes a deliberately different trade: no required account, no extension marketplace, and no built-in assistant acting while you browse.</p>

@@ -1597,10 +1597,8 @@ body.sheet .shortcut-row:last-child { border-bottom: 0; }
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
   margin-bottom: 2px;
 }
-body.sheet .folder-header { border-radius: var(--radius-md); }
 .folder-name { font-family: var(--font-ui); font-size: 12.5px; color: var(--text); }
 .folder-name-dim { color: var(--text-dim); }
 .folder-count {
@@ -1618,8 +1616,8 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
 /* Quiet-ledger actions (folder headers + favorite rows): plain text, no
    button chrome — the resting page is pure text and the Import button stays
    the page's one bordered shape. Scoped to each container's DIRECT buttons so
-   the folder picker's own `.picker-item` options — nested one level deeper in
-   the row's action container — keep their styling and stay visible. Revealed
+   the folder picker's own `.picker-item` options keep their styling and stay
+   visible. Revealed
    on the enclosing header/row's hover or focus-within (keyboard tabbing
    reveals them too); opacity keeps layout stable so the date column never
    shifts. */
@@ -1645,7 +1643,7 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
 
 /* Favorites rows only. The shared `.row .actions { opacity: 0 }` (used by
    history/downloads too) is left untouched; the container stays visible
-   (the folder picker anchors inside it) and the buttons above carry the
+   (the folder picker belongs to it) and the buttons above carry the
    hide/reveal themselves. Fixed width + right-justify give every row the
    same action column, so dates align down the page. */
 .row .actions.bookmark-actions {
@@ -1666,18 +1664,37 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
   white-space: nowrap;
 }
 .folder-picker {
-  position: absolute;
-  z-index: 20;
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 180px;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  width: min(260px, calc(100vw - 16px));
+  max-height: min(320px, calc(100vh - 16px));
+  min-width: 0;
+  overflow: hidden;
   padding: 6px;
   background: var(--surface-raised);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.folder-picker:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.picker-options {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.picker-options > button {
+  flex: 0 0 auto;
+  overflow-wrap: anywhere;
 }
 .picker-item {
   text-align: left;
@@ -1687,7 +1704,14 @@ body.sheet .folder-header { border-radius: var(--radius-md); }
   background: transparent;
 }
 .picker-item:hover { background: var(--surface); border-color: transparent; }
-.picker-new { margin-top: 4px; font-size: 11.5px; }
+.picker-new {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  font-size: 11.5px;
+}
 
 /* ---------- Utility sheet presentation (body.sheet) ----------
    The sheet WebContentsView is transparent; the page draws the scrim
@@ -2771,14 +2795,12 @@ body:not([data-layout="ledger"]) .ledger-footer {
 /* The clock is exactly 148px at any normal window; the clamp only bites in
    windows too narrow to hold "12:58 pm" at full size. */
 .bb-clock { font-size: clamp(64px, 14vw, 148px); }
-/* The switcher must sit at the TRUE horizontal center: with space-between
-   flex it only looks centered when the side items happen to match widths
-   ("...this week v1.4.0" vs "⌘L to go anywhere" do not). A 1fr auto 1fr grid
-   centers the middle column geometrically, whatever the sides weigh. */
+/* Keep the appearance controls centered independently of the footer's
+   differently sized status and shortcut columns. */
 .ledger-footer { display: grid; grid-template-columns: 1fr auto 1fr; }
 .ledger-footer .footer-left,
 .ledger-footer > #footerLeft { justify-self: start; }
-.ledger-footer .layout-switcher { justify-self: center; }
+.ledger-footer .footer-appearance { justify-self: center; }
 .ledger-footer > .footer-right { justify-self: end; }
 /* Too narrow for one row: wrap as centered lines instead (no overflow). */
 @media (max-width: 760px) {
@@ -2819,14 +2841,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --accent: #805d28;
   --accent-dim: rgba(128, 93, 40, 0.16);
   --start-footer: rgba(247, 240, 229, 0.82);
+  isolation: isolate;
   position: relative;
   min-height: 100vh;
   padding: 0 0 72px;
   overflow-x: hidden;
   background-color: var(--bg);
-  background-image:
-    linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%),
-    url("start-page-sunrise.png");
+  --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.94) 0%, rgba(247, 240, 229, 0.84) 60%, rgba(247, 240, 229, 0.35) 100%);
+  --start-wallpaper-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%);
+  background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   background-position: center, center bottom;
   background-repeat: no-repeat;
   background-size: cover, cover;
@@ -2846,9 +2869,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --accent: #d4ad66;
     --accent-dim: rgba(212, 173, 102, 0.2);
     --start-footer: rgba(23, 19, 15, 0.84);
-    background-image:
-      linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%),
-      url("start-page-sunrise.png");
+    --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
+    --start-wallpaper-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
+  background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   }
 }
 
@@ -2863,9 +2886,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --accent: #d4ad66;
   --accent-dim: rgba(212, 173, 102, 0.2);
   --start-footer: rgba(16, 13, 11, 0.88);
-  background-image:
-    linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%),
-    url("start-page-sunrise.png");
+  --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
+  --start-wallpaper-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
+  background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
 }
 
 .start-brand {
@@ -3080,6 +3103,13 @@ body:not([data-layout="ledger"]) .ledger-footer {
   opacity: 1;
   backdrop-filter: blur(14px);
 }
+.footer-appearance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.ledger-footer { align-items: center; }
 .layout-switcher {
   align-items: center;
   gap: 2px;
@@ -3109,6 +3139,51 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .layout-switcher button:hover { color: var(--text); background: var(--surface); }
 .layout-switcher button.active,
 .layout-switcher button[aria-pressed="true"] { color: var(--bg); background: var(--text); }
+.wallpaper-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 2px 0 2px 14px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: inherit;
+  line-height: 1.25;
+}
+.wallpaper-toggle:hover,
+.wallpaper-toggle[aria-pressed="true"] { color: var(--text); }
+.wallpaper-toggle:hover { border-color: var(--border); }
+.wallpaper-toggle:focus-visible { outline-offset: 3px; }
+.wallpaper-toggle:disabled { cursor: default; opacity: 0.6; }
+.wallpaper-toggle-track {
+  position: relative;
+  width: 22px;
+  height: 12px;
+  flex: none;
+  border: 1px solid var(--text-dim);
+  border-radius: 999px;
+}
+.wallpaper-toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track {
+  border-color: var(--text);
+  background: var(--text);
+}
+.wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track::after {
+  left: 12px;
+  background: var(--bg);
+}
 .ledger-version { font-size: 10px; }
 #goAnywhere { font-family: var(--font-ui); }
 
@@ -3221,15 +3296,22 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .tally-left,
   .tally-right { margin-inline: 30px; }
   .tally-left { padding-top: 122px; }
+}
+
+/* Make room for the wallpaper switch before the footer columns overlap. */
+@media (max-width: 1040px) {
   .ledger-footer,
   body:not([data-layout="ledger"]) .ledger-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     min-height: 86px;
     padding: 8px 20px 10px;
     row-gap: 6px;
   }
   .ledger-footer .footer-left { order: 2; }
-  .ledger-footer .layout-switcher { order: 1; flex-basis: 100%; }
-  .ledger-footer .footer-right { order: 3; }
+  .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
+  .ledger-footer .footer-right { order: 3; align-items: center; }
   .migration-checklist-shell,
   body[data-layout="billboard"] .migration-checklist-shell,
   body[data-layout="tally"] .migration-checklist-shell { bottom: 102px; }
@@ -3448,34 +3530,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-handoff { margin-top: 14px; }
 .ob-error { display: block; font-family: var(--font-ui); font-size: 11px; color: var(--danger); margin-top: 10px; }
 .ob-error:empty { display: none; }
-
-/* Step 3: decorative scale model of the current resting Island. */
-.ob-minipill-row { margin-top: 22px; display: flex; justify-content: center; }
-.ob-minipill {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: min(100%, 392px);
-  height: 44px;
-  padding: 0 12px;
-  background: var(--onboarding-surface, var(--surface-raised));
-  border: 1px solid var(--border);
-  border-radius: 17px;
-  box-shadow: var(--shadow-pill);
-}
-.ob-minipill-nav, .ob-minipill-actions { display: inline-flex; align-items: center; flex: 0 0 auto; }
-.ob-minipill-icon { width: 20px; height: 20px; display: inline-grid; place-items: center; color: var(--text-dim); }
-.ob-minipill-icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.ob-minipill-nav .ob-minipill-icon { color: var(--border); }
-.ob-minipill-dots { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-.ob-minipill-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
-.ob-minipill-dots span.on { background: var(--accent); }
-.ob-minipill-domain { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: var(--font-ui); font-size: 12px; color: var(--text-dim); }
-.ob-minipill-shortcuts { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
-.ob-minipill-shortcuts span { width: 18px; height: 18px; display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); font-size: 11px; }
-.ob-minipill-sep { width: 1px; height: 16px; background: var(--border); flex: 0 0 auto; }
-.ob-commands { margin-top: 14px; text-align: center; font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); }
 
 /* Bordered control rows (steps 4 and 5) with the standard 36x20 toggle */
 .ob-control-row {
@@ -3818,3 +3872,44 @@ body:not([data-layout="ledger"]) .ledger-footer {
 @media (prefers-reduced-motion: reduce) {
   .sync-path-arrow { transition: none; }
 }
+
+/* Local artwork shares the existing theme/private overlay and crop. */
+.start-wallpaper-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--start-wallpaper-overlay), var(--wallpaper-image);
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+  opacity: 0;
+}
+.start-wallpaper-layer.is-visible { opacity: 1; }
+.start-wallpaper-layer.is-fading { transition: opacity 2s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .start-wallpaper-layer.is-fading { transition: none; }
+}
+
+.start-wallpaper-layer[data-wallpaper-phase="dusk"],
+.start-wallpaper-layer[data-wallpaper-phase="night"] {
+  --start-wallpaper-overlay: var(--start-wallpaper-evening-overlay);
+}
+
+.about-build-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 0 0 20px; }
+.about-build-details dt { color: var(--text-dim); font-size: 12px; margin-bottom: 5px; }
+.about-build-details dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.about-links { display: flex; flex-wrap: wrap; gap: 12px 22px; margin-top: 20px; font-size: 13px; }
+.about-links a { text-underline-offset: 3px; }
+.ob-privacy-details { font-size: 12px !important; margin: 12px 0 0 !important; }
+@media (max-width: 480px) { .about-build-details { grid-template-columns: 1fr; } }
+
+.about-links a, .ob-privacy-details a { color: var(--text); }
+.ob-privacy-details a { text-underline-offset: 3px; }
+
+/* The real quiet Island captured from the chrome renderer; scale as one unit. */
+.ob-tab-discovery { margin: 0; }
+.ob-island-example { display: block; padding: 24px 0 0; }
+.ob-quiet-island { display: block; width: 100%; height: auto; }
+.ob-content .ob-island-hint { margin: 14px 0 24px; text-align: center; font-size: 12px; }
+.ob-island-hint .ob-kbd { color: var(--text); }

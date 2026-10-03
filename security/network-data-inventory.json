@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-09-07",
+  "reviewedAt": "2026-10-02",
   "principles": {
     "freshProfileNetworkChoices": "must-be-saved-before-first-send",
     "blockerInputs": "bundled-and-hash-verified",
@@ -66,7 +66,7 @@
       "default": "off",
       "recipient": "Blanc Cloudflare Worker",
       "data": ["opaque v1 account locator", "store name", "opaque version", "AES-256-GCM ciphertext", "ordinary edge metadata"],
-      "retentionByBlanc": "ciphertext until a configured client requests account wipe",
+      "retentionByBlanc": "ciphertext until a configured client requests account wipe; non-atomic account-locator and raw client-IP rate counters in KV up to 120 seconds; provider logging/metadata retention requires deployed verification",
       "code": ["src/main/sync.js", "src/main/sync-crypto.js", "cloudflare/sync-worker/src/index.js"]
     },
     {
@@ -116,7 +116,7 @@
       "default": "on in packaged builds",
       "recipient": "GitHub Releases",
       "data": ["current version", "platform update request", "ordinary network metadata"],
-      "retentionByBlanc": "update metadata and downloaded signed artifact as required by updater",
+      "retentionByBlanc": "update metadata and downloaded platform artifacts as required by updater; native publisher verification differs by platform",
       "code": ["src/main/updater.js", "package.json"]
     },
     {

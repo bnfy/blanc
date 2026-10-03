@@ -3,6 +3,7 @@
     settings,
     searchEngines,
     appIcons,
+    appInfo,
     capabilities,
     onePasswordAvailable,
   } =
@@ -19,6 +20,57 @@
   // un-findable by id (getElementById → null → `.addEventListener` throws).
   const cap = capabilities ? new Set(capabilities) : null;
   const supports = (feature) => !cap || cap.has(feature);
+  function renderWallpaperSetting() {
+    if (!supports('newtabDynamicWallpaper')) return;
+    const control = document.getElementById('newtabDynamicWallpaper');
+    control.checked = settings.newtabDynamicWallpaper === true;
+    document.getElementById('dynamicWallpaperHint').textContent =
+      'Wallpaper follows this machine’s local time. The on/off choice syncs across devices.';
+  }
+  if (supports('newtabDynamicWallpaper')) {
+    renderWallpaperSetting();
+    document.getElementById('newtabDynamicWallpaper').addEventListener('change', async (event) => {
+      const result = await window.bowserPages.settings.set({ newtabDynamicWallpaper: event.target.checked });
+      settings.newtabDynamicWallpaper = result.newtabDynamicWallpaper;
+      renderWallpaperSetting();
+    });
+    window.bowserPages.settings.onAppearance?.((status) => {
+      settings.newtabDynamicWallpaper = status.newtabDynamicWallpaper === true;
+      renderWallpaperSetting();
+    });
+  } else {
+    document.getElementById('dynamicWallpaperSetting')?.remove();
+  }
+
+  // About is a read-only projection of the running desktop build. Other
+  // platforms can omit it and the updater method without gaining a new call.
+  if (appInfo) {
+    const platforms = { darwin: 'macOS', win32: 'Windows', linux: 'Linux' };
+    for (const [id, value] of Object.entries({
+      aboutBlanc: appInfo.blancVersion,
+      aboutElectron: appInfo.electronVersion,
+      aboutChromium: appInfo.chromiumVersion,
+      aboutPlatform: platforms[appInfo.platform] || appInfo.platform,
+      aboutArchitecture: appInfo.architecture,
+    })) document.getElementById(id).textContent = value || 'Unavailable';
+    document.getElementById('appAboutCard').hidden = false;
+    const check = document.getElementById('checkForUpdates');
+    if (typeof window.bowserPages.settings.checkForUpdates === 'function') {
+      check.hidden = false;
+      check.addEventListener('click', async () => {
+        check.disabled = true;
+        const status = document.getElementById('updateCheckStatus');
+        status.textContent = '';
+        try {
+          await window.bowserPages.settings.checkForUpdates();
+        } catch {
+          status.textContent = 'Could not start an update check. Try again from the app menu.';
+        } finally {
+          check.disabled = false;
+        }
+      });
+    }
+  }
 
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');

@@ -4,6 +4,7 @@ const { createUpdateCheckCoordinator } = require('./update-checks');
 const { createUpdateRestarter } = require('./update-restart');
 const { createUpdaterLog } = require('./updater-log');
 const { createWindowsSignatureVerifier } = require('./updater-signature');
+const { createWindowsUpdateTrustGate } = require('./windows-update-trust');
 const { resolveUpdaterPolicy } = require('./updater-policy');
 const { buildStagingStatus, writeStagingStatus } = require('./updater-staging-status');
 const {
@@ -35,8 +36,8 @@ function setDownloadProgress(fraction) {
 // silently aborting updates after a fully successful download: on a slow/loaded
 // machine `Get-AuthenticodeSignature` (or even spawning cmd.exe) exceeds 20s,
 // electron-updater rejects, `update-downloaded` never fires, and no restart
-// prompt appears. See updater-signature.js for the verifier and its fail-open-on-
-// infrastructure-failure / fail-closed-on-bad-result policy. Windows-only.
+// prompt appears. Verification failures defer installation and permit a retry.
+// Windows-only.
 function installWindowsSignatureVerifier({
   platform = process.platform,
   logger,
@@ -77,6 +78,7 @@ let downloadStallWatchdog = null;
 // there are no download-progress events left to feed the stall watchdog.
 let downloadVerificationInProgress = false;
 let activePolicy = null;
+let windowsTrustGate = null;
 
 function noteStagingStatus(phase, detail = {}) {
   if (!activePolicy?.statusFile) return;
@@ -128,6 +130,7 @@ function handleDownloadStall() {
 const restartToInstallUpdate = createUpdateRestarter({ autoUpdater });
 const updateChecks = createUpdateCheckCoordinator({
   checkForUpdates: async () => {
+    await windowsTrustGate?.waitForCacheMaintenance();
     const result = await autoUpdater.checkForUpdates();
     if (shouldArmDownloadStallWatchdog(result, {
       alreadyDownloading: Boolean(activeDownloadCancellation),
@@ -144,6 +147,7 @@ const updateChecks = createUpdateCheckCoordinator({
 });
 
 function promptRestart(info) {
+  if (windowsTrustGate && !windowsTrustGate.isReady()) return Promise.resolve();
   return showDialog({
     type: 'info',
     buttons: ['Restart Now', 'Later'],
@@ -151,7 +155,8 @@ function promptRestart(info) {
     message: `Update ${info.version} downloaded`,
     detail: 'Restart to apply it. Blanc will reopen when installation completes.',
   }).then(({ response }) => {
-    if (response === 0) restartToInstallUpdate();
+    if (response === 0 && updateDownloaded && downloadedUpdateInfo === info
+      && (!windowsTrustGate || windowsTrustGate.isReady())) restartToInstallUpdate();
   });
 }
 
@@ -184,9 +189,19 @@ function setupAutoUpdater() {
   // generous-timeout one on Windows (no-op elsewhere). See the function. When
   // verification begins the download is complete, so stop the stall watchdog —
   // otherwise a slow verify (its own 120s timeout) counts as a stalled download.
+  if (process.platform === 'win32') {
+    windowsTrustGate = createWindowsUpdateTrustGate({
+      autoUpdater, logger: autoUpdater.logger, installOnQuit: !activePolicy.autoInstall,
+    });
+  }
   installWindowsSignatureVerifier({
     logger: autoUpdater.logger,
+    createVerifier: windowsTrustGate ? () => windowsTrustGate.verifySignature : createWindowsSignatureVerifier,
     onVerifyStart: () => {
+      if (windowsTrustGate) {
+        updateDownloaded = false;
+        downloadedUpdateInfo = null;
+      }
       downloadVerificationInProgress = true;
       downloadStallWatchdog?.disarm();
       activeDownloadCancellation = null;
@@ -196,7 +211,7 @@ function setupAutoUpdater() {
   // Pin the behavior this release depends on instead of silently inheriting
   // electron-updater defaults that can change between dependency upgrades.
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = !windowsTrustGate;
   // Differential (delta) download over GitHub Releases is disabled outright.
   // Blanc bumps Chromium nearly every release, so almost every block changes
   // and the delta downloader refetches ~the whole installer anyway — but through
@@ -223,15 +238,30 @@ function setupAutoUpdater() {
   });
   autoUpdater.on('checking-for-update', () => noteStagingStatus('checking'));
   autoUpdater.on('update-available', (info) => {
+    if (windowsTrustGate && (!updateDownloaded || downloadedUpdateInfo?.version !== info?.version)) {
+      windowsTrustGate.invalidate();
+      updateDownloaded = false;
+      downloadedUpdateInfo = null;
+    }
     noteStagingStatus('available', { updateVersion: info?.version });
   });
   autoUpdater.on('update-not-available', (info) => {
     noteStagingStatus('not-available', { updateVersion: info?.version });
   });
-  autoUpdater.on('update-downloaded', (info) => {
-    manualDownloadPending = false;
+  autoUpdater.on('update-downloaded', async (info) => {
     clearDownloadTracking();
     setDownloadProgress(-1);
+    if (windowsTrustGate) {
+      downloadVerificationInProgress = true;
+      noteStagingStatus('verifying', { updateVersion: info?.version });
+      const rejection = await windowsTrustGate.acceptDownloaded(info);
+      downloadVerificationInProgress = false;
+      if (rejection !== null) {
+        autoUpdater.emit('error', new Error(rejection));
+        return;
+      }
+    }
+    manualDownloadPending = false;
     if (updateDownloaded) return;
     updateDownloaded = true;
     downloadedUpdateInfo = info;
@@ -248,6 +278,11 @@ function setupAutoUpdater() {
     promptRestart(info);
   });
   autoUpdater.on('error', (err) => {
+    if (windowsTrustGate) {
+      windowsTrustGate.invalidate();
+      updateDownloaded = false;
+      downloadedUpdateInfo = null;
+    }
     clearDownloadTracking();
     setDownloadProgress(-1);
     // logger is our file logger (which itself falls back to console when it
@@ -288,7 +323,16 @@ async function checkForUpdatesManually() {
     });
     return;
   }
-  if (updateDownloaded && downloadedUpdateInfo) {
+  if (windowsTrustGate && downloadVerificationInProgress) {
+    manualDownloadPending = true;
+    await showDialog({
+      type: 'info',
+      message: 'Verifying the update',
+      detail: 'Blanc will prompt you when the update is ready to restart.',
+    });
+    return;
+  }
+  if (updateDownloaded && downloadedUpdateInfo && (!windowsTrustGate || windowsTrustGate.isReady())) {
     await promptRestart(downloadedUpdateInfo);
     return;
   }
