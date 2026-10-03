@@ -107,3 +107,24 @@ uBO or merging/releasing this platform-sensitive feature.
 
 Hosted results for the follow-up commit are pending. Local results above do not
 replace Windows/Linux/Intel macOS, installed-machine or release evidence.
+
+### Hosted follow-up findings
+
+The first follow-up (`591fb24f`) passed Windows' full unit suite, but native
+checks still failed. Linux/Windows timed out reading the logger while its
+WebContentsView was detached; the native logger renders its buffer through
+animation frames. The test now returns to the actual logger tab before reading
+its visible rows. macOS arm64 read the list checkbox before async preferences
+hydration; the test now waits for the real default value instead of treating
+initial HTML as loaded settings. Neither fix injects records or changes uBO
+filtering/updates. A fresh hosted run is required to verify these diagnoses.
+
+Public release entry points also explicitly reject an inherited
+`BLANC_UBLOCK_INTERNAL_BUILD=1`, even after legal clearance; the fast release
+check runs before authentication. Both exclusion/enablement and internal/public
+boundary tests passed (13 targeted release tests).
+
+An attempted ordinary unsigned package launch exited with SIGKILL before CDP.
+`codesign --verify --deep --strict` reports that its modified executable lacks
+resources required by the remaining signature. The payload/compliance checks
+passed; this unsigned output provides no packaged launch/signing evidence.

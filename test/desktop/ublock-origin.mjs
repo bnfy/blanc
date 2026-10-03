@@ -200,6 +200,9 @@ try {
   }), Boolean, 'logger registered with background', 10000);
   await call('activateTab', regular);
   await page.reload();
+  // The detached logger view does not paint on every platform. Return to it
+  // before expecting upstream's animation-frame DOM updates to appear.
+  await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/logger-ui.html')).id);
   await waitForValue(async () => logger.locator('body').innerText(), text => text.includes('blocked-ubo.js'), 'logger blocked request', 10000);
   assert(!(await logger.locator('body').innerText()).includes('private-marker'));
   assert(!(await logger.locator('body').innerText()).includes('private-network-marker'));
@@ -207,7 +210,7 @@ try {
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
   await lists.locator('#autoUpdate').waitFor();
-  assert(await lists.locator('#autoUpdate').isChecked());
+  await waitForValue(() => lists.locator('#autoUpdate').isChecked(), Boolean, 'filter-list preferences hydrated');
   await lists.locator('[data-role="import"] .listExpander').dispatchEvent('click');
   await lists.locator('[data-role="import"] textarea').fill(fixture + 'fixture-list.txt');
   stage = 'subscription data';
