@@ -42,6 +42,7 @@ const server = http.createServer((request, response) => {
   if (pathname === '/nested') { response.end('<!doctype html><iframe src="/frame-one"></iframe>'); return; }
   if (pathname === '/frame-one') { response.end('<!doctype html><iframe src="/frame-two"></iframe>'); return; }
   if (pathname === '/frame-two') { response.end('<!doctype html><script src="/blocked-ubo.js?nested"></script><p>Nested frame</p>'); return; }
+  if (pathname === '/permissions-fixture') { response.end('<!doctype html><p>Permissions Policy fixture</p>'); return; }
   if (pathname === '/csp-fixture') { response.end('<!doctype html><script>window.cspFixtureRan=true</script><p>Header fixture</p>'); return; }
   if (pathname === '/dynamic-fixture') { response.end('<!doctype html><script src="/dynamic-target.js"></script><p>Dynamic fixture</p>'); return; }
   if (pathname === '/post-form') { response.end('<!doctype html><form method="post" action="/post-result"><input name="token" value="test"><button>Submit</button></form>'); return; }
@@ -113,7 +114,7 @@ try {
   const filters = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'original My filters');
   await filters.locator('.CodeMirror').waitFor();
   await filters.waitForFunction(() => typeof self.hasUnsavedData === 'function' && self.hasUnsavedData() === false);
-  await filters.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.setValue('/blocked-ubo.js$script\n/redirect-ubo.js$script,redirect=noop.js\n127.0.0.1###ad\n127.0.0.1##div:has-text(Procedural fixture)\n127.0.0.1##+js(set, fixturePinned, true)\n/strict-fixture$document\n/blocked-websocket$websocket\n/csp-fixture$csp=script-src \'none\'\n'));
+  await filters.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.setValue('/blocked-ubo.js$script\n/redirect-ubo.js$script,redirect=noop.js\n127.0.0.1###ad\n127.0.0.1##div:has-text(Procedural fixture)\n127.0.0.1##+js(set, fixturePinned, true)\n/strict-fixture$document\n/blocked-websocket$websocket\n/csp-fixture$csp=script-src \'none\'\n/permissions-fixture$permissions=camera=()|microphone=()|geolocation=()\n'));
   await filters.locator('#userFiltersApply').dispatchEvent('click');
   await filters.locator('#userFiltersApply').waitFor({ state: 'visible' });
   await waitForValue(() => filters.locator('#userFiltersApply').isDisabled(), Boolean, 'filters applied');
@@ -455,6 +456,15 @@ try {
   const cspPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'csp-fixture'), Boolean, 'CSP fixture');
   await cspPage.waitForLoadState('load');
   assert.equal(await cspPage.evaluate(() => window.cspFixtureRan), undefined);
+  stage = 'combined Permissions Policy';
+  const featurePolicy = target => target.evaluate(() => Object.fromEntries(
+    ['camera', 'microphone', 'geolocation'].map(name => [name, document.featurePolicy.allowsFeature(name)])
+  ));
+  assert.deepEqual(await featurePolicy(page), { camera: true, microphone: true, geolocation: true }, 'allowed page proves the feature-policy control');
+  await call('openTab', fixture + 'permissions-fixture');
+  const permissionsPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'permissions-fixture'), Boolean, 'Permissions Policy fixture');
+  await permissionsPage.waitForLoadState('load');
+  assert.deepEqual(await featurePolicy(permissionsPage), { camera: false, microphone: false, geolocation: false }, 'every combined directive must be enforced by the native browser');
   const nestedId = await call('openTab', fixture + 'nested');
   const nestedPage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture + 'nested'), Boolean, 'nested frames');
   await waitForValue(() => nestedPage.frames().map(frame => frame.url()), urls => urls.length === 3 && urls.some(url => url.endsWith('/frame-two')), 'three committed frames');

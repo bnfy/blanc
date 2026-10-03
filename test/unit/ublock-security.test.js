@@ -172,3 +172,26 @@ test('navigation events reach only extension pages from their own native backgro
   g.messages[0](event,{id:'owned',url:'chrome-extension://owned/background.html'});
   assert.deepEqual(seen,[1]);
 });
+
+test('combined Permissions Policy filters restrict every directive and preserve exceptions', () => {
+  const source = files.get('js/traffic.js').toString();
+  const begin = source.indexOf('function injectPP(');
+  const end = source.indexOf('\n}\n', begin) + 3;
+  assert(begin > 0 && end > begin);
+  const directives = [
+    { result: 1, value: 'camera=()|microphone=()|geolocation=()' },
+    { result: 2, value: 'fullscreen=()' },
+    { result: 1, value: 'autoplay=()' },
+  ];
+  const context = {
+    staticNetFilteringEngine: { matchAndFetchModifiers: () => directives },
+    logger: { enabled: false }, 'µb': { updateToolbarIcon() {} },
+  };
+  vm.runInNewContext(source.slice(begin, end) + '\nthis.inject = injectPP;', context);
+  const headers = [{ name: 'Permissions-Policy', value: 'fullscreen=(self)' }];
+  assert.equal(context.inject({ tabId: 1 }, {}, headers), true);
+  assert.deepEqual(headers.map(({ name, value }) => ({ name, value })), [
+    { name: 'Permissions-Policy', value: 'fullscreen=(self)' },
+    { name: 'permissions-policy', value: 'camera=(), microphone=(), geolocation=(), autoplay=()' },
+  ]);
+});

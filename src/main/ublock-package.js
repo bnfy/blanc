@@ -122,6 +122,11 @@ function adaptPackage(files, hostSources) {
   result.set('js/diff-updater.js', Buffer.from(replace(result.get('js/diff-updater.js').toString('utf8'),
     '        return new URL(path, url);',
     "        const target = new URL(path, url);\n        if (['http:', 'https:'].includes(target.protocol)) return target;")));
+  // Match the documented Permissions Policy directive separator grammar.
+  // This changes header serialization only, preserving filter matching/results.
+  result.set('js/traffic.js', Buffer.from(replace(result.get('js/traffic.js').toString('utf8'),
+    "permissions.push(directive.value.replace('|', ', '));",
+    "permissions.push(directive.value.replaceAll('|', ', ')); // Blanc: serialize every directive separator")));
   result.set('js/reverselookup-worker.js', Buffer.from(replace(result.get('js/reverselookup-worker.js').toString('utf8'),
     '    const response = {};', '    const response = Object.create(null); // Blanc: literal filter keys cannot change the result prototype')));
   // Authenticate the tools with a single-use native-extension capability. An

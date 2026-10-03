@@ -148,3 +148,28 @@ local owner inspection with the internal marker, passed actual ASAR upstream,
 preferred-source/host/adaptation, Blanc Blocker, capture-runtime, SBOM/notices and
 packaged compliance checks. Its Linux renderer was not launched on this Mac;
 this supplies payload evidence only and is not Linux installed/sandbox acceptance.
+
+
+## Follow-up per-alert evidence and native policy correction
+
+Every baseline alert now has its own technical recommendation and evidence/limit
+in `ublock-origin-codeql-dispositions-2026-10-03.md`. None has been dismissed or
+excluded, and no owner security waiver is inferred. The fresh scan at
+`ae991e43` remained the same 39 upstream alerts. That commit's native CI run
+[37139474075](https://github.com/bnfy/blanc/actions/runs/37139474075) passed all
+four desktop platforms and the actual ordinary-package build on its first
+attempt. This still does not replace signed, installed candidate acceptance.
+
+The follow-up confirmed alert 82 as a real multi-directive Permissions Policy
+formatting defect: the native browser left all three denied features allowed.
+The reproducible adaptation changes that header separator replacement only;
+matching and scriptlet resources remain upstream. Native verification now denies
+all three, with allowed controls and exception/header preservation regressions.
+The original noscript reconstruction also passed a local sandbox/CSP adversarial
+probe. Component licensing and installed evidence remain unresolved.
+
+After the header correction, local lint, substrate, **2,157/2,157** unit tests,
+the expanded native real-blocking suite and the rebuilt unsigned owner-local
+Linux x64 ASAR checks passed. The earlier dashboard/shield results remain
+unchanged; the next exact-head native run repeats all three suites on all four
+platforms. No public platform or distribution clearance flag changed.
