@@ -10,8 +10,9 @@ const functions = source.slice(source.indexOf('function cancelAddressBarFocusRec
 function harness() {
   const wc = {};
   const tab = { id: 'tab', wc, visible: false };
+  tab.view = { getVisible: () => tab.visible };
   const runtime = { activeTabId: tab.id, addressFocusGeneration: 0, tabsWantingAddressBarFocus: new Set([tab.id]) };
-  let owner = runtime, focusCalls = 0;
+  let owner = runtime, focusCalls = 0, visibilityCalls = 0;
   const deferred = [];
   const sandbox = {
     matchBrowserShortcut: input => input.key?.toLowerCase() === 't' && (input.control || input.meta) ? 'new-tab' : null,
@@ -20,12 +21,12 @@ function harness() {
     rt: () => runtime, tabs: new Map([[tab.id, tab]]),
     windowRuntimes: { runtimeForTab: () => owner },
     hasLiveWindow: () => true, liveContents: tab => tab?.wc,
-    setTabViewVisible: (tab, visible) => { tab.visible = visible; },
+    setTabViewVisible: (tab, visible) => { visibilityCalls++; tab.visible = visible; },
     focusAddressBar: () => { focusCalls++; },
     setImmediate: callback => deferred.push(callback),
   };
-  vm.runInNewContext(`${functions}\nthis.cancel = cancelAddressBarFocusReclaim; this.reclaim = reclaimAddressBarFocus; this.overlayInput = cancelAddressBarFocusForOverlayInput;`, sandbox);
-  return { sandbox, tab, runtime, deferred, focusCalls: () => focusCalls, move: () => { owner = {}; } };
+  vm.runInNewContext(`${functions}\nthis.cancel = cancelAddressBarFocusReclaim; this.reclaim = reclaimAddressBarFocus; this.overlayInput = cancelAddressBarFocusForOverlayInput; this.reveal = revealAddressBarTab;`, sandbox);
+  return { sandbox, tab, runtime, deferred, focusCalls: () => focusCalls, visibilityCalls: () => visibilityCalls, move: () => { owner = {}; } };
 }
 
 test('opening another surface cancels queued address focus and reveals the blank tab', () => {
@@ -61,7 +62,16 @@ test('typing, composition and Tab in the current address surface cancel late rec
     h.deferred.shift()();
     assert.equal(h.focusCalls(), 1);
     assert.equal(h.runtime.tabsWantingAddressBarFocus.size, 0);
+    assert.equal(h.visibilityCalls(), 0, 'typing cannot reveal and refocus the native tab');
+    h.sandbox.reveal();
+    assert.equal(h.tab.visible, true, 'closing the address surface reveals the tab');
   }
+});
+
+test('revealing an already visible address tab never reasserts native visibility', () => {
+  const h = harness(); h.tab.visible = true;
+  h.sandbox.cancel();
+  assert.equal(h.visibilityCalls(), 0);
 });
 
 test('modifier keys, browser commands, hidden or replaced overlays cannot invalidate address reclaim', () => {

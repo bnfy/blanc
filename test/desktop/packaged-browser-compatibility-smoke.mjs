@@ -21,6 +21,21 @@ try {
   const state = () => chrome.evaluate(() => window.browserAPI.getAllTabs());
   await wait(state, value => value.tabs.some(tab => tab.url === `${origin}/one`), 'initial packaged tab');
   const initialCount = (await state()).tabs.length;
+  // Exercise actual input with production blur policy (BLANC_TEST=0). Main
+  // process evaluation in the source harness deliberately suppresses blur.
+  await chrome.evaluate(() => window.browserAPI.createTab());
+  const typedTab = await wait(state, value => value.tabs.length === initialCount + 1 && value, 'typed packaged tab');
+  const overlay = await wait(() => Promise.resolve(app.pages().find(page => page.url() === 'blanc-chrome://overlay/')), Boolean, 'packaged address surface');
+  const address = overlay.locator('#addressInput');
+  await address.waitFor({ state: 'visible' });
+  await overlay.keyboard.type('https://example.com');
+  await overlay.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await address.isVisible(), true, 'typing must not dismiss the address surface');
+  assert.equal(await address.inputValue(), 'https://example.com', 'late focus cannot replace a typed prefix');
+  await overlay.keyboard.press('Escape');
+  await address.waitFor({ state: 'hidden' });
+  await chrome.evaluate(id => window.browserAPI.closeTab(id), typedTab.activeTabId);
+  await wait(state, value => value.tabs.length === initialCount, 'typed packaged tab closed');
   const openSettings = async () => {
     await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/'));
     const page = await wait(() => Promise.resolve(app.pages().find(page => page.url().startsWith('blanc://settings/'))), Boolean, 'packaged Settings');

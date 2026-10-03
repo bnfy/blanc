@@ -3081,6 +3081,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
+  if (closingMode === 'panel' || closingMode === 'palette') revealAddressBarTab();
   if (closingMode === 'display-share' && reason !== 'display-share-resolved') {
     displayCapturePicker?.cancel(closingPurpose?.requestId);
   }
@@ -6265,17 +6266,20 @@ function focusAddressBar() {
   showOverlay(rt().overlayMode === 'palette' ? 'palette' : 'panel');
 }
 
-function cancelAddressBarFocusReclaim(runtime = rt()) {
+function cancelAddressBarFocusReclaim(runtime = rt(), { revealTab = true } = {}) {
   runtime.addressFocusGeneration += 1;
   // Cancelling a blank tab's deferred focus must also release the temporary
   // hide used while attaching it; otherwise closing Settings reveals a blank
   // native pane even though the tab's document is still alive.
   const tab = tabs.get(runtime.activeTabId);
-  if (runtime.tabsWantingAddressBarFocus.has(tab?.id) &&
-      windowRuntimes.runtimeForTab(tab.id) === runtime && liveContents(tab)) {
-    setTabViewVisible(tab, true);
-  }
+  if (revealTab && runtime.tabsWantingAddressBarFocus.has(tab?.id)) revealAddressBarTab(runtime);
   runtime.tabsWantingAddressBarFocus.clear();
+}
+
+function revealAddressBarTab(runtime = rt()) {
+  const tab = tabs.get(runtime.activeTabId);
+  if (tab && windowRuntimes.runtimeForTab(tab.id) === runtime && liveContents(tab) &&
+      tab.view?.getVisible() === false) setTabViewVisible(tab, true);
 }
 
 function cancelAddressBarFocusForOverlayInput(input, wc, runtime = rt()) {
@@ -6284,7 +6288,10 @@ function cancelAddressBarFocusForOverlayInput(input, wc, runtime = rt()) {
   // Typing, composition, editing and Tab navigation take ownership of focus.
   // A late blank-tab commit must not select or steal that user's input.
   if (wc && wc === liveViewContents(runtime.overlayView) && ownsBrowserShortcutSurface(runtime, wc)) {
-    cancelAddressBarFocusReclaim(runtime);
+    // Revealing a hidden native child can take focus and dismiss the panel.
+    // Keep it hidden until the address surface closes; ordinary cancellation
+    // still reveals it before another surface takes focus.
+    cancelAddressBarFocusReclaim(runtime, { revealTab: false });
   }
 }
 
