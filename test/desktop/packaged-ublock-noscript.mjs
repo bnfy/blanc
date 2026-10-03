@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { extractFile } from '@electron/asar';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 import poll from './support/poll.js';
-const { waitForValue } = poll;
+const { waitForValue, clickWhenSettled } = poll;
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE;
 const asar = process.env.BLANC_PACKAGED_ASAR;
 const output = process.env.BLANC_UBLOCK_EVIDENCE;
@@ -116,7 +116,7 @@ try {
     noscriptCount: document.querySelectorAll('noscript').length,
   }));
   const switchScripting = async on => {
-    await chrome.locator('#pillShield').click();
+    await clickWhenSettled(chrome.locator('#pillShield'), 'Island shield');
     const overlay = await pageAt('blanc-chrome://overlay/');
     await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
     await overlay.locator('#shieldPopUblock').click();

@@ -10,7 +10,7 @@ import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import hooks from './support/test-hook-call.js';
 import focus from './support/popup-focus-trace.js';
-const { waitForValue } = poll;
+const { waitForValue, clickWhenSettled } = poll;
 const root = path.resolve('.');
 const unavailable = process.argv.includes('--unavailable');
 const expectedFallback = unavailable ? 'ublock-unavailable' : 'manifest-v2-retired';
@@ -85,7 +85,7 @@ try {
   await visit('/shield');
   await focus.focusFixtureWindow(electron);
   const chrome = (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/');
-  await chrome.locator('#pillShield').click();
+  await clickWhenSettled(chrome.locator('#pillShield'), 'Island shield');
   const overlay = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://overlay/'), Boolean, 'shield overlay');
   await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
   assert.equal(await overlay.locator('#shieldPopCurrentProvider').innerText(), 'Blanc Blocker');

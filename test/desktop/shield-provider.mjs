@@ -9,7 +9,7 @@ import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import popupFocusTrace from './support/popup-focus-trace.js';
 import hooks from './support/test-hook-call.js';
-const { waitForValue } = poll;
+const { waitForValue, clickWhenSettled } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shield-provider-'));
 fs.mkdirSync(dir + '-Dev');
 const settingsFile = path.join(dir + '-Dev', 'settings.json');
@@ -67,7 +67,7 @@ async function launch(supported) {
 async function openShield() {
   await popupFocusTrace.focusFixtureWindow(electron);
   const chrome = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/'), Boolean, 'chrome');
-  await chrome.locator('#pillShield').click();
+  await clickWhenSettled(chrome.locator('#pillShield'), 'Island shield');
   const overlay = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://overlay/'), Boolean, 'overlay');
   await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
   await summary(overlay);
@@ -479,6 +479,10 @@ try {
       })),
     })).catch(() => null));
     const chrome = (await Promise.resolve().then(() => electron.windows()).catch(() => [])).find(page => page.url() === 'blanc-chrome://index/');
+    console.error('Chrome animation frame:', await Promise.race([
+      chrome?.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve('produced')))),
+      new Promise(resolve => setTimeout(() => resolve('none within 2 s'), 2000)),
+    ]).catch(error => error.message));
     console.error('Shield geometry:', await chrome?.evaluate(() => ['islandPill', 'pillShield'].map(id => {
       const element = document.getElementById(id); const css = getComputedStyle(element); const rect = element.getBoundingClientRect();
       return { id, documentVisibility: document.visibilityState, documentFocused: document.hasFocus(), hidden: element.hidden, visibility: css.visibility, display: css.display, transform: css.transform, x: rect.x, y: rect.y, width: rect.width, height: rect.height };
