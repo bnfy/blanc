@@ -1,9 +1,9 @@
 # Windows reliability feedback — October 3, 2026
 
 Implementation and verification for [draft PR #499](https://github.com/bnfy/blanc/pull/499).
-Public comparison baseline: v1.26.0. Current runtime/packaging commit:
+Public comparison baseline: v1.26.0. Previous runtime/packaging commit:
 `bb3566e34931f85838a8dc233073c845a98bc933`. Earlier `91a00a1b` packages are
-superseded by its native focus teardown correction. No version was bumped.
+superseded by its native focus teardown correction. A later Windows native crash invalidates clean delivery of these candidates; the additional close-order correction below is pending validation. No version was bumped.
 
 ## Implemented behavior
 
@@ -50,7 +50,7 @@ checkout had stale 44.4.3 dependencies despite locking 44.5.1. Work used a clean
 
 ## Automated verification
 
-Current results apply to `bb3566e3`:
+Historical passing results apply to `bb3566e3`; the final report-only check subsequently failed on the same runtime:
 
 | Check | Result |
 | --- | --- |
@@ -177,7 +177,7 @@ source diagnostics and production VM observations provide different evidence.
 These validation artifacts retain version 1.26.0 for private testing and do
 not belong to the public v1.26.0 release. All earlier candidate artifacts,
 including runs `37141711275`, `37143456829`, `37144217491` and
-`37144894232`, predate the current runtime; use the artifacts below.
+`37144894232`, predate `bb3566e3`. The artifacts below also require replacement after the subsequent Windows failure; retain them only as historical evidence.
 
 | Candidate | Download | Expires (UTC) | Actions artifact SHA-256 |
 | --- | --- | --- | --- |
@@ -196,8 +196,7 @@ installation/restoration checks and this report are retained in
 
 ## Outstanding affected-machine gate
 
-Automated checks pass on the corrected runtime, and the rebuilt Windows
-candidate completed the delegated Parallels test below. Explicit owner acceptance
+The rebuilt Windows candidate completed the delegated Parallels test below, but a later automated Windows check crashed on that same runtime. The current additional correction requires new automated and packaged validation. Explicit owner acceptance
 of this evidence and affected-machine Windows/Linux confirmation remain pending
 before merge. No physical Linux desktop test was performed;
 the installed Parallels Ubuntu guest is ARM64, while this candidate AppImage
@@ -271,3 +270,11 @@ The panel stayed open, its disposable tab closed, and Settings still reopened.
 Typing after panel readiness and at 100 ms key holds succeeded during browsing.
 This candidate does not fix input sent before initial address focus is ready.
 The original reporter's general Windows freeze remains unreproduced.
+
+## Final Windows check and additional correction (pending validation)
+
+The report-only `f89fe684` check [37149365254](https://github.com/bnfy/blanc/actions/runs/37149365254) reproduced a Windows main-process access violation while closing a newly created private tab. Exit `3221225477` (`0xc0000005`) and process liveness confirm a native failure; zero JavaScript uncaught exceptions does not establish survival. The passing Parallels and prior CI runs do not invalidate this failure.
+
+The [private dump](https://github.com/bnfy/blanc/actions/runs/37149365254/artifacts/11282479097) matched official Electron 44.5.1 Windows symbols module `205ABBCBDFD937F14C4C44205044422E1`. The fault is `ui::PropertyHandler::GetPropertyInternal`; symbolicated stack-memory candidates include DesktopFocusRules, FocusController, LegacyRenderWidgetHostHWND and Aura destruction. These candidates are consistent with the Linux focus path, but are not a complete validated unwind. Official symbols archive SHA-256 `a2354108a79d199468c5a6328bd6791ec0c3c52191437575433efa7e5b7c17b4` and diagnostic archive SHA-256 `cc70b8817b198d598684ed6427cdca77bc9aaf288ec774feea82c410c2b2fd60` were verified. Raw dumps remain private.
+
+The additional Windows/Linux close path keeps a hidden retired guest rooted in its original live native window through WebContents destruction. Background guests are attached while hidden before closing. Application handlers are removed and browser/popup dispatch is denied. Removal waits until the native destruction stack returns and rechecks window identity, view liveness and attachment. Deferred address cancellation does not reveal a closing view. Externally destroyed views use the same deferred cleanup; macOS and window shutdown retain their established teardown. Five fresh-process shortcut runs per Windows/Linux matrix cell replace the prior single run. Exact runtime, package and Parallels results will be recorded after verification.

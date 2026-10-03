@@ -5377,6 +5377,37 @@ function detachTabView(tab) {
   return true;
 }
 
+// Aura restores focus while destroying WebContents. Keep its hidden native
+// hierarchy rooted until that destruction finishes, including a background
+// guest that was previously detached. The destroyed callback removes only
+// this retired view from the same still-live window.
+function prepareTabViewForClose(tab) {
+  const wc = liveContents(tab);
+  const owner = rt();
+  const view = tab?.view;
+  if (!view || tabs.get(tab.id) !== tab || windowRuntimes.runtimeForTab(tab.id) !== owner || !hasLiveWindow()) return false;
+  const window = owner.window;
+  const removeRetiredView = () => {
+    if (owner.window !== window || window.isDestroyed() || liveViewContents(view) ||
+        !window.contentView.children.includes(view)) return;
+    window.contentView.removeChildView(view);
+  };
+  // External destruction can reach closeTab from inside a native destructor.
+  // Leave its empty view rooted until that stack has returned as well.
+  if (!wc) { setImmediate(removeRetiredView); return true; }
+  if (process.platform === 'darwin' || isQuitting || owner.closing || !hasLiveWindow()) return detachTabView(tab);
+  unwireTabView(wc);
+  wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  wc.on('before-input-event', (event, input) => {
+    if (matchBrowserShortcut(input)) event.preventDefault();
+  });
+  if (wc.isFocused()) window.webContents.focus();
+  setTabViewVisible(tab, false);
+  if (!window.contentView.children.includes(view)) window.contentView.addChildView(view);
+  wc.once('destroyed', () => setImmediate(removeRetiredView));
+  return true;
+}
+
 function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
@@ -5770,7 +5801,7 @@ function closeTab(id) {
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
   // Invalidate pending blank-tab focus before parking or native teardown.
-  if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim();
+  if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim(rt(), { reveal: false });
   forgetTabWebContentsIds(id);
 
   // Capture the prompt condition BEFORE cancelling — cancellation erases the
@@ -5817,7 +5848,10 @@ function closeTab(id) {
     }
   }
 
-  if ((wasActive || wasGlance) && tab.view) detachTabView(tab);
+  if (tab.view) {
+    if (!parked) prepareTabViewForClose(tab);
+    else if (wasActive || wasGlance) detachTabView(tab);
+  }
   if (wasGlance) rt().glanceTabId = null;
 
   rt().tabsWantingAddressBarFocus.delete(id);
@@ -6276,13 +6310,13 @@ function focusAddressBar() {
   showOverlay('panel');
 }
 
-function cancelAddressBarFocusReclaim(runtime = rt()) {
+function cancelAddressBarFocusReclaim(runtime = rt(), { reveal = true } = {}) {
   runtime.addressFocusGeneration += 1;
   // Cancelling a blank tab's deferred focus must also release the temporary
   // hide used while attaching it; otherwise closing Settings reveals a blank
   // native pane even though the tab's document is still alive.
   const tab = tabs.get(runtime.activeTabId);
-  if (runtime.tabsWantingAddressBarFocus.has(tab?.id)) revealAddressBarTab(runtime);
+  if (reveal && runtime.tabsWantingAddressBarFocus.has(tab?.id)) revealAddressBarTab(runtime);
   runtime.tabsWantingAddressBarFocus.clear();
 }
 

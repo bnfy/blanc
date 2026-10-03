@@ -69,3 +69,14 @@ test('late address reclaim focuses the existing panel without replaying DOM focu
     assert.equal(shows, 1);
   }
 });
+
+
+test('closing cancels pending address focus without showing its hidden native guest', () => {
+  const h = harness(); h.sandbox.reclaim('tab');
+  h.sandbox.cancel(h.runtime, { reveal: false });
+  h.deferred.shift()();
+  assert.equal(h.tab.visible, false);
+  assert.equal(h.visibilityCalls(), 0);
+  assert.equal(h.focusCalls(), 1);
+  assert.equal(h.runtime.tabsWantingAddressBarFocus.size, 0);
+});

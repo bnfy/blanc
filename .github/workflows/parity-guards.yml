@@ -170,9 +170,18 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           bash scripts/ci-enable-linux-sandbox.sh
-          xvfb-run -a npm run test:browser-shortcuts:desktop
-      - name: Browser commands and Settings (Windows/macOS)
-        if: runner.os != 'Linux'
+          for attempt in 1 2 3 4 5; do
+            xvfb-run -a npm run test:browser-shortcuts:desktop || exit $?
+          done
+      - name: Browser commands and Settings (Windows, five fresh processes)
+        if: runner.os == 'Windows'
+        run: |
+          foreach ($attempt in 1..5) {
+            npm run test:browser-shortcuts:desktop
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Browser commands and Settings (macOS)
+        if: runner.os == 'macOS'
         run: npm run test:browser-shortcuts:desktop
       - name: Real Chrome Web Store documents (Linux)
         if: runner.os == 'Linux'

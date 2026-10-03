@@ -36,6 +36,7 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
     forgetTabWebContentsIds: () => {},
     cancelAddressBarFocusReclaim: () => {},
     detachTabView: () => {},
+    prepareTabViewForClose: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
@@ -84,6 +85,7 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
     forgetTabWebContentsIds: () => {},
     cancelAddressBarFocusReclaim: () => {},
     detachTabView: () => {},
+    prepareTabViewForClose: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
@@ -135,6 +137,7 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
     forgetTabWebContentsIds: () => {},
     cancelAddressBarFocusReclaim: () => {},
     detachTabView: () => {},
+    prepareTabViewForClose: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
@@ -165,37 +168,54 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
   assert.equal(snapshots.has('quiet'), false);
 });
 
-test('active private close cancels deferred address focus and detaches before destroying native contents', () => {
-  const calls = [];
-  const wc = { id: 44, isDestroyed: () => false, isFocused: () => true, close: () => calls.push('close') };
+test('active private close keeps its native parent until WebContents destruction', () => {
+  const calls = [], handlers = new Map(), deferred = [];
+  let destroyed = false;
+  const wc = {
+    id: 44, isDestroyed: () => destroyed, isFocused: () => true,
+    on: (event, handler) => handlers.set(event, handler),
+    once: (event, handler) => handlers.set(event, handler),
+    setWindowOpenHandler: () => {},
+    close: () => calls.push('close'),
+  };
   const tab = { id: 'private', url: 'blanc://newtab/', private: true, view: { webContents: wc } };
   const runtime = {
     activeTabId: tab.id, tabOrder: [tab.id], tabsWantingAddressBarFocus: new Set([tab.id]),
-    window: { webContents: { focus: () => calls.push('focus-chrome') }, contentView: {
+    window: { isDestroyed: () => false, webContents: { focus: () => calls.push('focus-chrome') }, contentView: {
+      children: [tab.view],
       removeChildView: view => { assert.equal(view, tab.view); calls.push('detach'); },
     } },
   };
   const tabs = new Map([[tab.id, tab]]);
   const sandbox = {
     sleepSnapshots: new Map(), sleepTeardownInProgress: false, fillHintScheduler: null,
-    tabs, rt: () => runtime, isQuitting: false,
+    tabs, rt: () => runtime, isQuitting: false, process: { platform: 'win32' },
+    setImmediate: task => deferred.push(task),
     windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },
-    cancelAddressBarFocusReclaim: () => calls.push('cancel-address-focus'),
+    cancelAddressBarFocusReclaim: (owner, options) => {
+      assert.equal(owner, runtime); assert.equal(options.reveal, false);
+      calls.push('cancel-address-focus');
+    },
     forgetTabWebContentsIds: () => {}, permissionPendingTabIds: () => new Set(),
     cancelPermissionPromptsForTab: () => {}, popupChildCounts: new Map(),
     pruneEmptyGroups: () => {}, lastMainFrameMethod: new Map(),
     liveContents: target => target?.view?.webContents ?? null,
-    hasLiveWindow: () => true,
+    liveViewContents: view => view?.webContents && !destroyed ? wc : null,
+    hasLiveWindow: () => true, unwireTabView: () => calls.push('unwire'), matchBrowserShortcut: () => true,
     setTabViewVisible: (target, visible) => {
-      assert.equal(tabs.get(target.id), target, 'native teardown still has its verified owner');
+      assert.equal(tabs.get(target.id), target, 'native preparation still has its verified owner');
       assert.equal(visible, false); calls.push('hide');
     },
   };
-  const detachSource = mainSource.match(/function detachTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
-  assert.ok(detachSource);
-  vm.runInNewContext(`${detachSource}\n${closeTabSource}\nthis.__close = closeTab;`, sandbox);
+  const prepareSource = mainSource.match(/function prepareTabViewForClose\(tab\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(prepareSource);
+  vm.runInNewContext(`${prepareSource}\n${closeTabSource}\nthis.__close = closeTab;`, sandbox);
   sandbox.__close(tab.id, { record: false, selectReplacement: false });
-  assert.deepEqual(calls, ['cancel-address-focus', 'focus-chrome', 'hide', 'detach', 'close']);
+  assert.deepEqual(calls, ['cancel-address-focus', 'unwire', 'focus-chrome', 'hide', 'close']);
   assert.equal(tabs.size, 0);
   assert.equal(runtime.activeTabId, null);
+  destroyed = true; handlers.get('destroyed')();
+  assert.equal(calls.at(-1), 'close');
+  for (const task of deferred) task();
+  assert.equal(calls.at(-1), 'detach', 'detach only after native destruction');
 });
