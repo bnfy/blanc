@@ -3,6 +3,12 @@ const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
 if (!enforceLinuxSandbox({ app, dialog })) return;
 const path = require('path');
 const fs = require('fs');
+const { linuxDistribution } = require('./linux-distribution');
+
+// Match the human-authored package’s desktop identity for Wayland and portals.
+if (linuxDistribution.flatpak && linuxDistribution.appId) {
+  app.setDesktopName(`${linuxDistribution.appId}.desktop`);
+}
 const crypto = require('crypto');
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
@@ -1146,7 +1152,7 @@ if (!app.isPackaged) {
 // start every existing user on an empty profile. Copy the old directory
 // forward exactly once, before anything (JsonStores, adblock cache,
 // single-instance lock) touches the new one.
-if (app.isPackaged) {
+if (app.isPackaged && !linuxDistribution.flatpak) {
   const oldUserDataDir = path.join(app.getPath('appData'), 'Bowser');
   const newUserDataDir = app.getPath('userData');
   if (!fs.existsSync(newUserDataDir) && fs.existsSync(oldUserDataDir)) {

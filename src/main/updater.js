@@ -6,6 +6,7 @@ const { createUpdaterLog } = require('./updater-log');
 const { createWindowsSignatureVerifier } = require('./updater-signature');
 const { createWindowsUpdateTrustGate } = require('./windows-update-trust');
 const { resolveUpdaterPolicy } = require('./updater-policy');
+const { linuxDistribution } = require('./linux-distribution');
 const { buildStagingStatus, writeStagingStatus } = require('./updater-staging-status');
 const {
   createDownloadProgressLogger,
@@ -311,6 +312,14 @@ function setupAutoUpdater() {
 
 /** Menu-triggered check with visible feedback. */
 async function checkForUpdatesManually() {
+  if (linuxDistribution.flatpak) {
+    await showDialog({
+      type: 'info',
+      message: 'Updates are managed by Flatpak',
+      detail: 'Update Blanc through your software app or Flatpak. Automatic updates depend on your software app’s settings.',
+    });
+    return;
+  }
   if (!app.isPackaged) {
     showDialog({ type: 'info', message: 'Updates are only available in packaged builds.' });
     return;

@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('node:path');
+const { linuxDistribution } = require('./linux-distribution');
 
 const STAGING_CHANNEL = 'staging';
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
@@ -34,7 +35,8 @@ function parseStagingUrl(raw, allowHttp) {
   return url.toString();
 }
 
-function resolveUpdaterPolicy({ isPackaged, env = process.env } = {}) {
+function resolveUpdaterPolicy({ isPackaged, env = process.env, distribution = linuxDistribution } = {}) {
+  if (distribution.flatpak) return disabled('Flatpak manages Blanc updates');
   if (!isPackaged) return disabled('development builds do not self-update');
   const channel = String(env.BLANC_UPDATE_CHANNEL || '').trim();
   if (!channel) return production();
