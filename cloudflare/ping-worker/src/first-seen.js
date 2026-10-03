@@ -12,3 +12,21 @@ export async function markFirstSeen(kv, hashedId, day, bumpFn) {
   await kv.put(firstKey, day);
   return true;
 }
+
+// Next-day return: of the installs first seen on day D, how many launch again
+// on day D+1 (UTC). Counted on the install's first ping of D+1 — first:<id>
+// already records D, so only returners pay the extra marker write. The
+// return:d1:<D> counter never expires (growth history); the ret1: marker only
+// needs to outlive day D+1 for dedup, so it expires after two days. A
+// backfilled first: value is a coarse month and can never equal a day, so
+// pre-tracking installs are never counted.
+export const NEXT_DAY_RETURN_MARKER_TTL = 2 * 24 * 3600;
+
+export async function markNextDayReturn(kv, hashedId, day, prevDay, bumpFn) {
+  if ((await kv.get(`first:${hashedId}`)) !== prevDay) return false;
+  const markerKey = `ret1:${prevDay}:${hashedId}`;
+  if ((await kv.get(markerKey)) !== null) return false;
+  await bumpFn(kv, `return:d1:${prevDay}`);
+  await kv.put(markerKey, '1', { expirationTtl: NEXT_DAY_RETURN_MARKER_TTL });
+  return true;
+}

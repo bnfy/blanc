@@ -67,6 +67,14 @@ active installs can be deduplicated for launches, Mahjong, and each individual
 layout. Daily markers expire after about 90 days; weekly and monthly markers
 after about 13 months. Aggregate counters do not expire.
 
+Next-day return is counted per new-install cohort: an installation first seen
+on UTC day D that launches again on D+1 bumps `return:d1:<D>` once, deduplicated
+by a keyed-hash marker that expires after two days. `/stats` reports
+`nextDayReturn.byDay` (new installs, returned next day, rate, and `complete`
+once D+1 has ended) starting from `NEXT_DAY_RETURN_FIRST_COHORT` in
+`src/index.js`, which must equal the UTC day the write path first deploys;
+earlier cohorts are omitted rather than shown as 0%.
+
 `GET /stats` is protected by `STATS_TOKEN`. If `GA_API_SECRET` is configured,
 the Worker forwards the keyed installation hash and the same narrow event
 fields to GA4. The raw UUID never goes to Google. The response's `productUsage`
