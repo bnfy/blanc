@@ -265,8 +265,8 @@ The owner's option 2 is implemented on the original uBO popup. It uses Inter,
 the genuine small Sunrise mark, neutral flat tool rows, Pick/Zap explanations,
 Logger and Dashboard links, and a More controls disclosure. More reveals native
 site switches and request/domain details without enabling advanced-user mode.
-Dashboard and Logger open as managed tabs in the owning profile. Full settings
-screen styling still requires its own owner-approved mockups.
+Dashboard and Logger open as managed tabs in the owning profile. The full Dashboard styling is implemented separately below from the owner-approved
+option 3 mockup.
 
 A dedicated sandboxed popup preload exposes only measured layout, close and back.
 Main validates the exact view, session, main frame, URL, tab and window before
@@ -293,3 +293,50 @@ Blanc's MIT and reserved identity asset policies and uBO's GPL gate are unchange
 Visual evidence and residual P3 density difference are recorded in `design-qa.md`.
 These are local internal validation results; public distribution and platform
 support remain gated pending their separate approvals and installed evidence.
+
+## Approved Dashboard option 3 — October 2
+
+The owner selected the third displayed full Dashboard mockup. All seven native
+Dashboard panels now share its neutral navigation, Inter typography, small genuine
+Sunrise mark, flat controls and outline glyphs. Filter lists uses the approved
+options/subscriptions split with concise explanations and live native list states.
+Smaller windows stack the columns; short windows keep editor tools reachable
+with vertical scrolling. Native uBO Light/Dark/Auto and custom checkbox
+accent preferences still work. Advanced settings receives the same presentation.
+
+The adaptation loads the new script/stylesheet only into the fixed reviewed
+Dashboard documents. It preserves original IDs, editor instances, templates,
+settings handlers, list hierarchy, subscriptions, license/credits, unsaved-edit
+warnings and disabled controls. Keyboard tab navigation and list expansion route
+through original handlers. Support's initial editor autofocus is the sole upstream
+Dashboard behavior patch: it opens at the heading, with Select all still focusing
+the editor. Native list counts/statuses, expansion and selected/default entries
+may differ from illustrative mockup data.
+
+`npm run test:ublock-dashboard:desktop` exercises real native keyboard/mouse input,
+preferences, themes, list search/selection/expansion, unsaved filter protection,
+applying a custom filter, wide/narrow panels, and restart persistence. Its fixture
+proves the new custom filter prevents the request from reaching the server.
+The existing cross-platform uBO workflow now runs this suite alongside the full
+engine/tool and shield suites on macOS arm64/Intel, Windows and Linux. This change
+adds CI coverage; it is not evidence that those hosted platform runs passed.
+
+| Check | Local record | Result |
+| --- | --- | --- |
+| Lint | `/private/tmp/ubo-dashboard-lint.txt` | Passed |
+| Complete unit suite | `/private/tmp/ubo-dashboard-unit.txt` | 2,085 passed |
+| Substrate | `/private/tmp/ubo-dashboard-substrate.txt` | Passed |
+| Native Dashboard UI and persistence | `/private/tmp/ubo-dashboard-ui-test.txt` | Passed |
+| Native shield/popup navigation | `/private/tmp/ubo-dashboard-shield.txt` | Passed in isolation |
+| Full real-blocking uBO | `/private/tmp/ubo-dashboard-full-desktop.txt` | Passed |
+| Unsigned internal macOS package | `/private/tmp/ubo-dashboard-package.txt` | Bytes, licenses, adaptation, compliance and fuses passed |
+
+The native dev preview remains open on Filter lists. Visual evidence and the
+same-viewport comparison are recorded in `design-qa.md`. Full Dashboard styling
+is complete locally; platform enablement, GPL/corresponding-source clearance,
+installed candidate review, signing/notarization and public rollout remain gated.
+
+The Dashboard fixture waits for full browser restoration and its initial pane before
+clicking after restart. Native input suites run sequentially: competing dev-window
+focus can dismiss a popup by its intended blur behavior. A repeated shield run in
+isolation passed. These harness checks do not weaken production focus or lifecycle rules.

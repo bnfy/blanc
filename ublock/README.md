@@ -14,8 +14,11 @@ package. The resulting modified extension is subject to upstream's GPL.
 their input/output hashes and change date. No filtering-engine module is patched.
 Binary font/mark additions are copied from the exact hash-bound host inputs by
 `readHostSources`; the patch records their names without lossy text hunks.
-The popup uses bundled Inter, Lucide SVGs, and the reserved Blanc Sunrise mark.
-Changes concern browser API hosting, startup, popup presentation/lifetime, unavailable privacy
+The popup and Dashboard use bundled Inter, pinned Lucide SVGs, and the reserved
+Blanc Sunrise mark. Dashboard panels keep native controls and editors; Filter lists
+uses the approved two-column presentation. Native list states and filtering logic
+are unchanged.
+Changes concern browser API hosting, startup, popup/Dashboard presentation and popup lifetime, unavailable privacy
 controls, and the restriction to bundled executable resources.
 
 To reproduce with Node 22 from this source checkout:

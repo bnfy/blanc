@@ -1,47 +1,603 @@
 --- a/1p-filters.html
 +++ b/1p-filters.html
-@@ -1,6 +1,8 @@
+@@ -1,70 +1,74 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock — Your filters</title>
+-
+-<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+-<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
+-<link rel="stylesheet" href="lib/codemirror/addon/search/matchesonscrollbar.css">
+-
+-<link rel="stylesheet" href="css/themes/default.css">
+-<link rel="stylesheet" href="css/common.css">
+-<link rel="stylesheet" href="css/fa-icons.css">
+-<link rel="stylesheet" href="css/dashboard-common.css">
+-<link rel="stylesheet" href="css/cloud-ui.css">
+-<link rel="stylesheet" href="css/1p-filters.css">
+-<link rel="stylesheet" href="css/codemirror.css">
+-</head>
+-
+-<body>
+-
+-<div class="body">
+-    <div id="cloudWidget" class="hide" data-cloud-entry="myFiltersPane"></div>
+-    <p>
+-        <button id="userFiltersApply" class="preferred iconified" type="button" disabled><span class="fa-icon">check</span><span data-i18n="1pApplyChanges">_</span><span class="hover"></span></button>
+-        <button id="userFiltersRevert" class="iconified" type="button" disabled><span class="fa-icon">undo</span><span data-i18n="genericRevert">_</span><span class="hover"></span></button>
+-        &emsp;
+-        <button id="importUserFiltersFromFile" class="iconified" type="button"><span class="fa-icon">download-alt</span><span data-i18n="1pImport">_</span><span class="hover"></span></button>
+-        <button id="exportUserFiltersToFile" class="iconified" type="button"><span class="fa-icon">upload-alt</span><span data-i18n="1pExport">_</span><span class="hover"></span></button>
+-    </p>
+-    <p data-i18n="1pTrustWarning"></p>
+-    <div class="li"><label><span id="enableMyFilters" class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="1pEnableMyFiltersLabel"></span></label></div>
+-    <div id="trustMyFilters" class="li"><label><span class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="1pTrustMyFiltersLabel"></span></label></div>
+-</div>
+-<div id="userFilters" class="codeMirrorContainer codeMirrorBreakAll cm-theme-override" spellcheck="false"></div>
+-<div class="hidden">
+-    <input id="importFilePicker" type="file" accept="text/plain">
+-</div>
+-
+-<script src="lib/codemirror/lib/codemirror.js"></script>
+-<script src="lib/codemirror/addon/comment/comment.js"></script>
+-<script src="lib/codemirror/addon/display/panel.js"></script>
+-<script src="lib/codemirror/addon/edit/closebrackets.js"></script>
+-<script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
+-<script src="lib/codemirror/addon/fold/foldcode.js"></script>
+-<script src="lib/codemirror/addon/hint/show-hint.js"></script>
+-<script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
+-<script src="lib/codemirror/addon/search/searchcursor.js"></script>
+-<script src="lib/codemirror/addon/selection/active-line.js"></script>
+-<script src="lib/diff/swatinem_diff.js"></script>
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-
+-<script src="js/codemirror/search.js" type="module"></script>
+-<script src="js/codemirror/search-thread.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/cloud-ui.js" type="module"></script>
+-<script src="js/1p-filters.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock — Your filters</title>
++
++<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
++<link rel="stylesheet" href="lib/codemirror/addon/hint/show-hint.css">
++<link rel="stylesheet" href="lib/codemirror/addon/search/matchesonscrollbar.css">
++
++<link rel="stylesheet" href="css/themes/default.css">
++<link rel="stylesheet" href="css/common.css">
++<link rel="stylesheet" href="css/fa-icons.css">
++<link rel="stylesheet" href="css/dashboard-common.css">
++<link rel="stylesheet" href="css/cloud-ui.css">
++<link rel="stylesheet" href="css/1p-filters.css">
++<link rel="stylesheet" href="css/codemirror.css">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++
++<div class="body">
++    <div id="cloudWidget" class="hide" data-cloud-entry="myFiltersPane"></div>
++    <p>
++        <button id="userFiltersApply" class="preferred iconified" type="button" disabled><span class="fa-icon">check</span><span data-i18n="1pApplyChanges">_</span><span class="hover"></span></button>
++        <button id="userFiltersRevert" class="iconified" type="button" disabled><span class="fa-icon">undo</span><span data-i18n="genericRevert">_</span><span class="hover"></span></button>
++        &emsp;
++        <button id="importUserFiltersFromFile" class="iconified" type="button"><span class="fa-icon">download-alt</span><span data-i18n="1pImport">_</span><span class="hover"></span></button>
++        <button id="exportUserFiltersToFile" class="iconified" type="button"><span class="fa-icon">upload-alt</span><span data-i18n="1pExport">_</span><span class="hover"></span></button>
++    </p>
++    <p data-i18n="1pTrustWarning"></p>
++    <div class="li"><label><span id="enableMyFilters" class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="1pEnableMyFiltersLabel"></span></label></div>
++    <div id="trustMyFilters" class="li"><label><span class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="1pTrustMyFiltersLabel"></span></label></div>
++</div>
++<div id="userFilters" class="codeMirrorContainer codeMirrorBreakAll cm-theme-override" spellcheck="false"></div>
++<div class="hidden">
++    <input id="importFilePicker" type="file" accept="text/plain">
++</div>
++
++<script src="lib/codemirror/lib/codemirror.js"></script>
++<script src="lib/codemirror/addon/comment/comment.js"></script>
++<script src="lib/codemirror/addon/display/panel.js"></script>
++<script src="lib/codemirror/addon/edit/closebrackets.js"></script>
++<script src="lib/codemirror/addon/edit/matchbrackets.js"></script>
++<script src="lib/codemirror/addon/fold/foldcode.js"></script>
++<script src="lib/codemirror/addon/hint/show-hint.js"></script>
++<script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
++<script src="lib/codemirror/addon/search/searchcursor.js"></script>
++<script src="lib/codemirror/addon/selection/active-line.js"></script>
++<script src="lib/diff/swatinem_diff.js"></script>
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++
++<script src="js/codemirror/search.js" type="module"></script>
++<script src="js/codemirror/search-thread.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/cloud-ui.js" type="module"></script>
++<script src="js/1p-filters.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/3p-filters.html
 +++ b/3p-filters.html
-@@ -1,6 +1,8 @@
+@@ -1,118 +1,122 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock — Filter lists</title>
+-<link rel="stylesheet" type="text/css" href="css/themes/default.css">
+-<link rel="stylesheet" type="text/css" href="css/common.css">
+-<link rel="stylesheet" type="text/css" href="css/fa-icons.css">
+-<link rel="stylesheet" type="text/css" href="css/dashboard-common.css">
+-<link rel="stylesheet" type="text/css" href="css/cloud-ui.css">
+-<link rel="stylesheet" type="text/css" href="css/3p-filters.css">
+-</head>
+-
+-<body>
+-
+-<div class="body">
+-
+-<div id="cloudWidget" class="hide" data-cloud-entry="tpFiltersPane"></div>
+-<p id="actions">
+-    <button id="buttonApply" class="preferred disabled iconified dontshrink" type="button" data-i18n-title="3pApplyChanges"><span class="fa-icon">check</span><span data-i18n="3pApplyChanges">_</span><span class="hover"></span></button>
+-    <button id="buttonUpdate" class="preferred disabled iconified" type="button" data-i18n-title="3pUpdateNow"><span class="fa-icon">refresh</span><span data-i18n="3pUpdateNow">_</span><span class="hover"></span></button>
+-</p>
+-
+-<div>
+-    <div class="li">
+-        <label><span class="input checkbox"><input type="checkbox" id="autoUpdate"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="3pAutoUpdatePrompt1"></span></label>
+-    </div>
+-    <div class="li">
+-        <label><span class="input checkbox"><input type="checkbox" id="suspendUntilListsAreLoaded"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="3pSuspendUntilListsAreLoaded"></span></label>
+-    </div>
+-    <div class="li">
+-        <label><span class="input checkbox"><input type="checkbox" id="parseCosmeticFilters"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="3pParseAllABPHideFiltersPrompt1"></span>&nbsp;<span class="fa-icon info" data-i18n-title="3pParseAllABPHideFiltersInfo">question-circle</span></span></label>
+-    </div>
+-    <div class="li">
+-        <label><span class="input checkbox"><input type="checkbox" id="ignoreGenericCosmeticFilters"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="3pIgnoreGenericCosmeticFilters"></span>&nbsp;<span class="fa-icon info" data-i18n-title="3pIgnoreGenericCosmeticFiltersInfo">question-circle</span></span></label>
+-    </div>
+-</div>
+-
+-<div>
+-</div>
+-
+-<div id="lists">
+-    <div class="rootstats expandable" data-key="*">
+-        <span class="fa-icon listExpander">angle-up</span><span id="listsOfBlockedHostsPrompt"></span>
+-    </div>
+-    <div class="searchfield"><input type="search" spellcheck="false" placeholder="" /><span class="fa-icon">search</span></div>
+-    <div class="listEntries"></div>
+-    <div class="li listEntry expandable" data-role="import">
+-        <span class="detailbar">
+-            <label><span class="fa-icon listExpander">angle-up</span><span class="listname" data-i18n="3pImport"></span></label>
+-            <a class="fa-icon info towiki" href="https://github.com/gorhill/uBlock/wiki/Filter-lists-from-around-the-web" target="_blank">info-circle</a>
+-        </span>
+-        <textarea dir="ltr" spellcheck="false" placeholder="3pExternalListsHint"></textarea>
+-    </div>
+-</div>
+-
+-</div>
+-
+-<div id="templates" style="display: none;">
+-    <div class="listEntries"></div>
+-    <div class="li listEntry" data-role="leaf">
+-        <span class="detailbar">
+-            <label><span class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span class="listname forinput"></span>
+-            </span></label>
+-            <span class="iconbar"><!--
+-             --><a class="fa-icon content" href="#" type="text/plain" target="_blank" data-i18n-title="3pViewContent">eye-open</a><!--
+-             --><a class="fa-icon support" href="#" target="_blank">home</a><!--
+-             --><span class="fa-icon remove">trash-o</span><!--
+-             --><a class="fa-icon mustread" href="#" target="_blank">info-circle</a><!--
+-             --><span class="fa-icon status unsecure" title="http">unlock-alt</span><!--
+-             --><span class="fa-icon status obsolete" data-i18n-title="3pExternalListObsolete">exclamation-triangle</span><!--
+-             --><span class="fa-icon status cache">clock-o</span><!--
+-             --><span class="fa-icon status updating" data-i18n-title="3pUpdating">spinner</span><!--
+-             --><span class="fa-icon status failed" data-i18n-title="3pNetworkError">unlink</span>
+-            </span>
+-            <span class="leafstats"></span>
+-        </span>
+-    </div>
+-    <div class="li listEntry expandable" data-role="node">
+-        <span class="detailbar">
+-            <label><span class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span class="listname forinput"></span></label>
+-            <span class="nodestats"></span>
+-            <span class="fa-icon listExpander">angle-up</span>
+-            <span class="iconbar"><!--
+-             --><a class="fa-icon support" href="#" target="_blank">home</a><!--
+-             --><a class="fa-icon mustread" href="#" target="_blank">info-circle</a><!--
+-             --><span class="fa-icon status obsolete" data-i18n-title="3pExternalListObsolete">exclamation-triangle</span><!--
+-             --><span class="fa-icon status cache">clock-o</span><!--
+-             --><span class="fa-icon status updating" data-i18n-title="3pUpdating">spinner</span><!--
+-             --><span class="fa-icon status failed" data-i18n-title="3pNetworkError">unlink</span>
+-            </span>
+-            <span class="leafstats"></span>
+-        </span>
+-    </div>
+-    <div class="li listEntry expandable" data-parent="root" data-role="node">
+-        <span class="detailbar">
+-            <label><span class="fa-icon listExpander">angle-up</span><span class="listname"></span></label>
+-            <span class="nodestats"></span>
+-        </span>
+-    </div>
+-</div>
+-
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/cloud-ui.js" type="module"></script>
+-<script src="js/3p-filters.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock — Filter lists</title>
++<link rel="stylesheet" type="text/css" href="css/themes/default.css">
++<link rel="stylesheet" type="text/css" href="css/common.css">
++<link rel="stylesheet" type="text/css" href="css/fa-icons.css">
++<link rel="stylesheet" type="text/css" href="css/dashboard-common.css">
++<link rel="stylesheet" type="text/css" href="css/cloud-ui.css">
++<link rel="stylesheet" type="text/css" href="css/3p-filters.css">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++
++<div class="body">
++
++<div id="cloudWidget" class="hide" data-cloud-entry="tpFiltersPane"></div>
++<p id="actions">
++    <button id="buttonApply" class="preferred disabled iconified dontshrink" type="button" data-i18n-title="3pApplyChanges"><span class="fa-icon">check</span><span data-i18n="3pApplyChanges">_</span><span class="hover"></span></button>
++    <button id="buttonUpdate" class="preferred disabled iconified" type="button" data-i18n-title="3pUpdateNow"><span class="fa-icon">refresh</span><span data-i18n="3pUpdateNow">_</span><span class="hover"></span></button>
++</p>
++
++<div>
++    <div class="li">
++        <label><span class="input checkbox"><input type="checkbox" id="autoUpdate"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="3pAutoUpdatePrompt1"></span></label>
++    </div>
++    <div class="li">
++        <label><span class="input checkbox"><input type="checkbox" id="suspendUntilListsAreLoaded"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="3pSuspendUntilListsAreLoaded"></span></label>
++    </div>
++    <div class="li">
++        <label><span class="input checkbox"><input type="checkbox" id="parseCosmeticFilters"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="3pParseAllABPHideFiltersPrompt1"></span>&nbsp;<span class="fa-icon info" data-i18n-title="3pParseAllABPHideFiltersInfo">question-circle</span></span></label>
++    </div>
++    <div class="li">
++        <label><span class="input checkbox"><input type="checkbox" id="ignoreGenericCosmeticFilters"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="3pIgnoreGenericCosmeticFilters"></span>&nbsp;<span class="fa-icon info" data-i18n-title="3pIgnoreGenericCosmeticFiltersInfo">question-circle</span></span></label>
++    </div>
++</div>
++
++<div>
++</div>
++
++<div id="lists">
++    <div class="rootstats expandable" data-key="*">
++        <span class="fa-icon listExpander">angle-up</span><span id="listsOfBlockedHostsPrompt"></span>
++    </div>
++    <div class="searchfield"><input type="search" spellcheck="false" placeholder="" /><span class="fa-icon">search</span></div>
++    <div class="listEntries"></div>
++    <div class="li listEntry expandable" data-role="import">
++        <span class="detailbar">
++            <label><span class="fa-icon listExpander">angle-up</span><span class="listname" data-i18n="3pImport"></span></label>
++            <a class="fa-icon info towiki" href="https://github.com/gorhill/uBlock/wiki/Filter-lists-from-around-the-web" target="_blank">info-circle</a>
++        </span>
++        <textarea dir="ltr" spellcheck="false" placeholder="3pExternalListsHint"></textarea>
++    </div>
++</div>
++
++</div>
++
++<div id="templates" style="display: none;">
++    <div class="listEntries"></div>
++    <div class="li listEntry" data-role="leaf">
++        <span class="detailbar">
++            <label><span class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span class="listname forinput"></span>
++            </span></label>
++            <span class="iconbar"><!--
++             --><a class="fa-icon content" href="#" type="text/plain" target="_blank" data-i18n-title="3pViewContent">eye-open</a><!--
++             --><a class="fa-icon support" href="#" target="_blank">home</a><!--
++             --><span class="fa-icon remove">trash-o</span><!--
++             --><a class="fa-icon mustread" href="#" target="_blank">info-circle</a><!--
++             --><span class="fa-icon status unsecure" title="http">unlock-alt</span><!--
++             --><span class="fa-icon status obsolete" data-i18n-title="3pExternalListObsolete">exclamation-triangle</span><!--
++             --><span class="fa-icon status cache">clock-o</span><!--
++             --><span class="fa-icon status updating" data-i18n-title="3pUpdating">spinner</span><!--
++             --><span class="fa-icon status failed" data-i18n-title="3pNetworkError">unlink</span>
++            </span>
++            <span class="leafstats"></span>
++        </span>
++    </div>
++    <div class="li listEntry expandable" data-role="node">
++        <span class="detailbar">
++            <label><span class="input checkbox"><input type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span class="listname forinput"></span></label>
++            <span class="nodestats"></span>
++            <span class="fa-icon listExpander">angle-up</span>
++            <span class="iconbar"><!--
++             --><a class="fa-icon support" href="#" target="_blank">home</a><!--
++             --><a class="fa-icon mustread" href="#" target="_blank">info-circle</a><!--
++             --><span class="fa-icon status obsolete" data-i18n-title="3pExternalListObsolete">exclamation-triangle</span><!--
++             --><span class="fa-icon status cache">clock-o</span><!--
++             --><span class="fa-icon status updating" data-i18n-title="3pUpdating">spinner</span><!--
++             --><span class="fa-icon status failed" data-i18n-title="3pNetworkError">unlink</span>
++            </span>
++            <span class="leafstats"></span>
++        </span>
++    </div>
++    <div class="li listEntry expandable" data-parent="root" data-role="node">
++        <span class="detailbar">
++            <label><span class="fa-icon listExpander">angle-up</span><span class="listname"></span></label>
++            <span class="nodestats"></span>
++        </span>
++    </div>
++</div>
++
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/cloud-ui.js" type="module"></script>
++<script src="js/3p-filters.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/about.html
 +++ b/about.html
-@@ -1,6 +1,8 @@
+@@ -1,65 +1,69 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock — About</title>
+-<link rel="stylesheet" type="text/css" href="css/themes/default.css">
+-<link rel="stylesheet" type="text/css" href="css/common.css">
+-<link rel="stylesheet" type="text/css" href="css/dashboard-common.css">
+-<link rel="stylesheet" type="text/css" href="css/about.css">
+-</head>
+-
+-<body>
+-
+-<div class="body">
+-    <div id="aboutNameVer" class="li"></div>
+-    <div class="liul">
+-        <div class="li">Copyright &copy; Raymond Hill 2014-present</div>
+-    </div>
+-    <div class="li"><a href="https://github.com/gorhill/uBlock/wiki/Privacy-policy" data-i18n="aboutPrivacyPolicy"></a></div>
+-    <div class="li"><a href="https://github.com/gorhill/uBlock/releases" data-i18n="aboutChangelog"></a></div>
+-    <div class="li"><a href="https://github.com/gorhill/uBlock" data-i18n="aboutCode"></a></div>
+-    <div class="li"><span data-i18n="aboutContributors"></span></div>
+-    <div class="liul">
+-        <div class="li"><a href="https://github.com/gorhill/uBlock/graphs/contributors" data-i18n="aboutSourceCode"></a></div>
+-        <div class="li"><a href="https://crowdin.com/project/ublock" data-i18n="aboutTranslations"></a></div>
+-        <div class="li"><a href="https://github.com/uBlockOrigin/uAssets/graphs/contributors" data-i18n="aboutFilterLists"></a></div>
+-    </div>
+-    <div class="li"><span data-i18n="aboutDependencies"></span></div>
+-    <div class="liul">
+-        <div class="li"><span><a href="https://codemirror.net/" target="_blank">CodeMirror</a> by <a href="https://github.com/marijnh">Marijn Haverbeke</a></span></div>
+-        <div class="li"><span><a href="https://github.com/mathiasbynens/punycode.js" target="_blank">Punycode.js</a> by <a href="https://github.com/mathiasbynens">Mathias Bynens</a></span></div>
+-        <div class="li"><span><a href="https://web.archive.org/web/20201013225635/https://github.com/chrismsimpson/Metropolis" target="_blank">Metropolis font family</a> by <a href="https://github.com/chrismsimpson">Chris Simpson</a></span></div>
+-        <div class="li"><span><a href="https://github.com/rsms/inter" target="_blank">Inter font family</a> by <a href="https://github.com/rsms">Rasmus Andersson</a></span></div>
+-        <div class="li"><span><a href="https://fontawesome.com/" target="_blank">FontAwesome font family</a> by <a href="https://github.com/davegandy">Dave Gandy</a></span></div>
+-        <div class="li"><span><a href="https://github.com/Swatinem/diff" target="_blank">An implementation of Myers' diff algorithm</a> by <a href="https://github.com/Swatinem">Arpad Borsos</a></span></div>
+-        <div class="li"><span><a href="https://github.com/foo123/RegexAnalyzer" target="_blank">Regular Expression Analyzer</a> by <a href="https://github.com/foo123">Nikos M.</a></span></div>
+-        <div class="li"><span><a href="https://github.com/hsluv/hsluv" target="_blank">HSLuv - Human-friendly HSL</a> by <a href="https://github.com/boronine">Alexei Boronine</a></span></div>
+-        <div class="li"><span><a href="https://searchfox.org/mozilla-central/rev/d317e93d9a59c9e4c06ada85fbff9f6a1ceaaad1/browser/extensions/webcompat/shims/google-ima.js" target="_blank">google-ima.js</a> by <a href="https://www.mozilla.org/">Mozilla</a></span></div>
+-        <div class="li"><span><a href="https://github.com/csstree/csstree" target="_blank">CSSTree</a> by <a href="https://github.com/lahmatiy">Roman Dvornov</a></span></div>
+-        <div class="li"><span><a href="https://github.com/beautify-web/js-beautify" target="_blank">js-beautify</a> by <a href="https://github.com/einars">Einar Lielmanis</a>, <a href="https://github.com/bitwiseman">Liam Newman</a>, et al.</span></div>
+-        <div class="li"><span><a href="https://flagpedia.net/" target="_blank">Flags of the World</a> by <a href="https://www.davidkrmela.com/">David Krmela</a></span></div>
+-        <div class="li"><span><a href="https://github.com/AdguardTeam/Scriptlets/blob/master/src/redirects/google-ima3-dai.ts" target="_blank">google-ima3-dai</a> by <a href="https://github.com/AdamWr">Adam Wróblewski</a></span></div>
+-    </div>
+-    <div class="li"><span data-i18n="aboutCDNs"></span></div>
+-    <div class="liul">
+-        <div class="li"><span><a href="https://pages.cloudflare.com/" target="_blank">Cloudflare Pages</a>, <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>, <a href="https://www.jsdelivr.com/" target="_blank">jsDelivr</a>, <a href="https://statically.io/" target="_blank">Statically</a></span>
+-        </div>
+-        <div class="li" data-i18n="aboutCDNsInfo"></div>
+-    </div>
+-</div>
+-
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/about.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock — About</title>
++<link rel="stylesheet" type="text/css" href="css/themes/default.css">
++<link rel="stylesheet" type="text/css" href="css/common.css">
++<link rel="stylesheet" type="text/css" href="css/dashboard-common.css">
++<link rel="stylesheet" type="text/css" href="css/about.css">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++
++<div class="body">
++    <div id="aboutNameVer" class="li"></div>
++    <div class="liul">
++        <div class="li">Copyright &copy; Raymond Hill 2014-present</div>
++    </div>
++    <div class="li"><a href="https://github.com/gorhill/uBlock/wiki/Privacy-policy" data-i18n="aboutPrivacyPolicy"></a></div>
++    <div class="li"><a href="https://github.com/gorhill/uBlock/releases" data-i18n="aboutChangelog"></a></div>
++    <div class="li"><a href="https://github.com/gorhill/uBlock" data-i18n="aboutCode"></a></div>
++    <div class="li"><span data-i18n="aboutContributors"></span></div>
++    <div class="liul">
++        <div class="li"><a href="https://github.com/gorhill/uBlock/graphs/contributors" data-i18n="aboutSourceCode"></a></div>
++        <div class="li"><a href="https://crowdin.com/project/ublock" data-i18n="aboutTranslations"></a></div>
++        <div class="li"><a href="https://github.com/uBlockOrigin/uAssets/graphs/contributors" data-i18n="aboutFilterLists"></a></div>
++    </div>
++    <div class="li"><span data-i18n="aboutDependencies"></span></div>
++    <div class="liul">
++        <div class="li"><span><a href="https://codemirror.net/" target="_blank">CodeMirror</a> by <a href="https://github.com/marijnh">Marijn Haverbeke</a></span></div>
++        <div class="li"><span><a href="https://github.com/mathiasbynens/punycode.js" target="_blank">Punycode.js</a> by <a href="https://github.com/mathiasbynens">Mathias Bynens</a></span></div>
++        <div class="li"><span><a href="https://web.archive.org/web/20201013225635/https://github.com/chrismsimpson/Metropolis" target="_blank">Metropolis font family</a> by <a href="https://github.com/chrismsimpson">Chris Simpson</a></span></div>
++        <div class="li"><span><a href="https://github.com/rsms/inter" target="_blank">Inter font family</a> by <a href="https://github.com/rsms">Rasmus Andersson</a></span></div>
++        <div class="li"><span><a href="https://fontawesome.com/" target="_blank">FontAwesome font family</a> by <a href="https://github.com/davegandy">Dave Gandy</a></span></div>
++        <div class="li"><span><a href="https://github.com/Swatinem/diff" target="_blank">An implementation of Myers' diff algorithm</a> by <a href="https://github.com/Swatinem">Arpad Borsos</a></span></div>
++        <div class="li"><span><a href="https://github.com/foo123/RegexAnalyzer" target="_blank">Regular Expression Analyzer</a> by <a href="https://github.com/foo123">Nikos M.</a></span></div>
++        <div class="li"><span><a href="https://github.com/hsluv/hsluv" target="_blank">HSLuv - Human-friendly HSL</a> by <a href="https://github.com/boronine">Alexei Boronine</a></span></div>
++        <div class="li"><span><a href="https://searchfox.org/mozilla-central/rev/d317e93d9a59c9e4c06ada85fbff9f6a1ceaaad1/browser/extensions/webcompat/shims/google-ima.js" target="_blank">google-ima.js</a> by <a href="https://www.mozilla.org/">Mozilla</a></span></div>
++        <div class="li"><span><a href="https://github.com/csstree/csstree" target="_blank">CSSTree</a> by <a href="https://github.com/lahmatiy">Roman Dvornov</a></span></div>
++        <div class="li"><span><a href="https://github.com/beautify-web/js-beautify" target="_blank">js-beautify</a> by <a href="https://github.com/einars">Einar Lielmanis</a>, <a href="https://github.com/bitwiseman">Liam Newman</a>, et al.</span></div>
++        <div class="li"><span><a href="https://flagpedia.net/" target="_blank">Flags of the World</a> by <a href="https://www.davidkrmela.com/">David Krmela</a></span></div>
++        <div class="li"><span><a href="https://github.com/AdguardTeam/Scriptlets/blob/master/src/redirects/google-ima3-dai.ts" target="_blank">google-ima3-dai</a> by <a href="https://github.com/AdamWr">Adam Wróblewski</a></span></div>
++    </div>
++    <div class="li"><span data-i18n="aboutCDNs"></span></div>
++    <div class="liul">
++        <div class="li"><span><a href="https://pages.cloudflare.com/" target="_blank">Cloudflare Pages</a>, <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>, <a href="https://www.jsdelivr.com/" target="_blank">jsDelivr</a>, <a href="https://statically.io/" target="_blank">Statically</a></span>
++        </div>
++        <div class="li" data-i18n="aboutCDNsInfo"></div>
++    </div>
++</div>
++
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/about.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/advanced-settings.html
 +++ b/advanced-settings.html
-@@ -1,6 +1,8 @@
+@@ -1,43 +1,47 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title data-i18n="advancedSettingsPageName"></title>
+-
+-<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+-
+-<link rel="stylesheet" href="css/themes/default.css">
+-<link rel="stylesheet" href="css/common.css">
+-<link rel="stylesheet" href="css/fa-icons.css">
+-<link rel="stylesheet" href="css/dashboard-common.css">
+-<link rel="stylesheet" href="css/advanced-settings.css">
+-<link rel="stylesheet" href="css/codemirror.css">
+-<link rel="icon" type="image/png" href="img/icon_64.png">
+-</head>
+-
+-<body>
+-<div class="body">
+-    <p><span data-i18n="advancedSettingsWarning"></span> <a class="fa-icon info important" href="https://github.com/gorhill/uBlock/wiki/Advanced-settings" target="_blank">info-circle</a>
+-    <p>
+-        <button id="advancedSettingsApply" class="preferred" type="button" disabled data-i18n="genericApplyChanges">_<span class="hover"></span></button>&ensp;
+-</div>
+-
+-<div id="advancedSettings" class="codeMirrorContainer cm-theme-override"></div>
+-
+-<script src="lib/codemirror/lib/codemirror.js"></script>
+-<script src="lib/codemirror/addon/selection/active-line.js"></script>
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/advanced-settings.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title data-i18n="advancedSettingsPageName"></title>
++
++<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
++
++<link rel="stylesheet" href="css/themes/default.css">
++<link rel="stylesheet" href="css/common.css">
++<link rel="stylesheet" href="css/fa-icons.css">
++<link rel="stylesheet" href="css/dashboard-common.css">
++<link rel="stylesheet" href="css/advanced-settings.css">
++<link rel="stylesheet" href="css/codemirror.css">
++<link rel="icon" type="image/png" href="img/icon_64.png">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++<div class="body">
++    <p><span data-i18n="advancedSettingsWarning"></span> <a class="fa-icon info important" href="https://github.com/gorhill/uBlock/wiki/Advanced-settings" target="_blank">info-circle</a>
++    <p>
++        <button id="advancedSettingsApply" class="preferred" type="button" disabled data-i18n="genericApplyChanges">_<span class="hover"></span></button>&ensp;
++</div>
++
++<div id="advancedSettings" class="codeMirrorContainer cm-theme-override"></div>
++
++<script src="lib/codemirror/lib/codemirror.js"></script>
++<script src="lib/codemirror/addon/selection/active-line.js"></script>
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/advanced-settings.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/asset-viewer.html
 +++ b/asset-viewer.html
 @@ -1,6 +1,8 @@
@@ -99,15 +655,116 @@
  <meta name="color-scheme" content="light dark" />
 --- a/dashboard.html
 +++ b/dashboard.html
-@@ -1,6 +1,8 @@
+@@ -1,55 +1,59 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title data-i18n="dashboardName"></title>
+-<link rel="stylesheet" href="css/themes/default.css">
+-<link rel="stylesheet" href="css/fa-icons.css">
+-<link rel="stylesheet" href="css/common.css">
+-<link rel="stylesheet" href="css/dashboard.css">
+-<link rel="icon" type="image/png" href="img/icon_64.png">
+-</head>
+-
+-<body class="notReady">
+-    
+-<div id="dashboard-nav">
+-    <span>
+-        <span class="logo"><img data-i18n-title="extName" src="img/ublock.svg" alt="uBlock Origin"></span><!--
+-     --><button class="tabButton" type="button" data-pane="settings.html" data-i18n="settingsPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="3p-filters.html" data-i18n="3pPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="1p-filters.html" data-i18n="1pPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="dyna-rules.html" data-i18n="rulesPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="whitelist.html" data-i18n="whitelistPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="support.html" data-i18n="supportPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="about.html" data-i18n="aboutPageName" tabindex="0"></button><!--
+-     --><button class="tabButton" type="button" data-pane="no-dashboard.html"></button>
+-    </span>
+-    <a class="wikilink fa-icon" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-My-filters">book</a>
+-</div>
+-<section id="unsavedWarning" class="notice">
+-    <div>
+-        <span data-i18n="dashboardUnsavedWarning"></span>&emsp;
+-        <button type="button" data-i18n="dashboardUnsavedWarningStay">_<span class="hover"></span></button>&ensp;
+-        <button type="button" data-i18n="dashboardUnsavedWarningIgnore">_<span class="hover"></span></button>
+-    </div>
+-    <div></div>
+-</section>
+-
+-<iframe id="iframe" src="blank.html"></iframe>
+-
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title data-i18n="dashboardName"></title>
++<link rel="stylesheet" href="css/themes/default.css">
++<link rel="stylesheet" href="css/fa-icons.css">
++<link rel="stylesheet" href="css/common.css">
++<link rel="stylesheet" href="css/dashboard.css">
++<link rel="icon" type="image/png" href="img/icon_64.png">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body class="notReady">
++    
++<div id="dashboard-nav">
++    <span>
++        <span class="logo"><img data-i18n-title="extName" src="img/ublock.svg" alt="uBlock Origin"></span><!--
++     --><button class="tabButton" type="button" data-pane="settings.html" data-i18n="settingsPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="3p-filters.html" data-i18n="3pPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="1p-filters.html" data-i18n="1pPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="dyna-rules.html" data-i18n="rulesPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="whitelist.html" data-i18n="whitelistPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="support.html" data-i18n="supportPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="about.html" data-i18n="aboutPageName" tabindex="0"></button><!--
++     --><button class="tabButton" type="button" data-pane="no-dashboard.html"></button>
++    </span>
++    <a class="wikilink fa-icon" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-My-filters">book</a>
++</div>
++<section id="unsavedWarning" class="notice">
++    <div>
++        <span data-i18n="dashboardUnsavedWarning"></span>&emsp;
++        <button type="button" data-i18n="dashboardUnsavedWarningStay">_<span class="hover"></span></button>&ensp;
++        <button type="button" data-i18n="dashboardUnsavedWarningIgnore">_<span class="hover"></span></button>
++    </div>
++    <div></div>
++</section>
++
++<iframe id="iframe" src="blank.html"></iframe>
++
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/devtools.html
 +++ b/devtools.html
 @@ -1,6 +1,8 @@
@@ -132,15 +789,142 @@
  <meta name="color-scheme" content="light dark" />
 --- a/dyna-rules.html
 +++ b/dyna-rules.html
-@@ -1,6 +1,8 @@
+@@ -1,68 +1,72 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock — Dynamic filtering rules</title>
+-<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+-<link rel="stylesheet" href="lib/codemirror/addon/merge/merge.css">
+-
+-<link rel="stylesheet" href="css/themes/default.css">
+-<link rel="stylesheet" href="css/common.css">
+-<link rel="stylesheet" href="css/fa-icons.css">
+-<link rel="stylesheet" href="css/dashboard-common.css">
+-<link rel="stylesheet" href="css/cloud-ui.css">
+-<link rel="stylesheet" href="css/dyna-rules.css">
+-<link rel="stylesheet" href="css/codemirror.css">
+-</head>
+-
+-<body>
+-
+-<div class="body">
+-    <div id="cloudWidget" class="hide" data-cloud-entry="myRulesPane"></div>
+-    <p class="vverbose"><span data-i18n="rulesHint"></span></p>
+-    <div id="diff">
+-        <div class="tools">
+-            <div class="ruleActions">
+-                <div class="fieldset-header" data-i18n="rulesPermanentHeader"></div>
+-                <button type="button" class="iconified" id="exportButton"><span class="fa-icon">upload-alt</span><span data-i18n="rulesExport">_</span><span class="hover"></span></button>
+-                <button type="button" class="iconified disabled" id="revertButton"><span class="fa-icon">arrow-right</span><span data-i18n="rulesRevert">_</span><span class="hover"></span></button>
+-            </div>
+-            <div class="ruleActions">
+-                <div class="fieldset-header" data-i18n="rulesTemporaryHeader"></div>
+-                <button type="button" class="iconified disabled" id="commitButton"><span class="fa-icon fa-icon-hflipped">arrow-right</span><span data-i18n="rulesCommit">_</span><span class="hover"></span></button>
+-                <button type="button" class="iconified" id="importButton"><span class="fa-icon">download-alt</span><span data-i18n="rulesImport">_</span><span class="hover"></span></button>
+-                <button type="button" class="iconified preferred disabled" id="editSaveButton"><span class="fa-icon">save</span><span data-i18n="rulesEditSave">_</span><span class="hover"></span></button>
+-            </div>
+-        </div>
+-    </div>
+-</div>
+-<div id="ruleFilter">
+-    <span><span class="fa-icon">filter</span>&nbsp;<input type="search" size="16"></span>&emsp;<span data-i18n="rulesSort"></span>&nbsp;<select><option value="0" selected data-i18n="rulesSortByType"><option value="1" data-i18n="rulesSortBySource"><option value="2" data-i18n="rulesSortByDestination"></select>&emsp;<span id="diffCollapse" class="fa-icon">double-angle-up</span>
+-</div>
+-<div class="codeMirrorContainer codeMirrorMergeContainer cm-theme-override"></div>
+-
+-<div id="templates" style="display: none;">
+-    <input class="hidden" id="importFilePicker" type="file" accept="text/plain">
+-    <span class="hidden" data-i18n="rulesDefaultFileName"></span>
+-</div>
+-
+-<script src="lib/diff/swatinem_diff.js"></script>
+-<script src="lib/codemirror/lib/codemirror.js"></script>
+-<script src="lib/codemirror/addon/merge/merge.js"></script>
+-<script src="lib/codemirror/addon/selection/active-line.js"></script>
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/cloud-ui.js" type="module"></script>
+-<script src="js/dyna-rules.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock — Dynamic filtering rules</title>
++<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
++<link rel="stylesheet" href="lib/codemirror/addon/merge/merge.css">
++
++<link rel="stylesheet" href="css/themes/default.css">
++<link rel="stylesheet" href="css/common.css">
++<link rel="stylesheet" href="css/fa-icons.css">
++<link rel="stylesheet" href="css/dashboard-common.css">
++<link rel="stylesheet" href="css/cloud-ui.css">
++<link rel="stylesheet" href="css/dyna-rules.css">
++<link rel="stylesheet" href="css/codemirror.css">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++
++<div class="body">
++    <div id="cloudWidget" class="hide" data-cloud-entry="myRulesPane"></div>
++    <p class="vverbose"><span data-i18n="rulesHint"></span></p>
++    <div id="diff">
++        <div class="tools">
++            <div class="ruleActions">
++                <div class="fieldset-header" data-i18n="rulesPermanentHeader"></div>
++                <button type="button" class="iconified" id="exportButton"><span class="fa-icon">upload-alt</span><span data-i18n="rulesExport">_</span><span class="hover"></span></button>
++                <button type="button" class="iconified disabled" id="revertButton"><span class="fa-icon">arrow-right</span><span data-i18n="rulesRevert">_</span><span class="hover"></span></button>
++            </div>
++            <div class="ruleActions">
++                <div class="fieldset-header" data-i18n="rulesTemporaryHeader"></div>
++                <button type="button" class="iconified disabled" id="commitButton"><span class="fa-icon fa-icon-hflipped">arrow-right</span><span data-i18n="rulesCommit">_</span><span class="hover"></span></button>
++                <button type="button" class="iconified" id="importButton"><span class="fa-icon">download-alt</span><span data-i18n="rulesImport">_</span><span class="hover"></span></button>
++                <button type="button" class="iconified preferred disabled" id="editSaveButton"><span class="fa-icon">save</span><span data-i18n="rulesEditSave">_</span><span class="hover"></span></button>
++            </div>
++        </div>
++    </div>
++</div>
++<div id="ruleFilter">
++    <span><span class="fa-icon">filter</span>&nbsp;<input type="search" size="16"></span>&emsp;<span data-i18n="rulesSort"></span>&nbsp;<select><option value="0" selected data-i18n="rulesSortByType"><option value="1" data-i18n="rulesSortBySource"><option value="2" data-i18n="rulesSortByDestination"></select>&emsp;<span id="diffCollapse" class="fa-icon">double-angle-up</span>
++</div>
++<div class="codeMirrorContainer codeMirrorMergeContainer cm-theme-override"></div>
++
++<div id="templates" style="display: none;">
++    <input class="hidden" id="importFilePicker" type="file" accept="text/plain">
++    <span class="hidden" data-i18n="rulesDefaultFileName"></span>
++</div>
++
++<script src="lib/diff/swatinem_diff.js"></script>
++<script src="lib/codemirror/lib/codemirror.js"></script>
++<script src="lib/codemirror/addon/merge/merge.js"></script>
++<script src="lib/codemirror/addon/selection/active-line.js"></script>
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/cloud-ui.js" type="module"></script>
++<script src="js/dyna-rules.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/is-webrtc-supported.html
 +++ b/is-webrtc-supported.html
 @@ -1,6 +1,8 @@
@@ -7949,6 +8733,539 @@
          if ( userResourcesLocation !== 'unset' ) {
              for ( const url of userResourcesLocation.split(/\s+/) ) {
                  fetchPromises.push(io.fetchText(url));
+--- a/js/support.js
++++ b/js/support.js
+@@ -1,266 +1,267 @@
+-/*******************************************************************************
+-
+-    uBlock Origin - a comprehensive, efficient content blocker
+-    Copyright (C) 2014-present Raymond Hill
+-
+-    This program is free software: you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation, either version 3 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program.  If not, see {http://www.gnu.org/licenses/}.
+-
+-    Home: https://github.com/gorhill/uBlock
+-*/
+-
+-/* global CodeMirror, uBlockDashboard */
+-
+-import { dom, qs$ } from './dom.js';
+-import { onBroadcast } from './broadcast.js';
+-
+-/******************************************************************************/
+-
+-const uselessKeys = [
+-    'hiddenSettings.benchmarkDatasetURL',
+-    'hiddenSettings.blockingProfiles',
+-    'hiddenSettings.consoleLogLevel',
+-    'hiddenSettings.uiPopupConfig',
+-    'userSettings.alwaysDetachLogger',
+-    'userSettings.firewallPaneMinimized',
+-    'userSettings.externalLists',
+-    'userSettings.importedLists',
+-    'userSettings.popupPanelSections',
+-    'userSettings.uiAccentCustom',
+-    'userSettings.uiAccentCustom0',
+-    'userSettings.uiTheme',
+-];
+-
+-const sensitiveValues = [
+-    'filterset (user)',
+-    'userSettings.popupPanelSections',
+-    'hiddenSettings.userResourcesLocation',
+-    'trustedset.added',
+-    'hostRuleset.added',
+-    'switchRuleset.added',
+-    'urlRuleset.added',
+-];
+-
+-const sensitiveKeys = [
+-    'listset.added',
+-];
+-
+-/******************************************************************************/
+-
+-function removeKey(data, prop) {
+-    if ( data instanceof Object === false ) { return; }
+-    const pos = prop.indexOf('.');
+-    if ( pos !== -1 ) {
+-        const key = prop.slice(0, pos);
+-        return removeKey(data[key], prop.slice(pos + 1));
+-    }
+-    delete data[prop];
+-}
+-
+-function redactValue(data, prop) {
+-    if ( data instanceof Object === false ) { return; }
+-    const pos = prop.indexOf('.');
+-    if ( pos !== -1 ) {
+-        return redactValue(data[prop.slice(0, pos)], prop.slice(pos + 1));
+-    }
+-    let value = data[prop];
+-    if ( value === undefined ) { return; }
+-    if ( Array.isArray(value) ) {
+-        if ( value.length !== 0 ) {
+-            value = `[array of ${value.length} redacted]`;
+-        } else {
+-            value = '[empty]';
+-        }
+-    } else {
+-        value = '[redacted]';
+-    }
+-    data[prop] = value;
+-}
+-
+-function redactKeys(data, prop) {
+-    if ( data instanceof Object === false ) { return; }
+-    const pos = prop.indexOf('.');
+-    if ( pos !== -1 ) {
+-        return redactKeys(data[prop.slice(0, pos)], prop.slice(pos + 1));
+-    }
+-    const obj = data[prop];
+-    if ( obj instanceof Object === false ) { return; }
+-    let count = 1;
+-    for ( const key in obj ) {
+-        if ( key.startsWith('file://') === false ) { continue; }
+-        const newkey = `[list name ${count} redacted]`;
+-        obj[newkey] = obj[key];
+-        obj[key] = undefined; 
+-        count += 1;
+-    }
+-}
+-
+-function patchEmptiness(data, prop) {
+-    const entry = data[prop];
+-    if ( Array.isArray(entry) && entry.length === 0 ) {
+-        data[prop] = '[empty]';
+-        return;
+-    }
+-    if ( entry instanceof Object === false ) { return; }
+-    if ( Object.keys(entry).length === 0 ) {
+-        data[prop] = '[none]';
+-        return;
+-    }
+-    for ( const key in entry ) {
+-        patchEmptiness(entry, key);
+-    }
+-}
+-
+-function configToMarkdown(collapse = false) {
+-    const text = cmEditor.getValue().trim();
+-    return collapse
+-        ? '<details>\n\n```yaml\n' + text + '\n```\n</details>'
+-        : '```yaml\n' + text + '\n```\n';
+-}
+-
+-function addDetailsToReportURL(id, collapse = false) {
+-    const elem = qs$(`#${id}`);
+-    const url = new URL(dom.attr(elem, 'data-url'));
+-    url.searchParams.set('configuration', configToMarkdown(collapse));
+-    dom.attr(elem, 'data-url', url);
+-}
+-
+-function renderData(data, depth = 0) {
+-    const indent = ' '.repeat(depth);
+-    if ( Array.isArray(data) ) {
+-        const out = [];
+-        for ( const value of data ) {
+-            out.push(renderData(value, depth));
+-        }
+-        return out.join('\n');
+-    }
+-    if ( typeof data !== 'object' || data === null ) {
+-        return `${indent}${data}`;
+-    }
+-    const out = [];
+-    for ( const [ name, value ] of Object.entries(data) ) {
+-        if ( typeof value === 'object' && value !== null ) {
+-            out.push(`${indent}${name}:`);
+-            out.push(renderData(value, depth + 1));
+-            continue;
+-        }
+-        out.push(`${indent}${name}: ${value}`);
+-    }
+-    return out.join('\n');
+-}
+-
+-async function showSupportData() {
+-    const supportData = await vAPI.messaging.send('dashboard', {
+-        what: 'getSupportData',
+-    });
+-    const shownData = JSON.parse(JSON.stringify(supportData));
+-    uselessKeys.forEach(prop => { removeKey(shownData, prop); });
+-    const redacted = true;
+-    if ( redacted ) {
+-        sensitiveValues.forEach(prop => { redactValue(shownData, prop); });
+-        sensitiveKeys.forEach(prop => { redactKeys(shownData, prop); });
+-    }
+-    for ( const prop in shownData ) {
+-        patchEmptiness(shownData, prop);
+-    }
+-    if ( reportedPage !== null ) {
+-        shownData.popupPanel = reportedPage.popupPanel;
+-    }
+-    const text = renderData(shownData);
+-    cmEditor.setValue(text);
+-    cmEditor.clearHistory();
+-
+-    addDetailsToReportURL('filterReport', true);
+-    addDetailsToReportURL('bugReport', true);
+-}
+-
+-/******************************************************************************/
+-
+-const reportedPage = (( ) => {
+-    const url = new URL(window.location.href);
+-    try {
+-        const pageURL = url.searchParams.get('pageURL');
+-        if ( pageURL === null ) { return null; }
+-        const parsedURL = new URL(pageURL);
+-        parsedURL.username = '';
+-        parsedURL.password = '';
+-        parsedURL.hash = '';
+-        const select = qs$('select[name="url"]');
+-        dom.text(select.options[0], parsedURL.href);
+-        if ( parsedURL.search !== '' ) {
+-            const option = dom.create('option');
+-            parsedURL.search = '';
+-            dom.text(option, parsedURL.href);
+-            select.append(option);
+-        }
+-        if ( parsedURL.pathname !== '/' ) {
+-            const option = dom.create('option');
+-            parsedURL.pathname = '';
+-            dom.text(option, parsedURL.href);
+-            select.append(option);
+-        }
+-        const shouldUpdateLists = url.searchParams.get('shouldUpdateLists');
+-        if ( shouldUpdateLists !== null ) {
+-            dom.body.dataset.shouldUpdateLists = shouldUpdateLists;
+-        }
+-        dom.cl.add(dom.body, 'filterIssue');
+-        return {
+-            hostname: parsedURL.hostname.replace(/^(m|mobile|www)\./, ''),
+-            popupPanel: JSON.parse(url.searchParams.get('popupPanel')),
+-        };
+-    } catch {
+-    }
+-    return null;
+-})();
+-
+-function reportSpecificFilterType() {
+-    return qs$('select[name="type"]').value;
+-}
+-
+-function reportSpecificFilterIssue() {
+-    const githubURL = new URL(
+-        'https://github.com/uBlockOrigin/uAssets/issues/new?template=specific_report_from_ubo.yml'
+-    );
+-    const issueType = reportSpecificFilterType();
+-    let title = `${reportedPage.hostname}: ${issueType}`;
+-    if ( qs$('#isNSFW').checked ) {
+-        title = `[nsfw] ${title}`;
+-    }
+-    githubURL.searchParams.set('title', title);
+-    githubURL.searchParams.set(
+-        'url_address_of_the_web_page',
+-        '`' + qs$('select[name="url"]').value + '`'
+-    );
+-    githubURL.searchParams.set('category', issueType);
+-    githubURL.searchParams.set('configuration', configToMarkdown(true));
+-    vAPI.messaging.send('default', {
+-        what: 'gotoURL',
+-        details: { url: githubURL.href, select: true, index: -1 },
+-    });
+-}
+-
+-async function updateFilterLists() {
+-    if ( dom.body.dataset.shouldUpdateLists === undefined ) { return false; }
+-    dom.cl.add(dom.body, 'updating');
+-    const assetKeys = JSON.parse(dom.body.dataset.shouldUpdateLists);
+-    vAPI.messaging.send('dashboard', { what: 'supportUpdateNow', assetKeys });
+-    return true;
+-}
+-
+-/******************************************************************************/
+-
+-const cmEditor = new CodeMirror(qs$('#supportData'), {
+-    autofocus: true,
++// Modified by Blanc on 2026-10-02: browser host adaptation and pinned executable-resource policy.
++/*******************************************************************************
++
++    uBlock Origin - a comprehensive, efficient content blocker
++    Copyright (C) 2014-present Raymond Hill
++
++    This program is free software: you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program.  If not, see {http://www.gnu.org/licenses/}.
++
++    Home: https://github.com/gorhill/uBlock
++*/
++
++/* global CodeMirror, uBlockDashboard */
++
++import { dom, qs$ } from './dom.js';
++import { onBroadcast } from './broadcast.js';
++
++/******************************************************************************/
++
++const uselessKeys = [
++    'hiddenSettings.benchmarkDatasetURL',
++    'hiddenSettings.blockingProfiles',
++    'hiddenSettings.consoleLogLevel',
++    'hiddenSettings.uiPopupConfig',
++    'userSettings.alwaysDetachLogger',
++    'userSettings.firewallPaneMinimized',
++    'userSettings.externalLists',
++    'userSettings.importedLists',
++    'userSettings.popupPanelSections',
++    'userSettings.uiAccentCustom',
++    'userSettings.uiAccentCustom0',
++    'userSettings.uiTheme',
++];
++
++const sensitiveValues = [
++    'filterset (user)',
++    'userSettings.popupPanelSections',
++    'hiddenSettings.userResourcesLocation',
++    'trustedset.added',
++    'hostRuleset.added',
++    'switchRuleset.added',
++    'urlRuleset.added',
++];
++
++const sensitiveKeys = [
++    'listset.added',
++];
++
++/******************************************************************************/
++
++function removeKey(data, prop) {
++    if ( data instanceof Object === false ) { return; }
++    const pos = prop.indexOf('.');
++    if ( pos !== -1 ) {
++        const key = prop.slice(0, pos);
++        return removeKey(data[key], prop.slice(pos + 1));
++    }
++    delete data[prop];
++}
++
++function redactValue(data, prop) {
++    if ( data instanceof Object === false ) { return; }
++    const pos = prop.indexOf('.');
++    if ( pos !== -1 ) {
++        return redactValue(data[prop.slice(0, pos)], prop.slice(pos + 1));
++    }
++    let value = data[prop];
++    if ( value === undefined ) { return; }
++    if ( Array.isArray(value) ) {
++        if ( value.length !== 0 ) {
++            value = `[array of ${value.length} redacted]`;
++        } else {
++            value = '[empty]';
++        }
++    } else {
++        value = '[redacted]';
++    }
++    data[prop] = value;
++}
++
++function redactKeys(data, prop) {
++    if ( data instanceof Object === false ) { return; }
++    const pos = prop.indexOf('.');
++    if ( pos !== -1 ) {
++        return redactKeys(data[prop.slice(0, pos)], prop.slice(pos + 1));
++    }
++    const obj = data[prop];
++    if ( obj instanceof Object === false ) { return; }
++    let count = 1;
++    for ( const key in obj ) {
++        if ( key.startsWith('file://') === false ) { continue; }
++        const newkey = `[list name ${count} redacted]`;
++        obj[newkey] = obj[key];
++        obj[key] = undefined; 
++        count += 1;
++    }
++}
++
++function patchEmptiness(data, prop) {
++    const entry = data[prop];
++    if ( Array.isArray(entry) && entry.length === 0 ) {
++        data[prop] = '[empty]';
++        return;
++    }
++    if ( entry instanceof Object === false ) { return; }
++    if ( Object.keys(entry).length === 0 ) {
++        data[prop] = '[none]';
++        return;
++    }
++    for ( const key in entry ) {
++        patchEmptiness(entry, key);
++    }
++}
++
++function configToMarkdown(collapse = false) {
++    const text = cmEditor.getValue().trim();
++    return collapse
++        ? '<details>\n\n```yaml\n' + text + '\n```\n</details>'
++        : '```yaml\n' + text + '\n```\n';
++}
++
++function addDetailsToReportURL(id, collapse = false) {
++    const elem = qs$(`#${id}`);
++    const url = new URL(dom.attr(elem, 'data-url'));
++    url.searchParams.set('configuration', configToMarkdown(collapse));
++    dom.attr(elem, 'data-url', url);
++}
++
++function renderData(data, depth = 0) {
++    const indent = ' '.repeat(depth);
++    if ( Array.isArray(data) ) {
++        const out = [];
++        for ( const value of data ) {
++            out.push(renderData(value, depth));
++        }
++        return out.join('\n');
++    }
++    if ( typeof data !== 'object' || data === null ) {
++        return `${indent}${data}`;
++    }
++    const out = [];
++    for ( const [ name, value ] of Object.entries(data) ) {
++        if ( typeof value === 'object' && value !== null ) {
++            out.push(`${indent}${name}:`);
++            out.push(renderData(value, depth + 1));
++            continue;
++        }
++        out.push(`${indent}${name}: ${value}`);
++    }
++    return out.join('\n');
++}
++
++async function showSupportData() {
++    const supportData = await vAPI.messaging.send('dashboard', {
++        what: 'getSupportData',
++    });
++    const shownData = JSON.parse(JSON.stringify(supportData));
++    uselessKeys.forEach(prop => { removeKey(shownData, prop); });
++    const redacted = true;
++    if ( redacted ) {
++        sensitiveValues.forEach(prop => { redactValue(shownData, prop); });
++        sensitiveKeys.forEach(prop => { redactKeys(shownData, prop); });
++    }
++    for ( const prop in shownData ) {
++        patchEmptiness(shownData, prop);
++    }
++    if ( reportedPage !== null ) {
++        shownData.popupPanel = reportedPage.popupPanel;
++    }
++    const text = renderData(shownData);
++    cmEditor.setValue(text);
++    cmEditor.clearHistory();
++
++    addDetailsToReportURL('filterReport', true);
++    addDetailsToReportURL('bugReport', true);
++}
++
++/******************************************************************************/
++
++const reportedPage = (( ) => {
++    const url = new URL(window.location.href);
++    try {
++        const pageURL = url.searchParams.get('pageURL');
++        if ( pageURL === null ) { return null; }
++        const parsedURL = new URL(pageURL);
++        parsedURL.username = '';
++        parsedURL.password = '';
++        parsedURL.hash = '';
++        const select = qs$('select[name="url"]');
++        dom.text(select.options[0], parsedURL.href);
++        if ( parsedURL.search !== '' ) {
++            const option = dom.create('option');
++            parsedURL.search = '';
++            dom.text(option, parsedURL.href);
++            select.append(option);
++        }
++        if ( parsedURL.pathname !== '/' ) {
++            const option = dom.create('option');
++            parsedURL.pathname = '';
++            dom.text(option, parsedURL.href);
++            select.append(option);
++        }
++        const shouldUpdateLists = url.searchParams.get('shouldUpdateLists');
++        if ( shouldUpdateLists !== null ) {
++            dom.body.dataset.shouldUpdateLists = shouldUpdateLists;
++        }
++        dom.cl.add(dom.body, 'filterIssue');
++        return {
++            hostname: parsedURL.hostname.replace(/^(m|mobile|www)\./, ''),
++            popupPanel: JSON.parse(url.searchParams.get('popupPanel')),
++        };
++    } catch {
++    }
++    return null;
++})();
++
++function reportSpecificFilterType() {
++    return qs$('select[name="type"]').value;
++}
++
++function reportSpecificFilterIssue() {
++    const githubURL = new URL(
++        'https://github.com/uBlockOrigin/uAssets/issues/new?template=specific_report_from_ubo.yml'
++    );
++    const issueType = reportSpecificFilterType();
++    let title = `${reportedPage.hostname}: ${issueType}`;
++    if ( qs$('#isNSFW').checked ) {
++        title = `[nsfw] ${title}`;
++    }
++    githubURL.searchParams.set('title', title);
++    githubURL.searchParams.set(
++        'url_address_of_the_web_page',
++        '`' + qs$('select[name="url"]').value + '`'
++    );
++    githubURL.searchParams.set('category', issueType);
++    githubURL.searchParams.set('configuration', configToMarkdown(true));
++    vAPI.messaging.send('default', {
++        what: 'gotoURL',
++        details: { url: githubURL.href, select: true, index: -1 },
++    });
++}
++
++async function updateFilterLists() {
++    if ( dom.body.dataset.shouldUpdateLists === undefined ) { return false; }
++    dom.cl.add(dom.body, 'updating');
++    const assetKeys = JSON.parse(dom.body.dataset.shouldUpdateLists);
++    vAPI.messaging.send('dashboard', { what: 'supportUpdateNow', assetKeys });
++    return true;
++}
++
++/******************************************************************************/
++
++const cmEditor = new CodeMirror(qs$('#supportData'), {
++    autofocus: false, // Blanc: open Support at its heading; Select all still focuses the editor
+     readOnly: true,
+     styleActiveLine: true,
+ });
 --- a/js/vapi-common.js
 +++ b/js/vapi-common.js
 @@ -1,241 +1,243 @@
@@ -9096,26 +10413,470 @@
  </body>
 --- a/settings.html
 +++ b/settings.html
-@@ -1,6 +1,8 @@
+@@ -1,99 +1,103 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock — Settings</title>
+-<link rel="stylesheet" type="text/css" href="css/themes/default.css">
+-<link rel="stylesheet" type="text/css" href="css/common.css">
+-<link rel="stylesheet" type="text/css" href="css/fa-icons.css">
+-<link rel="stylesheet" type="text/css" href="css/dashboard-common.css">
+-<link rel="stylesheet" type="text/css" href="css/settings.css">
+-</head>
+-
+-<body>
+-<div class="fieldset">
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="collapseBlocked" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsCollapseBlockedPrompt">_</span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="showIconBadge" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsIconBadgePrompt">_</span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="contextMenuEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsContextMenuPrompt">_</span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="cloudStorageEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsCloudStorageEnabledPrompt">_</span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Cloud-storage" target="_blank">info-circle</a></span></label></div>
+-</div>
+-<hr>
+-<div class="fieldset">
+-    <div class="fieldset-header" data-i18n="3pGroupPrivacy"></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="prefetchingDisabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsPrefetchingDisabledPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#disable-prefetching" target="_blank">info-circle</a></span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="hyperlinkAuditingDisabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsHyperlinkAuditingDisabledPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#disable-hyperlink-auditing" target="_blank">info-circle</a></span></label></div>
+-    <div class="li" style="display:none"><label><span class="input checkbox"><input type="checkbox" data-setting-name="webrtcIPAddressHidden" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsWebRTCIPAddressHiddenPrompt"></span>&nbsp;<a class="fa-icon info important" href="https://github.com/gorhill/uBlock/wiki/Prevent-WebRTC-from-leaking-local-IP-address" target="_blank">info-circle</a></span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noCSPReports" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoCSPReportsPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#block-csp-reports" target="_blank">info-circle</a></span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="cnameUncloakEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsUncloakCnamePrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#uncloak-canonical-names" target="_blank">info-circle</a></span></label></div>
+-</div>
+-<hr>
+-<div class="fieldset">
+-    <div class="fieldset-header" data-i18n="settingsAppearance"></div>
+-    <div class="li"><label><span data-i18n="settingsThemeLabel">_</span>&emsp;<select data-setting-name="uiTheme" data-setting-type="value"><option value="auto">Auto<option value="light">Light<option value="dark">Dark</select></label></div>
+-    <div class="li">
+-        <label><span class="input checkbox"><input type="checkbox" data-setting-name="uiAccentCustom" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsThemeAccent0Label">_</span></label>&emsp;
+-        <input type="color" list="preset-accent-colors" data-setting-name="uiAccentCustom0" data-setting-type="value">
+-        <datalist id="preset-accent-colors">
+-            <option value="#f75782"><!-- h:0...360 step 40 S:90 Luv:60 -->
+-            <option value="#cc7f2b">
+-            <option value="#9c932b">
+-            <option value="#56a22b">
+-            <option value="#2ea283">
+-            <option value="#309fa6">
+-            <option value="#3498d6">
+-            <option value="#ad75f4">
+-            <option value="#f542d6">
+-            <option value="#919191"><!-- h:0 S:0 Luv:60 -->
+-        </datalist>
+-    </div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="colorBlindFriendly" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsColorBlindPrompt">_</span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="tooltipsDisabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsTooltipsPrompt">_</span></label></div>
+-</div>
+-<hr>
+-<div class="fieldset">
+-    <div class="fieldset-header" data-i18n="settingPerSiteSwitchGroup"></div>
+-    <div class="li synopsis"><legend><span data-i18n="settingPerSiteSwitchGroupSynopsis"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches" target="_blank">info-circle</a></legend></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noCosmeticFiltering" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoCosmeticFilteringPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-cosmetic-filtering" target="_blank">info-circle</a></span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noLargeMedia" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoLargeMediaPrompt"><input type="number" min="0" data-setting-name="largeMediaSize" data-setting-type="value"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-large-media-elements" target="_blank">info-circle</a></span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noRemoteFonts" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoRemoteFontsPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-remote-fonts" target="_blank">info-circle</a></span></label></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noScripting" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoScriptingPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-scripting" target="_blank">info-circle</a></span></label></div>
+-</div>
+-<hr>
+-<div class="fieldset">
+-    <div class="fieldset-header" data-i18n="settingsAdvanced"></div>
+-    <div class="li synopsis"><legend><span data-i18n="settingsAdvancedSynopsis"></span>&nbsp;<a class="fa-icon info very-important" href="https://github.com/gorhill/uBlock/wiki/Advanced-user-features" target="_blank">info-circle</a></legend></div>
+-    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="advancedUserEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsAdvancedUserPrompt"></span>&nbsp;<a class="fa-icon info" href="advanced-settings.html" data-i18n-title="settingsAdvancedUserSettings">cogs</a></span></label></div>
+-</div>
+-<hr>
+-<div id="localData" class="fieldset">
+-    <div>
+-        <div class="li" id="storageUsed"></div>
+-        <div class="li" id="settingsLastBackupPrompt" style="display:none;"></div>
+-        <div class="li" id="settingsLastRestorePrompt" style="display:none;"></div>
+-    </div>
+-    <div>
+-        <button type="button" id="export" data-i18n="aboutBackupDataButton">_<span class="hover"></span></button>
+-        <button type="button" id="import" data-i18n="aboutRestoreDataButton">_<span class="hover"></span></button>
+-        <button type="button" id="reset" data-i18n="aboutResetDataButton">_<span class="hover"></span></button>
+-    </div>
+-</div>
+-
+-<div class="hidden">
+-    <input id="restoreFilePicker" type="file" accept="text/plain,application/json">
+-</div>
+-
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/settings.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock — Settings</title>
++<link rel="stylesheet" type="text/css" href="css/themes/default.css">
++<link rel="stylesheet" type="text/css" href="css/common.css">
++<link rel="stylesheet" type="text/css" href="css/fa-icons.css">
++<link rel="stylesheet" type="text/css" href="css/dashboard-common.css">
++<link rel="stylesheet" type="text/css" href="css/settings.css">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++<div class="fieldset">
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="collapseBlocked" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsCollapseBlockedPrompt">_</span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="showIconBadge" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsIconBadgePrompt">_</span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="contextMenuEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsContextMenuPrompt">_</span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="cloudStorageEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsCloudStorageEnabledPrompt">_</span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Cloud-storage" target="_blank">info-circle</a></span></label></div>
++</div>
++<hr>
++<div class="fieldset">
++    <div class="fieldset-header" data-i18n="3pGroupPrivacy"></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="prefetchingDisabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsPrefetchingDisabledPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#disable-prefetching" target="_blank">info-circle</a></span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="hyperlinkAuditingDisabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsHyperlinkAuditingDisabledPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#disable-hyperlink-auditing" target="_blank">info-circle</a></span></label></div>
++    <div class="li" style="display:none"><label><span class="input checkbox"><input type="checkbox" data-setting-name="webrtcIPAddressHidden" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsWebRTCIPAddressHiddenPrompt"></span>&nbsp;<a class="fa-icon info important" href="https://github.com/gorhill/uBlock/wiki/Prevent-WebRTC-from-leaking-local-IP-address" target="_blank">info-circle</a></span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noCSPReports" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoCSPReportsPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#block-csp-reports" target="_blank">info-circle</a></span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="cnameUncloakEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsUncloakCnamePrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Dashboard:-Settings#uncloak-canonical-names" target="_blank">info-circle</a></span></label></div>
++</div>
++<hr>
++<div class="fieldset">
++    <div class="fieldset-header" data-i18n="settingsAppearance"></div>
++    <div class="li"><label><span data-i18n="settingsThemeLabel">_</span>&emsp;<select data-setting-name="uiTheme" data-setting-type="value"><option value="auto">Auto<option value="light">Light<option value="dark">Dark</select></label></div>
++    <div class="li">
++        <label><span class="input checkbox"><input type="checkbox" data-setting-name="uiAccentCustom" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsThemeAccent0Label">_</span></label>&emsp;
++        <input type="color" list="preset-accent-colors" data-setting-name="uiAccentCustom0" data-setting-type="value">
++        <datalist id="preset-accent-colors">
++            <option value="#f75782"><!-- h:0...360 step 40 S:90 Luv:60 -->
++            <option value="#cc7f2b">
++            <option value="#9c932b">
++            <option value="#56a22b">
++            <option value="#2ea283">
++            <option value="#309fa6">
++            <option value="#3498d6">
++            <option value="#ad75f4">
++            <option value="#f542d6">
++            <option value="#919191"><!-- h:0 S:0 Luv:60 -->
++        </datalist>
++    </div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="colorBlindFriendly" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsColorBlindPrompt">_</span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="tooltipsDisabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="settingsTooltipsPrompt">_</span></label></div>
++</div>
++<hr>
++<div class="fieldset">
++    <div class="fieldset-header" data-i18n="settingPerSiteSwitchGroup"></div>
++    <div class="li synopsis"><legend><span data-i18n="settingPerSiteSwitchGroupSynopsis"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches" target="_blank">info-circle</a></legend></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noCosmeticFiltering" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoCosmeticFilteringPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-cosmetic-filtering" target="_blank">info-circle</a></span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noLargeMedia" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoLargeMediaPrompt"><input type="number" min="0" data-setting-name="largeMediaSize" data-setting-type="value"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-large-media-elements" target="_blank">info-circle</a></span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noRemoteFonts" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoRemoteFontsPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-remote-fonts" target="_blank">info-circle</a></span></label></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="noScripting" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsNoScriptingPrompt"></span>&nbsp;<a class="fa-icon info" href="https://github.com/gorhill/uBlock/wiki/Per-site-switches#no-scripting" target="_blank">info-circle</a></span></label></div>
++</div>
++<hr>
++<div class="fieldset">
++    <div class="fieldset-header" data-i18n="settingsAdvanced"></div>
++    <div class="li synopsis"><legend><span data-i18n="settingsAdvancedSynopsis"></span>&nbsp;<a class="fa-icon info very-important" href="https://github.com/gorhill/uBlock/wiki/Advanced-user-features" target="_blank">info-circle</a></legend></div>
++    <div class="li"><label><span class="input checkbox"><input type="checkbox" data-setting-name="advancedUserEnabled" data-setting-type="bool"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span><span data-i18n="settingsAdvancedUserPrompt"></span>&nbsp;<a class="fa-icon info" href="advanced-settings.html" data-i18n-title="settingsAdvancedUserSettings">cogs</a></span></label></div>
++</div>
++<hr>
++<div id="localData" class="fieldset">
++    <div>
++        <div class="li" id="storageUsed"></div>
++        <div class="li" id="settingsLastBackupPrompt" style="display:none;"></div>
++        <div class="li" id="settingsLastRestorePrompt" style="display:none;"></div>
++    </div>
++    <div>
++        <button type="button" id="export" data-i18n="aboutBackupDataButton">_<span class="hover"></span></button>
++        <button type="button" id="import" data-i18n="aboutRestoreDataButton">_<span class="hover"></span></button>
++        <button type="button" id="reset" data-i18n="aboutResetDataButton">_<span class="hover"></span></button>
++    </div>
++</div>
++
++<div class="hidden">
++    <input id="restoreFilePicker" type="file" accept="text/plain,application/json">
++</div>
++
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/settings.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/support.html
 +++ b/support.html
-@@ -1,6 +1,8 @@
+@@ -1,132 +1,136 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock Origin — Support</title>
+-
+-<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+-
+-<link rel="stylesheet" href="css/themes/default.css">
+-<link rel="stylesheet" href="css/common.css">
+-<link rel="stylesheet" href="css/dashboard-common.css">
+-<link rel="stylesheet" href="css/fa-icons.css">
+-<link rel="stylesheet" href="css/support.css">
+-<link rel="stylesheet" href="css/codemirror.css">
+-<link rel="icon" type="image/png" href="img/icon_64.png">
+-</head>
+-
+-<body>
+-
+-<div class="body">
+-    <div class="a">
+-        <h3 data-i18n="supportS1H"></h3>
+-        <div class="supportEntry">
+-            <div>
+-                <p data-i18n="supportS1P1">
+-            </div>
+-            <button type="button" data-url="https://github.com/gorhill/uBlock/wiki" data-i18n="supportOpenButton">_<span class="hover"></span></button>
+-        </div>
+-        <hr>
+-    </div>
+-    <div class="b">
+-        <h3 data-i18n="supportS2H"></h3>
+-        <div class="supportEntry">
+-            <div>
+-                <p data-i18n="supportS2P1">
+-            </div>
+-            <button type="button" data-url="https://www.reddit.com/r/uBlockOrigin/" data-i18n="supportOpenButton">_<span class="hover"></span></button>
+-        </div>
+-        <hr>
+-    </div>
+-    <div class="c">
+-        <h3 data-i18n="supportS3H"></h3>
+-        <div class="supportEntry">
+-            <div>
+-                <p data-i18n="supportS3P1">
+-                <p data-i18n="supportS3P2">
+-                <p data-i18n="supportS3P3">
+-            </div>
+-            <button id="filterReport" type="button" data-url="https://github.com/uBlockOrigin/uAssets/issues/new?template=report_from_ubo.yml" data-i18n="supportOpenButton">_<span class="hover"></span></button>
+-        </div>
+-        <hr>
+-    </div>
+-    <div class="d">
+-        <h3 data-i18n="supportS4H"></h3>
+-        <div class="supportEntry">
+-            <div>
+-                <p data-i18n="supportS4P1">
+-            </div>
+-            <button id="bugReport" type="button" data-url="https://github.com/uBlockOrigin/uBlock-issues/issues/new?template=bug_report_from_ubo.yml" data-i18n="supportOpenButton">_<span class="hover"></span></button>
+-        </div>
+-        <hr>
+-    </div>
+-    <div class="e">
+-        <h3 data-i18n="supportS6H"></h3>
+-        <p data-i18n="supportS3P1"></p>
+-        <div class="supportEntry shouldUpdate">
+-            <hr>
+-            <p data-i18n="supportS6P2S1">_</p>
+-            <button type="button" class="iconified"><span class="fa-icon">refresh</span><span data-i18n="3pUpdateNow">_</span><span class="hover"></span></button>
+-            <u class="updated" data-i18n="supportS6P2S2">_</u>
+-        </div>
+-        <div class="supportEntry">
+-            <hr>
+-            <p data-i18n="supportS6P1S1"></p>
+-            <button type="button" data-i18n="supportFindSpecificButton">_<span class="hover"></span></button>
+-        </div>
+-        <div class="supportEntry createEntry">
+-            <hr>
+-            <p>
+-                <label data-i18n="supportS6URL"></label><br>
+-                <select name="url">
+-                    <option></option>
+-                </select>
+-            </p>
+-            <p>
+-                <label data-i18n="supportS6Select1"></label><br>
+-                <select name="type">
+-                    <option value="[unknown]" data-i18n="supportS6Select1Option0" selected disabled></option>
+-                    <option value="ads" data-i18n="supportS6Select1Option1"></option>
+-                    <option value="detection" data-i18n="supportS6Select1Option3"></option>
+-                    <option value="popups" data-i18n="supportS6Select1Option6"></option>
+-                    <option value="nuisance" data-i18n="supportS6Select1Option2"></option>
+-                    <option value="breakage" data-i18n="supportS6Select1Option5"></option>
+-                    <option value="privacy" data-i18n="supportS6Select1Option4"></option>
+-                    <option value="badware" data-i18n="supportS6Select1Option7"></option>
+-                </select>
+-            </p>
+-            <p>
+-                <label><span class="input checkbox"><input id="isNSFW" type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="supportS6Checkbox1"></span></label>
+-            </p>
+-            <button type="button" data-i18n="supportReportSpecificButton" class="preferred">_<span class="hover"></span></button>
+-        </div>
+-        <hr>
+-        <h3 id="showSupportInfo" class="subtil" data-i18n="supportS5H">_<span>&nbsp;&#x25b8;</span></h3>
+-    </div>
+-    <div class="a b c d">
+-        <h3 data-i18n="supportS5H"></h3>
+-        <p data-i18n="supportS5P1">
+-        <p>
+-            <button id="selectAllButton" type="button" data-i18n="genericSelectAll">_<span class="hover"></span></button>
+-            <button id="moreButton" type="button" data-i18n="popupMoreButton_v2" data-url="/devtools.html">_<span class="hover"></span></button>
+-        <div id="supportData" class="codeMirrorContainer"></div>
+-    </div>
+-</div>
+-
+-<script src="lib/codemirror/lib/codemirror.js"></script>
+-<script src="lib/codemirror/addon/selection/active-line.js"></script>
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/support.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock Origin — Support</title>
++
++<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
++
++<link rel="stylesheet" href="css/themes/default.css">
++<link rel="stylesheet" href="css/common.css">
++<link rel="stylesheet" href="css/dashboard-common.css">
++<link rel="stylesheet" href="css/fa-icons.css">
++<link rel="stylesheet" href="css/support.css">
++<link rel="stylesheet" href="css/codemirror.css">
++<link rel="icon" type="image/png" href="img/icon_64.png">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++
++<div class="body">
++    <div class="a">
++        <h3 data-i18n="supportS1H"></h3>
++        <div class="supportEntry">
++            <div>
++                <p data-i18n="supportS1P1">
++            </div>
++            <button type="button" data-url="https://github.com/gorhill/uBlock/wiki" data-i18n="supportOpenButton">_<span class="hover"></span></button>
++        </div>
++        <hr>
++    </div>
++    <div class="b">
++        <h3 data-i18n="supportS2H"></h3>
++        <div class="supportEntry">
++            <div>
++                <p data-i18n="supportS2P1">
++            </div>
++            <button type="button" data-url="https://www.reddit.com/r/uBlockOrigin/" data-i18n="supportOpenButton">_<span class="hover"></span></button>
++        </div>
++        <hr>
++    </div>
++    <div class="c">
++        <h3 data-i18n="supportS3H"></h3>
++        <div class="supportEntry">
++            <div>
++                <p data-i18n="supportS3P1">
++                <p data-i18n="supportS3P2">
++                <p data-i18n="supportS3P3">
++            </div>
++            <button id="filterReport" type="button" data-url="https://github.com/uBlockOrigin/uAssets/issues/new?template=report_from_ubo.yml" data-i18n="supportOpenButton">_<span class="hover"></span></button>
++        </div>
++        <hr>
++    </div>
++    <div class="d">
++        <h3 data-i18n="supportS4H"></h3>
++        <div class="supportEntry">
++            <div>
++                <p data-i18n="supportS4P1">
++            </div>
++            <button id="bugReport" type="button" data-url="https://github.com/uBlockOrigin/uBlock-issues/issues/new?template=bug_report_from_ubo.yml" data-i18n="supportOpenButton">_<span class="hover"></span></button>
++        </div>
++        <hr>
++    </div>
++    <div class="e">
++        <h3 data-i18n="supportS6H"></h3>
++        <p data-i18n="supportS3P1"></p>
++        <div class="supportEntry shouldUpdate">
++            <hr>
++            <p data-i18n="supportS6P2S1">_</p>
++            <button type="button" class="iconified"><span class="fa-icon">refresh</span><span data-i18n="3pUpdateNow">_</span><span class="hover"></span></button>
++            <u class="updated" data-i18n="supportS6P2S2">_</u>
++        </div>
++        <div class="supportEntry">
++            <hr>
++            <p data-i18n="supportS6P1S1"></p>
++            <button type="button" data-i18n="supportFindSpecificButton">_<span class="hover"></span></button>
++        </div>
++        <div class="supportEntry createEntry">
++            <hr>
++            <p>
++                <label data-i18n="supportS6URL"></label><br>
++                <select name="url">
++                    <option></option>
++                </select>
++            </p>
++            <p>
++                <label data-i18n="supportS6Select1"></label><br>
++                <select name="type">
++                    <option value="[unknown]" data-i18n="supportS6Select1Option0" selected disabled></option>
++                    <option value="ads" data-i18n="supportS6Select1Option1"></option>
++                    <option value="detection" data-i18n="supportS6Select1Option3"></option>
++                    <option value="popups" data-i18n="supportS6Select1Option6"></option>
++                    <option value="nuisance" data-i18n="supportS6Select1Option2"></option>
++                    <option value="breakage" data-i18n="supportS6Select1Option5"></option>
++                    <option value="privacy" data-i18n="supportS6Select1Option4"></option>
++                    <option value="badware" data-i18n="supportS6Select1Option7"></option>
++                </select>
++            </p>
++            <p>
++                <label><span class="input checkbox"><input id="isNSFW" type="checkbox"><svg viewBox="0 0 24 24"><path d="M1.73,12.91 8.1,19.28 22.79,4.59"/></svg></span><span data-i18n="supportS6Checkbox1"></span></label>
++            </p>
++            <button type="button" data-i18n="supportReportSpecificButton" class="preferred">_<span class="hover"></span></button>
++        </div>
++        <hr>
++        <h3 id="showSupportInfo" class="subtil" data-i18n="supportS5H">_<span>&nbsp;&#x25b8;</span></h3>
++    </div>
++    <div class="a b c d">
++        <h3 data-i18n="supportS5H"></h3>
++        <p data-i18n="supportS5P1">
++        <p>
++            <button id="selectAllButton" type="button" data-i18n="genericSelectAll">_<span class="hover"></span></button>
++            <button id="moreButton" type="button" data-i18n="popupMoreButton_v2" data-url="/devtools.html">_<span class="hover"></span></button>
++        <div id="supportData" class="codeMirrorContainer"></div>
++    </div>
++</div>
++
++<script src="lib/codemirror/lib/codemirror.js"></script>
++<script src="lib/codemirror/addon/selection/active-line.js"></script>
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/support.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
 --- a/web_accessible_resources/click2load.html
 +++ b/web_accessible_resources/click2load.html
 @@ -2,6 +2,8 @@
@@ -9162,15 +10923,435 @@
  </html>
 --- a/whitelist.html
 +++ b/whitelist.html
-@@ -1,6 +1,8 @@
+@@ -1,63 +1,67 @@
  <!DOCTYPE html>
  <html>
  <head>
+-<meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1">
+-<meta name="color-scheme" content="light dark" />
+-<title>uBlock — Whitelist</title>
+-
+-<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
+-<link rel="stylesheet" href="lib/codemirror/addon/search/matchesonscrollbar.css">
+-
+-<link rel="stylesheet" href="css/themes/default.css">
+-<link rel="stylesheet" href="css/common.css">
+-<link rel="stylesheet" href="css/fa-icons.css">
+-<link rel="stylesheet" href="css/dashboard-common.css">
+-<link rel="stylesheet" href="css/cloud-ui.css">
+-<link rel="stylesheet" href="css/whitelist.css">
+-<link rel="stylesheet" href="css/codemirror.css">
+-</head>
+-
+-<body>
+-
+-<div class="body">
+-    <div id="cloudWidget" class="hide" data-cloud-entry="whitelistPane"></div>
+-    <p>
+-        <button id="whitelistApply" class="preferred iconified" type="button" disabled><span class="fa-icon">check</span><span data-i18n="whitelistApply">_</span><span class="hover"></span></button>
+-        <button id="whitelistRevert" class="iconified" type="button" disabled><span class="fa-icon">undo</span><span data-i18n="genericRevert">_</span><span class="hover"></span></button>
+-        &emsp;
+-        <button id="importWhitelistFromFile" class="iconified" type="button"><span class="fa-icon">download-alt</span><span data-i18n="whitelistImport">_</span><span class="hover"></span></button>
+-        <button id="exportWhitelistToFile" class="iconified" type="button"><span class="fa-icon">upload-alt</span><span data-i18n="whitelistExport">_</span><span class="hover"></span></button>
+-    </p>
+-    <p class="vverbose" data-i18n="whitelistPrompt">
+-    </p>
+-</div>
+-<div id="whitelist" class="codeMirrorContainer cm-theme-override"></div>
+-
+-<div class="hidden">
+-    <input id="importFilePicker" type="file" accept="text/plain">
+-</div>
+-
+-<script src="lib/codemirror/lib/codemirror.js"></script>
+-<script src="lib/codemirror/addon/display/panel.js"></script>
+-<script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
+-<script src="lib/codemirror/addon/search/searchcursor.js"></script>
+-<script src="lib/codemirror/addon/selection/active-line.js"></script>
+-<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
+-
+-<script src="js/vapi.js"></script>
+-<script src="js/vapi-common.js"></script>
+-<script src="js/vapi-client.js"></script>
+-
+-<script src="js/codemirror/search.js" type="module"></script>
+-<script src="js/codemirror/search-thread.js"></script>
+-
+-<script src="js/fa-icons.js" type="module"></script>
+-<script src="js/theme.js" type="module"></script>
+-<script src="js/i18n.js" type="module"></script>
+-<script src="js/dashboard-common.js" type="module"></script>
+-<script src="js/cloud-ui.js" type="module"></script>
+-<script src="js/whitelist.js" type="module"></script>
+-
 +<!-- Modified by Blanc on 2026-10-02: browser host adaptation. -->
 +<script src="/blanc-host.js"></script>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <meta name="color-scheme" content="light dark" />
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<meta name="color-scheme" content="light dark" />
++<title>uBlock — Whitelist</title>
++
++<link rel="stylesheet" href="lib/codemirror/lib/codemirror.css">
++<link rel="stylesheet" href="lib/codemirror/addon/search/matchesonscrollbar.css">
++
++<link rel="stylesheet" href="css/themes/default.css">
++<link rel="stylesheet" href="css/common.css">
++<link rel="stylesheet" href="css/fa-icons.css">
++<link rel="stylesheet" href="css/dashboard-common.css">
++<link rel="stylesheet" href="css/cloud-ui.css">
++<link rel="stylesheet" href="css/whitelist.css">
++<link rel="stylesheet" href="css/codemirror.css">
++<link rel="stylesheet" href="blanc-dashboard.css">
++</head>
++
++<body>
++
++<div class="body">
++    <div id="cloudWidget" class="hide" data-cloud-entry="whitelistPane"></div>
++    <p>
++        <button id="whitelistApply" class="preferred iconified" type="button" disabled><span class="fa-icon">check</span><span data-i18n="whitelistApply">_</span><span class="hover"></span></button>
++        <button id="whitelistRevert" class="iconified" type="button" disabled><span class="fa-icon">undo</span><span data-i18n="genericRevert">_</span><span class="hover"></span></button>
++        &emsp;
++        <button id="importWhitelistFromFile" class="iconified" type="button"><span class="fa-icon">download-alt</span><span data-i18n="whitelistImport">_</span><span class="hover"></span></button>
++        <button id="exportWhitelistToFile" class="iconified" type="button"><span class="fa-icon">upload-alt</span><span data-i18n="whitelistExport">_</span><span class="hover"></span></button>
++    </p>
++    <p class="vverbose" data-i18n="whitelistPrompt">
++    </p>
++</div>
++<div id="whitelist" class="codeMirrorContainer cm-theme-override"></div>
++
++<div class="hidden">
++    <input id="importFilePicker" type="file" accept="text/plain">
++</div>
++
++<script src="lib/codemirror/lib/codemirror.js"></script>
++<script src="lib/codemirror/addon/display/panel.js"></script>
++<script src="lib/codemirror/addon/scroll/annotatescrollbar.js"></script>
++<script src="lib/codemirror/addon/search/searchcursor.js"></script>
++<script src="lib/codemirror/addon/selection/active-line.js"></script>
++<script src="lib/hsluv/hsluv-0.1.0.min.js"></script>
++
++<script src="js/vapi.js"></script>
++<script src="js/vapi-common.js"></script>
++<script src="js/vapi-client.js"></script>
++
++<script src="js/codemirror/search.js" type="module"></script>
++<script src="js/codemirror/search-thread.js"></script>
++
++<script src="js/fa-icons.js" type="module"></script>
++<script src="js/theme.js" type="module"></script>
++<script src="js/i18n.js" type="module"></script>
++<script src="js/dashboard-common.js" type="module"></script>
++<script src="js/cloud-ui.js" type="module"></script>
++<script src="js/whitelist.js" type="module"></script>
++
++<script src="blanc-dashboard.js"></script>
+ </body>
+ </html>
+--- /dev/null
++++ b/blanc-dashboard.js
+@@ -0,0 +1,113 @@
++/* Blanc Dashboard presentation. Native uBO controls, state and handlers stay upstream. */
++'use strict';
++(() => {
++  const page = location.pathname.split('/').pop();
++  const pages = {
++    '3p-filters.html': ['3pPageName', 'Choose which lists uBlock Origin uses.'],
++    'settings.html': ['settingsPageName', 'Customize filtering, appearance, and your uBlock Origin preferences.'],
++    '1p-filters.html': ['1pPageName', 'Add your own network and cosmetic filters.'],
++    'dyna-rules.html': ['rulesPageName', 'Review permanent rules and changes for this session.'],
++    'whitelist.html': ['whitelistPageName', 'Choose where uBlock Origin filtering is turned off.'],
++    'support.html': ['supportPageName', 'Find help and troubleshoot uBlock Origin.'],
++    'about.html': ['aboutPageName', 'Version, licenses, and acknowledgments.'],
++    'advanced-settings.html': [null, 'Advanced configuration for experienced users.'],
++  };
++  if (page !== 'dashboard.html' && !pages[page]) return;
++  document.documentElement.dataset.blancPage = page;
++  const element = (tag, id, text) => {
++    const node = document.createElement(tag);
++    if (id) node.id = id;
++    if (text) node.textContent = text;
++    return node;
++  };
++  // Fixed library glyphs, attached before upstream converts its text glyphs to SVG.
++  // Templates keep these attributes when the native list renderer clones them.
++  const icons = { check: 'check', refresh: 'refresh-cw', 'download-alt': 'download', 'upload-alt': 'upload', save: 'save', undo: 'undo-2', cogs: 'settings', book: 'book-open', 'info-circle': 'info', 'question-circle': 'circle-help' };
++  for (const icon of document.querySelectorAll('.fa-icon')) {
++    const name = icons[icon.firstChild?.nodeValue?.trim()];
++    if (name) icon.dataset.blancIcon = name;
++  }
++  if (page === 'dashboard.html') {
++    const logo = document.querySelector('#dashboard-nav .logo');
++    const mark = logo.querySelector('img');
++    mark.src = 'blanc-sunrise.png';
++    mark.alt = '';
++    mark.removeAttribute('data-i18n-title');
++    logo.append(element('strong', null, 'uBlock Origin'));
++    document.getElementById('iframe').title = 'uBlock Origin settings';
++    document.getElementById('dashboard-nav').setAttribute('aria-label', 'uBlock Origin settings panels');
++    // Native click handlers retain the unsaved-change guard for keyboard navigation.
++    document.getElementById('dashboard-nav').addEventListener('keydown', event => {
++      if (!event.target.matches('.tabButton') || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
++      const buttons = [...document.querySelectorAll('.tabButton')].filter(button => button.dataset.pane !== 'no-dashboard.html');
++      const index = buttons.indexOf(event.target);
++      const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
++        : (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
++      event.preventDefault();
++      buttons[next].focus();
++      buttons[next].click();
++    });
++    return;
++  }
++  const header = element('header', 'blancPaneHeader');
++  const heading = element('div');
++  const title = element('h1');
++  if (pages[page][0]) title.dataset.i18n = pages[page][0];
++  else title.textContent = 'Advanced settings';
++  heading.append(title, element('p', null, pages[page][1]));
++  header.append(heading);
++  const body = document.querySelector('body > .body') || document.body;
++  body.prepend(header);
++  if (page !== '3p-filters.html') return;
++  header.append(document.getElementById('actions'));
++  const layout = element('div', 'blancListsLayout');
++  header.after(layout);
++  const options = element('aside', 'blancListOptions');
++  layout.append(options);
++  const optionsHeading = element('h2', 'blancOptionsHeading', 'List options');
++  options.setAttribute('aria-labelledby', optionsHeading.id);
++  options.append(optionsHeading);
++  const controls = document.getElementById('autoUpdate').closest('.li').parentElement;
++  options.append(controls);
++  const descriptions = {
++    autoUpdate: 'Periodically check and update filter lists in the background.',
++    suspendUntilListsAreLoaded: 'Prevent network requests until filtering rules are ready.',
++    parseCosmeticFilters: 'Enable cosmetic filters to hide page elements.',
++    ignoreGenericCosmeticFilters: 'Skip generic cosmetic filters (e.g. those not specific to a site).',
++  };
++  for (const [id, text] of Object.entries(descriptions)) {
++    const input = document.getElementById(id);
++    const description = element('p', 'blancDescription-' + id, text);
++    input.setAttribute('aria-describedby', description.id);
++    input.closest('.li').append(description);
++  }
++  const subscriptions = element('section', 'blancSubscriptions');
++  const subscriptionsHeading = element('h2', 'blancSubscriptionsHeading', 'Subscriptions');
++  subscriptions.setAttribute('aria-labelledby', subscriptionsHeading.id);
++  subscriptions.append(subscriptionsHeading, document.getElementById('lists'));
++  const importName = subscriptions.querySelector('[data-role="import"] .listname');
++  importName.removeAttribute('data-i18n');
++  importName.textContent = 'Import a filter list';
++  const search = subscriptions.querySelector('input[type="search"]');
++  search.placeholder = 'Search filter lists…';
++  search.setAttribute('aria-label', 'Search filter lists');
++  layout.append(subscriptions);
++  const lists = document.getElementById('lists');
++  // The native delegated click path is also available to keyboard users.
++  const describeExpanders = () => {
++    for (const expander of lists.querySelectorAll('.listExpander')) {
++      const row = expander.closest('.expandable');
++      expander.setAttribute('role', 'button');
++      expander.tabIndex = 0;
++      expander.setAttribute('aria-expanded', String(row.classList.contains('expanded')));
++      expander.setAttribute('aria-label', row.querySelector('.listname')?.textContent || 'All filter lists');
++    }
++  };
++  new MutationObserver(describeExpanders).observe(lists, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
++  describeExpanders();
++  lists.addEventListener('keydown', event => {
++    if (!event.target.matches('.listExpander') || !['Enter', ' '].includes(event.key)) return;
++    event.preventDefault();
++    event.target.click();
++  });
++})();
+--- /dev/null
++++ b/blanc-dashboard.css
+@@ -0,0 +1,184 @@
++/* Approved Blanc Dashboard option 3. Presentation only; native uBO state colors remain semantic. */
++@font-face { font-family: Inter; src: url('blanc-inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
++:root, :root.light {
++  --blanc-bg:#fff; --blanc-ink:#111; --blanc-dim:#71717a; --blanc-border:#d4d4d8; --blanc-hover:#f6f6f7;
++  --surface-0:var(--blanc-bg); --surface-1:var(--blanc-bg); --surface-2:#f4f4f5; --surface-3:#e8e8eb;
++  --ink-80:17 17 17; --ink-0:#111; --ink-1:var(--blanc-ink); --ink-2:#414149; --ink-3:var(--blanc-dim); --ink-4:var(--blanc-dim); --ink-5:#8b8b93;
++  --border-1:var(--blanc-border); --hr-ink:var(--blanc-border); --info0-ink:var(--blanc-dim); --fieldset-header-ink:var(--blanc-ink);
++  --button-surface:#f0f0f2; --button-ink:var(--blanc-ink); --button-preferred-surface:var(--blanc-ink); --button-preferred-ink:var(--blanc-bg);
++  --checkbox-ink:#71717a; --font-size:20px; --font-size-smaller:18px; --font-size-xsmall:16px;
++  --font-family:Inter,system-ui,sans-serif; --checkbox-size:24px; --checkbox-margin-end:20px;
++}
++:root.dark {
++  --blanc-bg:#1c1c1e; --blanc-ink:#f5f5f5; --blanc-dim:#a1a1aa; --blanc-border:#3a3a40; --blanc-hover:#27272a;
++  --surface-0:var(--blanc-bg); --surface-1:var(--blanc-bg); --surface-2:#27272a; --surface-3:#3a3a40;
++  --ink-80:245 245 245; --ink-0:#f5f5f5; --ink-1:var(--blanc-ink); --ink-2:#d4d4d8; --ink-3:var(--blanc-dim); --ink-4:var(--blanc-dim); --ink-5:#8b8b93;
++  --checkbox-ink:#a1a1aa;
++}
++:root, body { color:var(--blanc-ink); background:var(--blanc-bg); font-family:var(--font-family); font-size:var(--font-size); line-height:1.4; }
++body { margin:0; }
++*, *::before, *::after { box-sizing:border-box; }
++:root.hidpi button, :root.hidpi .fieldset-header, :root.hidpi .tabButton { font-family:var(--font-family); letter-spacing:normal; }
++button { font-size:20px; font-weight:500; min-height:56px; padding:12px 20px; border-radius:6px; }
++button.preferred { background:var(--blanc-ink); color:var(--blanc-bg); }
++button:disabled, button.disabled { background:var(--surface-3); color:var(--blanc-dim); opacity:1; filter:none; }
++button > .hover { display:none; }
++button:not(:disabled,.disabled):hover { filter:brightness(.94); }
++button.iconified > .fa-icon { font-size:24px; padding-inline-end:12px; }
++label { align-items:flex-start; }
++label:hover .checkbox:not([disabled]) { background:transparent; }
++label:hover .radio > input[type="radio"]:not(:checked) + svg > circle { fill:transparent; }
++:focus-visible { outline:2px solid var(--checkbox-checked-ink); outline-offset:3px; }
++.checkbox:has(input:focus-visible) { outline:2px solid var(--checkbox-checked-ink); outline-offset:3px; border-radius:2px; }
++input, textarea, select { color:var(--blanc-ink); background:var(--blanc-bg); border-color:var(--blanc-border); font:inherit; }
++select { padding:6px 10px; border-radius:4px; }
++input[type="number"] { padding:4px 8px; }
++input[type="color"] { height:32px; }
++hr { margin:28px 48px; border:0; border-top:1px solid var(--blanc-border); }
++a { color:inherit; }
++a:hover { text-decoration:underline; }
++.fa-icon.info:hover, .wikilink.fa-icon:hover { transform:none; }
++#dashboard-nav { height:76px; padding:0 36px; gap:16px; background:var(--blanc-bg); }
++#dashboard-nav > span { align-self:stretch; align-items:stretch; min-width:0; }
++#dashboard-nav .logo { width:auto; flex-shrink:0; padding:0; margin-inline-end:72px; gap:22px; white-space:nowrap; }
++#dashboard-nav .logo img { width:48px; height:48px; object-fit:contain; }
++#dashboard-nav .logo strong { font-size:26px; font-weight:650; letter-spacing:-.025em; }
++#dashboard-nav .tabButton { min-height:0; padding:0 18px; color:var(--ink-2); font-size:20px; font-weight:400; border-bottom:3px solid transparent; border-radius:0; cursor:pointer; }
++#dashboard-nav .tabButton.selected { color:var(--blanc-ink); border-bottom-color:var(--blanc-ink); background:none; }
++:root.desktop #dashboard-nav .tabButton:not(.selected):hover { background:none; border-bottom-color:var(--blanc-border); }
++#dashboard-nav .tabButton:focus-visible { outline:2px solid var(--checkbox-checked-ink); outline-offset:-6px; }
++#dashboard-nav .wikilink { padding:0; flex-shrink:0; font-size:18px; }
++#unsavedWarning { top:76px; background:var(--blanc-bg); border-bottom:1px solid var(--blanc-border); color:var(--blanc-ink); }
++#unsavedWarning > div:first-of-type { padding:24px 48px; }
++#unsavedWarning > div:last-of-type { background:#0003; }
++:root body > .body { padding:44px 48px 48px; }
++#blancPaneHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:32px; margin-bottom:36px; }
++#blancPaneHeader h1 { font-size:48px; font-weight:650; line-height:1.2; letter-spacing:-.035em; margin:0; }
++#blancPaneHeader p { font-size:22px; line-height:1.45; color:var(--blanc-dim); margin:8px 0 0; }
++#blancPaneHeader #actions { background:none; position:static; display:flex; gap:12px; flex-shrink:0; margin:6px 0 0; padding:0; }
++#blancListsLayout { display:grid; grid-template-columns:432px minmax(0,1fr); gap:36px; }
++#blancListOptions { border-inline-end:1px solid var(--blanc-border); padding-inline-end:36px; }
++#blancListOptions h2, #blancSubscriptions h2 { font-size:26px; line-height:1.3; font-weight:650; letter-spacing:-.025em; margin:0 0 20px; }
++#blancListOptions .li { display:block; margin:0 0 36px; }
++#blancListOptions label { display:flex; line-height:1.35; }
++#blancListOptions .checkbox { margin-top:2px; }
++#blancListOptions .li p { margin:4px 0 0 44px; font-size:18px; line-height:1.3; color:var(--blanc-dim); }
++#blancListOptions .info { font-size:14px; }
++#lists { display:flex; flex-direction:column; }
++#lists .rootstats { order:3; color:var(--blanc-dim); font-size:14px; display:flex; align-items:center; gap:8px; margin-top:28px; }
++#lists .searchfield { margin:0 0 22px; width:100%; max-width:630px; }
++#lists .searchfield input { width:100%; height:50px; padding:10px 14px 10px 52px; font-size:20px; border:1px solid var(--blanc-border); border-radius:6px; }
++#lists .searchfield .fa-icon { left:16px; }
++#lists .searchfield input::placeholder { color:var(--blanc-dim); }
++#lists .listEntry { margin-top:12px; white-space:normal; }
++#lists .listEntry > .detailbar { align-items:center; flex-wrap:wrap; gap:10px; min-height:30px; }
++#lists .listEntry > .detailbar label { align-items:center; line-height:1.35; }
++#lists .listEntry[data-parent="root"] { margin-top:20px; }
++#lists .listEntry[data-parent="root"] > .detailbar .listname, #lists [data-role="import"] .listname { font-size:22px; font-weight:600; letter-spacing:-.02em; }
++#lists .listEntries { margin-inline-start:44px; }
++#lists > .listEntries { margin-inline-start:0; }
++#lists > .listEntries > [data-key="user"] { order:100; margin-top:24px; }
++#lists .nodestats { align-self:center; font-size:18px; }
++#lists .leafstats { font-size:16px; line-height:1.5; }
++#lists .iconbar .support { order:-1; }
++#lists .iconbar { gap:10px; align-items:center; font-size:20px; }
++#lists .fa-icon:hover { transform:none; }
++#lists .listExpander { font-size:20px; width:24px; min-width:24px; margin-inline-end:12px; color:var(--blanc-ink); }
++#lists [data-role="node"]:not([data-parent="root"]) > .detailbar .listExpander { margin-inline-end:0; color:var(--blanc-dim); }
++#lists [data-role="import"] { order:2; margin-top:24px; }
++#lists [data-role="import"] textarea { display:none; border-color:var(--blanc-border); border-radius:6px; font-size:16px; padding:12px; margin-top:12px; min-height:140px; }
++#lists [data-role="import"].expanded textarea { display:block; }
++#lists .content, #lists .support, #lists .searchfield .fa-icon { width:22px; height:22px; flex-shrink:0; position:relative; }
++#lists .content svg, #lists .support svg, #lists .searchfield .fa-icon svg { display:none; }
++#lists :is(.content,.support,.searchfield .fa-icon)::before { content:''; display:block; width:22px; height:22px; background:currentColor; mask:var(--blanc-list-icon) center/contain no-repeat; }
++#lists .content { --blanc-list-icon:url('blanc-icons/external-link.svg'); }
++#lists .support { --blanc-list-icon:url('blanc-icons/house.svg'); }
++#lists .searchfield .fa-icon { --blanc-list-icon:url('blanc-icons/search.svg'); position:absolute; }
++/* Every settings pane shares the same typography and spacing. Editors retain native syntax/diff colors. */
++:root[data-blanc-page="settings.html"] body { padding:44px 48px 48px; }
++:root[data-blanc-page="settings.html"] .fieldset { margin:0; max-width:1000px; }
++:root[data-blanc-page="settings.html"] hr { margin:32px 0; max-width:1000px; }
++.fieldset-header { font-size:24px; font-weight:600; line-height:1.3; letter-spacing:-.02em; margin-bottom:20px; }
++.fieldset .li { margin:20px 0; }
++.synopsis { font-size:18px; color:var(--blanc-dim); opacity:1; line-height:1.5; }
++#localData > div:last-of-type { flex-direction:row; flex-wrap:wrap; gap:12px; }
++#localData > div:last-of-type > button { min-width:0; margin:0; }
++:root:is([data-blanc-page="1p-filters.html"],[data-blanc-page="whitelist.html"],[data-blanc-page="dyna-rules.html"],[data-blanc-page="advanced-settings.html"]) .body { padding-bottom:20px; }
++:root:is([data-blanc-page="1p-filters.html"],[data-blanc-page="whitelist.html"],[data-blanc-page="dyna-rules.html"],[data-blanc-page="advanced-settings.html"]) #blancPaneHeader { margin-bottom:24px; }
++.codeMirrorContainer { margin:0 48px 32px; border:1px solid var(--blanc-border); border-radius:4px; overflow:hidden; min-height:180px; }
++.CodeMirror { font-size:14px; line-height:1.5; }
++#ruleFilter { padding:12px 48px; margin:0; flex-shrink:0; font-size:16px; }
++#diff .tools { gap:20px; }
++:root[data-blanc-page="support.html"] h2 { font-size:26px; }
++:root[data-blanc-page="about.html"] .body { max-width:1000px; }
++@media (max-width:1200px) {
++  #dashboard-nav { padding-inline:24px; }
++  #dashboard-nav .logo { margin-inline-end:24px; gap:12px; }
++  #dashboard-nav .logo strong { font-size:22px; }
++  #dashboard-nav .tabButton { font-size:17px; padding-inline:14px; }
++  #blancListsLayout { grid-template-columns:340px minmax(0,1fr); gap:28px; }
++  #blancListOptions { padding-inline-end:28px; }
++  #blancPaneHeader h1 { font-size:40px; }
++  #blancPaneHeader p { font-size:18px; }
++  #blancPaneHeader #actions { gap:8px; }
++  button { font-size:17px; min-height:48px; padding:10px 14px; }
++}
++@media (max-width:900px) {
++  :root { --font-size:17px; --font-size-smaller:16px; --font-size-xsmall:14px; --checkbox-size:20px; --checkbox-margin-end:14px; }
++  #dashboard-nav { height:auto; min-height:64px; padding-inline:20px; }
++  #dashboard-nav > span { flex-wrap:wrap; overflow:visible; gap:0; flex:1; }
++  #dashboard-nav .logo { width:100%; height:64px; margin:0; gap:12px; }
++  #dashboard-nav .logo img { width:36px; height:36px; }
++  #dashboard-nav .logo strong { font-size:20px; }
++  #dashboard-nav .tabButton { min-height:48px; padding-inline:12px; font-size:15px; }
++  #dashboard-nav .wikilink { display:none; }
++  #unsavedWarning { top:112px; }
++  :root body > .body, :root[data-blanc-page="settings.html"] body { padding:28px 24px 32px; }
++  #blancPaneHeader { flex-wrap:wrap; gap:20px; margin-bottom:32px; }
++  #blancPaneHeader h1 { font-size:32px; }
++  #blancPaneHeader p { font-size:16px; }
++  #blancPaneHeader #actions { margin:0; }
++  #blancListsLayout { grid-template-columns:1fr; gap:32px; }
++  #blancListOptions { border-inline-end:0; border-bottom:1px solid var(--blanc-border); padding:0 0 8px; }
++  #blancListOptions h2, #blancSubscriptions h2 { font-size:22px; margin-bottom:20px; }
++  #blancListOptions .li { margin-bottom:24px; }
++  #blancListOptions .li p { margin-inline-start:34px; font-size:16px; }
++  #lists .searchfield input { font-size:17px; }
++  #lists .listEntries { margin-inline-start:34px; }
++  #lists > .listEntries { margin-inline-start:0; }
++#lists > .listEntries > [data-key="user"] { order:100; margin-top:24px; }
++  #lists .listEntry[data-parent="root"] > .detailbar .listname, #lists [data-role="import"] .listname { font-size:19px; }
++  #lists .leafstats { font-size:14px; }
++  .codeMirrorContainer { margin:0 24px 24px; }
++  #ruleFilter { padding-inline:24px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
++  .fieldset-header { font-size:20px; }
++  #localData > div:last-of-type { flex-direction:column; align-items:stretch; }
++}
++
++/* Outline library glyphs on the native toolbar and help links. */
++.fa-icon[data-blanc-icon] > svg { display:none; }
++.fa-icon[data-blanc-icon]::before { content:''; display:block; width:1em; height:1em; background:currentColor; mask:var(--blanc-ui-icon) center/contain no-repeat; }
++.fa-icon[data-blanc-icon=check] { --blanc-ui-icon:url('blanc-icons/check.svg'); }
++.fa-icon[data-blanc-icon=refresh-cw] { --blanc-ui-icon:url('blanc-icons/refresh-cw.svg'); }
++.fa-icon[data-blanc-icon=download] { --blanc-ui-icon:url('blanc-icons/download.svg'); }
++.fa-icon[data-blanc-icon=upload] { --blanc-ui-icon:url('blanc-icons/upload.svg'); }
++.fa-icon[data-blanc-icon=save] { --blanc-ui-icon:url('blanc-icons/save.svg'); }
++.fa-icon[data-blanc-icon=undo-2] { --blanc-ui-icon:url('blanc-icons/undo-2.svg'); }
++.fa-icon[data-blanc-icon=settings] { --blanc-ui-icon:url('blanc-icons/settings.svg'); }
++.fa-icon[data-blanc-icon=book-open] { --blanc-ui-icon:url('blanc-icons/book-open.svg'); }
++.fa-icon[data-blanc-icon=info] { --blanc-ui-icon:url('blanc-icons/info.svg'); }
++.fa-icon[data-blanc-icon=circle-help] { --blanc-ui-icon:url('blanc-icons/circle-help.svg'); }
++#buttonUpdate.active .fa-icon::before, body.working #buttonUpdate:not(.disabled) .fa-icon::before, body.updating .shouldUpdate button .fa-icon::before { animation:spin 1s linear infinite; }
++@media (prefers-reduced-motion:reduce) { #buttonUpdate .fa-icon::before { animation:none !important; } }
++@media (max-width:900px) {
++  #diff .tools { display:flex; gap:16px; }
++  #diff .ruleActions { width:50%; white-space:normal; display:flex; flex-wrap:wrap; align-content:flex-start; justify-content:center; gap:8px; }
++  #diff .ruleActions .fieldset-header { width:100%; margin:0 0 8px; }
++  #diff .ruleActions button { font-size:15px; padding:8px 10px; }
++}
++
++.li:has(input:disabled) label { color:var(--blanc-dim); }
++.checkbox:has(input:disabled) { opacity:.5; }
++:root[data-blanc-page="support.html"] .codeMirrorContainer { margin:0 0 32px; }
++/* Keep both the original toolbar and editor reachable when window height is tight. */
++:root:is([data-blanc-page="1p-filters.html"],[data-blanc-page="whitelist.html"],[data-blanc-page="dyna-rules.html"],[data-blanc-page="advanced-settings.html"]) body { overflow-y:auto; }
 --- /dev/null
 +++ b/blanc-popup.js
 @@ -0,0 +1,129 @@
@@ -9588,6 +11769,200 @@ Binary files /dev/null and b/blanc-inter.woff2 differ
 +>
 +  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
 +  <path d="M21 3v5h-5" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/house.svg
+@@ -0,0 +1,14 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
++  <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/external-link.svg
+@@ -0,0 +1,15 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M15 3h6v6" />
++  <path d="M10 14 21 3" />
++  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/search.svg
+@@ -0,0 +1,14 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <circle cx="11" cy="11" r="8" />
++  <path d="m21 21-4.3-4.3" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/check.svg
+@@ -0,0 +1,13 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M20 6 9 17l-5-5" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/refresh-cw.svg
+@@ -0,0 +1,16 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
++  <path d="M21 3v5h-5" />
++  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
++  <path d="M8 16H3v5" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/download.svg
+@@ -0,0 +1,15 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
++  <polyline points="7 10 12 15 17 10" />
++  <line x1="12" x2="12" y1="15" y2="3" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/upload.svg
+@@ -0,0 +1,15 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
++  <polyline points="17 8 12 3 7 8" />
++  <line x1="12" x2="12" y1="3" y2="15" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/save.svg
+@@ -0,0 +1,15 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
++  <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
++  <path d="M7 3v4a1 1 0 0 0 1 1h7" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/book-open.svg
+@@ -0,0 +1,14 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <path d="M12 7v14" />
++  <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/info.svg
+@@ -0,0 +1,15 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <circle cx="12" cy="12" r="10" />
++  <path d="M12 16v-4" />
++  <path d="M12 8h.01" />
++</svg>
+--- /dev/null
++++ b/blanc-icons/circle-help.svg
+@@ -0,0 +1,15 @@
++<svg
++  xmlns="http://www.w3.org/2000/svg"
++  width="24"
++  height="24"
++  viewBox="0 0 24 24"
++  fill="none"
++  stroke="currentColor"
++  stroke-width="2"
++  stroke-linecap="round"
++  stroke-linejoin="round"
++>
++  <circle cx="12" cy="12" r="10" />
++  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
++  <path d="M12 17h.01" />
 +</svg>
 --- /dev/null
 +++ b/blanc-state.js

@@ -41,7 +41,9 @@ jobs:
           if [ "$RUNNER_OS" = Linux ]; then
             xvfb-run -a npm run test:shield-provider:desktop
             xvfb-run -a npm run test:ublock:desktop
+            xvfb-run -a npm run test:ublock-dashboard:desktop
           else
             npm run test:shield-provider:desktop
             npm run test:ublock:desktop
+            npm run test:ublock-dashboard:desktop
           fi

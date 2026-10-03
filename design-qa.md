@@ -2466,3 +2466,78 @@ Full Dashboard/settings styling and installed Windows/Linux/native input accepta
 remain outside this popup QA. The support and distribution gates remain closed.
 
 final result: passed
+
+## uBO Dashboard option 3 — October 2, 2026
+
+Source: the third displayed Dashboard mockup,
+`/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-e03b172d-7ba0-40c8-abd8-41f4cabbce04.png`.
+Implementation: the real managed uBO 1.75.0 Dashboard inside official Electron
+44.5.1, sandbox enabled, using a temporary dev profile with real blocking.
+
+### Comparison and iterations
+
+The source and native captures were resized to the same 1440 × 1024 content
+viewport and combined in one image. The native child view was explicitly sized
+to that viewport for capture because the local display limits the window's
+height; ordinary preview bounds were restored afterward. The light, dark and
+720 px narrow captures also come from native extension documents.
+
+First combined evidence: `output/playwright/ubo-dashboard-compare-first.png`.
+Result: blocked. P2 differences included extra space above the section headings,
+legacy solid toolbar glyphs, low contrast disabled buttons, and a redundant
+My filters summary before the first subscription category. A functional capture
+also caught Support's native autofocus scrolling past its header.
+
+Fixes: tightened section spacing, applied pinned outline library glyphs, restored
+readable disabled-state contrast, moved the native My filters group below the
+subscription categories, and disabled only Support's initial editor autofocus.
+Select all retains its original focus action. A later P2 short-window check found
+clipped editing controls; editor panes now scroll vertically when their toolbar
+and editor exceed the viewport, with a 720 × 600 window capture and regression
+check covering reachability. The native checkbox nodes remain
+attached during relocation; all IDs, templates, list hierarchy and handlers are
+preserved.
+
+Final combined evidence: `output/playwright/ubo-dashboard-compare-final.png`.
+Additional native evidence: `ubo-dashboard-final.png`, `ubo-dashboard-dark.png`,
+`ubo-dashboard-narrow.png`, `ubo-dashboard-short-rules.png`, and Settings, My filters, My rules, Trusted sites,
+Support and About captures in `output/playwright/`.
+
+### Required fidelity surfaces
+
+- Typography: bundled Inter, 48 px title, 26 px section headings, 20 px controls
+  and 18 px helper text at the wide target; native monospace editors remain
+  readable. Smaller windows reduce type and stack the two columns.
+- Spacing/layout: horizontal navigation with black active underline; small genuine
+  Sunrise mark; 48 px content gutters; 432 px options column; 36 px gap; thin
+  divider; flat subscriptions; search and actions align with the approved layout.
+- Colors: white/graphite/neutral gray with gold confined to the mark. Dark mode
+  uses neutral surfaces; native checkbox accent preferences and syntax, failure,
+  update, and rule colors keep their original meanings. No radio or row halos.
+- Assets: genuine reserved Sunrise PNG, bundled Inter, exact pinned Lucide 0.468.0
+  SVGs and ISC/Feather notices. No redrawn logo or glyphs.
+- Copy: selected heading/helper, list options and their explanations, subscriptions,
+  search, Apply changes, Update now and Import a filter list. Other panel titles
+  use upstream localized strings, and upstream license/credits remain visible.
+
+Native data differs from the illustrative source: actual counts, update states,
+expansion settings, checked/default rows, extra subscription groups and diagnostics
+remain visible. In particular, uBO exposes selected/default entries even inside
+collapsed categories. These functional states were retained instead of hiding
+subscriptions to reproduce illustrative content. P3: category/row density differs
+slightly with native statistics and status affordances. No remaining P0/P1/P2.
+
+### Functional validation and limits
+
+The dedicated Dashboard suite passed native theme/preferences, list selection,
+search, keyboard expansion and tab navigation, real CodeMirror keyboard input,
+unsaved-change Stay, applying a filter, wide/narrow panels, Support initial scroll,
+server-observed blocking, and settings/filter persistence across restart. No
+uncaught Dashboard UI errors were recorded. The full real-blocking suite also
+passed original tools, list updates, backup/restore, requests and lifecycle.
+
+Logger and picker are separate native tools; this approval covers the Dashboard
+panels and advanced-settings presentation. Installed Windows/Linux acceptance and
+public GPL/source-boundary clearance remain required. Platform gates stay closed.
+
+final result: passed
