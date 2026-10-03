@@ -2,7 +2,7 @@
 
 Implementation and verification for [draft PR #499](https://github.com/bnfy/blanc/pull/499).
 Public comparison baseline: v1.26.0. The verified implementation commit is
-`91a00a1badac18a30a43b5613dd1df0317dba51c`; subsequent evidence-only commits
+`91a00a1badac18a30a43b5613dd1df0317dba51c`; subsequent evidence and test-diagnostic commits
 do not change its runtime or packaging inputs. No version was bumped.
 
 ## Implemented behavior
@@ -96,8 +96,10 @@ the debugger connection closed at private-tab close; no uncaught JavaScript
 exception was recorded and the process exit code/signal were unavailable.
 A repeat at that unchanged SHA passed. This unexplained failure remains part
 of the evidence; the final `91a00a1b` native matrix passed on its first attempts.
-The screenshot's original general freeze remains un reproduced. Passing these
+The screenshot's original general freeze remains unreproduced. Passing these
 checks does not establish that every reported freeze is resolved.
+
+The evidence-only commit `c4c711a9` triggered [run 37146142045](https://github.com/bnfy/blanc/actions/runs/37146142045). Windows lost its debugger connection at the private-tab-close transition, and repeating only that job at the unchanged SHA failed at the same transition. The last recorded command was Ctrl+W from the overlay; process exit code/signal and final hook state were unavailable. No uncaught JavaScript exception was recorded. Linux/macOS native commands and Store checks, substrate, OAuth, modified-link, tab-handoff, CodeQL and site build passed. This repeat Windows failure is unresolved and blocks a clean validation claim. A test-only follow-up adds bounded process output, delayed exit/liveness observation and local crash dumps with uploads disabled, retained as private three-day Actions artifacts on failure. It does not modify the packaged candidate.
 
 ## Delegated Parallels Windows check
 
@@ -127,6 +129,7 @@ Observed on the final candidate:
 - One create/switch/close cycle was observed step by step, then twelve consecutive Ctrl+T → Ctrl+Shift+Tab → Ctrl+Tab → Ctrl+W cycles ran with 15 ms key holds. The original three tabs remained, with the Store active and subsequent commands responsive.
 - Ctrl+PageUp selected example.com and Ctrl+PageDown returned to the Store. Ctrl+H opened History and Ctrl+J opened Downloads from that sheet. Alt+D focused and selected the address. F5 reloaded the Store detail.
 - File → Settings opened through the native menu after browsing and churn. Ctrl+, reopened Settings after reload/reopen, and another request toggled the loaded sheet closed.
+- After the repeated hosted Windows failure, the same retained candidate was launched from its separate directory with the isolated profile. One private-tab close was observed, followed by twelve rapid native Ctrl+Shift+N → Ctrl+W pairs; the app remained on example.com with two ordinary tabs. Another immediate private create/close pair after reload, Find and Settings also returned to that page. These production observations do not explain the debugger failures.
 - Alt+F4 closed normally; no Blanc process remained. The original application was restored from its pre-test backup, and every one of its 116 files matched SHA-256. Its signature remained valid. Private candidates and test profiles were retained separately for investigation.
 
 The focus investigation has a remaining limitation: a single batch containing
@@ -166,7 +169,7 @@ installation/restoration checks and this report are retained in
 
 ## Outstanding affected-machine gate
 
-The delegated VM check is complete with the limitation above. Explicit owner
+The delegated VM check is complete with the limitations above. The repeated hosted Windows private-tab-close failure also remains unresolved; the draft cannot be represented as fully validated. Explicit owner
 acceptance of this evidence and affected-machine Windows/Linux confirmation
 remain pending before merge. No physical Linux desktop test was performed;
 the installed Parallels Ubuntu guest is ARM64, while this candidate AppImage

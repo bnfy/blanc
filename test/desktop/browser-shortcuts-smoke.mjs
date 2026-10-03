@@ -27,6 +27,10 @@ let app;
 let steps = 0;
 let failed = false;
 let lastCommandDiagnostics = null;
+let electronPid = null;
+let electronOutput = '';
+const crashDumps = path.join(root, 'crash-dumps');
+fs.mkdirSync(crashDumps);
 const press = async (command, key, modifiers, surface = 'active') => {
   const commandState = await call(app, 'browserCommandState');
   const before = commandState.deliveries.length;
@@ -63,6 +67,14 @@ const state = () => call(app, 'state');
 const sheetReady = () => wait(() => call(app, 'utilitySurface'), value => value?.ready && value.url.startsWith('blanc://settings/'), 'Settings ready');
 try {
   app = await _electron.launch({ args: [path.resolve('.'), `--user-data-dir=${userData}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught }, chromiumSandbox: true });
+  for (const stream of [app.process().stdout, app.process().stderr]) {
+    stream?.on('data', data => { electronOutput = (electronOutput + data.toString()).slice(-128 * 1024); });
+  }
+  electronPid = await app.evaluate(({ app, crashReporter }, directory) => {
+    app.setPath('crashDumps', directory);
+    crashReporter.start({ uploadToServer: false });
+    return process.pid;
+  }, crashDumps);
   await app.firstWindow();
   assert.equal(await app.evaluate(() => process.versions.electron), expected);
   await wait(() => call(app, 'startupReady'), Boolean, 'startup');
@@ -201,7 +213,30 @@ try {
   console.error('Browser command regression failed:', error);
   console.error('Last recorded command diagnostics:', JSON.stringify(lastCommandDiagnostics));
   if (app) {
+    // The debugger can disconnect before Node observes the native process
+    // exit. Wait briefly before interpreting a null status as still running.
+    await new Promise(resolve => {
+      const child = app.process();
+      let timer;
+      const finish = () => { clearTimeout(timer); child.removeListener('exit', finish); resolve(); };
+      child.once('exit', finish);
+      timer = setTimeout(finish, 1000);
+      if (child.exitCode != null || child.signalCode != null) finish();
+    });
+    let nativeProcessAlive = false;
+    if (Number.isInteger(electronPid)) {
+      try { process.kill(electronPid, 0); nativeProcessAlive = true; } catch {}
+    }
     console.error('Electron exit status:', app.process().exitCode, app.process().signalCode);
+    console.error('Native Electron process:', electronPid, { alive: nativeProcessAlive });
+    console.error('Recent Electron output:', electronOutput);
+    const evidence = path.resolve('dist/browser-command-diagnostics', `${process.platform}-${Date.now()}`);
+    fs.mkdirSync(evidence, { recursive: true });
+    fs.writeFileSync(path.join(evidence, 'failure.json'), JSON.stringify({ error: String(error), steps, lastCommandDiagnostics, electronPid, nativeProcessAlive, exitCode: app.process().exitCode, signal: app.process().signalCode }, null, 2));
+    fs.writeFileSync(path.join(evidence, 'electron-output.txt'), electronOutput);
+    if (fs.existsSync(uncaught)) fs.copyFileSync(uncaught, path.join(evidence, 'uncaught.log'));
+    fs.cpSync(crashDumps, path.join(evidence, 'crash-dumps'), { recursive: true });
+    console.error('Private failure evidence:', evidence);
     console.error('Command failure diagnostics:', JSON.stringify(await call(app, 'browserCommandState').catch(() => null)));
     console.error('Tab failure diagnostics:', JSON.stringify(await state().catch(() => null)));
   }

@@ -180,3 +180,11 @@ jobs:
       - name: Real Chrome Web Store documents (Windows/macOS)
         if: runner.os != 'Linux'
         run: npm run test:web-store
+      - name: Retain private native command failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-command-failure-${{ runner.os }}
+          path: dist/browser-command-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 3
