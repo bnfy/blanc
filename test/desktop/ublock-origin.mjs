@@ -525,7 +525,16 @@ try {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
   console.error('uBO test failure:', error);
   console.error('Subscription response revisions:', subscriptionResponses);
-  if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => { const io = (await import('./js/assets.js')).default; return { events: self.fixtureListEvents, updating: io.isUpdating(), metadata: (await io.metadata())[${JSON.stringify(url)}], entry: µBlock.availableFilterLists[${JSON.stringify(url)}], selected: µBlock.selectedFilterLists.includes(${JSON.stringify(url)}) }; })()`), fixture + 'fixture-list.txt').catch(() => null));
+  if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => {
+    const io = (await import('./js/assets.js')).default;
+    const url = µBlock.selectedFilterLists.find(value => {
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'http:' && parsed.hostname === '127.0.0.1' && parsed.pathname === '/fixture-list.txt';
+      } catch { return false; }
+    });
+    return { events: self.fixtureListEvents, updating: io.isUpdating(), metadata: (await io.metadata())[url], entry: µBlock.availableFilterLists[url], selected: url !== undefined };
+  })()`)).catch(() => null));
   if (electron) console.error('Provider state:', await testCalls.callTestHook(electron, 'blockingStatus', []).catch(() => null));
   console.error(errors);
   if (electron) console.log(await electron.evaluate(({ app, BrowserWindow }) => ({ ready: app.isReady(), userData: app.getPath('userData'), hook: typeof __blanc, windows: BrowserWindow.getAllWindows().length })).catch(() => ({ processClosed: true })));

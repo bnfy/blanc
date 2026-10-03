@@ -58,13 +58,17 @@ code context; they are not blanket exemptions for third-party code.
 
 The new native matrix's shallow checkout lacked immutable release tags/commits
 required by five existing unit evidence checks. This follow-up fetches full
-history. Windows additionally exposes platform assumptions in the general unit
-suite (POSIX paths, file modes, and other existing fixtures); those failures have
-not been waived or bypassed and may still prevent the native suites from running.
+history. Windows additionally exposed platform assumptions in the general unit
+suite (POSIX paths, file modes, and other existing fixtures). Those fixtures are
+now corrected without waiving production behavior; current evidence lives in
+`docs/ublock-origin-review-2026-10-03.md`.
 
 Substrate failed the dependency policy on advisory `GHSA-CH52-4W7C-C8XP` in root/site
 dependency trees. That is a separate dependency-audit finding, not one of the
-40 CodeQL alerts. It remains unresolved by this patch.
+40 initial CodeQL alerts. Main PR #493 subsequently added a scoped VEX
+reachability review. The added uBO package paths were separately re-reviewed,
+with exact-pattern and payload-digest guards. The dependency audit and hosted
+substrate now pass; that does not clear CodeQL or GPL review.
 
 ## Validation
 
@@ -81,3 +85,18 @@ Fresh hosted scan and platform results should be read from the follow-up commit'
 checks. Source-level observations above do not replace adversarial runtime tests
 or platform acceptance. In particular, this document does not mark the remaining
 37 alerts fixed.
+
+## Follow-up scan at `c4907d8a`
+
+The merge-ref API reports 43 open findings: the 39 immutable upstream locations,
+cleanup-marker finding now numbered 113, and three test-only diagnostic findings
+117–119. The latter interpolate a fixture URL into `executeJavaScript` through
+JSON serialization. That sink executes a script directly rather than embedding
+it in HTML, and the URL belongs to a local fixture server. Nonetheless, the
+diagnostic now uses a fixed read-only script and identifies its subscription
+inside the extension, eliminating interpolation entirely. It runs only on
+subscription-fixture failure. Fresh scan confirmation remains required.
+
+The cleanup marker still uses exclusive `wx` creation, covered by race/symlink
+regressions. The scan's continued finding is not a reason to revert that fix or
+to dismiss it without reviewing its path. No alert disposition changed.

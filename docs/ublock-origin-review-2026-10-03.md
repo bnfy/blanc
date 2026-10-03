@@ -80,11 +80,11 @@ developer packaging passed all payload/compliance hooks with upstream uBO
 excluded. This is not signing/notarization, installed-platform or CI evidence.
 Additional local and hosted results are recorded below when available.
 
-The dependency-advisory check reports GHSA-CH52-4W7C-C8XP against existing
-desktop build-tool and Astro lockfile entries. The advisory currently lists no
-patched release. Main's last completed checks predate the observed failure;
-those green runs do not establish that a fresh main audit would pass. This
-follow-up has not suppressed or waived the advisory.
+The initial dependency-advisory check reported GHSA-CH52-4W7C-C8XP against
+existing desktop build-tool and Astro lockfile entries. Current main's scoped
+reachability review and the additional uBO payload review below now account for
+that advisory; fresh local and hosted audits pass. No advisory policy was
+disabled or expanded.
 
 CodeQL findings remain separately tracked in
 `docs/ublock-origin-codeql-2026-10-03.md`. No exclusion, query disablement or alert
@@ -189,3 +189,15 @@ After that merge and review, lint, both VEX guard tests, all 2,104 local unit
 tests and `npm run security:dependencies` passed. The dependency advisory is
 accounted for by main's reviewed VEX, superseding the earlier unresolved audit
 status in this record. Fresh native matrix confirmation remains required.
+
+### Four-platform native result
+
+Run `37124316811` at `c4907d8ad29e4fd2ff8745486c2dadc8810bfceb` passed all
+four jobs: macOS arm64, Intel macOS, Windows x64 and Linux x64. Each job passed
+byte/adaptation checks, lint, the full unit suite and all three real native
+suites (shield, blocking/tools/isolation/lifecycle, Dashboard). Linux exercised
+actual owned-renderer termination, failed-state request gating and retry.
+Existing parity/substrate, OAuth, tab-handoff and modified-link checks also
+passed on that revision. CodeQL remains red; the diagnostic-only cleanup and
+remaining upstream findings are recorded separately. This is development-CI
+evidence, not installed candidate, signing/updater, legal or public enablement.
