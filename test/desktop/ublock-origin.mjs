@@ -278,7 +278,49 @@ try {
   await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(`(async () => {
     const io = (await import('./js/assets.js')).default;
     self.fixtureListEvents = [];
+    self.fixtureUpdateTrace = [];
+    const note = details => {
+      if (self.fixtureUpdateTrace.length < 128) self.fixtureUpdateTrace.push({ at: Date.now(), ...details });
+    };
+    const timers = new WeakSet();
+    for (const method of ['on', 'off']) {
+      const original = vAPI.defer.Client.prototype[method];
+      vAPI.defer.Client.prototype[method] = function(...args) {
+        if (this.callback.name === 'updateNext' && !timers.has(this)) {
+          timers.add(this);
+          const callback = this.callback;
+          this.callback = function(...values) { note({ event: 'timer-fired' }); return callback.apply(this, values); };
+        }
+        if (timers.has(this)) note({ event: method, pending: this.ongoing(), delay: method === 'on' ? args[0] : undefined });
+        return original.apply(this, args);
+      };
+    }
+    for (const method of ['updateStart', 'updateStop']) {
+      const original = io[method];
+      io[method] = function(...args) {
+        note({ event: method, delay: args[0]?.fetchDelay, auto: args[0]?.auto });
+        return original.apply(this, args);
+      };
+    }
+    const fetchAsset = io.fetch;
+    io.fetch = function(url, ...args) {
+      const parsed = new URL(url);
+      const kind = parsed.protocol === 'chrome-extension:' ? 'bundled' : parsed.hostname === '127.0.0.1' ? 'fixture' : 'remote';
+      const at = Date.now();
+      if (kind !== 'bundled') note({ event: 'fetch-start', kind });
+      return fetchAsset.call(this, url, ...args).then(value => {
+        if (kind !== 'bundled') note({ event: 'fetch-end', kind, elapsed: Date.now() - at, status: value.statusCode });
+        return value;
+      }, error => {
+        if (kind !== 'bundled') note({ event: 'fetch-failed', kind, elapsed: Date.now() - at });
+        throw error;
+      });
+    };
     io.addObserver((topic, details) => {
+      if (topic === 'after-assets-updated') note({ event: 'cycle-ended', count: details?.assetKeys?.length || 0 });
+      if ((topic === 'after-asset-updated' && !details?.assetKey?.startsWith('compiled/')) || topic === 'asset-update-failed' || (topic === 'before-asset-updated' && (details?.assetKey === ${JSON.stringify(url)} || ['assets.json', 'public_suffix_list.dat', 'ublock-badlists'].includes(details?.assetKey)))) {
+        note({ event: topic, asset: details?.assetKey === ${JSON.stringify(url)} ? 'fixture' : details?.assetKey?.startsWith('compiled/') ? 'compiled' : details?.assetKey?.includes('://') ? 'external' : details?.assetKey });
+      }
       if (details?.assetKey !== ${JSON.stringify(url)} && !details?.assetKeys?.includes(${JSON.stringify(url)})) return;
       if (self.fixtureListEvents.length < 32) self.fixtureListEvents.push({ topic,
         newRule: details.content?.includes('/subscription-new.js$script') ?? null });
@@ -317,6 +359,7 @@ try {
   await waitForValue(() => hits.filter(url => new URL(url, fixture).pathname === '/fixture-list.txt').length, count => count > listRequests, 'original list update fetched', 30000);
   await waitForValue(() => electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
     .executeJavaScript(`µBlock.availableFilterLists[${JSON.stringify(url)}]?.entryCount || 0`), fixture + 'fixture-list.txt'), count => count > 1, 'updated subscription compiled', 30000);
+  if (process.env.BLANC_UBLOCK_UPDATE_TRACE) console.log('Subscription update trace:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript('self.fixtureUpdateTrace')));
   const beforeUpdated = hits.filter(url => url === '/subscription-new.js').length;
   await subscriptionPage.evaluate(() => new Promise(resolve => { const script = document.createElement('script'); script.src = '/subscription-new.js'; script.onload = script.onerror = resolve; document.body.append(script); }));
   assert.equal(hits.filter(url => url === '/subscription-new.js').length, beforeUpdated);
@@ -628,7 +671,7 @@ try {
         return parsed.protocol === 'http:' && parsed.hostname === '127.0.0.1' && parsed.pathname === '/fixture-list.txt';
       } catch { return false; }
     });
-    return { events: self.fixtureListEvents, updating: io.isUpdating(), metadata: (await io.metadata())[url], entry: µBlock.availableFilterLists[url], selected: url !== undefined };
+    return { events: self.fixtureListEvents, trace: self.fixtureUpdateTrace, updating: io.isUpdating(), metadata: (await io.metadata())[url], entry: µBlock.availableFilterLists[url], selected: url !== undefined };
   })()`)).catch(() => null));
   if (electron) console.error('Provider state:', await testCalls.callTestHook(electron, 'blockingStatus', []).catch(() => null));
   console.error(errors);

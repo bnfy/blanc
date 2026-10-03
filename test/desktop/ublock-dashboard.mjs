@@ -58,6 +58,12 @@ async function select(pane) {
   const frame = await waitForValue(async () => dashboard.frames().find(item => item.url().endsWith('/' + pane)), Boolean, pane);
   await frame.locator('#blancPaneHeader h1').waitFor();
   await frame.waitForFunction(() => document.querySelector('#blancPaneHeader h1').textContent.length > 0);
+  if (pane === '1p-filters.html') {
+    // Upstream starts with enabled=true but an unchecked DOM input. Its dirty
+    // guard remains true until the asynchronous readUserFilters reply hydrates
+    // and remembers the editor. The presentation heading appears earlier.
+    await frame.waitForFunction(() => typeof self.hasUnsavedData === 'function' && self.hasUnsavedData() === false);
+  }
   return frame;
 }
 async function noOverflow(frame) {
@@ -106,6 +112,7 @@ try {
   await dashboard.locator('[data-pane="3p-filters.html"]').press('ArrowRight');
   let filters = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/1p-filters.html')), Boolean, 'keyboard My filters');
   await filters.locator('.CodeMirror').waitFor();
+  await filters.waitForFunction(() => typeof self.hasUnsavedData === 'function' && self.hasUnsavedData() === false);
   stage = 'native editor and unsaved guard';
   // Real input into the existing CodeMirror, not a substitute textarea/editor.
   await filters.locator('.CodeMirror').click();
@@ -163,5 +170,14 @@ try {
   assert(!hits.includes('/dashboard-blocked.js'));
   assert.deepEqual(errors, [], 'no uncaught Dashboard UI errors');
   console.log('uBO Dashboard passed: native settings/themes, lists/search/keyboard, editor/unsaved guard, all panels/narrow layout, real blocking and restart persistence.');
-} catch (error) { console.error('Dashboard failure at ' + stage); throw error; }
+} catch (error) {
+  console.error('Dashboard failure at ' + stage);
+  if (dashboard) console.error('Dashboard state:', await dashboard.evaluate(() => ({
+    selected: document.querySelector('.tabButton.selected')?.dataset.pane,
+    unsavedWarning: document.getElementById('unsavedWarning')?.classList.contains('on'),
+    pane: document.getElementById('iframe')?.contentWindow.location.pathname,
+    dirty: document.getElementById('iframe')?.contentWindow.hasUnsavedData?.(),
+  })).catch(() => null));
+  throw error;
+}
 finally { clearTimeout(watchdog); await electron?.close(); server.close(); fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(dir + '-Dev', { recursive: true, force: true }); }

@@ -363,3 +363,35 @@ is retained above; fresh hosted results are required rather than inferred from
 these local passes. CodeQL remains uncleared, and its upstream findings were not
 excluded or dismissed. Distribution clearance and installed-platform acceptance
 remain prerequisites for public uBO availability.
+
+
+### Fresh hosted evidence at `7d608dc7`
+
+Run `37128306931` passed its ordinary Linux package job. Linux passed all 2,132
+unit tests, the real shield/provider suite and the expanded blocking/lifecycle
+suite, including delayed CSS, WebSockets and tool cold restore. Its Dashboard
+fixture then timed out switching from My filters to My rules. Upstream starts
+`originalState.enabled` true while the DOM checkbox is unchecked, so its dirty
+predicate stays true until `readUserFilters` hydrates and remembers state. The
+fixture was waiting for Blanc's earlier heading, then clicking the next tab
+before hydration. It now waits for the native clean predicate for this pane and
+before its initial edit. The unsaved guard remains unchanged and is still tested
+with an actual dirty edit and Stay. Failure diagnostics report fixed panel names
+and guard state, without filter content. Fresh Linux confirmation is required.
+
+The fresh ordinary macOS inspection ASAR contains 335 first-party files totaling
+20,479,924 bytes, zero `ublock/` files, and the three reproducible capture wrappers
+inside the app. Allowlist, blocker, capture and compliance checks passed; the
+unsigned inspection still stopped at the unchanged after-sign provisioning gate.
+This is payload evidence, not a signed or installed candidate.
+
+The CodeQL workflow completed its scan, but the separate security check remains
+failed with 40 open merge-ref findings: 39 immutable upstream locations and the
+exclusive-marker race finding 113. No exclusions or dismissals were introduced.
+
+Intel macOS failed the updated-subscription assertion on the same head. The
+fixture list was fetched and cached, but the updater was still running before
+the final engine reload. Native timer/fetch diagnostics are now bounded and
+record fixed asset categories, timing and cycle completion without browsing
+URLs or filter text. Three local traced runs passed; that does not resolve the
+Intel failure. The next hosted run must identify or clear it.
