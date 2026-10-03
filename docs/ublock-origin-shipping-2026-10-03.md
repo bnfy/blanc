@@ -205,3 +205,28 @@ licensing determination; all distribution-clearance fields remain false.
 The CodeQL API comparison after the main merge still matched all 39 baseline
 alert numbers, rules and upstream paths; no first-party alert was present.
 No dismissals or exclusions were applied.
+
+
+Further [source-reproduction evidence](ublock-origin-build-reproduction-2026-10-03.md)
+accounts for the transformed Chromium manifest and reproduces three bundled
+WASM modules byte-for-byte with the documented WABT version. LZ4 optimization,
+minified-library/font/filter inputs, complete notices and the concrete licensing
+boundary remain unresolved. These results improve the review packet without
+clearing corresponding-source or distribution fields.
+
+
+Exact-code-head run
+[37141409804](https://github.com/bnfy/blanc/actions/runs/37141409804)
+at `7c4fd4a9` completed successfully: ARM macOS, Intel macOS, Windows, Linux,
+and ordinary-package all passed on the first attempt. Linux exercised the
+corrected native focus precondition and all three suites; the earlier failure
+record remains above. These are hosted, unpackaged desktop and ordinary-payload
+results, not signed installed uBO candidate acceptance.
+
+The current main-branch repository direction also requires an automatic Blanc
+Blocker fallback when Electron ceases to support MV2. That retirement path still
+needs implementation and verification before public uBO enablement. It is
+separate from the two-second background-decision failure policy, which remains
+fail closed. A fallback must identify the effective provider, retain separate
+uBO configuration and respect the global blocking switch; it must not silently
+substitute a provider or replay POST pages.
