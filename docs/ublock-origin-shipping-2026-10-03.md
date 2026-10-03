@@ -108,7 +108,11 @@ Never hold back Chromium security updates indefinitely to keep MV2 alive.
 
 ## Candidate and release gates
 
-1. Complete each alert's disposition and the source/licensing determination.
+1. Complete the source/licensing determination and record the security review
+   plan. The owner has approved 38 individual dismissals for the post-draft
+   stage; #77 remains open for signed installed-build testing and a separate
+   owner decision. Do not require that final decision before the very candidate
+   testing it depends on, or infer it from the other 38 approvals.
 2. Run lint, substrate, full units, native tools/blocking suites and actual
    ordinary and uBO package payload/compliance verification at the candidate SHA.
 3. Only after distribution clearance, dispatch private signed Windows/Linux
@@ -116,8 +120,14 @@ Never hold back Chromium security updates indefinitely to keep MV2 alive.
 4. Obtain installed candidate evidence for macOS arm64/x64, Windows x64 and Linux
    x64. Include persistence, quiet/reopen/tools, close/relaunch, Linux renderer
    sandbox (direct and integrated-menu AppImage), and staged updater handoff
-   where required. CI alone does not establish these desktop results.
-5. Enable only platforms with complete evidence; publish the support matrix with
+   where required. Include the [alert #77 installed noscript protocol](ublock-origin-codeql-dispositions-2026-10-03.md#alert-77-signed-installed-build-acceptance-still-pending)
+   on each platform proposed for enablement. CI alone does not establish these
+   desktop results.
+5. Obtain the separate owner decision on #77. At the agreed post-draft stage,
+   apply the other 38 recorded dismissals individually, using the reviewer's
+   exact per-alert reasons/comments. This document does not remove draft status
+   or dismiss an alert. Resolve all merge-blocking security findings before merge.
+6. Enable only platforms with complete evidence; publish the support matrix with
    actual uBO/Electron versions and integration limits. Use the existing protected
    merge and signing/notarization/manifest/provenance/updater protocol.
 
@@ -426,3 +436,24 @@ part of the release reliability record; the corrected suites require fresh CI.
 The test follow-up passed local lint, the full shield/provider suite and the full
 uBO real-blocking suite on macOS arm64. The Intel failure has not been reproduced
 locally; new failure diagnostics are intended to establish its cause if repeated.
+
+
+## Owner-relayed security decisions, pending execution
+
+The owner supplied the completed review decision summary after code head
+`31b33196`: 38 alerts approved for individual dismissal when PR #490 leaves
+draft; #77 explicitly held open until signed installed-build testing and a
+separate owner decision. The [per-alert document](ublock-origin-codeql-dispositions-2026-10-03.md)
+now distinguishes each owner decision from the technical recommendation and
+records the installed no-scripting evidence still required. Exact comments and
+the nine non-blocking alerts' exact reasons remain in the reviewer's record;
+they were not invented here. A fresh read-only GitHub comparison still returned
+all 39 baseline alerts, with no additions or omissions. No alert was dismissed,
+no scan rule/exclusion changed, and the PR remains draft.
+
+The broader unavailable-build fallback's final code/test head `31b33196` passed
+all four desktop jobs and ordinary packaging in
+[run 37147016218](https://github.com/bnfy/blanc/actions/runs/37147016218).
+Every platform log confirms both fallback regressions ran. The earlier Intel
+failure did not recur; its exact failure code remains unknown. This pass is not
+claimed as a production fix for that incident or as signed installed acceptance.
