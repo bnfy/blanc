@@ -26,7 +26,6 @@ const {
 const { blockableHostname } = require('./adblock-exceptions');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -423,11 +422,6 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
-    const guardedErrorUrl = chromeWebStoreErrorPageUrl(validatedURL, errorCode);
-    if (guardedErrorUrl) {
-      wc.loadURL(guardedErrorUrl).catch(() => {});
-      return;
-    }
     if (errorCode === -3) return;
     if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = tab.certificateError

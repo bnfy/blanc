@@ -151,3 +151,32 @@ jobs:
         run: xvfb-run -a npm run test:tab-handoff
       - name: Closing the last window quits Blanc (Linux path of #368)
         run: xvfb-run -a npm run test:window-close-quit
+
+  browser-shortcuts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Browser commands and Settings (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:browser-shortcuts:desktop
+      - name: Browser commands and Settings (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:browser-shortcuts:desktop
+      - name: Real Chrome Web Store documents (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:web-store
+      - name: Real Chrome Web Store documents (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:web-store

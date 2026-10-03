@@ -18,8 +18,9 @@ test('the utility-sheet navigation queue is still liftable from main.js', () => 
   assert.ok(queueSource, 'utility-sheet queue not found — update this test with it');
 });
 
-function loadQueue() {
+function loadQueue(onFailure = () => {}) {
   const sandbox = {
+    discardFailedUtilitySheet: onFailure,
     liveViewContents: (view) => {
       const wc = view?.webContents;
       return wc && !wc.isDestroyed() ? wc : null;
@@ -107,4 +108,53 @@ test('hiding the sheet cancels a queued destination', async () => {
   h.pending.shift()();
   await Promise.all([first, second]);
   assert.deepEqual(h.calls, ['blanc://bookmarks/']);
+});
+
+
+test('a failed current utility load discards stale sheet state', async () => {
+  const failed = [];
+  const { schedule } = loadQueue((runtime, sheet) => failed.push([runtime, sheet]));
+  const h = controlledSheet();
+  h.sheet.wc.loadURL = () => Promise.reject(new Error('renderer exited'));
+  const runtime = { utilitySheetView: h.sheet.view, utilitySheetUrl: 'blanc://settings/' };
+  await schedule(runtime, h.sheet, runtime.utilitySheetUrl);
+  assert.equal(failed.length, 1);
+  assert.equal(failed[0][0], runtime);
+  assert.equal(failed[0][1], h.sheet);
+});
+
+test('a superseded failed navigation cannot discard a replacement sheet', async () => {
+  const failed = [];
+  const { schedule } = loadQueue(() => failed.push(true));
+  const h = controlledSheet();
+  let reject;
+  h.sheet.wc.loadURL = () => new Promise((_resolve, fail) => { reject = fail; });
+  const runtime = { utilitySheetView: h.sheet.view, utilitySheetUrl: 'blanc://settings/' };
+  const pending = schedule(runtime, h.sheet, runtime.utilitySheetUrl);
+  await Promise.resolve();
+  runtime.utilitySheetView = {};
+  reject(new Error('old renderer exited'));
+  await pending;
+  assert.equal(failed.length, 0);
+});
+
+
+test('a superseded failure on the same view leaves the newest request queued', async () => {
+  const failed = [];
+  const { schedule } = loadQueue(() => failed.push(true));
+  const h = controlledSheet();
+  let reject;
+  h.sheet.wc.loadURL = url => {
+    h.calls.push(url);
+    return url.includes('history') ? new Promise((_resolve, fail) => { reject = fail; }) : Promise.resolve();
+  };
+  const runtime = { utilitySheetView: h.sheet.view, utilitySheetUrl: 'blanc://history/' };
+  const first = schedule(runtime, h.sheet, runtime.utilitySheetUrl);
+  await Promise.resolve();
+  runtime.utilitySheetUrl = 'blanc://settings/';
+  const second = schedule(runtime, h.sheet, runtime.utilitySheetUrl);
+  reject(new Error('old load failed'));
+  await Promise.all([first, second]);
+  assert.deepEqual(h.calls, ['blanc://history/', 'blanc://settings/']);
+  assert.equal(failed.length, 0);
 });
