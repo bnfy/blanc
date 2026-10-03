@@ -200,7 +200,7 @@
     "beforePack": "scripts/before-pack.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
-      "bundleVersion": "1273",
+      "bundleVersion": "1274",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,

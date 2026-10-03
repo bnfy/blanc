@@ -188,7 +188,10 @@ try {
   }
   report.passed = true;
 } catch (error) { console.error('Installed uBO failure at:', stage, error); console.error('Packaged launch output:', app?.output()); report.failure = { stage, name: error.name };
-  if (restartAttempt) report.restartFailure = { ...restartAttempt, oldProcessAlive: alive(restartAttempt.oldPid), matchingProcesses: matchingProcesses() };
+  if (restartAttempt) {
+    report.restartFailure = { ...restartAttempt, oldProcessAlive: alive(restartAttempt.oldPid), matchingProcesses: matchingProcesses() };
+    console.error('Installed restart observation:', JSON.stringify(report.restartFailure));
+  }
   throw error; }
 finally {
   fs.writeFileSync(fd, JSON.stringify(report, null, 2) + '\n'); fs.closeSync(fd);

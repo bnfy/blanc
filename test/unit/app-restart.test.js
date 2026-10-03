@@ -82,3 +82,44 @@ test('a Leave decision after ten seconds still completes the requested restart',
   await Promise.resolve(); f.app.emit('quit');
   assert.equal(await pending, true); assert.deepEqual(f.calls, ['quit', 'relaunch']);
 });
+
+test('packaged AppImage restart targets the persistent launcher after irreversible quit', async () => {
+  const app = new EventEmitter(); const page = new EventEmitter(); const relaunches = [];
+  app.isPackaged = true;
+  app.quit = () => {};
+  app.relaunch = options => relaunches.push(options);
+  const args = ['/tmp/.mount_Blanc/blanc', '--user-data-dir=/tmp/disposable', '--remote-debugging-port=1234'];
+  const restart = createAppRestarter({ app, webContents: { getAllWebContents: () => [page] },
+    platform: 'linux', env: { APPIMAGE: '/tmp/Applications/Blanc.AppImage' }, argv: args });
+  const pending = restart();
+  assert.deepEqual(relaunches, []);
+  app.emit('quit');
+  assert.equal(await pending, true);
+  assert.deepEqual(relaunches, [{ execPath: '/tmp/Applications/Blanc.AppImage', args: args.slice(1) }]);
+  assert.deepEqual(args, ['/tmp/.mount_Blanc/blanc', '--user-data-dir=/tmp/disposable', '--remote-debugging-port=1234']);
+});
+test('Stay never arms the AppImage launcher', async () => {
+  const app = new EventEmitter(); const page = new EventEmitter(); let relaunches = 0;
+  app.isPackaged = true;
+  app.quit = () => page.emit('will-prevent-unload', { defaultPrevented: false });
+  app.relaunch = () => relaunches++;
+  const restart = createAppRestarter({ app, webContents: { getAllWebContents: () => [page] },
+    platform: 'linux', env: { APPIMAGE: '/tmp/Applications/Blanc.AppImage' } });
+  assert.equal(await restart(), false);
+  app.emit('quit'); assert.equal(relaunches, 0);
+});
+test('ordinary launches and malformed AppImage metadata retain the normal relaunch path', async () => {
+  for (const [platform, packaged, image] of [
+    ['darwin', true, '/tmp/Blanc.AppImage'], ['win32', true, '/tmp/Blanc.AppImage'],
+    ['linux', false, '/tmp/Blanc.AppImage'], ['linux', true, undefined],
+    ['linux', true, 'relative.AppImage'], ['linux', true, '/tmp/invalid\0.AppImage'],
+  ]) {
+    const app = new EventEmitter(); let options;
+    app.isPackaged = packaged; app.quit = () => app.emit('quit');
+    app.relaunch = (...args) => { options = args; };
+    const restart = createAppRestarter({ app, webContents: { getAllWebContents: () => [] },
+      platform, env: { APPIMAGE: image } });
+    assert.equal(await restart(), true);
+    assert.deepEqual(options, [], `${platform}/${packaged}/${image}`);
+  }
+});
