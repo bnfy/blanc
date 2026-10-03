@@ -1,0 +1,45 @@
+name: Full uBlock Origin candidate
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'ublock/**'
+      - 'test/**'
+      - 'scripts/**'
+      - 'package*.json'
+      - '.github/workflows/ublock-origin.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Preserve verified bytes on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable native Linux renderer sandbox
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci --no-audit --no-fund
+      - run: npm run ublock:check
+      - run: npm run lint
+      - run: npm run test:unit
+      - name: Real blocking, original tools, isolation and lifecycle
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a npm run test:ublock:desktop
+          else
+            npm run test:ublock:desktop
+          fi
