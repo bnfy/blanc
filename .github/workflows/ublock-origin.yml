@@ -36,6 +36,7 @@ permissions:
   contents: read
 jobs:
   ordinary-package:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.installed_intel }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -49,6 +50,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.installed_intel }}
     strategy:
       fail-fast: false
       matrix:
@@ -111,7 +113,13 @@ jobs:
         env:
           BLANC_UBLOCK_INTERNAL_BUILD: '1'
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npx electron-builder --mac dmg --x64 --publish never --config.mac.identity=null --config.afterSign=null
+        run: |
+          node <<'NODE'
+          const { build, Platform, Arch } = require('electron-builder');
+          build({ targets: Platform.MAC.createTarget(['dmg'], Arch.x64), publish: 'never',
+            config: { mac: { identity: null }, afterSign: null } })
+            .catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
       - name: Install the actual DMG fixture
         run: |
           DMG="$PWD/dist/Blanc-$(node -p "require('./package.json').version").dmg"

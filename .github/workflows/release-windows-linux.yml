@@ -628,7 +628,9 @@ jobs:
           name: Blanc-Linux-uBO-scripting-${{ github.run_id }}
           if-no-files-found: ignore
           retention-days: 3
-          path: dist/ublock-noscript-linux.json
+          path: |
+            dist/ublock-noscript-linux.json
+            dist/ublock-installed-linux.json
 
       - name: Upload private Linux validation artifact
         if: ${{ inputs.mode == 'validation' }}
