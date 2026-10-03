@@ -34,6 +34,7 @@ fs.mkdirSync(crashDumps);
 const press = async (command, key, modifiers, surface = 'active') => {
   const commandState = await call(app, 'browserCommandState');
   const before = commandState.deliveries.length;
+  assert.ok(before < 100, 'Command regression exceeded the bounded diagnostic inventory');
   lastCommandDiagnostics = { requested: { command, key, modifiers, surface }, state: commandState };
   await app.evaluate(({ Menu, webContents, BrowserWindow }, { command, key, modifiers, surface }) => {
     const windows = BrowserWindow.getAllWindows();
@@ -142,11 +143,16 @@ try {
   await press('settings', ',', ['control'], 'overlay');
   await sheetReady();
   await call(app, 'closeUtilitySurface');
-  await press('new-private-tab', 'N', ['control', 'shift']);
-  const privateState = await state();
-  assert.equal(privateState.tabs.find(tab => tab.id === privateState.activeTabId).private, true);
-  await press('close-tab', 'W', ['control'], 'overlay');
-  await wait(state, value => value.tabOrder.length === count, 'private tab closed');
+  // Closing a newly created private guest is a distinct teardown path:
+  // it cannot be parked, and can race its first renderer navigation.
+  // Repeat it without waiting for document readiness to exercise that race.
+  for (let iteration = 0; iteration < 8; iteration++) {
+    await press('new-private-tab', 'N', ['control', 'shift']);
+    const privateState = await state();
+    assert.equal(privateState.tabs.find(tab => tab.id === privateState.activeTabId).private, true);
+    await press('close-tab', 'W', ['control'], 'overlay');
+    await wait(state, value => value.tabOrder.length === count, 'private tab closed');
+  }
   await press('reopen-tab', 'T', ['control', 'shift']);
   await wait(state, value => value.tabOrder.length === count + 1, 'ordinary closed tab reopened');
   await press('close-tab', 'W', ['control']);
