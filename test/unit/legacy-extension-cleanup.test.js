@@ -31,23 +31,45 @@ test('legacy migration preserves managed uBO and ordinary website service worker
   assert(fs.existsSync(path.join(dir, 'Service Worker')));
   assert.equal(fs.readFileSync(path.join(dir, 'legacy-extension-cleanup-v1'), 'utf8'), '1\n');
 });
-test('a cleanup marker inserted between check and write is not overwritten', t => {
+test('the marker is claimed by exclusive create, with no separate existence check', () => {
+  assert.match(cleanup, /fs\.openSync\(migration, 'wx', 0o600\)/);
+  assert.doesNotMatch(cleanup, /existsSync\(migration\)/);
+});
+test('a marker created concurrently before the claim is not overwritten and skips cleanup', t => {
   const dir = fixture(t);
-  const errors = run(dir, { ...fs, writeFileSync(file, data, options) {
-    fs.writeFileSync(file, 'concurrent marker');
-    fs.writeFileSync(file, data, options);
+  fs.mkdirSync(path.join(dir, 'Extensions'));
+  const marker = path.join(dir, 'legacy-extension-cleanup-v1');
+  const errors = run(dir, { ...fs, openSync(file, flags, mode) {
+    if (file === marker) fs.writeFileSync(file, 'concurrent marker');
+    return fs.openSync(file, flags, mode);
   } });
-  assert.equal(errors.length, 1);
-  assert.equal(fs.readFileSync(path.join(dir, 'legacy-extension-cleanup-v1'), 'utf8'), 'concurrent marker');
+  assert.equal(errors.length, 0);
+  assert.equal(fs.readFileSync(marker, 'utf8'), 'concurrent marker');
+  assert(fs.existsSync(path.join(dir, 'Extensions')));
 });
 test('a symlink inserted at the cleanup marker cannot overwrite its target', { skip: process.platform === 'win32' }, t => {
   const dir = fixture(t);
   const target = path.join(dir, 'keep');
   fs.writeFileSync(target, 'unchanged');
-  const errors = run(dir, { ...fs, writeFileSync(file, data, options) {
-    fs.symlinkSync(target, file);
-    fs.writeFileSync(file, data, options);
+  const marker = path.join(dir, 'legacy-extension-cleanup-v1');
+  const errors = run(dir, { ...fs, openSync(file, flags, mode) {
+    if (file === marker) fs.symlinkSync(target, file);
+    return fs.openSync(file, flags, mode);
+  } });
+  assert.equal(errors.length, 0);
+  assert.equal(fs.readFileSync(target, 'utf8'), 'unchanged');
+});
+test('a failed cleanup releases its marker so the next launch retries', t => {
+  const dir = fixture(t);
+  fs.mkdirSync(path.join(dir, 'Extensions'));
+  const marker = path.join(dir, 'legacy-extension-cleanup-v1');
+  const errors = run(dir, { ...fs, rmSync(file, options) {
+    if (file === path.join(dir, 'Extensions')) throw new Error('busy');
+    return fs.rmSync(file, options);
   } });
   assert.equal(errors.length, 1);
-  assert.equal(fs.readFileSync(target, 'utf8'), 'unchanged');
+  assert(!fs.existsSync(marker));
+  assert.equal(run(dir).length, 0);
+  assert(!fs.existsSync(path.join(dir, 'Extensions')));
+  assert.equal(fs.readFileSync(marker, 'utf8'), '1\n');
 });

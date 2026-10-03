@@ -1355,13 +1355,32 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
     'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
   try {
-    const migration = path.join(app.getPath('userData'), 'legacy-extension-cleanup-v1');
-    if (!fs.existsSync(migration) && !fs.existsSync(path.join(app.getPath('userData'), 'managed-ublock'))) {
-      for (const entry of staleExtensionState) {
-        fs.rmSync(path.join(app.getPath('userData'), entry), { recursive: true, force: true });
+    const userData = app.getPath('userData');
+    const migration = path.join(userData, 'legacy-extension-cleanup-v1');
+    if (!fs.existsSync(path.join(userData, 'managed-ublock'))) {
+      // Claim the one-time marker with a single exclusive create, never a
+      // separate existence check: an existing marker or symlink means the
+      // cleanup already ran (or another process owns it) and is left alone.
+      let marker = null;
+      try {
+        marker = fs.openSync(migration, 'wx', 0o600);
+      } catch (err) {
+        if (err.code !== 'EEXIST') throw err;
       }
-      // Exclusive creation rejects a marker/symlink inserted after the existence check.
-      fs.writeFileSync(migration, '1\n', { mode: 0o600, flag: 'wx' });
+      if (marker !== null) {
+        let completed = false;
+        try {
+          for (const entry of staleExtensionState) {
+            fs.rmSync(path.join(userData, entry), { recursive: true, force: true });
+          }
+          fs.writeFileSync(marker, '1\n');
+          completed = true;
+        } finally {
+          fs.closeSync(marker);
+          // Release the claim on failure so the next launch retries the cleanup.
+          if (!completed) fs.rmSync(migration, { force: true });
+        }
+      }
     }
   } catch (err) {
     console.warn('[cleanup] could not clear stale extension state:', err.message);
