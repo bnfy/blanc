@@ -9266,6 +9266,288 @@
      readOnly: true,
      styleActiveLine: true,
  });
+--- a/js/vapi-background.js
++++ b/js/vapi-background.js
+@@ -1,95 +1,96 @@
+-/*******************************************************************************
+-
+-    uBlock Origin - a comprehensive, efficient content blocker
+-    Copyright (C) 2014-2015 The uBlock Origin authors
+-    Copyright (C) 2014-present Raymond Hill
+-
+-    This program is free software: you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation, either version 3 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program.  If not, see {http://www.gnu.org/licenses/}.
+-
+-    Home: https://github.com/gorhill/uBlock
+-*/
+-
+-// For background page
+-
+-/******************************************************************************/
+-
+-import { ubolog } from './console.js';
+-import webext from './webext.js';
+-
+-/******************************************************************************/
+-
+-const manifest = browser.runtime.getManifest();
+-
+-vAPI.cantWebsocket =
+-    browser.webRequest.ResourceType instanceof Object === false  ||
+-    browser.webRequest.ResourceType.WEBSOCKET !== 'websocket';
+-
+-vAPI.canWASM = vAPI.webextFlavor.soup.has('chromium') === false;
+-if ( vAPI.canWASM === false ) {
+-    const csp = manifest.content_security_policy;
+-    vAPI.canWASM = csp !== undefined && csp.indexOf("'wasm-unsafe-eval'") !== -1;
+-}
+-
+-/******************************************************************************/
+-
+-vAPI.app = {
+-    name: manifest.name.replace(/ dev\w+ build/, ''),
+-    version: (( ) => {
+-        let version = manifest.version_name || manifest.version;
+-        const match = /(\d+\.\d+\.\d+)(?:\.(\d+))?/.exec(version);
+-        if ( match && match[2] ) {
+-            const v = parseInt(match[2], 10);
+-            version = match[1] + (v < 100 ? 'b' + v : 'rc' + (v - 100));
+-        }
+-        return version;
+-    })(),
+-
+-    intFromVersion: function(s) {
+-        const parts = s.match(/(?:^|\.|b|rc)\d+/g);
+-        if ( parts === null ) { return 0; }
+-        let vint = 0;
+-        for ( let i = 0; i < 4; i++ ) {
+-            const pstr = parts[i] || '';
+-            let pint;
+-            if ( pstr === '' ) {
+-                pint = 0;
+-            } else if ( pstr.startsWith('.') || pstr.startsWith('b') ) {
+-                pint = parseInt(pstr.slice(1), 10);
+-            } else if ( pstr.startsWith('rc') ) {
+-                pint = parseInt(pstr.slice(2), 10) + 100;
+-            } else {
+-                pint = parseInt(pstr, 10);
+-            }
+-            vint = vint * 1000 + pint;
+-        }
+-        return vint;
+-    },
+-
+-    restart: function() {
+-        browser.runtime.reload();
+-    },
+-};
+-
+-/******************************************************************************/
+-
+-// Generate segments of random six alphanumeric characters, thus one segment
+-// is a value out of 36^6 = over 2x10^9 values.
+-
+-vAPI.generateSecret = (size = 1) => {
+-    let secret = '';
+-    while ( size-- ) {
+-        secret += (Math.floor(Math.random() * 2176782336) + 2176782336).toString(36).slice(1);
++// Modified by Blanc on 2026-10-02: browser host adaptation and pinned executable-resource policy.
++/*******************************************************************************
++
++    uBlock Origin - a comprehensive, efficient content blocker
++    Copyright (C) 2014-2015 The uBlock Origin authors
++    Copyright (C) 2014-present Raymond Hill
++
++    This program is free software: you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program.  If not, see {http://www.gnu.org/licenses/}.
++
++    Home: https://github.com/gorhill/uBlock
++*/
++
++// For background page
++
++/******************************************************************************/
++
++import { ubolog } from './console.js';
++import webext from './webext.js';
++
++/******************************************************************************/
++
++const manifest = browser.runtime.getManifest();
++
++vAPI.cantWebsocket =
++    browser.webRequest.ResourceType instanceof Object === false  ||
++    browser.webRequest.ResourceType.WEBSOCKET !== 'websocket';
++
++vAPI.canWASM = vAPI.webextFlavor.soup.has('chromium') === false;
++if ( vAPI.canWASM === false ) {
++    const csp = manifest.content_security_policy;
++    vAPI.canWASM = csp !== undefined && csp.indexOf("'wasm-unsafe-eval'") !== -1;
++}
++
++/******************************************************************************/
++
++vAPI.app = {
++    name: manifest.name.replace(/ dev\w+ build/, ''),
++    version: (( ) => {
++        let version = manifest.version_name || manifest.version;
++        const match = /(\d+\.\d+\.\d+)(?:\.(\d+))?/.exec(version);
++        if ( match && match[2] ) {
++            const v = parseInt(match[2], 10);
++            version = match[1] + (v < 100 ? 'b' + v : 'rc' + (v - 100));
++        }
++        return version;
++    })(),
++
++    intFromVersion: function(s) {
++        const parts = s.match(/(?:^|\.|b|rc)\d+/g);
++        if ( parts === null ) { return 0; }
++        let vint = 0;
++        for ( let i = 0; i < 4; i++ ) {
++            const pstr = parts[i] || '';
++            let pint;
++            if ( pstr === '' ) {
++                pint = 0;
++            } else if ( pstr.startsWith('.') || pstr.startsWith('b') ) {
++                pint = parseInt(pstr.slice(1), 10);
++            } else if ( pstr.startsWith('rc') ) {
++                pint = parseInt(pstr.slice(2), 10) + 100;
++            } else {
++                pint = parseInt(pstr, 10);
++            }
++            vint = vint * 1000 + pint;
++        }
++        return vint;
++    },
++
++    restart: function() {
++        browser.runtime.reload();
++    },
++};
++
++/******************************************************************************/
++
++// Generate segments of random six alphanumeric characters, thus one segment
++// is a value out of 36^6 = over 2x10^9 values.
++
++vAPI.generateSecret = (size = 1) => {
++    let secret = '';
++    while ( size-- ) {
++        secret += Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); // Blanc: 128 random bits per segment
+     }
+     return secret;
+ };
+--- a/js/vapi-client.js
++++ b/js/vapi-client.js
+@@ -1,47 +1,44 @@
+-/*******************************************************************************
+-
+-    uBlock Origin - a comprehensive, efficient content blocker
+-    Copyright (C) 2014-2015 The uBlock Origin authors
+-    Copyright (C) 2014-present Raymond Hill
+-
+-    This program is free software: you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation, either version 3 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program.  If not, see {http://www.gnu.org/licenses/}.
+-
+-    Home: https://github.com/gorhill/uBlock
+-*/
+-
+-// For non-background page
+-
+-/******************************************************************************/
+-
+-// https://github.com/chrisaljoudi/uBlock/issues/456
+-//   Skip if already injected.
+-
+-// >>>>>>>> start of HUGE-IF-BLOCK
+-if (
+-    typeof vAPI === 'object' &&
+-    vAPI.randomToken instanceof Function === false
+-) {
+-
+-/******************************************************************************/
+-/******************************************************************************/
+-
+-vAPI.randomToken = function() {
+-    const n = Math.random();
+-    return String.fromCharCode(n * 25 + 97) +
+-        Math.floor(
+-            (0.25 + n * 0.75) * Number.MAX_SAFE_INTEGER
+-        ).toString(36).slice(-8);
++// Modified by Blanc on 2026-10-02: browser host adaptation and pinned executable-resource policy.
++/*******************************************************************************
++
++    uBlock Origin - a comprehensive, efficient content blocker
++    Copyright (C) 2014-2015 The uBlock Origin authors
++    Copyright (C) 2014-present Raymond Hill
++
++    This program is free software: you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program.  If not, see {http://www.gnu.org/licenses/}.
++
++    Home: https://github.com/gorhill/uBlock
++*/
++
++// For non-background page
++
++/******************************************************************************/
++
++// https://github.com/chrisaljoudi/uBlock/issues/456
++//   Skip if already injected.
++
++// >>>>>>>> start of HUGE-IF-BLOCK
++if (
++    typeof vAPI === 'object' &&
++    vAPI.randomToken instanceof Function === false
++) {
++
++/******************************************************************************/
++/******************************************************************************/
++
++vAPI.randomToken = function() {
++    return 'a' + Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); // Blanc: CSS-safe cryptographic identifier
+ };
+ 
+ vAPI.sessionId = vAPI.randomToken();
 --- a/js/vapi-common.js
 +++ b/js/vapi-common.js
 @@ -1,241 +1,243 @@

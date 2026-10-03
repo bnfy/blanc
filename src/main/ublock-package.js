@@ -89,6 +89,19 @@ function adaptPackage(files, hostSources) {
   result.set('js/vapi-common.js', Buffer.from(replace(result.get('js/vapi-common.js').toString('utf8'),
     'vAPI.closePopup = function() {',
     'vAPI.closePopup = function() {\n    self.BlancUboHost.closePopup(); return; // Blanc owns the popup view lifecycle')));
+  // Security adaptation: these values gate web-accessible resources and identify
+  // content-script sessions. Generate them in the native isolated realm using
+  // cryptographic randomness, including on ordinary HTTP pages.
+  result.set('js/vapi-background.js', Buffer.from(replace(result.get('js/vapi-background.js').toString('utf8'),
+    "        secret += (Math.floor(Math.random() * 2176782336) + 2176782336).toString(36).slice(1);",
+    "        secret += Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); // Blanc: 128 random bits per segment")));
+  result.set('js/vapi-client.js', Buffer.from(replace(result.get('js/vapi-client.js').toString('utf8'),
+    `    const n = Math.random();
+    return String.fromCharCode(n * 25 + 97) +
+        Math.floor(
+            (0.25 + n * 0.75) * Number.MAX_SAFE_INTEGER
+        ).toString(36).slice(-8);`,
+    "    return 'a' + Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join(''); // Blanc: CSS-safe cryptographic identifier")));
   // Presentation only: retain every original popup handler and filtering rule.
   let popup = result.get('popup-fenix.html').toString('utf8');
   popup = replace(popup, '<link rel="stylesheet" href="css/popup-fenix.css">', '<link rel="stylesheet" href="css/popup-fenix.css">\n<link rel="stylesheet" href="blanc-popup.css">');

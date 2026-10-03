@@ -1328,7 +1328,8 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
       for (const entry of staleExtensionState) {
         fs.rmSync(path.join(app.getPath('userData'), entry), { recursive: true, force: true });
       }
-      fs.writeFileSync(migration, '1\n', { mode: 0o600 });
+      // Exclusive creation rejects a marker/symlink inserted after the existence check.
+      fs.writeFileSync(migration, '1\n', { mode: 0o600, flag: 'wx' });
     }
   } catch (err) {
     console.warn('[cleanup] could not clear stale extension state:', err.message);

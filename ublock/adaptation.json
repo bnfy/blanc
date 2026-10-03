@@ -21,7 +21,7 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "71af24ccbcf9ef62deee052714bf4ff17d093ebf0ade5703f6adc6909bb94540"
+      "sha256": "b15365a9fcd0ef31dbbe43d8ddbb2324d17d23fdbe3217ddac03affef84f3ee1"
     },
     {
       "path": "src/main/ublock-host-policy.js",
@@ -269,6 +269,16 @@
       "adaptedSha256": "b39759a78676719bd9f2db765b37f82eca1c562b6037d6b1ad124009309e9b79"
     },
     {
+      "path": "js/vapi-background.js",
+      "upstreamSha256": "cbfd9ee8534fbf15adf941b601104f6790105ea5f68a5c012252cfb6b8544bc5",
+      "adaptedSha256": "f96ed97ae11f1da1dbf7adac83b51f8f2d470e3664ad4143794fab9e906db19b"
+    },
+    {
+      "path": "js/vapi-client.js",
+      "upstreamSha256": "81936018fb422f4e3ebcc139ed02e3e72bd5a47099ce71c21ef36eabfe94f8b4",
+      "adaptedSha256": "6301ab13b48eac792a02f94fbd68d4112874486f7e659fac649ce5ada32abe03"
+    },
+    {
       "path": "js/vapi-common.js",
       "upstreamSha256": "1df6126445fbf83889266e3ac316524a611b03930cfb6e2a711b47f00646e794",
       "adaptedSha256": "7c6e8d45a5357d0445c006cdb7724627e54177e3a61759fc5eb9088762dfc01b"
@@ -499,5 +509,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "18bd36daf7cd7a062c24f39770cc6b72ace8f7d2953be02c962b88bc6a562e6a"
+  "patchSha256": "4155c96512dd6182b9fd6f08d3e0508d99bafa6f57a9f620e5b7132ef0d2f141"
 }

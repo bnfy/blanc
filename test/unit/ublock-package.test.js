@@ -63,3 +63,29 @@ test('corrupt executable or source bytes fail verification before an extension c
   fs.writeFileSync(path.join(temporary, 'source.txt'), 'altered');
   assert.throws(() => readVerifiedPackage(temporary), /ubo-source-integrity/);
 });
+
+test('adapted resource secrets and content session IDs use isolated cryptographic randomness', () => {
+  const vm = require('node:vm');
+  const { files } = readVerifiedPackage(path.join(root, 'ublock'));
+  const result = adaptPackage(files, hosts);
+  const requests = [];
+  const context = vm.createContext({ vAPI: {}, crypto: { getRandomValues(bytes) {
+    requests.push(bytes.length);
+    bytes.fill(requests.length);
+    return bytes;
+  } }, Math: { random() { throw new Error('insecure randomness'); } } });
+  for (const [file, name] of [['js/vapi-background.js', 'generateSecret'], ['js/vapi-client.js', 'randomToken']]) {
+    const source = result.get(file).toString();
+    const begin = source.indexOf('vAPI.' + name + ' =');
+    const end = source.indexOf('\n};', begin) + 3;
+    assert(begin >= 0 && end > begin);
+    vm.runInContext(source.slice(begin, end), context);
+  }
+  assert.equal(context.vAPI.generateSecret().length, 32);
+  assert.equal(context.vAPI.generateSecret(3).length, 96);
+  const first = context.vAPI.randomToken();
+  const second = context.vAPI.randomToken();
+  assert.match(first, /^[a-z][a-f0-9]{32}$/);
+  assert.notEqual(first, second);
+  assert.deepEqual(requests, [16, 16, 16, 16, 16, 16]);
+});
