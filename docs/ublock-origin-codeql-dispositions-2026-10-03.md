@@ -155,3 +155,12 @@ Before changing GitHub dispositions, review the evidence for each numbered
 alert and its exact deployed version. Do not characterize the real editor
 formatting defects or external Markdown export limits as complete sanitization.
 The closed distribution gate and installed-platform requirements remain separate.
+
+
+## Signed local macOS probe follow-up
+
+The [signed macOS probe record](evidence/ublock-noscript-signed-macos-2026-10-03/README.md)
+adds successful packaged-app execution/CSP evidence for #77 at `43ae6748`, with
+Gatekeeper and stapled-ticket verification. It is an unpacked local candidate,
+not installed-platform acceptance. The earlier harness failures are retained.
+Alert #77 remains held open for the separate owner decision.

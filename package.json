@@ -24,6 +24,7 @@
     "test:ublock-retirement:desktop": "node test/desktop/ublock-retirement.mjs",
     "test:ublock-unavailable:desktop": "node test/desktop/ublock-retirement.mjs --unavailable",
     "test:ublock-noscript:desktop": "node test/desktop/ublock-noscript.mjs",
+    "test:ublock-noscript:packaged": "node test/desktop/packaged-ublock-noscript.mjs",
     "ublock:check": "node scripts/check-ublock-package.cjs && node scripts/build-ublock-adaptation.cjs",
     "ublock:distribution": "node scripts/check-ublock-distribution.cjs",
     "test:mouse-gestures:desktop": "node test/desktop/mouse-gestures.mjs",
