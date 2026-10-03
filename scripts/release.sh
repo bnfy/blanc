@@ -10,6 +10,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+if [ "${BLANC_UBLOCK_INTERNAL_BUILD:-0}" = "1" ]; then
+  echo "Internal uBlock validation packages cannot enter the release pipeline." >&2
+  exit 1
+fi
+
 REPO="bnfy/blanc"
 VERSION=$(node -p "require('./package.json').version")
 TAG="v$VERSION"

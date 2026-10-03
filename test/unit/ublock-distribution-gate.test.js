@@ -40,3 +40,24 @@ test('an explicit internal package embeds its marker without clearing the public
   assert.equal(candidate.context.packager.info.metadata.version, 'candidate');
   assert.equal(candidate.checked.length, 2);
 });
+
+function publicGate({ internal = false, cleared = false, enabled = false } = {}) {
+  const process = { env: internal ? { BLANC_UBLOCK_INTERNAL_BUILD: '1' } : {}, exitCode: 0 };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../scripts/check-ublock-distribution.cjs'), 'utf8'), {
+    process, console: { log() {}, error() {} }, require: name => name.includes('distribution')
+      ? { cleared, assessment: cleared, correspondingSource: cleared, noticeReview: cleared }
+      : { platforms: { 'darwin-arm64': { enabled } } },
+  });
+  return process.exitCode;
+}
+test('public gate permits an excluded baseline and rejects uncleared enabled platforms', () => {
+  assert.equal(publicGate(), 0);
+  assert.equal(publicGate({ enabled: true }), 1);
+  assert.equal(publicGate({ enabled: true, cleared: true }), 0);
+});
+test('public release gate rejects inherited internal-build flags even after clearance', () => {
+  assert.equal(publicGate({ internal: true }), 1);
+  assert.equal(publicGate({ internal: true, cleared: true }), 1);
+  const release = fs.readFileSync(path.join(__dirname, '../../scripts/release.sh'), 'utf8');
+  assert(release.indexOf('Internal uBlock validation packages cannot enter') < release.indexOf('op signin'));
+});
