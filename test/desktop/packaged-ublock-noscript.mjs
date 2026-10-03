@@ -25,10 +25,12 @@ const adjacentAsar = process.platform === 'darwin'
   : path.resolve(path.dirname(executable), 'resources/app.asar');
 assert.equal(fs.realpathSync(asar), fs.realpathSync(adjacentAsar), 'ASAR must belong to the launched executable');
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-const metadata = JSON.parse(extractFile(asar, 'package.json'));
+// ASAR traverses directory components using the host platform separator.
+const readJson = member => JSON.parse(extractFile(asar, member.split('/').join(path.sep)));
+const metadata = readJson('package.json');
 assert.equal(metadata.blancUblockBundled, true, 'Packaged app must actually bundle uBO');
-const pin = JSON.parse(extractFile(asar, 'ublock/pinned.json'));
-const matrix = JSON.parse(extractFile(asar, 'src/main/ublock-platforms.json'));
+const pin = readJson('ublock/pinned.json');
+const matrix = readJson('src/main/ublock-platforms.json');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-packaged-noscript-'));
 fs.writeFileSync(path.join(temp, 'settings.json'), JSON.stringify({
   onboardingVersion: 1, adblockProvider: 'ublock-origin', adblockEnabled: true,

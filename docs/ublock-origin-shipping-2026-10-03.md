@@ -560,3 +560,18 @@ Local lint and substrate passed. The initial version-bump unit run passed
 file. Draft candidate notes were added rather than changing the public site or
 claiming an unperformed release. All 23 affected press/compliance/distribution checks subsequently passed.
 Exact-head CI repeats the full unit and desktop suites.
+
+
+## First v1.27.0 candidate run and Windows probe portability
+
+[Private validation run 37152590931](https://github.com/bnfy/blanc/actions/runs/37152590931)
+built from `2bbcbc84`. Linux packaged payload/notices and the no-scripting probe
+passed; its sanitized JSON artifact is retained. Windows signed the unpacked
+app, helper/uninstaller and NSIS installer and passed its publisher checks, then
+failed in the installed no-scripting harness before launching that probe. The
+ASAR reader traverses directories using the host separator: a forward-slash
+`src/main/ublock-platforms.json` lookup fails on Windows. The fixture now
+normalizes all three ASAR JSON member paths to `path.sep`, as the production
+packaged verifier already does. This is a test-only correction; no runtime,
+signing, sandbox, blocking policy or alert disposition changed. Windows is
+rerun from the corrected fixture; this failed attempt is not counted as a pass.
