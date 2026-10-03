@@ -207,3 +207,20 @@ repeated separators and literal backslashes, while retaining the valid one-use
 capability control. These assertions are retained in the native suite. No
 additional runtime change was needed; the full local real-blocking suite passed
 with both probes. Final-revision hosted results are linked from the PR body.
+
+### Repeated native run exposed popup instability
+
+The all-platform pass is not a stability certificate. Diagnostic-only run
+`37124610254` at `87da63a3` passed Windows/Linux/macOS arm64 but Intel macOS
+failed reopening the popup after the logger. Run `37124782990` at `4a98a36b`
+passed Windows and both Macs; Linux failed when the zapper popup closed before
+its handler could be invoked. Its provider remained ready with no provider
+error, and all resource-path probes passed. No test was waived or retried into
+a reported green result.
+
+The two native fixtures now record at most 64 native focus/load/destroy events
+on failure, retaining numeric IDs, event names and three fixed managed-tool
+names only. No webpage URL, request content or production diagnostic is added.
+The traced shield and core suites passed locally. Hosted evidence is needed
+to distinguish a native view-focus transition from a fixture interaction race;
+popup stability remains unresolved until that evidence supports a fix.

@@ -7,6 +7,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
+import popupFocusTrace from './support/popup-focus-trace.js';
 import hooks from './support/test-hook-call.js';
 const { waitForValue } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shield-provider-'));
@@ -58,6 +59,7 @@ async function launch(supported) {
   electron.context().on('page', observePageErrors);
   for (const page of electron.context().pages()) observePageErrors(page);
   electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-8000); });
+  await popupFocusTrace.install(electron);
   await electron.firstWindow();
   await waitForValue(() => call('startupReady'), Boolean, 'browser startup complete', 20000);
   await waitForValue(() => call('blockingStatus'), state => supported ? state.phase === 'ready' : state.phase === 'disabled', 'provider settled', 20000);
@@ -422,6 +424,7 @@ try {
   console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, Done/back/close, saved and draft restart actions in both directions, original uBO popup and panel teardown, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
 } catch (error) {
   console.error('Shield stage:', stage, stderr, uiErrors);
+  if (electron) console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
   throw error;
 } finally {
   clearTimeout(watchdog);

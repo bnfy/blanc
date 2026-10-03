@@ -9,6 +9,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
+import popupFocusTrace from './support/popup-focus-trace.js';
 import testCalls from './support/test-hook-call.js';
 const { waitForValue } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ubo-desktop-'));
@@ -67,6 +68,7 @@ try {
   electron.context().setDefaultNavigationTimeout(15000);
   electron.process().stderr.on('data', data => { errors = (errors + data).slice(-16000); });
   console.log('uBO test Electron PID', electron.process().pid);
+  await popupFocusTrace.install(electron);
   await electron.firstWindow();
   await electron.evaluate(({ app, webContents }) => {
     globalThis.uboDesktopLog = [];
@@ -526,6 +528,7 @@ try {
 } catch (error) {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
   console.error('uBO test failure:', error);
+  if (electron) console.error('Popup focus events:', await popupFocusTrace.read(electron).catch(() => []));
   console.error('Subscription response revisions:', subscriptionResponses);
   if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => {
     const io = (await import('./js/assets.js')).default;
