@@ -204,7 +204,7 @@
     },
     {
       "file": "src/main/linux-sandbox-launch.js",
-      "sha256": "f36c9764b8f4384b7f9580872bb74abbe4e3e2a241cdd6b74c280fc18b2a687e",
+      "sha256": "051a2d9d23ba0f46173fe67e1aacfe749d7ec4dbc0f16f249baa5feabb7fb8c3",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

@@ -19,33 +19,37 @@ function unsafeSandboxSwitch(argv, commandLine) {
     || argv.some((argument) => new RegExp(`^--?${name}(?:=|$)`).test(argument))) ?? null;
 }
 
+// Wayland compositors such as GNOME accept clipboard writes only from the
+// focused client. A refused launch has no window of its own (the GTK dialog is
+// a separate client), so a copy would silently fail; offer it on X11 only.
+function canCopyLink(env) {
+  return !env.WAYLAND_DISPLAY && env.XDG_SESSION_TYPE !== 'wayland';
+}
+
 // Native dialogs cannot render links, so the guide is offered as buttons.
-async function offerSetupGuide({ dialog, shell, clipboard, argv }) {
+async function offerSetupGuide({ dialog, shell, clipboard, argv, env }) {
+  const copyable = canCopyLink(env);
   // When Blanc is the default browser, opening the guide relaunches this same
-  // refused build with the guide's URL; that launch offers only the copy path.
+  // refused build with the guide's URL; that launch never offers to open it.
   const relaunchedForGuide = argv.includes(SETUP_GUIDE_URL);
-  const buttons = relaunchedForGuide ? [COPY_LINK, QUIT] : [OPEN_GUIDE, COPY_LINK, QUIT];
+  const buttons = [...(relaunchedForGuide ? [] : [OPEN_GUIDE]), ...(copyable ? [COPY_LINK] : []), QUIT];
+  const elsewhere = copyable ? 'Copy the link and open it in another browser.' : 'Open this address in another browser.';
   const { response } = await dialog.showMessageBox({
     type: 'error',
     title: 'Blanc',
     message: 'Blanc requires Chromium sandboxing',
     detail: relaunchedForGuide
-      ? `${REFUSAL}\n\nBlanc can't open the setup guide itself while it can't start. Copy the link and open it in another browser.\n\n${SETUP_GUIDE_URL}`
+      ? `${REFUSAL}\n\nBlanc can't open the setup guide itself while it can't start. ${elsewhere}\n\n${SETUP_GUIDE_URL}`
       : `${REFUSAL}\n\nSetup guide: ${SETUP_GUIDE_URL}`,
     buttons,
     defaultId: 0,
     cancelId: buttons.length - 1,
   });
   const choice = buttons[response];
-  if (choice !== OPEN_GUIDE && choice !== COPY_LINK) return;
-  if (choice === OPEN_GUIDE) {
-    try {
-      await shell.openExternal(SETUP_GUIDE_URL);
-      return;
-    } catch {
-      // No browser opened; fall through and copy the link instead.
-    }
-  }
+  // On Linux, openExternal resolves even when xdg-open is missing or fails, so
+  // Blanc cannot detect a failed open; the dialog has already shown the URL.
+  if (choice === OPEN_GUIDE) return shell.openExternal(SETUP_GUIDE_URL);
+  if (choice !== COPY_LINK) return;
   clipboard.writeText(SETUP_GUIDE_URL);
   // Keep running until the user has pasted: on X11 the copied text disappears
   // when its owning process exits.
@@ -58,14 +62,14 @@ async function offerSetupGuide({ dialog, shell, clipboard, argv }) {
   });
 }
 
-function enforceLinuxSandbox({ app, dialog, shell, clipboard, platform = process.platform, argv = process.argv, report = (text) => console.error(text) }) {
+function enforceLinuxSandbox({ app, dialog, shell, clipboard, platform = process.platform, argv = process.argv, env = process.env, report = (text) => console.error(text) }) {
   if (platform !== 'linux') return true;
   if (unsafeSandboxSwitch(argv, app.commandLine)) {
     report(GUIDANCE);
     // Linux needs readiness for native dialogs. The caller returns
     // immediately, so no browsing surfaces or service initialization can run.
     app.whenReady()
-      .then(() => offerSetupGuide({ dialog, shell, clipboard, argv }))
+      .then(() => offerSetupGuide({ dialog, shell, clipboard, argv, env }))
       .catch(() => {})
       .finally(() => app.exit(1));
     return false;

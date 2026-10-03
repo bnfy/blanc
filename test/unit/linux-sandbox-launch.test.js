@@ -3,9 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { UNSAFE_SANDBOX_SWITCHES, SETUP_GUIDE_URL, unsafeSandboxSwitch, enforceLinuxSandbox } = require('../../src/main/linux-sandbox-launch');
 
+const WAYLAND = { WAYLAND_DISPLAY: 'wayland-0', XDG_SESSION_TYPE: 'wayland' };
+
 // Runs a refused Linux launch with scripted dialog answers and resolves once
 // Blanc exits, recording every native dialog, browser open, copy and exit.
-async function refusedLaunch({ argv = ['--no-sandbox'], responses = [], openExternal = async () => {}, showMessageBox } = {}) {
+// The environment defaults to an X11 session so results don't depend on the
+// session running the tests.
+async function refusedLaunch({ argv = ['--no-sandbox'], env = { DISPLAY: ':0', XDG_SESSION_TYPE: 'x11' }, responses = [], openExternal = async () => {}, showMessageBox } = {}) {
   const calls = [];
   let exited;
   const exit = new Promise((resolve) => { exited = resolve; });
@@ -22,7 +26,7 @@ async function refusedLaunch({ argv = ['--no-sandbox'], responses = [], openExte
   };
   const shell = { openExternal: async (url) => { calls.push(['open', url]); return openExternal(url); } };
   const clipboard = { writeText: (text) => calls.push(['copy', text]) };
-  const allowed = enforceLinuxSandbox({ app, dialog, shell, clipboard, platform: 'linux', argv, report: (text) => calls.push(['terminal', text]) });
+  const allowed = enforceLinuxSandbox({ app, dialog, shell, clipboard, platform: 'linux', argv, env, report: (text) => calls.push(['terminal', text]) });
   await exit;
   return { allowed, calls, kinds: calls.map((call) => call[0]), dialogs: calls.filter((call) => call[0] === 'dialog').map((call) => call[1]) };
 }
@@ -69,10 +73,10 @@ test('copying the setup link keeps Blanc running until its confirmation is dismi
   assert.deepEqual(calls.at(-1), ['exit', 1]);
 });
 
-test('a browser that fails to open falls back to copying the setup link', async () => {
-  const { kinds, calls } = await refusedLaunch({ responses: [0, 0], openExternal: async () => { throw new Error('no xdg-open'); } });
-  assert.deepEqual(kinds, ['terminal', 'dialog', 'open', 'copy', 'dialog', 'exit']);
-  assert.deepEqual(calls[3], ['copy', SETUP_GUIDE_URL]);
+test('a rejected open still exits with the refusal code and copies nothing', async () => {
+  const { kinds, calls } = await refusedLaunch({ openExternal: async () => { throw new Error('no xdg-open'); } });
+  assert.deepEqual(kinds, ['terminal', 'dialog', 'open', 'exit']);
+  assert.deepEqual(calls.at(-1), ['exit', 1]);
 });
 
 test('quitting or closing the dialog exits without opening or copying anything', async () => {
@@ -89,6 +93,26 @@ test('a launch asked to open the guide offers only copying, so a default-browser
   assert.equal(dialogs[0].cancelId, 1);
   assert.ok(dialogs[0].detail.includes(SETUP_GUIDE_URL));
   assert.deepEqual(kinds, ['terminal', 'dialog', 'copy', 'dialog', 'exit']);
+});
+
+test('on Wayland the dialog offers no Copy Link, because an unfocused client cannot set the clipboard', async () => {
+  for (const env of [WAYLAND, { WAYLAND_DISPLAY: 'wayland-1' }, { DISPLAY: ':0', XDG_SESSION_TYPE: 'wayland' }]) {
+    const { kinds, calls, dialogs } = await refusedLaunch({ env });
+    assert.deepEqual(dialogs[0].buttons, ['Open Setup Guide', 'Quit'], JSON.stringify(env));
+    assert.equal(dialogs[0].cancelId, 1);
+    assert.ok(dialogs[0].detail.includes(SETUP_GUIDE_URL));
+    assert.deepEqual(kinds, ['terminal', 'dialog', 'open', 'exit']);
+    assert.deepEqual(calls.at(-1), ['exit', 1]);
+  }
+});
+
+test('on Wayland a launch asked to open the guide offers only Quit and shows the address', async () => {
+  const { kinds, dialogs } = await refusedLaunch({ env: WAYLAND, argv: ['--no-sandbox', SETUP_GUIDE_URL] });
+  assert.deepEqual(dialogs[0].buttons, ['Quit']);
+  assert.equal(dialogs[0].cancelId, 0);
+  assert.match(dialogs[0].detail, /Open this address in another browser\./);
+  assert.ok(dialogs[0].detail.includes(SETUP_GUIDE_URL));
+  assert.deepEqual(kinds, ['terminal', 'dialog', 'exit']);
 });
 
 test('a dialog failure still exits with the refusal code', async () => {
