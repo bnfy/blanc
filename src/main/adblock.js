@@ -123,8 +123,8 @@ function applyBlockingWithExceptions(session) {
   installBeforeRequestPolicy(session);
 }
 
-/** Install the crash guard before startup releases any browsing. */
-function installNavigationCrashGuard(session) {
+/** Give the coordinator its native listeners before startup releases browsing. */
+function installRequestCoordinator(session) {
   if (!session) return;
   coordinator.ensure(session);
 }
@@ -241,7 +241,7 @@ module.exports = {
   providerForSession,
   detachAdBlockerFromSession,
   setupAdBlocker,
-  installNavigationCrashGuard,
+  installRequestCoordinator,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   getBlocker,

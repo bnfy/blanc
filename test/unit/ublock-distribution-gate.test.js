@@ -154,3 +154,27 @@ test('packaged ASAR lookups convert member separators for Windows', () => {
   }
   assert(calls > 0, 'the scan must find the lookups it guards');
 });
+
+test('one beforePack hook verifies the locked runtime before the uBO gate', async () => {
+  // JSON.parse keeps only the last duplicate key, which would silently drop a hook.
+  const raw = fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8');
+  assert.equal(raw.match(/"beforePack"\s*:/g).length, 1);
+  assert.equal(JSON.parse(raw).build.beforePack, 'scripts/before-pack.js');
+  const hook = fs.readFileSync(path.join(__dirname, '../../scripts/before-pack.js'), 'utf8');
+  const load = runtime => {
+    const calls = [];
+    const module = { exports: {} };
+    vm.runInNewContext(hook, { module, require: name => {
+      if (name === './before-pack-verify-runtime') return async context => { calls.push('runtime'); runtime(context); };
+      if (name === './before-pack-ublock') return () => { calls.push('ublock'); return 'gated'; };
+      throw new Error('Unexpected hook dependency: ' + name);
+    } });
+    return { run: module.exports, calls };
+  };
+  const passing = load(() => {});
+  assert.equal(await passing.run({}), 'gated');
+  assert.deepEqual(passing.calls, ['runtime', 'ublock']);
+  const mismatch = load(() => { throw new Error('Packaging Electron 44.6.0 differs from locked 44.5.1'); });
+  await assert.rejects(mismatch.run({}), /differs from locked/);
+  assert.deepEqual(mismatch.calls, ['runtime'], 'a runtime mismatch stops before the uBO gate changes packaging');
+});

@@ -11,12 +11,12 @@ function fixture() {
   const request = (event, details) => new Promise(resolve => handlers.get(event)(details, resolve));
   return { coordinator, session, handlers, registrations, request };
 }
-test('a provider replacement preserves the crash guard and startup gate', async () => {
+test('a provider replacement preserves the startup gate and leaves Chrome Web Store pages to the provider', async () => {
   const f = fixture(); let decisions = 0;
   f.coordinator.setProvider(f.session, { decide: () => { decisions++; return {}; } });
   f.coordinator.setProvider(f.session, { decide: () => ({ cancel: false }) });
   assert.equal(f.registrations.length, 3);
-  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'subFrame', url: 'https://chromewebstore.google.com/' }), { cancel: true });
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'subFrame', url: 'https://chromewebstore.google.com/' }), { cancel: false });
   f.coordinator.setGate(f.session, () => true);
   assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'mainFrame', url: 'https://example.org/' }), { cancel: true });
   f.coordinator.setGate(f.session, null);
@@ -52,7 +52,7 @@ test('observation stages exist only for providers that consume them, without rep
   for (const event of OBSERVE_EVENTS) assert.equal(f.handlers.get(event), null);
   assert.equal(f.handlers.get('onBeforeRequest'), beforeRequest);
   assert.equal((await f.request('onBeforeSendHeaders', {})).requestHeaders.Policy, 'retained');
-  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'subFrame', url: 'https://chromewebstore.google.com/' }), { cancel: true });
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'subFrame', url: 'https://chromewebstore.google.com/' }), {});
 });
 test('an observer throwing synchronously does not escape a native callback', async () => {
   const f = fixture(); f.coordinator.setProvider(f.session, { observe() { throw new Error('lost background'); } });

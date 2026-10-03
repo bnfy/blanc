@@ -182,8 +182,8 @@ test('Downloads and Settings live in File rather than View', () => {
 
   const fileMenu = main.slice(fileStart, profilesStart);
   const viewMenu = main.slice(viewStart, tabsStart);
-  assert.match(fileMenu, /label: 'Downloads'[^\n]*CmdOrCtrl\+Shift\+J/);
-  assert.match(fileMenu, /label: 'Settings'[^\n]*CmdOrCtrl\+,/);
+  assert.match(fileMenu, /label: 'Downloads'[^\n]*command\('downloads'\)/);
+  assert.match(fileMenu, /label: 'Settings'[^\n]*command\('settings'\)/);
   assert.doesNotMatch(viewMenu, /label: '(?:Downloads|Settings)'/);
 });
 

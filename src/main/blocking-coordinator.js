@@ -1,6 +1,5 @@
 'use strict';
 
-const { shouldBlockChromeWebStoreRequest } = require('./chrome-web-store-guard');
 const CALLBACK_EVENTS = ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'];
 const OBSERVE_EVENTS = ['onSendHeaders', 'onResponseStarted', 'onBeforeRedirect', 'onCompleted', 'onErrorOccurred'];
 
@@ -16,10 +15,7 @@ function createBlockingCoordinator() {
       session.webRequest[event]({ urls: ['<all_urls>'] }, (details, callback) => {
         let settled = false;
         const respond = value => { if (!settled) { settled = true; callback(value || {}); } };
-        if (event === 'onBeforeRequest') {
-          if (shouldBlockChromeWebStoreRequest(details)) return respond({ cancel: true });
-          if (state.gate?.(details)) return respond({ cancel: true });
-        }
+        if (event === 'onBeforeRequest' && state.gate?.(details)) return respond({ cancel: true });
         const run = async () => {
           const policy = event === 'onBeforeSendHeaders' && state.beforeSendHeaders
             ? state.beforeSendHeaders(details) : {};

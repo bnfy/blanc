@@ -107,6 +107,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     fillStatusViewAttached: false,
     fillStatusViewLoaded: false,
     tabsWantingAddressBarFocus: new Set(),
+    addressFocusGeneration: 0,
     /** Tab ids in activation order, most recent last, one occurrence per id.
      * Closing the active tab and the last-active-tab shortcut both return to
      * the most recent survivor here (see tab-activation.js). Memory-only:
@@ -182,6 +183,8 @@ function detachWindow(runtime) {
   }
   runtime.window = null;
   runtime.chromeReady = false;
+  runtime.addressFocusGeneration += 1;
+  runtime.tabsWantingAddressBarFocus.clear();
   runtime.overlayView = null;
   runtime.overlayMode = null;
   runtime.workspaceSwitcherOpen = false;

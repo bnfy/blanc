@@ -21,6 +21,8 @@ for (const member of ['src', 'ublock', 'node_modules', 'build', 'assets', 'adblo
 }
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 fs.writeFileSync(path.join(appDir, 'package.json'), JSON.stringify({ ...metadata, main: 'retirement.cjs' }));
+// Test-mode startup verifies the running Electron against the app's lockfile.
+fs.copyFileSync(path.join(root, 'package-lock.json'), path.join(appDir, 'package-lock.json'));
 const matrixPath = JSON.stringify(path.join(root, 'src/main/ublock-platforms.json'));
 const managerPath = JSON.stringify(path.join(root, 'src/main/blocking-providers.js'));
 const bootstrap = unavailable ? `

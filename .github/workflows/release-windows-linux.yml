@@ -351,6 +351,13 @@ jobs:
             dist/windows-signature.json
             dist/latest.yml
 
+      - name: Packaged browser and Settings regressions
+        shell: pwsh
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = "$pwd/dist/win-unpacked/Blanc.exe"
+          npm run test:packaged:browser-compatibility
+          if ($LASTEXITCODE -ne 0) { throw "Packaged browser regression failed." }
+
       - name: Preserve Windows candidate uBO evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -599,6 +606,11 @@ jobs:
           subject-path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
+
+      - name: Packaged browser and Settings regressions
+        run: |
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/blanc" \
+            xvfb-run -a npm run test:packaged:browser-compatibility
 
       - name: Preserve Linux candidate scripting-policy evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
