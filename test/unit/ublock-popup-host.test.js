@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { popupGeometry, validPopupSender, validPopupMessage, shouldDismissPopupOnBlur } = require('../../src/main/ublock-popup-host');
+const { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal } = require('../../src/main/ublock-popup-host');
 function fixture() {
   const session = {}, frame = {};
   const wc = { mainFrame: frame, session, getURL: () => 'chrome-extension://owned/popup-fenix.html?tabId=1', isDestroyed: () => false };
@@ -54,14 +54,24 @@ test('upstream close targets its own sender-validated popup instead of a profile
   assert(!validPopupSender(oldEvent, f.popup, f.session), 'old popup sender cannot close its replacement');
 });
 
-test('popup blur ignores initial loading, refocused views and stale callbacks', () => {
-  const f = fixture(); f.wc.isFocused = () => false;
-  assert(!shouldDismissPopupOnBlur(f.popup, f.popup));
-  f.popup.ready = true;
-  assert(shouldDismissPopupOnBlur(f.popup, f.popup));
-  assert(!shouldDismissPopupOnBlur(f.popup, { ...f.popup }));
-  f.wc.isFocused = () => true;
-  assert(!shouldDismissPopupOnBlur(f.popup, f.popup));
-  f.wc.isFocused = () => false; f.wc.isDestroyed = () => true;
-  assert(!shouldDismissPopupOnBlur(f.popup, f.popup));
+test('popup dismissal ignores view focus and mouse movement, but responds to outside input and window deactivation', () => {
+  const { EventEmitter } = require('node:events');
+  const window = new EventEmitter(), page = new EventEmitter(), popup = new EventEmitter();
+  page.isDestroyed = () => false;
+  const destroyed = { isDestroyed: () => true, on() { throw new Error('destroyed view registered'); } };
+  let dismissed = 0;
+  const off = wirePopupDismissal({ window, outsideContents: [page, page, null, destroyed], dismiss: () => dismissed++ });
+  popup.emit('blur'); page.emit('focus'); page.emit('blur');
+  page.emit('before-mouse-event', {}, { type: 'mouseMove' });
+  page.emit('before-input-event', {}, { type: 'keyUp' });
+  assert.equal(dismissed, 0);
+  assert.equal(page.listenerCount('before-mouse-event'), 1);
+  page.emit('before-mouse-event', {}, { type: 'mouseDown' }); assert.equal(dismissed, 1);
+  page.emit('before-input-event', {}, { type: 'keyDown' }); assert.equal(dismissed, 2);
+  window.emit('blur'); assert.equal(dismissed, 3);
+  off(); off();
+  assert.equal(page.listenerCount('before-input-event'), 0);
+  assert.equal(page.listenerCount('before-mouse-event'), 0);
+  assert.equal(window.listenerCount('blur'), 0);
+  window.emit('blur'); page.emit('before-mouse-event', {}, { type: 'mouseDown' }); assert.equal(dismissed, 3);
 });

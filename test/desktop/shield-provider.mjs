@@ -311,6 +311,8 @@ try {
   await launch(true);
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');
   const regular = await fixture();
+  const regularContents = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
+  const outsideListeners = await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents);
   overlay = await openShield();
   assert(await overlay.locator('#shieldPopToggle').isHidden());
   assert.equal(await overlay.locator('#shieldPopProviderStatus').innerText(), 'Active');
@@ -334,6 +336,12 @@ try {
   const popup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup');
   await popup.locator('body:not(.loading)').waitFor();
   await popup.locator('#switch').waitFor();
+  assert.equal(await electron.evaluate(async ({ webContents }, id) => {
+    webContents.fromId(id).focus();
+    await new Promise(resolve => setImmediate(resolve));
+    return webContents.getAllWebContents().some(wc => !wc.isDestroyed() && wc.getURL().includes('/popup-fenix.html'));
+  }, regularContents), true, 'a webpage focus transition cannot dismiss controls');
+  assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners + 1);
   assert.equal(await popup.locator('#blancMore').getAttribute('aria-expanded'), 'false');
   await popup.locator('#blancMore').press('Enter');
   await popup.locator('#no-scripting').waitFor({ state: 'visible' });
@@ -351,6 +359,7 @@ try {
   await popup.waitForFunction(() => !document.body.classList.contains('off'));
   await Promise.all([popup.waitForEvent('close'), popup.locator('#blancBack').click()]);
   await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
+  assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners, 'Back removes outside input observers');
   await overlay.locator('#shieldPopUblock').click();
   const dashboardPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'styled popup reopened');
   await dashboardPopup.locator('body:not(.loading)').waitFor();
@@ -363,6 +372,16 @@ try {
   await Promise.all([loggerPopup.waitForEvent('close'), loggerPopup.locator('a[href="logger-ui.html#_"] span').last().click()]);
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/logger-ui.html')), Boolean, 'Logger link opens a managed tab');
   await call('activateTab', regular);
+  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  const outsidePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for outside click');
+  await outsidePopup.locator('body:not(.loading)').waitFor();
+  await electron.evaluate(({ webContents }, id) => {
+    const wc = webContents.fromId(id);
+    wc.sendInputEvent({ type: 'mouseDown', x: 1000, y: 150, button: 'left', clickCount: 1 });
+    wc.sendInputEvent({ type: 'mouseUp', x: 1000, y: 150, button: 'left', clickCount: 1 });
+  }, regularContents);
+  await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'outside click dismisses native popup');
+  assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners, 'outside dismissal removes its observers');
   overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
   await escapePopup.locator('body:not(.loading)').waitFor();

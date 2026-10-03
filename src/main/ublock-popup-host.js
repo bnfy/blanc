@@ -22,8 +22,19 @@ function validPopupMessage(value) {
     && Number.isFinite(value.height) && value.height >= 0 && value.height <= 20000;
   return ['close', 'back'].includes(value.action) && Object.keys(value).length === 1;
 }
-function shouldDismissPopupOnBlur(popup, current) {
-  const wc = popup?.view?.webContents;
-  return popup === current && popup?.ready === true && !!wc && !wc.isDestroyed() && !wc.isFocused();
+// A view blur can be caused by a navigation completing under the popup.
+// Dismiss only for native user input outside it or actual window deactivation.
+function wirePopupDismissal({ window, outsideContents, dismiss }) {
+  const listeners = [];
+  const on = (target, event, callback) => {
+    target.on(event, callback);
+    listeners.push(() => target.removeListener(event, callback));
+  };
+  on(window, 'blur', dismiss);
+  for (const wc of new Set(outsideContents.filter(wc => wc && !wc.isDestroyed()))) {
+    on(wc, 'before-mouse-event', (_event, input) => { if (input.type === 'mouseDown') dismiss(); });
+    on(wc, 'before-input-event', (_event, input) => { if (input.type === 'keyDown') dismiss(); });
+  }
+  return () => { for (const off of listeners.splice(0)) off(); };
 }
-module.exports = { popupGeometry, validPopupSender, validPopupMessage, shouldDismissPopupOnBlur };
+module.exports = { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal };

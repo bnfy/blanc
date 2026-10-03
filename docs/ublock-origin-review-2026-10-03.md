@@ -491,3 +491,39 @@ was dismissed. Its diagnostic handler itself assumed `electron.windows()` was
 a Promise and masked the original error. That diagnostic now safely handles the
 synchronous API without altering any assertion or popup behavior. This native
 focus issue remains open even if a subsequent run passes.
+
+
+### Native popup dismissal correction
+
+Run `37131409028` passed ARM macOS, Intel macOS, Windows and the ordinary package
+job. Linux lost its driver connection while reloading the regular fixture after
+backup import; the original diagnostics could not identify a native exit. The
+fixture-only follow-up at `62934f66` adds process exit code/signal and fixed
+window lifecycle records. Its Linux run `37131781153` instead reproduced the
+older premature popup dismissal: the ready picker popup blurred when the active
+webpage took focus again, then Blanc's blur callback closed it before its picker
+click. The trace also records that webpage's load finishing. The test process
+exited normally only during cleanup, so that run is not native-crash evidence.
+The earlier backup/import connection loss still needs confirmation.
+
+`WebContents` blur is a view-focus transition, not proof of user dismissal.
+[Electron's documented events](https://www.electronjs.org/docs/latest/api/web-contents#event-blur)
+separate it from window deactivation. The popup now dismisses on native mouse
+press or key press outside its view, actual BrowserWindow blur, Escape, its
+validated Close/Back buttons, or the existing tab/surface/window teardown paths.
+Page-load focus movement alone does not close it. Observers are removed when the
+popup closes; no polling, retry delay, arbitrary evaluation, private data event,
+or visual styling change is introduced. Pure event tests cover duplicate/dead
+views, movement/key-up, deliberate outside input, window deactivation and
+idempotent teardown. Native shield acceptance explicitly focuses the underlying
+webpage while controls remain open, then proves actual outside mouse input closes
+them and restores the original listener count.
+
+
+The diagnostic ARM macOS job failed at the original Dashboard popup click with
+the same view-dismissal symptom; Windows and Intel macOS passed that run. After
+the input/window-based correction, local lint, all 2,140 unit tests, substrate
+integrity and all three native suites (shield/provider, full blocking/lifecycle,
+Dashboard) passed. The full core suite includes backup import and cold restart.
+A fresh four-platform run must still verify the correction; no earlier failed
+run or installed acceptance gate is being relabelled as passed.
