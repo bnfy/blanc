@@ -57,3 +57,65 @@ test('node-forge VEX remains limited to the reviewed, unused Android tooling', (
       'a broader desktop source allowlist requires VEX payload review');
   }
 });
+
+test('http-cache-semantics VEX remains limited to the reviewed, cache-free build tooling', () => {
+  const statement = readJson('security/openvex.json').statements.find(
+    (entry) => entry.vulnerability.name === 'GHSA-ch52-4w7c-c8xp' && entry.status === 'not_affected'
+  );
+  if (!statement) return; // Without the exception, the ordinary audit owns this finding.
+
+  const entriesOf = (lock, name) => Object.entries(lock.packages).filter(([key]) => key.endsWith(`node_modules/${name}`));
+  const consumersOf = (lock, name) => Object.entries(lock.packages)
+    .filter(([, entry]) => [entry.dependencies, entry.optionalDependencies, entry.peerDependencies]
+      .some((dependencies) => dependencies && name in dependencies))
+    .map(([key]) => key);
+
+  for (const file of ['cloudflare/tab-import-worker/package-lock.json', 'extensions/blanc-tab-import/package-lock.json']) {
+    assert.deepEqual(entriesOf(readJson(file), 'http-cache-semantics'), [],
+      `${file}: http-cache-semantics entered another dependency graph; re-review the VEX statement`);
+  }
+
+  // Desktop: development-only electron-builder download chain, pinned to the reviewed versions.
+  const desktopLock = readJson('package-lock.json');
+  for (const [key, version, consumer] of [
+    ['node_modules/http-cache-semantics', '4.2.0', 'node_modules/cacheable-request'],
+    ['node_modules/cacheable-request', '7.0.4', 'node_modules/got'],
+    ['node_modules/got', '11.8.6', 'node_modules/app-builder-lib/node_modules/@electron/get'],
+    ['node_modules/app-builder-lib/node_modules/@electron/get', '3.1.0', 'node_modules/app-builder-lib'],
+  ]) {
+    const name = key.slice(key.lastIndexOf('node_modules/') + 'node_modules/'.length);
+    const entry = desktopLock.packages[key];
+    assert.equal(entry?.version, version, `${key}: re-review the dependency source`);
+    assert.equal(entry.dev, true, `${key}: build tooling must stay development-only`);
+    if (name !== '@electron/get') {
+      assert.deepEqual(entriesOf(desktopLock, name).map(([k]) => k), [key], `${name}: re-review the dependency chain`);
+      assert.deepEqual(consumersOf(desktopLock, name), [consumer], `${name}: a new consumer needs reachability review`);
+    }
+  }
+  const desktop = readJson('package.json');
+  assert.equal(desktop.build.electronDownload, undefined,
+    'build.electronDownload can pass a got cache option; re-review the VEX execution boundary');
+  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
+    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
+      'a broader desktop source allowlist requires VEX payload review');
+  }
+
+  // Website: astro's remote-image revalidation is the only consumer, and the static site uses no images through it.
+  const siteLock = readJson('site/package-lock.json');
+  assert.deepEqual(consumersOf(siteLock, 'http-cache-semantics'), ['node_modules/astro'],
+    'site: a new http-cache-semantics consumer needs reachability review');
+  assert.equal(siteLock.packages['node_modules/astro']?.version, '7.3.2', 'site: re-review astro http-cache-semantics use');
+  const astroConfig = fs.readFileSync(path.join(ROOT, 'site/astro.config.mjs'), 'utf8');
+  assert.doesNotMatch(astroConfig, /\b(?:adapter|output|image)\s*:/,
+    'site: server output or image configuration requires VEX re-review');
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+  });
+  const sources = walk(path.join(ROOT, 'site/src')).filter((file) => /\.(?:astro|[cm]?[jt]sx?|md|mdx)$/.test(file));
+  assert.ok(sources.length > 0, 'site: source scan found no files');
+  for (const file of sources) {
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /astro:assets|\bgetImage\b|<(?:Image|Picture)\b/,
+      `${path.relative(ROOT, file)}: astro image processing requires VEX re-review`);
+  }
+});
