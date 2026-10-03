@@ -2899,7 +2899,6 @@ function createOverlay() {
   // popover (or one of its editors) is open, forward Esc to the overlay so
   // it can cancel/close the popover first — the island stays up.
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
-    cancelAddressBarFocusForOverlayInput(input, liveViewContents(overlay));
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       if (rt().workspaceSwitcherOpen && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
@@ -6263,16 +6262,22 @@ function focusAddressBar() {
   rt().window.focus();
   // Reasserts must not downgrade an already-summoned palette to a panel —
   // nor promote a non-island mode (find, shield) into staying up.
-  showOverlay(rt().overlayMode === 'palette' ? 'palette' : 'panel');
+  if (rt().overlayMode === 'panel' || rt().overlayMode === 'palette') {
+    // Native child focus can settle late. Reclaim the existing surface without
+    // replaying overlay:show, which would reset DOM focus/selection mid-input.
+    liveViewContents(rt().overlayView)?.focus();
+    return;
+  }
+  showOverlay('panel');
 }
 
-function cancelAddressBarFocusReclaim(runtime = rt(), { revealTab = true } = {}) {
+function cancelAddressBarFocusReclaim(runtime = rt()) {
   runtime.addressFocusGeneration += 1;
   // Cancelling a blank tab's deferred focus must also release the temporary
   // hide used while attaching it; otherwise closing Settings reveals a blank
   // native pane even though the tab's document is still alive.
   const tab = tabs.get(runtime.activeTabId);
-  if (revealTab && runtime.tabsWantingAddressBarFocus.has(tab?.id)) revealAddressBarTab(runtime);
+  if (runtime.tabsWantingAddressBarFocus.has(tab?.id)) revealAddressBarTab(runtime);
   runtime.tabsWantingAddressBarFocus.clear();
 }
 
@@ -6280,19 +6285,6 @@ function revealAddressBarTab(runtime = rt()) {
   const tab = tabs.get(runtime.activeTabId);
   if (tab && windowRuntimes.runtimeForTab(tab.id) === runtime && liveContents(tab) &&
       tab.view?.getVisible() === false) setTabViewVisible(tab, true);
-}
-
-function cancelAddressBarFocusForOverlayInput(input, wc, runtime = rt()) {
-  if (input.type !== 'keyDown' || ['Control', 'Shift', 'Alt', 'Meta'].includes(input.key) ||
-      matchBrowserShortcut(input) || (runtime.overlayMode !== 'panel' && runtime.overlayMode !== 'palette')) return;
-  // Typing, composition, editing and Tab navigation take ownership of focus.
-  // A late blank-tab commit must not select or steal that user's input.
-  if (wc && wc === liveViewContents(runtime.overlayView) && ownsBrowserShortcutSurface(runtime, wc)) {
-    // Revealing a hidden native child can take focus and dismiss the panel.
-    // Keep it hidden until the address surface closes; ordinary cancellation
-    // still reveals it before another surface takes focus.
-    cancelAddressBarFocusReclaim(runtime, { revealTab: false });
-  }
 }
 
 function shouldReclaimAddressBarFocus(id) {
