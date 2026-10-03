@@ -223,3 +223,54 @@ test('main.js initialises tab-view exactly once, at module scope', () => {
     'initTabView must be called exactly once, unindented (module scope)'
   );
 });
+
+const detachSource = mainSource.match(/function detachTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+
+function loadDetachTabView({ focused = true, dead = false, owned = true, current = true, windowLive = true } = {}) {
+  const calls = [];
+  const wc = {
+    isDestroyed: () => dead,
+    isFocused: () => focused,
+  };
+  const tab = { id: 'tab', view: { webContents: wc } };
+  const runtime = { window: { webContents: { focus: () => calls.push('focus-chrome') }, contentView: { removeChildView: (view) => {
+    assert.equal(view, tab.view);
+    calls.push('detach');
+  } } } };
+  const { liveContents } = loadLiveContents();
+  const sandbox = {
+    liveContents,
+    tabs: new Map(current ? [[tab.id, tab]] : []),
+    windowRuntimes: { runtimeForTab: () => owned ? runtime : {} },
+    rt: () => runtime,
+    hasLiveWindow: () => windowLive,
+    setTabViewVisible: (target, visible) => {
+      assert.equal(target, tab);
+      assert.equal(visible, false);
+      calls.push('hide');
+    },
+  };
+  assert.ok(detachSource, 'update the native detach test if its function moves');
+  vm.runInNewContext(`${detachSource}\nthis.__detach = detachTabView;`, sandbox);
+  return { detach: () => sandbox.__detach(tab), calls };
+}
+
+test('tab detachment releases native focus and hides the live guest before removing its parent', () => {
+  const { detach, calls } = loadDetachTabView();
+  assert.equal(detach(), true);
+  assert.deepEqual(calls, ['focus-chrome', 'hide', 'detach']);
+});
+
+test('detaching an unfocused guest preserves focus on the permission or overlay surface', () => {
+  const { detach, calls } = loadDetachTabView({ focused: false });
+  assert.equal(detach(), true);
+  assert.deepEqual(calls, ['hide', 'detach']);
+});
+
+test('native detachment refuses dead, removed, foreign-owned, or windowless guests', () => {
+  for (const options of [{ dead: true }, { current: false }, { owned: false }, { windowLive: false }]) {
+    const { detach, calls } = loadDetachTabView(options);
+    assert.equal(detach(), false);
+    assert.deepEqual(calls, []);
+  }
+});

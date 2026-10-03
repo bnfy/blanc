@@ -4771,8 +4771,7 @@ function stageWorkspace(runtime, workspace) {
     for (const id of runtime.tabOrder) {
       const tab = tabs.get(id);
       if (tab?.view) {
-        runtime.window?.contentView.removeChildView(tab.view);
-        setTabViewVisible(tab, false);
+        detachTabView(tab);
       }
       if (tab) tab.lastActiveAt = Date.now();
     }
@@ -5365,6 +5364,19 @@ function setTabViewVisible(tab, visible) {
   }
 }
 
+// Release native focus while the guest still belongs to the live window.
+// Avoid restoring focus against a detached Aura hierarchy during native
+// WebContents destruction (Windows/Linux).
+function detachTabView(tab) {
+  const wc = liveContents(tab);
+  if (!wc || tabs.get(tab.id) !== tab || windowRuntimes.runtimeForTab(tab.id) !== rt() ||
+      !hasLiveWindow()) return false;
+  if (wc.isFocused()) rt().window.webContents.focus();
+  setTabViewVisible(tab, false);
+  rt().window.contentView.removeChildView(tab.view);
+  return true;
+}
+
 function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
@@ -5437,12 +5449,8 @@ function setActiveTab(id, {
   }
   cancelAddressBarFocusReclaim();
   if (liveContents(prev) && prev.id !== rt().glanceTabId) {
-    rt().window.contentView.removeChildView(prev.view);
-    // A detached view's document still reports visibilityState 'visible',
-    // so Chromium never background-throttles its timers (the newtab sprite
-    // would keep animating at 6fps forever). Hide it explicitly;
-    // reactivation always calls setVisible(true).
-    setTabViewVisible(prev, false);
+    // Explicit hiding also stops a detached document's foreground timers.
+    detachTabView(prev);
   }
 
   rt().activeTabId = id;
@@ -5518,8 +5526,7 @@ async function setGlanceTab(id) {
   hideUtilitySheet({ refocusContent: false });
   const previous = activeGlanceTab();
   if (previous?.view && previous.id !== id) {
-    rt().window.contentView.removeChildView(previous.view);
-    setTabViewVisible(previous, false);
+    detachTabView(previous);
     previous.lastActiveAt = Date.now();
   }
 
@@ -5546,8 +5553,7 @@ function closeGlance({ focusContent = true } = {}) {
   bumpSurfaceGeneration();
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
-    rt().window.contentView.removeChildView(tab.view);
-    setTabViewVisible(tab, false);
+    detachTabView(tab);
     tab.lastActiveAt = Date.now();
   }
   resizeActiveView();
@@ -5761,6 +5767,10 @@ function closeTab(id) {
   const tab = tabs.get(id);
   if (tab) fillHintScheduler?.clearTab(tab);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  const wasActive = id === rt().activeTabId;
+  const wasGlance = id === rt().glanceTabId;
+  // Invalidate pending blank-tab focus before parking or native teardown.
+  if (wasActive && !isQuitting && !rt().closing) cancelAddressBarFocusReclaim();
   forgetTabWebContentsIds(id);
 
   // Capture the prompt condition BEFORE cancelling — cancellation erases the
@@ -5807,13 +5817,8 @@ function closeTab(id) {
     }
   }
 
-  const wasActive = id === rt().activeTabId;
-  const wasGlance = id === rt().glanceTabId;
+  if ((wasActive || wasGlance) && tab.view) detachTabView(tab);
   if (wasGlance) rt().glanceTabId = null;
-  if (wasGlance && hasLiveWindow() && tab.view) {
-    rt().window.contentView.removeChildView(tab.view);
-  }
-  if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);

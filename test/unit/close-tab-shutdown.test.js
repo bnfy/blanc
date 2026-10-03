@@ -34,6 +34,8 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
     sleepTeardownInProgress: true,
     tabs,
     forgetTabWebContentsIds: () => {},
+    cancelAddressBarFocusReclaim: () => {},
+    detachTabView: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
@@ -80,6 +82,8 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
     sleepTeardownInProgress: false,
     tabs,
     forgetTabWebContentsIds: () => {},
+    cancelAddressBarFocusReclaim: () => {},
+    detachTabView: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
@@ -129,6 +133,8 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
     fillHintScheduler: null,
     tabs,
     forgetTabWebContentsIds: () => {},
+    cancelAddressBarFocusReclaim: () => {},
+    detachTabView: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),
@@ -157,4 +163,39 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
 
   assert.equal(closed, 1);
   assert.equal(snapshots.has('quiet'), false);
+});
+
+test('active private close cancels deferred address focus and detaches before destroying native contents', () => {
+  const calls = [];
+  const wc = { id: 44, isDestroyed: () => false, isFocused: () => true, close: () => calls.push('close') };
+  const tab = { id: 'private', url: 'blanc://newtab/', private: true, view: { webContents: wc } };
+  const runtime = {
+    activeTabId: tab.id, tabOrder: [tab.id], tabsWantingAddressBarFocus: new Set([tab.id]),
+    window: { webContents: { focus: () => calls.push('focus-chrome') }, contentView: {
+      removeChildView: view => { assert.equal(view, tab.view); calls.push('detach'); },
+    } },
+  };
+  const tabs = new Map([[tab.id, tab]]);
+  const sandbox = {
+    sleepSnapshots: new Map(), sleepTeardownInProgress: false, fillHintScheduler: null,
+    tabs, rt: () => runtime, isQuitting: false,
+    windowRuntimes: { runtimeForTab: () => runtime, detachTab: () => {} },
+    cancelAddressBarFocusReclaim: () => calls.push('cancel-address-focus'),
+    forgetTabWebContentsIds: () => {}, permissionPendingTabIds: () => new Set(),
+    cancelPermissionPromptsForTab: () => {}, popupChildCounts: new Map(),
+    pruneEmptyGroups: () => {}, lastMainFrameMethod: new Map(),
+    liveContents: target => target?.view?.webContents ?? null,
+    hasLiveWindow: () => true,
+    setTabViewVisible: (target, visible) => {
+      assert.equal(tabs.get(target.id), target, 'native teardown still has its verified owner');
+      assert.equal(visible, false); calls.push('hide');
+    },
+  };
+  const detachSource = mainSource.match(/function detachTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(detachSource);
+  vm.runInNewContext(`${detachSource}\n${closeTabSource}\nthis.__close = closeTab;`, sandbox);
+  sandbox.__close(tab.id, { record: false, selectReplacement: false });
+  assert.deepEqual(calls, ['cancel-address-focus', 'focus-chrome', 'hide', 'detach', 'close']);
+  assert.equal(tabs.size, 0);
+  assert.equal(runtime.activeTabId, null);
 });

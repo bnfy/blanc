@@ -22,6 +22,8 @@ function makeSandbox({ runtime, tabs, onSelect }) {
     fillHintScheduler: null,
     tabs,
     forgetTabWebContentsIds: () => {},
+    cancelAddressBarFocusReclaim: () => {},
+    detachTabView: () => {},
     cancelPermissionPromptsForTab: () => {},
     permissionPendingTabIds: () => new Set(),
     lastMainFrameMethod: new Map(),

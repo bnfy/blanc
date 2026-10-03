@@ -1,9 +1,10 @@
 # Windows reliability feedback — October 3, 2026
 
 Implementation and verification for [draft PR #499](https://github.com/bnfy/blanc/pull/499).
-Public comparison baseline: v1.26.0. The verified implementation commit is
-`91a00a1badac18a30a43b5613dd1df0317dba51c`; subsequent evidence and test-diagnostic commits
-do not change its runtime or packaging inputs. No version was bumped.
+Public comparison baseline: v1.26.0. The earlier verified implementation was
+`91a00a1badac18a30a43b5613dd1df0317dba51c`. A later stress test reproduced a
+native crash, so its packages are superseded by the focus teardown correction
+described below. New platform/package evidence is pending. No version was bumped.
 
 ## Implemented behavior
 
@@ -179,3 +180,34 @@ confirmation. Prior v1.26.0 waivers do not cover this candidate.
 No merge, tag, public release, updater handoff, website deployment or public
 reply was performed. Release publication and adjacent updater validation
 remain separate actions.
+
+
+## Native focus teardown investigation
+
+The expanded 97-command regression at `3d08ad92` reproduced a Linux main-process
+SIGSEGV during repeated private-tab close in [run 37147255869](https://github.com/bnfy/blanc/actions/runs/37147255869).
+The [private diagnostic artifact](https://github.com/bnfy/blanc/actions/runs/37147255869/artifacts/11282851898)
+contains native exit/liveness, bounded command delivery, focus/tab state and a
+local crash dump. No JavaScript uncaught exception was recorded. Windows and
+macOS passed that same expanded sequence, which does not invalidate the Linux
+failure or the earlier Windows disconnects.
+
+Exact official Electron 44.5.1 Linux x64 symbols matched the dump module ID
+`6750EAB2DF952462232FCC64A7D9E7FC0`. The stack enters
+`ui::PropertyHandler::GetPropertyInternal`, `DesktopFocusRules::CanFocusWindow`,
+`FocusController::WindowLostFocusFromDispositionChange` and `OnWindowDestroying`
+while destroying `RenderWidgetHostViewAura` and `WebContents`. The symbols ZIP
+SHA-256 `9dbf06f81bfcd6e34b8cece3a9e00fa56455b7eda899027e14dd1134e68451ee`
+matched Electron's release checksum. Crash dumps remain private.
+
+The correction transfers focus away from a focused guest and hides its view
+while its native window hierarchy is still intact, before detachment. It uses
+the same guarded path for close, tab switching, Glance and workspace transfer.
+Unfocused guests leave the permission/overlay focus unchanged. Active close
+invalidates deferred address focus before parking or destruction. Ownership,
+view liveness, private isolation and shutdown guards remain in force.
+
+Local native macOS 97-command coverage and targeted lifecycle ordering tests
+passed. This is a candidate correction; the Windows/Linux matrix and rebuilt
+packages must pass before it can be represented as validated. The older private
+artifacts above do not contain this production change.
