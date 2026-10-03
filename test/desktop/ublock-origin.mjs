@@ -65,7 +65,14 @@ const uncaughtLog = path.join(dir, 'uncaught.txt');
 const started = Date.now();
 const timing = {};
 let stage = 'cold launch';
-const watchdog = setTimeout(() => { console.error('uBO suite exceeded 120 seconds at stage: ' + stage); electron?.process().kill('SIGKILL'); }, 120000);
+// Passing runs take ~25-100 s; the slower macOS Intel runner approached the
+// old 120 s ceiling and crossed it when a new profile took ~20 s to start.
+const SUITE_LIMIT_MS = 240000;
+const watchdog = setTimeout(() => {
+  console.error(`uBO suite exceeded ${SUITE_LIMIT_MS / 1000} seconds at stage: ${stage}`);
+  // The handle can be stale mid-restart; fail fast rather than crash or hang.
+  try { electron?.process().kill('SIGKILL'); } catch { process.exit(1); }
+}, SUITE_LIMIT_MS);
 try {
   electron = await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
