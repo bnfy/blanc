@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { popupGeometry, validPopupSender, validPopupMessage } = require('../../src/main/ublock-popup-host');
+const { popupGeometry, validPopupSender, validPopupMessage, shouldDismissPopupOnBlur } = require('../../src/main/ublock-popup-host');
 function fixture() {
   const session = {}, frame = {};
   const wc = { mainFrame: frame, session, getURL: () => 'chrome-extension://owned/popup-fenix.html?tabId=1', isDestroyed: () => false };
@@ -38,4 +38,30 @@ test('popup geometry follows the shield and clamps expansion into short windows'
   assert(expanded.bounds.x + expanded.bounds.width <= 640);
   assert.equal(expanded.state.maxHeight + 22, expanded.bounds.height);
   assert(!popupGeometry(f.runtime, {}, 480).state.connected);
+});
+
+test('upstream close targets its own sender-validated popup instead of a profile-wide bridge operation', () => {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/ublock-host-mainworld.js'), 'utf8');
+  const method = source.match(/closePopup\(\) \{[^}]+\}/)?.[0];
+  assert(method);
+  let closed = 0;
+  vm.runInNewContext(`({ ${method} }).closePopup()`, { self: { blancUboPopup: { close: () => closed++ } } });
+  assert.equal(closed, 1);
+  assert.doesNotThrow(() => vm.runInNewContext(`({ ${method} }).closePopup()`, { self: {} }));
+  const f = fixture(), oldEvent = f.event;
+  f.popup.view.webContents = { ...f.wc, mainFrame: {} };
+  assert(!validPopupSender(oldEvent, f.popup, f.session), 'old popup sender cannot close its replacement');
+});
+
+test('popup blur ignores initial loading, refocused views and stale callbacks', () => {
+  const f = fixture(); f.wc.isFocused = () => false;
+  assert(!shouldDismissPopupOnBlur(f.popup, f.popup));
+  f.popup.ready = true;
+  assert(shouldDismissPopupOnBlur(f.popup, f.popup));
+  assert(!shouldDismissPopupOnBlur(f.popup, { ...f.popup }));
+  f.wc.isFocused = () => true;
+  assert(!shouldDismissPopupOnBlur(f.popup, f.popup));
+  f.wc.isFocused = () => false; f.wc.isDestroyed = () => true;
+  assert(!shouldDismissPopupOnBlur(f.popup, f.popup));
 });

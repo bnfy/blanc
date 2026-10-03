@@ -22,4 +22,8 @@ function validPopupMessage(value) {
     && Number.isFinite(value.height) && value.height >= 0 && value.height <= 20000;
   return ['close', 'back'].includes(value.action) && Object.keys(value).length === 1;
 }
-module.exports = { popupGeometry, validPopupSender, validPopupMessage };
+function shouldDismissPopupOnBlur(popup, current) {
+  const wc = popup?.view?.webContents;
+  return popup === current && popup?.ready === true && !!wc && !wc.isDestroyed() && !wc.isFocused();
+}
+module.exports = { popupGeometry, validPopupSender, validPopupMessage, shouldDismissPopupOnBlur };

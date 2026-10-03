@@ -128,3 +128,22 @@ An attempted ordinary unsigned package launch exited with SIGKILL before CDP.
 `codesign --verify --deep --strict` reports that its modified executable lacks
 resources required by the remaining signature. The payload/compliance checks
 passed; this unsigned output provides no packaged launch/signing evidence.
+
+### Further native fixes
+
+Run `37122413300` at `34cbb7ad` passed Windows and macOS arm64, including
+unit, lint and all three native suites. Intel macOS and Linux failed later at
+subscription-update compilation. The fixture now awaits the upstream reload
+started by `updateStop` before initiating the next update; upstream deliberately
+coalesces concurrent reloads. The subsequent compiled-count and server-absence
+assertions remain intact. Fresh hosted confirmation is still required.
+
+The popup fixtures also wait for upstream's loading state to clear before
+interacting. This exposed two host lifecycle hazards: the old profile-wide
+close operation could dismiss a replacement popup, and delayed native tool
+focus could blur the replacement while its initial document loaded. Closing
+now uses the initiating popup's sender-validated preload; the profile-wide
+bridge close operation is removed. Initial blur events do not dismiss a loading
+popup; committed views still dismiss on genuine focus loss, with current-view
+and refocus checks. Unit guards and the native Dashboard/Logger/reopen/Escape
+sequence passed locally. The real-blocking core suite also passed afterward.

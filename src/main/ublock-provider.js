@@ -289,7 +289,6 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     }
     case 'tabs.move': { const { tab } = owned(id); await hooks.moveTab?.(tab, options); refresh(); return registry.project(tab); }
     case 'extension.restart': setImmediate(() => retry().catch(() => {})); return;
-    case 'extension.closePopup': setImmediate(() => hooks.closePopup?.(profileId)); return;
     case 'webNavigation.getAllFrames': return registry.frames(id?.tabId);
     case 'webNavigation.getFrame': return registry.frames(id?.tabId).find(frame => frame.frameId === id?.frameId) ?? null;
     case 'windows.get':

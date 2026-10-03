@@ -328,6 +328,7 @@ try {
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-ubo.png' });
   await overlay.locator('#shieldPopUblock').click();
   const popup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup');
+  await popup.locator('body:not(.loading)').waitFor();
   await popup.locator('#switch').waitFor();
   assert.equal(await popup.locator('#blancMore').getAttribute('aria-expanded'), 'false');
   await popup.locator('#blancMore').press('Enter');
@@ -358,6 +359,7 @@ try {
   await call('activateTab', regular);
   overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
+  await escapePopup.locator('body:not(.loading)').waitFor();
   await escapePopup.locator('#switch').waitFor();
   await electron.evaluate(({ webContents }) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/popup-fenix.html'));
@@ -375,6 +377,7 @@ try {
   });
   await overlay.locator('#shieldPopUblock').click();
   const secondPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup reopened');
+  await secondPopup.locator('body:not(.loading)').waitFor();
   await secondPopup.locator('#switch').waitFor();
   await call('openPanel');
   await overlay.locator('#islandPanel').waitFor({ state: 'visible' });

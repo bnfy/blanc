@@ -113,6 +113,7 @@ try {
   const stableId = mapping.find(item => item.webContentsId === regularWC).tabId;
   await call('blockingPopup');
   const popup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'original popup');
+  await popup.locator('body:not(.loading)').waitFor();
   await popup.locator('#switch').waitFor();
   assert.match(await popup.locator('body').innerText(), /1/);
   await popup.locator('#switch').dispatchEvent('click');
@@ -154,6 +155,7 @@ try {
   stage = 'original tools';
   await call('blockingPopup');
   let toolsPopup = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, 'picker popup');
+  await toolsPopup.locator('body:not(.loading)').waitFor();
   await toolsPopup.locator('#gotoPick').dispatchEvent('click');
   console.log('picker launched');
   const picker = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/epicker-ui.html')), Boolean, 'original element picker', 10000);
@@ -234,9 +236,10 @@ try {
   await waitForValue(() => lists.locator('#buttonApply').evaluate(item => item.classList.contains('disabled')), Boolean, 'fixture list selection saved');
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id);
   // Finish the unrelated first-install updater cycle before starting this
-  // single-list fixture. Upstream intentionally deduplicates a list within
-  // an already-running cycle, even when its cache is purged again.
-  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript("(async () => { (await import('./js/assets.js')).default.updateStop(); return true; })()"));
+  // single-list fixture, including the reload started by updateStop. Upstream
+  // coalesces concurrent reloads; a new update must begin after that load,
+  // otherwise its completion can join the preceding snapshot.
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript("(async () => { (await import('./js/assets.js')).default.updateStop(); await µBlock.loadFilterLists(); return true; })()"));
   subscriptionRevision = 2;
   const listRequests = hits.filter(url => new URL(url, fixture).pathname === '/fixture-list.txt').length;
   const subscriptionRow = lists.locator(`[data-key="${fixture}fixture-list.txt"]`).first();

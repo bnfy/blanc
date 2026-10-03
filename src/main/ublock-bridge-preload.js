@@ -4,7 +4,7 @@ const CHANNEL = 'ublock:bridge';
 const OPERATIONS = new Set([
   'tabs.query', 'tabs.get', 'tabs.authorizeMessaging', 'tabs.authorizeInjection', 'tabs.commitInjection',
   'tabs.insertCSS', 'tabs.removeCSS', 'tabs.create', 'tabs.update', 'tabs.remove', 'tabs.reload', 'tabs.move',
-  'extension.restart', 'extension.closePopup', 'webNavigation.getAllFrames', 'webNavigation.getFrame',
+  'extension.restart', 'webNavigation.getAllFrames', 'webNavigation.getFrame',
   'windows.get', 'windows.getCurrent', 'windows.getAll', 'windows.update', 'windows.create',
   'contextMenus.create', 'contextMenus.remove', 'contextMenus.removeAll', 'contextMenus.update',
   'browserAction.setBadgeText', 'browserAction.setBadgeBackgroundColor', 'browserAction.setBadgeTextColor',

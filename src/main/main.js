@@ -44,7 +44,7 @@ const {
 const { createBlockingProviders } = require('./blocking-providers');
 const { createBlockingRecovery } = require('./blocking-recovery');
 const { createAppRestarter } = require('./app-restart');
-const { popupGeometry, validPopupSender, validPopupMessage } = require('./ublock-popup-host');
+const { popupGeometry, validPopupSender, validPopupMessage, shouldDismissPopupOnBlur } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 const islandProximity = require('./island-proximity');
@@ -413,9 +413,15 @@ async function openUblockPopup(anchor) {
   wc.on('before-input-event', (event, input) => {
     if (input.key === 'Escape') { event.preventDefault(); closeUblockPopup(runtime.id, { restoreFocus: true }); }
   });
-  wc.on('blur', () => setImmediate(() => {
-    if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id);
-  }));
+  wc.on('blur', () => {
+    if (!popup.ready) return;
+    setImmediate(() => {
+      // Native tool-window focus callbacks can arrive during the initial load.
+      // The popup takes focus once its document commits; only a subsequent
+      // loss of focus dismisses it, and a refocused view remains open.
+      if (shouldDismissPopupOnBlur(popup, ublockPopups.get(runtime.id))) closeUblockPopup(runtime.id);
+    });
+  });
   runtime.window.once('closed', popup.onClosed);
   runtime.window.on('resize', popup.onResize);
   runtime.window.contentView.addChildView(view);
@@ -428,6 +434,7 @@ async function openUblockPopup(anchor) {
       return;
     }
     runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
+    popup.ready = true;
     wc.focus();
   }
   catch {

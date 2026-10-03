@@ -105,8 +105,9 @@ or the combined-work boundary for the purpose-built host and browser. Matching
 The four fields in `ublock/distribution.json` remain false. MIT for Blanc-owned
 files and reserved identity rights are preserved; no license waiver is assumed.
 
-Ordinary packaging and release workflows reject uncleared distribution. An
-explicit internal build embeds `blancUblockInternalValidation` in the integrity-
+The October 3 follow-up excludes upstream uBO from ordinary packages while
+clearance is incomplete, preserving baseline Blanc builds. A public platform
+flag still requires clearance. An explicit internal build embeds `blancUblockInternalValidation` in the integrity-
 protected package so the owner can inspect the candidate. Public builds reject
 that marker, including a stale marker from existing package metadata. A process
 environment flag cannot activate uBO in a public installed build. No public

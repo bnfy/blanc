@@ -295,7 +295,9 @@
     });
   }
   self.BlancUboHost = {
-    closePopup() { call('extension.closePopup', []).catch(() => {}); },
+    // Close only the initiating native popup; delayed requests from an old
+    // document must never dismiss a newly opened view in the same profile.
+    closePopup() { self.blancUboPopup?.close(); },
     async ready() {
       try {
         const key = 'blancHostStorageProbe';
