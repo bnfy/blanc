@@ -396,7 +396,7 @@ test('an unknown browser family fails loudly instead of launching something wron
 test('registry resolution tries every bundle and executable candidate', () => {
   const present = new Set([
     '/Applications/Zen.app',
-    '/Applications/Zen.app/Contents/MacOS/zen',
+    path.join('/Applications/Zen.app', 'Contents/MacOS/zen'),
   ]);
   const resolved = registry.resolveBrowserPaths(
     {
@@ -407,7 +407,7 @@ test('registry resolution tries every bundle and executable candidate', () => {
     (p) => present.has(p)
   );
   assert.equal(resolved.installed, true);
-  assert.equal(resolved.binary, '/Applications/Zen.app/Contents/MacOS/zen');
+  assert.equal(resolved.binary, path.join('/Applications/Zen.app', 'Contents/MacOS/zen'));
 
   const missing = registry.resolveBrowserPaths(
     { id: 'nope', bundlePath: ['/Applications/Nope.app'], executableName: 'Nope' },
@@ -829,14 +829,14 @@ test('history artifacts include SQLite sidecars so a -wal cannot replay warm-up 
   assert.ok(gecko.some((f) => f.endsWith('places.sqlite-wal')));
   assert.ok(gecko.some((f) => f.endsWith('places.sqlite-shm')));
   const blanc = pageload.historyArtifacts({ family: 'blanc' }, '/p');
-  assert.deepEqual(blanc.map((f) => f.replace('/p/', '')), ['history.json']);
+  assert.deepEqual(blanc.map((f) => path.basename(f)), ['history.json']);
   assert.deepEqual(pageload.historyArtifacts({ family: 'webkit' }, '/p'), []);
 });
 
 test('each browser family has a known visit-log location', () => {
-  assert.match(pageload.historyLocation({ family: 'blanc' }, '/p').file, /\/p\/history\.json$/);
-  assert.match(pageload.historyLocation({ family: 'chromium' }, '/p').file, /\/p\/Default\/History$/);
-  assert.match(pageload.historyLocation({ family: 'gecko' }, '/p').file, /\/p\/places\.sqlite$/);
+  assert.equal(pageload.historyLocation({ family: 'blanc' }, '/p').file, path.join('/p', 'history.json'));
+  assert.equal(pageload.historyLocation({ family: 'chromium' }, '/p').file, path.join('/p', 'Default', 'History'));
+  assert.equal(pageload.historyLocation({ family: 'gecko' }, '/p').file, path.join('/p', 'places.sqlite'));
   assert.equal(pageload.historyLocation({ family: 'webkit' }, '/p'), null);
 });
 

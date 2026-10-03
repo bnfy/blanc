@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
@@ -25,7 +26,7 @@ const pageHeadline = href => {
 };
 
 test('every feature page is reachable from the features menu with its own headline', async () => {
-  const { menus } = await import(path.join(ROOT, 'site/src/data/navigation.mjs'));
+  const { menus } = await import(pathToFileURL(path.join(ROOT, 'site/src/data/navigation.mjs')).href);
   const features = menus.find(menu => menu.key === 'features');
   const links = features.groups.flatMap(group => group.links);
   assert.equal(links.length, 15);
@@ -46,7 +47,7 @@ test('every feature page is reachable from the features menu with its own headli
 });
 
 test('resources and direct links point at pages that exist', async () => {
-  const { menus, directLinks } = await import(path.join(ROOT, 'site/src/data/navigation.mjs'));
+  const { menus, directLinks } = await import(pathToFileURL(path.join(ROOT, 'site/src/data/navigation.mjs')).href);
   const exists = href => {
     if (href.startsWith('http')) return true;
     const [pathname] = href.split('#');
