@@ -97,6 +97,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openIslandTyping: (char) => ipcRenderer.send('chrome:open-island-typing', char),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
+  selectBlockingProvider: (provider) => ipcRenderer.invoke('chrome:blocking-provider', provider),
+  openBlockingPopup: () => ipcRenderer.invoke('chrome:blocking-popup'),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),

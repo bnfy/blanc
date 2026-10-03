@@ -52,7 +52,7 @@ const {
   previousActiveSurvivor,
 } = require('./tab-activation');
 const {
-  shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
+  shieldChipState, shieldPopoverModel, shieldProviderModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
 const {
   sanitizeCertificate,
@@ -332,13 +332,22 @@ let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
 let adblockStartupController = null;
 const ublockAuxiliaryTabs = new Map();
 const ublockPopups = new Map();
-function closeUblockPopup(runtimeId) {
+function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
   const popup = ublockPopups.get(runtimeId);
   if (!popup) return;
   ublockPopups.delete(runtimeId);
   popup.runtime.window?.removeListener('closed', popup.onClosed);
   if (!popup.runtime.window?.isDestroyed()) popup.runtime.window?.contentView.removeChildView(popup.view);
   popup.view.webContents?.close();
+  if (popup.runtime.window && !popup.runtime.window.isDestroyed()) {
+    const mode = popup.runtime.overlayMode;
+    const restore = restoreFocus && !mode;
+    if (restore) popup.runtime.window.webContents.focus();
+    popup.runtime.window.webContents.send('chrome:island-state', {
+      mode, trigger: mode === 'shield' ? popup.runtime.shieldTrigger : null,
+      restoreTrigger: restore ? 'shield' : null,
+    });
+  }
 }
 function openUblockTool(tool) {
   if (!['dashboard', 'logger'].includes(tool)) return false;
@@ -355,8 +364,10 @@ async function openUblockPopup(anchor) {
   const tab = tabs.get(runtime.activeTabId);
   const provider = blockingProviders?.forTab(tab);
   if (!provider?.extensionId || provider.status().phase !== 'ready') { openInternalPage('blanc://settings/'); return; }
+  const generation = runtime.surfaceGeneration;
   if (tab.asleep) await wakeTab(tab.id);
-  if (runtime.activeTabId !== tab.id || !liveContents(tab)) return;
+  if (runtime.surfaceGeneration !== generation || runtime.activeTabId !== tab.id
+      || runtime.window?.isDestroyed() || !liveContents(tab)) return;
   provider.refresh();
   const tabId = provider.registry.query().find(item => provider.registry.tabFor(item.id)?.id === tab.id)?.id;
   const view = new WebContentsView({ webPreferences: {
@@ -369,21 +380,33 @@ async function openUblockPopup(anchor) {
   ublockPopups.set(runtime.id, popup);
   const [width, height] = runtime.window.getContentSize();
   const popupWidth = Math.min(width, 365);
-  const popupHeight = Math.min(height - 68, 650);
-  const right = Number.isFinite(anchor?.right) ? anchor.right : 20;
-  view.setBounds({ x: Math.max(0, width - right - popupWidth), y: 68, width: popupWidth, height: popupHeight });
+  const popupHeight = Math.max(0, Math.min(height - runtime.chromeHeight, 650));
+  const right = Number.isFinite(anchor?.right) ? anchor.right : width - 20;
+  view.setBounds({ x: Math.max(0, Math.min(width - popupWidth, right - popupWidth)), y: runtime.chromeHeight, width: popupWidth, height: popupHeight });
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
   wc.on('will-navigate', event => event.preventDefault());
   wc.on('before-input-event', (event, input) => {
-    if (input.key === 'Escape') { event.preventDefault(); closeUblockPopup(runtime.id); }
+    if (input.key === 'Escape') { event.preventDefault(); closeUblockPopup(runtime.id, { restoreFocus: true }); }
   });
   wc.on('blur', () => setImmediate(() => {
     if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id);
   }));
   runtime.window.once('closed', popup.onClosed);
   runtime.window.contentView.addChildView(view);
-  try { await wc.loadURL(`chrome-extension://${provider.extensionId}/popup-fenix.html?tabId=${tabId}`); wc.focus(); }
-  catch { closeUblockPopup(runtime.id); }
+  try {
+    await wc.loadURL(`chrome-extension://${provider.extensionId}/popup-fenix.html?tabId=${tabId}`);
+    if (ublockPopups.get(runtime.id) !== popup) return;
+    if (runtime.surfaceGeneration !== generation || runtime.activeTabId !== tab.id
+        || runtime.window?.isDestroyed() || wc.isDestroyed()) {
+      closeUblockPopup(runtime.id);
+      return;
+    }
+    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
+    wc.focus();
+  }
+  catch {
+    if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id);
+  }
 }
 let installProfileSessionPolicies = () => {};
 
@@ -2710,6 +2733,7 @@ function overlayBounds() {
     return calculateShieldBounds({
       windowWidth: rt().window.getContentBounds().width,
       stripHeight: rt().chromeHeight,
+      windowHeight: rt().window.getContentBounds().height,
       anchorRight: rt().shieldAnchorRight,
     });
   }
@@ -2959,7 +2983,7 @@ function createOverlay() {
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if (rt().workspaceSwitcherOpen && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
         return;
       }
@@ -3061,6 +3085,7 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  closeUblockPopup(rt().id);
   if (rt().overlayMode === 'display-share'
       && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
     hideOverlay({ refocusContent: false, reason: 'cancel' });
@@ -4115,7 +4140,10 @@ function captureRowCount() {
 function activeShieldPopover(serialized = serializeTabs()) {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
-  return shieldPopoverModel({
+  const status = blockingProviders?.status(tab.profileId);
+  const controls = shieldProviderModel(status, tab.private);
+  const model = shieldPopoverModel({
+    provider: controls.active, readiness: tab.private ? 'ready' : status?.phase,
     url: tab.url,
     blockedCount: tab.blockedCount,
     excepted: isHostnameExcepted(tab.url),
@@ -4124,6 +4152,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
     // the popover and the active tab row cannot disagree within a broadcast.
     connection: activeConnection(serialized, rt().activeTabId),
   });
+  return model ? { ...model, controls } : null;
 }
 
 function currentTabsPayload() {
@@ -6675,12 +6704,7 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
-    const provider = blockingProviders?.forTab(tabs.get(rt().activeTabId));
-    if (trigger === 'shield' && provider) {
-      hideOverlay({ refocusContent: false });
-      openUblockPopup(anchor).catch(() => {});
-      return;
-    }
+    closeUblockPopup(rt().id);
     if (rt().overlayMode === 'shield') {
       // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
       // closing there would read as the second button being broken.
@@ -6700,6 +6724,26 @@ function registerIpcHandlers() {
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
+  });
+  chromeHandle('chrome:blocking-provider', (_event, provider) => {
+    const tab = tabs.get(rt().activeTabId);
+    const status = blockingProviders?.status(rt().profileId);
+    if (rt().overlayMode !== 'shield' || !tab || tab.private || !status) return false;
+    if (provider !== 'blanc' && provider !== 'ublock-origin') return false;
+    if (provider === 'ublock-origin' && !status.supported) return false;
+    settings.setSettings({ adblockProvider: provider });
+    broadcastTabs();
+    return true;
+  });
+  chromeHandle('chrome:blocking-popup', async () => {
+    const tab = tabs.get(rt().activeTabId);
+    if (rt().overlayMode !== 'shield' || !tab || tab.private) return false;
+    const provider = blockingProviders?.forTab(tab);
+    if (provider?.status().phase !== 'ready') return false;
+    const anchor = { right: rt().shieldAnchorRight };
+    hideOverlay({ refocusContent: false });
+    await openUblockPopup(anchor);
+    return true;
   });
   chromeOn('chrome:open-capture', (_e, anchor) => {
     if (rt().overlayMode === 'capture') return hideOverlay({ refocusContent: false }); // re-click toggles

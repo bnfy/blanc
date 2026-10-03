@@ -100,9 +100,26 @@ function shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider
 // `connection` arrives already derived (main.js does it once per broadcast) and
 // is only carried through. Re-deriving it here would reintroduce the second
 // source of truth this design exists to remove.
-function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, connection = null }) {
+function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, connection = null, provider = 'blanc', readiness = 'ready' }) {
   const host = blockableHostname(url);
   if (!host) return null;
+  if (provider === 'ublock-origin') {
+    const blocked = blockedCount ?? 0;
+    const countLine = !adblockEnabled ? 'Ad blocking is off everywhere'
+      : readiness !== 'ready' ? 'Blocking needs attention. Open blocking settings to recover.'
+        : `${blocked} ${blocked === 1 ? 'request' : 'requests'} blocked on this page`;
+    // uBO owns its exceptions. Never infer its site switch from Blanc's list
+    // or label a trusted uBO site as protected without querying its popup.
+    return { variant: 'ublock', host, on: adblockEnabled, countLine, connection };
+  }
+  if (readiness === 'failed' || readiness === 'unsupported') {
+    return {
+      variant: 'recovery', host, on: false, connection,
+      countLine: adblockEnabled
+        ? 'Blocking needs attention. Open blocking settings to recover.'
+        : 'Ad blocking is off everywhere',
+    };
+  }
   if (excepted) {
     return { variant: 'site', host, on: false, countLine: 'Ads allowed on this site', connection };
   }
@@ -116,9 +133,42 @@ function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, conne
   return { variant: 'site', host, on: true, countLine, connection };
 }
 
+function shieldProviderModel(status, privateTab = false) {
+  const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
+  const active = privateTab ? 'blanc' : status?.active ?? 'blanc';
+  const selected = privateTab ? 'blanc' : status?.selected ?? active;
+  let detail = `${label(active)} is active.`;
+  if (privateTab) detail = 'Private tabs always use Blanc Blocker. Switch providers from a regular tab.';
+  else {
+    const unavailable = status?.phase === 'failed' || status?.phase === 'unsupported';
+    const off = status?.enabled === false || status?.phase === 'disabled';
+    if (unavailable) detail = `${label(active)} is unavailable. ${off ? 'Blocking is off. ' : ''}Open blocking settings to recover.`;
+    else if (off) detail = 'Blocking is off.';
+    else if (status?.phase === 'initializing') detail = `${label(active)} is starting…`;
+    // A pending choice never establishes that the current provider is
+    // filtering. Preserve failure/disable/startup guidance alongside restart.
+    if (status?.restartPending) {
+      const current = !unavailable && !off && status.phase === 'ready'
+        ? `${label(active)} is still active.` : detail;
+      detail = `${label(selected)} selected. Restart Blanc to apply; ${current}`;
+    }
+  }
+  return {
+    active, selected, disabled: privateTab || !status,
+    activeLabel: status?.enabled === false ? 'Off' : privateTab || status?.phase === 'ready' ? 'Active' : status?.phase === 'initializing' ? 'Starting' : 'Unavailable',
+    ublockAvailable: !privateTab && status?.supported === true,
+    canOpenUblock: active === 'ublock-origin' && status?.phase === 'ready',
+    detail,
+    availability: !privateTab && status?.supported === false
+      ? 'uBlock Origin is unavailable on this build.' : '',
+    scope: privateTab ? '' : 'Private tabs use Blanc Blocker. Site settings stay separate.',
+  };
+}
+
 module.exports = {
   shieldChipState,
   shieldPopoverModel,
+  shieldProviderModel,
   connectionState,
   connectionFor,
   committedUrlOf,

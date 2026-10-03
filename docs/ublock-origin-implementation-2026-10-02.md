@@ -56,7 +56,15 @@ describe partial support; loading an extension is not the acceptance gate.
   timeout/background loss cancels affected requests and marks failure. Pending
   work, CSS, ports and local error records have explicit bounds. Diagnostics
   contain provider/version/error codes only.
-- The Island opens the original popup in an anchored sandboxed view. Dashboard
+- The Island shield opens the approved warm Sunrise site-protection dialog,
+  with active/restart/recovery status and private-tab scope. **Change blocker**
+  opens a focused chooser with a small authentic mark and **EasyList +
+  EasyPrivacy** beneath Blanc Blocker. Radio selection is a local draft; only
+  **Use [provider]** saves for the next launch. Back, Cancel and closing discard
+  the draft. Broadcasts preserve the draft; main rejects unavailable providers
+  and private-tab changes. The existing Island shield icon is unchanged.
+  The uBO controls button opens its original popup in an anchored sandboxed view,
+  with Escape returning focus to the shield. Dashboard
   and logger are managed profile tabs. Native context menus invoke original uBO
   handlers. Site commands use the active provider; private tabs use Blanc
   exceptions and counts. Island counts represent blocked requests.
@@ -214,3 +222,39 @@ The actual ASAR's `main.js`, provider manager, recovery helper and Blanc blocker
 bytes were additionally compared to the reviewed checkout. The internal marker
 is present and native fuses are configured. Signed installation, native input,
 remote CI and updater handoff evidence remain pending as listed above.
+
+
+## Approved Island blocker chooser — October 2
+
+The owner's selected focused chooser is now production UI: small authentic gold
+Sunrise, warm scoped tokens, compact Inter heading, and **EasyList + EasyPrivacy**
+under Blanc Blocker. The Island shield glyph itself is unchanged. Selection is
+an explicit draft/confirm flow; changing a radio, receiving tab updates, cancelling
+or going back never changes the saved provider. Confirmation saves for restart.
+The shield summary reports the actual provider and exposes original uBO controls.
+
+The native test verifies both directions across actual restarts, unavailable and
+private guards, arrow-key selection, focus restoration, draft preservation,
+light/dark theme propagation, decoded brand asset, and reachable actions at a
+640×480 content size. It also covers uBO popup-to-Island-panel teardown so delayed
+extension loading cannot steal focus or overwrite the newer overlay state.
+No uncaught Blanc chrome renderer errors were recorded.
+
+| Check | Local record | Result |
+| --- | --- | --- |
+| Lint | `/private/tmp/ubo-chooser-lint.txt` | Passed |
+| Complete unit suite | `/private/tmp/ubo-chooser-unit.txt` | 2,075 passed |
+| Substrate | `/private/tmp/ubo-chooser-substrate.txt` | Passed |
+| Native chooser | `/private/tmp/ubo-chooser-desktop.txt` | Passed |
+| Existing shield acceptance | `/private/tmp/ubo-chooser-shield-regression.txt` | 4 scenarios, 31 steps passed |
+| Full uBO, Electron 44.5.1 | `/private/tmp/ubo-chooser-ublock.txt` | Passed |
+| Unsigned internal directory package | `/private/tmp/ubo-chooser-package.txt` | Payload, source/license records, compliance and fuses passed |
+
+[Design QA](../design-qa.md) records the exact approved image, normalized native
+comparison, small-window behavior and resolved overflow finding. The dedicated
+chooser suite is wired into the existing four-platform uBO CI matrix; hosted
+runs and installed-machine acceptance remain pending. The latest actual ASAR
+contains byte-identical copies of ten chooser source/asset records and the
+internal validation marker. This local unsigned payload check explicitly omits
+signing and its signed-app verification hook through invocation-only builder
+options; the production release configuration and gates are unchanged.

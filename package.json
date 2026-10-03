@@ -19,6 +19,7 @@
     "site:build": "npm run brand:check && npm --prefix site run build",
     "site:deploy": "npm run site:build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",
     "test:unit": "node --test test/unit/*.test.js",
+    "test:shield-provider:desktop": "node test/desktop/shield-provider.mjs",
     "test:ublock:desktop": "node test/desktop/ublock-origin.mjs",
     "ublock:check": "node scripts/check-ublock-package.cjs && node scripts/build-ublock-adaptation.cjs",
     "ublock:distribution": "node scripts/check-ublock-distribution.cjs",

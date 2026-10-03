@@ -183,6 +183,13 @@ prompt, the 1Password capsule and the screen-share picker. Neutral: the
 Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
 
+**Owner decision, October 2, 2026:** The shield's site-protection dialog and
+its focused blocker chooser use Sunrise warmth, the original small gold mark,
+and compact Inter headings. This is a scoped exception to the Island rule
+above: the Island pill and its existing shield icon retain their styling. The
+approved chooser names **EasyList + EasyPrivacy** beneath Blanc Blocker and
+uses an explicit confirmation before saving a provider for the next restart.
+
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
 colors. Gold marks state and navigation; primary buttons stay ink on ivory

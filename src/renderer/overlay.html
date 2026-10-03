@@ -153,19 +153,46 @@
       <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
     </button>
   </div>
-  <div id="shieldPop" hidden>
-    <div class="shield-pop-head">
-      <div class="shield-pop-id">
-        <div id="shieldPopHost"></div>
-        <div class="shield-pop-state">Ad &amp; tracker blocking <strong id="shieldPopOnOff">on</strong></div>
+  <section id="shieldPop" role="dialog" aria-labelledby="shieldPopTitle" aria-describedby="shieldPopHost" hidden>
+    <header class="shield-pop-header">
+      <button id="shieldPopBack" class="shield-pop-nav shield-pop-back" aria-label="Back to site protection" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m9.5 3.5-4.5 4.5 4.5 4.5"/></svg></button>
+      <img class="shield-pop-mark" src="sunrise-hero-mark.png" width="28" height="28" alt="" />
+      <h2 id="shieldPopTitle">Site protection</h2>
+      <p id="shieldPopHost"></p>
+      <button id="shieldPopClose" class="shield-pop-nav shield-pop-close" aria-label="Close site protection"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 5 6 6m0-6-6 6"/></svg></button>
+    </header>
+    <div id="shieldPopSummary">
+      <div class="shield-pop-summary">
+        <div class="shield-pop-head">
+          <div class="shield-pop-state"><span id="shieldPopLabel">Ad &amp; tracker blocking</span> <strong id="shieldPopOnOff">on</strong></div>
+          <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site"><span class="knob"></span></button>
+        </div>
+        <div id="shieldPopConnection" hidden></div>
+        <div id="shieldPopCount"></div>
+        <div id="shieldPopNote" class="shield-pop-note">Changing site protection reloads this page.</div>
+        <button id="shieldPopUblock" class="shield-pop-ubo" hidden>Open uBlock Origin controls <span aria-hidden="true">↗</span></button>
       </div>
-      <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site"><span class="knob"></span></button>
+      <button id="shieldPopChangeProvider" class="shield-pop-change"><span><small>Blocker</small><strong id="shieldPopCurrentProvider">Blanc Blocker</strong></span><span aria-hidden="true">→</span></button>
+      <p id="shieldPopProviderStatus" role="status"></p>
+      <p id="shieldPopProviderScope" class="shield-pop-note"></p>
+      <button id="shieldPopSettings" class="shield-pop-footer">Blocking settings <span aria-hidden="true">→</span></button>
     </div>
-    <div id="shieldPopConnection" hidden></div>
-    <div id="shieldPopCount"></div>
-    <div id="shieldPopNote" class="shield-pop-note">Changing this reloads the page.</div>
-    <button id="shieldPopSettings" class="shield-pop-footer">blocking settings →</button>
-  </div>
+    <div id="shieldPopChooser" hidden>
+      <fieldset id="shieldPopProvider" aria-describedby="shieldPopRestartNote shieldPopPrivateNote shieldPopAvailability">
+        <legend class="sr-only">Choose a blocker</legend>
+        <label><input type="radio" name="shieldProvider" value="blanc" /><span class="shield-provider-name"><strong>Blanc Blocker</strong><small>EasyList + EasyPrivacy</small></span><span class="shield-provider-active" data-provider="blanc" hidden>Active</span></label>
+        <label><input type="radio" name="shieldProvider" value="ublock-origin" /><span class="shield-provider-name"><strong>uBlock Origin</strong><small>Advanced filtering and controls</small></span><span class="shield-provider-active" data-provider="ublock-origin" hidden>Active</span></label>
+      </fieldset>
+      <div class="shield-pop-chooser-note">
+        <p id="shieldPopRestartNote">Changes take effect after restarting Blanc.</p>
+        <p id="shieldPopPrivateNote">Private tabs keep using Blanc Blocker.</p>
+      </div>
+      <p id="shieldPopAvailability" class="shield-pop-note" hidden></p>
+      <p id="shieldPopChooserError" role="alert" hidden></p>
+      <button id="shieldPopApply" class="shield-pop-primary">Use Blanc Blocker</button>
+      <button id="shieldPopCancel" class="shield-pop-cancel">Cancel</button>
+    </div>
+  </section>
   <section id="capturePop" class="capture-pop" hidden>
     <header id="capturePopHead" class="capture-pop-head">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>

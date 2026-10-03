@@ -2906,78 +2906,120 @@ body[data-glance-purpose="change"] .glance-picker {
    chrome-layout.js; the drawn card is inset from its top edge. */
 
 #shieldPop {
+  /* The approved blocker chooser uses Sunrise within its own surface. */
+  --bg: var(--sunrise-bg);
+  --surface: var(--sunrise-surface);
+  --surface-raised: var(--sunrise-surface-raised);
+  --border: var(--sunrise-border);
+  --text: var(--sunrise-text);
+  --text-dim: var(--sunrise-text-dim);
+  --accent: var(--sunrise-accent);
+  --accent-dim: var(--sunrise-accent-dim);
+  color-scheme: light dark;
   position: absolute;
   top: 10px;
   left: 12px;
   right: 12px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--island-panel-radius);
   box-shadow: var(--shadow-popover);
-  padding: 14px 16px;
-  font-size: 12.5px;
+  padding: 18px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.4;
   color: var(--text);
 }
-#shieldPop[hidden] { display: none; }
+#shieldPop[hidden], #shieldPop [hidden] { display: none; }
+.shield-pop-header { position: relative; text-align: center; }
+.shield-pop-mark { display: block; width: 28px; height: 28px; object-fit: contain; margin: 3px auto 9px; }
+#shieldPopTitle { margin: 0; font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.02em; }
+#shieldPopHost { margin: 3px 0 0; color: var(--text-dim); font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shield-pop-nav {
+  position: absolute; top: 0; display: grid; place-items: center; width: 28px; height: 28px;
+  padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); cursor: pointer;
+}
+.shield-pop-back { left: -6px; }
+.shield-pop-close { right: -6px; }
+.shield-pop-nav:hover { background: var(--accent-dim); color: var(--text); }
+.shield-pop-nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.shield-pop-summary { margin-top: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
 .shield-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-#shieldPopHost {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.shield-pop-id { min-width: 0; }
-.shield-pop-state { margin-top: 2px; }
-/* A peer of the count line, not a section of its own: same size and rhythm, so
-   connection and blocking read as two facts about the same site. */
-#shieldPopConnection { color: var(--text-dim); font-size: 11.5px; margin-top: 10px; }
+.shield-pop-state { font-weight: 500; }
+#shieldPopOnOff { font-weight: 600; }
+#shieldPopConnection { color: var(--text-dim); font-size: 12px; margin-top: 5px; }
 #shieldPopConnection.insecure { color: var(--danger); }
-#shieldPopConnection[hidden] { display: none; }
-#shieldPopCount { color: var(--text-dim); font-size: 11.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.shield-pop-note { color: var(--text-dim); font-size: 11.5px; margin-top: 4px; }
-.shield-pop-note[hidden] { display: none; }
+#shieldPopCount { margin-top: 12px; font-variant-numeric: tabular-nums; }
+.shield-pop-note { color: var(--text-dim); font-size: 12px; margin-top: 5px; }
 #shieldPopToggle {
-  appearance: none;
-  width: 34px;
-  height: 20px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  position: relative;
-  flex: 0 0 auto;
-  cursor: pointer;
-  padding: 0;
+  appearance: none; width: 34px; height: 20px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface);
+  position: relative; flex: 0 0 auto; cursor: pointer; padding: 0;
 }
-#shieldPopToggle[hidden] { display: none; }
 #shieldPopToggle .knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  transition: left 120ms ease, background 120ms ease;
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--text-dim); transition: left 120ms ease, background 120ms ease;
 }
 #shieldPopToggle.on { background: var(--accent); border-color: var(--accent); }
 #shieldPopToggle.on .knob { left: 16px; background: var(--bg); }
+#shieldPopProvider { border: 0; padding: 0; margin: 3px -6px 0; min-width: 0; }
+#shieldPopProvider label {
+  display: flex; align-items: center; gap: 20px; padding: 11px 12px;
+  min-height: 60px; margin-top: 4px; border-radius: 10px; cursor: pointer;
+}
+#shieldPopProvider label:first-of-type { margin-top: 0; }
+#shieldPopProvider label:has(input:checked) { background: var(--surface); }
+#shieldPopProvider label:hover:has(input:enabled) { background: var(--surface); }
+#shieldPopProvider label:has(input:disabled) { cursor: default; }
+#shieldPopProvider input { margin: 0; width: 24px; height: 24px; flex: 0 0 auto; accent-color: var(--accent); }
+#shieldPopProvider input:disabled { opacity: 0.45; }
+.shield-provider-name { min-width: 0; }
+.shield-provider-name strong { display: block; font-size: 16px; line-height: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.shield-provider-name small { display: block; margin-top: 2px; color: var(--text-dim); font-size: 13px; line-height: 18px; }
+.shield-provider-active { margin-left: auto; color: var(--text-dim); font-size: 13px; }
+.shield-pop-chooser-note { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.shield-pop-chooser-note p { margin: 0; font-size: 14px; line-height: 20px; }
+#shieldPopPrivateNote { color: var(--text-dim); }
+#shieldPopChooserError { margin: 10px 0 0; color: var(--text); font-size: 12px; }
+.shield-pop-primary {
+  width: 100%; min-height: 44px; margin-top: 17px; border: 1px solid var(--text);
+  border-radius: 10px; background: var(--text); color: var(--surface-raised);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.shield-pop-primary:disabled { opacity: 0.45; cursor: default; }
+.shield-pop-primary:hover:enabled { opacity: 0.88; }
+.shield-pop-cancel { display: block; min-height: 32px; margin: 9px auto -2px; padding: 4px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--text); font: inherit; font-weight: 500; cursor: pointer; }
+.shield-pop-cancel:hover { background: var(--surface); }
+.shield-pop-change {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  border: 0; border-radius: 8px; background: transparent; color: var(--text);
+  text-align: left; font: inherit; padding: 10px 0; margin-top: 5px; cursor: pointer;
+}
+.shield-pop-change small { display: block; color: var(--text-dim); font-size: 12px; }
+.shield-pop-change strong { display: block; margin-top: 2px; font-weight: 550; }
+.shield-pop-change:hover:enabled { color: var(--accent); }
+.shield-pop-change:disabled { cursor: default; }
+#shieldPopProviderStatus { margin: 6px 0 0; font-size: 12px; color: var(--text-dim); }
+#shieldPop[data-restart-pending="true"] #shieldPopProviderStatus { border-left: 2px solid var(--accent); padding-left: 9px; color: var(--text); }
+.shield-pop-ubo {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text); font: inherit;
+  font-weight: 500; text-align: left; padding: 9px 10px; margin-top: 11px; cursor: pointer;
+}
+.shield-pop-ubo:hover { background: var(--accent-dim); }
 .shield-pop-footer {
-  appearance: none;
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  border-top: 1px solid var(--border);
-  color: var(--text-dim);
-  font: inherit;
-  font-size: 11.5px;
-  margin-top: 10px;
-  padding: 8px 0 0;
-  cursor: pointer;
+  appearance: none; display: flex; align-items: center; justify-content: space-between;
+  width: 100%; text-align: left; background: none; border: none;
+  border-top: 1px solid var(--border); color: var(--text-dim); font: inherit;
+  font-size: 12px; margin-top: 15px; padding: 12px 0 0; cursor: pointer;
 }
 .shield-pop-footer:hover { color: var(--text); }
+#shieldPop button:focus-visible, #shieldPopProvider label:has(input:focus-visible) { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+#shieldPop input:focus-visible { outline: none; }
+:root[data-theme="private"] #shieldPop { border-style: dashed; color-scheme: dark; }
 
 /* ---------- Permission prompt capsule (in the strip, beside the pill) ---------- */
 

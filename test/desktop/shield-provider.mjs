@@ -1,0 +1,332 @@
+// Real Island controls and provider persistence, with actual blocking enabled
+// for supported runs. Never touches the user's profile or the installed app.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import http from 'node:http';
+import { _electron } from 'playwright';
+import poll from './support/poll.js';
+import hooks from './support/test-hook-call.js';
+const { waitForValue } = poll;
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shield-provider-'));
+fs.mkdirSync(dir + '-Dev');
+const settingsFile = path.join(dir + '-Dev', 'settings.json');
+fs.writeFileSync(settingsFile, JSON.stringify({
+  onboardingVersion: 1, adblockProvider: 'blanc', adblockEnabled: true,
+  searchSuggestions: false, usagePing: false, onePasswordEnabled: false,
+}));
+const persistedProvider = () => JSON.parse(fs.readFileSync(settingsFile, 'utf8')).adblockProvider;
+let visits = 0;
+const server = http.createServer((_request, response) => {
+  visits++;
+  response.end('<!doctype html><title>Shield fixture</title><p>Provider switching fixture</p>');
+});
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+const url = `http://127.0.0.1:${server.address().port}/`;
+const { ELECTRON_RUN_AS_NODE: ignored, BLANC_UBLOCK_TEST: ignoredFlag, ...env } = process.env;
+void ignored; void ignoredFlag;
+let electron;
+let stage = 'launch';
+let stderr = '';
+const uiErrors = [];
+const observedPages = new WeakSet();
+function observePageErrors(page) {
+  if (observedPages.has(page)) return;
+  observedPages.add(page);
+  page.on('pageerror', error => {
+    if (page.url().startsWith('blanc-chrome://') && uiErrors.length < 20) {
+      uiErrors.push({ stage, surface: page.url(), message: error.message });
+    }
+  });
+}
+const watchdog = setTimeout(() => {
+  console.error('Shield suite deadline at ' + stage);
+  electron?.process().kill('SIGKILL');
+}, 120000);
+const call = (method, ...args) => hooks.callTestHook(electron, method, args);
+const providerRadio = (overlay, provider) => overlay.locator(`[name="shieldProvider"][value="${provider}"]`);
+async function launch(supported) {
+  electron = await _electron.launch({
+    args: [path.resolve('.'), `--user-data-dir=${dir}`], chromiumSandbox: true,
+    // Playwright otherwise forces light media in every attached renderer,
+    // masking Electron's real nativeTheme propagation after a settings change.
+    colorScheme: null,
+    env: { ...env, BLANC_TEST: '1', ...(supported ? { BLANC_UBLOCK_TEST: '1' } : {}) },
+  });
+  electron.context().setDefaultTimeout(8000);
+  electron.context().on('page', observePageErrors);
+  for (const page of electron.context().pages()) observePageErrors(page);
+  electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-8000); });
+  await electron.firstWindow();
+  await waitForValue(() => call('startupReady'), Boolean, 'browser startup complete', 20000);
+  await waitForValue(() => call('blockingStatus'), state => supported ? state.phase === 'ready' : state.phase === 'disabled', 'provider settled', 20000);
+}
+async function openShield() {
+  const chrome = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/'), Boolean, 'chrome');
+  await chrome.locator('#pillShield').click();
+  const overlay = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://overlay/'), Boolean, 'overlay');
+  await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
+  await summary(overlay);
+  return overlay;
+}
+async function summary(overlay, expectFocus = false) {
+  await overlay.locator('#shieldPopChooser').waitFor({ state: 'hidden' });
+  await overlay.locator('#shieldPopChangeProvider').waitFor({ state: 'visible' });
+  if (expectFocus) await overlay.waitForFunction(() => document.activeElement?.id === 'shieldPopChangeProvider');
+}
+async function chooser(overlay, selected, keyboard = false) {
+  const button = overlay.locator('#shieldPopChangeProvider');
+  if (keyboard) {
+    await button.focus();
+    await button.press('Enter');
+  } else await button.click();
+  await overlay.locator('#shieldPopChooser').waitFor({ state: 'visible' });
+  assert.equal(await overlay.locator('.shield-pop-mark').getAttribute('src'), 'sunrise-hero-mark.png');
+  await overlay.waitForFunction(() => {
+    const mark = document.querySelector('.shield-pop-mark');
+    return mark?.complete && mark.naturalWidth > 0;
+  });
+  assert(await providerRadio(overlay, selected).isChecked(), 'chooser starts with the saved provider');
+  await overlay.waitForFunction(value => document.activeElement?.name === 'shieldProvider' && document.activeElement.value === value, selected);
+}
+async function closeShield(overlay, key = false) {
+  if (key) await overlay.locator(':focus').press('Escape');
+  else await overlay.locator('#shieldPopClose').click();
+  await waitForValue(() => call('overlayMode'), mode => mode === null, 'shield dismissed');
+  const chrome = (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/');
+  assert(chrome);
+  await chrome.waitForFunction(() => document.activeElement?.id === 'pillShield' && document.querySelector('#pillShield').getAttribute('aria-expanded') === 'false');
+}
+async function fixture(privateTab = false) {
+  const id = await call('openTab', url, { private: privateTab });
+  await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === id && !tab.isLoading), Boolean, 'fixture loaded');
+  return id;
+}
+async function assertDraftOnly(provider) {
+  assert.equal((await call('blockingStatus')).selected, provider, 'draft choice does not change provider state');
+  assert.equal(persistedProvider(), provider, 'draft choice does not write settings');
+}
+async function setAppearance(overlay, theme) {
+  assert.equal(await call('setAppearance', theme), theme, 'appearance preference accepted');
+  assert.deepEqual(await electron.evaluate(({ nativeTheme }) => ({
+    source: nativeTheme.themeSource, dark: nativeTheme.shouldUseDarkColors,
+  })), { source: theme, dark: theme === 'dark' }, 'real Electron theme follows the preference');
+  await overlay.waitForFunction(value => matchMedia(`(prefers-color-scheme: ${value})`).matches, theme);
+}
+async function assertShortWindow(overlay) {
+  const original = await call('windowContentBounds');
+  await call('setWindowContentSize', 640, 480);
+  try {
+    await waitForValue(() => call('windowContentBounds'), bounds => bounds.width === 640 && bounds.height === 480, 'minimum content size applied');
+    await overlay.waitForFunction(() => {
+      const card = document.querySelector('#shieldPop');
+      return card.scrollHeight > card.clientHeight && card.getBoundingClientRect().bottom <= innerHeight;
+    });
+    assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'resizing preserves the pending choice');
+    await assertDraftOnly('blanc');
+    // Native Tab navigation must scroll both bottom actions into the clipped
+    // popover viewport; visual visibility alone would not prove they are usable.
+    await providerRadio(overlay, 'ublock-origin').press('Tab');
+    await overlay.waitForFunction(() => document.activeElement?.id === 'shieldPopApply');
+    for (const id of ['shieldPopApply', 'shieldPopCancel']) {
+      if (id === 'shieldPopCancel') await overlay.locator('#shieldPopApply').press('Tab');
+      await overlay.waitForFunction(value => document.activeElement?.id === value, id);
+      assert(await overlay.locator('#' + id).isEnabled(), id + ' remains enabled in a short window');
+      const reachable = await overlay.locator('#' + id).evaluate(button => {
+        const bounds = button.getBoundingClientRect();
+        const card = document.querySelector('#shieldPop').getBoundingClientRect();
+        const target = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+        return bounds.top >= Math.max(0, card.top) - 1 && bounds.bottom <= Math.min(innerHeight, card.bottom) + 1
+          && (target === button || button.contains(target));
+      });
+      assert(reachable, id + ' scrolls into view and receives pointer input');
+    }
+    assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'keyboard scrolling preserves the pending choice');
+    await assertDraftOnly('blanc');
+    await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-short.png' });
+  } finally {
+    await call('setWindowContentSize', original.width, original.height);
+    await waitForValue(() => call('windowContentBounds'), bounds => bounds.width === original.width && bounds.height === original.height, 'original content size restored');
+  }
+  await assertFits(overlay);
+  await providerRadio(overlay, 'ublock-origin').click();
+  await assertDraftOnly('blanc');
+}
+async function assertFits(overlay) {
+  const geometry = await overlay.locator('#shieldPop').evaluate(card => ({
+    bottom: card.getBoundingClientRect().bottom, height: innerHeight,
+    scrollHeight: card.scrollHeight, clientHeight: card.clientHeight,
+  }));
+  assert(geometry.bottom <= geometry.height, 'switcher fits the overlay');
+  if (geometry.scrollHeight > geometry.clientHeight) {
+    fs.mkdirSync('output/playwright', { recursive: true });
+    await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-overflow.png' });
+  }
+  assert(geometry.scrollHeight <= geometry.clientHeight, `normal-height dialog needs no scrolling: ${JSON.stringify(geometry)}`);
+}
+try {
+  stage = 'unavailable provider';
+  await launch(false);
+  await fixture();
+  let overlay = await openShield();
+  assert(await overlay.locator('#shieldPopChangeProvider').isEnabled(), 'unavailable uBO still permits inspecting provider choices');
+  await chooser(overlay, 'blanc');
+  assert(await providerRadio(overlay, 'ublock-origin').isDisabled());
+  assert.match(await overlay.locator('#shieldPopChooser').innerText(), /unavailable/i);
+  assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('ublock-origin')), false);
+  assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('forged-provider')), false);
+  await assertDraftOnly('blanc');
+  await overlay.locator('#shieldPopCancel').click();
+  await summary(overlay, true);
+  await closeShield(overlay);
+  await electron.close(); electron = null;
+
+  stage = 'Blanc to uBO draft and cancellation';
+  await launch(true);
+  const initial = await fixture();
+  overlay = await openShield();
+  const before = visits;
+  await chooser(overlay, 'blanc', true);
+  assert.match(await overlay.locator('#shieldPopProvider').innerText(), /EasyList\s*\+\s*EasyPrivacy/);
+  await providerRadio(overlay, 'blanc').press('ArrowDown');
+  assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'keyboard can select uBO');
+  await assertDraftOnly('blanc');
+  // Observe a real tabs broadcast after a harmless tab mutation. Background
+  // loading/count updates must not reset a choice the user has not applied yet.
+  await overlay.evaluate(() => {
+    window.__shieldTestBroadcastReceived = false;
+    const off = window.browserAPI.onTabsUpdated(() => {
+      off();
+      window.__shieldTestBroadcastReceived = true;
+    });
+  });
+  await call('pinTab', initial);
+  await overlay.waitForFunction(() => window.__shieldTestBroadcastReceived === true);
+  assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'tabs broadcast preserves the draft');
+  await assertDraftOnly('blanc');
+  await overlay.locator('#shieldPopCancel').click();
+  await summary(overlay, true);
+  await assertDraftOnly('blanc');
+  await chooser(overlay, 'blanc');
+  await providerRadio(overlay, 'ublock-origin').check();
+  await overlay.locator('#shieldPopBack').click();
+  await summary(overlay, true);
+  await assertDraftOnly('blanc');
+  await chooser(overlay, 'blanc');
+  await providerRadio(overlay, 'ublock-origin').check();
+  await closeShield(overlay);
+  await assertDraftOnly('blanc');
+
+  stage = 'Blanc to uBO apply';
+  overlay = await openShield();
+  await chooser(overlay, 'blanc');
+  await providerRadio(overlay, 'ublock-origin').check();
+  await assertFits(overlay);
+  fs.mkdirSync('output/playwright', { recursive: true });
+  await setAppearance(overlay, 'light');
+  stage = 'short window chooser';
+  await assertShortWindow(overlay);
+  stage = 'Blanc to uBO apply';
+  await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-chooser.png' });
+  await setAppearance(overlay, 'dark');
+  assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'appearance updates preserve draft');
+  await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-dark.png' });
+  await setAppearance(overlay, 'light');
+  await overlay.locator('#shieldPopApply').click();
+  await summary(overlay, true);
+  await waitForValue(() => call('blockingStatus'), state => state.selected === 'ublock-origin' && state.active === 'blanc' && state.restartPending, 'uBO pending');
+  await waitForValue(persistedProvider, value => value === 'ublock-origin', 'uBO selection persisted');
+  await waitForValue(() => overlay.locator('#shieldPopProviderStatus').innerText(), text => text.includes('Restart Blanc'), 'restart guidance');
+  assert.equal(visits, before, 'drafts, cancellation and apply must not reload the page');
+  await assertFits(overlay);
+  await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-restart.png' });
+  await closeShield(overlay, true);
+  await electron.close(); electron = null;
+
+  stage = 'uBO active and original popup';
+  await launch(true);
+  assert.equal((await call('blockingStatus')).active, 'ublock-origin');
+  const regular = await fixture();
+  overlay = await openShield();
+  assert(await overlay.locator('#shieldPopToggle').isHidden());
+  await chooser(overlay, 'ublock-origin');
+  await overlay.locator('#shieldPopBack').click();
+  await summary(overlay, true);
+  await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-ubo.png' });
+  await overlay.locator('#shieldPopUblock').click();
+  const popup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup');
+  await popup.locator('#switch').waitFor();
+  await electron.evaluate(({ webContents }) => {
+    const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/popup-fenix.html'));
+    wc.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+  });
+  await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'popup dismissed');
+  const uboChrome = (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/');
+  await uboChrome.waitForFunction(() => document.activeElement?.id === 'pillShield' && document.querySelector('#pillShield').getAttribute('aria-expanded') === 'false');
+
+  stage = 'original uBO popup to Island panel';
+  overlay = await openShield();
+  await uboChrome.evaluate(() => {
+    window.__shieldIslandStates = [];
+    window.__shieldIslandStateOff = window.browserAPI.onIslandState(({ mode }) => window.__shieldIslandStates.push(mode));
+  });
+  await overlay.locator('#shieldPopUblock').click();
+  const secondPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup reopened');
+  await secondPopup.locator('#switch').waitFor();
+  await call('openPanel');
+  await overlay.locator('#islandPanel').waitFor({ state: 'visible' });
+  await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'popup teardown completed');
+  assert.equal(await call('overlayMode'), 'panel', 'popup teardown preserves the live Island mode');
+  await uboChrome.waitForFunction(() => getComputedStyle(document.querySelector('#islandPill')).visibility === 'hidden');
+  const panelModes = await uboChrome.evaluate(() => {
+    window.__shieldIslandStateOff();
+    return window.__shieldIslandStates;
+  });
+  const panelStart = panelModes.indexOf('panel');
+  assert(panelStart !== -1, 'chrome received the panel state');
+  assert(panelModes.slice(panelStart).every(mode => mode === 'panel'), 'popup teardown never resets chrome to a dismissed Island');
+  await overlay.waitForFunction(() => document.activeElement?.id === 'addressInput');
+  await call('closeOverlay');
+  await waitForValue(() => call('overlayMode'), mode => mode === null, 'panel dismissed');
+
+  stage = 'private tabs keep Blanc';
+  await fixture(true);
+  overlay = await openShield();
+  assert(await overlay.locator('#shieldPopChangeProvider').isDisabled());
+  assert(await overlay.locator('#shieldPopUblock').isHidden());
+  assert.match(await overlay.locator('#shieldPopProviderStatus').innerText(), /Private tabs always use Blanc Blocker/);
+  assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('blanc')), false);
+  assert.equal((await call('blockingStatus')).selected, 'ublock-origin');
+  await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-private.png' });
+  await closeShield(overlay);
+
+  stage = 'uBO to Blanc selection';
+  await call('activateTab', regular);
+  overlay = await openShield();
+  await chooser(overlay, 'ublock-origin', true);
+  await providerRadio(overlay, 'ublock-origin').press('ArrowUp');
+  assert(await providerRadio(overlay, 'blanc').isChecked(), 'keyboard can select Blanc');
+  await assertDraftOnly('ublock-origin');
+  await overlay.locator('#shieldPopApply').focus();
+  await overlay.locator('#shieldPopApply').press('Enter');
+  await summary(overlay, true);
+  await waitForValue(() => call('blockingStatus'), state => state.selected === 'blanc' && state.active === 'ublock-origin' && state.restartPending, 'Blanc pending');
+  await waitForValue(persistedProvider, value => value === 'blanc', 'Blanc selection persisted');
+  assert(await overlay.locator('#shieldPopUblock').isVisible(), 'active uBO controls remain available before restart');
+  await electron.close(); electron = null;
+  await launch(true);
+  assert.equal((await call('blockingStatus')).active, 'blanc');
+  assert.equal((await call('blockingStatus')).restartPending, false);
+  assert.deepEqual(uiErrors, [], 'Blanc chrome UI has no uncaught renderer errors');
+  console.log('Shield provider desktop passed: two-step chooser, draft/broadcast preservation, cancel/back/close, both apply directions and restarts, original uBO popup and panel teardown, native appearance, small-window actions, authentic Sunrise asset, keyboard/focus, private and unavailable guards, no selection reload.');
+} catch (error) {
+  console.error('Shield stage:', stage, stderr, uiErrors);
+  throw error;
+} finally {
+  clearTimeout(watchdog);
+  await electron?.close().catch(() => {});
+  await new Promise(resolve => server.close(resolve));
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir + '-Dev', { recursive: true, force: true });
+}
