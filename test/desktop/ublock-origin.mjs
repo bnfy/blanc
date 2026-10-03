@@ -20,6 +20,7 @@ fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
 const hits = [];
 const methods = [];
 let subscriptionRevision = 1;
+const subscriptionResponses = [];
 const server = http.createServer((request, response) => {
   hits.push(request.url);
   methods.push({ url: request.url, method: request.method });
@@ -39,7 +40,7 @@ const server = http.createServer((request, response) => {
   if (pathname === '/dynamic-fixture') { response.end('<!doctype html><script src="/dynamic-target.js"></script><p>Dynamic fixture</p>'); return; }
   if (pathname === '/post-form') { response.end('<!doctype html><form method="post" action="/post-result"><input name="token" value="test"><button>Submit</button></form>'); return; }
   if (pathname === '/oauth-opener') { response.end('<!doctype html><button onclick="window.open(\'/oauth-child\',\'OAuth\',\'popup,width=480,height=500\')">Sign in</button>'); return; }
-  if (pathname === '/fixture-list.txt') { response.end('! Title: Blanc fixture list\n! Expires: 1 hour\n/subscription-blocked.js$script\n' + (subscriptionRevision > 1 ? '/subscription-new.js$script\n' : '')); return; }
+  if (pathname === '/fixture-list.txt') { subscriptionResponses.push(subscriptionRevision); response.end('! Title: Blanc fixture list\n! Expires: 1 hour\n/subscription-blocked.js$script\n' + (subscriptionRevision > 1 ? '/subscription-new.js$script\n' : '')); return; }
   if (pathname === '/subscription-fixture') { response.end('<!doctype html><script src="/subscription-blocked.js"></script><p>Subscription fixture</p>'); return; }
   response.end('<!doctype html><title>uBO acceptance fixture</title><div id="ad">Cosmetic fixture</div><div id="procedure">Procedural fixture</div><div id="control">Allowed</div><script src="/blocked-ubo.js"></script><script src="/redirect-ubo.js"></script><script src="/allowed-control.js"></script>' + (request.url.includes('private-marker') ? '<script src="/ads/cbr.js?private-network-marker"></script>' : ''));
 });
@@ -216,6 +217,15 @@ try {
   await lists.locator('[data-role="import"] .listExpander').dispatchEvent('click');
   await lists.locator('[data-role="import"] textarea').fill(fixture + 'fixture-list.txt');
   stage = 'subscription data';
+  await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(`(async () => {
+    const io = (await import('./js/assets.js')).default;
+    self.fixtureListEvents = [];
+    io.addObserver((topic, details) => {
+      if (details?.assetKey !== ${JSON.stringify(url)} && !details?.assetKeys?.includes(${JSON.stringify(url)})) return;
+      if (self.fixtureListEvents.length < 32) self.fixtureListEvents.push({ topic,
+        newRule: details.content?.includes('/subscription-new.js$script') ?? null });
+    });
+  })()`), fixture + 'fixture-list.txt');
   await lists.locator('#buttonApply').dispatchEvent('click');
   await waitForValue(() => hits.some(url => new URL(url, fixture).pathname === '/fixture-list.txt'), Boolean, 'user subscription fetched', 10000);
   await waitForValue(() => electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
@@ -503,6 +513,8 @@ try {
 } catch (error) {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
   console.error('uBO test failure:', error);
+  console.error('Subscription response revisions:', subscriptionResponses);
+  if (electron) console.error('Subscription state:', await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => { const io = (await import('./js/assets.js')).default; return { events: self.fixtureListEvents, updating: io.isUpdating(), metadata: (await io.metadata())[${JSON.stringify(url)}], entry: µBlock.availableFilterLists[${JSON.stringify(url)}], selected: µBlock.selectedFilterLists.includes(${JSON.stringify(url)}) }; })()`), fixture + 'fixture-list.txt').catch(() => null));
   if (electron) console.error('Provider state:', await testCalls.callTestHook(electron, 'blockingStatus', []).catch(() => null));
   console.error(errors);
   if (electron) console.log(await electron.evaluate(({ app, BrowserWindow }) => ({ ready: app.isReady(), userData: app.getPath('userData'), hook: typeof __blanc, windows: BrowserWindow.getAllWindows().length })).catch(() => ({ processClosed: true })));
