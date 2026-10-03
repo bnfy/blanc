@@ -2923,7 +2923,9 @@ body[data-glance-purpose="change"] .glance-picker {
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--island-panel-radius);
-  box-shadow: var(--shadow-popover);
+  /* Keep the shadow inside this native view's 10px top / 12px side
+     gutters. The shared 44px popover blur clips to a visible rectangle. */
+  box-shadow: 0 4px 12px -6px rgba(14,14,14,0.12);
   padding: 18px;
   max-height: calc(100vh - 32px);
   overflow-y: auto;

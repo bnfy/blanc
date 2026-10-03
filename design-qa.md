@@ -2239,3 +2239,31 @@ No public build or release was enabled. Screenshots are reproducible local
 artifacts under the ignored `output/` directory, not runtime telemetry.
 
 final result: passed
+
+### Live-review correction: clipped blocker shadow — 2026-10-02
+
+**Resolved P2:** The owner's live screenshot exposed a rectangular cutoff around
+all four edges of the transparent native overlay. The shared 44px popover blur
+extended beyond the shield card's 10px top and 12px side gutters. Earlier card-only
+comparison cropped out those native view edges and did not catch the defect.
+
+The shield now uses a scoped compact `0 4px 12px -6px` shadow. Its bounds,
+typography, controls, colors, selection and the Island icon are unchanged. The
+large shared shadow remains unchanged for other surfaces. Removing the inherited
+inset layers also removes the bottom bevel visible in the owner's screenshot.
+
+- Owner evidence: `/Users/anthonyjloria/Desktop/Screenshot 2026-10-02 at 9.21.05 PM.png`.
+- Before native capture: `output/playwright/shield-provider-live.png`.
+- After native capture: `output/playwright/shield-shadow-after.png`.
+- Combined full-view comparison: `output/playwright/shield-shadow-comparison.png`,
+  original left and corrected right, composited on white to expose clipped edges.
+- Both captures are 808×920 pixels (404×460 CSS, density 2), light chooser with
+  Blanc active and uBO draft. The after capture retains the user's visible radio
+  focus outline; that interaction-state difference does not affect the shadow.
+- Maximum alpha in the outer two pixel rows/columns before: top 5, right 8,
+  bottom 5, left 8 (of 255). After: **0 on every edge**. The shadow now fully fades
+  before the native boundary. The complete side-by-side view was visually checked.
+- The stylesheet was reloaded in the existing live instance, preserving its
+  380px card width and unconfirmed uBO choice. No runtime/UI logic changed.
+
+final result: passed
