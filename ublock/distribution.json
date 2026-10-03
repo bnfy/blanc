@@ -1,7 +1,13 @@
 {
-  "cleared": false,
-  "assessment": false,
-  "correspondingSource": false,
-  "noticeReview": false,
-  "reason": "Combined-work boundary and complete corresponding-source assessment require resolution before public distribution"
+  "cleared": true,
+  "assessment": true,
+  "correspondingSource": true,
+  "noticeReview": true,
+  "reason": "Owner-directed distribution decision without outside legal sign-off; covered uBO source and packaged notices reviewed, platform acceptance remains required",
+  "decisionDate": "2026-10-03",
+  "authority": "Owner direction recorded in this task",
+  "externalLegalReview": false,
+  "record": "docs/ublock-origin-owner-distribution-2026-10-03.md",
+  "sourceEvidence": "docs/evidence/ublock-brand-packaging-2026-10-03/packaged-inputs.json",
+  "sourceScope": "uBO implementation and host adaptation under the documented distribution boundary; not a certification of native SDK preferred source or legal aggregation"
 }

@@ -534,3 +534,29 @@ The wider tools suite had two window-blur dismissal failures (picker and Logger
 reuse); those attempts are retained as failures, with the provider still ready.
 Exact-head hosted CI must validate the complete suite. No production dismissal,
 blocking deadline, distribution flag, platform gate or CodeQL state was changed.
+
+
+## Owner-directed distribution decision
+
+The [owner decision](ublock-origin-owner-distribution-2026-10-03.md) now records
+proceeding without outside legal sign-off, the supplied uBO implementation and
+adaptation sources, packaged full GPL/LGPL notices, recipient source access,
+and the retained combined-work/native-SDK/artwork judgment. It supersedes the
+earlier awaited-clearance hold; no FSF approval is claimed. Distribution fields
+are cleared on that stated basis. Public platform flags remain disabled until
+installed acceptance, and all CodeQL dismissals remain deferred while draft.
+
+
+## v1.27.0 candidate preparation
+
+The preceding production-code head `c33eb49a` passed all four desktop jobs and
+the ordinary package check in [run 37152027834](https://github.com/bnfy/blanc/actions/runs/37152027834).
+The new candidate uses version 1.27.0 and monotonic macOS build 1270; no tag or
+public release exists for it. Draft release notes explicitly prohibit treating
+this candidate as the current public release. All platform flags remain off.
+
+Local lint and substrate passed. The initial version-bump unit run passed
+2,179/2,180 tests; its one failure was the required missing v1.27.0 release-note
+file. Draft candidate notes were added rather than changing the public site or
+claiming an unperformed release. All 23 affected press/compliance/distribution checks subsequently passed.
+Exact-head CI repeats the full unit and desktop suites.

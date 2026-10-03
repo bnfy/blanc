@@ -119,8 +119,9 @@ remains in `lib/diff/swatinem_diff.js`. Its cited original source revision
 modified source. The full GNU LGPLv3 text is in `ublock/licenses/LGPL-3.0.txt`
 and in bundled candidates' `ThirdPartyLicenses/`; the GPLv3 text is also included. Reproduction instructions
 and dated adaptation records are in `ublock/README.md` and `ublock/adaptation.*`.
-Public distribution is blocked pending the concrete combined-work and complete
-corresponding-source assessment in `docs/ublock-origin-distribution.md`.
+The owner-directed distribution decision and reviewed source/notice scope are
+recorded in `docs/ublock-origin-owner-distribution-2026-10-03.md`; there is no
+external legal sign-off. Platform acceptance remains required before enablement.
 
 ## Website summary icons
 

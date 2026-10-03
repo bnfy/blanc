@@ -1,6 +1,14 @@
 # uBlock Origin distribution assessment — 2026-10-02
 
-**Public distribution is blocked.** The current integration is an internal
+**Current decision (October 3):** the owner directed proceeding without
+outside licensing sign-off. The [owner decision and source/notice
+review](ublock-origin-owner-distribution-2026-10-03.md) supersedes the earlier
+distribution hold below. Platform acceptance and deferred CodeQL gates remain.
+The original assessment is retained as historical evidence and limitations.
+
+## Original October 2 assessment (superseded hold)
+
+**Public distribution was blocked.** The integration was an internal
 candidate. Loading an optional extension in a separate sandboxed renderer does
 not, by itself, establish that this is legally mere aggregation.
 

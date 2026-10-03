@@ -38,18 +38,21 @@ To review an intentional adaptation change, regenerate both records with
 `node scripts/build-ublock-adaptation.cjs --write`, then review the patch and tests.
 
 Upstream's original build instructions are in its source archive's `tools/`
-directory. That build fetches assets separately. The current archive alone is
-not yet certified as complete corresponding source for every bundled third-party
-asset. `source-audit.json`, reproduced with `python3 scripts/audit-ublock-sources.py`,
-records exact archive matches for 644 of 658 package files. This is coverage
-evidence, not preferred-source or license clearance; see
-`docs/ublock-origin-distribution.md`. Public distribution is blocked
-by `distribution.json` for the uBO payload until that assessment and the combined-work boundary are
-resolved. MIT for Blanc-owned files and the reserved identity assets remain as
-documented in the repository's LICENSE and ASSET-LICENSE.md.
+directory. That build fetches assets separately. The source-tag archive is
+supplemented by the preferred project and uAssets archives described below; it
+alone does not inventory every component. `source-audit.json`, reproduced with
+`python3 scripts/audit-ublock-sources.py`,
+records exact archive matches for 644 of 658 package files. The thirteen
+separately fetched inputs and transformed manifest have separate evidence.
+`distribution.json` records the owner-directed distribution decision and its
+source/notice scope in `docs/ublock-origin-owner-distribution-2026-10-03.md`; it
+is not outside legal sign-off. Installed platform acceptance remains required.
+MIT for Blanc-owned files and the reserved identity assets remain as documented in the repository's LICENSE and ASSET-LICENSE.md.
 
-Ordinary Blanc packages omit this entire directory until clearance. Internal
-validation packages explicitly include it and carry a non-release marker.
+Blanc packages omit this directory when distribution clearance is closed.
+Explicit internal validation packages carry a non-release marker. The current
+owner-directed clearance permits bundled candidates while public platform flags
+stay disabled pending installed acceptance.
 `identity.json` supplies a fixed public manifest key shared across profiles and
 platforms; it contains no private key. The managed storage directory does not
 participate in the extension ID. This replaces the unpublished prototype's
