@@ -147,10 +147,12 @@ function shieldProviderModel(status, privateTab = false) {
     else if (status?.phase === 'initializing') detail = `${label(active)} is starting…`;
     // A pending choice never establishes that the current provider is
     // filtering. Preserve failure/disable/startup guidance alongside restart.
-    if (status?.fallback === 'manifest-v2-retired') {
+    if (status?.fallback) {
       const current = !unavailable && !off && status.phase === 'ready'
         ? 'Blanc Blocker is protecting this tab.' : detail;
-      detail = `This browser engine can’t run uBlock Origin. ${current} Your uBO settings are saved.`;
+      const reason = status.fallback === 'manifest-v2-retired'
+        ? 'This browser engine can’t run uBlock Origin.' : 'uBlock Origin isn’t available in this build.';
+      detail = `${reason} ${current} Your uBO settings are saved.`;
     }
     if (status?.restartPending) {
       const current = !unavailable && !off && status.phase === 'ready'

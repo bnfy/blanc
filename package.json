@@ -22,6 +22,7 @@
     "test:shield-provider:desktop": "node test/desktop/shield-provider.mjs",
     "test:ublock:desktop": "node test/desktop/ublock-origin.mjs",
     "test:ublock-retirement:desktop": "node test/desktop/ublock-retirement.mjs",
+    "test:ublock-unavailable:desktop": "node test/desktop/ublock-retirement.mjs --unavailable",
     "test:ublock-noscript:desktop": "node test/desktop/ublock-noscript.mjs",
     "ublock:check": "node scripts/check-ublock-package.cjs && node scripts/build-ublock-adaptation.cjs",
     "ublock:distribution": "node scripts/check-ublock-distribution.cjs",

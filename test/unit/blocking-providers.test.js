@@ -17,7 +17,7 @@ test('unrelated settings preserve the one-broadcast batch boundary while provide
       if (name === './blocking-resources') return require('../../src/main/blocking-resources');
       if (name === './adblock') return builtin;
       if (name === './ublock-provider') return {};
-      if (name === './ublock-platforms.json') return { electron: '44.5.1', ublock: '1.75.0', platforms: {} };
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', ublock: '1.75.0', platforms: { 'darwin-arm64': { enabled: true } } };
       return require(name);
     },
   });
@@ -77,7 +77,7 @@ test('profile deletion after switching to Blanc erases the prior native principa
       if (name === './blocking-resources') return require('../../src/main/blocking-resources');
       if (name === './adblock') return { detachAdBlockerFromSession() {}, coordinator: { setProvider() {} } };
       if (name === './ublock-provider') return { createUblockProvider: options => { assert.equal(options.session, owned.normal); assert.equal(options.profileId, 'profile_to_delete'); return provider; } };
-      if (name === './ublock-platforms.json') return { electron: '44.5.1', ublock: '1.75.0', platforms: {} };
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', ublock: '1.75.0', platforms: { 'darwin-arm64': { enabled: true } } };
       return require(name);
     },
   });
@@ -86,31 +86,6 @@ test('profile deletion after switching to Blanc erases the prior native principa
   assert.deepEqual(operations, ['erase']);
   fail = false; await manager.dispose('profile_to_delete', owned);
   assert.deepEqual(operations, ['erase', 'erase', 'unload', 'remove']);
-});
-
-test('unsupported uBO keeps recovery documents usable while remote traffic stays gated', async () => {
-  const preferences = { adblockProvider: 'ublock-origin', adblockEnabled: true };
-  const root = path.resolve('/blanc-test-app');
-  let gate;
-  const module = { exports: {} };
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
-    module, process: { env: {}, platform: 'darwin', arch: 'arm64', versions: { electron: 'next-runtime' } },
-    require: name => {
-      if (name === 'electron') return { app: { isPackaged: false, getAppPath: () => root } };
-      if (name === './adblock') return { attachAdBlockerToSession() {}, detachAdBlockerFromSession() {}, coordinator: { setProvider: (_session, value) => { gate = value; } } };
-      if (name === './ublock-provider') return { createUblockProvider: () => { throw new Error('unsupported extension must not load'); } };
-      if (name === './ublock-platforms.json') return { electron: '44.5.1', platforms: { 'darwin-arm64': { enabled: true } } };
-      return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
-    },
-  });
-  const manager = module.exports.createBlockingProviders({ settings: { getSettings: () => preferences }, hooks: {} });
-  await assert.rejects(manager.attach('personal', { normal: {}, private: {} }), /ubo-platform-unverified/);
-  assert.equal(manager.status('personal').phase, 'unsupported');
-  const allowed = ['blanc://settings/', 'blanc://error/', 'blanc-chrome://overlay.html', require('node:url').pathToFileURL(path.join(root, 'src/renderer/pages/error.html')).href];
-  for (const url of allowed) assert.equal(gate.decide('onBeforeRequest', { url }).cancel, undefined, url);
-  for (const url of ['https://example.org/', require('node:url').pathToFileURL(path.join(root, 'outside.html')).href]) assert.equal(gate.decide('onBeforeRequest', { url }).cancel, true, url);
-  preferences.adblockEnabled = false;
-  assert.equal(gate.decide('onBeforeRequest', { url: 'https://example.org/' }).cancel, undefined);
 });
 
 test('one failing profile leaves all sessions protected and still initializes the others', async () => {
@@ -139,6 +114,8 @@ test('one failing profile leaves all sessions protected and still initializes th
   const manager = module.exports.createBlockingProviders({ settings: { getSettings: () => ({ adblockProvider: 'ublock-origin', adblockEnabled: true }) }, hooks: {} });
   await assert.rejects(manager.attachAll(['first', 'second'], id => owned[id]), /blocking-profile-initialization-failed/);
   assert.deepEqual(initialized, ['first', 'second']);
+  assert.equal(manager.active, 'ublock-origin');
+  assert.equal(manager.status('first').fallback, null, 'an available provider failure must never substitute Blanc');
   assert.equal(manager.status('first').phase, 'failed'); assert.equal(manager.status('second').phase, 'ready');
   assert.equal(gates.get(owned.first.normal).decide().cancel, true);
   assert.equal(gates.get(owned.second.normal).decide().cancel, undefined);
@@ -163,7 +140,7 @@ test('ordinary packages hide uBO unless a prior selection needs recovery', () =>
   assert.equal(manager.status('default').exposed, true);
 });
 
-function retiredManager({ runtime = '44.5.1', enabled = true } = {}) {
+function unavailableManager({ runtime = '44.5.1', enabled = true, manifestV2 = 'retired', platform = { enabled: false }, bundled = false } = {}) {
   const operations = [];
   const preferences = { adblockProvider: 'ublock-origin', adblockEnabled: enabled };
   const startup = { phase: 'initializing' };
@@ -176,11 +153,12 @@ function retiredManager({ runtime = '44.5.1', enabled = true } = {}) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
     module, process: { env: { BLANC_UBLOCK_TEST: '1' }, platform: 'darwin', arch: 'arm64', versions: { electron: runtime } },
     require: name => {
-      if (name === 'electron') return { app: { isPackaged: true, getAppPath: () => '/fixture' } };
-      if (name === '../../package.json') return { blancUblockBundled: false };
+      if (name === 'electron') return { app: { isPackaged: true, getAppPath: () => '/fixture', getPath: () => '/fixture-profile' } };
+      if (name === 'node:fs') return { existsSync: () => true, rmSync: value => operations.push({ removed: value }) };
+      if (name === '../../package.json') return { blancUblockBundled: bundled };
       if (name === './adblock') return builtin;
-      if (name === './ublock-platforms.json') return { electron: '44.5.1', manifestV2: 'retired', platforms: { 'darwin-arm64': { enabled: false } } };
-      if (name === './ublock-provider') return { createUblockProvider() { throw new Error('retired runtime must not load uBO'); } };
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', manifestV2, platforms: platform ? { 'darwin-arm64': platform } : {} };
+      if (name === './ublock-provider') return { createUblockProvider() { throw new Error('unavailable build must not load uBO'); } };
       return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
     },
   });
@@ -188,7 +166,7 @@ function retiredManager({ runtime = '44.5.1', enabled = true } = {}) {
   return { manager, preferences, operations, startup };
 }
 test('reviewed MV2 retirement attaches Blanc to every session while preserving the saved uBO selection', async () => {
-  const { manager, preferences, operations, startup } = retiredManager();
+  const { manager, preferences, operations, startup } = unavailableManager();
   const sessions = { personal: { normal: {}, private: {} }, work: { normal: {}, private: {} } };
   await manager.attachAll(Object.keys(sessions), id => sessions[id]);
   assert.equal(manager.active, 'blanc');
@@ -211,8 +189,8 @@ test('reviewed MV2 retirement attaches Blanc to every session while preserving t
   startup.phase = 'failed';
   assert.equal(manager.status('personal').phase, 'failed', 'Blanc startup failure is not presented as protection');
 });
-test('retirement honors global-off and switching permanently to Blanc needs no restart', async () => {
-  const { manager, preferences, operations, startup } = retiredManager({ enabled: false });
+for (const manifestV2 of ['retired', 'supported']) test(`unavailable uBO honors global-off and switching permanently to Blanc (${manifestV2})`, async () => {
+  const { manager, preferences, operations, startup } = unavailableManager({ enabled: false, manifestV2 });
   await manager.attach('personal', { normal: {}, private: {} });
   assert(operations.every(op => op.enabled === false));
   assert.equal(manager.status('personal').enabled, false);
@@ -225,9 +203,30 @@ test('retirement honors global-off and switching permanently to Blanc needs no r
   preferences.adblockEnabled = true; manager.setEnabled(true);
   assert.equal(operations.at(-1).enabled, true);
 });
-test('a retirement declaration for another runtime cannot mask an unreviewed runtime or initialization failure', async () => {
-  const { manager } = retiredManager({ runtime: '99.0.0' });
-  assert.equal(manager.active, 'ublock-origin');
-  assert.equal(manager.status('personal').fallback, null);
-  await assert.rejects(manager.attach('personal', { normal: {}, private: {} }), /ubo-platform-unverified/);
+for (const [scenario, options] of [
+  ['disabled platform', { manifestV2: 'supported', bundled: true }],
+  ['unlisted platform', { manifestV2: 'supported', bundled: true, platform: null }],
+  ['payload omitted from an approved platform', { manifestV2: 'supported', platform: { enabled: true } }],
+  ['unreviewed Electron version', { manifestV2: 'supported', bundled: true, platform: { enabled: true }, runtime: '99.0.0' }],
+  ['retirement record for a different runtime', { runtime: '99.0.0' }],
+]) test(`${scenario} starts Blanc automatically without losing the selected uBO configuration`, async () => {
+  const { manager, preferences, operations, startup } = unavailableManager(options);
+  const owned = { normal: {}, private: {} };
+  await manager.attach('personal', owned);
+  startup.phase = 'ready';
+  const state = manager.status('personal');
+  assert.equal(state.active, 'blanc'); assert.equal(state.selected, 'ublock-origin');
+  assert.equal(state.fallback, 'ublock-unavailable'); assert.equal(state.phase, 'ready');
+  assert.equal(state.supported, false); assert.equal(state.restartPending, false);
+  assert.equal(preferences.adblockProvider, 'ublock-origin');
+  assert.equal(manager.effectiveForTab({ profileId: 'personal', private: false }), owned.normal);
+  assert(operations.some(op => op.session === owned.normal && op.enabled));
+  assert(operations.some(op => op.session === owned.private && op.enabled));
+});
+
+
+test('deleting a profile in an unavailable build never loads its old native uBO principal', async () => {
+  const { manager, operations } = unavailableManager({ manifestV2: 'supported', bundled: true });
+  await manager.dispose('personal', { normal: {}, private: {} });
+  assert(operations.some(op => op.removed?.endsWith(path.join('managed-ublock', 'personal'))));
 });

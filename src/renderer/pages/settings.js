@@ -94,11 +94,13 @@
           ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
           : state.phase === 'unsupported'
             ? `uBlock Origin unavailable: ${state.reason}.`
-            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
-      if (state.fallback === 'manifest-v2-retired') {
+            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false || state.fallback ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
+      if (state.fallback) {
         const protection = state.enabled && state.phase === 'ready' ? 'Blanc Blocker is active.'
           : state.enabled ? status.textContent : 'Blocking is off.';
-        status.textContent = `This browser engine can’t run uBlock Origin. ${protection} Your uBO settings are saved.`;
+        const reason = state.fallback === 'manifest-v2-retired'
+          ? 'This browser engine can’t run uBlock Origin.' : 'uBlock Origin isn’t available in this build.';
+        status.textContent = `${reason} ${protection} Your uBO settings are saved.`;
       }
       if (state.internalCandidate) status.textContent += ' Internal validation candidate; platform support is not certified.';
       const ubo = state.active === 'ublock-origin';

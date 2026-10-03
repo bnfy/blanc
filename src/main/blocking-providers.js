@@ -12,7 +12,6 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   // Retirement is an explicit release decision for this exact official
   // runtime, never inferred from an initialization error or decision timeout.
   const retired = matrix.manifestV2 === 'retired' && matrix.electron === process.versions.electron;
-  const active = retired && requested === 'ublock-origin' ? 'blanc' : requested;
   let lastEnabled = settings.getSettings().adblockEnabled;
   let lastSelected = requested;
   const diagnostics = [];
@@ -24,6 +23,11 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   const test = !app.isPackaged && process.env.BLANC_UBLOCK_TEST === '1';
   const platform = matrix.platforms[`${process.platform}-${process.arch}`];
   const supported = !retired && !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
+  // Build availability is fixed at startup. Runtime failures of an available
+  // uBO never change this selection: its provider remains fail closed.
+  const effective = selected => selected === 'ublock-origin' && !supported ? 'blanc' : selected;
+  const active = effective(requested);
+  const fallback = retired ? 'manifest-v2-retired' : 'ublock-unavailable';
   function status(profileId) {
     const provider = profiles.get(profileId)?.provider;
     const selected = settings.getSettings().adblockProvider;
@@ -32,14 +36,14 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     const builtinPhase = ['ready', 'failed', 'initializing'].includes(startup?.phase) ? startup.phase
       : ['disabled', 'continued', 'skipped'].includes(startup?.phase) ? 'disabled' : 'initializing';
     return {
-      selected, active, restartPending: (retired && selected === 'ublock-origin' ? 'blanc' : selected) !== active,
-      fallback: retired && selected === 'ublock-origin' ? 'manifest-v2-retired' : null,
+      selected, active, restartPending: effective(selected) !== active,
+      fallback: !supported && selected === 'ublock-origin' ? fallback : null,
       exposed: !app.isPackaged || internalCandidate || bundled && Object.values(matrix.platforms).some(value => value.enabled) || selected === 'ublock-origin' || active === 'ublock-origin',
       internalCandidate, supported, reason: retired ? 'This browser engine no longer supports Manifest V2 extensions'
-        : supported ? null : platform?.reason || 'Runtime/platform acceptance pending',
+        : supported ? null : !bundled ? 'uBlock Origin is not included in this build' : platform?.reason || 'Runtime/platform acceptance pending',
       enabled: settings.getSettings().adblockEnabled,
       ...provider?.status(),
-      phase: active === 'ublock-origin' ? provider?.status().phase ?? (supported ? (startupFailed ? 'failed' : 'initializing') : 'unsupported') : builtinPhase,
+      phase: active === 'ublock-origin' ? provider?.status().phase ?? (startupFailed ? 'failed' : 'initializing') : builtinPhase,
       error: provider?.status().error ?? (startupFailed ? 'blanc-initialization-failed' : null),
       electron: process.versions.electron, ublock: matrix.ublock, diagnostics: diagnostics.slice(-16),
     };
@@ -66,9 +70,6 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   async function attach(profileId, owned) {
     prepare(profileId, owned);
     if (active !== 'ublock-origin') return;
-    if (!supported) {
-      onStateChange?.(status(profileId)); throw new Error('ubo-platform-unverified');
-    }
     if (!profiles.has(profileId)) {
       const provider = createUblockProvider({
         session: owned.normal, profileId, hooks,
@@ -124,7 +125,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     // the verified principal only to erase its native store; no website views
     // remain, and filtering selection is unchanged. Failure retains the
     // existing crash-resumable deletion marker rather than claiming success.
-    if (!provider && bundled && !retired && fs.existsSync(destination)) {
+    if (!provider && supported && fs.existsSync(destination)) {
       if (!owned) throw new Error('ubo-deletion-session-unavailable');
       builtin.detachAdBlockerFromSession(owned.normal);
       provider = createUblockProvider({ session: owned.normal, profileId, hooks });
@@ -133,8 +134,8 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       sessions.set(profileId, owned);
       builtin.coordinator.setProvider(owned.normal, provider);
     }
-    // A retired runtime cannot load uBO; an ordinary build may omit it altogether. Profile deletion still clears
-    // both entire native sessions in main; no absent extension is loaded just
+    // An unavailable provider must not load during deletion either. Main clears
+    // both entire native sessions; no unsupported extension is loaded just
     // to erase data, and the durable deletion marker covers that storage step.
     if (provider) { await provider.eraseStorage(); provider.dispose(); }
     profiles.delete(profileId);

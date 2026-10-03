@@ -331,13 +331,14 @@ test('the active tab and the popover report the same connection', () => {
   }
 });
 
-test('MV2 retirement identifies the effective blocker without a futile restart or loss of the saved choice', () => {
-  const state = { active: 'blanc', selected: 'ublock-origin', phase: 'ready', enabled: true, supported: false, fallback: 'manifest-v2-retired', restartPending: false };
+for (const fallback of ['manifest-v2-retired', 'ublock-unavailable']) test(`MV2 retirement identifies the effective blocker without a futile restart or loss of the saved choice (${fallback})`, () => {
+  const state = { active: 'blanc', selected: 'ublock-origin', phase: 'ready', enabled: true, supported: false, fallback, restartPending: false };
   const model = shieldProviderModel(state);
   assert.equal(model.active, 'blanc'); assert.equal(model.selected, 'ublock-origin');
   assert.equal(model.choice, 'blanc'); assert.equal(model.restartPending, false);
   assert.match(model.detail, /Blanc Blocker is protecting/);
   assert.match(model.detail, /uBO settings are saved/);
+  assert.match(model.detail, fallback === 'manifest-v2-retired' ? /engine can’t run/ : /isn’t available in this build/);
   assert.equal(model.canOpenUblock, false); assert.equal(model.ublockAvailable, false);
   for (const update of [{ enabled: false }, { phase: 'initializing' }, { phase: 'failed' }]) {
     assert(!shieldProviderModel({ ...state, ...update }).detail.includes('is protecting'));

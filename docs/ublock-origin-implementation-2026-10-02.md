@@ -35,7 +35,13 @@ describe partial support; loading an extension is not the acceptance gate.
 - `blocking-providers.js` snapshots the active provider at startup. Device-local
   selection, active status, failure, unavailable status and restart pending are
   exposed to Settings. `adblockProvider` and native uBO configuration are outside
-  Profile Sync. Each provider retains its own site exceptions.
+  Profile Sync. Each provider retains its own site exceptions. A saved uBO
+  selection falls back to Blanc Blocker when this build cannot offer uBO
+  (disabled/unlisted platform, unreviewed runtime, omitted payload or reviewed
+  MV2 retirement). The saved selection/configuration remain intact, the shield
+  and Settings explain the effective provider, and no extra restart is needed.
+  This decision is made before session attachment; an available provider's
+  initialization, corruption, crash or timeout failure stays fail closed.
 - The verified original extension loads only in normal profile sessions, with
   stable managed paths and explicit per-launch loading. Atomic extraction
   repairs interrupted/corrupted installs. A separate tiny native CSS helper

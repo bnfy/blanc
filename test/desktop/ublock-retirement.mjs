@@ -1,5 +1,5 @@
 // Exercise the whole app with real Blanc filtering after a reviewed runtime
-// retirement. The bootstrap changes only this child process's matrix object;
+// retirement or a disabled platform. The bootstrap changes only this child process;
 // no production test override or on-disk release flag is introduced.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -12,6 +12,8 @@ import hooks from './support/test-hook-call.js';
 import focus from './support/popup-focus-trace.js';
 const { waitForValue } = poll;
 const root = path.resolve('.');
+const unavailable = process.argv.includes('--unavailable');
+const expectedFallback = unavailable ? 'ublock-unavailable' : 'manifest-v2-retired';
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ubo-retirement-'));
 const appDir = path.join(temp, 'app'); fs.mkdirSync(appDir);
 for (const member of ['src', 'ublock', 'node_modules', 'build', 'assets', 'adblock', 'scripts']) {
@@ -19,7 +21,27 @@ for (const member of ['src', 'ublock', 'node_modules', 'build', 'assets', 'adblo
 }
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 fs.writeFileSync(path.join(appDir, 'package.json'), JSON.stringify({ ...metadata, main: 'retirement.cjs' }));
-fs.writeFileSync(path.join(appDir, 'retirement.cjs'), `const matrix = require(${JSON.stringify(path.join(root, 'src/main/ublock-platforms.json'))});\nmatrix.manifestV2 = 'retired';\nrequire(${JSON.stringify(path.join(root, 'src/main/main.js'))});\n`);
+const matrixPath = JSON.stringify(path.join(root, 'src/main/ublock-platforms.json'));
+const managerPath = JSON.stringify(path.join(root, 'src/main/blocking-providers.js'));
+const bootstrap = unavailable ? `
+  const matrix = require(${matrixPath});
+  matrix.manifestV2 = 'supported';
+  matrix.platforms[process.platform + '-' + process.arch] = { enabled: false };
+  const manager = require(${managerPath});
+  const create = manager.createBlockingProviders;
+  manager.createBlockingProviders = options => {
+    // Keep the whole app's real-blocking test flag, but do not let the manager's
+    // usual test bypass override the disabled platform we are exercising.
+    const flag = process.env.BLANC_UBLOCK_TEST;
+    delete process.env.BLANC_UBLOCK_TEST;
+    try { return create(options); }
+    finally { if (flag !== undefined) process.env.BLANC_UBLOCK_TEST = flag; }
+  };
+` : `require(${matrixPath}).manifestV2 = 'retired';`;
+fs.writeFileSync(path.join(appDir, 'retirement.cjs'), bootstrap + `
+require(${JSON.stringify(path.join(root, 'src/main/main.js'))});
+`);
+
 const profile = path.join(temp, 'profile'); fs.mkdirSync(profile); fs.mkdirSync(profile + '-Dev');
 const settingsFile = path.join(profile + '-Dev', 'settings.json');
 fs.writeFileSync(settingsFile, JSON.stringify({ onboardingVersion: 1, adblockProvider: 'ublock-origin', adblockEnabled: true, searchSuggestions: false, usagePing: false, onePasswordEnabled: false }));
@@ -47,7 +69,7 @@ try {
   const state = await waitForValue(() => call('blockingStatus'), value => value.phase === 'ready', 'real Blanc fallback ready', 20000);
   await waitForValue(() => call('startupReady'), Boolean, 'startup navigation gate released', 20000);
   assert.equal(state.active, 'blanc'); assert.equal(state.selected, 'ublock-origin');
-  assert.equal(state.fallback, 'manifest-v2-retired'); assert.equal(state.restartPending, false);
+  assert.equal(state.fallback, expectedFallback); assert.equal(state.restartPending, false);
   assert.equal(state.supported, false);
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().some(wc => wc.getType() === 'backgroundPage')), false, 'no native uBO background loaded');
   async function visit(route, privateTab = false) {
@@ -68,6 +90,7 @@ try {
   await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
   assert.equal(await overlay.locator('#shieldPopCurrentProvider').innerText(), 'Blanc Blocker');
   assert((await overlay.locator('#shieldPop').innerText()).includes('Your uBO settings are saved.'));
+  if (unavailable) assert((await overlay.locator('#shieldPop').innerText()).includes('uBlock Origin isn’t available in this build.'));
   await overlay.locator('#shieldPopChangeProvider').click();
   assert(await overlay.locator('[name="shieldProvider"][value="blanc"]').isChecked());
   assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Done');
@@ -78,7 +101,7 @@ try {
   await waitForValue(() => off.evaluate(() => window.adReached), Boolean, 'explicit global-off permits the control request');
   assert(hits.some(url => url.startsWith('/adsbygoogle.js')));
   assert.equal((await call('blockingStatus')).enabled, false);
-  console.log('MV2 retirement passed: full-app startup, real Blanc network blocking in regular/private tabs, truthful shield/Done, saved uBO choice, no uBO background, explicit global-off.');
+  console.log(`${unavailable ? 'Unavailable uBO fallback' : 'MV2 retirement'} passed: full-app startup, real Blanc network blocking in regular/private tabs, truthful shield/Done, saved uBO choice, no uBO background, explicit global-off.`);
 } catch (error) { console.error(stderr); throw error; }
 finally {
   clearTimeout(watchdog);

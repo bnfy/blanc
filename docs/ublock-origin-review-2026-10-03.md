@@ -27,7 +27,10 @@ the uBO distribution gate remain disabled. The PR remains draft.
   request handler cancelled internal recovery assets too. It now admits Blanc's
   internal schemes and bundled renderer files while keeping remote requests
   gated until explicit continuation without blocking. Runtime mismatch tests
-  exercise settings/error documents and remote/file controls.
+  exercise settings/error documents and remote/file controls. This historical
+  unavailable-build policy is superseded by the October 3 startup fallback
+  extension: unavailable builds now use Blanc Blocker automatically. Available
+  uBO runtime failures continue to use fail-closed recovery.
 - **Cancelled restart:** destructive Quiet/Reopen cleanup moved from
   `before-quit` to `will-quit`. Stay cancels relaunch and restores the surviving
   window's closing flag. A regression executes the actual main-process quit

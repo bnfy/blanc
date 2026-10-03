@@ -357,3 +357,51 @@ no-scripting is enabled; uBO's required default CSP then prevents them while
 its original noscript reconstruction displays fallback content. Turning the
 switch off permits the original script again. This adds no production code and
 changes no alert disposition. It is wired into the four-platform desktop job.
+
+
+## Startup fallback for every unavailable build
+
+The owner requested extending the retirement path after review identified three
+other unavailable-build cases: disabling a platform, omitting the uBO payload,
+and returning from an internal candidate to an ordinary public build.
+`blocking-providers.js` now selects Blanc Blocker at startup whenever uBO is
+saved but `supported` is false. This also covers an unlisted platform or a
+runtime/matrix mismatch. Unsupported builds never install the uBO failure stub
+or attempt to initialize uBO. Profile deletion likewise avoids loading an
+unsupported native extension and uses the existing entire-session cleanup.
+
+This is a build-availability decision made once before attaching sessions.
+An available uBO's initialization, package-integrity, crash and request-timeout
+failures do not trigger substitution. Its two-second decision policy remains
+unchanged. Blanc startup failures still surface Retry/Continue, rather than
+claiming protection or silently permitting traffic.
+
+The saved uBO selection/configuration remain intact. Shield and Settings say
+“uBlock Origin isn’t available in this build,” identify Blanc as the effective
+provider, and retain the saved-settings notice. Known MV2 retirement keeps its
+specific explanation. The chooser shows the effective provider with Done,
+without a futile restart. Global blocking-off and independent provider site
+exceptions remain respected; no POST replay or configuration migration occurs.
+
+The 48 focused manager/shield/Settings tests passed locally. They cover disabled
+and missing platforms, omitted payload on an approved platform, unreviewed
+Electron, retirement metadata for a different runtime, global-off, effective
+provider/restart state, profile deletion and available-provider failure.
+`test:ublock-unavailable:desktop` launches the complete app with its platform
+disabled in the child process, suppressing only the manager's usual development
+test bypass. No production test override is added. The real Blanc engine blocks
+fixture ad requests before server receipt in ordinary/private tabs; allowed
+pages load, no uBO background exists, the notice/Done state is correct, the saved
+selection survives and explicit global-off permits the control request. This
+local macOS arm64 test and the original retirement test passed. The unavailable
+case is also wired into all four desktop CI jobs. Exact-commit CI and installed
+candidate acceptance remain distinct requirements.
+
+No distribution flags, platform approvals, executable upstream bytes or CodeQL
+dispositions are changed by this follow-up.
+
+
+Local follow-up validation completed: lint, substrate, all 2,178 unit tests and
+the full real-blocking uBO desktop suite passed. The latter still exercises
+available-provider decision deadlines, background crash/retry, native storage
+and profile isolation, tools, POST safety and offline restart persistence.
