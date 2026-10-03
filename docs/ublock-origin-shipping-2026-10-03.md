@@ -333,3 +333,13 @@ The queued first navigation was cancelled during startup as designed, but its
 subsequent release was not verified. A rerun of that exact Intel job is being
 used to investigate; this first failure remains part of the record and is not
 counted as a pass. No request deadline, sandbox setting or runtime pin changed.
+
+
+While investigating Intel, a concurrent PR commit (`2b567620`) increased only
+the new-profile fixture wait from 20 to 40 seconds. It was preserved when
+rebasing the source-evidence work. The provider has successive 2/15/15-second
+waits plus extraction/native loading, so 32 seconds is not a total wall-clock
+bound. The fixture now also fails immediately if the provider reports failure
+and records observed new-profile latency. No production deadline changed; CI
+must still prove that the profile becomes ready and its initial GET reaches the
+fixture server exactly once.

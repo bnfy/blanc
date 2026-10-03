@@ -539,13 +539,20 @@ try {
   const primaryRuntime = (await call('windowRuntimes'))[0].id;
   const initialProfileUrl = fixture + '?named-profile-first-load';
   await call('setHomePage', initialProfileUrl);
+  const profileStarted = Date.now();
   const named = await call('createProfileWindow', 'uBO isolated profile');
   await call('setHomePage', '');
   assert(named.ok);
-  // A new profile's provider may take up to ~32 s before it reports failure
-  // itself (CSS host 2 s + background 15 s + bridge 15 s in ublock-provider.js).
-  // Wait past that budget so slow runners fail on a real error, not the clock.
-  await waitForValue(() => call('blockingStatusInWindow', named.runtimeId), state => state.phase === 'ready', 'named profile ready', 40000);
+  // The provider has successive CSS/background/bridge waits (2/15/15 s),
+  // in addition to extraction and native load time. Give this test 40 s, but
+  // surface a provider failure immediately and record the observed latency.
+  await waitForValue(async () => {
+    const state = await call('blockingStatusInWindow', named.runtimeId);
+    assert.notEqual(state.phase, 'failed', `named profile provider failed: ${JSON.stringify(state)}`);
+    return state;
+  }, state => state.phase === 'ready', 'named profile ready', 40000);
+  timing.namedProfileReadyMs = Date.now() - profileStarted;
+  console.log('Named profile initialization:', timing.namedProfileReadyMs, 'ms');
   const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness');
   await initialProfilePage.waitForFunction(() => window.fixtureAllowed === true);
   assert.equal(hits.filter(url => url === '/?named-profile-first-load').length, 1, 'first profile GET must reach the server once after readiness');
