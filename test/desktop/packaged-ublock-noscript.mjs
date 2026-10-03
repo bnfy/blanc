@@ -14,7 +14,12 @@ const executable = process.env.BLANC_PACKAGED_EXECUTABLE;
 const asar = process.env.BLANC_PACKAGED_ASAR;
 const output = process.env.BLANC_UBLOCK_EVIDENCE;
 assert(executable && asar && output, 'Set BLANC_PACKAGED_EXECUTABLE, BLANC_PACKAGED_ASAR and BLANC_UBLOCK_EVIDENCE');
-assert(!fs.existsSync(output), 'Evidence output must be a new file');
+// Claim the evidence file with one exclusive create, not a separate existence
+// check: an existing file still stops the probe before any setup.
+fs.mkdirSync(path.dirname(output), { recursive: true });
+let outputFd;
+try { outputFd = fs.openSync(output, 'wx'); }
+catch (error) { throw error.code === 'EEXIST' ? new Error('Evidence output must be a new file') : error; }
 const adjacentAsar = process.platform === 'darwin'
   ? path.resolve(path.dirname(executable), '../Resources/app.asar')
   : path.resolve(path.dirname(executable), 'resources/app.asar');
@@ -168,8 +173,8 @@ try {
   finally {
     await new Promise(resolve => server.close(resolve));
     fs.rmSync(temp, { recursive: true, force: true });
-    fs.mkdirSync(path.dirname(output), { recursive: true });
-    fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+    fs.writeFileSync(outputFd, JSON.stringify(report, null, 2) + '\n');
+    fs.closeSync(outputFd);
   }
 }
 console.log('Packaged uBO no-scripting probe passed; evidence saved. Signature/installed acceptance remains a separate observation.');
