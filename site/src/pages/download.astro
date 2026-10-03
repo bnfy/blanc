@@ -25,7 +25,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <section class="download-hero" aria-labelledby="download-title">
     <p class="section-kicker">get blanc</p>
     <h1 id="download-title">Download Blanc for macOS, Windows, or Linux.</h1>
-    <p>Choose your desktop. Blanc is free, and installed builds keep themselves up to date.</p>
+    <p>Choose your desktop. Free browser. Patron adds saved Named Workspaces.</p>
   </section>
 
   <section class="download-options" id="download-options" data-download-options aria-label="Choose a Blanc download">
@@ -47,11 +47,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <a class="platform-card" id="dl-linux" data-download-link data-platform="linux" data-track="download_click" data-cta-position="platform-card" href="/dl/linux">
       <span class="platform-label">linux</span>
       <strong>Download for Linux</strong>
-      <span>AppImage</span>
+      <span>AppImage · signed checksum manifest</span>
     </a>
   </section>
 
   <p class="download-whatsnew"><a href="/changelog" data-track="feature_cta_click" data-feature="changelog" data-cta-position="download-options">See what changed in the latest release</a></p>
+
+  <section class="download-details fit-block" aria-labelledby="fit-title">
+    <div><p class="section-kicker">before you choose</p><h2 id="fit-title">Is Blanc a good fit?</h2></div>
+    <div class="download-detail-list">
+      <article><h3>A compact everyday workflow</h3><p>Open your inbox and a few articles. Preview a tab’s dot, select it, then use the full list or Cmd/Ctrl+L to find an article by name. Save a Favorite, group related tabs, and use built-in blocking while you browse.</p></article>
+      <article><h3>Check the integrations you rely on</h3><p>Blanc has no general third-party extension runtime. Its optional, user-invoked 1Password bridge and device-bound Touch ID passkeys are macOS-only. Synced provider passkeys, including iCloud Keychain, are not supported. If your workflow depends on an extension, check that limitation before switching.</p></article>
+      <article><h3>Free essentials; optional saved sets</h3><p>Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription.</p><p>If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.</p><a class="text-link" href="/features/workspaces">How Named Workspaces work <span aria-hidden="true">↗</span></a></article>
+    </div>
+  </section>
 
   <section class="download-details" aria-labelledby="trust-title">
     <div>
@@ -88,7 +97,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="download-detail-list">
       <article>
         <h3>One floating island</h3>
-        <p>Tabs, navigation, and page controls stay close without taking permanent space from the page.</p>
+        <p>Tabs, navigation and page controls share a compact Island in a slim top band. Its expanded panel opens over the page.</p>
       </article>
       <article>
         <h3>Built-in blocking</h3>
@@ -102,7 +111,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <article><h3>Room for a reference</h3><p><a href="/features/glance">Glance</a> puts another open tab beside your main page. <a href="/features/profiles">Local profiles and independent windows</a> keep browsing identities separate.</p></article>
       <article><h3>A way back after a close</h3><p><a href="/features/reopen-closed-tabs">Recently Closed</a> lets you reopen ordinary tabs or groups within a bounded, per-window undo history. Pages may reload.</p></article>
       <article><h3>Your bookmarks, brought along</h3><p>First-run setup helps with default-browser and privacy choices. In Favorites, import from a detected browser profile or an HTML bookmarks file. Imports happen on this device.</p></article>
-      <article><h3>Optional Named Workspaces</h3><p><a href="/features/workspaces">Blanc Patron</a> lets you create and save named sets of tabs and groups. Existing workspaces remain usable after membership lapses; they stay on this device.</p></article>
+      <article><h3>Optional Named Workspaces</h3><p><a href="/features/workspaces">Blanc Patron</a> adds saved sets of tabs and groups on this device. Ordinary tab groups remain free.</p></article>
     </div>
   </section>
 

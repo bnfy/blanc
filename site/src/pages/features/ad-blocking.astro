@@ -69,7 +69,7 @@ import MemoryChart from '../../components/MemoryChart.astro';
         </div>
       </div>
     </div>
-    <figcaption>The shield opens a small site-control popover: connection, blocking state, and the page&rsquo;s count in one clear place.</figcaption>
+    <figcaption>The shield opens site controls for the connection, blocking state and page count. This illustration uses a sample count of three blocked requests.</figcaption>
   </figure>
 
   <section class="feature-copy-grid" aria-labelledby="built-in-title">
@@ -100,6 +100,10 @@ import MemoryChart from '../../components/MemoryChart.astro';
     <a class="text-link" href="/privacy#browsing-the-web-with-blanc">Read Blanc's network and privacy details <span aria-hidden="true">↗</span></a>
   </aside>
 
+  <section class="feature-copy-grid feature-copy-grid--report" aria-labelledby="missed-ad-title">
+    <div><p class="section-kicker">help improve coverage</p><h2 id="missed-ad-title">An ad got through? Send a reproducible example.</h2></div>
+    <div class="feature-copy-list"><article><h3>A page we can test</h3><p><a href="https://github.com/bnfy/blanc/issues/new?template=ad_blocking.yml">Report a missed ad</a> with its page URL, Blanc version, operating system, blocker settings, expected result and the ad you observed. A screenshot is optional. For examples containing private information, email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p><p>Reports help distinguish filter coverage, a blocker integration defect and an ad format the blocker does not support. A report is closed with reproduction and verification evidence, or a documented limitation.</p></article></div>
+  </section>
   <MemoryChart
     headingId="blocking-memory-title"
     kicker="what blocking is worth"

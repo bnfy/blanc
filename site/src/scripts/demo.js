@@ -500,6 +500,7 @@
     // The opening chapters deliberately use a fresher visual cast than the
     // utility-heavy scenes below: editorial reading, entertainment, and a
     // technology article make the page/Glance contrast immediately visible.
+    finding: { pinned: [], groups: [], loose: ['verge', 'notion', 'github', 'reddit', 'netflix', 'nine', 'gmail', 'youtube', 'threads', 'nintendo'] },
     showcase: {
       pinned: ['gmail', 'notion', 'nine'],
       groups: [{ name: 'weekend', ids: ['netflix', 'verge'] }],
@@ -795,8 +796,9 @@
       id === current ? 'cur' : '',
       sectionStart ? 'dot-section-start' : '',
     ].filter(Boolean).join(' ');
-    let dots = pinned.map((id) => `<span class="${classes(id)}"></span>`).join('');
-    dots += section.map((id, index) => `<span class="${classes(id, index === 0 && pinned.length > 0)}"></span>`).join('');
+    const dot = (id, sectionStart = false) => `<span data-demo-dot="${id}" class="${classes(id, sectionStart)}"><span class="demo-dot-peek" style="${favStyle(TABS[id])}"></span><span class="demo-dot-title">${TABS[id].title}</span></span>`;
+    let dots = pinned.map(id => dot(id)).join('');
+    dots += section.map((id, index) => dot(id, index === 0 && pinned.length > 0)).join('');
     if (hidden > 0) dots += `<span class="dot-more">+${hidden}</span>`;
     dotsEl.innerHTML = dots;
 
@@ -881,60 +883,66 @@
   // H2 messages can stay benefit-led while still pairing Blanc's feature names
   // with the plain-language terms a new visitor is likely to recognize.
   const SCENES = [
-    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'Tabs, search and commands in one place.' },
-    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'Your controls stay close as you scroll.' },
+    { id: 'tabs-preview', view: 'rest', layout: 'finding', current: 'verge', peekTab: 'notion', pointer: { target: '[data-demo-dot="notion"]' }, hold: 3900, headline: 'Preview a tab.' },
+    { id: 'tabs-select', view: 'rest', layout: 'finding', current: 'verge', selectTab: 'notion', pointer: { target: '[data-demo-dot="notion"]', click: true }, hold: 3400, headline: 'Switch with a click.' },
+    { id: 'tabs-list', view: 'panel', layout: 'finding', current: 'notion', openTabs: true, pointer: { target: '.dot-more', click: true }, hold: 4200, headline: 'See all your tabs.' },
+    { id: 'island-rest', view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'Tabs, search and commands in one place.' },
+    { id: 'island-scroll', view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'Your controls stay close as you scroll.' },
 
     // Open Glance as the direct result of the staged click, then leave the
     // completed split view on screen long enough to register before the next
     // chapter moves the cursor to the divider.
-    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Keep two tabs open with Glance.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Drag to resize your Glance view.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Choose which tab takes the lead.' },
+    { id: 'glance-open', view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Keep two tabs open with Glance.' },
+    { id: 'glance-resize', view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Drag to resize your Glance view.' },
+    { id: 'glance-swap', view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Choose which tab takes the lead.' },
 
     // The blocker now proves the outcome instead of only explaining the
     // popover. First show the ad-heavy page with protection disabled, then
     // click the real per-site switch and reload into the clean reflowed page.
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A page with blocking turned off.', afterAction: { headline: 'Control blocking for this site.' } },
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'Turn blocking on with one switch.', afterAction: { headline: 'Known ads blocked. More room to read.' } },
+    { id: 'blocker-open', view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A page with blocking turned off.', afterAction: { headline: 'Control blocking for this site.' } },
+    { id: 'blocker-enable', view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'Turn blocking on with one switch.', afterAction: { headline: 'Known ads blocked. More room to read.' } },
 
     // The blank-tab beat uses the app's real placeholder state. One mixed
     // search replaces the old duplicate tab-search stories.
-    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Find browser commands with a slash.' },
-    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse commands, or type to filter.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'Find tabs, groups, Favorites and history.' },
-    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Press Enter to open the highlighted match.' },
+    { id: 'commands-start', view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Find browser commands with a slash.' },
+    { id: 'commands-directory', view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse commands, or type to filter.' },
+    { id: 'switcher-search', view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'Find tabs, groups, Favorites and history.' },
+    { id: 'switcher-select', view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Press Enter to open the highlighted match.' },
 
     // The shipped native menu is the workflow: right-click the active Netflix
     // row, pick an existing radio item, then create Watch through New Group….
     // Netflix stays active throughout so page, target row and captions agree.
-    { view: 'panel', layout: 'groupingNetflix', current: 'netflix', contextMenu: { mode: 'root', tab: 'netflix', inactive: false, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Right-click a tab to organize it.' },
-    { view: 'panel', layout: 'groupingNetflix', current: 'netflix', contextMenu: { mode: 'existing', tab: 'netflix', inactive: false, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Move it into an existing group.' },
-    { view: 'panel', layout: 'socialNetflix', current: 'netflix', contextMenu: { mode: 'new', tab: 'netflix', inactive: false, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix is now in Social.' },
-    { view: 'panel', layout: 'socialNetflix', current: 'netflix', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'Create a new group with /group.' },
-    { view: 'panel', layout: 'watchNetflix', current: 'netflix', justGroup: 'watch', hold: 3200, headline: 'Netflix is now in Watch.' },
+    { id: 'groups-menu', view: 'panel', layout: 'groupingNetflix', current: 'netflix', contextMenu: { mode: 'root', tab: 'netflix', inactive: false, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Right-click a tab to organize it.' },
+    { id: 'groups-existing', view: 'panel', layout: 'groupingNetflix', current: 'netflix', contextMenu: { mode: 'existing', tab: 'netflix', inactive: false, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Move it into an existing group.' },
+    { id: 'groups-move', view: 'panel', layout: 'socialNetflix', current: 'netflix', contextMenu: { mode: 'new', tab: 'netflix', inactive: false, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix is now in Social.' },
+    { id: 'groups-create', view: 'panel', layout: 'socialNetflix', current: 'netflix', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'Create a new group with /group.' },
+    { id: 'groups-complete', view: 'panel', layout: 'watchNetflix', current: 'netflix', justGroup: 'watch', hold: 3200, headline: 'Netflix is now in Watch.' },
 
-    { view: 'workspace', layout: 'grouped', current: 'reddit', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Save Named Workspaces with Patron.' },
-    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Reopen a workspace with its tabs and pins.' },
+    { id: 'workspaces-open', view: 'workspace', layout: 'grouped', current: 'reddit', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Save Named Workspaces with Patron.' },
+    { id: 'workspaces-select', view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Reopen a workspace with its tabs and pins.' },
 
     // Illustrative login data; the hint, native-menu labels and bottom capsule
     // mirror public v1.26.0. The flow starts after setup and DesktopAuth approval.
     // Fill is requested by the shortcut, followed by an explicit menu choice.
-    { view: 'rest', layout: 'login', current: 'login', loginState: 'empty', shortcut: true, hold: 3200, headline: 'Fill a login with your keyboard.', note: 'macOS · After setup and authorization · Sample login' },
-    { view: 'rest', layout: 'login', current: 'login', loginState: 'choose', shortcut: true, pointer: { target: '#demoCredentialChoice', click: true }, hold: 3000, headline: 'Choose a matching login.', note: 'macOS · After setup and authorization · Sample login' },
-    { view: 'rest', layout: 'login', current: 'login', loginState: 'filled', shortcut: true, hold: 3300, headline: 'Your login is filled.', note: 'macOS · After setup and authorization · Sample login' },
+    { id: 'onepassword-shortcut', view: 'rest', layout: 'login', current: 'login', loginState: 'empty', shortcut: true, hold: 3200, headline: 'Fill a login with your keyboard.', note: 'macOS · After setup and authorization · Sample login' },
+    { id: 'onepassword-choose', view: 'rest', layout: 'login', current: 'login', loginState: 'choose', shortcut: true, pointer: { target: '#demoCredentialChoice', click: true }, hold: 3000, headline: 'Choose a matching login.', note: 'macOS · After setup and authorization · Sample login' },
+    { id: 'onepassword-filled', view: 'rest', layout: 'login', current: 'login', loginState: 'filled', shortcut: true, hold: 3300, headline: 'Your login is filled.', note: 'macOS · After setup and authorization · Sample login' },
   ];
 
   // Chapters group the scenes into the demo's topics; each scrub-bar marker sits
   // at the start of one and jumps playback there.
+  // Resolve stable scene IDs once; insertion cannot redirect a chapter.
+  const sceneIndex = id => SCENES.findIndex(scene => scene.id === id);
   const CHAPTERS = [
-    { label: 'the island', scene: 0 },
-    { label: 'glance split view', scene: 2 },
-    { label: 'ad blocker', scene: 5 },
-    { label: 'browser commands', scene: 7 },
-    { label: 'tab groups', scene: 11 },
-    { label: 'workspaces', scene: 16 },
-    { label: '1Password (macOS)', scene: 18 },
-  ];
+    { label: 'Finding your tabs', sceneId: 'tabs-preview' },
+    { label: 'the island', sceneId: 'island-rest' },
+    { label: 'glance split view', sceneId: 'glance-open' },
+    { label: 'ad blocker', sceneId: 'blocker-open' },
+    { label: 'browser commands', sceneId: 'commands-start' },
+    { label: 'tab groups', sceneId: 'groups-menu' },
+    { label: 'workspaces', sceneId: 'workspaces-open' },
+    { label: '1Password (macOS)', sceneId: 'onepassword-shortcut' },
+  ].map(chapter => ({ ...chapter, scene: sceneIndex(chapter.sceneId) }));
   // A scene's on-screen duration: typing scenes run for the keystrokes plus a
   // read beat, everything else uses its authored hold. The scrub fill and the
   // scene timer share this so the bar tracks playback exactly.
@@ -944,12 +952,14 @@
   const TOTAL = DUR.reduce((sum, d) => sum + d, 0);
   const START = []; DUR.reduce((acc, d, i) => (START[i] = acc, acc + d), 0);
 
-  let idx = 0, timer = null, typeTimer = null;
+  let idx = 0, timer = null, typeTimer = null, tabActionTimer = null;
   let sceneStartedAt = 0;
   let remaining = DUR[0];
 
   function applyScene(s) {
     stopTyping();
+    clearTimeout(tabActionTimer);
+    stage.dataset.scene = s.id;
     clearTimeout(glanceActionTimer);
     clearTimeout(glanceEffectTimer);
     clearTimeout(glanceOpenTimer);
@@ -961,7 +971,7 @@
     stage.classList.remove('glance-resizing', 'glance-swapping', 'blocker-activating');
     glanceMakeMainEl.classList.remove('activated');
     const open = s.view === 'panel' || s.view === 'workspace';
-    const openingPanel = open && !panelOpen;
+    const openingPanel = open && !s.openTabs && !panelOpen;
     const showShield = s.view === 'shield';
     const keepShieldOpen = showShield && !!s.blockerToggle;
     const showWorkspaces = s.view === 'workspace';
@@ -1037,7 +1047,7 @@
     } else {
       typedEl.textContent = '';
     }
-    setPanelOpen(open);
+    setPanelOpen(open && !s.openTabs);
     if (s.contextMenu) listEl.scrollTop = 0;
     setTabContext(s.contextMenu);
     // WebKit can preserve a scrolled anchor while the panel grows. A complete
@@ -1047,6 +1057,15 @@
       listResetTimer = setTimeout(() => { listEl.scrollTop = 0; }, (reduceMotion.matches || paused) ? 0 : MORPH_MS + 40);
     }
     setCursorCue(s.pointer, { openingPanel });
+    const tabActionDelay = (reduceMotion.matches || paused) ? 0 : 820;
+    const revealTab = () => dotsEl.querySelector(`[data-demo-dot="${s.peekTab}"]`)?.classList.add('peek');
+    if (s.peekTab) tabActionTimer = setTimeout(revealTab, tabActionDelay);
+    if (s.selectTab) tabActionTimer = setTimeout(() => {
+      renderPill(s.layout, s.selectTab, s);
+      showShot(tabShotId(s.selectTab));
+      stage.style.setProperty('--demo-strip-bg', SHOT_TOP[tabShotId(s.selectTab)] || '');
+    }, tabActionDelay);
+    if (s.openTabs) tabActionTimer = setTimeout(() => setPanelOpen(true), tabActionDelay);
     if (s.glanceOpen) {
       glanceOpenTimer = setTimeout(() => {
         setPanelOpen(false);
@@ -1097,8 +1116,8 @@
   const currentChapterEl = document.getElementById('demoScrubCurrent');
   const playbackToggleEl = document.getElementById('demoScrubToggle');
   const chapterSelect = document.getElementById('demoChapterSelect');
-  CHAPTERS.forEach(chapter => chapterSelect.add(new Option(chapter.label, String(chapter.scene))));
-  chapterSelect.addEventListener('change', () => jumpTo(Number(chapterSelect.value)));
+  CHAPTERS.forEach(chapter => chapterSelect.add(new Option(chapter.label, chapter.sceneId)));
+  chapterSelect.addEventListener('change', () => jumpTo(sceneIndex(chapterSelect.value)));
   const markerEls = trackEl ? CHAPTERS.map((ch) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -1143,7 +1162,7 @@
     }
     const active = activeChapter();
     if (currentChapterEl) currentChapterEl.textContent = active.label;
-    chapterSelect.value = String(active.scene);
+    chapterSelect.value = active.sceneId;
     markerEls.forEach((m) => {
       const isActive = m._scene === active.scene;
       m.classList.toggle('active', isActive);
@@ -1212,6 +1231,7 @@
   }
 
   playbackToggleEl?.addEventListener('click', () => setPaused(!paused));
+  document.getElementById('demoReplay').addEventListener('click', () => jumpTo(sceneIndex('tabs-preview')));
   const scrub = document.getElementById('demoScrub');
   let previousBodyStyle = null;
   let pageScroll = { x: 0, y: 0 };

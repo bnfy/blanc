@@ -120,7 +120,7 @@ const graph = {
       <a class="cta" href="/download" data-download-cta data-track="download_click" data-cta-position="hero">Download Blanc</a>
       <button class="cta trust-demo-button" id="watchDemo" type="button" aria-controls="demoShowcase" aria-expanded="false" hidden>Watch demo <span aria-hidden="true">↗</span></button>
     </div>
-    <p class="trust-hero-note">Free for macOS, Windows and Linux. Patron is optional.</p>
+    <p class="trust-hero-note">Free browser. Patron adds saved Named Workspaces.</p>
   </div>
   <figure class="trust-product-shot" id="heroWallpaper" data-phase="dawn">
     <div class="trust-product-frame hero-wallpaper-frame" id="heroWallpaperFrame">
@@ -149,11 +149,11 @@ const graph = {
         <img src="/feature-captures/home-wallpaper-night-dark-v1.25.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="" aria-hidden="true" />
       </div>
     </div>
-    <figcaption><strong>Optional wallpaper follows your local clock.</strong> This preview cycles faster through dawn, day, dusk and night in light and dark mode.<br /><span>Blanc v1.25.0 on macOS. Real release captures with sample sites.</span></figcaption>
+    <figcaption><strong>Optional wallpaper follows your local clock.</strong> This preview cycles faster through dawn, day, dusk and night in light and dark mode.<br /><span>Blanc v1.25.0 on macOS. Real release captures with sample sites.</span><noscript><span class="tab-explainer">Hover or focus a dot to preview a tab. Select it to switch. +N opens the full list.</span></noscript></figcaption>
   </figure>
 </header>
 
-<dialog class="demo-viewer" id="demoViewer" aria-labelledby="demoViewerTitle">
+<dialog class="demo-viewer" id="demoViewer" aria-labelledby="demoViewerTitle" aria-describedby="demoTabDiscovery">
   <div class="demo-viewer-header">
     <span id="demoViewerTitle">Desktop demo</span>
     <button class="demo-viewer-close" id="demoViewerClose" type="button" autofocus>Close <span aria-hidden="true">×</span></button>
@@ -181,7 +181,7 @@ const graph = {
     <div><span class="trust-fact-icons" aria-hidden="true"><Fragment set:html={codeMark} /></span><span>Open source</span><strong>MIT for Blanc’s own code</strong><a href="/faq#open-source">Licensing and exceptions ↗</a></div>
     <div><span class="trust-fact-icons" aria-hidden="true"><img src="/sunrise-hero-mark.png" width="30" height="30" alt="" /></span><span>Free to browse</span><strong>Optional Patron support</strong><a href="#home-patron-title">What Patron adds ↗</a></div>
   </section>
-  <section class="demo-showcase" id="demoShowcase" hidden aria-labelledby="demoHeadline">
+  <section class="demo-showcase" id="demoShowcase" hidden aria-labelledby="demoHeadline" aria-describedby="demoTabDiscovery">
   <div class="hero-message" id="demoHeroMessage">
     <h2 id="demoHeadline">Tabs, search and commands in one place.</h2>
     <div class="demo-shortcut" id="demoShortcut" role="group" aria-label="Option Command P" hidden><kbd><span aria-hidden="true">⌥</span><span class="demo-key-name">option</span></kbd><kbd><span aria-hidden="true">⌘</span><span class="demo-key-name">command</span></kbd><kbd>P</kbd></div>
@@ -190,6 +190,7 @@ const graph = {
 
   <div class="demo-mount" id="demoMount">
   <div class="demo-frame" id="demoFrame">
+  <p class="sr-only" id="demoTabDiscovery">Each dot is a tab. Hover to see its icon and title. Keyboard focus shows the icon; a screen reader announces the tab title. Click or press Enter to switch. +N opens the full list. Use Cmd+L on Mac or Ctrl+L on Windows and Linux to search tabs by name.</p>
   <div class="demo-stage" id="demoStage" inert>
     <div class="demo-page">
       <div class="bar w1"></div>
@@ -338,12 +339,14 @@ const graph = {
   </div>
   </div>
   <div id="demoControlsMount">
+  <p class="demo-sample-note">Illustrated demo · Sample tabs and counts</p>
   <div class="demo-scrub" id="demoScrub" role="group" aria-label="Demo chapters">
     <span class="demo-scrub-current" id="demoScrubCurrent">the island</span>
     <select class="demo-chapter-select" id="demoChapterSelect" aria-label="Demo chapter"></select>
     <div class="demo-scrub-track" id="demoScrubTrack">
       <div class="demo-scrub-fill" id="demoScrubFill"></div>
     </div>
+    <button class="demo-replay" id="demoReplay" type="button">Replay</button>
     <button class="demo-scrub-toggle" id="demoScrubToggle" type="button" data-paused="false" aria-label="Pause demo" title="Pause demo">
       <svg viewBox="0 0 16 16" aria-hidden="true">
         <g class="demo-pause-icon"><rect x="3.5" y="3" width="3" height="10" rx="0.75"/><rect x="9.5" y="3" width="3" height="10" rx="0.75"/></g>
@@ -373,15 +376,15 @@ const graph = {
       <details><summary><span>Is Blanc based on Chromium?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Yes. Chromium renders websites, Electron bundles the engine and desktop runtime, and Blanc supplies the browser interface and features.</p></details>
       <details><summary><span>Does Blanc work with 1Password?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Yes, on macOS. Blanc has built-in login fill for your installed 1Password app and account. It is off by default and fills only when you ask. Windows and Linux do not currently offer this integration. <a href="/features/1password">See setup and shortcuts.</a></p></details>
       <details><summary><span>Does Blanc send usage data?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>If you save Help improve Blanc as on, packaged builds send pseudonymous launch and fixed feature-use events to a Blanc-owned Cloudflare collector, with an optional Google Analytics mirror. No URLs, searches or page contents are in those events. <a href="/how-it-works#connections">See the connections and controls.</a></p></details>
-      <details><summary><span>Is Blanc free and open source?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Browsing is free. Blanc’s own code is MIT licensed; names, logos and third-party material have separate terms. Optional Patron supports development and adds Named Workspaces.</p></details>
+      <details><summary><span>Is Blanc free and open source?</span><svg class="faq-toggle" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10" /><path class="faq-toggle-vertical" d="M8 3v10" /></svg></summary><p>Browsing essentials and ordinary tab groups are free. Active Patron adds the ability to create saved Named Workspaces. Blanc’s own code is MIT licensed; names, logos and third-party material have separate terms.</p></details>
     </div>
   </section>
   <section class="home-patron" aria-labelledby="home-patron-title">
     <div class="home-patron-copy">
       <BrandMark class="home-patron-mark" />
       <h2 id="home-patron-title"><span class="home-patron-intro">Upgrade to</span>{' '}<span class="home-patron-name">Blanc Patron.</span></h2>
-      <p>Keep sets of tabs and groups ready to switch between with Named Workspaces. Your subscription supports Blanc’s development.</p>
-      <p class="home-patron-boundary">Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses.</p>
+      <p>Blanc Patron is the optional subscription supporting Blanc’s development. Browsing essentials and ordinary tab groups are free; Patron adds saved Named Workspaces.</p>
+      <p class="home-patron-boundary">Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep lifetime Patron access.</p>
       <a class="text-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-patron">Explore Named Workspaces <span aria-hidden="true">↗</span></a>
     </div>
     <div class="home-patron-offer">
