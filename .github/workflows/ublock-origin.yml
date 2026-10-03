@@ -98,6 +98,10 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_intel }}
     runs-on: macos-15-intel
     timeout-minutes: 25
+    env:
+      # Intel's default is still Xcode 16.4; Blanc's committed Icon Composer
+      # inputs require the already-installed Xcode 26 compiler.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
