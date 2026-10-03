@@ -245,18 +245,17 @@ Windows/Linux, rebuilt packages and the delegated Parallels sequence passed.
 This supports the tested transitions without establishing the cause of every
 earlier disconnect or the reporter's broader freeze.
 
-## Outstanding affected-machine gate
+## Owner merge approval and remaining evidence limits
 
-The corrected candidate completed automated/package validation and delegated
-Parallels Windows testing. Explicit owner acceptance of this evidence and the
-repository-required affected-machine confirmation remain pending before merge.
-The additional x64 Linux desktop attempt did not reach Blanc regression testing;
-no physical Linux desktop is available. Hosted Ubuntu 22.04/24.04 checks do not
-establish interactive physical desktop confirmation. The missing evidence leaves
-Linux desktop interaction and machine-specific behavior unverified. Prior public
-v1.26.0 waivers do not cover this candidate. Any candidate-specific waiver must
-explicitly acknowledge the missing evidence and risk and be recorded before
-merge/tag/release.
+After the missing Linux desktop evidence and machine-specific risk were
+disclosed, the owner instructed "squash merge" on October 3. This accepts the
+delegated Windows VM evidence and approves proceeding with the incomplete Linux
+desktop gate waived for this candidate. The exact instruction, disclosure and
+scope are recorded in the [dated merge decision](../release-incidents/2026-10-03-windows-feedback-validation.md).
+Prior v1.26.0 waivers are not used, and no unperformed test is marked passed.
+Linux desktop interaction and physical-machine behavior remain unverified.
+Strict protected-branch checks must pass after incorporating current main.
+This approval covers merge only; release/publication remains separate.
 
 No merge, tag, public release, updater handoff, website deployment or public
 reply was performed. Publication and adjacent updater validation remain separate

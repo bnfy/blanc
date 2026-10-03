@@ -14,8 +14,8 @@ redistributed components are listed in
 
 ## Blanc identity artwork — all rights reserved
 
-The following files are the Blanc logo and its app-icon compositions. They are
-the visual identity of the software rather than part of it, and are reserved by
+The following files are the Blanc logo, app-icon compositions, and product
+marks. They are the visual identity of the software rather than part of it, and are reserved by
 Bananify Creative. They may be reproduced to refer to Blanc — press coverage,
 reviews, articles, store listings — but not as the identity of a modified or
 derivative build, and not modified into a new mark.
@@ -26,6 +26,11 @@ Source mark:
   `Assets/blanc-mark.svg`
 - `assets/sunrise-app-icon.png` — the static Sunrise platform source
 - `build/icon.png` — 1024×1024 raster template
+
+Product marks:
+
+- `assets/horizon-shield.png` — layered gold Horizon Shield source artwork
+- `src/renderer/shield-horizon.png` — transparent Island toolbar export
 
 App-icon colorways:
 
