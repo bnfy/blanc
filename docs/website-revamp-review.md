@@ -28,6 +28,14 @@ references sit together in the project section, with their text and destinations
 preserved. The band has smaller type, two engine marks and no separate card
 dividers; links show an underline on hover or keyboard focus.
 
+Patron is a complete inset warm-ink offer with one restrained golden light spill,
+the original monochrome Sunrise mark, a large Newsreader name and annual price,
+and a gold purchase button. The offer and its explanation sit beside one another
+on desktop and stack on mobile. Membership-lapse and lifetime-access terms remain
+visible below the offer. The detached historical screenshot is removed; the
+supporting link opens Named Workspaces within Support. Both Patron fragments
+land at the top of the panel.
+
 The indexed route count falls from 27 to 10:
 
 - `/` — visual product story and in-page Features tour.
@@ -66,8 +74,8 @@ It also checks every old feature-guide fragment, key homepage boundaries and
 missed-ad reporting requirements. Formatting whitespace is ignored for the
 section-text comparison, not words or punctuation.
 
-`website-revamp-claims-v1.26.json` records 558 current exact-wording claims and
-157 retired source strings. Retired strings are predominantly repeated feature
+`website-revamp-claims-v1.26.json` records 557 current exact-wording claims and
+158 retired source strings. Retired strings are predominantly repeated feature
 summaries, replaced marketing headings, old image descriptions and the previous
 homepage demo. This is not a record of removed capabilities: practical content
 and qualifications remain in the corresponding guides. The prior claims ledgers
@@ -138,6 +146,16 @@ Dev preview: `http://127.0.0.1:4321/`.
 Review images are stored in the task's `blanc-production-review` artifact folder.
 
 ## Delivery boundary
+
+October 3 Patron redesign: the golden light, monochrome Sunrise mark, display
+name and price are restored in a complete offer panel. The explanatory copy,
+prices, new-workspace gate, lapse behavior and lifetime access remain unchanged.
+The workspace guide opens correctly, the legacy fragment lands at the panel top,
+and keyboard focus has a light outline on ink. Both dev and built mobile preview
+fit 390px without horizontal overflow; the desktop composition was inspected at
+897px. All 17 targeted navigation, claims and trust checks and the production/SEO
+build pass. The removed historical screenshot caption is recorded as retired in
+the claim ledger; the original capture and provenance remain unchanged.
 
 October 3 visual refinement: the quieter hero transition and relocated trust
 references were reviewed on desktop and at 390px. Wallpaper keyboard input,

@@ -1,5 +1,6 @@
 ---
 import PlatformLogo from "../components/PlatformLogo.astro";
+import BrandMark from "../components/BrandMark.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/home.css";
 import pkg from "../../../package.json";
@@ -870,41 +871,50 @@ const structuredData = {
               ><a href="/trust#release-verification-title">Check your download ↗</a>
             </div>
           </section>
-        </div><div class="patron-band" id="patron">
-          <span id="home-patron-title" class="anchor-alias" aria-hidden="true"
-          ></span><div>
-            <h3>Blanc Patron.</h3><p>
-              Support Blanc and save named window sets with Named Workspaces.
-              The browser remains free; Patron is an optional subscription.
-            </p><p class="patron-boundary">
-              Creating a named workspace requires an active Patron subscription.
-              If membership lapses, existing workspaces remain openable,
-              switchable, and automatically updated. Renaming and removing
-              existing workspaces continue to work if it lapses. Earlier
-              one-time supporters keep their lifetime Patron access.
-            </p><p class="patron-price">
-              US$30 / year <span>or US$4 / month, plus applicable tax.</span>
-            </p><a
-              class="planned-action patron-cta"
-              href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf"
-              >Become a Patron</a
-            ><p class="patron-help">
-              <a href="/support#patron"
-                >What’s included and how to activate →</a>
-            </p>
-          </div><figure>
-            <img
-              src="/feature-captures/workspaces.png"
-              width="1440"
-              height="900"
-              alt="Blanc v1.15.0 workspace-switcher capture showing the Patron workspace switcher"
-              loading="lazy"
-              decoding="async"
-            /><figcaption class="capture-note">
-              Workspace switcher captured in Blanc v1.15.0.
-            </figcaption>
-          </figure>
-        </div><div class="download-close">
+        </div><section
+          class="patron-section"
+          id="patron"
+          aria-labelledby="patron-title"
+        >
+          <span
+            class="patron-anchor"
+            id="home-patron-title"
+            aria-hidden="true"
+          ></span>
+          <div class="patron-layout">
+            <div class="patron-intro">
+              <BrandMark class="patron-mark" />
+              <h2 class="patron-title" id="patron-title">Blanc Patron.</h2>
+              <p class="patron-description">
+                Support Blanc and save named window sets with Named Workspaces.
+                The browser remains free; Patron is an optional subscription.
+              </p>
+              <a class="patron-help" href="/support#workspaces"
+                >Explore Named Workspaces →</a>
+            </div>
+            <div class="patron-offer">
+              <p class="patron-price">
+                <span class="patron-annual"
+                  ><span class="patron-currency">US$</span><span
+                    class="patron-amount">30</span><span class="patron-period"
+                    > / year</span></span>
+                <span class="patron-monthly"
+                  >or US$4 / month, plus applicable tax.</span>
+              </p>
+              <a
+                class="patron-cta"
+                href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf"
+                >Become a Patron <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+          <p class="patron-boundary">
+            Creating a named workspace requires an active Patron subscription.
+            If membership lapses, existing workspaces remain openable,
+            switchable, and automatically updated. Renaming and removing
+            existing workspaces continue to work if it lapses. Earlier
+            one-time supporters keep their lifetime Patron access.
+          </p>
+        </section><div class="download-close">
           <h3>Ready to try Blanc?</h3><div
             class="platforms"
             aria-label="Available desktop platforms"

@@ -5139,20 +5139,7 @@
     {
       "id": "revamp-copy-064",
       "source": "site/src/pages/index.astro",
-      "exactWording": "What’s included and how to activate →",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-065",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Workspace switcher captured in Blanc v1.15.0.",
+      "exactWording": "Explore Named Workspaces →",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -8210,6 +8197,20 @@
       ],
       "verdict": "qualified",
       "migration": "Old marketing headline, duplicate summary, removed demo or caption is no longer rendered. Detailed capability and limitations remain in the corresponding consolidated guide; see docs/website-revamp-review.md."
+    },
+    {
+      "id": "revamp-copy-065",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Workspace switcher captured in Blanc v1.15.0.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "process",
+        "trust",
+        "workspaces",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "migration": "The detached historical workspace screenshot and caption were removed from the redesigned homepage Patron offer. Named Workspaces capability, membership boundaries and historical capture provenance remain in consolidated Support and the capture manifest."
     }
   ]
 }

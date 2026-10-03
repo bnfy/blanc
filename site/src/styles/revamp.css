@@ -286,9 +286,6 @@ summary:focus-visible {
   top: -64px;
   visibility: hidden;
 }
-.patron-band {
-  position: relative;
-}
 .home-revamp {
   --paper: #f8f2e8;
   --surface: #f2eade;
@@ -307,28 +304,6 @@ summary:focus-visible {
 }
 .home-revamp {
   font-family: var(--font-ui);
-}
-.home-revamp .patron-price {
-  font-size: 25px;
-  color: var(--paper);
-  margin: 24px 0 18px;
-}
-.home-revamp .patron-price span {
-  display: block;
-  font: 400 12px/1.6 var(--font-ui);
-  color: #c4baaa;
-  margin-top: 6px;
-}
-.home-revamp .patron-cta {
-  background: var(--paper);
-  color: var(--ink);
-}
-.home-revamp .patron-help {
-  font: 400 12px/1.5 var(--font-ui);
-  margin-top: 16px;
-}
-.home-revamp .patron-help a {
-  text-decoration: none;
 }
 main :is(.section-kicker, .eyebrow) {
   font-family: var(--font-ui);
