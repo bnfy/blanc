@@ -25,6 +25,7 @@ const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 void ignored;
 let app;
 let steps = 0;
+let failed = false;
 const press = async (command, key, modifiers, surface = 'active') => {
   const before = (await call(app, 'browserCommandState')).deliveries.length;
   await app.evaluate(({ Menu, webContents, BrowserWindow }, { command, key, modifiers, surface }) => {
@@ -176,7 +177,10 @@ try {
   assert.equal(fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8') : '', '');
   console.log(`Browser shortcuts PASS: ${steps} ${process.platform === 'darwin' ? 'native menu' : 'native input'} commands, tab churn, Settings recovery, compatibility guidance; Electron ${expected}`);
 } catch (error) {
+  failed = true;
+  console.error('Browser command regression failed:', error);
   if (app) {
+    console.error('Electron exit status:', app.process().exitCode, app.process().signalCode);
     console.error('Command failure diagnostics:', JSON.stringify(await call(app, 'browserCommandState').catch(() => null)));
     console.error('Tab failure diagnostics:', JSON.stringify(await state().catch(() => null)));
   }
@@ -185,5 +189,10 @@ try {
 } finally {
   if (app) await app.close();
   await new Promise(resolve => server.close(resolve));
-  fs.rmSync(root, { recursive: true, force: true });
+  try {
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  } catch (error) {
+    if (!failed) throw error;
+    console.error('Failed regression profile retained:', root, error.code);
+  }
 }
