@@ -37,6 +37,13 @@ function inspect(proc) {
 async function observe(method, expected, flag = null) {
   const label = `${method}-${expected}-${flag ?? 'default'}`.replaceAll(/[^a-zA-Z0-9_-]/g, '_');
   const profile = path.join(evidence, label);
+  if (process.env.BLANC_UBLOCK_SANDBOX_CANDIDATE === '1') {
+    fs.mkdirSync(profile, { recursive: true });
+    fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({
+      onboardingVersion: 1, adblockProvider: 'ublock-origin', adblockEnabled: true,
+      searchSuggestions: false, usagePing: false, onePasswordEnabled: false,
+    }));
+  }
   const flags = [`--user-data-dir=${profile}`, '--disable-gpu', ...(flag ? [flag] : []), url];
   let executable = method === 'extracted' ? extracted : method === 'nested' ? nested : image;
   let args = flags;
@@ -58,7 +65,7 @@ async function observe(method, expected, flag = null) {
   try {
     const deadline = Date.now() + (expected === 'allowed' ? 45000 : 5000);
     while (Date.now() < deadline) {
-      if (expected === 'allowed' && processes().filter((p) => p.type === 'renderer').length >= 2) break;
+      if (expected === 'allowed' && requests > before && processes().filter((p) => p.type === 'renderer').length >= 2) break;
       await pause(250);
     }
     await pause(1000);
@@ -66,10 +73,10 @@ async function observe(method, expected, flag = null) {
     const browser = records.find((p) => p.type === 'browser');
     const renderers = records.filter((p) => p.type === 'renderer');
     const sandboxed = renderers.filter((p) => p.seccomp === '2' && p.noNewPrivs === '1' && ['user', 'pid'].every((kind) => p.namespaces[kind] && browser?.namespaces[kind] && p.namespaces[kind] !== browser.namespaces[kind]));
-    const result = { label, expected, browsingRequests: requests - before, records, renderers: renderers.length, sandboxed: sandboxed.length, launcherOutput: output.join('').slice(-5000) };
+    const result = { label, expected, selectedProvider: process.env.BLANC_UBLOCK_SANDBOX_CANDIDATE === '1' ? 'ublock-origin' : 'blanc', browsingRequests: requests - before, records, renderers: renderers.length, sandboxed: sandboxed.length, launcherOutput: output.join('').slice(-5000) };
     fs.writeFileSync(path.join(evidence, `${label}.json`), JSON.stringify(result, null, 2));
     console.log(JSON.stringify({ ...result, records: undefined, launcherOutput: undefined }));
-    if (expected === 'allowed') { assert.ok(renderers.length >= 2); assert.equal(sandboxed.length, renderers.length); }
+    if (expected === 'allowed') { assert.ok(requests > before, 'selected provider permits fixture navigation'); assert.ok(renderers.length >= 2); assert.equal(sandboxed.length, renderers.length); }
     else { assert.equal(renderers.length, 0); assert.equal(requests - before, 0); }
   } finally {
     for (const p of processes()) { try { process.kill(p.pid, 'SIGKILL'); } catch {} }

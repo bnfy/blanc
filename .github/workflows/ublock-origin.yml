@@ -27,6 +27,11 @@ on:
       - 'package*.json'
       - '.github/workflows/ublock-origin.yml'
   workflow_dispatch:
+    inputs:
+      installed_intel:
+        description: "Also exercise an unsigned installed Intel package (not signing acceptance)"
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -86,3 +91,51 @@ jobs:
             npm run test:ublock-unavailable:desktop
             npm run test:ublock-noscript:desktop
           fi
+
+  installed-intel:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_intel }}
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm run ublock:check
+      # No signing credentials leave the owner Mac. This proves native Intel
+      # packaged behavior only, and never clears the signed-installed gate.
+      - name: Build unsigned private Intel fixture
+        env:
+          BLANC_UBLOCK_INTERNAL_BUILD: '1'
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --mac dmg --x64 --publish never --config.mac.identity=null --config.afterSign=null
+      - name: Install the actual DMG fixture
+        run: |
+          DMG="$PWD/dist/Blanc-$(node -p "require('./package.json').version").dmg"
+          MOUNT="$RUNNER_TEMP/blanc-intel-dmg"
+          mkdir -p "$MOUNT" "$RUNNER_TEMP/Applications"
+          hdiutil attach "$DMG" -mountpoint "$MOUNT" -readonly -nobrowse
+          ditto "$MOUNT/Blanc.app" "$RUNNER_TEMP/Applications/Blanc.app"
+          hdiutil detach "$MOUNT"
+          node scripts/verify-electron-fuses.mjs "$RUNNER_TEMP/Applications/Blanc.app/Contents/MacOS/Blanc"
+          node scripts/verify-packaged-ublock.js "$RUNNER_TEMP/Applications/Blanc.app/Contents/Resources/app.asar"
+      - name: Native Intel installed controls, persistence, restarts and Quit
+        env:
+          BLANC_PACKAGED_EXECUTABLE: ${{ runner.temp }}/Applications/Blanc.app/Contents/MacOS/Blanc
+          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/dist/ublock-installed-intel-unsigned.json
+        run: node test/desktop/support/installed-mac-native-quit.mjs
+      - name: Native Intel installed scripting policy
+        env:
+          BLANC_PACKAGED_EXECUTABLE: ${{ runner.temp }}/Applications/Blanc.app/Contents/MacOS/Blanc
+          BLANC_PACKAGED_ASAR: ${{ runner.temp }}/Applications/Blanc.app/Contents/Resources/app.asar
+          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/dist/ublock-noscript-intel-unsigned.json
+        run: npm run test:ublock-noscript:packaged
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: unsigned-native-intel-observations-${{ github.run_id }}
+          path: dist/ublock-*-intel-unsigned.json
+          retention-days: 14

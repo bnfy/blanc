@@ -570,6 +570,15 @@ jobs:
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
 
+      - name: Verify candidate uBO installed AppImage controls and restart
+        if: ${{ inputs.mode == 'validation' && inputs.ublock_candidate }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            BLANC_UBLOCK_EVIDENCE="$PWD/dist/ublock-installed-linux.json" \
+            dbus-run-session -- xvfb-run -a npm run test:ublock:installed
+
       - name: Verify candidate uBO scripting policy from actual AppImage bytes
         if: ${{ inputs.mode == 'validation' && inputs.ublock_candidate }}
         run: |
@@ -632,6 +641,7 @@ jobs:
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
             dist/ublock-noscript-linux.json
+            dist/ublock-installed-linux.json
 
   linux-sandbox:
     needs: validate-inputs
@@ -663,6 +673,8 @@ jobs:
           "$IMAGE" --appimage-extract >/dev/null
           node scripts/verify-linux-desktop-entry.js squashfs-root/blanc.desktop
       - name: Refusal, real launcher paths, namespace and seccomp evidence
+        env:
+          BLANC_UBLOCK_SANDBOX_CANDIDATE: ${{ inputs.ublock_candidate && '1' || '0' }}
         run: |
           IMAGE="$PWD/dist/Blanc-$(node -p "require('./package.json').version").AppImage"
           dbus-run-session -- xvfb-run -a node scripts/verify-linux-sandbox-candidate.mjs "$IMAGE" "$PWD/squashfs-root/blanc"
