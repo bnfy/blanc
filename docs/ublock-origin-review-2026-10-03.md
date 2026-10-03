@@ -555,3 +555,25 @@ record for the changed popup helper; all 658 upstream files remain pinned and
 the filtering engine is unchanged.
 The two-second blocking-decision failure rule and the implementation-only
 owner authorization wording are unchanged.
+
+
+Run `37134128877` passed Linux and ordinary packaging, but ARM macOS reached
+original popup tool reuse and lost the CDP acknowledgement when upstream's
+successful click handler synchronously closed its popup. The native trace shows
+validated `close` IPC and main's corresponding closure, rather than an outside
+observer or native process crash. The fixture now explicitly waits for popup
+closure and accepts only that closed-target dispatch error; it still requires
+selection of the expected existing owned tool tab and no duplicate tabs. No
+production handler, assertion or platform check was removed. This failed run is
+retained as evidence; the fixture correction needs a fresh platform run.
+
+
+The first local core run after that fixture edit also failed before the picker
+was ready; its close stack reached the outside/window-deactivation callback,
+not upstream Close IPC. The available trace did not distinguish which native
+event caused it. Bounded fixture-only diagnostics now record native mouse/key
+press types and actual window blur (no key values, page URLs or payloads).
+The diagnostic local core run then passed the full blocking/tool/lifecycle and
+cold-restart suite. This does not relabel the earlier failed runs as passed.
+The first hosted run ultimately passed Windows, Linux, Intel macOS and ordinary
+packaging; ARM macOS was the only failure, at the verified self-close/CDP race.

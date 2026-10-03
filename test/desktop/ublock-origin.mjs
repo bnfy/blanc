@@ -283,7 +283,15 @@ try {
       await call('blockingPopup');
       const controls = await waitForValue(async () => (await electron.windows()).find(item => item.url().includes('/popup-fenix.html')), Boolean, tool + ' native popup');
       await controls.locator('body:not(.loading)').waitFor();
-      await controls.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click');
+      // Upstream closes this document synchronously after opening the tool.
+      // On ARM macOS that can precede CDP's dispatch acknowledgement. Require
+      // closure and the intended owned-tab selection below, even in that case.
+      await Promise.all([
+        controls.waitForEvent('close'),
+        controls.locator(`a[href^="${pathname.slice(1)}"]`).dispatchEvent('click').catch(error => {
+          if (!controls.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
+        }),
+      ]);
       await waitForValue(() => call('state'), state => state.activeTabId === original.id, tool + ' selected by original popup');
       assert.deepEqual((await call('state')).tabs.filter(tab => tab.url.includes(pathname)).map(tab => tab.id), [original.id], tool + ' popup reuses one tab across fragments');
     }

@@ -3,7 +3,7 @@
 // Fixture-only, bounded native event history. Never records webpage URLs,
 // headers or bodies; managed tool names come from a fixed allowlist.
 async function install(electron) {
-  await electron.evaluate(({ app, webContents, ipcMain }) => {
+  await electron.evaluate(({ app, webContents, ipcMain, BrowserWindow }) => {
     const events = globalThis.fixturePopupFocusEvents = [];
     const seen = new WeakSet();
     const toolNames = new Set(['/popup-fenix.html', '/dashboard.html', '/logger-ui.html']);
@@ -35,7 +35,21 @@ async function install(electron) {
       for (const name of ['focus', 'blur', 'did-finish-load', 'destroyed']) wc.on(name, () => {
         record(wc, name);
       });
+      wc.on('before-mouse-event', (_event, input) => {
+        if (input.type === 'mouseDown') record(wc, 'outside-mouse-down');
+      });
+      wc.on('before-input-event', (_event, input) => {
+        if (input.type === 'keyDown') record(wc, 'outside-key-down');
+      });
     };
+    const watchedWindows = new WeakSet();
+    const watchWindow = window => {
+      if (watchedWindows.has(window)) return;
+      watchedWindows.add(window);
+      window.on('blur', () => record(window.webContents, 'window-blur', { windowId: window.id }));
+    };
+    for (const window of BrowserWindow.getAllWindows()) watchWindow(window);
+    app.on('browser-window-created', (_event, window) => watchWindow(window));
     for (const wc of webContents.getAllWebContents()) watch(wc);
     ipcMain.on('ublock:popup', (event, value) => {
       if (['close', 'back', 'layout'].includes(value?.action)) record(event.sender, 'popup-ipc', { action: value.action, ...(value.action === 'layout' ? { height: value.height } : {}) });
