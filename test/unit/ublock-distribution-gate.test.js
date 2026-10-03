@@ -134,3 +134,23 @@ test('retired MV2 releases omit the unusable extension even with previous distri
   assert.equal(candidate.checked.length, 0);
   assert(candidate.context.packager.config.files.every(set => set.filter.includes('!ublock{,/**/*}')));
 });
+
+test('packaged ASAR lookups convert member separators for Windows', () => {
+  // @electron/asar splits member paths on path.sep, so a literal 'ublock/x'
+  // is found on macOS and Linux but missing on Windows.
+  const roots = ['scripts', 'test/desktop'].map(dir => path.join(__dirname, '../..', dir));
+  let calls = 0;
+  for (const root of roots) {
+    for (const name of fs.readdirSync(root, { recursive: true })) {
+      if (!/\.(?:c|m)?js$/.test(name)) continue;
+      const text = fs.readFileSync(path.join(root, name), 'utf8');
+      const parsed = [...text.matchAll(/\b(?:extractFile|statFile)\((?:[^,()]|\([^()]*\))+,\s*([^)]*)\)/g)];
+      assert.equal(parsed.length, text.match(/\b(?:extractFile|statFile)\(/g)?.length ?? 0, `${name}: every lookup must be parsed`);
+      for (const [, member] of parsed) {
+        assert(!/^['"`][^'"`]*\//.test(member.trim()), `${name} passes a '/' member literal: ${member}`);
+      }
+      calls += parsed.length;
+    }
+  }
+  assert(calls > 0, 'the scan must find the lookups it guards');
+});

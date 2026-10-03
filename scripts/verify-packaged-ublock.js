@@ -35,12 +35,13 @@ function verifyPackagedUblock(asarPath, { root = ROOT } = {}) {
     return;
   }
   assert.equal(metadata.blancUblockBundled, true, 'Missing uBO payload declaration');
+  // ASAR traverses directory components using the host platform separator.
+  const read = member => extractFile(asarPath, member.split('/').join(path.sep));
   if (!metadata.blancUblockInternalValidation) {
-    const gate = JSON.parse(extractFile(asarPath, 'ublock/distribution.json'));
+    const gate = JSON.parse(read('ublock/distribution.json'));
     assert(gate.cleared && gate.assessment && gate.correspondingSource && gate.noticeReview, 'Uncleared public uBO payload');
   }
   const { pin, files } = readVerifiedPackage(path.join(root, 'ublock'));
-  const read = member => extractFile(asarPath, member.split('/').join(path.sep));
   const exact = member => assert(read(member).equals(fs.readFileSync(path.join(root, member))), 'Packaged uBO input mismatch: ' + member);
   for (const name of ['pinned.json', 'LICENSE.txt', 'README.md', 'adaptation.json', 'adaptation.patch', 'distribution.json', 'source-audit.json', 'preferred-sources.json', 'codeql-baseline.json']) exact('ublock/' + name);
   for (const entry of pin.sources) exact('ublock/' + entry.path);
