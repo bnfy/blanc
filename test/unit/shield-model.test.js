@@ -181,8 +181,8 @@ test('private shield stays with Blanc and cannot open or select the ordinary uBO
     assert.equal(model.disabled, true);
     assert.equal(model.ublockAvailable, false);
     assert.equal(model.canOpenUblock, false);
-    assert.match(model.detail, /Private tabs always use Blanc Blocker/);
-    assert.match(model.detail, /regular tab/);
+    assert.match(model.detail, /can’t load uBO in temporary private sessions/);
+    assert.match(model.detail, /Blanc Blocker protects this tab/);
     assert.equal(model.availability, '');
     assert.equal(model.scope, '');
   }

@@ -367,7 +367,7 @@ try {
   overlay = await openShield();
   assert(await overlay.locator('#shieldPopChangeProvider').isDisabled());
   assert(await overlay.locator('#shieldPopUblock').isHidden());
-  assert.match(await overlay.locator('#shieldPopProviderStatus').innerText(), /Private tabs always use Blanc Blocker/);
+  assert.match(await overlay.locator('#shieldPopProviderStatus').innerText(), /can’t load uBO in temporary private sessions/);
   assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('blanc')), false);
   assert.equal((await call('blockingStatus')).selected, 'ublock-origin');
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-private.png' });

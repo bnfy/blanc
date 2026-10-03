@@ -2396,3 +2396,17 @@ Visual review of the final plain controls found no remaining blocking layout,
 contrast, clipping, hover-fill or halo issues.
 
 final result: passed
+
+## Private-tab blocker explanation — 2026-10-02
+
+The chooser, regular shield scope note, private shield status and Privacy &
+Security settings now explain the current private-session restriction. The
+private shield identifies Blanc's browser engine as the limitation and confirms
+Blanc Blocker protects the tab. Settings explains that private sessions remain
+in memory, while the native extension host supports only saved sessions.
+No layout or visual treatment changed. Reviewed native chooser and private
+shield captures: longer copy wraps cleanly and actions remain visible.
+Lint, 29 shield-model unit tests, the native provider/chooser suite and diff
+checks passed. Existing private guards and request isolation are unchanged.
+
+final result: passed
