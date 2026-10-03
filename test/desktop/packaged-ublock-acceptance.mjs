@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import http from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
@@ -34,14 +34,16 @@ const socket = net.createServer(); await new Promise(resolve => socket.listen(0,
 const port = socket.address().port; await new Promise(resolve => socket.close(resolve));
 const cleanEnv = { ...process.env, BLANC_TEST: '0', BLANC_UBLOCK_TEST: '0' };
 delete cleanEnv.ELECTRON_RUN_AS_NODE;
-let app, browser, context, chrome, settings;
+let app, browser, context, chrome, settings, ownedPid;
 let stage = 'installed launch';
+let restartAttempt;
 const report = { kind: 'installed-production-ubo-acceptance', passed: false, os: process.platform, harnessArchitecture: process.arch, osRelease: os.release(), executableSha256: createHash('sha256').update(fs.readFileSync(executable)).digest('hex'), checks: {}, limits: ['Isolated disposable profile, not personal browsing data.', 'Renderer CDP automation leaves production fuses and sandbox policy intact.', 'Separate signature / Linux process sandbox observations remain required.'] };
 const pages = () => context.pages();
 const at = url => waitForValue(() => pages().find(p => !p.isClosed() && p.url() === url), Boolean, 'current packaged page', 40000);
 async function connect() {
-  const endpoint = await waitForValue(async () => { try { return (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()).webSocketDebuggerUrl; } catch { return null; } }, Boolean, 'relaunched package CDP', 40000);
+  const endpoint = await waitForValue(async () => { try { return (await (await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(1000) })).json()).webSocketDebuggerUrl; } catch { return null; } }, Boolean, 'relaunched package CDP', 40000);
   browser = await chromium.connectOverCDP(endpoint); context = browser.contexts()[0];
+  ownedPid = await pid();
   context.setDefaultTimeout(15000);
   chrome = await at('blanc-chrome://index/');
   await chrome.waitForFunction(() => !!window.browserAPI);
@@ -66,8 +68,30 @@ async function open(route, opts) {
   const id = await chrome.evaluate(({ url, opts }) => window.browserAPI.createTab(url, opts), { url: origin + route, opts });
   const page = await at(origin + route); await page.waitForLoadState('load'); return { id, page };
 }
+function matchingProcesses() {
+  try {
+    if (process.platform === 'win32') {
+      const quoted = value => "'" + value.replaceAll("'", "''") + "'";
+      const script = `$blancExe=${quoted(path.resolve(executable))}; @(Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -eq $blancExe } | Select-Object -First 16 @{Name='pid';Expression={$_.ProcessId}},@{Name='ppid';Expression={$_.ParentProcessId}}) | ConvertTo-Json -Compress`;
+      const output = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], { encoding: 'utf8', timeout: 5000, windowsHide: true }).trim();
+      const found = output ? JSON.parse(output) : [];
+      return Array.isArray(found) ? found : [found];
+    }
+    const output = execFileSync('ps', ['-axo', 'pid=,ppid=,comm='], { encoding: 'utf8', timeout: 2000 });
+    return output.split('\n').flatMap(line => {
+      const match = line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/);
+      if (!match) return [];
+      const [pid, ppid] = [Number(match[1]), Number(match[2])];
+      let name = match[3];
+      if (process.platform === 'linux') { try { name = fs.readlinkSync(`/proc/${pid}/exe`); } catch { return []; } }
+      return name === path.resolve(executable) ? [{ pid, ppid }] : [];
+    }).slice(0, 16);
+  } catch { return null; }
+}
 async function restartChoice(provider) {
+  console.log('Installed provider restart:', provider);
   const oldPid = await pid();
+  restartAttempt = { provider, oldPid };
   await clickWhenSettled(chrome.locator('#pillShield'), 'Island shield');
   const overlay = await at('blanc-chrome://overlay/');
   await overlay.locator('#shieldPopChangeProvider').click();
@@ -78,6 +102,7 @@ async function restartChoice(provider) {
   await connect(); await ready(provider);
   assert.notEqual(await pid(), oldPid);
   report.checks['restart-' + provider] = true;
+  restartAttempt = null;
 }
 async function dashboard() {
   await settings.evaluate(() => window.bowserPages.settings.blockingOpen('dashboard'));
@@ -100,6 +125,7 @@ async function popup(tabId) {
 try {
   app = await launchPackagedOverCdp({ executablePath: executable, debugPort: port, launchViaOpen: process.platform === 'darwin', args: [`--user-data-dir=${profile}`, '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost', ...(process.env.BLANC_UBLOCK_NATIVE_LOG ? ['--enable-logging=file', `--log-file=${process.env.BLANC_UBLOCK_NATIVE_LOG}`] : [])], env: cleanEnv, timeoutMs: 40000 });
   browser = app.browser; context = app.context; context.setDefaultTimeout(15000);
+  ownedPid = await pid();
   chrome = await at('blanc-chrome://index/'); await chrome.waitForFunction(() => !!window.browserAPI);
   await chrome.evaluate(() => window.browserAPI.openPage('settings')); settings = await at('blanc://settings/');
   await ready('blanc');
@@ -161,11 +187,18 @@ try {
     report.checks.lastWindowExit = true;
   }
   report.passed = true;
-} catch (error) { console.error('Packaged launch output:', app?.output());report.failure = { stage, name: error.name }; throw error; }
+} catch (error) { console.error('Installed uBO failure at:', stage, error); console.error('Packaged launch output:', app?.output()); report.failure = { stage, name: error.name };
+  if (restartAttempt) report.restartFailure = { ...restartAttempt, oldProcessAlive: alive(restartAttempt.oldPid), matchingProcesses: matchingProcesses() };
+  throw error; }
 finally {
-  try { if (browser?.isConnected()) { const session = await browser.newBrowserCDPSession(); await session.send('Browser.close').catch(() => {}); } } catch {}
-  await new Promise(resolve => server.close(resolve));
   fs.writeFileSync(fd, JSON.stringify(report, null, 2) + '\n'); fs.closeSync(fd);
+  try { if (browser?.isConnected()) await Promise.race([(async () => { const session = await browser.newBrowserCDPSession(); await session.send('Browser.close'); })().catch(() => {}), new Promise(resolve => setTimeout(resolve, 1000))]); } catch {}
+  if (ownedPid && alive(ownedPid)) {
+    process.kill(ownedPid, 'SIGTERM');
+    await waitForValue(() => alive(ownedPid), value => !value, 'owned fixture process cleanup', 5000).catch(() => { if (alive(ownedPid)) process.kill(ownedPid, 'SIGKILL'); });
+  }
+  server.closeAllConnections();
+  await new Promise(resolve => server.close(resolve));
   fs.rmSync(profile, { recursive: true, force: true });
 }
 console.log('Installed uBO acceptance passed.');

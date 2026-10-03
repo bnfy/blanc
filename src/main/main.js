@@ -3115,19 +3115,26 @@ function createOverlay() {
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
   rt().overlayView.webContents.on('blur', bindWindowRuntime(owner, () => {
-    // A native address-bar context menu takes OS focus; that blur is not a
-    // dismissal — the popup's close callback owns what happens next.
-    if (rt().addressMenuTicket) return;
-    // Playwright's Electron main-process evaluate calls steal focus from the
-    // guest view while the acceptance harness inspects it. Keep the real blur
-    // policy in production; tests dismiss explicitly between edit sessions.
-    if (acceptanceTestMode) return;
-    if (!rt().overlayMode || rt().overlayMode === 'find' || rt().overlayMode === 'display-share') return;
-    // A freshly attached blank tab's view can momentarily grab focus while
-    // its address-focus reclaim is still pending — that's not a dismissal;
-    // the reclaim will re-assert overlay focus on the next tick.
-    if (rt().activeTabId && rt().tabsWantingAddressBarFocus.has(rt().activeTabId)) return;
-    hideOverlay({ refocusContent: false });
+    // Native view removal emits blur while Chromium still holds its child
+    // iteration lock. Detaching here can CHECK-crash the whole browser.
+    if (isQuitting || owner.closing) return;
+    const generation = owner.surfaceGeneration;
+    setImmediate(bindWindowRuntime(owner, () => {
+      if (isQuitting || owner.closing || !hasLiveWindow() || owner.surfaceGeneration !== generation) return;
+      // A native address-bar context menu takes OS focus; that blur is not a
+      // dismissal — the popup's close callback owns what happens next.
+      if (rt().addressMenuTicket) return;
+      // Playwright's Electron main-process evaluate calls steal focus from the
+      // guest view while the acceptance harness inspects it. Keep the real blur
+      // policy in production; tests dismiss explicitly between edit sessions.
+      if (acceptanceTestMode) return;
+      if (!rt().overlayMode || rt().overlayMode === 'find' || rt().overlayMode === 'display-share') return;
+      // A freshly attached blank tab's view can momentarily grab focus while
+      // its address-focus reclaim is still pending — that's not a dismissal;
+      // the reclaim will re-assert overlay focus on the next tick.
+      if (rt().activeTabId && rt().tabsWantingAddressBarFocus.has(rt().activeTabId)) return;
+      hideOverlay({ refocusContent: false });
+    }));
   }));
 
   // The address menu and the tab-row menu share the overlay webContents and the
