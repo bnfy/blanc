@@ -108,6 +108,8 @@ try {
   const resourceURL = `chrome-extension://${resourceIdentity.id}/web_accessible_resources/1x1.gif`;
   assert.equal(await resourceLoaded(resourceURL + '?probe=missing'), false, 'a page cannot fetch a managed resource without a secret');
   assert.equal(await resourceLoaded(resourceURL.replace('/web_', '/%77eb_') + '?probe=encoded'), false, 'an encoded path cannot bypass resource authorization');
+  assert.equal(await resourceLoaded(resourceURL.replace('/web_', '//web_') + '?probe=repeated-separator'), false, 'a repeated separator cannot bypass resource authorization');
+  assert.equal(await resourceLoaded(resourceURL.replace('/1x1.gif', String.fromCharCode(92) + '1x1.gif') + '?probe=backslash'), false, 'a backslash cannot bypass resource authorization');
   assert.equal(await resourceLoaded(resourceURL + '?secret=invalid'), false, 'a page cannot fetch a managed resource with a forged secret');
   assert.equal(await resourceLoaded(resourceURL + '?secret=' + resourceIdentity.secret), true, 'upstream permits a valid resource capability');
   assert.equal(await resourceLoaded(resourceURL + '?secret=' + resourceIdentity.secret + '&reuse=1'), false, 'a short resource capability is one-use');

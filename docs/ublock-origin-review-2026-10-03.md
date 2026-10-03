@@ -201,3 +201,9 @@ Existing parity/substrate, OAuth, tab-handoff and modified-link checks also
 passed on that revision. CodeQL remains red; the diagnostic-only cleanup and
 remaining upstream findings are recorded separately. This is development-CI
 evidence, not installed candidate, signing/updater, legal or public enablement.
+
+Additional live resource-path probes after the matrix pass also rejected
+repeated separators and literal backslashes, while retaining the valid one-use
+capability control. These assertions are retained in the native suite. No
+additional runtime change was needed; the full local real-blocking suite passed
+with both probes. Final-revision hosted results are linked from the PR body.
