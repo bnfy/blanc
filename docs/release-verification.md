@@ -32,6 +32,12 @@ public release.
 
 ## Release-operator runbook
 
+When preparing `docs/press/release-notes/v<version>.md`, review the
+[unreleased notes](press/release-notes/unreleased.md) and include only changes
+present in the selected release commit. For the Linux setup-guide buttons,
+also replace the troubleshooting doc's Upcoming release label with the
+shipping version. Do not describe them as part of public v1.26.0.
+
 This is a human-gated workflow with two supported interactive operator modes:
 
 - `terminal` (default): run directly in a native macOS Terminal.app window.

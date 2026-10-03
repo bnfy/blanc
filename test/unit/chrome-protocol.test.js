@@ -26,6 +26,10 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     path.join(renderer, 'vertical-tabs.js'),
   );
   assert.equal(
+    chromeResourcePath('blanc-chrome://index/shield-horizon.png'),
+    path.join(renderer, 'shield-horizon.png'),
+  );
+  assert.equal(
     chromeResourcePath('blanc-chrome://overlay/overlay.js'),
     path.join(renderer, 'overlay.js'),
   );
@@ -99,6 +103,9 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
   for (const url of [
     'blanc-chrome://index/overlay.js',
     'blanc-chrome://overlay/renderer.js',
+    'blanc-chrome://overlay/shield-horizon.png',
+    'blanc-chrome://permission/shield-horizon.png',
+    'blanc-chrome://index/shield-horizon.png?cache=1',
     'blanc-chrome://index/pages/settings.html',
     'blanc-chrome://index/pages/icon.svg',
     'blanc-chrome://overlay/pages/icon.svg',

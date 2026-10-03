@@ -187,9 +187,19 @@ the Glance header and the window controls.
 **Owner decision, October 2, 2026:** The shield's site-protection dialog and
 its focused blocker chooser use Sunrise warmth, the original small gold mark,
 and compact Inter headings. This is a scoped exception to the Island rule
-above: the Island pill and its existing shield icon retain their styling. The
-approved chooser names **EasyList + EasyPrivacy** beneath Blanc Blocker and
-uses an explicit confirmation before saving a provider for the next restart.
+above: the Island pill retains its styling, and its shield button follows the
+Horizon Shield rule below. The approved chooser names **EasyList + EasyPrivacy**
+beneath Blanc Blocker and uses an explicit confirmation before saving a
+provider for the next restart.
+
+**Horizon Shield, owner-approved October 3, 2026:** the Island's blocker button
+uses the layered gold Horizon Shield as a scoped exception to the neutral icon
+palette. Use `src/renderer/shield-horizon.png` at 16×16 CSS pixels within the
+existing 24px button; the Island's shared zoom still applies. Keep the count as
+a separate badge and desaturate the artwork when blocking is off. The source is
+`assets/horizon-shield.png`. This product mark does not replace Sunrise or warm
+the surrounding Island. It is approved for the next desktop release; public
+screenshots and marketing must continue to follow the release boundary.
 
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
