@@ -58,7 +58,9 @@ const watchdog = setTimeout(() => { console.error('uBO suite exceeded 120 second
 try {
   electron = await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
-    args: [path.resolve('.'), `--user-data-dir=${dir}`], chromiumSandbox: true,
+    // Keep fixture updates deterministic: external first-install lists use
+    // their bundled cache, while the local subscription still updates over HTTP.
+    args: [path.resolve('.'), `--user-data-dir=${dir}`, '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost'], chromiumSandbox: true,
     env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog }, timeout: 30000,
   });
   electron.context().setDefaultTimeout(10000);
@@ -258,7 +260,7 @@ try {
   await subscriptionRow.locator('.cache').dispatchEvent('click', { shiftKey: true });
   await waitForValue(() => hits.filter(url => new URL(url, fixture).pathname === '/fixture-list.txt').length, count => count > listRequests, 'original list update fetched', 30000);
   await waitForValue(() => electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
-    .executeJavaScript(`µBlock.availableFilterLists[${JSON.stringify(url)}]?.entryCount || 0`), fixture + 'fixture-list.txt'), count => count > 1, 'updated subscription compiled');
+    .executeJavaScript(`µBlock.availableFilterLists[${JSON.stringify(url)}]?.entryCount || 0`), fixture + 'fixture-list.txt'), count => count > 1, 'updated subscription compiled', 30000);
   const beforeUpdated = hits.filter(url => url === '/subscription-new.js').length;
   await subscriptionPage.evaluate(() => new Promise(resolve => { const script = document.createElement('script'); script.src = '/subscription-new.js'; script.onload = script.onerror = resolve; document.body.append(script); }));
   assert.equal(hits.filter(url => url === '/subscription-new.js').length, beforeUpdated);
@@ -437,6 +439,7 @@ try {
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === deadlineId)?.isLoading, value => value === false, 'deadline recovery page');
   await call('blockingRetry');
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'deadline retry', 20000);
+  await waitForValue(() => electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), count => count === 1, 'one background after retry');
   const awakeWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
   assert.equal((await call('blockingMapping')).find(item => item.webContentsId === awakeWC).tabId, stableId);
   await awake.evaluate(() => { window.heldFixtureToken = Math.random(); });
@@ -452,7 +455,15 @@ try {
   await awake.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
   // A native background loss must cancel requests instead of substituting a
   // different provider or releasing website traffic.
-  await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').forcefullyCrashRenderer());
+  await electron.evaluate(({ app, webContents }) => {
+    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    if (process.platform !== 'linux') { bg.forcefullyCrashRenderer(); return; }
+    // Electron's Linux crash-injection API did not emit renderer loss in CI.
+    // Terminate the actual fixture-owned renderer to exercise a real loss.
+    const pid = bg.getOSProcessId();
+    if (pid <= 0 || pid === process.pid || !app.getAppMetrics().some(item => item.pid === pid)) throw new Error('Invalid fixture renderer PID');
+    process.kill(pid, 'SIGKILL');
+  });
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'failed', 'background failure');
   const failedId = await call('openTab', fixture + 'failure-gated');
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === failedId)?.isLoading, value => value === false, 'failed navigation settled');
@@ -514,7 +525,7 @@ try {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
   console.error('uBO test failure:', error);
   console.error('Subscription response revisions:', subscriptionResponses);
-  if (electron) console.error('Subscription state:', await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => { const io = (await import('./js/assets.js')).default; return { events: self.fixtureListEvents, updating: io.isUpdating(), metadata: (await io.metadata())[${JSON.stringify(url)}], entry: µBlock.availableFilterLists[${JSON.stringify(url)}], selected: µBlock.selectedFilterLists.includes(${JSON.stringify(url)}) }; })()`), fixture + 'fixture-list.txt').catch(() => null));
+  if (electron && stage === 'subscription data') console.error('Subscription state:', await electron.evaluate(async ({ webContents }, url) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')?.executeJavaScript(`(async () => { const io = (await import('./js/assets.js')).default; return { events: self.fixtureListEvents, updating: io.isUpdating(), metadata: (await io.metadata())[${JSON.stringify(url)}], entry: µBlock.availableFilterLists[${JSON.stringify(url)}], selected: µBlock.selectedFilterLists.includes(${JSON.stringify(url)}) }; })()`), fixture + 'fixture-list.txt').catch(() => null));
   if (electron) console.error('Provider state:', await testCalls.callTestHook(electron, 'blockingStatus', []).catch(() => null));
   console.error(errors);
   if (electron) console.log(await electron.evaluate(({ app, BrowserWindow }) => ({ ready: app.isReady(), userData: app.getPath('userData'), hook: typeof __blanc, windows: BrowserWindow.getAllWindows().length })).catch(() => ({ processClosed: true })));

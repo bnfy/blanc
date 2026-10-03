@@ -147,3 +147,28 @@ bridge close operation is removed. Initial blur events do not dismiss a loading
 popup; committed views still dismiss on genuine focus loss, with current-view
 and refocus checks. Unit guards and the native Dashboard/Logger/reopen/Escape
 sequence passed locally. The real-blocking core suite also passed afterward.
+
+### Fixture isolation and renderer-loss injection
+
+Run `37123328075` at `82fcccce` passed Windows, macOS arm64 and Intel macOS.
+Linux progressed through subscription updates and failed at background-loss
+injection: `forcefullyCrashRenderer()` left provider readiness unchanged during
+the assertion window. The Linux fixture now terminates the actual owned
+renderer PID with SIGKILL, verifies there is exactly one background after retry,
+and retains the server-absence, failed-state and retry assertions. It changes
+no production runtime or sandbox setting. Hosted confirmation remains pending.
+
+The subscription fixture now isolates external DNS, using cached bundled lists
+while still fetching and updating its local HTTP subscription through original
+controls. The compiled-data check allows the update cycle to finish within a
+bounded 30-second wait. This follows the upstream cycle model; it is not a
+production timeout change. Test-only observations retain at most 32 asset
+events and report fixture response revisions on failure. The local core suite
+passed with these changes.
+
+Latest full local unit run: 2,097 passed, zero failed. Lint, substrate and all
+three desktop suites passed after popup fixes. The final unsigned internal
+rebuild passed upstream/adaptation/source/license/compliance payload hooks; the
+unchanged after-sign gate then rejected the unsigned app's missing provisioning
+profile. That is payload evidence only, not a successful signed package or
+installed launch. Public signing and provisioning checks remain mandatory.
