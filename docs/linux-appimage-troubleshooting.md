@@ -38,6 +38,38 @@ that separate behavior; v1.26.0 refuses such launches. See the
 [investigation and validation record](linux-appimage-sandbox-2026-09-29.md) and
 [v1.24.0 release evidence](release-incidents/2026-10-01-v1.24.0.md).
 
+## Upcoming release: setup-guide buttons
+
+The following behavior is merged in [PR #494](https://github.com/bnfy/blanc/pull/494)
+but is **not included in public v1.26.0**. It applies to the next release that
+contains that change; see the [draft release note](press/release-notes/unreleased.md).
+
+When **Blanc requires Chromium sandboxing** appears, the buttons depend on the
+desktop session and whether Blanc was launched with the setup-guide URL:
+
+| Desktop session | Initial refusal | Relaunch with the guide URL |
+| --- | --- | --- |
+| Wayland | **Open Setup Guide**, **Quit** | **Quit** |
+| X11 | **Open Setup Guide**, **Copy Link**, **Quit** | **Copy Link**, **Quit** |
+
+**Open Setup Guide** asks the system's default browser to open this guide, then
+Blanc exits with status `1`. If the guide does not open, use the address shown
+in the dialog in another browser. If Blanc is itself the default browser, the
+relaunch omits Open Setup Guide to avoid repeatedly opening itself. On Wayland
+it says **Open this address in another browser.** and offers only Quit.
+
+On X11, **Copy Link** shows **Setup guide link copied**. Keep that confirmation
+open while pasting the address into another browser, then choose Quit: the
+clipboard contents may disappear when Blanc exits. Copy Link is omitted on
+Wayland. **Quit**, or Escape in the refusal dialog, exits with status `1`.
+None of these actions enables browsing without Chromium sandboxing or changes
+AppArmor or user-namespace settings.
+
+The owner-assisted check at `e8058f6b` passed these Wayland dialog actions in an
+Ubuntu 26.04 ARM64 GNOME Parallels VM. It did not establish stock Ubuntu 24.04
+launch behavior or isolate AppArmor as the cause of the plain-launch refusal.
+See the [candidate evidence and merge-only waiver](release-incidents/2026-10-03-sandbox-dialog-merge-waiver.md).
+
 ## Snap packages
 
 Bananify Creative does not publish a Blanc Snap. The `blanc` package in the
