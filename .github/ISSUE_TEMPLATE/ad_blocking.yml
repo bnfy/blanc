@@ -1,0 +1,61 @@
+name: Missed ad or tracker
+description: A reproducible example of an ad or tracker getting through Blanc Blocker
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This report is public. For URLs or examples containing private information,
+        email support@blancbrowser.com instead. Please remove account tokens from
+        shared URLs and personal information from screenshots.
+  - type: input
+    id: page-url
+    attributes:
+      label: Page URL
+      description: The specific page where the ad appears.
+      placeholder: https://example.com/article
+    validations:
+      required: true
+  - type: input
+    id: blanc-version
+    attributes:
+      label: Blanc version
+      description: Find the installed version in Settings → Help → About Blanc.
+      placeholder: "1.26.0"
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system and version
+      placeholder: "macOS 27, Windows 11, Ubuntu 24.04…"
+    validations:
+      required: true
+  - type: textarea
+    id: blocker-settings
+    attributes:
+      label: Blocker settings
+      description: Is blocking enabled in Settings and in this site's shield? List any site exception, custom setting or VPN that affects reproduction.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Expected result
+      description: What should have been blocked?
+    validations:
+      required: true
+  - type: textarea
+    id: observed-ad
+    attributes:
+      label: Observed ad and reproduction steps
+      description: Where it appears, what it looks like, and the steps including reload, scrolling, playback or sign-in needed to see it. State whether it is embedded in content or a separate placement.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Optional screenshot
+      description: Paste an image with private information removed. A screenshot helps identify the placement; it is not required.
+    validations:
+      required: false
