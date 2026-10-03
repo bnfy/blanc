@@ -1,88 +1,97 @@
-# http-cache-semantics reachability review
+# http-cache-semantics build-tooling reachability review
 
-Reviewer: Codex, automated source review while resolving PR #491's blocking
-checks. Review date: October 3, 2026. Reviewed source baseline:
-`4b9c7bcac6a31146609af5178662faf8f85f0966`, with the static-output guard in this
-follow-up. This disposition is proposed for maintainer review through the PR.
+Reviewer: Claude (Claude Code, under the owner's instruction to fix PR #492's
+failing required checks and merge it). Review date: October 3, 2026. Reviewed
+source: `main` at `ea73189cedea7c632629dbcc855c0fde5e28effa`.
 
 [GHSA-ch52-4w7c-c8xp](https://github.com/advisories/GHSA-ch52-4w7c-c8xp)
-affects http-cache-semantics through 4.2.0. The advisory lists no patched
-version, and npm's latest version is 4.2.0 as of this review. The
-[upstream report](https://github.com/kornelski/http-cache-semantics/issues/56)
-describes a shared cache retaining responses that should not be reused across
-users, then accepting attacker-controlled `Cache-Control: max-stale` through
-`satisfiesWithoutRevalidation`.
+affects http-cache-semantics through 4.2.0. A shared cache that zeroes an
+entry for security reasons can still serve it to a client that sends a large
+`max-stale`, disclosing another user's cached response. The advisory lists no
+patched version as of this review, so no dependency upgrade removes the
+finding. It first failed the required `substrate` check on PR #492; `main`'s
+last run at 00:25 UTC the same day passed, so the finding entered the audit
+feed in between and is not specific to that PR.
 
-The vulnerable component remains in the build dependencies. Blanc's reviewed
-commands and deployed payloads do not expose that execution path. A bounded
-`not_affected` statement is recorded in `security/openvex.json` under the
-existing security maintenance policy. The audit severity threshold and
-required CI check remain unchanged.
+The finding is non-affecting for Blanc's reviewed commands and payloads. This
+is recorded in `security/openvex.json` under the existing security maintenance
+policy. The dependency audit, severity threshold, and required GitHub check
+remain in force.
 
-## Desktop dependency and execution evidence
+## Dependency evidence
 
-The locked chain is:
+Across the four committed lockfiles, the package occurs twice.
+
+Desktop (`package-lock.json`), every entry `dev: true`:
 
 ```
-electron-builder / app-builder-lib 26.15.3
-  -> @electron/get 3.1.0
-  -> got 11.8.6
-  -> cacheable-request 7.0.4
+electron-builder 26.15.3 -> app-builder-lib 26.15.3
+  -> @electron/get 3.1.0 -> got 11.8.6 -> cacheable-request 7.0.4
   -> http-cache-semantics 4.2.0
 ```
 
-Every entry in this chain is development-only. `npm ls http-cache-semantics
---omit=dev` finds no desktop runtime copy. The runtime SBOM and first-party
-desktop/Worker code have no consumer of http-cache-semantics, cacheable-request
-or got.
+`npm ls http-cache-semantics --omit=dev` is empty. The top-level
+@electron/get 5.0.0 that `electron` uses has no got dependency. The desktop
+package's `build.files` allowlist ships only `src/`, bundled blocker sources,
+and license files, so no build tooling reaches `app.asar`.
 
-The installed, lockfile-integrity-pinned source establishes the boundary:
+Website (`site/package-lock.json`): astro 7.3.2 is the only consumer. The
+tab-import Worker and companion lockfiles contain no occurrence.
 
-- `@electron/get/dist/cjs/GotDownloader.js` streams a build artifact to a local
-  file with `got.stream(url, gotOptions)`. It is a download client, not a proxy
-  serving browser requests or sharing authenticated responses between users.
-- `got/dist/source/index.js` defaults its HTTP cache to `undefined`. The
-  cacheable-request path is activated only when a cache is configured.
-- `@electron/get/dist/cjs/index.js` separately caches artifact files on disk;
-  this file cache is not a shared HTTP cache serving client `max-stale` requests.
-- Blanc does not configure custom got caching, import these packages into
-  first-party runtime code, or pass website visitor request headers into this
-  build-download path.
+## Execution evidence
 
-Development-only classification alone is not the basis for this disposition;
-the shared-cache request path described by the advisory is absent here.
+The installed, integrity-pinned sources establish the boundary:
 
-## Website dependency and execution evidence
+- got 11.8.6 `dist/source/core/index.js` loads cacheable-request at module
+  load but constructs a `CacheableRequest`, and therefore any
+  http-cache-semantics `CachePolicy`, only inside `if (cache)`, where `cache`
+  is the request's `cache` option.
+- @electron/get 3.1.0 `dist/cjs/GotDownloader.js` sets no `cache` option of
+  its own; it forwards the caller's download options to `got.stream`.
+  app-builder-lib 26.15.3 `out/util/electronGet.js` builds those options from a
+  request timeout, a proxy agent, a progress callback, and any
+  `downloadOptions` from `build.electronDownload`. The `cacheMode` in
+  `binDownload.js` is @electron/get's file cache of downloaded archives, not
+  got's HTTP cache.
+- Blanc sets no `build.electronDownload` in `package.json`, and no script or
+  workflow passes downloader options, so nothing supplies `cache`.
+- astro 7.3.2 imports http-cache-semantics only in
+  `dist/assets/build/remote.js`, which revalidates cached remote images during
+  a build. `site/astro.config.mjs` sets no `image` domains or remote patterns,
+  no `adapter`, and no server `output`. `site/src` imports no `astro:assets`
+  and uses no `Image`, `Picture`, or `getImage`. The deployed site is static
+  files, so astro never runs as a server.
 
-Astro 7.3.2 depends directly on http-cache-semantics 4.2.0. Astro is a declared
-site dependency, but the published output is static HTML, CSS, JavaScript and
-assets. `site/astro.config.mjs` explicitly specifies `output: 'static'`, with
-no server adapter. The deploy command sends `site/dist` to Cloudflare Pages;
-the reviewed build has no server or `_worker.js` output. Astro and this Node
-package do not execute in the deployed website.
+Independently of reachability, the advisory's scenario needs a shared cache
+answering requests from multiple users. Blanc's uses are a single build
+machine fetching its own artifacts, with no other user's response to disclose.
 
-The only installed Astro import is
-`astro/dist/assets/build/remote.js`, used for remote-image build processing.
-`loadRemoteImage` constructs its own `new Request(src)` without visitor
-headers. Revalidation constructs only conditional ETag/Last-Modified headers.
-These paths use `storable()` and `timeToLive()` to derive expiry, not
-`satisfiesWithoutRevalidation` with an incoming user's `max-stale` directive.
-They do not serve cached session cookies to different users.
+## Re-review conditions
 
-There are no occurrences of the package in the tab-import Worker or companion
-extension lockfiles. No first-party source imports it or its HTTP-cache client.
+`test/unit/dependency-vex.test.js` fails and requires re-review if:
 
-## Verification and re-review conditions
+- the desktop chain changes version, gains another consumer, or stops being
+  development-only;
+- the package appears in the Worker or companion lockfiles, or gains a
+  website consumer other than astro;
+- `package.json` adds `build.electronDownload`, or the desktop `build.files`
+  allowlist broadens;
+- the site adds an adapter, server output, image configuration, or any
+  `astro:assets` image use.
 
-`test/unit/dependency-vex.test.js` guards the exact reviewed consumer versions,
-the desktop development-only classification, the two direct dependency
-consumers, absence from the Worker/companion graphs, static site output and
-deployment, and absence of new first-party imports. Changes to these boundaries
-require a new review or removal of the exception before the audit can pass.
+Remove the VEX statement once a patched http-cache-semantics is available and
+both lockfiles adopt it.
 
-This finding is not a claim that the dependency is safe for general shared
-cache use. Deploying Astro server-side, adding a shared/proxy cache, passing
-user-controlled cache directives to a consumer, enabling a new got cache,
-adding a first-party consumer, moving the component into a desktop runtime
-payload, or changing the reviewed dependency source requires reassessment.
-Remove the exception when a supported patched dependency is available.
+## Website revamp cross-check (PR #491)
+
+Codex independently reviewed source `4b9c7bcac6a31146609af5178662faf8f85f0966`
+on October 3, 2026 and reached the same bounded disposition. The website
+revamp makes `output: 'static'` explicit and guards the deploy payload against
+server and `_worker.js` output. Astro's remote-image code constructs its own
+requests without visitor headers and calls `storable()` / `timeToLive()`,
+not `satisfiesWithoutRevalidation` on incoming user cache directives.
+
+The combined dependency tests retain both reviews' boundaries, including
+absence of new first-party package consumers and the static deployment path.
+This does not authorize server-side Astro, a shared/proxy cache, newly enabled
+got caching, or new first-party/runtime consumers.
