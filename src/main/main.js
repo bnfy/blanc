@@ -328,6 +328,8 @@ let primaryRuntime = null;
 let focusedRuntime = null;
 let profileSessionRegistry = null;
 let blockingProviders = null;
+let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
+let adblockStartupController = null;
 const ublockAuxiliaryTabs = new Map();
 const ublockPopups = new Map();
 function closeUblockPopup(runtimeId) {
@@ -7967,7 +7969,7 @@ async function clearNamedProfileSessions(profileId) {
   for (const window of BrowserWindow.getAllWindows()) {
     if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
   }
-  blockingProviders?.dispose(profileId);
+  await blockingProviders?.dispose(profileId, owned);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),
     browsingSession.clearCache(),
@@ -8265,6 +8267,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   blockingProviders = createBlockingProviders({
     settings,
     hooks: {
+      startupStatus: () => adblockStartupState,
       closePopup: (profileId) => {
         for (const [runtimeId, popup] of ublockPopups) if (popup.runtime.profileId === profileId) closeUblockPopup(runtimeId);
       },
@@ -8792,8 +8795,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     private: true,
     profileId: DEFAULT_PROFILE_ID,
   });
-  let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
-  let adblockStartupController = null;
   const blockingRecovery = createBlockingRecovery({
     startup: () => adblockStartupController, providers: () => blockingProviders,
   });
@@ -9879,6 +9880,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       onStateChange: (state) => {
         adblockStartupState = state;
         broadcastStartPageStatus();
+        blockingProviders.notify();
         if (state.phase === 'failed') {
           for (const runtime of startupRuntimes) {
             const startupTabId = startupTabIds.get(runtime.id);

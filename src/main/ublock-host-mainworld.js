@@ -254,6 +254,13 @@
             }
             send({ kind: 'decision', id: message.id, value: result });
           } catch { send({ kind: 'decision', id: message.id, error: 'ubo-decision-failed' }); }
+        } else if (message.kind === 'erase-storage') {
+          try {
+            const assets = (await import('/js/assets.js')).default;
+            assets.updateStop();
+            await chrome.storage.local.clear();
+            send({ kind: 'decision', id: message.id, value: {} });
+          } catch { send({ kind: 'decision', id: message.id, error: 'ubo-storage-erase-failed' }); }
         } else if (message.kind === 'site') {
           const store = self.µBlock?.pageStoreFromTabId(message.tabId);
           if (store) store.toggleNetFilteringSwitch(message.url, 'site', message.enabled);

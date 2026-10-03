@@ -15,7 +15,7 @@ const SHAPES = {
   call: ['id', 'method', 'args'], decision: ['id', 'value', 'error'],
   'css-target': ['id'], 'css-result': ['id', 'error', 'target'],
 };
-const INCOMING = new Set(['reply', 'event', 'mapping', 'request', 'site', 'site-state', 'enabled', 'css', 'css-apply']);
+const INCOMING = new Set(['reply', 'event', 'mapping', 'request', 'site', 'site-state', 'enabled', 'css', 'css-apply', 'erase-storage']);
 function valid(message) {
   if (!message || typeof message !== 'object' || Array.isArray(message) || !Object.hasOwn(SHAPES, message.kind)) return false;
   if (Object.keys(message).some(key => key !== 'kind' && !SHAPES[message.kind].includes(key))) return false;

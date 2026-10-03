@@ -90,7 +90,7 @@
       status.textContent = state.restartPending
         ? `${label(state.selected)} selected. Restart Blanc to apply; ${label(state.active)} is active.`
         : state.phase === 'failed'
-          ? `uBlock Origin could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
+          ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
           : state.phase === 'unsupported'
             ? `uBlock Origin unavailable: ${state.reason}.`
             : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported ? '' : ' uBlock Origin unavailable: ' + state.reason + '.'}`;
@@ -98,7 +98,11 @@
       const ubo = state.active === 'ublock-origin';
       document.getElementById('ublockTools').hidden = !ubo;
       document.getElementById('ublockLimits').hidden = !ubo;
-      for (const id of ['ublockRetry', 'ublockUseBlanc', 'ublockContinue']) document.getElementById(id).hidden = !['failed', 'unsupported'].includes(state.phase);
+      const failed = ['failed', 'unsupported'].includes(state.phase);
+      document.getElementById('ublockRetry').hidden = !failed;
+      document.getElementById('ublockRetry').textContent = `Retry ${label(state.active)}`;
+      document.getElementById('ublockUseBlanc').hidden = !failed || !ubo;
+      document.getElementById('ublockContinue').hidden = !failed;
     };
     renderBlocking(await window.bowserPages.settings.blockingStatus());
     window.bowserPages.settings.onBlockingStatus(renderBlocking);

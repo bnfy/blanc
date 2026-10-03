@@ -5,7 +5,7 @@
   "host": [
     {
       "path": "src/main/ublock-host-mainworld.js",
-      "sha256": "ae462bd59a5e31234f6e521931c75b551e148a1246bae7ae11c92a12c9a87412"
+      "sha256": "7256fd7501571f9ca20de51d8cafbbed2c27ddc2aa8cc76d236c7c56f8be1698"
     },
     {
       "path": "src/main/ublock-bridge-mainworld.js",
@@ -17,7 +17,7 @@
     },
     {
       "path": "src/main/ublock-bridge-preload.js",
-      "sha256": "5aa95957ccf442db4e37f1cbd64e25062dc702c08b3f776a3c7bcba3483651e4"
+      "sha256": "d468bada2f998c1b401d1dc27ec24ecea0752e1439b9070a543ccecb9530004f"
     },
     {
       "path": "src/main/ublock-package.js",
@@ -29,7 +29,7 @@
     },
     {
       "path": "src/main/ublock-provider.js",
-      "sha256": "817755203ae008cdd34ab3fad759cccc094185ac131fdcc4e3ff680d488a22bd"
+      "sha256": "feeb89f6f75a3b4b02eb9dfcfca800ed69102b6d1d1e93033ff668a7b1106870"
     },
     {
       "path": "src/main/ublock-registry.js",
@@ -199,7 +199,7 @@
     {
       "path": "blanc-host.js",
       "upstreamSha256": null,
-      "adaptedSha256": "ae462bd59a5e31234f6e521931c75b551e148a1246bae7ae11c92a12c9a87412"
+      "adaptedSha256": "7256fd7501571f9ca20de51d8cafbbed2c27ddc2aa8cc76d236c7c56f8be1698"
     },
     {
       "path": "blanc-bridge.html",
@@ -212,5 +212,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "8941fbdd9b20d32edc0ebf06d1aeabc368a91757868f395cef22b7b82618217f"
+  "patchSha256": "9a1412eb680e6b244d69dd2c6250d66827904591d228f177fab7e56f7e76110e"
 }

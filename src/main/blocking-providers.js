@@ -20,12 +20,17 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   function status(profileId) {
     const provider = profiles.get(profileId)?.provider;
     const selected = settings.getSettings().adblockProvider;
+    const startup = hooks.startupStatus?.();
+    const startupFailed = startup?.phase === 'failed';
+    const builtinPhase = ['ready', 'failed', 'initializing'].includes(startup?.phase) ? startup.phase
+      : ['disabled', 'continued', 'skipped'].includes(startup?.phase) ? 'disabled' : 'initializing';
     return {
       selected, active, restartPending: selected !== active,
       internalCandidate, supported, reason: supported ? null : platform?.reason || 'Runtime/platform acceptance pending',
       enabled: settings.getSettings().adblockEnabled,
       ...provider?.status(),
-      phase: active === 'ublock-origin' ? provider?.status().phase ?? (supported ? 'initializing' : 'unsupported') : 'ready',
+      phase: active === 'ublock-origin' ? provider?.status().phase ?? (supported ? (startupFailed ? 'failed' : 'initializing') : 'unsupported') : builtinPhase,
+      error: provider?.status().error ?? (startupFailed ? 'blanc-initialization-failed' : null),
       electron: process.versions.electron, ublock: matrix.ublock, diagnostics: diagnostics.slice(-16),
     };
   }
@@ -82,17 +87,33 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
     }
     return true;
   }
-  function dispose(profileId) {
-    profiles.get(profileId)?.provider.dispose(); profiles.delete(profileId);
-    const owned = sessions.get(profileId);
+  async function dispose(profileId, providedSessions) {
+    const owned = sessions.get(profileId) || providedSessions;
+    const destination = path.join(app.getPath('userData'), 'managed-ublock', profileId);
+    let provider = profiles.get(profileId)?.provider;
+    // Provider selection may have changed since this profile used uBO. Load
+    // the verified principal only to erase its native store; no website views
+    // remain, and filtering selection is unchanged. Failure retains the
+    // existing crash-resumable deletion marker rather than claiming success.
+    if (!provider && fs.existsSync(destination)) {
+      if (!owned) throw new Error('ubo-deletion-session-unavailable');
+      builtin.detachAdBlockerFromSession(owned.normal);
+      provider = createUblockProvider({ session: owned.normal, profileId, hooks });
+      provider.setEnabled(false);
+      profiles.set(profileId, { provider, session: owned.normal });
+      sessions.set(profileId, owned);
+      builtin.coordinator.setProvider(owned.normal, provider);
+    }
+    if (provider) { await provider.eraseStorage(); provider.dispose(); }
+    profiles.delete(profileId);
     if (owned) for (const value of [owned.normal, owned.private]) {
       builtin.detachAdBlockerFromSession(value);
       builtin.coordinator.setProvider(value, null);
     }
     sessions.delete(profileId);
-    fs.rmSync(path.join(app.getPath('userData'), 'managed-ublock', profileId), { recursive: true, force: true });
+    fs.rmSync(destination, { recursive: true, force: true });
   }
   function stop() { for (const entry of profiles.values()) entry.provider.dispose(); profiles.clear(); sessions.clear(); }
-  return { active, status, attach, forTab, effectiveForTab, refresh, setEnabled, retry, dispose, stop };
+  return { active, status, attach, forTab, effectiveForTab, refresh, setEnabled, retry, dispose, stop, notify: () => onStateChange?.() };
 }
 module.exports = { createBlockingProviders };

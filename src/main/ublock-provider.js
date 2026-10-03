@@ -554,6 +554,12 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     helper = undefined; extension = undefined; background = undefined;
     cleaning = false;
   }
+  async function eraseStorage() {
+    if (initializePromise) await initializePromise.catch(() => {});
+    if (phase === 'failed') await retry();
+    if (phase !== 'ready') await initialize();
+    await ask({ kind: 'erase-storage' });
+  }
   function dispose() {
     disposed = true;
     cleanup();
@@ -576,7 +582,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       Promise.resolve().then(() => instances.get(event.sender.id)?.(event, message)).catch(() => {});
     });
   }
-  return { id: 'ublock-origin', initialize, retry, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, dispose, refresh, emit, registry, menus, badges, ownedCss,
+  return { id: 'ublock-origin', initialize, retry, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
     get extensionId() { return extension?.id; } };
 }
 
