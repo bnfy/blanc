@@ -151,3 +151,49 @@ jobs:
         run: xvfb-run -a npm run test:tab-handoff
       - name: Closing the last window quits Blanc (Linux path of #368)
         run: xvfb-run -a npm run test:window-close-quit
+
+  browser-shortcuts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Browser commands and Settings (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          for attempt in 1 2 3 4 5; do
+            xvfb-run -a npm run test:browser-shortcuts:desktop || exit $?
+          done
+      - name: Browser commands and Settings (Windows, five fresh processes)
+        if: runner.os == 'Windows'
+        run: |
+          foreach ($attempt in 1..5) {
+            npm run test:browser-shortcuts:desktop
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Browser commands and Settings (macOS)
+        if: runner.os == 'macOS'
+        run: npm run test:browser-shortcuts:desktop
+      - name: Real Chrome Web Store documents (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:web-store
+      - name: Real Chrome Web Store documents (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:web-store
+      - name: Retain private native command failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-command-failure-${{ runner.os }}
+          path: dist/browser-command-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 3

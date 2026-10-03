@@ -1606,7 +1606,7 @@
         // inline control — the address input must not steal it back.
         addressInput.focus();
         if (prefill) addressInput.setSelectionRange(prefill.length, prefill.length);
-        else addressInput.select();
+        else if (!reshow || !inputTouched) addressInput.select();
       }
     } else if (next === 'find') {
       findInput.focus();
