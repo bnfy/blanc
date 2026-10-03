@@ -373,10 +373,14 @@ async function buildSiteAssets(sunrise) {
   // The homepage's one-shot gold-to-ink reveal uses the same crop and alpha
   // as BrandMark, so its artwork never shifts while the gold fades away.
   const heroMotif = await sharp(sunrise.motif).trim({ threshold: 8 }).png().toBuffer();
-  await emit('site/public/sunrise-hero-mark.png', await sharp(heroMotif)
+  const heroMark = await sharp(heroMotif)
     .resize(256, 256, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 }, kernel: sharp.kernel.lanczos3 })
     .png({ compressionLevel: 9, adaptiveFiltering: true })
-    .toBuffer());
+    .toBuffer();
+  await emit('site/public/sunrise-hero-mark.png', heroMark);
+  // The blocker dialog uses the original gold mark, with the same bytes and
+  // brand-generation check as the canonical website asset.
+  await emit('src/renderer/sunrise-hero-mark.png', heroMark);
 
   // Favicons carry the rays-only crop (the app's own ≤16px rule); the 180px
   // touch icon has room for the full mark.

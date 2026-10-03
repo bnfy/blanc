@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  shieldChipState, shieldPopoverModel, connectionState, connectionFor,
+  shieldChipState, shieldPopoverModel, shieldProviderModel, connectionState, connectionFor,
   committedUrlOf, activeConnection,
 } = require('../../src/main/shield-model');
 
@@ -63,6 +63,150 @@ test('popover site variant when excepted — even with global blocking off', () 
 test('popover global-off variant when not excepted and blocking is off', () => {
   const v = shieldPopoverModel({ url: HTTP, blockedCount: 0, excepted: false, adblockEnabled: false });
   assert.deepEqual(v, { variant: 'global-off', host: 'theverge.com', on: false, countLine: 'Ad blocking is off everywhere', connection: null });
+});
+
+test('failed Blanc filtering shows recovery instead of a site switch or stale successful count', () => {
+  for (const readiness of ['failed', 'unsupported']) {
+    for (const excepted of [true, false]) {
+      const model = shieldPopoverModel({
+        url: HTTP, provider: 'blanc', readiness, excepted,
+        blockedCount: 23, adblockEnabled: true, connection: 'https',
+      });
+      assert.equal(model.variant, 'recovery');
+      assert.equal(model.on, false);
+      assert.equal(model.connection, 'https');
+      assert.match(model.countLine, /needs attention/i);
+      assert.match(model.countLine, /settings.*recover/i);
+      assert.doesNotMatch(model.countLine, /23|Ads allowed/);
+      const disabled = shieldPopoverModel({
+        url: HTTP, provider: 'blanc', readiness, excepted, adblockEnabled: false,
+      });
+      assert.equal(disabled.variant, 'recovery');
+      assert.equal(disabled.on, false);
+      assert.equal(disabled.countLine, 'Ad blocking is off everywhere');
+    }
+  }
+});
+
+test('uBO chip and popover count blocked requests without applying Blanc site exceptions', () => {
+  for (const [blockedCount, noun] of [[0, 'requests'], [1, 'request'], [12, 'requests']]) {
+    const input = { url: HTTP, blockedCount, adblockEnabled: true, provider: 'ublock-origin', connection: 'https' };
+    const chip = shieldChipState({ ...input, excepted: true });
+    const popover = shieldPopoverModel({ ...input, excepted: true });
+    assert.deepEqual(chip, shieldChipState({ ...input, excepted: false }));
+    assert.deepEqual(popover, shieldPopoverModel({ ...input, excepted: false }));
+    assert.equal(chip.count, blockedCount);
+    assert.equal(chip.mode, blockedCount ? 'count' : 'quiet');
+    assert.match(chip.title, new RegExp(`${blockedCount} ${noun} blocked`));
+    assert.equal(popover.variant, 'ublock');
+    assert.equal(popover.countLine, `${blockedCount} ${noun} blocked on this page`);
+    assert.equal(popover.connection, 'https');
+  }
+});
+
+test('uBO popover distinguishes unavailable filtering and global disable from an empty block count', () => {
+  const input = { url: HTTP, blockedCount: 17, excepted: true, provider: 'ublock-origin' };
+  for (const readiness of ['initializing', 'failed', 'unsupported']) {
+    const popover = shieldPopoverModel({ ...input, adblockEnabled: true, readiness });
+    assert.equal(popover.variant, 'ublock');
+    assert.match(popover.countLine, /needs attention/i);
+    assert.doesNotMatch(popover.countLine, /17|Ads allowed/);
+  }
+  const disabled = shieldPopoverModel({ ...input, adblockEnabled: false, readiness: 'failed' });
+  assert.equal(disabled.on, false);
+  assert.equal(disabled.countLine, 'Ad blocking is off everywhere');
+});
+
+test('uBO still withholds site controls on internal pages', () => {
+  assert.equal(shieldPopoverModel({ url: 'blanc://newtab/', provider: 'ublock-origin', adblockEnabled: true }), null);
+  assert.equal(shieldChipState({ url: 'blanc://newtab/', provider: 'ublock-origin', adblockEnabled: true }).mode, 'hidden');
+});
+
+test('provider selection remains separate from the active blocker until restart in either direction', () => {
+  for (const [active, selected, activeLabel, selectedLabel] of [
+    ['blanc', 'ublock-origin', 'Blanc Blocker', 'uBlock Origin'],
+    ['ublock-origin', 'blanc', 'uBlock Origin', 'Blanc Blocker'],
+  ]) {
+    const model = shieldProviderModel({ active, selected, restartPending: true, phase: 'ready', enabled: true, supported: true });
+    assert.equal(model.active, active);
+    assert.equal(model.selected, selected);
+    assert.equal(model.disabled, false);
+    assert.equal(model.ublockAvailable, true);
+    assert.equal(model.canOpenUblock, active === 'ublock-origin');
+    assert.match(model.detail, new RegExp(`${selectedLabel} selected`));
+    assert.match(model.detail, /Restart Blanc to apply/);
+    assert.match(model.detail, new RegExp(`${activeLabel} is still active`));
+  }
+});
+
+test('pending restart preserves the running provider failure, disable, or startup state', () => {
+  for (const [active, selected] of [['blanc', 'ublock-origin'], ['ublock-origin', 'blanc']]) {
+    for (const [phase, enabled, expected] of [
+      ['failed', true, /unavailable.*settings.*recover/i],
+      ['unsupported', true, /unavailable.*settings.*recover/i],
+      ['failed', false, /unavailable.*Blocking is off/],
+      ['ready', false, /Blocking is off/],
+      ['disabled', true, /Blocking is off/],
+      ['initializing', true, /starting/],
+    ]) {
+      const model = shieldProviderModel({ active, selected, restartPending: true, supported: true, phase, enabled });
+      assert.equal(model.active, active);
+      assert.equal(model.selected, selected);
+      assert.match(model.detail, /selected.*Restart Blanc to apply/);
+      assert.match(model.detail, expected);
+      assert.doesNotMatch(model.detail, /is (still )?active|protected/i);
+    }
+  }
+});
+
+test('unsupported uBO stays unavailable while the Blanc selection remains usable', () => {
+  const model = shieldProviderModel({ active: 'blanc', selected: 'blanc', phase: 'ready', enabled: true, supported: false });
+  assert.equal(model.disabled, false);
+  assert.equal(model.ublockAvailable, false);
+  assert.equal(model.canOpenUblock, false);
+  assert.match(model.availability, /uBlock Origin is unavailable/);
+  assert.equal(model.detail, 'Active');
+  assert.match(model.scope, /Private tabs use Blanc Blocker/);
+  assert.match(model.scope, /Each blocker keeps its own site settings/);
+});
+
+test('private shield stays with Blanc and cannot open or select the ordinary uBO provider', () => {
+  for (const phase of ['ready', 'failed', 'unsupported']) {
+    const model = shieldProviderModel({
+      active: 'ublock-origin', selected: 'ublock-origin', supported: true,
+      phase, enabled: true, restartPending: true,
+    }, true);
+    assert.equal(model.active, 'blanc');
+    assert.equal(model.selected, 'blanc');
+    assert.equal(model.disabled, true);
+    assert.equal(model.ublockAvailable, false);
+    assert.equal(model.canOpenUblock, false);
+    assert.match(model.detail, /can’t load uBO in temporary private sessions/);
+    assert.match(model.detail, /Blanc Blocker protects this tab/);
+    assert.equal(model.availability, '');
+    assert.equal(model.scope, '');
+  }
+});
+
+test('original uBO controls require a ready provider but remain reachable when global blocking is off', () => {
+  const status = { active: 'ublock-origin', selected: 'ublock-origin', supported: true, enabled: false };
+  const disabled = shieldProviderModel({ ...status, phase: 'ready' });
+  assert.equal(disabled.canOpenUblock, true);
+  assert.match(disabled.detail, /Blocking is off/);
+  for (const phase of ['initializing', 'failed', 'unsupported']) {
+    assert.equal(shieldProviderModel({ ...status, phase }).canOpenUblock, false);
+  }
+  assert.match(shieldProviderModel({ ...status, enabled: true, phase: 'initializing' }).detail, /starting/);
+  assert.match(shieldProviderModel({ ...status, phase: 'failed' }).detail, /unavailable/);
+});
+
+test('missing provider status leaves the selector disabled without claiming uBO availability', () => {
+  const model = shieldProviderModel(null);
+  assert.equal(model.active, 'blanc');
+  assert.equal(model.selected, 'blanc');
+  assert.equal(model.disabled, true);
+  assert.equal(model.ublockAvailable, false);
+  assert.equal(model.canOpenUblock, false);
 });
 
 // ---- Connection derivation (design: 2026-08-08-site-info-in-shield-popover) ----
@@ -185,4 +329,20 @@ test('the active tab and the popover report the same connection', () => {
     assert.equal(serialized[0].connection, expect);
     assert.equal(popover.connection, serialized[0].connection);
   }
+});
+
+for (const fallback of ['manifest-v2-retired', 'ublock-unavailable']) test(`MV2 retirement identifies the effective blocker without a futile restart or loss of the saved choice (${fallback})`, () => {
+  const state = { active: 'blanc', selected: 'ublock-origin', phase: 'ready', enabled: true, supported: false, fallback, restartPending: false };
+  const model = shieldProviderModel(state);
+  assert.equal(model.active, 'blanc'); assert.equal(model.selected, 'ublock-origin');
+  assert.equal(model.choice, 'blanc'); assert.equal(model.restartPending, false);
+  assert.match(model.detail, /Blanc Blocker is protecting/);
+  assert.match(model.detail, /uBO settings are saved/);
+  assert.match(model.detail, fallback === 'manifest-v2-retired' ? /engine can’t run/ : /isn’t available in this build/);
+  assert.equal(model.canOpenUblock, false); assert.equal(model.ublockAvailable, false);
+  for (const update of [{ enabled: false }, { phase: 'initializing' }, { phase: 'failed' }]) {
+    assert(!shieldProviderModel({ ...state, ...update }).detail.includes('is protecting'));
+  }
+  const privateTab = shieldProviderModel(state, true);
+  assert.equal(privateTab.choice, 'blanc'); assert(!privateTab.detail.includes('settings are saved'));
 });

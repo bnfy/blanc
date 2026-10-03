@@ -1,0 +1,39 @@
+{
+  "alerts": [
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    102,
+    103,
+    104,
+    105,
+    106
+  ],
+  "report": {
+    "cookie91": {
+      "semicolonBackslashControlBytesEncoded": true
+    },
+    "hostname103to106": {
+      "legitimate": 4,
+      "malicious": 4,
+      "allExpected": true
+    },
+    "dictionary102": {
+      "literalPrototypeKey": true,
+      "resetKeepsNullPrototype": true
+    },
+    "highlight95to96": {
+      "ordinaryClosingTag": true,
+      "whitespaceClosingTag": false,
+      "notASanitizer": true
+    },
+    "highlight92to94": {
+      "invalidColorMisclassified": true,
+      "notAnAuthorizationCheck": true
+    }
+  },
+  "passed": true
+}

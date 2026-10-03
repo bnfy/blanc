@@ -239,7 +239,7 @@ test('explicit macOS HTML documents use the narrow local-file capability', () =>
   try {
     const f = harness();
     f.handler.openLocalFiles([text, html, '/tmp/missing.xhtml']);
-    assert.deepEqual(f.created.map((tab) => tab.url), [pathToFileURL(fs.realpathSync(html)).href]);
+    assert.deepEqual(f.created.map((tab) => tab.url), [pathToFileURL(fs.realpathSync.native(html)).href]);
     assert.deepEqual(f.createdOptions, [{ allowLocalFile: true }]);
     assert.deepEqual(f.activated, [1]);
     assert.deepEqual(f.revealed, [f.primary.window]);

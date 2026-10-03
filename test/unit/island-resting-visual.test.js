@@ -47,7 +47,7 @@ test('resting island counter-scales fixed geometry and grows every element toget
   assert.match(face, /backdrop-filter:\s*blur\(16px\)/);
   assert.match(face, /box-shadow:\s*var\(--shadow-island-resting\)/);
   assert.doesNotMatch(face, /box-shadow:[^;]*--island-k/);
-  assert.match(styles, /#islandPill\.proximity-active\s*\{[^}]*translateY\([^}]*scale\(/);
+  assert.match(styles, /#islandPill\.proximity-active:not\(\.shield-open\)\s*\{[^}]*translateY\([^}]*scale\(/);
   assert.doesNotMatch(styles, /#islandPill\.proximity-active::after/);
   assert.match(renderer, /const ISLAND_SCALE = 0\.02/);
   assert.match(renderer, /const scale = 1 \+ ISLAND_SCALE \* k/);

@@ -19,6 +19,6 @@ test('staging status is bounded, redacted, atomic, and owner-only', (t) => {
   const serialized = fs.readFileSync(file, 'utf8');
   assert.equal(JSON.parse(serialized).phase, 'error');
   assert.doesNotMatch(serialized, /example\.test|user:secret|token=nope|API_TOKEN=secret/i);
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  if (process.platform !== 'win32') assert.equal(fs.statSync(file).mode & 0o777, 0o600);
   assert.equal(fs.existsSync(`${file}.fixed.tmp`), false);
 });

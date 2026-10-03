@@ -21,6 +21,11 @@ on:
       tag:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
+      ublock_candidate:
+        description: "Include uBO in a private candidate (requires completed distribution clearance)"
+        required: false
+        default: false
+        type: boolean
       platform:
         description: "Platform jobs to run"
         required: true
@@ -44,7 +49,12 @@ jobs:
           RELEASE_MODE: ${{ inputs.mode }}
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_PLATFORM: ${{ inputs.platform }}
+          UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
         run: |
+          if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
+            echo "uBO candidate input requires private validation mode" >&2
+            exit 1
+          fi
           case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
           case "$RELEASE_PLATFORM" in all|windows|linux) ;; *) exit 1 ;; esac
           if [ "$RELEASE_MODE" = release ]; then
@@ -56,6 +66,12 @@ jobs:
             echo "Validation mode does not accept a release tag" >&2
             exit 1
           fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ inputs.ublock_candidate }}
+      - name: Require distribution clearance before building a bundled candidate
+        if: ${{ inputs.ublock_candidate }}
+        run: node scripts/check-ublock-distribution.cjs --bundled
 
   windows:
     needs: validate-inputs
@@ -88,6 +104,13 @@ jobs:
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
 
+      - name: Require uBlock distribution clearance for public release
+        if: ${{ inputs.mode == 'release' }}
+        run: npm run ublock:distribution
+
+      - name: Verify managed uBlock inputs and adaptation
+        run: npm run ublock:check
+
       - name: Verify dependency compliance inputs
         run: npm run compliance:check
 
@@ -115,6 +138,7 @@ jobs:
       - name: Build Windows installer
         shell: bash
         env:
+          BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && inputs.ublock_candidate && '1' || '0' }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
@@ -162,6 +186,9 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
+
+      - name: Verify packaged uBlock payload and corresponding-source records
+        run: node scripts/verify-packaged-ublock.js dist/win-unpacked/resources/app.asar
 
       - name: Verify packaged compliance payload
         run: node scripts/verify-packaged-compliance.js dist/win-unpacked/resources
@@ -238,8 +265,10 @@ jobs:
           node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
           node test/desktop/windows-update-trust-smoke.cjs
 
-      - name: Verify installed blanc-import protocol
+      - name: Verify installed blanc-import protocol and candidate uBO scripting policy
         shell: pwsh
+        env:
+          UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
         run: |
           $version = node -p "require('./package.json').version"
           $product = node -p "require('./package.json').productName"
@@ -266,6 +295,14 @@ jobs:
             npm run test:packaged:tab-handoff-protocol
             if ($LASTEXITCODE -ne 0) {
               throw "Installed blanc-import protocol smoke failed."
+            }
+            if ($env:UBLOCK_CANDIDATE -eq 'true') {
+              $env:BLANC_PACKAGED_ASAR = Join-Path $installedRoot 'resources/app.asar'
+              $env:BLANC_UBLOCK_EVIDENCE = Join-Path $PWD 'dist/ublock-noscript-windows.json'
+              npm run test:ublock-noscript:packaged
+              if ($LASTEXITCODE -ne 0) {
+                throw "Installed uBO no-scripting probe failed."
+              }
             }
           } finally {
             if (Test-Path $uninstaller) {
@@ -309,6 +346,15 @@ jobs:
             dist/windows-signature.json
             dist/latest.yml
 
+      - name: Preserve Windows candidate scripting-policy evidence
+        if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Windows-uBO-scripting-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 3
+          path: dist/ublock-noscript-windows.json
+
       - name: Upload private signed Windows validation artifact
         if: ${{ inputs.mode == 'validation' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -321,6 +367,7 @@ jobs:
             dist/Blanc-Setup-*.exe.blockmap
             dist/windows-signature.json
             dist/latest.yml
+            dist/ublock-noscript-windows.json
 
   linux:
     needs: validate-inputs
@@ -350,6 +397,13 @@ jobs:
       - name: Verify 1Password macOS-only boundary
         run: xvfb-run -a npm run test:onepassword:utility
 
+      - name: Verify managed uBlock inputs and adaptation
+        run: npm run ublock:check
+
+      - name: Require uBlock distribution clearance for public release
+        if: ${{ inputs.mode == 'release' }}
+        run: npm run ublock:distribution
+
       - name: Verify tag matches package version
         if: ${{ inputs.mode == 'release' }}
         env:
@@ -362,6 +416,8 @@ jobs:
           }
 
       - name: Build
+        env:
+          BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && inputs.ublock_candidate && '1' || '0' }}
         run: npx electron-builder --linux --publish never
 
       - name: Verify build artifacts
@@ -390,6 +446,9 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar
+
+      - name: Verify packaged uBlock payload and corresponding-source records
+        run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
 
       - name: Verify packaged compliance payload
         run: node scripts/verify-packaged-compliance.js dist/linux-unpacked/resources
@@ -496,6 +555,23 @@ jobs:
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
 
+      - name: Verify candidate uBO scripting policy from actual AppImage bytes
+        if: ${{ inputs.mode == 'validation' && inputs.ublock_candidate }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          APPIMAGE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
+          UBLOCK_EVIDENCE="$PWD/dist/ublock-noscript-linux.json"
+          UBLOCK_PROBE="$PWD/test/desktop/packaged-ublock-noscript.mjs"
+          UBLOCK_EXTRACT=$(mktemp -d)
+          trap 'rm -rf "$UBLOCK_EXTRACT"' EXIT
+          cd "$UBLOCK_EXTRACT"
+          "$APPIMAGE" --appimage-extract >/dev/null
+          BLANC_PACKAGED_EXECUTABLE="$UBLOCK_EXTRACT/squashfs-root/blanc" \
+            BLANC_PACKAGED_ASAR="$UBLOCK_EXTRACT/squashfs-root/resources/app.asar" \
+            BLANC_UBLOCK_EVIDENCE="$UBLOCK_EVIDENCE" \
+            dbus-run-session -- xvfb-run -a node "$UBLOCK_PROBE"
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         env:
@@ -516,6 +592,15 @@ jobs:
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
 
+      - name: Preserve Linux candidate scripting-policy evidence
+        if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Linux-uBO-scripting-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 3
+          path: dist/ublock-noscript-linux.json
+
       - name: Upload private Linux validation artifact
         if: ${{ inputs.mode == 'validation' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -526,6 +611,7 @@ jobs:
           path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
+            dist/ublock-noscript-linux.json
 
   linux-sandbox:
     needs: validate-inputs
@@ -548,6 +634,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes dbus-x11 desktop-file-utils xdg-utils xvfb libgtk-3-bin
       - name: Build private AppImage without publishing
+        env:
+          BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.ublock_candidate && '1' || '0' }}
         run: npx electron-builder --linux --publish never
       - name: Extract private candidate
         run: |

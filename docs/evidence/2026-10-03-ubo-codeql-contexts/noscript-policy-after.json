@@ -1,0 +1,24 @@
+{
+  "electron": "44.5.1",
+  "result": {
+    "fallbackText": "Fallback rendered",
+    "originalScriptRan": false,
+    "eventRan": false,
+    "linkRan": false,
+    "scriptRan": false,
+    "metaRan": false,
+    "location": "/probe",
+    "nodeAccess": "undefined",
+    "policy": {
+      "camera": false,
+      "microphone": false,
+      "geolocation": false
+    }
+  },
+  "hits": [
+    "/probe",
+    "/favicon.ico",
+    "/missing.png"
+  ],
+  "passed": true
+}

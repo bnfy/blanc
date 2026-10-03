@@ -955,7 +955,7 @@ body.mac .vertical-tabs-toolbar {
   box-shadow: var(--shadow-island-resting);
 }
 
-#islandPill.proximity-active {
+#islandPill.proximity-active:not(.shield-open) {
   transform:
     translateY(calc(-2px * var(--island-k, 0)))
     scale(calc(1 + 0.02 * var(--island-k, 0)));
@@ -1292,7 +1292,20 @@ body.mac .vertical-tabs-toolbar {
    Without this the hidden shield lingers on internal pages as an empty
    hover-highlightable ghost. */
 .shield[hidden] { display: none; }
-.shield:hover { background: var(--border); }
+.shield:hover, .shield[aria-expanded="true"] { background: var(--border); }
+/* Keep the measured attachment still while its popover is open. */
+#islandPill.shield-open { transform: none; transition: none; }
+#islandPill.shield-open .shield[aria-expanded="true"]::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: calc(4px / var(--pill-zoom)) solid transparent;
+  border-right: calc(4px / var(--pill-zoom)) solid transparent;
+  border-top: calc(5px / var(--pill-zoom)) solid var(--border);
+  pointer-events: none;
+}
 .shield-art {
   display: block;
   width: 16px;
@@ -2883,79 +2896,154 @@ body[data-glance-purpose="change"] .glance-picker {
 /* The overlay view's bounds are the fixed SHIELD_POPOVER_* region from
    chrome-layout.js; the drawn card is inset from its top edge. */
 
+/* Same native popover-point treatment as the Glance attachment; a sibling
+   keeps it outside the scrollable card's clipping area. */
+#shieldPopPointer {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translateX(-50%) rotate(45deg);
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  background: var(--surface-raised);
+  z-index: 1;
+  pointer-events: none;
+}
+#shieldPopPointer[hidden] { display: none; }
+
 #shieldPop {
+  /* The chooser follows the Island's neutral paper/graphite palette.
+     Only the authentic Sunrise mark carries gold. */
+  color-scheme: light dark;
   position: absolute;
   top: 10px;
   left: 12px;
   right: 12px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow-popover);
-  padding: 14px 16px;
-  font-size: 12.5px;
+  border-radius: var(--island-panel-radius);
+  /* Keep the shadow inside this native view's 10px top / 12px side
+     gutters. The shared 44px popover blur clips to a visible rectangle. */
+  box-shadow: 0 4px 12px -6px rgba(14,14,14,0.12);
+  padding: 18px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.4;
   color: var(--text);
 }
-#shieldPop[hidden] { display: none; }
+#shieldPop[hidden], #shieldPop [hidden] { display: none; }
+.shield-pop-header { position: relative; text-align: center; }
+.shield-pop-mark { display: block; width: 28px; height: 28px; object-fit: contain; margin: 3px auto 9px; }
+#shieldPopTitle { margin: 0; font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.02em; }
+#shieldPopHost { margin: 3px 0 0; color: var(--text-dim); font-size: 13px; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shield-pop-nav {
+  position: absolute; top: 0; display: grid; place-items: center; width: 28px; height: 28px;
+  padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); cursor: pointer;
+}
+.shield-pop-back { left: -6px; }
+.shield-pop-close { right: -6px; }
+.shield-pop-nav:hover { background: var(--accent-dim); color: var(--text); }
+.shield-pop-nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.shield-pop-provider-summary { margin-top: 14px; }
+.shield-pop-provider-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.shield-pop-provider-row > div { min-width: 0; }
+.shield-pop-eyebrow { margin: 0 0 4px; color: var(--text-dim); }
+#shieldPopCurrentProvider { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.shield-pop-summary { margin-top: 14px; }
 .shield-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-#shieldPopHost {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.shield-pop-id { min-width: 0; }
-.shield-pop-state { margin-top: 2px; }
-/* A peer of the count line, not a section of its own: same size and rhythm, so
-   connection and blocking read as two facts about the same site. */
-#shieldPopConnection { color: var(--text-dim); font-size: 11.5px; margin-top: 10px; }
+.shield-pop-state { font-weight: 500; }
+#shieldPopOnOff { font-weight: 600; }
+.shield-pop-metadata { margin-top: 8px; padding-top: 2px; border-top: 1px solid var(--border); }
+#shieldPopConnection { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; color: var(--text-dim); padding: 5px 0; }
+#shieldPopConnectionValue { text-align: right; }
 #shieldPopConnection.insecure { color: var(--danger); }
-#shieldPopConnection[hidden] { display: none; }
-#shieldPopCount { color: var(--text-dim); font-size: 11.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.shield-pop-note { color: var(--text-dim); font-size: 11.5px; margin-top: 4px; }
-.shield-pop-note[hidden] { display: none; }
+#shieldPopCount { font-variant-numeric: tabular-nums; }
+.shield-pop-head:not([hidden]) + #shieldPopCount { margin-top: 12px; }
+.shield-pop-note { color: var(--text-dim); font-size: 12px; margin-top: 5px; }
 #shieldPopToggle {
-  appearance: none;
-  width: 34px;
-  height: 20px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  position: relative;
-  flex: 0 0 auto;
-  cursor: pointer;
-  padding: 0;
+  appearance: none; width: 34px; height: 20px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface);
+  position: relative; flex: 0 0 auto; cursor: pointer; padding: 0;
 }
-#shieldPopToggle[hidden] { display: none; }
 #shieldPopToggle .knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  transition: left 120ms ease, background 120ms ease;
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--text-dim); transition: left 120ms ease, background 120ms ease;
 }
 #shieldPopToggle.on { background: var(--accent); border-color: var(--accent); }
 #shieldPopToggle.on .knob { left: 16px; background: var(--bg); }
+#shieldPop[data-step="chooser"] .shield-pop-header {
+  display: grid; grid-template-columns: 24px 28px minmax(0, 1fr) 24px;
+  column-gap: 10px; text-align: left; align-items: center;
+}
+#shieldPop[data-step="chooser"] .shield-pop-mark { grid-column: 2; grid-row: 1 / 3; width: 28px; height: 28px; margin: 0; }
+#shieldPop[data-step="chooser"] #shieldPopTitle { grid-column: 3; grid-row: 1; font-size: 16px; }
+#shieldPop[data-step="chooser"] #shieldPopHost { grid-column: 3; grid-row: 2; font-size: 12px; white-space: normal; }
+#shieldPop[data-step="chooser"] .shield-pop-back { grid-column: 1; grid-row: 1 / 3; position: static; }
+#shieldPop[data-step="chooser"] .shield-pop-close { grid-column: 4; grid-row: 1 / 3; position: static; }
+#shieldPopProvider { border: 0; padding: 0; margin: 16px 0 0; min-width: 0; }
+#shieldPopProvider label {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 0; min-height: 64px; border-radius: 0; cursor: pointer;
+}
+#shieldPopProvider label + label { border-top: 1px solid var(--border); }
+#shieldPopProvider label:has(input:disabled) { cursor: default; }
+#shieldPopProvider input { margin: 0; width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--accent); }
+#shieldPopProvider input:disabled { opacity: 0.45; }
+#shieldPopProvider input:focus-visible { outline: auto; outline-offset: 2px; }
+.shield-provider-name { min-width: 0; }
+.shield-provider-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+.shield-provider-name strong { font-size: 15px; line-height: 20px; font-weight: 500; letter-spacing: -0.015em; }
+.shield-provider-name small { display: block; margin-top: 3px; color: var(--text-dim); font-size: 12px; line-height: 18px; }
+.shield-provider-active { color: var(--text-dim); font-size: 12px; }
+.shield-pop-chooser-note { padding-top: 14px; border-top: 1px solid var(--border); }
+.shield-pop-chooser-note p { margin: 0; font-size: 12px; line-height: 20px; color: var(--text-dim); }
+#shieldPopChooserError { margin: 10px 0 0; color: var(--text); font-size: 12px; }
+.shield-pop-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+.shield-pop-primary {
+  min-width: 68px; min-height: 38px; padding: 7px 16px; border: 1px solid var(--text);
+  border-radius: 8px; background: var(--text); color: var(--surface-raised);
+  font: inherit; font-weight: 550; cursor: pointer;
+}
+.shield-pop-primary:disabled { opacity: 0.45; cursor: default; }
+.shield-pop-primary:hover:enabled { opacity: 0.88; }
+.shield-pop-change {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 0 0 auto; align-self: flex-end; margin-bottom: -4px; min-height: 32px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); font: inherit;
+  padding: 4px 0 4px 8px; cursor: pointer;
+}
+.shield-pop-change:hover:enabled { color: var(--accent); }
+.shield-pop-change:disabled { cursor: default; opacity: 0.45; }
+#shieldPopProviderStatus { margin: 3px 0 0; font-size: 13px; color: var(--text-dim); }
+#shieldPop[data-restart-pending="true"] #shieldPopProviderStatus { border-left: 2px solid var(--accent); padding-left: 9px; color: var(--text); }
+.shield-pop-ubo {
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px;
+  min-height: 32px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); font: inherit;
+  font-weight: 500; text-align: left; padding: 4px 0; margin-top: 9px; cursor: pointer;
+}
+.shield-pop-ubo:hover { color: var(--accent); }
 .shield-pop-footer {
-  appearance: none;
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  border-top: 1px solid var(--border);
-  color: var(--text-dim);
-  font: inherit;
-  font-size: 11.5px;
-  margin-top: 10px;
-  padding: 8px 0 0;
-  cursor: pointer;
+  appearance: none; display: flex; align-items: center; justify-content: space-between;
+  width: 100%; text-align: left; background: none; border: none;
+  border-radius: 6px; color: var(--text-dim); font: inherit;
+  margin: 0; padding: 5px 0; cursor: pointer;
 }
 .shield-pop-footer:hover { color: var(--text); }
+/* Standard Lucide external-link and chevron-right paths, under the existing
+   third-party icon notice; the Sunrise brand artwork remains the real asset. */
+.shield-pop-change svg, .shield-pop-ubo svg, .shield-pop-footer svg {
+  width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor;
+  stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
+}
+#shieldPopProviderScope { margin: 8px 0 0; padding-top: 10px; border-top: 1px solid var(--border); white-space: pre-line; }
+#shieldPop button:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+
+:root[data-theme="private"] #shieldPop { border-style: dashed; color-scheme: dark; }
 
 /* ---------- Permission prompt capsule (in the strip, beside the pill) ---------- */
 

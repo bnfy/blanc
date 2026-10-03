@@ -167,6 +167,7 @@ test('serializeTabs could be lifted from main.js', () => {
 
 function runSerializeTabs(tabList) {
   const sandbox = {
+    blockingProviders: null,
     settings: { getSettings: () => ({ adblockEnabled: true, adblockExceptions: [] }) },
     rt: () => ({ tabOrder: tabList.map((tab) => tab.id) }),
     tabs: new Map(tabList.map((tab) => [tab.id, tab])),

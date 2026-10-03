@@ -29,3 +29,34 @@
 /src/main/permissions.js text eol=lf
 /src/renderer/display-capture-helper.html text eol=lf
 /src/main/overlay-view-lifecycle.js text eol=lf
+ublock/upstream/** -text
+ublock/sources/** -text
+
+# Verified upstream bytes and their exact generated patch retain upstream whitespace.
+ublock/upstream/** -whitespace
+ublock/adaptation.patch -whitespace
+
+# Managed host inputs and adaptation hashes must reproduce on Windows.
+/src/main/ublock-*.js text eol=lf
+/src/renderer/ublock-popup.css text eol=lf
+/src/renderer/ublock-popup-icons/* text eol=lf
+/ublock/adaptation.* text eol=lf
+
+/src/renderer/ublock-dashboard.css text eol=lf
+
+# Reproducible signed session-preload scope wrappers (original runtimes stay pinned).
+/src/main/scoped-capture-preload.js text eol=lf
+/src/main/scoped-capture-preload-linux.js text eol=lf
+/src/main/scoped-capture-preload-playout.js text eol=lf
+
+# Byte-checked source/host records, including default Windows checkouts.
+/ublock/*.json text eol=lf
+/ublock/*.md text eol=lf
+/ublock/LICENSE.txt text eol=lf
+/ublock/identity.json text eol=lf
+/ublock/source-audit.json text eol=lf
+/ublock/pinned.json text eol=lf
+/src/main/blocking-resources.js text eol=lf
+
+# Full license texts are byte-checked with the uBO source inputs.
+/ublock/licenses/*.txt text eol=lf

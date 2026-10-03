@@ -404,6 +404,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // navigation uses loadURL and therefore bypasses this page-initiated guard.
   wc.on('will-navigate', boundToTab((event, targetUrl) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if (/^chrome-extension:/i.test(targetUrl) && !wc.getURL().startsWith('chrome-extension://')) { event.preventDefault(); return; }
     if (getOwner().resident && !/^https?:/i.test(targetUrl)) { event.preventDefault(); return; }
     if (isForbiddenTopLevelUrl(targetUrl)) {
       event.preventDefault();
@@ -429,7 +430,7 @@ function wireTabView(tab, view, { owner, adopted }) {
       return;
     }
     if (errorCode === -3) return;
-    if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
+    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {
           url: validatedURL,
@@ -497,7 +498,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   // requests (OAuth/SSO and payments) keep a real BrowserWindow so their
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
-    installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs));
+    installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs),
+      (url, source, event) => deps.allowManagedExtensionNavigation?.(tab, targetWc, url, source, event) === true);
     targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition, referrer }) => {
       if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
@@ -507,7 +509,8 @@ function wireTabView(tab, view, { owner, adopted }) {
       }
       if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) return { action: 'deny' };
       const source = targetWc.getURL();
-      if (handOffToOs(targetUrl, { source })) return { action: 'deny' };
+      const managedExtension = /^chrome-extension:/i.test(targetUrl) && deps.allowManagedExtensionNavigation?.(tab, targetWc, targetUrl, source, { isMainFrame: true }) === true;
+      if (!managedExtension && handOffToOs(targetUrl, { source })) return { action: 'deny' };
       if (disposition === 'new-window') {
         return {
           action: 'allow',
@@ -532,7 +535,7 @@ function wireTabView(tab, view, { owner, adopted }) {
             : null;
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
-            private: tab.private, groupId: tab.groupId, view: childView,
+            private: tab.private, groupId: tab.groupId, view: childView, managedExtension,
             openerTabId: childView ? tab.id : null,
             // Custom creation bypasses Electron's normal construction and
             // navigation. Keep the inherited HTML/CSP sandbox and referrer
@@ -545,12 +548,12 @@ function wireTabView(tab, view, { owner, adopted }) {
         }),
       };
     }));
-    targetWc.on('did-create-window', boundToTab((childWindow) => {
+    targetWc.on('did-create-window', boundToTab((childWindow, details) => {
       const childId = childWindow.webContents.id;
       const isManagedTab = [...tabs.values()].some((candidate) => liveContents(candidate)?.id === childId);
       if (!isManagedTab) {
         applyWindowOpenPolicy(childWindow.webContents);
-        notePopupChild(tab.id, childWindow);
+        notePopupChild(tab.id, childWindow, targetWc.id, details?.url);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
         windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
@@ -565,6 +568,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   };
   applyWindowOpenPolicy(wc);
   attachContextMenu(wc, {
+    extensionItems: (params) => deps.extensionContextItems?.(tab, params) ?? [],
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;

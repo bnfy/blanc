@@ -1,0 +1,26 @@
+uBlock Origin: 1.75.0
+Chromium: 154
+filterset (summary):
+ network: 182230
+ cosmetic: 43912
+ scriptlet: 37944
+ html: 0
+listset (total-discarded, last-updated):
+ default:
+  user-filters: 2-0, never
+  ublock-filters: 53655-90, 2m
+  ublock-badware: 10343-17, 2m
+  ublock-privacy: 4171-4, 2m
+  ublock-unbreak: 2834-1, 2m
+  ublock-quick-fixes: 566-0, 2m
+  easylist: 86005-490, 2m
+  easyprivacy: 56767-751, 2m
+  urlhaus-1: 47685-11, 2m
+  plowe-0: 3551-0, 2m
+filterset (user): [array of 1 redacted]
+userSettings: [none]
+hiddenSettings: [none]
+supportStats:
+ allReadyAfter: 1110 ms
+ maxAssetCacheWait: 11 ms
+ cacheBackend: indexedDB

@@ -10,6 +10,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+if [ "${BLANC_UBLOCK_INTERNAL_BUILD:-0}" = "1" ]; then
+  echo "Internal uBlock validation packages cannot enter the release pipeline." >&2
+  exit 1
+fi
+
 REPO="bnfy/blanc"
 VERSION=$(node -p "require('./package.json').version")
 TAG="v$VERSION"
@@ -220,6 +225,7 @@ RELEASE_SOURCES=(
   tokens
   copy
   adblock
+  ublock
   compliance
   docs/press
   docs/grants
@@ -245,6 +251,7 @@ if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
 fi
 
 echo "==> Installing locked dependencies and running the press verification gate"
+npm run ublock:distribution
 npm ci
 npm ci --prefix site
 npm run release:verify:press
@@ -412,7 +419,7 @@ node scripts/verify-release-manifest.mjs \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
-cp compliance/runtime-sbom.cdx.json "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
+cp "dist/$NATIVE_MAC_DIR/Blanc.app/Contents/Resources/runtime-sbom.cdx.json" "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."

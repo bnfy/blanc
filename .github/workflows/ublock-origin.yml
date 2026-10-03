@@ -1,0 +1,88 @@
+name: Full uBlock Origin candidate
+on:
+  pull_request:
+    paths:
+      - 'src/main/**'
+      - 'src/renderer/renderer.js'
+      - 'src/renderer/overlay*'
+      - 'src/renderer/index.html'
+      - 'src/renderer/styles.css'
+      - 'src/renderer/pages/settings*'
+      - 'src/renderer/ublock-*'
+      - 'src/renderer/ublock-popup-icons/**'
+      - 'ublock/**'
+      - 'test/desktop/ublock*'
+      - 'test/desktop/shield-provider*'
+      - 'test/desktop/support/**'
+      - 'test/unit/ublock*'
+      - 'test/unit/blocking*'
+      - 'test/unit/shield*'
+      - 'scripts/*ublock*'
+      - 'scripts/*capture-preload*'
+      - 'scripts/verify-packaged-*'
+      - 'scripts/generate-compliance*'
+      - 'adblock/**'
+      - 'compliance/**'
+      - '.gitattributes'
+      - 'package*.json'
+      - '.github/workflows/ublock-origin.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ordinary-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Build ordinary public payload with its production allowlist
+        run: npx electron-builder --linux --dir --publish never
+      - name: Verify ordinary payload and exclusion boundary
+        run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Preserve verified bytes on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Unit evidence checks read immutable release tags and commits.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable native Linux renderer sandbox
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci --no-audit --no-fund
+      - run: npm run ublock:check
+      - run: npm run lint
+      - run: npm run test:unit
+      - name: Real blocking, original tools, isolation and lifecycle
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a npm run test:shield-provider:desktop
+            xvfb-run -a npm run test:ublock:desktop
+            xvfb-run -a npm run test:ublock-dashboard:desktop
+            xvfb-run -a npm run test:ublock-retirement:desktop
+            xvfb-run -a npm run test:ublock-unavailable:desktop
+            xvfb-run -a npm run test:ublock-noscript:desktop
+          else
+            npm run test:shield-provider:desktop
+            npm run test:ublock:desktop
+            npm run test:ublock-dashboard:desktop
+            npm run test:ublock-retirement:desktop
+            npm run test:ublock-unavailable:desktop
+            npm run test:ublock-noscript:desktop
+          fi

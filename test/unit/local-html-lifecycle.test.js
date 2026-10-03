@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const { pathToFileURL } = require('node:url');
 const { isSupportedLocalHtmlUrl } = require('../../src/main/local-html-files');
 const { isForbiddenTopLevelUrl } = require('../../src/main/top-level-url-policy');
 
@@ -13,9 +14,11 @@ const duplicateSource = source.match(/function duplicateTab\(id\) \{[\s\S]*?\n\}
 
 test('Duplicate Tab retains a granted local HTML URL, but cannot grant an arbitrary file URL', () => {
   assert.ok(duplicateSource);
+  const opened = pathToFileURL(path.resolve('/tmp/opened.html')).href;
+  const typed = pathToFileURL(path.resolve('/tmp/typed.html')).href;
   const tabs = new Map([
-    ['granted', { url: 'file:///tmp/opened.html', localFile: true, private: false }],
-    ['ungranted', { url: 'file:///tmp/typed.html', localFile: false, private: false }],
+    ['granted', { url: opened, localFile: true, private: false }],
+    ['ungranted', { url: typed, localFile: false, private: false }],
   ]);
   const created = [];
   const runtime = { tabOrder: ['granted', 'ungranted'] };
@@ -32,7 +35,7 @@ test('Duplicate Tab retains a granted local HTML URL, but cannot grant an arbitr
   vm.runInNewContext(`${duplicateSource}\nthis.duplicate = duplicateTab;`, sandbox);
   sandbox.duplicate('granted');
   sandbox.duplicate('ungranted');
-  assert.deepEqual(created, ['file:///tmp/opened.html', 'blanc://newtab/']);
+  assert.deepEqual(created, [opened, 'blanc://newtab/']);
 });
 
 test('startup and named-workspace restore require an explicit persisted grant', () => {
