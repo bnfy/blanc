@@ -158,6 +158,10 @@ jobs:
 
   installed-signed-intel:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_signed_intel }}
+    # Owner explicitly approved this temporary permission after the read-only
+    # draft download failed. Remove it after the exact signed intake.
+    permissions:
+      contents: write
     runs-on: macos-15-intel
     timeout-minutes: 25
     steps:

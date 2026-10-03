@@ -46,3 +46,10 @@ GitHub cannot dispatch a new workflow absent from the default branch. The
 prepared job therefore uses the existing uBO workflow with a separate explicit
 input. It retains the existing read-only repository token and has no publication
 step. Draft visibility will be checked by the actual download.
+
+The read-only intake [37163396194](https://github.com/bnfy/blanc/actions/runs/37163396194)
+failed at draft download (`release not found`), before launching any app. On
+October 3 the owner explicitly approved **“Yes—temporary job permission, test,
+and remove”** for `contents: write` on this intake job only. This is required
+for GitHub draft visibility and is removed after testing; the job still has no
+publication step.
