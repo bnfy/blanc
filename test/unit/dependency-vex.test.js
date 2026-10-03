@@ -9,6 +9,22 @@ const ROOT = path.resolve(__dirname, '../..');
 const readJson = (name) => JSON.parse(fs.readFileSync(path.join(ROOT, name), 'utf8'));
 const tooling = ['web-ext', '@devicefarmer/adbkit', 'node-forge'];
 
+const ublockFiles = new Set(['ublock/**/*', 'scripts/check-ublock-package.cjs', 'scripts/build-ublock-adaptation.cjs']);
+function assertReviewedDesktopFiles(desktop) {
+  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
+    if (ublockFiles.has(pattern)) continue;
+    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
+      'a broader desktop source allowlist requires VEX payload review');
+  }
+  if (!desktop.build.files.some(pattern => ublockFiles.has(pattern))) return;
+  // The reachability review covers the exact pinned payload and two scripts,
+  // never an arbitrary scripts/ or third-party source allowlist.
+  const { createHash } = require('node:crypto');
+  assert.equal(createHash('sha256').update(JSON.stringify(readJson('ublock/pinned.json'))).digest('hex'),
+    'b7ddaae82e7854b050758f1bce95e621c92dfcb55ac8b110a8a16fd108a74118',
+    'changed uBO payload requires VEX reachability re-review');
+}
+
 test('node-forge VEX remains limited to the reviewed, unused Android tooling', () => {
   const statement = readJson('security/openvex.json').statements.find(
     (entry) => entry.vulnerability.name === 'GHSA-86w9-cpqp-85rv' && entry.status === 'not_affected'
@@ -52,12 +68,7 @@ test('node-forge VEX remains limited to the reviewed, unused Android tooling', (
   }, 'new companion commands require re-review of the VEX execution boundary');
 
   const desktop = readJson('package.json');
-  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
-    // The uBO payload is pinned, contains no Android bridge, and its two
-    // reproduction scripts require only Node built-ins + the shipped host.
-    assert.match(pattern, /^(?:src\/|adblock\/sources\/|ublock\/|scripts\/(?:check-ublock-package|build-ublock-adaptation)\.cjs$|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
-      'a broader desktop source allowlist requires VEX payload review');
-  }
+  assertReviewedDesktopFiles(desktop);
 });
 
 test('http-cache-semantics VEX remains limited to the reviewed, cache-free build tooling', () => {
@@ -97,10 +108,7 @@ test('http-cache-semantics VEX remains limited to the reviewed, cache-free build
   const desktop = readJson('package.json');
   assert.equal(desktop.build.electronDownload, undefined,
     'build.electronDownload can pass a got cache option; re-review the VEX execution boundary');
-  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
-    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
-      'a broader desktop source allowlist requires VEX payload review');
-  }
+  assertReviewedDesktopFiles(desktop);
 
   // Website: astro's remote-image revalidation is the only consumer, and the static site uses no images through it.
   const siteLock = readJson('site/package-lock.json');

@@ -172,3 +172,20 @@ rebuild passed upstream/adaptation/source/license/compliance payload hooks; the
 unchanged after-sign gate then rejected the unsigned app's missing provisioning
 profile. That is payload evidence only, not a successful signed package or
 installed launch. Public signing and provisioning checks remain mandatory.
+
+### Current-main dependency guard re-review
+
+Run `37123747958` at `4b3c88af` stopped all four jobs at the new dependency
+reachability guard from main PR #493, before native tests ran. Merged main at
+`78593547` and reviewed the exact three additional uBO package patterns against
+the existing cache/Android-tooling VEX determinations. The lockfiles are
+unchanged; the inspected internal ASAR includes none of the affected downloader
+or Android-tooling modules. The guards accept only those exact patterns and
+pin the canonical uBO manifest digest so future payload changes require review.
+See `docs/security-reviews/2026-10-03-http-cache-semantics.md`. No VEX statement
+or advisory policy was disabled or expanded.
+
+After that merge and review, lint, both VEX guard tests, all 2,104 local unit
+tests and `npm run security:dependencies` passed. The dependency advisory is
+accounted for by main's reviewed VEX, superseding the earlier unresolved audit
+status in this record. Fresh native matrix confirmation remains required.
