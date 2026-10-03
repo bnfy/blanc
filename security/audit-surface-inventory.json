@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
@@ -204,7 +204,7 @@
     },
     {
       "file": "src/main/linux-sandbox-launch.js",
-      "sha256": "2aaf4d7ecb0c53c53c1dfea6fbd4729f1e267f9f61794495ccd5407c299fd403",
+      "sha256": "f36c9764b8f4384b7f9580872bb74abbe4e3e2a241cdd6b74c280fc18b2a687e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -216,7 +216,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "cfcd400cfa7954e1278733e0bbc879c4f3ef8516b780da46152237d5a100b413",
+      "sha256": "3185e5ce30059fd862c6d14f6e273bb548fd68bf669c60e9f9edbde50b56ba33",
       "literalChannels": [
         "activate",
         "before-input-event",
