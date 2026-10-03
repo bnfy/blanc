@@ -63,3 +63,12 @@ Dormont. These inputs and the record itself are hash-checked by `pinned.json`.
 Running `check-ublock-package.cjs --write` preserves and verifies this inventory.
 Availability of these preferred sources does not establish exact build
 reproduction or close the remaining distribution assessment.
+
+
+The same inventory now pins uAssets main and production snapshots used by the
+1.75.0 release. All thirteen separately copied assets match those immutable
+revisions exactly; five minified uBO lists also rebuild from the main archive's
+preferred text/templates with upstream's recorded timestamp substitution.
+See `docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json`.
+These source archives are distribution inputs only; no archived build script is
+extracted or executed by Blanc at runtime or during packaging.

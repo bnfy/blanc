@@ -21,7 +21,7 @@ function assertReviewedDesktopFiles(desktop) {
   // never an arbitrary scripts/ or third-party source allowlist.
   const { createHash } = require('node:crypto');
   assert.equal(createHash('sha256').update(JSON.stringify(readJson('ublock/pinned.json'))).digest('hex'),
-    '71f33634e9cb016e1386b625b1c55b7d2d1a7713613d9437c40694b6ac9010ad',
+    '3ec2be1d5a5e44bfe0963602cd9a5cb269f48391e48b22a86ac9e6cdc341eabe',
     'changed uBO payload requires VEX reachability re-review');
 }
 

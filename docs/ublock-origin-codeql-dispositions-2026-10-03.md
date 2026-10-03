@@ -80,13 +80,13 @@ isolated temporary profile, sandbox enabled and Node disabled:
   adapted. [Official permissions syntax](https://github.com/gorhill/uBlock/wiki/Static-filter-syntax#permissions)
   specifies replacing the separators.
 
-Local probe logs: `/private/tmp/pr490-noscript-probe.log`,
-`/private/tmp/pr490-noscript-policy-before.log`,
-`/private/tmp/pr490-noscript-policy-after.log`, and
-`/private/tmp/pr490-codeql-context-probes.log`. These temporary logs contain only
-fixture results. They are not a durable source offer or release attestation.
-The source-level recommendations above remain inspectable from this commit and
-the pinned package.
+[Durable probe evidence](evidence/2026-10-03-ubo-codeql-contexts/README.md)
+now preserves the three earlier native JSON outputs and a fresh, reproducible
+source-context report. The native probe fixture itself was not retained and
+those native observations were not rerun for this evidence commit; that limit
+is explicit in the evidence README. These are not release attestations or
+all-platform installed acceptance. The source-level recommendations remain
+inspectable against the pinned package.
 
 Before changing GitHub dispositions, review the evidence for each numbered
 alert and its exact deployed version. Do not characterize the real editor

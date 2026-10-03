@@ -54,8 +54,8 @@ are accounted for. The remaining files are the transformed Chromium manifest
 and thirteen separately fetched filter/metadata/license assets (EasyList,
 EasyPrivacy, Peter Lowe, Public Suffix List, URLhaus and uAssets). Their exact
 shipped bytes and adjacent notices are preserved in the pinned official ZIP
-inventory, but their preferred-source/build input history is not yet bound to
-this release. See `ublock/source-audit.json` for every file and match.
+inventory, and the follow-up below binds their release input snapshots. Preferred-source
+completeness remains a separate question. See `ublock/source-audit.json` for every file and match.
 
 Additionally, matching a minified file inside the upstream source archive does
 not prove that file is its preferred form for modification. The packaged
@@ -88,3 +88,25 @@ and a runtime SBOM for the actual included components. The after-pack check
 rejects any upstream uBO file in that baseline. The release manifest uses the
 verified packaged runtime SBOM rather than the source inventory. An internal package created solely for owner inspection is explicitly marked
 by its build command, and is not a release or updater artifact.
+
+
+## October 3 source-evidence follow-up
+
+The [component evidence](evidence/2026-10-03-ubo-component-rebuilds/README.md)
+now pins the uAssets source and production revisions supplying all thirteen
+separately fetched assets, with exact byte matches. Five minified uBO lists
+were rebuilt from the pinned templates and source lists and matched exactly
+after applying their recorded upstream modification timestamps. EasyList and
+EasyPrivacy have exact input snapshots here; their own multi-file assembly is
+not claimed reproduced.
+
+The same evidence records js-beautify's exact build after its trailing-newline
+normalization, CSS Tree's one-byte exported-version mismatch, and HSLuv's pinned
+preferred source and matching prebuilt file. The original 644/658 source-tag
+comparison remains unchanged because that audit deliberately covers only the
+uBO tag archive. The separate asset evidence supplements it.
+
+These are technical source-provenance improvements. HSLuv compiler reproduction,
+the remaining LZ4 WASM optimization build, font provenance, complete component
+notices, the combined-work/native-SDK boundary and reserved identity terms are
+still unresolved. No distribution flag or licensing grant changed.

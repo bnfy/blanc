@@ -41,6 +41,64 @@
         "hsluv-9cd8574fad8874828b3a8119843527d62d79887a/javascript/dist/hsluv-0.1.0.min.js"
       ],
       "buildReproduced": false
+    },
+    {
+      "name": "uAssets-1.75.0-main",
+      "repository": "uBlockOrigin/uAssets",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7",
+      "file": "uAssets-1.75.0-main.tar.gz",
+      "sourcePath": "sources/uAssets-1.75.0-main.tar.gz",
+      "role": "preferred filter sources and build scripts",
+      "runtimePaths": [
+        "assets/thirdparties/pgl.yoyo.org/as/README.md",
+        "assets/thirdparties/pgl.yoyo.org/as/serverlist",
+        "assets/thirdparties/publicsuffix.org/list/effective_tld_names.dat",
+        "assets/thirdparties/urlhaus-filter/LICENSE.md",
+        "assets/thirdparties/urlhaus-filter/urlhaus-filter-online.txt"
+      ],
+      "exactBundledMatches": [
+        "thirdparties/pgl.yoyo.org/as/README.md",
+        "thirdparties/pgl.yoyo.org/as/serverlist",
+        "thirdparties/publicsuffix.org/list/effective_tld_names.dat",
+        "thirdparties/urlhaus-filter/LICENSE.md",
+        "thirdparties/urlhaus-filter/urlhaus-filter-online.txt"
+      ],
+      "buildReproduced": false,
+      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
+    },
+    {
+      "name": "uAssets-1.75.0-prod",
+      "repository": "uBlockOrigin/uAssets",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sha256": "09dff5368b8d135432ca2e5967c8850261747e3c32ebbf988dcc5af009bad97e",
+      "file": "uAssets-1.75.0-prod.tar.gz",
+      "sourcePath": "sources/uAssets-1.75.0-prod.tar.gz",
+      "role": "exact release asset snapshot",
+      "runtimePaths": [
+        "assets/thirdparties/easylist/easylist.txt",
+        "assets/thirdparties/easylist/easyprivacy.txt",
+        "assets/ublock/badlists.txt",
+        "assets/ublock/badware.min.txt",
+        "assets/ublock/filters.min.txt",
+        "assets/ublock/privacy.min.txt",
+        "assets/ublock/quick-fixes.min.txt",
+        "assets/ublock/unbreak.min.txt"
+      ],
+      "exactBundledMatches": [
+        "thirdparties/easylist.txt",
+        "thirdparties/easyprivacy.txt",
+        "filters/badlists.txt",
+        "filters/badware.min.txt",
+        "filters/filters.min.txt",
+        "filters/privacy.min.txt",
+        "filters/quick-fixes.min.txt",
+        "filters/unbreak.min.txt"
+      ],
+      "buildReproduced": false,
+      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
     }
   ]
 }

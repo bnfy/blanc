@@ -101,7 +101,7 @@ test('every byte-checked text host input and package record is LF-pinned for def
 test('source inventory regeneration retains immutable component archives and rejects tampering', t => {
   const { sourceInputs } = require('../../scripts/check-ublock-package.cjs');
   const sources = sourceInputs(path.join(root, 'ublock'));
-  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0.tar.gz']) assert(sources.some(source => source.path === member), member);
+  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0.tar.gz', 'sources/uAssets-1.75.0-main.tar.gz', 'sources/uAssets-1.75.0-prod.tar.gz']) assert(sources.some(source => source.path === member), member);
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(),'ubo-source-record-'));
   t.after(() => fs.rmSync(temporary,{recursive:true,force:true}));
   fs.mkdirSync(path.join(temporary,'sources'));

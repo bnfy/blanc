@@ -298,3 +298,38 @@ ready. This is the intended outside-input behavior, not evidence of a provider
 failure. Do not suppress that production policy to make automation pass. The
 isolated hosted jobs must validate the final readiness correction; the earlier
 complete local core run passed but does not certify that correction.
+
+
+## Source inputs, durable security evidence and review request
+
+At 14:35 Eastern on October 3, the owner-approved availability request was sent
+from `anthony@bnfy.me` to `compliance-lab@fsf.org`, referencing FSF ticket
+#2769466 and the immutable `0966d6e4` review packet. Sent-folder delivery was
+verified. The request asks about scope, turnaround and fees and authorizes no
+paid work. This is a request for review, not distribution clearance.
+
+Two immutable uAssets archives now bind all thirteen fetched release assets.
+Five minified uBO lists rebuild exactly with their upstream timestamps. The
+[evidence](evidence/2026-10-03-ubo-component-rebuilds/README.md) distinguishes
+exact input matching from preferred-source reproduction. The new archives are
+opaque corresponding-source payloads: packaging and runtime do not extract or
+execute their scripts. The payload guard digest was updated after reviewing
+that boundary; runtime dependencies and the RSA, Android and cache-path VEX
+assessments are unchanged. No advisory exception was added or broadened.
+Package, adaptation and compliance checks and 19 focused source/VEX/compliance
+unit tests passed after adding the archives.
+
+The [security evidence](evidence/2026-10-03-ubo-codeql-contexts/README.md) also
+preserves the earlier noscript/header JSON observations with their explicit
+reproducibility limit and a fresh source-context report. All 39 upstream alert
+source hashes still match. The merge-ref API reports the same 39 open vendored
+alerts, zero first-party alerts; none were dismissed and scanning stays on.
+
+At `0966d6e4`, [run 37144642740](https://github.com/bnfy/blanc/actions/runs/37144642740)
+passed ordinary packaging, Windows, Linux and Apple Silicon macOS. Intel macOS
+failed waiting 20 seconds for a newly created profile's provider to become
+ready; the final status was `initializing`, with no provider error recorded.
+The queued first navigation was cancelled during startup as designed, but its
+subsequent release was not verified. A rerun of that exact Intel job is being
+used to investigate; this first failure remains part of the record and is not
+counted as a pass. No request deadline, sandbox setting or runtime pin changed.

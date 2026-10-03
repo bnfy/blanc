@@ -17,7 +17,7 @@
     },
     {
       "path": "preferred-sources.json",
-      "sha256": "b67b84f37fb3bed43ecb54a8fd8678708adf674b4224f34167f8b7b3e0ccf1ff"
+      "sha256": "f8169393a183c5a19e0f4db36818ee61fad33c644411eeb891cc62ab89c992f6"
     },
     {
       "path": "sources/css-tree-2.2.1.tar.gz",
@@ -33,6 +33,16 @@
       "path": "sources/hsluv-0.1.0.tar.gz",
       "url": "https://codeload.github.com/hsluv/hsluv/tar.gz/9cd8574fad8874828b3a8119843527d62d79887a",
       "sha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee"
+    },
+    {
+      "path": "sources/uAssets-1.75.0-main.tar.gz",
+      "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7"
+    },
+    {
+      "path": "sources/uAssets-1.75.0-prod.tar.gz",
+      "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sha256": "09dff5368b8d135432ca2e5967c8850261747e3c32ebbf988dcc5af009bad97e"
     }
   ],
   "files": [

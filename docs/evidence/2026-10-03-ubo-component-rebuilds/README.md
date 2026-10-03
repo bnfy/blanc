@@ -49,3 +49,29 @@ LZ4 optimizer reproduction, font and separately fetched filter provenance,
 individual notices and the concrete combined-work/native SDK/artwork assessment
 remain open. A qualified distribution review should determine each component's
 actual source obligations; byte-exact compiler output alone is not clearance.
+
+
+## All 13 separately fetched release inputs located
+
+The immutable uAssets source revision
+`f9bd781375aeefae03196d07d079c772fa15e3e6` and production revision
+`11527b7c1a4d432095cc3890dac2c35d9ebd122f` account for every one of the 13
+asset files absent from the uBO source-tag audit. Both archives are now pinned
+under `ublock/sources/`. [asset-inputs.json](asset-inputs.json) maps each package
+path to its exact revision/path/SHA-256. This closes the fetched-input identity
+gap; it does not establish every component's preferred-source obligations.
+
+The main archive also contains the unminified uBO filter sources, templates,
+licenses, and `tools/make-easylist.mjs`. Running that assembler for `badware`,
+`filters`, `privacy`, `quick-fixes` and `unbreak` reproduces all five shipped
+`.min.txt` files exactly after replacing `%timestamp%` with each file's recorded
+Last modified timestamp. Upstream's pinned `.github/workflows/main.yml` performs
+that timestamp substitution and preserves unchanged lists' previous timestamps.
+No remote resource was fetched during these local rebuilds. Commands and raw/
+normalized hashes are recorded beside the 13 exact input matches.
+
+The EasyList/EasyPrivacy generated snapshots are exact; their own upstream
+multi-file source and assembly history have not yet been reproduced. The font,
+HSLuv, LZ4 and licensing limits above remain. The original 644/658 audit stays an
+audit of the **uBO tag alone**; it is not silently rewritten to count these
+separate archives or the transformed manifest as direct tag matches.
