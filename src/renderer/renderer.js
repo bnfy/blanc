@@ -637,6 +637,7 @@
   }
 
   function render() {
+    requestAnimationFrame(() => reportIslandRect());
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
     // center the resting Island over the remaining website pane.
@@ -764,10 +765,14 @@
   // The chip toggles the site-protection popover; stopPropagation keeps the
   // pill's own click (open panel) out of it. Enter/Space come free — it's a
   // real <button>, and islandPill's keydown guard ignores focused children.
+  function shieldAnchorFor(trigger) {
+    const button = trigger === 'insecure' ? pillInsecure : pillShield;
+    const r = button.getBoundingClientRect();
+    return { right: r.right, center: r.left + r.width / 2, bottom: r.bottom, trigger };
+  }
   pillShield.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillShield.getBoundingClientRect();
-    window.browserAPI.openShieldPopover({ right: r.right, trigger: 'shield' });
+    window.browserAPI.openShieldPopover(shieldAnchorFor('shield'));
   });
 
   pillFillHint.addEventListener('click', (e) => {
@@ -783,8 +788,7 @@
       window.browserAPI.openIsland();
       return;
     }
-    const r = pillInsecure.getBoundingClientRect();
-    window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
+    window.browserAPI.openShieldPopover(shieldAnchorFor('insecure'));
   });
 
   pillCapture.addEventListener('click', (e) => {
@@ -925,11 +929,12 @@
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
   });
-  window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger }) => {
+  window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger, nativePopup }) => {
     islandMode = mode;
     // Truthful per-control expanded state: the popover is one surface with
     // two doors, and only the door that opened it reads as expanded.
     const shieldOpen = mode === 'shield';
+    islandPill.classList.toggle('shield-open', shieldOpen && !nativePopup);
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
@@ -973,20 +978,28 @@
   const ISLAND_SCALE = 0.02;    // keep in step with #islandPill in styles.css
   const ISLAND_RISE = 2;
 
+  let lastIslandReport = '';
   const reportIslandRect = () => {
     const r = islandPill.getBoundingClientRect();
     if (!r.width) return;
-    const k = Number(islandPill.style.getPropertyValue('--island-k')) || 0;
+    const k = islandPill.classList.contains('shield-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
     const scale = 1 + ISLAND_SCALE * k;
     // transform-origin is the top centre, so the top edge only moves by the rise.
     const width = r.width / scale;
     const height = r.height / scale;
-    window.browserAPI.reportIslandRect({
+    const trigger = pillShield.getAttribute('aria-expanded') === 'true' ? 'shield'
+      : pillInsecure.getAttribute('aria-expanded') === 'true' ? 'insecure' : null;
+    const rect = {
       x: (r.left + r.width / 2) - width / 2,
       y: r.top + ISLAND_RISE * k,
       width,
       height,
-    });
+      ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
+    };
+    const serialized = JSON.stringify(rect);
+    if (serialized === lastIslandReport) return;
+    lastIslandReport = serialized;
+    window.browserAPI.reportIslandRect(rect);
   };
   new ResizeObserver(reportIslandRect).observe(islandPill);
   // The observer only sees the pill's SIZE change. A window resize re-centers

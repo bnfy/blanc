@@ -64,6 +64,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
   reportIslandRect: (rect) => ipcRenderer.send('chrome:island-rect', rect),
+  onShieldAnchor: (callback) => {
+    const listener = (_event, anchor) => callback(anchor);
+    ipcRenderer.on('overlay:shield-anchor', listener);
+    return () => ipcRenderer.removeListener('overlay:shield-anchor', listener);
+  },
   onIslandProximity: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:island-proximity', listener);

@@ -2267,3 +2267,87 @@ inset layers also removes the bottom bevel visible in the owner's screenshot.
   380px card width and unconfirmed uBO choice. No runtime/UI logic changed.
 
 final result: passed
+
+### Approved shield attachment and provider-first summary — 2026-10-02
+
+The owner approved the shortened circle-to-card connection, then selected the
+third image in the **summary-screen** refinement set. This does not select any
+of the earlier, separate uBO advanced-control mockups.
+
+**Visual truth and evidence**
+
+- Short connector: `/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-67b974f9-1a18-4cae-ad85-4ea02d3b97a3.png`.
+- Selected summary: `/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-5ed87f06-6710-4dd9-8f45-9f1b1316c36f.png`.
+- Local reference copy: `output/playwright/shield-summary-approved.png`.
+- Native final captures: `output/playwright/shield-summary-live-window.png`
+  and `output/playwright/shield-summary-live-overlay.png`.
+- Full comparison: `output/playwright/shield-summary-comparison.png`.
+  Approved image is left; implementation is right.
+- Additional native state: `output/playwright/shield-summary-dark.png`.
+
+The reference is 1420×1108 pixels. Its approximately 822px-wide card was
+uniformly normalized to the implementation's 760px-wide card (380 CSS px at
+density 2). The normalized reference is 1313×1025. The actual native window is
+1280×800 CSS px / 2560×1600 pixels; the transparent overlay is 404×500 CSS px /
+808×1000 pixels. Electron window capture omits child views, so the separately
+captured overlay is composited at its actual native bounds before cropping the
+matching 1313×1024 review region. No UI pixels were redrawn. Both sides show
+light mode, localhost, ready uBO, zero blocked requests, and the summary at rest.
+Loopback port and open-tab dots differ because these are live isolated fixtures.
+The full comparison is legible at original resolution; a further detail crop
+was not needed. The existing shield glyph is preserved.
+
+**Findings and iteration history**
+
+- Resolved P2: The initial native restart state needed 32px more vertical room
+  than the previous view allowed. The transparent view now permits up to 500px
+  while the card retains natural content height; short windows still scroll.
+- Resolved P2: `shield-summary-comparison-before.png` showed excessive spacing
+  below the provider and around the controls/metadata rows. Reduced those gaps
+  and row padding, recaptured the native rendering, and compared again in
+  `shield-summary-comparison.png`. The final card's overall height and grouping
+  now track the selected image. The first comparison was not accepted.
+- The first stylesheet-only refresh retained stale CSS; its capture was rejected.
+  The overlay was reloaded without cache, reopened from the shield, and its
+  final 8px metadata gap and visible state were verified before recapture.
+- Native outer-edge alpha remains **0** in every outer two-pixel row/column.
+  The compact shadow fully fades inside the native view, including the new
+  short connector. No clipped rectangular shadow returned.
+
+**Fidelity surfaces**
+
+- Typography: existing bundled Inter, 17px compact heading, 14px main body,
+  13px status and 12px scope notes. The provider is semibold and the controls
+  action quieter, preserving the selected hierarchy without duplicate naming.
+- Layout: provider first, explicit Change aligned with the provider name,
+  status below, blocked count, inline Open controls, connection/settings rows,
+  then the two-line scope note. Shared chooser behavior and its approved layout
+  remain intact. Native geometry keeps the short join aligned during resizing.
+- Colors: existing warm Sunrise ivory/sand/ink/gold tokens, with real native
+  light/dark propagation. The connection warning retains its semantic color.
+- Assets: authentic Sunrise PNG and unchanged Island shield. New standard
+  external-link and chevron-right shapes are the official Lucide paths covered
+  by the existing third-party notices, not newly invented brand artwork.
+- Copy: Current blocker, provider, Active, Change, blocked-request count, Open
+  controls, Connection/Local, Blocking settings, and both scope lines match the
+  selected design. Failure, disabled, startup, private and restart states retain
+  their specific truthful guidance. Provider readiness never claims a uBO
+  site exception is enabled. The controls link retains its explicit accessible
+  name; keyboard focus outlines apply to the small action, not the whole section.
+
+**Verification and scope**
+
+- Lint and diff checks passed; 70 targeted unit tests passed.
+- Real-blocking native provider suite passed: both switch directions/restarts,
+  draft and cancellation, original uBO controls, focus, native appearance,
+  private/unavailable guards, short windows, and no automatic page reload.
+- Added native checks verify a single visible provider name in the ready uBO
+  summary and the selected content order. The four existing shield scenarios
+  passed all 31 steps, including connection claims and site exceptions.
+- The isolated live dev preview was refreshed while retaining its uBO setting.
+  This is local UI evidence, not signed/package/platform distribution evidence.
+  uBO's original advanced popup remains a separate pending design choice.
+
+No unresolved P0/P1/P2 visual findings remain for this selected summary.
+
+final result: passed

@@ -22,6 +22,8 @@
   const dismissBtn = document.getElementById('dismissBtn');
   const findBar = document.getElementById('findBar');
   const shieldPop = document.getElementById('shieldPop');
+  const shieldPopPointer = document.getElementById('shieldPopPointer');
+  let shieldConnected = false;
   const shieldPopHost = document.getElementById('shieldPopHost');
   const shieldPopOnOff = document.getElementById('shieldPopOnOff');
   const shieldPopToggle = document.getElementById('shieldPopToggle');
@@ -61,9 +63,9 @@
   let displayShareModel = null;
   let displayShareSelection = null;
   const CONNECTION_LABEL = {
-    https: 'Connection · Uses HTTPS',
-    http: 'Connection · Not encrypted',
-    local: 'Connection · Local',
+    https: 'Uses HTTPS',
+    http: 'Not encrypted',
+    local: 'Local',
   };
   const findInput = document.getElementById('findInput');
   const findCount = document.getElementById('findCount');
@@ -1565,6 +1567,7 @@
     findBar.hidden = next !== 'find';
     if (next !== 'shield' || !reshow) resetShieldChoice();
     shieldPop.hidden = next !== 'shield';
+    shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
@@ -1756,7 +1759,8 @@
     shieldPopChooser.hidden = !shieldChoosing;
     shieldPopBack.hidden = !shieldChoosing;
     shieldPop.dataset.step = shieldChoosing ? 'chooser' : 'summary';
-    shieldPopLabel.textContent = v.variant === 'ublock' ? 'uBlock Origin' : 'Ad & tracker blocking';
+    document.getElementById('shieldPopSiteControl').hidden = v.variant === 'ublock';
+    shieldPopLabel.textContent = 'Ad & tracker blocking';
     shieldPopOnOff.textContent = v.variant === 'ublock' ? '' : v.on ? 'on' : 'off';
     const controls = v.controls;
     shieldPop.dataset.restartPending = String(controls.selected !== controls.active);
@@ -1785,7 +1789,7 @@
     // connection (loading, or a url with no claim to make) hides the row
     // rather than leaving a stale statement on screen.
     const connectionLabel = CONNECTION_LABEL[v.connection] ?? null;
-    shieldPopConnection.textContent = connectionLabel ?? '';
+    document.getElementById('shieldPopConnectionValue').textContent = connectionLabel ?? '';
     shieldPopConnection.hidden = !connectionLabel;
     shieldPopConnection.classList.toggle('insecure', v.connection === 'http');
     shieldPopCount.textContent = v.countLine;
@@ -1959,6 +1963,11 @@
   const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  window.browserAPI.onShieldAnchor(({ x, connected }) => {
+    shieldConnected = connected === true;
+    shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
+    if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
+  });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
     // A quick close/reopen can arrive while the old retract timer is still
@@ -2042,6 +2051,8 @@
     findBar.hidden = true;
     resetShieldChoice();
     shieldPop.hidden = true;
+    shieldPopPointer.hidden = true;
+    shieldConnected = false;
     glancePickerEl.hidden = true;
     inputTouched = false;
     siteInfoOpen = false;

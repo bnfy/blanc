@@ -1749,7 +1749,7 @@ function install(refs) {
           host: document.getElementById('shieldPopHost').textContent,
           on: document.getElementById('shieldPopToggle').classList.contains('on'),
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
-          connection: row && !row.hidden ? row.textContent : null,
+          connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
         };
       })()`);

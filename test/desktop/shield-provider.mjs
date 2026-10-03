@@ -68,7 +68,24 @@ async function openShield() {
   const overlay = await waitForValue(async () => (await electron.windows()).find(page => page.url() === 'blanc-chrome://overlay/'), Boolean, 'overlay');
   await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
   await summary(overlay);
+  await assertAnchored(overlay);
   return overlay;
+}
+async function assertAnchored(overlay) {
+  const chrome = (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/');
+  await overlay.locator('#shieldPopPointer').waitFor({ state: 'visible' });
+  await waitForValue(async () => {
+    const anchor = await chrome.locator('#pillShield').boundingBox();
+    const bounds = await call('overlayBounds');
+    const pointer = await overlay.locator('#shieldPopPointer').boundingBox();
+    const card = await overlay.locator('#shieldPop').boundingBox();
+    return { dx: Math.abs(bounds.x + pointer.x + pointer.width / 2 - anchor.x - anchor.width / 2),
+      gap: bounds.y + card.y - anchor.y - anchor.height };
+  }, value => value.dx < 1 && value.gap >= 9 && value.gap <= 11,
+  'pointer follows the shield with a short circle-to-card join');
+  await overlay.mouse.move(200, 180);
+  assert.notEqual(await chrome.locator('#pillShield').evaluate(button => getComputedStyle(button).backgroundColor),
+    'rgba(0, 0, 0, 0)', 'hover circle remains visible while its panel is open');
 }
 async function summary(overlay, expectFocus = false) {
   await overlay.locator('#shieldPopChooser').waitFor({ state: 'hidden' });
@@ -123,6 +140,7 @@ async function assertShortWindow(overlay) {
       const card = document.querySelector('#shieldPop');
       return card.scrollHeight > card.clientHeight && card.getBoundingClientRect().bottom <= innerHeight;
     });
+    await assertAnchored(overlay);
     assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'resizing preserves the pending choice');
     await assertDraftOnly('blanc');
     // Native Tab navigation must scroll both bottom actions into the clipped
@@ -150,6 +168,7 @@ async function assertShortWindow(overlay) {
     await waitForValue(() => call('windowContentBounds'), bounds => bounds.width === original.width && bounds.height === original.height, 'original content size restored');
   }
   await assertFits(overlay);
+  await assertAnchored(overlay);
   await providerRadio(overlay, 'ublock-origin').click();
   await assertDraftOnly('blanc');
 }
@@ -250,6 +269,19 @@ try {
   const regular = await fixture();
   overlay = await openShield();
   assert(await overlay.locator('#shieldPopToggle').isHidden());
+  assert.equal(await overlay.locator('#shieldPopProviderStatus').innerText(), 'Active');
+  assert.equal(await overlay.locator('#shieldPopChangeProvider').innerText(), 'Change');
+  assert.equal(await overlay.locator('#shieldPopUblock').innerText(), 'Open controls');
+  const summaryText = await overlay.locator('#shieldPopSummary').innerText();
+  assert.equal((summaryText.match(/uBlock Origin/g) || []).length, 1, 'provider is named once in the ready summary');
+  assert.match(summaryText, /Each blocker keeps its own site settings/);
+  const summaryOrder = await overlay.evaluate(() => ['shieldPopCurrentProvider', 'shieldPopCount', 'shieldPopUblock', 'shieldPopConnection', 'shieldPopSettings', 'shieldPopProviderScope']
+    .map(id => document.getElementById(id).getBoundingClientRect().top));
+  assert(summaryOrder.every((top, index) => !index || top > summaryOrder[index - 1]), 'summary follows the selected provider-first hierarchy');
+  await assertFits(overlay);
+  await setAppearance(overlay, 'dark');
+  await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-summary-dark.png' });
+  await setAppearance(overlay, 'light');
   await chooser(overlay, 'ublock-origin');
   await overlay.locator('#shieldPopBack').click();
   await summary(overlay, true);

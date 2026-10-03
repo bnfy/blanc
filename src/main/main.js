@@ -401,7 +401,7 @@ async function openUblockPopup(anchor) {
       closeUblockPopup(runtime.id);
       return;
     }
-    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
+    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield', nativePopup: true });
     wc.focus();
   }
   catch {
@@ -2735,6 +2735,8 @@ function overlayBounds() {
       stripHeight: rt().chromeHeight,
       windowHeight: rt().window.getContentBounds().height,
       anchorRight: rt().shieldAnchorRight,
+      anchorCenter: rt().shieldAnchorCenter,
+      anchorBottom: rt().shieldAnchorBottom,
     });
   }
   if (rt().overlayMode === 'capture') {
@@ -2746,6 +2748,25 @@ function overlayBounds() {
     });
   }
   return layout.panelBounds;
+}
+
+function setShieldAnchor(anchor) {
+  const width = rt().window?.getContentBounds().width ?? 0;
+  const valid = Number.isFinite(anchor?.center) && anchor.center >= 0 && anchor.center <= width
+    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= rt().chromeHeight;
+  rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+  rt().shieldAnchorCenter = valid ? anchor.center : null;
+  rt().shieldAnchorBottom = valid ? anchor.bottom : null;
+}
+
+function syncShieldAnchor() {
+  if (rt().overlayMode !== 'shield' || !rt().overlayView) return;
+  const bounds = overlayBounds();
+  rt().overlayView.setBounds(bounds);
+  rt().overlayView.webContents.send('overlay:shield-anchor', {
+    x: Math.max(32, Math.min(bounds.width - 32, (rt().shieldAnchorCenter ?? bounds.x + bounds.width / 2) - bounds.x)),
+    connected: rt().shieldAnchorCenter !== null,
+  });
 }
 
 // --- Floating permission prompt (bottom-center, own view) ------------------
@@ -2972,6 +2993,7 @@ function createOverlay() {
         prefill: rt().overlayPrefill,
         purpose: rt().overlayPurpose,
       });
+      syncShieldAnchor();
       rt().overlayView.webContents.focus();
     }
   }));
@@ -3135,6 +3157,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
       height: rt().islandRect.height,
     },
   });
+  syncShieldAnchor();
   rt().overlayView.webContents.focus();
   rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
@@ -3165,6 +3188,8 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   }
   rt().workspaceSwitcherOpen = false;
   rt().shieldAnchorRight = null;
+  rt().shieldAnchorCenter = null;
+  rt().shieldAnchorBottom = null;
   rt().captureAnchorRight = null;
   rt().shieldPopoverHost = null;
   rt().shieldTrigger = null;
@@ -4227,6 +4252,7 @@ function resizeActiveView() {
   if (tab?.view) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
   if (glanceTab?.view && glance) glanceTab.view.setBounds(glance.glance);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+  syncShieldAnchor();
   if (rt().permissionViewAttached && rt().permissionView) {
     rt().permissionView.setBounds(permissionViewBounds());
   }
@@ -6679,9 +6705,14 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
-  chromeOn('chrome:island-rect', (_e, rect) => {
+  chromeOn('chrome:island-rect', (event, rect) => {
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
-    rt().islandRect = ok && rect.width > 0 ? rect : null;
+    rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+    if (event.sender === rt().window?.webContents && rt().overlayMode === 'shield'
+        && rect?.shieldAnchor?.trigger === rt().shieldTrigger) {
+      setShieldAnchor(rect.shieldAnchor);
+      syncShieldAnchor();
+    }
   });
 
   chromeOn('chrome:layout', (_e, { height }) => {
@@ -6709,18 +6740,18 @@ function registerIpcHandlers() {
       // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
       // closing there would read as the second button being broken.
       if (trigger === rt().shieldTrigger) return hideOverlay({ refocusContent: false });
-      rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+      setShieldAnchor(anchor);
       rt().shieldTrigger = trigger;
       // The bounds must move NOW: updating stored state alone would pass a
       // state assertion while leaving the card visually where it was.
-      rt().overlayView.setBounds(overlayBounds());
+      syncShieldAnchor();
       rt().window.webContents.send('chrome:island-state', { mode: 'shield', trigger });
       return;
     }
     const popover = activeShieldPopover();
     if (!popover) return; // no blockable host — nothing to show
     rt().shieldPopoverHost = popover.host;
-    rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    setShieldAnchor(anchor);
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');

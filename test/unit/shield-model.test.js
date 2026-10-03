@@ -165,9 +165,9 @@ test('unsupported uBO stays unavailable while the Blanc selection remains usable
   assert.equal(model.ublockAvailable, false);
   assert.equal(model.canOpenUblock, false);
   assert.match(model.availability, /uBlock Origin is unavailable/);
-  assert.match(model.detail, /Blanc Blocker is active/);
+  assert.equal(model.detail, 'Active');
   assert.match(model.scope, /Private tabs use Blanc Blocker/);
-  assert.match(model.scope, /Site settings stay separate/);
+  assert.match(model.scope, /Each blocker keeps its own site settings/);
 });
 
 test('private shield stays with Blanc and cannot open or select the ordinary uBO provider', () => {
