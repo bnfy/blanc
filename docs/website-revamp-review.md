@@ -320,3 +320,10 @@ The owner preferred the original Blanc Blocker icon over the new Horizon
 outline. Its SVG, 1.4-unit stroke and badge styling are restored directly from
 `03621de6^` in app PR #502, and the hero extracts that exact original markup
 and native CSS. The large bronze Horizon illustration remains unchanged.
+
+The hero now uses the active ink-colored shield and a fixed one-count badge
+matching the owner's supplied original-icon reference. Previously it forced
+the native quiet/zero-count state, which is intentionally gray in the app.
+The figure's accessible description identifies its tabs and badge as an
+illustration; it is not a live measurement of blancbrowser.com. Native state
+colors and blocking behavior remain unchanged.

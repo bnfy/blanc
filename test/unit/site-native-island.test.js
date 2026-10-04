@@ -23,7 +23,9 @@ test('hero extraction retains native dimensions, material and actual action SVGs
     const svg = source.renderer.match(new RegExp(`\\b${name}: '(<svg[^']+)'`))[1];
     assert.ok(art.html.includes(svg), name);
   }
-  assert.match(art.html, /id="pillShieldCount"><\/span>/, 'sample has no invented blocking count');
+  assert.match(art.html, /id="pillShieldCount">1<\/span>/, 'fixed illustration matches the supplied one-count reference');
+  assert.match(art.html, /id="pillShield" class="shield"/, 'use the native ink state from the reference');
+  assert.ok(art.css.includes('#pillShieldCount {'), 'include the original badge styling');
   const shield = source.document.match(/id="pillShield"[\s\S]*?(<svg[\s\S]*?<\/svg>)/)[1];
   assert.ok(art.html.includes(shield), 'the hero reuses the original native blocker SVG');
   assert.doesNotMatch(art.html, /horizon-shield\.webp|shield-horizon\.png/);

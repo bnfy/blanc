@@ -15,7 +15,7 @@ export function nativeIslandArt({ styles, document, renderer }) {
     '.pill-btns', '.pill-btn', '.pill-btn:disabled', '.pill-btn svg', '.pill-sep',
     '.island-dot', '.island-dot.active', '#pillDomain', '.pill-shortcuts',
     '.pill-slash, .pill-shortcut', '.pill-slash::before, .pill-shortcut::before',
-    '.pill-shortcut svg', '.shield', '.shield svg', '#pillShieldCount:empty',
+    '.pill-shortcut svg', '.shield', '.shield svg', '#pillShieldCount', '#pillShieldCount:empty',
     '.shield.shield-quiet', '.favicon', '.favicon.has-icon', '#pillFavicon',
   ];
   const root = rules.filter(rule => rule.selector === ':root');
@@ -37,7 +37,10 @@ export function nativeIslandArt({ styles, document, renderer }) {
   html = html.replace('id="pillFavicon" class="favicon"', 'id="pillFavicon" class="favicon has-icon" style="background-image:url(/favicon.svg)"');
   html = html.replace('<span id="pillDomain">new tab</span>', '<span id="pillDomain">blancbrowser.com</span>');
   html = html.replace(/(<button id="pillSlash"[\s\S]*?<\/button>)/, `$1<button id="pillNewTab" class="pill-btn pill-shortcut">${icon('plus')}</button>`);
-  html = html.replace('id="pillShield" class="shield" aria-expanded="false" hidden', 'id="pillShield" class="shield shield-quiet" aria-expanded="false"');
+  // Match the owner's October 3 reference: original ink shield with a one-count badge.
+  // This is a fixed illustration state, not a measurement of this website.
+  html = html.replace('id="pillShield" class="shield" aria-expanded="false" hidden', 'id="pillShield" class="shield" aria-expanded="false"');
+  html = html.replace('<span id="pillShieldCount"></span>', '<span id="pillShieldCount">1</span>');
   html = html.replace('<div id="pillActions" class="pill-btns"></div>', `<div id="pillActions" class="pill-btns">${button('reload')}${button('heart')}${button('close')}</div>`);
   return { css, html };
 }
