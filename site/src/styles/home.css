@@ -1725,12 +1725,49 @@
   color: var(--gold);
   text-underline-offset: 4px;
 }
-/* One native capture carries the tab-group story. */
-.home-revamp .tabs-intro { align-items: center; }
-.home-revamp .tabs-intro .lead { max-width: 440px; }
+/* One native capture carries the tab-group story: copy beside the capture. */
+.home-revamp .tabs-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: clamp(36px, 5vw, 72px);
+}
+.home-revamp .tabs-copy .lead { max-width: 420px; }
+.home-revamp .tabs-note {
+  margin-top: 22px;
+  font: 400 14px/1.7 var(--font-ui);
+  color: var(--ink);
+}
+.home-revamp .tabs-note a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.home-revamp .tabs-links {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 0 28px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font: 500 14px/1.6 var(--font-ui);
+}
+.home-revamp .tabs-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  color: var(--gold);
+  text-decoration: none;
+}
+.home-revamp :is(.tabs-note, .tabs-links) a:is(:hover, :focus-visible) {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 .home-revamp .tabs-capture {
-  max-width: 960px;
-  margin: clamp(36px, 5vw, 64px) auto 0;
+  margin: 0;
   filter: drop-shadow(0 28px 28px rgb(48 35 18 / .10));
 }
 .home-revamp .tabs-capture img {
@@ -1739,24 +1776,10 @@
   height: auto;
   border-radius: 3.1% / 5.8%;
 }
-.home-revamp .tabs-followthrough { margin-top: 36px; text-align: center; }
-.home-revamp .tabs-followthrough p { font: 400 13px/1.7 var(--font-ui); }
-.home-revamp .tabs-followthrough a { color: var(--ink); text-decoration: none; }
-.home-revamp .tabs-followthrough a:hover { text-decoration: underline; text-underline-offset: 4px; }
-.home-revamp .tabs-followthrough nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 28px;
-  margin-top: 16px;
-  font: 500 13px/1.6 var(--font-ui);
-}
-.home-revamp .tabs-followthrough nav a { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; padding-block: 10px; }
-@media (max-width: 760px) {
-  .home-revamp .tabs-intro { gap: 18px; }
-  .home-revamp .tabs-capture { margin-top: 30px; }
-  .home-revamp .tabs-followthrough { margin-top: 26px; }
-  .home-revamp .tabs-followthrough nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+/* Narrow screens: copy first, capture below. */
+@media (max-width: 1000px) {
+  .home-revamp .tabs-layout { grid-template-columns: 1fr; gap: 32px; }
+  .home-revamp .tabs-capture { max-width: 720px; }
 }
 /* A lazy-loaded solid 3D shield, with the original artwork as a static fallback. */
 .home-revamp .privacy-intro {
