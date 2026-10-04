@@ -32,11 +32,15 @@ on:
         description: "Also exercise an unsigned installed Intel package (not signing acceptance)"
         type: boolean
         default: false
+      linux_native_diagnostics:
+        description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.installed_intel }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -50,7 +54,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.installed_intel }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
     strategy:
       fail-fast: false
       matrix:
@@ -151,3 +155,37 @@ jobs:
           name: unsigned-native-intel-observations-${{ github.run_id }}
           path: dist/ublock-*-intel-unsigned.json
           retention-days: 14
+
+  linux-native-diagnostics:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.linux_native_diagnostics }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable native Linux renderer sandbox
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci --no-audit --no-fund
+      - name: Prepare official native debugger
+        run: |
+          command -v gdb || { sudo apt-get update; sudo apt-get install -y gdb; }
+          chmod +x test/desktop/support/electron-native-debug.sh
+      - name: Capture isolated browser-process native stacks
+        shell: bash
+        run: |
+          mkdir -p dist/native-diagnostics
+          export BLANC_UBLOCK_NATIVE_EXECUTABLE="$PWD/node_modules/electron/dist/electron"
+          export BLANC_UBLOCK_ELECTRON="$PWD/test/desktop/support/electron-native-debug.sh"
+          for attempt in 1 2 3 4 5; do
+            xvfb-run -a npm run test:ublock:desktop 2>&1 | tee "dist/native-diagnostics/attempt-$attempt.log"
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: linux-native-stacks-${{ github.run_id }}
+          path: dist/native-diagnostics/*.log
+          retention-days: 3
