@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "runtime": {
+    "electron": "44.5.1",
+    "ublock": "1.75.0",
+    "sandboxEnabled": true
+  },
+  "nativeFailure": {
+    "run": 37167813080,
+    "job": 111334359066,
+    "source": "1fc4167ce2383873c8638961a40a353a07052378",
+    "platform": "darwin-arm64",
+    "stage": "DOM inspector after navigation",
+    "browserCrash": false
+  },
+  "localReproduction": {
+    "isolatedProfile": true,
+    "originalHelperReturnDelayMs": 1000,
+    "beforeFix": "timed out waiting for DOM inspector after navigation",
+    "afterFix": "original inspector reconnected and tree populated",
+    "delayedNativeBootstrapReplies": 2,
+    "fullRealBlockingSuitePassed": true
+  },
+  "fixedRuntime": "95fbdfbee94505224c455c40c73509f572616374",
+  "focusedUnitTestsPassed": 21,
+  "pinnedRecordsVerified": 658,
+  "adaptedFiles": 77,
+  "nativeVerification": {
+    "statusAtRecording": "pending",
+    "desktopRun": 37168547420,
+    "installedRun": 37168565413,
+    "linuxStressRun": 37168566895
+  },
+  "privacy": "Fresh isolated profile and local fixtures; no personal data, URLs, headers, filters or secrets."
+}

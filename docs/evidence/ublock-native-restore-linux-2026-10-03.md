@@ -97,7 +97,10 @@ corrected runtime source `4ec65787`. The subsequent merge of main restores the
 owner-approved original shield SVG, removes its retired PNG, and changes its
 asset allowlist/CSS; it does not change the native lifecycle fix. Isolated Mac
 shield and real-blocking suites passed after the merge. A further installed
-Windows/Linux run at merged source `77e27349` is pending before publication.
+Windows/Linux run at merged source `77e27349`
+[passed](https://github.com/bnfy/blanc/actions/runs/37167450188), including
+both Ubuntu sandbox jobs. The later cosmetic-bootstrap adaptation has a
+separate exact-runtime validation run before publication.
 
 These tests support the targeted root-lifetime explanation; they do not
 establish a general absence of native runtime defects. Passing a non-stress
@@ -120,3 +123,11 @@ own completion broadcast before navigating. It does not set editor contents,
 reload the engine itself, weaken the no-hit assertion, change a production
 filtering deadline, or alter upstream code. The corrected Dashboard suite
 passed locally; final native CI is required before the merge.
+
+## Inspector reconnect follow-up
+
+A later native Mac run exposed a separate inspector reconnect race after
+navigation, without a browser crash. Its deterministic before/after
+reproduction and narrowly scoped adaptation are recorded in
+[the inspector evidence](ublock-inspector-bootstrap-2026-10-03.md).
+The native view-root fix remains in place; the two failures are distinct.
