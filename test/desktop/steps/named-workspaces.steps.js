@@ -194,15 +194,30 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   assert.equal(geometry.rows, 25); assert.equal(geometry.scroll, true); assert.ok(geometry.popupTop >= 0 && geometry.popupBottom <= geometry.height); assert.ok(geometry.createBottom <= geometry.height);
   await evidence(page, 'long-workspace-list');
   await this.call('setTabLayout', 'vertical');
-  await openOverlaySurface(this, 'openPanel', 'panel'); await page.click('#footerWorkspace');
+  await openOverlaySurface(this, 'openPanel', 'panel');
+  await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
+  await page.click('#footerWorkspace');
   await ctx.app.evaluate(({ webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1.25); });
-  await page.waitForTimeout(100);
-  const scaled = await page.evaluate(() => {
-    const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
-    const button = document.getElementById('wsSwitcherNew').getBoundingClientRect();
-    return { top: popup.top, bottom: popup.bottom, left: popup.left, right: popup.right, width: innerWidth, height: innerHeight, buttonBottom: button.bottom, buttonHeight: button.height };
-  });
-  assert.ok(scaled.top >= 0 && scaled.bottom <= scaled.height + 1); assert.ok(scaled.left >= 0 && scaled.right <= scaled.width + 1); assert.ok(scaled.buttonBottom <= scaled.height + 1); assert.ok(scaled.buttonHeight >= 24);
+  // Native zoom, the renderer resize event, and popup placement settle
+  // asynchronously. Measure a stable rectangle at the actual target zoom,
+  // not an arbitrary 100ms into that sequence. A stable overflow still fails.
+  let previousScaled;
+  const scaled = await waitForValue(async () => {
+    const bounds = await this.call('overlayBounds');
+    const value = await page.evaluate(() => {
+      const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
+      const button = document.getElementById('wsSwitcherNew').getBoundingClientRect();
+      return { top: popup.top, bottom: popup.bottom, left: popup.left, right: popup.right, width: innerWidth, height: innerHeight, buttonBottom: button.bottom, buttonHeight: button.height };
+    });
+    return { ...value, nativeWidth: bounds.width, nativeHeight: bounds.height };
+  }, value => {
+    const stable = previousScaled && Object.keys(value).every(key => value[key] === previousScaled[key]);
+    previousScaled = value;
+    return stable && Math.abs(value.width - value.nativeWidth / 1.25) <= 1 && Math.abs(value.height - value.nativeHeight / 1.25) <= 1;
+  }, '125% Workspace popup geometry to settle');
+  assert.ok(scaled.top >= 0 && scaled.bottom <= scaled.height + 1, `zoomed popup must fit vertically: ${JSON.stringify(scaled)}`);
+  assert.ok(scaled.left >= 0 && scaled.right <= scaled.width + 1, `zoomed popup must fit horizontally: ${JSON.stringify(scaled)}`);
+  assert.ok(scaled.buttonBottom <= scaled.height + 1); assert.ok(scaled.buttonHeight >= 24);
   await evidence(page, 'long-workspace-list-vertical-125percent', true);
   await page.keyboard.press('Escape');
   await page.waitForSelector('#workspaceSwitcher', { state: 'hidden' });
