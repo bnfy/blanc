@@ -145,3 +145,4 @@ html[data-home-appearance="dark"] .revamp-nav .site-nav-cta:hover { color: var(-
   html[data-home-appearance] .home-revamp :is(.gallery-controls button, .gallery-indicator, .mahjong-boards button, .planned-action, .glance-actions button),
   html[data-home-appearance] .site-header.revamp-header { transition: none; }
 }
+html[data-home-appearance="dark"] .home-revamp :is(.blocking-choice, .data-sends-card, #tools .tools-list article) { background: rgb(255 255 255 / 0.04); }
