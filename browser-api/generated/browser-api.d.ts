@@ -417,6 +417,109 @@ export interface WorkspaceActionResult {
   items?: WorkspaceListItem[];
 }
 
+/** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
+export type SearchEngineId = 'duckduckgo' | 'google' | 'bing' | 'brave';
+
+/** A history entry, from listHistory() in history.js: the stored visit plus the site's cached favicon. */
+export interface HistoryEntry {
+  url: string;
+  /** The page title, or the URL when the page had none. */
+  title: string;
+  /** Epoch milliseconds of the latest visit. */
+  visitedAt: number;
+  /** A sanitized PNG data URL, or null. */
+  favicon: string | null;
+}
+
+/** A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark. */
+export interface FavoriteItem {
+  id: string;
+  url: string;
+  /** The page title, or the URL when the page had none. */
+  title: string;
+  /** A sanitized PNG data URL, or null. Items saved by older versions may lack it. */
+  favicon?: string | null;
+  /** Epoch milliseconds. */
+  addedAt: number;
+  /** Epoch milliseconds of the last synced edit. Items saved by older versions may lack it. */
+  updatedAt?: number;
+  /** The folder name, or null when ungrouped. Items saved by older versions may lack it. */
+  folder?: string | null;
+}
+
+/** Another device's open tab, sanitized by tabsync-model.js, with its synced icon attached by tabicons-model.js. */
+export interface RemoteTab {
+  /** Always http(s). */
+  url: string;
+  title: string;
+  groupId: string | null;
+  pinned: boolean;
+  /** A sanitized PNG data URL, or null. */
+  favicon: string | null;
+}
+
+/** A tab group on another device. */
+export interface RemoteGroup {
+  id: string;
+  name: string;
+}
+
+/** Another device's open tabs, from displayDevices() in tabsync-model.js. Newest first; devices without tabs or older than the prune window are left out. */
+export interface RemoteDevice {
+  deviceId: string;
+  name: string;
+  platform: string;
+  /** Epoch milliseconds. */
+  updatedAt: number;
+  tabs: RemoteTab[];
+  groups: RemoteGroup[];
+}
+
+/** Search suggestions for the address bar, labelled with the engine that produced them. */
+export interface SearchSuggestions {
+  engine: SearchEngineId;
+  /** The engine's display name. */
+  label: string;
+  /** Empty when suggestions are off, the tab is private, or the query is ineligible. */
+  suggestions: string[];
+}
+
+/** uBlock Origin handled the block-ads command; its state arrives with the next tabs:updated. */
+export interface ProviderBlockAdsResult {
+  provider: 'ublock-origin';
+}
+
+/** What Blanc Blocker did for the block-ads command, from resolveBlockAdsCommand() in adblock-exceptions.js. */
+export interface BlockAdsResult {
+  /** unexcept: the active site left the allow-list and blocking is on. toggle: blocking was switched. */
+  action: 'unexcept' | 'toggle';
+  /** The site removed from the allow-list, or null for a toggle. */
+  hostname: string | null;
+  /** Whether blocking is on afterwards. */
+  enabled: boolean;
+  /** The full allow-list afterwards. */
+  exceptions: string[];
+}
+
+/** Why ads could not be allowed on the active site. Settings opens on its blocking section. */
+export interface AllowAdsError {
+  error: 'blocking-not-ready' | 'blocking-site-change-failed';
+}
+
+/** A 1Password fill that did not fill, from credential-fill-controller.js. The user has already been told why. */
+export interface FillLoginFailure {
+  ok: false;
+  /** A flow reason such as 'cancelled' or 'no-match', or a broker/SDK error code. */
+  reason: string;
+}
+
+/** A 1Password fill that filled at least one field. No credential data is returned. */
+export interface FillLoginSuccess {
+  ok: true;
+  filledUser: boolean;
+  filledPass: boolean;
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -458,31 +561,31 @@ export interface BlancBrowserAPI {
    */
   switchTab(id: TabId): Promise<void>;
   /**
-   * Navigate a tab to typed input; main normalizes it.
+   * Navigate a tab to typed input; main normalizes it. Resolves to undefined when nothing loads in the tab itself (unknown tab, an OS hand-off, a utility page, or a quiet tab, which wakes in the background); otherwise to whether the queued load ran and finished (false when superseded or failed).
    * IPC: invoke `tabs:navigate`.
    */
-  navigate(id: TabId, url: string): Promise<unknown>;
+  navigate(id: TabId, url: string): Promise<boolean | undefined>;
   /**
-   * Search for a query in a tab.
+   * Search for a query in a tab with the engine from Settings. Resolves to undefined for an empty query, an unknown tab or a started load, and to whether a quiet tab woke. Under the desktop test hook only, it resolves to the search URL instead of loading it.
    * @param engine Ignored by main; the engine comes from Settings.
    * IPC: invoke `tabs:search`.
    */
-  search(id: TabId, query: string, engine?: string): Promise<unknown>;
+  search(id: TabId, query: string, engine?: string): Promise<boolean | string | undefined>;
   /**
-   * Go back in a tab.
+   * Go back in a tab. Resolves to whether a quiet tab woke, otherwise to undefined.
    * IPC: invoke `tabs:back`.
    */
-  goBack(id: TabId): Promise<unknown>;
+  goBack(id: TabId): Promise<boolean | undefined>;
   /**
-   * Go forward in a tab.
+   * Go forward in a tab. Resolves to whether a quiet tab woke, otherwise to undefined.
    * IPC: invoke `tabs:forward`.
    */
-  goForward(id: TabId): Promise<unknown>;
+  goForward(id: TabId): Promise<boolean | undefined>;
   /**
-   * Reload a tab.
+   * Reload a tab. Resolves to whether a quiet tab woke, otherwise to undefined.
    * IPC: invoke `tabs:reload`.
    */
-  reload(id: TabId): Promise<unknown>;
+  reload(id: TabId): Promise<boolean | undefined>;
   /**
    * Stop loading a tab. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:stop`.
@@ -584,10 +687,10 @@ export interface BlancBrowserAPI {
    */
   getAllTabs(): Promise<TabsSnapshot>;
   /**
-   * Find text in a page.
+   * Find text in a page. Resolves to Electron's find request id, to whether a quiet tab woke (find again once it has), or to undefined for an unknown tab. Counts arrive through onFindResult.
    * IPC: invoke `tabs:find`.
    */
-  findInPage(id: TabId, query: string, options?: unknown): Promise<unknown>;
+  findInPage(id: TabId, query: string, options?: unknown): Promise<number | boolean | undefined>;
   /**
    * Stop find-in-page. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:find-stop`.
@@ -745,20 +848,20 @@ export interface BlancBrowserAPI {
    */
   onOverlayEscape(callback: () => void): () => void;
   /**
-   * List history entries.
+   * List history entries, newest first.
    * IPC: invoke `chrome:history-list`.
    */
-  listHistory(opts?: unknown): Promise<unknown>;
+  listHistory(opts?: unknown): Promise<HistoryEntry[]>;
   /**
    * List Favorites.
    * IPC: invoke `chrome:favorites-list`.
    */
-  listFavorites(): Promise<unknown>;
+  listFavorites(): Promise<FavoriteItem[]>;
   /**
-   * List other devices' open tabs.
+   * List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile.
    * IPC: invoke `chrome:remote-tabs-list`.
    */
-  listRemoteTabs(): Promise<unknown>;
+  listRemoteTabs(): Promise<RemoteDevice[]>;
   /**
    * Cancel a pending workspace action.
    * IPC: send `chrome:workspaces-cancel`.
@@ -813,12 +916,12 @@ export interface BlancBrowserAPI {
    * Fetch search suggestions when enabled in Settings.
    * IPC: invoke `chrome:search-suggestions`.
    */
-  searchSuggestions(query: string): Promise<unknown>;
+  searchSuggestions(query: string): Promise<SearchSuggestions>;
   /**
-   * Other devices' open tabs changed.
+   * Other devices' open tabs changed. Same projection as listRemoteTabs.
    * IPC: event `chrome:remote-tabs-updated`.
    */
-  onRemoteTabsUpdated(callback: (payload: unknown) => void): () => void;
+  onRemoteTabsUpdated(callback: (payload: RemoteDevice[]) => void): () => void;
   /**
    * Named Workspaces changed.
    * IPC: event `chrome:workspaces-updated`.
@@ -830,26 +933,26 @@ export interface BlancBrowserAPI {
    */
   clearHistory(): Promise<void>;
   /**
-   * Turn Blanc Blocker on or off.
+   * Turn blocking on or off for the active tab's provider, or take the active site off the allow-list. The result includes the whole allow-list, which only trusted chrome receives.
    * IPC: invoke `chrome:adblock-toggle`.
    */
-  toggleAdblock(): Promise<unknown>;
+  toggleAdblock(): Promise<ProviderBlockAdsResult | BlockAdsResult>;
   /**
-   * Allow ads on the active site.
+   * Allow ads on the active site. Resolves to the allowed hostname, null when there is no tab or the page has no blockable site, or an error.
    * IPC: invoke `chrome:adblock-exempt-active`.
    */
-  allowAdsOnActiveSite(): Promise<unknown>;
+  allowAdsOnActiveSite(): Promise<string | null | AllowAdsError>;
   /**
    * Quiet all background tabs now. Resolves to the ids of the tabs that were quieted.
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
   sleepBackgroundTabs(): Promise<TabId[]>;
   /**
-   * Fill a login from 1Password (explicit invoke only).
+   * Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.
    * IPC: invoke `chrome:onepassword-fill`.
    * Present only on darwin.
    */
-  fillLoginFromOnePassword?(): Promise<unknown>;
+  fillLoginFromOnePassword?(): Promise<FillLoginSuccess | FillLoginFailure | false>;
   /**
    * Set or cycle the theme (system, light, dark). Resolves to the theme now in effect.
    * IPC: invoke `chrome:cycle-theme`.

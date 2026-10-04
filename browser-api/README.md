@@ -53,8 +53,8 @@ it confirms:
   signature.
 - **Renderers:** every `browserAPI.<name>` reference in `src/renderer/*.js` is a
   contract member.
-- **Payloads:** `tabs:updated` and `getAllTabs` are pinned field by field (see
-  below).
+- **Payloads:** event payloads and invoke results are pinned field by field
+  (see below).
 - **Generated files** are current.
 
 `test/unit/browser-api-contract.test.js` changes the preload and the contract in
@@ -65,8 +65,10 @@ missing member, unknown type) and requires each to be reported. It also edits
 capture row, an unknown spread, extra or missing event fields, an unreadable
 send argument, a void handler returning a value, a boolean handler that can
 fall through, a drifting returned object, a new workspace error code or
-protection reason, a drifting handler-table result) and narrows contract
-enums, and requires those to be reported too.
+protection reason, a drifting handler-table result, a try block that can fall
+through, a returned literal outside its union, a drifting returned local, a
+drifting or falling-through 1Password fill result) and narrows contract enums
+and list types, and requires those to be reported too.
 
 ## Pinned payloads
 
@@ -119,16 +121,26 @@ the end), a boolean, `null`, number or string literal, an object literal, or an
 opaque expression. Then:
 
 - a `void` result must never return a value;
-- a result whose type excludes `undefined` must not be able to fall through;
-- an object literal must match a structured type in the result, key for key;
-- an opaque expression (an identifier or call) is accepted unless the type is
-  `void`, because its value can't be read statically.
+- a result whose type excludes `undefined` must not be able to fall through. A
+  trailing `try … catch … finally` falls through only if its try or catch
+  block can;
+- an object literal must match a structured type in the result, key for key,
+  and a plain literal value in it (`error: 'busy'`, `ok: false`) must be in
+  that field's type;
+- a returned local bound to an object literal (`const response = { … }`) is
+  read as that literal;
+- any other opaque expression (an identifier or call) is accepted unless the
+  type is `void`, because its value can't be read statically.
 
 Handlers registered through a table (`['<channel>', (…) => op(…)]` consumed by
 a loop that calls `chromeHandle(channel, …)`) are resolved to the loop's shared
 body. In a returned object, `...helper()` contributes the keys that helper
 returns; spreading an opaque value (`...result`) can't be read, so it only
 waives the required-field check.
+
+When a handler forwards a pure module's result unread, the module function is
+listed in `FORWARDED_RESULTS` and its own returns are checked the same way
+(`fillLoginFromOnePassword`, through `credential-fill-controller.js`).
 
 `"resultCheck": "none"` skips the check for a member whose handler forwards an
 Electron method's result (`stop`, `stopFindInPage`); the reason is in its doc.
@@ -151,6 +163,26 @@ checks prove it:
 - **Handler results:** the success objects the handlers build
   (`{ ok: true, ...workspacesProjection() }`) are checked key by key.
 
+### Lists and commands
+
+The rest are proven by executing the code that builds them:
+
+- **History and Favorites:** `history.js` and `bookmarks.js` are loaded against
+  an in-memory stand-in for `JsonStore` (the real one needs Electron), driven
+  through visits, retitles, cached icons, toggles, saves, imports, folder
+  edits and a sync merge, and their lists validated. The module cache is left
+  as it was. Favorites saved by older versions may lack `favicon`, `updatedAt`
+  or `folder`, so those fields are optional.
+- **Remote tabs:** raw device entries go through the same sanitizers and
+  projections as sync (`tabsync-model.js`, `tabicons-model.js`). This proves
+  `listRemoteTabs` and the `onRemoteTabsUpdated` event (`"payloadCheck":
+  "fixtures"`).
+- **Block ads:** `resolveBlockAdsCommand()` runs on every hostname, state and
+  allow-list combination.
+- **Search suggestions:** `parseOpenSearchSuggestions()` runs per engine, and
+  `SearchEngineId` must list exactly the engines in
+  `settings-schema/schema.json`.
+
 ## Changing the bridge
 
 Change `src/main/preload.js` and `contract.json` together, then run
@@ -166,14 +198,18 @@ in `contract.json`. So does a new return value from one of the helper modules.
 ## Coverage today
 
 The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
-events), and every member's IPC behaviour is checked. Payload shapes are mostly
-pinned:
+events), and every member's IPC behaviour is checked. Every result and event
+payload is typed:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
 | Parameters | 67 of 73 | 6: anchors, the find options, history options, the Favorites folder and the screen-share picker choice |
-| `invoke` results | 46 of 59 | 13: navigation and find (forwarded wake and Electron results), history, Favorites and remote tabs lists, search suggestions, the two ad-blocking commands, 1Password fill |
-| Event payloads | 15 of 16 | `onRemoteTabsUpdated` (sync device shapes not yet traced) |
+| `invoke` results | 59 of 59 | none |
+| Event payloads | 16 of 16 | none |
+
+Navigation, find and search results are typed but only partly proven: they
+forward `wakeTab()` and Electron results, which the check can't read, so only
+their literal returns are checked.
 
 Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
 `OverlayShowPayload` because it is deliberately mode-specific.
