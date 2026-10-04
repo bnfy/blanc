@@ -2541,7 +2541,13 @@ body[data-glance-purpose="change"] .glance-picker {
   border-top: 1px solid var(--border);
 }
 .footer-launchers, .footer-tools { display: flex; align-items: center; gap: 4px; }
-.footer-launchers { flex: 0 0 auto; }
+/* At narrow/zoomed widths, wrap the longer ctrl shortcut labels without
+   shrinking the launch buttons or letting their group overflow the footer. */
+.footer-launchers {
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
 .footer-tools { flex: 1 1 197px; min-width: 197px; justify-content: flex-end; }
 
 /* "new tab" is the panel's one primary action, so it's the one solid accent

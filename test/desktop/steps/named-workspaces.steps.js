@@ -166,6 +166,8 @@ Then('the workspace list scrolls while creation controls remain visible', async 
       return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
     });
     assert.ok(geometry.truncated, 'long footer name should truncate instead of consuming the toolbar');
+    assert.ok(geometry.footer.left >= -1 && geometry.footer.right <= geometry.viewport.width + 1, 'footer must stay inside the viewport');
+    assert.ok(geometry.footer.top >= -1 && geometry.footer.bottom <= geometry.viewport.height + 1, 'footer controls must remain visible vertically');
     assert.ok(geometry.labelWidth < 100, 'footer title must keep its compact width');
     const workspace = geometry.rects.find((entry) => entry.id === 'footerWorkspace').rect;
     assert.ok(workspace.width > 28, 'named workspace must use the existing name-bearing button geometry');
@@ -205,6 +207,24 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   await page.keyboard.press('Escape');
   await page.waitForSelector('#workspaceSwitcher', { state: 'hidden' });
   await checkFooter(page); await evidence(page, 'compact-footer-vertical-125percent', true);
+  // Cover both native shortcut widths on every platform: macOS alone must
+  // not let the longer Windows/Linux labels escape the regression check.
+  const nativeShortcuts = await page.evaluate(() => ['footerNewTabKbd', 'footerNewPrivateKbd'].map(id => document.getElementById(id).textContent));
+  try {
+    for (const shortcuts of [['⌘T', '⌘⇧N'], ['ctrl+T', 'ctrl+shift+N']]) {
+      await page.evaluate(values => {
+        document.getElementById('footerNewTabKbd').textContent = values[0];
+        document.getElementById('footerNewPrivateKbd').textContent = values[1];
+      }, shortcuts);
+      await checkFooter(page);
+      await evidence(page, shortcuts[0].startsWith('ctrl') ? 'compact-footer-control-labels-125percent' : 'compact-footer-command-labels-125percent', true);
+    }
+  } finally {
+    await page.evaluate(values => {
+      document.getElementById('footerNewTabKbd').textContent = values[0];
+      document.getElementById('footerNewPrivateKbd').textContent = values[1];
+    }, nativeShortcuts);
+  }
   await ctx.app.evaluate(({ BrowserWindow, webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1); BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/').setSize(1280, 800); });
   await this.call('setTabLayout', 'island');
 });
