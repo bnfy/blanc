@@ -537,7 +537,7 @@ try {
       await call('activateTab', dashboardId);
       await dashboard.locator('[data-pane="settings.html"]').dispatchEvent('click');
       settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'restored backup settings');
-      await settingsPane.locator('#restoreFilePicker').waitFor();
+      await settingsPane.locator('#restoreFilePicker').waitFor({ state: 'attached' });
     }
     await settingsPane.locator('#restoreFilePicker').setInputFiles(backupFile);
     await waitForValue(async () => call('blockingStatus'), state => state.phase === 'initializing', 'restore reload started');
