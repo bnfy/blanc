@@ -6,7 +6,7 @@ smaller 16px revision before requesting a squash merge for the next release.
 
 The later same-day copper/bronze color direction supersedes the gold palette
 below. See `2026-10-03-horizon-shield-bronze.md` for the revised shared master,
-native export, edit prompt and validation. This record preserves the
+artwork provenance and the subsequent monochrome Island correction. This record preserves the
 original selection and native interaction review.
 
 ## Final presentation
