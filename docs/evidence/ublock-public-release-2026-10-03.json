@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "version": "1.27.0",
+  "macBundleBuild": "1274",
+  "tag": "v1.27.0",
+  "sourceSHA": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+  "releaseURL": "https://github.com/bnfy/blanc/releases/tag/v1.27.0",
+  "publishedAt": "2026-10-04T03:14:49Z",
+  "verifiedAt": "2026-10-04T03:19:43.512968+00:00",
+  "ubo": "1.75.0",
+  "electron": "44.5.1",
+  "assets": [
+    {
+      "name": "Blanc-1.27.0-arm64-mac.zip",
+      "bytes": 172839527,
+      "sha256": "350cab0d235446aa6723b5ad2a372cba26811b3b29f534838848656bac38611e",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0-arm64-mac.zip.blockmap",
+      "bytes": 181010,
+      "sha256": "bc3fb4b3eaa25f156321c2d3172465a837b43836242e1a1624f662b79b1c33bc",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0-arm64.dmg",
+      "bytes": 173415781,
+      "sha256": "064002e543e579b50fdd15c4a7bc7aede9cff329819dba7c9f75d5d276bcf1b9",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0-arm64.dmg.blockmap",
+      "bytes": 178615,
+      "sha256": "65fb029445fc0ce54bfc01a2883778efb5cf84d63bb2644763c5e30f0dc03a75",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0-mac.zip",
+      "bytes": 179799815,
+      "sha256": "718be83af253e7c0a14f8f2f0363e9dba4b4d0aee60a87b056491f07ae2e1b5a",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0-mac.zip.blockmap",
+      "bytes": 190136,
+      "sha256": "38b3ebd63c359f2f54a19c53c31ff835e075e64130cbea8da4d4960887006aae",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0.AppImage",
+      "bytes": 155293077,
+      "sha256": "7e7279be3ea54821e2d956837b7ab3ebcf57021933a56d74426c7474f8a9cc38",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0.cdx.json",
+      "bytes": 52506,
+      "sha256": "e71708b12ab1f833bb2e4c0250ccfd460f1ce5707cbfbfe3f7398cbb95f6ec3a",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0.dmg",
+      "bytes": 180308479,
+      "sha256": "a39f940e5221d04e5789627adf667c015d38e5d2aa6474778435207d7951e214",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-1.27.0.dmg.blockmap",
+      "bytes": 185380,
+      "sha256": "4f411b8945ce21b73558d9addd4ecbd4cb8ed4c5e9ae69d3ff8b0a764c7dd288",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-Setup-1.27.0.exe",
+      "bytes": 146749912,
+      "sha256": "99032a98fce548c6e7e314ed090247147c742702cc07c1b35ae89e7c57a05a1c",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "Blanc-Setup-1.27.0.exe.blockmap",
+      "bytes": 152585,
+      "sha256": "fe26ac8c9d0ba18a7de7a414d47fef29c38036f03edc7eb00a384cfa078e367d",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "latest-linux.yml",
+      "bytes": 365,
+      "sha256": "cb4aa3286399b93fc0a13939d070a84d8b3af9f7477800c7cd4f29afc1b03fe2",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "latest-mac.yml",
+      "bytes": 795,
+      "sha256": "e07aad43354d4ec2faebffa4826785346d85afdc93c5b8fefc32f8432c21f67e",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "latest.yml",
+      "bytes": 342,
+      "sha256": "7e6cd23bbcf4e84be5e206f35eef480989fc4ec87748ccc4cf7b548f4a97b845",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 1433,
+      "sha256": "dc85fcae73cb0f921cd0389ac6cf2c37e3896534236ed146326024269c75456b",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "SHA256SUMS.sigstore.json",
+      "bytes": 6607,
+      "sha256": "5697d2997233602de0b0cf3f677783f08e6306ba3b249ee776cece67eec27588",
+      "loggedOutDownload": "passed"
+    },
+    {
+      "name": "windows-signature.json",
+      "bytes": 552,
+      "sha256": "3b6f986db4d1d916c563ce1be26153d5f1fa6f65b432642530bd5cae141422a4",
+      "loggedOutDownload": "passed"
+    }
+  ],
+  "verification": {
+    "manifest": "passed: 17 artifacts plus SHA256SUMS",
+    "checksums": "passed: 16 manifest entries",
+    "sigstore": {
+      "result": "passed",
+      "identity": "anthony@bnfy.me",
+      "issuer": "https://github.com/login/oauth"
+    },
+    "mac": [
+      {
+        "architecture": "arm64",
+        "version": "1.27.0",
+        "bundleBuild": "1274",
+        "gatekeeper": "accepted",
+        "strictDeepSignature": "passed",
+        "stapledTicket": "valid",
+        "signerCertificateSHA1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+        "fuses": "passed",
+        "packagedBlocker": "passed",
+        "packagedUblock": "passed",
+        "packagedCompliance": "passed",
+        "executableSHA256": "884bf2f6746ddbdf2d1affb05c8cdd9878fd72e7c6bd5def8e3dde0522371acc",
+        "asarSHA256": "58688347586e31d6de28c7aea7564abf46745e36c6ca80e9fca82066180416f0"
+      },
+      {
+        "architecture": "x64",
+        "version": "1.27.0",
+        "bundleBuild": "1274",
+        "gatekeeper": "accepted",
+        "strictDeepSignature": "passed",
+        "stapledTicket": "valid",
+        "signerCertificateSHA1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+        "fuses": "passed",
+        "packagedBlocker": "passed",
+        "packagedUblock": "passed",
+        "packagedCompliance": "passed",
+        "executableSHA256": "9f40e0a50802adfa0b12ea6e2d56255759ebdfa72d4b61232d7c06c53b236c29",
+        "asarSHA256": "58688347586e31d6de28c7aea7564abf46745e36c6ca80e9fca82066180416f0"
+      }
+    ],
+    "windowsSignature": {
+      "schemaVersion": 1,
+      "artifact": "Blanc-Setup-1.27.0.exe",
+      "sha256": "99032a98fce548c6e7e314ed090247147c742702cc07c1b35ae89e7c57a05a1c",
+      "signed": true,
+      "status": "Valid",
+      "publisher": "CN=Bananify Creative, O=Bananify Creative, L=North Chili, S=New York, C=US",
+      "signerThumbprint": "54364A117BED2F3E618E72FEF812EEE8A3D76337",
+      "timestampAuthority": "CN=Microsoft Public RSA Time Stamping Authority, OU=nShield TSS ESN:7A00-05E0-D947, OU=Microsoft America Operations, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+    },
+    "provenance": [
+      {
+        "platform": "windows",
+        "verification": "passed",
+        "sourceSHA": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+        "issuer": "https://token.actions.githubusercontent.com",
+        "workflow": "https://github.com/bnfy/blanc/.github/workflows/release-windows-linux.yml@refs/heads/main",
+        "run": "https://github.com/bnfy/blanc/actions/runs/37173147979/attempts/1",
+        "subjects": [
+          {
+            "name": "Blanc-Setup-1.27.0.exe",
+            "digest": {
+              "sha256": "99032a98fce548c6e7e314ed090247147c742702cc07c1b35ae89e7c57a05a1c"
+            }
+          },
+          {
+            "name": "Blanc-Setup-1.27.0.exe.blockmap",
+            "digest": {
+              "sha256": "fe26ac8c9d0ba18a7de7a414d47fef29c38036f03edc7eb00a384cfa078e367d"
+            }
+          },
+          {
+            "name": "latest.yml",
+            "digest": {
+              "sha256": "7e6cd23bbcf4e84be5e206f35eef480989fc4ec87748ccc4cf7b548f4a97b845"
+            }
+          },
+          {
+            "name": "windows-signature.json",
+            "digest": {
+              "sha256": "3b6f986db4d1d916c563ce1be26153d5f1fa6f65b432642530bd5cae141422a4"
+            }
+          }
+        ]
+      },
+      {
+        "platform": "linux",
+        "verification": "passed",
+        "sourceSHA": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+        "issuer": "https://token.actions.githubusercontent.com",
+        "workflow": "https://github.com/bnfy/blanc/.github/workflows/release-windows-linux.yml@refs/heads/main",
+        "run": "https://github.com/bnfy/blanc/actions/runs/37173147979/attempts/1",
+        "subjects": [
+          {
+            "name": "Blanc-1.27.0.AppImage",
+            "digest": {
+              "sha256": "7e7279be3ea54821e2d956837b7ab3ebcf57021933a56d74426c7474f8a9cc38"
+            }
+          },
+          {
+            "name": "latest-linux.yml",
+            "digest": {
+              "sha256": "cb4aa3286399b93fc0a13939d070a84d8b3af9f7477800c7cd4f29afc1b03fe2"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "nativeRelease": {
+    "id": 37173147979,
+    "url": "https://github.com/bnfy/blanc/actions/runs/37173147979",
+    "sourceSHA": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "validate-inputs",
+        "conclusion": "success"
+      },
+      {
+        "name": "windows",
+        "conclusion": "success"
+      },
+      {
+        "name": "linux",
+        "conclusion": "success"
+      },
+      {
+        "name": "linux-sandbox",
+        "conclusion": "skipped"
+      }
+    ]
+  },
+  "exactTagPublicSmoke": {
+    "id": 37173603497,
+    "url": "https://github.com/bnfy/blanc/actions/runs/37173603497",
+    "sourceSHA": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "smoke (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "published-linux-appimage",
+        "conclusion": "success"
+      },
+      {
+        "name": "published-macos-dmg",
+        "conclusion": "success"
+      },
+      {
+        "name": "smoke (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "limitations": [
+    "Candidate installed acceptance remains bound to its original source and artifact hashes; not relabelled as final build 1274 installed testing.",
+    "Native hosted Intel/Windows/Linux results are not physical-machine results.",
+    "Rosetta is excluded; the existing Ubuntu 26.04 ARM64 VM was not changed and cannot certify the x64 AppImage.",
+    "Adjacent public v1.26.0 to v1.27.0 macOS and Windows Restart Now handoffs remain pending."
+  ]
+}
