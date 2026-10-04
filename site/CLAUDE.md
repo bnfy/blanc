@@ -30,6 +30,13 @@ welcome) are Astro-processed. Anything needing a **stable URL** — favicons,
 `shots/**` (fetched at runtime by demo.js) — lives in `public/`; never hash or
 rename these.
 
+**Homepage appearance:** only the homepage gets the header Dark mode toggle
+(`#home-appearance` in `Header.astro`, driven by `src/scripts/home-appearance.js`
+and BaseLayout's prepaint bootstrap). Without a saved choice the page follows the
+OS theme, including live changes; a manual toggle is saved as
+`blanc-home-appearance` and wins from then on. The button keeps a stable
+"Dark mode" label and reports state through `aria-pressed`.
+
 **Build contract:** `astro.config.mjs` pins `build.format: 'file'` (dist emits
 `about.html`, `features/island.html` … — the exact pre-Astro URL layout; never
 switch to directory format) and disables asset inlining
