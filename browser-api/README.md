@@ -53,12 +53,39 @@ it confirms:
   signature.
 - **Renderers:** every `browserAPI.<name>` reference in `src/renderer/*.js` is a
   contract member.
+- **Payloads:** `tabs:updated` and `getAllTabs` are pinned field by field (see
+  below).
 - **Generated files** are current.
 
 `test/unit/browser-api-contract.test.js` changes the preload and the contract in
 nine deliberate ways (renamed channel, reshaped payload, dropped coercion,
 changed default, extra trusted document, leaked platform gate, leaked listener,
-missing member, unknown type) and requires each to be reported.
+missing member, unknown type) and requires each to be reported. It also edits
+`main.js` payload literals (a new tab field, a dropped payload field, a changed
+capture row, an unknown spread) and narrows a contract enum, and requires those
+to be reported too.
+
+## Pinned payloads
+
+Structured types use `fields` instead of a `ts` string; the generator turns them
+into interfaces. `TabsUpdatedPayload` and `TabsSnapshot` are fully pinned, down
+to the tab entry (`TabEntry`) and everything nested in it. The check proves
+these shapes two ways, because the payload is assembled from two kinds of code:
+
+- **Pure helper modules** (`shield-model.js`, `site-security.js`,
+  `closed-tabs.js`, `display-capture-indicator.js`, `capture-state.js`) are
+  executed on about 700 fixtures covering every branch: all chip modes, popover
+  variants, provider labels and site-info states. Each result is validated
+  strictly against the contract: required fields present, no extra fields, and
+  literal values within their unions.
+- **Inline literals in `main.js`** (`serializeTabs`, `currentTabsPayload`, the
+  `tabs:get-all` handler and `captureBroadcastState`) are read from source and
+  their keys compared with the contract's fields, including known spreads. An
+  unrecognized spread fails the check, so a new one has to be taught to
+  `build.mjs` before it can pass.
+
+Field *values* produced inside `main.js` itself (titles, URLs, flags) are typed
+from the tab record's JSDoc and initial values; they are not executed.
 
 ## Changing the bridge
 
@@ -68,21 +95,24 @@ is described by `ipcArgs` when it differs from passing the parameters in order:
 `"$0"` is the first parameter, `"bool($0)"` coerces it, and an object maps
 fields to parameters.
 
+Adding, removing or renaming a field in `serializeTabs`, `currentTabsPayload`,
+the `tabs:get-all` handler or the capture rows needs the matching `fields` edit
+in `contract.json`. So does a new return value from one of the helper modules.
+
 ## Coverage today
 
-This is a first draft. The surface is complete (100 members: 1 value, 59
-`invoke`, 22 `send`, 18 events), and every member's IPC behaviour is checked.
-Payload shapes are only partly pinned:
+The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
+events), and every member's IPC behaviour is checked. Payload shapes are partly
+pinned:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
-| Parameters | 63 of 73 | 10, mostly opaque ids and option bags |
-| `invoke` results | 3 of 59 | 56 |
-| Event payloads | 1 of 16 (`tabs:updated`, top level only) | 15 |
+| Parameters | 66 of 73 | 7: option bags, anchors, the permission prompt id |
+| `invoke` results | 3 of 59, including `getAllTabs` in full | 56 |
+| Event payloads | 1 of 16: `tabs:updated` in full | 15 |
 
-Types say `unknown` rather than guess. Pinning them, starting with the
-`tabs:updated` tab entries, is the next Phase 0 step. A runtime payload check
-would need main-process fixtures and is not part of this draft.
+Types say `unknown` rather than guess. The remaining event payloads and
+`invoke` results are the next steps.
 
 ## Not in scope
 
