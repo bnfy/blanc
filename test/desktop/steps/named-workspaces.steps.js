@@ -33,6 +33,9 @@ Given('a named workspace with a live unsaved draft', async function () {
     history.pushState({}, '', '#keep-history'); return true;
   })()`);
   this.draftIdentity = await this.call('workspacePageIdentity', this.draftId);
+  // Reset also opens a Start Page. All pages, not only the draft, must finish
+  // loading before the next step exercises a Workspace switch.
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   const saved = await this.call('workspaceAction', 'save', 'Draft workspace'); assert.equal(saved.ok, true);
   this.workspaceA = saved.workspace.id;
 });
