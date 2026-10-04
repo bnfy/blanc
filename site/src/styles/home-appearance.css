@@ -81,6 +81,10 @@ html[data-home-appearance] .site-header.revamp-header {
 html[data-home-appearance] .site-header .revamp-nav { background: transparent; }
 html[data-home-appearance="dark"] .revamp-nav :is(.revamp-nav-link, .site-nav-cta) { color: var(--home-secondary); }
 html[data-home-appearance="dark"] .revamp-nav a:hover { color: var(--home-text); }
+html[data-home-appearance="dark"] .revamp-nav .site-appearance { color: var(--home-secondary); }
+html[data-home-appearance="dark"] .revamp-nav .site-appearance:hover { color: var(--home-text); background: var(--home-control-hover); }
+html[data-home-appearance="dark"] .revamp-nav .site-appearance .appearance-sun { display: block; }
+html[data-home-appearance="dark"] .revamp-nav .site-appearance .appearance-moon { display: none; }
 html[data-home-appearance] .website-footer { background: var(--home-footer); }
 html[data-home-appearance="dark"] .website-footer :is(.website-footer-bottom, .foot-news-controls) { border-color: var(--home-divider); }
 html[data-home-appearance] .website-footer .foot-news input { color: var(--home-text); }
@@ -91,7 +95,7 @@ html[data-home-appearance="dark"] .consent { box-shadow: inset 0 1px 0 #ffffff0d
 html[data-home-appearance] :is(.website-footer, .consent, .skip-link, .revamp-nav a, .foot-news input, .foot-news button) {
   transition: color var(--home-motion) ease, background-color var(--home-motion) ease, border-color var(--home-motion) ease;
 }
-html[data-home-appearance] .home-revamp :is(h1, h2, h3, p, .eyebrow, .frame-link, .daylight-actions button, .daylight-ticks span) {
+html[data-home-appearance] .home-revamp :is(h1, h2, h3, p, .eyebrow, .frame-link, #hero-daylight-play, .daylight-ticks span) {
   transition: color var(--home-motion) ease;
 }
 html[data-home-appearance] .home-revamp :is(.gallery-controls, .mahjong-boards) { background: transparent; }

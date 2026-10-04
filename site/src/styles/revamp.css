@@ -219,6 +219,44 @@ summary:focus-visible {
 .revamp-nav a:focus-visible {
   outline-offset: -3px;
 }
+/* Homepage-only appearance toggle; the page otherwise follows the system. */
+.revamp-nav .site-appearance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0 0 0 -16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #41403d;
+  cursor: pointer;
+}
+.revamp-nav .site-appearance[hidden] {
+  display: none;
+}
+.revamp-nav .site-appearance:hover {
+  color: #000;
+  background: rgb(14 14 14 / 0.06);
+}
+.revamp-nav .site-appearance:focus-visible {
+  outline-offset: 0;
+}
+.revamp-nav .site-appearance svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.revamp-nav .site-appearance .appearance-sun {
+  display: none;
+}
 .website-footer a,
 .website-footer-grid h2 {
   font-family: var(--font-ui);
@@ -352,6 +390,11 @@ main :is(.section-kicker, .eyebrow) {
     border-radius: 18px;
     background: var(--ink);
     color: var(--paper);
+  }
+  .revamp-nav .site-appearance {
+    width: 40px;
+    height: 40px;
+    margin: 0 -8px 0 -12px;
   }
   .website-footer .foot-news {
     max-width: 260px;

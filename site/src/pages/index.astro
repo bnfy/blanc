@@ -94,15 +94,29 @@ const structuredData = {
               class="planned-link"
               href="#island">See the Island in action</a>
           </div><p class="hero-offer">
-            Free browser. Patron adds saved Named Workspaces.
+            Free and open source. Ad and tracker blocking is on by default.
           </p>
         </div>
         <NativeIslandHero />
       </div>
     </section>
-    <section class="beat" id="wallpaper" aria-label="Time-of-day wallpaper preview">
+    <section class="beat" id="wallpaper" aria-labelledby="wallpaper-title">
       <div class="frame">
-        <figure
+        <div class="frame-inner wallpaper-intro">
+          <div class="split-title">
+            <div>
+              <p class="frame-kicker">Time-of-day wallpaper</p><h2
+                id="wallpaper-title"
+              >
+                Match your Start Page<br />to the time of day.
+              </h2>
+            </div><p class="lead">
+              Turn on Time-of-day wallpaper in Settings → General, and the Start
+              Page artwork follows your computer’s clock through dawn, day, dusk
+              and night. Drag the slider to preview each phase.
+            </p>
+          </div>
+        </div><figure
           class="hero-product"
           id="hero-daylight"
           data-phase="dawn"
@@ -243,24 +257,13 @@ const structuredData = {
               </div>
             </div>
           </div><figcaption class="daylight-caption">
-            <div class="daylight-heading">
-              <div class="daylight-actions">
-                <button
-                  type="button"
-                  id="hero-appearance"
-                  aria-label="Switch page to dark mode"
-                  aria-pressed="false"
-                  ><span aria-hidden="true">◐</span><span
-                    class="appearance-label">Light</span
-                  ></button
-                ><button
-                  type="button"
-                  id="hero-daylight-play"
-                  aria-label="Play the wallpaper day"
-                  ><span aria-hidden="true" class="daylight-play-icon">▶</span
-                  ></button>
-              </div>
-            </div><div class="daylight-track">
+            <button
+              type="button"
+              id="hero-daylight-play"
+              aria-label="Play the wallpaper day"
+              ><span aria-hidden="true" class="daylight-play-icon">▶</span
+              ></button
+            ><div class="daylight-track">
               <input
                 type="range"
                 id="hero-time"
@@ -420,8 +423,8 @@ const structuredData = {
           <div class="privacy-intro">
             <header class="privacy-heading">
               <p class="frame-kicker">Privacy and control</p>
-              <h2 id="privacy-title">Choose your<br />ad blocker.</h2>
-              <p class="lead">Choose how Blanc blocks ads and trackers.</p>
+              <h2 id="privacy-title">Ad and tracker blocking,<br />on by default.</h2>
+              <p class="lead">Blanc Blocker is on from first launch. Prefer uBlock Origin? On supported builds, you can choose it for regular tabs.</p>
             </header>
             <HorizonShield variant="blocker" />
             <div class="blocking-options">
@@ -615,6 +618,19 @@ const structuredData = {
               <a href="/trust">Privacy and security</a>
             </div>
           </div>
+        </div><div class="download-close">
+          <h2 id="download-title">Ready to try Blanc?</h2><div
+            class="platforms"
+            aria-label="Available desktop platforms"
+          >
+            <span><PlatformLogo platform="apple" />macOS</span><span
+              ><PlatformLogo platform="windows" />Windows</span
+            ><span><PlatformLogo platform="linux" />Linux</span>
+          </div><a class="planned-action" href="/download" data-track="download_click" data-cta-position="home-close"
+            >Choose your download</a
+          ><p class="closing-links">
+            <a href="/support">Support</a> · <a href="/changelog">What’s new</a>
+          </p>
         </div><section
           class="patron-section"
           id="patron"
@@ -661,20 +677,7 @@ const structuredData = {
             existing workspaces continue to work if it lapses. Earlier
             one-time supporters keep their lifetime Patron access.
           </p>
-        </section><div class="download-close">
-          <h3>Ready to try Blanc?</h3><div
-            class="platforms"
-            aria-label="Available desktop platforms"
-          >
-            <span><PlatformLogo platform="apple" />macOS</span><span
-              ><PlatformLogo platform="windows" />Windows</span
-            ><span><PlatformLogo platform="linux" />Linux</span>
-          </div><a class="planned-action" href="/download" data-track="download_click" data-cta-position="home-close"
-            >Choose your download</a
-          ><p class="closing-links" style="margin-top:20px">
-            <a href="/support">Support</a> · <a href="/changelog">What’s new</a>
-          </p>
-        </div>
+        </section>
       </div>
     </section>
   </main>

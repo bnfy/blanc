@@ -1616,53 +1616,34 @@
 .home-revamp .daylight-caption {
   position: relative;
   z-index: 2;
-  max-width: 400px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 440px;
   margin: 0 auto;
   padding: 0 10px;
 }
-.home-revamp .daylight-heading {
+.home-revamp #hero-daylight-play {
+  flex: none;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 20px;
-  margin-bottom: 4px;
-}
-.home-revamp .daylight-actions {
-  display: flex;
-  align-items: center;
-  gap: 17px;
-}
-.home-revamp .daylight-actions button {
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--dim);
-  font: 500 12px/1.5 var(--font-ui);
-  padding: 6px 0;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
 }
-.home-revamp .daylight-actions button:hover {
+.home-revamp #hero-daylight-play:hover {
   color: var(--ink);
-}
-.home-revamp #hero-daylight-play {
-  width: 32px;
-  justify-content: center;
 }
 .home-revamp .daylight-play-icon {
   font-size: 11px;
 }
-.home-revamp .daylight-actions #hero-appearance > span:first-child {
-  font-size: 19px;
-  line-height: 1;
-  display: block;
-  transition: transform 300ms;
-}
-.home-revamp #hero-appearance[aria-pressed="true"] > span:first-child {
-  transform: rotate(180deg);
-}
 .home-revamp .daylight-track {
+  flex: 1;
+  min-width: 0;
   padding: 0 7px;
 }
 .home-revamp .daylight-track input {
@@ -1786,7 +1767,6 @@
 @media (prefers-reduced-motion: reduce) {
   .home-revamp .hero-wallpaper-scene,
   .home-revamp .daylight-aura > span,
-  .home-revamp .daylight-actions #hero-appearance > span:first-child,
   .home-revamp .daylight-track input::-webkit-slider-thumb {
     transition: none;
   }
