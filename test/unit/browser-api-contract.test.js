@@ -225,3 +225,39 @@ test('an unknown resultCheck value is rejected', () => {
   contract.members.find((m) => m.name === 'stop').resultCheck = 'trust-me';
   assert.ok(api.validateContract(contract).some((p) => p.includes('unknown resultCheck')));
 });
+
+// ---- workspace action results ----
+
+test('workspace error, reason and action literals are all in the contract', () => {
+  assert.deepEqual(api.checkWorkspaceCodes(api.loadContract(), sendSources()), []);
+});
+
+test('a new workspace error code in main.js is reported', () => {
+  const problems = api.checkWorkspaceCodes(api.loadContract(),
+    sendSources("return { ok: false, error: 'not-patron' };", "return { ok: false, error: 'needs-patron' };"));
+  assert.ok(problems.some((p) => p.includes("error 'needs-patron'")), problems.join('\n'));
+});
+
+test('a new protection reason is reported', () => {
+  const problems = api.checkWorkspaceCodes(api.loadContract(),
+    sendSources("return { blocked: true, reason: 'active-page' };", "return { blocked: true, reason: 'signing-in' };"));
+  assert.ok(problems.some((p) => p.includes("reason 'signing-in'")), problems.join('\n'));
+});
+
+test('a workspace result spread that drifts from its type is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('    patronActive: settings.isPatronActive(),\n', '    patronActive: settings.isPatronActive(),\n    plan: settings.plan,\n'));
+  assert.ok(problems.some((p) => p.includes('renameWorkspace result') && p.includes('plan')), problems.join('\n'));
+});
+
+test('a handler-table workspace action is resolved and checked', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources("      return { ok: true, ...workspacesProjection() };\n    });\n  }", "      return { ok: true, moved: true, ...workspacesProjection() };\n    });\n  }"));
+  assert.ok(problems.some((p) => p.includes('moveWorkspace result') && p.includes('moved')), problems.join('\n'));
+});
+
+test('controller fixtures reject an error code the contract does not list', () => {
+  const contract = api.loadContract();
+  contract.types.WorkspaceErrorCode.ts = contract.types.WorkspaceErrorCode.ts.replace("'busy' | ", '');
+  assert.ok(api.checkPayloads(contract).some((p) => p.includes('controller open (busy)') && p.includes('error')));
+});
