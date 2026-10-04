@@ -42,62 +42,48 @@ test('native geometry edits flow into the artwork and missing source fails close
   assert.throws(() => nativeIslandArt({...source, document:''}), /Missing native resting Island markup/);
 });
 
-test('parallax is bounded, frame-batched, static for reduced motion and paused offscreen', async () => {
-  const {initHeroIsland, islandPose} = await load('site/src/scripts/hero-island.js');
-  assert.deepEqual(islandPose(99), islandPose(1));
-  assert.deepEqual(islandPose(-99), islandPose(-1));
-  assert.deepEqual(islandPose(1, true), {pitch:0,x:0,y:0},
-    'hover presents the Island straight-on regardless of scroll position');
-  const values = new Map(), events = new Map(), stageEvents = new Map(), frames = new Map();
-  let observer, preferenceChange, sequence = 0;
+test('gentle left/right turn pauses offscreen, in hidden tabs and for reduced motion', async () => {
+  const {initHeroIsland} = await load('site/src/scripts/hero-island.js');
+  const values = new Map(), events = new Map();
+  let observer, preferenceChange, resize;
   const preference = {matches:false, addEventListener:(_, fn) => {preferenceChange = fn;}};
-  const model = {clientWidth:920, shadowRoot:{getElementById:() => ({offsetWidth:400,offsetHeight:40})}, style:{setProperty:(k,v) => values.set(k,v)}};
-  const hoverTarget = {addEventListener:(key, fn) => stageEvents.set(key, fn)};
+  const model = {clientWidth:920, shadowRoot:{getElementById:() => ({offsetWidth:400})}, style:{setProperty:(k,v) => values.set(k,v)}};
   const stage = {
-    querySelector:selector => selector === '[data-island-hover]' ? hoverTarget : model,
-    getBoundingClientRect:() => ({top:300,left:0,width:1000,height:200}),
-    addEventListener:(key, fn) => stageEvents.set(key, fn), closest:() => null,
+    querySelector:() => model, closest:() => null,
     style:{setProperty:(k,v) => values.set(k,v)},
   };
   const view = {
-    innerHeight:1000,
-    document:{hidden:false, addEventListener:()=>{}, fonts:{ready:Promise.resolve()}},
-    matchMedia:query => query.includes('reduced') ? preference : {matches:true},
+    document:{hidden:false, addEventListener:(key,fn) => events.set(key,fn), fonts:{ready:Promise.resolve()}},
+    matchMedia:() => preference,
     getComputedStyle:() => ({getPropertyValue:() => '1.15'}),
-    addEventListener:(key,fn) => events.set(key,fn),
-    requestAnimationFrame:fn => {frames.set(++sequence,fn);return sequence;},
-    cancelAnimationFrame:id => frames.delete(id),
-    ResizeObserver:class {observe() {}},
+    ResizeObserver:class {constructor(fn) {resize=fn;} observe() {}},
     IntersectionObserver:class {constructor(fn) {observer=fn;} observe() {}},
   };
   initHeroIsland(stage, {view});
   assert.ok(Math.abs(Number(values.get('--art-scale')) - 2) < 1e-10);
-  const flush = () => {const queued=[...frames.values()];frames.clear();queued.forEach(fn => fn());};
-  const defaultPitch = values.get('--island-pitch');
-  stageEvents.get('pointerenter')({pointerType:'touch'});
-  assert.equal(frames.size,0, 'touch leaves the desktop illustration at its default angle');
-  stageEvents.get('pointerenter')({pointerType:'mouse'}); flush();
-  assert.equal(values.get('--island-pitch'),'0deg');
-  assert.equal(values.get('--island-pan-y'),'0px');
-  events.get('scroll')(); flush();
-  assert.equal(values.get('--island-pitch'),'0deg', 'scroll cannot tilt it while hovered');
-  stageEvents.get('pointerleave')(); flush();
-  assert.equal(values.get('--island-pitch'),defaultPitch, 'leaving restores the current scroll perspective');
-  events.get('scroll')(); events.get('scroll')();
-  assert.equal(frames.size,1);
-  observer([{isIntersecting:false}]);
-  assert.equal(frames.size,0);
-  events.get('scroll')();
-  assert.equal(frames.size,0);
+  assert.equal(values.get('--island-motion-state'),'paused');
   observer([{isIntersecting:true}]);
-  flush();
+  assert.equal(values.get('--island-motion-state'),'running');
+  observer([{isIntersecting:false}]);
+  assert.equal(values.get('--island-motion-state'),'paused');
+  observer([{isIntersecting:true}]);
+  view.document.hidden=true; events.get('visibilitychange')();
+  assert.equal(values.get('--island-motion-state'),'paused');
+  view.document.hidden=false; events.get('visibilitychange')();
+  assert.equal(values.get('--island-motion-state'),'running');
   preference.matches=true; preferenceChange();
-  assert.equal(values.get('--island-pitch'),'60deg');
-  assert.equal(values.get('--island-pan-y'),'0px');
-  events.get('scroll')();
-  assert.equal(frames.size,0);
-  stageEvents.get('pointerenter')({pointerType:'mouse'}); flush();
-  assert.equal(values.get('--island-pitch'),'0deg', 'reduced motion still allows the static front view');
-  stageEvents.get('pointerleave')(); flush();
-  assert.equal(values.get('--island-pitch'),'60deg');
+  assert.equal(values.get('--island-motion-state'),'paused');
+  observer([{isIntersecting:false}]);
+  preference.matches=false; preferenceChange();
+  assert.equal(values.get('--island-motion-state'),'paused', 'disabling reduced motion must not start offscreen work');
+  observer([{isIntersecting:true}]);
+  assert.equal(values.get('--island-motion-state'),'running');
+  model.clientWidth=460; resize();
+  assert.ok(Math.abs(Number(values.get('--art-scale')) - 1) < 1e-10);
+  const css=read('site/src/styles/hero-island.css');
+  assert.doesNotMatch(css, /rotate(?:X|Z)?\(/, 'the Island never pitches or rolls');
+  assert.match(css, /rotateY\(-5deg\)/);
+  assert.match(css, /rotateY\(5deg\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:none; transform:none/,
+    'reduced motion removes animation and leaves a level front view');
 });

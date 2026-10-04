@@ -339,3 +339,13 @@ front and back artwork. Both variants retain the existing lighting, scroll
 rotation, reduced-motion handling and static fallback. The original monochrome
 Island icon and app-only PR #502 are unchanged. Generation prompt, references
 and export details are in docs/verification/2026-10-03-blocker-shield-bronze.md.
+
+## Gentle left/right Island turn (October 3)
+
+The hero Island no longer has the steep fixed backward pitch or scroll
+parallax. It turns five degrees left and right around its vertical axis on an
+eight-second eased cycle, with restrained perspective and no in-plane tilt.
+Its native geometry and typography remain unchanged. Motion pauses offscreen
+and in hidden tabs; reduced motion shows a level, stationary front view.
+Native sizing and appearance synchronization with the wallpaper demo are
+retained.
