@@ -4544,7 +4544,7 @@
     {
       "id": "revamp-copy-037",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Ledger — a simple list of Favorites. Layout and game previews captured in Blanc v1.21.0 on macOS.",
+      "exactWording": "Ledger — a simple list of Favorites.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
