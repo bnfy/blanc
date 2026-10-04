@@ -53,3 +53,17 @@ October 3 the owner explicitly approved **“Yes—temporary job permission, tes
 and remove”** for `contents: write` on this intake job only. This is required
 for GitHub draft visibility and is removed after testing; the job still has no
 publication step.
+
+## Completed transfer and cleanup
+
+[Signed native Intel intake 37163485751](https://github.com/bnfy/blanc/actions/runs/37163485751)
+passed the exact hash, pinned signer, Gatekeeper, strict-deep signature, stapled
+ticket, fuses, packaged input and installed controls/no-scripting checks. The
+DMG was installed from its read-only mount before execution. Sanitized receipts
+are committed under `docs/evidence/ublock-installed-acceptance-2026-10-03`.
+
+The temporary draft and its only asset were deleted. The temporary tag is
+absent (GitHub had never created a published tag for the draft). Independent
+lookups return `release not found` and tag HTTP 404. The temporary intake job
+and its `contents: write` permission are removed. No public release or updater
+metadata was created. Both earlier Rosetta failures remain recorded separately.

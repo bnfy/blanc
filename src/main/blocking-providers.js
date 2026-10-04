@@ -22,7 +22,10 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
   const internalCandidate = app.isPackaged && metadata.blancUblockInternalValidation === true;
   const test = !app.isPackaged && process.env.BLANC_UBLOCK_TEST === '1';
   const platform = matrix.platforms[`${process.platform}-${process.arch}`];
-  const supported = !retired && !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
+  // Exact signed x64 acceptance is native Intel. The same bytes repeatedly
+  // time out under Rosetta; use the unavailable-build fallback on that host.
+  const translated = process.platform === 'darwin' && process.arch === 'x64' && app.runningUnderARM64Translation === true;
+  const supported = !retired && !translated && !!(test || bundled && ((internalCandidate && platform && matrix.electron === process.versions.electron) || (platform?.enabled === true && matrix.electron === process.versions.electron)));
   // Build availability is fixed at startup. Runtime failures of an available
   // uBO never change this selection: its provider remains fail closed.
   const effective = selected => selected === 'ublock-origin' && !supported ? 'blanc' : selected;
@@ -40,7 +43,7 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       fallback: !supported && selected === 'ublock-origin' ? fallback : null,
       exposed: !app.isPackaged || internalCandidate || bundled && Object.values(matrix.platforms).some(value => value.enabled) || selected === 'ublock-origin' || active === 'ublock-origin',
       internalCandidate, supported, reason: retired ? 'This browser engine no longer supports Manifest V2 extensions'
-        : supported ? null : !bundled ? 'uBlock Origin is not included in this build' : platform?.reason || 'Runtime/platform acceptance pending',
+        : translated ? 'uBlock Origin is unavailable when the Intel app runs under Rosetta' : supported ? null : !bundled ? 'uBlock Origin is not included in this build' : platform?.reason || 'Runtime/platform acceptance pending',
       enabled: settings.getSettings().adblockEnabled,
       ...provider?.status(),
       phase: active === 'ublock-origin' ? provider?.status().phase ?? (startupFailed ? 'failed' : 'initializing') : builtinPhase,

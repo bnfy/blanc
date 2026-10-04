@@ -67,3 +67,33 @@ successful retries remain recorded. The final rollout proposes Apple Silicon
 and Windows x64 only, as described in the [support matrix](../../ublock-origin-support-matrix-2026-10-03.md).
 Intel and Linux installed uBO gates remain open. Owner release confirmation and
 final exact-head CI still precede public merge/release.
+
+## Native Intel signed installed acceptance and Rosetta limits
+
+The unsigned DMG-installed native Intel suite at `ca94babf` passed all checks
+([37162421830](https://github.com/bnfy/blanc/actions/runs/37162421830)); its two
+JSON receipts explicitly do not claim signing acceptance.
+
+The exact signed, notarized x64 DMG from `0872ed72`, build 1273, was transferred
+with explicit owner authorization through an unpublished disposable draft.
+[Native signed intake 37163485751](https://github.com/bnfy/blanc/actions/runs/37163485751)
+installed it from the read-only DMG and verified all three pinned hashes, the
+exact signer, Gatekeeper, strict-deep signature, stapled ticket, fuses and uBO
+payload. The production controls/provider round trip, persistence, native
+close/reopen/Quit and no-scripting suites pass. `intel-native-signed-1273-*`
+records these separate observations.
+
+The same signed package failed twice under Rosetta on the Apple Silicon owner
+Mac with `ubo-startup-timeout` after its first provider switch. Both fresh-profile
+failures remain in `intel-rosetta-1273-attempt*-failed.json`; this is not native
+Intel evidence and is not called flaky. The runtime gate now excludes an Intel
+app translated by Rosetta using Electron's native translation flag, activates
+Blanc Blocker, and preserves the saved uBO configuration. Native Apple Silicon
+and native Intel remain distinct supported combinations. No startup or request
+deadline was relaxed.
+
+The read-only draft download first failed before running any app. The owner then
+explicitly approved temporary write access for the one intake job. After the
+passing test, the draft and only asset were deleted and the temporary tag was
+confirmed absent. The intake job and its elevated permission are removed. The
+public release/updater feed remain unchanged.

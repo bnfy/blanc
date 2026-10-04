@@ -8,8 +8,8 @@
       "reason": "Signed installed build 1272 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
     },
     "darwin-x64": {
-      "enabled": false,
-      "reason": "Intel macOS desktop and installed candidate acceptance pending"
+      "enabled": true,
+      "reason": "Signed DMG-installed native Intel build 1273 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; Rosetta excluded; owner release confirmation required before merge"
     },
     "win32-x64": {
       "enabled": true,

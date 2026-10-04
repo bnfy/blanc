@@ -140,7 +140,7 @@ test('ordinary packages hide uBO unless a prior selection needs recovery', () =>
   assert.equal(manager.status('default').exposed, true);
 });
 
-function unavailableManager({ runtime = '44.5.1', enabled = true, manifestV2 = 'retired', platform = { enabled: false }, bundled = false } = {}) {
+function unavailableManager({ runtime = '44.5.1', enabled = true, manifestV2 = 'retired', platform = { enabled: false }, bundled = false, architecture = 'arm64', translated = false } = {}) {
   const operations = [];
   const preferences = { adblockProvider: 'ublock-origin', adblockEnabled: enabled };
   const startup = { phase: 'initializing' };
@@ -151,13 +151,13 @@ function unavailableManager({ runtime = '44.5.1', enabled = true, manifestV2 = '
     setAdBlockEnabled: value => operations.push({ enabled: value }), coordinator: { setProvider() {} },
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
-    module, process: { env: { BLANC_UBLOCK_TEST: '1' }, platform: 'darwin', arch: 'arm64', versions: { electron: runtime } },
+    module, process: { env: { BLANC_UBLOCK_TEST: '1' }, platform: 'darwin', arch: architecture, versions: { electron: runtime } },
     require: name => {
-      if (name === 'electron') return { app: { isPackaged: true, getAppPath: () => '/fixture', getPath: () => '/fixture-profile' } };
+      if (name === 'electron') return { app: { isPackaged: true, runningUnderARM64Translation: translated, getAppPath: () => '/fixture', getPath: () => '/fixture-profile' } };
       if (name === 'node:fs') return { existsSync: () => true, rmSync: value => operations.push({ removed: value }) };
       if (name === '../../package.json') return { blancUblockBundled: bundled };
       if (name === './adblock') return builtin;
-      if (name === './ublock-platforms.json') return { electron: '44.5.1', manifestV2, platforms: platform ? { 'darwin-arm64': platform } : {} };
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', manifestV2, platforms: platform ? { ['darwin-' + architecture]: platform } : {} };
       if (name === './ublock-provider') return { createUblockProvider() { throw new Error('unavailable build must not load uBO'); } };
       return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
     },
@@ -204,6 +204,7 @@ for (const manifestV2 of ['retired', 'supported']) test(`unavailable uBO honors 
   assert.equal(operations.at(-1).enabled, true);
 });
 for (const [scenario, options] of [
+  ['Intel app under Rosetta', { manifestV2: 'supported', bundled: true, platform: { enabled: true }, architecture: 'x64', translated: true }],
   ['disabled platform', { manifestV2: 'supported', bundled: true }],
   ['unlisted platform', { manifestV2: 'supported', bundled: true, platform: null }],
   ['payload omitted from an approved platform', { manifestV2: 'supported', platform: { enabled: true } }],
@@ -229,4 +230,12 @@ test('deleting a profile in an unavailable build never loads its old native uBO 
   const { manager, operations } = unavailableManager({ manifestV2: 'supported', bundled: true });
   await manager.dispose('personal', { normal: {}, private: {} });
   assert(operations.some(op => op.removed?.endsWith(path.join('managed-ublock', 'personal'))));
+});
+
+test('approved native Intel remains selectable without the Rosetta fallback', () => {
+  const { manager } = unavailableManager({ manifestV2: 'supported', bundled: true,
+    platform: { enabled: true }, architecture: 'x64', translated: false });
+  assert.equal(manager.active, 'ublock-origin');
+  assert.equal(manager.status('personal').supported, true);
+  assert.equal(manager.status('personal').fallback, null);
 });
