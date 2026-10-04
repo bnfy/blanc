@@ -31,11 +31,14 @@ function createAppRestarter({ app, webContents, onCancelled = () => {}, platform
       // after a page's Stay decision or a cancelled normal shutdown.
       // AppImage's mounted Electron path disappears when the old process exits.
       // Re-enter its stable outer launcher, preserving the original arguments;
-      // the launcher creates the new mount and applies the normal sandbox rules.
+      // use the official extract-and-run launcher mode so the new instance and
+      // its native helper do not depend on the old FUSE mount. The regular
+      // AppRun and Blanc sandbox refusal still apply.
       const image = env.APPIMAGE;
       if (platform === 'linux' && app.isPackaged && typeof image === 'string'
         && path.isAbsolute(image) && !image.includes('\0')) {
-        app.relaunch({ execPath: image, args: argv.slice(1) });
+        app.relaunch({ execPath: image, args: ['--appimage-extract-and-run',
+          ...argv.slice(1).filter(argument => argument !== '--appimage-extract-and-run')] });
       } else {
         app.relaunch();
       }

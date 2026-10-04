@@ -110,6 +110,21 @@ async function restartChoice(provider) {
   await waitForValue(() => browser.isConnected(), value => !value, 'old browser disconnects on restart', 40000);
   await connect(); await ready(provider);
   assert.notEqual(await pid(), oldPid);
+  if (process.platform === 'linux') {
+    const session = await browser.newBrowserCDPSession();
+    const { processInfo } = await session.send('SystemInfo.getProcessInfo');
+    await session.detach();
+    const renderers = processInfo.filter(process => process.type === 'renderer');
+    assert(renderers.length >= 2);
+    const parentUser = fs.readlinkSync(`/proc/${await pid()}/ns/user`);
+    for (const renderer of renderers) {
+      const status = fs.readFileSync(`/proc/${renderer.id}/status`, 'utf8');
+      assert(/^Seccomp:\s+2$/m.test(status), 'restarted renderer seccomp');
+      assert(/^NoNewPrivs:\s+1$/m.test(status), 'restarted renderer privileges');
+      assert.notEqual(fs.readlinkSync(`/proc/${renderer.id}/ns/user`), parentUser, 'restarted renderer user namespace');
+    }
+    report.checks['restart-' + provider + '-renderer-sandbox'] = true;
+  }
   report.checks['restart-' + provider] = true;
   restartAttempt = null;
 }

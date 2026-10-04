@@ -95,7 +95,7 @@ test('packaged AppImage restart targets the persistent launcher after irreversib
   assert.deepEqual(relaunches, []);
   app.emit('quit');
   assert.equal(await pending, true);
-  assert.deepEqual(relaunches, [{ execPath: '/tmp/Applications/Blanc.AppImage', args: args.slice(1) }]);
+  assert.deepEqual(relaunches, [{ execPath: '/tmp/Applications/Blanc.AppImage', args: ['--appimage-extract-and-run', ...args.slice(1)] }]);
   assert.deepEqual(args, ['/tmp/.mount_Blanc/blanc', '--user-data-dir=/tmp/disposable', '--remote-debugging-port=1234']);
 });
 test('Stay never arms the AppImage launcher', async () => {
@@ -122,4 +122,15 @@ test('ordinary launches and malformed AppImage metadata retain the normal relaun
     assert.equal(await restart(), true);
     assert.deepEqual(options, [], `${platform}/${packaged}/${image}`);
   }
+});
+
+test('AppImage restart keeps one extraction switch across repeated restarts', async () => {
+  const app = new EventEmitter(); let options;
+  app.isPackaged = true; app.quit = () => app.emit('quit');
+  app.relaunch = value => { options = value; };
+  const restart = createAppRestarter({ app, webContents: { getAllWebContents: () => [] },
+    platform: 'linux', env: { APPIMAGE: '/tmp/Blanc.AppImage' },
+    argv: ['/tmp/extracted/blanc', '--appimage-extract-and-run', '--user-data-dir=/tmp/disposable'] });
+  assert.equal(await restart(), true);
+  assert.deepEqual(options.args, ['--appimage-extract-and-run', '--user-data-dir=/tmp/disposable']);
 });
