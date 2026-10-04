@@ -96,7 +96,7 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
   const homepage = read('site/src/pages/index.astro');
   const wallpaper = JSON.parse(read('docs/website-wallpaper-captures-v1.25.json'));
   assert.ok(homepage.includes(wallpaper.captures[0].displayAsset.file.replace('site/public', '')));
-  assert.match(normalize(homepage), /Blanc v1\.25\.0 on macOS/);
+  assert.match(homepage, /aria-label="Blanc v1\.25\.0 Billboard Start Page/);
 });
 
 

@@ -3015,16 +3015,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "hero-wallpaper-125-1",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Optional wallpaper follows your local clock.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "messaging-125-004",
       "source": "site/src/components/guides/island.astro",
       "exactWording": "browser controls, together",
@@ -4460,18 +4450,6 @@
       "id": "revamp-copy-010",
       "source": "site/src/pages/index.astro",
       "exactWording": "Tabs, navigation and page controls come together in one compact Island in a slim band above the page. A desktop browser for macOS, Windows and Linux.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "wallpaper",
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-011",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "A day in Blanc. ◐Light▶ DawnDayDuskNight Optional wallpaper follows your local clock. Blanc v1.25.0 on macOS; preview cycles faster.",
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation",

@@ -1621,6 +1621,9 @@
   height: auto;
   left: -2.5%;
   top: 0;
+  /* Omit only the native traffic-light corner. Each fading scene supplies
+     its captured chrome tint beneath the cutout, in light and dark mode. */
+  clip-path: polygon(6.5% 0, 100% 0, 100% 100%, 0 100%, 0 4%, 6.5% 4%);
 }
 .home-revamp .daylight-caption {
   position: relative;
@@ -1632,12 +1635,9 @@
 .home-revamp .daylight-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   margin-bottom: 4px;
-}
-.home-revamp .daylight-heading label {
-  font: 400 14px/1.5 var(--font-ui);
 }
 .home-revamp .daylight-actions {
   display: flex;
@@ -1742,12 +1742,6 @@
 .home-revamp .daylight-ticks .is-current {
   color: var(--ink);
   font-weight: 600;
-}
-.home-revamp #hero-wallpaper-note {
-  font-size: 11px;
-  color: var(--dim);
-  text-align: center;
-  margin-top: 12px;
 }
 .home-revamp .hero-product {
   padding-bottom: 63px;
