@@ -36,7 +36,10 @@ const press = async (command, key, modifiers, surface = 'active') => {
   const before = commandState.deliveries.length;
   assert.ok(before < 100, 'Command regression exceeded the bounded diagnostic inventory');
   lastCommandDiagnostics = { requested: { command, key, modifiers, surface }, state: commandState };
-  await app.evaluate(({ Menu, webContents, BrowserWindow }, { command, key, modifiers, surface }) => {
+  // Deliver the command from its own event-loop turn. Inspector evaluation can
+  // interrupt Node's timer dispatch, and a command that clears the timer being
+  // dispatched there crashes the main process.
+  await app.evaluate(({ Menu, webContents, BrowserWindow }, { command, key, modifiers, surface }) => new Promise(resolve => setImmediate(resolve)).then(() => {
     const windows = BrowserWindow.getAllWindows();
     const window = surface === 'otherChrome' ? windows.filter(candidate => candidate.webContents.getURL() === 'blanc-chrome://index/').sort((a, b) => a.id - b.id).at(-1)
       : windows.find(candidate => candidate.webContents.getURL() === 'blanc-chrome://index/');
@@ -56,7 +59,7 @@ const press = async (command, key, modifiers, surface = 'active') => {
     wc.focus();
     wc.sendInputEvent({ type: 'keyDown', keyCode: key, modifiers });
     wc.sendInputEvent({ type: 'keyUp', keyCode: key, modifiers });
-  }, { command, key, modifiers, surface });
+  }), { command, key, modifiers, surface });
   const delivered = await wait(() => call(app, 'browserCommandState'), value => value.deliveries.length > before, `${command} delivery`);
   lastCommandDiagnostics.state = delivered;
   assert.equal(delivered.deliveries.length, before + 1, `${command} must execute once`);
@@ -187,6 +190,9 @@ try {
   const heldId = await call(app, 'openTab', [`${origin}/held`]);
   const heldPage = await wait(async () => (await app.windows()).find(page => page.url() === `${origin}/held`), Boolean, 'held fixture');
   await heldPage.waitForLoadState();
+  // A tab the main process still counts as loading is recorded without its
+  // live view. The renderer's load event can precede that bookkeeping.
+  await wait(state, value => value.tabs.some(tab => tab.id === heldId && !tab.isLoading), 'held fixture settled in the main process');
   const heldContentsId = await call(app, 'workspacePageIdentity', [heldId]);
   const inputCount = (await call(app, 'tabListenerState', [heldId])).input;
   await press('close-tab', 'W', ['control']);
