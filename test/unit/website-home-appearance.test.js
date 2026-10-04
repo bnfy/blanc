@@ -150,6 +150,22 @@ test('when the system theme cannot be queried, the page starts light and the tog
   assert.deepEqual(p.active(), ['dawn-dark']);
 });
 
+test('a page without the header toggle still initialises without throwing', async () => {
+  const { initHomeAppearance } = await moduleAt('home-appearance.js');
+  const root = { dataset: { homeAppearance: 'light' } };
+  const document = { documentElement: root, getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] };
+  const view = { matchMedia: () => ({ matches: false, addEventListener() {} }), localStorage: { getItem: () => null }, requestAnimationFrame() {} };
+  assert.doesNotThrow(() => initHomeAppearance({ document, view }));
+});
+
+test('the header treats the built /index page as the homepage', async () => {
+  const { pagePath } = await import(pathToFileURL(path.resolve(__dirname, '../../site/src/data/navigation.mjs')));
+  for (const pathname of ['/', '/index', '/index.html']) assert.equal(pagePath(pathname), '/', pathname);
+  for (const pathname of ['/download', '/download.html', '/features/island.html']) assert.equal(pagePath(pathname), pathname.replace('.html', ''), pathname);
+  const header = require('node:fs').readFileSync(path.resolve(__dirname, '../../site/src/components/Header.astro'), 'utf8');
+  assert.match(header, /const onHome = pagePath\(Astro\.url\.pathname\) === "\/";/);
+});
+
 test('explicit changes persist only a theme value; blocked storage still allows toggling', async () => {
   const p = await fixture();
   p.button.events.click(); await settle();
