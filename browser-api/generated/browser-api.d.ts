@@ -17,8 +17,8 @@ export type WorkspaceId = string;
 /** Opaque closed-entry id. */
 export type ClosedEntryId = string;
 
-/** Id of a pending permission prompt. Shape not yet pinned. */
-export type PermissionPromptId = unknown;
+/** Id of a pending permission prompt: a per-process counter in main. */
+export type PermissionPromptId = number;
 
 /** Id of a capturing surface: a TabId for a tab, or `popup:<webContentsId>` for an auxiliary popup. */
 export type CaptureSurfaceId = string;
@@ -48,16 +48,31 @@ export type CreateTabOptions = { private?: boolean };
 export type OpenWorkspaceOptions = { force?: boolean };
 
 /** A point in window coordinates. */
-export type Point = { x: number; y: number };
+export interface Point {
+  x: number;
+  y: number;
+}
 
 /** A rectangle in window coordinates. */
-export type Rect = { x: number; y: number; width: number; height: number };
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
-/** Popover anchor geometry. Shape not yet pinned. */
+/** Popover anchor geometry sent by the strip. Shape not yet pinned. */
 export type Anchor = unknown;
 
-/** A pending permission prompt. Shape not yet pinned. */
-export type PermissionPromptPayload = unknown;
+/** A pending permission prompt, built by the permission prompter in main.js. */
+export interface PermissionPromptPayload {
+  id: PermissionPromptId;
+  origin: string;
+  /** Electron permission name, such as media or geolocation. */
+  permission: string;
+  /** Requested media types, per the prompter JSDoc in permissions.js. */
+  mediaTypes: string[];
+}
 
 /** A tab's live capture state. */
 export interface TabCapture {
@@ -238,6 +253,129 @@ export interface TabsUpdatedPayload {
   verticalTabsMinWidth: number;
   verticalTabsMaxWidth: number;
   verticalTabsDefaultWidth: number;
+}
+
+/** Where the shield popover's arrow sits, sent by syncShieldAnchor() in main.js. */
+export interface ShieldAnchorUpdate {
+  /** Horizontal position in the overlay's own coordinates. */
+  x: number;
+  /** Whether the popover is anchored to a known chip. */
+  connected: boolean;
+}
+
+/** Vertical tab rail widths, from verticalTabsMetrics() in main.js. */
+export interface VerticalTabsMetrics {
+  verticalTabsWidth: number;
+  verticalTabsPreferredWidth: number;
+  verticalTabsMinWidth: number;
+  verticalTabsMaxWidth: number;
+  verticalTabsDefaultWidth: number;
+}
+
+/** Glance split geometry, from calculateGlanceLayout() in glance-layout.js. */
+export interface GlanceLayout {
+  direction: 'horizontal' | 'vertical';
+  ratio: number;
+  page: Rect;
+  primary: Rect;
+  divider: Rect;
+  glanceHeader: Rect;
+  glanceContent: Rect;
+  /** Alias of glanceContent kept for older consumers. */
+  glance: Rect;
+}
+
+/** Named Workspaces storage status, from workspaces.js. */
+export type WorkspaceSaveStatus = 'saved' | 'pending' | 'read-failed' | 'future-format' | 'repair-failed' | 'storage-failed';
+
+/** A recently deleted workspace that can still be restored. */
+export interface DeletedWorkspace {
+  id: WorkspaceId;
+  name: string;
+  /** Milliseconds since the epoch. */
+  deletedAt: number;
+}
+
+/** A Named Workspace row. */
+export interface WorkspaceListItem {
+  id: WorkspaceId;
+  name: string;
+  /** Bound to this window. */
+  active: boolean;
+  /** Open in another window. */
+  openElsewhere: boolean;
+  resident: boolean;
+  revision: number;
+  tabCount: number;
+}
+
+/** Named Workspaces projection, from workspacesProjection() in main.js. */
+export interface WorkspacesPayload {
+  patronActive: boolean;
+  status: WorkspaceSaveStatus;
+  deleted: DeletedWorkspace[];
+  items: WorkspaceListItem[];
+}
+
+/** The chrome's effective appearance; pending while a system theme is still resolving. */
+export type ThemeAppearance = 'light' | 'dark' | 'pending';
+
+/** A tab's sampled page color, sent as a color-only update. */
+export interface PageTint {
+  id: TabId;
+  color: string;
+}
+
+/** Download activity for the strip, from downloadsActivity() in downloads.js. */
+export interface DownloadsActivity {
+  /** Downloads in flight. */
+  active: number;
+  /** A finished download is unacknowledged. */
+  hasRecent: boolean;
+  receivedBytes: number;
+  totalBytes: number;
+  /** Milliseconds since the epoch. */
+  lastCompletedAt: number | null;
+}
+
+/** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
+export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share';
+
+/** Which strip control opened the shield popover. */
+export type ShieldTrigger = 'shield' | 'insecure';
+
+/** The strip control that should regain focus when the overlay closes. */
+export type RestoreTrigger = 'shield' | 'insecure' | 'capture' | 'glance-change';
+
+/** Sent when main shows the overlay. */
+export interface OverlayShowPayload {
+  mode: OverlayMode;
+  /** Initial input text. */
+  prefill: string | null;
+  /** Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. */
+  purpose: unknown;
+  /** The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. */
+  pillRect?: Rect | null;
+}
+
+/** Sent when main hides the overlay. */
+export interface OverlayHidePayload {
+  /** Animate the panel back into the pill. */
+  retract: boolean;
+}
+
+/** Island presentation state for the strip. */
+export interface IslandState {
+  mode: OverlayMode | null;
+  trigger: ShieldTrigger | null;
+  /** Present only when the overlay closes. */
+  restoreTrigger?: RestoreTrigger | null;
+}
+
+/** Find-in-page counts for the active tab, sent from tab-view.js. */
+export interface FindResult {
+  activeMatchOrdinal: number;
+  matches: number;
 }
 
 export interface BlancBrowserAPI {
@@ -440,12 +578,12 @@ export interface BlancBrowserAPI {
    * Where the shield popover should anchor.
    * IPC: event `overlay:shield-anchor`.
    */
-  onShieldAnchor(callback: (payload: Anchor) => void): () => void;
+  onShieldAnchor(callback: (payload: ShieldAnchorUpdate) => void): () => void;
   /**
-   * Pointer proximity to the island.
+   * Pointer proximity to the island, sent only when it changes (0 beyond range).
    * IPC: event `chrome:island-proximity`.
    */
-  onIslandProximity(callback: (payload: unknown) => void): () => void;
+  onIslandProximity(callback: (payload: number) => void): () => void;
   /**
    * Switch between island and vertical tabs; returns the layout now in effect.
    * IPC: invoke `chrome:set-tab-layout`.
@@ -465,7 +603,7 @@ export interface BlancBrowserAPI {
    * Vertical tab rail metrics changed.
    * IPC: event `chrome:vertical-tabs-width`.
    */
-  onVerticalTabsWidth(callback: (payload: unknown) => void): () => void;
+  onVerticalTabsWidth(callback: (payload: VerticalTabsMetrics) => void): () => void;
   /**
    * Resize the Glance view to a pointer position.
    * IPC: send `chrome:resize-glance`.
@@ -480,12 +618,12 @@ export interface BlancBrowserAPI {
    * Glance layout changed.
    * IPC: event `chrome:glance-layout`.
    */
-  onGlanceLayout(callback: (payload: unknown) => void): () => void;
+  onGlanceLayout(callback: (payload: GlanceLayout | null) => void): () => void;
   /**
    * A Glance status message for the chrome to show.
    * IPC: event `chrome:glance-status`.
    */
-  onGlanceStatus(callback: (payload: unknown) => void): () => void;
+  onGlanceStatus(callback: (payload: string) => void): () => void;
   /**
    * Expand the island panel.
    * IPC: send `chrome:open-island`.
@@ -591,7 +729,7 @@ export interface BlancBrowserAPI {
    * List Named Workspaces.
    * IPC: invoke `chrome:workspaces-list`.
    */
-  listWorkspaces(): Promise<unknown>;
+  listWorkspaces(): Promise<WorkspacesPayload>;
   /**
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.
@@ -646,7 +784,7 @@ export interface BlancBrowserAPI {
    * Named Workspaces changed.
    * IPC: event `chrome:workspaces-updated`.
    */
-  onWorkspacesUpdated(callback: (payload: unknown) => void): () => void;
+  onWorkspacesUpdated(callback: (payload: WorkspacesPayload) => void): () => void;
   /**
    * Clear browsing history.
    * IPC: invoke `chrome:history-clear`.
@@ -682,7 +820,7 @@ export interface BlancBrowserAPI {
    * The effective appearance changed.
    * IPC: event `chrome:theme-appearance`.
    */
-  onThemeAppearance(callback: (payload: unknown) => void): () => void;
+  onThemeAppearance(callback: (payload: ThemeAppearance) => void): () => void;
   /**
    * Minimize the window.
    * IPC: send `window:minimize`.
@@ -707,12 +845,12 @@ export interface BlancBrowserAPI {
    * The active page's tint changed.
    * IPC: event `chrome:page-tint`.
    */
-  onPageTint(callback: (payload: unknown) => void): () => void;
+  onPageTint(callback: (payload: PageTint) => void): () => void;
   /**
    * Download activity for the strip indicator.
    * IPC: event `chrome:downloads`.
    */
-  onDownloadsActivity(callback: (payload: unknown) => void): () => void;
+  onDownloadsActivity(callback: (payload: DownloadsActivity) => void): () => void;
   /**
    * Mark download activity as seen.
    * IPC: send `chrome:downloads-ack`.
@@ -722,12 +860,12 @@ export interface BlancBrowserAPI {
    * Main is showing the overlay in a mode.
    * IPC: event `overlay:show`.
    */
-  onOverlayShow(callback: (payload: unknown) => void): () => void;
+  onOverlayShow(callback: (payload: OverlayShowPayload) => void): () => void;
   /**
    * Main hid the overlay.
    * IPC: event `overlay:hide`.
    */
-  onOverlayHide(callback: (payload: unknown) => void): () => void;
+  onOverlayHide(callback: (payload: OverlayHidePayload) => void): () => void;
   /**
    * Toggle the overlay panel.
    * IPC: event `overlay:toggle`.
@@ -737,12 +875,12 @@ export interface BlancBrowserAPI {
    * Island presentation state changed.
    * IPC: event `chrome:island-state`.
    */
-  onIslandState(callback: (payload: unknown) => void): () => void;
+  onIslandState(callback: (payload: IslandState) => void): () => void;
   /**
    * Find-in-page match counts changed.
    * IPC: event `chrome:find-result`.
    */
-  onFindResult(callback: (payload: unknown) => void): () => void;
+  onFindResult(callback: (payload: FindResult) => void): () => void;
 }
 
 declare global {

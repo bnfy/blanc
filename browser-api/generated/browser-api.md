@@ -45,16 +45,16 @@
 | `onPermissionPrompt` | permissions | event | `permissions:prompt` | `(payload: PermissionPromptPayload) => void` | all |
 | `reportChromeLayout` | layout | send | `chrome:layout` | `(height: number)` | all |
 | `reportIslandRect` | layout | send | `chrome:island-rect` | `(rect: Rect)` | all |
-| `onShieldAnchor` | layout | event | `overlay:shield-anchor` | `(payload: Anchor) => void` | all |
-| `onIslandProximity` | layout | event | `chrome:island-proximity` | `(payload: unknown) => void` | all |
+| `onShieldAnchor` | layout | event | `overlay:shield-anchor` | `(payload: ShieldAnchorUpdate) => void` | all |
+| `onIslandProximity` | layout | event | `chrome:island-proximity` | `(payload: number) => void` | all |
 | `setTabLayout` | layout | invoke | `chrome:set-tab-layout` | `(layout: TabLayout) => Promise<TabLayout>` | all |
 | `previewVerticalTabsWidth` | layout | send | `chrome:preview-vertical-tabs-width` | `(width: number)` | all |
 | `setVerticalTabsWidth` | layout | invoke | `chrome:set-vertical-tabs-width` | `(width: number) => Promise<unknown>` | all |
-| `onVerticalTabsWidth` | layout | event | `chrome:vertical-tabs-width` | `(payload: unknown) => void` | all |
+| `onVerticalTabsWidth` | layout | event | `chrome:vertical-tabs-width` | `(payload: VerticalTabsMetrics) => void` | all |
 | `resizeGlance` | glance | send | `chrome:resize-glance` | `(point: Point)` | all |
 | `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<unknown>` | all |
-| `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: unknown) => void` | all |
-| `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: unknown) => void` | all |
+| `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
+| `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
 | `openIslandTyping` | island | send | `chrome:open-island-typing` | `(char: string)` | all |
@@ -75,7 +75,7 @@
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<unknown>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<unknown>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
-| `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<unknown>` | all |
+| `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<unknown>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<unknown>` | all |
 | `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<unknown>` | all |
@@ -86,26 +86,26 @@
 | `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<unknown>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<unknown>` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: unknown) => void` | all |
-| `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: unknown) => void` | all |
+| `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<unknown>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<unknown>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<unknown>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<unknown>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<unknown>` | darwin |
 | `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<unknown>` | all |
-| `onThemeAppearance` | appearance | event | `chrome:theme-appearance` | `(payload: unknown) => void` | all |
+| `onThemeAppearance` | appearance | event | `chrome:theme-appearance` | `(payload: ThemeAppearance) => void` | all |
 | `minimizeWindow` | window | send | `window:minimize` | `()` | all |
 | `maximizeWindow` | window | send | `window:maximize` | `()` | all |
 | `closeWindow` | window | send | `window:close` | `()` | all |
 | `onTabsUpdated` | tabs | event | `tabs:updated` | `(payload: TabsUpdatedPayload) => void` | all |
-| `onPageTint` | appearance | event | `chrome:page-tint` | `(payload: unknown) => void` | all |
-| `onDownloadsActivity` | downloads | event | `chrome:downloads` | `(payload: unknown) => void` | all |
+| `onPageTint` | appearance | event | `chrome:page-tint` | `(payload: PageTint) => void` | all |
+| `onDownloadsActivity` | downloads | event | `chrome:downloads` | `(payload: DownloadsActivity) => void` | all |
 | `acknowledgeDownloads` | downloads | send | `chrome:downloads-ack` | `()` | all |
-| `onOverlayShow` | overlay | event | `overlay:show` | `(payload: unknown) => void` | all |
-| `onOverlayHide` | overlay | event | `overlay:hide` | `(payload: unknown) => void` | all |
+| `onOverlayShow` | overlay | event | `overlay:show` | `(payload: OverlayShowPayload) => void` | all |
+| `onOverlayHide` | overlay | event | `overlay:hide` | `(payload: OverlayHidePayload) => void` | all |
 | `onOverlayToggle` | overlay | event | `overlay:toggle` | `() => void` | all |
-| `onIslandState` | island | event | `chrome:island-state` | `(payload: unknown) => void` | all |
-| `onFindResult` | find | event | `chrome:find-result` | `(payload: unknown) => void` | all |
+| `onIslandState` | island | event | `chrome:island-state` | `(payload: IslandState) => void` | all |
+| `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
 
 ## Types
 
@@ -141,9 +141,9 @@ Opaque closed-entry id.
 
 ### `PermissionPromptId`
 
-Id of a pending permission prompt. Shape not yet pinned.
+Id of a pending permission prompt: a per-process counter in main.
 
-`unknown`
+`number`
 
 ### `CaptureSurfaceId`
 
@@ -203,25 +203,38 @@ Options for a new tab. Only `private` is read by main today.
 
 A point in window coordinates.
 
-`{ x: number; y: number }`
+| Field | Type | Notes |
+| --- | --- | --- |
+| `x` | `number` |  |
+| `y` | `number` |  |
 
 ### `Rect`
 
 A rectangle in window coordinates.
 
-`{ x: number; y: number; width: number; height: number }`
+| Field | Type | Notes |
+| --- | --- | --- |
+| `x` | `number` |  |
+| `y` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
 
 ### `Anchor`
 
-Popover anchor geometry. Shape not yet pinned.
+Popover anchor geometry sent by the strip. Shape not yet pinned.
 
 `unknown`
 
 ### `PermissionPromptPayload`
 
-A pending permission prompt. Shape not yet pinned.
+A pending permission prompt, built by the permission prompter in main.js.
 
-`unknown`
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `PermissionPromptId` |  |
+| `origin` | `string` |  |
+| `permission` | `string` | Electron permission name, such as media or geolocation. |
+| `mediaTypes` | `string[]` | Requested media types, per the prompter JSDoc in permissions.js. |
 
 ### `TabCapture`
 
@@ -436,3 +449,163 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `verticalTabsMinWidth` | `number` |  |
 | `verticalTabsMaxWidth` | `number` |  |
 | `verticalTabsDefaultWidth` | `number` |  |
+
+### `ShieldAnchorUpdate`
+
+Where the shield popover's arrow sits, sent by syncShieldAnchor() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `x` | `number` | Horizontal position in the overlay's own coordinates. |
+| `connected` | `boolean` | Whether the popover is anchored to a known chip. |
+
+### `VerticalTabsMetrics`
+
+Vertical tab rail widths, from verticalTabsMetrics() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `verticalTabsWidth` | `number` |  |
+| `verticalTabsPreferredWidth` | `number` |  |
+| `verticalTabsMinWidth` | `number` |  |
+| `verticalTabsMaxWidth` | `number` |  |
+| `verticalTabsDefaultWidth` | `number` |  |
+
+### `GlanceLayout`
+
+Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `direction` | `'horizontal' \| 'vertical'` |  |
+| `ratio` | `number` |  |
+| `page` | `Rect` |  |
+| `primary` | `Rect` |  |
+| `divider` | `Rect` |  |
+| `glanceHeader` | `Rect` |  |
+| `glanceContent` | `Rect` |  |
+| `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
+
+### `WorkspaceSaveStatus`
+
+Named Workspaces storage status, from workspaces.js.
+
+`'saved' \| 'pending' \| 'read-failed' \| 'future-format' \| 'repair-failed' \| 'storage-failed'`
+
+### `DeletedWorkspace`
+
+A recently deleted workspace that can still be restored.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `WorkspaceId` |  |
+| `name` | `string` |  |
+| `deletedAt` | `number` | Milliseconds since the epoch. |
+
+### `WorkspaceListItem`
+
+A Named Workspace row.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `WorkspaceId` |  |
+| `name` | `string` |  |
+| `active` | `boolean` | Bound to this window. |
+| `openElsewhere` | `boolean` | Open in another window. |
+| `resident` | `boolean` |  |
+| `revision` | `number` |  |
+| `tabCount` | `number` |  |
+
+### `WorkspacesPayload`
+
+Named Workspaces projection, from workspacesProjection() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `patronActive` | `boolean` |  |
+| `status` | `WorkspaceSaveStatus` |  |
+| `deleted` | `DeletedWorkspace[]` |  |
+| `items` | `WorkspaceListItem[]` |  |
+
+### `ThemeAppearance`
+
+The chrome's effective appearance; pending while a system theme is still resolving.
+
+`'light' \| 'dark' \| 'pending'`
+
+### `PageTint`
+
+A tab's sampled page color, sent as a color-only update.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `TabId` |  |
+| `color` | `string` |  |
+
+### `DownloadsActivity`
+
+Download activity for the strip, from downloadsActivity() in downloads.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `active` | `number` | Downloads in flight. |
+| `hasRecent` | `boolean` | A finished download is unacknowledged. |
+| `receivedBytes` | `number` |  |
+| `totalBytes` | `number` |  |
+| `lastCompletedAt` | `number \| null` | Milliseconds since the epoch. |
+
+### `OverlayMode`
+
+Overlay modes; every showOverlay() call in main.js passes one of these literals.
+
+`'panel' \| 'palette' \| 'find' \| 'shield' \| 'capture' \| 'glance' \| 'display-share'`
+
+### `ShieldTrigger`
+
+Which strip control opened the shield popover.
+
+`'shield' \| 'insecure'`
+
+### `RestoreTrigger`
+
+The strip control that should regain focus when the overlay closes.
+
+`'shield' \| 'insecure' \| 'capture' \| 'glance-change'`
+
+### `OverlayShowPayload`
+
+Sent when main shows the overlay.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `mode` | `OverlayMode` |  |
+| `prefill` | `string \| null` | Initial input text. |
+| `purpose` | `unknown` | Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. |
+| `pillRect?` | `Rect \| null` | The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. |
+
+### `OverlayHidePayload`
+
+Sent when main hides the overlay.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `retract` | `boolean` | Animate the panel back into the pill. |
+
+### `IslandState`
+
+Island presentation state for the strip.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `mode` | `OverlayMode \| null` |  |
+| `trigger` | `ShieldTrigger \| null` |  |
+| `restoreTrigger?` | `RestoreTrigger \| null` | Present only when the overlay closes. |
+
+### `FindResult`
+
+Find-in-page counts for the active tab, sent from tab-view.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `activeMatchOrdinal` | `number` |  |
+| `matches` | `number` |  |
