@@ -64,8 +64,9 @@ missing member, unknown type) and requires each to be reported. It also edits
 `main.js` payload literals (a new tab field, a dropped payload field, a changed
 capture row, an unknown spread, extra or missing event fields, an unreadable
 send argument, a void handler returning a value, a boolean handler that can
-fall through, a drifting returned object) and narrows a contract enum, and
-requires those to be reported too.
+fall through, a drifting returned object, a new workspace error code or
+protection reason, a drifting handler-table result) and narrows contract
+enums, and requires those to be reported too.
 
 ## Pinned payloads
 
@@ -123,10 +124,32 @@ opaque expression. Then:
 - an opaque expression (an identifier or call) is accepted unless the type is
   `void`, because its value can't be read statically.
 
+Handlers registered through a table (`['<channel>', (…) => op(…)]` consumed by
+a loop that calls `chromeHandle(channel, …)`) are resolved to the loop's shared
+body. In a returned object, `...helper()` contributes the keys that helper
+returns; spreading an opaque value (`...result`) can't be read, so it only
+waives the required-field check.
+
 `"resultCheck": "none"` skips the check for a member whose handler forwards an
 Electron method's result (`stop`, `stopFindInPage`); the reason is in its doc.
-Results registered through the workspace handler table are not reachable by
-this check and stay `unknown` for now.
+
+### Workspace action results
+
+All eight Named Workspace actions resolve to `WorkspaceActionResult`. Three more
+checks prove it:
+
+- **Controller fixtures:** `workspace-controller.js` is Electron-free, so its
+  `open` and `create` run against a stub adapter on 54 fixtures covering every
+  branch (swap, noop, focus elsewhere, not found, read errors, protected pages,
+  unsaved scratch and its confirmed decision, checkpoint and commit failures,
+  a thrown stage, not patron, invalid names, create failures and reentrant
+  `busy`). Each result is validated strictly.
+- **Code literals:** every `error:`, `action:` and protection `reason:` literal
+  in the workspace modules, the workspace functions in `main.js` and the
+  controller adapter must be in `WorkspaceErrorCode`, `WorkspaceAction` or
+  `WorkspaceProtectionReason`.
+- **Handler results:** the success objects the handlers build
+  (`{ ok: true, ...workspacesProjection() }`) are checked key by key.
 
 ## Changing the bridge
 
@@ -148,14 +171,12 @@ pinned:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
-| Parameters | 67 of 73 | 6: option bags, anchors, the folder and picker choice |
-| `invoke` results | 38 of 59 | 21: navigation and find (forwarded wake and Electron results), history, Favorites and remote tabs lists, the seven workspace actions, search suggestions, the two ad-blocking commands, 1Password fill |
+| Parameters | 67 of 73 | 6: anchors, the find options, history options, the Favorites folder and the screen-share picker choice |
+| `invoke` results | 46 of 59 | 13: navigation and find (forwarded wake and Electron results), history, Favorites and remote tabs lists, search suggestions, the two ad-blocking commands, 1Password fill |
 | Event payloads | 15 of 16 | `onRemoteTabsUpdated` (sync device shapes not yet traced) |
 
 Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
-`OverlayShowPayload` because it is deliberately mode-specific. The workspace
-action results are the next step: they are unions of several failure shapes
-and successes that carry the workspace list.
+`OverlayShowPayload` because it is deliberately mode-specific.
 
 ## Not in scope
 
