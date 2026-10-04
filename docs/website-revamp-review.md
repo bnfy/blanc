@@ -474,3 +474,8 @@ Validation: desktop and 390px mobile reviewed, native screenshot loads without
 horizontal overflow, the image is unlinked and guide links remain keyboard
 reachable, no browser script errors. All 26 focused website feature-evidence,
 trust and attribution checks pass; site build and SEO checks pass. No deployment.
+# Shield preview recovery — October 4, 2026
+
+- Reproduced a static shield while the scroll controller continued updating its angle. The lazy renderer's Three.js dependencies returned HTTP 504 `Outdated Optimize Dep`: the running dev server's dependency cache had been replaced.
+- Isolated Vite caches by Astro command so a production build cannot overwrite the live dev preview's optimized modules. Renderer initialization failures now emit a diagnostic warning while retaining the static fallback.
+- Verified the real WebGL canvas loaded, ran `npm run site:build` while the dev server remained open, then reloaded and verified the canvas still loaded. Scrolling moved the solid shield from 171° to 245° and back to 134°, with its bronze side visibly rendered. All six shield tests and the site/SEO build passed.

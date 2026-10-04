@@ -5,6 +5,16 @@ export default defineConfig({
   site: 'https://blancbrowser.com',
   output: 'static',
   devToolbar: { enabled: false },
+  integrations: [{
+    name: 'isolated-vite-cache',
+    hooks: {
+      'astro:config:setup': ({ command, updateConfig }) => {
+        // A build beside a running preview must not replace its optimized
+        // dependencies: lazy imports otherwise fail with Outdated Optimize Dep.
+        updateConfig({ vite: { cacheDir: fileURLToPath(new URL(`./node_modules/.vite-${command}/`, import.meta.url)) } });
+      },
+    },
+  }],
   // Astro 7 changes the default to 'jsx' (JSX-rule whitespace stripping),
   // which glues inline elements together — "in our repository" rendered as
   // "inour repository", and the Intel download card's accessible name lost

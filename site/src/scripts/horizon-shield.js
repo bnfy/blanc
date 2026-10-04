@@ -27,7 +27,8 @@ export function initHorizonShield(study, { view = window, loadRenderer = default
       const { createShieldRenderer } = await loadRenderer();
       renderer = await createShieldRenderer(study.querySelector('.horizon-turn'));
       render();
-    } catch {
+    } catch (error) {
+      console.warn('Shield renderer could not start:', error);
       // Unsupported WebGL, failed assets or context creation leave the original
       // artwork upright. Never substitute a rotating cardboard cutout.
       failed = true;
