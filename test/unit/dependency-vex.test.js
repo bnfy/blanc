@@ -15,14 +15,14 @@ test('http-cache-semantics VEX stays within the reviewed static site and build d
   );
   if (!statement) return;
 
-  for (const [file, expectedParent, developmentOnly] of [
-    ['package-lock.json', 'node_modules/cacheable-request', true],
-    ['site/package-lock.json', 'node_modules/astro', false],
+  for (const [file, expectedParent, developmentOnly, version] of [
+    ['package-lock.json', 'node_modules/cacheable-request', true, '4.2.0'],
+    ['site/package-lock.json', 'node_modules/astro', false, '4.3.0'],
   ]) {
     const packages = readJson(file).packages;
     const entries = Object.entries(packages).filter(([key]) => key.endsWith('node_modules/http-cache-semantics'));
     assert.equal(entries.length, 1, `${file}: re-review additional copies`);
-    assert.equal(entries[0][1].version, '4.2.0', `${file}: re-review the dependency source`);
+    assert.equal(entries[0][1].version, version, `${file}: re-review the dependency source`);
     assert.equal(entries[0][1].dev === true, developmentOnly, `${file}: scope changed`);
     const parents = Object.entries(packages)
       .filter(([, entry]) => [entry.dependencies, entry.optionalDependencies, entry.peerDependencies]
@@ -37,7 +37,7 @@ test('http-cache-semantics VEX stays within the reviewed static site and build d
       'node_modules/got': '11.8.6',
       'node_modules/cacheable-request': '7.0.4',
     }],
-    ['site/package-lock.json', { 'node_modules/astro': '7.3.2' }],
+    ['site/package-lock.json', { 'node_modules/astro': '7.3.5' }],
   ]) {
     const packages = readJson(file).packages;
     for (const [key, version] of Object.entries(reviewed)) {
@@ -167,7 +167,7 @@ test('http-cache-semantics VEX remains limited to the reviewed, cache-free build
   const siteLock = readJson('site/package-lock.json');
   assert.deepEqual(consumersOf(siteLock, 'http-cache-semantics'), ['node_modules/astro'],
     'site: a new http-cache-semantics consumer needs reachability review');
-  assert.equal(siteLock.packages['node_modules/astro']?.version, '7.3.2', 'site: re-review astro http-cache-semantics use');
+  assert.equal(siteLock.packages['node_modules/astro']?.version, '7.3.5', 'site: re-review astro http-cache-semantics use');
   const astroConfig = fs.readFileSync(path.join(ROOT, 'site/astro.config.mjs'), 'utf8');
   assert.doesNotMatch(astroConfig, /\b(?:adapter|image)\s*:|\boutput\s*:\s*['"](?!static['"])/,
     'site: server output or image configuration requires VEX re-review');

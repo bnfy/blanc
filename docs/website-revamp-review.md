@@ -479,3 +479,22 @@ trust and attribution checks pass; site build and SEO checks pass. No deployment
 - Reproduced a static shield while the scroll controller continued updating its angle. The lazy renderer's Three.js dependencies returned HTTP 504 `Outdated Optimize Dep`: the running dev server's dependency cache had been replaced.
 - Isolated Vite caches by Astro command so a production build cannot overwrite the live dev preview's optimized modules. Renderer initialization failures now emit a diagnostic warning while retaining the static fallback.
 - Verified the real WebGL canvas loaded, ran `npm run site:build` while the dev server remained open, then reloaded and verified the canvas still loaded. Scrolling moved the solid shield from 171° to 245° and back to 134°, with its bronze side visibly rendered. All six shield tests and the site/SEO build passed.
+
+## Astro dependency refresh (October 4)
+
+Updated Astro 7.3.2 → 7.3.5, its Vite dependency 8.2.1 → 8.3.2,
+and Sharp 0.35.4 → 0.35.5. Astro resolves its own compiler update to 0.5.1.
+Updated http-cache-semantics to 4.3.0; the website now has zero npm audit
+findings. Re-reviewed and updated the dependency evidence and guards; the
+desktop dependency graph was not changed.
+
+Raised the site's declared Node minimum to 22.19.0 to match the already-locked
+Undici requirement. Build and preview were verified using available Node
+24.19.0; the preview stays on port 4321.
+
+Validation: site build and SEO checks pass (29 pages, 27 sitemap URLs); all
+76 site, website and dependency-review unit tests pass. Dependency security
+policy passes across all four lockfiles. Browser check: no script errors or
+Vite overlay, Island command switching works, wallpaper advances through its
+phases and pauses, and the WebGL shield rotates with scrolling. At 390px, no
+horizontal overflow and the native tab-group image remains loaded and unlinked.

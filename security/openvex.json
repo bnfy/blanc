@@ -3,8 +3,8 @@
   "@id": "https://raw.githubusercontent.com/bnfy/blanc/main/security/openvex.json",
   "author": "Blanc maintainers",
   "role": "Document Creator",
-  "timestamp": "2026-10-03T12:37:01Z",
-  "version": 3,
+  "timestamp": "2026-10-04T05:26:45Z",
+  "version": 4,
   "tooling": "Manual maintainer review",
   "statements": [
     {
@@ -55,7 +55,7 @@
       "products": [{ "@id": "pkg:github/bnfy/blanc" }],
       "status": "not_affected",
       "justification": "vulnerable_code_not_in_execute_path",
-      "impact_statement": "Reviewed by Claude on 2026-10-03: http-cache-semantics 4.2.0 occurs only under development-only electron-builder (via @electron/get 3.1.0, got 11.8.6, and cacheable-request 7.0.4) and under the website's build-time astro 7.3.2. got builds its HTTP cache only when a request passes a cache option, which @electron/get never does and Blanc's build configuration never supplies; astro uses the package only to revalidate remote images, and the static site configures and uses none. No shared cache serves other users' requests. Absent from the desktop runtime graph and release payloads. Evidence and re-review conditions: docs/security-reviews/2026-10-03-http-cache-semantics.md."
+      "impact_statement": "Reviewed by Claude on 2026-10-03: http-cache-semantics 4.2.0 occurs only under development-only electron-builder (via @electron/get 3.1.0, got 11.8.6, and cacheable-request 7.0.4) and under the website's build-time astro 7.3.2. got builds its HTTP cache only when a request passes a cache option, which @electron/get never does and Blanc's build configuration never supplies; astro uses the package only to revalidate remote images, and the static site configures and uses none. No shared cache serves other users' requests. Absent from the desktop runtime graph and release payloads. Website re-reviewed by Codex on 2026-10-04: upgraded to astro 7.3.5 and http-cache-semantics 4.3.0, outside the advisory affected range; npm audit reports zero site findings. Astro remote-image use remains build-only and unused by this static site. The desktop 4.2.0 chain and its reviewed exception remain unchanged. Evidence and re-review conditions: docs/security-reviews/2026-10-03-http-cache-semantics.md."
     }
   ]
 }
