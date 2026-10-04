@@ -397,25 +397,23 @@ const structuredData = {
     <section class="beat" id="tabs" aria-labelledby="tabs-title">
       <div class="frame">
         <div class="frame-inner">
-          <div class="split-title tabs-intro">
-            <div>
+          <div class="tabs-layout">
+            <div class="tabs-copy">
               <p class="frame-kicker">Tabs and sessions</p>
               <h2 id="tabs-title">Organize tabs<br />into groups.</h2>
+              <p class="lead">Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.</p>
+              <p class="tabs-note">Tab groups are free. <a href="#patron">Patron adds saved Named Workspaces.</a></p>
+              <nav class="tabs-links" aria-label="More about tabs and sessions">
+                <a href="/features/tab-groups">Tab groups <span aria-hidden="true">→</span></a>
+                <a href="/features/reopen-closed-tabs">Recently Closed <span aria-hidden="true">→</span></a>
+                <a href="/features/profiles">Profiles <span aria-hidden="true">→</span></a>
+                <a href="/features/sync">Sync <span aria-hidden="true">→</span></a>
+              </nav>
             </div>
-            <p class="lead">Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.</p>
-          </div>
-          <figure class="tabs-capture">
+            <figure class="tabs-capture">
               <img src="/revamp/tab-groups-native.webp" width="1240" height="652" loading="lazy" decoding="async" alt="Blanc v1.27.0 on macOS: the Island shows an explore group with two NASA pages and a reading group with Typography and Scandinavian design. Each group has a fold control, tab count and keyboard shortcut." />
-            <figcaption class="sr-only">Actual Blanc interface with sample tabs.</figcaption>
-          </figure>
-          <div class="tabs-followthrough">
-            <p>Tab groups are free. <a href="#patron">Patron adds saved Named Workspaces.</a></p>
-            <nav aria-label="More about tabs and sessions">
-              <a href="/features/tab-groups">Tab groups <span aria-hidden="true">→</span></a>
-              <a href="/features/reopen-closed-tabs">Recently Closed <span aria-hidden="true">→</span></a>
-              <a href="/features/profiles">Profiles <span aria-hidden="true">→</span></a>
-              <a href="/features/sync">Sync <span aria-hidden="true">→</span></a>
-            </nav>
+              <figcaption class="sr-only">Actual Blanc interface with sample tabs.</figcaption>
+            </figure>
           </div>
         </div>
       </div>
@@ -572,7 +570,9 @@ const structuredData = {
         <div class="frame-inner">
           <h2 id="tools-title">
             Everyday browser tools.
-          </h2><GlanceDemo /><GestureDemo /><div class="tools-list">
+          </h2><div class="gallery-controls tool-switch" role="group" aria-label="Choose a demo" data-tool-switch hidden>
+            <button type="button" aria-controls="glance" aria-pressed="true">Glance</button><button type="button" aria-controls="gestures" aria-pressed="false">Mouse gestures</button>
+          </div><GlanceDemo /><GestureDemo /><div class="tools-list">
             <article>
               <h3>Use your 1Password logins.</h3><p>
                 On macOS, the optional integration fills a matching login when

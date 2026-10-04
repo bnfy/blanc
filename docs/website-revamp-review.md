@@ -818,3 +818,18 @@ seven replaced entries with a reason and adds the new wording; Bring Your Tabs
 cites a new `tabImport` evidence group (`chromium-session.js` and the
 tab-import modules at v1.27.0). The trust test's pinned disclosure phrases
 were updated in the same commit.
+
+## Text sizes and a shorter tools section (October 4)
+
+Important homepage copy no longer sits at 11–12px: the hero's "Free and open
+source…" line and the privacy intro are 14px; small print, the Patron price
+and boundary, the blocking-provider note, closing links and the gesture setup
+note are 13px; tool-card text is 14px. Section kickers stay at 11px.
+
+"Everyday browser tools" shows one demo at a time behind a Glance / Mouse
+gestures switch (`site/src/scripts/tool-demos.js`), reusing the Start Page
+layout picker's style. At 1440px the section drops from 2,113px to 1,327px.
+Without JavaScript both demos stay visible and the switch stays hidden; a
+link to `/#gestures` opens that demo. Phones get an 800px copy of the Nyhavn
+Glance photo (171 KB to 111 KB); a WebP copy of the Kusama JPEG came out
+larger than the original, so it is unchanged.
