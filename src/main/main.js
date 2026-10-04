@@ -2406,6 +2406,7 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     const view = retained ? retainedView : createTabView(tab);
     tab.view = view;
     if (!retained) wireTabView(tab, view, { owner, adopted: false });
+    rootManagedExtensionView(tab);
     wc = view.webContents;
     watchUblockPopupOutsideContents(tab);
     tabIdByWebContentsId.set(wc.id, id);
@@ -5517,6 +5518,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
     localFile: admittedLocalFile,
+    // Main-owned tool lifetime survives its temporary error URL during uBO reload.
+    managedExtension: managedExtension === true && !isPrivate,
     // Trusted Electron inheritance, kept in main memory for view recreation.
     // Neither this nor the initial referrer comes from tabs:create IPC.
     openerSandboxFlags,
@@ -5593,6 +5596,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // Adoption: the caller (reopenEntry) already removed the held firewall's
   // recorded listeners; wireTabView below re-installs the tab set.
   wireTabView(tab, view, { owner, adopted });
+  rootManagedExtensionView(tab);
   watchUblockPopupOutsideContents(tab);
   if (openerTabId) noteUblockCreatedTarget(liveContents(tabs.get(openerTabId))?.id, wc.id, url);
 
@@ -5659,15 +5663,46 @@ function setTabViewVisible(tab, visible) {
   }
 }
 
+// Native Aura focus restoration can run after a tool navigation, including a
+// uBO restore that reloads its background and dashboard. Keep those hidden
+// guests rooted on Windows/Linux for their whole lifetime, not just close().
+// This does not retain renderers beyond normal Quiet Tabs/closed-tab policy.
+const managedExtensionRoots = new WeakMap();
+function rootManagedExtensionView(tab) {
+  const wc = liveContents(tab);
+  const owner = rt();
+  if (process.platform === 'darwin' || isQuitting || owner.closing || !hasLiveWindow()
+      || !wc || !tab.managedExtension || tab.private || tabs.get(tab.id) !== tab
+      || windowRuntimes.runtimeForTab(tab.id) !== owner) return false;
+  const view = tab.view;
+  let root = managedExtensionRoots.get(view);
+  if (!root) {
+    root = { window: owner.window };
+    managedExtensionRoots.set(view, root);
+    // Independent of tab listeners: quiet/held teardown deliberately unwires
+    // those before destroying the contents. Remove after the native stack ends.
+    wc.once('destroyed', () => setImmediate(() => {
+      const window = root.window;
+      if (!window.isDestroyed() && !liveViewContents(view)
+          && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+      managedExtensionRoots.delete(view);
+    }));
+  } else root.window = owner.window;
+  if (owner.activeTabId !== tab.id && owner.glanceTabId !== tab.id) setTabViewVisible(tab, false);
+  if (!owner.window.contentView.children.includes(view)) owner.window.contentView.addChildView(view);
+  return true;
+}
+
 // Release native focus while the guest still belongs to the live window.
 // Avoid restoring focus against a detached Aura hierarchy during native
 // WebContents destruction (Windows/Linux).
-function detachTabView(tab) {
+function detachTabView(tab, { retainManagedRoot = false } = {}) {
   const wc = liveContents(tab);
   if (!wc || tabs.get(tab.id) !== tab || windowRuntimes.runtimeForTab(tab.id) !== rt() ||
       !hasLiveWindow()) return false;
   if (wc.isFocused()) rt().window.webContents.focus();
   setTabViewVisible(tab, false);
+  if (retainManagedRoot && rootManagedExtensionView(tab)) return true;
   rt().window.contentView.removeChildView(tab.view);
   return true;
 }
@@ -5776,7 +5811,7 @@ function setActiveTab(id, {
   cancelAddressBarFocusReclaim();
   if (liveContents(prev) && prev.id !== rt().glanceTabId) {
     // Explicit hiding also stops a detached document's foreground timers.
-    detachTabView(prev);
+    detachTabView(prev, { retainManagedRoot: true });
   }
 
   rt().activeTabId = id;
@@ -5791,6 +5826,7 @@ function setActiveTab(id, {
   }
   if (shouldFocusAddress) setTabViewVisible(next, false);
   rt().window.contentView.addChildView(next.view);
+  rootManagedExtensionView(next);
   const glanceTab = activeGlanceTab();
   if (glanceTab?.view) {
     setTabViewVisible(glanceTab, true);
@@ -5852,7 +5888,7 @@ async function setGlanceTab(id) {
   hideUtilitySheet({ refocusContent: false });
   const previous = activeGlanceTab();
   if (previous?.view && previous.id !== id) {
-    detachTabView(previous);
+    detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
   }
 
@@ -5879,7 +5915,7 @@ function closeGlance({ focusContent = true } = {}) {
   bumpSurfaceGeneration();
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
-    detachTabView(tab);
+    detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
   }
   resizeActiveView();

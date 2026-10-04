@@ -12,5 +12,7 @@ exec gdb --batch --return-child-result \
   --eval-command='handle SIGPIPE nostop noprint pass' \
   --eval-command='handle SIGUSR1 nostop noprint pass' \
   --eval-command='run' \
+  --eval-command='info registers rip rdi rsi rdx' \
+  --eval-command='x/12i $pc-16' \
   --eval-command='thread apply all bt 16' \
   --args "$BLANC_UBLOCK_NATIVE_EXECUTABLE" "$@"
