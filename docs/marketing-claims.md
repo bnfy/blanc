@@ -71,7 +71,7 @@ its qualifications remain subject to the release-backed claim gate above.
 ## Current Blanc capability boundaries
 
 These boundaries describe public v1.27.0; platform acceptance limits and
-pending adjacent public-feed updater checks are recorded in
+owner-confirmed adjacent public-feed updater handoffs are recorded in
 [the release report](release-incidents/2026-10-03-v1.27.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. Historical wallpaper/Linux

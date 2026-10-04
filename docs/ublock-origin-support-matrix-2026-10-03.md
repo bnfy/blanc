@@ -74,6 +74,7 @@ remain recorded.
 
 The public release completed protected merge, per-alert approved CodeQL
 dispositions after draft, signing/notarization, authenticated manifest,
-provenance, logged-out downloads and exact-tag public checks. Adjacent public
-v1.26.0 → v1.27.0 Mac/Windows Restart Now handoffs remain pending; the staged
-candidate handoffs above do not establish those outcomes.
+provenance, logged-out downloads and exact-tag public checks. On October 4 the
+owner confirmed successful adjacent public v1.26.0 → v1.27.0 Restart Now
+handoffs on both macOS and Windows. The staged candidate handoffs above remain
+separate evidence; this confirmation adds no post-update close/relaunch claim.
