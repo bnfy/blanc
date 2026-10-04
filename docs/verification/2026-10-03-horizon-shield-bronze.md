@@ -1,4 +1,4 @@
-# Horizon Shield — monochrome Island and bronze display artwork
+# Blocker artwork — original Island shield and bronze display artwork
 
 On October 3, 2026, the owner requested a less golden, more copper/bronze
 Horizon Shield matching the Sunrise sun, everywhere in the app and website.
@@ -7,23 +7,22 @@ icon ship in the next app release before the redesigned website deploys.
 
 ## Final app treatment
 
-The owner subsequently found the full-color texture out of place among the
-Island's minimal controls and requested a flat monochrome version there.
-`src/renderer/index.html` now embeds a vector outline: the same broad shield
-and two curved seams form three layers, drawn with `currentColor`, no fill,
-1.25-unit strokes and rounded joins. It stays 16×16 CSS pixels inside the
-existing 24px button; the native zoom, count badge, hover circle, off-state
-opacity and accessible state descriptions remain.
+After seeing the monochrome Horizon experiment, the owner preferred the
+original Blanc Blocker shield and requested its restoration. The entire
+`#pillShield` SVG markup and blocker CSS block are restored verbatim from
+`03621de6^`: the shield outline and single diagonal, 16×16 CSS pixels, 1.4-unit
+stroke, original badge placement, hover circle, quiet/off colors and states.
+There is no three-layer Horizon glyph in the Island.
 
-The SVG inherits the Island's state colors in light and dark appearances.
 The unused `src/renderer/shield-horizon.png` is removed, along with its exact
-chrome-protocol allowlist entry. No new resource or behavior is introduced.
+chrome-protocol allowlist entry. No new resource or blocking behavior is
+introduced. The original icon inherits the native light/dark state colors.
 
 `assets/horizon-shield.png` remains the recolored 1254×1254 transparent bronze
 master for the large website illustration. Its SHA-256 remains
 `5882ad8fab1debe245a8cbf92e3e7e5dfc26f755607ddb598eb73187ca54389e`.
-This app PR contains no website code or exports. The website PR reuses the
-native SVG for its Island hero and keeps bronze artwork only at display scale.
+This app PR contains no website code or exports. The website hero reuses the
+original native shield; bronze Horizon artwork remains at display scale only.
 Original Sunrise artwork and historical public captures remain unchanged.
 
 ## Image edit provenance
@@ -44,7 +43,7 @@ assumed; the three plates, two seams and raised outline remain visually intact.
 ## Delivery order
 
 1. Merge this app-only PR into `main` through normal protected checks.
-2. Include the monochrome native Island icon in the next verified app release.
+2. Include the restored original Island icon in the next verified app release.
 3. Reconcile the website launch evidence against that immutable public release.
 4. Merge and deploy website PR #491 only after the app release is public.
 
@@ -55,7 +54,7 @@ must never depend on merging or deploying the website redesign.
 ## Validation
 
 The original bronze revision passed 23 native shield-model and chrome-resource
-tests, lint and raster export reproduction. The later monochrome revision
+tests, lint and raster export reproduction. The final original-icon restoration
 reruns those native state/resource checks and lint; the removed raster path
 must now be rejected by the chrome protocol. Website hero and 3D validation
 belong to the dependent website PR. No new packaged app release is claimed.

@@ -286,7 +286,7 @@ retaining both reviews' bounded checks. No deployment was performed.
 
 The owner's later October 3 color correction replaces bright yellow gold with
 the original Sunrise sun's copper/bronze family. The bronze master feeds the website 960px WebP and both 3D faces. The
-owner’s subsequent Island correction uses a monochrome inline SVG in both the
+owner’s final Island correction restores the original shield-and-diagonal SVG in both the
 app and enlarged hero; the native raster icon is retired. The rim is bronze and the key light is more neutral to
 avoid reintroducing a yellow cast. The final alpha silhouette was retraced for
 the closed 3D model. Original approval evidence remains pinned separately from
@@ -297,8 +297,8 @@ recorded in `docs/verification/2026-10-03-horizon-shield-bronze.md`.
 
 Owner correction, October 3: the bronze shield must ship in the app before the
 website deploys. App-only PR #502 (`codex/horizon-shield-bronze`, artwork commit
-`232fdf6c`) targets `main` and owns the shared bronze master, monochrome
-native SVG and app brand/provenance records. It contains no website
+`5f8be929`) targets `main` and owns the shared bronze master, restored original
+blocker SVG and app brand/provenance records. It contains no website
 files. Website PR #491 temporarily targets that app branch so the native
 changes are excluded from its review. This website PR owns the WebP export,
 closed 3D outline and bronze rim/light adjustments, hero and launch ledger.
@@ -315,3 +315,8 @@ exact native SVG extraction for the hero and closed 3D geometry. Production/SEO 
 hero icon, front/back and bronze side wall were inspected at 855×792, without
 page overflow or console warnings/errors. The native SVG was reviewed through the source-derived hero in light and dark
 appearance; no fresh native launch or packaged app release occurred here.
+
+The owner preferred the original Blanc Blocker icon over the new Horizon
+outline. Its SVG, 1.4-unit stroke and badge styling are restored directly from
+`03621de6^` in app PR #502, and the hero extracts that exact original markup
+and native CSS. The large bronze Horizon illustration remains unchanged.

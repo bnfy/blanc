@@ -15,7 +15,7 @@ export function nativeIslandArt({ styles, document, renderer }) {
     '.pill-btns', '.pill-btn', '.pill-btn:disabled', '.pill-btn svg', '.pill-sep',
     '.island-dot', '.island-dot.active', '#pillDomain', '.pill-shortcuts',
     '.pill-slash, .pill-shortcut', '.pill-slash::before, .pill-shortcut::before',
-    '.pill-shortcut svg', '.shield', '.shield-art', '#pillShieldCount:empty',
+    '.pill-shortcut svg', '.shield', '.shield svg', '#pillShieldCount:empty',
     '.shield.shield-quiet', '.favicon', '.favicon.has-icon', '#pillFavicon',
   ];
   const root = rules.filter(rule => rule.selector === ':root');

@@ -165,7 +165,7 @@ test('provider launch copy stays release-gated with bronze display artwork and n
   assert.equal(hash(original), ledger.artwork.originalSourceSha256);
   const master = fs.readFileSync(path.join(root, ledger.artwork.source));
   assert.equal(hash(master), ledger.artwork.sourceSha256);
-  const nativeIcon = read(ledger.islandIcon.file).match(/<svg class="shield-art"[\s\S]*?<\/svg>/)[0];
+  const nativeIcon = read(ledger.islandIcon.file).match(/id="pillShield"[\s\S]*?(<svg[\s\S]*?<\/svg>)/)[1];
   assert.equal(hash(nativeIcon), ledger.islandIcon.sha256);
   assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.model.outline))), ledger.artwork.model.outlineSha256);
   assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.recolor.reference))), ledger.artwork.recolor.referenceSha256);
