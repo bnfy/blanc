@@ -2281,3 +2281,48 @@
 .home-revamp .gesture-study[hidden] {
   display: none;
 }
+
+/* Start Page: the lead sits with the heading, a narrower monitor, and one
+   footer row under it (current layout caption left, Mahjong right). */
+.home-revamp .start-frame .split-title {
+  align-items: end;
+}
+.home-revamp .start-frame > figure {
+  display: grid;
+  /* The monitor art draws at 94% of its box, so the footer row sits inside 3% gutters. */
+  grid-template-columns: 3% minmax(0, 1fr) auto 3%;
+  grid-template-areas: "device device device device" ". caption discovery ." "controls controls controls controls";
+  align-items: center;
+  column-gap: 0;
+  max-width: 860px;
+}
+.home-revamp .start-frame .device-composition { grid-area: device; }
+.home-revamp .start-frame .device-desktop {
+  width: 100%;
+  max-width: 780px;
+}
+.home-revamp .layout-caption {
+  grid-area: caption;
+  margin: 18px 24px 0 0;
+  font: 400 14px/1.6 var(--font-ui);
+  color: var(--dim);
+}
+.home-revamp .start-frame .start-discovery {
+  grid-area: discovery;
+  justify-content: flex-end;
+  margin: 18px 0 0;
+  min-height: 0;
+}
+.home-revamp .start-frame .mahjong-controls { grid-area: controls; }
+/* While Mahjong plays, the caption explains it; keep just the tiles and Back. */
+.home-revamp .start-frame .start-discovery.is-playing .break-copy { display: none; }
+.home-revamp .start-frame .break-label { font-size: 21px; }
+.home-revamp .start-frame .tile-pair { width: 40px; height: 40px; }
+@media (max-width: 760px) {
+  .home-revamp .start-frame > figure {
+    grid-template-columns: 1fr;
+    grid-template-areas: "device" "caption" "discovery" "controls";
+  }
+  .home-revamp .layout-caption { text-align: center; margin-right: 0; }
+  .home-revamp .start-frame .start-discovery { justify-content: center; margin-top: 14px; }
+}

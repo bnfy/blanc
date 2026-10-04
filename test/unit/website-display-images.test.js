@@ -28,7 +28,9 @@ test('Start Page layout copies keep the Display P3 profile of their captures', a
 
 test('phones get frameless, focused crops of every framed capture', () => {
   const css = fs.readFileSync(path.join(site, 'src/styles/home.css'), 'utf8');
-  const phone = css.slice(css.lastIndexOf('@media (max-width: 760px)'));
+  const start = css.indexOf('/* Phones: drop the device frames');
+  assert.ok(start > 0, 'phone crop block not found');
+  const phone = css.slice(start, css.indexOf('\n}\n', css.indexOf('@media (max-width: 760px)', start)));
   assert.match(phone, /\.device-composition \.device-shell \{\s*display: none;/);
   assert.match(phone, /aspect-ratio: 4 \/ 3;/);
   assert.match(phone, /\.hero-wallpaper-scene \.device-screen \{[^}]*width: 260%/);
