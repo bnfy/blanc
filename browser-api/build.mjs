@@ -72,7 +72,11 @@ export function validateContract(contract) {
     if (m.platforms) for (const p of m.platforms) if (!PLATFORMS.includes(p)) problems.push(`${where}: unknown platform "${p}"`);
     if (m.kind === 'value') { knownOrField(m.type ?? '', where); continue; }
     if (typeof m.channel !== 'string' || !/^[a-z-]+:[a-z-]+$/.test(m.channel)) problems.push(`${where}: bad channel`);
-    if (m.kind === 'event') { if (m.payload !== null) knownOrField(m.payload ?? '', where); continue; }
+    if (m.kind === 'event') {
+      if (m.payload !== null) knownOrField(m.payload ?? '', where);
+      if (m.payloadCheck !== undefined && !['fixtures', 'custom'].includes(m.payloadCheck)) problems.push(`${where}: unknown payloadCheck "${m.payloadCheck}"`);
+      continue;
+    }
     let sawOptional = false;
     for (const p of m.params ?? []) {
       knownOrField(p.type ?? '', `${where}(${p.name})`);
@@ -458,6 +462,86 @@ export function checkMainPayloadKeys(contract, mainSource = fs.readFileSync(path
   return problems;
 }
 
+// ---- event send sites ----
+// For every event whose payload is a structured type, find each
+// `send('<channel>', <arg>)` in src/main and compare the payload's keys with
+// the contract. <arg> may be an object literal, a local `const`/`let` bound to
+// a literal or a call, or a call whose function returns an object literal.
+// Members marked `"payloadCheck": "fixtures"` are proven by payloadFixtures()
+// instead, and `"custom"` by a dedicated check (tabs:updated). A replay of a
+// stored payload (`<expr>.payload`) is accepted only when another send site
+// for the same channel was checked as a literal. Any other form fails, so a
+// new send site has to be readable.
+const SEND_EXCLUDE = new Set(['preload.js', 'test-hook.js']);
+
+function mainSources() {
+  return jsFiles(MAIN_DIR)
+    .filter((f) => !SEND_EXCLUDE.has(path.basename(f)))
+    .map((f) => ({ file: path.basename(f), text: stripComments(fs.readFileSync(f, 'utf8')) }));
+}
+
+function structuredType(expr, contract) {
+  const names = splitUnion(expr).filter((t) => t !== 'null');
+  return names.length === 1 && contract.types[names[0]]?.fields ? names[0] : null;
+}
+
+function returnedKeys(sources, fnName) {
+  for (const { text } of sources) {
+    if (!text.includes(`function ${fnName}(`)) continue;
+    const body = functionBody(text, fnName);
+    return literalKeys(objectAfter(body, 'return {', { last: true }).replace(/^return /, ''));
+  }
+  throw new Error(`function ${fnName} not found in src/main`);
+}
+
+function argumentKeys(sources, text, argStart) {
+  const rest = text.slice(argStart);
+  if (rest.startsWith('{')) return literalKeys(balanced(text, argStart));
+  const call = rest.match(/^([A-Za-z_$][\w$]*)\(/);
+  if (call) return returnedKeys(sources, call[1]);
+  const ident = rest.match(/^([A-Za-z_$][\w$]*)\s*[),]/);
+  if (!ident) throw new Error(`unreadable payload argument "${rest.slice(0, 40)}"`);
+  const before = text.slice(0, argStart);
+  const decl = [...before.matchAll(new RegExp(`(?:const|let)\\s+${ident[1]}\\s*=\\s*`, 'g'))].at(-1);
+  if (!decl) throw new Error(`payload variable "${ident[1]}" has no local declaration`);
+  return argumentKeys(sources, text, decl.index + decl[0].length);
+}
+
+export function checkEventSends(contract, rawSources = mainSources()) {
+  const sources = rawSources.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const problems = [];
+  for (const m of contract.members) {
+    if (m.kind !== 'event' || m.payload === null || m.payloadCheck) continue;
+    const typeName = structuredType(m.payload, contract);
+    if (!typeName) continue;
+    const fields = contract.types[typeName].fields;
+    const required = Object.keys(fields).filter((k) => !fields[k].optional);
+    const pattern = new RegExp(`\\.send\\(\\s*'${m.channel}'\\s*,\\s*`, 'g');
+    let sites = 0;
+    let checked = 0;
+    let replays = 0;
+    for (const source of sources) {
+      for (const hit of source.text.matchAll(pattern)) {
+        sites++;
+        const where = `${m.name} (${source.file})`;
+        if (/^[\w$?.]+\.payload\s*\)/.test(source.text.slice(hit.index + hit[0].length))) { replays++; continue; }
+        checked++;
+        try {
+          const { keys, spreads } = argumentKeys(sources, source.text, hit.index + hit[0].length);
+          for (const s of spreads) problems.push(`${where}: unrecognized spread "...${s}" in the ${m.channel} payload`);
+          for (const k of keys) if (!(k in fields)) problems.push(`${where}: sends "${k}", which is not a field of ${typeName}`);
+          for (const k of required) if (!keys.includes(k)) problems.push(`${where}: does not send required field ${typeName}.${k}`);
+        } catch (error) {
+          problems.push(`${where}: ${error.message}; teach browser-api/build.mjs to read it or mark the member "payloadCheck": "fixtures"`);
+        }
+      }
+    }
+    if (sites === 0) problems.push(`${m.name}: no send('${m.channel}', …) found in src/main`);
+    else if (replays && !checked) problems.push(`${m.name}: only replays of a stored payload were found; the original send must be checkable`);
+  }
+  return problems;
+}
+
 export function payloadFixtures() {
   const { shieldChipState, connectionFor, shieldPopoverModel, shieldProviderModel } = requireMain('./shield-model');
   const { buildSiteInfo, sanitizeCertificate } = requireMain('./site-security');
@@ -513,11 +597,15 @@ export function payloadFixtures() {
     { shareId: 'share-2', tabId: 't1' },
   ], { tabIds: ['t1'] }));
   add('capture projection', 'TabCapture', captureState.projection(captureState.createCaptureRecord()));
+  const { calculateGlanceLayout } = requireMain('./glance-layout');
+  for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 600, height: 900 }, { x: 0, y: 0, width: 0, height: 0 }, null]) {
+    for (const ratio of [0.5, 0.7, 2, undefined]) add(`calculateGlanceLayout(${JSON.stringify(bounds)}, ${ratio})`, 'GlanceLayout | null', calculateGlanceLayout(bounds, ratio));
+  }
   return cases;
 }
 
 export function checkPayloads(contract) {
-  const problems = [...checkMainPayloadKeys(contract)];
+  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract)];
   for (const { label, type, value } of payloadFixtures()) {
     problems.push(...validateValue(value, type, contract, label));
   }
