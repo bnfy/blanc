@@ -63,8 +63,9 @@ changed default, extra trusted document, leaked platform gate, leaked listener,
 missing member, unknown type) and requires each to be reported. It also edits
 `main.js` payload literals (a new tab field, a dropped payload field, a changed
 capture row, an unknown spread, extra or missing event fields, an unreadable
-send argument) and narrows a contract enum, and requires those to be reported
-too.
+send argument, a void handler returning a value, a boolean handler that can
+fall through, a drifting returned object) and narrows a contract enum, and
+requires those to be reported too.
 
 ## Pinned payloads
 
@@ -107,6 +108,26 @@ Events whose payload is a plain string, number or string union
 (`onGlanceStatus`, `onIslandProximity`, `onThemeAppearance`) are typed from the
 code but their values are not checked at the send site.
 
+### Invoke results
+
+Typed `invoke` results are checked against what their handler can return. The
+check reads the `chromeHandle('<channel>', …)` handler in `main.js`, follows a
+direct call to a local helper one level deep, and classifies each top-level
+`return` (nested functions are ignored): nothing (a bare `return` or falling off
+the end), a boolean, `null`, number or string literal, an object literal, or an
+opaque expression. Then:
+
+- a `void` result must never return a value;
+- a result whose type excludes `undefined` must not be able to fall through;
+- an object literal must match a structured type in the result, key for key;
+- an opaque expression (an identifier or call) is accepted unless the type is
+  `void`, because its value can't be read statically.
+
+`"resultCheck": "none"` skips the check for a member whose handler forwards an
+Electron method's result (`stop`, `stopFindInPage`); the reason is in its doc.
+Results registered through the workspace handler table are not reachable by
+this check and stay `unknown` for now.
+
 ## Changing the bridge
 
 Change `src/main/preload.js` and `contract.json` together, then run
@@ -123,17 +144,18 @@ in `contract.json`. So does a new return value from one of the helper modules.
 
 The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
 events), and every member's IPC behaviour is checked. Payload shapes are mostly
-pinned for events and still open for results:
+pinned:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
 | Parameters | 67 of 73 | 6: option bags, anchors, the folder and picker choice |
-| `invoke` results | 4 of 59, including `getAllTabs` and `listWorkspaces` | 55 |
+| `invoke` results | 38 of 59 | 21: navigation and find (forwarded wake and Electron results), history, Favorites and remote tabs lists, the seven workspace actions, search suggestions, the two ad-blocking commands, 1Password fill |
 | Event payloads | 15 of 16 | `onRemoteTabsUpdated` (sync device shapes not yet traced) |
 
 Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
-`OverlayShowPayload` because it is deliberately mode-specific. The `invoke`
-results are the next step.
+`OverlayShowPayload` because it is deliberately mode-specific. The workspace
+action results are the next step: they are unions of several failure shapes
+and successes that carry the workspace list.
 
 ## Not in scope
 
