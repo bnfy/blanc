@@ -2157,3 +2157,44 @@
 }
 
 .home-revamp .capture-note a{color:inherit;text-underline-offset:3px}
+
+/* Phones: drop the device frames (never downloaded — they are lazy and
+   hidden) and show a readable detail of each capture instead. Offsets are
+   percentages of the 4:3 card, so the same detail shows at every width. */
+@media (max-width: 760px) {
+  .home-revamp .device-composition .device-shell {
+    display: none;
+  }
+  .home-revamp .hero-product .device-composition,
+  .home-revamp #wallpaper .device-composition,
+  .home-revamp .device-desktop {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+  .home-revamp .device-composition .device-aperture {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+  /* Billboard wallpaper (v1.25.0): clock, favorites and the Patron pill. */
+  .home-revamp .device-laptop .hero-wallpaper-scene .device-screen {
+    width: 260%;
+    height: auto;
+    left: -80%;
+    top: -57%;
+    clip-path: none;
+  }
+  .home-revamp .device-desktop .device-aperture .layout-shot {
+    height: auto;
+    object-fit: fill;
+  }
+  .home-revamp .device-desktop .device-aperture .layout-shot[src*="ledger"] { width: 280%; left: 0; top: -33%; }
+  .home-revamp .device-desktop .device-aperture .layout-shot[src*="billboard"] { width: 190%; left: -45%; top: -24%; }
+  .home-revamp .device-desktop .device-aperture .layout-shot[src*="shelf"] { width: 140%; left: -4%; top: 0; }
+  .home-revamp .device-desktop .device-aperture .layout-shot[src*="tally"] { width: 300%; left: -188%; top: -40%; }
+}

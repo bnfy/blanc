@@ -786,3 +786,18 @@ On a 1.6 Mbps, 150 ms link the desktop page now finishes loading in about
 - Not changed: Inter is still fetched twice (about 47 KB). The hero renders
   with the app's own `inter-latin.woff2` so it matches the shipped Island
   exactly; the rest of the site uses Fontsource's build of the same face.
+
+## Readable screenshots on phones (October 4)
+
+Round 2, milestone D. Below 760px the homepage hides both device frames
+(lazy and hidden, so phones never download them) and shows each capture in a
+plain rounded 4:3 card, zoomed onto the part that matters: the clock,
+favorites and Patron pill for the wallpaper scenes and Billboard; the
+favorites list for Ledger; the cards for Shelf; and the "Blocked this week"
+chart for Tally. The crop is CSS on the same release capture, so the wallpaper
+slider, the theme toggle and the layout switcher keep working and the crops
+follow any future recapture without regeneration. Offsets are percentages of
+the card, so the same detail shows from 320px to 760px. The Island demo is
+unchanged: it already crops to the bar on phones and its layered, clickable
+animation depends on the full capture geometry. Desktop is unchanged. A unit
+check keeps the phone rules in place.
