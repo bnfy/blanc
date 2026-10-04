@@ -1432,10 +1432,6 @@
   font: 400 25px/1.2 var(--site-font-display);
   letter-spacing: -0.025em;
 }
-.home-revamp .break-arrow {
-  font-size: 16px;
-  transition: transform 220ms;
-}
 .home-revamp .tile-pair {
   position: relative;
   width: 49px;
@@ -1486,9 +1482,6 @@
   > span:last-child {
   transform: translate(3px, -2px) rotate(16deg);
 }
-.home-revamp .start-discovery > button:hover .break-arrow {
-  transform: translate(2px, -2px);
-}
 .home-revamp #mahjong-back {
   white-space: nowrap;
 }
@@ -1517,8 +1510,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .home-revamp .glance-divider > span,
-  .home-revamp .tile-pair > span,
-  .home-revamp .break-arrow {
+  .home-revamp .tile-pair > span {
     transition: none;
   }
 }

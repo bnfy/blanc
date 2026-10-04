@@ -404,8 +404,7 @@ initHorizonShield(document.querySelector(".horizon-study"));
       "A little detour. Mahjong opens from the Start Page in its own tab.";
     mahjongPeek.setAttribute("aria-expanded", "true");
     mahjongBack.hidden = false;
-    mahjongBack.firstChild.textContent =
-      "Back to " + layoutAssets[currentStartLayout].label + " ";
+    mahjongBack.textContent = "Back to " + layoutAssets[currentStartLayout].label;
   });
   mahjongBack.addEventListener("click", () => {
     showStartLayout(currentStartLayout);
