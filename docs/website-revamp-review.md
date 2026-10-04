@@ -451,3 +451,26 @@ Validation: all three images load; desktop and 390px mobile rest/tabs/commands
 previews checked with no horizontal overflow. Site build and SEO verification
 passed (29 pages / 27 sitemap URLs); 13 focused feature-evidence, launch-claims
 and trust regression tests passed. No production deployment.
+
+## Tabs and sessions simplification (October 4)
+
+The prior section put fabricated tab-group and recovery controls beside one
+another, followed by profiles, Sync and Workspaces prose. Replaced that cluster
+with one full-width native named-groups capture, a single introduction and a
+compact row of links to the retained feature pages. The image is static and unlinked;
+it does not pretend to be a working app. Removed the obsolete mockup handlers
+and styles. Native group bands, counts, keyboard shortcuts, page titles, icons
+and footer controls are preserved. Capture provenance and credits are recorded
+in website-revamp-assets.json and the shipped credits file.
+
+Named groups were created manually in installed public v1.27.0 using four
+sample NASA/Wikipedia tabs in a separate Launch demo window, which was closed
+after capture. Exact-tag v1.26.0 overlay groupHeaderRow and groupBand also support
+the narrowed homepage copy; replaced claims were archived in the claim ledger.
+The guides retain recovery limits, profile/Sync boundaries and workspace terms.
+No trust evidence or feature landing pages were removed.
+
+Validation: desktop and 390px mobile reviewed, native screenshot loads without
+horizontal overflow, the image is unlinked and guide links remain keyboard
+reachable, no browser script errors. All 26 focused website feature-evidence,
+trust and attribution checks pass; site build and SEO checks pass. No deployment.

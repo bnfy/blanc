@@ -539,17 +539,6 @@ initHorizonShield(document.querySelector(".horizon-study"));
   window.addEventListener("pagehide", stopDaylight);
 })();
 
-// These illustrations respond only to explicit choices; they do not alter browser settings.
-document.querySelectorAll("[data-group-toggle]").forEach((button) =>
-  button.addEventListener("click", () => {
-    const expanded = button.getAttribute("aria-expanded") === "true";
-    button.setAttribute("aria-expanded", String(!expanded));
-    const panel = document.getElementById(button.getAttribute("aria-controls"));
-    panel.classList.toggle("is-folded", expanded);
-    panel.inert = expanded;
-    panel.setAttribute("aria-hidden", String(expanded));
-  }),
-);
 const gestureStage = document.querySelector(".gesture-stage");
 document.querySelectorAll("[data-gesture-preview]").forEach((button) =>
   button.addEventListener("click", () => {
@@ -578,17 +567,3 @@ document.querySelectorAll("[data-gesture-preview]").forEach((button) =>
       });
   }),
 );
-const reopenExample = document.getElementById("reopen-example");
-const reopenResult = document.getElementById("reopen-result");
-document.getElementById("reopen-preview").addEventListener("click", () => {
-  reopenExample.hidden = true;
-  reopenResult.hidden = false;
-  document.getElementById("reopen-count").textContent = "0";
-  document.getElementById("reopen-reset").focus({ preventScroll: true });
-});
-document.getElementById("reopen-reset").addEventListener("click", () => {
-  reopenExample.hidden = false;
-  reopenResult.hidden = true;
-  document.getElementById("reopen-count").textContent = "1";
-  document.getElementById("reopen-preview").focus({ preventScroll: true });
-});

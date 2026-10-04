@@ -54,6 +54,17 @@
       "width": 1400,
       "height": 1000,
       "bytes": 166192
+    },
+    {
+      "file": "site/public/revamp/tab-groups-native.webp",
+      "originalSha256": "e13a1173186b30c85bfedba37b35c6acf83c040c75a105da41246540426a496e",
+      "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+      "name": "tab-groups-native.webp",
+      "format": "lossless WebP; native panel crop only",
+      "sha256": "aadd4185f9a5d358af30b1561aca6cb98ab641ae033545908ba517c40ed77806",
+      "width": 1240,
+      "height": 652,
+      "bytes": 77494
     }
   ],
   "upstreamBrandIcons": "Font Awesome Free 6.7.2, CC BY 4.0",
@@ -248,5 +259,39 @@
       },
       "status": "Superseded October 4, 2026; historical WebP files retained in Git at 50ea2a5c."
     }
-  ]
+  ],
+  "tabsCaptureProvenance": {
+    "captured_date": "2026-10-04",
+    "app": "/Applications/Blanc.app",
+    "version": "1.27.0",
+    "release_tag": "v1.27.0",
+    "release_sha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "verification": "Strict deep codesign passed outside sandbox. Installed index.html, renderer.js, styles.css, overlay.html and overlay.js match the exact v1.27.0 release-tag bytes. GitHub confirms v1.27.0 was published at 2026-10-04T03:14:49Z.",
+    "method": "Native CUA screenshot in separate Launch demo window. Four real sample tabs grouped with /group Explore and /group Reading; address field cleared. No product DOM or pixels repainted. Sample window closed afterward.",
+    "source_size": [
+      2560,
+      1600
+    ],
+    "crop": {
+      "left": 660,
+      "top": 24,
+      "width": 1240,
+      "height": 652
+    },
+    "presentation": "Panel-only crop; CSS rounds its outer corners to avoid showing the surrounding webpage. The image is static and is not linked. No simulated group or recovery controls.",
+    "files": {
+      "groups": {
+        "file": "site/public/revamp/tab-groups-native.webp",
+        "originalSha256": "e13a1173186b30c85bfedba37b35c6acf83c040c75a105da41246540426a496e",
+        "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+        "name": "tab-groups-native.webp",
+        "format": "lossless WebP; native panel crop only",
+        "sha256": "aadd4185f9a5d358af30b1561aca6cb98ab641ae033545908ba517c40ed77806",
+        "width": 1240,
+        "height": 652,
+        "bytes": 77494,
+        "decodedPixelsSha256": "32aa13eadd777766519b5520a682a1f70a8ef8ceb3b821bb596e54cbc51d7ea5"
+      }
+    }
+  }
 }

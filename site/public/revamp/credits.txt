@@ -22,3 +22,15 @@ Hardware illustrations were generated separately with OpenAI image generation.
 Apple, Windows and Linux symbols: Font Awesome Free 6.7.2, CC BY 4.0.
 https://fontawesome.com/license/free
 The original icon attribution and terms are retained in LICENSE.txt and the SVGs.
+
+Tab groups capture — captured October 4, 2026
+
+tab-groups-native.webp shows the actual named-groups panel in official Blanc
+v1.27.0 for macOS. Native screenshot, lossless panel crop; no UI reconstruction.
+Sample page titles and favicons identify NASA Science and Wikipedia pages:
+https://science.nasa.gov/
+https://science.nasa.gov/mission/roman-space-telescope/
+https://en.wikipedia.org/wiki/Typography
+https://en.wikipedia.org/wiki/Scandinavian_design
+Only the browser panel is presented; article content is outside the crop.
+Third-party names and marks remain their owners' property; no endorsement implied.

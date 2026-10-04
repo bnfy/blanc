@@ -388,124 +388,25 @@ const structuredData = {
     <section class="beat" id="tabs" aria-labelledby="tabs-title">
       <div class="frame">
         <div class="frame-inner">
-          <p class="frame-kicker">Tabs and sessions</p><h2 id="tabs-title">
-            Keep your place.<br />Choose what stays in view.
-          </h2><p class="lead">
-            Name your groups, switch between them, or use a vertical tab list
-            when you want to see more of the session.
-          </p><div class="asymmetry">
-            <figure class="primary-visual">
-              <div
-                class="group-study"
-                aria-label="Interactive illustration of named tab groups"
-              >
-                <div class="group-field" aria-hidden="true">
-                  Search or type a URL <span>⌘ L</span>
-                </div>
-                <div class="group-demo-row">
-                  <img
-                    src="/favicons/github.com.ico"
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />Blanc on GitHub
-                </div>
-                <div class="group-demo-section">
-                  <button
-                    type="button"
-                    data-group-toggle
-                    aria-expanded="true"
-                    aria-controls="demo-group-reading"
-                    ><span class="group-chevron" aria-hidden="true">⌄</span
-                    >Reading <span class="group-count">2</span></button
-                  ><div class="group-fold" id="demo-group-reading">
-                    <div>
-                      <div class="group-demo-row">
-                        <span class="letter-favicon" aria-hidden="true">K</span
-                        >Kinfolk — a slower perspective
-                      </div><div class="group-demo-row">
-                        <span class="letter-favicon" aria-hidden="true">M</span
-                        >Monocle — design &amp; culture
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="group-demo-section">
-                  <button
-                    type="button"
-                    data-group-toggle
-                    aria-expanded="true"
-                    aria-controls="demo-group-making"
-                    ><span class="group-chevron" aria-hidden="true">⌄</span
-                    >Making <span class="group-count">2</span></button
-                  ><div class="group-fold" id="demo-group-making">
-                    <div>
-                      <div class="group-demo-row">
-                        <img
-                          src="/favicons/notion.so.ico"
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                        />Notes &amp; ideas
-                      </div><div class="group-demo-row">
-                        <span class="letter-favicon" aria-hidden="true">A</span
-                        >Are.na — collected references
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="group-footer">/group names the group</div>
-              </div><figcaption class="caption">
-                Try folding a group. You choose the names and the tabs that
-                belong together. Illustration with sample pages.
-              </figcaption>
-            </figure><article class="side-story">
-              <h3>Closed it<br />too soon?</h3><p>
-                Recently Closed gives ordinary tabs a way back while they remain
-                in the undo buffer.
-              </p><div class="reopen-study">
-                <p class="reopen-label">
-                  Recently Closed <span id="reopen-count">1</span>
-                </p><div class="reopen-example" id="reopen-example">
-                  <img
-                    src="/favicons/github.com.ico"
-                    width="16"
-                    height="16"
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  /><span>Blanc on GitHub</span><button
-                    type="button"
-                    id="reopen-preview"
-                    aria-label="Reopen the example tab">↶</button>
-                </div><p
-                  class="reopen-result"
-                  id="reopen-result"
-                  role="status"
-                  hidden
-                >
-                  Back in your tabs. <button type="button" id="reopen-reset"
-                    >Replay</button>
-                </p>
-              </div><p class="caption">
-                Illustration. Recovery is limited; private tabs are excluded. <a
-                  href="/support#reopen-closed-tabs">How it works →</a>
-              </p>
-            </article>
-          </div><p class="material-limit">
-            Tab groups are free. Named Workspaces add saved window sets with
-            active Blanc Patron support.
-          </p><div class="session-bridge">
-            <h3>Keep work and<br />personal apart.</h3><div>
-              <p>
-                Use local profiles for separate logins, Favorites and history.
-                Optional Sync carries your Personal profile’s Favorites and
-                selected settings between devices.
-              </p><p class="material-limit">
-                Named profiles stay on this device. Sync is off by default and
-                available only to Personal.
-              </p>
+          <div class="split-title tabs-intro">
+            <div>
+              <p class="frame-kicker">Tabs and sessions</p>
+              <h2 id="tabs-title">A place for<br />every tab.</h2>
             </div>
+            <p class="lead">Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.</p>
+          </div>
+          <figure class="tabs-capture">
+              <img src="/revamp/tab-groups-native.webp" width="1240" height="652" loading="lazy" decoding="async" alt="Blanc v1.27.0 on macOS: the Island shows an explore group with two NASA pages and a reading group with Typography and Scandinavian design. Each group has a fold control, tab count and keyboard shortcut." />
+            <figcaption class="sr-only">Actual Blanc interface with sample tabs.</figcaption>
+          </figure>
+          <div class="tabs-followthrough">
+            <p>Tab groups are free. <a href="#patron">Patron adds saved Named Workspaces.</a></p>
+            <nav aria-label="More about tabs and sessions">
+              <a href="/features/tab-groups">Tab groups <span aria-hidden="true">→</span></a>
+              <a href="/features/reopen-closed-tabs">Recently Closed <span aria-hidden="true">→</span></a>
+              <a href="/features/profiles">Profiles <span aria-hidden="true">→</span></a>
+              <a href="/features/sync">Sync <span aria-hidden="true">→</span></a>
+            </nav>
           </div>
         </div>
       </div>

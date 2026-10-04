@@ -4479,146 +4479,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-016",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Keep your place. Choose what stays in view.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-017",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Name your groups, switch between them, or use a vertical tab list when you want to see more of the session.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-018",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Try folding a group. You choose the names and the tabs that belong together. Illustration with sample pages.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-019",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Recently Closed gives ordinary tabs a way back while they remain in the undo buffer.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-020",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Back in your tabs. Replay",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-021",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Illustration. Recovery is limited; private tabs are excluded. How it works →",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-022",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Tab groups are free. Named Workspaces add saved window sets with active Blanc Patron support.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-023",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Keep work and personal apart.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-024",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Use local profiles for separate logins, Favorites and history. Optional Sync carries your Personal profile’s Favorites and selected settings between devices.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-025",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Named profiles stay on this device. Sync is off by default and available only to Personal.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations",
-        "profiles",
-        "sync",
-        "workspaces",
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-027",
       "source": "site/src/pages/index.astro",
       "exactWording": "Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.",
@@ -9346,6 +9206,37 @@
       ],
       "verdict": "verified",
       "reason": "Public v1.26.0 overlay.js renders all available COMMANDS when slashWord is / and otherwise filters by command prefix. The native list scrolls inside the overlay; the website still shows its opening viewport."
+    },
+    {
+      "id": "tabs-native-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "A place for every tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "tabs-native-intro",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "tabs-native-patron",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tab groups are free. Patron adds saved Named Workspaces.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "workspaces"
+      ],
+      "verdict": "qualified"
     }
   ],
   "completedReleaseEvidenceRevision": "8e48359fae44865857a5bd3a8a955af96af71650",
@@ -9389,6 +9280,156 @@
       "id": "trust-125-280",
       "historicalLedger": "docs/website-trust-claims-v1.25.json",
       "reason": "Copy replaced by Reddit feedback clarification; historical evidence retained."
+    },
+    {
+      "id": "revamp-copy-016",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Keep your place. Choose what stays in view.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-017",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Name your groups, switch between them, or use a vertical tab list when you want to see more of the session.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-018",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Try folding a group. You choose the names and the tabs that belong together. Illustration with sample pages.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-019",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Recently Closed gives ordinary tabs a way back while they remain in the undo buffer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-020",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Back in your tabs. Replay",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-021",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Illustration. Recovery is limited; private tabs are excluded. How it works →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-022",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tab groups are free. Named Workspaces add saved window sets with active Blanc Patron support.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-023",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Keep work and personal apart.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-024",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Use local profiles for separate logins, Favorites and history. Optional Sync carries your Personal profile’s Favorites and selected settings between devices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "revamp-copy-025",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Named profiles stay on this device. Sync is off by default and available only to Personal.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations",
+        "profiles",
+        "sync",
+        "workspaces",
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
     }
   ],
   "supersededCandidateClaims": [
