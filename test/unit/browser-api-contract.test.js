@@ -322,3 +322,57 @@ test('controller fixtures reject an error code the contract does not list', () =
   contract.types.WorkspaceErrorCode.ts = contract.types.WorkspaceErrorCode.ts.replace("'busy' | ", '');
   assert.ok(api.checkPayloads(contract).some((p) => p.includes('controller open (busy)') && p.includes('error')));
 });
+
+// ---- parameter shapes ----
+
+function rendererSources(file, from, to) {
+  const dir = path.join(__dirname, '../../src/renderer');
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => {
+    let text = fs.readFileSync(path.join(dir, f), 'utf8');
+    if (f === file) {
+      assert.ok(text.includes(from), `fixture text missing from ${file}: ${from}`);
+      text = text.replace(from, to);
+    }
+    return { file: f, text };
+  });
+}
+
+test('structured parameters match what renderers send and main reads', () => {
+  assert.deepEqual(api.checkParamShapes(api.loadContract()), []);
+});
+
+test('a renderer sending an extra or missing field is reported', () => {
+  const extra = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('renderer.js', '{ right: r.right }', '{ right: r.right, left: r.left }') });
+  assert.ok(extra.some((p) => p.includes('openCapturePopover(anchor)') && p.includes('"left"')), extra.join('\n'));
+  const missing = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('renderer.js', 'openMainMenu({ x: rect.left, y: rect.bottom })', 'openMainMenu({ x: rect.left })') });
+  assert.ok(missing.some((p) => p.includes('openMainMenu(point)') && p.includes('Point.y')), missing.join('\n'));
+});
+
+test('an argument is followed through the enclosing function to its call sites', () => {
+  const problems = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('overlay.js', 'runFind({ forward: false, findNext: false })', 'runFind({ forward: false, findNext: false, wholeWord: true })') });
+  assert.ok(problems.some((p) => p.includes('findInPage(options)') && p.includes('"wholeWord"')), problems.join('\n'));
+});
+
+test('an unreadable renderer argument is reported', () => {
+  const problems = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('overlay.js', 'listHistory({ limit: 300 })', 'listHistory(historyOptions[0])') });
+  assert.ok(problems.some((p) => p.includes('listHistory(opts)') && p.includes("can't be read")), problems.join('\n'));
+});
+
+test('main reading an undeclared field is reported, nested and through a forwarded module', () => {
+  const nested = api.checkParamShapes(api.loadContract(),
+    { main: sendSources("rect?.shieldAnchor?.trigger === 'shield'", "rect?.shieldAnchor?.side === 'shield'") });
+  assert.ok(nested.some((p) => p.includes('main reads rect.shieldAnchor.side') && p.includes('ShieldAnchor')), nested.join('\n'));
+  const forwarded = api.checkParamShapes(api.loadContract(),
+    { main: sendSources('payload.computerAudioApproved === true', 'payload.audio === true', 'display-capture-picker.js') });
+  assert.ok(forwarded.some((p) => p.includes('resolveDisplayPicker(choice)') && p.includes('choice.audio')), forwarded.join('\n'));
+});
+
+test('an Electron options type must name the same fields as Electron', { skip: !fs.existsSync(path.join(__dirname, '../../node_modules/electron/electron.d.ts')) }, () => {
+  const contract = api.loadContract();
+  delete contract.types.FindInPageOptions.fields.matchCase;
+  assert.ok(api.checkParamShapes(contract).some((p) => p.includes("Electron's FindInPageOptions")));
+});
