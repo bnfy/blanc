@@ -68,6 +68,12 @@ async function select(pane) {
     // and remembers the editor. The presentation heading appears earlier.
     await frame.waitForFunction(() => typeof self.hasUnsavedData === 'function' && self.hasUnsavedData() === false);
   }
+  if (pane === '3p-filters.html') {
+    // Upstream renders the lists asynchronously and then sets #autoUpdate from
+    // stored settings, overwriting an earlier click. The count prompt is
+    // written right after that assignment.
+    await frame.waitForFunction(() => document.querySelector('#listsOfBlockedHostsPrompt')?.textContent.trim().length > 0);
+  }
   return frame;
 }
 async function noOverflow(frame) {
