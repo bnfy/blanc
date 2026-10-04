@@ -140,3 +140,52 @@ test('a contract enum narrower than the helpers produce is reported', () => {
   contract.types.SiteInfo.fields.state.type = "'neutral' | 'secure' | 'local' | 'insecure' | 'internal'";
   assert.ok(api.checkPayloads(contract).some((p) => p.includes('state') && p.includes('certificate-error')));
 });
+
+// ---- event send sites ----
+
+function sendSources(from, to) {
+  const files = fs.readdirSync(path.join(__dirname, '../../src/main'))
+    .filter((f) => f.endsWith('.js') && f !== 'preload.js' && f !== 'test-hook.js');
+  return files.map((file) => {
+    let text = fs.readFileSync(path.join(__dirname, '../../src/main', file), 'utf8');
+    if (file === 'main.js' && from) {
+      assert.ok(text.includes(from), `fixture text missing from main.js: ${from}`);
+      text = text.replace(from, to);
+    }
+    return { file, text };
+  });
+}
+
+test('every structured event payload matches its send sites', () => {
+  assert.deepEqual(api.checkEventSends(api.loadContract(), sendSources()), []);
+});
+
+test('an extra field in an event payload literal is reported', () => {
+  const problems = api.checkEventSends(api.loadContract(),
+    sendSources("send('overlay:hide', { retract: retracts })", "send('overlay:hide', { retract: retracts, reason: 'x' })"));
+  assert.ok(problems.some((p) => p.includes('"reason", which is not a field of OverlayHidePayload')), problems.join('\n'));
+});
+
+test('a required field missing from an event payload is reported', () => {
+  const problems = api.checkEventSends(api.loadContract(),
+    sendSources("    connected: rt().shieldAnchorCenter !== null,\n", ''));
+  assert.ok(problems.some((p) => p.includes('ShieldAnchorUpdate.connected')), problems.join('\n'));
+});
+
+test('a payload built in a variable is resolved through its declaration', () => {
+  const problems = api.checkEventSends(api.loadContract(),
+    sendSources('const payload = { id: promptId, origin, permission, mediaTypes };', 'const payload = { id: promptId, origin, permission };'));
+  assert.ok(problems.some((p) => p.includes('PermissionPromptPayload.mediaTypes')), problems.join('\n'));
+});
+
+test('an unreadable payload argument is reported', () => {
+  const problems = api.checkEventSends(api.loadContract(),
+    sendSources("send('chrome:page-tint', { id: tab.id, color });", "send('chrome:page-tint', tint[0]);"));
+  assert.ok(problems.some((p) => p.includes('onPageTint') && p.includes('teach browser-api/build.mjs')), problems.join('\n'));
+});
+
+test('an unknown payloadCheck value is rejected', () => {
+  const contract = api.loadContract();
+  contract.members.find((m) => m.name === 'onFindResult').payloadCheck = 'trust-me';
+  assert.ok(api.validateContract(contract).some((p) => p.includes('unknown payloadCheck')));
+});

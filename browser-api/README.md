@@ -62,8 +62,9 @@ nine deliberate ways (renamed channel, reshaped payload, dropped coercion,
 changed default, extra trusted document, leaked platform gate, leaked listener,
 missing member, unknown type) and requires each to be reported. It also edits
 `main.js` payload literals (a new tab field, a dropped payload field, a changed
-capture row, an unknown spread) and narrows a contract enum, and requires those
-to be reported too.
+capture row, an unknown spread, extra or missing event fields, an unreadable
+send argument) and narrows a contract enum, and requires those to be reported
+too.
 
 ## Pinned payloads
 
@@ -87,6 +88,25 @@ these shapes two ways, because the payload is assembled from two kinds of code:
 Field *values* produced inside `main.js` itself (titles, URLs, flags) are typed
 from the tab record's JSDoc and initial values; they are not executed.
 
+### Event send sites
+
+Every other event with a structured payload is checked where it is sent. For
+each `send('<channel>', …)` in `src/main` (outside the preload and the test
+hook), the payload's keys must be fields of the contract type, and every
+required field must be present. The payload may be an object literal, a local
+variable bound to one, or a call to a function that returns one. A replay of a
+stored `….payload` is accepted only when another send site for the channel was
+checked. Anything else fails, so a new send site has to be readable or the
+member marked:
+
+- `"payloadCheck": "fixtures"`: proven by executing a pure helper on fixtures
+  instead (`onGlanceLayout`, via `calculateGlanceLayout()`).
+- `"payloadCheck": "custom"`: proven by a dedicated check (`onTabsUpdated`).
+
+Events whose payload is a plain string, number or string union
+(`onGlanceStatus`, `onIslandProximity`, `onThemeAppearance`) are typed from the
+code but their values are not checked at the send site.
+
 ## Changing the bridge
 
 Change `src/main/preload.js` and `contract.json` together, then run
@@ -102,17 +122,18 @@ in `contract.json`. So does a new return value from one of the helper modules.
 ## Coverage today
 
 The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
-events), and every member's IPC behaviour is checked. Payload shapes are partly
-pinned:
+events), and every member's IPC behaviour is checked. Payload shapes are mostly
+pinned for events and still open for results:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
-| Parameters | 66 of 73 | 7: option bags, anchors, the permission prompt id |
-| `invoke` results | 3 of 59, including `getAllTabs` in full | 56 |
-| Event payloads | 1 of 16: `tabs:updated` in full | 15 |
+| Parameters | 67 of 73 | 6: option bags, anchors, the folder and picker choice |
+| `invoke` results | 4 of 59, including `getAllTabs` and `listWorkspaces` | 55 |
+| Event payloads | 15 of 16 | `onRemoteTabsUpdated` (sync device shapes not yet traced) |
 
-Types say `unknown` rather than guess. The remaining event payloads and
-`invoke` results are the next steps.
+Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
+`OverlayShowPayload` because it is deliberately mode-specific. The `invoke`
+results are the next step.
 
 ## Not in scope
 
