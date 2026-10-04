@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "status": "release-gated-draft",
   "publicRelease": "v1.26.0",
-  "candidateSha": "7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6",
+  "candidateSha": "b0462db0f10a12fc40f5edbbf1650cc5487a6cbf",
   "candidatePR": "https://github.com/bnfy/blanc/pull/490",
   "source": "site/src/pages/index.astro",
   "qualification": "Owner will deploy the redesigned site only after the app release containing these features goes live. This is launch copy, not a statement about the current public v1.26.0. Private tabs use Blanc Blocker; provider changes require restart; settings are separate.",
-  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. The Horizon Shield source artwork and restored original blocker icon are owned by app-only PR #502 and must ship in the app before website deployment. Website PR #491 is temporarily based on that app branch for a website-only diff.",
+  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. App-only PRs #490 and #502 are merged; their required public app release must precede website deployment. Website PR #491 targets main and remains a draft.",
   "claims": [
     {
       "exactWording": "Your blocking. Your choice.",
@@ -40,6 +40,26 @@
       "evidence": [
         "src/renderer/pages/settings.html",
         "src/main/blocking-providers.js"
+      ]
+    },
+    {
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.",
+      "verdict": "pending-public-release",
+      "evidence": [
+        "src/main/ublock-provider.js",
+        "src/main/blocking-providers.js",
+        "src/main/ublock-platforms.json"
+      ]
+    },
+    {
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.",
+      "verdict": "pending-public-release",
+      "evidence": [
+        "src/main/ublock-provider.js",
+        "src/main/blocking-providers.js",
+        "src/main/ublock-platforms.json"
       ]
     }
   ],
@@ -76,18 +96,23 @@
   "reviewedCandidateFiles": [
     {
       "path": "src/main/blocking-providers.js",
-      "sha256": "3dd065308ef5ecf96f693f437fbb02915e812ee37fc2d2f5052af9b5b62f6230",
-      "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/main/blocking-providers.js"
+      "sha256": "8134cafdd5c548afdd4bdf670cc6d31b12d2563e7e6d12ab60409867d9186824",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/main/blocking-providers.js"
     },
     {
       "path": "src/main/ublock-provider.js",
       "sha256": "8af6391f867900cbe28d20cd66f4fda3082a78bf0364bdf8dfc744ca87fb8f3b",
-      "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/main/ublock-provider.js"
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/main/ublock-provider.js"
     },
     {
       "path": "src/renderer/pages/settings.html",
-      "sha256": "0a35e1fc0cafea7b8ae3057130d87aa7148d85eb1e49b011b21d3f428d1d6321",
-      "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/renderer/pages/settings.html"
+      "sha256": "a7e0de6f3800262e0543721d08c7ea242efc7af106d0a5dfcb8d9b084a2c4726",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/renderer/pages/settings.html"
+    },
+    {
+      "path": "src/main/ublock-platforms.json",
+      "sha256": "f2cb0cdc59466bb26bf60e979955a8d7c1395d55c6eb85af6501765c6d2acc92",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/main/ublock-platforms.json"
     }
   ],
   "appArtworkDependency": {
@@ -121,5 +146,6 @@
       "geometry": "Raised diagonal bronze relief, identical front/back faces and closed beveled side walls.",
       "rimColor": "#a67b4f"
     }
-  }
+  },
+  "candidateStatus": "PR #490 merged; public release verification remains pending."
 }

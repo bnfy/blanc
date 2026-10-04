@@ -48,9 +48,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="security-runs-title">
     <div><p class="section-kicker">what runs, and what does not</p><h2 id="security-runs-title">The browser itself is the security layer.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>Blocking lives in the network layer.</h3><p>Ad and tracker blocking runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. <a href="/features/ad-blocking">How blocking works</a>.</p></article>
+      <article><h3>Blocking lives in the network layer.</h3><p>Blanc Blocker runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. <a href="/features/ad-blocking">How blocking works</a>.</p></article>
       <article><h3>Every page runs sandboxed.</h3><p>Web pages run inside Chromium&rsquo;s sandbox, isolated from the browser and from your files. Blanc&rsquo;s own pages — settings, history, favorites — live on a privileged internal scheme that ordinary web content cannot link into, and the browser re-checks who is calling on every internal request.</p></article>
-      <article><h3>No extension runtime — on purpose.</h3><p>Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.</p></article>
+      <article><h3>No general extension installation.</h3><p>Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.</p></article>
     </div>
   </section>
   <section class="feature-copy-grid" aria-labelledby="security-leaves-title">

@@ -1492,7 +1492,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .site-footer .foot-news button { flex-shrink: 0; min-height: 44px; padding: 10px 16px; border: 1px solid var(--site-accent); border-radius: var(--radius); background: var(--site-accent); color: var(--site-bg); font: inherit; font-weight: 500; cursor: pointer; }
 .site-footer .foot-news button:hover { background: var(--site-text); }
 .site-footer .foot-news button:disabled { opacity: 0.6; cursor: default; }
-.site-footer .foot-news-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .site-footer .foot-news-status:empty { display: none; }
 .site-footer :is(a, button, input) { scroll-margin-block: 88px; }
 

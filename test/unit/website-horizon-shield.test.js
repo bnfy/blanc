@@ -149,7 +149,8 @@ test('provider launch copy stays release-gated with bronze display artwork and n
   const privacy = home.slice(home.indexOf('id="privacy"'), home.indexOf('id="start"'));
   assert.doesNotMatch(privacy, /In development|Upcoming|Preview of work in progress/);
   for (const claim of ledger.claims) {
-    assert.ok(home.includes(claim.exactWording), claim.exactWording);
+    const source = read(claim.source || ledger.source).replace(/<br\s*\/?>/g, ' ').replace(/\s+/g, ' ');
+    assert.ok(source.includes(claim.exactWording), claim.exactWording);
   }
   // Unmerged candidate revisions need not exist in a clean CI checkout.
   // The review ledger records their exact revision, paths and hashes; deployment

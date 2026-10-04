@@ -14,6 +14,17 @@
   </span>
   <span class="foot-news-status" role="status" aria-live="polite"></span>
 </form>
+<style>
+  /* Keep the bot trap out of the layout regardless of its containing footer. */
+  .foot-news .foot-news-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    opacity: 0;
+  }
+</style>
 <script>
   const NEWSLETTER_ENDPOINT = 'https://blanc-newsletter.bnfy-441.workers.dev/subscribe';
 

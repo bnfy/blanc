@@ -403,3 +403,30 @@ below the fold and no horizontal overflow. The relocated demo's time slider
 and appearance switch work, all images load, and the browser reports no
 warnings/errors. Production site/SEO build, ESLint and all 16 native-Island,
 feature-evidence and trust checks passed. Website PR #491 remains a draft.
+
+## Review findings addressed (October 4)
+
+The newsletter honeypot now owns its hiding rule inside NewsletterForm, so
+footer class changes cannot expose it. Verified desktop and 390px mobile:
+opacity zero, 1px width, positioned offscreen, no horizontal overflow, and
+Tab moves directly from the email field to Subscribe. No signup was submitted.
+
+Restored the homepage's existing download_click, feature_cta_click and
+supporter_click hooks with their CTA positions and feature names. The hero
+also retains its prior platform-aware download behavior; the closing chooser
+continues to open /download. An offline regression test reads the actual CTA
+markup and exercises site.js with unset, denied and granted consent: only the
+granted case dispatches events. No live analytics event was sent during testing.
+
+Trust and the retained security guide now distinguish Blanc Blocker from the
+optional bundled uBlock Origin provider, without claiming general Chrome Web
+Store support. Their URLs, metadata, anchors and remaining prose are preserved.
+The exact copy corrections are recorded in the preservation ledger; the uBO
+paragraphs stay in the separate release-gated ledger. Candidate evidence was
+refreshed to merged PR #490 revision b0462db0f10a12fc40f5edbbf1650cc5487a6cbf,
+including the provider, settings, build/platform eligibility and file hashes.
+A merge is not public-release evidence: publication still waits for the app.
+
+Validation: production site/SEO build and all 37 focused consent, navigation,
+claims, shield and trust checks passed. Browser checks confirmed the Trust deep
+link opens the revised disclosure and both tested mobile pages fit the viewport.

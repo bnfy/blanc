@@ -3610,7 +3610,7 @@
     {
       "id": "reddit-456",
       "source": "site/src/components/guides/security.astro",
-      "exactWording": "Ad and tracker blocking runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. How blocking works.",
+      "exactWording": "Blanc Blocker runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. How blocking works.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -3640,17 +3640,7 @@
     {
       "id": "reddit-459",
       "source": "site/src/components/guides/security.astro",
-      "exactWording": "No extension runtime — on purpose.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-460",
-      "source": "site/src/components/guides/security.astro",
-      "exactWording": "Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.",
+      "exactWording": "No general extension installation.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -7939,7 +7929,7 @@
     {
       "id": "feature-retained-reddit-456",
       "source": "site/src/pages/features/security.astro",
-      "exactWording": "Ad and tracker blocking runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. How blocking works.",
+      "exactWording": "Blanc Blocker runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. How blocking works.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -7969,17 +7959,7 @@
     {
       "id": "feature-retained-reddit-459",
       "source": "site/src/pages/features/security.astro",
-      "exactWording": "No extension runtime — on purpose.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-reddit-460",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.",
+      "exactWording": "No general extension installation.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -10870,6 +10850,28 @@
       ],
       "verdict": "qualified",
       "migration": "Replaced the illustrative per-site switch with the release-gated Horizon Shield and provider launch design. Current site controls remain documented in Trust. Candidate claims are recorded separately in docs/website-blocking-launch.json."
+    },
+    {
+      "id": "reddit-460",
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the blanket runtime-removal claim with the release-gated bundled uBlock Origin exception; see docs/website-blocking-launch.json."
+    },
+    {
+      "id": "feature-retained-reddit-460",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "migration": "Replaced the blanket runtime-removal claim with the release-gated bundled uBlock Origin exception; see docs/website-blocking-launch.json."
     }
   ],
   "retainedFeaturePages": {
@@ -10893,6 +10895,26 @@
       "site/src/pages/features/tab-groups.astro",
       "site/src/pages/features/vertical-tabs.astro",
       "site/src/pages/features/workspaces.astro"
+    ],
+    "reviewedCopyUpdates": [
+      {
+        "source": "site/src/pages/features/security.astro",
+        "reason": "October 4 review correction: scope native blocking to Blanc Blocker and disclose the release-gated bundled uBO exception without removing this indexed page.",
+        "replacements": [
+          {
+            "before": "Ad and tracker blocking runs inside the browser, not as an extension.",
+            "after": "Blanc Blocker runs inside the browser, not as an extension."
+          },
+          {
+            "before": "No extension runtime — on purpose.",
+            "after": "No general extension installation."
+          },
+          {
+            "before": "Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.",
+            "after": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker."
+          }
+        ]
+      }
     ]
   }
 }

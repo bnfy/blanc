@@ -87,7 +87,7 @@ const structuredData = {
             Island in a slim band above the page. A desktop browser for macOS,
             Windows and Linux.
           </p><div class="actions">
-            <a class="planned-action" href="/download">Download Blanc</a><a
+            <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero">Download Blanc</a><a
               class="planned-link"
               href="#island">See the Island in action</a>
           </div><p class="hero-offer">
@@ -865,7 +865,7 @@ const structuredData = {
                 Support Blanc and save named window sets with Named Workspaces.
                 The browser remains free; Patron is an optional subscription.
               </p>
-              <a class="patron-help" href="/support#workspaces"
+              <a class="patron-help" href="/support#workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-patron"
                 >Explore Named Workspaces →</a>
             </div>
             <div class="patron-offer">
@@ -879,6 +879,9 @@ const structuredData = {
               </p>
               <a
                 class="patron-cta"
+                data-track="supporter_click"
+                data-feature="patron"
+                data-cta-position="home-patron-close"
                 href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf"
                 >Become a Patron <span aria-hidden="true">↗</span></a>
             </div>
@@ -898,7 +901,7 @@ const structuredData = {
             <span><PlatformLogo platform="apple" />macOS</span><span
               ><PlatformLogo platform="windows" />Windows</span
             ><span><PlatformLogo platform="linux" />Linux</span>
-          </div><a class="planned-action" href="/download"
+          </div><a class="planned-action" href="/download" data-track="download_click" data-cta-position="home-close"
             >Choose your download</a
           ><p class="closing-links" style="margin-top:20px">
             <a href="/support">Support</a> · <a href="/changelog">What’s new</a>
