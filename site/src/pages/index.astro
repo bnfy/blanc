@@ -429,13 +429,15 @@ const structuredData = {
             </header>
             <HorizonShield variant="blocker" />
             <div class="blocking-options">
-              <div class="blocking-option">
-                <h3>Blanc Blocker</h3>
-                <p>Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.</p>
-              </div>
-              <div class="blocking-option">
-                <h3>uBlock Origin</h3>
-                <p>Customizable filter lists, advanced settings and a request logger for regular tabs.</p>
+              <div class="blocking-choice">
+                <div class="blocking-option">
+                  <div class="blocking-option-head"><h3>Blanc Blocker</h3><span class="blocking-badge is-default">Default</span></div>
+                  <p>Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.</p>
+                </div>
+                <div class="blocking-option">
+                  <div class="blocking-option-head"><h3>uBlock Origin</h3><span class="blocking-badge">Optional</span></div>
+                  <p>Customizable filter lists, advanced settings and a request logger for regular tabs.</p>
+                </div>
               </div>
               <p class="blocking-provider-note">Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.</p>
             </div>
@@ -444,6 +446,14 @@ const structuredData = {
             <div>
               <h3>Private tabs and data settings.</h3>
               <p>Open a private tab when you choose. Optional connections start only after you save your setup choices.</p>
+              <p class="material-limit">
+                Blocking reduces known ads and tracking; coverage is not universal. <a
+                  href="/trust#connections"
+                  >Connections, defaults and security evidence →</a>
+                <a href="/trust#ad-blocking">Blocking details →</a>
+              </p>
+            </div>
+            <div class="data-sends-card">
               <h4 class="data-sends-title">What Blanc sends</h4>
               <ul class="data-sends">
                 <li>Usage measurement, preselected: pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror. No URLs, searches or page contents.</li>
@@ -451,12 +461,6 @@ const structuredData = {
                 <li>Turn either off before saving, or later in Settings.</li>
               </ul>
             </div>
-            <p class="material-limit">
-              Blocking reduces known ads and tracking; coverage is not universal. <a
-                href="/trust#connections"
-                >Connections, defaults and security evidence →</a>
-              <a href="/trust#ad-blocking">Blocking details →</a>
-            </p>
           </div>
         </div>
       </div>
