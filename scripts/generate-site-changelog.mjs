@@ -192,8 +192,9 @@ function parseGeneratedNotes(body = '') {
   // heading or a paragraph does.
   const endList = () => { list = null; };
 
-  for (const rawLine of String(body).split(/\r?\n/)) {
-    const line = rawLine.trim();
+  const lines = String(body).split(/\r?\n/);
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const line = lines[lineIndex].trim();
     if (!line) continue;
 
     const heading = line.match(/^(#{1,6})\s+(.*)$/);
@@ -223,7 +224,16 @@ function parseGeneratedNotes(body = '') {
     }
 
     if (/^[-*]\s+/.test(line)) {
-      const bullet = line.replace(/^[-*]\s+/, '');
+      let bullet = line.replace(/^[-*]\s+/, '');
+      // Markdown wraps a bullet with indented continuation lines. Join them
+      // before parsing inline markup so one change remains one complete item.
+      while (lineIndex + 1 < lines.length) {
+        const continuation = lines[lineIndex + 1];
+        if (!/^(?: {2}|\t)[ \t]*\S/.test(continuation)) break;
+        if (/^(?:[-*]\s+|#{1,6}\s+)/.test(continuation.trim())) break;
+        bullet += ' ' + continuation.trim();
+        lineIndex += 1;
+      }
       const generated = bullet.match(/^(.*?)\s+by\s+@[^\s]+\s+in\s+(https:\/\/\S+)$/i);
       const contributor = bullet.match(/^(@[^\s]+) made their first contribution in (https:\/\/\S+)$/i);
       let item;

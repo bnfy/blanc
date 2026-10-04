@@ -200,6 +200,45 @@ test('a hand-written body keeps its headings, order, and lists', () => {
   ]);
 });
 
+test('wrapped bullet text stays in one item with inline markup and separate paragraphs', () => {
+  const notes = changelog.parseGeneratedNotes([
+    '## Added',
+    '- Choose **uBlock',
+    '  Origin** and use `Restart Blanc`.',
+    '  Read [the support matrix](https://blancbrowser.com/features/ad-blocking).',
+    '- A second change.',
+    '',
+    'This paragraph remains outside the list.',
+    '',
+    '## Fixed',
+    '- Keep the original list layout.',
+  ].join('\r\n'));
+  assert.deepEqual(notes.sections[0].blocks.map(block => block.type), ['list', 'paragraph']);
+  assert.equal(notes.sections[0].blocks[0].items.length, 2);
+  assert.deepEqual(notes.sections[0].blocks[0].items[0].spans, [
+    { type: 'text', value: 'Choose ' },
+    { type: 'strong', value: 'uBlock Origin' },
+    { type: 'text', value: ' and use ' },
+    { type: 'code', value: 'Restart Blanc' },
+    { type: 'text', value: '. Read ' },
+    { type: 'link', value: 'the support matrix', url: 'https://blancbrowser.com/features/ad-blocking' },
+    { type: 'text', value: '.' },
+  ]);
+  assert.deepEqual(paragraphsOf(notes), ['This paragraph remains outside the list.']);
+  assert.equal(notes.sections[1].heading, 'Fixed');
+});
+
+test('the published v1.27.0 notes render as seven complete bullets and their support link', () => {
+  const body = fs.readFileSync(path.join(ROOT, 'docs/press/release-notes/v1.27.0.md'), 'utf8');
+  const notes = changelog.parseGeneratedNotes(body);
+  assert.deepEqual(notes.sections.map(section => section.heading), ['Added', 'Fixed']);
+  assert.deepEqual(notes.sections.map(section => section.blocks.filter(block => block.type === 'list').length), [1, 1]);
+  assert.deepEqual(notes.sections.map(section => section.blocks[0].items.length), [4, 3]);
+  assert.equal(text(notes.sections[0].blocks[0].items[0].spans),
+    'Optional full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs, Windows x64, and Linux x64. Click the Island shield, choose your blocker, then use Restart Blanc to apply the change.');
+  assert.deepEqual(paragraphsOf(notes), ['Supported versions, tested platforms, and integration limits.']);
+});
+
 test('a heading left empty by boilerplate stripping is not rendered', () => {
   const notes = changelog.parseGeneratedNotes('## Notes\n\n## What\'s Changed\n* only bullet by @bnfy in https://github.com/bnfy/blanc/pull/1');
   assert.deepEqual(notes.sections.map((section) => section.heading), ['Notes']);
