@@ -250,6 +250,14 @@
         "src/renderer/pages/tab-import.html"
       ],
       "qualification": "Public v1.27.0 Bring Your Tabs parses the saved Session_* log of a user-selected Chromium-family browser profile on this device (navigation URLs and titles only; the session log holds no passwords or cookies) and opens those tabs in Blanc. The separate relay handoff on /import-tabs is described in the privacy policy."
+    },
+    "systemRequirements": {
+      "evidence": [
+        "package.json",
+        ".github/workflows/release-windows-linux.yml",
+        "scripts/release.sh"
+      ],
+      "qualification": "Public v1.27.0 pins Electron 44.5.1 (package.json). Electron v44.5.1 README, Platform support: macOS Ventura and up (Intel and Apple Silicon), Windows 10 and up, Linux distributions still supported by both Chromium and the distro maker. Blanc publishes Apple Silicon and Intel Mac DMGs and x64-only Windows and Linux artifacts, so the website states x64 for Windows and Linux."
     }
   },
   "claims": [
@@ -260,88 +268,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-043",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "A start page you can choose",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-044",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Four layouts include Billboard’s local frequent sites, and every footer opens standalone Mahjong with eight boards, Daily deals, and device-local records. Explore the Start Page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-045",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Glance puts another open tab beside your main page. Local profiles and independent windows keep browsing identities separate.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-046",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "A way back after a close",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-047",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Recently Closed lets you reopen ordinary tabs or groups within a bounded, per-window undo history. Pages may reload.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-048",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Your bookmarks, brought along",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-049",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "First-run setup helps with default-browser and privacy choices. In Favorites, import from a detected browser profile or an HTML bookmarks file. Imports happen on this device.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "profiles",
-        "importing"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-050",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Optional Named Workspaces",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
       ],
       "verdict": "qualified"
     },
@@ -3179,27 +3105,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-404",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Download Blanc for macOS, Windows, or Linux.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-405",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Choose your desktop. Free browser. Patron adds saved Named Workspaces.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-406",
       "source": "site/src/pages/download.astro",
       "exactWording": "A compact everyday workflow",
@@ -3261,17 +3166,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-412",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-413",
       "source": "site/src/pages/download.astro",
       "exactWording": "See what changed in the latest release",
@@ -3288,26 +3182,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-415",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "macOS, signed and notarized",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-416",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Every macOS build is code-signed and notarized with Apple, so Gatekeeper verifies it before first launch. This applies to the macOS builds specifically.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
       ],
       "verdict": "qualified"
     },
@@ -3337,87 +3211,6 @@
       "exactWording": "Bounded usage counts, with an off switch",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-420",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "On a fresh profile usage measurement is presented on, but nothing sends until you save the choice and you can turn it off before continuing. When enabled, Blanc counts launches, the first real Mahjong move, and which fixed start-page layouts render—never browsing history, URLs, searches, page content, game state, or private-tab feature activity. Read the privacy policy.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-421",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Check the publisher, not just the filename.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-422",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Public Windows releases are Authenticode-signed and the release pipeline refuses an unsigned installer. Windows should report the publisher named on the official release. Stop if the signature is absent, invalid, or names someone else. Download only here or from the official GitHub release; checksums, signature evidence, and an SBOM accompany new releases.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-423",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "A smaller browser surface. The browser essentials, built in.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-424",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Tabs, navigation and page controls share a compact Island in a slim top band. Its expanded panel opens over the page.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-425",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Blanc can block ads and known trackers without asking you to start with an extension.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-426",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Private activity stays out of Blanc history, session restore, and reopen-closed.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-427",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Blanc Patron adds saved sets of tabs and groups on this device. Ordinary tab groups remain free.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "workspaces",
         "trust"
       ],
       "verdict": "qualified"
@@ -9539,6 +9332,128 @@
         "blockingProviders"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-01",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Download Blanc.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-02",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A free desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-03",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Install Blanc.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-04",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "macOS 13 Ventura or later, on Apple Silicon or Intel.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "systemRequirements"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-05",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Open Blanc from Applications. Gatekeeper checks Apple’s notarization on first launch.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-06",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Windows 10 or later, 64-bit (x64).",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "systemRequirements"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-07",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Check that Windows names the publisher shown on the official release. Stop if it names no one, or someone else.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-08",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "64-bit (x64), on a currently supported release of a major distribution such as Ubuntu, Fedora or Debian.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "systemRequirements"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-09",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Signed, and checkable",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-10",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every macOS build is code-signed and notarized with Apple. Public Windows releases are Authenticode-signed, and the release pipeline refuses an unsigned installer. Checksums, signature evidence, and an SBOM accompany new releases.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "download-2026-10-04-11",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Usage measurement is preselected on a fresh profile, and nothing sends until you save that choice. It never includes browsing history, URLs, searches, or page content.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
     }
   ],
   "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
@@ -9861,6 +9776,242 @@
       ],
       "verdict": "qualified",
       "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "website-115-043",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A start page you can choose",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-044",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Four layouts include Billboard’s local frequent sites, and every footer opens standalone Mahjong with eight boards, Daily deals, and device-local records. Explore the Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-045",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Glance puts another open tab beside your main page. Local profiles and independent windows keep browsing identities separate.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-046",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A way back after a close",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-047",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Recently Closed lets you reopen ordinary tabs or groups within a bounded, per-window undo history. Pages may reload.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-048",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Your bookmarks, brought along",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-049",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "First-run setup helps with default-browser and privacy choices. In Favorites, import from a detected browser profile or an HTML bookmarks file. Imports happen on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "importing"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-050",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Optional Named Workspaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-404",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Download Blanc for macOS, Windows, or Linux.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-405",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Choose your desktop. Free browser. Patron adds saved Named Workspaces.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-412",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-415",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "macOS, signed and notarized",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-416",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every macOS build is code-signed and notarized with Apple, so Gatekeeper verifies it before first launch. This applies to the macOS builds specifically.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-420",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "On a fresh profile usage measurement is presented on, but nothing sends until you save the choice and you can turn it off before continuing. When enabled, Blanc counts launches, the first real Mahjong move, and which fixed start-page layouts render—never browsing history, URLs, searches, page content, game state, or private-tab feature activity. Read the privacy policy.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-421",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Check the publisher, not just the filename.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-422",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Public Windows releases are Authenticode-signed and the release pipeline refuses an unsigned installer. Windows should report the publisher named on the official release. Stop if the signature is absent, invalid, or names someone else. Download only here or from the official GitHub release; checksums, signature evidence, and an SBOM accompany new releases.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-423",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "A smaller browser surface. The browser essentials, built in.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-424",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Tabs, navigation and page controls share a compact Island in a slim top band. Its expanded panel opens over the page.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-425",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc can block ads and known trackers without asking you to start with an extension.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-426",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Private activity stays out of Blanc history, session restore, and reopen-closed.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "reddit-427",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc Patron adds saved sets of tabs and groups on this device. Ordinary tab groups remain free.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
     }
   ],
   "supersededCandidateClaims": [
