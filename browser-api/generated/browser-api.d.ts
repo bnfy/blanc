@@ -20,11 +20,17 @@ export type ClosedEntryId = string;
 /** Id of a pending permission prompt. Shape not yet pinned. */
 export type PermissionPromptId = unknown;
 
-/** Id of a capturing surface. Shape not yet pinned. */
-export type CaptureSurfaceId = unknown;
+/** Id of a capturing surface: a TabId for a tab, or `popup:<webContentsId>` for an auxiliary popup. */
+export type CaptureSurfaceId = string;
 
-/** Id of an active screen share. Shape not yet pinned. */
-export type DisplayShareId = unknown;
+/** Id of an active screen share (`share-<n>`), minted by the display-capture registry. */
+export type DisplayShareId = string;
+
+/** A blocking provider. */
+export type BlockingProviderId = 'blanc' | 'ublock-origin';
+
+/** Connection claim for a committed URL. null in a payload means no claim (loading, or not HTTP). */
+export type ConnectionState = 'https' | 'http' | 'local';
 
 /** Tab presentation; main ignores other values. */
 export type TabLayout = 'island' | 'vertical';
@@ -50,14 +56,189 @@ export type Rect = { x: number; y: number; width: number; height: number };
 /** Popover anchor geometry. Shape not yet pinned. */
 export type Anchor = unknown;
 
-/** Result of getAllTabs. Tab entries not yet pinned. */
-export type TabsSnapshot = { tabs: unknown[]; activeTabId: TabId | null; glanceTabId: TabId | null; [key: string]: unknown };
-
-/** The tabs:updated projection built by currentTabsPayload() in main. Tab, group and closed-entry shapes not yet pinned. */
-export type TabsUpdatedPayload = { tabs: unknown[]; activeTabId: TabId | null; glanceTabId: TabId | null; groups: unknown[]; closed: unknown[]; tabLayout: TabLayout; adblockEnabled: boolean; [key: string]: unknown };
-
 /** A pending permission prompt. Shape not yet pinned. */
 export type PermissionPromptPayload = unknown;
+
+/** A tab's live capture state. */
+export interface TabCapture {
+  audio: boolean;
+  video: boolean;
+}
+
+/** Shield chip state, derived by shieldChipState() in shield-model.js. */
+export interface ShieldChip {
+  mode: 'hidden' | 'off' | 'count' | 'quiet';
+  count: number;
+  title: string;
+}
+
+/** Certificate fields sanitized by sanitizeCertificate() in site-security.js. */
+export interface CertificateSummary {
+  subject: string | null;
+  issuer: string | null;
+  /** Milliseconds since the epoch. */
+  validFrom: number | null;
+  /** Milliseconds since the epoch. */
+  validTo: number | null;
+  fingerprint: string | null;
+}
+
+/** Page-info model, built by buildSiteInfo() in site-security.js. */
+export interface SiteInfo {
+  state: 'neutral' | 'certificate-error' | 'secure' | 'local' | 'insecure' | 'internal';
+  origin: string;
+  host: string;
+  title: string;
+  summary: string;
+  certificate: CertificateSummary | null;
+  blockedCount: number;
+  /** Always empty in tabs:updated today. */
+  permissions: unknown[];
+  /** Present only when state is certificate-error. */
+  error?: string | null;
+}
+
+/** One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only state never crosses this projection. */
+export interface TabEntry {
+  id: TabId;
+  title: string;
+  url: string;
+  isLoading: boolean;
+  canGoBack: boolean;
+  canGoForward: boolean;
+  /** A data:image/png;base64 URL, or null. Always null for private tabs. */
+  favicon: string | null;
+  /** Whether the page is a Favorite. */
+  bookmarked: boolean;
+  blockedCount: number;
+  private: boolean;
+  pinned: boolean;
+  muted: boolean;
+  /** Playing sound that can reach the speakers. */
+  audible: boolean;
+  groupId: GroupId | null;
+  /** Sampled top-edge page color. */
+  pageBg: string | null;
+  /** The page theme-color meta value. */
+  themeColor: string | null;
+  /** Quiet Tabs state. */
+  asleep: boolean;
+  capture: TabCapture;
+  /** A login form is present (structure only). */
+  fillHint: boolean;
+  /** Ads are allowed on this site. */
+  excepted: boolean;
+  shield: ShieldChip;
+  connection: ConnectionState | null;
+  siteInfo: SiteInfo;
+}
+
+/** A tab group. Groups have names, not colors. */
+export interface TabGroup {
+  id: GroupId;
+  name: string;
+  collapsed: boolean;
+}
+
+/** A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js. */
+export interface ClosedEntrySummary {
+  id: ClosedEntryId;
+  title: string;
+  favicon: string | null;
+  tabCount: number;
+}
+
+/** Blocking provider controls, from shieldProviderModel() in shield-model.js. */
+export interface ShieldProviderControls {
+  active: BlockingProviderId;
+  selected: BlockingProviderId;
+  choice: BlockingProviderId;
+  restartPending: boolean;
+  hidden: boolean;
+  disabled: boolean;
+  activeLabel: 'Off' | 'Active' | 'Starting' | 'Unavailable';
+  ublockAvailable: boolean;
+  canOpenUblock: boolean;
+  detail: string;
+  availability: string;
+  scope: string;
+}
+
+/** The active tab's shield popover: shieldPopoverModel() plus provider controls. */
+export interface ShieldPopover {
+  variant: 'site' | 'global-off' | 'recovery' | 'ublock';
+  host: string;
+  on: boolean;
+  countLine: string;
+  connection: ConnectionState | null;
+  controls: ShieldProviderControls;
+}
+
+/** Window-wide capture chip state. */
+export interface CaptureChip {
+  audio: boolean;
+  video: boolean;
+}
+
+/** One capturing surface in the capture popover. */
+export interface CaptureRow {
+  surfaceId: CaptureSurfaceId;
+  host: string;
+  kind: 'tab' | 'popup';
+  audio: boolean;
+  video: boolean;
+}
+
+/** Capture popover rows. */
+export interface CapturePopover {
+  rows: CaptureRow[];
+}
+
+/** A screen share, projected by projectDisplayShares() in display-capture-indicator.js. */
+export interface DisplayShareSummary {
+  shareId: DisplayShareId;
+  pending: boolean;
+  origin: string | null;
+  surfaceLabel: string | null;
+  surfaceKind: string | null;
+  computerAudio: boolean;
+  tabId: TabId | null;
+}
+
+/** Result of getAllTabs, built by the tabs:get-all handler in main.js. */
+export interface TabsSnapshot {
+  tabs: TabEntry[];
+  activeTabId: TabId | null;
+  glanceTabId: TabId | null;
+  groups: TabGroup[];
+  closed: ClosedEntrySummary[];
+  tabLayout: TabLayout;
+  verticalTabsWidth: number;
+  verticalTabsPreferredWidth: number;
+  verticalTabsMinWidth: number;
+  verticalTabsMaxWidth: number;
+  verticalTabsDefaultWidth: number;
+}
+
+/** The tabs:updated broadcast, built by currentTabsPayload() in main.js. */
+export interface TabsUpdatedPayload {
+  tabs: TabEntry[];
+  activeTabId: TabId | null;
+  glanceTabId: TabId | null;
+  groups: TabGroup[];
+  closed: ClosedEntrySummary[];
+  tabLayout: TabLayout;
+  adblockEnabled: boolean;
+  shieldPopover: ShieldPopover | null;
+  captureChip: CaptureChip;
+  capturePopover: CapturePopover;
+  displayShares: DisplayShareSummary[];
+  verticalTabsWidth: number;
+  verticalTabsPreferredWidth: number;
+  verticalTabsMinWidth: number;
+  verticalTabsMaxWidth: number;
+  verticalTabsDefaultWidth: number;
+}
 
 export interface BlancBrowserAPI {
   /**

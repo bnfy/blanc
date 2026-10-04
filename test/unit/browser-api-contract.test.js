@@ -86,3 +86,57 @@ test('a channel removed from main is reported', () => {
   contract.members.find((m) => m.name === 'closeTab').channel = 'tabs:no-such-channel';
   assert.ok(api.checkMain(contract).some((p) => p.includes('tabs:no-such-channel')));
 });
+
+// ---- tabs:updated payload shapes ----
+
+const MAIN = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+
+function mutateMain(from, to) {
+  assert.ok(MAIN.includes(from), `fixture text missing from main.js: ${from}`);
+  return MAIN.replace(from, to);
+}
+
+test('every payload fixture validates against the contract', () => {
+  assert.deepEqual(api.checkPayloads(api.loadContract()), []);
+});
+
+test('a new field in the serializeTabs allowlist is reported', () => {
+  const problems = api.checkMainPayloadKeys(api.loadContract(),
+    mutateMain('        fillHint: tab.fillHint === true,\n', '        fillHint: tab.fillHint === true,\n        profileId: tab.profileId,\n'));
+  assert.ok(problems.some((p) => p.includes('"profileId", which is not a field of TabEntry')), problems.join('\n'));
+});
+
+test('a field dropped from the tabs:updated payload is reported', () => {
+  const problems = api.checkMainPayloadKeys(api.loadContract(),
+    mutateMain('    adblockEnabled: settings.getSettings().adblockEnabled,\n    shieldPopover', '    shieldPopover'));
+  assert.ok(problems.some((p) => p.includes('TabsUpdatedPayload.adblockEnabled is not produced')), problems.join('\n'));
+});
+
+test('a capture row field change is reported', () => {
+  const problems = api.checkMainPayloadKeys(api.loadContract(),
+    mutateMain("surfaceId: row.id, host: captureHostOf(row.url), kind: 'tab',", "surfaceId: row.id, host: captureHostOf(row.url), kind: 'tab', title: row.title,"));
+  assert.ok(problems.some((p) => p.includes('"title", which is not a field of CaptureRow')), problems.join('\n'));
+});
+
+test('an unrecognized spread in the payload is reported', () => {
+  const problems = api.checkMainPayloadKeys(api.loadContract(),
+    mutateMain('    ...widthMetrics,\n  };', '    ...widthMetrics,\n    ...extraState(),\n  };'));
+  assert.ok(problems.some((p) => p.includes('unrecognized spread "...extraState()"')), problems.join('\n'));
+});
+
+test('the validator rejects wrong values, missing fields and extra fields', () => {
+  const contract = api.loadContract();
+  assert.deepEqual(api.validateValue({ mode: 'count', count: 1, title: 'x' }, 'ShieldChip', contract), []);
+  assert.ok(api.validateValue({ mode: 'loud', count: 1, title: 'x' }, 'ShieldChip', contract).length > 0);
+  assert.ok(api.validateValue({ mode: 'count', title: 'x' }, 'ShieldChip', contract).some((p) => p.includes('count: missing')));
+  assert.ok(api.validateValue({ mode: 'count', count: 1, title: 'x', extra: true }, 'ShieldChip', contract).some((p) => p.includes('not a field')));
+  assert.ok(api.validateValue([{ id: 'g', name: 'n' }], 'TabGroup[]', contract).some((p) => p.includes('collapsed: missing')));
+  assert.deepEqual(api.validateValue(null, 'ConnectionState | null', contract), []);
+  assert.ok(api.validateValue('ftp', 'ConnectionState | null', contract).length > 0);
+});
+
+test('a contract enum narrower than the helpers produce is reported', () => {
+  const contract = api.loadContract();
+  contract.types.SiteInfo.fields.state.type = "'neutral' | 'secure' | 'local' | 'insecure' | 'internal'";
+  assert.ok(api.checkPayloads(contract).some((p) => p.includes('state') && p.includes('certificate-error')));
+});

@@ -32,12 +32,20 @@
       "doc": "Id of a pending permission prompt. Shape not yet pinned."
     },
     "CaptureSurfaceId": {
-      "ts": "unknown",
-      "doc": "Id of a capturing surface. Shape not yet pinned."
+      "ts": "string",
+      "doc": "Id of a capturing surface: a TabId for a tab, or `popup:<webContentsId>` for an auxiliary popup."
     },
     "DisplayShareId": {
-      "ts": "unknown",
-      "doc": "Id of an active screen share. Shape not yet pinned."
+      "ts": "string",
+      "doc": "Id of an active screen share (`share-<n>`), minted by the display-capture registry."
+    },
+    "BlockingProviderId": {
+      "ts": "'blanc' | 'ublock-origin'",
+      "doc": "A blocking provider."
+    },
+    "ConnectionState": {
+      "ts": "'https' | 'http' | 'local'",
+      "doc": "Connection claim for a committed URL. null in a payload means no claim (loading, or not HTTP)."
     },
     "TabLayout": {
       "ts": "'island' | 'vertical'",
@@ -71,17 +79,424 @@
       "ts": "unknown",
       "doc": "Popover anchor geometry. Shape not yet pinned."
     },
-    "TabsSnapshot": {
-      "ts": "{ tabs: unknown[]; activeTabId: TabId | null; glanceTabId: TabId | null; [key: string]: unknown }",
-      "doc": "Result of getAllTabs. Tab entries not yet pinned."
-    },
-    "TabsUpdatedPayload": {
-      "ts": "{ tabs: unknown[]; activeTabId: TabId | null; glanceTabId: TabId | null; groups: unknown[]; closed: unknown[]; tabLayout: TabLayout; adblockEnabled: boolean; [key: string]: unknown }",
-      "doc": "The tabs:updated projection built by currentTabsPayload() in main. Tab, group and closed-entry shapes not yet pinned."
-    },
     "PermissionPromptPayload": {
       "ts": "unknown",
       "doc": "A pending permission prompt. Shape not yet pinned."
+    },
+    "TabCapture": {
+      "doc": "A tab's live capture state.",
+      "fields": {
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ShieldChip": {
+      "doc": "Shield chip state, derived by shieldChipState() in shield-model.js.",
+      "fields": {
+        "mode": {
+          "type": "'hidden' | 'off' | 'count' | 'quiet'"
+        },
+        "count": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "CertificateSummary": {
+      "doc": "Certificate fields sanitized by sanitizeCertificate() in site-security.js.",
+      "fields": {
+        "subject": {
+          "type": "string | null"
+        },
+        "issuer": {
+          "type": "string | null"
+        },
+        "validFrom": {
+          "type": "number | null",
+          "doc": "Milliseconds since the epoch."
+        },
+        "validTo": {
+          "type": "number | null",
+          "doc": "Milliseconds since the epoch."
+        },
+        "fingerprint": {
+          "type": "string | null"
+        }
+      }
+    },
+    "SiteInfo": {
+      "doc": "Page-info model, built by buildSiteInfo() in site-security.js.",
+      "fields": {
+        "state": {
+          "type": "'neutral' | 'certificate-error' | 'secure' | 'local' | 'insecure' | 'internal'"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "certificate": {
+          "type": "CertificateSummary | null"
+        },
+        "blockedCount": {
+          "type": "number"
+        },
+        "permissions": {
+          "type": "unknown[]",
+          "doc": "Always empty in tabs:updated today."
+        },
+        "error": {
+          "type": "string | null",
+          "doc": "Present only when state is certificate-error.",
+          "optional": true
+        }
+      }
+    },
+    "TabEntry": {
+      "doc": "One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only state never crosses this projection.",
+      "fields": {
+        "id": {
+          "type": "TabId"
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "isLoading": {
+          "type": "boolean"
+        },
+        "canGoBack": {
+          "type": "boolean"
+        },
+        "canGoForward": {
+          "type": "boolean"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A data:image/png;base64 URL, or null. Always null for private tabs."
+        },
+        "bookmarked": {
+          "type": "boolean",
+          "doc": "Whether the page is a Favorite."
+        },
+        "blockedCount": {
+          "type": "number"
+        },
+        "private": {
+          "type": "boolean"
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "audible": {
+          "type": "boolean",
+          "doc": "Playing sound that can reach the speakers."
+        },
+        "groupId": {
+          "type": "GroupId | null"
+        },
+        "pageBg": {
+          "type": "string | null",
+          "doc": "Sampled top-edge page color."
+        },
+        "themeColor": {
+          "type": "string | null",
+          "doc": "The page theme-color meta value."
+        },
+        "asleep": {
+          "type": "boolean",
+          "doc": "Quiet Tabs state."
+        },
+        "capture": {
+          "type": "TabCapture"
+        },
+        "fillHint": {
+          "type": "boolean",
+          "doc": "A login form is present (structure only)."
+        },
+        "excepted": {
+          "type": "boolean",
+          "doc": "Ads are allowed on this site."
+        },
+        "shield": {
+          "type": "ShieldChip"
+        },
+        "connection": {
+          "type": "ConnectionState | null"
+        },
+        "siteInfo": {
+          "type": "SiteInfo"
+        }
+      }
+    },
+    "TabGroup": {
+      "doc": "A tab group. Groups have names, not colors.",
+      "fields": {
+        "id": {
+          "type": "GroupId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "collapsed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ClosedEntrySummary": {
+      "doc": "A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js.",
+      "fields": {
+        "id": {
+          "type": "ClosedEntryId"
+        },
+        "title": {
+          "type": "string"
+        },
+        "favicon": {
+          "type": "string | null"
+        },
+        "tabCount": {
+          "type": "number"
+        }
+      }
+    },
+    "ShieldProviderControls": {
+      "doc": "Blocking provider controls, from shieldProviderModel() in shield-model.js.",
+      "fields": {
+        "active": {
+          "type": "BlockingProviderId"
+        },
+        "selected": {
+          "type": "BlockingProviderId"
+        },
+        "choice": {
+          "type": "BlockingProviderId"
+        },
+        "restartPending": {
+          "type": "boolean"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "activeLabel": {
+          "type": "'Off' | 'Active' | 'Starting' | 'Unavailable'"
+        },
+        "ublockAvailable": {
+          "type": "boolean"
+        },
+        "canOpenUblock": {
+          "type": "boolean"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "availability": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    "ShieldPopover": {
+      "doc": "The active tab's shield popover: shieldPopoverModel() plus provider controls.",
+      "fields": {
+        "variant": {
+          "type": "'site' | 'global-off' | 'recovery' | 'ublock'"
+        },
+        "host": {
+          "type": "string"
+        },
+        "on": {
+          "type": "boolean"
+        },
+        "countLine": {
+          "type": "string"
+        },
+        "connection": {
+          "type": "ConnectionState | null"
+        },
+        "controls": {
+          "type": "ShieldProviderControls"
+        }
+      }
+    },
+    "CaptureChip": {
+      "doc": "Window-wide capture chip state.",
+      "fields": {
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CaptureRow": {
+      "doc": "One capturing surface in the capture popover.",
+      "fields": {
+        "surfaceId": {
+          "type": "CaptureSurfaceId"
+        },
+        "host": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "'tab' | 'popup'"
+        },
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CapturePopover": {
+      "doc": "Capture popover rows.",
+      "fields": {
+        "rows": {
+          "type": "CaptureRow[]"
+        }
+      }
+    },
+    "DisplayShareSummary": {
+      "doc": "A screen share, projected by projectDisplayShares() in display-capture-indicator.js.",
+      "fields": {
+        "shareId": {
+          "type": "DisplayShareId"
+        },
+        "pending": {
+          "type": "boolean"
+        },
+        "origin": {
+          "type": "string | null"
+        },
+        "surfaceLabel": {
+          "type": "string | null"
+        },
+        "surfaceKind": {
+          "type": "string | null"
+        },
+        "computerAudio": {
+          "type": "boolean"
+        },
+        "tabId": {
+          "type": "TabId | null"
+        }
+      }
+    },
+    "TabsSnapshot": {
+      "doc": "Result of getAllTabs, built by the tabs:get-all handler in main.js.",
+      "fields": {
+        "tabs": {
+          "type": "TabEntry[]"
+        },
+        "activeTabId": {
+          "type": "TabId | null"
+        },
+        "glanceTabId": {
+          "type": "TabId | null"
+        },
+        "groups": {
+          "type": "TabGroup[]"
+        },
+        "closed": {
+          "type": "ClosedEntrySummary[]"
+        },
+        "tabLayout": {
+          "type": "TabLayout"
+        },
+        "verticalTabsWidth": {
+          "type": "number"
+        },
+        "verticalTabsPreferredWidth": {
+          "type": "number"
+        },
+        "verticalTabsMinWidth": {
+          "type": "number"
+        },
+        "verticalTabsMaxWidth": {
+          "type": "number"
+        },
+        "verticalTabsDefaultWidth": {
+          "type": "number"
+        }
+      }
+    },
+    "TabsUpdatedPayload": {
+      "doc": "The tabs:updated broadcast, built by currentTabsPayload() in main.js.",
+      "fields": {
+        "tabs": {
+          "type": "TabEntry[]"
+        },
+        "activeTabId": {
+          "type": "TabId | null"
+        },
+        "glanceTabId": {
+          "type": "TabId | null"
+        },
+        "groups": {
+          "type": "TabGroup[]"
+        },
+        "closed": {
+          "type": "ClosedEntrySummary[]"
+        },
+        "tabLayout": {
+          "type": "TabLayout"
+        },
+        "adblockEnabled": {
+          "type": "boolean"
+        },
+        "shieldPopover": {
+          "type": "ShieldPopover | null"
+        },
+        "captureChip": {
+          "type": "CaptureChip"
+        },
+        "capturePopover": {
+          "type": "CapturePopover"
+        },
+        "displayShares": {
+          "type": "DisplayShareSummary[]"
+        },
+        "verticalTabsWidth": {
+          "type": "number"
+        },
+        "verticalTabsPreferredWidth": {
+          "type": "number"
+        },
+        "verticalTabsMinWidth": {
+          "type": "number"
+        },
+        "verticalTabsMaxWidth": {
+          "type": "number"
+        },
+        "verticalTabsDefaultWidth": {
+          "type": "number"
+        }
+      }
     }
   },
   "members": [
