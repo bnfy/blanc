@@ -24,6 +24,11 @@
   0%, 100% {transform: rotateY(-5deg);}
   50% {transform: rotateY(5deg);}
 }
+@media (hover: hover) and (pointer: fine) {
+  .hero-island-stage:hover .hero-island-plane {
+    animation-play-state: paused;
+  }
+}
 .hero-island-shadow {
   position: absolute;
   left: 10%;
