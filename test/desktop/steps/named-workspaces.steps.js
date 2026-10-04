@@ -106,7 +106,10 @@ Then('the saved workspace has no ordinary tabs', async function () {
 });
 
 When('I quiet a grouped pinned page and switch away', async function () {
-  this.quietId = await this.call('openTab', this.insecureFixtureUrl('workspace-quiet'));
+  // This scenario tests ownership of a quiet tab, not the optional
+  // storage-bearing renderer-discard path. Avoid the general fixture's load
+  // counter, which can correctly keep a shared/uncertain renderer awake.
+  this.quietId = await this.call('openTab', this.insecureFixtureUrl('workspace-quiet') + '?nostore=1');
   await this.waitForState((s) => s.tabs.some((t) => t.id === this.quietId && t.title === 'workspace-quiet' && !t.isLoading));
   await this.call('pinTab', this.quietId);
   await this.call('groupTabByName', this.quietId, 'Research');
