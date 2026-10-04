@@ -143,13 +143,13 @@ test('a contract enum narrower than the helpers produce is reported', () => {
 
 // ---- event send sites ----
 
-function sendSources(from, to) {
+function sendSources(from, to, target = 'main.js') {
   const files = fs.readdirSync(path.join(__dirname, '../../src/main'))
     .filter((f) => f.endsWith('.js') && f !== 'preload.js' && f !== 'test-hook.js');
   return files.map((file) => {
     let text = fs.readFileSync(path.join(__dirname, '../../src/main', file), 'utf8');
-    if (file === 'main.js' && from) {
-      assert.ok(text.includes(from), `fixture text missing from main.js: ${from}`);
+    if (file === target && from) {
+      assert.ok(text.includes(from), `fixture text missing from ${target}: ${from}`);
       text = text.replace(from, to);
     }
     return { file, text };
@@ -224,4 +224,155 @@ test('an unknown resultCheck value is rejected', () => {
   const contract = api.loadContract();
   contract.members.find((m) => m.name === 'stop').resultCheck = 'trust-me';
   assert.ok(api.validateContract(contract).some((p) => p.includes('unknown resultCheck')));
+});
+
+test('a try block that returns on every path does not fall through, and one that can is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('      return response;\n    } finally {', '    } finally {'));
+  assert.ok(problems.some((p) => p.includes('searchSuggestions result') && p.includes('undefined')), problems.join('\n'));
+});
+
+test('a returned literal outside its field\'s union is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources("return { error: 'blocking-not-ready' };", "return { error: 'blocking-busy' };"));
+  assert.ok(problems.some((p) => p.includes('allowAdsOnActiveSite result') && p.includes("'blocking-busy'")), problems.join('\n'));
+});
+
+test('a returned local is read through its object literal', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('const response = { engine: engineId, label: engine.label, suggestions: [] };', 'const response = { engine: engineId, label: engine.label, suggestions: [], cached: false };'));
+  assert.ok(problems.some((p) => p.includes('searchSuggestions result') && p.includes('cached')), problems.join('\n'));
+});
+
+test('a forwarded module result is checked where it is built', () => {
+  const extra = api.checkInvokeResults(api.loadContract(),
+    sendSources("return { ok: false, reason: 'busy' };", "return { ok: false, reason: 'busy', retryAt: 0 };", 'credential-fill-controller.js'));
+  assert.ok(extra.some((p) => p.includes('fillLoginFromOnePassword result (credential-fill-controller.js fill)') && p.includes('retryAt')), extra.join('\n'));
+  const fallsThrough = api.checkInvokeResults(api.loadContract(),
+    sendSources("      return { ok: false, reason: 'unexpected' };", '', 'credential-fill-controller.js'));
+  assert.ok(fallsThrough.some((p) => p.includes('fillLoginFromOnePassword result') && p.includes('undefined')), fallsThrough.join('\n'));
+});
+
+test('list and command fixtures reject a contract narrower than the code', () => {
+  for (const [type, field, narrowed, label] of [
+    ['HistoryEntry', 'favicon', 'string', 'listHistory()'],
+    ['FavoriteItem', 'folder', 'string', 'listBookmarks()'],
+    ['RemoteTab', 'groupId', 'string', 'remote devices'],
+    ['BlockAdsResult', 'action', "'toggle'", 'resolveBlockAdsCommand'],
+  ]) {
+    const contract = api.loadContract();
+    contract.types[type].fields[field].type = narrowed;
+    assert.ok(api.checkPayloads(contract).some((p) => p.includes(label) && p.includes(field)), `${type}.${field}`);
+  }
+});
+
+test('the list fixtures leave the module cache as they found it', () => {
+  const store = require.resolve('../../src/main/store.js');
+  const history = require.resolve('../../src/main/history.js');
+  assert.ok(api.listFixtures().length > 0);
+  assert.equal(require.cache[store], undefined);
+  assert.equal(require.cache[history], undefined);
+});
+
+test('SearchEngineId must match the settings schema', () => {
+  const contract = api.loadContract();
+  assert.deepEqual(api.checkSearchEngines(contract), []);
+  contract.types.SearchEngineId.ts = "'duckduckgo' | 'google' | 'bing'";
+  assert.ok(api.checkSearchEngines(contract).some((p) => p.includes("'brave'")));
+});
+
+test('the validator checks true and false literal types', () => {
+  const contract = api.loadContract();
+  assert.deepEqual(api.validateValue({ ok: true, filledUser: true, filledPass: false }, 'FillLoginSuccess | FillLoginFailure', contract), []);
+  assert.ok(api.validateValue({ ok: true, reason: 'busy' }, 'FillLoginSuccess | FillLoginFailure', contract).length > 0);
+});
+
+// ---- workspace action results ----
+
+test('workspace error, reason and action literals are all in the contract', () => {
+  assert.deepEqual(api.checkWorkspaceCodes(api.loadContract(), sendSources()), []);
+});
+
+test('a new workspace error code in main.js is reported', () => {
+  const problems = api.checkWorkspaceCodes(api.loadContract(),
+    sendSources("return { ok: false, error: 'not-patron' };", "return { ok: false, error: 'needs-patron' };"));
+  assert.ok(problems.some((p) => p.includes("error 'needs-patron'")), problems.join('\n'));
+});
+
+test('a new protection reason is reported', () => {
+  const problems = api.checkWorkspaceCodes(api.loadContract(),
+    sendSources("return { blocked: true, reason: 'active-page' };", "return { blocked: true, reason: 'signing-in' };"));
+  assert.ok(problems.some((p) => p.includes("reason 'signing-in'")), problems.join('\n'));
+});
+
+test('a workspace result spread that drifts from its type is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('    patronActive: settings.isPatronActive(),\n', '    patronActive: settings.isPatronActive(),\n    plan: settings.plan,\n'));
+  assert.ok(problems.some((p) => p.includes('renameWorkspace result') && p.includes('plan')), problems.join('\n'));
+});
+
+test('a handler-table workspace action is resolved and checked', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources("      return { ok: true, ...workspacesProjection() };\n    });\n  }", "      return { ok: true, moved: true, ...workspacesProjection() };\n    });\n  }"));
+  assert.ok(problems.some((p) => p.includes('moveWorkspace result') && p.includes('moved')), problems.join('\n'));
+});
+
+test('controller fixtures reject an error code the contract does not list', () => {
+  const contract = api.loadContract();
+  contract.types.WorkspaceErrorCode.ts = contract.types.WorkspaceErrorCode.ts.replace("'busy' | ", '');
+  assert.ok(api.checkPayloads(contract).some((p) => p.includes('controller open (busy)') && p.includes('error')));
+});
+
+// ---- parameter shapes ----
+
+function rendererSources(file, from, to) {
+  const dir = path.join(__dirname, '../../src/renderer');
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => {
+    let text = fs.readFileSync(path.join(dir, f), 'utf8');
+    if (f === file) {
+      assert.ok(text.includes(from), `fixture text missing from ${file}: ${from}`);
+      text = text.replace(from, to);
+    }
+    return { file: f, text };
+  });
+}
+
+test('structured parameters match what renderers send and main reads', () => {
+  assert.deepEqual(api.checkParamShapes(api.loadContract()), []);
+});
+
+test('a renderer sending an extra or missing field is reported', () => {
+  const extra = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('renderer.js', '{ right: r.right }', '{ right: r.right, left: r.left }') });
+  assert.ok(extra.some((p) => p.includes('openCapturePopover(anchor)') && p.includes('"left"')), extra.join('\n'));
+  const missing = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('renderer.js', 'openMainMenu({ x: rect.left, y: rect.bottom })', 'openMainMenu({ x: rect.left })') });
+  assert.ok(missing.some((p) => p.includes('openMainMenu(point)') && p.includes('Point.y')), missing.join('\n'));
+});
+
+test('an argument is followed through the enclosing function to its call sites', () => {
+  const problems = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('overlay.js', 'runFind({ forward: false, findNext: false })', 'runFind({ forward: false, findNext: false, wholeWord: true })') });
+  assert.ok(problems.some((p) => p.includes('findInPage(options)') && p.includes('"wholeWord"')), problems.join('\n'));
+});
+
+test('an unreadable renderer argument is reported', () => {
+  const problems = api.checkParamShapes(api.loadContract(),
+    { renderers: rendererSources('overlay.js', 'listHistory({ limit: 300 })', 'listHistory(historyOptions[0])') });
+  assert.ok(problems.some((p) => p.includes('listHistory(opts)') && p.includes("can't be read")), problems.join('\n'));
+});
+
+test('main reading an undeclared field is reported, nested and through a forwarded module', () => {
+  const nested = api.checkParamShapes(api.loadContract(),
+    { main: sendSources("rect?.shieldAnchor?.trigger === 'shield'", "rect?.shieldAnchor?.side === 'shield'") });
+  assert.ok(nested.some((p) => p.includes('main reads rect.shieldAnchor.side') && p.includes('ShieldAnchor')), nested.join('\n'));
+  const forwarded = api.checkParamShapes(api.loadContract(),
+    { main: sendSources('payload.computerAudioApproved === true', 'payload.audio === true', 'display-capture-picker.js') });
+  assert.ok(forwarded.some((p) => p.includes('resolveDisplayPicker(choice)') && p.includes('choice.audio')), forwarded.join('\n'));
+});
+
+test('an Electron options type must name the same fields as Electron', { skip: !fs.existsSync(path.join(__dirname, '../../node_modules/electron/electron.d.ts')) }, () => {
+  const contract = api.loadContract();
+  delete contract.types.FindInPageOptions.fields.matchCase;
+  assert.ok(api.checkParamShapes(contract).some((p) => p.includes("Electron's FindInPageOptions")));
 });

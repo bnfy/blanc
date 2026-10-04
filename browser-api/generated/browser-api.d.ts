@@ -44,8 +44,13 @@ export type WorkspaceMoveDirection = 'up' | 'down';
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
-/** `force` skips the scratch guard after a confirmed "discard and switch". */
-export type OpenWorkspaceOptions = { force?: boolean };
+/** Options for opening or creating a workspace. */
+export interface OpenWorkspaceOptions {
+  /** The token from an unsaved-scratch result, confirming "discard and switch". */
+  decision?: string;
+  /** Open in a new window instead of this one. */
+  newWindow?: boolean;
+}
 
 /** A point in window coordinates. */
 export interface Point {
@@ -60,9 +65,6 @@ export interface Rect {
   width: number;
   height: number;
 }
-
-/** Popover anchor geometry sent by the strip. Shape not yet pinned. */
-export type Anchor = unknown;
 
 /** A pending permission prompt, built by the permission prompter in main.js. */
 export interface PermissionPromptPayload {
@@ -378,6 +380,199 @@ export interface FindResult {
   matches: number;
 }
 
+/** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'not-patron' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
+
+/** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
+export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page' | 'resident-capacity';
+
+/** What a successful open or create did: swapped this window, found it already here, or focused another window. */
+export type WorkspaceAction = 'swap' | 'noop' | 'focus';
+
+/** Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail. */
+export interface WorkspaceActionResult {
+  ok: boolean;
+  error?: WorkspaceErrorCode;
+  /** Why a saved workspace could not be opened (with saved-not-opened). */
+  cause?: WorkspaceErrorCode;
+  /** With protected-pages. */
+  reason?: WorkspaceProtectionReason;
+  /** Unsaved tabs (with unsaved-scratch). */
+  tabCount?: number;
+  /** Private tabs among them (with unsaved-scratch). */
+  privateCount?: number;
+  /** Token to send back as a confirmed "discard and switch" (with unsaved-scratch). */
+  decision?: string;
+  action?: WorkspaceAction;
+  /** The window that now shows the workspace (with action focus). */
+  windowId?: string;
+  /** The new workspace, after a create or save, including a save that could not be opened. */
+  workspaceId?: WorkspaceId;
+  patronActive?: boolean;
+  status?: WorkspaceSaveStatus;
+  deleted?: DeletedWorkspace[];
+  items?: WorkspaceListItem[];
+}
+
+/** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
+export type SearchEngineId = 'duckduckgo' | 'google' | 'bing' | 'brave';
+
+/** A history entry, from listHistory() in history.js: the stored visit plus the site's cached favicon. */
+export interface HistoryEntry {
+  url: string;
+  /** The page title, or the URL when the page had none. */
+  title: string;
+  /** Epoch milliseconds of the latest visit. */
+  visitedAt: number;
+  /** A sanitized PNG data URL, or null. */
+  favicon: string | null;
+}
+
+/** A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark. */
+export interface FavoriteItem {
+  id: string;
+  url: string;
+  /** The page title, or the URL when the page had none. */
+  title: string;
+  /** A sanitized PNG data URL, or null. Items saved by older versions may lack it. */
+  favicon?: string | null;
+  /** Epoch milliseconds. */
+  addedAt: number;
+  /** Epoch milliseconds of the last synced edit. Items saved by older versions may lack it. */
+  updatedAt?: number;
+  /** The folder name, or null when ungrouped. Items saved by older versions may lack it. */
+  folder?: string | null;
+}
+
+/** Another device's open tab, sanitized by tabsync-model.js, with its synced icon attached by tabicons-model.js. */
+export interface RemoteTab {
+  /** Always http(s). */
+  url: string;
+  title: string;
+  groupId: string | null;
+  pinned: boolean;
+  /** A sanitized PNG data URL, or null. */
+  favicon: string | null;
+}
+
+/** A tab group on another device. */
+export interface RemoteGroup {
+  id: string;
+  name: string;
+}
+
+/** Another device's open tabs, from displayDevices() in tabsync-model.js. Newest first; devices without tabs or older than the prune window are left out. */
+export interface RemoteDevice {
+  deviceId: string;
+  name: string;
+  platform: string;
+  /** Epoch milliseconds. */
+  updatedAt: number;
+  tabs: RemoteTab[];
+  groups: RemoteGroup[];
+}
+
+/** Search suggestions for the address bar, labelled with the engine that produced them. */
+export interface SearchSuggestions {
+  engine: SearchEngineId;
+  /** The engine's display name. */
+  label: string;
+  /** Empty when suggestions are off, the tab is private, or the query is ineligible. */
+  suggestions: string[];
+}
+
+/** uBlock Origin handled the block-ads command; its state arrives with the next tabs:updated. */
+export interface ProviderBlockAdsResult {
+  provider: 'ublock-origin';
+}
+
+/** What Blanc Blocker did for the block-ads command, from resolveBlockAdsCommand() in adblock-exceptions.js. */
+export interface BlockAdsResult {
+  /** unexcept: the active site left the allow-list and blocking is on. toggle: blocking was switched. */
+  action: 'unexcept' | 'toggle';
+  /** The site removed from the allow-list, or null for a toggle. */
+  hostname: string | null;
+  /** Whether blocking is on afterwards. */
+  enabled: boolean;
+  /** The full allow-list afterwards. */
+  exceptions: string[];
+}
+
+/** Why ads could not be allowed on the active site. Settings opens on its blocking section. */
+export interface AllowAdsError {
+  error: 'blocking-not-ready' | 'blocking-site-change-failed';
+}
+
+/** A 1Password fill that did not fill, from credential-fill-controller.js. The user has already been told why. */
+export interface FillLoginFailure {
+  ok: false;
+  /** A flow reason such as 'cancelled' or 'no-match', or a broker/SDK error code. */
+  reason: string;
+}
+
+/** A 1Password fill that filled at least one field. No credential data is returned. */
+export interface FillLoginSuccess {
+  ok: true;
+  filledUser: boolean;
+  filledPass: boolean;
+}
+
+/** The resting pill's rectangle as the strip reports it, plus the open shield popover's anchor. */
+export interface IslandRectReport {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Present while the shield popover is open, so a uBlock Origin popup can follow the pill. */
+  shieldAnchor?: ShieldAnchor;
+}
+
+/** Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window. */
+export interface ShieldAnchor {
+  /** The control's right edge. */
+  right: number;
+  /** The control's horizontal centre. */
+  center: number;
+  /** The control's bottom edge. */
+  bottom: number;
+  trigger: ShieldTrigger;
+}
+
+/** Where the capture popover opens. */
+export interface CaptureAnchor {
+  /** The capture chip's right edge. */
+  right: number;
+}
+
+/** Options for findInPage, passed to Electron's webContents.findInPage unchanged. Must name the same fields as Electron's FindInPageOptions. */
+export interface FindInPageOptions {
+  /** Search forward (default true). */
+  forward?: boolean;
+  /** Start a new find session (default false). */
+  findNext?: boolean;
+  /** Case-sensitive (default false). */
+  matchCase?: boolean;
+}
+
+/** Filters for listHistory, read by listHistory() in history.js. */
+export interface HistoryListOptions {
+  /** Case-insensitive substring of the URL or title. */
+  query?: string;
+  /** At most this many entries (default 500). */
+  limit?: number;
+}
+
+/** The overlay's answer to the screen-share picker, read by display-capture-picker.js. Main ignores it unless the sender owns that live request. */
+export interface DisplayPickerChoice {
+  requestId: string;
+  /** The chosen source. Ignored on Linux, where the system portal chooses. */
+  sourceId?: string | null;
+  /** Only honored when the page asked for audio. */
+  computerAudioApproved?: boolean;
+  /** true cancels the request. The overlay cancels through closeOverlay instead. */
+  cancelled?: boolean;
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -419,31 +614,31 @@ export interface BlancBrowserAPI {
    */
   switchTab(id: TabId): Promise<void>;
   /**
-   * Navigate a tab to typed input; main normalizes it.
+   * Navigate a tab to typed input; main normalizes it. Resolves to undefined when nothing loads in the tab itself (unknown tab, an OS hand-off, a utility page, or a quiet tab, which wakes in the background); otherwise to whether the queued load ran and finished (false when superseded or failed).
    * IPC: invoke `tabs:navigate`.
    */
-  navigate(id: TabId, url: string): Promise<unknown>;
+  navigate(id: TabId, url: string): Promise<boolean | undefined>;
   /**
-   * Search for a query in a tab.
+   * Search for a query in a tab with the engine from Settings. Resolves to undefined for an empty query, an unknown tab or a started load, and to whether a quiet tab woke. Under the desktop test hook only, it resolves to the search URL instead of loading it.
    * @param engine Ignored by main; the engine comes from Settings.
    * IPC: invoke `tabs:search`.
    */
-  search(id: TabId, query: string, engine?: string): Promise<unknown>;
+  search(id: TabId, query: string, engine?: string): Promise<boolean | string | undefined>;
   /**
-   * Go back in a tab.
+   * Go back in a tab. Resolves to whether a quiet tab woke, otherwise to undefined.
    * IPC: invoke `tabs:back`.
    */
-  goBack(id: TabId): Promise<unknown>;
+  goBack(id: TabId): Promise<boolean | undefined>;
   /**
-   * Go forward in a tab.
+   * Go forward in a tab. Resolves to whether a quiet tab woke, otherwise to undefined.
    * IPC: invoke `tabs:forward`.
    */
-  goForward(id: TabId): Promise<unknown>;
+  goForward(id: TabId): Promise<boolean | undefined>;
   /**
-   * Reload a tab.
+   * Reload a tab. Resolves to whether a quiet tab woke, otherwise to undefined.
    * IPC: invoke `tabs:reload`.
    */
-  reload(id: TabId): Promise<unknown>;
+  reload(id: TabId): Promise<boolean | undefined>;
   /**
    * Stop loading a tab. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:stop`.
@@ -516,9 +711,10 @@ export interface BlancBrowserAPI {
   toggleBookmark(): Promise<void>;
   /**
    * Save the active tab as a Favorite in a folder.
+   * @param folder A folder name, or null for no folder. Main trims and validates it.
    * IPC: invoke `tabs:save-favorite`.
    */
-  saveFavorite(folder: unknown): Promise<void>;
+  saveFavorite(folder: string | null): Promise<void>;
   /**
    * Pin or unpin a tab. Resolves to the new pinned state, or false when the tab is unknown.
    * IPC: invoke `tabs:toggle-pinned`.
@@ -545,10 +741,10 @@ export interface BlancBrowserAPI {
    */
   getAllTabs(): Promise<TabsSnapshot>;
   /**
-   * Find text in a page.
+   * Find text in a page. Resolves to Electron's find request id, to whether a quiet tab woke (find again once it has), or to undefined for an unknown tab. Counts arrive through onFindResult.
    * IPC: invoke `tabs:find`.
    */
-  findInPage(id: TabId, query: string, options?: unknown): Promise<unknown>;
+  findInPage(id: TabId, query: string, options?: FindInPageOptions): Promise<number | boolean | undefined>;
   /**
    * Stop find-in-page. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:find-stop`.
@@ -573,7 +769,7 @@ export interface BlancBrowserAPI {
    * Report the resting pill's rectangle.
    * IPC: send `chrome:island-rect`.
    */
-  reportIslandRect(rect: Rect): void;
+  reportIslandRect(rect: IslandRectReport): void;
   /**
    * Where the shield popover should anchor.
    * IPC: event `overlay:shield-anchor`.
@@ -648,7 +844,7 @@ export interface BlancBrowserAPI {
    * Open the site-protection popover.
    * IPC: send `chrome:open-shield`.
    */
-  openShieldPopover(anchor: Anchor): void;
+  openShieldPopover(anchor: ShieldAnchor): void;
   /**
    * Choose the blocking provider from the shield popover. Resolves to false when refused; on a restart, to whether the restart went ahead.
    * @param restart  Defaults to false.
@@ -664,7 +860,7 @@ export interface BlancBrowserAPI {
    * Open the capture indicator popover.
    * IPC: send `chrome:open-capture`.
    */
-  openCapturePopover(anchor: Anchor): void;
+  openCapturePopover(anchor: CaptureAnchor): void;
   /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.
@@ -684,7 +880,7 @@ export interface BlancBrowserAPI {
    * Answer the screen-share picker.
    * IPC: send `display-capture:picker-resolve`.
    */
-  resolveDisplayPicker(choice: unknown): void;
+  resolveDisplayPicker(choice: DisplayPickerChoice): void;
   /**
    * Open the platform main menu at a point (strip only). Resolves to whether a menu item was chosen.
    * IPC: invoke `chrome:open-main-menu`.
@@ -706,20 +902,20 @@ export interface BlancBrowserAPI {
    */
   onOverlayEscape(callback: () => void): () => void;
   /**
-   * List history entries.
+   * List history entries, newest first.
    * IPC: invoke `chrome:history-list`.
    */
-  listHistory(opts?: unknown): Promise<unknown>;
+  listHistory(opts?: HistoryListOptions): Promise<HistoryEntry[]>;
   /**
    * List Favorites.
    * IPC: invoke `chrome:favorites-list`.
    */
-  listFavorites(): Promise<unknown>;
+  listFavorites(): Promise<FavoriteItem[]>;
   /**
-   * List other devices' open tabs.
+   * List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile.
    * IPC: invoke `chrome:remote-tabs-list`.
    */
-  listRemoteTabs(): Promise<unknown>;
+  listRemoteTabs(): Promise<RemoteDevice[]>;
   /**
    * Cancel a pending workspace action.
    * IPC: send `chrome:workspaces-cancel`.
@@ -734,52 +930,52 @@ export interface BlancBrowserAPI {
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.
    */
-  saveWorkspaceAs(name: string): Promise<unknown>;
+  saveWorkspaceAs(name: string): Promise<WorkspaceActionResult>;
   /**
    * Open a Named Workspace.
    * IPC: invoke `chrome:workspaces-open`.
    */
-  openWorkspace(id: WorkspaceId, opts?: OpenWorkspaceOptions): Promise<unknown>;
+  openWorkspace(id: WorkspaceId, opts?: OpenWorkspaceOptions): Promise<WorkspaceActionResult>;
   /**
    * Create and open an empty Named Workspace.
    * IPC: invoke `chrome:workspaces-create-blank`.
    */
-  createBlankWorkspace(name: string, opts?: OpenWorkspaceOptions): Promise<unknown>;
+  createBlankWorkspace(name: string, opts?: OpenWorkspaceOptions): Promise<WorkspaceActionResult>;
   /**
    * Rename a Named Workspace.
    * IPC: invoke `chrome:workspaces-rename`.
    */
-  renameWorkspace(id: WorkspaceId, name: string): Promise<unknown>;
+  renameWorkspace(id: WorkspaceId, name: string): Promise<WorkspaceActionResult>;
   /**
    * Delete a Named Workspace (undoable).
    * IPC: invoke `chrome:workspaces-remove`.
    */
-  removeWorkspace(id: WorkspaceId): Promise<unknown>;
+  removeWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Undo a workspace deletion.
    * IPC: invoke `chrome:workspaces-restore`.
    */
-  restoreWorkspace(id: WorkspaceId): Promise<unknown>;
+  restoreWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Make a workspace deletion permanent.
    * IPC: invoke `chrome:workspaces-forget`.
    */
-  forgetWorkspace(id: WorkspaceId): Promise<unknown>;
+  forgetWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Move a workspace up or down in the list.
    * IPC: invoke `chrome:workspaces-move`.
    */
-  moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<unknown>;
+  moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<WorkspaceActionResult>;
   /**
    * Fetch search suggestions when enabled in Settings.
    * IPC: invoke `chrome:search-suggestions`.
    */
-  searchSuggestions(query: string): Promise<unknown>;
+  searchSuggestions(query: string): Promise<SearchSuggestions>;
   /**
-   * Other devices' open tabs changed.
+   * Other devices' open tabs changed. Same projection as listRemoteTabs.
    * IPC: event `chrome:remote-tabs-updated`.
    */
-  onRemoteTabsUpdated(callback: (payload: unknown) => void): () => void;
+  onRemoteTabsUpdated(callback: (payload: RemoteDevice[]) => void): () => void;
   /**
    * Named Workspaces changed.
    * IPC: event `chrome:workspaces-updated`.
@@ -791,26 +987,26 @@ export interface BlancBrowserAPI {
    */
   clearHistory(): Promise<void>;
   /**
-   * Turn Blanc Blocker on or off.
+   * Turn blocking on or off for the active tab's provider, or take the active site off the allow-list. The result includes the whole allow-list, which only trusted chrome receives.
    * IPC: invoke `chrome:adblock-toggle`.
    */
-  toggleAdblock(): Promise<unknown>;
+  toggleAdblock(): Promise<ProviderBlockAdsResult | BlockAdsResult>;
   /**
-   * Allow ads on the active site.
+   * Allow ads on the active site. Resolves to the allowed hostname, null when there is no tab or the page has no blockable site, or an error.
    * IPC: invoke `chrome:adblock-exempt-active`.
    */
-  allowAdsOnActiveSite(): Promise<unknown>;
+  allowAdsOnActiveSite(): Promise<string | null | AllowAdsError>;
   /**
    * Quiet all background tabs now. Resolves to the ids of the tabs that were quieted.
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
   sleepBackgroundTabs(): Promise<TabId[]>;
   /**
-   * Fill a login from 1Password (explicit invoke only).
+   * Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.
    * IPC: invoke `chrome:onepassword-fill`.
    * Present only on darwin.
    */
-  fillLoginFromOnePassword?(): Promise<unknown>;
+  fillLoginFromOnePassword?(): Promise<FillLoginSuccess | FillLoginFailure | false>;
   /**
    * Set or cycle the theme (system, light, dark). Resolves to the theme now in effect.
    * IPC: invoke `chrome:cycle-theme`.

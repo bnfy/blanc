@@ -17,7 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { createRequire } from 'node:module';
+import { Module, createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -26,6 +26,7 @@ const OUT = path.join(ROOT, 'browser-api', 'generated');
 const PRELOAD = path.join(ROOT, 'src', 'main', 'preload.js');
 const MAIN_DIR = path.join(ROOT, 'src', 'main');
 const RENDERER_DIR = path.join(ROOT, 'src', 'renderer');
+const SETTINGS_SCHEMA = path.join(ROOT, 'settings-schema', 'schema.json');
 
 export const PLATFORMS = ['darwin', 'win32', 'linux'];
 const KINDS = new Set(['value', 'invoke', 'send', 'event']);
@@ -315,6 +316,7 @@ function validateAlternative(value, alt, contract, where) {
   if (alt === 'string') return typeof value === 'string' ? [] : fail;
   if (alt === 'number') return Number.isFinite(value) ? [] : fail;
   if (alt === 'boolean') return typeof value === 'boolean' ? [] : fail;
+  if (alt === 'true' || alt === 'false') return value === (alt === 'true') ? [] : fail;
   if (alt === 'null') return value === null ? [] : fail;
   if (alt === 'undefined' || alt === 'void') return value === undefined ? [] : fail;
   if (/^'[^']*'$/.test(alt)) return value === alt.slice(1, -1) ? [] : fail;
@@ -352,12 +354,12 @@ function stripComments(text) {
 }
 
 // From the `{` at `start`, return the text up to its matching `}`, skipping
-// quoted strings.
+// quoted strings and template literals.
 function balanced(text, start) {
   let depth = 0;
   for (let i = start; i < text.length; i++) {
     const ch = text[i];
-    if (ch === "'" || ch === '"') {
+    if (ch === "'" || ch === '"' || ch === '`') {
       for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
       continue;
     }
@@ -367,36 +369,23 @@ function balanced(text, start) {
   throw new Error(`unbalanced braces from offset ${start}`);
 }
 
-// Top-level keys of an object literal (`{ a: 1, b, ...c }` → keys a, b and spread c).
+// Top-level keys of an object literal (`{ a: 1, b, ...c }` → keys a, b and
+// spread c). `values` maps a key to its value when that is a plain literal
+// (`'x'`, true, false, null or a number), as the literal's own source text.
 export function literalKeys(objectText) {
-  const body = objectText.slice(1, -1);
-  const entries = [];
-  let depth = 0;
-  let current = '';
-  for (let i = 0; i < body.length; i++) {
-    const ch = body[i];
-    if (ch === "'" || ch === '"' || ch === '`') {
-      let j = i + 1;
-      for (; j < body.length && body[j] !== ch; j++) if (body[j] === '\\') j++;
-      current += body.slice(i, j + 1);
-      i = j;
-      continue;
-    }
-    if ('{[('.includes(ch)) depth++;
-    if ('}])'.includes(ch)) depth--;
-    if (ch === ',' && depth === 0) { entries.push(current); current = ''; continue; }
-    current += ch;
-  }
-  entries.push(current);
+  const entries = splitTopLevel(objectText.slice(1, -1));
   const keys = [];
   const spreads = [];
+  const values = {};
   for (const raw of entries.map((e) => e.trim()).filter(Boolean)) {
     if (raw.startsWith('...')) { spreads.push(raw.slice(3).trim()); continue; }
-    const m = raw.match(/^([A-Za-z_$][\w$]*)\s*(?::|$)/);
-    if (m) keys.push(m[1]);
-    else throw new Error(`cannot read object key from "${raw.slice(0, 40)}"`);
+    const m = raw.match(/^([A-Za-z_$][\w$]*)\s*(?::\s*([^]*))?$/);
+    if (!m) throw new Error(`cannot read object key from "${raw.slice(0, 40)}"`);
+    keys.push(m[1]);
+    const value = m[2]?.trim();
+    if (value && /^(?:'[^']*'|true|false|null|-?\d[\d.]*)$/.test(value)) values[m[1]] = value;
   }
-  return { keys, spreads };
+  return { keys, spreads, values };
 }
 
 function functionBody(source, name) {
@@ -579,9 +568,41 @@ function skipNestedFunctions(body) {
 function topLevelReturns(block) {
   const flat = skipNestedFunctions(block.slice(1, -1));
   const results = [...flat.matchAll(/\breturn\b\s*([^;]*);?/g)].map((m) => m[1].trim());
-  // Falling off the end resolves to undefined unless the body ends in a return/throw.
-  if (!/\b(?:return|throw)\b[^;]*;?\s*$/.test(flat.trim())) results.push('');
+  // Falling off the end resolves to undefined.
+  if (completes(flat)) results.push('');
   return results;
+}
+
+// Start of the last top-level `{ … }` block in a statement list.
+function lastBlockStart(text) {
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+      continue;
+    }
+    if (ch === '{') { if (depth === 0) start = i; depth++; } else if (ch === '}') depth--;
+  }
+  return start;
+}
+
+// Whether a statement list can run off its end: it doesn't end in a return or
+// throw. A trailing `try { … } catch { … } finally { … }` can't when its try
+// and catch blocks can't (or its finally block itself returns). Any other
+// trailing block (if, loop) is assumed to complete.
+function completes(statements) {
+  const text = statements.trim();
+  if (!text.endsWith('}')) return !/\b(?:return|throw)\b[^;]*;?$/.test(text);
+  const open = lastBlockStart(text);
+  const head = text.slice(0, open).trimEnd();
+  const inner = text.slice(open + 1, -1);
+  if (/\bfinally$/.test(head)) return completes(inner) && completes(head.slice(0, -'finally'.length));
+  const caught = head.match(/\bcatch\s*(?:\([^)]*\))?$/);
+  if (caught) return completes(inner) || completes(head.slice(0, caught.index));
+  if (/\btry$/.test(head)) return completes(inner);
+  return true;
 }
 
 function classify(expr) {
@@ -596,8 +617,15 @@ function classify(expr) {
 }
 
 function handlerExpression(source, channel) {
-  const at = source.indexOf(`chromeHandle('${channel}'`);
-  if (at < 0) return null;
+  let at = source.indexOf(`chromeHandle('${channel}'`);
+  if (at < 0) {
+    // A handler table: `['<channel>', (…) => op(…)]` entries consumed by a loop
+    // that registers `chromeHandle(channel, …)` with one shared body.
+    const entry = source.indexOf(`['${channel}',`);
+    if (entry < 0) return null;
+    at = source.indexOf('chromeHandle(channel,', entry);
+    if (at < 0) return null;
+  }
   const arrow = source.indexOf('=>', at);
   const after = source.slice(arrow + 2);
   const lead = after.length - after.trimStart().length;
@@ -615,6 +643,7 @@ export function resultKinds(contract, member, sources = mainSources()) {
   const main = sources.find((s) => s.file === 'main.js').text;
   const handler = handlerExpression(main, member.channel);
   if (!handler) return null;
+  const scope = handler.block ?? '';
   const exprs = handler.block ? topLevelReturns(handler.block) : [handler.expr];
   const kinds = [];
   for (const expr of exprs) {
@@ -622,10 +651,94 @@ export function resultKinds(contract, member, sources = mainSources()) {
     const helper = call && sources.find((s) => new RegExp(`(?:^|\\n)(?:async\\s+)?function\\s+${call[1]}\\s*\\(`).test(s.text));
     if (helper) {
       const body = functionBody(helper.text.replace(/async\s+function/g, 'function'), call[1]);
-      kinds.push(...topLevelReturns(body).map(classify));
-    } else kinds.push(classify(expr));
+      kinds.push(...returnKinds(body));
+    } else kinds.push(classifyIn(scope, expr));
   }
   return kinds;
+}
+
+// Classify a function body's top-level returns. A returned local that was
+// bound to an object literal (`const response = { … }; … return response;`)
+// is read as that literal.
+function returnKinds(body) {
+  return topLevelReturns(body).map((expr) => classifyIn(body, expr));
+}
+
+function classifyIn(scope, expr) {
+  const kind = classify(expr);
+  if (kind.kind !== 'opaque' || !/^[A-Za-z_$][\w$]*$/.test(kind.text)) return kind;
+  const decl = scope.match(new RegExp(`\\bconst\\s+${kind.text}\\s*=\\s*\\{`));
+  return decl ? { kind: 'object', text: balanced(scope, decl.index + decl[0].length - 1) } : kind;
+}
+
+// Handlers that forward a module function's result unread. That function's
+// own top-level returns are classified the same way and must fit the member's
+// result type too.
+const FORWARDED_RESULTS = [
+  { member: 'fillLoginFromOnePassword', file: 'credential-fill-controller.js', functions: ['fill', 'failWithError'] },
+];
+
+// The body of `const <name> = (…) => { … }` (or `async (…) => { … }`).
+function arrowBody(source, name) {
+  const at = source.search(new RegExp(`\\bconst\\s+${name}\\s*=\\s*(?:async\\s*)?\\(`));
+  if (at < 0) throw new Error(`const ${name} = (…) => { … } not found`);
+  const arrow = source.indexOf('=>', at);
+  const open = source.indexOf('{', arrow);
+  if (source.slice(arrow + 2, open).trim()) throw new Error(`${name} is not a block-bodied arrow function`);
+  return balanced(source, open);
+}
+
+// Whether a literal's source text (`'x'`, true, null, 3) is allowed by a type expression.
+function literalFits(literal, expr, contract) {
+  return splitUnion(expr).some((alt) => {
+    if (alt === 'unknown' || alt === literal) return true;
+    const named = contract.types[alt];
+    if (named?.ts !== undefined) return literalFits(literal, named.ts, contract);
+    if (literal.startsWith("'")) return alt === 'string';
+    if (literal === 'true' || literal === 'false') return alt === 'boolean';
+    return literal !== 'null' && alt === 'number';
+  });
+}
+
+function checkKinds(where, kinds, returns, contract, sources) {
+  const problems = [];
+  const alts = splitUnion(returns);
+  const allows = (k) => alts.includes(k) || (k === 'undefined' && alts.includes('void'));
+  const structured = alts.map((a) => contract.types[a]?.fields ? a : null).filter(Boolean);
+  for (const k of kinds) {
+    if (k.kind === 'opaque') {
+      if (alts.length === 1 && (alts[0] === 'void' || alts[0] === 'undefined')) problems.push(`${where}: returns a value (${k.text.slice(0, 50)}) but the contract says ${returns}`);
+      continue;
+    }
+    if (k.kind === 'object') {
+      if (!structured.length) { problems.push(`${where}: returns an object literal but the contract says ${returns}`); continue; }
+      try {
+        const { keys, spreads, values } = literalKeys(balanced(k.text, 0));
+        // `...helper()` contributes the keys that helper returns; a spread of
+        // an opaque value (`...result`) can't be read, so it only waives the
+        // required-field check.
+        let opaqueSpread = false;
+        for (const spread of spreads) {
+          const call = spread.match(/^([A-Za-z_$][\w$]*)\(\)$/);
+          if (call) keys.push(...returnedKeys(sources, call[1]).keys);
+          else opaqueSpread = true;
+        }
+        // Literal values (`error: 'busy'`, `ok: false`) must also fit the field.
+        const fits = structured.some((t) => {
+          const f = contract.types[t].fields;
+          return keys.every((key) => key in f && (!(key in values) || literalFits(values[key], f[key].type, contract)))
+            && (opaqueSpread || Object.keys(f).every((key) => f[key].optional || keys.includes(key)));
+        });
+        const shown = keys.map((key) => (key in values ? `${key}: ${values[key]}` : key));
+        if (!fits) problems.push(`${where}: returned object { ${shown.join(', ')}${opaqueSpread ? ', …' : ''} } does not match ${structured.join(' | ')}`);
+      } catch (error) { problems.push(`${where}: ${error.message}`); }
+      continue;
+    }
+    if (k.kind === 'string' && alts.some((a) => a === `'${k.value}'` || a === 'string')) continue;
+    if (k.kind === 'number' && alts.includes('number')) continue;
+    if (!allows(k.kind)) problems.push(`${where}: can resolve to ${k.kind === 'string' ? `'${k.value}'` : k.kind}, which ${returns} does not allow`);
+  }
+  return problems;
 }
 
 export function checkInvokeResults(contract, rawSources = mainSources()) {
@@ -636,32 +749,551 @@ export function checkInvokeResults(contract, rawSources = mainSources()) {
     const where = `${m.name} result`;
     const kinds = resultKinds(contract, m, sources);
     if (!kinds) { problems.push(`${where}: handler for '${m.channel}' not found as chromeHandle('${m.channel}', …) in main.js`); continue; }
-    const alts = splitUnion(m.returns);
-    const allows = (k) => alts.includes(k) || (k === 'undefined' && alts.includes('void'));
-    const structured = alts.map((a) => contract.types[a]?.fields ? a : null).filter(Boolean);
-    for (const k of kinds) {
-      if (k.kind === 'opaque') {
-        if (alts.length === 1 && (alts[0] === 'void' || alts[0] === 'undefined')) problems.push(`${where}: returns a value (${k.text.slice(0, 50)}) but the contract says ${m.returns}`);
-        continue;
-      }
-      if (k.kind === 'object') {
-        if (!structured.length) { problems.push(`${where}: returns an object literal but the contract says ${m.returns}`); continue; }
-        try {
-          const { keys, spreads } = literalKeys(balanced(k.text, 0));
-          const fits = structured.some((t) => {
-            const f = contract.types[t].fields;
-            return !spreads.length && keys.every((key) => key in f) && Object.keys(f).every((key) => f[key].optional || keys.includes(key));
-          });
-          if (!fits) problems.push(`${where}: returned object { ${keys.join(', ')}${spreads.length ? ', …' : ''} } does not match ${structured.join(' | ')}`);
-        } catch (error) { problems.push(`${where}: ${error.message}`); }
-        continue;
-      }
-      if (k.kind === 'string' && alts.some((a) => a === `'${k.value}'` || a === 'string')) continue;
-      if (k.kind === 'number' && alts.includes('number')) continue;
-      if (!allows(k.kind)) problems.push(`${where}: can resolve to ${k.kind === 'string' ? `'${k.value}'` : k.kind}, which ${m.returns} does not allow`);
+    problems.push(...checkKinds(where, kinds, m.returns, contract, sources));
+  }
+  for (const { member, file, functions } of FORWARDED_RESULTS) {
+    const m = contract.members.find((x) => x.name === member);
+    const source = sources.find((s) => s.file === file);
+    if (!m || !source) { problems.push(`forwarded result ${member}: ${!m ? 'not a contract member' : `${file} not found`}`); continue; }
+    for (const fn of functions) {
+      try {
+        problems.push(...checkKinds(`${member} result (${file} ${fn})`, returnKinds(arrowBody(source.text, fn)), m.returns, contract, sources));
+      } catch (error) { problems.push(`${member} result (${file}): ${error.message}`); }
     }
   }
   return problems;
+}
+
+// ---- parameter shapes ----
+// A structured parameter is checked from both ends. In the renderers, every
+// object passed for it must fit the type: an object literal, a local bound to
+// one, a function that returns one, or a parameter of the enclosing function
+// (followed to that function's call sites). In main, every field its handler
+// reads from it must be in the type, following the value into a local
+// function or a module function listed in FORWARDED_PARAMS.
+const FORWARDED_PARAMS = [
+  { member: 'resizeGlance', file: 'glance-layout.js', fn: 'ratioForGlanceDivider', index: 1 },
+  { member: 'openMainMenu', file: 'platform-main-menu.js', fn: 'popupPoint', index: 0 },
+  { member: 'listHistory', file: 'history.js', fn: 'listHistory', index: 0 },
+  { member: 'resolveDisplayPicker', file: 'display-capture-picker.js', fn: 'resolve', index: 1 },
+];
+// Members whose argument main hands to an Electron method: the type must name
+// the same fields as Electron's own options interface. electron.d.ts ships
+// with node_modules, so this half runs wherever dependencies are installed
+// (the substrate CI job) and is skipped by the dependency-free parity step.
+const ELECTRON_PARAMS = [
+  { member: 'findInPage', param: 'options', type: 'FindInPageOptions' },
+];
+const ELECTRON_DTS = path.join(ROOT, 'node_modules', 'electron', 'electron.d.ts');
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function splitTopLevel(text, separator = ',') {
+  const entries = [];
+  let depth = 0;
+  let current = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      let j = i + 1;
+      for (; j < text.length && text[j] !== ch; j++) if (text[j] === '\\') j++;
+      current += text.slice(i, j + 1);
+      i = j;
+      continue;
+    }
+    if ('{[('.includes(ch)) depth++;
+    if ('}])'.includes(ch)) depth--;
+    if (ch === separator && depth === 0) { entries.push(current); current = ''; continue; }
+    current += ch;
+  }
+  entries.push(current);
+  return entries.map((e) => e.trim());
+}
+
+// From the `(` at `start`, the text up to its matching `)`.
+function parenthesized(text, start) {
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+      continue;
+    }
+    if (ch === '(') depth++;
+    else if (ch === ')' && --depth === 0) return text.slice(start, i + 1);
+  }
+  throw new Error(`unbalanced parentheses from offset ${start}`);
+}
+
+// `cond ? a : b` at the top level of an expression, or null.
+function ternary(expr) {
+  let depth = 0;
+  let question = -1;
+  for (let i = 0; i < expr.length; i++) {
+    const ch = expr[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      for (i++; i < expr.length && expr[i] !== ch; i++) if (expr[i] === '\\') i++;
+      continue;
+    }
+    if ('{[('.includes(ch)) depth++;
+    else if ('}])'.includes(ch)) depth--;
+    else if (depth === 0 && ch === '?' && expr[i + 1] !== '.' && expr[i + 1] !== '?' && expr[i - 1] !== '?') {
+      if (question < 0) question = i;
+    } else if (depth === 0 && ch === ':' && question >= 0) {
+      return { then: expr.slice(question + 1, i).trim(), else: expr.slice(i + 1).trim() };
+    }
+  }
+  return null;
+}
+
+// Every function in a source with a block body: its name (when it has one),
+// parameter list and body range.
+function functionScopes(text) {
+  const scopes = [];
+  const add = (name, params, open) => {
+    if (text[open] !== '{') return;
+    scopes.push({ name, params: splitTopLevel(params).filter(Boolean), start: open, end: open + balanced(text, open).length });
+  };
+  for (const m of text.matchAll(/\bfunction\s*([A-Za-z_$][\w$]*)?\s*\(/g)) {
+    const params = parenthesized(text, m.index + m[0].length - 1);
+    add(m[1] ?? null, params.slice(1, -1), text.indexOf('{', m.index + m[0].length - 1 + params.length));
+  }
+  for (const m of text.matchAll(/(?:\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?)?\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*=>\s*\{/g)) {
+    add(m[1] ?? null, m[2], m.index + m[0].length - 1);
+  }
+  for (const m of text.matchAll(/\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g)) add(null, m[1], m.index + m[0].length - 1);
+  return scopes;
+}
+
+// A parameter without its default (`{ a = 1 } = {}` → `{ a = 1 }`), and the default.
+function paramName(param) {
+  return splitTopLevel(param, '=')[0];
+}
+
+function paramDefault(param) {
+  const parts = splitTopLevel(param, '=');
+  return parts.length > 1 ? parts.slice(1).join('=') : null;
+}
+
+// The object shapes an argument expression can carry, as
+// [{ keys, open }] (open: an unreadable spread). null/undefined carry none.
+function argumentShapes(file, expr, at, depth = 0) {
+  const e = expr.trim().replace(/^await\s+/, '');
+  if (depth > 6) throw new Error(`"${e.slice(0, 40)}" is too indirect to read`);
+  if (e === '' || e === 'null' || e === 'undefined') return [];
+  if (e.startsWith('{') && balanced(e, 0).length === e.length) {
+    const { keys, spreads } = literalKeys(e);
+    let open = false;
+    for (const spread of spreads) {
+      // `...(cond ? { a } : {})` contributes its keys; anything else can't be read.
+      const branch = /^\(([^]*)\)$/.test(spread) && ternary(spread.slice(1, -1));
+      if (!branch) { open = true; continue; }
+      for (const side of [branch.then, branch.else]) {
+        for (const shape of argumentShapes(file, side, at, depth + 1)) { keys.push(...shape.keys); open ||= shape.open; }
+      }
+    }
+    return [{ keys, open }];
+  }
+  const branch = ternary(e);
+  if (branch) return [...argumentShapes(file, branch.then, at, depth + 1), ...argumentShapes(file, branch.else, at, depth + 1)];
+  const scopes = functionScopes(file.text);
+  const call = e.match(/^([A-Za-z_$][\w$]*)\((?:[^()]|\([^()]*\))*\)$/);
+  if (call) {
+    const fn = scopes.find((s) => s.name === call[1]);
+    if (!fn) throw new Error(`"${e.slice(0, 40)}" calls a function not defined in ${file.file}`);
+    return topLevelReturns(file.text.slice(fn.start, fn.end))
+      .flatMap((ret) => argumentShapes(file, ret, fn.start, depth + 1));
+  }
+  if (!/^[A-Za-z_$][\w$]*$/.test(e)) throw new Error(`"${e.slice(0, 40)}" can't be read`);
+  // The innermost scope that declares the name (or the file), then every
+  // assignment to it anywhere in that scope.
+  const enclosing = scopes.filter((s) => s.start < at && at < s.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
+  const name = escapeRegExp(e);
+  for (const scope of [...enclosing, { name: null, params: [], start: 0, end: file.text.length }]) {
+    const body = file.text.slice(scope.start, scope.end);
+    const index = scope.params.findIndex((p) => paramName(p) === e);
+    if (index < 0 && !new RegExp(`\\b(?:const|let|var)\\s+${name}\\b`).test(body) && scope.start > 0) continue;
+    const shapes = [];
+    for (const a of body.matchAll(new RegExp(`(?:\\b(?:const|let|var)\\s+|[^.\\w$])${name}\\s*=(?![=>])\\s*`, 'g'))) {
+      const from = scope.start + a.index + a[0].length;
+      const init = splitTopLevel(file.text.slice(from).split(/;|\n\s*\n/)[0])[0];
+      shapes.push(...argumentShapes(file, init, from, depth + 1));
+    }
+    if (index >= 0) {
+      const param = scope.params[index];
+      if (paramDefault(param) !== null) shapes.push(...argumentShapes(file, paramDefault(param), scope.start, depth + 1));
+      if (!scope.name) throw new Error(`"${e}" is a parameter of an anonymous function`);
+      for (const site of file.text.matchAll(new RegExp(`(?<![\\w$.])${escapeRegExp(scope.name)}\\(`, 'g'))) {
+        if (/\bfunction\s+$/.test(file.text.slice(Math.max(0, site.index - 20), site.index))) continue; // the definition
+        const args = splitTopLevel(parenthesized(file.text, site.index + scope.name.length).slice(1, -1));
+        if (index < args.length) shapes.push(...argumentShapes(file, args[index], site.index, depth + 1));
+      }
+    } else if (scope.start === 0 && !shapes.length && !new RegExp(`\\b(?:const|let|var)\\s+${name}\\b`).test(body)) break;
+    return shapes;
+  }
+  throw new Error(`"${e}" has no readable declaration in ${file.file}`);
+}
+
+function rendererSources() {
+  return jsFiles(RENDERER_DIR).map((f) => ({ file: path.basename(f), text: fs.readFileSync(f, 'utf8') }));
+}
+
+// browserAPI calls in the renderers, including through an alias passed as
+// `name: window.browserAPI`.
+function rendererCalls(sources, member) {
+  const aliases = new Set(['browserAPI']);
+  for (const { text } of sources) for (const [, alias] of text.matchAll(/\b([A-Za-z_$][\w$]*):\s*window\.browserAPI\b/g)) aliases.add(alias);
+  const calls = [];
+  const names = [...aliases].map(escapeRegExp).join('|');
+  for (const file of sources) {
+    for (const m of file.text.matchAll(new RegExp(`\\b(?:${names})\\??\\.${escapeRegExp(member)}\\??\\.?\\(`, 'g'))) {
+      calls.push({ file, at: m.index, args: splitTopLevel(parenthesized(file.text, m.index + m[0].length - 1).slice(1, -1)) });
+    }
+  }
+  return calls;
+}
+
+// Fields read from `name` in a body (`name.a`, `name?.a?.b`, `const { a } = name`),
+// following it into local functions it is passed to.
+function readsOf(name, body, sources, file, depth = 0) {
+  const reads = [];
+  const n = escapeRegExp(name);
+  for (const m of body.matchAll(new RegExp(`(?<![\\w$.])${n}((?:\\??\\.[A-Za-z_$][\\w$]*)+)`, 'g'))) {
+    reads.push(m[1].split(/\??\./).filter(Boolean));
+  }
+  for (const m of body.matchAll(new RegExp(`\\b(?:const|let)\\s*\\{([^}]*)\\}\\s*=\\s*${n}\\b`, 'g'))) {
+    for (const key of splitTopLevel(m[1])) if (key) reads.push([key.split(/[:=]/)[0].trim()]);
+  }
+  if (depth > 1) return reads;
+  // Passed on to a local function: follow into its matching parameter.
+  for (const m of body.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\(/g)) {
+    const args = splitTopLevel(parenthesized(body, m.index + m[1].length).slice(1, -1));
+    const index = args.findIndex((a) => new RegExp(`^${n}(?:\\s*\\?\\?.*)?$`).test(a));
+    if (index < 0) continue;
+    const scope = functionScopes(file.text).find((s) => s.name === m[1]);
+    if (!scope || index >= scope.params.length) continue;
+    reads.push(...paramReads(scope.params[index], file.text.slice(scope.start, scope.end), sources, file, depth + 1));
+  }
+  return reads;
+}
+
+function paramReads(param, body, sources, file, depth) {
+  const p = paramName(param);
+  if (p.startsWith('{')) return splitTopLevel(p.slice(1, -1)).filter(Boolean).map((key) => [key.split(/[:=]/)[0].trim()]);
+  return readsOf(p, body, sources, file, depth);
+}
+
+function mainHandlers(source, channel) {
+  const sites = [];
+  for (const m of source.matchAll(new RegExp(`\\b(?:chromeHandle|chromeOn|ipcMain\\.on|ipcMain\\.handle)\\('${escapeRegExp(channel)}',\\s*(?:async\\s*)?\\(`, 'g'))) {
+    const open = m.index + m[0].length - 1;
+    const params = parenthesized(source, open);
+    let i = source.indexOf('=>', open + params.length) + 2;
+    while (/\s/.test(source[i])) i++;
+    // A block body, or an expression running to the registration's closing paren.
+    const rest = source.slice(i);
+    const body = source[i] === '{' ? balanced(source, i) : rest.slice(0, parenthesized(`(${rest}`, 0).length - 2);
+    sites.push({ params: splitTopLevel(params.slice(1, -1)), body });
+  }
+  return sites;
+}
+
+// A read path checked against a type: each step must be a field, descending
+// into nested structured types.
+function checkRead(path, typeName, contract) {
+  let type = typeName;
+  for (const field of path) {
+    const fields = contract.types[type]?.fields;
+    if (!fields) return null;
+    if (!(field in fields)) return `${field} is not a field of ${type}`;
+    type = structuredType(fields[field].type.replace(/\|\s*undefined/g, ''), contract);
+    if (!type) return null;
+  }
+  return null;
+}
+
+function electronInterfaceFields(name) {
+  if (!fs.existsSync(ELECTRON_DTS)) return null;
+  const dts = fs.readFileSync(ELECTRON_DTS, 'utf8');
+  const at = dts.indexOf(`interface ${name} {`);
+  if (at < 0) throw new Error(`interface ${name} not found in electron.d.ts`);
+  const body = stripComments(balanced(dts, dts.indexOf('{', at)));
+  return [...body.matchAll(/^\s*([A-Za-z_$][\w$]*)\??\s*:/gm)].map((m) => m[1]);
+}
+
+export function checkParamShapes(contract, { main = mainSources(), renderers: rawRenderers = rendererSources() } = {}) {
+  const mains = main.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const renderers = rawRenderers.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const mainFile = mains.find((s) => s.file === 'main.js');
+  const problems = [];
+  for (const m of contract.members) {
+    (m.params ?? []).forEach((p, i) => {
+      const typeName = structuredType(p.type.replace(/\|\s*undefined/g, ''), contract);
+      if (!typeName) return;
+      const fields = contract.types[typeName].fields;
+      const required = Object.keys(fields).filter((k) => !fields[k].optional);
+      const where = `${m.name}(${p.name})`;
+      // Renderer side: what is sent.
+      for (const call of rendererCalls(renderers, m.name)) {
+        if (i >= call.args.length) continue;
+        try {
+          for (const { keys, open } of argumentShapes(call.file, call.args[i], call.at)) {
+            for (const k of keys) if (!(k in fields)) problems.push(`${where} in ${call.file.file}: sends "${k}", which is not a field of ${typeName}`);
+            if (!open) for (const k of required) if (!keys.includes(k)) problems.push(`${where} in ${call.file.file}: does not send required field ${typeName}.${k}`);
+          }
+        } catch (error) { problems.push(`${where} in ${call.file.file}: ${error.message}`); }
+      }
+      // Main side: what is read.
+      if (m.ipcArgs) return;
+      const reads = [];
+      for (const site of mainHandlers(mainFile.text, m.channel)) {
+        const param = site.params[i + 1];
+        if (param) reads.push(...paramReads(param, site.body, mains, mainFile, 0));
+      }
+      for (const fwd of FORWARDED_PARAMS.filter((f) => f.member === m.name)) {
+        const file = mains.find((s) => s.file === fwd.file);
+        const scope = file && functionScopes(file.text).find((s) => s.name === fwd.fn);
+        if (!scope) { problems.push(`${where}: ${fwd.fn}() not found in ${fwd.file}`); continue; }
+        reads.push(...paramReads(scope.params[fwd.index], file.text.slice(scope.start, scope.end), mains, file, 0));
+      }
+      for (const read of reads) {
+        const problem = checkRead(read, typeName, contract);
+        if (problem) problems.push(`${where}: main reads ${p.name}.${read.join('.')}, but ${problem}`);
+      }
+      for (const e of ELECTRON_PARAMS.filter((x) => x.member === m.name && x.param === p.name)) {
+        try {
+          const electron = electronInterfaceFields(e.type);
+          if (electron && JSON.stringify([...electron].sort()) !== JSON.stringify(Object.keys(fields).sort())) {
+            problems.push(`${where}: ${typeName} (${Object.keys(fields).join(', ')}) does not match Electron's ${e.type} (${electron.join(', ')})`);
+          }
+        } catch (error) { problems.push(`${where}: ${error.message}`); }
+      }
+    });
+  }
+  return [...new Set(problems)];
+}
+
+// ---- workspace action codes ----
+// Every error / reason / action literal a workspace action can produce must be
+// in the contract's unions. Literals are read from the workspace modules and
+// from the workspace functions and controller adapter in main.js.
+const WORKSPACE_FILES = ['workspace-controller.js', 'workspaces.js', 'workspaces-model.js'];
+const WORKSPACE_FUNCTIONS = ['saveCurrentWindowAsWorkspace', 'removeNamedWorkspace', 'checkpointWorkspaceSession', 'flushWorkspaceSession', 'workspaceProtection', 'stageWorkspace'];
+
+export function checkWorkspaceCodes(contract, rawSources = mainSources()) {
+  const sources = rawSources.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const main = sources.find((s) => s.file === 'main.js').text;
+  const texts = sources.filter((s) => WORKSPACE_FILES.includes(s.file)).map((s) => [s.file, s.text]);
+  for (const name of WORKSPACE_FUNCTIONS) texts.push([`main.js ${name}()`, functionBody(main, name)]);
+  const adapterAt = main.indexOf('createWorkspaceController({');
+  if (adapterAt >= 0) texts.push(['main.js controller adapter', balanced(main, main.indexOf('{', adapterAt))]);
+  for (const channel of ['chrome:workspaces-save-as', 'chrome:workspaces-open', 'chrome:workspaces-create-blank', 'chrome:workspaces-rename', 'chrome:workspaces-remove']) {
+    const h = handlerExpression(main, channel);
+    if (h?.block) texts.push([`main.js ${channel} handler`, h.block]);
+  }
+  const unions = {
+    error: splitUnion(contract.types.WorkspaceErrorCode.ts).map((v) => v.slice(1, -1)),
+    reason: splitUnion(contract.types.WorkspaceProtectionReason.ts).map((v) => v.slice(1, -1)),
+    action: splitUnion(contract.types.WorkspaceAction.ts).map((v) => v.slice(1, -1)),
+  };
+  const problems = [];
+  for (const [label, text] of texts) {
+    for (const [, key, value] of text.matchAll(/\b(error|reason|action):\s*'([^']*)'/g)) {
+      if (key === 'reason' && !label.includes('workspaceProtection')) continue;
+      if (!unions[key].includes(value)) problems.push(`${label}: ${key} '${value}' is not in the contract's ${key === 'error' ? 'WorkspaceErrorCode' : key === 'reason' ? 'WorkspaceProtectionReason' : 'WorkspaceAction'}`);
+    }
+  }
+  return problems;
+}
+
+export function workspaceControllerFixtures() {
+  const { createWorkspaceController } = requireMain('./workspace-controller');
+  const cases = [];
+  const runtime = { id: 'r1', profileId: 'p' };
+  const other = { id: 'r2', resident: false };
+  const record = { id: 'w1', name: 'Research' };
+  const base = {
+    randomId: () => 'x', fingerprint: () => 'fp', canCreate: () => true,
+    get: () => record, readError: () => null, owner: () => null,
+    protection: () => ({ blocked: false, tabCount: 0 }),
+    checkpoint: () => ({ ok: true }),
+    stage: () => ({ commit: () => ({ ok: true }), rollback() {}, finish() {} }),
+    validateCreate: () => ({ ok: true }),
+    create: () => ({ ok: true, workspace: record }),
+    focus: (target) => ({ ok: true, action: 'focus', windowId: String(target.id) }),
+    openElsewhere: () => ({ ok: true, action: 'focus', windowId: 'r9' }),
+  };
+  const variants = {
+    swap: {},
+    noop: { owner: () => runtime },
+    'focus elsewhere': { owner: () => other },
+    'not found': { get: () => null },
+    'read error': { get: () => null, readError: () => 'future-format' },
+    'protected pages': { protection: () => ({ blocked: true, reason: 'active-page' }) },
+    'unsaved scratch': { protection: () => ({ blocked: false, tabCount: 3, privateCount: 1 }) },
+    'checkpoint failed': { checkpoint: () => ({ ok: false, error: 'storage-failed' }) },
+    'commit failed': { stage: () => ({ commit: () => ({ ok: false, error: 'storage-failed' }), rollback() {}, finish() {} }) },
+    'stage threw': { stage: () => { throw new Error('boom'); } },
+    'not patron': { canCreate: () => false },
+    'invalid name': { validateCreate: () => ({ ok: false, error: 'invalid-name' }) },
+    'create failed': { create: () => ({ ok: false, error: 'limit' }) },
+  };
+  for (const [label, override] of Object.entries(variants)) {
+    for (const newWindow of [false, true]) {
+      const controller = createWorkspaceController({ ...base, ...override });
+      cases.push({ label: `controller open (${label}${newWindow ? ', new window' : ''})`, type: 'WorkspaceActionResult', value: controller.open(runtime, 'w1', { newWindow }) });
+      cases.push({ label: `controller create (${label}${newWindow ? ', new window' : ''})`, type: 'WorkspaceActionResult', value: controller.create(runtime, 'Research', { newWindow }) });
+    }
+  }
+  // Reentrancy: an open started while another is in flight is refused as busy.
+  let nested = null;
+  const reentrant = createWorkspaceController({ ...base, get: () => { nested ??= reentrant.open(runtime, 'w1'); return record; } });
+  reentrant.open(runtime, 'w1');
+  cases.push({ label: 'controller open (busy)', type: 'WorkspaceActionResult', value: nested });
+  // The confirmed decision token from an unsaved-scratch result lets the switch through.
+  const scratch = createWorkspaceController({ ...base, protection: () => ({ blocked: false, tabCount: 2, privateCount: 0 }) });
+  const guard = scratch.open(runtime, 'w1');
+  cases.push({ label: 'controller open (confirmed decision)', type: 'WorkspaceActionResult', value: scratch.open(runtime, 'w1', { decision: guard.decision }) });
+  return cases;
+}
+
+// A canonical PNG data URL with the header the icon validators check
+// (signature, IHDR, square size); no pixel data is needed for that.
+function iconFixture(size) {
+  const header = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(header);
+  header.writeUInt32BE(13, 8);
+  header.write('IHDR', 12, 'ascii');
+  header.writeUInt32BE(size, 16);
+  header.writeUInt32BE(size, 20);
+  return `data:image/png;base64,${header.toString('base64')}`;
+}
+
+// history.js and bookmarks.js keep their data in a JsonStore, which needs
+// Electron. Load fresh copies of both against an in-memory store, run them,
+// and leave the module cache as it was.
+function withMemoryStore(run) {
+  const storePath = requireMain.resolve('./store');
+  const modules = ['./history', './bookmarks'].map((m) => requireMain.resolve(m));
+  const cache = requireMain.cache;
+  const saved = [storePath, ...modules].map((key) => [key, cache[key]]);
+  class MemoryStore {
+    constructor(_name, defaults) { this.data = structuredClone(defaults); }
+    update(mutate) { mutate(this.data); }
+  }
+  const stub = new Module(storePath);
+  Object.assign(stub, { filename: storePath, loaded: true, exports: { JsonStore: MemoryStore } });
+  cache[storePath] = stub;
+  for (const key of modules) delete cache[key];
+  try {
+    return run(requireMain('./history'), requireMain('./bookmarks'));
+  } finally {
+    for (const [key, module] of saved) {
+      if (module) cache[key] = module;
+      else delete cache[key];
+    }
+  }
+}
+
+export function listFixtures() {
+  const { ICON_SIZE, LEGACY_ICON_SIZE } = requireMain('./tabicons-model');
+  const icon = iconFixture(ICON_SIZE);
+  const cases = [];
+  const add = (label, type, value) => cases.push({ label, type, value });
+  withMemoryStore((history, bookmarks) => {
+    history.addVisit('https://example.com/a', 'Example');
+    history.addVisit('https://example.com/a', 'Example, retitled');
+    history.addVisit('https://example.org/', '');
+    history.addVisit('blanc://newtab/', 'Not recorded');
+    history.updateTitle('https://example.org/', 'Org');
+    history.cacheSiteIcon('https://example.com/a', icon);
+    history.cacheSiteIcon('https://example.org/', 'data:image/png;base64,invalid');
+    add('listHistory()', 'HistoryEntry[]', history.listHistory({}));
+    add('listHistory(query)', 'HistoryEntry[]', history.listHistory({ query: 'example', limit: 1 }));
+
+    bookmarks.toggleBookmark('https://example.com/a', 'Example', icon);
+    bookmarks.toggleBookmark('https://example.net/', '', 'https://example.net/favicon.ico');
+    bookmarks.saveFavorite('https://example.org/', 'Org', iconFixture(LEGACY_ICON_SIZE), 'Reading');
+    bookmarks.importBookmarks([
+      { url: 'https://imported.example/', title: 'Imported', addedAt: 1700000000000, folder: 'Work' },
+      { url: 'https://imported.example/two', folder: '   ' },
+      { url: 42 },
+    ]);
+    const first = bookmarks.listBookmarks()[0];
+    bookmarks.setBookmarkFolder(first.id, 'Later');
+    bookmarks.renameFolder('Work', 'Projects');
+    bookmarks.removeFolder('Reading');
+    bookmarks.updateFavicon('https://example.net/', icon);
+    bookmarks.mergeFromSync({
+      items: [
+        { id: 'remote-1', url: 'https://remote.example/', title: 'Remote', favicon: icon, addedAt: 1700000000000, updatedAt: 1800000000000, folder: 'Shared' },
+        { url: 'https://remote.example/legacy', addedAt: 1600000000000 },
+        { title: 'no url' },
+      ],
+      tombstones: [{ url: 'https://example.net/', deletedAt: 1 }],
+    });
+    add('listBookmarks()', 'FavoriteItem[]', bookmarks.listBookmarks());
+    bookmarks.toggleBookmark('https://example.com/a');
+    add('listBookmarks() after removal', 'FavoriteItem[]', bookmarks.listBookmarks());
+  });
+
+  const tabsync = requireMain('./tabsync-model');
+  const tabicons = requireMain('./tabicons-model');
+  const now = Date.now();
+  const rawDevices = {
+    own: { name: 'This Mac', platform: 'darwin', updatedAt: now, tabs: [{ url: 'https://own.example/' }] },
+    laptop: {
+      name: 'Laptop', platform: 'win32', updatedAt: now - 1000,
+      tabs: [
+        { url: 'https://example.com/a', title: 'Example', groupId: 'g1', pinned: true },
+        { url: 'https://example.com/b' },
+        { url: 'blanc://settings/' },
+        null,
+      ],
+      groups: [{ id: 'g1', name: 'research' }, { id: 2, name: 'bad' }],
+    },
+    phone: { name: '', updatedAt: now - 2000, tabs: [{ url: 'http://example.org/', title: 7 }] },
+    empty: { name: 'Empty', platform: 'linux', updatedAt: now, tabs: [] },
+    stale: { name: 'Old', platform: 'linux', updatedAt: now - tabsync.PRUNE_MS - 1, tabs: [{ url: 'https://old.example/' }] },
+    gone: { retracted: true, updatedAt: now },
+  };
+  const devices = Object.fromEntries(Object.entries(rawDevices).map(([id, raw]) => [id, tabsync.sanitizeEntry(raw)]).filter(([, e]) => e));
+  const iconEntries = Object.fromEntries(Object.entries({
+    laptop: { updatedAt: now, icons: [{ url: 'https://example.com/a', data: icon }, { url: 'https://example.com/b', data: 'data:image/png;base64,AAAA' }] },
+  }).map(([id, raw]) => [id, tabicons.sanitizeEntry(raw)]));
+  const listed = tabsync.displayDevices(devices, 'own', { now });
+  add('remote devices', 'RemoteDevice[]', tabicons.attachIcons(listed, tabicons.displayDevices(iconEntries, 'own', { now })));
+  add('remote devices without icons', 'RemoteDevice[]', tabicons.attachIcons(listed, {}));
+  add('remote devices (none)', 'RemoteDevice[]', tabicons.attachIcons(tabsync.displayDevices({}, 'own', { now }), {}));
+
+  const { resolveBlockAdsCommand } = requireMain('./adblock-exceptions');
+  for (const hostname of ['example.com', 'other.example', null]) {
+    for (const enabled of [true, false]) {
+      for (const exceptions of [['example.com'], [], undefined]) {
+        add(`resolveBlockAdsCommand(${hostname}, ${enabled})`, 'BlockAdsResult', resolveBlockAdsCommand({ hostname, exceptions, enabled }));
+      }
+    }
+  }
+
+  // The handler builds { engine, label, suggestions } from Settings; the
+  // engine ids are pinned to the settings schema in checkSearchEngines().
+  const { parseOpenSearchSuggestions } = requireMain('./search-suggestions');
+  for (const { id, label } of JSON.parse(fs.readFileSync(SETTINGS_SCHEMA, 'utf8')).searchEngines) {
+    for (const payload of [['q', ['one', ' two  words ', 'One', 3, '']], ['q'], null]) {
+      add(`search suggestions (${id})`, 'SearchSuggestions', { engine: id, label, suggestions: parseOpenSearchSuggestions(payload) });
+    }
+  }
+  return cases;
+}
+
+// SearchEngineId must list exactly the engines Settings offers.
+export function checkSearchEngines(contract, schema = JSON.parse(fs.readFileSync(SETTINGS_SCHEMA, 'utf8'))) {
+  const ids = schema.searchEngines.map((e) => `'${e.id}'`).sort();
+  const pinned = splitUnion(contract.types.SearchEngineId?.ts ?? '').sort();
+  return JSON.stringify(ids) === JSON.stringify(pinned) ? []
+    : [`SearchEngineId: ${pinned.join(' | ') || 'missing'} does not match settings-schema/schema.json searchEngines (${ids.join(' | ')})`];
 }
 
 export function payloadFixtures() {
@@ -723,11 +1355,12 @@ export function payloadFixtures() {
   for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 600, height: 900 }, { x: 0, y: 0, width: 0, height: 0 }, null]) {
     for (const ratio of [0.5, 0.7, 2, undefined]) add(`calculateGlanceLayout(${JSON.stringify(bounds)}, ${ratio})`, 'GlanceLayout | null', calculateGlanceLayout(bounds, ratio));
   }
+  cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }
 
 export function checkPayloads(contract) {
-  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract)];
+  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract), ...checkWorkspaceCodes(contract), ...checkSearchEngines(contract), ...checkParamShapes(contract)];
   for (const { label, type, value } of payloadFixtures()) {
     problems.push(...validateValue(value, type, contract, label));
   }

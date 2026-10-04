@@ -53,8 +53,10 @@ it confirms:
   signature.
 - **Renderers:** every `browserAPI.<name>` reference in `src/renderer/*.js` is a
   contract member.
-- **Payloads:** `tabs:updated` and `getAllTabs` are pinned field by field (see
-  below).
+- **Payloads:** event payloads and invoke results are pinned field by field
+  (see below).
+- **Parameters:** object parameters are checked from both ends: what the
+  renderers send and what main reads (see below).
 - **Generated files** are current.
 
 `test/unit/browser-api-contract.test.js` changes the preload and the contract in
@@ -64,8 +66,15 @@ missing member, unknown type) and requires each to be reported. It also edits
 `main.js` payload literals (a new tab field, a dropped payload field, a changed
 capture row, an unknown spread, extra or missing event fields, an unreadable
 send argument, a void handler returning a value, a boolean handler that can
-fall through, a drifting returned object) and narrows a contract enum, and
-requires those to be reported too.
+fall through, a drifting returned object, a new workspace error code or
+protection reason, a drifting handler-table result, a try block that can fall
+through, a returned literal outside its union, a drifting returned local, a
+drifting or falling-through 1Password fill result) and narrows contract enums
+and list types, and requires those to be reported too. Renderer and main edits
+to object parameters (an extra or missing field sent, a field sent through a
+helper's call sites, an unreadable argument, an undeclared field read directly,
+nested or in a forwarded module, a type that drifts from Electron's options)
+must be reported as well.
 
 ## Pinned payloads
 
@@ -118,15 +127,95 @@ the end), a boolean, `null`, number or string literal, an object literal, or an
 opaque expression. Then:
 
 - a `void` result must never return a value;
-- a result whose type excludes `undefined` must not be able to fall through;
-- an object literal must match a structured type in the result, key for key;
-- an opaque expression (an identifier or call) is accepted unless the type is
-  `void`, because its value can't be read statically.
+- a result whose type excludes `undefined` must not be able to fall through. A
+  trailing `try … catch … finally` falls through only if its try or catch
+  block can;
+- an object literal must match a structured type in the result, key for key,
+  and a plain literal value in it (`error: 'busy'`, `ok: false`) must be in
+  that field's type;
+- a returned local bound to an object literal (`const response = { … }`) is
+  read as that literal;
+- any other opaque expression (an identifier or call) is accepted unless the
+  type is `void`, because its value can't be read statically.
+
+Handlers registered through a table (`['<channel>', (…) => op(…)]` consumed by
+a loop that calls `chromeHandle(channel, …)`) are resolved to the loop's shared
+body. In a returned object, `...helper()` contributes the keys that helper
+returns; spreading an opaque value (`...result`) can't be read, so it only
+waives the required-field check.
+
+When a handler forwards a pure module's result unread, the module function is
+listed in `FORWARDED_RESULTS` and its own returns are checked the same way
+(`fillLoginFromOnePassword`, through `credential-fill-controller.js`).
 
 `"resultCheck": "none"` skips the check for a member whose handler forwards an
 Electron method's result (`stop`, `stopFindInPage`); the reason is in its doc.
-Results registered through the workspace handler table are not reachable by
-this check and stay `unknown` for now.
+
+### Workspace action results
+
+All eight Named Workspace actions resolve to `WorkspaceActionResult`. Three more
+checks prove it:
+
+- **Controller fixtures:** `workspace-controller.js` is Electron-free, so its
+  `open` and `create` run against a stub adapter on 54 fixtures covering every
+  branch (swap, noop, focus elsewhere, not found, read errors, protected pages,
+  unsaved scratch and its confirmed decision, checkpoint and commit failures,
+  a thrown stage, not patron, invalid names, create failures and reentrant
+  `busy`). Each result is validated strictly.
+- **Code literals:** every `error:`, `action:` and protection `reason:` literal
+  in the workspace modules, the workspace functions in `main.js` and the
+  controller adapter must be in `WorkspaceErrorCode`, `WorkspaceAction` or
+  `WorkspaceProtectionReason`.
+- **Handler results:** the success objects the handlers build
+  (`{ ok: true, ...workspacesProjection() }`) are checked key by key.
+
+### Lists and commands
+
+The rest are proven by executing the code that builds them:
+
+- **History and Favorites:** `history.js` and `bookmarks.js` are loaded against
+  an in-memory stand-in for `JsonStore` (the real one needs Electron), driven
+  through visits, retitles, cached icons, toggles, saves, imports, folder
+  edits and a sync merge, and their lists validated. The module cache is left
+  as it was. Favorites saved by older versions may lack `favicon`, `updatedAt`
+  or `folder`, so those fields are optional.
+- **Remote tabs:** raw device entries go through the same sanitizers and
+  projections as sync (`tabsync-model.js`, `tabicons-model.js`). This proves
+  `listRemoteTabs` and the `onRemoteTabsUpdated` event (`"payloadCheck":
+  "fixtures"`).
+- **Block ads:** `resolveBlockAdsCommand()` runs on every hostname, state and
+  allow-list combination.
+- **Search suggestions:** `parseOpenSearchSuggestions()` runs per engine, and
+  `SearchEngineId` must list exactly the engines in
+  `settings-schema/schema.json`.
+
+## Parameter shapes
+
+A parameter whose type is a structured type (`ShieldAnchor`,
+`FindInPageOptions`, `DisplayPickerChoice`, …) is checked from both ends:
+
+- **Renderers:** every object passed for it in `src/renderer` (through
+  `browserAPI` or an alias passed as `api: window.browserAPI`) must fit the
+  type: no unknown fields and every required one present. The argument may be
+  an object literal (including `...(cond ? { a } : {})`), a ternary, a local
+  bound to one, a call to a function in the same file that returns one, or a
+  parameter of the enclosing named function. A parameter is followed to that
+  function's call sites and default. Anything else fails, so a new call site
+  has to be readable.
+- **Main:** every field its handler reads (`anchor.center`, `rect?.shieldAnchor?.trigger`,
+  `const { query } = opts`) must be in the type, nested types included. The
+  value is followed into local functions it is passed to and into the module
+  functions listed in `FORWARDED_PARAMS` (`popupPoint`,
+  `ratioForGlanceDivider`, `listHistory`, the screen-share picker's `resolve`).
+  The display-capture brokers' own picker listener is not checked because the
+  app disables it (`handlePickerIpc: false`).
+- **Electron:** `FindInPageOptions` goes to `webContents.findInPage` unchanged,
+  so it must name the same fields as Electron's interface in `electron.d.ts`.
+  That file comes with `node_modules`, so this part runs in the substrate CI job
+  and is skipped by the dependency-free parity step.
+
+Main reads are found by name, so a value copied into another variable or
+object (`popup.anchor = rect.shieldAnchor`) is not followed further.
 
 ## Changing the bridge
 
@@ -143,19 +232,21 @@ in `contract.json`. So does a new return value from one of the helper modules.
 ## Coverage today
 
 The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
-events), and every member's IPC behaviour is checked. Payload shapes are mostly
-pinned:
+events), and every member's IPC behaviour is checked. Every parameter, result
+and event payload is typed:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
-| Parameters | 67 of 73 | 6: option bags, anchors, the folder and picker choice |
-| `invoke` results | 38 of 59 | 21: navigation and find (forwarded wake and Electron results), history, Favorites and remote tabs lists, the seven workspace actions, search suggestions, the two ad-blocking commands, 1Password fill |
-| Event payloads | 15 of 16 | `onRemoteTabsUpdated` (sync device shapes not yet traced) |
+| Parameters | 73 of 73 | none |
+| `invoke` results | 59 of 59 | none |
+| Event payloads | 16 of 16 | none |
+
+Navigation, find and search results are typed but only partly proven: they
+forward `wakeTab()` and Electron results, which the check can't read, so only
+their literal returns are checked.
 
 Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
-`OverlayShowPayload` because it is deliberately mode-specific. The workspace
-action results are the next step: they are unions of several failure shapes
-and successes that carry the workspace list.
+`OverlayShowPayload` because it is deliberately mode-specific.
 
 ## Not in scope
 

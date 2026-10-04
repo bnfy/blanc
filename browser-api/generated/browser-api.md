@@ -14,11 +14,11 @@
 | `forgetClosedEntry` | tabs | invoke | `tabs:forget-closed-entry` | `(entryId: ClosedEntryId) => Promise<boolean>` | all |
 | `clearClosedEntries` | tabs | invoke | `tabs:clear-closed` | `() => Promise<boolean>` | all |
 | `switchTab` | tabs | invoke | `tabs:switch` | `(id: TabId) => Promise<void>` | all |
-| `navigate` | navigation | invoke | `tabs:navigate` | `(id: TabId, url: string) => Promise<unknown>` | all |
-| `search` | navigation | invoke | `tabs:search` | `(id: TabId, query: string, engine?: string) => Promise<unknown>` | all |
-| `goBack` | navigation | invoke | `tabs:back` | `(id: TabId) => Promise<unknown>` | all |
-| `goForward` | navigation | invoke | `tabs:forward` | `(id: TabId) => Promise<unknown>` | all |
-| `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<unknown>` | all |
+| `navigate` | navigation | invoke | `tabs:navigate` | `(id: TabId, url: string) => Promise<boolean \| undefined>` | all |
+| `search` | navigation | invoke | `tabs:search` | `(id: TabId, query: string, engine?: string) => Promise<boolean \| string \| undefined>` | all |
+| `goBack` | navigation | invoke | `tabs:back` | `(id: TabId) => Promise<boolean \| undefined>` | all |
+| `goForward` | navigation | invoke | `tabs:forward` | `(id: TabId) => Promise<boolean \| undefined>` | all |
+| `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
 | `reorderTab` | tabs | invoke | `tabs:reorder` | `(id: TabId, toIndex: number) => Promise<void>` | all |
 | `reorderTabWithinBucket` | tabs | invoke | `tabs:reorder-within-bucket` | `(id: TabId, beforeId: TabId \| null) => Promise<boolean>` | all |
@@ -33,18 +33,18 @@
 | `focusGroup` | groups | invoke | `tabs:focus-group` | `(groupId: GroupId) => Promise<void>` | all |
 | `closeGroup` | groups | invoke | `tabs:close-group` | `(groupId: GroupId) => Promise<void>` | all |
 | `toggleBookmark` | favorites | invoke | `tabs:toggle-bookmark` | `() => Promise<void>` | all |
-| `saveFavorite` | favorites | invoke | `tabs:save-favorite` | `(folder: unknown) => Promise<void>` | all |
+| `saveFavorite` | favorites | invoke | `tabs:save-favorite` | `(folder: string \| null) => Promise<void>` | all |
 | `toggleTabPinned` | tabs | invoke | `tabs:toggle-pinned` | `(id: TabId) => Promise<boolean>` | all |
 | `toggleTabMuted` | tabs | invoke | `tabs:toggle-muted` | `(id: TabId) => Promise<boolean>` | all |
 | `duplicateTab` | tabs | invoke | `tabs:duplicate` | `(id: TabId) => Promise<TabId \| undefined>` | all |
 | `openPage` | pages | invoke | `tabs:open-page` | `(name: string, section?: string) => Promise<void>` | all |
 | `getAllTabs` | tabs | invoke | `tabs:get-all` | `() => Promise<TabsSnapshot>` | all |
-| `findInPage` | find | invoke | `tabs:find` | `(id: TabId, query: string, options?: unknown) => Promise<unknown>` | all |
+| `findInPage` | find | invoke | `tabs:find` | `(id: TabId, query: string, options?: FindInPageOptions) => Promise<number \| boolean \| undefined>` | all |
 | `stopFindInPage` | find | invoke | `tabs:find-stop` | `(id: TabId) => Promise<void>` | all |
 | `respondPermission` | permissions | send | `permissions:respond` | `(id: PermissionPromptId, allow: boolean)` | all |
 | `onPermissionPrompt` | permissions | event | `permissions:prompt` | `(payload: PermissionPromptPayload) => void` | all |
 | `reportChromeLayout` | layout | send | `chrome:layout` | `(height: number)` | all |
-| `reportIslandRect` | layout | send | `chrome:island-rect` | `(rect: Rect)` | all |
+| `reportIslandRect` | layout | send | `chrome:island-rect` | `(rect: IslandRectReport)` | all |
 | `onShieldAnchor` | layout | event | `overlay:shield-anchor` | `(payload: ShieldAnchorUpdate) => void` | all |
 | `onIslandProximity` | layout | event | `chrome:island-proximity` | `(payload: number) => void` | all |
 | `setTabLayout` | layout | invoke | `chrome:set-tab-layout` | `(layout: TabLayout) => Promise<TabLayout>` | all |
@@ -59,39 +59,39 @@
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
 | `openIslandTyping` | island | send | `chrome:open-island-typing` | `(char: string)` | all |
 | `openFindBar` | island | send | `chrome:open-find` | `()` | all |
-| `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: Anchor)` | all |
+| `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: ShieldAnchor)` | all |
 | `selectBlockingProvider` | blocking | invoke | `chrome:blocking-provider` | `(provider: string, restart?: boolean) => Promise<boolean>` | all |
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
-| `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: Anchor)` | all |
+| `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
-| `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: unknown)` | all |
+| `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: DisplayPickerChoice)` | all |
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
 | `closeOverlay` | overlay | send | `overlay:close` | `(reason?: string)` | all |
 | `setWorkspaceSwitcherOpen` | workspaces | send | `chrome:workspace-switcher` | `(open: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
-| `listHistory` | history | invoke | `chrome:history-list` | `(opts?: unknown) => Promise<unknown>` | all |
-| `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<unknown>` | all |
-| `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<unknown>` | all |
+| `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
+| `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
+| `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
-| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<unknown>` | all |
-| `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<unknown>` | all |
-| `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<unknown>` | all |
-| `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<unknown>` | all |
-| `removeWorkspace` | workspaces | invoke | `chrome:workspaces-remove` | `(id: WorkspaceId) => Promise<unknown>` | all |
-| `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<unknown>` | all |
-| `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<unknown>` | all |
-| `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<unknown>` | all |
-| `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<unknown>` | all |
-| `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: unknown) => void` | all |
+| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<WorkspaceActionResult>` | all |
+| `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
+| `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
+| `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<WorkspaceActionResult>` | all |
+| `removeWorkspace` | workspaces | invoke | `chrome:workspaces-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
+| `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
+| `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
+| `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<WorkspaceActionResult>` | all |
+| `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<SearchSuggestions>` | all |
+| `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
-| `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<unknown>` | all |
-| `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<unknown>` | all |
+| `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
+| `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
-| `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<unknown>` | darwin |
+| `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<FillLoginSuccess \| FillLoginFailure \| false>` | darwin |
 | `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<ThemePreference>` | all |
 | `onThemeAppearance` | appearance | event | `chrome:theme-appearance` | `(payload: ThemeAppearance) => void` | all |
 | `minimizeWindow` | window | send | `window:minimize` | `()` | all |
@@ -195,9 +195,12 @@ Options for a new tab. Only `private` is read by main today.
 
 ### `OpenWorkspaceOptions`
 
-`force` skips the scratch guard after a confirmed "discard and switch".
+Options for opening or creating a workspace.
 
-`{ force?: boolean }`
+| Field | Type | Notes |
+| --- | --- | --- |
+| `decision?` | `string` | The token from an unsaved-scratch result, confirming "discard and switch". |
+| `newWindow?` | `boolean` | Open in a new window instead of this one. |
 
 ### `Point`
 
@@ -218,12 +221,6 @@ A rectangle in window coordinates.
 | `y` | `number` |  |
 | `width` | `number` |  |
 | `height` | `number` |  |
-
-### `Anchor`
-
-Popover anchor geometry sent by the strip. Shape not yet pinned.
-
-`unknown`
 
 ### `PermissionPromptPayload`
 
@@ -609,3 +606,224 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 | --- | --- | --- |
 | `activeMatchOrdinal` | `number` |  |
 | `matches` | `number` |  |
+
+### `WorkspaceErrorCode`
+
+Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
+
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'not-patron' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+
+### `WorkspaceProtectionReason`
+
+Why a window may not switch workspaces right now, from workspaceProtection() in main.js.
+
+`'permission-or-transition' \| 'active-page' \| 'resident-capacity'`
+
+### `WorkspaceAction`
+
+What a successful open or create did: swapped this window, found it already here, or focused another window.
+
+`'swap' \| 'noop' \| 'focus'`
+
+### `WorkspaceActionResult`
+
+Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `error?` | `WorkspaceErrorCode` |  |
+| `cause?` | `WorkspaceErrorCode` | Why a saved workspace could not be opened (with saved-not-opened). |
+| `reason?` | `WorkspaceProtectionReason` | With protected-pages. |
+| `tabCount?` | `number` | Unsaved tabs (with unsaved-scratch). |
+| `privateCount?` | `number` | Private tabs among them (with unsaved-scratch). |
+| `decision?` | `string` | Token to send back as a confirmed "discard and switch" (with unsaved-scratch). |
+| `action?` | `WorkspaceAction` |  |
+| `windowId?` | `string` | The window that now shows the workspace (with action focus). |
+| `workspaceId?` | `WorkspaceId` | The new workspace, after a create or save, including a save that could not be opened. |
+| `patronActive?` | `boolean` |  |
+| `status?` | `WorkspaceSaveStatus` |  |
+| `deleted?` | `DeletedWorkspace[]` |  |
+| `items?` | `WorkspaceListItem[]` |  |
+
+### `SearchEngineId`
+
+A search engine id. Must match the searchEngines ids in settings-schema/schema.json.
+
+`'duckduckgo' \| 'google' \| 'bing' \| 'brave'`
+
+### `HistoryEntry`
+
+A history entry, from listHistory() in history.js: the stored visit plus the site's cached favicon.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `url` | `string` |  |
+| `title` | `string` | The page title, or the URL when the page had none. |
+| `visitedAt` | `number` | Epoch milliseconds of the latest visit. |
+| `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
+
+### `FavoriteItem`
+
+A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `url` | `string` |  |
+| `title` | `string` | The page title, or the URL when the page had none. |
+| `favicon?` | `string \| null` | A sanitized PNG data URL, or null. Items saved by older versions may lack it. |
+| `addedAt` | `number` | Epoch milliseconds. |
+| `updatedAt?` | `number` | Epoch milliseconds of the last synced edit. Items saved by older versions may lack it. |
+| `folder?` | `string \| null` | The folder name, or null when ungrouped. Items saved by older versions may lack it. |
+
+### `RemoteTab`
+
+Another device's open tab, sanitized by tabsync-model.js, with its synced icon attached by tabicons-model.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `url` | `string` | Always http(s). |
+| `title` | `string` |  |
+| `groupId` | `string \| null` |  |
+| `pinned` | `boolean` |  |
+| `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
+
+### `RemoteGroup`
+
+A tab group on another device.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `name` | `string` |  |
+
+### `RemoteDevice`
+
+Another device's open tabs, from displayDevices() in tabsync-model.js. Newest first; devices without tabs or older than the prune window are left out.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `deviceId` | `string` |  |
+| `name` | `string` |  |
+| `platform` | `string` |  |
+| `updatedAt` | `number` | Epoch milliseconds. |
+| `tabs` | `RemoteTab[]` |  |
+| `groups` | `RemoteGroup[]` |  |
+
+### `SearchSuggestions`
+
+Search suggestions for the address bar, labelled with the engine that produced them.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `engine` | `SearchEngineId` |  |
+| `label` | `string` | The engine's display name. |
+| `suggestions` | `string[]` | Empty when suggestions are off, the tab is private, or the query is ineligible. |
+
+### `ProviderBlockAdsResult`
+
+uBlock Origin handled the block-ads command; its state arrives with the next tabs:updated.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `provider` | `'ublock-origin'` |  |
+
+### `BlockAdsResult`
+
+What Blanc Blocker did for the block-ads command, from resolveBlockAdsCommand() in adblock-exceptions.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `action` | `'unexcept' \| 'toggle'` | unexcept: the active site left the allow-list and blocking is on. toggle: blocking was switched. |
+| `hostname` | `string \| null` | The site removed from the allow-list, or null for a toggle. |
+| `enabled` | `boolean` | Whether blocking is on afterwards. |
+| `exceptions` | `string[]` | The full allow-list afterwards. |
+
+### `AllowAdsError`
+
+Why ads could not be allowed on the active site. Settings opens on its blocking section.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `error` | `'blocking-not-ready' \| 'blocking-site-change-failed'` |  |
+
+### `FillLoginFailure`
+
+A 1Password fill that did not fill, from credential-fill-controller.js. The user has already been told why.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `false` |  |
+| `reason` | `string` | A flow reason such as 'cancelled' or 'no-match', or a broker/SDK error code. |
+
+### `FillLoginSuccess`
+
+A 1Password fill that filled at least one field. No credential data is returned.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `true` |  |
+| `filledUser` | `boolean` |  |
+| `filledPass` | `boolean` |  |
+
+### `IslandRectReport`
+
+The resting pill's rectangle as the strip reports it, plus the open shield popover's anchor.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `x` | `number` |  |
+| `y` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
+| `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
+
+### `ShieldAnchor`
+
+Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` | The control's right edge. |
+| `center` | `number` | The control's horizontal centre. |
+| `bottom` | `number` | The control's bottom edge. |
+| `trigger` | `ShieldTrigger` |  |
+
+### `CaptureAnchor`
+
+Where the capture popover opens.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` | The capture chip's right edge. |
+
+### `FindInPageOptions`
+
+Options for findInPage, passed to Electron's webContents.findInPage unchanged. Must name the same fields as Electron's FindInPageOptions.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `forward?` | `boolean` | Search forward (default true). |
+| `findNext?` | `boolean` | Start a new find session (default false). |
+| `matchCase?` | `boolean` | Case-sensitive (default false). |
+
+### `HistoryListOptions`
+
+Filters for listHistory, read by listHistory() in history.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `query?` | `string` | Case-insensitive substring of the URL or title. |
+| `limit?` | `number` | At most this many entries (default 500). |
+
+### `DisplayPickerChoice`
+
+The overlay's answer to the screen-share picker, read by display-capture-picker.js. Main ignores it unless the sender owns that live request.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requestId` | `string` |  |
+| `sourceId?` | `string \| null` | The chosen source. Ignored on Linux, where the system portal chooses. |
+| `computerAudioApproved?` | `boolean` | Only honored when the page asked for audio. |
+| `cancelled?` | `boolean` | true cancels the request. The overlay cancels through closeOverlay instead. |

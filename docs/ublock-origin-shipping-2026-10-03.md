@@ -619,3 +619,30 @@ match the signed DMG candidate. The [record](evidence/ublock-v1.27.0-candidates-
 explicitly retains the auto-install limitation: the owner still needs the
 ordinary Restart Now interaction and affected-machine acceptance. No personal
 installation or public updater feed was changed.
+
+## Startup deadline raised to 45 seconds — October 4
+
+The provider's two startup waits (the extension background, then uBO's own
+ready signal) had a 15-second deadline each. On a first start in a fresh profile, uBO compiles
+every bundled filter list before it reports ready. Passing hosted Intel runs
+took 6.7–10.3 seconds to bring a new named profile to ready
+(`namedProfileReadyMs` 6678, 7716, 9898 and 10291). On October 4 the same
+Intel job failed twice on PR #529, whose application code was unchanged.
+Run 37226458161 reported `ubo-startup-timeout` for the new named profile. The
+earlier run 37225878278 timed out waiting for that profile's replayed first
+navigation. A native Intel Mac with that margin would fail closed on a slow
+first start.
+
+At the owner's direction, both startup waits now use a 45-second
+`STARTUP_DEADLINE_MS`. A startup that misses it still fails closed with the
+same error codes and recovery. Navigation is held during startup as before, so
+a genuinely stalled start now reaches its recovery notice after up to 45 seconds
+per stage instead of 15. The 2-second request-decision and 10-second operation
+deadlines are unchanged.
+
+The CI fixture waits longer than the provider's own deadlines for its two cold
+starts, so a stall is reported by the provider. It gives the replayed first
+navigation 15 seconds and, on failure, records fixture hits, provider status
+and tab URLs. Warm restarts and retries keep their 20-second waits. Rosetta
+remains excluded, and this change still needs the uBO platform acceptance and
+CodeQL review that CLAUDE.md requires for uBO runtime changes.

@@ -238,6 +238,21 @@ Text version:
 
 **Cutover.** Unproven. Keeping the bundle ID is necessary for macOS continuity but proves nothing else. A dedicated installed-upgrade spike on macOS, Windows and Linux must show Electron-to-Chromium replacement through the shipping updater, user-data migration, signing and publisher continuity, rollback, and handover of updater ownership. Linux package repositories would be a new distribution strategy, not a drop-in for AppImage. Electron Blanc keeps receiving security updates until cutover.
 
+### Phase 0 progress (October 4, 2026)
+
+**Bridge contract: steps 1 and 2 are done on Electron.** `browser-api/contract.json` describes all 100 `window.browserAPI` members. Every parameter, result and event payload is typed, and `npm run browser-api:check` guards the desktop against drift in CI. It is landed through PRs #519, #522, #527, #528, #529, #535 and #531.
+
+- **Preload:** the preload is executed in a sandbox for each platform. This checks member names, IPC kind and channel, argument shaping, platform gating and trusted documents.
+- **Payloads:** event payloads and invoke results are checked field by field against the code that builds them:
+  - pure helper modules run on fixtures;
+  - history, Favorites and remote-tab lists run against an in-memory store;
+  - inline literals and every send site are read statically.
+- **Parameters:** object parameters are checked from both ends, against what the renderers send and what main reads.
+- **Generated output:** TypeScript declarations and a reference table are generated from the contract.
+- **Limits:** navigation, find and search results forward Electron and wake results that can't be read statically, so only their literal returns are checked. Overlay `purpose` stays `unknown` because it is deliberately mode-specific.
+
+Steps 3 to 5 (the Mojo interface, the native controller and shared contract tests against both builds) involve fork work. They wait for Decision 1. The other Phase 0 items (demand data, test vectors and the Widevine questions) are not covered by this work.
+
 ## Open questions and caveats
 
 - [ ] Decision 1: does the owner authorize the time-boxed spike and proof?
