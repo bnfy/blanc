@@ -35,7 +35,6 @@ const HOST_ASSETS = new Map([
     ['/', 'index.html'],
     ['/renderer.js', 'renderer.js'],
     ['/vertical-tabs.js', 'vertical-tabs.js'],
-    ['/shield-horizon.png', 'shield-horizon.png'],
   ])],
   ['overlay', new Map([
     ['/', 'overlay.html'],

@@ -184,22 +184,29 @@ prompt, the 1Password capsule and the screen-share picker. Neutral: the
 Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
 
-**Owner decision, October 2, 2026:** The shield's site-protection dialog and
-its focused blocker chooser use Sunrise warmth, the original small gold mark,
-and compact Inter headings. This is a scoped exception to the Island rule
-above: the Island pill retains its styling, and its shield button follows the
-Horizon Shield rule below. The approved chooser names **EasyList + EasyPrivacy**
-beneath Blanc Blocker and uses an explicit confirmation before saving a
-provider for the next restart.
+**Owner-approved blocker dialog, October 2–3, 2026:** the site-protection
+popover and blocker chooser use neutral paper/graphite styling, the original
+small gold Sunrise mark, and compact Inter headings. The chooser names
+**EasyList + EasyPrivacy** beneath Blanc Blocker; selecting a different provider
+shows an explicit Restart Blanc action. Preserve the short attachment to the
+shield's existing hover circle. This does not change the Island icon direction
+below.
 
-**Horizon Shield, owner-approved October 3, 2026:** the Island's blocker button
-uses the layered gold Horizon Shield as a scoped exception to the neutral icon
-palette. Use `src/renderer/shield-horizon.png` at 16×16 CSS pixels within the
-existing 24px button; the Island's shared zoom still applies. Keep the count as
-a separate badge and desaturate the artwork when blocking is off. The source is
-`assets/horizon-shield.png`. This product mark does not replace Sunrise or warm
-the surrounding Island. It is approved for the next desktop release; public
-screenshots and marketing must continue to follow the release boundary.
+**Blocker artwork, final owner direction October 3, 2026:** the Island keeps
+its original monochrome Blanc Blocker shield: the shield outline crossed by a
+single diagonal, restored from before `03621de6`. Reuse its native SVG and CSS
+in `src/renderer/index.html` and `styles.css`: 16×16 glyph, 1.4-unit strokes,
+24px hover circle, separate count badge, quiet gray and reduced opacity when
+off. The three-layer Horizon outline and textured toolbar icon are retired.
+The website's native Island hero must reuse this original icon and styling.
+
+The large website Privacy illustration retains the copper/bronze Horizon
+artwork in `assets/horizon-shield.png`, matched to the original Sunrise sun
+with muted copper faces, brown seams and restrained champagne highlights.
+Its 3D rim uses the same palette. The product mark does not replace Sunrise
+or warm the Island. Preserve original Sunrise artwork and historical public
+captures. Ship the app change before deploying website PR #491; screenshots
+and marketing must continue to follow the release boundary.
 
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
