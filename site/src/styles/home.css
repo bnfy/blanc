@@ -95,7 +95,7 @@
 }
 .home-revamp .lead {
   max-width: 570px;
-  color: var(--dim);
+  color: var(--ink);
   margin-top: 20px;
   font-size: 16px;
   line-height: 1.7;
@@ -261,7 +261,7 @@
 .home-revamp .caption {
   font-size: 13px;
   margin-top: 14px;
-  color: var(--dim);
+  color: var(--ink);
 }
 .home-revamp .asymmetry {
   display: grid;
@@ -280,7 +280,7 @@
 }
 .home-revamp .side-story p {
   font-size: 13px;
-  color: var(--dim);
+  color: var(--ink);
   margin-top: 13px;
 }
 .home-revamp .side-story .mini-shot {
@@ -302,7 +302,7 @@
 }
 .home-revamp .material-limit {
   font-size: 12px;
-  color: var(--dim);
+  color: var(--ink);
   line-height: 1.7;
   margin-top: 24px;
   border-top: 1px solid var(--line);
@@ -345,7 +345,7 @@
 }
 .home-revamp .tools-list p {
   font-size: 13px;
-  color: var(--dim);
+  color: var(--ink);
   margin-top: 12px;
 }
 .home-revamp .tools-list .material-limit {
@@ -582,7 +582,7 @@
 .home-revamp .detail-sequence p {
   margin-top: 12px;
   font-size: 13px;
-  color: var(--dim);
+  color: var(--ink);
 }
 .home-revamp .detail-sequence img {
   margin-top: 20px;
@@ -613,7 +613,7 @@
 }
 .home-revamp .route-list p {
   font-size: 12px;
-  color: var(--dim);
+  color: var(--ink);
   margin-top: 6px;
 }
 @media (max-width: 1000px) {
@@ -1215,7 +1215,7 @@
 }
 .home-revamp .session-bridge p {
   font-size: 14px;
-  color: var(--dim);
+  color: var(--ink);
   line-height: 1.8;
 }
 .home-revamp .session-bridge .material-limit {
@@ -1412,7 +1412,7 @@
 }
 .home-revamp .glance-footer p {
   font-size: 12px;
-  color: var(--dim);
+  color: var(--ink);
   max-width: 360px;
 }
 .home-revamp .glance-actions {
@@ -1454,7 +1454,7 @@
 }
 .home-revamp .start-discovery p {
   font-size: 12px;
-  color: var(--dim);
+  color: var(--ink);
   margin: 0;
   max-width: 310px;
 }
@@ -1855,7 +1855,7 @@
 }
 .home-revamp .hero-offer {
   font: 400 12px/1.6 var(--font-ui);
-  color: var(--dim);
+  color: var(--ink);
   margin: 15px 0 0;
 }
 .home-revamp .material-limit a {
@@ -2065,13 +2065,13 @@
 }
 .home-revamp .blocking-option p {
   margin-top: 7px;
-  color: var(--dim);
+  color: var(--ink);
   font-size: 13px;
   line-height: 1.75;
   max-width: 410px;
 }
 .home-revamp .blocking-provider-note {
-  color: #706554;
+  color: var(--ink);
   font-size: 11px;
   line-height: 1.7;
   max-width: 410px;
@@ -2087,7 +2087,7 @@
 }
 .home-revamp .privacy-disclosure h3 { font-size: 26px; }
 .home-revamp .privacy-disclosure p {
-  color: var(--dim);
+  color: var(--ink);
   font-size: 12px;
   line-height: 1.8;
   margin-top: 10px;
@@ -2132,7 +2132,7 @@
 .home-revamp .gesture-study p:not(.material-limit) {
   font-size: 14px;
   line-height: 1.8;
-  color: var(--dim);
+  color: var(--ink);
   max-width: 420px;
   margin-top: 18px;
 }
@@ -2370,7 +2370,7 @@
 
 .home-revamp .capture-note {
   font: 400 11px/1.6 var(--font-ui);
-  color: var(--dim);
+  color: var(--ink);
   text-align: center;
   margin: 10px 0 0;
 }
