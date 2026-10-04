@@ -712,6 +712,9 @@ Still pending, and needing the owner's machine with public v1.27.0: Start Page
 recaptures with a non-zero weekly blocked count, and with Patron active so the
 upgrade pill is hidden.
 
+Resolved October 4 (see *Capture review* below): the owner judged the existing
+captures still accurate, so no recapture is scheduled.
+
 ## Phones and small fixes (October 4)
 
 Round 2, milestone A+B of the homepage audit
@@ -833,3 +836,18 @@ Without JavaScript both demos stay visible and the switch stays hidden; a
 link to `/#gestures` opens that demo. Phones get an 800px copy of the Nyhavn
 Glance photo (171 KB to 111 KB); a WebP copy of the Kusama JPEG came out
 larger than the original, so it is unchanged.
+
+## Capture review (October 4)
+
+The owner reviewed every product capture on the live site, which come from
+public v1.15.0 and v1.21.0 (`docs/website-captures-v1.15.json`,
+`docs/website-captures-v1.21.json`, plus the v1.25 trust and wallpaper
+manifests), and found none out of date against public v1.27.0. The captures stay
+version-labelled and paired with their own release evidence; nothing was
+regenerated or relabelled.
+
+This closes the pending Start Page recapture. That item asked for cosmetic
+improvements (a non-zero weekly blocked count, and Patron active so the upgrade
+pill is hidden), not a correction. Retake a capture only when the interface it
+shows changes in a public release, and record the new capture in its own
+release-bound manifest.
