@@ -7,40 +7,40 @@
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
 | `platform` | environment | value | — | `Platform` | all |
-| `createTab` | tabs | invoke | `tabs:create` | `(url?: string, opts?: CreateTabOptions) => Promise<unknown>` | all |
-| `closeTab` | tabs | invoke | `tabs:close` | `(id: TabId) => Promise<unknown>` | all |
-| `reopenClosedTab` | tabs | invoke | `tabs:reopen-closed` | `() => Promise<unknown>` | all |
-| `reopenClosedEntry` | tabs | invoke | `tabs:reopen-entry` | `(entryId: ClosedEntryId) => Promise<unknown>` | all |
-| `forgetClosedEntry` | tabs | invoke | `tabs:forget-closed-entry` | `(entryId: ClosedEntryId) => Promise<unknown>` | all |
-| `clearClosedEntries` | tabs | invoke | `tabs:clear-closed` | `() => Promise<unknown>` | all |
-| `switchTab` | tabs | invoke | `tabs:switch` | `(id: TabId) => Promise<unknown>` | all |
+| `createTab` | tabs | invoke | `tabs:create` | `(url?: string, opts?: CreateTabOptions) => Promise<TabId>` | all |
+| `closeTab` | tabs | invoke | `tabs:close` | `(id: TabId) => Promise<void>` | all |
+| `reopenClosedTab` | tabs | invoke | `tabs:reopen-closed` | `() => Promise<void>` | all |
+| `reopenClosedEntry` | tabs | invoke | `tabs:reopen-entry` | `(entryId: ClosedEntryId) => Promise<void>` | all |
+| `forgetClosedEntry` | tabs | invoke | `tabs:forget-closed-entry` | `(entryId: ClosedEntryId) => Promise<boolean>` | all |
+| `clearClosedEntries` | tabs | invoke | `tabs:clear-closed` | `() => Promise<boolean>` | all |
+| `switchTab` | tabs | invoke | `tabs:switch` | `(id: TabId) => Promise<void>` | all |
 | `navigate` | navigation | invoke | `tabs:navigate` | `(id: TabId, url: string) => Promise<unknown>` | all |
 | `search` | navigation | invoke | `tabs:search` | `(id: TabId, query: string, engine?: string) => Promise<unknown>` | all |
 | `goBack` | navigation | invoke | `tabs:back` | `(id: TabId) => Promise<unknown>` | all |
 | `goForward` | navigation | invoke | `tabs:forward` | `(id: TabId) => Promise<unknown>` | all |
 | `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<unknown>` | all |
-| `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<unknown>` | all |
-| `reorderTab` | tabs | invoke | `tabs:reorder` | `(id: TabId, toIndex: number) => Promise<unknown>` | all |
-| `reorderTabWithinBucket` | tabs | invoke | `tabs:reorder-within-bucket` | `(id: TabId, beforeId: TabId \| null) => Promise<unknown>` | all |
-| `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<unknown>` | all |
-| `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<unknown>` | all |
-| `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `() => Promise<unknown>` | all |
-| `closeGlance` | glance | invoke | `tabs:close-glance` | `() => Promise<unknown>` | all |
-| `promoteGlance` | glance | invoke | `tabs:promote-glance` | `() => Promise<unknown>` | all |
-| `setTabGroup` | groups | invoke | `tabs:set-group` | `(id: TabId, groupId: GroupId \| null) => Promise<unknown>` | all |
-| `groupTabByName` | groups | invoke | `tabs:group-by-name` | `(id: TabId, name: string) => Promise<unknown>` | all |
-| `toggleGroupCollapsed` | groups | invoke | `tabs:toggle-group-collapsed` | `(groupId: GroupId) => Promise<unknown>` | all |
-| `focusGroup` | groups | invoke | `tabs:focus-group` | `(groupId: GroupId) => Promise<unknown>` | all |
-| `closeGroup` | groups | invoke | `tabs:close-group` | `(groupId: GroupId) => Promise<unknown>` | all |
-| `toggleBookmark` | favorites | invoke | `tabs:toggle-bookmark` | `() => Promise<unknown>` | all |
-| `saveFavorite` | favorites | invoke | `tabs:save-favorite` | `(folder: unknown) => Promise<unknown>` | all |
-| `toggleTabPinned` | tabs | invoke | `tabs:toggle-pinned` | `(id: TabId) => Promise<unknown>` | all |
-| `toggleTabMuted` | tabs | invoke | `tabs:toggle-muted` | `(id: TabId) => Promise<unknown>` | all |
-| `duplicateTab` | tabs | invoke | `tabs:duplicate` | `(id: TabId) => Promise<unknown>` | all |
-| `openPage` | pages | invoke | `tabs:open-page` | `(name: string, section?: string) => Promise<unknown>` | all |
+| `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
+| `reorderTab` | tabs | invoke | `tabs:reorder` | `(id: TabId, toIndex: number) => Promise<void>` | all |
+| `reorderTabWithinBucket` | tabs | invoke | `tabs:reorder-within-bucket` | `(id: TabId, beforeId: TabId \| null) => Promise<boolean>` | all |
+| `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
+| `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
+| `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `() => Promise<boolean>` | all |
+| `closeGlance` | glance | invoke | `tabs:close-glance` | `() => Promise<boolean>` | all |
+| `promoteGlance` | glance | invoke | `tabs:promote-glance` | `() => Promise<boolean>` | all |
+| `setTabGroup` | groups | invoke | `tabs:set-group` | `(id: TabId, groupId: GroupId \| null) => Promise<void>` | all |
+| `groupTabByName` | groups | invoke | `tabs:group-by-name` | `(id: TabId, name: string) => Promise<void>` | all |
+| `toggleGroupCollapsed` | groups | invoke | `tabs:toggle-group-collapsed` | `(groupId: GroupId) => Promise<void>` | all |
+| `focusGroup` | groups | invoke | `tabs:focus-group` | `(groupId: GroupId) => Promise<void>` | all |
+| `closeGroup` | groups | invoke | `tabs:close-group` | `(groupId: GroupId) => Promise<void>` | all |
+| `toggleBookmark` | favorites | invoke | `tabs:toggle-bookmark` | `() => Promise<void>` | all |
+| `saveFavorite` | favorites | invoke | `tabs:save-favorite` | `(folder: unknown) => Promise<void>` | all |
+| `toggleTabPinned` | tabs | invoke | `tabs:toggle-pinned` | `(id: TabId) => Promise<boolean>` | all |
+| `toggleTabMuted` | tabs | invoke | `tabs:toggle-muted` | `(id: TabId) => Promise<boolean>` | all |
+| `duplicateTab` | tabs | invoke | `tabs:duplicate` | `(id: TabId) => Promise<TabId \| undefined>` | all |
+| `openPage` | pages | invoke | `tabs:open-page` | `(name: string, section?: string) => Promise<void>` | all |
 | `getAllTabs` | tabs | invoke | `tabs:get-all` | `() => Promise<TabsSnapshot>` | all |
 | `findInPage` | find | invoke | `tabs:find` | `(id: TabId, query: string, options?: unknown) => Promise<unknown>` | all |
-| `stopFindInPage` | find | invoke | `tabs:find-stop` | `(id: TabId) => Promise<unknown>` | all |
+| `stopFindInPage` | find | invoke | `tabs:find-stop` | `(id: TabId) => Promise<void>` | all |
 | `respondPermission` | permissions | send | `permissions:respond` | `(id: PermissionPromptId, allow: boolean)` | all |
 | `onPermissionPrompt` | permissions | event | `permissions:prompt` | `(payload: PermissionPromptPayload) => void` | all |
 | `reportChromeLayout` | layout | send | `chrome:layout` | `(height: number)` | all |
@@ -49,10 +49,10 @@
 | `onIslandProximity` | layout | event | `chrome:island-proximity` | `(payload: number) => void` | all |
 | `setTabLayout` | layout | invoke | `chrome:set-tab-layout` | `(layout: TabLayout) => Promise<TabLayout>` | all |
 | `previewVerticalTabsWidth` | layout | send | `chrome:preview-vertical-tabs-width` | `(width: number)` | all |
-| `setVerticalTabsWidth` | layout | invoke | `chrome:set-vertical-tabs-width` | `(width: number) => Promise<unknown>` | all |
+| `setVerticalTabsWidth` | layout | invoke | `chrome:set-vertical-tabs-width` | `(width: number) => Promise<number>` | all |
 | `onVerticalTabsWidth` | layout | event | `chrome:vertical-tabs-width` | `(payload: VerticalTabsMetrics) => void` | all |
 | `resizeGlance` | glance | send | `chrome:resize-glance` | `(point: Point)` | all |
-| `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<unknown>` | all |
+| `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<number \| null>` | all |
 | `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
@@ -61,13 +61,13 @@
 | `openFindBar` | island | send | `chrome:open-find` | `()` | all |
 | `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: Anchor)` | all |
 | `selectBlockingProvider` | blocking | invoke | `chrome:blocking-provider` | `(provider: string, restart?: boolean) => Promise<boolean>` | all |
-| `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<unknown>` | all |
+| `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
 | `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: Anchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
 | `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: unknown)` | all |
-| `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<unknown>` | all |
+| `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
 | `closeOverlay` | overlay | send | `overlay:close` | `(reason?: string)` | all |
 | `setWorkspaceSwitcherOpen` | workspaces | send | `chrome:workspace-switcher` | `(open: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
@@ -87,12 +87,12 @@
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<unknown>` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: unknown) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
-| `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<unknown>` | all |
+| `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<unknown>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<unknown>` | all |
-| `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<unknown>` | all |
+| `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<unknown>` | darwin |
-| `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<unknown>` | all |
+| `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<ThemePreference>` | all |
 | `onThemeAppearance` | appearance | event | `chrome:theme-appearance` | `(payload: ThemeAppearance) => void` | all |
 | `minimizeWindow` | window | send | `window:minimize` | `()` | all |
 | `maximizeWindow` | window | send | `window:maximize` | `()` | all |

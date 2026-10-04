@@ -384,40 +384,40 @@ export interface BlancBrowserAPI {
    */
   readonly platform: Platform;
   /**
-   * Open a new tab. A plain new tab is always ungrouped.
+   * Open a new tab. A plain new tab is always ungrouped. Resolves to the new tab id.
    * IPC: invoke `tabs:create`.
    */
-  createTab(url?: string, opts?: CreateTabOptions): Promise<unknown>;
+  createTab(url?: string, opts?: CreateTabOptions): Promise<TabId>;
   /**
    * Close a tab and record a closed entry.
    * IPC: invoke `tabs:close`.
    */
-  closeTab(id: TabId): Promise<unknown>;
+  closeTab(id: TabId): Promise<void>;
   /**
    * Reopen the most recent closed entry in this window.
    * IPC: invoke `tabs:reopen-closed`.
    */
-  reopenClosedTab(): Promise<unknown>;
+  reopenClosedTab(): Promise<void>;
   /**
    * Reopen a specific closed entry.
    * IPC: invoke `tabs:reopen-entry`.
    */
-  reopenClosedEntry(entryId: ClosedEntryId): Promise<unknown>;
+  reopenClosedEntry(entryId: ClosedEntryId): Promise<void>;
   /**
    * Forget one closed entry and destroy any parked view.
    * IPC: invoke `tabs:forget-closed-entry`.
    */
-  forgetClosedEntry(entryId: ClosedEntryId): Promise<unknown>;
+  forgetClosedEntry(entryId: ClosedEntryId): Promise<boolean>;
   /**
    * Forget every closed entry in this window.
    * IPC: invoke `tabs:clear-closed`.
    */
-  clearClosedEntries(): Promise<unknown>;
+  clearClosedEntries(): Promise<boolean>;
   /**
    * Activate a tab.
    * IPC: invoke `tabs:switch`.
    */
-  switchTab(id: TabId): Promise<unknown>;
+  switchTab(id: TabId): Promise<void>;
   /**
    * Navigate a tab to typed input; main normalizes it.
    * IPC: invoke `tabs:navigate`.
@@ -445,100 +445,100 @@ export interface BlancBrowserAPI {
    */
   reload(id: TabId): Promise<unknown>;
   /**
-   * Stop loading a tab.
+   * Stop loading a tab. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:stop`.
    */
-  stop(id: TabId): Promise<unknown>;
+  stop(id: TabId): Promise<void>;
   /**
    * Move a tab to an index in the tab order.
    * IPC: invoke `tabs:reorder`.
    */
-  reorderTab(id: TabId, toIndex: number): Promise<unknown>;
+  reorderTab(id: TabId, toIndex: number): Promise<void>;
   /**
    * Move a tab before another within its pinned/group bucket.
    * IPC: invoke `tabs:reorder-within-bucket`.
    */
-  reorderTabWithinBucket(id: TabId, beforeId: TabId | null): Promise<unknown>;
+  reorderTabWithinBucket(id: TabId, beforeId: TabId | null): Promise<boolean>;
   /**
    * Activate a tab from the vertical tab rail.
    * IPC: invoke `tabs:activate-from-rail`.
    */
-  activateTabFromRail(id: TabId): Promise<unknown>;
+  activateTabFromRail(id: TabId): Promise<boolean>;
   /**
    * Show a tab as the Glance side view.
    * IPC: invoke `tabs:set-glance`.
    */
-  setGlanceTab(id: TabId): Promise<unknown>;
+  setGlanceTab(id: TabId): Promise<boolean>;
   /**
    * Open the Glance tab picker.
    * IPC: invoke `tabs:open-glance-picker`.
    */
-  openGlancePicker(): Promise<unknown>;
+  openGlancePicker(): Promise<boolean>;
   /**
    * Close the Glance view.
    * IPC: invoke `tabs:close-glance`.
    */
-  closeGlance(): Promise<unknown>;
+  closeGlance(): Promise<boolean>;
   /**
-   * Promote the Glance tab to the active tab.
+   * Promote the Glance tab to the active tab. Resolves to whether the Glance tab became the active tab.
    * IPC: invoke `tabs:promote-glance`.
    */
-  promoteGlance(): Promise<unknown>;
+  promoteGlance(): Promise<boolean>;
   /**
    * Move a tab into a group, or out of all groups with null.
    * IPC: invoke `tabs:set-group`.
    */
-  setTabGroup(id: TabId, groupId: GroupId | null): Promise<unknown>;
+  setTabGroup(id: TabId, groupId: GroupId | null): Promise<void>;
   /**
    * Find or create a named group and move the tab into it.
    * IPC: invoke `tabs:group-by-name`.
    */
-  groupTabByName(id: TabId, name: string): Promise<unknown>;
+  groupTabByName(id: TabId, name: string): Promise<void>;
   /**
    * Fold or unfold a group in the panel.
    * IPC: invoke `tabs:toggle-group-collapsed`.
    */
-  toggleGroupCollapsed(groupId: GroupId): Promise<unknown>;
+  toggleGroupCollapsed(groupId: GroupId): Promise<void>;
   /**
    * Activate a group's first tab, unfolding it.
    * IPC: invoke `tabs:focus-group`.
    */
-  focusGroup(groupId: GroupId): Promise<unknown>;
+  focusGroup(groupId: GroupId): Promise<void>;
   /**
    * Close every tab in a group as one closed entry.
    * IPC: invoke `tabs:close-group`.
    */
-  closeGroup(groupId: GroupId): Promise<unknown>;
+  closeGroup(groupId: GroupId): Promise<void>;
   /**
    * Toggle Favorite for the active tab.
    * IPC: invoke `tabs:toggle-bookmark`.
    */
-  toggleBookmark(): Promise<unknown>;
+  toggleBookmark(): Promise<void>;
   /**
    * Save the active tab as a Favorite in a folder.
    * IPC: invoke `tabs:save-favorite`.
    */
-  saveFavorite(folder: unknown): Promise<unknown>;
+  saveFavorite(folder: unknown): Promise<void>;
   /**
-   * Pin or unpin a tab.
+   * Pin or unpin a tab. Resolves to the new pinned state, or false when the tab is unknown.
    * IPC: invoke `tabs:toggle-pinned`.
    */
-  toggleTabPinned(id: TabId): Promise<unknown>;
+  toggleTabPinned(id: TabId): Promise<boolean>;
   /**
-   * Mute or unmute a tab.
+   * Mute or unmute a tab. Resolves to the new muted state, or false when the tab is unknown.
    * IPC: invoke `tabs:toggle-muted`.
    */
-  toggleTabMuted(id: TabId): Promise<unknown>;
+  toggleTabMuted(id: TabId): Promise<boolean>;
   /**
-   * Duplicate a tab.
+   * Duplicate a tab. Resolves to the duplicate's id, or undefined when the tab is unknown.
    * IPC: invoke `tabs:duplicate`.
    */
-  duplicateTab(id: TabId): Promise<unknown>;
+  duplicateTab(id: TabId): Promise<TabId | undefined>;
   /**
    * Open an internal page (utility pages open in the sheet).
    * IPC: invoke `tabs:open-page`.
    */
-  openPage(name: string, section?: string): Promise<unknown>;
+  openPage(name: string, section?: string): Promise<void>;
   /**
    * Read the current tab list on demand.
    * IPC: invoke `tabs:get-all`.
@@ -550,10 +550,10 @@ export interface BlancBrowserAPI {
    */
   findInPage(id: TabId, query: string, options?: unknown): Promise<unknown>;
   /**
-   * Stop find-in-page.
+   * Stop find-in-page. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:find-stop`.
    */
-  stopFindInPage(id: TabId): Promise<unknown>;
+  stopFindInPage(id: TabId): Promise<void>;
   /**
    * Answer a pending permission prompt.
    * IPC: send `permissions:respond`.
@@ -595,10 +595,10 @@ export interface BlancBrowserAPI {
    */
   previewVerticalTabsWidth(width: number): void;
   /**
-   * Commit a vertical tab rail width.
+   * Commit a vertical tab rail width. Resolves to the width actually committed.
    * IPC: invoke `chrome:set-vertical-tabs-width`.
    */
-  setVerticalTabsWidth(width: number): Promise<unknown>;
+  setVerticalTabsWidth(width: number): Promise<number>;
   /**
    * Vertical tab rail metrics changed.
    * IPC: event `chrome:vertical-tabs-width`.
@@ -610,10 +610,10 @@ export interface BlancBrowserAPI {
    */
   resizeGlance(point: Point): void;
   /**
-   * Reset the Glance view size.
+   * Reset the Glance view size. Resolves to the reset ratio, or null when no Glance is open.
    * IPC: invoke `chrome:reset-glance`.
    */
-  resetGlance(): Promise<unknown>;
+  resetGlance(): Promise<number | null>;
   /**
    * Glance layout changed.
    * IPC: event `chrome:glance-layout`.
@@ -650,7 +650,7 @@ export interface BlancBrowserAPI {
    */
   openShieldPopover(anchor: Anchor): void;
   /**
-   * Choose the blocking provider from the shield popover.
+   * Choose the blocking provider from the shield popover. Resolves to false when refused; on a restart, to whether the restart went ahead.
    * @param restart  Defaults to false.
    * IPC: invoke `chrome:blocking-provider`.
    */
@@ -659,7 +659,7 @@ export interface BlancBrowserAPI {
    * Open the active blocking provider's popup.
    * IPC: invoke `chrome:blocking-popup`.
    */
-  openBlockingPopup(): Promise<unknown>;
+  openBlockingPopup(): Promise<boolean>;
   /**
    * Open the capture indicator popover.
    * IPC: send `chrome:open-capture`.
@@ -686,10 +686,10 @@ export interface BlancBrowserAPI {
    */
   resolveDisplayPicker(choice: unknown): void;
   /**
-   * Open the platform main menu at a point (strip only).
+   * Open the platform main menu at a point (strip only). Resolves to whether a menu item was chosen.
    * IPC: invoke `chrome:open-main-menu`.
    */
-  openMainMenu(point: Point): Promise<unknown>;
+  openMainMenu(point: Point): Promise<boolean>;
   /**
    * Dismiss the overlay.
    * IPC: send `overlay:close`.
@@ -789,7 +789,7 @@ export interface BlancBrowserAPI {
    * Clear browsing history.
    * IPC: invoke `chrome:history-clear`.
    */
-  clearHistory(): Promise<unknown>;
+  clearHistory(): Promise<void>;
   /**
    * Turn Blanc Blocker on or off.
    * IPC: invoke `chrome:adblock-toggle`.
@@ -801,10 +801,10 @@ export interface BlancBrowserAPI {
    */
   allowAdsOnActiveSite(): Promise<unknown>;
   /**
-   * Quiet all background tabs now.
+   * Quiet all background tabs now. Resolves to the ids of the tabs that were quieted.
    * IPC: invoke `chrome:sleep-background-tabs`.
    */
-  sleepBackgroundTabs(): Promise<unknown>;
+  sleepBackgroundTabs(): Promise<TabId[]>;
   /**
    * Fill a login from 1Password (explicit invoke only).
    * IPC: invoke `chrome:onepassword-fill`.
@@ -812,10 +812,10 @@ export interface BlancBrowserAPI {
    */
   fillLoginFromOnePassword?(): Promise<unknown>;
   /**
-   * Set or cycle the theme (system, light, dark).
+   * Set or cycle the theme (system, light, dark). Resolves to the theme now in effect.
    * IPC: invoke `chrome:cycle-theme`.
    */
-  cycleTheme(theme?: ThemePreference): Promise<unknown>;
+  cycleTheme(theme?: ThemePreference): Promise<ThemePreference>;
   /**
    * The effective appearance changed.
    * IPC: event `chrome:theme-appearance`.

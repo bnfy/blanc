@@ -189,3 +189,39 @@ test('an unknown payloadCheck value is rejected', () => {
   contract.members.find((m) => m.name === 'onFindResult').payloadCheck = 'trust-me';
   assert.ok(api.validateContract(contract).some((p) => p.includes('unknown payloadCheck')));
 });
+
+// ---- invoke results ----
+
+test('every typed invoke result matches what its handler can return', () => {
+  assert.deepEqual(api.checkInvokeResults(api.loadContract(), sendSources()), []);
+});
+
+test('a void handler that starts returning a value is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources("chromeHandle('tabs:close', (_e, id) => closeTab(id));", "chromeHandle('tabs:close', (_e, id) => { closeTab(id); return id; });"));
+  assert.ok(problems.some((p) => p.includes('closeTab result') && p.includes('returns a value')), problems.join('\n'));
+});
+
+test('a boolean handler that can resolve to undefined is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources("chromeHandle('tabs:open-glance-picker', () => openGlancePicker());", "chromeHandle('tabs:open-glance-picker', () => { openGlancePicker(); });"));
+  assert.ok(problems.some((p) => p.includes('openGlancePicker result') && p.includes('undefined')), problems.join('\n'));
+});
+
+test('a returned object that drifts from its type is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('    patronActive: settings.isPatronActive(),\n', '    patronActive: settings.isPatronActive(),\n    plan: settings.plan,\n'));
+  assert.ok(problems.some((p) => p.includes('listWorkspaces result') && p.includes('WorkspacesPayload')), problems.join('\n'));
+});
+
+test('a typed result whose handler disappears is reported', () => {
+  const contract = api.loadContract();
+  contract.members.find((m) => m.name === 'closeTab').channel = 'tabs:gone';
+  assert.ok(api.checkInvokeResults(contract, sendSources()).some((p) => p.includes("handler for 'tabs:gone' not found")));
+});
+
+test('an unknown resultCheck value is rejected', () => {
+  const contract = api.loadContract();
+  contract.members.find((m) => m.name === 'stop').resultCheck = 'trust-me';
+  assert.ok(api.validateContract(contract).some((p) => p.includes('unknown resultCheck')));
+});
