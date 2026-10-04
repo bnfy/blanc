@@ -46,6 +46,16 @@ publisher observation to the public installer digest.
 public asset hashes, signer/fuse/payload results, provenance source, and job
 outcomes. It contains no browsing data or private profile paths.
 
+## Production website
+
+The post-publication record merged through protected PR #505 at
+`fec870292fe857c3086baa3b14445b6dd06ce73a`. `npm run site:deploy` ran from that
+clean detached main checkout. Cloudflare reports deployment
+`aec053bd-a92c-42bb-8314-b95a4b30b4d2` as Production/main with source `fec8702`.
+Fresh canonical homepage and changelog responses show version 1.27.0,
+“Optional uBlock Origin,” Restart Blanc instructions and the official release
+link. The JSON receipt records the deployment and response digests.
+
 ## Limits retained
 
 Earlier installed candidates retain their original build/source/artifact

@@ -281,5 +281,29 @@
     "Native hosted Intel/Windows/Linux results are not physical-machine results.",
     "Rosetta is excluded; the existing Ubuntu 26.04 ARM64 VM was not changed and cannot certify the x64 AppImage.",
     "Adjacent public v1.26.0 to v1.27.0 macOS and Windows Restart Now handoffs remain pending."
-  ]
+  ],
+  "productionWebsite": {
+    "project": "blancbrowser",
+    "environment": "Production",
+    "branch": "main",
+    "sourceSHA": "fec870292fe857c3086baa3b14445b6dd06ce73a",
+    "reportedSourcePrefix": "fec8702",
+    "deploymentID": "aec053bd-a92c-42bb-8314-b95a4b30b4d2",
+    "deploymentURL": "https://aec053bd.getbowser.pages.dev",
+    "checkedAt": "2026-10-04T03:25:15.904622+00:00",
+    "canonicalHomepage": {
+      "url": "https://blancbrowser.com/",
+      "softwareVersion": "1.27.0",
+      "visibleDemoVersion": "1.27.0",
+      "sha256": "0614c5cb374ec4ec36f4c8fbb9bb31ee4193cca499060d23e5668712b38f88ec"
+    },
+    "canonicalChangelog": {
+      "url": "https://blancbrowser.com/changelog",
+      "releaseAnchor": "v1-27-0",
+      "featureName": "Optional uBlock Origin",
+      "restartInstructions": "present",
+      "releaseLink": "https://github.com/bnfy/blanc/releases/tag/v1.27.0",
+      "sha256": "41c54dba176e090e44dcdbf021061258bb4e6a112284767f89edd01f7ffbd97e"
+    }
+  }
 }
