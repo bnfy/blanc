@@ -141,3 +141,22 @@ All four desktop jobs and the ordinary package gate pass at `cd6ede0f`
 there matches all 39 approved baseline numbers, rules and source locations, with
 no first-party alert. Nothing has been dismissed while PR #490 remains draft.
 Final exact-head checks and owner release confirmation still precede publication.
+
+## Final code-head checks and approved security dispositions
+
+[Final code-head run 37164566623](https://github.com/bnfy/blanc/actions/runs/37164566623)
+at `d9fd1c16` passes all four desktop jobs and ordinary packaging. Substrate,
+OAuth, shortcuts, modified links, handoff and site checks also pass.
+
+After verifying all 39 baseline alert numbers, rules, locations and original
+source hashes, PR #490 was actually taken out of draft. Each exact approved
+reason/comment was then applied individually, including the owner's superseding
+#77 decision. `codeql-owner-decisions-executed.json` preserves the responses and
+timestamps. Four remaining bot conversations for the already-disposed alerts
+91–94 were resolved; no human or unapproved finding was hidden. GitHub reports
+zero open PR alerts, green CodeQL and a clean protected merge state. Scanning and
+branch protection remain enabled.
+
+Owner affected-platform release confirmation still precedes merge, version
+tagging and the foreground release protocol. No public v1.27.0 release/feed
+change has occurred.
