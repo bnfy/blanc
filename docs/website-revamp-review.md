@@ -657,3 +657,11 @@ compliance, advisory policy, changelog freshness, and site/SEO build pass.
 Responsive Security and footer checks at desktop, 390px, and 320px show no
 horizontal overflow. Owner clarification confirms `/trust` is the newer page
 to surface; its content was preserved throughout the redesign.
+
+CI follow-up: the shield export guard now checks decoded pixels and the alpha
+silhouette rather than comparing freshly encoded WebP buffers byte for byte.
+Platform encoder differences made the old assertion exhaust memory on Windows.
+The committed master, display export, outline, and native icon still require
+their exact ledger hashes. The pixel check verifies the 960px export geometry
+and bounds visible color differences within the existing lossy export quality.
+The six focused shield checks and lint pass locally after this correction.

@@ -9,6 +9,33 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const load = file => import(pathToFileURL(path.join(root, file)).href);
 
+async function assertDisplayExport(master, exported) {
+  const sharp = require('sharp');
+  const expected = await sharp(master).trim({ threshold: 8 }).resize(960, 960, {
+    fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 },
+  }).ensureAlpha().raw().toBuffer();
+  const actual = await sharp(exported).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.equal(actual.info.width, 960);
+  assert.equal(actual.info.height, 960);
+  assert.equal(actual.info.channels, 4);
+  assert.equal(actual.data.length, expected.length);
+  // WebP encoders can differ across platforms. Compare the visible pixels and
+  // silhouette; the ledger's exact hashes separately protect the committed files.
+  let alphaDifference = 0, colorDifference = 0, colorWeight = 0;
+  for (let i = 0; i < expected.length; i += 4) {
+    alphaDifference += Math.abs(expected[i + 3] - actual.data[i + 3]);
+    const weight = expected[i + 3] / 255;
+    colorWeight += 3 * weight;
+    for (let channel = 0; channel < 3; channel++) {
+      colorDifference += Math.abs(expected[i + channel] - actual.data[i + channel]) * weight;
+    }
+  }
+  const alphaError = alphaDifference / (expected.length / 4);
+  const colorError = colorDifference / colorWeight;
+  assert.ok(alphaError < 0.1, `export silhouette differs: mean alpha error ${alphaError}`);
+  assert.ok(colorError < 3.5, `export colors differ: mean visible RGB error ${colorError}`);
+}
+
 async function preview({ reduced = false, present = true, fail = false } = {}) {
   const { initHorizonShield } = await load('site/src/scripts/horizon-shield.js');
   const styles = new Map(), events = new Map(), callbacks = new Map(), turns = [];
@@ -176,10 +203,7 @@ test('provider copy resolves to the verified public release with bronze display 
   assert.equal(hash(nativeIcon), ledger.islandIcon.sha256);
   assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.model.outline))), ledger.artwork.model.outlineSha256);
   assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.recolor.reference))), ledger.artwork.recolor.referenceSha256);
-  const sharp = require('sharp');
-  const options = {fit:'contain', background:{r:0,g:0,b:0,alpha:0}};
-  assert.deepEqual(await sharp(master).trim({threshold:8}).resize(960,960,options).webp({quality:90,alphaQuality:100,effort:6}).toBuffer(), artwork,
-    'the large display artwork must be an unfiltered export of the bronze master');
+  await assertDisplayExport(master, artwork);
   assert.ok(read('ASSET-LICENSE.md').includes(ledger.artwork.file));
   const activeArtwork = ledger[ledger.activeArtwork];
   const blockerMaster = fs.readFileSync(path.join(root, activeArtwork.source));
@@ -187,8 +211,7 @@ test('provider copy resolves to the verified public release with bronze display 
   assert.equal(hash(blockerMaster), activeArtwork.sourceSha256);
   assert.equal(hash(blockerExport), activeArtwork.sha256);
   assert.equal(hash(fs.readFileSync(path.join(root, activeArtwork.model.outline))), activeArtwork.model.outlineSha256);
-  assert.deepEqual(await sharp(blockerMaster).trim({threshold:8}).resize(960,960,options).webp({quality:90,alphaQuality:100,effort:6}).toBuffer(), blockerExport,
-    'the new Blocker display export preserves its own bronze master');
+  await assertDisplayExport(blockerMaster, blockerExport);
   assert.ok(read('ASSET-LICENSE.md').includes(activeArtwork.file));
   assert.match(home, /<HorizonShield variant="blocker"/);
   assert.match(home, /href="\/trust#ad-blocking"/);
