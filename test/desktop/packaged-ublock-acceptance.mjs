@@ -209,6 +209,24 @@ try {
     await waitForValue(() => browser.isConnected(), connected => !connected, 'window close quits browser');
     await waitForValue(() => alive(beforeClose), value => !value, 'no remaining browser process');
     report.checks.lastWindowExit = true;
+    if (process.platform === 'linux') {
+      stage = 'normal AppImage relaunch after last-window exit';
+      app = await launchPackagedOverCdp({ executablePath: executable, debugPort: port,
+        args: [`--user-data-dir=${profile}`, '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost'],
+        env: cleanEnv, timeoutMs: 40000 });
+      await connect(); await ready('ublock-origin');
+      assert.notEqual(await pid(), beforeClose);
+      dash = await dashboard();
+      assert((await dash.frame.evaluate(() => document.querySelector('.CodeMirror').CodeMirror.getValue())).includes('/blocked-installed.js$script'));
+      hits.length = 0; fixture = await open('/normal-relaunch');
+      await fixture.page.waitForFunction(() => window.allowed === true && getComputedStyle(document.querySelector('#ad')).display === 'none');
+      assert(!hits.includes('/blocked-installed.js')); assert(hits.includes('/allowed.js'));
+      const reopenedPid = await pid();
+      await chrome.evaluate(() => window.browserAPI.closeWindow());
+      await waitForValue(() => browser.isConnected(), connected => !connected, 'reopened AppImage last-window exit');
+      await waitForValue(() => alive(reopenedPid), value => !value, 'reopened browser process exits');
+      report.checks.linuxNormalRelaunchAndPersistence = true;
+    }
   }
   report.passed = true;
 } catch (error) { console.error('Installed uBO failure at:', stage, error); console.error('Packaged launch output:', app?.output()); report.failure = { stage, name: error.name, ...(typeof error.message === 'string' && /^ubo-[a-z-]+$/.test(error.message) ? { code: error.message } : {}) };
