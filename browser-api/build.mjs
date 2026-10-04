@@ -354,12 +354,12 @@ function stripComments(text) {
 }
 
 // From the `{` at `start`, return the text up to its matching `}`, skipping
-// quoted strings.
+// quoted strings and template literals.
 function balanced(text, start) {
   let depth = 0;
   for (let i = start; i < text.length; i++) {
     const ch = text[i];
-    if (ch === "'" || ch === '"') {
+    if (ch === "'" || ch === '"' || ch === '`') {
       for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
       continue;
     }
@@ -373,25 +373,7 @@ function balanced(text, start) {
 // spread c). `values` maps a key to its value when that is a plain literal
 // (`'x'`, true, false, null or a number), as the literal's own source text.
 export function literalKeys(objectText) {
-  const body = objectText.slice(1, -1);
-  const entries = [];
-  let depth = 0;
-  let current = '';
-  for (let i = 0; i < body.length; i++) {
-    const ch = body[i];
-    if (ch === "'" || ch === '"' || ch === '`') {
-      let j = i + 1;
-      for (; j < body.length && body[j] !== ch; j++) if (body[j] === '\\') j++;
-      current += body.slice(i, j + 1);
-      i = j;
-      continue;
-    }
-    if ('{[('.includes(ch)) depth++;
-    if ('}])'.includes(ch)) depth--;
-    if (ch === ',' && depth === 0) { entries.push(current); current = ''; continue; }
-    current += ch;
-  }
-  entries.push(current);
+  const entries = splitTopLevel(objectText.slice(1, -1));
   const keys = [];
   const spreads = [];
   const values = {};
@@ -782,6 +764,317 @@ export function checkInvokeResults(contract, rawSources = mainSources()) {
   return problems;
 }
 
+// ---- parameter shapes ----
+// A structured parameter is checked from both ends. In the renderers, every
+// object passed for it must fit the type: an object literal, a local bound to
+// one, a function that returns one, or a parameter of the enclosing function
+// (followed to that function's call sites). In main, every field its handler
+// reads from it must be in the type, following the value into a local
+// function or a module function listed in FORWARDED_PARAMS.
+const FORWARDED_PARAMS = [
+  { member: 'resizeGlance', file: 'glance-layout.js', fn: 'ratioForGlanceDivider', index: 1 },
+  { member: 'openMainMenu', file: 'platform-main-menu.js', fn: 'popupPoint', index: 0 },
+  { member: 'listHistory', file: 'history.js', fn: 'listHistory', index: 0 },
+  { member: 'resolveDisplayPicker', file: 'display-capture-picker.js', fn: 'resolve', index: 1 },
+];
+// Members whose argument main hands to an Electron method: the type must name
+// the same fields as Electron's own options interface. electron.d.ts ships
+// with node_modules, so this half runs wherever dependencies are installed
+// (the substrate CI job) and is skipped by the dependency-free parity step.
+const ELECTRON_PARAMS = [
+  { member: 'findInPage', param: 'options', type: 'FindInPageOptions' },
+];
+const ELECTRON_DTS = path.join(ROOT, 'node_modules', 'electron', 'electron.d.ts');
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function splitTopLevel(text, separator = ',') {
+  const entries = [];
+  let depth = 0;
+  let current = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      let j = i + 1;
+      for (; j < text.length && text[j] !== ch; j++) if (text[j] === '\\') j++;
+      current += text.slice(i, j + 1);
+      i = j;
+      continue;
+    }
+    if ('{[('.includes(ch)) depth++;
+    if ('}])'.includes(ch)) depth--;
+    if (ch === separator && depth === 0) { entries.push(current); current = ''; continue; }
+    current += ch;
+  }
+  entries.push(current);
+  return entries.map((e) => e.trim());
+}
+
+// From the `(` at `start`, the text up to its matching `)`.
+function parenthesized(text, start) {
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+      continue;
+    }
+    if (ch === '(') depth++;
+    else if (ch === ')' && --depth === 0) return text.slice(start, i + 1);
+  }
+  throw new Error(`unbalanced parentheses from offset ${start}`);
+}
+
+// `cond ? a : b` at the top level of an expression, or null.
+function ternary(expr) {
+  let depth = 0;
+  let question = -1;
+  for (let i = 0; i < expr.length; i++) {
+    const ch = expr[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      for (i++; i < expr.length && expr[i] !== ch; i++) if (expr[i] === '\\') i++;
+      continue;
+    }
+    if ('{[('.includes(ch)) depth++;
+    else if ('}])'.includes(ch)) depth--;
+    else if (depth === 0 && ch === '?' && expr[i + 1] !== '.' && expr[i + 1] !== '?' && expr[i - 1] !== '?') {
+      if (question < 0) question = i;
+    } else if (depth === 0 && ch === ':' && question >= 0) {
+      return { then: expr.slice(question + 1, i).trim(), else: expr.slice(i + 1).trim() };
+    }
+  }
+  return null;
+}
+
+// Every function in a source with a block body: its name (when it has one),
+// parameter list and body range.
+function functionScopes(text) {
+  const scopes = [];
+  const add = (name, params, open) => {
+    if (text[open] !== '{') return;
+    scopes.push({ name, params: splitTopLevel(params).filter(Boolean), start: open, end: open + balanced(text, open).length });
+  };
+  for (const m of text.matchAll(/\bfunction\s*([A-Za-z_$][\w$]*)?\s*\(/g)) {
+    const params = parenthesized(text, m.index + m[0].length - 1);
+    add(m[1] ?? null, params.slice(1, -1), text.indexOf('{', m.index + m[0].length - 1 + params.length));
+  }
+  for (const m of text.matchAll(/(?:\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?)?\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*=>\s*\{/g)) {
+    add(m[1] ?? null, m[2], m.index + m[0].length - 1);
+  }
+  for (const m of text.matchAll(/\b([A-Za-z_$][\w$]*)\s*=>\s*\{/g)) add(null, m[1], m.index + m[0].length - 1);
+  return scopes;
+}
+
+// A parameter without its default (`{ a = 1 } = {}` → `{ a = 1 }`), and the default.
+function paramName(param) {
+  return splitTopLevel(param, '=')[0];
+}
+
+function paramDefault(param) {
+  const parts = splitTopLevel(param, '=');
+  return parts.length > 1 ? parts.slice(1).join('=') : null;
+}
+
+// The object shapes an argument expression can carry, as
+// [{ keys, open }] (open: an unreadable spread). null/undefined carry none.
+function argumentShapes(file, expr, at, depth = 0) {
+  const e = expr.trim().replace(/^await\s+/, '');
+  if (depth > 6) throw new Error(`"${e.slice(0, 40)}" is too indirect to read`);
+  if (e === '' || e === 'null' || e === 'undefined') return [];
+  if (e.startsWith('{') && balanced(e, 0).length === e.length) {
+    const { keys, spreads } = literalKeys(e);
+    let open = false;
+    for (const spread of spreads) {
+      // `...(cond ? { a } : {})` contributes its keys; anything else can't be read.
+      const branch = /^\(([^]*)\)$/.test(spread) && ternary(spread.slice(1, -1));
+      if (!branch) { open = true; continue; }
+      for (const side of [branch.then, branch.else]) {
+        for (const shape of argumentShapes(file, side, at, depth + 1)) { keys.push(...shape.keys); open ||= shape.open; }
+      }
+    }
+    return [{ keys, open }];
+  }
+  const branch = ternary(e);
+  if (branch) return [...argumentShapes(file, branch.then, at, depth + 1), ...argumentShapes(file, branch.else, at, depth + 1)];
+  const scopes = functionScopes(file.text);
+  const call = e.match(/^([A-Za-z_$][\w$]*)\((?:[^()]|\([^()]*\))*\)$/);
+  if (call) {
+    const fn = scopes.find((s) => s.name === call[1]);
+    if (!fn) throw new Error(`"${e.slice(0, 40)}" calls a function not defined in ${file.file}`);
+    return topLevelReturns(file.text.slice(fn.start, fn.end))
+      .flatMap((ret) => argumentShapes(file, ret, fn.start, depth + 1));
+  }
+  if (!/^[A-Za-z_$][\w$]*$/.test(e)) throw new Error(`"${e.slice(0, 40)}" can't be read`);
+  // The innermost scope that declares the name (or the file), then every
+  // assignment to it anywhere in that scope.
+  const enclosing = scopes.filter((s) => s.start < at && at < s.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
+  const name = escapeRegExp(e);
+  for (const scope of [...enclosing, { name: null, params: [], start: 0, end: file.text.length }]) {
+    const body = file.text.slice(scope.start, scope.end);
+    const index = scope.params.findIndex((p) => paramName(p) === e);
+    if (index < 0 && !new RegExp(`\\b(?:const|let|var)\\s+${name}\\b`).test(body) && scope.start > 0) continue;
+    const shapes = [];
+    for (const a of body.matchAll(new RegExp(`(?:\\b(?:const|let|var)\\s+|[^.\\w$])${name}\\s*=(?![=>])\\s*`, 'g'))) {
+      const from = scope.start + a.index + a[0].length;
+      const init = splitTopLevel(file.text.slice(from).split(/;|\n\s*\n/)[0])[0];
+      shapes.push(...argumentShapes(file, init, from, depth + 1));
+    }
+    if (index >= 0) {
+      const param = scope.params[index];
+      if (paramDefault(param) !== null) shapes.push(...argumentShapes(file, paramDefault(param), scope.start, depth + 1));
+      if (!scope.name) throw new Error(`"${e}" is a parameter of an anonymous function`);
+      for (const site of file.text.matchAll(new RegExp(`(?<![\\w$.])${escapeRegExp(scope.name)}\\(`, 'g'))) {
+        if (/\bfunction\s+$/.test(file.text.slice(Math.max(0, site.index - 20), site.index))) continue; // the definition
+        const args = splitTopLevel(parenthesized(file.text, site.index + scope.name.length).slice(1, -1));
+        if (index < args.length) shapes.push(...argumentShapes(file, args[index], site.index, depth + 1));
+      }
+    } else if (scope.start === 0 && !shapes.length && !new RegExp(`\\b(?:const|let|var)\\s+${name}\\b`).test(body)) break;
+    return shapes;
+  }
+  throw new Error(`"${e}" has no readable declaration in ${file.file}`);
+}
+
+function rendererSources() {
+  return jsFiles(RENDERER_DIR).map((f) => ({ file: path.basename(f), text: fs.readFileSync(f, 'utf8') }));
+}
+
+// browserAPI calls in the renderers, including through an alias passed as
+// `name: window.browserAPI`.
+function rendererCalls(sources, member) {
+  const aliases = new Set(['browserAPI']);
+  for (const { text } of sources) for (const [, alias] of text.matchAll(/\b([A-Za-z_$][\w$]*):\s*window\.browserAPI\b/g)) aliases.add(alias);
+  const calls = [];
+  const names = [...aliases].map(escapeRegExp).join('|');
+  for (const file of sources) {
+    for (const m of file.text.matchAll(new RegExp(`\\b(?:${names})\\??\\.${escapeRegExp(member)}\\??\\.?\\(`, 'g'))) {
+      calls.push({ file, at: m.index, args: splitTopLevel(parenthesized(file.text, m.index + m[0].length - 1).slice(1, -1)) });
+    }
+  }
+  return calls;
+}
+
+// Fields read from `name` in a body (`name.a`, `name?.a?.b`, `const { a } = name`),
+// following it into local functions it is passed to.
+function readsOf(name, body, sources, file, depth = 0) {
+  const reads = [];
+  const n = escapeRegExp(name);
+  for (const m of body.matchAll(new RegExp(`(?<![\\w$.])${n}((?:\\??\\.[A-Za-z_$][\\w$]*)+)`, 'g'))) {
+    reads.push(m[1].split(/\??\./).filter(Boolean));
+  }
+  for (const m of body.matchAll(new RegExp(`\\b(?:const|let)\\s*\\{([^}]*)\\}\\s*=\\s*${n}\\b`, 'g'))) {
+    for (const key of splitTopLevel(m[1])) if (key) reads.push([key.split(/[:=]/)[0].trim()]);
+  }
+  if (depth > 1) return reads;
+  // Passed on to a local function: follow into its matching parameter.
+  for (const m of body.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\(/g)) {
+    const args = splitTopLevel(parenthesized(body, m.index + m[1].length).slice(1, -1));
+    const index = args.findIndex((a) => new RegExp(`^${n}(?:\\s*\\?\\?.*)?$`).test(a));
+    if (index < 0) continue;
+    const scope = functionScopes(file.text).find((s) => s.name === m[1]);
+    if (!scope || index >= scope.params.length) continue;
+    reads.push(...paramReads(scope.params[index], file.text.slice(scope.start, scope.end), sources, file, depth + 1));
+  }
+  return reads;
+}
+
+function paramReads(param, body, sources, file, depth) {
+  const p = paramName(param);
+  if (p.startsWith('{')) return splitTopLevel(p.slice(1, -1)).filter(Boolean).map((key) => [key.split(/[:=]/)[0].trim()]);
+  return readsOf(p, body, sources, file, depth);
+}
+
+function mainHandlers(source, channel) {
+  const sites = [];
+  for (const m of source.matchAll(new RegExp(`\\b(?:chromeHandle|chromeOn|ipcMain\\.on|ipcMain\\.handle)\\('${escapeRegExp(channel)}',\\s*(?:async\\s*)?\\(`, 'g'))) {
+    const open = m.index + m[0].length - 1;
+    const params = parenthesized(source, open);
+    let i = source.indexOf('=>', open + params.length) + 2;
+    while (/\s/.test(source[i])) i++;
+    // A block body, or an expression running to the registration's closing paren.
+    const rest = source.slice(i);
+    const body = source[i] === '{' ? balanced(source, i) : rest.slice(0, parenthesized(`(${rest}`, 0).length - 2);
+    sites.push({ params: splitTopLevel(params.slice(1, -1)), body });
+  }
+  return sites;
+}
+
+// A read path checked against a type: each step must be a field, descending
+// into nested structured types.
+function checkRead(path, typeName, contract) {
+  let type = typeName;
+  for (const field of path) {
+    const fields = contract.types[type]?.fields;
+    if (!fields) return null;
+    if (!(field in fields)) return `${field} is not a field of ${type}`;
+    type = structuredType(fields[field].type.replace(/\|\s*undefined/g, ''), contract);
+    if (!type) return null;
+  }
+  return null;
+}
+
+function electronInterfaceFields(name) {
+  if (!fs.existsSync(ELECTRON_DTS)) return null;
+  const dts = fs.readFileSync(ELECTRON_DTS, 'utf8');
+  const at = dts.indexOf(`interface ${name} {`);
+  if (at < 0) throw new Error(`interface ${name} not found in electron.d.ts`);
+  const body = stripComments(balanced(dts, dts.indexOf('{', at)));
+  return [...body.matchAll(/^\s*([A-Za-z_$][\w$]*)\??\s*:/gm)].map((m) => m[1]);
+}
+
+export function checkParamShapes(contract, { main = mainSources(), renderers: rawRenderers = rendererSources() } = {}) {
+  const mains = main.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const renderers = rawRenderers.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const mainFile = mains.find((s) => s.file === 'main.js');
+  const problems = [];
+  for (const m of contract.members) {
+    (m.params ?? []).forEach((p, i) => {
+      const typeName = structuredType(p.type.replace(/\|\s*undefined/g, ''), contract);
+      if (!typeName) return;
+      const fields = contract.types[typeName].fields;
+      const required = Object.keys(fields).filter((k) => !fields[k].optional);
+      const where = `${m.name}(${p.name})`;
+      // Renderer side: what is sent.
+      for (const call of rendererCalls(renderers, m.name)) {
+        if (i >= call.args.length) continue;
+        try {
+          for (const { keys, open } of argumentShapes(call.file, call.args[i], call.at)) {
+            for (const k of keys) if (!(k in fields)) problems.push(`${where} in ${call.file.file}: sends "${k}", which is not a field of ${typeName}`);
+            if (!open) for (const k of required) if (!keys.includes(k)) problems.push(`${where} in ${call.file.file}: does not send required field ${typeName}.${k}`);
+          }
+        } catch (error) { problems.push(`${where} in ${call.file.file}: ${error.message}`); }
+      }
+      // Main side: what is read.
+      if (m.ipcArgs) return;
+      const reads = [];
+      for (const site of mainHandlers(mainFile.text, m.channel)) {
+        const param = site.params[i + 1];
+        if (param) reads.push(...paramReads(param, site.body, mains, mainFile, 0));
+      }
+      for (const fwd of FORWARDED_PARAMS.filter((f) => f.member === m.name)) {
+        const file = mains.find((s) => s.file === fwd.file);
+        const scope = file && functionScopes(file.text).find((s) => s.name === fwd.fn);
+        if (!scope) { problems.push(`${where}: ${fwd.fn}() not found in ${fwd.file}`); continue; }
+        reads.push(...paramReads(scope.params[fwd.index], file.text.slice(scope.start, scope.end), mains, file, 0));
+      }
+      for (const read of reads) {
+        const problem = checkRead(read, typeName, contract);
+        if (problem) problems.push(`${where}: main reads ${p.name}.${read.join('.')}, but ${problem}`);
+      }
+      for (const e of ELECTRON_PARAMS.filter((x) => x.member === m.name && x.param === p.name)) {
+        try {
+          const electron = electronInterfaceFields(e.type);
+          if (electron && JSON.stringify([...electron].sort()) !== JSON.stringify(Object.keys(fields).sort())) {
+            problems.push(`${where}: ${typeName} (${Object.keys(fields).join(', ')}) does not match Electron's ${e.type} (${electron.join(', ')})`);
+          }
+        } catch (error) { problems.push(`${where}: ${error.message}`); }
+      }
+    });
+  }
+  return [...new Set(problems)];
+}
+
 // ---- workspace action codes ----
 // Every error / reason / action literal a workspace action can produce must be
 // in the contract's unions. Literals are read from the workspace modules and
@@ -1067,7 +1360,7 @@ export function payloadFixtures() {
 }
 
 export function checkPayloads(contract) {
-  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract), ...checkWorkspaceCodes(contract), ...checkSearchEngines(contract)];
+  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract), ...checkWorkspaceCodes(contract), ...checkSearchEngines(contract), ...checkParamShapes(contract)];
   for (const { label, type, value } of payloadFixtures()) {
     problems.push(...validateValue(value, type, contract, label));
   }

@@ -33,18 +33,18 @@
 | `focusGroup` | groups | invoke | `tabs:focus-group` | `(groupId: GroupId) => Promise<void>` | all |
 | `closeGroup` | groups | invoke | `tabs:close-group` | `(groupId: GroupId) => Promise<void>` | all |
 | `toggleBookmark` | favorites | invoke | `tabs:toggle-bookmark` | `() => Promise<void>` | all |
-| `saveFavorite` | favorites | invoke | `tabs:save-favorite` | `(folder: unknown) => Promise<void>` | all |
+| `saveFavorite` | favorites | invoke | `tabs:save-favorite` | `(folder: string \| null) => Promise<void>` | all |
 | `toggleTabPinned` | tabs | invoke | `tabs:toggle-pinned` | `(id: TabId) => Promise<boolean>` | all |
 | `toggleTabMuted` | tabs | invoke | `tabs:toggle-muted` | `(id: TabId) => Promise<boolean>` | all |
 | `duplicateTab` | tabs | invoke | `tabs:duplicate` | `(id: TabId) => Promise<TabId \| undefined>` | all |
 | `openPage` | pages | invoke | `tabs:open-page` | `(name: string, section?: string) => Promise<void>` | all |
 | `getAllTabs` | tabs | invoke | `tabs:get-all` | `() => Promise<TabsSnapshot>` | all |
-| `findInPage` | find | invoke | `tabs:find` | `(id: TabId, query: string, options?: unknown) => Promise<number \| boolean \| undefined>` | all |
+| `findInPage` | find | invoke | `tabs:find` | `(id: TabId, query: string, options?: FindInPageOptions) => Promise<number \| boolean \| undefined>` | all |
 | `stopFindInPage` | find | invoke | `tabs:find-stop` | `(id: TabId) => Promise<void>` | all |
 | `respondPermission` | permissions | send | `permissions:respond` | `(id: PermissionPromptId, allow: boolean)` | all |
 | `onPermissionPrompt` | permissions | event | `permissions:prompt` | `(payload: PermissionPromptPayload) => void` | all |
 | `reportChromeLayout` | layout | send | `chrome:layout` | `(height: number)` | all |
-| `reportIslandRect` | layout | send | `chrome:island-rect` | `(rect: Rect)` | all |
+| `reportIslandRect` | layout | send | `chrome:island-rect` | `(rect: IslandRectReport)` | all |
 | `onShieldAnchor` | layout | event | `overlay:shield-anchor` | `(payload: ShieldAnchorUpdate) => void` | all |
 | `onIslandProximity` | layout | event | `chrome:island-proximity` | `(payload: number) => void` | all |
 | `setTabLayout` | layout | invoke | `chrome:set-tab-layout` | `(layout: TabLayout) => Promise<TabLayout>` | all |
@@ -59,19 +59,19 @@
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
 | `openIslandTyping` | island | send | `chrome:open-island-typing` | `(char: string)` | all |
 | `openFindBar` | island | send | `chrome:open-find` | `()` | all |
-| `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: Anchor)` | all |
+| `openShieldPopover` | blocking | send | `chrome:open-shield` | `(anchor: ShieldAnchor)` | all |
 | `selectBlockingProvider` | blocking | invoke | `chrome:blocking-provider` | `(provider: string, restart?: boolean) => Promise<boolean>` | all |
 | `openBlockingPopup` | blocking | invoke | `chrome:blocking-popup` | `() => Promise<boolean>` | all |
-| `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: Anchor)` | all |
+| `openCapturePopover` | capture | send | `chrome:open-capture` | `(anchor: CaptureAnchor)` | all |
 | `captureStop` | capture | send | `chrome:capture-stop` | `(surfaceId: CaptureSurfaceId)` | all |
 | `captureFocus` | capture | send | `chrome:capture-focus` | `(surfaceId: CaptureSurfaceId)` | all |
 | `stopDisplayShare` | capture | send | `display-capture:stop` | `(shareId: DisplayShareId)` | all |
-| `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: unknown)` | all |
+| `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: DisplayPickerChoice)` | all |
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
 | `closeOverlay` | overlay | send | `overlay:close` | `(reason?: string)` | all |
 | `setWorkspaceSwitcherOpen` | workspaces | send | `chrome:workspace-switcher` | `(open: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
-| `listHistory` | history | invoke | `chrome:history-list` | `(opts?: unknown) => Promise<HistoryEntry[]>` | all |
+| `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
@@ -221,12 +221,6 @@ A rectangle in window coordinates.
 | `y` | `number` |  |
 | `width` | `number` |  |
 | `height` | `number` |  |
-
-### `Anchor`
-
-Popover anchor geometry sent by the strip. Shape not yet pinned.
-
-`unknown`
 
 ### `PermissionPromptPayload`
 
@@ -772,3 +766,64 @@ A 1Password fill that filled at least one field. No credential data is returned.
 | `ok` | `true` |  |
 | `filledUser` | `boolean` |  |
 | `filledPass` | `boolean` |  |
+
+### `IslandRectReport`
+
+The resting pill's rectangle as the strip reports it, plus the open shield popover's anchor.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `x` | `number` |  |
+| `y` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
+| `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
+
+### `ShieldAnchor`
+
+Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` | The control's right edge. |
+| `center` | `number` | The control's horizontal centre. |
+| `bottom` | `number` | The control's bottom edge. |
+| `trigger` | `ShieldTrigger` |  |
+
+### `CaptureAnchor`
+
+Where the capture popover opens.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `right` | `number` | The capture chip's right edge. |
+
+### `FindInPageOptions`
+
+Options for findInPage, passed to Electron's webContents.findInPage unchanged. Must name the same fields as Electron's FindInPageOptions.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `forward?` | `boolean` | Search forward (default true). |
+| `findNext?` | `boolean` | Start a new find session (default false). |
+| `matchCase?` | `boolean` | Case-sensitive (default false). |
+
+### `HistoryListOptions`
+
+Filters for listHistory, read by listHistory() in history.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `query?` | `string` | Case-insensitive substring of the URL or title. |
+| `limit?` | `number` | At most this many entries (default 500). |
+
+### `DisplayPickerChoice`
+
+The overlay's answer to the screen-share picker, read by display-capture-picker.js. Main ignores it unless the sender owns that live request.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requestId` | `string` |  |
+| `sourceId?` | `string \| null` | The chosen source. Ignored on Linux, where the system portal chooses. |
+| `computerAudioApproved?` | `boolean` | Only honored when the page asked for audio. |
+| `cancelled?` | `boolean` | true cancels the request. The overlay cancels through closeOverlay instead. |

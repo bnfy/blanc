@@ -106,10 +106,6 @@
         }
       }
     },
-    "Anchor": {
-      "ts": "unknown",
-      "doc": "Popover anchor geometry sent by the strip. Shape not yet pinned."
-    },
     "PermissionPromptPayload": {
       "doc": "A pending permission prompt, built by the permission prompter in main.js.",
       "fields": {
@@ -1050,6 +1046,115 @@
           "type": "boolean"
         }
       }
+    },
+    "IslandRectReport": {
+      "doc": "The resting pill's rectangle as the strip reports it, plus the open shield popover's anchor.",
+      "fields": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "shieldAnchor": {
+          "type": "ShieldAnchor",
+          "optional": true,
+          "doc": "Present while the shield popover is open, so a uBlock Origin popup can follow the pill."
+        }
+      }
+    },
+    "ShieldAnchor": {
+      "doc": "Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window.",
+      "fields": {
+        "right": {
+          "type": "number",
+          "doc": "The control's right edge."
+        },
+        "center": {
+          "type": "number",
+          "doc": "The control's horizontal centre."
+        },
+        "bottom": {
+          "type": "number",
+          "doc": "The control's bottom edge."
+        },
+        "trigger": {
+          "type": "ShieldTrigger"
+        }
+      }
+    },
+    "CaptureAnchor": {
+      "doc": "Where the capture popover opens.",
+      "fields": {
+        "right": {
+          "type": "number",
+          "doc": "The capture chip's right edge."
+        }
+      }
+    },
+    "FindInPageOptions": {
+      "doc": "Options for findInPage, passed to Electron's webContents.findInPage unchanged. Must name the same fields as Electron's FindInPageOptions.",
+      "fields": {
+        "forward": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Search forward (default true)."
+        },
+        "findNext": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Start a new find session (default false)."
+        },
+        "matchCase": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Case-sensitive (default false)."
+        }
+      }
+    },
+    "HistoryListOptions": {
+      "doc": "Filters for listHistory, read by listHistory() in history.js.",
+      "fields": {
+        "query": {
+          "type": "string",
+          "optional": true,
+          "doc": "Case-insensitive substring of the URL or title."
+        },
+        "limit": {
+          "type": "number",
+          "optional": true,
+          "doc": "At most this many entries (default 500)."
+        }
+      }
+    },
+    "DisplayPickerChoice": {
+      "doc": "The overlay's answer to the screen-share picker, read by display-capture-picker.js. Main ignores it unless the sender owns that live request.",
+      "fields": {
+        "requestId": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string | null",
+          "optional": true,
+          "doc": "The chosen source. Ignored on Linux, where the system portal chooses."
+        },
+        "computerAudioApproved": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Only honored when the page asked for audio."
+        },
+        "cancelled": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "true cancels the request. The overlay cancels through closeOverlay instead."
+        }
+      }
     }
   },
   "members": [
@@ -1440,7 +1545,8 @@
       "params": [
         {
           "name": "folder",
-          "type": "unknown"
+          "type": "string | null",
+          "doc": "A folder name, or null for no folder. Main trims and validates it."
         }
       ],
       "returns": "void",
@@ -1532,7 +1638,7 @@
         },
         {
           "name": "options",
-          "type": "unknown",
+          "type": "FindInPageOptions",
           "optional": true
         }
       ],
@@ -1611,7 +1717,7 @@
       "params": [
         {
           "name": "rect",
-          "type": "Rect"
+          "type": "IslandRectReport"
         }
       ],
       "doc": "Report the resting pill's rectangle."
@@ -1765,7 +1871,7 @@
       "params": [
         {
           "name": "anchor",
-          "type": "Anchor"
+          "type": "ShieldAnchor"
         }
       ],
       "doc": "Open the site-protection popover."
@@ -1807,7 +1913,7 @@
       "params": [
         {
           "name": "anchor",
-          "type": "Anchor"
+          "type": "CaptureAnchor"
         }
       ],
       "doc": "Open the capture indicator popover."
@@ -1864,7 +1970,7 @@
       "params": [
         {
           "name": "choice",
-          "type": "unknown"
+          "type": "DisplayPickerChoice"
         }
       ],
       "doc": "Answer the screen-share picker."
@@ -1929,7 +2035,7 @@
       "params": [
         {
           "name": "opts",
-          "type": "unknown",
+          "type": "HistoryListOptions",
           "optional": true
         }
       ],
