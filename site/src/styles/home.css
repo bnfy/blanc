@@ -2447,3 +2447,14 @@ html[data-home-appearance] .home-revamp #tools .glance-actions button:is(:hover,
   .home-revamp .patron-offer { padding: 28px 20px 22px; border-top: 1px solid #d4ad6633; }
   .home-revamp .patron-boundary { margin-top: 28px; }
 }
+
+/* Download close: the one button follows the headline directly; the
+   platform shortcuts and help links sit beneath it as quiet secondary
+   rows, so nothing competes with the main action. */
+.home-revamp .download-close { display: flex; flex-direction: column; align-items: center; }
+.home-revamp .download-close .planned-action { margin-top: 36px; padding: 17px 36px; font-size: 16px; }
+.home-revamp .download-close .platforms { gap: 4px 24px; margin: 28px 0 0; color: var(--dim); }
+.home-revamp .download-close .platforms a:is(:hover, :focus-visible) { color: var(--ink); }
+.home-revamp .download-close .platform-logo { width: 15px; height: 17px; }
+.home-revamp .download-close .platform-logo--linux { width: 17px; }
+.home-revamp .download-close .closing-links { margin-top: 14px; font-size: 12px; }

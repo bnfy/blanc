@@ -94,7 +94,13 @@ const openAIAttribution = (() => {
       link.dataset.platform === os ||
       (os === 'mac' && link.dataset.platform === 'mac-arm64')
     );
-    if (preferred?.parentElement === downloadOptions) downloadOptions.prepend(preferred);
+    if (preferred?.parentElement === downloadOptions) {
+      downloadOptions.prepend(preferred);
+      preferred.dataset.preferred = '';
+      downloadOptions.classList.add('has-preferred');
+    }
+    // The matching install steps lead their row; the others stay visible.
+    document.querySelector(`[data-install-os="${os}"]`)?.setAttribute('data-preferred', '');
   }
 
   const pickAsset = (assets, kind) => {
