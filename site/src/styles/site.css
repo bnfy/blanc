@@ -1289,6 +1289,31 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .feature-row-end .text-link { margin-top: 18px; }
 .feature-row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 20px; }
 .feature-row-actions .text-link { margin-top: 0; }
+/* The hub reads as a two-column grid of cards: number in the corner,
+   label and title, then the summary with its link pinned to the foot. */
+.feature-hub-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-left: 1px solid var(--site-border); }
+.feature-hub-row { position: relative; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 34px 40px 36px; border-right: 1px solid var(--site-border); }
+.feature-hub-row--featured, .feature-hub-row--patron { margin: 0; padding: 34px 40px 36px; }
+.feature-hub-row .feature-number { position: absolute; top: 36px; right: 40px; }
+.feature-hub-row .feature-label { padding-right: 48px; }
+.feature-hub-row h2 { max-width: 20ch; font-size: clamp(23px, 2.2vw, 29px); }
+.feature-hub-row .feature-row-end { display: flex; flex: 1; flex-direction: column; align-items: flex-start; padding-top: 16px; }
+.feature-hub-row .feature-row-end p { max-width: 46ch; }
+.feature-hub-row .feature-row-end > .text-link, .feature-hub-row .feature-row-actions { margin-top: auto; padding-top: 20px; }
+/* The everyday details follow the grid at its full width, with room above. */
+.feature-hub-page .feature-copy-grid { max-width: none; margin-top: 96px; padding-bottom: 0; }
+@media (max-width: 1100px) {
+  .feature-hub-row, .feature-hub-row--featured, .feature-hub-row--patron { padding: 28px 28px 30px; }
+  .feature-hub-row .feature-number { top: 30px; right: 28px; }
+}
+@media (max-width: 760px) {
+  .feature-hub-page .feature-copy-grid { margin-top: 64px; }
+  .feature-hub-list { grid-template-columns: 1fr; border-left: 0; }
+  .feature-hub-row, .feature-hub-row--featured, .feature-hub-row--patron { padding: 28px 0 30px; border-right: 0; }
+  .feature-hub-row--featured, .feature-hub-row--patron { margin: 0 -18px; padding-right: 18px; padding-left: 18px; }
+  .feature-hub-row .feature-number { top: 30px; right: 0; }
+  .feature-hub-row--featured .feature-number, .feature-hub-row--patron .feature-number { right: 18px; }
+}
 .feature-patron-cta { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 0 16px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-family: var(--font-mono); font-size: 11.5px; text-decoration: none; transition: opacity 0.15s ease, transform 0.15s ease; }
 .feature-patron-cta:hover { opacity: 0.8; transform: translateY(-1px); }
 .feature-patron-cta:focus-visible { outline: 2px solid var(--site-accent); outline-offset: 3px; }
