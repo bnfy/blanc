@@ -33,7 +33,10 @@ const primarySites = [
   { name: 'Amazon', url: 'https://www.amazon.com/', host: 'amazon.com' },
   { name: 'YouTube', url: 'https://www.youtube.com/', host: 'youtube.com' },
   { name: 'LinkedIn', url: 'https://www.linkedin.com/', host: 'linkedin.com' },
-  { name: 'Stack Overflow', url: 'https://stackoverflow.com/', host: 'stackoverflow.com' },
+  // Stack Exchange returns access-denied pages to the release operator.
+  // Keep 26 real cold-network samples and the same rendered-icon assertions
+  // using this public developer site with a declared ICO instead.
+  { name: 'PostgreSQL', url: 'https://www.postgresql.org/', host: 'postgresql.org' },
   { name: 'npm', url: 'https://www.npmjs.com/', host: 'npmjs.com' },
   { name: 'Mozilla', url: 'https://www.mozilla.org/', host: 'mozilla.org' },
   { name: 'Cloudflare', url: 'https://www.cloudflare.com/', host: 'cloudflare.com' },
