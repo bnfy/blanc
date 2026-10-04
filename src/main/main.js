@@ -9621,7 +9621,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
           const original = fs.renameSync; let writes = 0;
-          fs.renameSync = (from, to) => { if (String(to).endsWith('/session.json') && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
+          fs.renameSync = (from, to) => { if (path.basename(String(to)) === 'session.json' && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
           try { return createBlankWorkspaceAndSwitch(rt(), args[0]); }
           finally { fs.renameSync = original; }
         }

@@ -21,6 +21,7 @@ const common = {
 
 // The scenarios implemented in steps/ (by their stable @F#-n ids).
 const RUNNABLE = [
+  '@F41-12', '@F41-13', '@F41-14',
   '@F41-1', '@F41-2', '@F41-3', '@F41-4', '@F41-5', '@F41-6', '@F41-7', '@F41-8', '@F41-9', '@F41-10', '@F41-11',
   '@F2-1', '@F2-2', '@F2-3', '@F2-4',
   '@F2-5', '@F2-6', '@F2-7',
