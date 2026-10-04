@@ -70,7 +70,8 @@
       "referenceSha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a",
       "evidence": "docs/verification/2026-10-03-horizon-shield-bronze.md",
       "tool": "Built-in image_gen.imagegen; precise-object-edit; transparent output."
-    }
+    },
+    "role": "Preserved layered Horizon variant; available through the default HorizonShield component."
   },
   "reviewedCandidateFiles": [
     {
@@ -100,5 +101,25 @@
     "selector": "#pillShield svg",
     "sha256": "ea9461d7b303ec344785124c05cd3da6015692da90152610f0f647283795b0ce",
     "treatment": "Original Blanc Blocker outline and diagonal, restored verbatim with its native CSS from 03621de6^. The hero reuses that same SVG. Bronze Horizon artwork is reserved for the large Privacy illustration."
+  },
+  "activeArtwork": "blockerArtwork",
+  "blockerArtwork": {
+    "source": "site/src/assets/blocker-shield-bronze.png",
+    "file": "site/public/blocker-shield-bronze.webp",
+    "width": 960,
+    "height": 960,
+    "sourceSha256": "8bd91fd54266428445bd8599d18619e4ed002bd2c140407b887f11c7df74d797",
+    "sha256": "eca877c4bed2cd88d526fd969ba2f89005fbb80cff29244fd2cbece247cb1878",
+    "evidence": "docs/verification/2026-10-03-blocker-shield-bronze.md",
+    "tool": "Built-in image_gen.imagegen; precise-object-edit; transparent output.",
+    "treatment": "New bronze display interpretation of the original Blanc Blocker outline and diagonal slash. The original Horizon artwork and native monochrome Island icon remain unchanged.",
+    "model": {
+      "source": "site/src/scripts/blocker-shield-model.js",
+      "outline": "site/src/data/blocker-shield-outline.json",
+      "outlineSha256": "a172037efa26e77092fa7c935f5e65f6732b068324ddbdce5090ea07fd8002ee",
+      "rebuild": "node site/scripts/build-horizon-outline.mjs blocker",
+      "geometry": "Raised diagonal bronze relief, identical front/back faces and closed beveled side walls.",
+      "rimColor": "#a67b4f"
+    }
   }
 }

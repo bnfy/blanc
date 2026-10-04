@@ -2,7 +2,10 @@
 import sharp from 'sharp';
 import { fileURLToPath } from 'node:url';
 import { writeFile } from 'node:fs/promises';
-const { data, info } = await sharp(fileURLToPath(new URL('../public/horizon-shield.webp', import.meta.url))).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+const variant = process.argv[2] || 'horizon';
+if (!['horizon', 'blocker'].includes(variant)) throw new Error('Expected horizon or blocker');
+const asset = variant === 'blocker' ? 'blocker-shield-bronze' : 'horizon-shield';
+const { data, info } = await sharp(fileURLToPath(new URL(`../public/${asset}.webp`, import.meta.url))).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 const rows = [];
 for (let y = 0; y < info.height; y++) {
   let left = info.width, right = -1;
@@ -23,5 +26,5 @@ const smoothRows = rows.map((row, i) => {
   return [row[0], left / weight, right / weight];
 });
 const outline = smoothRows.filter((_, i) => i === 0 || i === rows.length - 1 || i % 6 === 0).map(row => row.map(n => +n.toFixed(6)));
-await writeFile(new URL('../src/data/horizon-shield-outline.json', import.meta.url), `${JSON.stringify(outline)}\n`);
-console.log(`${outline.length} rows traced from the approved shield alpha channel.`);
+await writeFile(new URL(`../src/data/${variant}-shield-outline.json`, import.meta.url), `${JSON.stringify(outline)}\n`);
+console.log(`${outline.length} rows traced from the ${variant} shield alpha channel.`);

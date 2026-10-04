@@ -5,8 +5,10 @@ import {
 } from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createShieldGeometry } from './horizon-shield-model.js';
+import { createBlockerShieldGeometry } from './blocker-shield-model.js';
 
 export async function createShieldRenderer(mount) {
+  const blockerVariant = mount.dataset.shieldVariant === 'blocker';
   const renderer = new WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setClearColor(0, 0);
@@ -27,7 +29,7 @@ export async function createShieldRenderer(mount) {
   const edgeLight = new DirectionalLight(0xffffff, 0.85);
   edgeLight.position.set(4, 1, -3); scene.add(edgeLight);
   let texture;
-  try { texture = await new TextureLoader().loadAsync('/horizon-shield.webp'); }
+  try { texture = await new TextureLoader().loadAsync(blockerVariant ? '/blocker-shield-bronze.webp' : '/horizon-shield.webp'); }
   catch (error) { environment.dispose(); renderer.dispose(); throw error; }
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
@@ -40,7 +42,8 @@ export async function createShieldRenderer(mount) {
     emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0.1,
     clearcoat: 0,
   });
-  const geometry = Object.fromEntries(Object.entries(createShieldGeometry()).map(([name, data]) => {
+  const model = blockerVariant ? createBlockerShieldGeometry() : createShieldGeometry();
+  const geometry = Object.fromEntries(Object.entries(model).map(([name, data]) => {
     const mesh = new BufferGeometry();
     mesh.setAttribute('position', new BufferAttribute(data.positions, 3));
     mesh.setAttribute('uv', new BufferAttribute(data.uvs, 2));

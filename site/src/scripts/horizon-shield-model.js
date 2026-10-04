@@ -14,13 +14,13 @@ function frontDepth(x, v, t) {
 function geometry(positions, uvs, indices) {
   return { positions: new Float32Array(positions), uvs: new Float32Array(uvs), indices: new Uint32Array(indices) };
 }
-function surface(back = false) {
+function surface(outline, depth, back = false) {
   const positions = [], uvs = [], indices = [];
   for (const [v, left, right] of outline) {
     for (let j = 0; j <= columns; j++) {
       const u = left + (right - left) * j / columns;
       const x = u * 2 - 1, y = 1 - v * 2, t = j / columns * 2 - 1;
-      const z = frontDepth(x, v, t);
+      const z = depth(x, v, t);
       // The reverse is the very same relief and texture, turned 180 degrees.
       positions.push(back ? -x : x, y, back ? -z : z);
       uvs.push(u, 1 - v);
@@ -34,7 +34,7 @@ function surface(back = false) {
   }
   return geometry(positions, uvs, indices);
 }
-function rim() {
+function rim(outline, depth) {
   // Rounded solid perimeter joins front and back, including their narrow caps.
   const boundary = [];
   const top = outline[0], bottom = outline.at(-1);
@@ -49,7 +49,7 @@ function rim() {
       // Join the slightly asymmetric original and its reverse without gaps.
       const reverseMix = (0.075 - z) / 0.15;
       const x = u * 2 - 1 + 2 * (1 - center) * reverseMix;
-      positions.push(x * scale, (1 - v * 2) * scale, frontDepth(u * 2 - 1, v, t) * z / 0.075);
+      positions.push(x * scale, (1 - v * 2) * scale, depth(u * 2 - 1, v, t) * z / 0.075);
       uvs.push(u, 1 - v);
     }
   }
@@ -63,6 +63,6 @@ function rim() {
   }
   return geometry(positions, uvs, indices);
 }
-export function createShieldGeometry() {
-  return { front: surface(), back: surface(true), rim: rim() };
+export function createShieldGeometry({ silhouette = outline, depth = frontDepth } = {}) {
+  return { front: surface(silhouette, depth), back: surface(silhouette, depth, true), rim: rim(silhouette, depth) };
 }

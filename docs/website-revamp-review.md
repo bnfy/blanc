@@ -327,3 +327,15 @@ the native quiet/zero-count state, which is intentionally gray in the app.
 The figure's accessible description identifies its tabs and badge as an
 illustration; it is not a live measurement of blancbrowser.com. Native state
 colors and blocking behavior remain unchanged.
+
+## Bronze Blocker display variant (October 3)
+
+The Privacy section now previews a second bronze 3D shield whose peaked top,
+curved lower sides and diagonal slash follow the original Blanc Blocker icon.
+The existing layered Horizon artwork and model remain available through the
+default HorizonShield component; the homepage selects its blocker variant.
+The new model has raised diagonal relief and closed bronze walls, with identical
+front and back artwork. Both variants retain the existing lighting, scroll
+rotation, reduced-motion handling and static fallback. The original monochrome
+Island icon and app-only PR #502 are unchanged. Generation prompt, references
+and export details are in docs/verification/2026-10-03-blocker-shield-bronze.md.

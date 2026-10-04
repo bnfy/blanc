@@ -31,6 +31,9 @@ Product marks:
 
 - `assets/horizon-shield.png` — layered copper/bronze Horizon Shield source artwork
 - `site/public/horizon-shield.webp` — transparent website export
+- `site/src/assets/blocker-shield-bronze.png` — bronze display interpretation of the original Blocker outline and slash
+- `site/public/blocker-shield-bronze.webp` — transparent website export of that interpretation
+- `site/src/data/blocker-shield-outline.json` — silhouette for that 3D display variant
 - `site/src/data/horizon-shield-outline.json` — silhouette for the website’s 3D product mark
 
 App-icon colorways:

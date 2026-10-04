@@ -1,4 +1,5 @@
 ---
+import HorizonShield from "../components/HorizonShield.astro";
 import PlatformLogo from "../components/PlatformLogo.astro";
 import BrandMark from "../components/BrandMark.astro";
 import NativeIslandHero from "../components/NativeIslandHero.astro";
@@ -515,15 +516,7 @@ const structuredData = {
               <h2 id="privacy-title">Your blocking.<br />Your choice.</h2>
               <p class="lead">Choose how Blanc blocks ads and trackers.</p>
             </header>
-            <figure class="horizon-study" aria-label="Horizon Shield">
-              <div class="horizon-stage" aria-hidden="true">
-                <div class="horizon-light"></div>
-                <div class="horizon-turn">
-                  <img class="horizon-fallback" src="/horizon-shield.webp" alt="" width="960" height="960" loading="lazy" decoding="async" />
-                </div>
-                <div class="horizon-shadow"></div>
-              </div>
-            </figure>
+            <HorizonShield variant="blocker" />
             <div class="blocking-options">
               <div class="blocking-option">
                 <h3>Blanc Blocker</h3>

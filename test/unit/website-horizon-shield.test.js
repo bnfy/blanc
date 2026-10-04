@@ -97,42 +97,47 @@ test('failed 3D initialization leaves the static artwork and does not retry ever
   assert.doesNotMatch(css, /rotateY\(var\(--shield-turn/);
 });
 
-test('front and back have identical relief and UVs joined by a solid beveled perimeter', async () => {
-  const { createShieldGeometry } = await load('site/src/scripts/horizon-shield-model.js');
-  const shapes = createShieldGeometry();
-  const front = shapes.front.positions, back = shapes.back.positions;
-  assert.equal(front.length, back.length);
-  assert.ok(Math.max(...front.filter((_, i) => i % 3 === 2)) > 0.2);
-  assert.ok(Math.min(...back.filter((_, i) => i % 3 === 2)) < -0.2, 'physical thickness survives an edge-on turn');
-  for (let i = 0; i < front.length; i += 3) {
-    assert.equal(front[i], -back[i]);
-    assert.equal(front[i + 1], back[i + 1]);
-    assert.equal(front[i + 2], -back[i + 2]);
-  }
-  assert.deepEqual(shapes.front.uvs, shapes.back.uvs);
-  const rim = shapes.rim;
-  for (let i = 0; i < rim.indices.length; i += 3) {
-    const a = rim.indices[i] * 3, b = rim.indices[i + 1] * 3, c = rim.indices[i + 2] * 3;
-    const ab = [0, 1, 2].map(k => rim.positions[b + k] - rim.positions[a + k]);
-    const ac = [0, 1, 2].map(k => rim.positions[c + k] - rim.positions[a + k]);
-    const normal = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2]];
-    const outward = normal[0] * rim.positions[a] + normal[1] * rim.positions[a + 1];
-    assert.ok(outward > 0, 'side normals must face outward, or back-face culling exposes the hollow interior');
-  }
-  const edges = new Map();
-  for (const shape of Object.values(shapes)) {
-    const p = shape.positions, indices = shape.indices;
-    const key = i => [p[i * 3], p[i * 3 + 1], p[i * 3 + 2]].map(n => n.toFixed(5)).join(',');
-    for (let i = 0; i < indices.length; i += 3) {
-      const triangle = [key(indices[i]), key(indices[i + 1]), key(indices[i + 2])];
-      for (let j = 0; j < 3; j++) {
-        const edge = [triangle[j], triangle[(j + 1) % 3]].sort().join('|');
-        edges.set(edge, (edges.get(edge) || 0) + 1);
+for (const [variant, modelFile, factory] of [
+  ['Horizon', 'horizon-shield-model.js', 'createShieldGeometry'],
+  ['original Blocker', 'blocker-shield-model.js', 'createBlockerShieldGeometry'],
+]) {
+  test(`${variant}: identical front/back relief and UVs joined by a closed beveled perimeter`, async () => {
+    const model = await load(`site/src/scripts/${modelFile}`);
+    const shapes = model[factory]();
+    const front = shapes.front.positions, back = shapes.back.positions;
+    assert.equal(front.length, back.length);
+    assert.ok(Math.max(...front.filter((_, i) => i % 3 === 2)) > 0.2);
+    assert.ok(Math.min(...back.filter((_, i) => i % 3 === 2)) < -0.2, 'physical thickness survives an edge-on turn');
+    for (let i = 0; i < front.length; i += 3) {
+      assert.equal(front[i], -back[i]);
+      assert.equal(front[i + 1], back[i + 1]);
+      assert.equal(front[i + 2], -back[i + 2]);
+    }
+    assert.deepEqual(shapes.front.uvs, shapes.back.uvs);
+    const rim = shapes.rim;
+    for (let i = 0; i < rim.indices.length; i += 3) {
+      const a = rim.indices[i] * 3, b = rim.indices[i + 1] * 3, c = rim.indices[i + 2] * 3;
+      const ab = [0, 1, 2].map(k => rim.positions[b + k] - rim.positions[a + k]);
+      const ac = [0, 1, 2].map(k => rim.positions[c + k] - rim.positions[a + k]);
+      const normal = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2]];
+      const outward = normal[0] * rim.positions[a] + normal[1] * rim.positions[a + 1];
+      assert.ok(outward > 0, 'side normals must face outward, or back-face culling exposes the hollow interior');
+    }
+    const edges = new Map();
+    for (const shape of Object.values(shapes)) {
+      const p = shape.positions, indices = shape.indices;
+      const key = i => [p[i * 3], p[i * 3 + 1], p[i * 3 + 2]].map(n => n.toFixed(5)).join(',');
+      for (let i = 0; i < indices.length; i += 3) {
+        const triangle = [key(indices[i]), key(indices[i + 1]), key(indices[i + 2])];
+        for (let j = 0; j < 3; j++) {
+          const edge = [triangle[j], triangle[(j + 1) % 3]].sort().join('|');
+          edges.set(edge, (edges.get(edge) || 0) + 1);
+        }
       }
     }
-  }
-  assert.ok([...edges.values()].every(count => count === 2), 'every welded edge belongs to two triangles: no open sides');
-});
+    assert.ok([...edges.values()].every(count => count === 2), 'every welded edge belongs to two triangles: no open sides');
+  });
+}
 
 test('provider launch copy stays release-gated with bronze display artwork and native monochrome Island icon', async () => {
   const ledger = JSON.parse(read('docs/website-blocking-launch.json'));
@@ -174,6 +179,16 @@ test('provider launch copy stays release-gated with bronze display artwork and n
   assert.deepEqual(await sharp(master).trim({threshold:8}).resize(960,960,options).webp({quality:90,alphaQuality:100,effort:6}).toBuffer(), artwork,
     'the large display artwork must be an unfiltered export of the bronze master');
   assert.ok(read('ASSET-LICENSE.md').includes(ledger.artwork.file));
+  const activeArtwork = ledger[ledger.activeArtwork];
+  const blockerMaster = fs.readFileSync(path.join(root, activeArtwork.source));
+  const blockerExport = fs.readFileSync(path.join(root, activeArtwork.file));
+  assert.equal(hash(blockerMaster), activeArtwork.sourceSha256);
+  assert.equal(hash(blockerExport), activeArtwork.sha256);
+  assert.equal(hash(fs.readFileSync(path.join(root, activeArtwork.model.outline))), activeArtwork.model.outlineSha256);
+  assert.deepEqual(await sharp(blockerMaster).trim({threshold:8}).resize(960,960,options).webp({quality:90,alphaQuality:100,effort:6}).toBuffer(), blockerExport,
+    'the new Blocker display export preserves its own bronze master');
+  assert.ok(read('ASSET-LICENSE.md').includes(activeArtwork.file));
+  assert.match(home, /<HorizonShield variant="blocker"/);
   assert.match(home, /href="\/trust#ad-blocking"/);
   assert.match(home, /href="\/trust#connections"/);
 });
