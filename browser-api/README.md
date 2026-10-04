@@ -55,6 +55,8 @@ it confirms:
   contract member.
 - **Payloads:** event payloads and invoke results are pinned field by field
   (see below).
+- **Parameters:** object parameters are checked from both ends: what the
+  renderers send and what main reads (see below).
 - **Generated files** are current.
 
 `test/unit/browser-api-contract.test.js` changes the preload and the contract in
@@ -68,7 +70,11 @@ fall through, a drifting returned object, a new workspace error code or
 protection reason, a drifting handler-table result, a try block that can fall
 through, a returned literal outside its union, a drifting returned local, a
 drifting or falling-through 1Password fill result) and narrows contract enums
-and list types, and requires those to be reported too.
+and list types, and requires those to be reported too. Renderer and main edits
+to object parameters (an extra or missing field sent, a field sent through a
+helper's call sites, an unreadable argument, an undeclared field read directly,
+nested or in a forwarded module, a type that drifts from Electron's options)
+must be reported as well.
 
 ## Pinned payloads
 
@@ -183,6 +189,34 @@ The rest are proven by executing the code that builds them:
   `SearchEngineId` must list exactly the engines in
   `settings-schema/schema.json`.
 
+## Parameter shapes
+
+A parameter whose type is a structured type (`ShieldAnchor`,
+`FindInPageOptions`, `DisplayPickerChoice`, …) is checked from both ends:
+
+- **Renderers:** every object passed for it in `src/renderer` (through
+  `browserAPI` or an alias passed as `api: window.browserAPI`) must fit the
+  type: no unknown fields and every required one present. The argument may be
+  an object literal (including `...(cond ? { a } : {})`), a ternary, a local
+  bound to one, a call to a function in the same file that returns one, or a
+  parameter of the enclosing named function. A parameter is followed to that
+  function's call sites and default. Anything else fails, so a new call site
+  has to be readable.
+- **Main:** every field its handler reads (`anchor.center`, `rect?.shieldAnchor?.trigger`,
+  `const { query } = opts`) must be in the type, nested types included. The
+  value is followed into local functions it is passed to and into the module
+  functions listed in `FORWARDED_PARAMS` (`popupPoint`,
+  `ratioForGlanceDivider`, `listHistory`, the screen-share picker's `resolve`).
+  The display-capture brokers' own picker listener is not checked because the
+  app disables it (`handlePickerIpc: false`).
+- **Electron:** `FindInPageOptions` goes to `webContents.findInPage` unchanged,
+  so it must name the same fields as Electron's interface in `electron.d.ts`.
+  That file comes with `node_modules`, so this part runs in the substrate CI job
+  and is skipped by the dependency-free parity step.
+
+Main reads are found by name, so a value copied into another variable or
+object (`popup.anchor = rect.shieldAnchor`) is not followed further.
+
 ## Changing the bridge
 
 Change `src/main/preload.js` and `contract.json` together, then run
@@ -198,12 +232,12 @@ in `contract.json`. So does a new return value from one of the helper modules.
 ## Coverage today
 
 The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
-events), and every member's IPC behaviour is checked. Every result and event
-payload is typed:
+events), and every member's IPC behaviour is checked. Every parameter, result
+and event payload is typed:
 
 | Area | Typed | Still `unknown` |
 | --- | --- | --- |
-| Parameters | 67 of 73 | 6: anchors, the find options, history options, the Favorites folder and the screen-share picker choice |
+| Parameters | 73 of 73 | none |
 | `invoke` results | 59 of 59 | none |
 | Event payloads | 16 of 16 | none |
 

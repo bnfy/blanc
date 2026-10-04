@@ -66,9 +66,6 @@ export interface Rect {
   height: number;
 }
 
-/** Popover anchor geometry sent by the strip. Shape not yet pinned. */
-export type Anchor = unknown;
-
 /** A pending permission prompt, built by the permission prompter in main.js. */
 export interface PermissionPromptPayload {
   id: PermissionPromptId;
@@ -520,6 +517,62 @@ export interface FillLoginSuccess {
   filledPass: boolean;
 }
 
+/** The resting pill's rectangle as the strip reports it, plus the open shield popover's anchor. */
+export interface IslandRectReport {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Present while the shield popover is open, so a uBlock Origin popup can follow the pill. */
+  shieldAnchor?: ShieldAnchor;
+}
+
+/** Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window. */
+export interface ShieldAnchor {
+  /** The control's right edge. */
+  right: number;
+  /** The control's horizontal centre. */
+  center: number;
+  /** The control's bottom edge. */
+  bottom: number;
+  trigger: ShieldTrigger;
+}
+
+/** Where the capture popover opens. */
+export interface CaptureAnchor {
+  /** The capture chip's right edge. */
+  right: number;
+}
+
+/** Options for findInPage, passed to Electron's webContents.findInPage unchanged. Must name the same fields as Electron's FindInPageOptions. */
+export interface FindInPageOptions {
+  /** Search forward (default true). */
+  forward?: boolean;
+  /** Start a new find session (default false). */
+  findNext?: boolean;
+  /** Case-sensitive (default false). */
+  matchCase?: boolean;
+}
+
+/** Filters for listHistory, read by listHistory() in history.js. */
+export interface HistoryListOptions {
+  /** Case-insensitive substring of the URL or title. */
+  query?: string;
+  /** At most this many entries (default 500). */
+  limit?: number;
+}
+
+/** The overlay's answer to the screen-share picker, read by display-capture-picker.js. Main ignores it unless the sender owns that live request. */
+export interface DisplayPickerChoice {
+  requestId: string;
+  /** The chosen source. Ignored on Linux, where the system portal chooses. */
+  sourceId?: string | null;
+  /** Only honored when the page asked for audio. */
+  computerAudioApproved?: boolean;
+  /** true cancels the request. The overlay cancels through closeOverlay instead. */
+  cancelled?: boolean;
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -658,9 +711,10 @@ export interface BlancBrowserAPI {
   toggleBookmark(): Promise<void>;
   /**
    * Save the active tab as a Favorite in a folder.
+   * @param folder A folder name, or null for no folder. Main trims and validates it.
    * IPC: invoke `tabs:save-favorite`.
    */
-  saveFavorite(folder: unknown): Promise<void>;
+  saveFavorite(folder: string | null): Promise<void>;
   /**
    * Pin or unpin a tab. Resolves to the new pinned state, or false when the tab is unknown.
    * IPC: invoke `tabs:toggle-pinned`.
@@ -690,7 +744,7 @@ export interface BlancBrowserAPI {
    * Find text in a page. Resolves to Electron's find request id, to whether a quiet tab woke (find again once it has), or to undefined for an unknown tab. Counts arrive through onFindResult.
    * IPC: invoke `tabs:find`.
    */
-  findInPage(id: TabId, query: string, options?: unknown): Promise<number | boolean | undefined>;
+  findInPage(id: TabId, query: string, options?: FindInPageOptions): Promise<number | boolean | undefined>;
   /**
    * Stop find-in-page. Resolves to the Electron WebContents method's undefined result.
    * IPC: invoke `tabs:find-stop`.
@@ -715,7 +769,7 @@ export interface BlancBrowserAPI {
    * Report the resting pill's rectangle.
    * IPC: send `chrome:island-rect`.
    */
-  reportIslandRect(rect: Rect): void;
+  reportIslandRect(rect: IslandRectReport): void;
   /**
    * Where the shield popover should anchor.
    * IPC: event `overlay:shield-anchor`.
@@ -790,7 +844,7 @@ export interface BlancBrowserAPI {
    * Open the site-protection popover.
    * IPC: send `chrome:open-shield`.
    */
-  openShieldPopover(anchor: Anchor): void;
+  openShieldPopover(anchor: ShieldAnchor): void;
   /**
    * Choose the blocking provider from the shield popover. Resolves to false when refused; on a restart, to whether the restart went ahead.
    * @param restart  Defaults to false.
@@ -806,7 +860,7 @@ export interface BlancBrowserAPI {
    * Open the capture indicator popover.
    * IPC: send `chrome:open-capture`.
    */
-  openCapturePopover(anchor: Anchor): void;
+  openCapturePopover(anchor: CaptureAnchor): void;
   /**
    * Stop capture on a surface.
    * IPC: send `chrome:capture-stop`.
@@ -826,7 +880,7 @@ export interface BlancBrowserAPI {
    * Answer the screen-share picker.
    * IPC: send `display-capture:picker-resolve`.
    */
-  resolveDisplayPicker(choice: unknown): void;
+  resolveDisplayPicker(choice: DisplayPickerChoice): void;
   /**
    * Open the platform main menu at a point (strip only). Resolves to whether a menu item was chosen.
    * IPC: invoke `chrome:open-main-menu`.
@@ -851,7 +905,7 @@ export interface BlancBrowserAPI {
    * List history entries, newest first.
    * IPC: invoke `chrome:history-list`.
    */
-  listHistory(opts?: unknown): Promise<HistoryEntry[]>;
+  listHistory(opts?: HistoryListOptions): Promise<HistoryEntry[]>;
   /**
    * List Favorites.
    * IPC: invoke `chrome:favorites-list`.
