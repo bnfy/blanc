@@ -64,6 +64,9 @@ probe. Native hosted checks do not establish physical-machine results.
 Rosetta is excluded; the existing Ubuntu 26.04 ARM64 VM was not changed and
 cannot run the x64 AppImage. No new VM or sandbox bypass was introduced.
 
-Adjacent **public-feed** v1.26.0 → v1.27.0 macOS and Windows Restart Now handoffs
-remain pending. Earlier authenticated staged candidate handoffs are separate
-evidence. No unperformed handoff is marked passed or waived.
+On October 4, 2026, the owner reported “auto updates succeeded” and confirmed
+**“Both macOS and Windows”** when asked which public v1.26.0 → v1.27.0 updates
+completed through **Restart Now**. Both adjacent public-feed handoffs are
+owner-confirmed. Earlier authenticated staged candidate handoffs remain
+separate evidence. This does not add an observation of post-update window
+close or shortcut relaunch; no unperformed check is marked passed or waived.

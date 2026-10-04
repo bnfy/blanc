@@ -280,7 +280,7 @@
     "Candidate installed acceptance remains bound to its original source and artifact hashes; not relabelled as final build 1274 installed testing.",
     "Native hosted Intel/Windows/Linux results are not physical-machine results.",
     "Rosetta is excluded; the existing Ubuntu 26.04 ARM64 VM was not changed and cannot certify the x64 AppImage.",
-    "Adjacent public v1.26.0 to v1.27.0 macOS and Windows Restart Now handoffs remain pending."
+    "Owner-confirmed public updater handoffs do not assert an additional post-update close-last-window or shortcut relaunch observation."
   ],
   "productionWebsite": {
     "project": "blancbrowser",
@@ -305,5 +305,20 @@
       "releaseLink": "https://github.com/bnfy/blanc/releases/tag/v1.27.0",
       "sha256": "41c54dba176e090e44dcdbf021061258bb4e6a112284767f89edd01f7ffbd97e"
     }
+  },
+  "ownerConfirmedPublicUpdaterHandoffs": {
+    "date": "2026-10-04",
+    "fromVersion": "1.26.0",
+    "toVersion": "1.27.0",
+    "channel": "public stable",
+    "mechanism": "Restart Now",
+    "platforms": [
+      "macOS",
+      "Windows"
+    ],
+    "result": "owner-confirmed success",
+    "initialReport": "auto updates succeeded",
+    "confirmationQuestion": "Which public v1.26.0 \u2192 v1.27.0 updates completed through \u201cRestart Now\u201d?",
+    "confirmationAnswer": "Both macOS and Windows"
   }
 }
