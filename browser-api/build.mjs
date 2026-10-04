@@ -17,7 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { createRequire } from 'node:module';
+import { Module, createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -26,6 +26,7 @@ const OUT = path.join(ROOT, 'browser-api', 'generated');
 const PRELOAD = path.join(ROOT, 'src', 'main', 'preload.js');
 const MAIN_DIR = path.join(ROOT, 'src', 'main');
 const RENDERER_DIR = path.join(ROOT, 'src', 'renderer');
+const SETTINGS_SCHEMA = path.join(ROOT, 'settings-schema', 'schema.json');
 
 export const PLATFORMS = ['darwin', 'win32', 'linux'];
 const KINDS = new Set(['value', 'invoke', 'send', 'event']);
@@ -315,6 +316,7 @@ function validateAlternative(value, alt, contract, where) {
   if (alt === 'string') return typeof value === 'string' ? [] : fail;
   if (alt === 'number') return Number.isFinite(value) ? [] : fail;
   if (alt === 'boolean') return typeof value === 'boolean' ? [] : fail;
+  if (alt === 'true' || alt === 'false') return value === (alt === 'true') ? [] : fail;
   if (alt === 'null') return value === null ? [] : fail;
   if (alt === 'undefined' || alt === 'void') return value === undefined ? [] : fail;
   if (/^'[^']*'$/.test(alt)) return value === alt.slice(1, -1) ? [] : fail;
@@ -367,7 +369,9 @@ function balanced(text, start) {
   throw new Error(`unbalanced braces from offset ${start}`);
 }
 
-// Top-level keys of an object literal (`{ a: 1, b, ...c }` → keys a, b and spread c).
+// Top-level keys of an object literal (`{ a: 1, b, ...c }` → keys a, b and
+// spread c). `values` maps a key to its value when that is a plain literal
+// (`'x'`, true, false, null or a number), as the literal's own source text.
 export function literalKeys(objectText) {
   const body = objectText.slice(1, -1);
   const entries = [];
@@ -390,13 +394,16 @@ export function literalKeys(objectText) {
   entries.push(current);
   const keys = [];
   const spreads = [];
+  const values = {};
   for (const raw of entries.map((e) => e.trim()).filter(Boolean)) {
     if (raw.startsWith('...')) { spreads.push(raw.slice(3).trim()); continue; }
-    const m = raw.match(/^([A-Za-z_$][\w$]*)\s*(?::|$)/);
-    if (m) keys.push(m[1]);
-    else throw new Error(`cannot read object key from "${raw.slice(0, 40)}"`);
+    const m = raw.match(/^([A-Za-z_$][\w$]*)\s*(?::\s*([^]*))?$/);
+    if (!m) throw new Error(`cannot read object key from "${raw.slice(0, 40)}"`);
+    keys.push(m[1]);
+    const value = m[2]?.trim();
+    if (value && /^(?:'[^']*'|true|false|null|-?\d[\d.]*)$/.test(value)) values[m[1]] = value;
   }
-  return { keys, spreads };
+  return { keys, spreads, values };
 }
 
 function functionBody(source, name) {
@@ -579,9 +586,41 @@ function skipNestedFunctions(body) {
 function topLevelReturns(block) {
   const flat = skipNestedFunctions(block.slice(1, -1));
   const results = [...flat.matchAll(/\breturn\b\s*([^;]*);?/g)].map((m) => m[1].trim());
-  // Falling off the end resolves to undefined unless the body ends in a return/throw.
-  if (!/\b(?:return|throw)\b[^;]*;?\s*$/.test(flat.trim())) results.push('');
+  // Falling off the end resolves to undefined.
+  if (completes(flat)) results.push('');
   return results;
+}
+
+// Start of the last top-level `{ … }` block in a statement list.
+function lastBlockStart(text) {
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+      continue;
+    }
+    if (ch === '{') { if (depth === 0) start = i; depth++; } else if (ch === '}') depth--;
+  }
+  return start;
+}
+
+// Whether a statement list can run off its end: it doesn't end in a return or
+// throw. A trailing `try { … } catch { … } finally { … }` can't when its try
+// and catch blocks can't (or its finally block itself returns). Any other
+// trailing block (if, loop) is assumed to complete.
+function completes(statements) {
+  const text = statements.trim();
+  if (!text.endsWith('}')) return !/\b(?:return|throw)\b[^;]*;?$/.test(text);
+  const open = lastBlockStart(text);
+  const head = text.slice(0, open).trimEnd();
+  const inner = text.slice(open + 1, -1);
+  if (/\bfinally$/.test(head)) return completes(inner) && completes(head.slice(0, -'finally'.length));
+  const caught = head.match(/\bcatch\s*(?:\([^)]*\))?$/);
+  if (caught) return completes(inner) || completes(head.slice(0, caught.index));
+  if (/\btry$/.test(head)) return completes(inner);
+  return true;
 }
 
 function classify(expr) {
@@ -622,6 +661,7 @@ export function resultKinds(contract, member, sources = mainSources()) {
   const main = sources.find((s) => s.file === 'main.js').text;
   const handler = handlerExpression(main, member.channel);
   if (!handler) return null;
+  const scope = handler.block ?? '';
   const exprs = handler.block ? topLevelReturns(handler.block) : [handler.expr];
   const kinds = [];
   for (const expr of exprs) {
@@ -629,10 +669,94 @@ export function resultKinds(contract, member, sources = mainSources()) {
     const helper = call && sources.find((s) => new RegExp(`(?:^|\\n)(?:async\\s+)?function\\s+${call[1]}\\s*\\(`).test(s.text));
     if (helper) {
       const body = functionBody(helper.text.replace(/async\s+function/g, 'function'), call[1]);
-      kinds.push(...topLevelReturns(body).map(classify));
-    } else kinds.push(classify(expr));
+      kinds.push(...returnKinds(body));
+    } else kinds.push(classifyIn(scope, expr));
   }
   return kinds;
+}
+
+// Classify a function body's top-level returns. A returned local that was
+// bound to an object literal (`const response = { … }; … return response;`)
+// is read as that literal.
+function returnKinds(body) {
+  return topLevelReturns(body).map((expr) => classifyIn(body, expr));
+}
+
+function classifyIn(scope, expr) {
+  const kind = classify(expr);
+  if (kind.kind !== 'opaque' || !/^[A-Za-z_$][\w$]*$/.test(kind.text)) return kind;
+  const decl = scope.match(new RegExp(`\\bconst\\s+${kind.text}\\s*=\\s*\\{`));
+  return decl ? { kind: 'object', text: balanced(scope, decl.index + decl[0].length - 1) } : kind;
+}
+
+// Handlers that forward a module function's result unread. That function's
+// own top-level returns are classified the same way and must fit the member's
+// result type too.
+const FORWARDED_RESULTS = [
+  { member: 'fillLoginFromOnePassword', file: 'credential-fill-controller.js', functions: ['fill', 'failWithError'] },
+];
+
+// The body of `const <name> = (…) => { … }` (or `async (…) => { … }`).
+function arrowBody(source, name) {
+  const at = source.search(new RegExp(`\\bconst\\s+${name}\\s*=\\s*(?:async\\s*)?\\(`));
+  if (at < 0) throw new Error(`const ${name} = (…) => { … } not found`);
+  const arrow = source.indexOf('=>', at);
+  const open = source.indexOf('{', arrow);
+  if (source.slice(arrow + 2, open).trim()) throw new Error(`${name} is not a block-bodied arrow function`);
+  return balanced(source, open);
+}
+
+// Whether a literal's source text (`'x'`, true, null, 3) is allowed by a type expression.
+function literalFits(literal, expr, contract) {
+  return splitUnion(expr).some((alt) => {
+    if (alt === 'unknown' || alt === literal) return true;
+    const named = contract.types[alt];
+    if (named?.ts !== undefined) return literalFits(literal, named.ts, contract);
+    if (literal.startsWith("'")) return alt === 'string';
+    if (literal === 'true' || literal === 'false') return alt === 'boolean';
+    return literal !== 'null' && alt === 'number';
+  });
+}
+
+function checkKinds(where, kinds, returns, contract, sources) {
+  const problems = [];
+  const alts = splitUnion(returns);
+  const allows = (k) => alts.includes(k) || (k === 'undefined' && alts.includes('void'));
+  const structured = alts.map((a) => contract.types[a]?.fields ? a : null).filter(Boolean);
+  for (const k of kinds) {
+    if (k.kind === 'opaque') {
+      if (alts.length === 1 && (alts[0] === 'void' || alts[0] === 'undefined')) problems.push(`${where}: returns a value (${k.text.slice(0, 50)}) but the contract says ${returns}`);
+      continue;
+    }
+    if (k.kind === 'object') {
+      if (!structured.length) { problems.push(`${where}: returns an object literal but the contract says ${returns}`); continue; }
+      try {
+        const { keys, spreads, values } = literalKeys(balanced(k.text, 0));
+        // `...helper()` contributes the keys that helper returns; a spread of
+        // an opaque value (`...result`) can't be read, so it only waives the
+        // required-field check.
+        let opaqueSpread = false;
+        for (const spread of spreads) {
+          const call = spread.match(/^([A-Za-z_$][\w$]*)\(\)$/);
+          if (call) keys.push(...returnedKeys(sources, call[1]).keys);
+          else opaqueSpread = true;
+        }
+        // Literal values (`error: 'busy'`, `ok: false`) must also fit the field.
+        const fits = structured.some((t) => {
+          const f = contract.types[t].fields;
+          return keys.every((key) => key in f && (!(key in values) || literalFits(values[key], f[key].type, contract)))
+            && (opaqueSpread || Object.keys(f).every((key) => f[key].optional || keys.includes(key)));
+        });
+        const shown = keys.map((key) => (key in values ? `${key}: ${values[key]}` : key));
+        if (!fits) problems.push(`${where}: returned object { ${shown.join(', ')}${opaqueSpread ? ', …' : ''} } does not match ${structured.join(' | ')}`);
+      } catch (error) { problems.push(`${where}: ${error.message}`); }
+      continue;
+    }
+    if (k.kind === 'string' && alts.some((a) => a === `'${k.value}'` || a === 'string')) continue;
+    if (k.kind === 'number' && alts.includes('number')) continue;
+    if (!allows(k.kind)) problems.push(`${where}: can resolve to ${k.kind === 'string' ? `'${k.value}'` : k.kind}, which ${returns} does not allow`);
+  }
+  return problems;
 }
 
 export function checkInvokeResults(contract, rawSources = mainSources()) {
@@ -643,38 +767,16 @@ export function checkInvokeResults(contract, rawSources = mainSources()) {
     const where = `${m.name} result`;
     const kinds = resultKinds(contract, m, sources);
     if (!kinds) { problems.push(`${where}: handler for '${m.channel}' not found as chromeHandle('${m.channel}', …) in main.js`); continue; }
-    const alts = splitUnion(m.returns);
-    const allows = (k) => alts.includes(k) || (k === 'undefined' && alts.includes('void'));
-    const structured = alts.map((a) => contract.types[a]?.fields ? a : null).filter(Boolean);
-    for (const k of kinds) {
-      if (k.kind === 'opaque') {
-        if (alts.length === 1 && (alts[0] === 'void' || alts[0] === 'undefined')) problems.push(`${where}: returns a value (${k.text.slice(0, 50)}) but the contract says ${m.returns}`);
-        continue;
-      }
-      if (k.kind === 'object') {
-        if (!structured.length) { problems.push(`${where}: returns an object literal but the contract says ${m.returns}`); continue; }
-        try {
-          const { keys, spreads } = literalKeys(balanced(k.text, 0));
-          // `...helper()` contributes the keys that helper returns; a spread of
-          // an opaque value (`...result`) can't be read, so it only waives the
-          // required-field check.
-          let opaqueSpread = false;
-          for (const spread of spreads) {
-            const call = spread.match(/^([A-Za-z_$][\w$]*)\(\)$/);
-            if (call) keys.push(...returnedKeys(sources, call[1]).keys);
-            else opaqueSpread = true;
-          }
-          const fits = structured.some((t) => {
-            const f = contract.types[t].fields;
-            return keys.every((key) => key in f) && (opaqueSpread || Object.keys(f).every((key) => f[key].optional || keys.includes(key)));
-          });
-          if (!fits) problems.push(`${where}: returned object { ${keys.join(', ')}${opaqueSpread ? ', …' : ''} } does not match ${structured.join(' | ')}`);
-        } catch (error) { problems.push(`${where}: ${error.message}`); }
-        continue;
-      }
-      if (k.kind === 'string' && alts.some((a) => a === `'${k.value}'` || a === 'string')) continue;
-      if (k.kind === 'number' && alts.includes('number')) continue;
-      if (!allows(k.kind)) problems.push(`${where}: can resolve to ${k.kind === 'string' ? `'${k.value}'` : k.kind}, which ${m.returns} does not allow`);
+    problems.push(...checkKinds(where, kinds, m.returns, contract, sources));
+  }
+  for (const { member, file, functions } of FORWARDED_RESULTS) {
+    const m = contract.members.find((x) => x.name === member);
+    const source = sources.find((s) => s.file === file);
+    if (!m || !source) { problems.push(`forwarded result ${member}: ${!m ? 'not a contract member' : `${file} not found`}`); continue; }
+    for (const fn of functions) {
+      try {
+        problems.push(...checkKinds(`${member} result (${file} ${fn})`, returnKinds(arrowBody(source.text, fn)), m.returns, contract, sources));
+      } catch (error) { problems.push(`${member} result (${file}): ${error.message}`); }
     }
   }
   return problems;
@@ -764,6 +866,143 @@ export function workspaceControllerFixtures() {
   return cases;
 }
 
+// A canonical PNG data URL with the header the icon validators check
+// (signature, IHDR, square size); no pixel data is needed for that.
+function iconFixture(size) {
+  const header = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(header);
+  header.writeUInt32BE(13, 8);
+  header.write('IHDR', 12, 'ascii');
+  header.writeUInt32BE(size, 16);
+  header.writeUInt32BE(size, 20);
+  return `data:image/png;base64,${header.toString('base64')}`;
+}
+
+// history.js and bookmarks.js keep their data in a JsonStore, which needs
+// Electron. Load fresh copies of both against an in-memory store, run them,
+// and leave the module cache as it was.
+function withMemoryStore(run) {
+  const storePath = requireMain.resolve('./store');
+  const modules = ['./history', './bookmarks'].map((m) => requireMain.resolve(m));
+  const cache = requireMain.cache;
+  const saved = [storePath, ...modules].map((key) => [key, cache[key]]);
+  class MemoryStore {
+    constructor(_name, defaults) { this.data = structuredClone(defaults); }
+    update(mutate) { mutate(this.data); }
+  }
+  const stub = new Module(storePath);
+  Object.assign(stub, { filename: storePath, loaded: true, exports: { JsonStore: MemoryStore } });
+  cache[storePath] = stub;
+  for (const key of modules) delete cache[key];
+  try {
+    return run(requireMain('./history'), requireMain('./bookmarks'));
+  } finally {
+    for (const [key, module] of saved) {
+      if (module) cache[key] = module;
+      else delete cache[key];
+    }
+  }
+}
+
+export function listFixtures() {
+  const { ICON_SIZE, LEGACY_ICON_SIZE } = requireMain('./tabicons-model');
+  const icon = iconFixture(ICON_SIZE);
+  const cases = [];
+  const add = (label, type, value) => cases.push({ label, type, value });
+  withMemoryStore((history, bookmarks) => {
+    history.addVisit('https://example.com/a', 'Example');
+    history.addVisit('https://example.com/a', 'Example, retitled');
+    history.addVisit('https://example.org/', '');
+    history.addVisit('blanc://newtab/', 'Not recorded');
+    history.updateTitle('https://example.org/', 'Org');
+    history.cacheSiteIcon('https://example.com/a', icon);
+    history.cacheSiteIcon('https://example.org/', 'data:image/png;base64,invalid');
+    add('listHistory()', 'HistoryEntry[]', history.listHistory({}));
+    add('listHistory(query)', 'HistoryEntry[]', history.listHistory({ query: 'example', limit: 1 }));
+
+    bookmarks.toggleBookmark('https://example.com/a', 'Example', icon);
+    bookmarks.toggleBookmark('https://example.net/', '', 'https://example.net/favicon.ico');
+    bookmarks.saveFavorite('https://example.org/', 'Org', iconFixture(LEGACY_ICON_SIZE), 'Reading');
+    bookmarks.importBookmarks([
+      { url: 'https://imported.example/', title: 'Imported', addedAt: 1700000000000, folder: 'Work' },
+      { url: 'https://imported.example/two', folder: '   ' },
+      { url: 42 },
+    ]);
+    const first = bookmarks.listBookmarks()[0];
+    bookmarks.setBookmarkFolder(first.id, 'Later');
+    bookmarks.renameFolder('Work', 'Projects');
+    bookmarks.removeFolder('Reading');
+    bookmarks.updateFavicon('https://example.net/', icon);
+    bookmarks.mergeFromSync({
+      items: [
+        { id: 'remote-1', url: 'https://remote.example/', title: 'Remote', favicon: icon, addedAt: 1700000000000, updatedAt: 1800000000000, folder: 'Shared' },
+        { url: 'https://remote.example/legacy', addedAt: 1600000000000 },
+        { title: 'no url' },
+      ],
+      tombstones: [{ url: 'https://example.net/', deletedAt: 1 }],
+    });
+    add('listBookmarks()', 'FavoriteItem[]', bookmarks.listBookmarks());
+    bookmarks.toggleBookmark('https://example.com/a');
+    add('listBookmarks() after removal', 'FavoriteItem[]', bookmarks.listBookmarks());
+  });
+
+  const tabsync = requireMain('./tabsync-model');
+  const tabicons = requireMain('./tabicons-model');
+  const now = Date.now();
+  const rawDevices = {
+    own: { name: 'This Mac', platform: 'darwin', updatedAt: now, tabs: [{ url: 'https://own.example/' }] },
+    laptop: {
+      name: 'Laptop', platform: 'win32', updatedAt: now - 1000,
+      tabs: [
+        { url: 'https://example.com/a', title: 'Example', groupId: 'g1', pinned: true },
+        { url: 'https://example.com/b' },
+        { url: 'blanc://settings/' },
+        null,
+      ],
+      groups: [{ id: 'g1', name: 'research' }, { id: 2, name: 'bad' }],
+    },
+    phone: { name: '', updatedAt: now - 2000, tabs: [{ url: 'http://example.org/', title: 7 }] },
+    empty: { name: 'Empty', platform: 'linux', updatedAt: now, tabs: [] },
+    stale: { name: 'Old', platform: 'linux', updatedAt: now - tabsync.PRUNE_MS - 1, tabs: [{ url: 'https://old.example/' }] },
+    gone: { retracted: true, updatedAt: now },
+  };
+  const devices = Object.fromEntries(Object.entries(rawDevices).map(([id, raw]) => [id, tabsync.sanitizeEntry(raw)]).filter(([, e]) => e));
+  const iconEntries = Object.fromEntries(Object.entries({
+    laptop: { updatedAt: now, icons: [{ url: 'https://example.com/a', data: icon }, { url: 'https://example.com/b', data: 'data:image/png;base64,AAAA' }] },
+  }).map(([id, raw]) => [id, tabicons.sanitizeEntry(raw)]));
+  const listed = tabsync.displayDevices(devices, 'own', { now });
+  add('remote devices', 'RemoteDevice[]', tabicons.attachIcons(listed, tabicons.displayDevices(iconEntries, 'own', { now })));
+  add('remote devices without icons', 'RemoteDevice[]', tabicons.attachIcons(listed, {}));
+  add('remote devices (none)', 'RemoteDevice[]', tabicons.attachIcons(tabsync.displayDevices({}, 'own', { now }), {}));
+
+  const { resolveBlockAdsCommand } = requireMain('./adblock-exceptions');
+  for (const hostname of ['example.com', 'other.example', null]) {
+    for (const enabled of [true, false]) {
+      for (const exceptions of [['example.com'], [], undefined]) {
+        add(`resolveBlockAdsCommand(${hostname}, ${enabled})`, 'BlockAdsResult', resolveBlockAdsCommand({ hostname, exceptions, enabled }));
+      }
+    }
+  }
+
+  // The handler builds { engine, label, suggestions } from Settings; the
+  // engine ids are pinned to the settings schema in checkSearchEngines().
+  const { parseOpenSearchSuggestions } = requireMain('./search-suggestions');
+  for (const { id, label } of JSON.parse(fs.readFileSync(SETTINGS_SCHEMA, 'utf8')).searchEngines) {
+    for (const payload of [['q', ['one', ' two  words ', 'One', 3, '']], ['q'], null]) {
+      add(`search suggestions (${id})`, 'SearchSuggestions', { engine: id, label, suggestions: parseOpenSearchSuggestions(payload) });
+    }
+  }
+  return cases;
+}
+
+// SearchEngineId must list exactly the engines Settings offers.
+export function checkSearchEngines(contract, schema = JSON.parse(fs.readFileSync(SETTINGS_SCHEMA, 'utf8'))) {
+  const ids = schema.searchEngines.map((e) => `'${e.id}'`).sort();
+  const pinned = splitUnion(contract.types.SearchEngineId?.ts ?? '').sort();
+  return JSON.stringify(ids) === JSON.stringify(pinned) ? []
+    : [`SearchEngineId: ${pinned.join(' | ') || 'missing'} does not match settings-schema/schema.json searchEngines (${ids.join(' | ')})`];
+}
+
 export function payloadFixtures() {
   const { shieldChipState, connectionFor, shieldPopoverModel, shieldProviderModel } = requireMain('./shield-model');
   const { buildSiteInfo, sanitizeCertificate } = requireMain('./site-security');
@@ -823,12 +1062,12 @@ export function payloadFixtures() {
   for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 600, height: 900 }, { x: 0, y: 0, width: 0, height: 0 }, null]) {
     for (const ratio of [0.5, 0.7, 2, undefined]) add(`calculateGlanceLayout(${JSON.stringify(bounds)}, ${ratio})`, 'GlanceLayout | null', calculateGlanceLayout(bounds, ratio));
   }
-  cases.push(...workspaceControllerFixtures());
+  cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }
 
 export function checkPayloads(contract) {
-  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract), ...checkWorkspaceCodes(contract)];
+  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract), ...checkWorkspaceCodes(contract), ...checkSearchEngines(contract)];
   for (const { label, type, value } of payloadFixtures()) {
     problems.push(...validateValue(value, type, contract, label));
   }

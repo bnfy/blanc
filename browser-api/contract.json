@@ -856,6 +856,200 @@
           "optional": true
         }
       }
+    },
+    "SearchEngineId": {
+      "ts": "'duckduckgo' | 'google' | 'bing' | 'brave'",
+      "doc": "A search engine id. Must match the searchEngines ids in settings-schema/schema.json."
+    },
+    "HistoryEntry": {
+      "doc": "A history entry, from listHistory() in history.js: the stored visit plus the site's cached favicon.",
+      "fields": {
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The page title, or the URL when the page had none."
+        },
+        "visitedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds of the latest visit."
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        }
+      }
+    },
+    "FavoriteItem": {
+      "doc": "A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The page title, or the URL when the page had none."
+        },
+        "favicon": {
+          "type": "string | null",
+          "optional": true,
+          "doc": "A sanitized PNG data URL, or null. Items saved by older versions may lack it."
+        },
+        "addedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds."
+        },
+        "updatedAt": {
+          "type": "number",
+          "optional": true,
+          "doc": "Epoch milliseconds of the last synced edit. Items saved by older versions may lack it."
+        },
+        "folder": {
+          "type": "string | null",
+          "optional": true,
+          "doc": "The folder name, or null when ungrouped. Items saved by older versions may lack it."
+        }
+      }
+    },
+    "RemoteTab": {
+      "doc": "Another device's open tab, sanitized by tabsync-model.js, with its synced icon attached by tabicons-model.js.",
+      "fields": {
+        "url": {
+          "type": "string",
+          "doc": "Always http(s)."
+        },
+        "title": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string | null"
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        }
+      }
+    },
+    "RemoteGroup": {
+      "doc": "A tab group on another device.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "RemoteDevice": {
+      "doc": "Another device's open tabs, from displayDevices() in tabsync-model.js. Newest first; devices without tabs or older than the prune window are left out.",
+      "fields": {
+        "deviceId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds."
+        },
+        "tabs": {
+          "type": "RemoteTab[]"
+        },
+        "groups": {
+          "type": "RemoteGroup[]"
+        }
+      }
+    },
+    "SearchSuggestions": {
+      "doc": "Search suggestions for the address bar, labelled with the engine that produced them.",
+      "fields": {
+        "engine": {
+          "type": "SearchEngineId"
+        },
+        "label": {
+          "type": "string",
+          "doc": "The engine's display name."
+        },
+        "suggestions": {
+          "type": "string[]",
+          "doc": "Empty when suggestions are off, the tab is private, or the query is ineligible."
+        }
+      }
+    },
+    "ProviderBlockAdsResult": {
+      "doc": "uBlock Origin handled the block-ads command; its state arrives with the next tabs:updated.",
+      "fields": {
+        "provider": {
+          "type": "'ublock-origin'"
+        }
+      }
+    },
+    "BlockAdsResult": {
+      "doc": "What Blanc Blocker did for the block-ads command, from resolveBlockAdsCommand() in adblock-exceptions.js.",
+      "fields": {
+        "action": {
+          "type": "'unexcept' | 'toggle'",
+          "doc": "unexcept: the active site left the allow-list and blocking is on. toggle: blocking was switched."
+        },
+        "hostname": {
+          "type": "string | null",
+          "doc": "The site removed from the allow-list, or null for a toggle."
+        },
+        "enabled": {
+          "type": "boolean",
+          "doc": "Whether blocking is on afterwards."
+        },
+        "exceptions": {
+          "type": "string[]",
+          "doc": "The full allow-list afterwards."
+        }
+      }
+    },
+    "AllowAdsError": {
+      "doc": "Why ads could not be allowed on the active site. Settings opens on its blocking section.",
+      "fields": {
+        "error": {
+          "type": "'blocking-not-ready' | 'blocking-site-change-failed'"
+        }
+      }
+    },
+    "FillLoginFailure": {
+      "doc": "A 1Password fill that did not fill, from credential-fill-controller.js. The user has already been told why.",
+      "fields": {
+        "ok": {
+          "type": "false"
+        },
+        "reason": {
+          "type": "string",
+          "doc": "A flow reason such as 'cancelled' or 'no-match', or a broker/SDK error code."
+        }
+      }
+    },
+    "FillLoginSuccess": {
+      "doc": "A 1Password fill that filled at least one field. No credential data is returned.",
+      "fields": {
+        "ok": {
+          "type": "true"
+        },
+        "filledUser": {
+          "type": "boolean"
+        },
+        "filledPass": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "members": [
@@ -976,8 +1170,8 @@
           "type": "string"
         }
       ],
-      "returns": "unknown",
-      "doc": "Navigate a tab to typed input; main normalizes it."
+      "returns": "boolean | undefined",
+      "doc": "Navigate a tab to typed input; main normalizes it. Resolves to undefined when nothing loads in the tab itself (unknown tab, an OS hand-off, a utility page, or a quiet tab, which wakes in the background); otherwise to whether the queued load ran and finished (false when superseded or failed)."
     },
     {
       "name": "search",
@@ -1000,8 +1194,8 @@
           "doc": "Ignored by main; the engine comes from Settings."
         }
       ],
-      "returns": "unknown",
-      "doc": "Search for a query in a tab."
+      "returns": "boolean | string | undefined",
+      "doc": "Search for a query in a tab with the engine from Settings. Resolves to undefined for an empty query, an unknown tab or a started load, and to whether a quiet tab woke. Under the desktop test hook only, it resolves to the search URL instead of loading it."
     },
     {
       "name": "goBack",
@@ -1014,8 +1208,8 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Go back in a tab."
+      "returns": "boolean | undefined",
+      "doc": "Go back in a tab. Resolves to whether a quiet tab woke, otherwise to undefined."
     },
     {
       "name": "goForward",
@@ -1028,8 +1222,8 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Go forward in a tab."
+      "returns": "boolean | undefined",
+      "doc": "Go forward in a tab. Resolves to whether a quiet tab woke, otherwise to undefined."
     },
     {
       "name": "reload",
@@ -1042,8 +1236,8 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Reload a tab."
+      "returns": "boolean | undefined",
+      "doc": "Reload a tab. Resolves to whether a quiet tab woke, otherwise to undefined."
     },
     {
       "name": "stop",
@@ -1342,8 +1536,8 @@
           "optional": true
         }
       ],
-      "returns": "unknown",
-      "doc": "Find text in a page."
+      "returns": "number | boolean | undefined",
+      "doc": "Find text in a page. Resolves to Electron's find request id, to whether a quiet tab woke (find again once it has), or to undefined for an unknown tab. Counts arrive through onFindResult."
     },
     {
       "name": "stopFindInPage",
@@ -1739,8 +1933,8 @@
           "optional": true
         }
       ],
-      "returns": "unknown",
-      "doc": "List history entries."
+      "returns": "HistoryEntry[]",
+      "doc": "List history entries, newest first."
     },
     {
       "name": "listFavorites",
@@ -1748,7 +1942,7 @@
       "kind": "invoke",
       "channel": "chrome:favorites-list",
       "params": [],
-      "returns": "unknown",
+      "returns": "FavoriteItem[]",
       "doc": "List Favorites."
     },
     {
@@ -1757,8 +1951,8 @@
       "kind": "invoke",
       "channel": "chrome:remote-tabs-list",
       "params": [],
-      "returns": "unknown",
-      "doc": "List other devices' open tabs."
+      "returns": "RemoteDevice[]",
+      "doc": "List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile."
     },
     {
       "name": "cancelWorkspaceAction",
@@ -1918,7 +2112,7 @@
           "type": "string"
         }
       ],
-      "returns": "unknown",
+      "returns": "SearchSuggestions",
       "doc": "Fetch search suggestions when enabled in Settings."
     },
     {
@@ -1926,8 +2120,9 @@
       "group": "sync",
       "kind": "event",
       "channel": "chrome:remote-tabs-updated",
-      "payload": "unknown",
-      "doc": "Other devices' open tabs changed."
+      "payload": "RemoteDevice[]",
+      "doc": "Other devices' open tabs changed. Same projection as listRemoteTabs.",
+      "payloadCheck": "fixtures"
     },
     {
       "name": "onWorkspacesUpdated",
@@ -1952,8 +2147,8 @@
       "kind": "invoke",
       "channel": "chrome:adblock-toggle",
       "params": [],
-      "returns": "unknown",
-      "doc": "Turn Blanc Blocker on or off."
+      "returns": "ProviderBlockAdsResult | BlockAdsResult",
+      "doc": "Turn blocking on or off for the active tab's provider, or take the active site off the allow-list. The result includes the whole allow-list, which only trusted chrome receives."
     },
     {
       "name": "allowAdsOnActiveSite",
@@ -1961,8 +2156,8 @@
       "kind": "invoke",
       "channel": "chrome:adblock-exempt-active",
       "params": [],
-      "returns": "unknown",
-      "doc": "Allow ads on the active site."
+      "returns": "string | null | AllowAdsError",
+      "doc": "Allow ads on the active site. Resolves to the allowed hostname, null when there is no tab or the page has no blockable site, or an error."
     },
     {
       "name": "sleepBackgroundTabs",
@@ -1979,8 +2174,8 @@
       "kind": "invoke",
       "channel": "chrome:onepassword-fill",
       "params": [],
-      "returns": "unknown",
-      "doc": "Fill a login from 1Password (explicit invoke only).",
+      "returns": "FillLoginSuccess | FillLoginFailure | false",
+      "doc": "Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.",
       "platforms": [
         "darwin"
       ]

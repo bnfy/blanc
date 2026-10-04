@@ -143,13 +143,13 @@ test('a contract enum narrower than the helpers produce is reported', () => {
 
 // ---- event send sites ----
 
-function sendSources(from, to) {
+function sendSources(from, to, target = 'main.js') {
   const files = fs.readdirSync(path.join(__dirname, '../../src/main'))
     .filter((f) => f.endsWith('.js') && f !== 'preload.js' && f !== 'test-hook.js');
   return files.map((file) => {
     let text = fs.readFileSync(path.join(__dirname, '../../src/main', file), 'utf8');
-    if (file === 'main.js' && from) {
-      assert.ok(text.includes(from), `fixture text missing from main.js: ${from}`);
+    if (file === target && from) {
+      assert.ok(text.includes(from), `fixture text missing from ${target}: ${from}`);
       text = text.replace(from, to);
     }
     return { file, text };
@@ -224,6 +224,67 @@ test('an unknown resultCheck value is rejected', () => {
   const contract = api.loadContract();
   contract.members.find((m) => m.name === 'stop').resultCheck = 'trust-me';
   assert.ok(api.validateContract(contract).some((p) => p.includes('unknown resultCheck')));
+});
+
+test('a try block that returns on every path does not fall through, and one that can is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('      return response;\n    } finally {', '    } finally {'));
+  assert.ok(problems.some((p) => p.includes('searchSuggestions result') && p.includes('undefined')), problems.join('\n'));
+});
+
+test('a returned literal outside its field\'s union is reported', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources("return { error: 'blocking-not-ready' };", "return { error: 'blocking-busy' };"));
+  assert.ok(problems.some((p) => p.includes('allowAdsOnActiveSite result') && p.includes("'blocking-busy'")), problems.join('\n'));
+});
+
+test('a returned local is read through its object literal', () => {
+  const problems = api.checkInvokeResults(api.loadContract(),
+    sendSources('const response = { engine: engineId, label: engine.label, suggestions: [] };', 'const response = { engine: engineId, label: engine.label, suggestions: [], cached: false };'));
+  assert.ok(problems.some((p) => p.includes('searchSuggestions result') && p.includes('cached')), problems.join('\n'));
+});
+
+test('a forwarded module result is checked where it is built', () => {
+  const extra = api.checkInvokeResults(api.loadContract(),
+    sendSources("return { ok: false, reason: 'busy' };", "return { ok: false, reason: 'busy', retryAt: 0 };", 'credential-fill-controller.js'));
+  assert.ok(extra.some((p) => p.includes('fillLoginFromOnePassword result (credential-fill-controller.js fill)') && p.includes('retryAt')), extra.join('\n'));
+  const fallsThrough = api.checkInvokeResults(api.loadContract(),
+    sendSources("      return { ok: false, reason: 'unexpected' };", '', 'credential-fill-controller.js'));
+  assert.ok(fallsThrough.some((p) => p.includes('fillLoginFromOnePassword result') && p.includes('undefined')), fallsThrough.join('\n'));
+});
+
+test('list and command fixtures reject a contract narrower than the code', () => {
+  for (const [type, field, narrowed, label] of [
+    ['HistoryEntry', 'favicon', 'string', 'listHistory()'],
+    ['FavoriteItem', 'folder', 'string', 'listBookmarks()'],
+    ['RemoteTab', 'groupId', 'string', 'remote devices'],
+    ['BlockAdsResult', 'action', "'toggle'", 'resolveBlockAdsCommand'],
+  ]) {
+    const contract = api.loadContract();
+    contract.types[type].fields[field].type = narrowed;
+    assert.ok(api.checkPayloads(contract).some((p) => p.includes(label) && p.includes(field)), `${type}.${field}`);
+  }
+});
+
+test('the list fixtures leave the module cache as they found it', () => {
+  const store = require.resolve('../../src/main/store.js');
+  const history = require.resolve('../../src/main/history.js');
+  assert.ok(api.listFixtures().length > 0);
+  assert.equal(require.cache[store], undefined);
+  assert.equal(require.cache[history], undefined);
+});
+
+test('SearchEngineId must match the settings schema', () => {
+  const contract = api.loadContract();
+  assert.deepEqual(api.checkSearchEngines(contract), []);
+  contract.types.SearchEngineId.ts = "'duckduckgo' | 'google' | 'bing'";
+  assert.ok(api.checkSearchEngines(contract).some((p) => p.includes("'brave'")));
+});
+
+test('the validator checks true and false literal types', () => {
+  const contract = api.loadContract();
+  assert.deepEqual(api.validateValue({ ok: true, filledUser: true, filledPass: false }, 'FillLoginSuccess | FillLoginFailure', contract), []);
+  assert.ok(api.validateValue({ ok: true, reason: 'busy' }, 'FillLoginSuccess | FillLoginFailure', contract).length > 0);
 });
 
 // ---- workspace action results ----
