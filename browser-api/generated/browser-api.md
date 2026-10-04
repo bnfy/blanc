@@ -76,14 +76,14 @@
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<unknown>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
-| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<unknown>` | all |
-| `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<unknown>` | all |
-| `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<unknown>` | all |
-| `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<unknown>` | all |
-| `removeWorkspace` | workspaces | invoke | `chrome:workspaces-remove` | `(id: WorkspaceId) => Promise<unknown>` | all |
-| `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<unknown>` | all |
-| `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<unknown>` | all |
-| `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<unknown>` | all |
+| `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string) => Promise<WorkspaceActionResult>` | all |
+| `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
+| `createBlankWorkspace` | workspaces | invoke | `chrome:workspaces-create-blank` | `(name: string, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
+| `renameWorkspace` | workspaces | invoke | `chrome:workspaces-rename` | `(id: WorkspaceId, name: string) => Promise<WorkspaceActionResult>` | all |
+| `removeWorkspace` | workspaces | invoke | `chrome:workspaces-remove` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
+| `restoreWorkspace` | workspaces | invoke | `chrome:workspaces-restore` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
+| `forgetWorkspace` | workspaces | invoke | `chrome:workspaces-forget` | `(id: WorkspaceId) => Promise<WorkspaceActionResult>` | all |
+| `moveWorkspace` | workspaces | invoke | `chrome:workspaces-move` | `(id: WorkspaceId, direction: WorkspaceMoveDirection) => Promise<WorkspaceActionResult>` | all |
 | `searchSuggestions` | search | invoke | `chrome:search-suggestions` | `(query: string) => Promise<unknown>` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: unknown) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
@@ -195,9 +195,12 @@ Options for a new tab. Only `private` is read by main today.
 
 ### `OpenWorkspaceOptions`
 
-`force` skips the scratch guard after a confirmed "discard and switch".
+Options for opening or creating a workspace.
 
-`{ force?: boolean }`
+| Field | Type | Notes |
+| --- | --- | --- |
+| `decision?` | `string` | The token from an unsaved-scratch result, confirming "discard and switch". |
+| `newWindow?` | `boolean` | Open in a new window instead of this one. |
 
 ### `Point`
 
@@ -609,3 +612,42 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 | --- | --- | --- |
 | `activeMatchOrdinal` | `number` |  |
 | `matches` | `number` |  |
+
+### `WorkspaceErrorCode`
+
+Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
+
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'not-patron' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch'`
+
+### `WorkspaceProtectionReason`
+
+Why a window may not switch workspaces right now, from workspaceProtection() in main.js.
+
+`'permission-or-transition' \| 'active-page' \| 'resident-capacity'`
+
+### `WorkspaceAction`
+
+What a successful open or create did: swapped this window, found it already here, or focused another window.
+
+`'swap' \| 'noop' \| 'focus'`
+
+### `WorkspaceActionResult`
+
+Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `error?` | `WorkspaceErrorCode` |  |
+| `cause?` | `WorkspaceErrorCode` | Why a saved workspace could not be opened (with saved-not-opened). |
+| `reason?` | `WorkspaceProtectionReason` | With protected-pages. |
+| `tabCount?` | `number` | Unsaved tabs (with unsaved-scratch). |
+| `privateCount?` | `number` | Private tabs among them (with unsaved-scratch). |
+| `decision?` | `string` | Token to send back as a confirmed "discard and switch" (with unsaved-scratch). |
+| `action?` | `WorkspaceAction` |  |
+| `windowId?` | `string` | The window that now shows the workspace (with action focus). |
+| `workspaceId?` | `WorkspaceId` | The new workspace, after a create or save, including a save that could not be opened. |
+| `patronActive?` | `boolean` |  |
+| `status?` | `WorkspaceSaveStatus` |  |
+| `deleted?` | `DeletedWorkspace[]` |  |
+| `items?` | `WorkspaceListItem[]` |  |

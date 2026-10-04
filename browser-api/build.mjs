@@ -596,8 +596,15 @@ function classify(expr) {
 }
 
 function handlerExpression(source, channel) {
-  const at = source.indexOf(`chromeHandle('${channel}'`);
-  if (at < 0) return null;
+  let at = source.indexOf(`chromeHandle('${channel}'`);
+  if (at < 0) {
+    // A handler table: `['<channel>', (…) => op(…)]` entries consumed by a loop
+    // that registers `chromeHandle(channel, …)` with one shared body.
+    const entry = source.indexOf(`['${channel}',`);
+    if (entry < 0) return null;
+    at = source.indexOf('chromeHandle(channel,', entry);
+    if (at < 0) return null;
+  }
   const arrow = source.indexOf('=>', at);
   const after = source.slice(arrow + 2);
   const lead = after.length - after.trimStart().length;
@@ -648,11 +655,20 @@ export function checkInvokeResults(contract, rawSources = mainSources()) {
         if (!structured.length) { problems.push(`${where}: returns an object literal but the contract says ${m.returns}`); continue; }
         try {
           const { keys, spreads } = literalKeys(balanced(k.text, 0));
+          // `...helper()` contributes the keys that helper returns; a spread of
+          // an opaque value (`...result`) can't be read, so it only waives the
+          // required-field check.
+          let opaqueSpread = false;
+          for (const spread of spreads) {
+            const call = spread.match(/^([A-Za-z_$][\w$]*)\(\)$/);
+            if (call) keys.push(...returnedKeys(sources, call[1]).keys);
+            else opaqueSpread = true;
+          }
           const fits = structured.some((t) => {
             const f = contract.types[t].fields;
-            return !spreads.length && keys.every((key) => key in f) && Object.keys(f).every((key) => f[key].optional || keys.includes(key));
+            return keys.every((key) => key in f) && (opaqueSpread || Object.keys(f).every((key) => f[key].optional || keys.includes(key)));
           });
-          if (!fits) problems.push(`${where}: returned object { ${keys.join(', ')}${spreads.length ? ', …' : ''} } does not match ${structured.join(' | ')}`);
+          if (!fits) problems.push(`${where}: returned object { ${keys.join(', ')}${opaqueSpread ? ', …' : ''} } does not match ${structured.join(' | ')}`);
         } catch (error) { problems.push(`${where}: ${error.message}`); }
         continue;
       }
@@ -662,6 +678,90 @@ export function checkInvokeResults(contract, rawSources = mainSources()) {
     }
   }
   return problems;
+}
+
+// ---- workspace action codes ----
+// Every error / reason / action literal a workspace action can produce must be
+// in the contract's unions. Literals are read from the workspace modules and
+// from the workspace functions and controller adapter in main.js.
+const WORKSPACE_FILES = ['workspace-controller.js', 'workspaces.js', 'workspaces-model.js'];
+const WORKSPACE_FUNCTIONS = ['saveCurrentWindowAsWorkspace', 'removeNamedWorkspace', 'checkpointWorkspaceSession', 'flushWorkspaceSession', 'workspaceProtection', 'stageWorkspace'];
+
+export function checkWorkspaceCodes(contract, rawSources = mainSources()) {
+  const sources = rawSources.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const main = sources.find((s) => s.file === 'main.js').text;
+  const texts = sources.filter((s) => WORKSPACE_FILES.includes(s.file)).map((s) => [s.file, s.text]);
+  for (const name of WORKSPACE_FUNCTIONS) texts.push([`main.js ${name}()`, functionBody(main, name)]);
+  const adapterAt = main.indexOf('createWorkspaceController({');
+  if (adapterAt >= 0) texts.push(['main.js controller adapter', balanced(main, main.indexOf('{', adapterAt))]);
+  for (const channel of ['chrome:workspaces-save-as', 'chrome:workspaces-open', 'chrome:workspaces-create-blank', 'chrome:workspaces-rename', 'chrome:workspaces-remove']) {
+    const h = handlerExpression(main, channel);
+    if (h?.block) texts.push([`main.js ${channel} handler`, h.block]);
+  }
+  const unions = {
+    error: splitUnion(contract.types.WorkspaceErrorCode.ts).map((v) => v.slice(1, -1)),
+    reason: splitUnion(contract.types.WorkspaceProtectionReason.ts).map((v) => v.slice(1, -1)),
+    action: splitUnion(contract.types.WorkspaceAction.ts).map((v) => v.slice(1, -1)),
+  };
+  const problems = [];
+  for (const [label, text] of texts) {
+    for (const [, key, value] of text.matchAll(/\b(error|reason|action):\s*'([^']*)'/g)) {
+      if (key === 'reason' && !label.includes('workspaceProtection')) continue;
+      if (!unions[key].includes(value)) problems.push(`${label}: ${key} '${value}' is not in the contract's ${key === 'error' ? 'WorkspaceErrorCode' : key === 'reason' ? 'WorkspaceProtectionReason' : 'WorkspaceAction'}`);
+    }
+  }
+  return problems;
+}
+
+export function workspaceControllerFixtures() {
+  const { createWorkspaceController } = requireMain('./workspace-controller');
+  const cases = [];
+  const runtime = { id: 'r1', profileId: 'p' };
+  const other = { id: 'r2', resident: false };
+  const record = { id: 'w1', name: 'Research' };
+  const base = {
+    randomId: () => 'x', fingerprint: () => 'fp', canCreate: () => true,
+    get: () => record, readError: () => null, owner: () => null,
+    protection: () => ({ blocked: false, tabCount: 0 }),
+    checkpoint: () => ({ ok: true }),
+    stage: () => ({ commit: () => ({ ok: true }), rollback() {}, finish() {} }),
+    validateCreate: () => ({ ok: true }),
+    create: () => ({ ok: true, workspace: record }),
+    focus: (target) => ({ ok: true, action: 'focus', windowId: String(target.id) }),
+    openElsewhere: () => ({ ok: true, action: 'focus', windowId: 'r9' }),
+  };
+  const variants = {
+    swap: {},
+    noop: { owner: () => runtime },
+    'focus elsewhere': { owner: () => other },
+    'not found': { get: () => null },
+    'read error': { get: () => null, readError: () => 'future-format' },
+    'protected pages': { protection: () => ({ blocked: true, reason: 'active-page' }) },
+    'unsaved scratch': { protection: () => ({ blocked: false, tabCount: 3, privateCount: 1 }) },
+    'checkpoint failed': { checkpoint: () => ({ ok: false, error: 'storage-failed' }) },
+    'commit failed': { stage: () => ({ commit: () => ({ ok: false, error: 'storage-failed' }), rollback() {}, finish() {} }) },
+    'stage threw': { stage: () => { throw new Error('boom'); } },
+    'not patron': { canCreate: () => false },
+    'invalid name': { validateCreate: () => ({ ok: false, error: 'invalid-name' }) },
+    'create failed': { create: () => ({ ok: false, error: 'limit' }) },
+  };
+  for (const [label, override] of Object.entries(variants)) {
+    for (const newWindow of [false, true]) {
+      const controller = createWorkspaceController({ ...base, ...override });
+      cases.push({ label: `controller open (${label}${newWindow ? ', new window' : ''})`, type: 'WorkspaceActionResult', value: controller.open(runtime, 'w1', { newWindow }) });
+      cases.push({ label: `controller create (${label}${newWindow ? ', new window' : ''})`, type: 'WorkspaceActionResult', value: controller.create(runtime, 'Research', { newWindow }) });
+    }
+  }
+  // Reentrancy: an open started while another is in flight is refused as busy.
+  let nested = null;
+  const reentrant = createWorkspaceController({ ...base, get: () => { nested ??= reentrant.open(runtime, 'w1'); return record; } });
+  reentrant.open(runtime, 'w1');
+  cases.push({ label: 'controller open (busy)', type: 'WorkspaceActionResult', value: nested });
+  // The confirmed decision token from an unsaved-scratch result lets the switch through.
+  const scratch = createWorkspaceController({ ...base, protection: () => ({ blocked: false, tabCount: 2, privateCount: 0 }) });
+  const guard = scratch.open(runtime, 'w1');
+  cases.push({ label: 'controller open (confirmed decision)', type: 'WorkspaceActionResult', value: scratch.open(runtime, 'w1', { decision: guard.decision }) });
+  return cases;
 }
 
 export function payloadFixtures() {
@@ -723,11 +823,12 @@ export function payloadFixtures() {
   for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 600, height: 900 }, { x: 0, y: 0, width: 0, height: 0 }, null]) {
     for (const ratio of [0.5, 0.7, 2, undefined]) add(`calculateGlanceLayout(${JSON.stringify(bounds)}, ${ratio})`, 'GlanceLayout | null', calculateGlanceLayout(bounds, ratio));
   }
+  cases.push(...workspaceControllerFixtures());
   return cases;
 }
 
 export function checkPayloads(contract) {
-  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract)];
+  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract), ...checkWorkspaceCodes(contract)];
   for (const { label, type, value } of payloadFixtures()) {
     problems.push(...validateValue(value, type, contract, label));
   }

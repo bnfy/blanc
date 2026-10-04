@@ -44,8 +44,13 @@ export type WorkspaceMoveDirection = 'up' | 'down';
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
-/** `force` skips the scratch guard after a confirmed "discard and switch". */
-export type OpenWorkspaceOptions = { force?: boolean };
+/** Options for opening or creating a workspace. */
+export interface OpenWorkspaceOptions {
+  /** The token from an unsaved-scratch result, confirming "discard and switch". */
+  decision?: string;
+  /** Open in a new window instead of this one. */
+  newWindow?: boolean;
+}
 
 /** A point in window coordinates. */
 export interface Point {
@@ -376,6 +381,40 @@ export interface IslandState {
 export interface FindResult {
   activeMatchOrdinal: number;
   matches: number;
+}
+
+/** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'not-patron' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch';
+
+/** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
+export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page' | 'resident-capacity';
+
+/** What a successful open or create did: swapped this window, found it already here, or focused another window. */
+export type WorkspaceAction = 'swap' | 'noop' | 'focus';
+
+/** Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail. */
+export interface WorkspaceActionResult {
+  ok: boolean;
+  error?: WorkspaceErrorCode;
+  /** Why a saved workspace could not be opened (with saved-not-opened). */
+  cause?: WorkspaceErrorCode;
+  /** With protected-pages. */
+  reason?: WorkspaceProtectionReason;
+  /** Unsaved tabs (with unsaved-scratch). */
+  tabCount?: number;
+  /** Private tabs among them (with unsaved-scratch). */
+  privateCount?: number;
+  /** Token to send back as a confirmed "discard and switch" (with unsaved-scratch). */
+  decision?: string;
+  action?: WorkspaceAction;
+  /** The window that now shows the workspace (with action focus). */
+  windowId?: string;
+  /** The new workspace, after a create or save, including a save that could not be opened. */
+  workspaceId?: WorkspaceId;
+  patronActive?: boolean;
+  status?: WorkspaceSaveStatus;
+  deleted?: DeletedWorkspace[];
+  items?: WorkspaceListItem[];
 }
 
 export interface BlancBrowserAPI {
@@ -734,42 +773,42 @@ export interface BlancBrowserAPI {
    * Save the current window as a Named Workspace.
    * IPC: invoke `chrome:workspaces-save-as`.
    */
-  saveWorkspaceAs(name: string): Promise<unknown>;
+  saveWorkspaceAs(name: string): Promise<WorkspaceActionResult>;
   /**
    * Open a Named Workspace.
    * IPC: invoke `chrome:workspaces-open`.
    */
-  openWorkspace(id: WorkspaceId, opts?: OpenWorkspaceOptions): Promise<unknown>;
+  openWorkspace(id: WorkspaceId, opts?: OpenWorkspaceOptions): Promise<WorkspaceActionResult>;
   /**
    * Create and open an empty Named Workspace.
    * IPC: invoke `chrome:workspaces-create-blank`.
    */
-  createBlankWorkspace(name: string, opts?: OpenWorkspaceOptions): Promise<unknown>;
+  createBlankWorkspace(name: string, opts?: OpenWorkspaceOptions): Promise<WorkspaceActionResult>;
   /**
    * Rename a Named Workspace.
    * IPC: invoke `chrome:workspaces-rename`.
    */
-  renameWorkspace(id: WorkspaceId, name: string): Promise<unknown>;
+  renameWorkspace(id: WorkspaceId, name: string): Promise<WorkspaceActionResult>;
   /**
    * Delete a Named Workspace (undoable).
    * IPC: invoke `chrome:workspaces-remove`.
    */
-  removeWorkspace(id: WorkspaceId): Promise<unknown>;
+  removeWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Undo a workspace deletion.
    * IPC: invoke `chrome:workspaces-restore`.
    */
-  restoreWorkspace(id: WorkspaceId): Promise<unknown>;
+  restoreWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Make a workspace deletion permanent.
    * IPC: invoke `chrome:workspaces-forget`.
    */
-  forgetWorkspace(id: WorkspaceId): Promise<unknown>;
+  forgetWorkspace(id: WorkspaceId): Promise<WorkspaceActionResult>;
   /**
    * Move a workspace up or down in the list.
    * IPC: invoke `chrome:workspaces-move`.
    */
-  moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<unknown>;
+  moveWorkspace(id: WorkspaceId, direction: WorkspaceMoveDirection): Promise<WorkspaceActionResult>;
   /**
    * Fetch search suggestions when enabled in Settings.
    * IPC: invoke `chrome:search-suggestions`.
