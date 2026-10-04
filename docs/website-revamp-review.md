@@ -750,3 +750,39 @@ URLs). The share and copy paths were exercised on an emulated Android phone
 on both pages, and desktop was confirmed unchanged. At 1440, 1024, 768, 761,
 390, 380, 360, 340 and 320px in light and dark there is no horizontal
 overflow and the header stays on one row with the toggle beside Download.
+
+## Page weight (October 4)
+
+Round 2, milestone C of the homepage audit. Measured against the production
+build (`astro preview`), counting response bytes, before the first scroll
+(after load plus 2.5 s) and after scrolling the whole page:
+
+| | Before | After |
+|---|---|---|
+| Phone (390px), before first scroll | 2,339 KB | 596 KB |
+| Phone, whole page | 4,532 KB | 1,399 KB |
+| Desktop (1440px), before first scroll | 1,317 KB | 503 KB |
+| Desktop, whole page | 4,532 KB | 1,508 KB |
+
+On a 1.6 Mbps, 150 ms link the desktop page now finishes loading in about
+2.7 s (first contentful paint about 0.95 s); the audit measured 11.6 s.
+
+- Only the visible wallpaper scene loads with the page; the other seven load
+  when first selected (`data-src`, handled in `wallpaper-preview.js`).
+- `site/scripts/build-display-images.mjs` derives lossy WebP display copies:
+  800px phone copies of the Island captures (served under 760px through
+  `<picture>`), full-size copies of the Island captures and both device
+  frames, and copies of the five v1.21.0 Start Page captures that keep their
+  Display P3 profile. Sources are untouched — the lossless frames and Island
+  captures stay pinned in `docs/website-revamp-assets.json`, and the PNG
+  captures stay pinned and remain the linked full-size originals. Each copy
+  records its source SHA-256 in `site/src/data/display-images.json`;
+  `test/unit/website-display-images.test.js` fails when a source changes
+  without regenerating. Mean pixel difference is under 2/255.
+- The shield fallback image now uses `crossorigin="anonymous"`, matching the
+  three.js texture request, so it downloads once instead of twice.
+- 162 lines of CSS for retired mockup classes were removed after confirming
+  none of them appears in any built page or script.
+- Not changed: Inter is still fetched twice (about 47 KB). The hero renders
+  with the app's own `inter-latin.woff2` so it matches the shipped Island
+  exactly; the rest of the site uses Fontsource's build of the same face.

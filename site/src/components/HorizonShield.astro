@@ -10,7 +10,8 @@ const label = variant === 'blocker' ? 'Blanc Blocker shield in bronze' : 'Horizo
   <div class="horizon-stage" aria-hidden="true">
     <div class="horizon-light"></div>
     <div class="horizon-turn" data-shield-variant={variant}>
-      <img class="horizon-fallback" src={artwork} alt="" width="960" height="960" loading="lazy" decoding="async" />
+      <!-- crossorigin matches three.js's TextureLoader request so the 3D view reuses this download. -->
+      <img class="horizon-fallback" src={artwork} alt="" width="960" height="960" loading="lazy" decoding="async" crossorigin="anonymous" />
     </div>
     <div class="horizon-shadow"></div>
   </div>
