@@ -4489,16 +4489,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-015",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc v1.26.0. Sample page: Wikipedia · Image credits.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-016",
       "source": "site/src/pages/index.astro",
       "exactWording": "Keep your place. Choose what stays in view.",

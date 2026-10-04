@@ -140,10 +140,12 @@ public authentication links use the completed post-release evidence revision.
 
 Hardware artwork was generated separately. Product pixels were not generated
 or repainted. Hardware exports use lossless WebP; below-the-fold images load
-lazily. Native Island PNGs remain byte-identical. Asset hashes, native capture
-provenance and hardware prompts are committed beside this record. Wikipedia
-sample-page attribution and individual image sources are shipped in
-`site/public/revamp/credits.txt` and linked from the demo.
+lazily. The Island now uses lossless center crops of fresh native v1.26.0
+screenshots of NASA's Cosmic Cliffs image page. Asset hashes, native capture
+provenance and hardware prompts are committed beside this record. Source
+attribution is shipped in `site/public/revamp/credits.txt`, linked in the footer.
+The former white veil and visible captions below the Island are removed;
+state announcements and navigation instructions remain available to screen readers.
 
 CSS and JavaScript honor reduced motion: no hero autoplay, no Island sequence
 playback, and decorative transitions disabled. These branches were inspected;
@@ -349,3 +351,19 @@ Its native geometry and typography remain unchanged. Motion pauses offscreen
 and in hidden tabs; reduced motion shows a level, stationary front view.
 Native sizing and appearance synchronization with the wallpaper demo are
 retained.
+
+## Cosmic Cliffs Island scene (October 3)
+
+Replaced the Wikipedia captures with three actual installed v1.26.0 states on
+NASA Science's Cosmic Cliffs page. The app signature and five native renderer
+files were verified against the public release before capture. Lossless WebP
+exports preserve the exact decoded pixels inside the documented center crop.
+Removed the white page veil and visible caption/source lines; credits now live
+in the footer and screen-reader instructions/state announcements remain.
+
+Validation: production site/SEO build, ESLint, and all 13 feature-evidence and
+revamp-trust checks passed. Desktop and 390px mobile previews have no horizontal
+overflow or browser warnings/errors. State buttons, the native-positioned
+open/close hotspot, Escape, and sequence play/pause were verified in the browser.
+The demo profile's sample window was closed. Website PR #491 remains a draft;
+no production deployment or desktop app change is included.

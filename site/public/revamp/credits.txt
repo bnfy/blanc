@@ -1,30 +1,21 @@
-Blanc website Island captures — captured October 2, 2026
+Blanc website Island captures — captured October 3, 2026
 
-rest.png, tabs.png and command-filtered.png show the official Blanc v1.26.0
-macOS app with sample tabs. The native pixels are unchanged. The website
-clips the viewport and uses a CSS white veil below the Island; transitions
-between stills are website choreography, not recorded application motion.
+island-webb-rest.webp, island-webb-tabs.webp and island-webb-command.webp
+show the official Blanc v1.26.0 macOS app with three sample NASA Science tabs.
+Exports are lossless center crops of native screenshots. Product pixels have
+not been generated, recolored or repainted. Transitions between stills are
+website choreography, not recorded application motion.
 
-Sample webpage: “Scandinavian design”, Wikipedia contributors.
-https://en.wikipedia.org/wiki/Scandinavian_design
-Contributors and revision history:
-https://en.wikipedia.org/w/index.php?title=Scandinavian_design&action=history
-Article text: Creative Commons Attribution-ShareAlike 4.0 International.
-https://creativecommons.org/licenses/by-sa/4.0/
-The captured article portion and its displayed adaptation retain that license;
-this does not relicense Blanc's code or identity assets.
+Sample webpage: “Cosmic Cliffs” in the Carina Nebula (NIRCam Image).
+Source: NASA Science. Image credit: NASA, ESA, CSA, STScI.
+https://science.nasa.gov/asset/webb/cosmic-cliffs-in-the-carina-nebula-nircam-image/
 
-Photographs visible in the uncropped screenshot:
-- “Design in Scandinavia exhibition”, 1954, Brooklyn Museum.
-  Wikimedia Commons records the institution's “no known copyright restrictions”
-  designation; this is not a claim of a new license grant from Blanc.
-  https://commons.wikimedia.org/wiki/File:Design_in_Scandinavia_exhibition.jpg
-- “Roskilde Svane Apothek 1899”, anonymous, source: Royal Danish Library.
-  Wikimedia Commons marks it public domain.
-  https://commons.wikimedia.org/wiki/File:Roskilde_Svane_Apothek_1899.jpg
-
-Wikipedia and other third-party marks remain their owners' property. Their
-appearance in a browser screenshot does not imply endorsement of Blanc.
+NASA media usage guidelines:
+https://www.nasa.gov/nasa-brand-center/images-and-media/
+NASA and other third-party names and marks remain their owners' property.
+Their appearance within the real browser interface identifies the sample
+webpages; it does not imply affiliation with or endorsement of Blanc.
+Third-party imagery is not covered by Blanc's MIT grant.
 
 Hardware illustrations were generated separately with OpenAI image generation.
 Apple, Windows and Linux symbols: Font Awesome Free 6.7.2, CC BY 4.0.

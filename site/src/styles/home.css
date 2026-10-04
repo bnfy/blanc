@@ -1030,9 +1030,9 @@
 }
 .home-revamp .island-cinema {
   position: relative;
-  aspect-ratio: 1400/610;
+  aspect-ratio: 1400/760;
   overflow: hidden;
-  background: #fff;
+  background: #000;
   border: 1px solid var(--line);
   border-radius: 18px;
   isolation: isolate;
@@ -1043,30 +1043,34 @@
   inset: 0;
   overflow: hidden;
 }
+.home-revamp .island-pixels {
+  bottom: auto;
+  aspect-ratio: 1400/1000;
+}
 .home-revamp .island-cinema .island-native {
   position: absolute;
-  width: 182.857143%;
+  width: 100%;
   max-width: none;
   height: auto;
-  left: -41.428571%;
+  left: 0;
   top: 0;
   user-select: none;
   pointer-events: none;
 }
 .home-revamp .island-layer {
   opacity: 0;
-  clip-path: inset(2.5% 16.5% 81.5% 16.5% round 32px);
+  clip-path: inset(1.8% 16.5% 88.5% 16.5% round 32px);
   transition:
     clip-path 540ms cubic-bezier(0.2, 0.75, 0.2, 1),
     opacity 240ms ease;
 }
 .home-revamp .island-cinema[data-state="tabs"] [data-layer="tabs"] {
   opacity: 1;
-  clip-path: inset(4.1% 5.714% 23% 5.714% round 20px);
+  clip-path: inset(1.8% 5.3% 52.4% 5.3% round 20px);
 }
 .home-revamp .island-cinema[data-state="commands"] [data-layer="commands"] {
   opacity: 1;
-  clip-path: inset(4.1% 5.714% 45% 5.714% round 20px);
+  clip-path: inset(1.8% 5.3% 65.8% 5.3% round 20px);
 }
 .home-revamp .island-hotspot {
   position: absolute;
@@ -1074,7 +1078,7 @@
   left: 16.5%;
   top: 2.5%;
   width: 67%;
-  height: 16%;
+  height: 13%;
   border: 0;
   border-radius: 40px;
   background: transparent;
@@ -1082,7 +1086,7 @@
 }
 .home-revamp .island-cinema:not([data-state="resting"]) .island-hotspot {
   left: 88%;
-  top: 6%;
+  top: 5%;
   width: 6%;
   height: 11%;
 }
@@ -1121,13 +1125,6 @@
   font-size: 10px;
   width: 14px;
 }
-.home-revamp .island-demo .caption {
-  min-height: 3em;
-  max-width: 720px;
-  font-size: 14px;
-  line-height: 1.7;
-  margin-top: 17px;
-}
 @media (max-width: 760px) {
   .home-revamp .island-demo {
     margin-top: 27px;
@@ -1152,11 +1149,6 @@
     margin-left: auto;
     font-size: 12px;
   }
-  .home-revamp .island-demo .caption {
-    font-size: 13px;
-    min-height: 4em;
-    margin-top: 6px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .home-revamp .island-layer {
@@ -1167,16 +1159,6 @@
   }
 }
 
-.home-revamp .island-page-haze {
-  position: absolute;
-  inset: 21% 0 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.94),
-    rgba(255, 255, 255, 0.91)
-  );
-  pointer-events: none;
-}
 .home-revamp #island .frame-inner {
   padding-top: 62px;
   padding-bottom: 62px;
@@ -1193,12 +1175,9 @@
     grid-template-columns: 1fr;
     gap: 18px;
   }
-  .home-revamp .island-cinema {
-    aspect-ratio: 1400/610;
-  }
   .home-revamp .island-cinema:not([data-state="resting"]) .island-hotspot {
-    top: 6%;
-    height: 14%;
+    top: 4%;
+    height: 11%;
   }
 }
 

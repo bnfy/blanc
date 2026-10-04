@@ -123,8 +123,8 @@ initHorizonShield(document.querySelector(".horizon-study"));
   };
   const islandAlts = {
     resting:
-      "Blanc v1.26.0: the resting Island above a Scandinavian design article",
-    tabs: "Blanc v1.26.0: the open Island lists Scandinavian design, Typography and the Blanc source repository",
+      "Blanc v1.26.0: the resting Island above NASA’s Cosmic Cliffs image",
+    tabs: "Blanc v1.26.0: the open Island lists the Webb telescope and two Cosmic Cliffs image pages",
     commands: "Blanc v1.26.0: typing /new shows the command to open a new tab",
   };
   let islandTimer = null,
