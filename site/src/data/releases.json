@@ -1,5 +1,334 @@
 [
   {
+    "tag": "v1.27.0",
+    "version": "1.27.0",
+    "name": "1.27.0",
+    "publishedAt": "2026-10-04T03:14:49.000Z",
+    "humanDate": "October 3, 2026",
+    "machineDate": "2026-10-03",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.27.0",
+    "anchor": "v1-27-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Optional full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs,"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Windows x64, and Linux x64. Click the Island shield, choose your blocker,"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "then use "
+              },
+              {
+                "type": "strong",
+                "value": "Restart Blanc"
+              },
+              {
+                "type": "text",
+                "value": " to apply the change."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc styling for uBO’s popup and Dashboard, with filter subscriptions,"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "custom filters, dynamic rules, picker/zapper, logger, and backup/restore."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Filter lists can update automatically; executable resources stay pinned to"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "reviewed Blanc releases."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Separate uBO configuration for each regular profile. Blanc Blocker remains"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "the default and protects private tabs; the two blockers keep separate site"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "exceptions. Provider selection and uBO configuration stay outside Profile"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Sync. General extension-store support is not included."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Automatic return to Blanc Blocker with an explanation if saved uBO selection"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "is unavailable in the running build, preserving uBO configuration. Intel"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "builds running under Rosetta use Blanc Blocker. An available uBO instance"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "that crashes or exceeds its request deadline keeps traffic blocked until"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "recovery or an explicit user choice."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Provider restart and shutdown no longer lose an overlay callback when"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Electron removes a native child view."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Linux AppImage provider restarts use the upstream extraction launcher and"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "retain Chromium sandbox enforcement. Normal close/relaunch preserves the"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "selected blocker and saved uBO filters."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Linux sandbox refusal dialog offers "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Setup Guide"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Quit"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "X11 retains "
+              },
+              {
+                "type": "strong",
+                "value": "Copy Link"
+              },
+              {
+                "type": "text",
+                "value": "; Wayland omits clipboard controls. A relaunch with"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "the guide URL omits Open Setup Guide to prevent a loop. Sandbox requirements"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "and system security settings are unchanged."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "link",
+                "value": "Supported versions, tested platforms, and integration limits",
+                "url": "https://github.com/bnfy/blanc/blob/main/docs/ublock-origin-support-matrix-2026-10-03.md"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.26.0",
     "version": "1.26.0",
     "name": "1.26.0",

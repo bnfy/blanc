@@ -1,12 +1,12 @@
-# uBlock Origin support matrix — v1.27.0 candidate
+# uBlock Origin support matrix — public v1.27.0
 
-**Prepared for owner release confirmation; not a published release.** The
-public baseline remains v1.26.0. The proposed rollout enables full uBlock Origin
+**Published October 3, 2026.** [Blanc v1.27.0](https://github.com/bnfy/blanc/releases/tag/v1.27.0)
+enables full uBlock Origin
 1.75.0 on official Electron 44.5.1 / Chromium 152.0.7977.130 for the verified
 combinations below. No Lite substitution or general extension installation is
 provided.
 
-| Desktop combination | Proposed uBO availability | Installed evidence |
+| Desktop combination | Public uBO availability | Installed candidate evidence |
 | --- | --- | --- |
 | macOS Apple Silicon (`darwin-arm64`) | Enabled | Signed/notarized DMG-installed build 1272: blocking, tools, persistence, three provider restarts, native close/reopen/Quit, no-scripting; authenticated v1.26.0 → candidate through the actual Restart Now prompt. |
 | Windows x64 (`win32-x64`) | Enabled | Timestamp-signed NSIS installed on native hosted Windows x64: blocking, tools, persistence, provider restarts, last-window exit, no-scripting. Existing Windows 11 ARM64 VM complements this with x64 emulation and actual v1.26.0 → candidate Restart Now. The owner confirmed post-update close, Start-menu relaunch at v1.27.0, and second close; no process remained. |
@@ -17,10 +17,14 @@ Sanitized observations and exact source/artifact bindings are in the
 [installed acceptance record](evidence/ublock-installed-acceptance-2026-10-03/README.md).
 The Mac arm64 and Windows candidates were produced from `92e27667916b2f556b148268f5a7ee3ce53000fd`; exact signed Intel build 1273 is bound to `0872ed7225d3561e98fdee2f80cee1d12a72af09`.
 Linux installed/normal relaunch acceptance is bound to `de6c00170639381a80e0fbcf786bc200e57b32b0`.
-The final release is reserved as bundle build 1274 or later and requires
-final exact-head CI and normal release signature/payload verification. Internal
-build 1272 bypasses platform enablement only; no runtime fuse or sandbox was
-relaxed. This is not a claim that the final release binary has already shipped.
+Public v1.27.0 is bundle build 1274, tagged at
+`602a1a85a9b80453b2561b3e10c5e5795c3ff659`. Its signed payloads, corresponding
+source, notices, authenticated manifest and fresh public downloads passed
+verification. Native release run `37173147979` and exact-tag public smoke
+`37173603497` passed. [Public artifact evidence](evidence/ublock-public-release-2026-10-03.md)
+keeps final checks separate from the installed candidates above. Internal
+build 1272 bypassed platform enablement only; no runtime fuse or sandbox was
+relaxed. Candidate installed tests are not relabelled as final build 1274 tests.
 
 The existing Linux VM is Ubuntu 26.04 ARM64. The x86-64 AppImage cannot execute
 there, and the ordinary user namespace probe is denied. No second VM, emulator,
@@ -68,7 +72,8 @@ remain recorded.
 - Diagnostics remain local and bounded. No new telemetry records browsing
   URLs, headers, bodies, filters or logger content.
 
-The final release still follows protected merge, per-alert approved CodeQL
+The public release completed protected merge, per-alert approved CodeQL
 dispositions after draft, signing/notarization, authenticated manifest,
-provenance, logged-out download and post-publication checks. The public feed is
-unchanged during candidate testing.
+provenance, logged-out downloads and exact-tag public checks. Adjacent public
+v1.26.0 → v1.27.0 Mac/Windows Restart Now handoffs remain pending; the staged
+candidate handoffs above do not establish those outcomes.
