@@ -29,8 +29,7 @@ Source mark:
 
 Product marks:
 
-- `assets/horizon-shield.png` — layered gold Horizon Shield source artwork
-- `src/renderer/shield-horizon.png` — transparent Island toolbar export
+- `assets/horizon-shield.png` — layered copper/bronze Horizon Shield source artwork
 
 App-icon colorways:
 

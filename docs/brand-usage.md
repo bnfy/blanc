@@ -184,14 +184,21 @@ prompt, the 1Password capsule and the screen-share picker. Neutral: the
 Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
 
-**Horizon Shield, owner-approved October 3, 2026:** the Island's blocker button
-uses the layered gold Horizon Shield as a scoped exception to the neutral icon
-palette. Use `src/renderer/shield-horizon.png` at 16×16 CSS pixels within the
-existing 24px button; the Island's shared zoom still applies. Keep the count as
-a separate badge and desaturate the artwork when blocking is off. The source is
-`assets/horizon-shield.png`. This product mark does not replace Sunrise or warm
-the surrounding Island. It is approved for the next desktop release; public
-screenshots and marketing must continue to follow the release boundary.
+**Blocker artwork, final owner direction October 3, 2026:** the Island keeps
+its original monochrome Blanc Blocker shield: the shield outline crossed by a
+single diagonal, restored from before `03621de6`. Reuse its native SVG and CSS
+in `src/renderer/index.html` and `styles.css`: 16×16 glyph, 1.4-unit strokes,
+24px hover circle, separate count badge, quiet gray and reduced opacity when
+off. The three-layer Horizon outline and textured toolbar icon are retired.
+The website's native Island hero must reuse this original icon and styling.
+
+The large website Privacy illustration retains the copper/bronze Horizon
+artwork in `assets/horizon-shield.png`, matched to the original Sunrise sun
+with muted copper faces, brown seams and restrained champagne highlights.
+Its 3D rim uses the same palette. The product mark does not replace Sunrise
+or warm the Island. Preserve original Sunrise artwork and historical public
+captures. Ship the app change before deploying website PR #491; screenshots
+and marketing must continue to follow the release boundary.
 
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
