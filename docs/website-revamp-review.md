@@ -367,3 +367,14 @@ overflow or browser warnings/errors. State buttons, the native-positioned
 open/close hotspot, Escape, and sequence play/pause were verified in the browser.
 The demo profile's sample window was closed. Website PR #491 remains a draft;
 no production deployment or desktop app change is included.
+
+## Reveal slash commands (October 3)
+
+The Find a command step now shows a fresh native capture with `/` entered,
+revealing the unfiltered list instead of selecting `/new`. The reveal extends
+through the demo viewport, showing the beginning of the available commands;
+additional commands are reached by scrolling the list in the real app. Updated
+the accessible state description and recorded its exact public-release evidence.
+The center crop remains lossless and the source/export hashes are refreshed.
+Desktop/mobile preview, production site/SEO build and all 13 evidence/trust
+checks passed. No visible caption or app change was added.

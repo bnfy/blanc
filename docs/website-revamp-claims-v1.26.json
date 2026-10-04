@@ -9355,6 +9355,17 @@
         "gestures"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "revamp-island-slash-discovery",
+      "source": "site/src/scripts/home.js",
+      "exactWording": "Type / in the Island to reveal the available commands. Scroll the list in Blanc, or keep typing to filter it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "verified",
+      "reason": "Public v1.26.0 overlay.js renders all available COMMANDS when slashWord is / and otherwise filters by command prefix. The native list scrolls inside the overlay; the website still shows its opening viewport."
     }
   ],
   "completedReleaseEvidenceRevision": "8e48359fae44865857a5bd3a8a955af96af71650",

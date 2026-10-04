@@ -46,14 +46,14 @@
     },
     {
       "file": "site/public/revamp/island-webb-command.webp",
-      "originalSha256": "e1f9a2b9a4faa00e14e621743d8cfca9c648210c1850be69154bcaa155479f88",
+      "originalSha256": "9250a7720080df401beb1f434c8a9d7911159671e69c4d210b71bc2f46a90412",
       "source": "Installed public Blanc v1.26.0 native CUA screenshot, October 3, 2026",
       "name": "island-webb-command.webp",
       "format": "lossless WebP; center crop only",
-      "sha256": "d3a7bab4db6803a2359eb623816ba0812747943243255488f2d7ec36e0ae7ad2",
+      "sha256": "6e0763c516ba4b476763280f31d40de7c0a9ae2bdff1e25acb674bc86312a9a3",
       "width": 1400,
       "height": 1000,
-      "bytes": 1053268
+      "bytes": 242540
     }
   ],
   "upstreamBrandIcons": "Font Awesome Free 6.7.2, CC BY 4.0",
@@ -115,15 +115,16 @@
       },
       "command": {
         "file": "site/public/revamp/island-webb-command.webp",
-        "originalSha256": "e1f9a2b9a4faa00e14e621743d8cfca9c648210c1850be69154bcaa155479f88",
+        "originalSha256": "9250a7720080df401beb1f434c8a9d7911159671e69c4d210b71bc2f46a90412",
         "source": "Installed public Blanc v1.26.0 native CUA screenshot, October 3, 2026",
         "name": "island-webb-command.webp",
         "format": "lossless WebP; center crop only",
-        "sha256": "d3a7bab4db6803a2359eb623816ba0812747943243255488f2d7ec36e0ae7ad2",
+        "sha256": "6e0763c516ba4b476763280f31d40de7c0a9ae2bdff1e25acb674bc86312a9a3",
         "width": 1400,
         "height": 1000,
-        "bytes": 1053268,
-        "decodedPixelsSha256": "bdcbea3af0a94f2a374775bbd8baae5d5ba7b0e9567da2f3a667a6cf7701feba"
+        "bytes": 242540,
+        "decodedPixelsSha256": "0916c35fcaa95ff9d20c4f25a1b2e7a73c632ecc81df90e694a16c274b870d7a",
+        "state": "Typing / reveals the unfiltered slash-command list. The website viewport shows the beginning of the list; the native app provides scrolling to additional commands."
       }
     }
   },
