@@ -572,7 +572,9 @@ const structuredData = {
         <div class="frame-inner">
           <h2 id="tools-title">
             Everyday browser tools.
-          </h2><GlanceDemo /><GestureDemo /><div class="tools-list">
+          </h2><div class="gallery-controls tool-switch" role="group" aria-label="Choose a demo" data-tool-switch hidden>
+            <button type="button" aria-controls="glance" aria-pressed="true">Glance</button><button type="button" aria-controls="gestures" aria-pressed="false">Mouse gestures</button>
+          </div><GlanceDemo /><GestureDemo /><div class="tools-list">
             <article>
               <h3>Use your 1Password logins.</h3><p>
                 On macOS, the optional integration fills a matching login when
