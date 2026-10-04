@@ -1,7 +1,8 @@
 # uBO DOM inspector reconnect: cosmetic bootstrap readiness
 
-Status: reproduced before the fix and passed afterward locally; final native
-platform, installed-candidate and Linux stress runs are pending at runtime
+Status: reproduced before the fix and verified afterward locally, on all four
+native desktop targets, in signed Windows/Linux installed candidates, and in
+three fresh native Linux 30-restore stress suites. Runtime source:
 `95fbdfbee94505224c455c40c73509f572616374`.
 
 ## Failure and deterministic reproduction
@@ -67,8 +68,14 @@ Native verification runs for this runtime are
 [all four desktop platforms](https://github.com/bnfy/blanc/actions/runs/37168547420),
 [signed Windows/Linux installed candidates and Ubuntu sandbox checks](https://github.com/bnfy/blanc/actions/runs/37168565413),
 and [three fresh native Linux 30-restore stress suites](https://github.com/bnfy/blanc/actions/runs/37168566895).
-Their pending status here is not a passing claim; completed results belong in
-the release incident before publication.
+The initial Intel job in the desktop run hit a new-profile startup timeout;
+this is retained in the final record. All four desktop jobs, ordinary packaging,
+CodeQL and parity then passed at documentation-only source `b0462db0` in
+[run 37168802136](https://github.com/bnfy/blanc/actions/runs/37168802136),
+with identical runtime bytes and unchanged deadlines. Installed validation and
+all 90 stress restores passed. [The final runtime record](ublock-final-runtime-validation-2026-10-03.json)
+binds these results and retains the timeout. PR #490 merged at `73291caf`;
+publication remains a separate gate.
 
 [Sanitized machine-readable record](ublock-inspector-bootstrap-2026-10-03.json).
 No personal data, browser URLs, headers, filter contents or secrets are included.

@@ -215,8 +215,11 @@ Then('no removed ordinary page is restored', async function () {
 });
 
 When('the incoming workspace session commit fails', async function () {
+  // The reset-created New Tab can still be loading after the draft is ready.
+  // Reach the intended commit-failure path without bypassing that safeguard.
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   const result = await this.call('workspaceAction', 'fail-session-commit', 'Commit fails');
-  assert.equal(result.ok, false); assert.equal(result.error, 'saved-not-opened'); assert.equal(result.cause, 'storage-failed');
+  assert.equal(result.ok, false); assert.equal(result.error, 'saved-not-opened', JSON.stringify(result)); assert.equal(result.cause, 'storage-failed');
   const data = await this.call('workspaceAction', 'list');
   assert.equal(data.items.find((w) => w.active).id, this.workspaceA);
   assert.equal(data.items.find((w) => w.id === result.workspaceId)?.name, 'Commit fails', 'the durably saved workspace remains discoverable');

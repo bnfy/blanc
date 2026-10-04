@@ -1,0 +1,31 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": true,
+  "os": "win32",
+  "harnessArchitecture": "x64",
+  "osRelease": "10.0.26100",
+  "executableSha256": "fb7c8a47e10a330aef7ab7dd1608c547fd6f84677f74f7bd4aa4595d385db69c",
+  "checks": {
+    "restart-ublock-origin": true,
+    "networkAndCosmetics": true,
+    "popupMarkAndMoreAndLogger": true,
+    "privateShieldAndLoggerIsolation": true,
+    "quietWakeControls": true,
+    "restart-blanc": true,
+    "filtersSurviveProviderRestarts": true,
+    "globalSwitch": true,
+    "lastWindowExit": true
+  },
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "win32",
+    "architecture": "x64"
+  }
+}

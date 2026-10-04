@@ -26,10 +26,15 @@
   "pinnedRecordsVerified": 658,
   "adaptedFiles": 77,
   "nativeVerification": {
-    "statusAtRecording": "pending",
+    "statusAtRecording": "complete",
     "desktopRun": 37168547420,
     "installedRun": 37168565413,
-    "linuxStressRun": 37168566895
+    "linuxStressRun": 37168566895,
+    "desktopPassedRun": 37168802136,
+    "installedPassed": true,
+    "linuxStressPassed": true,
+    "mergedSource": "73291caff4946ba9256bf1cd775ef072865fb46c",
+    "finalRecord": "ublock-final-runtime-validation-2026-10-03.json"
   },
   "privacy": "Fresh isolated profile and local fixtures; no personal data, URLs, headers, filters or secrets."
 }
