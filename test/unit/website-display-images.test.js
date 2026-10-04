@@ -26,6 +26,17 @@ test('Start Page layout copies keep the Display P3 profile of their captures', a
   }
 });
 
+test('phones get frameless, focused crops of every framed capture', () => {
+  const css = fs.readFileSync(path.join(site, 'src/styles/home.css'), 'utf8');
+  const phone = css.slice(css.lastIndexOf('@media (max-width: 760px)'));
+  assert.match(phone, /\.device-composition \.device-shell \{\s*display: none;/);
+  assert.match(phone, /aspect-ratio: 4 \/ 3;/);
+  assert.match(phone, /\.hero-wallpaper-scene \.device-screen \{[^}]*width: 260%/);
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.match(phone, new RegExp(`\\.layout-shot\\[src\\*="${layout}"\\] \\{ width: \\d+%;`), layout);
+  }
+});
+
 test('pages use the light copies while full-size links keep the pinned captures', () => {
   const read = file => fs.readFileSync(path.join(site, file), 'utf8');
   const home = read('src/pages/index.astro');

@@ -58,7 +58,7 @@ test('primary navigation and footer keep supporting pages and trust one click aw
  assert.deepEqual(directLinks.map(link=>link.label),['Features','Privacy & Security','Patron','About','Support']);
  const footer=read('site/src/components/Footer.astro');
  for(const route of ['/features','/support','/trust','/about','/press','/ambassadors','/download','/changelog','/privacy','/terms'])assert.ok(footer.includes(`href="${route}"`),route);
- assert.equal(directLinks.find(link=>link.key==='features').href,'/#features');
+ assert.equal(directLinks.find(link=>link.key==='features').href,'/features');
  assert.equal(directLinks.find(link=>link.key==='privacy').href,'/trust');
  assert.ok(footer.includes('href="/features/security"'));
  assert.match(footer, /Security guide/);
