@@ -185,13 +185,20 @@ Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
 
 **Horizon Shield, owner-approved October 3, 2026:** the Island's blocker button
-uses the layered gold Horizon Shield as a scoped exception to the neutral icon
+uses the layered copper/bronze Horizon Shield as a scoped exception to the neutral icon
 palette. Use `src/renderer/shield-horizon.png` at 16×16 CSS pixels within the
 existing 24px button; the Island's shared zoom still applies. Keep the count as
 a separate badge and desaturate the artwork when blocking is off. The source is
 `assets/horizon-shield.png`. This product mark does not replace Sunrise or warm
 the surrounding Island. It is approved for the next desktop release; public
 screenshots and marketing must continue to follow the release boundary.
+The owner's later October 3 correction matches the shield's metal to the
+original Sunrise sun: muted copper/bronze faces, deep brown seams and restrained
+champagne highlights, rather than bright yellow gold. The app PNG derives from
+this shared master. The later website revamp must derive its export and 3D
+materials from the same palette. Preserve the Sunrise artwork itself and
+historical public-release captures. Ship the app revision before deploying the
+website redesign (PR #491).
 
 Warm surfaces use the shared `--sunrise-*` tokens (`tokens/tokens.json`) by
 remapping the semantic tokens inside a scope class, never by hard-coding
