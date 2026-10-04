@@ -83,7 +83,10 @@ export function validateContract(contract) {
       if (p.optional) sawOptional = true;
       else if (sawOptional) problems.push(`${where}: required param "${p.name}" after an optional one`);
     }
-    if (m.kind === 'invoke') knownOrField(m.returns ?? '', `${where} returns`);
+    if (m.kind === 'invoke') {
+      knownOrField(m.returns ?? '', `${where} returns`);
+      if (m.resultCheck !== undefined && m.resultCheck !== 'none') problems.push(`${where}: unknown resultCheck "${m.resultCheck}"`);
+    }
   }
   return problems;
 }
@@ -313,6 +316,7 @@ function validateAlternative(value, alt, contract, where) {
   if (alt === 'number') return Number.isFinite(value) ? [] : fail;
   if (alt === 'boolean') return typeof value === 'boolean' ? [] : fail;
   if (alt === 'null') return value === null ? [] : fail;
+  if (alt === 'undefined' || alt === 'void') return value === undefined ? [] : fail;
   if (/^'[^']*'$/.test(alt)) return value === alt.slice(1, -1) ? [] : fail;
   if (alt.endsWith('[]')) {
     if (!Array.isArray(value)) return fail;
@@ -542,6 +546,124 @@ export function checkEventSends(contract, rawSources = mainSources()) {
   return problems;
 }
 
+// ---- invoke results ----
+// Statically classify what an invoke handler can resolve to: the handler's
+// own top-level returns (nested functions excluded), following a direct call
+// to a local helper one level deep. Each result is 'undefined' (bare return or
+// falling off the end), a boolean / null / number / string literal, an object
+// literal (keys), or 'opaque' (anything else, e.g. an identifier or call).
+function skipNestedFunctions(body) {
+  let out = '';
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      let j = i + 1;
+      for (; j < body.length && body[j] !== ch; j++) if (body[j] === '\\') j++;
+      out += body.slice(i, j + 1);
+      i = j;
+      continue;
+    }
+    const arrow = body.startsWith('=>', i) && body.slice(i + 2).match(/^\s*\{/);
+    const fn = !arrow && /^function\b[^{]*\{/.exec(body.slice(i));
+    if (arrow || fn) {
+      const open = body.indexOf('{', i);
+      out += body.slice(i, open) + '{}';
+      i = open + balanced(body, open).length - 1;
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+function topLevelReturns(block) {
+  const flat = skipNestedFunctions(block.slice(1, -1));
+  const results = [...flat.matchAll(/\breturn\b\s*([^;]*);?/g)].map((m) => m[1].trim());
+  // Falling off the end resolves to undefined unless the body ends in a return/throw.
+  if (!/\b(?:return|throw)\b[^;]*;?\s*$/.test(flat.trim())) results.push('');
+  return results;
+}
+
+function classify(expr) {
+  const e = expr.trim();
+  if (e === '' || e === 'undefined') return { kind: 'undefined' };
+  if (e === 'true' || e === 'false') return { kind: 'boolean' };
+  if (e === 'null') return { kind: 'null' };
+  if (/^-?\d/.test(e)) return { kind: 'number' };
+  if (/^'[^']*'$/.test(e)) return { kind: 'string', value: e.slice(1, -1) };
+  if (e.startsWith('{')) return { kind: 'object', text: e };
+  return { kind: 'opaque', text: e };
+}
+
+function handlerExpression(source, channel) {
+  const at = source.indexOf(`chromeHandle('${channel}'`);
+  if (at < 0) return null;
+  const arrow = source.indexOf('=>', at);
+  const after = source.slice(arrow + 2);
+  const lead = after.length - after.trimStart().length;
+  if (after.trimStart().startsWith('{')) return { block: balanced(source, arrow + 2 + lead) };
+  const text = after.trimStart();
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    if ('([{'.includes(text[i])) depth++;
+    else if (')]}'.includes(text[i])) { if (depth === 0) return { expr: text.slice(0, i).trim() }; depth--; }
+  }
+  return null;
+}
+
+export function resultKinds(contract, member, sources = mainSources()) {
+  const main = sources.find((s) => s.file === 'main.js').text;
+  const handler = handlerExpression(main, member.channel);
+  if (!handler) return null;
+  const exprs = handler.block ? topLevelReturns(handler.block) : [handler.expr];
+  const kinds = [];
+  for (const expr of exprs) {
+    const call = expr.match(/^(?:await\s+)?([A-Za-z_$][\w$]*)\((?:[^()]|\([^()]*\))*\)$/);
+    const helper = call && sources.find((s) => new RegExp(`(?:^|\\n)(?:async\\s+)?function\\s+${call[1]}\\s*\\(`).test(s.text));
+    if (helper) {
+      const body = functionBody(helper.text.replace(/async\s+function/g, 'function'), call[1]);
+      kinds.push(...topLevelReturns(body).map(classify));
+    } else kinds.push(classify(expr));
+  }
+  return kinds;
+}
+
+export function checkInvokeResults(contract, rawSources = mainSources()) {
+  const sources = rawSources.map(({ file, text }) => ({ file, text: stripComments(text) }));
+  const problems = [];
+  for (const m of contract.members) {
+    if (m.kind !== 'invoke' || m.returns === 'unknown' || m.resultCheck === 'none') continue;
+    const where = `${m.name} result`;
+    const kinds = resultKinds(contract, m, sources);
+    if (!kinds) { problems.push(`${where}: handler for '${m.channel}' not found as chromeHandle('${m.channel}', …) in main.js`); continue; }
+    const alts = splitUnion(m.returns);
+    const allows = (k) => alts.includes(k) || (k === 'undefined' && alts.includes('void'));
+    const structured = alts.map((a) => contract.types[a]?.fields ? a : null).filter(Boolean);
+    for (const k of kinds) {
+      if (k.kind === 'opaque') {
+        if (alts.length === 1 && (alts[0] === 'void' || alts[0] === 'undefined')) problems.push(`${where}: returns a value (${k.text.slice(0, 50)}) but the contract says ${m.returns}`);
+        continue;
+      }
+      if (k.kind === 'object') {
+        if (!structured.length) { problems.push(`${where}: returns an object literal but the contract says ${m.returns}`); continue; }
+        try {
+          const { keys, spreads } = literalKeys(balanced(k.text, 0));
+          const fits = structured.some((t) => {
+            const f = contract.types[t].fields;
+            return !spreads.length && keys.every((key) => key in f) && Object.keys(f).every((key) => f[key].optional || keys.includes(key));
+          });
+          if (!fits) problems.push(`${where}: returned object { ${keys.join(', ')}${spreads.length ? ', …' : ''} } does not match ${structured.join(' | ')}`);
+        } catch (error) { problems.push(`${where}: ${error.message}`); }
+        continue;
+      }
+      if (k.kind === 'string' && alts.some((a) => a === `'${k.value}'` || a === 'string')) continue;
+      if (k.kind === 'number' && alts.includes('number')) continue;
+      if (!allows(k.kind)) problems.push(`${where}: can resolve to ${k.kind === 'string' ? `'${k.value}'` : k.kind}, which ${m.returns} does not allow`);
+    }
+  }
+  return problems;
+}
+
 export function payloadFixtures() {
   const { shieldChipState, connectionFor, shieldPopoverModel, shieldProviderModel } = requireMain('./shield-model');
   const { buildSiteInfo, sanitizeCertificate } = requireMain('./site-security');
@@ -605,7 +727,7 @@ export function payloadFixtures() {
 }
 
 export function checkPayloads(contract) {
-  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract)];
+  const problems = [...checkMainPayloadKeys(contract), ...checkEventSends(contract), ...checkInvokeResults(contract)];
   for (const { label, type, value } of payloadFixtures()) {
     problems.push(...validateValue(value, type, contract, label));
   }

@@ -794,8 +794,8 @@
           "optional": true
         }
       ],
-      "returns": "unknown",
-      "doc": "Open a new tab. A plain new tab is always ungrouped."
+      "returns": "TabId",
+      "doc": "Open a new tab. A plain new tab is always ungrouped. Resolves to the new tab id."
     },
     {
       "name": "closeTab",
@@ -808,7 +808,7 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Close a tab and record a closed entry."
     },
     {
@@ -817,7 +817,7 @@
       "kind": "invoke",
       "channel": "tabs:reopen-closed",
       "params": [],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Reopen the most recent closed entry in this window."
     },
     {
@@ -831,7 +831,7 @@
           "type": "ClosedEntryId"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Reopen a specific closed entry."
     },
     {
@@ -845,7 +845,7 @@
           "type": "ClosedEntryId"
         }
       ],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Forget one closed entry and destroy any parked view."
     },
     {
@@ -854,7 +854,7 @@
       "kind": "invoke",
       "channel": "tabs:clear-closed",
       "params": [],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Forget every closed entry in this window."
     },
     {
@@ -868,7 +868,7 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Activate a tab."
     },
     {
@@ -966,8 +966,9 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Stop loading a tab."
+      "returns": "void",
+      "doc": "Stop loading a tab. Resolves to the Electron WebContents method's undefined result.",
+      "resultCheck": "none"
     },
     {
       "name": "reorderTab",
@@ -984,7 +985,7 @@
           "type": "number"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Move a tab to an index in the tab order."
     },
     {
@@ -1002,7 +1003,7 @@
           "type": "TabId | null"
         }
       ],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Move a tab before another within its pinned/group bucket."
     },
     {
@@ -1016,7 +1017,7 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Activate a tab from the vertical tab rail."
     },
     {
@@ -1030,7 +1031,7 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Show a tab as the Glance side view."
     },
     {
@@ -1039,7 +1040,7 @@
       "kind": "invoke",
       "channel": "tabs:open-glance-picker",
       "params": [],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Open the Glance tab picker."
     },
     {
@@ -1048,7 +1049,7 @@
       "kind": "invoke",
       "channel": "tabs:close-glance",
       "params": [],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Close the Glance view."
     },
     {
@@ -1057,8 +1058,8 @@
       "kind": "invoke",
       "channel": "tabs:promote-glance",
       "params": [],
-      "returns": "unknown",
-      "doc": "Promote the Glance tab to the active tab."
+      "returns": "boolean",
+      "doc": "Promote the Glance tab to the active tab. Resolves to whether the Glance tab became the active tab."
     },
     {
       "name": "setTabGroup",
@@ -1075,7 +1076,7 @@
           "type": "GroupId | null"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Move a tab into a group, or out of all groups with null."
     },
     {
@@ -1093,7 +1094,7 @@
           "type": "string"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Find or create a named group and move the tab into it."
     },
     {
@@ -1107,7 +1108,7 @@
           "type": "GroupId"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Fold or unfold a group in the panel."
     },
     {
@@ -1121,7 +1122,7 @@
           "type": "GroupId"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Activate a group's first tab, unfolding it."
     },
     {
@@ -1135,7 +1136,7 @@
           "type": "GroupId"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Close every tab in a group as one closed entry."
     },
     {
@@ -1144,7 +1145,7 @@
       "kind": "invoke",
       "channel": "tabs:toggle-bookmark",
       "params": [],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Toggle Favorite for the active tab."
     },
     {
@@ -1158,7 +1159,7 @@
           "type": "unknown"
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Save the active tab as a Favorite in a folder."
     },
     {
@@ -1172,8 +1173,8 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Pin or unpin a tab."
+      "returns": "boolean",
+      "doc": "Pin or unpin a tab. Resolves to the new pinned state, or false when the tab is unknown."
     },
     {
       "name": "toggleTabMuted",
@@ -1186,8 +1187,8 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Mute or unmute a tab."
+      "returns": "boolean",
+      "doc": "Mute or unmute a tab. Resolves to the new muted state, or false when the tab is unknown."
     },
     {
       "name": "duplicateTab",
@@ -1200,8 +1201,8 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Duplicate a tab."
+      "returns": "TabId | undefined",
+      "doc": "Duplicate a tab. Resolves to the duplicate's id, or undefined when the tab is unknown."
     },
     {
       "name": "openPage",
@@ -1219,7 +1220,7 @@
           "optional": true
         }
       ],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Open an internal page (utility pages open in the sheet)."
     },
     {
@@ -1265,8 +1266,9 @@
           "type": "TabId"
         }
       ],
-      "returns": "unknown",
-      "doc": "Stop find-in-page."
+      "returns": "void",
+      "doc": "Stop find-in-page. Resolves to the Electron WebContents method's undefined result.",
+      "resultCheck": "none"
     },
     {
       "name": "respondPermission",
@@ -1384,8 +1386,8 @@
           "type": "number"
         }
       ],
-      "returns": "unknown",
-      "doc": "Commit a vertical tab rail width."
+      "returns": "number",
+      "doc": "Commit a vertical tab rail width. Resolves to the width actually committed."
     },
     {
       "name": "onVerticalTabsWidth",
@@ -1414,8 +1416,8 @@
       "kind": "invoke",
       "channel": "chrome:reset-glance",
       "params": [],
-      "returns": "unknown",
-      "doc": "Reset the Glance view size."
+      "returns": "number | null",
+      "doc": "Reset the Glance view size. Resolves to the reset ratio, or null when no Glance is open."
     },
     {
       "name": "onGlanceLayout",
@@ -1502,7 +1504,7 @@
         }
       ],
       "returns": "boolean",
-      "doc": "Choose the blocking provider from the shield popover."
+      "doc": "Choose the blocking provider from the shield popover. Resolves to false when refused; on a restart, to whether the restart went ahead."
     },
     {
       "name": "openBlockingPopup",
@@ -1510,7 +1512,7 @@
       "kind": "invoke",
       "channel": "chrome:blocking-popup",
       "params": [],
-      "returns": "unknown",
+      "returns": "boolean",
       "doc": "Open the active blocking provider's popup."
     },
     {
@@ -1594,8 +1596,8 @@
           "type": "Point"
         }
       ],
-      "returns": "unknown",
-      "doc": "Open the platform main menu at a point (strip only)."
+      "returns": "boolean",
+      "doc": "Open the platform main menu at a point (strip only). Resolves to whether a menu item was chosen."
     },
     {
       "name": "closeOverlay",
@@ -1851,7 +1853,7 @@
       "kind": "invoke",
       "channel": "chrome:history-clear",
       "params": [],
-      "returns": "unknown",
+      "returns": "void",
       "doc": "Clear browsing history."
     },
     {
@@ -1878,8 +1880,8 @@
       "kind": "invoke",
       "channel": "chrome:sleep-background-tabs",
       "params": [],
-      "returns": "unknown",
-      "doc": "Quiet all background tabs now."
+      "returns": "TabId[]",
+      "doc": "Quiet all background tabs now. Resolves to the ids of the tabs that were quieted."
     },
     {
       "name": "fillLoginFromOnePassword",
@@ -1905,8 +1907,8 @@
           "optional": true
         }
       ],
-      "returns": "unknown",
-      "doc": "Set or cycle the theme (system, light, dark)."
+      "returns": "ThemePreference",
+      "doc": "Set or cycle the theme (system, light, dark). Resolves to the theme now in effect."
     },
     {
       "name": "onThemeAppearance",
