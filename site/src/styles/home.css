@@ -1725,12 +1725,49 @@
   color: var(--gold);
   text-underline-offset: 4px;
 }
-/* One native capture carries the tab-group story. */
-.home-revamp .tabs-intro { align-items: center; }
-.home-revamp .tabs-intro .lead { max-width: 440px; }
+/* One native capture carries the tab-group story: copy beside the capture. */
+.home-revamp .tabs-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: clamp(36px, 5vw, 72px);
+}
+.home-revamp .tabs-copy .lead { max-width: 420px; }
+.home-revamp .tabs-note {
+  margin-top: 22px;
+  font: 400 14px/1.7 var(--font-ui);
+  color: var(--ink);
+}
+.home-revamp .tabs-note a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.home-revamp .tabs-links {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 0 28px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font: 500 14px/1.6 var(--font-ui);
+}
+.home-revamp .tabs-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  color: var(--gold);
+  text-decoration: none;
+}
+.home-revamp :is(.tabs-note, .tabs-links) a:is(:hover, :focus-visible) {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 .home-revamp .tabs-capture {
-  max-width: 960px;
-  margin: clamp(36px, 5vw, 64px) auto 0;
+  margin: 0;
   filter: drop-shadow(0 28px 28px rgb(48 35 18 / .10));
 }
 .home-revamp .tabs-capture img {
@@ -1739,24 +1776,10 @@
   height: auto;
   border-radius: 3.1% / 5.8%;
 }
-.home-revamp .tabs-followthrough { margin-top: 36px; text-align: center; }
-.home-revamp .tabs-followthrough p { font: 400 13px/1.7 var(--font-ui); }
-.home-revamp .tabs-followthrough a { color: var(--ink); text-decoration: none; }
-.home-revamp .tabs-followthrough a:hover { text-decoration: underline; text-underline-offset: 4px; }
-.home-revamp .tabs-followthrough nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 28px;
-  margin-top: 16px;
-  font: 500 13px/1.6 var(--font-ui);
-}
-.home-revamp .tabs-followthrough nav a { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; padding-block: 10px; }
-@media (max-width: 760px) {
-  .home-revamp .tabs-intro { gap: 18px; }
-  .home-revamp .tabs-capture { margin-top: 30px; }
-  .home-revamp .tabs-followthrough { margin-top: 26px; }
-  .home-revamp .tabs-followthrough nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+/* Narrow screens: copy first, capture below. */
+@media (max-width: 1000px) {
+  .home-revamp .tabs-layout { grid-template-columns: 1fr; gap: 32px; }
+  .home-revamp .tabs-capture { max-width: 720px; }
 }
 /* A lazy-loaded solid 3D shield, with the original artwork as a static fallback. */
 .home-revamp .privacy-intro {
@@ -1831,25 +1854,50 @@
   grid-area: options;
   margin-top: 36px;
 }
-.home-revamp .blocking-option + .blocking-option { margin-top: 25px; }
+/* The two blockers read as one choice: a card with a row per option. */
+.home-revamp .blocking-choice {
+  max-width: 460px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.5);
+}
+.home-revamp .blocking-option { padding: 18px 20px; }
+.home-revamp .blocking-option + .blocking-option { border-top: 1px solid var(--line); }
+.home-revamp .blocking-option-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .home-revamp .blocking-option h3 {
-  font: 500 18px/1.5 var(--font-ui);
+  font: 500 17px/1.4 var(--font-ui);
   letter-spacing: -0.02em;
 }
+.home-revamp .blocking-badge {
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 12px/1.5 var(--font-ui);
+  color: var(--dim);
+}
+.home-revamp .blocking-badge.is-default {
+  border-color: transparent;
+  background: var(--ink);
+  color: var(--paper);
+}
 .home-revamp .blocking-option p {
-  margin-top: 7px;
+  margin-top: 6px;
   color: var(--ink);
-  font-size: 13px;
-  line-height: 1.75;
-  max-width: 410px;
+  font-size: 14px;
+  line-height: 1.65;
 }
 .home-revamp .blocking-provider-note {
-  color: var(--ink);
+  max-width: 460px;
+  margin-top: 14px;
+  padding-inline: 4px;
+  color: var(--dim);
   font-size: 13px;
   line-height: 1.7;
-  max-width: 410px;
 }
-.home-revamp .blocking-provider-note { margin-top: 25px; }
 .home-revamp .privacy-disclosure {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1865,8 +1913,14 @@
   line-height: 1.8;
   margin-top: 10px;
 }
+.home-revamp .privacy-disclosure .data-sends-card {
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.5);
+}
 .home-revamp .privacy-disclosure .data-sends-title {
-  margin-top: 20px;
+  margin: 0;
   font: 600 13px/1.5 var(--font-ui);
   color: var(--ink);
 }
@@ -1884,7 +1938,7 @@
   white-space: nowrap;
 }
 .home-revamp .privacy-disclosure .material-limit {
-  margin-top: 0;
+  margin-top: 18px;
   border-top: 0;
   padding-top: 0;
 }
@@ -2226,4 +2280,49 @@
 .home-revamp .tool-feature[hidden],
 .home-revamp .gesture-study[hidden] {
   display: none;
+}
+
+/* Start Page: the lead sits with the heading, a narrower monitor, and one
+   footer row under it (current layout caption left, Mahjong right). */
+.home-revamp .start-frame .split-title {
+  align-items: end;
+}
+.home-revamp .start-frame > figure {
+  display: grid;
+  /* The monitor art draws at 94% of its box, so the footer row sits inside 3% gutters. */
+  grid-template-columns: 3% minmax(0, 1fr) auto 3%;
+  grid-template-areas: "device device device device" ". caption discovery ." "controls controls controls controls";
+  align-items: center;
+  column-gap: 0;
+  max-width: 860px;
+}
+.home-revamp .start-frame .device-composition { grid-area: device; }
+.home-revamp .start-frame .device-desktop {
+  width: 100%;
+  max-width: 780px;
+}
+.home-revamp .layout-caption {
+  grid-area: caption;
+  margin: 18px 24px 0 0;
+  font: 400 14px/1.6 var(--font-ui);
+  color: var(--dim);
+}
+.home-revamp .start-frame .start-discovery {
+  grid-area: discovery;
+  justify-content: flex-end;
+  margin: 18px 0 0;
+  min-height: 0;
+}
+.home-revamp .start-frame .mahjong-controls { grid-area: controls; }
+/* While Mahjong plays, the caption explains it; keep just the tiles and Back. */
+.home-revamp .start-frame .start-discovery.is-playing .break-copy { display: none; }
+.home-revamp .start-frame .break-label { font-size: 21px; }
+.home-revamp .start-frame .tile-pair { width: 40px; height: 40px; }
+@media (max-width: 760px) {
+  .home-revamp .start-frame > figure {
+    grid-template-columns: 1fr;
+    grid-template-areas: "device" "caption" "discovery" "controls";
+  }
+  .home-revamp .layout-caption { text-align: center; margin-right: 0; }
+  .home-revamp .start-frame .start-discovery { justify-content: center; margin-top: 14px; }
 }
