@@ -66,7 +66,7 @@ test('the masthead is a sticky top bar and the navigation hides on scroll down a
   assert.match(styles, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(styles, /\.site-mega::before \{[^}]*var\(--site-gold-on-dark\)/);
   assert.doesNotMatch(header, /tuckDistance|is-tucked/);
-  assert.match(header, /import \{ directLinks \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
+  assert.match(header, /import \{ directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
   assert.match(header, /is-scroll-hidden/);
   assert.match(header, /focusin/);
   assert.match(header, /travel >= 8/);
