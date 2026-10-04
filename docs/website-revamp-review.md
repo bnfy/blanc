@@ -750,3 +750,71 @@ URLs). The share and copy paths were exercised on an emulated Android phone
 on both pages, and desktop was confirmed unchanged. At 1440, 1024, 768, 761,
 390, 380, 360, 340 and 320px in light and dark there is no horizontal
 overflow and the header stays on one row with the toggle beside Download.
+
+## Page weight (October 4)
+
+Round 2, milestone C of the homepage audit. Measured against the production
+build (`astro preview`), counting response bytes, before the first scroll
+(after load plus 2.5 s) and after scrolling the whole page:
+
+| | Before | After |
+|---|---|---|
+| Phone (390px), before first scroll | 2,339 KB | 596 KB |
+| Phone, whole page | 4,532 KB | 1,399 KB |
+| Desktop (1440px), before first scroll | 1,317 KB | 503 KB |
+| Desktop, whole page | 4,532 KB | 1,508 KB |
+
+On a 1.6 Mbps, 150 ms link the desktop page now finishes loading in about
+2.7 s (first contentful paint about 0.95 s); the audit measured 11.6 s.
+
+- Only the visible wallpaper scene loads with the page; the other seven load
+  when first selected (`data-src`, handled in `wallpaper-preview.js`).
+- `site/scripts/build-display-images.mjs` derives lossy WebP display copies:
+  800px phone copies of the Island captures (served under 760px through
+  `<picture>`), full-size copies of the Island captures and both device
+  frames, and copies of the five v1.21.0 Start Page captures that keep their
+  Display P3 profile. Sources are untouched — the lossless frames and Island
+  captures stay pinned in `docs/website-revamp-assets.json`, and the PNG
+  captures stay pinned and remain the linked full-size originals. Each copy
+  records its source SHA-256 in `site/src/data/display-images.json`;
+  `test/unit/website-display-images.test.js` fails when a source changes
+  without regenerating. Mean pixel difference is under 2/255.
+- The shield fallback image now uses `crossorigin="anonymous"`, matching the
+  three.js texture request, so it downloads once instead of twice.
+- 162 lines of CSS for retired mockup classes were removed after confirming
+  none of them appears in any built page or script.
+- Not changed: Inter is still fetched twice (about 47 KB). The hero renders
+  with the app's own `inter-latin.woff2` so it matches the shipped Island
+  exactly; the rest of the site uses Fontsource's build of the same face.
+
+## Readable screenshots on phones (October 4)
+
+Round 2, milestone D. Below 760px the homepage hides both device frames
+(lazy and hidden, so phones never download them) and shows each capture in a
+plain rounded 4:3 card, zoomed onto the part that matters: the clock,
+favorites and Patron pill for the wallpaper scenes and Billboard; the
+favorites list for Ledger; the cards for Shelf; and the "Blocked this week"
+chart for Tally. The crop is CSS on the same release capture, so the wallpaper
+slider, the theme toggle and the layout switcher keep working and the crops
+follow any future recapture without regeneration. Offsets are percentages of
+the card, so the same detail shows from 320px to 760px. The Island demo is
+unchanged: it already crops to the bar on phones and its layered, clickable
+animation depends on the full capture geometry. Desktop is unchanged. A unit
+check keeps the phone rules in place.
+
+## Homepage content (October 4)
+
+Round 2, milestone E, using the wording approved in the round-2 spec (§8):
+the hero lead now says what the Island leaves you (the rest of the window for
+the page); a new "Switching to Blanc" section covers bookmark import, Bring
+Your Tabs, vertical tabs and default-browser setup; the closing line names
+Bananify as an independent software studio; the data paragraph becomes a
+"What Blanc sends" list with the same facts plus the search-suggestion detail
+from the privacy policy; the Patron boundary is two sentences (the
+lifetime-supporter line stays on Support, About, Download and the Workspaces
+guide); the 1Password and Quiet Tabs small print is shorter; and the header's
+Features link opens the `/features` overview. The claims ledger retires the
+seven replaced entries with a reason and adds the new wording; Bring Your Tabs
+cites a new `tabImport` evidence group (`chromium-session.js` and the
+tab-import modules at v1.27.0). The trust test's pinned disclosure phrases
+were updated in the same commit.

@@ -68,14 +68,15 @@ test("home keeps product limits and links to detailed ownership, licensing and a
     "How they fit together",
     "chromiumMark",
     "electronMark",
-    "Fresh setup preselects search suggestions and usage measurement",
+    "Usage measurement, preselected",
+    "Search suggestions, preselected",
+    "Turn either off before saving, or later in Settings.",
     "only after you save",
     "optional Google Analytics mirror",
-    "Built by Bananify.",
+    "Built by Bananify, an independent software studio.",
     "MIT for Blanc’s own code",
     "Renaming and removing existing workspaces",
-    "Earlier one-time supporters",
-    "Off by default; requires the installed 1Password app",
+    "Off by default. Needs the 1Password app and account on macOS.",
   ])
     assert.ok(home.includes(phrase), phrase);
   assert.match(home, /href="\/trust#engine"/);

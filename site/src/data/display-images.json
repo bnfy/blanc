@@ -1,0 +1,93 @@
+[
+  {
+    "source": "revamp/island-roman-rest.webp",
+    "sourceSha256": "a8d1f2febf1b8ee773a100c7627b39c42e2b6a1410960b5d4a22eda8f95c3b62",
+    "output": "revamp/island-roman-rest-800.webp",
+    "width": 800,
+    "height": 571
+  },
+  {
+    "source": "revamp/island-roman-rest.webp",
+    "sourceSha256": "a8d1f2febf1b8ee773a100c7627b39c42e2b6a1410960b5d4a22eda8f95c3b62",
+    "output": "revamp/island-roman-rest-display.webp",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "source": "revamp/island-roman-tabs.webp",
+    "sourceSha256": "5276dbacead1850e4d4658e8ba4f7c8c499b9d54abaa734376c81ad380196db2",
+    "output": "revamp/island-roman-tabs-800.webp",
+    "width": 800,
+    "height": 571
+  },
+  {
+    "source": "revamp/island-roman-tabs.webp",
+    "sourceSha256": "5276dbacead1850e4d4658e8ba4f7c8c499b9d54abaa734376c81ad380196db2",
+    "output": "revamp/island-roman-tabs-display.webp",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "source": "revamp/island-roman-command.webp",
+    "sourceSha256": "8a16c6845f057b689b0b17d62574aa738a5413d9342b2b4e3e28cccc5940f646",
+    "output": "revamp/island-roman-command-800.webp",
+    "width": 800,
+    "height": 571
+  },
+  {
+    "source": "revamp/island-roman-command.webp",
+    "sourceSha256": "8a16c6845f057b689b0b17d62574aa738a5413d9342b2b4e3e28cccc5940f646",
+    "output": "revamp/island-roman-command-display.webp",
+    "width": 1400,
+    "height": 1000
+  },
+  {
+    "source": "revamp/champagne-desktop-v2.webp",
+    "sourceSha256": "6b66146dfa0c8dbe72bdbfca465d320e10e4b3a97b7b06d43b61ceda554476a7",
+    "output": "revamp/champagne-desktop-v2-display.webp",
+    "width": 1374,
+    "height": 1145
+  },
+  {
+    "source": "revamp/space-black-laptop-v2.webp",
+    "sourceSha256": "c802712109c2b03f56711dbbfc0c24187d2f0a49be93721e8187308f8f31ba99",
+    "output": "revamp/space-black-laptop-v2-display.webp",
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "source": "feature-captures/ledger-v1.21.0.png",
+    "sourceSha256": "65ba9b375627714384fa1a2deb21f257b5d0c5e9e7105c900317b590e73567d6",
+    "output": "feature-captures/ledger-v1.21.0.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/billboard-v1.21.0.png",
+    "sourceSha256": "3e0107aa2317451e747122b05ad2979f0996a64a80a60e10a2feaad876575dbd",
+    "output": "feature-captures/billboard-v1.21.0.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/shelf-v1.21.0.png",
+    "sourceSha256": "0b3872b8348f96b3d55a3d01d8f4c2f44ed5dbc13601a06626ca60f4f56dadeb",
+    "output": "feature-captures/shelf-v1.21.0.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/tally-v1.21.0.png",
+    "sourceSha256": "85e70e93eb0258727889575a3921b0bcf15691967b0a56385931a8011847377e",
+    "output": "feature-captures/tally-v1.21.0.webp",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "source": "feature-captures/mahjong-v1.21.0.png",
+    "sourceSha256": "675203949417c5d9492be8e17ccf337a7e2578896ebbd9730319ee1acff81efc",
+    "output": "feature-captures/mahjong-v1.21.0.webp",
+    "width": 1440,
+    "height": 900
+  }
+]

@@ -240,6 +240,16 @@
         "src/renderer/pages/settings.html"
       ],
       "qualification": "Public v1.27.0 settings default adblockEnabled to true with Blanc Blocker as the provider, so a fresh profile blocks from first launch. Blocking can be turned off in Settings or allowed per site. uBlock Origin is an opt-in alternative for regular tabs on supported builds; private tabs always use Blanc Blocker. Blocking reduces known ads and trackers; coverage is not universal."
+    },
+    "tabImport": {
+      "evidence": [
+        "src/main/chromium-session.js",
+        "src/main/browser-data-import.js",
+        "src/main/tab-import-session.js",
+        "src/main/tab-import-apply.js",
+        "src/renderer/pages/tab-import.html"
+      ],
+      "qualification": "Public v1.27.0 Bring Your Tabs parses the saved Session_* log of a user-selected Chromium-family browser profile on this device (navigation URLs and titles only; the session log holds no passwords or cookies) and opens those tabs in Blanc. The separate relay handoff on /import-tabs is described in the privacy policy."
     }
   },
   "claims": [
@@ -4486,9 +4496,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-010",
+      "id": "e1-hero-lead",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, navigation and page controls come together in one compact Island in a slim band above the page. A desktop browser for macOS, Windows and Linux.",
+      "exactWording": "Tabs, navigation and page controls fold into one compact Island in a slim band, leaving the rest of the window to the page. A desktop browser for macOS, Windows and Linux.",
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation",
@@ -4549,9 +4559,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-033",
+      "id": "e4-private-intro",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Open a private tab when you choose. Optional connections start only after you save your setup choices. Enabled usage measurement sends pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror; no URLs, searches or page contents.",
+      "exactWording": "Open a private tab when you choose. Optional connections start only after you save your setup choices.",
       "subject": "Blanc",
       "evidenceGroups": [
         "security",
@@ -4560,9 +4570,53 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-034",
+      "id": "e4-sends-title",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Blocking reduces known ads and tracking; coverage is not universal. Fresh setup preselects search suggestions and usage measurement. Both can be turned off before saving or later in Settings. Connections, defaults and security evidence →",
+      "exactWording": "What Blanc sends",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e4-sends-usage",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Usage measurement, preselected: pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror. No URLs, searches or page contents.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e4-sends-suggestions",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Search suggestions, preselected: an eligible prefix you type in the Island goes to your selected search provider.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e4-sends-off",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Turn either off before saving, or later in Settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e4-blocking-limit",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blocking reduces known ads and tracking; coverage is not universal. Connections, defaults and security evidence →",
       "subject": "Blanc",
       "evidenceGroups": [
         "security",
@@ -4723,9 +4777,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-053",
+      "id": "e6-onepassword-limit",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Off by default; requires the installed 1Password app and account on macOS. Lookup and filling remain explicit actions. Setup and shortcuts →",
+      "exactWording": "Off by default. Needs the 1Password app and account on macOS. Setup and shortcuts →",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance",
@@ -4765,9 +4819,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-056",
+      "id": "e6-quiet-limit",
       "source": "site/src/pages/index.astro",
-      "exactWording": "A quiet page reloads when revisited. Active, unfinished or otherwise ineligible pages stay awake.",
+      "exactWording": "Quiet pages reload when you return to them.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance",
@@ -4779,9 +4833,110 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-058",
+      "id": "e2-kicker",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Built by Bananify.",
+      "exactWording": "Switching to Blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing",
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring your bookmarks and tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-bookmarks-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring your bookmarks.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-bookmarks",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Import Favorites from a detected browser profile or an HTML bookmarks file. How importing works →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-tabs-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring your tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "importing"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-tabs",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring Your Tabs reads the saved session of a Chromium-based browser profile you choose on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabImport"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-vertical-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Prefer a sidebar?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-vertical",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Switch to vertical tabs in View → Tab Layout. The setting stays on this device. Vertical tabs →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-default-title",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Make it your default.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e2-default",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "First-run setup helps you choose a default browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "e3-bananify",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Built by Bananify, an independent software studio.",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -4805,9 +4960,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-062",
+      "id": "e5-patron-boundary",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "exactWording": "Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses, and they stay openable, switchable and automatically updated.",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -9591,6 +9746,101 @@
       ],
       "verdict": "qualified",
       "reason": "Homepage audit October 4, 2026: the privacy lead now states Blanc Blocker is on from first launch and offers uBlock Origin for regular tabs on supported builds."
+    },
+    {
+      "id": "revamp-copy-010",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, navigation and page controls come together in one compact Island in a slim band above the page. A desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "wallpaper",
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "revamp-copy-033",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Open a private tab when you choose. Optional connections start only after you save your setup choices. Enabled usage measurement sends pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror; no URLs, searches or page contents.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "revamp-copy-034",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blocking reduces known ads and tracking; coverage is not universal. Fresh setup preselects search suggestions and usage measurement. Both can be turned off before saving or later in Settings. Connections, defaults and security evidence →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "security",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "revamp-copy-053",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Off by default; requires the installed 1Password app and account on macOS. Lookup and filling remain explicit actions. Setup and shortcuts →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "onepassword",
+        "gestures",
+        "foundations",
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "revamp-copy-056",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "A quiet page reloads when revisited. Active, unfinished or otherwise ineligible pages stay awake.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance",
+        "onepassword",
+        "gestures",
+        "foundations",
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "revamp-copy-058",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Built by Bananify.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "process",
+        "trust",
+        "workspaces",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
+    },
+    {
+      "id": "revamp-copy-062",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "process",
+        "trust",
+        "workspaces",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit round 2 (October 4, 2026), content milestone: wording approved in docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md §8."
     }
   ],
   "supersededCandidateClaims": [
