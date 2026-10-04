@@ -45,20 +45,38 @@
   ],
   "artwork": {
     "source": "assets/horizon-shield.png",
-    "approvedRevision": "03621de6",
     "file": "site/public/horizon-shield.webp",
     "width": 960,
     "height": 960,
-    "sha256": "642269205dfb144a2ba522d0ab9cead41d4e52ccac0c48ffb9a1c8726abb73ec",
-    "export": "Sharp: trim threshold 8, resize contain 960×960 with transparent padding, WebP quality 90 / alphaQuality 100 / effort 6. No repainting or geometry changes.",
+    "sha256": "4e8a72f2ee4d8c79f47ef34afffa87b5b52b403c230f9a5bf1cdef0d853071cf",
+    "export": "Shared copper/bronze master, recolored with the built-in imagegen tool at the owner’s request. Sharp: trim threshold 8, resize contain 960×960 with transparent padding, WebP quality 90 / alphaQuality 100 / effort 6. Export preserves the edited master’s colors.",
     "license": "Reserved Blanc product identity per ASSET-LICENSE.md. Horizon Shield is Blanc artwork, not the uBlock Origin logo.",
     "model": {
       "source": "site/src/scripts/horizon-shield-model.js",
       "outline": "site/src/data/horizon-shield-outline.json",
-      "outlineSha256": "467ccb0325d8219e29c992d99754370965b11ba0250bb8481c1e0597ce994fbd",
+      "outlineSha256": "e25d5b57ca43b01020c4a124e1358dadc0695507ab2a4c6aa54c66c7e9f0fff0",
       "rebuild": "node site/scripts/build-horizon-outline.mjs",
-      "geometry": "Closed gold relief mesh. Front and back use identical approved artwork/UVs and matching relief turned 180 degrees; solid beveled walls join them. Silhouette is alpha-traced with subpixel edge smoothing.",
-      "ownerDirection": "October 3: make the shield solid 3D; use the same front artwork on the back; remove the visible caption; close all side surfaces."
+      "geometry": "Closed bronze relief mesh. Front and back use identical approved artwork/UVs and matching relief turned 180 degrees; solid beveled walls join them. Silhouette is alpha-traced with subpixel edge smoothing.",
+      "ownerDirection": "October 3: make the shield solid 3D; use the same front artwork on the back; remove the visible caption; close all side surfaces.",
+      "rimColor": "#a67b4f"
+    },
+    "originalApprovedRevision": "03621de6",
+    "originalSourceSha256": "c0eeeb6db1598d70c01fa8a3f0d021da3a2025907e1921a4391ed9aaf2709e53",
+    "sourceSha256": "5882ad8fab1debe245a8cbf92e3e7e5dfc26f755607ddb598eb73187ca54389e",
+    "runtime": {
+      "file": "src/renderer/shield-horizon.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "692e180cfa9e78d0f65062e851050bc8056ea9b64ffd24abefbf0dd3c02c7c96",
+      "export": "Same master, trim threshold 8, resize contain 128×128 with transparent padding, PNG."
+    },
+    "recolor": {
+      "date": "2026-10-03",
+      "direction": "Match the shield everywhere in the app and website to the copper/bronze tones of the original Sunrise sun; reduce the bright yellow-gold cast.",
+      "reference": "site/public/sunrise-hero-mark.png",
+      "referenceSha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a",
+      "evidence": "docs/verification/2026-10-03-horizon-shield-bronze.md",
+      "tool": "Built-in image_gen.imagegen; precise-object-edit; transparent output."
     }
   },
   "reviewedCandidateFiles": [

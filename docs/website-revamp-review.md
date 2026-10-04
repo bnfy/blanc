@@ -219,15 +219,15 @@ not a claim that Cloudflare redirects or the canonical deployment have shipped.
 
 ## Horizon Shield and blocking choices — October 3
 
-Privacy and Control features the approved gold Horizon Shield at a large scale,
+Privacy and Control features the Sunrise bronze Horizon Shield at a large scale,
 beside Blanc Blocker and uBlock Origin. The original transparent source is
-exported faithfully to a 960px WebP (160,406 bytes), which remains the fallback.
+exported faithfully to a 960px WebP (139,890 bytes), which remains the fallback.
 A solid relief mesh follows its alpha silhouette: matching front and back
 surfaces use the same original artwork and UVs, turned 180 degrees, with two
-recessed seams and closed beveled gold walls between them. The visible caption
+recessed seams and closed beveled bronze walls between them. The visible caption
 is removed; the figure retains an accessible name.
 
-Three.js 0.186.1 renders the model with softer lighting and a satin gold finish:
+Three.js 0.186.1 renders the model with softer lighting and a satin bronze finish:
 reduced exposure, environment and edge lighting, rougher surfaces, and no
 clearcoat reduce glare while retaining the original brushed artwork and relief.
 Its separate chunk loads
@@ -283,3 +283,12 @@ or errors.
 The branch also incorporates main through `03621de6`, bringing in the approved
 shield asset and resolving the duplicate http-cache-semantics review while
 retaining both reviews' bounded checks. No deployment was performed.
+
+The owner's later October 3 color correction replaces bright yellow gold with
+the original Sunrise sun's copper/bronze family. The shared master feeds both
+the native 128px PNG and website 960px WebP, including both 3D faces and the
+enlarged hero Island. The rim is bronze and the key light is more neutral to
+avoid reintroducing a yellow cast. The final alpha silhouette was retraced for
+the closed 3D model. Original approval evidence remains pinned separately from
+the recolored master and its exports in the launch ledger; the edit prompt is
+recorded in `docs/verification/2026-10-03-horizon-shield-bronze.md`.

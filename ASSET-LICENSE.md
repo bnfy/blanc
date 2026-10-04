@@ -29,7 +29,7 @@ Source mark:
 
 Product marks:
 
-- `assets/horizon-shield.png` — layered gold Horizon Shield source artwork
+- `assets/horizon-shield.png` — layered copper/bronze Horizon Shield source artwork
 - `src/renderer/shield-horizon.png` — transparent Island toolbar export
 - `site/public/horizon-shield.webp` — transparent website export
 - `site/src/data/horizon-shield-outline.json` — silhouette for the website’s 3D product mark

@@ -22,7 +22,7 @@ export async function createShieldRenderer(mount) {
   scene.environment = environment.texture;
   scene.environmentIntensity = 0.7;
   room.dispose(); pmrem.dispose();
-  const key = new DirectionalLight(0xfff4dd, 0.8);
+  const key = new DirectionalLight(0xfff8f0, 0.8);
   key.position.set(-3, 5, 5); scene.add(key);
   const edgeLight = new DirectionalLight(0xffffff, 0.85);
   edgeLight.position.set(4, 1, -3); scene.add(edgeLight);
@@ -31,8 +31,8 @@ export async function createShieldRenderer(mount) {
   catch (error) { environment.dispose(); renderer.dispose(); throw error; }
   texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
-  const gold = new MeshPhysicalMaterial({
-    color: new Color('#dcb361'), metalness: 1, roughness: 0.56,
+  const bronze = new MeshPhysicalMaterial({
+    color: new Color('#a67b4f'), metalness: 1, roughness: 0.56,
     clearcoat: 0,
   });
   const face = new MeshPhysicalMaterial({
@@ -49,7 +49,7 @@ export async function createShieldRenderer(mount) {
     return [name, mesh];
   }));
   const shield = new Group();
-  shield.add(new Mesh(geometry.front, face), new Mesh(geometry.back, face), new Mesh(geometry.rim, gold));
+  shield.add(new Mesh(geometry.front, face), new Mesh(geometry.back, face), new Mesh(geometry.rim, bronze));
   shield.rotation.x = -0.06;
   scene.add(shield);
   const canvas = renderer.domElement;
@@ -79,7 +79,7 @@ export async function createShieldRenderer(mount) {
     turn(angle) { shield.rotation.y = angle; draw(); },
     dispose() {
       resizeObserver.disconnect(); texture.dispose(); environment.dispose();
-      face.dispose(); gold.dispose(); Object.values(geometry).forEach(item => item.dispose());
+      face.dispose(); bronze.dispose(); Object.values(geometry).forEach(item => item.dispose());
       renderer.dispose(); canvas.remove(); mount.classList.remove('is-3d');
     },
   };

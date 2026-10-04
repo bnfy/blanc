@@ -1269,7 +1269,7 @@ body.mac .vertical-tabs-toolbar {
 #pillPrivateChip svg,
 #pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
-/* Horizon Shield: layered gold artwork in the existing 24px hover-circle.
+/* Horizon Shield: layered Sunrise bronze artwork in the existing 24px hover-circle.
    The count remains a separate badge on the shield's shoulder. */
 .shield {
   appearance: none;

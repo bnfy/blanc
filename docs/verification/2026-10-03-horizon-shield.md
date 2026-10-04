@@ -4,6 +4,11 @@ The owner selected Horizon Shield from three gold-shield concepts on October 3,
 2026, reviewed it in an isolated native Blanc dev instance, and approved the
 smaller 16px revision before requesting a squash merge for the next release.
 
+The later same-day copper/bronze color direction supersedes the gold palette
+below. See `2026-10-03-horizon-shield-bronze.md` for the revised shared master,
+app and website exports, edit prompt and validation. This record preserves the
+original selection and native interaction review.
+
 ## Final presentation
 
 Three curved gold plates form a rounded shield with two dark bronze seams.

@@ -134,7 +134,7 @@ test('front and back have identical relief and UVs joined by a solid beveled per
   assert.ok([...edges.values()].every(count => count === 2), 'every welded edge belongs to two triangles: no open sides');
 });
 
-test('provider launch copy remains release-gated with pinned candidate evidence and approved artwork', () => {
+test('provider launch copy remains release-gated and shared shield exports match their recorded master', async () => {
   const ledger = JSON.parse(read('docs/website-blocking-launch.json'));
   const home = read(ledger.source).replace(/<br\s*\/?>/g, ' ').replace(/\s+/g, ' ');
   assert.equal(ledger.status, 'release-gated-draft');
@@ -160,8 +160,21 @@ test('provider launch copy remains release-gated with pinned candidate evidence 
   }
   const artwork = fs.readFileSync(path.join(root, ledger.artwork.file));
   assert.equal(crypto.createHash('sha256').update(artwork).digest('hex'), ledger.artwork.sha256);
-  const approved = execFileSync('git', ['show', `${ledger.artwork.approvedRevision}:${ledger.artwork.source}`], { cwd: root, maxBuffer: 4 * 1024 * 1024 });
-  assert.deepEqual(fs.readFileSync(path.join(root, ledger.artwork.source)), approved);
+  const hash = data => crypto.createHash('sha256').update(data).digest('hex');
+  const original = execFileSync('git', ['show', `${ledger.artwork.originalApprovedRevision}:${ledger.artwork.source}`], { cwd: root, maxBuffer: 4 * 1024 * 1024 });
+  assert.equal(hash(original), ledger.artwork.originalSourceSha256);
+  const master = fs.readFileSync(path.join(root, ledger.artwork.source));
+  assert.equal(hash(master), ledger.artwork.sourceSha256);
+  const runtime = fs.readFileSync(path.join(root, ledger.artwork.runtime.file));
+  assert.equal(hash(runtime), ledger.artwork.runtime.sha256);
+  assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.model.outline))), ledger.artwork.model.outlineSha256);
+  assert.equal(hash(fs.readFileSync(path.join(root, ledger.artwork.recolor.reference))), ledger.artwork.recolor.referenceSha256);
+  const sharp = require('sharp');
+  const options = {fit:'contain', background:{r:0,g:0,b:0,alpha:0}};
+  assert.deepEqual(await sharp(master).trim({threshold:8}).resize(128,128,options).png().toBuffer(), runtime,
+    'the desktop icon must be an unfiltered export of the shared master');
+  assert.deepEqual(await sharp(master).trim({threshold:8}).resize(960,960,options).webp({quality:90,alphaQuality:100,effort:6}).toBuffer(), artwork,
+    'the website must use the same edited master as the app');
   assert.ok(read('ASSET-LICENSE.md').includes(ledger.artwork.file));
   assert.match(home, /href="\/trust#ad-blocking"/);
   assert.match(home, /href="\/trust#connections"/);
