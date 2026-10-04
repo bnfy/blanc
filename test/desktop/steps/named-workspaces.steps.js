@@ -20,7 +20,7 @@ async function evidence(page, name, nativeCapture = false) {
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { overlayPage } = require('../support/overlay');
 const ctx = require('../support/context');
-const { openOverlaySurface } = require('../support/poll');
+const { openOverlaySurface, waitForValue } = require('../support/poll');
 
 Given('a named workspace with a live unsaved draft', async function () {
   await this.call('workspacePatron');
@@ -111,7 +111,11 @@ When('I quiet a grouped pinned page and switch away', async function () {
   await this.call('pinTab', this.quietId);
   await this.call('groupTabByName', this.quietId, 'Research');
   await this.call('activateTab', this.draftId);
-  assert.equal(await this.call('sleepTab', this.quietId), true);
+  // Quieting is deliberately best-effort: a cold/throttled CI renderer can
+  // miss its first dirty-probe budget. Retry the ordinary safe operation;
+  // never force destruction or relax the app's eligibility checks.
+  await waitForValue(() => this.call('sleepTab', this.quietId), value => value === true, 'eligible fixture page to become quiet');
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   const made = await this.call('workspaceAction', 'create', 'Away'); assert.equal(made.ok, true, JSON.stringify(made));
 });
 Then('inactive navigation belongs to the original workspace and its quiet tab survives', async function () {
@@ -132,6 +136,7 @@ Then('inactive navigation belongs to the original workspace and its quiet tab su
   assert.equal(await this.call('workspacePageScript', this.draftId, 'location.hash'), '#inactive-navigation');
 });
 When('I switch away and delete the inactive workspace', async function () {
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   assert.equal((await this.call('workspaceAction', 'create', 'Away')).ok, true);
   assert.equal((await this.call('workspaceAction', 'remove', this.workspaceA)).ok, true);
 });
@@ -146,12 +151,13 @@ Given('twenty five named workspaces with long names', async function () {
 });
 Then('the workspace list scrolls while creation controls remain visible', async function () {
   const checkFooter = async (page) => {
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
     const geometry = await page.evaluate(() => {
       const footer = document.getElementById('islandFooter').getBoundingClientRect();
       const rects = [...document.querySelectorAll('#islandFooter button')].map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
       const label = document.getElementById('footerWorkspaceLabel');
-      return { footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
+      return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
     });
     assert.ok(geometry.truncated, 'long footer name should truncate instead of consuming the toolbar');
     assert.ok(geometry.labelWidth < 100, 'footer title must keep its compact width');
@@ -159,7 +165,7 @@ Then('the workspace list scrolls while creation controls remain visible', async 
     assert.ok(workspace.width > 28, 'named workspace must use the existing name-bearing button geometry');
     assert.ok(geometry.labelRect.left >= workspace.left && geometry.labelRect.right <= workspace.right, 'workspace title must stay inside its button');
     for (const { id, rect } of geometry.rects) {
-      assert.ok(rect.left >= geometry.footer.left - 1 && rect.right <= geometry.footer.right + 1, `${id} must fit inside the footer`);
+      assert.ok(rect.left >= geometry.footer.left - 1 && rect.right <= geometry.footer.right + 1, `${id} must fit inside the footer: ${JSON.stringify(geometry)}`);
       assert.ok(rect.top >= geometry.footer.top - 1 && rect.bottom <= geometry.footer.bottom + 1, `${id} must fit vertically`);
     }
     for (let i = 0; i < geometry.rects.length; i++) for (let j = i + 1; j < geometry.rects.length; j++) {

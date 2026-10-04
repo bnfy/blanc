@@ -52,3 +52,24 @@ test('Workspace regression coverage is wired to platform CI and future signed-pa
   assert.equal((native.match(/name: Verify packaged Workspace quit\/restart recovery/g) || []).length, 2);
   assert.equal((native.match(/packaged-workspace-recovery-smoke.mjs support\/workspace-fixtures.js; do/g) || []).length, 2);
 });
+test('Workspace session-commit failure injection targets the second save on POSIX and Windows', () => {
+  // Exercise the existing dev-only hook body with each platform's path rules.
+  // The production filesystem and Electron process are never loaded here.
+  const body = read('src/main/main.js').match(/if \(action === 'fail-session-commit'\) \{([\s\S]*?)\n        \}/)?.[1];
+  assert.ok(body, 'dev-only Workspace failure-injection seam must exist');
+  const inject = new Function('fs', 'path', 'createBlankWorkspaceAndSwitch', 'rt', 'args', body);
+  for (const paths of [path.posix, path.win32]) {
+    const committed = [];
+    const original = (_from, to) => committed.push(to);
+    const fixtureFs = { renameSync: original };
+    const destination = paths.join('fixture-profile', 'session.json');
+    const create = () => {
+      fixtureFs.renameSync('temporary', paths.join('fixture-profile', 'workspaces.json'));
+      fixtureFs.renameSync('temporary', destination);
+      fixtureFs.renameSync('temporary', destination);
+    };
+    assert.throws(() => inject(fixtureFs, paths, create, () => ({}), ['fixture']), { code: 'ENOSPC' });
+    assert.equal(fixtureFs.renameSync, original, 'failure injection must restore the filesystem method');
+    assert.deepEqual(committed, [paths.join('fixture-profile', 'workspaces.json'), destination]);
+  }
+});
