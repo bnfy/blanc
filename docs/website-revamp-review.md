@@ -378,3 +378,13 @@ the accessible state description and recorded its exact public-release evidence.
 The center crop remains lossless and the source/export hashes are refreshed.
 Desktop/mobile preview, production site/SEO build and all 13 evidence/trust
 checks passed. No visible caption or app change was added.
+
+## Compact mobile Island controls (October 3)
+
+At widths up to 760px, the Island switcher uses three equal-width segments
+with short labels (At rest, Tabs, Commands) and an adjacent circular playback
+button. All four targets are at least 44px tall. Playback retains its descriptive
+accessible Play/Pause/Replay label; desktop keeps the longer visible labels.
+Verified alignment and no horizontal overflow at 320px and 390px, keyboard
+arrow navigation, and play/pause. Production site/SEO build and all 13
+feature-evidence/trust checks passed.

@@ -1106,6 +1106,9 @@
 .home-revamp .island-demo-controls .gallery-controls {
   margin: 0;
 }
+.home-revamp .island-label-compact {
+  display: none;
+}
 .home-revamp .demo-play {
   display: inline-flex;
   align-items: center;
@@ -1135,19 +1138,46 @@
   }
   .home-revamp .island-demo-controls {
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 12px;
+    flex-wrap: nowrap;
   }
   .home-revamp .island-demo-controls .gallery-controls {
-    width: 100%;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    border-radius: 14px;
   }
   .home-revamp .island-demo-controls .gallery-controls button {
-    font-size: 11px;
-    padding: 8px 9px;
-  }
-  .home-revamp .demo-play {
-    margin-left: auto;
+    min-height: 44px;
+    padding: 8px 5px;
+    border-radius: 10px;
     font-size: 12px;
+    white-space: nowrap;
+  }
+  .home-revamp .island-selector .gallery-indicator {
+    border-radius: 10px;
+  }
+  .home-revamp .island-label-full,
+  .home-revamp .island-demo-controls .play-label {
+    display: none;
+  }
+  .home-revamp .island-label-compact {
+    display: inline;
+  }
+  .home-revamp .island-demo-controls .demo-play {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+  }
+  .home-revamp .island-demo-controls .play-glyph {
+    width: auto;
+    font-size: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
