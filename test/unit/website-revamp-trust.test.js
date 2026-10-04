@@ -59,7 +59,7 @@ test("release evidence, audit status and known Sync findings stay visible outsid
     /Synced provider passkeys, including iCloud Keychain, are not supported/,
   );
 });
-test("home keeps technology, saved-choice gating, ownership, audit and Patron boundaries near the story", () => {
+test("home keeps product limits and links to detailed ownership, licensing and audit disclosures", () => {
   const home = read("site/src/pages/index.astro").replace(/\s+/g, " ");
   for (const phrase of [
     "Chromium + Electron",
@@ -69,9 +69,8 @@ test("home keeps technology, saved-choice gating, ownership, audit and Patron bo
     "Fresh setup preselects search suggestions and usage measurement",
     "only after you save",
     "optional Google Analytics mirror",
-    "No independent external security audit has been completed",
-    "AI assists implementation and security review",
-    "Anthony J. Loria",
+    "Built by Bananify.",
+    "MIT for Blanc’s own code",
     "Renaming and removing existing workspaces",
     "Earlier one-time supporters",
     "Off by default; requires the installed 1Password app",
@@ -79,6 +78,13 @@ test("home keeps technology, saved-choice gating, ownership, audit and Patron bo
     assert.ok(home.includes(phrase), phrase);
   assert.match(home, /href="\/trust#engine"/);
   assert.match(home, /href="\/trust#release-verification-title"/);
+  assert.match(home, /href="\/about"/);
+  assert.match(home, /href="\/trust"/);
+  assert.match(home, /href="\/support#open-source"/);
+  const about = read("site/src/pages/about.astro");
+  assert.ok(about.includes("AI assists implementation and security review"));
+  assert.ok(about.includes("remains accountable for product decisions and release approval"));
+  assert.ok(about.includes("No independent external security audit has been completed"));
 });
 test("all prior guide fragment names survive in the rendered consolidated topics", () => {
   const topics = JSON.parse(read("site/src/data/guide-topics.json"));

@@ -34,3 +34,37 @@ https://en.wikipedia.org/wiki/Typography
 https://en.wikipedia.org/wiki/Scandinavian_design
 Only the browser panel is presented; article content is outside the crop.
 Third-party names and marks remain their owners' property; no endorsement implied.
+
+Mahjong gameplay previews — captured October 4, 2026
+
+mahjong-peaks-v1.27.0.mp4, mahjong-butterfly-v1.27.0.mp4 and
+mahjong-fortress-v1.27.0.mp4 show matching pairs in official Blanc v1.27.0
+for macOS. Peaks and Fortress use Burst Auto; Butterfly uses Classic.
+Native window recordings are trimmed at normal speed and exported at 30fps.
+No game UI or motion was generated. The app chrome is cropped out and game
+content is scaled proportionally. Clips are silent and load only on opening
+the Mahjong preview.
+Companion WebP files are first-frame posters for paused/reduced-motion previews.
+Source and asset hashes: docs/website-revamp-assets.json in the repository.
+
+Mouse gesture demo: illustrative cursor, trail and page transitions over the existing native NASA Roman Island capture (Blanc v1.27.0) and Billboard dawn capture (Blanc v1.25.0). The page transitions and perspective are website presentation, not a recording of the native gesture overlay. Existing NASA and wallpaper credits above apply.
+
+Glance interactive illustration — updated October 4, 2026
+
+Responsive excerpts of Visit Copenhagen’s Nyhavn page and Louisiana Museum of
+Modern Art’s Kusama installation page; the layout is a website illustration,
+not a screenshot or recording of those pages in the app. Chrome uses Blanc’s
+native Island markup/styles with sample domains and the sites’ favicons.
+
+Nyhavn photograph: © Jacob Schjørring & Simon Lau, via Visit Copenhagen.
+https://www.visitcopenhagen.com/copenhagen/planning/nyhavn-gdk474735
+
+Yayoi Kusama, Gleaming Lights of the Souls. Photograph via Louisiana Museum
+of Modern Art; artwork and photography retain their respective owners’ rights.
+https://louisiana.dk/en/exhibition/kusama-installation/
+
+Files: glance-nyhavn.webp, glance-kusama.jpg, visit-copenhagen-favicon.ico,
+louisiana-favicon.ico. Original asset URLs and SHA-256 hashes are recorded in
+docs/website-revamp-assets.json. These images and third-party names and marks
+are excluded from Blanc’s MIT grant. Their use identifies example webpages;
+no affiliation with or endorsement of Blanc is implied.

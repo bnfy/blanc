@@ -293,5 +293,132 @@
         "decodedPixelsSha256": "32aa13eadd777766519b5520a682a1f70a8ef8ceb3b821bb596e54cbc51d7ea5"
       }
     }
-  }
+  },
+  "mahjongCaptureProvenance": {
+    "captured_date": "2026-10-04",
+    "app": "/Applications/Blanc.app",
+    "version": "1.27.0",
+    "release_tag": "v1.27.0",
+    "release_sha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "method": "Window-only macOS screencapture video of installed public Blanc, played through native CUA in the existing Launch demo profile. Silent source recordings average about 55fps. Trimmed at normal speed and encoded as 30fps H.264 MP4, without generated frames or reconstructed game UI. Source window 2560x1600; game content cropped to 2560x1464 at y=136 and scaled proportionally to 1440x824 with square pixels. First-frame WebP posters. Peaks and Butterfly show four pair clears; Fortress shows five plus the native automatic combo clear.",
+    "verification": "Installed mahjong.html, mahjong.js, mahjong.css and mahjong-engine.js match the exact public v1.27.0 tag bytes. Strict deep app codesign passed. GitHub confirms release published at 2026-10-04T03:14:49Z.",
+    "files": [
+      {
+        "board": "peaks",
+        "mode": "Burst Auto",
+        "video": "site/public/revamp/mahjong-peaks-v1.27.0.mp4",
+        "poster": "site/public/revamp/mahjong-peaks-v1.27.0.webp",
+        "videoSha256": "8d7984c3f7f4240e8402a795dde825402bd856d4f8e089a35fcf5df029a7ddac",
+        "posterSha256": "cbbf789159516f5736d908edc867b3e400e50b256d4e795c1da9f483dfc26dbd",
+        "bytes": 727055,
+        "width": 1440,
+        "height": 824,
+        "frames": 270,
+        "durationSeconds": 9,
+        "frameRate": "30/1",
+        "sourceVideoSha256": "ec71e1c9082792ea2c4e94a498c6c9b0adac423a49cf5a6fbd725736c670257c",
+        "sourceFrameRate": "99840/1801",
+        "sourceTrimSeconds": {
+          "start": 5.5,
+          "duration": 9
+        }
+      },
+      {
+        "board": "butterfly",
+        "mode": "Classic",
+        "video": "site/public/revamp/mahjong-butterfly-v1.27.0.mp4",
+        "poster": "site/public/revamp/mahjong-butterfly-v1.27.0.webp",
+        "videoSha256": "a5c92e60559a3a38c0be60ef2a15c059b93ebd7e4ae3429b0f128bdc6b90dce8",
+        "posterSha256": "b6a69bd2201bf9d1120e1d27cbfa2b3af6995a9aed0e71c92038ae495db47b0f",
+        "bytes": 469573,
+        "width": 1440,
+        "height": 824,
+        "frames": 270,
+        "durationSeconds": 9,
+        "frameRate": "30/1",
+        "sourceVideoSha256": "761dc2c0d26c6fd648f97fa5f73a6d9c0d760fd1d78f2a2225cd0c8b514d27f5",
+        "sourceFrameRate": "66600/1201",
+        "sourceTrimSeconds": {
+          "start": 4.7,
+          "duration": 9
+        }
+      },
+      {
+        "board": "fortress",
+        "mode": "Burst Auto",
+        "video": "site/public/revamp/mahjong-fortress-v1.27.0.mp4",
+        "poster": "site/public/revamp/mahjong-fortress-v1.27.0.webp",
+        "videoSha256": "45851273425bf3aa96e8d8b2f05474a4458d103c2c03b2099b84769191f57b4e",
+        "posterSha256": "6707958092683bf7f154483888fcede95236419492360de97d603a1c508975c0",
+        "bytes": 903610,
+        "width": 1440,
+        "height": 824,
+        "frames": 285,
+        "durationSeconds": 9.5,
+        "frameRate": "30/1",
+        "sourceVideoSha256": "302b1c68c1883ebd3471baec84838738998bf97c79e0cca7708f95e64e74949b",
+        "sourceFrameRate": "133320/2401",
+        "sourceTrimSeconds": {
+          "start": 4,
+          "duration": 9.5
+        }
+      }
+    ],
+    "presentation": "The monitor aperture uses proportional cover with object-position 50% 28%, trimming only outer vertical padding so the image fills the screen. Top controls, board tiles and Burst rack tiles remain visible. No stretching or generated fill."
+  },
+  "glanceIllustrationAssets": [
+    {
+      "file": "site/public/revamp/glance-nyhavn.webp",
+      "source": "https://files.guidedanmark.org/files/382/164757_Nyhavn_Jacob-Schjrring-og-Simon-Lau.jpg?width=1600&height=727&mode=crop&scale=both&format=webp&webp.quality=60",
+      "sourcePage": "https://www.visitcopenhagen.com/copenhagen/planning/nyhavn-gdk474735",
+      "sourceDate": "2026-10-04",
+      "format": "WebP",
+      "width": 1600,
+      "height": 727,
+      "bytes": 175320,
+      "sha256": "95cec15601f3c3d4371fcb8d17d3455091bd25c79c347ac000a2d096734a3e31",
+      "credit": "Nyhavn photograph © Jacob Schjørring & Simon Lau; sourced from Visit Copenhagen.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    },
+    {
+      "file": "site/public/revamp/glance-kusama.jpg",
+      "source": "https://louisiana.dk/wp-content/uploads/2020/08/CST_8728-DONE-full_jpg-640x959.jpg",
+      "sourcePage": "https://louisiana.dk/en/exhibition/kusama-installation/",
+      "sourceDate": "2026-10-04",
+      "format": "JPEG",
+      "width": 640,
+      "height": 959,
+      "bytes": 204873,
+      "sha256": "87811893aed64a882118ea37452024708f9c16ea6c41c0ec7868419af2ef7816",
+      "credit": "Yayoi Kusama, Gleaming Lights of the Souls; photograph sourced from Louisiana Museum of Modern Art. Artwork and photography retain their respective owners’ rights.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    },
+    {
+      "file": "site/public/revamp/visit-copenhagen-favicon.ico",
+      "source": "https://www.visitcopenhagen.com/api/favicon",
+      "sourcePage": "https://www.visitcopenhagen.com/copenhagen/planning/nyhavn-gdk474735",
+      "sourceDate": "2026-10-04",
+      "format": "ICO",
+      "width": 48,
+      "height": 48,
+      "bytes": 9662,
+      "sha256": "d515b120cc9c093d1109eb663dab7e988c1b4c9322903b9c2d9ff40be7589900",
+      "credit": "Visit Copenhagen website favicon; respective owner’s mark.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    },
+    {
+      "file": "site/public/revamp/louisiana-favicon.ico",
+      "source": "https://louisiana.dk/wp-content/themes/louisiana/favicon.ico",
+      "sourcePage": "https://louisiana.dk/en/exhibition/kusama-installation/",
+      "sourceDate": "2026-10-04",
+      "format": "ICO",
+      "width": 32,
+      "height": 32,
+      "bytes": 5686,
+      "sha256": "97f29202991a900209f3ed193da88a276d3ca885d2f818932d3ac01cb7a13a12",
+      "credit": "Louisiana Museum of Modern Art website favicon; respective owner’s mark.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    }
+  ],
+  "glanceIllustrationBoundary": "The interactive homepage Glance demo uses responsive webpage excerpts and unaltered source photography, cropped by CSS. Native Island markup and styles supply the chrome with two sample domains/favicons. It is labelled Interactive demo, not represented as app footage. Website controls resize, swap, close and reopen the reference; mobile keeps the scaled desktop split."
 }

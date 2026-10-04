@@ -32,7 +32,7 @@
         "src/renderer/overlay.js",
         "test/unit/glance-layout.test.js"
       ],
-      "qualification": "Explicit current-window/current-profile tab selection. Temporary relationship and divider; never restored or synced. Narrow windows stack. Underlying tabs retain ordinary behavior; quiet pages reload."
+      "qualification": "Explicit current-window/current-profile tab selection. Temporary relationship and divider; never restored or synced. Narrow windows stack. Underlying tabs retain ordinary behavior; quiet pages reload. The homepage is an interactive desktop illustration using responsive excerpts of two external webpages and native Island markup/styles with sample domains. It is not captured app footage. Small website viewports scale the whole desktop illustration without changing its orientation."
     },
     "workspaces": {
       "evidence": [
@@ -210,7 +210,7 @@
         "test/unit/mouse-gestures.test.js",
         "test/desktop/mouse-gestures.mjs"
       ],
-      "qualification": "Off by default, explicit right-button mouse drag or Alt/Option plus drag on a trackpad. Default L/R/U patterns perform Back/Forward/New tab. Website buttons replay a labelled illustration and do not handle real browser gestures."
+      "qualification": "Off by default, explicit right-button mouse drag or Alt/Option plus drag on a trackpad. Default L/R/U patterns perform Back/Forward/New tab on release. Website buttons replay a labelled illustration over existing native captures; the pointer, bronze trail, perspective and transitions are website presentation, not recordings of the native gesture overlay. One introductory sequence runs when visible; replay is explicit. The illustration does not navigate the visitor’s browser."
     },
     "builtInBlocking": {
       "evidence": [
@@ -4451,7 +4451,7 @@
     {
       "id": "revamp-copy-012",
       "source": "site/src/pages/index.astro",
-      "exactWording": "One place to get around.",
+      "exactWording": "Tabs, search and commands.",
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation"
@@ -4491,7 +4491,7 @@
     {
       "id": "revamp-copy-032",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Clear privacy choices.",
+      "exactWording": "Private tabs and data settings.",
       "subject": "Blanc",
       "evidenceGroups": [
         "security",
@@ -4524,7 +4524,7 @@
     {
       "id": "revamp-copy-035",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Start with a view that suits you.",
+      "exactWording": "Choose your Start Page layout.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -4554,7 +4554,7 @@
     {
       "id": "revamp-mahjong-built-in",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Mahjong, built into Blanc.",
+      "exactWording": "Preview Blanc’s built-in game.",
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
@@ -4564,7 +4564,7 @@
     {
       "id": "revamp-copy-038",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Small conveniences. Useful every day.",
+      "exactWording": "Everyday browser tools.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance",
@@ -4577,169 +4577,71 @@
     },
     {
       "id": "revamp-copy-039",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Keep a reference beside your page.",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "View two tabs with Glance.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "glance"
       ],
       "verdict": "qualified"
     },
     {
       "id": "revamp-copy-040",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Keep two of your open pages in view. Adjust the split, swap them, or close the reference when you’re done.",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-041",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "The questions worth asking about Blanc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-042",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Yes. Blanc-owned code is MIT-licensed. Names, identity assets and third-party material retain their separate terms.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-043",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Independent by design",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-044",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc is built by Bananify, an independent software studio.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-045",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Product decisions, design and support lead back to the same human maintainer.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "glance"
       ],
       "verdict": "qualified"
     },
     {
       "id": "revamp-copy-046",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Drag the divider. An interactive desktop illustration. Swap pages ⇄ResetClose referenceOpen reference ↗",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Drag the divider to resize.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "glance"
       ],
       "verdict": "qualified"
     },
     {
       "id": "revamp-copy-047",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Let a small movement take you somewhere.",
+      "source": "site/src/components/GestureDemo.astro",
+      "exactWording": "Navigate with mouse gestures.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "gestures"
       ],
       "verdict": "qualified"
     },
     {
       "id": "revamp-copy-048",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Enable mouse gestures, then draw a direction to go back, move forward or open a tab.",
+      "source": "site/src/components/GestureDemo.astro",
+      "exactWording": "Go back, move forward or open a new tab with a simple mouse movement.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "gestures"
       ],
       "verdict": "qualified"
     },
     {
       "id": "revamp-copy-049",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Off by default. Use right-button drag with a mouse, or Alt/Option plus click-and-drag with a trackpad.",
+      "source": "site/src/components/GestureDemo.astro",
+      "exactWording": "Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad.",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "gestures"
       ],
       "verdict": "qualified"
     },
     {
       "id": "revamp-copy-050",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Select a motion to replay this illustration.",
+      "source": "site/src/components/GestureDemo.astro",
+      "exactWording": "Gesture demo",
       "subject": "Blanc",
       "evidenceGroups": [
-        "glance",
-        "onepassword",
-        "gestures",
-        "foundations",
-        "process"
+        "gestures"
       ],
       "verdict": "qualified"
     },
@@ -4788,7 +4690,7 @@
     {
       "id": "revamp-copy-054",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Free memory from inactive tabs.",
+      "exactWording": "Free memory with Quiet Tabs.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance",
@@ -4828,48 +4730,9 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-057",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "The person and the project",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-058",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Know what you’re bringing onto your computer.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-059",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc is built by Bananify, an independent software studio. Its source and release records are available to inspect. AI assists implementation and security review; Anthony J. Loria remains accountable for product decisions and release approval.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "process",
-        "trust",
-        "workspaces",
-        "releaseAuthentication"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-060",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc-owned code is MIT-licensed. Names, identity assets and third-party material retain their separate terms. No independent external security audit has been completed.",
+      "exactWording": "Built by Bananify.",
       "subject": "Blanc",
       "evidenceGroups": [
         "process",
@@ -9220,7 +9083,7 @@
     {
       "id": "tabs-native-heading",
       "source": "site/src/pages/index.astro",
-      "exactWording": "A place for every tab.",
+      "exactWording": "Organize tabs into groups.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
@@ -9245,6 +9108,66 @@
       "evidenceGroups": [
         "foundations",
         "workspaces"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "revamp-gesture-outcome-1",
+      "source": "site/src/scripts/gesture-demo.js",
+      "exactWording": "Return to the previous page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "revamp-gesture-outcome-2",
+      "source": "site/src/scripts/gesture-demo.js",
+      "exactWording": "Move forward in your history.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "revamp-gesture-outcome-3",
+      "source": "site/src/scripts/gesture-demo.js",
+      "exactWording": "Open a fresh Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "revamp-gesture-outcome-4",
+      "source": "site/src/scripts/gesture-demo.js",
+      "exactWording": "Dragging left returns to the previous page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "revamp-gesture-outcome-5",
+      "source": "site/src/scripts/gesture-demo.js",
+      "exactWording": "Dragging right moves forward in your history.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "revamp-gesture-outcome-6",
+      "source": "site/src/scripts/gesture-demo.js",
+      "exactWording": "Dragging up opens a new tab with the Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "gestures"
       ],
       "verdict": "qualified"
     }

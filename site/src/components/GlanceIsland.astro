@@ -1,0 +1,44 @@
+---
+import styles from '../../../src/renderer/styles.css?raw';
+import document from '../../../src/renderer/index.html?raw';
+import renderer from '../../../src/renderer/renderer.js?raw';
+import { nativeIslandArt } from '../lib/native-island-art.mjs';
+
+interface Props { page: 'copenhagen' | 'louisiana'; }
+const { page } = Astro.props;
+const examples = {
+  copenhagen: { domain: 'visitcopenhagen.com', icon: '/revamp/visit-copenhagen-favicon.ico' },
+  louisiana: { domain: 'louisiana.dk', icon: '/revamp/louisiana-favicon.ico' },
+};
+const example = examples[page];
+const art = nativeIslandArt({ styles, document, renderer });
+// Keep native chrome geometry and icons, with two illustrative tabs and no claimed block count.
+const sampleHtml = art.html
+  .replace('blancbrowser.com', example.domain)
+  .replace('background-image:url(/favicon.svg)', `background-image:url(${example.icon})`)
+  .replace(/<div id="pillDots">[\s\S]*?<\/div>/, '<div id="pillDots"><button class="island-dot active"></button><button class="island-dot"></button></div>')
+  .replace('<span id="pillShieldCount">1</span>', '<span id="pillShieldCount"></span>')
+  .replace('id="pillShield" class="shield"', 'id="pillShield" class="shield shield-quiet"');
+const presentation = `
+  :host {display:block; width:100%; height:100%; font:13px var(--font-ui); color:var(--text);}
+  .native-stage {display:flex; align-items:center; justify-content:center; height:100%;}
+  [hidden] {display:none!important;}
+  #islandPill {margin:0; flex:none; max-width:calc((100% - 28px) / var(--pill-zoom));}
+  #islandPill, button, #pillDomain {transition:color var(--home-motion, 0ms), background-color var(--home-motion, 0ms), border-color var(--home-motion, 0ms);}
+`;
+// Namespace extracted IDs so source-level document checks can distinguish instances.
+const ids = new Set([...sampleHtml.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
+const prefix = `glance-${page}-`;
+const html = sampleHtml.replace(/\bid="([^"]+)"/g, (_, id) => `id="${prefix}${id}"`);
+const css = (art.css + presentation).replace(/#([A-Za-z][\w-]*)/g, (selector, id) =>
+  ids.has(id) ? `#${prefix}${id}` : selector);
+---
+<blanc-glance-island class="glance-native-island" data-page={page} data-appearance="light" aria-hidden="true" inert>
+  <template shadowrootmode="open">
+    <style is:inline set:html={css} />
+    <div class="native-stage" set:html={html}></div>
+  </template>
+</blanc-glance-island>
+<script is:inline>
+  document.currentScript.previousElementSibling.dataset.appearance = document.documentElement.dataset.homeAppearance === 'dark' ? 'dark' : 'light';
+</script>

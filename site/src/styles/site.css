@@ -1,4 +1,4 @@
-/* The website stays light: Sunrise ivory, warm surfaces, and dark controls.
+/* Default website palette. The homepage has an explicit appearance override.
    Product replicas use the separate, release-backed neutral palette below. */
 :root {
   color-scheme: light;

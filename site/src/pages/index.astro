@@ -1,10 +1,13 @@
 ---
+import GlanceDemo from "../components/GlanceDemo.astro";
+import GestureDemo from "../components/GestureDemo.astro";
 import HorizonShield from "../components/HorizonShield.astro";
 import PlatformLogo from "../components/PlatformLogo.astro";
 import BrandMark from "../components/BrandMark.astro";
 import NativeIslandHero from "../components/NativeIslandHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/home.css";
+import "../styles/home-appearance.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
@@ -245,7 +248,7 @@ const structuredData = {
                 <button
                   type="button"
                   id="hero-appearance"
-                  aria-label="Show dark appearance"
+                  aria-label="Switch page to dark mode"
                   aria-pressed="false"
                   ><span aria-hidden="true">◐</span><span
                     class="appearance-label">Light</span
@@ -284,7 +287,7 @@ const structuredData = {
           <div class="split-title">
             <div>
               <p class="frame-kicker">The Island</p><h2 id="island-title">
-                One place to<br />get around.
+                Tabs, search<br />and commands.
               </h2>
             </div><p class="lead">
               Open the Island to choose a tab, find a page or use a command.
@@ -391,7 +394,7 @@ const structuredData = {
           <div class="split-title tabs-intro">
             <div>
               <p class="frame-kicker">Tabs and sessions</p>
-              <h2 id="tabs-title">A place for<br />every tab.</h2>
+              <h2 id="tabs-title">Organize tabs<br />into groups.</h2>
             </div>
             <p class="lead">Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.</p>
           </div>
@@ -417,7 +420,7 @@ const structuredData = {
           <div class="privacy-intro">
             <header class="privacy-heading">
               <p class="frame-kicker">Privacy and control</p>
-              <h2 id="privacy-title">Your blocking.<br />Your choice.</h2>
+              <h2 id="privacy-title">Choose your<br />ad blocker.</h2>
               <p class="lead">Choose how Blanc blocks ads and trackers.</p>
             </header>
             <HorizonShield variant="blocker" />
@@ -435,7 +438,7 @@ const structuredData = {
           </div>
           <div class="privacy-disclosure">
             <div>
-              <h3>Clear privacy choices.</h3>
+              <h3>Private tabs and data settings.</h3>
               <p>Open a private tab when you choose. Optional connections start only after you save your setup choices. Enabled usage measurement sends pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror; no URLs, searches or page contents.</p>
             </div>
             <p class="material-limit">
@@ -455,10 +458,10 @@ const structuredData = {
         <div class="frame-inner">
           <div class="split-title">
             <div>
-              <p class="frame-kicker">Your starting point</p><h2
+              <p class="frame-kicker">Start Page</p><h2
                 id="start-title"
               >
-                Start with a view<br />that suits you.
+                Choose your<br />Start Page layout.
               </h2>
             </div><p class="lead">
               Choose Ledger, Billboard, Shelf or Tally. Keep a simple list, a
@@ -500,6 +503,17 @@ const structuredData = {
                 loading="lazy"
                 decoding="async"
               />
+              <video
+                id="mahjong-video"
+                class="device-screen mahjong-video"
+                width="1440"
+                height="824"
+                muted
+                playsinline
+                preload="none"
+                aria-label="Recorded Blanc v1.27.0 Mahjong gameplay"
+                hidden
+              ></video>
             </div>
           </div><figcaption id="layout-caption" class="sr-only" aria-live="polite">
             Ledger — a simple list of Favorites.
@@ -508,7 +522,7 @@ const structuredData = {
               type="button"
               id="mahjong-peek"
               aria-expanded="false"
-              aria-controls="layout-image"
+              aria-controls="mahjong-video mahjong-controls"
               ><span class="tile-pair" aria-hidden="true"
                 ><span
                   ><img
@@ -526,11 +540,19 @@ const structuredData = {
                   /></span
                 ></span
               ><span class="break-copy"
-                ><span class="break-label">A little break.</span
-                ><span class="break-description">Mahjong, built into Blanc.</span
+                ><span class="break-label">Mahjong.</span
+                ><span class="break-description">Preview Blanc’s built-in game.</span
                 ></span></button
             ><button type="button" id="mahjong-back" hidden
               >Back to Ledger</button>
+          </div>
+          <div id="mahjong-controls" class="mahjong-controls" hidden>
+            <div class="mahjong-boards" role="group" aria-label="Choose a Mahjong board demo">
+              <button type="button" data-mahjong-scene="peaks" aria-pressed="true">Peaks</button>
+              <button type="button" data-mahjong-scene="butterfly" aria-pressed="false">Butterfly</button>
+              <button type="button" data-mahjong-scene="fortress" aria-pressed="false">Fortress</button>
+            </div>
+            <button type="button" data-mahjong-play aria-controls="mahjong-video">Play demo</button>
           </div>
         </figure>
       </div>
@@ -538,150 +560,9 @@ const structuredData = {
     <section class="beat" id="tools" aria-labelledby="tools-title">
       <div class="frame">
         <div class="frame-inner">
-          <p class="frame-kicker">Everyday tools</p><h2 id="tools-title">
-            Small conveniences.<br />Useful every day.
-          </h2><div class="tool-feature">
-            <h3>Keep a reference beside your page.</h3><p class="lead">
-              Keep two of your open pages in view. Adjust the split, swap them,
-              or close the reference when you’re done.
-            </p><figure class="glance-demo" id="glance-demo">
-              <div class="glance-viewport" id="glance-viewport">
-                <div
-                  class="glance-window"
-                  id="glance-window"
-                  style="--split:62%"
-                >
-                  <section
-                    class="glance-pane glance-main"
-                    aria-label="Main page illustration"
-                  >
-                    <div class="glance-chrome">
-                      <div class="glance-pill-crop">
-                        <img
-                          src="/feature-captures/glance.png"
-                          alt=""
-                          aria-hidden="true"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </div>
-                    </div>
-                    <div class="glance-document" id="glance-main-document">
-                      <div class="sample-page" data-page="answers">
-                        <p class="sample-kicker">The hard questions</p><h4>
-                          Straight<br />answers.
-                        </h4><p>The questions worth asking about Blanc.</p><div
-                          class="sample-answer"
-                        >
-                          <h5>Is Blanc open source?</h5><p>
-                            Yes. Blanc-owned code is MIT-licensed. Names,
-                            identity assets and third-party material retain
-                            their separate terms.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                  <div
-                    class="glance-divider"
-                    id="glance-divider"
-                    role="slider"
-                    tabindex="0"
-                    aria-label="Resize the Glance split"
-                    aria-valuemin="50"
-                    aria-valuemax="78"
-                    aria-valuenow="62"
-                    aria-valuetext="Main page 62 percent, reference 38 percent"
-                    aria-orientation="horizontal"
-                    aria-describedby="glance-hint"
-                  >
-                    <span aria-hidden="true"></span>
-                  </div>
-                  <section
-                    class="glance-pane glance-reference"
-                    aria-label="Reference page illustration"
-                  >
-                    <div class="glance-reference-chrome">
-                      <span>Glance</span><span class="reference-name"
-                        >About Blanc</span
-                      ><span class="glance-close-mark" aria-hidden="true"
-                        >×</span>
-                    </div>
-                    <div class="glance-document" id="glance-reference-document">
-                      <div class="sample-page" data-page="about">
-                        <p class="sample-kicker">Independent by design</p><h4>
-                          A browser with a studio accountable for it.
-                        </h4><p>
-                          Blanc is built by Bananify, an independent software
-                          studio.
-                        </p><div class="sample-answer">
-                          <h5>A direct line to the person building it.</h5><p>
-                            Product decisions, design and support lead back to
-                            the same human maintainer.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              </div>
-              <figcaption class="glance-footer">
-                <p id="glance-hint">
-                  Drag the divider. An interactive desktop illustration.
-                </p><div class="glance-actions">
-                  <button type="button" id="glance-swap"
-                    >Swap pages <span aria-hidden="true">⇄</span></button
-                  ><button type="button" id="glance-reset">Reset</button><button
-                    type="button"
-                    id="glance-close">Close reference</button
-                  ><button type="button" id="glance-reopen" hidden
-                    >Open reference <span aria-hidden="true">↗</span></button>
-                </div>
-              </figcaption>
-              <p class="sr-only" id="glance-status" aria-live="polite"></p>
-            </figure>
-          </div><div class="gesture-study">
-            <div>
-              <h3>Let a small movement<br />take you somewhere.</h3><p>
-                Enable mouse gestures, then draw a direction to go back, move
-                forward or open a tab.
-              </p><p class="material-limit">
-                Off by default. Use right-button drag with a mouse, or
-                Alt/Option plus click-and-drag with a trackpad.
-              </p>
-            </div><figure>
-              <div class="gesture-stage" data-gesture="back">
-                <svg viewBox="0 0 320 180" aria-hidden="true"
-                  ><path class="gesture-track" d="M240 90H80"></path><path
-                    class="gesture-arrow"
-                    d="m99 71-19 19 19 19"></path><circle
-                    class="gesture-pointer"
-                    cx="240"
-                    cy="90"
-                    r="8"></circle></svg
-                ><span id="gesture-label" aria-live="polite">Back</span>
-              </div><div
-                class="gesture-controls"
-                role="group"
-                aria-label="Preview a mouse gesture"
-              >
-                <button
-                  type="button"
-                  data-gesture-preview="back"
-                  aria-pressed="true">← Back</button
-                ><button
-                  type="button"
-                  data-gesture-preview="forward"
-                  aria-pressed="false">Forward →</button
-                ><button
-                  type="button"
-                  data-gesture-preview="new"
-                  aria-pressed="false">↑ New tab</button>
-              </div><figcaption class="caption">
-                Select a motion to replay this illustration.
-              </figcaption>
-            </figure>
-          </div><div class="tools-list">
+          <h2 id="tools-title">
+            Everyday browser tools.
+          </h2><GlanceDemo /><GestureDemo /><div class="tools-list">
             <article>
               <h3>Use your 1Password logins.</h3><p>
                 On macOS, the optional integration fills a matching login when
@@ -692,7 +573,7 @@ const structuredData = {
                   href="/support#1password">Setup and shortcuts →</a>
               </p>
             </article><article>
-              <h3>Free memory from inactive tabs.</h3><p>
+              <h3>Free memory with Quiet Tabs.</h3><p>
                 Quiet Tabs can release memory from eligible inactive background
                 pages while retaining their tabs.
               </p><p class="material-limit">
@@ -707,24 +588,6 @@ const structuredData = {
     <section class="beat" id="closing" aria-labelledby="closing-title">
       <div class="frame">
         <div class="trust-intro">
-          <p class="frame-kicker">The person and the project</p><h2
-            id="closing-title"
-          >
-            Know what you’re<br />bringing onto your computer.
-          </h2><p class="lead">
-            Blanc is built by Bananify, an independent software studio. Its
-            source and release records are available to inspect. AI assists
-            implementation and security review; Anthony J. Loria remains
-            accountable for product decisions and release approval.
-          </p><div class="trust-links">
-            <a href="/about">Meet the studio →</a><a
-              href="https://github.com/bnfy/blanc">Read the source →</a
-            >
-          </div><p class="material-limit">
-            Blanc-owned code is MIT-licensed. Names, identity assets and
-            third-party material retain their separate terms. No independent
-            external security audit has been completed.
-          </p>
           <section class="home-foundations" aria-label="About the browser">
             <div>
               <span class="foundation-label"
@@ -744,6 +607,14 @@ const structuredData = {
               ><a href="/trust#release-verification-title">Check your download ↗</a>
             </div>
           </section>
+          <div class="trust-summary">
+            <h2 id="closing-title">Built by Bananify.</h2>
+            <div class="trust-links">
+              <a href="/about">About Blanc</a>
+              <a href="https://github.com/bnfy/blanc">Source code</a>
+              <a href="/trust">Privacy and security</a>
+            </div>
+          </div>
         </div><section
           class="patron-section"
           id="patron"

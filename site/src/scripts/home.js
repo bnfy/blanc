@@ -1,4 +1,9 @@
+import { initHomeAppearance } from "./home-appearance.js";
+import { initWallpaperPreview } from "./wallpaper-preview.js";
+import { initGestureDemo } from "./gesture-demo.js";
 import { initHorizonShield } from "./horizon-shield.js";
+import { initMahjongPreview } from "./mahjong-preview.js";
+import { createImagePreview } from "./image-preview.js";
 initHorizonShield(document.querySelector(".horizon-study"));
 
 (() => {
@@ -33,41 +38,6 @@ initHorizonShield(document.querySelector(".horizon-study"));
       ),
     );
   const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
-  const sceneVersions = new WeakMap();
-  async function changeScene(target, src, alt) {
-    const version = (sceneVersions.get(target) || 0) + 1;
-    sceneVersions.set(target, version);
-    const incoming = new Image();
-    incoming.src = src;
-    try {
-      await incoming.decode();
-    } catch {
-      return;
-    }
-    if (sceneVersions.get(target) !== version) return;
-    target.getAnimations().forEach((a) => a.cancel());
-    target.parentElement
-      .querySelectorAll(".scene-outgoing")
-      .forEach((e) => e.remove());
-    if (motionPreference.matches) {
-      target.src = src;
-      target.alt = alt;
-      return;
-    }
-    const outgoing = target.cloneNode();
-    outgoing.removeAttribute("id");
-    outgoing.alt = "";
-    outgoing.setAttribute("aria-hidden", "true");
-    outgoing.classList.add("scene-outgoing");
-    target.before(outgoing);
-    target.src = src;
-    target.alt = alt;
-    const fade = target.animate([{ opacity: 0 }, { opacity: 1 }], {
-      duration: 260,
-      easing: "ease-out",
-    });
-    fade.finished.catch(() => {}).finally(() => outgoing.remove());
-  }
   document.querySelectorAll(".gallery-controls").forEach((group) => {
     const buttons = [...group.querySelectorAll("button")];
     const indicator = document.createElement("span");
@@ -262,9 +232,9 @@ initHorizonShield(document.querySelector(".horizon-study"));
     document.getElementById("glance-close").hidden = closed;
     glanceReopen.hidden = !closed;
     document.getElementById("glance-hint").textContent = closed
-      ? "The reference is closed. Your main page stays here."
-      : "Drag the divider to resize this desktop preview.";
-    reportGlance(closed ? "Reference closed." : "Reference opened.");
+      ? "Your main page stays open."
+      : "Drag the divider to resize.";
+    reportGlance(closed ? "Glance view closed." : "Glance view opened.");
   }
   function swapGlance() {
     const main = glanceMain.firstElementChild,
@@ -272,9 +242,8 @@ initHorizonShield(document.querySelector(".horizon-study"));
     glanceMain.append(reference);
     glanceReference.append(main);
     glanceSwapped = !glanceSwapped;
-    document.querySelector(".reference-name").textContent = glanceSwapped
-      ? "Straight answers"
-      : "About Blanc";
+    document.querySelector(".reference-name").textContent = glanceReference.firstElementChild.dataset.title;
+    glanceWindow.dataset.mainPage = glanceMain.firstElementChild.dataset.page;
     if (!motionPreference.matches) {
       [glanceMain, glanceReference].forEach((pane) => {
         pane.getAnimations().forEach((a) => a.cancel());
@@ -352,10 +321,14 @@ initHorizonShield(document.querySelector(".horizon-study"));
     glanceDivider.setAttribute("aria-orientation", "horizontal");
   }).observe(glanceViewport);
   setSplit(62);
-  const mahjongImage = "/feature-captures/mahjong-v1.21.0.png",
-    mahjongPeek = document.getElementById("mahjong-peek"),
+  const mahjongPeek = document.getElementById("mahjong-peek"),
     mahjongBack = document.getElementById("mahjong-back"),
     layoutImage = document.getElementById("layout-image");
+  const mahjongPreview = initMahjongPreview(
+    document.getElementById("mahjong-video"),
+    document.getElementById("mahjong-controls"),
+  );
+  const layoutPreview = createImagePreview(layoutImage);
   let currentStartLayout = "ledger",
     showingMahjong = false;
   function refreshStartIndicator() {
@@ -364,42 +337,38 @@ initHorizonShield(document.querySelector(".horizon-study"));
       .parentElement.dispatchEvent(new Event("click"));
   }
   function showStartLayout(name) {
-    currentStartLayout = name;
-    showingMahjong = false;
     const state = layoutAssets[name];
-    layoutImage.parentElement.classList.remove("mahjong-scene");
-    document.querySelector(".start-discovery").classList.remove("is-playing");
-    changeScene(
-      layoutImage,
+    layoutPreview.show(
       state.src,
       "Blanc v1.21.0 " + state.label + " Start Page capture",
+      () => {
+        currentStartLayout = name;
+        showingMahjong = false;
+        mahjongPreview.hide();
+        layoutImage.hidden = false;
+        layoutImage.parentElement.classList.remove("mahjong-scene");
+        document.querySelector(".start-discovery").classList.remove("is-playing");
+        document.getElementById("layout-caption").textContent = state.caption;
+        document.querySelectorAll("[data-layout]").forEach((button) =>
+          button.setAttribute("aria-pressed", String(button.dataset.layout === name)),
+        );
+        mahjongPeek.setAttribute("aria-expanded", "false");
+        mahjongBack.hidden = true;
+        refreshStartIndicator();
+      },
     );
-    document.getElementById("layout-caption").textContent = state.caption;
-    document
-      .querySelectorAll("[data-layout]")
-      .forEach((button) =>
-        button.setAttribute(
-          "aria-pressed",
-          String(button.dataset.layout === name),
-        ),
-      );
-    mahjongPeek.setAttribute("aria-expanded", "false");
-    mahjongBack.hidden = true;
-    refreshStartIndicator();
   }
   mahjongPeek.addEventListener("click", () => {
     if (showingMahjong) {
       showStartLayout(currentStartLayout);
       return;
     }
+    layoutPreview.cancel();
     showingMahjong = true;
     layoutImage.parentElement.classList.add("mahjong-scene");
     document.querySelector(".start-discovery").classList.add("is-playing");
-    changeScene(
-      layoutImage,
-      mahjongImage,
-      "Blanc v1.21.0 Mahjong board preview",
-    );
+    layoutImage.hidden = true;
+    mahjongPreview.show();
     document.getElementById("layout-caption").textContent =
       "A little detour. Mahjong opens from the Start Page in its own tab.";
     mahjongPeek.setAttribute("aria-expanded", "true");
@@ -418,151 +387,9 @@ initHorizonShield(document.querySelector(".horizon-study"));
     }
   });
 
-  const daylight = document.getElementById("hero-daylight"),
-    timeInput = document.getElementById("hero-time"),
-    appearanceButton = document.getElementById("hero-appearance"),
-    daylightPlay = document.getElementById("hero-daylight-play");
-  const daylightPhases = ["dawn", "day", "dusk", "night"],
-    daylightTimes = ["6 am", "12 pm", "6 pm", "11 pm"];
-  let daylightIndex = 0,
-    daylightDark = false,
-    daylightTimer = null,
-    daylightRunning = false,
-    daylightVisible = false,
-    daylightGeneration = 0,
-    daylightStarted = false;
-  function stopDaylight() {
-    clearTimeout(daylightTimer);
-    daylightTimer = null;
-    daylightRunning = false;
-    daylightPlay.setAttribute("aria-label", "Play the wallpaper day");
-    daylightPlay.querySelector("span").textContent = "▶";
-  }
-  async function setDaylight(index) {
-    const request = ++daylightGeneration;
-    index = Math.min(3, Math.max(0, index));
-    const phase = daylightPhases[index],
-      key = phase + (daylightDark ? "-dark" : "");
-    const scene = daylight.querySelector('[data-hero-scene="' + key + '"]');
-    try {
-      await scene.querySelector("img").decode();
-    } catch {
-      return;
-    }
-    if (request !== daylightGeneration) return;
-    daylightIndex = index;
-    timeInput.value = String(index);
-    timeInput.setAttribute(
-      "aria-valuetext",
-      phase[0].toUpperCase() + phase.slice(1) + ", " + daylightTimes[index],
-    );
-    daylight.dataset.phase = phase;
-    daylight.dataset.appearance = daylightDark ? "dark" : "light";
-    daylight
-      .querySelectorAll("[data-hero-scene]")
-      .forEach((el) => el.classList.toggle("is-current", el === scene));
-    daylight
-      .querySelectorAll("[data-aura]")
-      .forEach((el) =>
-        el.classList.toggle("is-current", el.dataset.aura === phase),
-      );
-    daylight
-      .querySelectorAll(".daylight-ticks span")
-      .forEach((el, i) => el.classList.toggle("is-current", i === index));
-    document
-      .getElementById("hero-daylight-screen")
-      .setAttribute(
-        "aria-label",
-        "Blanc v1.25.0 Billboard Start Page with " +
-          phase +
-          " wallpaper in " +
-          (daylightDark ? "dark" : "light") +
-          " appearance",
-      );
-  }
-  function playDaylight() {
-    stopDaylight();
-    if (motionPreference.matches) return;
-    daylightRunning = true;
-    daylightPlay.setAttribute("aria-label", "Pause the wallpaper day");
-    daylightPlay.querySelector("span").textContent = "Ⅱ";
-    const advance = async () => {
-      if (!daylightRunning) return;
-      await setDaylight((daylightIndex + 1) % 4);
-      if (daylightRunning) daylightTimer = setTimeout(advance, 4200);
-    };
-    daylightTimer = setTimeout(advance, 4200);
-  }
-  timeInput.addEventListener("input", () => {
-    stopDaylight();
-    setDaylight(Number(timeInput.value));
-  });
-  timeInput.addEventListener("pointerdown", stopDaylight);
-  timeInput.addEventListener("keydown", stopDaylight);
-  appearanceButton.addEventListener("click", () => {
-    stopDaylight();
-    daylightDark = !daylightDark;
-    appearanceButton.setAttribute("aria-pressed", String(daylightDark));
-    appearanceButton.setAttribute(
-      "aria-label",
-      daylightDark ? "Show light appearance" : "Show dark appearance",
-    );
-    appearanceButton.querySelector(".appearance-label").textContent =
-      daylightDark ? "Dark" : "Light";
-    setDaylight(Number(timeInput.value));
-  });
-  daylight.addEventListener("focusin", (event) => {
-    if (!daylightPlay.contains(event.target)) stopDaylight();
-  });
-  daylightPlay.addEventListener("click", () => {
-    if (daylightRunning) stopDaylight();
-    else playDaylight();
-  });
-  new IntersectionObserver(
-    (entries) => {
-      daylightVisible = entries[0].isIntersecting;
-      if (!daylightVisible) stopDaylight();
-      else if (!daylightStarted) {
-        daylightStarted = true;
-        playDaylight();
-      }
-    },
-    { threshold: 0.25 },
-  ).observe(daylight);
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopDaylight();
-  });
-  motionPreference.addEventListener("change", () => {
-    if (motionPreference.matches) stopDaylight();
-  });
-  window.addEventListener("pagehide", stopDaylight);
+  const wallpaper = initWallpaperPreview(document.getElementById("hero-daylight"));
+  initHomeAppearance({ onChange: (options) => wallpaper.refreshAppearance(options) });
+
 })();
 
-const gestureStage = document.querySelector(".gesture-stage");
-document.querySelectorAll("[data-gesture-preview]").forEach((button) =>
-  button.addEventListener("click", () => {
-    const gesture = button.dataset.gesturePreview;
-    gestureStage.dataset.gesture = gesture;
-    document
-      .querySelectorAll("[data-gesture-preview]")
-      .forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
-    document.getElementById("gesture-label").textContent = {
-      back: "Back",
-      forward: "Forward",
-      new: "New tab",
-    }[gesture];
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const pointer = gestureStage.querySelector(".gesture-pointer");
-    pointer.getAnimations().forEach((animation) => animation.cancel());
-    pointer.animate(
-      [{ transform: "translateX(0)" }, { transform: "translateX(-160px)" }],
-      { duration: 900, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" },
-    );
-    gestureStage
-      .querySelector(".gesture-track")
-      .animate([{ strokeDashoffset: 160 }, { strokeDashoffset: 0 }], {
-        duration: 900,
-        easing: "cubic-bezier(.4,0,.2,1)",
-      });
-  }),
-);
+initGestureDemo(document.querySelector(".gesture-study"));

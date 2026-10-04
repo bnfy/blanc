@@ -9,7 +9,7 @@
   "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. App-only PRs #490 and #502 are merged; their required public app release must precede website deployment. Website PR #491 targets main and remains a draft.",
   "claims": [
     {
-      "exactWording": "Your blocking. Your choice.",
+      "exactWording": "Choose your ad blocker.",
       "verdict": "pending-public-release",
       "evidence": [
         "src/renderer/pages/settings.html",

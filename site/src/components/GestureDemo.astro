@@ -1,0 +1,43 @@
+<section class="gesture-study" id="gestures" aria-labelledby="gestures-title">
+  <div class="gesture-heading">
+    <h3 id="gestures-title">Navigate with<br />mouse gestures.</h3>
+    <p>Go back, move forward or open a new tab with a simple mouse movement.</p>
+  </div>
+  <div class="gesture-demo" data-gesture="back" data-phase="result" data-page="start">
+    <div class="gesture-scene">
+      <div class="gesture-story">
+        <span class="gesture-direction" data-gesture-direction>Drag left</span>
+        <h4 data-gesture-title>Back.</h4>
+        <p data-gesture-description>Return to the previous page.</p>
+      </div>
+      <div class="gesture-visual" role="img" aria-label="Gesture illustration: dragging left returns to the previous page.">
+        <div class="gesture-window-stack" aria-hidden="true">
+          <div class="gesture-window">
+            <img class="gesture-page gesture-page-nasa" src="/revamp/island-roman-rest.webp" width="1400" height="1000" alt="" loading="lazy" decoding="async" />
+            <img class="gesture-page gesture-page-start" src="/feature-captures/home-wallpaper-dawn-v1.25.0.webp" width="1440" height="900" alt="" loading="lazy" decoding="async" />
+          </div>
+        </div>
+        <svg class="gesture-motion" viewBox="0 0 640 400" aria-hidden="true">
+          <path class="gesture-trail-halo" d="M460 220H170" />
+          <path class="gesture-trail" d="M460 220H170" pathLength="1" />
+          <circle class="gesture-origin" cx="460" cy="220" r="5" />
+          <g class="gesture-cursor" transform="translate(170 220)">
+            <circle class="gesture-release" r="24" />
+            <path d="M0 0L4 31L12 23L20 38L27 34L19 20L31 18Z" />
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="gesture-bottom">
+      <span class="gesture-demo-label">Gesture demo</span>
+      <div class="gesture-controls" role="group" aria-label="Preview a mouse gesture" hidden>
+        <button type="button" data-gesture-preview="back" aria-pressed="true"><span aria-hidden="true">←</span> Back</button>
+        <button type="button" data-gesture-preview="forward" aria-pressed="false">Forward <span aria-hidden="true">→</span></button>
+        <button type="button" data-gesture-preview="new" aria-pressed="false"><span aria-hidden="true">↑</span> New tab</button>
+      </div>
+      <button class="gesture-replay" type="button" aria-label="Replay mouse gesture" hidden>Replay <span aria-hidden="true">↻</span></button>
+    </div>
+    <span class="sr-only" data-gesture-status aria-live="polite"></span>
+  </div>
+  <p class="gesture-setup">Off by default. Right-drag with a mouse, or Option/Alt-drag with a trackpad. <a href="/support#mouse-gestures">Enable mouse gestures</a></p>
+</section>

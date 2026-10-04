@@ -3,6 +3,22 @@
 This is the required visual-identity check for Blanc marketing, social assets,
 press materials, product demos, thumbnails, avatars, and generated imagery.
 
+## Messaging: explicit feature names and explanations
+
+**Standing owner preference, October 4, 2026:** Assume the reader is new to
+Blanc. Name the feature, explain what it does and state the concrete benefit.
+Use this throughout the website and all other communications: social, email,
+release notes, support, demos and product copy. Avoid flowery or ambiguous
+headings that rely on screenshots, branded names or prior knowledge to make
+sense. Keep the approved tagline “A little less browser.” See the examples and
+claim requirements in [Marketing claims](marketing-claims.md#explicit-feature-and-benefit-message-gate).
+
+**Homepage detail level, October 4 owner correction:** Lead with the product
+and concise facts visitors can use. Put development-process, AI-assistance,
+audit-status and full licensing detail on linked About, Trust and Support
+pages. Do not turn the homepage into a disclosure report. Preserve material
+limits beside the claims they qualify and keep deeper information easy to find.
+
 ## Current identity: Sunrise only
 
 **Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.

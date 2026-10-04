@@ -38,21 +38,30 @@ each one, record:
 Do not publish while a material claim is `remove`, while an aspiration reads
 as a present capability, or while the evidence describes a different release.
 
-## Benefit-first message gate
+## Explicit feature and benefit message gate
 
-A shipped feature is evidence, not the whole message. Feature-led marketing
-must make the reader's benefit explicit so a person can understand why the
-capability should matter to them.
+**Standing owner direction, October 4, 2026:** Be explicit throughout the
+website and all other Blanc communications. Assume readers are new to Blanc.
+They should understand which feature is being discussed, what it does and why
+it matters without relying on an image, prior page or familiarity with Blanc.
+This applies to headings, supporting copy, social posts, email, release notes,
+support replies, demos and product messages.
 
-Use this order:
+Use this order for feature messaging:
 
-1. **Tension:** name the familiar frustration, tradeoff, or feeling in the
-   user's experience.
-2. **Payoff:** state the relief or better experience Blanc offers in plain,
-   human language.
-3. **Mechanism:** connect that payoff to a specific shipped capability.
-4. **Qualification and action:** preserve every material limit, then give the
-   reader an honest next step.
+1. **Feature and action:** name the feature and explain what the user can do.
+   Pair an unfamiliar product name with its meaning rather than using it alone.
+2. **Concrete benefit:** explain the useful result in plain language. A
+   familiar problem can provide context, but must not delay naming the feature.
+3. **Qualification and action:** preserve material limits and give an honest
+   next step.
+
+Prefer “Choose your Start Page layout” to “Start with a view that suits you,”
+“View two tabs with Glance” to “Keep a reference beside your page,” and
+“Navigate with mouse gestures” to “Let a small movement take you somewhere.”
+Warmth and personality are welcome when the meaning remains clear. Do not
+replace a feature explanation with an evocative slogan. The approved brand
+tagline remains “A little less browser.”
 
 Do not open with a feature inventory and leave the reader to infer the value.
 Do not make internal state vocabulary carry the message: words such as

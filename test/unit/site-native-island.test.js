@@ -42,14 +42,16 @@ test('native geometry edits flow into the artwork and missing source fails close
   assert.throws(() => nativeIslandArt({...source, document:''}), /Missing native resting Island markup/);
 });
 
-test('gentle left/right turn pauses offscreen, in hidden tabs and for reduced motion', async () => {
+test('hero pause control persists across visibility and reduced-motion changes', async () => {
   const {initHeroIsland} = await load('site/src/scripts/hero-island.js');
   const values = new Map(), events = new Map();
   let observer, preferenceChange, resize;
   const preference = {matches:false, addEventListener:(_, fn) => {preferenceChange = fn;}};
+  const toggleEvents = new Map(), attributes = new Map();
+  const toggle = {hidden:true, addEventListener:(key, fn) => toggleEvents.set(key, fn), setAttribute:(key, value) => attributes.set(key, value)};
   const model = {clientWidth:920, shadowRoot:{getElementById:() => ({offsetWidth:400})}, style:{setProperty:(k,v) => values.set(k,v)}};
   const stage = {
-    querySelector:() => model, closest:() => null,
+    querySelector:selector => selector === '.hero-island-motion' ? toggle : model,
     style:{setProperty:(k,v) => values.set(k,v)},
   };
   const view = {
@@ -64,6 +66,24 @@ test('gentle left/right turn pauses offscreen, in hidden tabs and for reduced mo
   assert.equal(values.get('--island-motion-state'),'paused');
   observer([{isIntersecting:true}]);
   assert.equal(values.get('--island-motion-state'),'running');
+  assert.equal(toggle.hidden, false);
+  assert.equal(attributes.get('aria-label'), 'Pause Island animation');
+  toggleEvents.get('click')();
+  assert.equal(values.get('--island-motion-state'), 'paused');
+  assert.equal(attributes.get('aria-pressed'), 'true');
+  assert.equal(attributes.get('aria-label'), 'Resume Island animation');
+  observer([{isIntersecting:false}]);
+  observer([{isIntersecting:true}]);
+  view.document.hidden=true; events.get('visibilitychange')();
+  view.document.hidden=false; events.get('visibilitychange')();
+  preference.matches=true; preferenceChange();
+  assert.equal(toggle.hidden, true);
+  preference.matches=false; preferenceChange();
+  assert.equal(toggle.hidden, false);
+  assert.equal(values.get('--island-motion-state'), 'paused', 'automatic events must not undo an explicit pause');
+  toggleEvents.get('click')();
+  assert.equal(attributes.get('aria-pressed'), 'false');
+  assert.equal(values.get('--island-motion-state'), 'running');
   observer([{isIntersecting:false}]);
   assert.equal(values.get('--island-motion-state'),'paused');
   observer([{isIntersecting:true}]);

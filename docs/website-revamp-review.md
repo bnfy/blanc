@@ -498,3 +498,136 @@ policy passes across all four lockfiles. Browser check: no script errors or
 Vite overlay, Island command switching works, wallpaper advances through its
 phases and pauses, and the WebGL shield rotates with scrolling. At 390px, no
 horizontal overflow and the native tab-group image remains loaded and unlinked.
+
+## Feature naming in homepage copy (October 4)
+
+Owner direction: name the feature and say what it does. Avoid poetic headings
+that require visitors to infer the product feature from a screenshot or the
+paragraph below. Keep the approved tagline, “A little less browser.”
+
+The homepage now names Start Page layouts, tab groups, ad blocking, Glance,
+mouse gestures, Quiet Tabs and Mahjong directly. Existing capability limits
+and transparency disclosures remain in place; exact-wording ledgers were
+updated. Desktop and 390px previews, 13 claim/transparency tests, the site build
+and SEO checks pass.
+
+## Compact homepage trust section (October 4)
+
+Kept the three technology, licensing and release-evidence columns. Removed the
+large introductory headline and the disclosure block. A small attribution row
+names Bananify, with direct links to About, source code and Trust. Owner direction:
+the homepage should focus on the browser, with detailed development-process,
+AI-assistance, audit-status and licensing information on linked pages. Those
+existing disclosures remain on About, Trust and Support; the regression guard
+checks their availability there. The homepage does not name the individual
+maintainer. The three columns stack on mobile. Desktop and 390px previews,
+the 13 trust/claim checks, site build and SEO checks pass.
+
+
+## Mouse gesture demo redesign (October 4)
+
+Replaced the small beige arrow illustration with a full-width dark stage,
+large action typography, layered native browser captures and an animated
+bronze cursor trail. Back, Forward and New tab each draw the corresponding
+default gesture and show the destination after release. The stage is labelled
+as a demo; its perspective, trail and page transitions are website illustration,
+not a recording of the native app overlay. Existing NASA and Start Page assets
+retain their original provenance and credits.
+
+One introductory sequence plays on entry, then stops. Buttons replay each
+action, reduced motion shows the result immediately, and leaving the viewport
+or hiding the document cancels active work. The description names the feature
+and its outcome directly; a short setup line preserves the off-by-default
+setting and mouse/trackpad triggers.
+
+Verified desktop, 390px and 320px layouts, keyboard activation, all three
+outcomes and loaded image assets, with no horizontal overflow or browser errors.
+All controls provide at least 44px height. The four controller tests cover
+release timing, rapid selection changes, replay, reduced motion and visibility.
+Together with the claim and trust checks, 17 focused tests pass. Site build
+and SEO checks pass (29 pages, 27 sitemap URLs).
+
+## Glance examples and controls (October 4)
+
+Replaced the self-referential Blanc FAQ/About content with a travel-planning
+pair: Visit Copenhagen’s Nyhavn page and Louisiana Museum’s Kusama installation.
+The responsive excerpts use the official pages’ photography and favicons;
+they are labelled as an interactive demo rather than native app footage.
+The Island chrome comes from the real renderer markup/styles with sample
+domains; swapping pages updates both the domain and reference title. Each
+instance namespaces its extracted IDs. Source URLs, hashes, credits and the
+third-party licensing boundary are recorded with the website assets.
+
+Moved the resize instruction above the preview, paired it with a resize icon
+and an Interactive demo label, and gave all controls visible button shapes.
+The toggle uses the owner’s labels: Open Glance view / Close Glance view.
+On mobile, buttons retain their touch targets while the entire desktop demo
+scales proportionally; the preview never becomes a phone browser.
+
+Verified desktop, 390px and 320px layouts, loaded assets, no horizontal overflow,
+divider dragging, keyboard End, swap metadata, reset, close/reopen and focus
+return. No browser console errors. All 20 focused native-Island, gesture,
+claim and trust tests pass. Site build and SEO checks pass (29 checked pages,
+27 sitemap URLs); the existing large-chunk advisory remains. Proof images:
+blanc-production-review/glance-vibrant-desktop.png and glance-vibrant-mobile.png.
+
+## Homepage appearance (October 4)
+
+The wallpaper Light/Dark button now sets one homepage appearance on the document
+root. Light remains the default; only an explicit choice is saved under
+`blanc-home-appearance`. A small, self-contained head script restores the choice
+before paint, with Light as the fallback for invalid values or unavailable
+storage. Glance Island illustrations also initialize their palette inline.
+Other pages do not receive the homepage appearance attribute or bootstrap.
+
+Dark mode uses a continuous warm-charcoal to near-black canvas, soft-white text,
+bronze accents, transparent control trays, a dark header, and a near-black footer.
+The newsletter, Privacy choices dialog, and skip link are themed as well. Patron
+and gesture panels retain independent on-dark colors. Real captures, video,
+photography, hardware, Sunrise artwork, and bronze shield materials are unchanged.
+Glance chrome switches its native appearance tokens. Following owner review,
+the animated hero Island keeps its native light surface in both themes for
+stronger contrast against the dark canvas, with its existing soft shadow.
+
+The appearance controller and wallpaper capture controller are separate small
+modules. Manual toggling pauses playback and keeps the chosen phase. Generation
+checks prevent stale decodes from winning; a failed capture keeps the last valid
+scene and its accurate accessible description. Background layers and interface
+colors transition over 250ms; reduced motion removes those transitions.
+
+Verified the eight wallpaper phase/appearance combinations in the browser,
+Enter and Space activation, unchanged scroll position while toggling, saved Dark
+after refresh, unchanged Start Page/Glance selections, and light Support followed
+by restored homepage appearance. Inspected desktop, 390px, and 320px layouts with
+no horizontal overflow, including native chrome, controls, footer, dialog, and
+skip-link focus. Browser console reported no errors. The darkest theme's lightest
+canvas gives body text 13.95:1 contrast, secondary labels 8.27:1, and bronze accents
+7.20:1; selected button text is 15.51:1. Built output's prepaint bootstrap was also
+executed independently for absent, Light, Dark, and invalid preferences.
+
+All 38 focused appearance, wallpaper, native Island, gesture, Mahjong, shield,
+claim-evidence, and trust tests pass (including storage failure, stale decodes,
+failed captures, and reduced-motion controller behavior). Site build and SEO
+verification pass for 29 pages and 27 sitemap URLs. No deployment. Proof images:
+`blanc-production-review/dark-home-hero.png`, `dark-home-mobile.png`,
+`dark-home-glance.png`, and `dark-home-footer.png`.
+
+## Review fixes and hero mark (October 4)
+
+Start Page layout changes now commit the selected control, description, and
+visibility only after the replacement capture decodes successfully. Failed
+loads retain the previous selection and capture; newer requests or opening
+Mahjong invalidate pending loads. Returning from Mahjong reuses the valid capture.
+
+The animated hero Island now has a 44px pause/resume button for keyboard and
+touch users. Manual pause survives visibility changes, hover pause remains,
+and reduced motion removes the animation and hides the unnecessary control.
+The original Sunrise artwork now matches the live hero's 66px desktop and
+54px mobile sizing.
+
+Verified keyboard Space/Enter, mobile pause, all four layout selections,
+Mahjong return, both theme colors, and desktop/390px/320px layouts without
+horizontal overflow or console errors. All 43 focused website tests pass,
+including failed and racing image loads and persistent animation pause.
+Site build and SEO verification pass (29 checked pages, 27 sitemap URLs).
+No deployment. Proof: `blanc-production-review/hero-larger-sun-and-pause.png`.
