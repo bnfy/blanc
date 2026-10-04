@@ -9519,6 +9519,26 @@
         "releaseAuthentication"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "privacy-badge-default",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "<h3>Blanc Blocker</h3><span class=\"blocking-badge is-default\">Default</span>",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingDefault"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "privacy-badge-optional",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "<h3>uBlock Origin</h3><span class=\"blocking-badge\">Optional</span>",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
     }
   ],
   "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
