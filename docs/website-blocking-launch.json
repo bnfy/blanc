@@ -6,7 +6,7 @@
   "candidatePR": "https://github.com/bnfy/blanc/pull/490",
   "source": "site/src/pages/index.astro",
   "qualification": "Owner will deploy the redesigned site only after the app release containing these features goes live. This is launch copy, not a statement about the current public v1.26.0. Private tabs use Blanc Blocker; provider changes require restart; settings are separate.",
-  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors.",
+  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. The bronze Horizon Shield master and native icon are owned by app-only PR #502 and must ship in the app before website deployment. Website PR #491 is temporarily based on that app branch for a website-only diff.",
   "claims": [
     {
       "exactWording": "Your blocking. Your choice.",
@@ -95,5 +95,11 @@
       "sha256": "0a35e1fc0cafea7b8ae3057130d87aa7148d85eb1e49b011b21d3f428d1d6321",
       "url": "https://github.com/bnfy/blanc/blob/7c4fd4a91a48521d02d08866f9a3f6d52d19d6a6/src/renderer/pages/settings.html"
     }
-  ]
+  ],
+  "appArtworkDependency": {
+    "pr": "https://github.com/bnfy/blanc/pull/502",
+    "branch": "codex/horizon-shield-bronze",
+    "sourceRevision": "fb8ef76cc5b55548d0b72c2414e786f85d727eed",
+    "deliveryOrder": "Merge app-only PR #502 into main; include its bronze master and native icon in the next verified public app release; then reconcile release evidence, retarget website PR #491 to main, merge and deploy the website. The app release must not depend on the website PR."
+  }
 }

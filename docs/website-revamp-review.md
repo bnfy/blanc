@@ -292,3 +292,26 @@ avoid reintroducing a yellow cast. The final alpha silhouette was retraced for
 the closed 3D model. Original approval evidence remains pinned separately from
 the recolored master and its exports in the launch ledger; the edit prompt is
 recorded in `docs/verification/2026-10-03-horizon-shield-bronze.md`.
+
+## Separate app and website delivery
+
+Owner correction, October 3: the bronze shield must ship in the app before the
+website deploys. App-only PR #502 (`codex/horizon-shield-bronze`, artwork commit
+`fb8ef76cc5b55548d0b72c2414e786f85d727eed`) targets `main` and owns the shared
+master, native PNG and app brand/provenance records. It contains no website
+files. Website PR #491 temporarily targets that app branch so the native
+changes are excluded from its review. This website PR owns the WebP export,
+closed 3D outline and bronze rim/light adjustments, hero and launch ledger.
+
+After #502 merges, retarget #491 to `main`. Publish and verify the next app
+release containing the shield and required blocking changes, then reconcile
+this site's release evidence before merging and deploying #491. Merging the
+app artwork alone does not satisfy the website's public-release gate. Never
+make the app release depend on merging or deploying the website redesign.
+
+Bronze validation: 38 focused native-resource, shield, hero and product-evidence
+tests pass, including byte-for-byte reproduction of both exports from the
+shared master and closed 3D geometry. Production/SEO build and lint pass. The
+hero icon, front/back and bronze side wall were inspected at 855×792, without
+page overflow or console warnings/errors. The native runtime PNG was inspected
+as artwork; no fresh native launch or packaged app release occurred here.
