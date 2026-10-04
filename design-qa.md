@@ -2133,3 +2133,433 @@ rows carry site icons.
   `@F9-3`, `@F10-3` and `@F14-5`. `@F33-2` and `@F38-3` fail identically on
   untouched `origin/main` (`c9a873d3`) on this Mac; `@F32-1` fails only as
   fallout from `@F33-2` and passes on its own.
+
+---
+
+# Blocker chooser design QA — 2026-10-02
+
+**Final result: passed**
+
+## Visual truth and evidence
+
+The owner approved the focused chooser with the smaller Sunrise/header and
+**EasyList + EasyPrivacy**, then explicitly requested production implementation.
+The existing Island shield icon is unchanged.
+
+- Source visual truth: `/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-1b586aa0-de9c-425c-af8c-66800c200666.png`.
+- Native implementation: `output/playwright/shield-provider-chooser.png`.
+- Same-input, side-by-side comparison: `output/playwright/shield-provider-comparison.png` (approved source left, implementation right).
+- Additional native captures: `output/playwright/shield-provider-dark.png`,
+  `shield-provider-restart.png`, `shield-provider-ubo.png`,
+  `shield-provider-private.png`, and `shield-provider-short.png` in the same directory.
+- Runtime: official Electron 44.5.1 on macOS arm64; sandboxed native overlay.
+  Reproduce with `npm run test:shield-provider:desktop` using temporary profiles.
+
+The source is 1222×1287 pixels; its 760×824 card crop starts at (231,218).
+The normal native overlay is 404×460 CSS pixels at device scale factor 2,
+producing an 808×920 screenshot; its 760×842 card crop starts at (24,20).
+Both card crops were downsampled to 380 pixels wide and placed together on a
+792×441 comparison canvas. The mockup's surrounding canvas/shadow is excluded.
+State is light appearance, Blanc active, uBO selected as an unconfirmed draft.
+The whole dialog is legible in this normalized comparison, so a separate focused
+crop is unnecessary; the original captures were also inspected at full density.
+
+## Findings and comparison history
+
+- **Resolved P2 — normal-height overflow.** The initial dialog needed 11 CSS
+  pixels of scrolling and squeezed its final action. Evidence:
+  `output/playwright/shield-provider-overflow.png`. Reduced the provider group's
+  top gap and removed its first-row margin. The recaptured normal chooser now
+  fits without scrolling, confirmed by native geometry assertions and the
+  normalized comparison above. Both footer actions are fully visible.
+- No remaining actionable P0/P1/P2 visual differences in the approved state.
+  The implementation is about 9 CSS pixels taller than the image's card. This
+  is acceptable P3 spacing variation from actual font metrics and native radio
+  controls; it preserves the approved composition and visible controls.
+- Dark and private states use existing Sunrise tokens, retain clear selection
+  and focus indicators, and were inspected in native captures. The mockup only
+  specifies light mode. Private mode retains a dashed border and explicit
+  Blanc-only guidance.
+- At a 640×480 content window, the card scrolls within the native view. Keyboard
+  navigation brings both confirmation and Cancel fully into view, with enabled
+  and hit-testable controls. The short-window capture is intentionally scrolled
+  to Cancel; the mark moves with the scrollable content.
+
+## Required fidelity surfaces
+
+- **Typography:** existing bundled Inter; compact 17px/22px semibold heading,
+  13px subtitle, 16px provider names, 13px provider descriptions. Hierarchy and
+  wrapping match the approved image. No new font dependency or display serif.
+  Native font rasterization and the mock's estimated weights differ slightly.
+- **Spacing/layout:** centered small mark/header, back/close corners, two radio
+  rows, active label, divider, two explanatory lines, full-width action and
+  Cancel follow the source. The selected row and rounded card retain the
+  approved proportions. Native overlay bounds remain anchored to the shield;
+  the capture popover retains its independent original width.
+- **Colors/tokens:** scoped existing Sunrise raised ivory, warm surface,
+  muted brown, bronze selection, and ink primary button. The generated mock's
+  subtle photographic texture is intentionally represented by clean product
+  surfaces. The Island itself retains its prior neutral styling.
+- **Image quality:** original unmodified gold Sunrise artwork, displayed at
+  28×28 CSS pixels from the 256px canonical asset. Its bytes match the website
+  mark; native decoding and the exact overlay protocol allowlist are verified.
+  Native radios and existing UI icon conventions replace only standard controls,
+  not the brand mark. No generated approximation of the mark is shipped.
+- **Copy:** heading, device scope, both providers, **EasyList + EasyPrivacy**,
+  uBO description, restart/private guidance, confirmation and Cancel match the
+  approved design. Active/Off/Starting/Unavailable status uses actual provider
+  state, independent of the draft selection.
+
+## Functional acceptance
+
+The native suite passes selection by keyboard, broadcast preservation, explicit
+confirmation, Back/Cancel/Close cancellation, both provider changes and actual
+restarts, unavailable/private guards, theme propagation, small-window action
+reachability, original uBO popup opening/Escape, popup-to-panel teardown and
+focus restoration. Provider selection does not reload the fixture page. No
+uncaught Blanc chrome renderer errors were recorded.
+
+The four existing shield scenarios (31 steps) pass, including site exceptions,
+connection information, reanchoring and returning focus to the invoking control.
+The full real-blocking uBO suite passes. Lint, 2,075 unit tests and substrate
+checks pass. An unsigned internal package passes payload/source/notice checks;
+ten chooser source/asset records were compared byte-for-byte with its ASAR.
+
+## Implementation checklist and remaining scope
+
+- [x] Approved compact Sunrise chooser implemented in production Electron UI.
+- [x] Explicit draft/confirm flow and truthful active/restart state.
+- [x] Authentic asset, private isolation, keyboard access and small windows.
+- [x] Native captures compared together with the exact approved image.
+- [x] Existing shield and real-blocking uBO regressions passed.
+
+This is local candidate evidence. Signed installed-platform acceptance, hosted
+CI and the existing uBO distribution/source assessment are still separate gates.
+No public build or release was enabled. Screenshots are reproducible local
+artifacts under the ignored `output/` directory, not runtime telemetry.
+
+final result: passed
+
+### Live-review correction: clipped blocker shadow — 2026-10-02
+
+**Resolved P2:** The owner's live screenshot exposed a rectangular cutoff around
+all four edges of the transparent native overlay. The shared 44px popover blur
+extended beyond the shield card's 10px top and 12px side gutters. Earlier card-only
+comparison cropped out those native view edges and did not catch the defect.
+
+The shield now uses a scoped compact `0 4px 12px -6px` shadow. Its bounds,
+typography, controls, colors, selection and the Island icon are unchanged. The
+large shared shadow remains unchanged for other surfaces. Removing the inherited
+inset layers also removes the bottom bevel visible in the owner's screenshot.
+
+- Owner evidence: `/Users/anthonyjloria/Desktop/Screenshot 2026-10-02 at 9.21.05 PM.png`.
+- Before native capture: `output/playwright/shield-provider-live.png`.
+- After native capture: `output/playwright/shield-shadow-after.png`.
+- Combined full-view comparison: `output/playwright/shield-shadow-comparison.png`,
+  original left and corrected right, composited on white to expose clipped edges.
+- Both captures are 808×920 pixels (404×460 CSS, density 2), light chooser with
+  Blanc active and uBO draft. The after capture retains the user's visible radio
+  focus outline; that interaction-state difference does not affect the shadow.
+- Maximum alpha in the outer two pixel rows/columns before: top 5, right 8,
+  bottom 5, left 8 (of 255). After: **0 on every edge**. The shadow now fully fades
+  before the native boundary. The complete side-by-side view was visually checked.
+- The stylesheet was reloaded in the existing live instance, preserving its
+  380px card width and unconfirmed uBO choice. No runtime/UI logic changed.
+
+final result: passed
+
+### Approved shield attachment and provider-first summary — 2026-10-02
+
+The owner approved the shortened circle-to-card connection, then selected the
+third image in the **summary-screen** refinement set. This does not select any
+of the earlier, separate uBO advanced-control mockups.
+
+**Visual truth and evidence**
+
+- Short connector: `/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-67b974f9-1a18-4cae-ad85-4ea02d3b97a3.png`.
+- Selected summary: `/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-5ed87f06-6710-4dd9-8f45-9f1b1316c36f.png`.
+- Local reference copy: `output/playwright/shield-summary-approved.png`.
+- Native final captures: `output/playwright/shield-summary-live-window.png`
+  and `output/playwright/shield-summary-live-overlay.png`.
+- Full comparison: `output/playwright/shield-summary-comparison.png`.
+  Approved image is left; implementation is right.
+- Additional native state: `output/playwright/shield-summary-dark.png`.
+
+The reference is 1420×1108 pixels. Its approximately 822px-wide card was
+uniformly normalized to the implementation's 760px-wide card (380 CSS px at
+density 2). The normalized reference is 1313×1025. The actual native window is
+1280×800 CSS px / 2560×1600 pixels; the transparent overlay is 404×500 CSS px /
+808×1000 pixels. Electron window capture omits child views, so the separately
+captured overlay is composited at its actual native bounds before cropping the
+matching 1313×1024 review region. No UI pixels were redrawn. Both sides show
+light mode, localhost, ready uBO, zero blocked requests, and the summary at rest.
+Loopback port and open-tab dots differ because these are live isolated fixtures.
+The full comparison is legible at original resolution; a further detail crop
+was not needed. The existing shield glyph is preserved.
+
+**Findings and iteration history**
+
+- Resolved P2: The initial native restart state needed 32px more vertical room
+  than the previous view allowed. The transparent view now permits up to 500px
+  while the card retains natural content height; short windows still scroll.
+- Resolved P2: `shield-summary-comparison-before.png` showed excessive spacing
+  below the provider and around the controls/metadata rows. Reduced those gaps
+  and row padding, recaptured the native rendering, and compared again in
+  `shield-summary-comparison.png`. The final card's overall height and grouping
+  now track the selected image. The first comparison was not accepted.
+- The first stylesheet-only refresh retained stale CSS; its capture was rejected.
+  The overlay was reloaded without cache, reopened from the shield, and its
+  final 8px metadata gap and visible state were verified before recapture.
+- Native outer-edge alpha remains **0** in every outer two-pixel row/column.
+  The compact shadow fully fades inside the native view, including the new
+  short connector. No clipped rectangular shadow returned.
+
+**Fidelity surfaces**
+
+- Typography: existing bundled Inter, 17px compact heading, 14px main body,
+  13px status and 12px scope notes. The provider is semibold and the controls
+  action quieter, preserving the selected hierarchy without duplicate naming.
+- Layout: provider first, explicit Change aligned with the provider name,
+  status below, blocked count, inline Open controls, connection/settings rows,
+  then the two-line scope note. Shared chooser behavior and its approved layout
+  remain intact. Native geometry keeps the short join aligned during resizing.
+- Colors: existing warm Sunrise ivory/sand/ink/gold tokens, with real native
+  light/dark propagation. The connection warning retains its semantic color.
+- Assets: authentic Sunrise PNG and unchanged Island shield. New standard
+  external-link and chevron-right shapes are the official Lucide paths covered
+  by the existing third-party notices, not newly invented brand artwork.
+- Copy: Current blocker, provider, Active, Change, blocked-request count, Open
+  controls, Connection/Local, Blocking settings, and both scope lines match the
+  selected design. Failure, disabled, startup, private and restart states retain
+  their specific truthful guidance. Provider readiness never claims a uBO
+  site exception is enabled. The controls link retains its explicit accessible
+  name; keyboard focus outlines apply to the small action, not the whole section.
+
+**Verification and scope**
+
+- Lint and diff checks passed; 70 targeted unit tests passed.
+- Real-blocking native provider suite passed: both switch directions/restarts,
+  draft and cancellation, original uBO controls, focus, native appearance,
+  private/unavailable guards, short windows, and no automatic page reload.
+- Added native checks verify a single visible provider name in the ready uBO
+  summary and the selected content order. The four existing shield scenarios
+  passed all 31 steps, including connection claims and site exceptions.
+- The isolated live dev preview was refreshed while retaining its uBO setting.
+  This is local UI evidence, not signed/package/platform distribution evidence.
+  uBO's original advanced popup remains a separate pending design choice.
+
+No unresolved P0/P1/P2 visual findings remain for this selected summary.
+
+final result: passed
+
+## Neutral blocker chooser and contextual restart — 2026-10-02
+
+User selected neutral option 2 and requested an immediate restart CTA when a
+provider change needs restart. Implemented the selected compact left-aligned
+header, genuine gold Sunrise asset, white/graphite palette, flat provider rows,
+right-aligned native radios, inline Active label, and compact footer action.
+Reference: `output/playwright/shield-neutral-approved.png` (revised restart mock).
+Comparison: `output/playwright/shield-neutral-comparison.png`, reference left,
+native implementation right, normalized to the same card width. Native text
+uses bundled Inter and the existing compact density. The real card is slightly
+taller to preserve readable control spacing. No source mock pixels enter the app.
+
+Owner rejected the initial full-row hover fill, then the custom radio halo.
+Both were removed. Final hover evidence is
+`output/playwright/shield-neutral-live-overlay.png`: pointer over uBO's row,
+plain native radio, no row fill, no custom halo or full-row focus rectangle.
+Keyboard focus uses the browser's automatic input outline. Final live preview
+was fully restarted to avoid stale chrome-scheme CSS. Earlier hover captures
+are superseded and are not final design evidence. Short shield connection and
+existing shield glyph remain intact. Native capture outer edges were transparent.
+
+Done closes an unchanged selection (or cancels a pending provider selection by
+saving the active provider). Restart Blanc saves synchronously, then requests
+normal app quit and schedules relaunch only after quit succeeds. Selecting a
+radio alone never saves or restarts. Failed persistence restores the previous
+selection and keeps the app open. Stay cancels the restart intent without
+arming a later unrelated quit. Blocking/provider services stop at will-quit,
+so a cancelled shutdown does not prematurely stop protection.
+
+Validation: lint; 2,081 unit tests; substrate checks; four existing shield
+acceptance scenarios / 31 steps; native shield provider suite covering both
+restart directions, pending and draft choices, Done/Back/Close, failed settings
+persistence, private/unavailable/forged guards, no page reload, small windows,
+native appearance and keyboard access. The desktop harness intercepts only
+relaunch spawning after a real quit and launches the next instance explicitly;
+a separate official Electron 44.5.1 smoke exercised actual app.relaunch and
+observed its second process. This is local development evidence, not packaged
+or multi-platform release acceptance. Advanced uBO popup redesign stays outside
+this change.
+
+Visual review of the final plain controls found no remaining blocking layout,
+contrast, clipping, hover-fill or halo issues.
+
+final result: passed
+
+## Private-tab blocker explanation — 2026-10-02
+
+The chooser, regular shield scope note, private shield status and Privacy &
+Security settings now explain the current private-session restriction. The
+private shield identifies Blanc's browser engine as the limitation and confirms
+Blanc Blocker protects the tab. Settings explains that private sessions remain
+in memory, while the native extension host supports only saved sessions.
+No layout or visual treatment changed. Reviewed native chooser and private
+shield captures: longer copy wraps cleanly and actions remain visible.
+Lint, 29 shield-model unit tests, the native provider/chooser suite and diff
+checks passed. Existing private guards and request isolation are unchanged.
+
+final result: passed
+
+## uBO popup — selected option 2, October 2
+
+Visual target: the second displayed generated image,
+`/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-710c5e51-1768-4b14-9329-ad370d06c1f6.png`.
+The implementation retains the original uBO DOM IDs, engine, state and action handlers.
+Dashboard remains the original settings document and is a separate pending mockup.
+
+### Evidence and iteration
+
+The source was opened directly, then compared in one normalized image with a
+native Electron capture. Source: 1254×1254; card crop 810×995 normalized to 760px
+wide without stretching. Native view: 404 CSS px wide at 2× density; card: 380 CSS
+px wide. `output/playwright/ubo-popup-option-2-comparison-final.png` places the
+source and actual enabled, collapsed, light popup side by side. Actual fixture
+host/counts differ from the illustrative source and are supplied by uBO, not mocked.
+
+Initial P2 findings were a missing divider between Logger and Dashboard, a
+smaller site switch/brand mark/tool icon scale, inherited button letter spacing,
+and a view-height calculation that omitted card borders. These were corrected.
+An initial capture also hovered Zap; that state was discarded for the default-state
+comparison. Final native capture removes the hover and includes all borders.
+Focused header, tools and footer are readable in the combined comparison.
+
+### Required fidelity surfaces
+
+- Typography: bundled Inter with compact title, 14px tool headings, 12px support
+  text and native counts. No fallback or wrapping failures; the small natural
+  height difference reflects actual font metrics and native hit areas.
+- Spacing/layout: flat tool rows, fine dividers, two equal tool links, short
+  shield-to-card attachment, content-sized native bounds and constrained scrolling.
+  The source card is about 467 CSS px tall after normalization; actual is about
+  485 CSS px. This minor density difference is P3, with the same hierarchy/content.
+- Colors: white, graphite and neutral gray; gold appears only in the genuine mark.
+  Dark capture (`ubo-popup-dark-popup.png`) preserves the hierarchy and contrast.
+  Native dynamic-rule colors retain their upstream semantic meaning.
+- Assets: existing reserved Sunrise PNG, bundled Inter, exact Lucide SVGs with
+  upstream license. No generated logo approximation or image halo. Native site
+  switch follows Blanc's existing switch styling.
+- Copy: the selected Pick/Zap explanations, Logger, Dashboard and More controls
+  are present. Counts and host are live. More becomes Fewer controls when open.
+
+### Functional validation and bounds
+
+Native shield suite exercises expansion, JavaScript switch, site switch via
+keyboard, back, nested-label Dashboard/Logger clicks, Escape, focus restoration,
+provider restart, private/unavailable guards and small windows. More does not
+activate advanced-user mode. The real-blocking uBO suite covers original picker,
+zapper, dashboard panels, backups and requests. Pure tests reject foreign sessions,
+frames, tabs, URLs and malformed popup IPC. New HTTP-token test covers ordinary
+insecure origins. Native popup/Blanc chrome recorded no uncaught UI errors.
+
+Full Dashboard/settings styling and installed Windows/Linux/native input acceptance
+remain outside this popup QA. The support and distribution gates remain closed.
+
+final result: passed
+
+## uBO Dashboard option 3 — October 2, 2026
+
+Source: the third displayed Dashboard mockup,
+`/Users/anthonyjloria/.codex/generated_images/01a0fe84-1e83-7ad2-841d-33755fc00ff7/exec-e03b172d-7ba0-40c8-abd8-41f4cabbce04.png`.
+Implementation: the real managed uBO 1.75.0 Dashboard inside official Electron
+44.5.1, sandbox enabled, using a temporary dev profile with real blocking.
+
+### Comparison and iterations
+
+The source and native captures were resized to the same 1440 × 1024 content
+viewport and combined in one image. The native child view was explicitly sized
+to that viewport for capture because the local display limits the window's
+height; ordinary preview bounds were restored afterward. The light, dark and
+720 px narrow captures also come from native extension documents.
+
+First combined evidence: `output/playwright/ubo-dashboard-compare-first.png`.
+Result: blocked. P2 differences included extra space above the section headings,
+legacy solid toolbar glyphs, low contrast disabled buttons, and a redundant
+My filters summary before the first subscription category. A functional capture
+also caught Support's native autofocus scrolling past its header.
+
+Fixes: tightened section spacing, applied pinned outline library glyphs, restored
+readable disabled-state contrast, moved the native My filters group below the
+subscription categories, and disabled only Support's initial editor autofocus.
+Select all retains its original focus action. A later P2 short-window check found
+clipped editing controls; editor panes now scroll vertically when their toolbar
+and editor exceed the viewport, with a 720 × 600 window capture and regression
+check covering reachability. The native checkbox nodes remain
+attached during relocation; all IDs, templates, list hierarchy and handlers are
+preserved.
+
+Final combined evidence: `output/playwright/ubo-dashboard-compare-final.png`.
+Additional native evidence: `ubo-dashboard-final.png`, `ubo-dashboard-dark.png`,
+`ubo-dashboard-narrow.png`, `ubo-dashboard-short-rules.png`, and Settings, My filters, My rules, Trusted sites,
+Support and About captures in `output/playwright/`.
+
+### Required fidelity surfaces
+
+- Typography: bundled Inter, 48 px title, 26 px section headings, 20 px controls
+  and 18 px helper text at the wide target; native monospace editors remain
+  readable. Smaller windows reduce type and stack the two columns.
+- Spacing/layout: horizontal navigation with black active underline; small genuine
+  Sunrise mark; 48 px content gutters; 432 px options column; 36 px gap; thin
+  divider; flat subscriptions; search and actions align with the approved layout.
+- Colors: white/graphite/neutral gray with gold confined to the mark. Dark mode
+  uses neutral surfaces; native checkbox accent preferences and syntax, failure,
+  update, and rule colors keep their original meanings. No radio or row halos.
+- Assets: genuine reserved Sunrise PNG, bundled Inter, exact pinned Lucide 0.468.0
+  SVGs and ISC/Feather notices. No redrawn logo or glyphs.
+- Copy: selected heading/helper, list options and their explanations, subscriptions,
+  search, Apply changes, Update now and Import a filter list. Other panel titles
+  use upstream localized strings, and upstream license/credits remain visible.
+
+Native data differs from the illustrative source: actual counts, update states,
+expansion settings, checked/default rows, extra subscription groups and diagnostics
+remain visible. In particular, uBO exposes selected/default entries even inside
+collapsed categories. These functional states were retained instead of hiding
+subscriptions to reproduce illustrative content. P3: category/row density differs
+slightly with native statistics and status affordances. No remaining P0/P1/P2.
+
+### Functional validation and limits
+
+The dedicated Dashboard suite passed native theme/preferences, list selection,
+search, keyboard expansion and tab navigation, real CodeMirror keyboard input,
+unsaved-change Stay, applying a filter, wide/narrow panels, Support initial scroll,
+server-observed blocking, and settings/filter persistence across restart. No
+uncaught Dashboard UI errors were recorded. The full real-blocking suite also
+passed original tools, list updates, backup/restore, requests and lifecycle.
+
+Logger and picker are separate native tools; this approval covers the Dashboard
+panels and advanced-settings presentation. Installed Windows/Linux acceptance and
+public GPL/source-boundary clearance remain required. Platform gates stay closed.
+
+final result: passed
+
+## 2026-10-03 — Dashboard desktop density correction
+
+The owner's live screenshot exposed a sizing error in the previous QA conclusion:
+normalizing the presentation mockup to a large CSS viewport produced oversized
+48 px headings and 20 px body text. This section supersedes that sizing approval.
+Blanc's existing pages.css uses 13 px body text and 20 px headings; the uBO
+Dashboard now uses 14 px body text, 24 px page headings, 16–18 px sections,
+36 px buttons, 16 px checkboxes, a 28 px Sunrise, and 28 px content gutters.
+The approved layout and neutral palette remain; native editor text stays 14 px.
+Responsive layouts share that type scale rather than introducing larger overrides.
+
+Verified the actual 1200 × 800 native window with a 1200 × 732 Dashboard view
+and webContents zoom factor 1. No artificial child-view resizing or CSS zoom was
+used. Captures cover all seven panels, light/dark, 720 px width and 720 × 600
+My rules; native computer-use screenshot confirmed scale beside the real Island.
+Evidence: output/playwright/ubo-dashboard-density-*.png. Programmatic composites
+have an empty chrome strip; the native app screenshot is the Island comparison.
+
+Passed npm run ublock:check and npm run test:ublock-dashboard:desktop, including
+native controls, narrow layouts, real blocking and restart persistence. No runtime,
+filtering engine, provider gate, or user zoom changes. Corrected dev preview left open.

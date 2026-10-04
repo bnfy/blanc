@@ -49,6 +49,8 @@ Platform-packaged forms of the same mark:
 - `build/windows-icons/icon-sunrise.ico`
 - `ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png`
 - `src/renderer/pages/icon.svg`
+- `site/public/sunrise-hero-mark.png` and `src/renderer/sunrise-hero-mark.png` —
+  the original gold Sunrise mark for the website and blocker dialog
 - `site/public/logo.png`, `site/public/favicon.svg`,
   `site/public/favicon.ico`, `site/public/favicon-16x16.png`,
   `site/public/favicon-32x32.png`, and `site/public/apple-touch-icon.png`

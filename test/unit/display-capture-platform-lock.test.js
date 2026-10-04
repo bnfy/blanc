@@ -51,7 +51,9 @@ test('main selects both broker and browsing preload through the platform policy'
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
   assert.match(main, /const CAPTURE_RUNTIME = captureRuntimeForPlatform\(\);/);
   assert.match(main, /require\('\.\/' \+ CAPTURE_RUNTIME\.broker\)/);
-  assert.match(main, /filePath: path\.join\(__dirname, CAPTURE_RUNTIME\.preload\)/);
+  assert.match(main, /const capturePath = `src\/main\/\$\{CAPTURE_RUNTIME\.preload\}`/);
+  assert.match(main, /filePath: capturePreload/);
+  assert.match(main, /pin: require\('\.\/capture-runtime-lock\.json'\)\.files\[capturePath\]/);
 });
 
 test('shared permission, relay, and capture dependencies cannot change silently', () => {

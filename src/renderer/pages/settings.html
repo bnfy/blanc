@@ -314,6 +314,27 @@
           <h2 class="group-title">Privacy &amp; Security</h2>
           <div class="settings-card settings-card--mixed">
             <h3 class="card-title">Blocking</h3>
+            <div class="setting" id="blockingProviderSetting">
+              <div class="label">
+                <span>Blocking provider</span>
+                <span class="hint">Changes take effect after restarting Blanc. uBlock Origin protects regular tabs. Blanc’s browser engine can load uBO only in saved sessions, so private sessions stay in memory and use Blanc Blocker. Each provider keeps separate site settings.</span>
+              </div>
+              <select id="adblockProvider">
+                <option value="blanc">Blanc Blocker</option>
+                <option value="ublock-origin">uBlock Origin</option>
+              </select>
+            </div>
+            <p class="section-hint" id="blockingProviderStatus" role="status" aria-live="polite"></p>
+            <div class="toolbar-row" id="ublockTools" hidden>
+              <button id="ublockDashboard">uBlock Origin settings</button>
+              <button id="ublockLogger">Logger</button>
+            </div>
+            <div class="toolbar-row" id="blockingRecovery" hidden>
+              <button id="ublockRetry" hidden>Retry</button>
+              <button id="ublockUseBlanc" hidden>Use Blanc Blocker after restart</button>
+              <button id="ublockContinue" hidden>Continue without blocking</button>
+            </div>
+            <p class="section-hint" id="ublockLimits" hidden>Filter lists update automatically. Executable resources update with Blanc releases; custom resource URLs and cloud storage are unavailable. Turning blocking off removes cosmetic CSS; reload a page to undo changes already made by scriptlets.</p>
             <div class="setting">
               <div class="label">
                 <span>Block ads &amp; trackers</span>

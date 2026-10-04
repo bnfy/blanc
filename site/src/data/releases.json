@@ -1,5 +1,147 @@
 [
   {
+    "tag": "v1.27.0",
+    "version": "1.27.0",
+    "name": "1.27.0",
+    "publishedAt": "2026-10-04T03:14:49.000Z",
+    "humanDate": "October 3, 2026",
+    "machineDate": "2026-10-03",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.27.0",
+    "anchor": "v1-27-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Optional full uBlock Origin 1.75.0 on Apple Silicon and native Intel Macs, Windows x64, and Linux x64. Click the Island shield, choose your blocker, then use "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Restart Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to apply the change."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc styling for uBO’s popup and Dashboard, with filter subscriptions, custom filters, dynamic rules, picker/zapper, logger, and backup/restore. Filter lists can update automatically; executable resources stay pinned to reviewed Blanc releases."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Separate uBO configuration for each regular profile. Blanc Blocker remains the default and protects private tabs; the two blockers keep separate site exceptions. Provider selection and uBO configuration stay outside Profile Sync. General extension-store support is not included."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Automatic return to Blanc Blocker with an explanation if saved uBO selection is unavailable in the running build, preserving uBO configuration. Intel builds running under Rosetta use Blanc Blocker. An available uBO instance that crashes or exceeds its request deadline keeps traffic blocked until recovery or an explicit user choice."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Provider restart and shutdown no longer lose an overlay callback when Electron removes a native child view."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Linux AppImage provider restarts use the upstream extraction launcher and retain Chromium sandbox enforcement. Normal close/relaunch preserves the selected blocker and saved uBO filters."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Linux sandbox refusal dialog offers "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open Setup Guide"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Quit"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". X11 retains "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy Link"
+                  },
+                  {
+                    "type": "text",
+                    "value": "; Wayland omits clipboard controls. A relaunch with the guide URL omits Open Setup Guide to prevent a loop. Sandbox requirements and system security settings are unchanged."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "link",
+                "value": "Supported versions, tested platforms, and integration limits",
+                "url": "https://github.com/bnfy/blanc/blob/main/docs/ublock-origin-support-matrix-2026-10-03.md"
+              },
+              {
+                "type": "text",
+                "value": "."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.26.0",
     "version": "1.26.0",
     "name": "1.26.0",
@@ -4933,74 +5075,28 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "The Windows installer and application binaries are now code signed by"
+                    "value": "The Windows installer and application binaries are now code signed by Bananify Creative through Azure Trusted Signing."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "Bananify Creative through Azure Trusted Signing."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
+              },
               {
                 "spans": [
                   {
                     "type": "text",
-                    "value": "New installs no longer trigger the Windows SmartScreen \"unknown publisher\""
+                    "value": "New installs no longer trigger the Windows SmartScreen \"unknown publisher\" warning, and Microsoft Defender false positives on the unsigned installer are resolved."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "warning, and Microsoft Defender false positives on the unsigned installer"
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "are resolved."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
+              },
               {
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Windows auto-update continues to work from earlier versions; updating from"
+                    "value": "Windows auto-update continues to work from earlier versions; updating from an unsigned install to 1.0.3 is seamless."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "an unsigned install to 1.0.3 is seamless."
               }
             ]
           }
@@ -5079,74 +5175,28 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Windows now uses one fixed Paper icon instead of exposing the macOS icon"
+                    "value": "Windows now uses one fixed Paper icon instead of exposing the macOS icon colorways in Settings."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "colorways in Settings."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
+              },
               {
                 "spans": [
                   {
                     "type": "text",
-                    "value": "The Windows icon is generated as a native nine-frame ICO from 16 through 256"
+                    "value": "The Windows icon is generated as a native nine-frame ICO from 16 through 256 pixels, with the macOS-style transparent margin removed and the Blanc mark enlarged for better visual parity with other Windows taskbar icons."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "pixels, with the macOS-style transparent margin removed and the Blanc mark"
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "enlarged for better visual parity with other Windows taskbar icons."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
+              },
               {
                 "spans": [
                   {
                     "type": "text",
-                    "value": "macOS keeps its existing selectable icon colorways, including the supporter"
+                    "value": "macOS keeps its existing selectable icon colorways, including the supporter colorways."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "colorways."
               }
             ]
           }
@@ -5162,25 +5212,11 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "The native application menu has a dedicated upper-left hamburger button that"
+                    "value": "The native application menu has a dedicated upper-left hamburger button that stays legible over light and dark web pages."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "stays legible over light and dark web pages."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
+              },
               {
                 "spans": [
                   {
@@ -5189,25 +5225,11 @@
                   },
                   {
                     "type": "text",
-                    "value": " opens the same native menu regardless of which Blanc surface has"
+                    "value": " opens the same native menu regardless of which Blanc surface has focus."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "focus."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
+              },
               {
                 "spans": [
                   {
@@ -5307,51 +5329,19 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "The Windows installer now closes the old Blanc process and retries for a"
+                    "value": "The Windows installer now closes the old Blanc process and retries for a bounded period before asking for manual intervention. This replaces the failure mode where the first install attempt said Blanc could not be closed and clicking "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Retry"
+                  },
+                  {
+                    "type": "text",
+                    "value": " later succeeded."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "bounded period before asking for manual intervention. This replaces the"
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "failure mode where the first install attempt said Blanc could not be closed"
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "and clicking "
               },
-              {
-                "type": "strong",
-                "value": "Retry"
-              },
-              {
-                "type": "text",
-                "value": " later succeeded."
-              }
-            ]
-          },
-          {
-            "type": "list",
-            "items": [
               {
                 "spans": [
                   {
@@ -5360,37 +5350,10 @@
                   },
                   {
                     "type": "text",
-                    "value": " on Windows now tears down every Blanc browser surface after"
+                    "value": " on Windows now tears down every Blanc browser surface after session data has been preserved, with a forced-exit backstop if Chromium does not finish shutting down promptly. This also prevents an old instance from reclaiming the relaunch and offering the same update again."
                   }
                 ],
                 "url": null
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "session data has been preserved, with a forced-exit backstop if Chromium does"
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "not finish shutting down promptly. This also prevents an old instance from"
-              }
-            ]
-          },
-          {
-            "type": "paragraph",
-            "spans": [
-              {
-                "type": "text",
-                "value": "reclaiming the relaunch and offering the same update again."
               }
             ]
           }

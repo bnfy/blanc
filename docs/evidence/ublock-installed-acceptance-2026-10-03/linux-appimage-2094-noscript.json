@@ -1,0 +1,82 @@
+{
+  "alert": 77,
+  "kind": "packaged-cdp-probe",
+  "passed": true,
+  "package": {
+    "version": "1.27.0",
+    "ublock": "1.75.0",
+    "electron": "44.5.1",
+    "internalCandidate": true,
+    "executableSha256": "5278773ddc5629dc76e14211ce32159d5fd1b66cad5dab4e2f064387a3013e0a",
+    "asarSha256": "f81fec1a6966b8b42735f22b354e2bdc16eb694cb37014bad5b77f9aa8f1c0e7"
+  },
+  "os": "linux",
+  "architecture": "x64",
+  "harnessArchitecture": "x64",
+  "osRelease": "6.17.0-1022-azure",
+  "limits": [
+    "Signature, notarization, installed location and OS sandbox verification require separate evidence.",
+    "Meta refresh has no executable positive control; only non-execution is observed.",
+    "This tests the listed payloads, not every possible script or HTML construct."
+  ],
+  "runtimeInfo": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "provider": {
+    "active": "ublock-origin",
+    "phase": "ready",
+    "electron": "44.5.1",
+    "ublock": "1.75.0"
+  },
+  "activeControl": {
+    "originalScriptRan": true,
+    "insertedScriptRan": true,
+    "externalScriptRan": true,
+    "eventRan": true,
+    "linkRan": true,
+    "metaRan": false,
+    "nodeAccess": "undefined",
+    "location": "/active-control",
+    "fallbackText": "Fallback rendered",
+    "noscriptCount": 0
+  },
+  "contentSecurityPolicy": null,
+  "protected": {
+    "originalScriptRan": false,
+    "insertedScriptRan": false,
+    "externalScriptRan": false,
+    "eventRan": false,
+    "linkRan": false,
+    "metaRan": false,
+    "nodeAccess": "undefined",
+    "location": "/probe",
+    "fallbackText": "Fallback rendered",
+    "noscriptCount": 0
+  },
+  "policyViolations": [
+    {
+      "policy": "script-src http: https:",
+      "directive": "script-src-elem",
+      "disposition": "enforce"
+    }
+  ],
+  "protectedExecutionRequests": [],
+  "offControl": {
+    "originalScriptRan": true,
+    "insertedScriptRan": false,
+    "externalScriptRan": false,
+    "eventRan": false,
+    "linkRan": false,
+    "metaRan": false,
+    "nodeAccess": "undefined",
+    "location": "/off-control",
+    "fallbackText": null,
+    "noscriptCount": 1
+  },
+  "sourceSha": "2094cdeb0b41202f90ff62270c214f2f8bbadc6e",
+  "ciRun": "https://github.com/bnfy/blanc/actions/runs/37163617450"
+}

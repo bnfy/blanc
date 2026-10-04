@@ -10,13 +10,18 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+if [ "${BLANC_UBLOCK_INTERNAL_BUILD:-0}" = "1" ]; then
+  echo "Internal uBlock validation packages cannot enter the release pipeline." >&2
+  exit 1
+fi
+
 REPO="bnfy/blanc"
 VERSION=$(node -p "require('./package.json').version")
 TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.26.0}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.27.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -220,6 +225,7 @@ RELEASE_SOURCES=(
   tokens
   copy
   adblock
+  ublock
   compliance
   docs/press
   docs/grants
@@ -245,6 +251,7 @@ if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
 fi
 
 echo "==> Installing locked dependencies and running the press verification gate"
+npm run ublock:distribution
 npm ci
 npm ci --prefix site
 npm run release:verify:press
@@ -312,6 +319,10 @@ BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Bl
 echo "==> Smoke-testing packaged release regressions"
 BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
   npm run test:packaged:regressions
+
+echo "==> Verifying packaged Workspace quit/restart recovery"
+BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+  npm run test:packaged:workspaces
 
 echo "==> Checking live favicon compatibility — primary 26-site matrix"
 BLANC_FAVICON_MATRIX=primary \
@@ -412,7 +423,7 @@ node scripts/verify-release-manifest.mjs \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
-cp compliance/runtime-sbom.cdx.json "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
+cp "dist/$NATIVE_MAC_DIR/Blanc.app/Contents/Resources/runtime-sbom.cdx.json" "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."

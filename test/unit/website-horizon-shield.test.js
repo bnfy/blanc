@@ -139,29 +139,30 @@ for (const [variant, modelFile, factory] of [
   });
 }
 
-test('provider launch copy stays release-gated with bronze display artwork and native monochrome Island icon', async () => {
+test('provider copy resolves to the verified public release with bronze display artwork and native monochrome Island icon', async () => {
   const ledger = JSON.parse(read('docs/website-blocking-launch.json'));
   const home = read(ledger.source).replace(/<br\s*\/?>/g, ' ').replace(/\s+/g, ' ');
-  assert.equal(ledger.status, 'release-gated-draft');
-  assert.match(ledger.publicationBoundary, /BLOCKED until the new app release ships/);
-  assert.match(ledger.publicationBoundary, /immutable public tag/);
-  assert.equal(ledger.publicRelease, 'v1.26.0');
+  assert.equal(ledger.status, 'release-verified');
+  assert.equal(ledger.publicRelease, 'v1.27.0');
+  assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.publicSourceSha);
+  const platforms = JSON.parse(execFileSync('git', ['show', `${ledger.publicRelease}:src/main/ublock-platforms.json`], { cwd: root, encoding: 'utf8' }));
+  assert.deepEqual(ledger.verifiedPlatforms, Object.keys(platforms.platforms).filter(key => platforms.platforms[key].enabled));
+  assert.match(ledger.excludedRuntime, /Rosetta/);
   const privacy = home.slice(home.indexOf('id="privacy"'), home.indexOf('id="start"'));
   assert.doesNotMatch(privacy, /In development|Upcoming|Preview of work in progress/);
   for (const claim of ledger.claims) {
     const source = read(claim.source || ledger.source).replace(/<br\s*\/?>/g, ' ').replace(/\s+/g, ' ');
     assert.ok(source.includes(claim.exactWording), claim.exactWording);
   }
-  // Unmerged candidate revisions need not exist in a clean CI checkout.
-  // The review ledger records their exact revision, paths and hashes; deployment
-  // must replace them with release-tag evidence before this draft becomes public.
-  assert.match(ledger.candidateSha, /^[a-f0-9]{40}$/);
+  const publicLedger = JSON.parse(read('docs/website-revamp-claims-v1.27.json'));
   for (const claim of ledger.claims) {
-    assert.equal(claim.verdict, 'pending-public-release');
+    assert.equal(claim.verdict, 'qualified');
+    assert.ok(publicLedger.claims.some(entry => entry.exactWording === claim.exactWording && entry.evidenceGroups.includes('blockingProviders')));
     for (const file of claim.evidence) {
-      const evidence = ledger.reviewedCandidateFiles.find(item => item.path === file);
-      assert.match(evidence?.sha256 || '', /^[a-f0-9]{64}$/);
-      assert.ok(evidence.url.includes(ledger.candidateSha));
+      const evidence = ledger.reviewedReleaseFiles.find(item => item.path === file);
+      const released = execFileSync('git', ['show', `${ledger.publicRelease}:${file}`], { cwd: root });
+      assert.equal(crypto.createHash('sha256').update(released).digest('hex'), evidence?.sha256);
+      assert.ok(evidence.url.includes(ledger.publicSourceSha));
     }
   }
   const artwork = fs.readFileSync(path.join(root, ledger.artwork.file));

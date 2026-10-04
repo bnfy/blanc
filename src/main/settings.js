@@ -86,6 +86,8 @@ const DEFAULTS = {
   // Device-local and user-disableable; private tabs override it off.
   searchSuggestions: true,
   adblockEnabled: true,
+  // Provider/configuration are device/profile local, outside Profile Sync.
+  adblockProvider: 'blanc',
   // Empty string = the built-in blanc://newtab page.
   homePage: '',
   theme: 'system',
@@ -293,6 +295,7 @@ function getSettings() {
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!['blanc', 'ublock-origin'].includes(data.adblockProvider)) data.adblockProvider = DEFAULTS.adblockProvider;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
   data.mouseGestureMapping = mappingOrDefault(data.mouseGestureMapping);
   if (!WEBRTC_POLICIES.includes(data.webrtcPolicy)) data.webrtcPolicy = DEFAULTS.webrtcPolicy;
@@ -333,6 +336,7 @@ function sanitize(partial) {
     clean.searchSuggestions = partial.searchSuggestions;
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
+  if (['blanc', 'ublock-origin'].includes(partial.adblockProvider)) clean.adblockProvider = partial.adblockProvider;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
   for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
     if (typeof partial[key] === 'boolean') clean[key] = partial[key];
@@ -578,6 +582,7 @@ module.exports = {
   getSettings,
   setExistingProfileHint,
   setSettings,
+  flushSettings: () => ensureStore().flush(),
   onSettingsChanged,
   isFirstRunComplete,
   completeFirstRunPrivacyChoices,

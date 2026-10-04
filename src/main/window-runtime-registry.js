@@ -74,6 +74,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Chip right edge (window coords) captured when the shield popover
      * opens; reused if bounds recompute (e.g. window resize) while it's up. */
     shieldAnchorRight: null,
+    shieldAnchorCenter: null,
+    shieldAnchorBottom: null,
     /** Same, for the capture popover's chip (its only trigger control). */
     captureAnchorRight: null,
     /** The site the open shield popover describes, captured at open time —

@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const { pathToFileURL } = require('node:url');
 const ROOT = path.resolve(__dirname, '../..');
 const read = name => fs.readFileSync(path.join(ROOT,name),'utf8');
 const topics = JSON.parse(read('site/src/data/guide-topics.json'));
@@ -27,7 +28,7 @@ test('retained feature pages preserve their search metadata, prose and anchors f
  const prose = source => [...source.matchAll(/<(?:h[1-6]|p|figcaption)\b[^>]*>([\s\S]*?)<\/(?:h[1-6]|p|figcaption)>/g)].map(match => match[1].replace(/<[^>]*(?:>|$)/g, '').replace(/\s+/g, ' ').trim());
  for (const file of files) {
   const before = execFileSync('git', ['show', `${revision}:${file}`], {cwd: ROOT, encoding: 'utf8'});
-  const approved = JSON.parse(read('docs/website-revamp-claims-v1.26.json')).retainedFeaturePages.reviewedCopyUpdates.find(update => update.source === file);
+  const approved = JSON.parse(read('docs/website-revamp-claims-v1.27.json')).retainedFeaturePages.reviewedCopyUpdates.find(update => update.source === file);
   let reviewedBefore = before;
   for (const {before: oldCopy, after: newCopy} of approved?.replacements || []) {
    assert.ok(reviewedBefore.includes(oldCopy), `${file}: obsolete review exception`);
@@ -53,16 +54,20 @@ test('every consolidated destination exists and every old route has a direct 301
  }
 });
 test('primary navigation and footer keep supporting pages and trust one click away',async()=>{
- const {directLinks}=await import(path.join(ROOT,'site/src/data/navigation.mjs'));
- assert.deepEqual(directLinks.map(link=>link.label),['Features','Privacy','Patron','About','Support']);
+ const {directLinks}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
+ assert.deepEqual(directLinks.map(link=>link.label),['Features','Privacy & Security','Patron','About','Support']);
  const footer=read('site/src/components/Footer.astro');
  for(const route of ['/features','/support','/trust','/about','/press','/ambassadors','/download','/changelog','/privacy','/terms'])assert.ok(footer.includes(`href="${route}"`),route);
  assert.equal(directLinks.find(link=>link.key==='features').href,'/#features');
+ assert.equal(directLinks.find(link=>link.key==='privacy').href,'/trust');
+ assert.ok(footer.includes('href="/features/security"'));
+ assert.match(footer, /Security guide/);
+ assert.match(footer, /Privacy &amp; Security/);
  assert.match(footer,/data-consent-open/);assert.match(footer,/Bananify/);
  assert.match(read('site/src/components/NewsletterForm.astro'),/Updates from Blanc\./);
 });
 test('immutable release note links resolve to current destinations without losing fragments',async()=>{
- const {currentWebsiteLink}=await import(path.join(ROOT,'site/src/lib/website-routes.mjs'));
+ const {currentWebsiteLink}=await import(pathToFileURL(path.join(ROOT,'site/src/lib/website-routes.mjs')).href);
  assert.equal(currentWebsiteLink('https://blancbrowser.com/features/security#security-audit-title'),'https://blancbrowser.com/features/security#security-audit-title');
  assert.equal(currentWebsiteLink('/features/quiet-tabs'),'/features/quiet-tabs');
  assert.equal(currentWebsiteLink('/faq#bookmark-import'),'/support#bookmark-import');

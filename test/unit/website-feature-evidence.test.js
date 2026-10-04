@@ -8,7 +8,7 @@ const { execFileSync } = require('node:child_process');
 const { runInNewContext } = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const ledger = JSON.parse(read('docs/website-revamp-claims-v1.26.json'));
+const ledger = JSON.parse(read('docs/website-revamp-claims-v1.27.json'));
 const captureLedger = JSON.parse(read('docs/website-trust-claims-v1.25.json'));
 const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
@@ -16,8 +16,8 @@ const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '�
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
-test('the public-release claim ledger resolves to v1.26.0; release-gated launch claims are tracked separately', () => {
-  assert.equal(ledger.publicRelease, 'v1.26.0');
+test('the public-release claim ledger resolves to verified v1.27.0, including blocking providers', () => {
+  assert.equal(ledger.publicRelease, 'v1.27.0');
   assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.sourceSha);
   assert.ok(ledger.claims.length > 200);
   const paths = new Set();

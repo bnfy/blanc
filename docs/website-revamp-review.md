@@ -97,7 +97,7 @@ It also checks every old feature-guide fragment, key homepage boundaries and
 missed-ad reporting requirements. Formatting whitespace is ignored for the
 section-text comparison, not words or punctuation.
 
-`website-revamp-claims-v1.26.json` records 892 current exact-wording claims and
+The original `website-revamp-claims-v1.26.json` review recorded 892 current exact-wording claims and
 94 retired source strings. Retired strings are predominantly repeated feature
 summaries, replaced marketing headings, old image descriptions and the previous
 homepage demo. This is not a record of removed capabilities: practical content
@@ -631,3 +631,29 @@ horizontal overflow or console errors. All 43 focused website tests pass,
 including failed and racing image loads and persistent animation pause.
 Site build and SEO verification pass (29 checked pages, 27 sitemap URLs).
 No deployment. Proof: `blanc-production-review/hero-larger-sun-and-pause.png`.
+
+## Merge preparation and public release reconciliation (October 4)
+
+The owner requested squash merge of PR #491. Main now includes independently
+verified public v1.27.0 at `602a1a85a9b80453b2561b3e10c5e5795c3ff659`, with completed
+release evidence pinned at `7ca557b04dc723ca6158cce3ef4ea8aeb29f03da`.
+The new `website-revamp-claims-v1.27.json` ledger includes the formerly gated
+blocking-provider claims and the actual four-platform support boundary; Intel
+under Rosetta remains excluded. Trust links to the current release and its
+completed public verification. Historical recordings keep their original versions.
+
+Resolved main conflicts while retaining the redesign, both dependency reachability
+reviews, the uBO payload guards, current release metadata, and Windows-safe
+navigation module imports. Website deployment remains a separate action.
+
+The newer Privacy & Security page at `/trust` remains intact and now has a
+direct Privacy & Security link in the desktop header and footer. The older
+`/features/security` page is separately labelled Security guide in the footer;
+its search metadata and URL remain unchanged. Current-release verification links
+are reconciled on both pages. Mobile visitors retain direct footer access.
+
+Final local merge validation: all 2,275 unit checks pass. Lint, dependency
+compliance, advisory policy, changelog freshness, and site/SEO build pass.
+Responsive Security and footer checks at desktop, 390px, and 320px show no
+horizontal overflow. Owner clarification confirms `/trust` is the newer page
+to surface; its content was preserved throughout the redesign.

@@ -1,0 +1,26 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": false,
+  "os": "win32",
+  "harnessArchitecture": "x64",
+  "osRelease": "10.0.26220",
+  "executableSha256": "30c49710917f359b02aa213f85b1764573591f2dfdbf1b3d5c9e5e287a018efd",
+  "checks": {},
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required.",
+    "Actual signed NSIS install in existing Windows 11 ARM64 VM; x64 app and Node run under Windows emulation."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "win32",
+    "architecture": "x64"
+  },
+  "failure": {
+    "stage": "shield switch and actual restart",
+    "name": "Error"
+  }
+}

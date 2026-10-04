@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "candidateSource": "47eb903a1ce9c74967d58221b4f65cfbb0fc1dde",
+  "version": "1.27.0",
+  "bundleBuild": "1274",
+  "electron": "44.5.1",
+  "publicationAtTest": "not tagged or published",
+  "originalFailure": {
+    "site": "https://stackoverflow.com/",
+    "attempts": 2,
+    "title": "Forbidden - Stack Exchange",
+    "iconDeclarations": [],
+    "controlPublicVersion": "1.26.0",
+    "controlOutcome": "same access-denied page",
+    "nonAutomatedCandidateOutcome": "same explicit access-denied page",
+    "stockChromeOutcome": "questions page loaded; site access differs across clients"
+  },
+  "replacement": {
+    "name": "PostgreSQL",
+    "url": "https://www.postgresql.org/",
+    "reason": "real public developer site with declared ICO; preserves rendered image and cold-profile checks"
+  },
+  "primary": [
+    {
+      "name": "X",
+      "finalUrl": "https://x.com/",
+      "pngBytes": 677
+    },
+    {
+      "name": "United",
+      "finalUrl": "https://www.united.com/en/us",
+      "pngBytes": 2249
+    },
+    {
+      "name": "GitHub",
+      "finalUrl": "https://github.com/",
+      "pngBytes": 723
+    },
+    {
+      "name": "Apple",
+      "finalUrl": "https://www.apple.com/",
+      "pngBytes": 1398
+    },
+    {
+      "name": "Google",
+      "finalUrl": "https://www.google.com/",
+      "pngBytes": 1391
+    },
+    {
+      "name": "Wikipedia",
+      "finalUrl": "https://www.wikipedia.org/",
+      "pngBytes": 1367
+    },
+    {
+      "name": "Microsoft",
+      "finalUrl": "https://www.microsoft.com/en-us",
+      "pngBytes": 184
+    },
+    {
+      "name": "CNN",
+      "finalUrl": "https://www.cnn.com/",
+      "pngBytes": 1845
+    },
+    {
+      "name": "Reddit",
+      "finalUrl": "https://www.reddit.com/",
+      "pngBytes": 2356
+    },
+    {
+      "name": "Amazon",
+      "finalUrl": "https://www.amazon.com/",
+      "pngBytes": 778
+    },
+    {
+      "name": "YouTube",
+      "finalUrl": "https://www.youtube.com/",
+      "pngBytes": 1078
+    },
+    {
+      "name": "LinkedIn",
+      "finalUrl": "https://www.linkedin.com/",
+      "pngBytes": 643
+    },
+    {
+      "name": "PostgreSQL",
+      "finalUrl": "https://www.postgresql.org/",
+      "pngBytes": 1935
+    },
+    {
+      "name": "npm",
+      "finalUrl": "https://www.npmjs.com/",
+      "pngBytes": 213
+    },
+    {
+      "name": "Mozilla",
+      "finalUrl": "https://www.mozilla.org/en-US/",
+      "pngBytes": 860
+    },
+    {
+      "name": "Cloudflare",
+      "finalUrl": "https://www.cloudflare.com/",
+      "pngBytes": 1459
+    },
+    {
+      "name": "Delta",
+      "finalUrl": "https://www.delta.com/",
+      "pngBytes": 1225
+    },
+    {
+      "name": "Southwest",
+      "finalUrl": "https://www.southwest.com/",
+      "pngBytes": 2955
+    },
+    {
+      "name": "Walmart",
+      "finalUrl": "https://www.walmart.com/",
+      "pngBytes": 1416
+    },
+    {
+      "name": "eBay",
+      "finalUrl": "https://www.ebay.com/",
+      "pngBytes": 732
+    },
+    {
+      "name": "BBC",
+      "finalUrl": "https://www.bbc.com/",
+      "pngBytes": 576
+    },
+    {
+      "name": "New York Times",
+      "finalUrl": "https://www.nytimes.com/",
+      "pngBytes": 1364
+    },
+    {
+      "name": "ESPN",
+      "finalUrl": "https://www.espn.com/",
+      "pngBytes": 491
+    },
+    {
+      "name": "DuckDuckGo",
+      "finalUrl": "https://duckduckgo.com/",
+      "pngBytes": 2046
+    },
+    {
+      "name": "Stripe",
+      "finalUrl": "https://stripe.com/",
+      "pngBytes": 428
+    },
+    {
+      "name": "App Store Connect",
+      "finalUrl": "https://appstoreconnect.apple.com/login",
+      "pngBytes": 887
+    },
+    {
+      "name": "Blanc first-party quality canary",
+      "pngBytes": 986
+    }
+  ],
+  "additional": [
+    {
+      "name": "Facebook",
+      "finalUrl": "https://www.facebook.com/",
+      "pngBytes": 1064
+    },
+    {
+      "name": "Instagram",
+      "finalUrl": "https://www.instagram.com/",
+      "pngBytes": 3003
+    },
+    {
+      "name": "TikTok",
+      "finalUrl": "https://www.tiktok.com/",
+      "pngBytes": 994
+    },
+    {
+      "name": "Netflix",
+      "finalUrl": "https://www.netflix.com/",
+      "pngBytes": 1137
+    },
+    {
+      "name": "Adobe",
+      "finalUrl": "https://www.adobe.com/",
+      "pngBytes": 1030
+    },
+    {
+      "name": "Salesforce",
+      "finalUrl": "https://www.salesforce.com/",
+      "pngBytes": 986
+    },
+    {
+      "name": "Dropbox",
+      "finalUrl": "https://www.dropbox.com/",
+      "pngBytes": 1624
+    },
+    {
+      "name": "Zoom",
+      "finalUrl": "https://www.zoom.com/",
+      "pngBytes": 1935
+    },
+    {
+      "name": "Slack",
+      "finalUrl": "https://slack.com/",
+      "pngBytes": 1924
+    },
+    {
+      "name": "Discord",
+      "finalUrl": "https://discord.com/",
+      "pngBytes": 983
+    },
+    {
+      "name": "Twitch",
+      "finalUrl": "https://www.twitch.tv/",
+      "pngBytes": 350
+    },
+    {
+      "name": "Pinterest",
+      "finalUrl": "https://www.pinterest.com/",
+      "pngBytes": 2431
+    },
+    {
+      "name": "PayPal",
+      "finalUrl": "https://www.paypal.com/us/home",
+      "pngBytes": 606
+    },
+    {
+      "name": "Shopify",
+      "finalUrl": "https://www.shopify.com/",
+      "pngBytes": 1972
+    },
+    {
+      "name": "Target",
+      "finalUrl": "https://www.target.com/",
+      "pngBytes": 1488
+    },
+    {
+      "name": "Best Buy",
+      "finalUrl": "https://www.bestbuy.com/",
+      "pngBytes": 503
+    },
+    {
+      "name": "Home Depot",
+      "finalUrl": "https://www.homedepot.com/",
+      "pngBytes": 2403
+    },
+    {
+      "name": "Costco",
+      "finalUrl": "https://www.costco.com/",
+      "pngBytes": 2719
+    },
+    {
+      "name": "Uber",
+      "finalUrl": "https://www.uber.com/",
+      "pngBytes": 234
+    },
+    {
+      "name": "Airbnb",
+      "finalUrl": "https://www.airbnb.com/",
+      "pngBytes": 1738
+    },
+    {
+      "name": "Booking.com",
+      "finalUrl": "https://www.booking.com/",
+      "pngBytes": 580
+    },
+    {
+      "name": "American Airlines",
+      "finalUrl": "https://www.aa.com/homePage.do",
+      "pngBytes": 923
+    },
+    {
+      "name": "Marriott",
+      "finalUrl": "https://www.marriott.com/default.mi",
+      "pngBytes": 1947
+    },
+    {
+      "name": "The Guardian",
+      "finalUrl": "https://www.theguardian.com/us",
+      "pngBytes": 1113
+    },
+    {
+      "name": "Reuters",
+      "finalUrl": "https://www.reuters.com/",
+      "pngBytes": 1940
+    },
+    {
+      "name": "NFL",
+      "finalUrl": "https://www.nfl.com/",
+      "pngBytes": 2286
+    }
+  ],
+  "siteCount": 52,
+  "blancVectorQualityCanary": "passed",
+  "public126Migration": "passed",
+  "lint": "passed",
+  "macPackages": [
+    {
+      "architecture": "arm64",
+      "version": "1.27.0",
+      "bundleBuild": "1274",
+      "executableSHA256": "96bf715a05e05606733512e9e4616cc31d403b3d338212f74d9808066d26df38",
+      "asarSHA256": "58688347586e31d6de28c7aea7564abf46745e36c6ca80e9fca82066180416f0"
+    },
+    {
+      "architecture": "x64",
+      "version": "1.27.0",
+      "bundleBuild": "1274",
+      "executableSHA256": "a7a57c4c15166750d7893000792f9003a2e4e0c4c24b31a417ef0317ba9285c1",
+      "asarSHA256": "58688347586e31d6de28c7aea7564abf46745e36c6ca80e9fca82066180416f0"
+    }
+  ]
+}

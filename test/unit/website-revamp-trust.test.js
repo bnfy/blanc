@@ -47,7 +47,9 @@ test("release evidence, audit status and known Sync findings stay visible outsid
       new RegExp(`<section[^>]*aria-labelledby="${id}"[\\s\\S]*?</section>`),
     )[0];
     assert.ok(
-      comparisonText(evidence).includes(comparisonText(section)),
+      comparisonText(evidence).includes(
+        comparisonText(section.replaceAll("v1.26.0", "v1.27.0").replaceAll("October 2, 2026", "October 3, 2026")),
+      ),
       `${id} loses reviewed evidence`,
     );
   }

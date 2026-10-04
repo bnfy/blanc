@@ -1,0 +1,33 @@
+{
+  "alert": 77,
+  "kind": "packaged-cdp-probe",
+  "passed": false,
+  "package": {
+    "version": "1.27.0",
+    "ublock": "1.75.0",
+    "electron": "44.5.1",
+    "internalCandidate": true,
+    "executableSha256": "f02cdf9f914f6760ae1676358bceb993869b37065ddd024e7c02907135adb427",
+    "asarSha256": "020c775450bb8d29890d780af4f3d373bf12901b0ea45d474900cae42f52d31b"
+  },
+  "os": "darwin",
+  "architecture": "x64",
+  "harnessArchitecture": "arm64",
+  "osRelease": "27.2.0",
+  "limits": [
+    "Signature, notarization, installed location and OS sandbox verification require separate evidence.",
+    "Meta refresh has no executable positive control; only non-execution is observed.",
+    "This tests the listed payloads, not every possible script or HTML construct."
+  ],
+  "runtimeInfo": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "darwin",
+    "architecture": "x64"
+  },
+  "failure": {
+    "stage": "launch",
+    "name": "AssertionError"
+  }
+}

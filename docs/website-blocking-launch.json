@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "status": "release-gated-draft",
-  "publicRelease": "v1.26.0",
+  "status": "release-verified",
+  "publicRelease": "v1.27.0",
   "candidateSha": "b0462db0f10a12fc40f5edbbf1650cc5487a6cbf",
   "candidatePR": "https://github.com/bnfy/blanc/pull/490",
   "source": "site/src/pages/index.astro",
-  "qualification": "Owner will deploy the redesigned site only after the app release containing these features goes live. This is launch copy, not a statement about the current public v1.26.0. Private tabs use Blanc Blocker; provider changes require restart; settings are separate.",
-  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. App-only PRs #490 and #502 are merged; their required public app release must precede website deployment. Website PR #491 targets main and remains a draft.",
+  "qualification": "Public v1.27.0 provides optional uBlock Origin 1.75.0 for regular tabs on Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Intel under Rosetta is excluded. Blanc Blocker remains the default and protects private tabs. Changes require a restart and each provider retains separate site settings. This is bundled blocking integration, not general extension installation.",
+  "publicationBoundary": "The app prerequisite is complete: immutable public v1.27.0 is published and independently verified. Provider claims are reconciled to its release tag and completed evidence. Website merge is authorized by the owner on October 4; deployment remains a separate action.",
   "claims": [
     {
       "exactWording": "Choose your ad blocker.",
-      "verdict": "pending-public-release",
+      "verdict": "qualified",
       "evidence": [
         "src/renderer/pages/settings.html",
         "src/main/blocking-providers.js"
@@ -18,7 +18,7 @@
     },
     {
       "exactWording": "Choose how Blanc blocks ads and trackers.",
-      "verdict": "pending-public-release",
+      "verdict": "qualified",
       "evidence": [
         "src/renderer/pages/settings.html",
         "src/main/blocking-providers.js"
@@ -27,7 +27,7 @@
     },
     {
       "exactWording": "Customizable filter lists, advanced settings and a request logger for regular tabs.",
-      "verdict": "pending-public-release",
+      "verdict": "qualified",
       "evidence": [
         "src/renderer/pages/settings.html",
         "src/main/blocking-providers.js",
@@ -36,7 +36,7 @@
     },
     {
       "exactWording": "Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.",
-      "verdict": "pending-public-release",
+      "verdict": "qualified",
       "evidence": [
         "src/renderer/pages/settings.html",
         "src/main/blocking-providers.js"
@@ -45,7 +45,7 @@
     {
       "source": "site/src/components/guides/security.astro",
       "exactWording": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.",
-      "verdict": "pending-public-release",
+      "verdict": "qualified",
       "evidence": [
         "src/main/ublock-provider.js",
         "src/main/blocking-providers.js",
@@ -55,7 +55,7 @@
     {
       "source": "site/src/pages/features/security.astro",
       "exactWording": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.",
-      "verdict": "pending-public-release",
+      "verdict": "qualified",
       "evidence": [
         "src/main/ublock-provider.js",
         "src/main/blocking-providers.js",
@@ -119,7 +119,7 @@
     "pr": "https://github.com/bnfy/blanc/pull/502",
     "branch": "codex/horizon-shield-bronze",
     "sourceRevision": "5f8be929fcaa6b549c416d0bca0ac52725e80582",
-    "deliveryOrder": "Merge app-only PR #502 into main; include its restored original native Island icon in the next verified public app release; then reconcile release evidence, retarget website PR #491 to main, merge and deploy the website. The app release must not depend on the website PR."
+    "deliveryOrder": "App-only PR #502 is merged and included in verified public v1.27.0. The website can merge independently after its required checks; deployment is separate."
   },
   "islandIcon": {
     "file": "src/renderer/index.html",
@@ -147,5 +147,37 @@
       "rimColor": "#a67b4f"
     }
   },
-  "candidateStatus": "PR #490 merged; public release verification remains pending."
+  "candidateStatus": "Historical PR #490 candidate review; superseded by independently verified public v1.27.0. Original candidate hashes remain historical evidence.",
+  "publicSourceSha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+  "releaseEvidence": "docs/release-incidents/2026-10-03-v1.27.0.md",
+  "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
+  "reviewedReleaseFiles": [
+    {
+      "path": "src/main/blocking-providers.js",
+      "sha256": "8134cafdd5c548afdd4bdf670cc6d31b12d2563e7e6d12ab60409867d9186824",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/blocking-providers.js"
+    },
+    {
+      "path": "src/main/ublock-provider.js",
+      "sha256": "8af6391f867900cbe28d20cd66f4fda3082a78bf0364bdf8dfc744ca87fb8f3b",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/ublock-provider.js"
+    },
+    {
+      "path": "src/renderer/pages/settings.html",
+      "sha256": "a7e0de6f3800262e0543721d08c7ea242efc7af106d0a5dfcb8d9b084a2c4726",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/renderer/pages/settings.html"
+    },
+    {
+      "path": "src/main/ublock-platforms.json",
+      "sha256": "f2cb0cdc59466bb26bf60e979955a8d7c1395d55c6eb85af6501765c6d2acc92",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/ublock-platforms.json"
+    }
+  ],
+  "verifiedPlatforms": [
+    "darwin-arm64",
+    "darwin-x64",
+    "win32-x64",
+    "linux-x64"
+  ],
+  "excludedRuntime": "Intel macOS under Rosetta"
 }

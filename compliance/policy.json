@@ -11,6 +11,9 @@
     "Python-2.0"
   ],
   "metadataOverrides": {},
+  "runtimeAssetLicenseExceptions": {
+    "ublock-origin": "GPL-3.0-or-later"
+  },
   "licenseFileFallbacks": {
     "@1password/sdk@0.5.0": {
       "license": "MIT",
@@ -29,6 +32,20 @@
     }
   },
   "assets": [
+    {
+      "id": "ublock-origin",
+      "name": "uBlock Origin managed extension (distribution clearance pending)",
+      "version": "1.75.0",
+      "type": "application",
+      "file": "ublock/pinned.json",
+      "license": "GPL-3.0-or-later",
+      "licenseFile": "ublock/LICENSE.txt",
+      "homepage": "https://github.com/gorhill/uBlock",
+      "attribution": "Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/; adapted Swatinem diff code declares LGPLv3 (Arpad Borsos), with full license text separately included",
+      "additionalLicenseFiles": [
+        "ublock/licenses/LGPL-3.0.txt"
+      ]
+    },
     {
       "id": "inter-font",
       "name": "Inter Latin webfont",
@@ -107,6 +124,17 @@
         "ghostery-resources",
         "npm:@ghostery/adblocker-electron"
       ]
+    },
+    {
+      "id": "ublock-popup-icons",
+      "name": "Lucide uBO popup icons",
+      "version": "0.468.0",
+      "type": "file",
+      "file": "src/renderer/ublock-popup-icons/README.md",
+      "license": "ISC",
+      "licenseFile": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt",
+      "homepage": "https://github.com/lucide-icons/lucide/tree/0.468.0",
+      "attribution": "Lucide Contributors 2022; portions by Cole Bemis 2013\u20132022 (Feather, MIT)"
     }
   ]
 }

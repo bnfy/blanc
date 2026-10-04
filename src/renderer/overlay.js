@@ -22,6 +22,8 @@
   const dismissBtn = document.getElementById('dismissBtn');
   const findBar = document.getElementById('findBar');
   const shieldPop = document.getElementById('shieldPop');
+  const shieldPopPointer = document.getElementById('shieldPopPointer');
+  let shieldConnected = false;
   const shieldPopHost = document.getElementById('shieldPopHost');
   const shieldPopOnOff = document.getElementById('shieldPopOnOff');
   const shieldPopToggle = document.getElementById('shieldPopToggle');
@@ -29,6 +31,23 @@
   const shieldPopCount = document.getElementById('shieldPopCount');
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
+  const shieldPopLabel = document.getElementById('shieldPopLabel');
+  const shieldPopProvider = document.getElementById('shieldPopProvider');
+  const shieldPopProviderStatus = document.getElementById('shieldPopProviderStatus');
+  const shieldPopProviderScope = document.getElementById('shieldPopProviderScope');
+  const shieldPopAvailability = document.getElementById('shieldPopAvailability');
+  const shieldPopUblock = document.getElementById('shieldPopUblock');
+  const shieldPopTitle = document.getElementById('shieldPopTitle');
+  const shieldPopSummary = document.getElementById('shieldPopSummary');
+  const shieldPopChooser = document.getElementById('shieldPopChooser');
+  const shieldPopBack = document.getElementById('shieldPopBack');
+  const shieldPopChangeProvider = document.getElementById('shieldPopChangeProvider');
+  const shieldPopApply = document.getElementById('shieldPopApply');
+  const shieldPopChooserError = document.getElementById('shieldPopChooserError');
+  let shieldChoosing = false;
+  let shieldDraft = null;
+  let shieldSaving = false;
+  let shieldSaveGeneration = 0;
   const capturePop = document.getElementById('capturePop');
   const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
@@ -44,9 +63,9 @@
   let displayShareModel = null;
   let displayShareSelection = null;
   const CONNECTION_LABEL = {
-    https: 'Connection · Uses HTTPS',
-    http: 'Connection · Not encrypted',
-    local: 'Connection · Local',
+    https: 'Uses HTTPS',
+    http: 'Not encrypted',
+    local: 'Local',
   };
   const findInput = document.getElementById('findInput');
   const findCount = document.getElementById('findCount');
@@ -1546,7 +1565,9 @@
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
+    if (next !== 'shield' || !reshow) resetShieldChoice();
     shieldPop.hidden = next !== 'shield';
+    shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
@@ -1622,7 +1643,7 @@
       glancePickerInput.focus();
     } else if (next === 'shield') {
       renderShieldPop();
-      (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
+      (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
     } else if (next === 'display-share') {
       renderDisplayShare(purpose);
     } else if (next === 'capture') {
@@ -1730,8 +1751,40 @@
   function renderShieldPop() {
     const v = state.shieldPopover;
     if (!v) { window.browserAPI.closeOverlay(); return; }
-    shieldPopHost.textContent = v.host;
-    shieldPopOnOff.textContent = v.on ? 'on' : 'off';
+    if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
+    shieldPopHost.textContent = shieldChoosing ? 'For regular tabs on this device.' : v.host;
+    shieldPopTitle.textContent = shieldChoosing ? 'Choose a blocker' : 'Site protection';
+    shieldPopSummary.hidden = shieldChoosing;
+    shieldPopChooser.hidden = !shieldChoosing;
+    shieldPopBack.hidden = !shieldChoosing;
+    shieldPop.dataset.step = shieldChoosing ? 'chooser' : 'summary';
+    document.getElementById('shieldPopSiteControl').hidden = v.variant === 'ublock';
+    shieldPopLabel.textContent = 'Ad & tracker blocking';
+    shieldPopOnOff.textContent = v.variant === 'ublock' ? '' : v.on ? 'on' : 'off';
+    const controls = v.controls;
+    shieldPop.dataset.restartPending = String(controls.restartPending);
+    for (const input of shieldPopProvider.querySelectorAll('input')) input.checked = input.value === (shieldChoosing ? shieldDraft : controls.choice);
+    shieldPopProvider.disabled = controls.disabled || shieldSaving;
+    shieldPopChangeProvider.hidden = controls.hidden === true;
+    shieldPopChangeProvider.disabled = controls.disabled;
+    document.getElementById('shieldPopCurrentProvider').textContent = providerName(controls.active);
+    for (const badge of shieldPopProvider.querySelectorAll('.shield-provider-active')) {
+      badge.hidden = badge.dataset.provider !== controls.active;
+      badge.textContent = controls.activeLabel;
+    }
+    const needsRestart = shieldDraft !== controls.active;
+    shieldPopApply.disabled = shieldSaving || controls.disabled || (needsRestart && shieldDraft === 'ublock-origin' && !controls.ublockAvailable);
+    shieldPopApply.textContent = shieldSaving ? (needsRestart ? 'Restarting…' : 'Saving…') : needsRestart ? 'Restart Blanc' : 'Done';
+    document.getElementById('shieldPopRestartNote').textContent = needsRestart
+      ? 'Restart Blanc to use your selected blocker.' : 'Changes take effect after restarting Blanc.';
+    shieldPopProvider.querySelector('[value="ublock-origin"]').disabled = !controls.ublockAvailable;
+    if (shieldPopProviderStatus.textContent !== controls.detail) shieldPopProviderStatus.textContent = controls.detail;
+    shieldPopProviderScope.textContent = controls.scope;
+    shieldPopProviderScope.hidden = !controls.scope;
+    shieldPopAvailability.textContent = controls.availability;
+    shieldPopAvailability.hidden = !controls.availability;
+    shieldPopUblock.hidden = !controls.canOpenUblock;
     shieldPopToggle.hidden = v.variant !== 'site';
     shieldPopToggle.classList.toggle('on', v.on);
     shieldPopToggle.setAttribute('aria-checked', String(v.on));
@@ -1740,7 +1793,7 @@
     // connection (loading, or a url with no claim to make) hides the row
     // rather than leaving a stale statement on screen.
     const connectionLabel = CONNECTION_LABEL[v.connection] ?? null;
-    shieldPopConnection.textContent = connectionLabel ?? '';
+    document.getElementById('shieldPopConnectionValue').textContent = connectionLabel ?? '';
     shieldPopConnection.hidden = !connectionLabel;
     shieldPopConnection.classList.toggle('insecure', v.connection === 'http');
     shieldPopCount.textContent = v.countLine;
@@ -1754,6 +1807,69 @@
     if (state.shieldPopover?.on) window.browserAPI.allowAdsOnActiveSite();
     else window.browserAPI.toggleAdblock();
   });
+  function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
+
+  function resetShieldChoice() {
+    shieldSaveGeneration += 1;
+    shieldChoosing = false;
+    shieldDraft = null;
+    shieldSaving = false;
+    shieldPopChooserError.textContent = '';
+    shieldPopChooserError.hidden = true;
+  }
+
+  function cancelShieldChoice() {
+    resetShieldChoice();
+    renderShieldPop();
+    (shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider).focus();
+  }
+
+  shieldPopChangeProvider.addEventListener('click', () => {
+    const controls = state.shieldPopover?.controls;
+    if (!controls || controls.disabled) return;
+    resetShieldChoice();
+    shieldChoosing = true;
+    shieldDraft = controls.choice;
+    renderShieldPop();
+    (shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopProvider.querySelector('input:not(:disabled)') || shieldPopBack).focus();
+  });
+  shieldPopBack.addEventListener('click', cancelShieldChoice);
+  shieldPopProvider.addEventListener('change', (event) => {
+    if (!shieldChoosing || shieldSaving || !['blanc', 'ublock-origin'].includes(event.target.value)) return;
+    shieldDraft = event.target.value;
+    shieldPopChooserError.hidden = true;
+    renderShieldPop();
+  });
+  shieldPopApply.addEventListener('click', async () => {
+    if (!shieldChoosing || shieldPopApply.disabled) return;
+    const generation = ++shieldSaveGeneration;
+    shieldSaving = true;
+    renderShieldPop();
+    try {
+      const needsRestart = shieldDraft !== state.shieldPopover.controls.active;
+      const accepted = await window.browserAPI.selectBlockingProvider(shieldDraft, needsRestart);
+      if (generation !== shieldSaveGeneration || mode !== 'shield') return;
+      if (!accepted) throw new Error('unavailable');
+      window.browserAPI.closeOverlay('escape');
+    } catch {
+      if (generation !== shieldSaveGeneration || mode !== 'shield') return;
+      shieldSaving = false;
+      renderShieldPop();
+      shieldPopChooserError.textContent = 'Could not complete the change. Your choice is shown above; try again when you’re ready.';
+      shieldPopChooserError.hidden = false;
+    }
+  });
+  shieldPop.addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const controls = [...shieldPop.querySelectorAll('button:not(:disabled), input:not(:disabled)')].filter(item => item.getClientRects().length);
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  });
+  shieldPopUblock.addEventListener('click', () => {
+    window.browserAPI.openBlockingPopup().catch(() => {});
+  });
+  document.getElementById('shieldPopClose').addEventListener('click', () => window.browserAPI.closeOverlay('escape'));
   shieldPopSettings.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
     window.browserAPI.openPage('settings', 'blocking');
@@ -1851,6 +1967,11 @@
   const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  window.browserAPI.onShieldAnchor(({ x, connected }) => {
+    shieldConnected = connected === true;
+    shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
+    if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
+  });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
     // A quick close/reopen can arrive while the old retract timer is still
@@ -1864,6 +1985,11 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (mode === 'shield') {
+      if (shieldChoosing) cancelShieldChoice();
+      else window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (!handleWorkspaceEscape()) window.browserAPI.closeOverlay();
   });
   /* Closing: the panel shrinks back into the pill. Main holds the overlay view
@@ -1927,7 +2053,10 @@
       clearMorphStyles();
     }
     findBar.hidden = true;
+    resetShieldChoice();
     shieldPop.hidden = true;
+    shieldPopPointer.hidden = true;
+    shieldConnected = false;
     glancePickerEl.hidden = true;
     inputTouched = false;
     siteInfoOpen = false;
@@ -1973,6 +2102,12 @@
     // Prefer the IPC path (overlay:escape from main) — main's before-input
     // consumes Escape before this listener would see it. Kept as a fallback
     // for harnesses that inject keydown into the document directly.
+    if (mode === 'shield') {
+      e.preventDefault();
+      if (shieldChoosing) cancelShieldChoice();
+      else window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (handleWorkspaceEscape()) {
       e.preventDefault();
       e.stopPropagation();

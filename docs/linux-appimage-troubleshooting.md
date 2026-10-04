@@ -38,11 +38,12 @@ that separate behavior; v1.26.0 refuses such launches. See the
 [investigation and validation record](linux-appimage-sandbox-2026-09-29.md) and
 [v1.24.0 release evidence](release-incidents/2026-10-01-v1.24.0.md).
 
-## Upcoming release: setup-guide buttons
+## v1.27.0: setup-guide buttons
 
-The following behavior is merged in [PR #494](https://github.com/bnfy/blanc/pull/494)
-but is **not included in public v1.26.0**. It applies to the next release that
-contains that change; see the [draft release note](press/release-notes/unreleased.md).
+The following behavior from [PR #494](https://github.com/bnfy/blanc/pull/494)
+is included in the v1.27.0 source. It is **not included in v1.26.0**; see the
+[versioned release notes](press/release-notes/v1.27.0.md) and
+[publication record](release-incidents/2026-10-03-v1.27.0.md).
 
 When **Blanc requires Chromium sandboxing** appears, the buttons depend on the
 desktop session and whether Blanc was launched with the setup-guide URL:

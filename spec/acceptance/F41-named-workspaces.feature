@@ -1,3 +1,4 @@
+@workspace
 Feature: Named workspace preservation and recovery
   @F41-1
   Scenario: Switching preserves a dirty page in the same process
@@ -63,3 +64,21 @@ Feature: Named workspace preservation and recovery
     Given a named workspace with a live unsaved draft
     When I explicitly close a private page while switching and return
     Then the original page identity and draft are unchanged
+
+  @F41-12
+  Scenario: Switching preserves a submitted POST response without repeating it
+    Given a named workspace with a submitted POST response and unsaved edits
+    When I switch away from the POST workspace and return
+    Then the POST response stays live without reposting or leaking page state to disk
+
+  @F41-13
+  Scenario: An active sign-in popup prevents a workspace switch
+    Given a named workspace with an active sign-in popup opener family
+    When I try switching workspaces during fixture sign-in
+    Then the switch is refused and the sign-in callback still reaches its opener
+
+  @F41-14
+  Scenario: An active sign-in tab prevents a workspace switch
+    Given a named workspace with an active sign-in tab opener family
+    When I try switching workspaces during fixture sign-in
+    Then the switch is refused and the sign-in callback still reaches its opener

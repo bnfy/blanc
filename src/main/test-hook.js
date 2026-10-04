@@ -409,6 +409,13 @@ function install(refs) {
   }
 
   globalThis.__blanc = {
+    blockingStatus() { return refs.blockingStatus(); },
+    blockingStatusInWindow(id) { return refs.runInWindowRuntime(id, () => refs.blockingStatus()); },
+    blockingMapping() { return refs.blockingMapping(); },
+    blockingOpen(tool) { return refs.blockingOpen(tool); },
+    blockingOpenInWindow(id, tool) { return refs.runInWindowRuntime(id, () => refs.blockingOpen(tool)); },
+    blockingRetry() { return refs.blockingRetry(); },
+    blockingPopup() { return refs.blockingPopup({ right: 20 }); },
     workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
     workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
     workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
@@ -712,6 +719,7 @@ function install(refs) {
     // the bare global toggle this whole change exists to fix.
     toggleAdblock() { return runBlockAdsCommand(); },
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
+    setHomePage(url) { settings.setSettings({ homePage: url }); },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
@@ -1743,7 +1751,7 @@ function install(refs) {
           host: document.getElementById('shieldPopHost').textContent,
           on: document.getElementById('shieldPopToggle').classList.contains('on'),
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
-          connection: row && !row.hidden ? row.textContent : null,
+          connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
         };
       })()`);

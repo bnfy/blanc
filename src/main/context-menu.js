@@ -85,6 +85,8 @@ function attachContextMenu(wc, actions, menuGate = null) {
     }
 
     push({ label: 'Inspect Element', click: () => wc.inspectElement(params.x, params.y) });
+    const extensionItems = actions.extensionItems?.(params) ?? [];
+    if (extensionItems.length) { sep(); for (const item of extensionItems) push(item); }
 
     Menu.buildFromTemplate(items).popup();
   };

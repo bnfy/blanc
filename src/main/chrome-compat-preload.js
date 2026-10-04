@@ -3,6 +3,7 @@
 // target=_blank children need to retain their original opener context, and
 // overriding their webPreferences.preload severs that relationship.
 const { webFrame } = require('electron');
+if (window.location.protocol !== 'chrome-extension:') {
 
 // `-webkit-app-region` is not ordinary page styling in Electron: `drag`
 // registers an OS-level window region which hit-tests above sibling
@@ -88,3 +89,4 @@ webFrame.executeJavaScript(`
   });
 })();
 `, true).catch(() => {});
+}

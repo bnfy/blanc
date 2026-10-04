@@ -74,3 +74,22 @@ run command, including these tools in a runtime payload, or changing the
 reviewed dependency chain requires a new reachability review before relying
 on this statement. Reassess and remove the exception when a supported patched
 dependency becomes available.
+
+
+## October 3 shipping-source follow-up
+
+The new immutable CSS Tree, js-beautify and HSLuv source archives and
+`preferred-sources.json` are read as bytes and SHA-256 checked by
+`check-ublock-package.cjs` / `readVerifiedPackage`. Neither the archives nor
+scripts inside them are executed or imported during packaging or at runtime.
+Only the verified `upstream/` inventory is adapted into the loaded extension.
+The revised host tool capabilities, ordered native ports and navigation events
+use browser messaging; they add no Node dependency, RSA verifier, HTTP cache,
+Android target or builder download-cache option. Package/lock dependency graphs
+and the explicit builder source allowlist are unchanged.
+
+This preserves this advisory's existing reachability determination for the
+reviewed payload. The JSON-serialized `ublock/pinned.json` SHA-256 is now
+`71f33634e9cb016e1386b625b1c55b7d2d1a7713613d9437c40694b6ac9010ad`.
+The dependency VEX test retains its exact-digest guard; this is not an extension
+of the exception to arbitrary future archives or executed source-build scripts.

@@ -1,0 +1,400 @@
+{
+  "format": 1,
+  "capturedAt": "2026-10-03",
+  "pr": 490,
+  "head": "4068f053c51029c560abf092e2d5ba7d750b76a6",
+  "ublock": "1.75.0",
+  "count": 39,
+  "alerts": [
+    {
+      "number": 72,
+      "rule": "js/xss",
+      "path": "ublock/upstream/js/click2load.js",
+      "startLine": 38,
+      "endLine": 38,
+      "sourceSha256": "56c6cc8f64cba39932d9d8c3b945060591616a628bef24e6b9a21694426fe14b",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 73,
+      "rule": "js/xss",
+      "path": "ublock/upstream/js/click2load.js",
+      "startLine": 51,
+      "endLine": 51,
+      "sourceSha256": "56c6cc8f64cba39932d9d8c3b945060591616a628bef24e6b9a21694426fe14b",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 74,
+      "rule": "js/xss",
+      "path": "ublock/upstream/js/document-blocked.js",
+      "startLine": 88,
+      "endLine": 88,
+      "sourceSha256": "8913039e7220a0e21ef2dd49ffec5a8032b0c7664ac73c5c36e1d90a0236f806",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 75,
+      "rule": "js/xss",
+      "path": "ublock/upstream/js/document-blocked.js",
+      "startLine": 207,
+      "endLine": 207,
+      "sourceSha256": "8913039e7220a0e21ef2dd49ffec5a8032b0c7664ac73c5c36e1d90a0236f806",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 76,
+      "rule": "js/xss-through-dom",
+      "path": "ublock/upstream/js/logger-ui.js",
+      "startLine": 1086,
+      "endLine": 1086,
+      "sourceSha256": "13673d03ae845aaec7610a5c356cb5c0854a72c644ac0541d45def05dfc1dd0c",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 77,
+      "rule": "js/xss-through-dom",
+      "path": "ublock/upstream/js/scriptlets/noscript-spoof.js",
+      "startLine": 70,
+      "endLine": 70,
+      "sourceSha256": "c803428ff9176805bf750ab44c1a71bc230dcdfeb22a844730a76ed55f8e1120",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 78,
+      "rule": "js/bad-tag-filter",
+      "path": "ublock/upstream/lib/codemirror/mode/xml/xml.js",
+      "startLine": 82,
+      "endLine": 82,
+      "sourceSha256": "d1883da36e31238858c9f53c53b1b384d173f71988fcb4f22bd1fb6bb1955876",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 79,
+      "rule": "js/incomplete-sanitization",
+      "path": "ublock/upstream/js/logger-ui.js",
+      "startLine": 2781,
+      "endLine": 2781,
+      "sourceSha256": "13673d03ae845aaec7610a5c356cb5c0854a72c644ac0541d45def05dfc1dd0c",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 80,
+      "rule": "js/incomplete-sanitization",
+      "path": "ublock/upstream/js/scriptlet-filtering-core.js",
+      "startLine": 95,
+      "endLine": 95,
+      "sourceSha256": "87e4e693c41550e9502ba9a223e8c8cd87507cca00470f1261d9241c164fbfa2",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 81,
+      "rule": "js/incomplete-sanitization",
+      "path": "ublock/upstream/js/scriptlets/epicker.js",
+      "startLine": 651,
+      "endLine": 651,
+      "sourceSha256": "50cde7060f22fc67389fc87e159d12fcef09c44053a707f5c74d9a5ea1028e4d",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 82,
+      "rule": "js/incomplete-sanitization",
+      "path": "ublock/upstream/js/traffic.js",
+      "startLine": 1148,
+      "endLine": 1148,
+      "sourceSha256": "a014cb1eb4d0332a2d2b1f073496f094c79b03e0bf3d29df6a7214a350c86969",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 83,
+      "rule": "js/incomplete-sanitization",
+      "path": "ublock/upstream/js/static-net-filtering.js",
+      "startLine": 464,
+      "endLine": 464,
+      "sourceSha256": "d9bec1596ab3c507755aa4a96be41d380accd2ce836d2d94f2d220d822c8e0d2",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 84,
+      "rule": "js/insecure-randomness",
+      "path": "ublock/upstream/js/vapi-client.js",
+      "startLine": 47,
+      "endLine": 47,
+      "sourceSha256": "81936018fb422f4e3ebcc139ed02e3e72bd5a47099ce71c21ef36eabfe94f8b4",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 85,
+      "rule": "js/insecure-randomness",
+      "path": "ublock/upstream/js/vapi-background.js",
+      "startLine": 92,
+      "endLine": 92,
+      "sourceSha256": "cbfd9ee8534fbf15adf941b601104f6790105ea5f68a5c012252cfb6b8544bc5",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 86,
+      "rule": "js/client-side-unvalidated-url-redirection",
+      "path": "ublock/upstream/js/click2load.js",
+      "startLine": 38,
+      "endLine": 38,
+      "sourceSha256": "56c6cc8f64cba39932d9d8c3b945060591616a628bef24e6b9a21694426fe14b",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 87,
+      "rule": "js/client-side-unvalidated-url-redirection",
+      "path": "ublock/upstream/js/click2load.js",
+      "startLine": 51,
+      "endLine": 51,
+      "sourceSha256": "56c6cc8f64cba39932d9d8c3b945060591616a628bef24e6b9a21694426fe14b",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 88,
+      "rule": "js/client-side-unvalidated-url-redirection",
+      "path": "ublock/upstream/js/document-blocked.js",
+      "startLine": 88,
+      "endLine": 88,
+      "sourceSha256": "8913039e7220a0e21ef2dd49ffec5a8032b0c7664ac73c5c36e1d90a0236f806",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 89,
+      "rule": "js/client-side-unvalidated-url-redirection",
+      "path": "ublock/upstream/js/document-blocked.js",
+      "startLine": 207,
+      "endLine": 207,
+      "sourceSha256": "8913039e7220a0e21ef2dd49ffec5a8032b0c7664ac73c5c36e1d90a0236f806",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 90,
+      "rule": "js/incomplete-url-substring-sanitization",
+      "path": "ublock/upstream/web_accessible_resources/google-ima.js",
+      "startLine": 482,
+      "endLine": 482,
+      "sourceSha256": "4bf8e398a46c982cd72ec1723e03f58784624da2f41caeeefb78e1fad1d47535",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 91,
+      "rule": "js/overly-large-range",
+      "path": "ublock/upstream/js/resources/cookie.js",
+      "startLine": 118,
+      "endLine": 118,
+      "sourceSha256": "31cf19e9dd0f6e5c957e9e952647e1bc7094ff603303924625c3c530a009a315",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 92,
+      "rule": "js/overly-large-range",
+      "path": "ublock/upstream/lib/codemirror/mode/css/css.js",
+      "startLine": 231,
+      "endLine": 231,
+      "sourceSha256": "6b762b73741cfbe3b18150a4e2702c4fa07622fadba0b42fc5b522aa93973645",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 93,
+      "rule": "js/overly-large-range",
+      "path": "ublock/upstream/lib/codemirror/mode/css/css.js",
+      "startLine": 231,
+      "endLine": 231,
+      "sourceSha256": "6b762b73741cfbe3b18150a4e2702c4fa07622fadba0b42fc5b522aa93973645",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 94,
+      "rule": "js/overly-large-range",
+      "path": "ublock/upstream/lib/codemirror/mode/css/css.js",
+      "startLine": 231,
+      "endLine": 231,
+      "sourceSha256": "6b762b73741cfbe3b18150a4e2702c4fa07622fadba0b42fc5b522aa93973645",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 95,
+      "rule": "js/useless-regexp-character-escape",
+      "path": "ublock/upstream/lib/codemirror/mode/htmlmixed/htmlmixed.js",
+      "startLine": 53,
+      "endLine": 53,
+      "sourceSha256": "926ee07e08e1b9a1174922e246556915d1396b837411263db7f9b1320d6b3886",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 96,
+      "rule": "js/useless-regexp-character-escape",
+      "path": "ublock/upstream/lib/codemirror/mode/htmlmixed/htmlmixed.js",
+      "startLine": 53,
+      "endLine": 53,
+      "sourceSha256": "926ee07e08e1b9a1174922e246556915d1396b837411263db7f9b1320d6b3886",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 97,
+      "rule": "js/client-side-request-forgery",
+      "path": "ublock/upstream/js/code-viewer.js",
+      "startLine": 102,
+      "endLine": 102,
+      "sourceSha256": "ce822033f4f579fdf3694faadcef086b8204cb934e49c0b877320adc49cf8c57",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 98,
+      "rule": "js/client-side-request-forgery",
+      "path": "ublock/upstream/js/diff-updater.js",
+      "startLine": 190,
+      "endLine": 190,
+      "sourceSha256": "7d291341c2bb917858158c10c69ab002759630720e0c029bd4a962b5404a95bf",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 100,
+      "rule": "js/remote-property-injection",
+      "path": "ublock/upstream/js/reverselookup-worker.js",
+      "startLine": 86,
+      "endLine": 86,
+      "sourceSha256": "f183bf9b654de9ce09604f7341521e61556681a83caed2e3415114171e17ae90",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 101,
+      "rule": "js/remote-property-injection",
+      "path": "ublock/upstream/js/reverselookup-worker.js",
+      "startLine": 286,
+      "endLine": 286,
+      "sourceSha256": "f183bf9b654de9ce09604f7341521e61556681a83caed2e3415114171e17ae90",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 102,
+      "rule": "js/remote-property-injection",
+      "path": "ublock/upstream/js/reverselookup-worker.js",
+      "startLine": 312,
+      "endLine": 312,
+      "sourceSha256": "f183bf9b654de9ce09604f7341521e61556681a83caed2e3415114171e17ae90",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 103,
+      "rule": "js/regex/missing-regexp-anchor",
+      "path": "ublock/upstream/web_accessible_resources/nobab2.js",
+      "startLine": 33,
+      "endLine": 33,
+      "sourceSha256": "3ee47f99116088a94e1c280d3cd6216a75513a9109a3876ed7926897ec7cfc96",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 104,
+      "rule": "js/regex/missing-regexp-anchor",
+      "path": "ublock/upstream/web_accessible_resources/nobab2.js",
+      "startLine": 34,
+      "endLine": 34,
+      "sourceSha256": "3ee47f99116088a94e1c280d3cd6216a75513a9109a3876ed7926897ec7cfc96",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 105,
+      "rule": "js/regex/missing-regexp-anchor",
+      "path": "ublock/upstream/web_accessible_resources/nobab2.js",
+      "startLine": 35,
+      "endLine": 35,
+      "sourceSha256": "3ee47f99116088a94e1c280d3cd6216a75513a9109a3876ed7926897ec7cfc96",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 106,
+      "rule": "js/regex/missing-regexp-anchor",
+      "path": "ublock/upstream/web_accessible_resources/nobab2.js",
+      "startLine": 36,
+      "endLine": 36,
+      "sourceSha256": "3ee47f99116088a94e1c280d3cd6216a75513a9109a3876ed7926897ec7cfc96",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 107,
+      "rule": "js/missing-origin-check",
+      "path": "ublock/upstream/js/codemirror/search-thread.js",
+      "startLine": 81,
+      "endLine": 81,
+      "sourceSha256": "e744e5170b7b074dd02629047779746988198708f3cc43d9e23a5e7685f8d823",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 108,
+      "rule": "js/missing-origin-check",
+      "path": "ublock/upstream/js/dom-inspector.js",
+      "startLine": 54,
+      "endLine": 54,
+      "sourceSha256": "f8e5bdac7ff4ba2df0ad53e7fc4d376a9037f6be8ab7ad75a2d9f4f52809e106",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 109,
+      "rule": "js/missing-origin-check",
+      "path": "ublock/upstream/js/diff-updater.js",
+      "startLine": 270,
+      "endLine": 270,
+      "sourceSha256": "7d291341c2bb917858158c10c69ab002759630720e0c029bd4a962b5404a95bf",
+      "state": "open",
+      "review": "individual-review-pending"
+    },
+    {
+      "number": 110,
+      "rule": "js/missing-origin-check",
+      "path": "ublock/upstream/js/epicker-ui.js",
+      "startLine": 899,
+      "endLine": 899,
+      "sourceSha256": "8d55a95c049db0428e9122194004a64e347d7694d7c20e9a84bccba1a87675d6",
+      "state": "open",
+      "review": "runtime-adaptation-mitigated-awaiting-disposition"
+    },
+    {
+      "number": 111,
+      "rule": "js/missing-origin-check",
+      "path": "ublock/upstream/js/reverselookup-worker.js",
+      "startLine": 303,
+      "endLine": 303,
+      "sourceSha256": "f183bf9b654de9ce09604f7341521e61556681a83caed2e3415114171e17ae90",
+      "state": "open",
+      "review": "individual-review-pending"
+    }
+  ]
+}

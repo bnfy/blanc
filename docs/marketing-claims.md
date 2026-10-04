@@ -79,14 +79,22 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe the verified v1.26.0 public release; platform
-acceptance limits and updater status are recorded in
-[the release report](release-incidents/2026-10-02-v1.26.0.md). Historical
-wallpaper and Linux acceptance waivers remain in the v1.24.0 report. The
-v1.26.0 report records the named physical-machine waiver and owner-confirmed
-adjacent public updater handoffs; hosted verification does not establish those
-physical-machine outcomes:
+These boundaries describe public v1.27.0; platform acceptance limits and
+owner-confirmed adjacent public-feed updater handoffs are recorded in
+[the release report](release-incidents/2026-10-03-v1.27.0.md). Installed
+candidates keep their original source/artifact bindings; hosted verification
+does not establish physical-machine outcomes. Historical wallpaper/Linux
+waivers and v1.26.0 updater confirmations remain in their original reports:
 
+- **Optional uBlock Origin:** Public v1.27.0 offers full uBO 1.75.0 on
+  Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
+  Electron 44.5.1. Click the Island shield to choose a blocker and restart
+  Blanc to apply it. Blanc Blocker stays the default and protects private
+  tabs; Rosetta uses Blanc Blocker. Profile configuration is separate and
+  outside Sync. Filter data can update, while executable resources remain
+  pinned to reviewed releases. This does not provide general extension-store
+  installation. Keep the [support matrix](ublock-origin-support-matrix-2026-10-03.md)
+  and its limits beside broader compatibility claims.
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. Its resting controls occupy a
   reserved 68px band above the page; its expanded panel overlays the page.
