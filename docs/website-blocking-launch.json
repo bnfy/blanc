@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "status": "release-verified",
+  "publicRelease": "v1.27.0",
+  "candidateSha": "b0462db0f10a12fc40f5edbbf1650cc5487a6cbf",
+  "candidatePR": "https://github.com/bnfy/blanc/pull/490",
+  "source": "site/src/pages/index.astro",
+  "qualification": "Public v1.27.0 provides optional uBlock Origin 1.75.0 for regular tabs on Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Intel under Rosetta is excluded. Blanc Blocker remains the default and protects private tabs. Changes require a restart and each provider retains separate site settings. This is bundled blocking integration, not general extension installation.",
+  "publicationBoundary": "The app prerequisite is complete: immutable public v1.27.0 is published and independently verified. Provider claims are reconciled to its release tag and completed evidence. Website merge is authorized by the owner on October 4; deployment remains a separate action.",
+  "claims": [
+    {
+      "exactWording": "Choose your ad blocker.",
+      "verdict": "qualified",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js"
+      ]
+    },
+    {
+      "exactWording": "Choose how Blanc blocks ads and trackers.",
+      "verdict": "qualified",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js"
+      ],
+      "assetEvidence": "03621de6:docs/verification/2026-10-03-horizon-shield.md"
+    },
+    {
+      "exactWording": "Customizable filter lists, advanced settings and a request logger for regular tabs.",
+      "verdict": "qualified",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js",
+        "src/main/ublock-provider.js"
+      ]
+    },
+    {
+      "exactWording": "Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.",
+      "verdict": "qualified",
+      "evidence": [
+        "src/renderer/pages/settings.html",
+        "src/main/blocking-providers.js"
+      ]
+    },
+    {
+      "source": "site/src/components/guides/security.astro",
+      "exactWording": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.",
+      "verdict": "qualified",
+      "evidence": [
+        "src/main/ublock-provider.js",
+        "src/main/blocking-providers.js",
+        "src/main/ublock-platforms.json"
+      ]
+    },
+    {
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.",
+      "verdict": "qualified",
+      "evidence": [
+        "src/main/ublock-provider.js",
+        "src/main/blocking-providers.js",
+        "src/main/ublock-platforms.json"
+      ]
+    }
+  ],
+  "artwork": {
+    "source": "assets/horizon-shield.png",
+    "file": "site/public/horizon-shield.webp",
+    "width": 960,
+    "height": 960,
+    "sha256": "4e8a72f2ee4d8c79f47ef34afffa87b5b52b403c230f9a5bf1cdef0d853071cf",
+    "export": "Shared copper/bronze master, recolored with the built-in imagegen tool at the owner’s request. Sharp: trim threshold 8, resize contain 960×960 with transparent padding, WebP quality 90 / alphaQuality 100 / effort 6. Export preserves the edited master’s colors.",
+    "license": "Reserved Blanc product identity per ASSET-LICENSE.md. Horizon Shield is Blanc artwork, not the uBlock Origin logo.",
+    "model": {
+      "source": "site/src/scripts/horizon-shield-model.js",
+      "outline": "site/src/data/horizon-shield-outline.json",
+      "outlineSha256": "e25d5b57ca43b01020c4a124e1358dadc0695507ab2a4c6aa54c66c7e9f0fff0",
+      "rebuild": "node site/scripts/build-horizon-outline.mjs",
+      "geometry": "Closed bronze relief mesh. Front and back use identical approved artwork/UVs and matching relief turned 180 degrees; solid beveled walls join them. Silhouette is alpha-traced with subpixel edge smoothing.",
+      "ownerDirection": "October 3: make the shield solid 3D; use the same front artwork on the back; remove the visible caption; close all side surfaces.",
+      "rimColor": "#a67b4f"
+    },
+    "originalApprovedRevision": "03621de6",
+    "originalSourceSha256": "c0eeeb6db1598d70c01fa8a3f0d021da3a2025907e1921a4391ed9aaf2709e53",
+    "sourceSha256": "5882ad8fab1debe245a8cbf92e3e7e5dfc26f755607ddb598eb73187ca54389e",
+    "recolor": {
+      "date": "2026-10-03",
+      "direction": "Match the shield everywhere in the app and website to the copper/bronze tones of the original Sunrise sun; reduce the bright yellow-gold cast.",
+      "reference": "site/public/sunrise-hero-mark.png",
+      "referenceSha256": "3954f28e9a89972a6f5b9339a6102dbd9f1d65c94d876c95ccdf41c681bb631a",
+      "evidence": "docs/verification/2026-10-03-horizon-shield-bronze.md",
+      "tool": "Built-in image_gen.imagegen; precise-object-edit; transparent output."
+    },
+    "role": "Preserved layered Horizon variant; available through the default HorizonShield component."
+  },
+  "reviewedCandidateFiles": [
+    {
+      "path": "src/main/blocking-providers.js",
+      "sha256": "8134cafdd5c548afdd4bdf670cc6d31b12d2563e7e6d12ab60409867d9186824",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/main/blocking-providers.js"
+    },
+    {
+      "path": "src/main/ublock-provider.js",
+      "sha256": "8af6391f867900cbe28d20cd66f4fda3082a78bf0364bdf8dfc744ca87fb8f3b",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/main/ublock-provider.js"
+    },
+    {
+      "path": "src/renderer/pages/settings.html",
+      "sha256": "a7e0de6f3800262e0543721d08c7ea242efc7af106d0a5dfcb8d9b084a2c4726",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/renderer/pages/settings.html"
+    },
+    {
+      "path": "src/main/ublock-platforms.json",
+      "sha256": "f2cb0cdc59466bb26bf60e979955a8d7c1395d55c6eb85af6501765c6d2acc92",
+      "url": "https://github.com/bnfy/blanc/blob/b0462db0f10a12fc40f5edbbf1650cc5487a6cbf/src/main/ublock-platforms.json"
+    }
+  ],
+  "appArtworkDependency": {
+    "pr": "https://github.com/bnfy/blanc/pull/502",
+    "branch": "codex/horizon-shield-bronze",
+    "sourceRevision": "5f8be929fcaa6b549c416d0bca0ac52725e80582",
+    "deliveryOrder": "App-only PR #502 is merged and included in verified public v1.27.0. The website can merge independently after its required checks; deployment is separate."
+  },
+  "islandIcon": {
+    "file": "src/renderer/index.html",
+    "selector": "#pillShield svg",
+    "sha256": "ea9461d7b303ec344785124c05cd3da6015692da90152610f0f647283795b0ce",
+    "treatment": "Original Blanc Blocker outline and diagonal, restored verbatim with its native CSS from 03621de6^. The hero reuses that same SVG. Bronze Horizon artwork is reserved for the large Privacy illustration."
+  },
+  "activeArtwork": "blockerArtwork",
+  "blockerArtwork": {
+    "source": "site/src/assets/blocker-shield-bronze.png",
+    "file": "site/public/blocker-shield-bronze.webp",
+    "width": 960,
+    "height": 960,
+    "sourceSha256": "8bd91fd54266428445bd8599d18619e4ed002bd2c140407b887f11c7df74d797",
+    "sha256": "eca877c4bed2cd88d526fd969ba2f89005fbb80cff29244fd2cbece247cb1878",
+    "evidence": "docs/verification/2026-10-03-blocker-shield-bronze.md",
+    "tool": "Built-in image_gen.imagegen; precise-object-edit; transparent output.",
+    "treatment": "New bronze display interpretation of the original Blanc Blocker outline and diagonal slash. The original Horizon artwork and native monochrome Island icon remain unchanged.",
+    "model": {
+      "source": "site/src/scripts/blocker-shield-model.js",
+      "outline": "site/src/data/blocker-shield-outline.json",
+      "outlineSha256": "a172037efa26e77092fa7c935f5e65f6732b068324ddbdce5090ea07fd8002ee",
+      "rebuild": "node site/scripts/build-horizon-outline.mjs blocker",
+      "geometry": "Raised diagonal bronze relief, identical front/back faces and closed beveled side walls.",
+      "rimColor": "#a67b4f"
+    }
+  },
+  "candidateStatus": "Historical PR #490 candidate review; superseded by independently verified public v1.27.0. Original candidate hashes remain historical evidence.",
+  "publicSourceSha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+  "releaseEvidence": "docs/release-incidents/2026-10-03-v1.27.0.md",
+  "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
+  "reviewedReleaseFiles": [
+    {
+      "path": "src/main/blocking-providers.js",
+      "sha256": "8134cafdd5c548afdd4bdf670cc6d31b12d2563e7e6d12ab60409867d9186824",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/blocking-providers.js"
+    },
+    {
+      "path": "src/main/ublock-provider.js",
+      "sha256": "8af6391f867900cbe28d20cd66f4fda3082a78bf0364bdf8dfc744ca87fb8f3b",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/ublock-provider.js"
+    },
+    {
+      "path": "src/renderer/pages/settings.html",
+      "sha256": "a7e0de6f3800262e0543721d08c7ea242efc7af106d0a5dfcb8d9b084a2c4726",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/renderer/pages/settings.html"
+    },
+    {
+      "path": "src/main/ublock-platforms.json",
+      "sha256": "f2cb0cdc59466bb26bf60e979955a8d7c1395d55c6eb85af6501765c6d2acc92",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/ublock-platforms.json"
+    }
+  ],
+  "verifiedPlatforms": [
+    "darwin-arm64",
+    "darwin-x64",
+    "win32-x64",
+    "linux-x64"
+  ],
+  "excludedRuntime": "Intel macOS under Rosetta"
+}

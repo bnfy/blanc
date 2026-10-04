@@ -189,3 +189,41 @@ test('withdrawal in another tab disables this page and reloads', () => {
   assert.equal(p.context.window.dataLayer.length, 0);
   assert.equal(new URL(p.links[0].href).searchParams.has('oppref'), false);
 });
+
+
+test('homepage CTA hooks dispatch the original events only with consent', () => {
+  const home = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/index.astro'), 'utf8');
+  const anchors = [...home.matchAll(/<a\b[^>]*>/g)].map(([tag]) => {
+    const attributes = Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]));
+    return {
+      href: new URL(attributes.href, 'https://blancbrowser.com').href,
+      dataset: Object.fromEntries(Object.entries(attributes).filter(([key]) => key.startsWith('data-')).map(([key, value]) => [key.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), value])),
+      closest(selector) {
+        if (selector === '[data-track]') return attributes['data-track'] ? this : null;
+        return /\bdata-download-cta\b/.test(tag) ? this : null;
+      },
+    };
+  });
+  for (const [position, event, feature] of [
+    ['hero', 'download_click', undefined],
+    ['home-close', 'download_click', undefined],
+    ['home-patron', 'feature_cta_click', 'named-workspaces'],
+    ['home-patron-close', 'supporter_click', 'patron'],
+  ]) {
+    const anchor = anchors.find(link => link.dataset.ctaPosition === position);
+    assert.ok(anchor, `${position}: missing conversion hook`);
+    for (const consent of [undefined, 'denied', 'granted']) {
+      const p = page(consent);
+      p.context.document.body.dataset.page = 'home';
+      p.click(anchor);
+      const events = Array.from(p.context.window.dataLayer || []).filter(item => item[0] === 'event');
+      assert.equal(events.length, consent === 'granted' ? 1 : 0, `${position}: consent boundary`);
+      if (events.length) {
+        assert.equal(events[0][1], event);
+        assert.equal(events[0][2].source_page, 'home');
+        assert.equal(events[0][2].cta_position, position);
+        assert.equal(events[0][2].feature, feature);
+      }
+    }
+  }
+});

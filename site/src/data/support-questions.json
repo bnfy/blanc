@@ -1,7 +1,4 @@
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-
-const QUESTIONS = [
+[
   {
     "id": "architecture",
     "q": "What is Blanc built on?",
@@ -78,12 +75,16 @@ const QUESTIONS = [
   {
     "id": "development",
     "q": "Is AI used to build or review Blanc?",
-    "a": ["AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit."]
+    "a": [
+      "AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit."
+    ]
   },
   {
     "id": "independent-audit",
     "q": "Has Blanc had an independent security audit?",
-    "a": ["No independent external security audit has been completed. Public source, maintainer reviews, automated tests and authenticated release artifacts provide specific evidence; they do not substitute for an independent audit. The next step is preparing a scope and funding proposal, without promising a date."]
+    "a": [
+      "No independent external security audit has been completed. Public source, maintainer reviews, automated tests and authenticated release artifacts provide specific evidence; they do not substitute for an independent audit. The next step is preparing a scope and funding proposal, without promising a date."
+    ]
   },
   {
     "id": "ai",
@@ -116,35 +117,4 @@ const QUESTIONS = [
       "Bananify, an independent software studio. Source code, official releases and security reporting are linked from How Blanc works."
     ]
   }
-];
----
-<BaseLayout
-  title="Straight answers about Blanc Browser"
-  description="Honest answers about Blanc Browser: start-page data, bookmark imports, open source, Electron memory, usage measurement, Patron, and extension support."
-  path="/faq"
-  page="faq"
-  header="solid"
-  ogTitle="Straight answers about Blanc Browser"
-  ogDescription="Chromium and Electron, whole-app updates, privacy choices, licensing, and optional Patron — explained plainly."
->
-  <main class="faq-page">
-    <header class="faq-page-head">
-      <p class="section-kicker">How Blanc works, in plain language</p>
-      <h1>Questions about Blanc.</h1>
-      <p>The engine, updates, privacy choices and licensing, followed by everyday features. For the full explanation, read <a href="/how-it-works">How Blanc works</a>.</p>
-    </header>
-
-    <div class="faq-page-list">
-      {QUESTIONS.map(({ q, a, id }) => (
-        <section class="faq-page-item" id={id}>
-          <h2>{q}</h2>
-          <div>{a.map((paragraph) => <p>{paragraph}</p>)}
-            {id === 'independent-audit' && <p><a href="/features/security#security-audit-title">Audit status and platform verification</a></p>}
-            {id === 'electron' && <p><a href="https://github.com/bnfy/blanc/tree/v1.25.0/bench/memory" target="_blank" rel="noopener">Benchmark harness and raw runs</a></p>}
-            {id === 'open-source' && <p><a href="https://github.com/bnfy/blanc/tree/v1.25.0" target="_blank" rel="noopener">Source, license and third-party notices</a></p>}
-          </div>
-        </section>
-      ))}
-    </div>
-  </main>
-</BaseLayout>
+]

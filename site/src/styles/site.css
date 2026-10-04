@@ -1,12 +1,10 @@
-/* The website stays light: Sunrise ivory, warm surfaces, and dark controls.
+/* Default website palette. The homepage has an explicit appearance override.
    Product replicas use the separate, release-backed neutral palette below. */
 :root {
   color-scheme: light;
   --font-ui: "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  /* Shortcut glyphs only. JetBrains Mono draws ⌘, ⇧, ⌥ and ⎋ malformed, so the
-     app moved every keyboard glyph to the system font in 1.1.0; the demo's
-     ⌘T / ⌘⇧N / ⌘L hints have the same problem and take the same escape. */
+  --font-mono: var(--font-ui);
+  /* Shortcut glyphs retain the native system font. */
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 6px;
 
@@ -1494,7 +1492,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .site-footer .foot-news button { flex-shrink: 0; min-height: 44px; padding: 10px 16px; border: 1px solid var(--site-accent); border-radius: var(--radius); background: var(--site-accent); color: var(--site-bg); font: inherit; font-weight: 500; cursor: pointer; }
 .site-footer .foot-news button:hover { background: var(--site-text); }
 .site-footer .foot-news button:disabled { opacity: 0.6; cursor: default; }
-.site-footer .foot-news-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .site-footer .foot-news-status:empty { display: none; }
 .site-footer :is(a, button, input) { scroll-margin-block: 88px; }
 

@@ -1,4 +1,5 @@
 ---
+import { currentWebsiteLink } from '../lib/website-routes.mjs';
 // Renders one run of release-note text from the typed inline spans produced by
 // scripts/generate-site-changelog.mjs. Each span becomes a real element and its
 // value goes through Astro's auto-escaping, so release-note text — including
@@ -15,8 +16,8 @@ const containsEmail = (span) =>
     : span.type === 'code' ? <code>{span.value}</code>
     : span.type === 'link' ? (
         span.url.startsWith('https:')
-          ? <a href={span.url} target="_blank" rel="noopener">{span.value}</a>
-          : <a href={span.url}>{span.value}</a>
+          ? <a href={currentWebsiteLink(span.url)} target="_blank" rel="noopener">{span.value}</a>
+          : <a href={currentWebsiteLink(span.url)}>{span.value}</a>
       )
     : <Fragment>{span.value}</Fragment>}
     {containsEmail(span) && <Fragment set:html={'<!--/email_off-->'} />}

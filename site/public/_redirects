@@ -1,3 +1,7 @@
-# Host redirects live in Cloudflare Bulk Redirects; Pages handles path rules here.
-/private /features/private-tabs 301
-/private/ /features/private-tabs 301
+# Retired utility routes resolve to the relevant Support or Trust content.
+/faq /support 301
+/faq/ /support 301
+/how-it-works /trust 301
+/how-it-works/ /trust 301
+/private /trust?topic=private-tabs 301
+/private/ /trust?topic=private-tabs 301

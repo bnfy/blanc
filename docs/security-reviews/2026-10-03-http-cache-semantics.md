@@ -82,6 +82,34 @@ machine fetching its own artifacts, with no other user's response to disclose.
 Remove the VEX statement once a patched http-cache-semantics is available and
 both lockfiles adopt it.
 
+## Website revamp cross-check (PR #491)
+
+Codex independently reviewed source `4b9c7bcac6a31146609af5178662faf8f85f0966`
+on October 3, 2026 and reached the same bounded disposition. The website
+revamp makes `output: 'static'` explicit and guards the deploy payload against
+server and `_worker.js` output. Astro's remote-image code constructs its own
+requests without visitor headers and calls `storable()` / `timeToLive()`,
+not `satisfiesWithoutRevalidation` on incoming user cache directives.
+
+The combined dependency tests retain both reviews' boundaries, including
+absence of new first-party package consumers and the static deployment path.
+This does not authorize server-side Astro, a shared/proxy cache, newly enabled
+got caching, or new first-party/runtime consumers.
+
+## Website dependency update (October 4, 2026)
+
+The website now resolves Astro 7.3.5 and http-cache-semantics 4.3.0. The latter
+is outside the advisory's affected range (through 4.2.0); a fresh site npm audit
+reports zero findings. The advisory page still lists no patched version, so
+this record does not infer a specific upstream security fix from the version.
+
+Re-inspected Astro's installed `dist/assets/build/remote.js`: it still constructs
+its own requests for remote-image builds and uses `storable()` / `timeToLive()`,
+without visitor cache directives. Static output, no configured remote images,
+no `astro:assets` use, and the single Astro consumer remain guarded by tests.
+The desktop lockfile and its 4.2.0 exception remain unchanged; retain the VEX
+statement until that separately reviewed dependency graph is upgraded.
+
 ## PR #490 payload re-review
 
 Codex reviewed the added uBO paths on October 3 after merging `main` at

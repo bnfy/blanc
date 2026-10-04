@@ -127,12 +127,14 @@ test('both lock SBOMs include every unique locked name/version with audited lice
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
   assert.equal(root.components.length, 462);
-  assert.equal(site.components.length, 287);
+  assert.equal(site.components.length, 290); // Reviewed Astro 7 graph, Three.js, and no retired JetBrains Mono package.
   const onePassword = root.components.find((component) => component.name === '@1password/sdk');
   assert.deepEqual(onePassword.licenses, [{ license: { id: 'MIT' } }]);
   const zod = site.components.find((component) => component.name === 'zod');
   assert.deepEqual(zod.licenses, [{ license: { id: 'MIT' } }]);
   assert.equal(zod.properties.some((item) => item.name === 'blanc:licenseOverride'), false);
+  const three = site.components.find((component) => component.name === 'three');
+  assert.deepEqual(three.licenses, [{ license: { id: 'MIT' } }]);
 });
 
 test('lock helpers resolve nested packages and convert integrity to CycloneDX hashes', () => {

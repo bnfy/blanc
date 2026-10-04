@@ -1,13 +1,16 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
+const LEGACY_ROUTES = JSON.parse(await readFile(new URL('../src/data/legacy-routes.json', import.meta.url), 'utf8'));
+const FEATURE_TOPICS = JSON.parse(await readFile(new URL('../src/data/guide-topics.json', import.meta.url), 'utf8'));
+const RETAINED_FEATURE_ROUTES = ['/features', ...FEATURE_TOPICS.map(topic => `/features/${topic.id}`)];
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
 const SITE_ORIGIN = 'https://blancbrowser.com';
 const NO_SOCIAL_ROUTES = new Set(['/404', '/privacy', '/terms', '/import-tabs']);
-const NOINDEX_ROUTES = new Set(['/404', '/import-tabs']);
+const NOINDEX_ROUTES = new Set(['/404', '/import-tabs', ...Object.keys(LEGACY_ROUTES)]);
 const OG_ASPECT_RATIO = 1200 / 630;
 const VERSIONED_SOCIAL_ASSET = /(?:^|[-_/])v?\d+\.\d+(?:\.\d+)?(?=[-_.\/]|$)/i;
 const htmlFiles = [];
@@ -50,10 +53,31 @@ const titles = new Map();
 const descriptions = new Map();
 const socialImages = new Map();
 const internalRouteLinks = new Map();
+const idsByRoute = new Map();
+const fragmentLinks = [];
 
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
   const route = routeForFile(file);
+  if (LEGACY_ROUTES[route]) {
+    const destination = LEGACY_ROUTES[route];
+    if (!html.includes('content="noindex,follow"') || !html.includes(`href="${destination}"`) || !html.includes('http-equiv="refresh"')) errors.push(`${route}: invalid legacy redirect fallback`);
+    if (!routes.has(destination.split(/[?#]/)[0])) errors.push(`${route}: redirect destination is missing`);
+    continue;
+  }
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+  const uniqueIds = new Set(ids);
+  if (ids.length !== uniqueIds.size) errors.push(`${route}: duplicate element IDs`);
+  idsByRoute.set(route, uniqueIds);
+  for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
+    const url = new URL(href, `${SITE_ORIGIN}${route}`);
+    if (url.origin === SITE_ORIGIN && url.hash) fragmentLinks.push({route, href, target: url.pathname.replace(/\/$/, '') || '/', id: decodeURIComponent(url.hash.slice(1))});
+  }
+  for (const [, src] of html.matchAll(/<img\b[^>]*\ssrc="([^"]+)"/g)) {
+    if (!src.startsWith('/')) continue;
+    try { await stat(path.join(DIST_ROOT, new URL(src, SITE_ORIGIN).pathname)); }
+    catch { errors.push(`${route}: missing image ${src}`); }
+  }
   const title = text(capture(html, [/<title>([\s\S]*?)<\/title>/i]));
   const description = text(capture(html, [
     /<meta[^>]+name="description"[^>]+content="([^"]*)"/i,
@@ -212,6 +236,10 @@ for (const file of htmlFiles) {
   pages.push({ route, title, description, h1: h1s[0] });
 }
 
+for (const {route, href, target, id} of fragmentLinks) {
+  if (idsByRoute.has(target) && !idsByRoute.get(target).has(id)) errors.push(`${route}: missing fragment target ${href}`);
+}
+
 for (const [title, titleRoutes] of titles) {
   if (title && titleRoutes.length > 1) errors.push(`duplicate title on ${titleRoutes.join(', ')}: ${title}`);
 }
@@ -285,10 +313,15 @@ for (const [index, rawLine] of redirectsSource.split(/\r?\n/).entries()) {
 }
 
 const redirectSources = new Set(redirectRules.map((rule) => rule.source));
+for (const route of RETAINED_FEATURE_ROUTES) {
+  if (!routes.has(route) || !sitemapRoutes.has(route) || LEGACY_ROUTES[route]) errors.push(`${route}: retained feature page must be built and indexed in the sitemap`);
+  if (redirectSources.has(route) || redirectSources.has(`${route}/`)) errors.push(`${route}: retained feature page must not redirect`);
+  if (!internalRouteLinks.has(route)) errors.push(`${route}: retained feature page has no internal links`);
+}
 if (redirectSources.size !== redirectRules.length) errors.push('_redirects contains duplicate source routes');
 for (const rule of redirectRules) {
   const normalizedSource = rule.source.length > 1 ? rule.source.replace(/\/$/, '') : rule.source;
-  if (routes.has(rule.source)) errors.push(`${rule.source}: redirect source is also a built page`);
+  if (routes.has(rule.source) && !LEGACY_ROUTES[normalizedSource]) errors.push(`${rule.source}: redirect source is also a built page`);
   if (!routes.has(rule.destination)) errors.push(`${rule.source}: redirect target ${rule.destination} is not a built page`);
   if (redirectSources.has(rule.destination)) errors.push(`${rule.source}: redirect target ${rule.destination} creates a redirect chain`);
   if (sitemapRoutes.has(normalizedSource)) errors.push(`${rule.source}: redirect source appears in sitemap.xml`);
@@ -301,10 +334,10 @@ const privateRules = redirectRules.filter((rule) => rule.source === '/private');
 const privateSlashRules = redirectRules.filter((rule) => rule.source === '/private/');
 if (
   privateRules.length !== 1 || privateSlashRules.length !== 1
-  || privateRules[0].destination !== '/features/private-tabs' || privateRules[0].status !== 301
-  || privateSlashRules[0].destination !== '/features/private-tabs' || privateSlashRules[0].status !== 301
+  || privateRules[0].destination !== '/trust' || privateRules[0].status !== 301
+  || privateSlashRules[0].destination !== '/trust' || privateSlashRules[0].status !== 301
 ) {
-  errors.push('/private and /private/ must redirect directly to /features/private-tabs with status 301');
+  errors.push('/private and /private/ must redirect directly to /trust with status 301');
 }
 
 const robots = await readFile(new URL('../dist/robots.txt', import.meta.url), 'utf8');

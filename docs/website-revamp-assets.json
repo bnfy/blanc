@@ -1,0 +1,424 @@
+{
+  "newAssets": [
+    {
+      "file": "site/public/revamp/space-black-laptop-v2.webp",
+      "originalSha256": "ad29a564efe665973799b826432a8ce73db7077a5c95d31a7c38a4300524be5f",
+      "source": "local approved storyboard",
+      "name": "space-black-laptop-v2.png",
+      "format": "lossless WebP",
+      "sha256": "c802712109c2b03f56711dbbfc0c24187d2f0a49be93721e8187308f8f31ba99",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 599262
+    },
+    {
+      "file": "site/public/revamp/champagne-desktop-v2.webp",
+      "originalSha256": "e041f239d0089a4800a16e0e8172d2ea4b9bb0dba8e72129eafe61065f3ccb03",
+      "source": "local approved storyboard",
+      "name": "champagne-desktop-v2.png",
+      "format": "lossless WebP",
+      "sha256": "6b66146dfa0c8dbe72bdbfca465d320e10e4b3a97b7b06d43b61ceda554476a7",
+      "width": 1374,
+      "height": 1145,
+      "bytes": 743554
+    },
+    {
+      "file": "site/public/revamp/island-roman-rest.webp",
+      "originalSha256": "a97516deb4f59102ce3d2f6eeec951d5632423e43fddf3f8a8046ba2063067c2",
+      "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+      "name": "island-roman-rest.webp",
+      "format": "lossless WebP; center crop only",
+      "sha256": "a8d1f2febf1b8ee773a100c7627b39c42e2b6a1410960b5d4a22eda8f95c3b62",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 533096
+    },
+    {
+      "file": "site/public/revamp/island-roman-tabs.webp",
+      "originalSha256": "3c2d70076147379e4595f8e41c3a9aabc07d086ede542d95e9a2a0d1a9eac1a6",
+      "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+      "name": "island-roman-tabs.webp",
+      "format": "lossless WebP; center crop only",
+      "sha256": "5276dbacead1850e4d4658e8ba4f7c8c499b9d54abaa734376c81ad380196db2",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 345856
+    },
+    {
+      "file": "site/public/revamp/island-roman-command.webp",
+      "originalSha256": "18d675707261b23f883436af7427666233ff7a004acaecfebbf8c28f5f622df7",
+      "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+      "name": "island-roman-command.webp",
+      "format": "lossless WebP; center crop only",
+      "sha256": "8a16c6845f057b689b0b17d62574aa738a5413d9342b2b4e3e28cccc5940f646",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 166192
+    },
+    {
+      "file": "site/public/revamp/tab-groups-native.webp",
+      "originalSha256": "e13a1173186b30c85bfedba37b35c6acf83c040c75a105da41246540426a496e",
+      "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+      "name": "tab-groups-native.webp",
+      "format": "lossless WebP; native panel crop only",
+      "sha256": "aadd4185f9a5d358af30b1561aca6cb98ab641ae033545908ba517c40ed77806",
+      "width": 1240,
+      "height": 652,
+      "bytes": 77494
+    }
+  ],
+  "upstreamBrandIcons": "Font Awesome Free 6.7.2, CC BY 4.0",
+  "captureBoundary": "Existing historical captures retain their source versions; Island captures come from verified installed public v1.27.0; hardware generated independently.",
+  "hardwareGeneration": {
+    "tool": "OpenAI image generation",
+    "purpose": "Separate hardware shells only; original screenshots are not generated or recolored.",
+    "prompts": "docs/website-revamp-hardware-prompts.json"
+  },
+  "islandCaptureProvenance": {
+    "captured_date": "2026-10-04",
+    "app": "/Applications/Blanc.app",
+    "version": "1.27.0",
+    "release_tag": "v1.27.0",
+    "release_sha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "method": "Native CUA screenshots in the existing Launch demo profile. Actual live NASA webpages; native product DOM, geometry, icons and pixels unchanged. Lossless center-crop exports only. The separate sample window was closed after capture.",
+    "verification": "Strict deep codesign passed outside sandbox. Installed index.html, renderer.js, styles.css, overlay.html and overlay.js match the exact v1.27.0 release-tag bytes. GitHub confirms v1.27.0 was published at 2026-10-04T03:14:49Z.",
+    "source_size": [
+      2560,
+      1600
+    ],
+    "crop": {
+      "left": 580,
+      "top": 0,
+      "width": 1400,
+      "height": 1000
+    },
+    "page": "https://science.nasa.gov/",
+    "sample_tabs": [
+      "Nancy Grace Roman Space Telescope - NASA Science",
+      "Adopt a Pixel Nancy Grace Roman Space Telescope - NASA Science",
+      "NASA Science"
+    ],
+    "presentation": "The NASA homepage is scrolled to the Adopt a Pixel section. Center crops feature its dark Roman telescope imagery, leaving the page headline outside the crop. Website frame shows the top 760px on desktop and 850px on narrow screens. CSS clipping/fading between native stills is website choreography, not recorded app motion. Mac window controls fall outside the center crop. The resting backdrop was reframed slightly after the overlay captures; only the overlay panels are revealed from the tabs and command stills.",
+    "files": {
+      "rest": {
+        "file": "site/public/revamp/island-roman-rest.webp",
+        "originalSha256": "a97516deb4f59102ce3d2f6eeec951d5632423e43fddf3f8a8046ba2063067c2",
+        "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+        "name": "island-roman-rest.webp",
+        "format": "lossless WebP; center crop only",
+        "sha256": "a8d1f2febf1b8ee773a100c7627b39c42e2b6a1410960b5d4a22eda8f95c3b62",
+        "width": 1400,
+        "height": 1000,
+        "bytes": 533096,
+        "decodedPixelsSha256": "111c6ab76598301ab76ab7de60e754ee04338786a991f04e0c134f083d099dd9"
+      },
+      "tabs": {
+        "file": "site/public/revamp/island-roman-tabs.webp",
+        "originalSha256": "3c2d70076147379e4595f8e41c3a9aabc07d086ede542d95e9a2a0d1a9eac1a6",
+        "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+        "name": "island-roman-tabs.webp",
+        "format": "lossless WebP; center crop only",
+        "sha256": "5276dbacead1850e4d4658e8ba4f7c8c499b9d54abaa734376c81ad380196db2",
+        "width": 1400,
+        "height": 1000,
+        "bytes": 345856,
+        "decodedPixelsSha256": "32ebbe45d169d5642adb194b862ca55813ce009d1a9a690d08ef85aa7564eaf8"
+      },
+      "command": {
+        "file": "site/public/revamp/island-roman-command.webp",
+        "originalSha256": "18d675707261b23f883436af7427666233ff7a004acaecfebbf8c28f5f622df7",
+        "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+        "name": "island-roman-command.webp",
+        "format": "lossless WebP; center crop only",
+        "sha256": "8a16c6845f057b689b0b17d62574aa738a5413d9342b2b4e3e28cccc5940f646",
+        "width": 1400,
+        "height": 1000,
+        "bytes": 166192,
+        "decodedPixelsSha256": "cbf63a914919e6326f6f215e6029a63fb80ee7d8e93b7ffe3ec19f2975985b73",
+        "state": "Typing / reveals the unfiltered slash-command list. The website viewport shows the beginning of the list; the native app provides scrolling to additional commands."
+      }
+    }
+  },
+  "rightsReview": {
+    "checked": "2026-10-04",
+    "status": "Factual browser demonstration of a live NASA page; no endorsement claim. The large NASA masthead and people are absent from the crop; native page favicons remain. Source credits and NASA media guidelines are linked in the shipped credits file, accessible from the website footer.",
+    "credits": "site/public/revamp/credits.txt",
+    "sources": [
+      "https://science.nasa.gov/",
+      "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+    ]
+  },
+  "islandCaptureHistory": [
+    {
+      "captured_date": "2026-10-02",
+      "app": "/Applications/Blanc.app",
+      "version": "1.26.0",
+      "release_tag": "v1.26.0",
+      "release_sha": "4624b229c1a50814c42714e6175902671497e391",
+      "method": "Native CUA screenshots of the installed public app, existing Launch demo profile, separate sample window; no product DOM or image pixels edited. Sample window closed after capture.",
+      "verification": "Strict deep codesign passed outside sandbox. Installed index.html, renderer.js, styles.css, overlay.html, overlay.js match exact release-tag bytes. Packaged package.json differs due packaging transformation.",
+      "source_size": [
+        2560,
+        1600
+      ],
+      "page": "https://en.wikipedia.org/wiki/Scandinavian_design",
+      "sample_tabs": [
+        "Scandinavian design — Wikipedia",
+        "Typography — Wikipedia",
+        "bnfy/blanc — GitHub"
+      ],
+      "presentation": "CSS viewport displays the center 1400×610px region of the native 2560×1600px capture, at the same origin in every state. A CSS white veil mutes webpage context below the Island. Native source files remain unchanged. CSS clipping/fading between captured states is website choreography, not recorded app motion.",
+      "caveats": [
+        "System sharing badge at upper-left is outside the center crop.",
+        "The filtered-command capture includes the native automation pointer highlight.",
+        "This is local review material; public use of displayed third-party content needs media-rights review."
+      ],
+      "files": {
+        "rest.png": {
+          "sha256": "6097da7f7d2b2cd9f4882dda6c83a772123fc78be5220eaa19ea49c16b77cf41",
+          "bytes": 551029
+        },
+        "tabs.png": {
+          "sha256": "d636a7c46a916c0f4b39e1242d78e2ae938f72717609491cbc8df9c9df6f63a8",
+          "bytes": 582671
+        },
+        "command-filtered.png": {
+          "sha256": "5ec871182b9569fb7996ac1b38498f5ffa4672085e69145514b1737339848198",
+          "bytes": 566249
+        },
+        "commands.png": {
+          "sha256": "4f9f17feeb879aaf204a8e9f3aaef86f18af83374b326181b316a74e0f5a7de5",
+          "bytes": 408599
+        }
+      },
+      "status": "Superseded October 3, 2026; historical PNGs retained in Git at fc9b56f6."
+    },
+    {
+      "captured_date": "2026-10-03",
+      "app": "/Applications/Blanc.app",
+      "version": "1.26.0",
+      "release_tag": "v1.26.0",
+      "release_sha": "4624b229c1a50814c42714e6175902671497e391",
+      "method": "Native CUA screenshots in the existing Launch demo profile. Actual live NASA webpages; native product DOM, geometry, icons and pixels unchanged. Lossless center-crop exports only. The separate sample window was closed after capture.",
+      "verification": "Strict deep codesign passed. Installed index.html, renderer.js, styles.css, overlay.html and overlay.js match the exact v1.26.0 release-tag bytes.",
+      "source_size": [
+        2560,
+        1600
+      ],
+      "crop": {
+        "left": 580,
+        "top": 0,
+        "width": 1400,
+        "height": 1000
+      },
+      "page": "https://science.nasa.gov/asset/webb/cosmic-cliffs-in-the-carina-nebula-nircam-image/",
+      "sample_tabs": [
+        "James Webb Space Telescope - NASA Science",
+        "“Cosmic Cliffs” in the Carina Nebula (NIRCam and MIRI Composite Image) - NASA Science",
+        "“Cosmic Cliffs” in the Carina Nebula (NIRCam Image) - NASA Science"
+      ],
+      "presentation": "The page is scrolled to its actual interactive image. Website frame shows the top 760px on desktop and 850px on narrow screens, with no white veil. CSS clipping/fading between native stills is website choreography, not recorded app motion. Mac window controls fall outside the center crop.",
+      "files": {
+        "rest": {
+          "file": "site/public/revamp/island-webb-rest.webp",
+          "originalSha256": "0f16b6b54f952f0ec6e47713fc63a7ce572054ba6bcdee23f04919a737dfc8e8",
+          "source": "Installed public Blanc v1.26.0 native CUA screenshot, October 3, 2026",
+          "name": "island-webb-rest.webp",
+          "format": "lossless WebP; center crop only",
+          "sha256": "48aa29cda2b3fb632ef1de8b66e24e685d279f3a6f988caa81e2383051ccf44d",
+          "width": 1400,
+          "height": 1000,
+          "bytes": 1334510,
+          "decodedPixelsSha256": "7b3bfdbc3c2ff5290ff1ca8e55ecf16d3614221c68d5083975ea19c2e06c241e"
+        },
+        "tabs": {
+          "file": "site/public/revamp/island-webb-tabs.webp",
+          "originalSha256": "1e451d13466135cc49936247481b9af99ebcf1109e2c25982bc10f5e13f4004c",
+          "source": "Installed public Blanc v1.26.0 native CUA screenshot, October 3, 2026",
+          "name": "island-webb-tabs.webp",
+          "format": "lossless WebP; center crop only",
+          "sha256": "1788dc99aa7925bc23810491544db42fd9473d356249d7541dbc82869e37dbbf",
+          "width": 1400,
+          "height": 1000,
+          "bytes": 902974,
+          "decodedPixelsSha256": "63aaf81d6720a515fe13711c44d006c1ca6b09342345c3313e9ff0ffe3cd01d4"
+        },
+        "command": {
+          "file": "site/public/revamp/island-webb-command.webp",
+          "originalSha256": "9250a7720080df401beb1f434c8a9d7911159671e69c4d210b71bc2f46a90412",
+          "source": "Installed public Blanc v1.26.0 native CUA screenshot, October 3, 2026",
+          "name": "island-webb-command.webp",
+          "format": "lossless WebP; center crop only",
+          "sha256": "6e0763c516ba4b476763280f31d40de7c0a9ae2bdff1e25acb674bc86312a9a3",
+          "width": 1400,
+          "height": 1000,
+          "bytes": 242540,
+          "decodedPixelsSha256": "0916c35fcaa95ff9d20c4f25a1b2e7a73c632ecc81df90e694a16c274b870d7a",
+          "state": "Typing / reveals the unfiltered slash-command list. The website viewport shows the beginning of the list; the native app provides scrolling to additional commands."
+        }
+      },
+      "status": "Superseded October 4, 2026; historical WebP files retained in Git at 50ea2a5c."
+    }
+  ],
+  "tabsCaptureProvenance": {
+    "captured_date": "2026-10-04",
+    "app": "/Applications/Blanc.app",
+    "version": "1.27.0",
+    "release_tag": "v1.27.0",
+    "release_sha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "verification": "Strict deep codesign passed outside sandbox. Installed index.html, renderer.js, styles.css, overlay.html and overlay.js match the exact v1.27.0 release-tag bytes. GitHub confirms v1.27.0 was published at 2026-10-04T03:14:49Z.",
+    "method": "Native CUA screenshot in separate Launch demo window. Four real sample tabs grouped with /group Explore and /group Reading; address field cleared. No product DOM or pixels repainted. Sample window closed afterward.",
+    "source_size": [
+      2560,
+      1600
+    ],
+    "crop": {
+      "left": 660,
+      "top": 24,
+      "width": 1240,
+      "height": 652
+    },
+    "presentation": "Panel-only crop; CSS rounds its outer corners to avoid showing the surrounding webpage. The image is static and is not linked. No simulated group or recovery controls.",
+    "files": {
+      "groups": {
+        "file": "site/public/revamp/tab-groups-native.webp",
+        "originalSha256": "e13a1173186b30c85bfedba37b35c6acf83c040c75a105da41246540426a496e",
+        "source": "Installed public Blanc v1.27.0 native CUA screenshot, October 4, 2026",
+        "name": "tab-groups-native.webp",
+        "format": "lossless WebP; native panel crop only",
+        "sha256": "aadd4185f9a5d358af30b1561aca6cb98ab641ae033545908ba517c40ed77806",
+        "width": 1240,
+        "height": 652,
+        "bytes": 77494,
+        "decodedPixelsSha256": "32aa13eadd777766519b5520a682a1f70a8ef8ceb3b821bb596e54cbc51d7ea5"
+      }
+    }
+  },
+  "mahjongCaptureProvenance": {
+    "captured_date": "2026-10-04",
+    "app": "/Applications/Blanc.app",
+    "version": "1.27.0",
+    "release_tag": "v1.27.0",
+    "release_sha": "602a1a85a9b80453b2561b3e10c5e5795c3ff659",
+    "method": "Window-only macOS screencapture video of installed public Blanc, played through native CUA in the existing Launch demo profile. Silent source recordings average about 55fps. Trimmed at normal speed and encoded as 30fps H.264 MP4, without generated frames or reconstructed game UI. Source window 2560x1600; game content cropped to 2560x1464 at y=136 and scaled proportionally to 1440x824 with square pixels. First-frame WebP posters. Peaks and Butterfly show four pair clears; Fortress shows five plus the native automatic combo clear.",
+    "verification": "Installed mahjong.html, mahjong.js, mahjong.css and mahjong-engine.js match the exact public v1.27.0 tag bytes. Strict deep app codesign passed. GitHub confirms release published at 2026-10-04T03:14:49Z.",
+    "files": [
+      {
+        "board": "peaks",
+        "mode": "Burst Auto",
+        "video": "site/public/revamp/mahjong-peaks-v1.27.0.mp4",
+        "poster": "site/public/revamp/mahjong-peaks-v1.27.0.webp",
+        "videoSha256": "8d7984c3f7f4240e8402a795dde825402bd856d4f8e089a35fcf5df029a7ddac",
+        "posterSha256": "cbbf789159516f5736d908edc867b3e400e50b256d4e795c1da9f483dfc26dbd",
+        "bytes": 727055,
+        "width": 1440,
+        "height": 824,
+        "frames": 270,
+        "durationSeconds": 9,
+        "frameRate": "30/1",
+        "sourceVideoSha256": "ec71e1c9082792ea2c4e94a498c6c9b0adac423a49cf5a6fbd725736c670257c",
+        "sourceFrameRate": "99840/1801",
+        "sourceTrimSeconds": {
+          "start": 5.5,
+          "duration": 9
+        }
+      },
+      {
+        "board": "butterfly",
+        "mode": "Classic",
+        "video": "site/public/revamp/mahjong-butterfly-v1.27.0.mp4",
+        "poster": "site/public/revamp/mahjong-butterfly-v1.27.0.webp",
+        "videoSha256": "a5c92e60559a3a38c0be60ef2a15c059b93ebd7e4ae3429b0f128bdc6b90dce8",
+        "posterSha256": "b6a69bd2201bf9d1120e1d27cbfa2b3af6995a9aed0e71c92038ae495db47b0f",
+        "bytes": 469573,
+        "width": 1440,
+        "height": 824,
+        "frames": 270,
+        "durationSeconds": 9,
+        "frameRate": "30/1",
+        "sourceVideoSha256": "761dc2c0d26c6fd648f97fa5f73a6d9c0d760fd1d78f2a2225cd0c8b514d27f5",
+        "sourceFrameRate": "66600/1201",
+        "sourceTrimSeconds": {
+          "start": 4.7,
+          "duration": 9
+        }
+      },
+      {
+        "board": "fortress",
+        "mode": "Burst Auto",
+        "video": "site/public/revamp/mahjong-fortress-v1.27.0.mp4",
+        "poster": "site/public/revamp/mahjong-fortress-v1.27.0.webp",
+        "videoSha256": "45851273425bf3aa96e8d8b2f05474a4458d103c2c03b2099b84769191f57b4e",
+        "posterSha256": "6707958092683bf7f154483888fcede95236419492360de97d603a1c508975c0",
+        "bytes": 903610,
+        "width": 1440,
+        "height": 824,
+        "frames": 285,
+        "durationSeconds": 9.5,
+        "frameRate": "30/1",
+        "sourceVideoSha256": "302b1c68c1883ebd3471baec84838738998bf97c79e0cca7708f95e64e74949b",
+        "sourceFrameRate": "133320/2401",
+        "sourceTrimSeconds": {
+          "start": 4,
+          "duration": 9.5
+        }
+      }
+    ],
+    "presentation": "The monitor aperture uses proportional cover with object-position 50% 28%, trimming only outer vertical padding so the image fills the screen. Top controls, board tiles and Burst rack tiles remain visible. No stretching or generated fill."
+  },
+  "glanceIllustrationAssets": [
+    {
+      "file": "site/public/revamp/glance-nyhavn.webp",
+      "source": "https://files.guidedanmark.org/files/382/164757_Nyhavn_Jacob-Schjrring-og-Simon-Lau.jpg?width=1600&height=727&mode=crop&scale=both&format=webp&webp.quality=60",
+      "sourcePage": "https://www.visitcopenhagen.com/copenhagen/planning/nyhavn-gdk474735",
+      "sourceDate": "2026-10-04",
+      "format": "WebP",
+      "width": 1600,
+      "height": 727,
+      "bytes": 175320,
+      "sha256": "95cec15601f3c3d4371fcb8d17d3455091bd25c79c347ac000a2d096734a3e31",
+      "credit": "Nyhavn photograph © Jacob Schjørring & Simon Lau; sourced from Visit Copenhagen.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    },
+    {
+      "file": "site/public/revamp/glance-kusama.jpg",
+      "source": "https://louisiana.dk/wp-content/uploads/2020/08/CST_8728-DONE-full_jpg-640x959.jpg",
+      "sourcePage": "https://louisiana.dk/en/exhibition/kusama-installation/",
+      "sourceDate": "2026-10-04",
+      "format": "JPEG",
+      "width": 640,
+      "height": 959,
+      "bytes": 204873,
+      "sha256": "87811893aed64a882118ea37452024708f9c16ea6c41c0ec7868419af2ef7816",
+      "credit": "Yayoi Kusama, Gleaming Lights of the Souls; photograph sourced from Louisiana Museum of Modern Art. Artwork and photography retain their respective owners’ rights.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    },
+    {
+      "file": "site/public/revamp/visit-copenhagen-favicon.ico",
+      "source": "https://www.visitcopenhagen.com/api/favicon",
+      "sourcePage": "https://www.visitcopenhagen.com/copenhagen/planning/nyhavn-gdk474735",
+      "sourceDate": "2026-10-04",
+      "format": "ICO",
+      "width": 48,
+      "height": 48,
+      "bytes": 9662,
+      "sha256": "d515b120cc9c093d1109eb663dab7e988c1b4c9322903b9c2d9ff40be7589900",
+      "credit": "Visit Copenhagen website favicon; respective owner’s mark.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    },
+    {
+      "file": "site/public/revamp/louisiana-favicon.ico",
+      "source": "https://louisiana.dk/wp-content/themes/louisiana/favicon.ico",
+      "sourcePage": "https://louisiana.dk/en/exhibition/kusama-installation/",
+      "sourceDate": "2026-10-04",
+      "format": "ICO",
+      "width": 32,
+      "height": 32,
+      "bytes": 5686,
+      "sha256": "97f29202991a900209f3ed193da88a276d3ca885d2f818932d3ac01cb7a13a12",
+      "credit": "Louisiana Museum of Modern Art website favicon; respective owner’s mark.",
+      "rights": "Third-party material, excluded from Blanc’s MIT grant. No affiliation or endorsement implied."
+    }
+  ],
+  "glanceIllustrationBoundary": "The interactive homepage Glance demo uses responsive webpage excerpts and unaltered source photography, cropped by CSS. Native Island markup and styles supply the chrome with two sample domains/favicons. It is labelled Interactive demo, not represented as app footage. Website controls resize, swap, close and reopen the reference; mobile keeps the scaled desktop split."
+}
