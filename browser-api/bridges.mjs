@@ -394,7 +394,10 @@ export function pagesHandlers(source = fs.readFileSync(PAGES_JS, 'utf8')) {
     let m;
     if ((m = rest.match(/^'([a-z-]+)'\s*,/))) hosts = [m[1]];
     else if ((m = rest.match(/^\[\.\.\.([A-Z_]+)\]\s*,/)) && sets[m[1]]) hosts = [...sets[m[1]]];
-    else if ((m = rest.match(/^\[((?:\s*'[a-z-]+'\s*,?)+)\]\s*,/))) hosts = [...m[1].matchAll(/'([a-z-]+)'/g)].map((x) => x[1]);
+    else if ((m = rest.match(/^\[([^\]]*)\]\s*,/))) {
+      const items = m[1].split(',').map((x) => x.trim()).filter(Boolean);
+      if (items.length && items.every((x) => /^'[a-z-]+'$/.test(x))) hosts = items.map((x) => x.slice(1, -1));
+    }
     if (!hosts) { problems.push(`pages.js: cannot read the host list for '${channel}'`); continue; }
     if (handlers.has(channel)) problems.push(`pages.js: '${channel}' is registered twice`);
     handlers.set(channel, new Set(hosts));
@@ -454,7 +457,7 @@ export function pagesReferences(text) {
   const seg = '\\??\\.([A-Za-z_$][\\w$]*)';
   for (const m of text.matchAll(new RegExp(`\\bbowserPages${seg}(?:${seg})?`, 'g'))) refs.push(m[2] ? `${m[1]}.${m[2]}` : m[1]);
   for (const alias of text.matchAll(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*window\.bowserPages\??\.([A-Za-z_$][\w$]*)\s*;/g)) {
-    for (const m of text.matchAll(new RegExp(`(?<![\\w$.])${alias[1].replace(/\$/g, '\\$')}${seg}`, 'g'))) refs.push(`${alias[2]}.${m[1]}`);
+    for (const m of text.matchAll(new RegExp(`(?<![\\w$.])${alias[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${seg}`, 'g'))) refs.push(`${alias[2]}.${m[1]}`);
   }
   return refs;
 }
