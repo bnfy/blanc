@@ -27,13 +27,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: tokens / settings / copy / adblock match their sources
+      - name: tokens / settings / copy / browserAPI / adblock match their sources
         # Drift guards — the build.mjs checkers use only node builtins,
         # no dependency install needed for this step.
         run: |
           node tokens/build.mjs --check
           node settings-schema/build.mjs --check
           node copy/build.mjs --check
+          node browser-api/build.mjs --check
           node adblock/build.mjs --check
       - name: Enable Chromium user namespaces in this disposable Linux runner
         if: runner.os == 'Linux'
