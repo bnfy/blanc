@@ -38,7 +38,6 @@ export function nativeIslandArt({ styles, document, renderer }) {
   html = html.replace('<span id="pillDomain">new tab</span>', '<span id="pillDomain">blancbrowser.com</span>');
   html = html.replace(/(<button id="pillSlash"[\s\S]*?<\/button>)/, `$1<button id="pillNewTab" class="pill-btn pill-shortcut">${icon('plus')}</button>`);
   html = html.replace('id="pillShield" class="shield" aria-expanded="false" hidden', 'id="pillShield" class="shield shield-quiet" aria-expanded="false"');
-  html = html.replace('src="shield-horizon.png"', 'src="/horizon-shield.webp"');
   html = html.replace('<div id="pillActions" class="pill-btns"></div>', `<div id="pillActions" class="pill-btns">${button('reload')}${button('heart')}${button('close')}</div>`);
   return { css, html };
 }

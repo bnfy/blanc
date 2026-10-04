@@ -6,7 +6,7 @@
   "candidatePR": "https://github.com/bnfy/blanc/pull/490",
   "source": "site/src/pages/index.astro",
   "qualification": "Owner will deploy the redesigned site only after the app release containing these features goes live. This is launch copy, not a statement about the current public v1.26.0. Private tabs use Blanc Blocker; provider changes require restart; settings are separate.",
-  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. The bronze Horizon Shield master and native icon are owned by app-only PR #502 and must ship in the app before website deployment. Website PR #491 is temporarily based on that app branch for a website-only diff.",
+  "publicationBoundary": "BLOCKED until the new app release ships. Owner correction on October 3: remove In development and Upcoming badges because the site will launch after the new app release. Before merge/deployment, replace candidate evidence with the immutable public tag and completed release evidence, recheck platform availability and exact UI behavior, then migrate these claims into the public release ledger. No preview labels are shown to visitors. The Horizon Shield source artwork and monochrome native icon are owned by app-only PR #502 and must ship in the app before website deployment. Website PR #491 is temporarily based on that app branch for a website-only diff.",
   "claims": [
     {
       "exactWording": "Your blocking. Your choice.",
@@ -63,13 +63,6 @@
     "originalApprovedRevision": "03621de6",
     "originalSourceSha256": "c0eeeb6db1598d70c01fa8a3f0d021da3a2025907e1921a4391ed9aaf2709e53",
     "sourceSha256": "5882ad8fab1debe245a8cbf92e3e7e5dfc26f755607ddb598eb73187ca54389e",
-    "runtime": {
-      "file": "src/renderer/shield-horizon.png",
-      "width": 128,
-      "height": 128,
-      "sha256": "692e180cfa9e78d0f65062e851050bc8056ea9b64ffd24abefbf0dd3c02c7c96",
-      "export": "Same master, trim threshold 8, resize contain 128×128 with transparent padding, PNG."
-    },
     "recolor": {
       "date": "2026-10-03",
       "direction": "Match the shield everywhere in the app and website to the copper/bronze tones of the original Sunrise sun; reduce the bright yellow-gold cast.",
@@ -99,7 +92,13 @@
   "appArtworkDependency": {
     "pr": "https://github.com/bnfy/blanc/pull/502",
     "branch": "codex/horizon-shield-bronze",
-    "sourceRevision": "fb8ef76cc5b55548d0b72c2414e786f85d727eed",
-    "deliveryOrder": "Merge app-only PR #502 into main; include its bronze master and native icon in the next verified public app release; then reconcile release evidence, retarget website PR #491 to main, merge and deploy the website. The app release must not depend on the website PR."
+    "sourceRevision": "232fdf6cbdf2f61d59265a9d30f27d35481e6fc6",
+    "deliveryOrder": "Merge app-only PR #502 into main; include its monochrome native Island icon in the next verified public app release; then reconcile release evidence, retarget website PR #491 to main, merge and deploy the website. The app release must not depend on the website PR."
+  },
+  "islandIcon": {
+    "file": "src/renderer/index.html",
+    "selector": "#pillShield .shield-art",
+    "sha256": "e79e9596abfbbddd64ff074ccb14fee2efc16c599fe91ddbe8f2eea4c50f67c9",
+    "treatment": "Monochrome inline SVG with currentColor and three curved layers. The website hero extracts the exact native SVG and styles. Bronze texture is reserved for the large Privacy illustration."
   }
 }

@@ -285,9 +285,9 @@ shield asset and resolving the duplicate http-cache-semantics review while
 retaining both reviews' bounded checks. No deployment was performed.
 
 The owner's later October 3 color correction replaces bright yellow gold with
-the original Sunrise sun's copper/bronze family. The shared master feeds both
-the native 128px PNG and website 960px WebP, including both 3D faces and the
-enlarged hero Island. The rim is bronze and the key light is more neutral to
+the original Sunrise sun's copper/bronze family. The bronze master feeds the website 960px WebP and both 3D faces. The
+owner’s subsequent Island correction uses a monochrome inline SVG in both the
+app and enlarged hero; the native raster icon is retired. The rim is bronze and the key light is more neutral to
 avoid reintroducing a yellow cast. The final alpha silhouette was retraced for
 the closed 3D model. Original approval evidence remains pinned separately from
 the recolored master and its exports in the launch ledger; the edit prompt is
@@ -297,8 +297,8 @@ recorded in `docs/verification/2026-10-03-horizon-shield-bronze.md`.
 
 Owner correction, October 3: the bronze shield must ship in the app before the
 website deploys. App-only PR #502 (`codex/horizon-shield-bronze`, artwork commit
-`fb8ef76cc5b55548d0b72c2414e786f85d727eed`) targets `main` and owns the shared
-master, native PNG and app brand/provenance records. It contains no website
+`232fdf6c`) targets `main` and owns the shared bronze master, monochrome
+native SVG and app brand/provenance records. It contains no website
 files. Website PR #491 temporarily targets that app branch so the native
 changes are excluded from its review. This website PR owns the WebP export,
 closed 3D outline and bronze rim/light adjustments, hero and launch ledger.
@@ -310,8 +310,8 @@ app artwork alone does not satisfy the website's public-release gate. Never
 make the app release depend on merging or deploying the website redesign.
 
 Bronze validation: 38 focused native-resource, shield, hero and product-evidence
-tests pass, including byte-for-byte reproduction of both exports from the
-shared master and closed 3D geometry. Production/SEO build and lint pass. The
+tests pass, including byte-for-byte reproduction of the bronze website export,
+exact native SVG extraction for the hero and closed 3D geometry. Production/SEO build and lint pass. The
 hero icon, front/back and bronze side wall were inspected at 855×792, without
-page overflow or console warnings/errors. The native runtime PNG was inspected
-as artwork; no fresh native launch or packaged app release occurred here.
+page overflow or console warnings/errors. The native SVG was reviewed through the source-derived hero in light and dark
+appearance; no fresh native launch or packaged app release occurred here.

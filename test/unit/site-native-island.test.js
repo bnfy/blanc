@@ -24,6 +24,9 @@ test('hero extraction retains native dimensions, material and actual action SVGs
     assert.ok(art.html.includes(svg), name);
   }
   assert.match(art.html, /id="pillShieldCount"><\/span>/, 'sample has no invented blocking count');
+  const shield = source.document.match(/<svg class="shield-art"[\s\S]*?<\/svg>/)[0];
+  assert.ok(art.html.includes(shield), 'the hero reuses the native monochrome shield SVG');
+  assert.doesNotMatch(art.html, /horizon-shield\.webp|shield-horizon\.png/);
   assert.doesNotMatch(art.html, /<script|browserAPI/);
   assert.match(art.css, /:host\(\[data-appearance="dark"\]\)/);
   assert.match(read('site/src/components/NativeIslandHero.astro'), /aria-hidden="true" inert/);

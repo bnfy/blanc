@@ -1,39 +1,30 @@
-# Horizon Shield — Sunrise bronze app revision
+# Horizon Shield — monochrome Island and bronze display artwork
 
 On October 3, 2026, the owner requested a less golden, more copper/bronze
 Horizon Shield matching the Sunrise sun, everywhere in the app and website.
 The owner then explicitly requested separate PRs: this shared master and native
 icon ship in the next app release before the redesigned website deploys.
 
-## App scope
+## Final app treatment
 
-- `assets/horizon-shield.png`: recolored 1254×1254 transparent master.
-- `src/renderer/shield-horizon.png`: alpha-trimmed 128×128 transparent PNG,
-  rendered at the existing 16px native size, retaining badge and off-state styles.
-- Brand and reserved-asset documentation follow the copper/bronze direction.
+The owner subsequently found the full-color texture out of place among the
+Island's minimal controls and requested a flat monochrome version there.
+`src/renderer/index.html` now embeds a vector outline: the same broad shield
+and two curved seams form three layers, drawn with `currentColor`, no fill,
+1.25-unit strokes and rounded joins. It stays 16×16 CSS pixels inside the
+existing 24px button; the native zoom, count badge, hover circle, off-state
+opacity and accessible state descriptions remain.
 
-No website code, website exports, dependency changes, blocking behavior or app
-version bump is part of this PR. Original Sunrise artwork and historical public
-captures remain unchanged. The earlier native interaction review is preserved
-in `2026-10-03-horizon-shield.md`, with the original artwork at `03621de6`.
+The SVG inherits the Island's state colors in light and dark appearances.
+The unused `src/renderer/shield-horizon.png` is removed, along with its exact
+chrome-protocol allowlist entry. No new resource or behavior is introduced.
 
-Reproduce the runtime PNG with the pinned Sharp version:
-
-```js
-await sharp('assets/horizon-shield.png')
-  .trim({ threshold: 8 })
-  .resize(128, 128, {
-    fit: 'contain',
-    background: { r: 0, g: 0, b: 0, alpha: 0 },
-  })
-  .png()
-  .toFile('src/renderer/shield-horizon.png');
-```
-
-SHA-256:
-
-- Master: `5882ad8fab1debe245a8cbf92e3e7e5dfc26f755607ddb598eb73187ca54389e`
-- Native PNG: `692e180cfa9e78d0f65062e851050bc8056ea9b64ffd24abefbf0dd3c02c7c96`
+`assets/horizon-shield.png` remains the recolored 1254×1254 transparent bronze
+master for the large website illustration. Its SHA-256 remains
+`5882ad8fab1debe245a8cbf92e3e7e5dfc26f755607ddb598eb73187ca54389e`.
+This app PR contains no website code or exports. The website PR reuses the
+native SVG for its Island hero and keeps bronze artwork only at display scale.
+Original Sunrise artwork and historical public captures remain unchanged.
 
 ## Image edit provenance
 
@@ -53,7 +44,7 @@ assumed; the three plates, two seams and raised outline remain visually intact.
 ## Delivery order
 
 1. Merge this app-only PR into `main` through normal protected checks.
-2. Include the shared bronze master and native PNG in the next verified app release.
+2. Include the monochrome native Island icon in the next verified app release.
 3. Reconcile the website launch evidence against that immutable public release.
 4. Merge and deploy website PR #491 only after the app release is public.
 
@@ -63,10 +54,8 @@ must never depend on merging or deploying the website redesign.
 
 ## Validation
 
-- All 23 native shield-model and chrome-resource tests pass on this isolated
-  app-only branch based on `358cc02d`.
-- The transparent 128×128 runtime PNG reproduces byte-for-byte from the shared
-  master using pinned Sharp. Both source and runtime artwork were inspected.
-- Lint and whitespace checks pass. No dependency or blocking behavior changes.
-- This color revision did not launch a native desktop instance or package a
-  release. Earlier native interaction checks remain historical evidence.
+The original bronze revision passed 23 native shield-model and chrome-resource
+tests, lint and raster export reproduction. The later monochrome revision
+reruns those native state/resource checks and lint; the removed raster path
+must now be rejected by the chrome protocol. Website hero and 3D validation
+belong to the dependent website PR. No new packaged app release is claimed.
