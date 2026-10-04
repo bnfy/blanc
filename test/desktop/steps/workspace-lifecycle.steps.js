@@ -76,7 +76,12 @@ Then('the switch is refused and the sign-in callback still reaches its opener', 
   await this.loginChild.locator('#complete').click();
   await waitForValue(() => this.call('workspacePageScript', this.loginTab, 'window.loginResults'), values => values.length === 1, 'sign-in callback reaches the original opener');
   assert.deepEqual(await this.call('workspacePageScript', this.loginTab, 'window.loginResults'), [{ kind: 'workspace-login', mode: this.loginMode, opener: true }]);
-  await this.loginChild.locator('#close').click();
+  // #close calls window.close(). If the popup closes before Playwright's click
+  // finishes its post-action wait, the click rejects even though it succeeded;
+  // that is the outcome this step wants, so tolerate it only when the page did close.
+  await this.loginChild.locator('#close').click().catch((error) => {
+    if (!this.loginChild.isClosed()) throw error;
+  });
   await waitForValue(() => Promise.resolve(this.loginChild.isClosed()), Boolean, 'sign-in child closes');
   await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   assert.equal((await this.call('workspaceAction', 'open', this.loginTarget)).ok, true, 'the guard must clear when the opener family ends');
