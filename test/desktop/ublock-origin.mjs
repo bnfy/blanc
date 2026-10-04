@@ -512,7 +512,7 @@ try {
   assert.equal(methods.find(item => item.url === '/post-result').method, 'POST');
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/dashboard.html')).id);
   await dashboard.locator('[data-pane="settings.html"]').dispatchEvent('click');
-  const settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'backup settings');
+  let settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'backup settings');
   stage = 'backup and restore';
   stage = 'backup import and native reload';
   const backupFile = path.join(dir, 'ubo-backup.txt');
@@ -527,17 +527,31 @@ try {
   backup.hiddenSettings = { ...backup.hiddenSettings, userResourcesLocation: fixture + 'forbidden-resource.js' };
   fs.writeFileSync(backupFile, JSON.stringify(backup));
   dashboard.on('dialog', dialog => dialog.accept());
-  await settingsPane.locator('#restoreFilePicker').setInputFiles(backupFile);
-  await waitForValue(async () => call('blockingStatus'), state => state.phase === 'initializing', 'restore reload started');
-  await waitForValue(async () => call('blockingStatus'), state => state.phase === 'ready', 'backup restore ready', 20000);
-  await call('activateTab', regular);
-  await page.reload();
-  await page.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
-  assert(!hits.includes('/forbidden-resource.js'));
-  assert.equal(await electron.evaluate(async ({ webContents }) => {
-    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
-    return bg.executeJavaScript('µBlock.hiddenSettings.userResourcesLocation');
-  }), 'unset');
+  // Optional isolated native diagnostics: repeat the same original import and
+  // immediate webpage reload to expose rare teardown races. Default CI keeps
+  // the original single pass; no assertion or provider deadline is changed.
+  const restorePasses = process.env.BLANC_UBLOCK_RESTORE_STRESS === '1' ? 30 : 1;
+  for (let iteration = 0; iteration < restorePasses; iteration++) {
+    stage = `backup import and native reload ${iteration + 1}/${restorePasses}`;
+    if (iteration > 0) {
+      await call('activateTab', dashboardId);
+      await dashboard.locator('[data-pane="settings.html"]').dispatchEvent('click');
+      settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'restored backup settings');
+      await settingsPane.locator('#restoreFilePicker').waitFor();
+    }
+    await settingsPane.locator('#restoreFilePicker').setInputFiles(backupFile);
+    await waitForValue(async () => call('blockingStatus'), state => state.phase === 'initializing', 'restore reload started');
+    await waitForValue(async () => call('blockingStatus'), state => state.phase === 'ready', 'backup restore ready', 20000);
+    await call('activateTab', regular);
+    await page.reload();
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('#ad')).display === 'none');
+    assert(!hits.includes('/forbidden-resource.js'));
+    assert.equal(await electron.evaluate(async ({ webContents }) => {
+      const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+      return bg.executeJavaScript('µBlock.hiddenSettings.userResourcesLocation');
+    }), 'unset');
+    if (restorePasses > 1) console.log(`uBO native restore pass ${iteration + 1}/${restorePasses}`);
+  }
   await call('openTab', fixture + 'strict-fixture');
   await waitForValue(async () => (await electron.windows()).some(item => item.url().includes('/document-blocked.html')), Boolean, 'strict-block page');
   assert(!hits.includes('/strict-fixture'));

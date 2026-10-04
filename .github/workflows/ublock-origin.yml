@@ -181,9 +181,11 @@ jobs:
           export BLANC_UBLOCK_NATIVE_STACK_DIR="$PWD/dist/native-diagnostics"
           export BLANC_UBLOCK_NATIVE_EXECUTABLE="$PWD/node_modules/electron/dist/electron"
           export BLANC_UBLOCK_ELECTRON="$PWD/test/desktop/support/electron-native-debug.sh"
-          for attempt in 1 2 3 4 5; do
-            xvfb-run -a npm run test:ublock:desktop 2>&1 | tee "dist/native-diagnostics/attempt-$attempt.log"
-          done
+          export BLANC_UBLOCK_RESTORE_STRESS=1
+          # Write directly: detached crash-handler children may retain the
+          # debugger's output handles after the browser has exited.
+          xvfb-run -a npm run test:ublock:desktop > dist/native-diagnostics/restore-stress.log 2>&1
+          tail -n 40 dist/native-diagnostics/restore-stress.log
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
