@@ -216,6 +216,18 @@ summary:focus-visible {
 .revamp-nav a:hover {
   color: #000;
 }
+/* The one action in the bar reads as a button at every width. */
+.revamp-nav .site-nav-cta {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.revamp-nav .site-nav-cta:hover {
+  color: var(--paper);
+  background: #000;
+}
 .revamp-nav a:focus-visible {
   outline-offset: -3px;
 }
@@ -260,6 +272,18 @@ summary:focus-visible {
 .website-footer a,
 .website-footer-grid h2 {
   font-family: var(--font-ui);
+}
+/* Standalone footer links keep at least a 24px target (WCAG 2.5.8). */
+.website-footer-bottom nav a,
+.website-footer .footer-social a {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+}
+.website-footer-identity a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 .website-footer-identity > p {
   font-family: var(--site-font-display);
@@ -385,11 +409,7 @@ main :is(.section-kicker, .eyebrow) {
     margin-right: auto;
   }
   .revamp-nav .site-nav-cta {
-    min-height: 32px;
     padding: 0 12px;
-    border-radius: 18px;
-    background: var(--ink);
-    color: var(--paper);
   }
   .revamp-nav .site-appearance {
     width: 40px;

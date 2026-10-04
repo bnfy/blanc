@@ -29,6 +29,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p>Choose your desktop. Free browser. Patron adds saved Named Workspaces.</p>
   </section>
 
+  <aside class="download-handheld" data-handheld-note hidden aria-labelledby="handheld-title">
+    <h2 id="handheld-title">On a phone or tablet?</h2>
+    <p>Blanc is a desktop browser for macOS, Windows and Linux.</p>
+    <a class="download-handheld-action" href="/download" data-handheld-share="download-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Send to my computer</a>
+    <p id="download-share-status" role="status" aria-live="polite"></p>
+  </aside>
+
   <section class="download-options" id="download-options" data-download-options aria-label="Choose a Blanc download">
     <a class="platform-card" id="dl-mac-arm64" data-download-link data-platform="mac-arm64" data-track="download_click" data-cta-position="platform-card" href="/dl/mac-arm64">
       <span class="platform-label platform-label--macos"><PlatformLogo platform="apple" />macOS</span>
@@ -121,4 +128,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p><a href="/privacy">Read how Blanc handles your data</a>, <a href="https://github.com/bnfy/blanc/blob/main/docs/release-verification.md" target="_blank" rel="noopener">verify a release</a>, or email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--> if you need a hand.</p>
   </section>
 </main>
+<script>
+  import { initHandheldDownload } from '../scripts/handheld-download.js';
+  initHandheldDownload();
+</script>
 </BaseLayout>

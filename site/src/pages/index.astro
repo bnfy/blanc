@@ -90,10 +90,13 @@ const structuredData = {
             Island in a slim band above the page. A desktop browser for macOS,
             Windows and Linux.
           </p><div class="actions">
-            <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero">Download Blanc</a><a
+            <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero" data-handheld-share="hero-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Download Blanc</a><a
               class="planned-link"
               href="#island">See the Island in action</a>
-          </div><p class="hero-offer">
+          </div><p class="handheld-note" data-handheld-note hidden>
+            Blanc is a desktop browser for macOS, Windows and Linux.
+            <span id="hero-share-status" role="status" aria-live="polite"></span>
+          </p><p class="hero-offer">
             Free and open source. Ad and tracker blocking is on by default.
           </p>
         </div>
@@ -623,9 +626,9 @@ const structuredData = {
             class="platforms"
             aria-label="Available desktop platforms"
           >
-            <span><PlatformLogo platform="apple" />macOS</span><span
-              ><PlatformLogo platform="windows" />Windows</span
-            ><span><PlatformLogo platform="linux" />Linux</span>
+            <a href="/download#download-options"><PlatformLogo platform="apple" />macOS</a><a
+              href="/download#dl-win"><PlatformLogo platform="windows" />Windows</a
+            ><a href="/download#dl-linux"><PlatformLogo platform="linux" />Linux</a>
           </div><a class="planned-action" href="/download" data-track="download_click" data-cta-position="home-close"
             >Choose your download</a
           ><p class="closing-links">

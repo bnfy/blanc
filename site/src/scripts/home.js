@@ -4,6 +4,7 @@ import { initGestureDemo } from "./gesture-demo.js";
 import { initHorizonShield } from "./horizon-shield.js";
 import { initMahjongPreview } from "./mahjong-preview.js";
 import { createImagePreview } from "./image-preview.js";
+import { initHandheldDownload } from "./handheld-download.js";
 initHorizonShield(document.querySelector(".horizon-study"));
 
 (() => {
@@ -388,6 +389,7 @@ initHorizonShield(document.querySelector(".horizon-study"));
   });
 
   const wallpaper = initWallpaperPreview(document.getElementById("hero-daylight"));
+  initHandheldDownload();
   initHomeAppearance({ onChange: (options) => wallpaper.refreshAppearance(options) });
 
 })();

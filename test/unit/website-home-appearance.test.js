@@ -251,6 +251,20 @@ test('pausing during an autoplay decode prevents a late scene change', async () 
   assert.equal(p.timers.size, 0);
 });
 
+test('the served theme colour matches the light header before any script runs', () => {
+  const fs = require('node:fs');
+  const layout = fs.readFileSync(path.resolve(__dirname, '../../site/src/layouts/BaseLayout.astro'), 'utf8');
+  assert.match(layout, /<meta name="theme-color" content="#ffffff">/);
+});
+
+test('the homepage background stays a vertical warm-to-white gradient', () => {
+  const fs = require('node:fs');
+  const css = fs.readFileSync(path.resolve(__dirname, '../../site/src/styles/home-appearance.css'), 'utf8');
+  const light = css.match(/html\[data-home-appearance\] \.home-revamp \{[^}]*?background: (linear-gradient\([^;]+\));/)[1];
+  assert.match(light, /^linear-gradient\(to bottom, #f8f2e8 0%/);
+  assert.match(light, /#fff 100%\)$/);
+});
+
 test('reduced motion has no autoplay and still selects each theme and phase', async () => {
   const p = await fixture({ reduced: true }); p.enter(true); p.play.events.click();
   p.time.value = '3'; p.time.events.input(); await settle();

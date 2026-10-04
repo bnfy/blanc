@@ -9292,6 +9292,78 @@
         "blockingProviders"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "handheld-home-label",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Send to my computer",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-home-note",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-download-heading",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "On a phone or tablet?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-download-note",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-copied",
+      "source": "site/src/scripts/handheld-download.js",
+      "exactWording": "Link copied",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "b2-download-windows",
+      "source": "site/src/scripts/site.js",
+      "exactWording": "Download for Windows",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "b2-download-linux",
+      "source": "site/src/scripts/site.js",
+      "exactWording": "Download for Linux",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
     }
   ],
   "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",

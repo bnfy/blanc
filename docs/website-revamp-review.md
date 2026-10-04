@@ -711,3 +711,42 @@ overflow and no header wrap; light and dark were both captured at 1440 and 320px
 Still pending, and needing the owner's machine with public v1.27.0: Start Page
 recaptures with a non-zero weekly blocked count, and with Patron active so the
 upgrade pill is hidden.
+
+## Phones and small fixes (October 4)
+
+Round 2, milestone A+B of the homepage audit
+(`docs/superpowers/specs/2026-10-04-homepage-audit-round-2-design.md`).
+
+Phones and tablets: Blanc is desktop-only, so on a phone or tablet the hero
+button reads "Send to my computer". It opens the device's share sheet with the
+`/download` link; if sharing is unavailable or fails it copies the link and
+says "Link copied"; if copying also fails it opens `/download`. Cancelling the
+share sheet does nothing else. `/download` shows the same button in an "On a
+phone or tablet?" notice. Detection matches Android, iPhone, iPad and iPod user
+agents, plus a Mac user agent with more than one touch point (iPadOS requests
+desktop sites). The share path removes the hero's `download_click` tracking,
+because nothing is downloaded; no analytics event was added. Without
+JavaScript both buttons stay plain links to `/download`. The logic lives in
+`site/src/scripts/handheld-download.js` with its own unit tests.
+
+Small fixes: the header Download is a pill at every width, with a light
+hover in dark mode. When the hero downloads the installer directly it says
+"Download for Windows" or "Download for Linux"; macOS still leads to
+`/download`. The closing macOS, Windows and Linux labels link to their
+download cards. The served theme colour is `#ffffff`, matching the solid
+header before any script runs. Standalone links on the homepage, the footer
+and `/download` now have at least a 24px target; border-underlined links grow
+upward so their underline stays under the text. The unused
+`hero-wallpaper.js` is deleted, and `site/CLAUDE.md` now says the homepage
+header is solid from the start, hides while scrolling down and returns on
+scroll up. The warm-to-white background gradient is unchanged and now has a
+guard test.
+
+Verified: 2,289 unit checks pass, including seven new phone-module checks,
+a platform-label check and two theme checks; deliberately breaking the
+cancel handling and the gradient direction each failed the expected test.
+Lint, substrate checks and the site and SEO build pass (29 pages, 27 sitemap
+URLs). The share and copy paths were exercised on an emulated Android phone
+on both pages, and desktop was confirmed unchanged. At 1440, 1024, 768, 761,
+390, 380, 360, 340 and 320px in light and dark there is no horizontal
+overflow and the header stays on one row with the toggle beside Download.
