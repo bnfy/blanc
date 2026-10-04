@@ -106,3 +106,333 @@
 | `onOverlayToggle` | overlay | event | `overlay:toggle` | `() => void` | all |
 | `onIslandState` | island | event | `chrome:island-state` | `(payload: unknown) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: unknown) => void` | all |
+
+## Types
+
+### `Platform`
+
+Supported desktop platforms.
+
+`'darwin' \| 'win32' \| 'linux'`
+
+### `TabId`
+
+Opaque tab id minted by main (a UUID today).
+
+`string`
+
+### `GroupId`
+
+Opaque tab group id minted by main.
+
+`string`
+
+### `WorkspaceId`
+
+Opaque Named Workspace id.
+
+`string`
+
+### `ClosedEntryId`
+
+Opaque closed-entry id.
+
+`string`
+
+### `PermissionPromptId`
+
+Id of a pending permission prompt. Shape not yet pinned.
+
+`unknown`
+
+### `CaptureSurfaceId`
+
+Id of a capturing surface: a TabId for a tab, or `popup:<webContentsId>` for an auxiliary popup.
+
+`string`
+
+### `DisplayShareId`
+
+Id of an active screen share (`share-<n>`), minted by the display-capture registry.
+
+`string`
+
+### `BlockingProviderId`
+
+A blocking provider.
+
+`'blanc' \| 'ublock-origin'`
+
+### `ConnectionState`
+
+Connection claim for a committed URL. null in a payload means no claim (loading, or not HTTP).
+
+`'https' \| 'http' \| 'local'`
+
+### `TabLayout`
+
+Tab presentation; main ignores other values.
+
+`'island' \| 'vertical'`
+
+### `ThemePreference`
+
+Appearance preference.
+
+`'system' \| 'light' \| 'dark'`
+
+### `WorkspaceMoveDirection`
+
+Direction for reordering a workspace.
+
+`'up' \| 'down'`
+
+### `CreateTabOptions`
+
+Options for a new tab. Only `private` is read by main today.
+
+`{ private?: boolean }`
+
+### `OpenWorkspaceOptions`
+
+`force` skips the scratch guard after a confirmed "discard and switch".
+
+`{ force?: boolean }`
+
+### `Point`
+
+A point in window coordinates.
+
+`{ x: number; y: number }`
+
+### `Rect`
+
+A rectangle in window coordinates.
+
+`{ x: number; y: number; width: number; height: number }`
+
+### `Anchor`
+
+Popover anchor geometry. Shape not yet pinned.
+
+`unknown`
+
+### `PermissionPromptPayload`
+
+A pending permission prompt. Shape not yet pinned.
+
+`unknown`
+
+### `TabCapture`
+
+A tab's live capture state.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `audio` | `boolean` |  |
+| `video` | `boolean` |  |
+
+### `ShieldChip`
+
+Shield chip state, derived by shieldChipState() in shield-model.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `mode` | `'hidden' \| 'off' \| 'count' \| 'quiet'` |  |
+| `count` | `number` |  |
+| `title` | `string` |  |
+
+### `CertificateSummary`
+
+Certificate fields sanitized by sanitizeCertificate() in site-security.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `subject` | `string \| null` |  |
+| `issuer` | `string \| null` |  |
+| `validFrom` | `number \| null` | Milliseconds since the epoch. |
+| `validTo` | `number \| null` | Milliseconds since the epoch. |
+| `fingerprint` | `string \| null` |  |
+
+### `SiteInfo`
+
+Page-info model, built by buildSiteInfo() in site-security.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `state` | `'neutral' \| 'certificate-error' \| 'secure' \| 'local' \| 'insecure' \| 'internal'` |  |
+| `origin` | `string` |  |
+| `host` | `string` |  |
+| `title` | `string` |  |
+| `summary` | `string` |  |
+| `certificate` | `CertificateSummary \| null` |  |
+| `blockedCount` | `number` |  |
+| `permissions` | `unknown[]` | Always empty in tabs:updated today. |
+| `error?` | `string \| null` | Present only when state is certificate-error. |
+
+### `TabEntry`
+
+One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only state never crosses this projection.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `TabId` |  |
+| `title` | `string` |  |
+| `url` | `string` |  |
+| `isLoading` | `boolean` |  |
+| `canGoBack` | `boolean` |  |
+| `canGoForward` | `boolean` |  |
+| `favicon` | `string \| null` | A data:image/png;base64 URL, or null. Always null for private tabs. |
+| `bookmarked` | `boolean` | Whether the page is a Favorite. |
+| `blockedCount` | `number` |  |
+| `private` | `boolean` |  |
+| `pinned` | `boolean` |  |
+| `muted` | `boolean` |  |
+| `audible` | `boolean` | Playing sound that can reach the speakers. |
+| `groupId` | `GroupId \| null` |  |
+| `pageBg` | `string \| null` | Sampled top-edge page color. |
+| `themeColor` | `string \| null` | The page theme-color meta value. |
+| `asleep` | `boolean` | Quiet Tabs state. |
+| `capture` | `TabCapture` |  |
+| `fillHint` | `boolean` | A login form is present (structure only). |
+| `excepted` | `boolean` | Ads are allowed on this site. |
+| `shield` | `ShieldChip` |  |
+| `connection` | `ConnectionState \| null` |  |
+| `siteInfo` | `SiteInfo` |  |
+
+### `TabGroup`
+
+A tab group. Groups have names, not colors.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `GroupId` |  |
+| `name` | `string` |  |
+| `collapsed` | `boolean` |  |
+
+### `ClosedEntrySummary`
+
+A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `ClosedEntryId` |  |
+| `title` | `string` |  |
+| `favicon` | `string \| null` |  |
+| `tabCount` | `number` |  |
+
+### `ShieldProviderControls`
+
+Blocking provider controls, from shieldProviderModel() in shield-model.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `active` | `BlockingProviderId` |  |
+| `selected` | `BlockingProviderId` |  |
+| `choice` | `BlockingProviderId` |  |
+| `restartPending` | `boolean` |  |
+| `hidden` | `boolean` |  |
+| `disabled` | `boolean` |  |
+| `activeLabel` | `'Off' \| 'Active' \| 'Starting' \| 'Unavailable'` |  |
+| `ublockAvailable` | `boolean` |  |
+| `canOpenUblock` | `boolean` |  |
+| `detail` | `string` |  |
+| `availability` | `string` |  |
+| `scope` | `string` |  |
+
+### `ShieldPopover`
+
+The active tab's shield popover: shieldPopoverModel() plus provider controls.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `variant` | `'site' \| 'global-off' \| 'recovery' \| 'ublock'` |  |
+| `host` | `string` |  |
+| `on` | `boolean` |  |
+| `countLine` | `string` |  |
+| `connection` | `ConnectionState \| null` |  |
+| `controls` | `ShieldProviderControls` |  |
+
+### `CaptureChip`
+
+Window-wide capture chip state.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `audio` | `boolean` |  |
+| `video` | `boolean` |  |
+
+### `CaptureRow`
+
+One capturing surface in the capture popover.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `surfaceId` | `CaptureSurfaceId` |  |
+| `host` | `string` |  |
+| `kind` | `'tab' \| 'popup'` |  |
+| `audio` | `boolean` |  |
+| `video` | `boolean` |  |
+
+### `CapturePopover`
+
+Capture popover rows.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `rows` | `CaptureRow[]` |  |
+
+### `DisplayShareSummary`
+
+A screen share, projected by projectDisplayShares() in display-capture-indicator.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `shareId` | `DisplayShareId` |  |
+| `pending` | `boolean` |  |
+| `origin` | `string \| null` |  |
+| `surfaceLabel` | `string \| null` |  |
+| `surfaceKind` | `string \| null` |  |
+| `computerAudio` | `boolean` |  |
+| `tabId` | `TabId \| null` |  |
+
+### `TabsSnapshot`
+
+Result of getAllTabs, built by the tabs:get-all handler in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `tabs` | `TabEntry[]` |  |
+| `activeTabId` | `TabId \| null` |  |
+| `glanceTabId` | `TabId \| null` |  |
+| `groups` | `TabGroup[]` |  |
+| `closed` | `ClosedEntrySummary[]` |  |
+| `tabLayout` | `TabLayout` |  |
+| `verticalTabsWidth` | `number` |  |
+| `verticalTabsPreferredWidth` | `number` |  |
+| `verticalTabsMinWidth` | `number` |  |
+| `verticalTabsMaxWidth` | `number` |  |
+| `verticalTabsDefaultWidth` | `number` |  |
+
+### `TabsUpdatedPayload`
+
+The tabs:updated broadcast, built by currentTabsPayload() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `tabs` | `TabEntry[]` |  |
+| `activeTabId` | `TabId \| null` |  |
+| `glanceTabId` | `TabId \| null` |  |
+| `groups` | `TabGroup[]` |  |
+| `closed` | `ClosedEntrySummary[]` |  |
+| `tabLayout` | `TabLayout` |  |
+| `adblockEnabled` | `boolean` |  |
+| `shieldPopover` | `ShieldPopover \| null` |  |
+| `captureChip` | `CaptureChip` |  |
+| `capturePopover` | `CapturePopover` |  |
+| `displayShares` | `DisplayShareSummary[]` |  |
+| `verticalTabsWidth` | `number` |  |
+| `verticalTabsPreferredWidth` | `number` |  |
+| `verticalTabsMinWidth` | `number` |  |
+| `verticalTabsMaxWidth` | `number` |  |
+| `verticalTabsDefaultWidth` | `number` |  |

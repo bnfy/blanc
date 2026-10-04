@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -51,7 +52,14 @@ export function validateContract(contract) {
     for (const id of typeRefs(stripped)) if (!known.has(id)) problems.push(`${where}: unknown type "${id}"`);
   };
   for (const [name, t] of Object.entries(contract.types ?? {})) {
-    if (typeof t.ts !== 'string') problems.push(`types.${name}: missing ts`);
+    if (!t.doc) problems.push(`types.${name}: missing doc`);
+    if (t.fields && t.ts !== undefined) problems.push(`types.${name}: has both ts and fields`);
+    if (t.fields) {
+      for (const [field, spec] of Object.entries(t.fields)) {
+        if (typeof spec.type !== 'string') problems.push(`types.${name}.${field}: missing type`);
+        else knownOrField(spec.type, `types.${name}.${field}`);
+      }
+    } else if (typeof t.ts !== 'string') problems.push(`types.${name}: missing ts or fields`);
     else knownOrField(t.ts, `types.${name}`);
   }
   const seen = new Set();
@@ -89,7 +97,13 @@ export function genDts(contract) {
     '// The window.browserAPI surface exposed by src/main/preload.js to Blanc\'s trusted\n' +
     `// chrome documents: ${contract.surfaces.join(', ')}.\n\n`;
   for (const [name, t] of Object.entries(contract.types)) {
-    out += `/** ${t.doc} */\nexport type ${name} = ${t.ts};\n\n`;
+    if (!t.fields) { out += `/** ${t.doc} */\nexport type ${name} = ${t.ts};\n\n`; continue; }
+    out += `/** ${t.doc} */\nexport interface ${name} {\n`;
+    for (const [field, spec] of Object.entries(t.fields)) {
+      if (spec.doc) out += `  /** ${spec.doc} */\n`;
+      out += `  ${field}${spec.optional ? '?' : ''}: ${spec.type};\n`;
+    }
+    out += '}\n\n';
   }
   out += 'export interface BlancBrowserAPI {\n';
   for (const m of contract.members) {
@@ -127,6 +141,15 @@ export function genReference(contract) {
     else if (m.kind === 'event') sig = m.payload === null ? '() => void' : `(payload: ${m.payload}) => void`;
     else sig = `(${paramList(m)})${m.kind === 'invoke' ? ` => Promise<${m.returns}>` : ''}`;
     out += `| \`${m.name}\` | ${m.group} | ${m.kind} | ${m.channel ? `\`${m.channel}\`` : '—'} | \`${esc(sig)}\` | ${m.platforms ? m.platforms.join(', ') : 'all'} |\n`;
+  }
+  out += '\n## Types\n';
+  for (const [name, t] of Object.entries(contract.types)) {
+    out += `\n### \`${name}\`\n\n${t.doc}\n\n`;
+    if (!t.fields) { out += `\`${esc(t.ts)}\`\n`; continue; }
+    out += '| Field | Type | Notes |\n| --- | --- | --- |\n';
+    for (const [field, spec] of Object.entries(t.fields)) {
+      out += `| \`${field}${spec.optional ? '?' : ''}\` | \`${esc(spec.type)}\` | ${esc(spec.doc ?? '')} |\n`;
+    }
   }
   return out;
 }
@@ -256,6 +279,251 @@ export function checkPreload(contract, source) {
   return problems;
 }
 
+// ---- runtime value validation ----
+// A deliberately small validator for the type expressions the contract uses:
+// primitives, string literals, unions, `T[]`, and named types (structured
+// `fields` types are checked strictly: every required field present, no extras).
+// Inline object literals in `ts` strings are not interpreted.
+function splitUnion(expr) {
+  return expr.split('|').map((s) => s.trim()).filter(Boolean);
+}
+
+function describe(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value === 'string' ? JSON.stringify(value) : typeof value;
+}
+
+export function validateValue(value, expr, contract, where = 'value') {
+  if (expr.includes('{')) return [];
+  const alternatives = splitUnion(expr);
+  const results = alternatives.map((alt) => validateAlternative(value, alt, contract, where));
+  if (results.some((r) => r.length === 0)) return [];
+  return alternatives.length === 1 ? results[0] : [`${where}: expected ${expr}, got ${describe(value)}`];
+}
+
+function validateAlternative(value, alt, contract, where) {
+  const fail = [`${where}: expected ${alt}, got ${describe(value)}`];
+  if (alt === 'unknown') return [];
+  if (alt === 'string') return typeof value === 'string' ? [] : fail;
+  if (alt === 'number') return Number.isFinite(value) ? [] : fail;
+  if (alt === 'boolean') return typeof value === 'boolean' ? [] : fail;
+  if (alt === 'null') return value === null ? [] : fail;
+  if (/^'[^']*'$/.test(alt)) return value === alt.slice(1, -1) ? [] : fail;
+  if (alt.endsWith('[]')) {
+    if (!Array.isArray(value)) return fail;
+    return value.flatMap((item, i) => validateValue(item, alt.slice(0, -2), contract, `${where}[${i}]`));
+  }
+  const type = contract.types[alt];
+  if (!type) return [`${where}: unknown type ${alt}`];
+  if (!type.fields) return validateValue(value, type.ts, contract, where);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return fail;
+  const problems = [];
+  for (const [field, spec] of Object.entries(type.fields)) {
+    if (!(field in value)) {
+      if (!spec.optional) problems.push(`${where}.${field}: missing (${alt})`);
+      continue;
+    }
+    problems.push(...validateValue(value[field], spec.type, contract, `${where}.${field}`));
+  }
+  for (const key of Object.keys(value)) {
+    if (!(key in type.fields)) problems.push(`${where}.${key}: not a field of ${alt}`);
+  }
+  return problems;
+}
+
+// ---- payload checks ----
+// tabs:updated is assembled in main.js from pure helper modules plus a few
+// inline object literals. The helpers are executed on fixtures that cover
+// their branches and the results validated against the contract; the inline
+// literals in main.js are compared by key with the contract's fields.
+const requireMain = createRequire(path.join(MAIN_DIR, 'main.js'));
+
+function stripComments(text) {
+  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/[^\n]*/g, '$1');
+}
+
+// From the `{` at `start`, return the text up to its matching `}`, skipping
+// quoted strings.
+function balanced(text, start) {
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"') {
+      for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+      continue;
+    }
+    if (ch === '{') depth++;
+    else if (ch === '}' && --depth === 0) return text.slice(start, i + 1);
+  }
+  throw new Error(`unbalanced braces from offset ${start}`);
+}
+
+// Top-level keys of an object literal (`{ a: 1, b, ...c }` → keys a, b and spread c).
+export function literalKeys(objectText) {
+  const body = objectText.slice(1, -1);
+  const entries = [];
+  let depth = 0;
+  let current = '';
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      let j = i + 1;
+      for (; j < body.length && body[j] !== ch; j++) if (body[j] === '\\') j++;
+      current += body.slice(i, j + 1);
+      i = j;
+      continue;
+    }
+    if ('{[('.includes(ch)) depth++;
+    if ('}])'.includes(ch)) depth--;
+    if (ch === ',' && depth === 0) { entries.push(current); current = ''; continue; }
+    current += ch;
+  }
+  entries.push(current);
+  const keys = [];
+  const spreads = [];
+  for (const raw of entries.map((e) => e.trim()).filter(Boolean)) {
+    if (raw.startsWith('...')) { spreads.push(raw.slice(3).trim()); continue; }
+    const m = raw.match(/^([A-Za-z_$][\w$]*)\s*(?::|$)/);
+    if (m) keys.push(m[1]);
+    else throw new Error(`cannot read object key from "${raw.slice(0, 40)}"`);
+  }
+  return { keys, spreads };
+}
+
+function functionBody(source, name) {
+  const at = source.indexOf(`function ${name}(`);
+  if (at < 0) throw new Error(`function ${name} not found in main.js`);
+  return balanced(source, source.indexOf('{', source.indexOf(')', at)));
+}
+
+function objectAfter(text, marker, { last = false } = {}) {
+  const at = last ? text.lastIndexOf(marker) : text.indexOf(marker);
+  if (at < 0) throw new Error(`"${marker}" not found`);
+  return balanced(text, text.indexOf('{', at));
+}
+
+function compareKeys(label, actual, typeName, contract) {
+  const expected = Object.keys(contract.types[typeName].fields);
+  const missing = expected.filter((k) => !actual.includes(k));
+  const extra = actual.filter((k) => !expected.includes(k));
+  return [
+    ...missing.map((k) => `${label}: contract field ${typeName}.${k} is not produced in main.js`),
+    ...extra.map((k) => `${label}: main.js produces "${k}", which is not a field of ${typeName}`),
+  ];
+}
+
+export function checkMainPayloadKeys(contract, mainSource = fs.readFileSync(path.join(MAIN_DIR, 'main.js'), 'utf8')) {
+  const source = stripComments(mainSource);
+  const problems = [];
+  try {
+    const metrics = literalKeys(objectAfter(functionBody(source, 'verticalTabsMetrics'), 'return')).keys;
+    const captureFn = functionBody(source, 'captureBroadcastState');
+    const capture = literalKeys(objectAfter(captureFn, 'return', { last: true })).keys;
+    const resolveSpreads = (label, { keys, spreads }) => {
+      const out = [...keys];
+      for (const spread of spreads) {
+        if (spread === 'widthMetrics' || spread === 'verticalTabsMetrics()') out.push(...metrics);
+        else if (spread === 'captureBroadcastState(serialized)') out.push(...capture);
+        else problems.push(`${label}: unrecognized spread "...${spread}"; teach browser-api/build.mjs how to read it`);
+      }
+      return out;
+    };
+
+    // TabEntry: the `rest` allowlist plus the derived fields both returns add.
+    const serialize = functionBody(source, 'serializeTabs');
+    const rest = literalKeys(objectAfter(serialize, 'const rest =')).keys;
+    const returns = [...serialize.matchAll(/return \{ \.\.\.rest,/g)].map((m) => literalKeys(balanced(serialize, m.index + 7)));
+    if (returns.length === 0) problems.push('serializeTabs: no `return { ...rest, ... }` found');
+    const derived = returns.map((r) => r.keys.filter((k) => !rest.includes(k)));
+    if (derived.some((d) => JSON.stringify(d) !== JSON.stringify(derived[0]))) {
+      problems.push(`serializeTabs: its returns add different fields (${derived.map((d) => d.join(',')).join(' vs ')})`);
+    }
+    problems.push(...compareKeys('serializeTabs', [...rest, ...(derived[0] ?? [])], 'TabEntry', contract));
+
+    problems.push(...compareKeys('currentTabsPayload',
+      resolveSpreads('currentTabsPayload', literalKeys(objectAfter(functionBody(source, 'currentTabsPayload'), 'return'))),
+      'TabsUpdatedPayload', contract));
+
+    const getAll = source.indexOf("chromeHandle('tabs:get-all'");
+    if (getAll < 0) problems.push("tabs:get-all handler not found in main.js");
+    else problems.push(...compareKeys('tabs:get-all', resolveSpreads('tabs:get-all', literalKeys(balanced(source, source.indexOf('{', getAll)))), 'TabsSnapshot', contract));
+
+    for (const m of captureFn.matchAll(/rows\.push\(\{/g)) {
+      problems.push(...compareKeys('captureBroadcastState row', literalKeys(balanced(captureFn, m.index + 10)).keys, 'CaptureRow', contract));
+    }
+  } catch (error) {
+    problems.push(`main.js payload literals could not be read: ${error.message}`);
+  }
+  return problems;
+}
+
+export function payloadFixtures() {
+  const { shieldChipState, connectionFor, shieldPopoverModel, shieldProviderModel } = requireMain('./shield-model');
+  const { buildSiteInfo, sanitizeCertificate } = requireMain('./site-security');
+  const { projectEntries } = requireMain('./closed-tabs');
+  const { projectDisplayShares } = requireMain('./display-capture-indicator');
+  const captureState = requireMain('./capture-state');
+
+  const urls = ['https://example.com/a', 'http://example.com/', 'http://localhost:3000/', 'blanc://newtab/', 'file:///tmp/x.html', 'not a url', ''];
+  const cert = sanitizeCertificate({ subjectName: 'example.com', issuerName: 'Example CA', validStart: 1700000000, validExpiry: 1800000000, fingerprint: 'sha256/abc' });
+  const statuses = [
+    undefined,
+    { active: 'blanc', selected: 'blanc', phase: 'ready', enabled: true, supported: true, exposed: true },
+    { active: 'ublock-origin', selected: 'ublock-origin', phase: 'ready', enabled: true, supported: true, exposed: true },
+    { active: 'blanc', selected: 'ublock-origin', phase: 'initializing', enabled: true, supported: true, exposed: true, restartPending: true },
+    { active: 'blanc', selected: 'blanc', phase: 'failed', enabled: false, supported: false, exposed: true, fallback: 'manifest-v2-retired' },
+    { active: 'blanc', selected: 'blanc', phase: 'disabled', enabled: false, supported: true, exposed: false },
+  ];
+
+  const cases = [];
+  const add = (label, type, value) => cases.push({ label, type, value });
+  for (const url of urls) {
+    for (const provider of ['blanc', 'ublock-origin']) {
+      for (const readiness of ['ready', 'failed']) {
+        for (const [excepted, adblockEnabled, blockedCount] of [[false, true, 0], [false, true, 3], [true, true, 1], [false, false, 2]]) {
+          add(`shieldChipState(${url}, ${provider}, ${readiness})`, 'ShieldChip', shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider, readiness }));
+          for (const status of statuses) {
+            for (const privateTab of [false, true]) {
+              const model = shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, provider, readiness, connection: connectionFor({ url, isLoading: false }) });
+              if (model) add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab) });
+            }
+          }
+        }
+      }
+    }
+    for (const isLoading of [false, true]) add(`connectionFor(${url})`, 'ConnectionState | null', connectionFor({ url, isLoading }));
+    add(`buildSiteInfo(${url})`, 'SiteInfo', buildSiteInfo(url, { blockedCount: 2 }));
+    add(`buildSiteInfo(${url}, certificate)`, 'SiteInfo', buildSiteInfo(url, { certificateRecord: { certificate: cert, isIssuedByKnownRoot: false } }));
+  }
+  add('buildSiteInfo(certificate error)', 'SiteInfo', buildSiteInfo('https://expired.example/', {
+    certificateError: { url: 'https://expired.example/', error: 'net::ERR_CERT_DATE_INVALID', certificate: cert },
+  }));
+  add('sanitizeCertificate', 'CertificateSummary | null', cert);
+  add('sanitizeCertificate(empty)', 'CertificateSummary | null', sanitizeCertificate({}));
+  add('sanitizeCertificate(none)', 'CertificateSummary | null', sanitizeCertificate(null));
+  add('projectEntries', 'ClosedEntrySummary[]', projectEntries([
+    { id: 'c1', kind: 'tab', title: 'Docs', favicon: 'data:image/png;base64,AAAA' },
+    { id: 'c2', kind: 'tab', title: 'Remote', favicon: 'https://example.com/favicon.ico' },
+    { id: 'c3', kind: 'group', group: { name: 'research' }, tabs: [{}, {}] },
+    { id: 'c4', kind: 'batch', tabs: [{}, {}, {}] },
+  ]));
+  add('projectDisplayShares', 'DisplayShareSummary[]', projectDisplayShares([
+    { shareId: 'share-1', pending: true, origin: 'https://meet.example', surfaceLabel: 'Screen 1', surfaceKind: 'screen', computerAudio: true, tabId: 't1' },
+    { shareId: 'share-2', tabId: 't1' },
+  ], { tabIds: ['t1'] }));
+  add('capture projection', 'TabCapture', captureState.projection(captureState.createCaptureRecord()));
+  return cases;
+}
+
+export function checkPayloads(contract) {
+  const problems = [...checkMainPayloadKeys(contract)];
+  for (const { label, type, value } of payloadFixtures()) {
+    problems.push(...validateValue(value, type, contract, label));
+  }
+  return [...new Set(problems)];
+}
+
 // ---- main + renderer cross-checks ----
 function jsFiles(dir) {
   return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => path.join(dir, f));
@@ -298,6 +566,7 @@ export function check(contract = loadContract()) {
     ['preload', checkPreload(contract)],
     ['main', checkMain(contract)],
     ['renderers', checkRenderers(contract)],
+    ['payloads', checkPayloads(contract)],
   ];
   const stale = [];
   for (const [name, content] of Object.entries(artifacts(contract))) {
