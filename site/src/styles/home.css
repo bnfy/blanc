@@ -2409,3 +2409,26 @@ html[data-home-appearance] .home-revamp #tools .glance-actions button:is(:hover,
   .home-revamp .layout-caption { text-align: center; margin-right: 0; }
   .home-revamp .start-frame .start-discovery { justify-content: center; margin-top: 14px; }
 }
+
+/* Closing: the trust facts read as three even columns with hairline
+   dividers, the gap before the final call to action stays proportionate,
+   and the Patron footnote keeps a readable line length. */
+.home-revamp #closing .trust-intro { padding-bottom: 32px; }
+.home-revamp #closing .home-foundations { gap: 0; }
+.home-revamp #closing .home-foundations > div { gap: 6px; padding: 4px 32px; }
+.home-revamp #closing .home-foundations > div:first-child { padding-left: 0; }
+.home-revamp #closing .home-foundations > div + div { border-left: 1px solid var(--line); }
+.home-revamp #closing .home-foundations > div > span { font-size: 12px; }
+.home-revamp #closing .home-foundations strong { font-size: 16px; }
+.home-revamp #closing .home-foundations a { font-size: 12px; }
+.home-revamp #closing .trust-summary h2 { font-size: 15px; }
+.home-revamp #closing .download-close { padding-top: 64px; }
+.home-revamp .patron-cta { gap: 8px; }
+.home-revamp .patron-boundary { padding-right: max(0px, calc(100% - 78ch)); color: #b9b0a2; }
+@media (max-width: 760px) {
+  .home-revamp #closing .trust-intro { padding-bottom: 24px; }
+  .home-revamp #closing .home-foundations { gap: 20px; }
+  .home-revamp #closing .home-foundations > div { padding: 0; }
+  .home-revamp #closing .home-foundations > div + div { border-left: 0; padding-top: 20px; border-top: 1px solid var(--line); }
+  .home-revamp #closing .download-close { padding-top: 48px; }
+}
