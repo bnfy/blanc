@@ -1,9 +1,7 @@
 ---
-import { directLinks } from "../data/navigation.mjs";
+import { directLinks, pagePath } from "../data/navigation.mjs";
 const { current = null } = Astro.props;
-const path =
-  Astro.url.pathname.replace(/\.html$/, "").replace(/\/$/, "") || "/";
-const onHome = path === "/";
+const onHome = pagePath(Astro.url.pathname) === "/";
 const hrefFor = (href) =>
   onHome && href.startsWith("/#") ? href.slice(1) : href;
 ---

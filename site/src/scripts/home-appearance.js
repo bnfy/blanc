@@ -23,6 +23,8 @@ export function restoreHomeAppearance(document, view) {
 export function initHomeAppearance({ document = window.document, view = window, onChange = () => {} } = {}) {
   const root = document.documentElement;
   const button = document.getElementById('home-appearance');
+  // The prepaint script has already applied the theme; without a toggle there is nothing to wire.
+  if (!button) return;
   let system = null;
   try { system = view.matchMedia(SYSTEM_DARK); } catch { /* Only the toggle changes the page. */ }
   let followSystem = true;
