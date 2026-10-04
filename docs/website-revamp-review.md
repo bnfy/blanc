@@ -801,3 +801,20 @@ the card, so the same detail shows from 320px to 760px. The Island demo is
 unchanged: it already crops to the bar on phones and its layered, clickable
 animation depends on the full capture geometry. Desktop is unchanged. A unit
 check keeps the phone rules in place.
+
+## Homepage content (October 4)
+
+Round 2, milestone E, using the wording approved in the round-2 spec (§8):
+the hero lead now says what the Island leaves you (the rest of the window for
+the page); a new "Switching to Blanc" section covers bookmark import, Bring
+Your Tabs, vertical tabs and default-browser setup; the closing line names
+Bananify as an independent software studio; the data paragraph becomes a
+"What Blanc sends" list with the same facts plus the search-suggestion detail
+from the privacy policy; the Patron boundary is two sentences (the
+lifetime-supporter line stays on Support, About, Download and the Workspaces
+guide); the 1Password and Quiet Tabs small print is shorter; and the header's
+Features link opens the `/features` overview. The claims ledger retires the
+seven replaced entries with a reason and adds the new wording; Bring Your Tabs
+cites a new `tabImport` evidence group (`chromium-session.js` and the
+tab-import modules at v1.27.0). The trust test's pinned disclosure phrases
+were updated in the same commit.

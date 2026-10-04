@@ -1864,6 +1864,24 @@
   line-height: 1.8;
   margin-top: 10px;
 }
+.home-revamp .privacy-disclosure .data-sends-title {
+  margin-top: 20px;
+  font: 600 13px/1.5 var(--font-ui);
+  color: var(--ink);
+}
+.home-revamp .privacy-disclosure .data-sends {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.home-revamp .privacy-disclosure .data-sends li + li {
+  margin-top: 6px;
+}
+.home-revamp .switching-list a {
+  white-space: nowrap;
+}
 .home-revamp .privacy-disclosure .material-limit {
   margin-top: 0;
   border-top: 0;
