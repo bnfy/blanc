@@ -129,13 +129,29 @@ try {
   await filters.locator('.CodeMirror textarea').press('ControlOrMeta+End');
   await filters.locator('.CodeMirror textarea').press('Enter');
   await dashboard.keyboard.insertText('/dashboard-blocked.js$script');
+  await filters.waitForFunction(() => document.querySelector('.CodeMirror').CodeMirror.getValue()
+    .split('\n').some(line => line.trim() === '/dashboard-blocked.js$script'));
+  assert.equal(await filters.locator('#enableMyFilters input').isChecked(), true, 'native My filters remains enabled');
   await filters.locator('#userFiltersApply:not([disabled])').waitFor();
   await dashboard.locator('[data-pane="settings.html"]').click();
   await dashboard.locator('#unsavedWarning.on').waitFor();
   await dashboard.locator('[data-i18n="dashboardUnsavedWarningStay"]').click();
   assert(filters.url().endsWith('/1p-filters.html'));
+  // Upstream acknowledges storage and disables Apply before its separate
+  // reloadAllFilters operation finishes. Observe the original freeze/completion
+  // broadcast; never load filters ourselves or permit a blocked fixture hit.
+  await filters.evaluate(() => {
+    self.dashboardFilterReloadDone = false;
+    const channel = new BroadcastChannel('uBO');
+    channel.onmessage = event => {
+      if (event.data?.what !== 'staticFilteringDataChanged') return;
+      self.dashboardFilterReloadDone = true;
+      channel.close();
+    };
+  });
   await filters.locator('#userFiltersApply').click();
-  await waitForValue(() => filters.locator('#userFiltersApply').isDisabled(), Boolean, 'native filters applied');
+  await waitForValue(() => filters.locator('#userFiltersApply').isDisabled(), Boolean, 'native filters saved');
+  await filters.waitForFunction(() => self.dashboardFilterReloadDone === true, null, { timeout: 20000 });
   settings = await select('settings.html');
   assert.equal(await settings.locator('[data-setting-name="contextMenuEnabled"]').isChecked(), !beforeMenu);
   lists = await select('3p-filters.html');

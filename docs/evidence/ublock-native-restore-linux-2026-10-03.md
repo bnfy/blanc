@@ -1,6 +1,7 @@
 # Linux uBO backup restore: native focus crash and verification
 
-Status: native fix under verification; publication remains pending.
+Status: native fix verified in restore stress and installed candidates; final
+merged-head checks and publication remain pending.
 No sandbox flags, Electron executable, blocking deadline, or uBO restore
 assertions were relaxed.
 
@@ -76,6 +77,46 @@ performance claims.
 
 All four normal desktop jobs and ordinary packaging passed at the same runtime
 in [run 37166947290](https://github.com/bnfy/blanc/actions/runs/37166947290).
-Three further fresh-process Linux stress runs with hidden/native-child bounds
-assertions and updated installed Windows/Linux candidates are pending.
-Passing a non-stress run alone is not treated as proof of a fix.
+[Run 37167160303](https://github.com/bnfy/blanc/actions/runs/37167160303)
+then passed three fresh-process launches, each with all 30 actual imports and
+reloads plus the complete remaining suite (90 additional restores). Every
+launch kept background tool views hidden. The native child count started at
+2, peaked at 3 when the regular fixture was attached, and had zero retired
+children after each restore. All six browser-process exits, including the
+three offline relaunches, were normal. The fix therefore passed 120 native
+Linux restore iterations over four fresh suite launches.
+
+[Sanitized machine-readable observations](ublock-native-restore-linux-2026-10-03.json)
+retain the before/after source bindings and each stress launch's counts.
+
+The refreshed signed Windows installer and outer Linux AppImage passed their
+installed provider/restart/persistence/close/relaunch and no-scripting tests in
+[run 37167093493](https://github.com/bnfy/blanc/actions/runs/37167093493),
+including Ubuntu 22.04/24.04 launch and sandbox checks. That run used the
+corrected runtime source `4ec65787`. The subsequent merge of main restores the
+owner-approved original shield SVG, removes its retired PNG, and changes its
+asset allowlist/CSS; it does not change the native lifecycle fix. Isolated Mac
+shield and real-blocking suites passed after the merge. A further installed
+Windows/Linux run at merged source `77e27349` is pending before publication.
+
+These tests support the targeted root-lifetime explanation; they do not
+establish a general absence of native runtime defects. Passing a non-stress
+run alone was not treated as proof of a fix.
+
+
+## Final merged-head dashboard check
+
+At merged source `77e27349`, the Mac arm64 job's core blocking, restore,
+lifecycle and privacy suite passed. The later Dashboard presentation suite
+failed its strict custom-filter no-server-hit assertion. Upstream
+`1p-filters.js:266–280` saves filters and disables Apply, then independently
+sends `reloadAllFilters`; that operation's completion is broadcast as
+`staticFilteringDataChanged` after engine freeze in `storage.js`.
+The test had treated the disabled button as engine readiness.
+
+The test now checks that native CodeMirror keyboard input produced the exact
+standalone fixture filter and that My filters is enabled, then observes uBO's
+own completion broadcast before navigating. It does not set editor contents,
+reload the engine itself, weaken the no-hit assertion, change a production
+filtering deadline, or alter upstream code. The corrected Dashboard suite
+passed locally; final native CI is required before the merge.
