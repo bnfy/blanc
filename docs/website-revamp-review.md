@@ -116,7 +116,7 @@ public authentication links use the completed post-release evidence revision.
   tabs, not a new public-release screenshot; desktop renderer code never runs
   on the site. The Horizon Shield artwork retains the launch gate below.
   After the owner's perspective correction, the level Island tilts backward
-  48 degrees around its horizontal axis: its top recedes toward the center,
+  60 degrees around its horizontal axis: its top recedes toward the center,
   with no sideways yaw or roll. Hover eases it upright and head-on; leaving
   restores the current scroll perspective. A stable hit area avoids flicker as
   its projected shape changes. Bounded scroll parallax is presentation only.

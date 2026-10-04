@@ -87,12 +87,12 @@ test('parallax is bounded, frame-batched, static for reduced motion and paused o
   observer([{isIntersecting:true}]);
   flush();
   preference.matches=true; preferenceChange();
-  assert.equal(values.get('--island-pitch'),'48deg');
+  assert.equal(values.get('--island-pitch'),'60deg');
   assert.equal(values.get('--island-pan-y'),'0px');
   events.get('scroll')();
   assert.equal(frames.size,0);
   stageEvents.get('pointerenter')({pointerType:'mouse'}); flush();
   assert.equal(values.get('--island-pitch'),'0deg', 'reduced motion still allows the static front view');
   stageEvents.get('pointerleave')(); flush();
-  assert.equal(values.get('--island-pitch'),'48deg');
+  assert.equal(values.get('--island-pitch'),'60deg');
 });

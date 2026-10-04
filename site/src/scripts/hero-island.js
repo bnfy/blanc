@@ -1,7 +1,7 @@
 export function islandPose(scroll, hovering = false) {
   const clamp = value => Math.max(-1, Math.min(1, value));
   return {
-    pitch: hovering ? 0 : 48 + clamp(scroll) * 5,
+    pitch: hovering ? 0 : 60 + clamp(scroll) * 5,
     x: 0,
     y: hovering ? 0 : clamp(scroll) * -18,
   };

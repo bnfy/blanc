@@ -14,7 +14,7 @@
   position: absolute;
   inset: 0 5%;
   transform: translate3d(var(--island-pan-x, 0px), var(--island-pan-y, 0px), 0)
-    rotateX(var(--island-pitch, 48deg));
+    rotateX(var(--island-pitch, 60deg));
   transform-origin: 50% 50%;
   transition: transform 650ms cubic-bezier(.22,1,.36,1);
   pointer-events: none;
