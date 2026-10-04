@@ -184,8 +184,10 @@ jobs:
           export BLANC_UBLOCK_RESTORE_STRESS=1
           # Write directly: detached crash-handler children may retain the
           # debugger's output handles after the browser has exited.
-          xvfb-run -a npm run test:ublock:desktop > dist/native-diagnostics/restore-stress.log 2>&1
-          tail -n 40 dist/native-diagnostics/restore-stress.log
+          for attempt in 1 2 3; do
+            xvfb-run -a npm run test:ublock:desktop > "dist/native-diagnostics/restore-stress-$attempt.log" 2>&1
+            tail -n 40 "dist/native-diagnostics/restore-stress-$attempt.log"
+          done
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:

@@ -531,6 +531,21 @@ try {
   // immediate webpage reload to expose rare teardown races. Default CI keeps
   // the original single pass; no assertion or provider deadline is changed.
   const restorePasses = process.env.BLANC_UBLOCK_RESTORE_STRESS === '1' ? 30 : 1;
+  const nativeToolRoots = () => electron.evaluate(({ BrowserWindow, WebContentsView, session }) => {
+    const windows = BrowserWindow.getAllWindows();
+    const views = windows.flatMap(win => win.contentView.children).filter(view => view instanceof WebContentsView);
+    const tools = views.filter(view => {
+      const wc = view.webContents;
+      return wc && !wc.isDestroyed() && wc.session === session.defaultSession
+        && /^chrome-extension:\/\/[^/]+\/(?:dashboard|logger-ui)\.html(?:[?#]|$)/.test(wc.getURL());
+    });
+    return { aura: ['win32', 'linux'].includes(process.platform), children: views.length,
+      retired: views.filter(view => !view.webContents || view.webContents.isDestroyed()).length,
+      tools: tools.map(view => ({ visible: view.getVisible() })) };
+  });
+  const nativeRootBaseline = await nativeToolRoots();
+  let nativeRootPeak = nativeRootBaseline.children;
+
   for (let iteration = 0; iteration < restorePasses; iteration++) {
     stage = `backup import and native reload ${iteration + 1}/${restorePasses}`;
     if (iteration > 0) {
@@ -550,8 +565,17 @@ try {
       const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
       return bg.executeJavaScript('µBlock.hiddenSettings.userResourcesLocation');
     }), 'unset');
+
+    if (nativeRootBaseline.aura) {
+      const roots = await waitForValue(nativeToolRoots, value => value.tools.length > 0 && value.retired === 0, 'live native tool roots');
+      assert(roots.tools.every(tool => !tool.visible), 'background tool views must stay hidden');
+      assert(roots.children <= nativeRootBaseline.children + 1, 'restore must not accumulate native child views');
+      assert.equal((await call('state')).activeTabId, regular, 'native focus restoration must not activate a hidden tool');
+      nativeRootPeak = Math.max(nativeRootPeak, roots.children);
+    }
     if (restorePasses > 1) console.log(`uBO native restore pass ${iteration + 1}/${restorePasses}`);
   }
+  if (nativeRootBaseline.aura) console.log('uBO native root observations:', JSON.stringify({ baselineChildren: nativeRootBaseline.children, peakChildren: nativeRootPeak, retiredChildren: 0, restores: restorePasses }));
   await call('openTab', fixture + 'strict-fixture');
   await waitForValue(async () => (await electron.windows()).some(item => item.url().includes('/document-blocked.html')), Boolean, 'strict-block page');
   assert(!hits.includes('/strict-fixture'));
