@@ -2272,9 +2272,92 @@
   .home-revamp .device-desktop .device-aperture .layout-shot[src*="tally"] { width: 300%; left: -188%; top: -40%; }
 }
 
-/* Everyday tools: one demo at a time (tool-demos.js). */
+/* Everyday tools: one demo at a time (tool-demos.js). The heading and the
+   switch share a row; both demos use the same compact header; the two tool
+   notes are matching cards. */
+.home-revamp #tools .frame-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: 32px;
+}
+.home-revamp #tools .frame-inner > :not(h2, .tool-switch) {
+  grid-column: 1 / -1;
+}
 .home-revamp .tool-switch {
-  margin: 28px 0 8px;
+  margin: 0 0 6px;
+}
+.home-revamp #tools .tool-feature,
+.home-revamp #tools .gesture-study {
+  margin-top: 40px;
+}
+.home-revamp #tools .gesture-heading {
+  display: block;
+  margin-bottom: 28px;
+}
+.home-revamp #tools .gesture-heading h3 {
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.home-revamp #tools .gesture-heading p {
+  max-width: 570px;
+  margin: 20px 0 0;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.home-revamp #tools .tools-list {
+  margin-top: 40px;
+  padding-top: 0;
+  border-top: 0;
+  gap: 20px;
+}
+.home-revamp #tools .tools-list article {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.5);
+}
+.home-revamp #tools .tools-list h3 { font-size: 24px; }
+.home-revamp #tools .tools-list .material-limit {
+  margin-top: 10px;
+  padding-top: 0;
+  border-top: 0;
+  color: var(--dim);
+}
+.home-revamp #tools .tools-list .material-limit a { white-space: nowrap; }
+/* Hierarchy: the demo switch is the section's one filled control; each
+   demo's own actions are quiet text buttons and its hint is a single line. */
+.home-revamp #tools .glance-invitation { gap: 8px; color: var(--dim); }
+.home-revamp #tools .glance-invitation > svg {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: none;
+}
+.home-revamp #tools .glance-invitation strong { display: none; }
+.home-revamp #tools .glance-invitation p { margin: 0; color: var(--dim); }
+html[data-home-appearance] .home-revamp #tools .glance-actions { gap: 4px; }
+html[data-home-appearance] .home-revamp #tools .glance-actions button {
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dim);
+  font-weight: 500;
+}
+html[data-home-appearance] .home-revamp #tools .glance-actions button:is(:hover, :focus-visible) {
+  background: transparent;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 760px) {
+  .home-revamp #tools .frame-inner { grid-template-columns: 1fr; }
+  .home-revamp .tool-switch { margin: 20px 0 0; }
+  .home-revamp #tools .tool-feature,
+  .home-revamp #tools .gesture-study { margin-top: 28px; }
 }
 .home-revamp .tool-switch[hidden],
 .home-revamp .tool-feature[hidden],
