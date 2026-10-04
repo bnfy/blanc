@@ -251,6 +251,21 @@ test('pausing during an autoplay decode prevents a late scene change', async () 
   assert.equal(p.timers.size, 0);
 });
 
+test('wallpaper scenes load their capture only when first selected', async () => {
+  const p = await fixture();
+  for (const key of Object.keys(p.scenes)) {
+    p.scenes[key].img.dataset = { src: `/${key}.webp` };
+    p.scenes[key].img.src = '';
+  }
+  p.time.value = '1'; p.time.events.input(); await settle();
+  assert.equal(p.scenes.day.img.src, '/day.webp');
+  assert.equal(p.scenes.dusk.img.src, '');
+  assert.equal(p.scenes['day-dark'].img.src, '');
+  p.button.events.click(); await settle();
+  assert.equal(p.scenes['day-dark'].img.src, '/day-dark.webp');
+  assert.equal(p.scenes.night.img.src, '');
+});
+
 test('the served theme colour matches the light header before any script runs', () => {
   const fs = require('node:fs');
   const layout = fs.readFileSync(path.resolve(__dirname, '../../site/src/layouts/BaseLayout.astro'), 'utf8');

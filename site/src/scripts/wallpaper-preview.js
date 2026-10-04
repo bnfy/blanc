@@ -29,7 +29,10 @@ export function initWallpaperPreview(daylight, { document = window.document, vie
       key = phase + (daylightDark ? "-dark" : "");
     const scene = daylight.querySelector('[data-hero-scene="' + key + '"]');
     try {
-      await scene.querySelector("img").decode();
+      const img = scene.querySelector("img");
+      // Only the first scene ships with src; the rest load when first shown.
+      if (img.dataset?.src && !img.src) img.src = img.dataset.src;
+      await img.decode();
     } catch {
       if (request === daylightGeneration) timeInput.value = String(daylightIndex);
       return false;
