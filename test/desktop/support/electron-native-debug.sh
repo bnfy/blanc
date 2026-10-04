@@ -4,6 +4,9 @@
 set -euo pipefail
 : "${BLANC_UBLOCK_NATIVE_EXECUTABLE:?Official fixture executable required}"
 exec gdb --batch --return-child-result \
+  --eval-command="set logging file ${BLANC_UBLOCK_NATIVE_STACK_DIR:?Stack directory required}/native-$$.txt" \
+  --eval-command='set logging overwrite on' \
+  --eval-command='set logging enabled on' \
   --eval-command='set pagination off' \
   --eval-command='set print thread-events off' \
   --eval-command='handle SIGPIPE nostop noprint pass' \

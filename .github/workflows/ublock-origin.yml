@@ -178,6 +178,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist/native-diagnostics
+          export BLANC_UBLOCK_NATIVE_STACK_DIR="$PWD/dist/native-diagnostics"
           export BLANC_UBLOCK_NATIVE_EXECUTABLE="$PWD/node_modules/electron/dist/electron"
           export BLANC_UBLOCK_ELECTRON="$PWD/test/desktop/support/electron-native-debug.sh"
           for attempt in 1 2 3 4 5; do
@@ -187,5 +188,5 @@ jobs:
         if: always()
         with:
           name: linux-native-stacks-${{ github.run_id }}
-          path: dist/native-diagnostics/*.log
+          path: dist/native-diagnostics/*
           retention-days: 3
