@@ -397,25 +397,23 @@ const structuredData = {
     <section class="beat" id="tabs" aria-labelledby="tabs-title">
       <div class="frame">
         <div class="frame-inner">
-          <div class="split-title tabs-intro">
-            <div>
+          <div class="tabs-layout">
+            <div class="tabs-copy">
               <p class="frame-kicker">Tabs and sessions</p>
               <h2 id="tabs-title">Organize tabs<br />into groups.</h2>
+              <p class="lead">Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.</p>
+              <p class="tabs-note">Tab groups are free. <a href="#patron">Patron adds saved Named Workspaces.</a></p>
+              <nav class="tabs-links" aria-label="More about tabs and sessions">
+                <a href="/features/tab-groups">Tab groups <span aria-hidden="true">→</span></a>
+                <a href="/features/reopen-closed-tabs">Recently Closed <span aria-hidden="true">→</span></a>
+                <a href="/features/profiles">Profiles <span aria-hidden="true">→</span></a>
+                <a href="/features/sync">Sync <span aria-hidden="true">→</span></a>
+              </nav>
             </div>
-            <p class="lead">Bring related tabs together in named groups. Fold a group away when you want a quieter view. You choose what belongs together.</p>
-          </div>
-          <figure class="tabs-capture">
+            <figure class="tabs-capture">
               <img src="/revamp/tab-groups-native.webp" width="1240" height="652" loading="lazy" decoding="async" alt="Blanc v1.27.0 on macOS: the Island shows an explore group with two NASA pages and a reading group with Typography and Scandinavian design. Each group has a fold control, tab count and keyboard shortcut." />
-            <figcaption class="sr-only">Actual Blanc interface with sample tabs.</figcaption>
-          </figure>
-          <div class="tabs-followthrough">
-            <p>Tab groups are free. <a href="#patron">Patron adds saved Named Workspaces.</a></p>
-            <nav aria-label="More about tabs and sessions">
-              <a href="/features/tab-groups">Tab groups <span aria-hidden="true">→</span></a>
-              <a href="/features/reopen-closed-tabs">Recently Closed <span aria-hidden="true">→</span></a>
-              <a href="/features/profiles">Profiles <span aria-hidden="true">→</span></a>
-              <a href="/features/sync">Sync <span aria-hidden="true">→</span></a>
-            </nav>
+              <figcaption class="sr-only">Actual Blanc interface with sample tabs.</figcaption>
+            </figure>
           </div>
         </div>
       </div>
@@ -431,13 +429,15 @@ const structuredData = {
             </header>
             <HorizonShield variant="blocker" />
             <div class="blocking-options">
-              <div class="blocking-option">
-                <h3>Blanc Blocker</h3>
-                <p>Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.</p>
-              </div>
-              <div class="blocking-option">
-                <h3>uBlock Origin</h3>
-                <p>Customizable filter lists, advanced settings and a request logger for regular tabs.</p>
+              <div class="blocking-choice">
+                <div class="blocking-option">
+                  <div class="blocking-option-head"><h3>Blanc Blocker</h3><span class="blocking-badge is-default">Default</span></div>
+                  <p>Ghostery’s blocking engine with bundled EasyList ad filters, EasyPrivacy tracker filters and scriptlets.</p>
+                </div>
+                <div class="blocking-option">
+                  <div class="blocking-option-head"><h3>uBlock Origin</h3><span class="blocking-badge">Optional</span></div>
+                  <p>Customizable filter lists, advanced settings and a request logger for regular tabs.</p>
+                </div>
               </div>
               <p class="blocking-provider-note">Private tabs use Blanc Blocker. Changing blockers requires a restart. Site settings stay separate.</p>
             </div>
@@ -446,6 +446,14 @@ const structuredData = {
             <div>
               <h3>Private tabs and data settings.</h3>
               <p>Open a private tab when you choose. Optional connections start only after you save your setup choices.</p>
+              <p class="material-limit">
+                Blocking reduces known ads and tracking; coverage is not universal. <a
+                  href="/trust#connections"
+                  >Connections, defaults and security evidence →</a>
+                <a href="/trust#ad-blocking">Blocking details →</a>
+              </p>
+            </div>
+            <div class="data-sends-card">
               <h4 class="data-sends-title">What Blanc sends</h4>
               <ul class="data-sends">
                 <li>Usage measurement, preselected: pseudonymous launch and fixed feature-use events to Blanc’s collector, with an optional Google Analytics mirror. No URLs, searches or page contents.</li>
@@ -453,12 +461,6 @@ const structuredData = {
                 <li>Turn either off before saving, or later in Settings.</li>
               </ul>
             </div>
-            <p class="material-limit">
-              Blocking reduces known ads and tracking; coverage is not universal. <a
-                href="/trust#connections"
-                >Connections, defaults and security evidence →</a>
-              <a href="/trust#ad-blocking">Blocking details →</a>
-            </p>
           </div>
         </div>
       </div>
