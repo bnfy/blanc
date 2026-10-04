@@ -136,10 +136,8 @@ html[data-home-appearance] .home-revamp :is(.glance-window, .glance-chrome, .gla
 }
 html[data-home-appearance] .home-revamp .hero-wallpaper-scene { transition-duration: var(--home-motion); }
 
-@media (max-width: 760px) {
-  html[data-home-appearance="dark"] .revamp-nav .site-nav-cta,
-  html[data-home-appearance="dark"] .revamp-nav .site-nav-cta:hover { color: var(--home-on-selected); }
-}
+html[data-home-appearance="dark"] .revamp-nav .site-nav-cta { color: var(--home-on-selected); }
+html[data-home-appearance="dark"] .revamp-nav .site-nav-cta:hover { color: var(--home-on-selected); background: #fff; }
 @media (prefers-reduced-motion: no-preference) {
   html[data-home-appearance-ready="true"] { --home-motion: 250ms; }
 }

@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.resolve(__dirname, '../../site/src/scripts/site.js'), 'utf8');
 
-function page(choice, { unavailable = false, writeFails = false, href = 'https://blancbrowser.com/download?oppref=offline-fixture' } = {}) {
+function page(choice, { unavailable = false, writeFails = false, href = 'https://blancbrowser.com/download?oppref=offline-fixture', userAgent = 'Macintosh' } = {}) {
   const local = new Map(choice ? [['measurement-consent-v2', choice]] : []);
   const session = new Map();
   let storageUnavailable = unavailable;
@@ -40,6 +40,7 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
     dataset: { platform, track: 'download_click', ctaPosition: 'platform-card' },
     closest() { return this; },
   }));
+  const ctas = [{ href: 'https://blancbrowser.com/download', textContent: 'Download Blanc', dataset: { track: 'download_click', ctaPosition: 'hero' }, closest() { return this; } }];
   const clickHandlers = [];
   const document = {
     head: { appendChild(script) { scripts.push(script); } }, body: { dataset: { page: 'download' } },
@@ -47,12 +48,13 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
     getElementById: (id) => ({ consent: banner, consentAllow: allow, consentDeny: deny, consentClose: close, consentStatus: status }[id]),
     querySelector: () => null,
     querySelectorAll(selector) {
+      if (selector === '[data-download-cta]') return ctas;
       return selector.includes('data-download-link') ? links : selector === '[data-consent-open]' ? [choiceButton] : [];
     },
     addEventListener(type, handler) { if (type === 'click') clickHandlers.push(handler); },
   };
   const context = vm.createContext({
-    URL, document, window: { addEventListener(type, handler) { windowEvents[type] = handler; }, history: { replaceState(_state, _title, url) { location.href = url; } } }, navigator: { userAgent: 'Macintosh' },
+    URL, document, window: { addEventListener(type, handler) { windowEvents[type] = handler; }, history: { replaceState(_state, _title, url) { location.href = url; } } }, navigator: { userAgent },
     location,
     localStorage: storage(local), sessionStorage: storage(session),
     fetch: async () => ({ ok: false }),
@@ -60,7 +62,7 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
   });
   vm.runInContext(source, context);
   return {
-    links, local, session, context, banner, scripts, status, location,
+    links, ctas, local, session, context, banner, scripts, status, location,
     googleScripts: () => scripts.filter(script => script.src && new URL(script.src).hostname === 'www.googletagmanager.com'),
     reloads: () => reloads,
     openChoice: () => choiceButton.handlers.click(),
@@ -72,6 +74,17 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
     failStorage: () => { storageUnavailable = true; },
   };
 }
+
+test('the hero names the platform only when it downloads directly', () => {
+  assert.equal(page(null, { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }).ctas[0].textContent, 'Download for Windows');
+  assert.equal(page(null, { userAgent: 'Mozilla/5.0 (X11; Linux x86_64)' }).ctas[0].textContent, 'Download for Linux');
+  const mac = page(null, { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)' }).ctas[0];
+  assert.equal(mac.textContent, 'Download Blanc');
+  assert.equal(new URL(mac.href).pathname, '/download');
+  const phone = page(null, { userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 9)' }).ctas[0];
+  assert.equal(phone.textContent, 'Download Blanc');
+  assert.equal(new URL(phone.href).pathname, '/download');
+});
 
 test('a download requires Allow before forwarding the pending ad reference', () => {
   const p = page();

@@ -141,6 +141,18 @@
   border-radius: 24px;
   font-size: 13px;
 }
+/* Shown only on phones and tablets by handheld-download.js. */
+.home-revamp .handheld-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--dim);
+}
+.home-revamp .handheld-note [role="status"]:not(:empty) {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink);
+  font-weight: 500;
+}
 .home-revamp .planned-link {
   font-size: 13px;
   text-decoration: underline;
@@ -530,12 +542,20 @@
   margin: 23px auto;
   font-size: 13px;
 }
-.home-revamp .platforms span {
+.home-revamp .platforms a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 24px;
   padding: 6px 0;
+  color: inherit;
+  text-decoration: none;
   white-space: nowrap;
+}
+.home-revamp .platforms a:hover,
+.home-revamp .platforms a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .home-revamp .platform-logo {
   display: block;
@@ -552,7 +572,16 @@
   color: var(--dim);
 }
 .home-revamp .closing-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   text-decoration: none;
+}
+/* Standalone links keep at least a 24px target (WCAG 2.5.8). */
+.home-revamp :is(.planned-link, .trust-links a, .home-foundations div > a) {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
 }
 .home-revamp .closing-links a:hover,
 .home-revamp .closing-links a:focus-visible {
