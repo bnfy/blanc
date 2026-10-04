@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title={"Encrypted Sync Across Devices | Blanc Browser"}
+  description={"Sync carries your favorites and settings between devices, and your open tabs if you choose — end-to-end encrypted, off by default, opt-in per device."}
+  path="/features/sync"
+  page="feature-sync"
+  current="features"
+  ogDescription={"Your favorites and settings on your other devices, and, if you choose, your open tabs. End-to-end encrypted."}
+  ogImageAlt={"Blanc Browser"}
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Sync","item":"https://blancbrowser.com/features/sync"}]}
+</script>
+
+<main id="main-content" class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">sync</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="sync-title"><p class="section-kicker">pick up anywhere</p><h1 id="sync-title">Your favorites and settings on your other devices, and, if you choose, your open tabs.</h1><p>Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.</p></section>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="sync-what-title">
+    <div><p class="section-kicker">what syncs</p><h2 id="sync-what-title">Favorites and settings. Open tabs if you choose.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Favorites and settings.</h3><p>Your favorites, search engine, blocking state and exceptions, home page, and theme, encrypted on your device before upload.</p></article>
+      <article><h3>Open tabs, per device.</h3><p>Off until you turn it on. Each machine publishes its own open tabs; nothing merges or rearranges.</p></article>
+      <article><h3>Never synced.</h3><p>History, downloads, permissions, cookies, site data, and private tabs stay on the device.</p></article>
+    </div>
+  </section>
+  <figure class="product-capture feature-capture">
+    <div class="demo-stage island-figure island-figure--panel" role="img" aria-label="Blanc's island panel open, showing local tabs and a folded section from another device: blanc on MacBook Air with three tabs.">
+      <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
+      <picture>
+        <source media="(max-width: 560px)" srcset="/shots/mobile/netflix.jpg">
+        <img class="demo-shot show" src="/shots/desktop/netflix.jpg" loading="lazy" alt="" aria-hidden="true">
+      </picture>
+      <div class="demo-island open" aria-hidden="true">
+        <div class="panel">
+          <div class="panel-row"><div class="field"><span class="typed"></span><span class="caret"></span></div></div>
+          <div class="list">
+            <div class="trow"><span class="fav" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="title">Gmail</span></div>
+            <div class="trow"><span class="fav" style="background-image:url('/favicons/notion.so.ico')"></span><span class="title">Notion</span></div>
+            <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>blanc on MacBook Air</span><span class="rule"></span><span class="count">2h ago</span></div>
+            <div class="trow"><span class="fav" style="background-image:url('/favicons/github.com.ico')"></span><span class="title">Pull requests</span></div>
+            <div class="trow hl"><span class="fav" style="background-image:url('/favicons/developer.mozilla.org.ico')"></span><span class="title">MDN Web Docs</span></div>
+            <div class="trow"><span class="fav" style="background-image:url('/favicons/news.ycombinator.com.ico')"></span><span class="title">Hacker News</span></div>
+          </div>
+          <div class="foot">esc to dismiss · ⌘L summons · click a row to open it here</div>
+        </div>
+      </div>
+    </div>
+    <figcaption>Another device&rsquo;s tabs appear as a quiet folded section. Opening one never changes anything on the other machine.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="sync-behavior-title">
+    <div><p class="section-kicker">a menu, not a mirror</p><h2 id="sync-behavior-title">Reading another device never rearranges it.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Off until you say so, on each device.</h3><p>Sharing is a per-device switch in Settings, off by default. A machine&rsquo;s tabs never leave it until you flip the switch on that machine — and flipping it off withdraws them.</p></article>
+      <article><h3>Open here, not there.</h3><p>Another device&rsquo;s tabs are a read-only list. Picking one opens it as a fresh local tab; nothing force-opens, closes, or reorders on the other side.</p></article>
+      <article><h3>Sync belongs to Personal.</h3><p>Sync is available only to Personal. <a href="/features/profiles" data-track="feature_cta_click" data-feature="profiles" data-cta-position="related-feature">Named local profiles and independent windows</a> let you separate browsing identities on this device.</p></article>
+      <article><h3>Everywhere you already look.</h3><p>Remote tabs sit behind a folded section in the island panel, match in the Quick Switcher below your local tabs, and appear on the start page under &ldquo;on your other devices.&rdquo;</p></article>
+    </div>
+  </section>
+  <aside class="truth-note" aria-labelledby="sync-note-title"><p class="section-kicker">the honest part</p><h2 id="sync-note-title">The sync server stores ciphertext it cannot read.</h2><p>Tab snapshots ride the same end-to-end encryption as the rest of Blanc sync: encrypted on your device with a key derived from your passphrase, stored server-side as unreadable blobs. A separate bounded encrypted sidecar can carry source-rasterized PNG favicons, so the receiving device does not contact a remote tab's site merely to draw its row. Private tabs never enter a snapshot, and idle devices age out on their own.</p><a class="text-link" href="/features/security" data-track="feature_cta_click" data-feature="sync" data-cta-position="related-feature">Read the security story <span aria-hidden="true">↗</span></a></aside>
+  <section class="feature-close" aria-labelledby="sync-close-title"><p class="section-kicker">continue where you were</p><h2 id="sync-close-title">The tab you need is on the other machine. Not anymore.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="sync" data-cta-position="feature-close">download blanc</a></section>
+</main>
+</BaseLayout>

@@ -36,20 +36,43 @@ visible below the offer. The detached historical screenshot is removed; the
 supporting link opens Named Workspaces within Support. Both Patron fragments
 land at the top of the panel.
 
-The indexed route count falls from 27 to 10:
+The primary journey is concentrated on the homepage, with 27 indexed routes
+retained after the owner's October 3 SEO correction:
 
 - `/` — visual product story and in-page Features tour.
 - `/support` — practical guides and the existing straight answers, searchable.
 - `/trust` — engine, connections, choices, release evidence and known limitations.
 - `/download`, `/about`, `/changelog`, `/press`, `/ambassadors`, `/privacy`, `/terms`.
+- `/features` and all 16 existing `/features/*` landing pages retain their
+  original URLs, unique titles, descriptions, substantive copy and section IDs.
 
 `/import-tabs` remains an unlisted handoff utility and `/404` remains a real
-noindex 404. Sixteen dedicated feature pages, FAQ and How It Works consolidate
-into Support and Trust. The former Features directory redirects to the homepage
-tour. Twenty legacy paths have direct redirects and local static fallbacks;
-trailing-slash variants are included. Old section names are retained, and a
-query-based topic fallback lets an existing URL fragment survive HTTP redirects.
-Release-note data remains immutable; old internal links resolve while rendering.
+noindex 404. Only FAQ, How It Works and the historical `/private` alias redirect
+to Support or Trust; three legacy paths have static fallbacks and redirects for
+both trailing-slash variants. Feature pages are ordinary indexable documents
+with self-referencing canonicals and sitemap entries, never redirects or noindex
+fallbacks. The primary Features link still opens the homepage tour. The footer's
+Feature guides link opens `/features`, and each Support/Trust topic links to its
+full guide. Existing release-note and related-feature links keep their original
+feature destinations and fragments. Shared layout provides the redesigned
+header, footer, Newsreader/Inter typography and warm background.
+
+The restoration uses website revision `358cc02df00f10d184b84dbfdae6f6bfdfa6a790`.
+Regression coverage compares every retained title, description, heading,
+paragraph, caption and original section ID against that revision. Eighteen
+focused navigation, claims and transparency tests pass. The production build
+passes its SEO checks, and all 17 feature URLs return HTTP 200 with indexable
+HTML, self-canonicals and no refresh redirects on the built preview. Quiet Tabs
+and the directory were reviewed at 390px without horizontal overflow; Quiet
+Tabs was also inspected at 855px.
+
+No Search Console clicks, impressions, query positions or page-level traffic
+data was accessed. This preserves the existing entry points; it is not evidence
+that rankings are unchanged. Before considering any future consolidation,
+review per-page search queries, clicks, backlinks and download activity. Google's
+[site-move guidance](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes)
+allows relevant consolidation but warns of visibility fluctuations and
+irrelevant redirect destinations. The redesign has not been deployed.
 
 ## Trust and transparency retained
 
@@ -74,11 +97,13 @@ It also checks every old feature-guide fragment, key homepage boundaries and
 missed-ad reporting requirements. Formatting whitespace is ignored for the
 section-text comparison, not words or punctuation.
 
-`website-revamp-claims-v1.26.json` records 557 current exact-wording claims and
-158 retired source strings. Retired strings are predominantly repeated feature
+`website-revamp-claims-v1.26.json` records 892 current exact-wording claims and
+94 retired source strings. Retired strings are predominantly repeated feature
 summaries, replaced marketing headings, old image descriptions and the previous
 homepage demo. This is not a record of removed capabilities: practical content
-and qualifications remain in the corresponding guides. The prior claims ledgers
+and qualifications remain in the corresponding guides. Restored feature-page
+claims retain the same release evidence and qualifications; their website
+source revision is recorded separately. The prior claims ledgers
 remain unchanged. New homepage wording is tied to immutable release paths;
 public authentication links use the completed post-release evidence revision.
 
@@ -117,9 +142,10 @@ an OS reduced-motion preference was not changed for testing.
 - `npm run compliance:check`: passed. Site SBOM now contains 286 packages after
   removing the website JetBrains Mono package; desktop licensing is unchanged.
 - `npm run site:changelog:check`: passed against GitHub, 97 releases current.
-- `npm run site:build`: passed. SEO verification covers 12 real pages and 10
-  sitemap URLs; 20 noindex legacy fallbacks are separately verified. The build
-  now also checks duplicate IDs, internal fragment targets and local images.
+- `npm run site:build`: passed. SEO verification now covers 29 real pages and 27
+  sitemap URLs; three noindex legacy fallbacks are separately verified. The build
+  also checks duplicate IDs, internal fragment targets and local images, and
+  requires the feature pages to remain indexed, internally linked and free of redirects.
 - `test/site/crawl-hygiene.test.mjs`: passed against built preview on port 4323.
 - Browser: desktop 1280×900 and mobile 390×844 inspected. All retained pages
   fit the 390px viewport with no page-level horizontal overflow or broken images.
@@ -207,7 +233,9 @@ app release goes live. **Do not merge/deploy this launch draft before the app
 release containing uBO and Horizon Shield ships.** Candidate-backed wording is
 recorded separately in `docs/website-blocking-launch.json`. Before publishing,
 reconcile that ledger against the actual immutable public tag and completed
-release evidence, including platform availability. The v1.26 claim ledger does
+release evidence, including platform availability. Include the restored feature
+pages and Support/Trust guides in the release-copy reconciliation, especially
+blocking-provider and extension-runtime language. The v1.26 claim ledger does
 not establish that these new capabilities are shipped.
 
 Private-tab behavior, separate provider site settings and the required restart

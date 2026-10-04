@@ -1,22 +1,5 @@
 {
-  "/features": "/#features",
   "/faq": "/support",
   "/how-it-works": "/trust",
-  "/private": "/trust?topic=private-tabs",
-  "/features/island": "/support?topic=island",
-  "/features/command-palette": "/support?topic=command-palette",
-  "/features/tab-groups": "/support?topic=tab-groups",
-  "/features/vertical-tabs": "/support?topic=vertical-tabs",
-  "/features/quiet-tabs": "/support?topic=quiet-tabs",
-  "/features/reopen-closed-tabs": "/support?topic=reopen-closed-tabs",
-  "/features/profiles": "/support?topic=profiles",
-  "/features/workspaces": "/support?topic=workspaces",
-  "/features/sync": "/support?topic=sync",
-  "/features/start-page": "/support?topic=start-page",
-  "/features/glance": "/support?topic=glance",
-  "/features/mouse-gestures": "/support?topic=mouse-gestures",
-  "/features/1password": "/support?topic=1password",
-  "/features/security": "/trust?topic=security",
-  "/features/ad-blocking": "/trust?topic=ad-blocking",
-  "/features/private-tabs": "/trust?topic=private-tabs"
+  "/private": "/trust?topic=private-tabs"
 }

@@ -2,7 +2,9 @@
 // lastmod when it consistently reflects a significant page change, so this
 // sitemap deliberately publishes only canonical URLs rather than stamping
 // every page with the build date.
-const MANIFEST = ['/', '/download', '/support', '/trust', '/changelog', '/about', '/privacy', '/terms', '/press', '/ambassadors'];
+import topics from '../data/guide-topics.json';
+
+const MANIFEST = ['/', '/download', '/support', '/trust', '/changelog', '/about', '/privacy', '/terms', '/press', '/ambassadors', '/features', ...topics.map(topic => `/features/${topic.id}`)];
 
 const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]']);
 

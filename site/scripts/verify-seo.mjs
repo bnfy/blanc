@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const LEGACY_ROUTES = JSON.parse(await readFile(new URL('../src/data/legacy-routes.json', import.meta.url), 'utf8'));
+const FEATURE_TOPICS = JSON.parse(await readFile(new URL('../src/data/guide-topics.json', import.meta.url), 'utf8'));
+const RETAINED_FEATURE_ROUTES = ['/features', ...FEATURE_TOPICS.map(topic => `/features/${topic.id}`)];
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
 const SITE_ORIGIN = 'https://blancbrowser.com';
@@ -311,6 +313,11 @@ for (const [index, rawLine] of redirectsSource.split(/\r?\n/).entries()) {
 }
 
 const redirectSources = new Set(redirectRules.map((rule) => rule.source));
+for (const route of RETAINED_FEATURE_ROUTES) {
+  if (!routes.has(route) || !sitemapRoutes.has(route) || LEGACY_ROUTES[route]) errors.push(`${route}: retained feature page must be built and indexed in the sitemap`);
+  if (redirectSources.has(route) || redirectSources.has(`${route}/`)) errors.push(`${route}: retained feature page must not redirect`);
+  if (!internalRouteLinks.has(route)) errors.push(`${route}: retained feature page has no internal links`);
+}
 if (redirectSources.size !== redirectRules.length) errors.push('_redirects contains duplicate source routes');
 for (const rule of redirectRules) {
   const normalizedSource = rule.source.length > 1 ? rule.source.replace(/\/$/, '') : rule.source;
