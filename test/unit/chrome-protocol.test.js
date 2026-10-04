@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
 const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
@@ -36,6 +37,25 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     chromeResourcePath('blanc-chrome://overlay/pages/sunrise-favicon-mark.png'),
     path.join(renderer, 'pages/sunrise-favicon-mark.png'),
   );
+});
+
+test('the blocker Sunrise is the canonical gold artwork and only the overlay can load it', () => {
+  const asset = path.join(renderer, 'sunrise-hero-mark.png');
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/sunrise-hero-mark.png'), asset);
+  assert.deepEqual(
+    fs.readFileSync(asset),
+    fs.readFileSync(path.resolve(__dirname, '../../site/public/sunrise-hero-mark.png')),
+  );
+  for (const url of [
+    'blanc-chrome://index/sunrise-hero-mark.png',
+    'blanc-chrome://permission/sunrise-hero-mark.png',
+    'blanc-chrome://fill-status/sunrise-hero-mark.png',
+    'blanc-chrome://display-capture-helper/sunrise-hero-mark.png',
+    'blanc-chrome://overlay/sunrise-hero-mark.png?cache=1',
+    'blanc-chrome://overlay/sunrise-hero-mark.png#mark',
+    'blanc-chrome://overlay/%73unrise-hero-mark.png',
+    'blanc-chrome://overlay/site/public/sunrise-hero-mark.png',
+  ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
 test('fill-status host serves its document, script, copy, and shared styles only', () => {

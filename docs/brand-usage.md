@@ -184,6 +184,14 @@ prompt, the 1Password capsule and the screen-share picker. Neutral: the
 Island and everything that opens from it, the strip, the vertical tabs rail,
 the Glance header and the window controls.
 
+**Owner-approved blocker dialog, October 2–3, 2026:** the site-protection
+popover and blocker chooser use neutral paper/graphite styling, the original
+small gold Sunrise mark, and compact Inter headings. The chooser names
+**EasyList + EasyPrivacy** beneath Blanc Blocker; selecting a different provider
+shows an explicit Restart Blanc action. Preserve the short attachment to the
+shield's existing hover circle. This does not change the Island icon direction
+below.
+
 **Blocker artwork, final owner direction October 3, 2026:** the Island keeps
 its original monochrome Blanc Blocker shield: the shield outline crossed by a
 single diagonal, restored from before `03621de6`. Reuse its native SVG and CSS

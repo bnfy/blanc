@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "runtime": {
+    "electron": "44.5.1",
+    "ublock": "1.75.0",
+    "platform": "linux-x64",
+    "sandboxEnabled": true
+  },
+  "failingRun": {
+    "id": 37166293406,
+    "source": "a797dc490190daba3cfa281d23bc0b4ebb96fff8",
+    "completedRestores": 12,
+    "failureIteration": 13,
+    "signal": "SIGSEGV"
+  },
+  "firstFixedRun": {
+    "id": 37166954902,
+    "source": "4ec657877c1672bf307ace1589c32d18a9e35930",
+    "completedRestores": 30,
+    "fullSuitePassed": true
+  },
+  "repeatedFixedRun": {
+    "id": 37167160303,
+    "source": "ef458bbbbbad382d5cb242cfff6b19329983f63b",
+    "normalBrowserProcessExits": 6,
+    "launches": [
+      {
+        "launch": 1,
+        "completedRestores": 30,
+        "fullSuitePassed": true,
+        "nativeViews": {
+          "baselineChildren": 2,
+          "peakChildren": 3,
+          "retiredChildren": 0,
+          "restores": 30
+        },
+        "diagnosticTiming": {
+          "startupReadyMs": 9287,
+          "namedProfileReadyMs": 2209,
+          "rendererMemoryKiB": 2423876,
+          "allowedRequestMs": 43.5
+        }
+      },
+      {
+        "launch": 2,
+        "completedRestores": 30,
+        "fullSuitePassed": true,
+        "nativeViews": {
+          "baselineChildren": 2,
+          "peakChildren": 3,
+          "retiredChildren": 0,
+          "restores": 30
+        },
+        "diagnosticTiming": {
+          "startupReadyMs": 3185,
+          "namedProfileReadyMs": 2252,
+          "rendererMemoryKiB": 2418788,
+          "allowedRequestMs": 17
+        }
+      },
+      {
+        "launch": 3,
+        "completedRestores": 30,
+        "fullSuitePassed": true,
+        "nativeViews": {
+          "baselineChildren": 2,
+          "peakChildren": 3,
+          "retiredChildren": 0,
+          "restores": 30
+        },
+        "diagnosticTiming": {
+          "startupReadyMs": 3203,
+          "namedProfileReadyMs": 2279,
+          "rendererMemoryKiB": 2426256,
+          "allowedRequestMs": 24.100000000034925
+        }
+      }
+    ]
+  },
+  "privacy": "Fresh isolated profiles and localhost fixtures; no browsing URLs, headers, bodies, filters, or personal data in this record."
+}

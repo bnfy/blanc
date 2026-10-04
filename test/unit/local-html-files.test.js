@@ -29,7 +29,7 @@ test('a saved local document must still be the same canonical HTML file', () => 
   try {
     fs.writeFileSync(file, '<title>Opened</title>');
     fs.symlinkSync(file, alias);
-    const canonical = pathToFileURL(fs.realpathSync(file)).href;
+    const canonical = pathToFileURL(fs.realpathSync.native(file)).href;
     assert.equal(restorableLocalHtmlUrl(canonical), canonical);
     assert.equal(restorableLocalHtmlUrl(pathToFileURL(alias).href), null);
     assert.equal(restorableLocalHtmlUrl('file:///etc/passwd'), null);
@@ -61,8 +61,10 @@ test('macOS document paths must be absolute existing regular HTML files', () => 
 });
 
 test('createTab defense admits only local HTML file URLs', () => {
-  assert.equal(isSupportedLocalHtmlUrl('file:///tmp/page.html'), true);
-  assert.equal(isSupportedLocalHtmlUrl('file://localhost/tmp/page.xhtml'), true);
+  assert.equal(isSupportedLocalHtmlUrl(pathToFileURL(path.resolve('/tmp/page.html')).href), true);
+  const localhost = pathToFileURL(path.resolve('/tmp/page.xhtml'));
+  localhost.hostname = 'localhost';
+  assert.equal(isSupportedLocalHtmlUrl(localhost.href), true);
   for (const value of [
     'file:///tmp/page.txt',
     'file://remote-host/tmp/page.html',

@@ -112,10 +112,11 @@ function createExternalHandoff({ getWindow, getApplicationName, showMessageBox, 
 
 // Install on managed tabs and real OAuth popup windows. Server redirects do
 // not emit will-navigate; iframe callbacks need will-frame-navigate too.
-function installExternalNavigationHandlers(wc, handOff) {
+function installExternalNavigationHandlers(wc, handOff, allowManagedNavigation = () => false) {
   const navigate = (event) => {
     const frame = event.initiator || event.frame;
     const source = frame?.url || wc.getURL();
+    if (allowManagedNavigation(event.url, source, event)) return;
     if (handOff(event.url, { source })) event.preventDefault();
   };
   wc.on('will-frame-navigate', navigate);

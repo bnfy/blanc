@@ -81,3 +81,51 @@ machine fetching its own artifacts, with no other user's response to disclose.
 
 Remove the VEX statement once a patched http-cache-semantics is available and
 both lockfiles adopt it.
+
+## PR #490 payload re-review
+
+Codex reviewed the added uBO paths on October 3 after merging `main` at
+`78593547`. The root/site lockfiles and affected development-only dependency
+chain are unchanged. The additional positive package patterns are exactly
+`ublock/**/*`, `scripts/check-ublock-package.cjs`, and
+`scripts/build-ublock-adaptation.cjs`. Both scripts import only Node fs/path
+and the local `src/main/ublock-package.js`; that module imports only fs/path/crypto
+and performs byte verification and local adaptation. No downloader cache option
+or affected library call is added. The extension implements its own filter-list
+cache, not the vulnerable npm HTTP cache. The corresponding-source archive is
+verified as data and is not extracted into the executable extension.
+
+The inspected internal ASAR contains none of http-cache-semantics,
+cacheable-request, got, @electron/get, web-ext, adbkit or node-forge under its
+node_modules tree. Ordinary builds omit the entire upstream payload and both
+reproduction scripts; existing after-pack inventory checks enforce that mode.
+The unchanged runtime license/SBOM checks still describe actual included npm
+modules. This review establishes the added paths do not invalidate the existing
+cache and Android-tooling reachability determinations; it is not uBO security
+or GPL clearance.
+
+Both VEX guards now accept only those three exact additional patterns and bind
+the reviewed uBO pin manifest to SHA-256
+`b7ddaae82e7854b050758f1bce95e621c92dfcb55ac8b110a8a16fd108a74118`
+over its canonical JSON serialization. Changing the payload or broadening
+other package patterns requires re-review. No VEX statement, advisory severity
+threshold or audit policy was disabled or expanded.
+
+
+## October 3 shipping-source follow-up
+
+The new immutable CSS Tree, js-beautify and HSLuv source archives and
+`preferred-sources.json` are read as bytes and SHA-256 checked by
+`check-ublock-package.cjs` / `readVerifiedPackage`. Neither the archives nor
+scripts inside them are executed or imported during packaging or at runtime.
+Only the verified `upstream/` inventory is adapted into the loaded extension.
+The revised host tool capabilities, ordered native ports and navigation events
+use browser messaging; they add no Node dependency, RSA verifier, HTTP cache,
+Android target or builder download-cache option. Package/lock dependency graphs
+and the explicit builder source allowlist are unchanged.
+
+This preserves this advisory's existing reachability determination for the
+reviewed payload. The JSON-serialized `ublock/pinned.json` SHA-256 is now
+`71f33634e9cb016e1386b625b1c55b7d2d1a7713613d9437c40694b6ac9010ad`.
+The dependency VEX test retains its exact-digest guard; this is not an extension
+of the exception to arbitrary future archives or executed source-build scripts.

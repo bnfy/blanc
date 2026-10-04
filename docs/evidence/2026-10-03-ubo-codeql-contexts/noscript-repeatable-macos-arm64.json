@@ -1,0 +1,38 @@
+{
+  "alert": 77,
+  "ublock": "1.75.0",
+  "electron": "44.5.1",
+  "os": "darwin",
+  "arch": "arm64",
+  "pagePreferences": {
+    "sandbox": true,
+    "nodeIntegration": false,
+    "contextIsolation": true
+  },
+  "backgroundSandboxed": true,
+  "backgroundNodeAccess": "undefined",
+  "policy": {
+    "actual": "script-src http: https:",
+    "required": "script-src http: https:"
+  },
+  "activeControl": {
+    "originalScript": true,
+    "insertedScript": true,
+    "errorHandler": true,
+    "javascriptLink": true
+  },
+  "protected": {
+    "fallbackText": "Fallback rendered",
+    "originalScriptRan": false,
+    "eventRan": false,
+    "linkRan": false,
+    "insertedScriptRan": false,
+    "metaRan": false,
+    "location": "/probe",
+    "nodeAccess": "undefined",
+    "noscriptCount": 0
+  },
+  "protectedMarkerRequests": [],
+  "offControlOriginalScript": true,
+  "passed": true
+}

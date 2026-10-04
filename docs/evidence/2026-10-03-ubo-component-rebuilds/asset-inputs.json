@@ -1,0 +1,195 @@
+{
+  "format": 1,
+  "clearance": false,
+  "exactInputMatches": [
+    {
+      "path": "assets/thirdparties/easylist/easylist.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "thirdparties/easylist.txt",
+      "sha256": "f54f1cc57746f0da7a7be0d9d1bbd8beedf976090bf5bc39365eef111cf3fdf9",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/thirdparties/easylist/easyprivacy.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "thirdparties/easyprivacy.txt",
+      "sha256": "521f476f97ff99f4cbd06781b2d64da6e17bac4676f9fa02f7bd9c3a01f7e85b",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/thirdparties/pgl.yoyo.org/as/README.md",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "main",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sourcePath": "thirdparties/pgl.yoyo.org/as/README.md",
+      "sha256": "3874d5cf00debbf00d80aaa77adf556e9c369ba7e377a1f31fcd7ce935a219bd",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/thirdparties/pgl.yoyo.org/as/serverlist",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "main",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sourcePath": "thirdparties/pgl.yoyo.org/as/serverlist",
+      "sha256": "6e359d5069fcd093d762d04b562ba955a8c0af2c9e683aaeea79fa1eb352be39",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/thirdparties/publicsuffix.org/list/effective_tld_names.dat",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "main",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sourcePath": "thirdparties/publicsuffix.org/list/effective_tld_names.dat",
+      "sha256": "bb3d3bb844f1d172de41f0c5089e7b2b7243b02698e4a64120ffcf49ec84c0ee",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/thirdparties/urlhaus-filter/LICENSE.md",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "main",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sourcePath": "thirdparties/urlhaus-filter/LICENSE.md",
+      "sha256": "2d8bb16b9275a25c5c2a8036e88f3a03fdcc5769d3691c76a47cd0ee28f49002",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/thirdparties/urlhaus-filter/urlhaus-filter-online.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "main",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sourcePath": "thirdparties/urlhaus-filter/urlhaus-filter-online.txt",
+      "sha256": "454f58e5439bd0470260ccd811665c424f9d6c639e3b662df60b00d0e161e9cf",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/ublock/badlists.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "filters/badlists.txt",
+      "sha256": "f39a41da5b3612014f8149354707089dba13c644f72b991832fab10f0eb8d16e",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/ublock/badware.min.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "filters/badware.min.txt",
+      "sha256": "c16aeeef826173e61187e489ea12d96a705ca9f006a5b65e9edd149688cf0d90",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/ublock/filters.min.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "filters/filters.min.txt",
+      "sha256": "c857ada2861624a06d22a60d50f4ca9d6f5bb5fd13abd986d3053194a7bfca43",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/ublock/privacy.min.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "filters/privacy.min.txt",
+      "sha256": "8b781cd3fa4527cca907a852488b0c979d119bdc27037205db1e8ed2fe9fd40e",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/ublock/quick-fixes.min.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "filters/quick-fixes.min.txt",
+      "sha256": "7ce2da98e792266a2ceb5c6af036abb806048ec4b3db77fd72c0f785029d05b8",
+      "exactMatch": true
+    },
+    {
+      "path": "assets/ublock/unbreak.min.txt",
+      "repository": "uBlockOrigin/uAssets",
+      "branchRole": "prod",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sourcePath": "filters/unbreak.min.txt",
+      "sha256": "e9ec1d2531c825f9e3a7c479265aaa547919395aabf4743f4497cf03ead433ae",
+      "exactMatch": true
+    }
+  ],
+  "filterRebuilds": [
+    {
+      "path": "assets/ublock/badware.min.txt",
+      "command": [
+        "node",
+        "tools/make-easylist.mjs",
+        "in=templates/ublock-badware.template",
+        "out=badware.min.txt",
+        "minify=1"
+      ],
+      "rawSha256": "6eb62d2988d6c4f6d683f3c452d912f56751fa91d08484d2b9a39bb623493162",
+      "lastModified": "Tue, 15 Sep 2026 16:33:05 +0000",
+      "normalizedSha256": "c16aeeef826173e61187e489ea12d96a705ca9f006a5b65e9edd149688cf0d90",
+      "exactAfterTimestamp": true
+    },
+    {
+      "path": "assets/ublock/filters.min.txt",
+      "command": [
+        "node",
+        "tools/make-easylist.mjs",
+        "in=templates/ublock-filters.template",
+        "out=filters.min.txt",
+        "minify=1"
+      ],
+      "rawSha256": "3664f5934ba032d7939f4e5672a3980e3a4998dd94489d045aff1113a029e0bf",
+      "lastModified": "Wed, 16 Sep 2026 13:07:34 +0000",
+      "normalizedSha256": "c857ada2861624a06d22a60d50f4ca9d6f5bb5fd13abd986d3053194a7bfca43",
+      "exactAfterTimestamp": true
+    },
+    {
+      "path": "assets/ublock/privacy.min.txt",
+      "command": [
+        "node",
+        "tools/make-easylist.mjs",
+        "in=templates/ublock-privacy.template",
+        "out=privacy.min.txt",
+        "minify=1"
+      ],
+      "rawSha256": "58ec618c821dcc93a9e0e969b80e562ddac236f60bd73dd838523168055040ef",
+      "lastModified": "Sun, 13 Sep 2026 10:22:27 +0000",
+      "normalizedSha256": "8b781cd3fa4527cca907a852488b0c979d119bdc27037205db1e8ed2fe9fd40e",
+      "exactAfterTimestamp": true
+    },
+    {
+      "path": "assets/ublock/quick-fixes.min.txt",
+      "command": [
+        "node",
+        "tools/make-easylist.mjs",
+        "in=templates/ublock-quick-fixes.template",
+        "out=quick-fixes.min.txt",
+        "minify=1"
+      ],
+      "rawSha256": "8dad480fbde70944dc287ba9dc51310ecde40bd6f005c7a8d36accf628b36cb9",
+      "lastModified": "Wed, 16 Sep 2026 04:29:38 +0000",
+      "normalizedSha256": "7ce2da98e792266a2ceb5c6af036abb806048ec4b3db77fd72c0f785029d05b8",
+      "exactAfterTimestamp": true
+    },
+    {
+      "path": "assets/ublock/unbreak.min.txt",
+      "command": [
+        "node",
+        "tools/make-easylist.mjs",
+        "in=templates/ublock-unbreak.template",
+        "out=unbreak.min.txt",
+        "minify=1"
+      ],
+      "rawSha256": "57c0819f44611e223829313dc174f03841572fe089a800b1a3b5070bc7a3df0b",
+      "lastModified": "Tue, 15 Sep 2026 10:19:46 +0000",
+      "normalizedSha256": "e9ec1d2531c825f9e3a7c479265aaa547919395aabf4743f4497cf03ead433ae",
+      "exactAfterTimestamp": true
+    }
+  ]
+}

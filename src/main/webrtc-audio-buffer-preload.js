@@ -1,4 +1,5 @@
 'use strict';
+if (window.location.protocol !== 'chrome-extension:') {
 
 // Session-wide preload so WebRTC tracking begins before page scripts and also
 // reaches Chromium-created target=_blank children and auxiliary popups. The
@@ -235,4 +236,5 @@ if (window.location.protocol === 'http:' || window.location.protocol === 'https:
   if (targetFor(initialMode) != null) apply(initialMode);
 
   ipcRenderer.on(UPDATE_CHANNEL, (_event, mode) => apply(mode));
+}
 }

@@ -4,6 +4,7 @@
   const code = params.get('code') || '';
   const desc = params.get('desc') || '';
   const certificateFailure = params.get('kind') === 'certificate';
+  if (code === '-20') document.getElementById('blockingSettingsLink').hidden = false;
 
   document.getElementById('errorUrl').textContent = url;
   if (certificateFailure) {

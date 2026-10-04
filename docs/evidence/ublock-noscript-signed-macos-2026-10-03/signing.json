@@ -1,0 +1,41 @@
+{
+  "sourceCommit": "43ae6748913442af8d5724a277a97291d8c2205f",
+  "checkedAt": "2026-10-03T19:46:19.723836+00:00",
+  "checks": [
+    {
+      "command": [
+        "codesign",
+        "--verify",
+        "--deep",
+        "--strict",
+        "--verbose=2",
+        "<candidate>/Blanc.app"
+      ],
+      "exitCode": 0,
+      "output": "--prepared:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper.app\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/ReactiveObjC.framework/Versions/Current/.\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper.app\n--validated:<candidate>/Blanc.app/Contents/Frameworks/ReactiveObjC.framework/Versions/Current/.\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (GPU).app\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Plugin).app\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (GPU).app\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Plugin).app\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Mantle.framework/Versions/Current/.\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Squirrel.framework/Versions/Current/.\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Mantle.framework/Versions/Current/.\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Squirrel.framework/Versions/Current/.\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.\n--prepared:<candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/Helpers/chrome_crashpad_handler\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/Helpers/chrome_crashpad_handler\n--validated:<candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.\n<candidate>/Blanc.app: valid on disk\n<candidate>/Blanc.app: satisfies its Designated Requirement\n"
+    },
+    {
+      "command": [
+        "spctl",
+        "--assess",
+        "--type",
+        "execute",
+        "--verbose=2",
+        "<candidate>/Blanc.app"
+      ],
+      "exitCode": 0,
+      "output": "<candidate>/Blanc.app: accepted\nsource=Notarized Developer ID\n"
+    },
+    {
+      "command": [
+        "xcrun",
+        "stapler",
+        "validate",
+        "<candidate>/Blanc.app"
+      ],
+      "exitCode": 0,
+      "output": "Processing: <candidate>/Blanc.app\nThe validate action worked!\n"
+    }
+  ],
+  "scope": "Owner-local signed unpacked candidate; not an installer, installed-machine acceptance, or public release."
+}

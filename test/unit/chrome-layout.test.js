@@ -139,14 +139,14 @@ test('dimensions clamp safely during transient zero or undersized window bounds'
 
 test('shield bounds sit below the strip, right-aligned to the anchor', () => {
   const b = calculateShieldBounds({ windowWidth: 1280, stripHeight: CHROME_HEIGHT, anchorRight: 900 });
-  assert.deepEqual(b, { x: 580, y: 68, width: 320, height: 232 });
+  assert.deepEqual(b, { x: 496, y: 68, width: 404, height: 500 });
 });
 
 test('shield bounds clamp to the window with a margin on both sides', () => {
   const left = calculateShieldBounds({ windowWidth: 1280, stripHeight: CHROME_HEIGHT, anchorRight: 100 });
   assert.equal(left.x, 12);
   const right = calculateShieldBounds({ windowWidth: 1280, stripHeight: CHROME_HEIGHT, anchorRight: 5000 });
-  assert.equal(right.x, 1280 - 320 - 12);
+  assert.equal(right.x, 1280 - 404 - 12);
 });
 
 test('shield bounds shrink on a window narrower than width + margins', () => {
@@ -157,7 +157,28 @@ test('shield bounds shrink on a window narrower than width + margins', () => {
 
 test('shield bounds center under the window without an anchor', () => {
   const b = calculateShieldBounds({ windowWidth: 1000, stripHeight: CHROME_HEIGHT, anchorRight: null });
-  assert.equal(b.x, Math.round((1000 - 320) / 2));
+  assert.equal(b.x, Math.round((1000 - 404) / 2));
+});
+
+test('shield provider controls fit the normal card and clamp to short windows below the strip', () => {
+  const input = { windowWidth: 640, stripHeight: CHROME_HEIGHT, anchorRight: 500 };
+  const normal = calculateShieldBounds({ ...input, windowHeight: 800 });
+  assert.deepEqual(normal, { x: 96, y: 68, width: 404, height: 500 });
+  for (const windowHeight of [528, 480, 300, 100, 68]) {
+    const bounds = calculateShieldBounds({ ...input, windowHeight });
+    assert.equal(bounds.y, CHROME_HEIGHT);
+    assert.equal(bounds.height, windowHeight - CHROME_HEIGHT);
+    assert.equal(bounds.y + bounds.height, windowHeight, 'short-window card ends inside the native content area');
+    assert.equal(bounds.x + bounds.width, 500, 'vertical clamping preserves the shield anchor');
+  }
+});
+
+test('shield card never acquires a negative height during transient undersized window bounds', () => {
+  for (const windowHeight of [40, 0, -10]) {
+    const bounds = calculateShieldBounds({ windowWidth: 300, windowHeight, stripHeight: CHROME_HEIGHT, anchorRight: 900 });
+    assert.equal(bounds.height, 0);
+    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 300);
+  }
 });
 
 test('calculateCaptureBounds grows per row and caps at 5 rows', () => {
@@ -169,6 +190,7 @@ test('calculateCaptureBounds grows per row and caps at 5 rows', () => {
   assert.equal(three.height, CAPTURE_POPOVER_CHROME + 3 * CAPTURE_ROW_HEIGHT);
   assert.equal(nine.height, CAPTURE_POPOVER_CHROME + 5 * CAPTURE_ROW_HEIGHT,
     'more than 5 rows scroll inside a capped card');
+  assert.equal(one.width, 320, 'capture retains its established width independently of the blocker dialog');
   assert.equal(one.y, 68);
   assert.equal(one.x + one.width, 900, 'right edge aligns to the chip anchor');
 });
@@ -176,4 +198,26 @@ test('calculateCaptureBounds grows per row and caps at 5 rows', () => {
 test('calculateCaptureBounds clamps inside the window like the shield popover', () => {
   const b = calculateCaptureBounds({ windowWidth: 300, stripHeight: CHROME_HEIGHT, anchorRight: 900, rowCount: 1 });
   assert.ok(b.x >= 0 && b.x + b.width <= 300);
+});
+
+
+test('measured shield centers the card and shortens its vertical join', () => {
+  const bounds = calculateShieldBounds({ windowWidth: 1280, windowHeight: 800,
+    stripHeight: 68, anchorCenter: 718.75, anchorBottom: 47.296875 });
+  assert.deepEqual(bounds, { x: 517, y: 48, width: 404, height: 500 });
+  assert.ok(Math.abs(bounds.x + bounds.width / 2 - 718.75) < 1);
+  assert.ok(bounds.y + 10 - 47.296875 <= 11, 'circle-to-card join stays short');
+});
+
+test('measured shield clamps sideways and keeps its short-window view on screen', () => {
+  for (const anchorCenter of [36, 604]) {
+    const bounds = calculateShieldBounds({ windowWidth: 640, windowHeight: 480,
+      stripHeight: 68, anchorCenter, anchorBottom: 47.3 });
+    assert.ok(bounds.x >= 12 && bounds.x + bounds.width <= 628);
+    assert.equal(bounds.y + bounds.height, 480);
+    assert.equal(bounds.y, 48);
+  }
+  const bounds = calculateShieldBounds({ windowWidth: 1280, stripHeight: 68,
+    anchorCenter: 718, anchorBottom: 500 });
+  assert.equal(bounds.y, 68, 'vertical geometry cannot exceed the chrome strip');
 });

@@ -28,7 +28,8 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
   assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 41);
+  assert.equal(sbom.components.length, 43);
+  assert.ok(refs.has('asset:ublock-origin'));
   assert.ok(refs.has('pkg:npm/electron@44.5.1'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk-core@0.5.0'));
@@ -85,7 +86,9 @@ test('missing license metadata and a disallowed shipped license fail closed', ()
 test('runtime license policy selects EasyList CC BY-SA and contains no strong-copyleft npm package', () => {
   const generated = createComplianceArtifacts();
   const expressions = generated.runtime.sbom.components.flatMap((component) =>
-    component.licenses.map((choice) => choice.expression || choice.license.id));
+    component['bom-ref'] === 'asset:ublock-origin' ? [] : component.licenses.map((choice) => choice.expression || choice.license.id));
+  assert.equal(generated.policy.runtimeAssetLicenseExceptions['ublock-origin'], 'GPL-3.0-or-later');
+  assert.equal(generated.policy.runtimeAllowedLicenseExpressions.includes('GPL-3.0-or-later'), false);
   for (const expression of expressions) {
     assert.ok(
       generated.policy.runtimeAllowedLicenseExpressions.includes(expression),
@@ -150,11 +153,11 @@ test('packaging helpers use platform resource roots and find only legal notice f
   };
   assert.equal(
     resourcesDirectory({ ...context, electronPlatformName: 'darwin' }),
-    '/tmp/out/Blanc.app/Contents/Resources'
+    path.join('/tmp/out', 'Blanc.app', 'Contents/Resources')
   );
   assert.equal(
     resourcesDirectory({ ...context, electronPlatformName: 'win32' }),
-    '/tmp/out/resources'
+    path.join('/tmp/out', 'resources')
   );
   assert.equal(safeLicenseFilename('@scope/pkg', '1.2.3'), 'scope__pkg--1.2.3.txt');
 
@@ -190,21 +193,52 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
     fs.readFileSync(path.join(resources, 'LICENSE.blanc.txt'), 'utf8'),
     fs.readFileSync(path.join(ROOT, 'LICENSE'), 'utf8')
   );
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 41);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 43);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 36, '32 runtime npm records plus four font licenses');
+  assert.equal(licenses.length, 39, '32 runtime npm records plus four fonts, uBlock GPL/LGPL and Lucide');
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), 'utf8'));
   assert.ok(licenses.includes('1password__sdk--0.5.0.txt'));
   assert.ok(licenses.includes('1password__sdk-core--0.5.0.txt'));
   assert.ok(licenses.includes('lazy-val--1.0.5.txt'));
   assert.ok(licenses.includes('inter-OFL.txt'));
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'ublock/LICENSE.txt'), 'utf8'));
+  assert.equal(fs.readFileSync(path.join(resources, 'ThirdPartyLicenses/lucide-LICENSE.txt'), 'utf8'), fs.readFileSync(path.join(ROOT, 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt'), 'utf8'));
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));
   assert.ok(licenses.includes('caveat-OFL.txt'));
   assert.ok(licenses.includes('newsreader-OFL.txt'));
+  const { createPackage } = require('@electron/asar');
+  const payload = path.join(appOutDir, 'fixture-source');
+  fs.mkdirSync(payload);
+  fs.writeFileSync(path.join(payload, 'package.json'), JSON.stringify({ blancUblockBundled: true }));
+  await createPackage(payload, path.join(resources, 'app.asar'));
   assert.doesNotThrow(() => verifyPackagedCompliance(resources));
+  const lgpl = path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt');
+  fs.writeFileSync(lgpl, 'Incorrect nonempty license text');
+  assert.throws(() => verifyPackagedCompliance(resources), /packaged license differs from source/);
+  fs.copyFileSync(path.join(ROOT, 'ublock/licenses/LGPL-3.0.txt'), lgpl);
 
   fs.writeFileSync(path.join(resources, 'runtime-sbom.cdx.json'), '{}');
   assert.throws(() => verifyPackagedCompliance(resources), /packaged runtime SBOM is stale/);
+});
+
+test('ordinary packaging records only distributed components when uBO is excluded', async (t) => {
+  const appOutDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-excluded-ubo-compliance-'));
+  t.after(() => fs.rmSync(appOutDir, { recursive: true, force: true }));
+  const context = { electronPlatformName: 'win32', appOutDir, packager: { appInfo: { productFilename: 'Blanc' }, info: { metadata: { blancUblockBundled: false } } } };
+  fs.writeFileSync(path.join(appOutDir, 'LICENSE.electron.txt'), 'Electron MIT fixture');
+  fs.writeFileSync(path.join(appOutDir, 'LICENSES.chromium.html'), 'Chromium fixture');
+  await packageCompliance(context);
+  const resources = resourcesDirectory(context);
+  const payload = path.join(appOutDir, 'fixture-source');
+  fs.mkdirSync(payload);
+  fs.writeFileSync(path.join(payload, 'package.json'), JSON.stringify({ blancUblockBundled: false }));
+  await require('@electron/asar').createPackage(payload, path.join(resources, 'app.asar'));
+  const sbom = JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json')));
+  assert(!sbom.components.some(item => /uBlock Origin/.test(item.name)));
+  assert(!fs.existsSync(path.join(resources, 'ThirdPartyLicenses/LICENSE.txt')));
+  assert(!fs.existsSync(path.join(resources, 'ThirdPartyLicenses/LGPL-3.0.txt')));
+  assert.doesNotThrow(() => verifyPackagedCompliance(resources));
 });

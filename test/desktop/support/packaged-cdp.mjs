@@ -28,11 +28,13 @@ export async function launchPackagedOverCdp({
   timeoutMs = 20_000,
   launchViaOpen = false,
   openUrls = [],
+  debugPort,
 }) {
   if (launchViaOpen && process.platform !== 'darwin') {
     throw new Error('LaunchServices packaged launch is macOS-only.');
   }
-  const port = launchViaOpen ? await availableLoopbackPort() : 0;
+  if (debugPort !== undefined && (!Number.isInteger(debugPort) || debugPort < 1 || debugPort > 65535)) throw new Error('Invalid packaged CDP port');
+  const port = debugPort ?? (launchViaOpen ? await availableLoopbackPort() : 0);
   const appSuffix = '.app/Contents/MacOS';
   const appRootIndex = launchViaOpen
     ? executablePath.lastIndexOf(appSuffix)
@@ -48,7 +50,7 @@ export async function launchPackagedOverCdp({
     ? openUrls.length
       ? ['-n', '-W', '-a', path.resolve(appPath), ...openUrls, '--args', `--remote-debugging-port=${port}`, ...args]
       : ['-n', '-W', path.resolve(appPath), '--args', `--remote-debugging-port=${port}`, ...args]
-    : ['--remote-debugging-port=0', ...args];
+    : [`--remote-debugging-port=${port}`, ...args];
   const child = spawn(command, commandArgs, { env, stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
   let exited = false;

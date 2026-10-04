@@ -73,15 +73,44 @@ test('profile deletion settles native visibility before force-destroying its win
       calls.push('hide');
       listeners.get('hide')?.();
     },
+    removeListener(event) { listeners.delete(event); },
     destroy() {
       calls.push('destroy');
       listeners.get('closed')?.();
     },
   };
-  const sandbox = {};
+  const sandbox = { clearTimeout, setTimeout, setImmediate, process: { platform: 'linux' } };
   vm.runInNewContext(`${destroyProfileWindowSource}\nthis.__destroy = destroyProfileWindow;`, sandbox);
 
   await sandbox.__destroy({ window });
 
   assert.deepEqual(calls, ['once:hide', 'hide', 'once:closed', 'destroy']);
+});
+
+test('profile deletion handles a native visibility change without a hide event', async () => {
+  let visible = true;
+  const listeners = new Map();
+  let destroyed = false;
+  const window = {
+    isDestroyed: () => destroyed, isVisible: () => visible,
+    once: (name, listener) => listeners.set(name, listener),
+    removeListener: name => listeners.delete(name),
+    hide: () => { visible = false; },
+    destroy: () => { assert.equal(visible, false); destroyed = true; listeners.get('closed')(); },
+  };
+  const sandbox = { clearTimeout, setTimeout, setImmediate, process: { platform: 'linux' } };
+  vm.runInNewContext(`${destroyProfileWindowSource}\nthis.__destroy = destroyProfileWindow;`, sandbox);
+  await sandbox.__destroy({ window });
+  assert(destroyed); assert(!listeners.has('hide'));
+});
+
+test('macOS profile deletion waits for the deferred native hide event', async () => {
+  const { EventEmitter } = require('node:events');
+  const window = new EventEmitter(); let visible = true, hidden = false, destroyed = false;
+  window.isDestroyed = () => destroyed; window.isVisible = () => visible;
+  window.hide = () => { visible = false; setImmediate(() => { hidden = true; window.emit('hide'); }); };
+  window.destroy = () => { assert(hidden, 'native hide must be consumed before destroy'); destroyed = true; window.emit('closed'); };
+  const context = { clearTimeout, setTimeout, setImmediate, process: { platform: 'darwin' } };
+  vm.runInNewContext(`${destroyProfileWindowSource}\nthis.destroy = destroyProfileWindow;`, context);
+  await context.destroy({ window }); assert(destroyed);
 });

@@ -64,6 +64,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
   reportIslandRect: (rect) => ipcRenderer.send('chrome:island-rect', rect),
+  onShieldAnchor: (callback) => {
+    const listener = (_event, anchor) => callback(anchor);
+    ipcRenderer.on('overlay:shield-anchor', listener);
+    return () => ipcRenderer.removeListener('overlay:shield-anchor', listener);
+  },
   onIslandProximity: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:island-proximity', listener);
@@ -97,6 +102,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openIslandTyping: (char) => ipcRenderer.send('chrome:open-island-typing', char),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
+  selectBlockingProvider: (provider, restart = false) => ipcRenderer.invoke('chrome:blocking-provider', provider, restart),
+  openBlockingPopup: () => ipcRenderer.invoke('chrome:blocking-popup'),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),

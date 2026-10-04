@@ -1,4 +1,5 @@
 'use strict';
+if (window.location.protocol !== 'chrome-extension:') {
 
 const { contextBridge } = require('electron');
 
@@ -25,3 +26,4 @@ contextBridge.executeInMainWorld({
     });
   },
 });
+}

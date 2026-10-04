@@ -1,0 +1,35 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": true,
+  "os": "darwin",
+  "harnessArchitecture": "x64",
+  "osRelease": "24.6.0",
+  "executableSha256": "4f6d94fde33d2381b77bae166127ccde7a83f6ee8c84e34a3ca5e5a9a4ad74ce",
+  "checks": {
+    "restart-ublock-origin": true,
+    "networkAndCosmetics": true,
+    "popupMarkAndMoreAndLogger": true,
+    "privateShieldAndLoggerIsolation": true,
+    "quietWakeControls": true,
+    "restart-blanc": true,
+    "filtersSurviveProviderRestarts": true,
+    "globalSwitch": true,
+    "macWindowCloseAndLaunchServicesReopen": true,
+    "nativeMacQuit": true
+  },
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "darwin",
+    "architecture": "x64"
+  },
+  "ciRun": "https://github.com/bnfy/blanc/actions/runs/37162421830",
+  "sourceSha": "ca94babf3d90404c1622f8c64249c77f7da48736",
+  "signatureAcceptance": false
+}

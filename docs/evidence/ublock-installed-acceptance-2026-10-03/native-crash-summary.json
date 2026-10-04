@@ -1,0 +1,33 @@
+{
+  "kind": "sanitized-native-crash-symbolication",
+  "runtime": "official Electron 44.5.1",
+  "frameworkUuid": "4c4c4412-5555-3144-a10a-0d09c3791472",
+  "exception": "EXC_BREAKPOINT / SIGTRAP",
+  "observations": [
+    "Signed installed candidate and disposable diagnostic copy have the same native framework crash offset.",
+    "Restart intent was recorded, but will-quit and quit were not reached on the failing diagnostic restart."
+  ],
+  "frames": [
+    {
+      "imageOffset": "0x1c86144",
+      "function": "views::View::DoRemoveChildView(views::View*, bool, bool, views::View*)"
+    },
+    {
+      "imageOffset": "0x2bbddc4",
+      "function": "electron::api::View::RemoveChildView(gin_helper::Handle<electron::api::View>)"
+    },
+    {
+      "imageOffset": "0x4dc10e0",
+      "function": "content::WebContentsImpl::NotifyWebContentsLostFocus(content::RenderWidgetHost*)"
+    }
+  ],
+  "symbols": {
+    "url": "https://github.com/electron/electron/releases/download/v44.5.1/electron-v44.5.1-darwin-arm64-symbols.zip",
+    "sha256": "b239e3be61c64ff756c434350b894ce9d54fe04d8353352402e6d404209ad13b",
+    "digestVerifiedAgainst": "official v44.5.1 SHASUMS256.txt"
+  },
+  "limits": [
+    "Raw crash reports, personal filesystem paths and crash identifiers are intentionally omitted.",
+    "Windows native crash cause has not yet been confirmed by symbolication."
+  ]
+}

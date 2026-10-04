@@ -103,7 +103,7 @@ test('packaging wires fixed Sunrise icons on Windows and Linux', () => {
 test('Windows ICOs preserve the canonical Sunrise proportions while omitting three short reflections', async () => {
   assert.equal(
     path.relative(root, SOURCE_ICON),
-    'build/app-icons/Icon.icon/Assets/sunrise-mark.png',
+    path.join('build/app-icons/Icon.icon/Assets/sunrise-mark.png'),
   );
   assert.equal(WINDOWS_SOURCE_CROP_HEIGHT, 784);
   assert.equal(WINDOWS_VISIBLE_SCALE, 1);

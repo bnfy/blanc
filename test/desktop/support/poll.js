@@ -43,4 +43,22 @@ async function openOverlaySurface(world, openMethod, mode) {
   );
 }
 
-module.exports = { waitForValue, openOverlaySurface };
+/**
+ * Click with real input once the element is visible, enabled and has kept the
+ * same box across two polls. Playwright's own stability check counts animation
+ * frames, and under Xvfb a chrome renderer can stop producing them: the click
+ * then waits forever on an element that is visible, focused and not moving.
+ */
+async function clickWhenSettled(locator, label, timeout = 8000) {
+  let previous = null;
+  await waitForValue(async () => {
+    const box = await locator.boundingBox();
+    const ready = !!box && await locator.isVisible() && await locator.isEnabled();
+    const settled = ready && !!previous && ['x', 'y', 'width', 'height'].every((key) => box[key] === previous[key]);
+    previous = box;
+    return { box, ready, settled };
+  }, (value) => value.settled, `${label} to settle`, timeout);
+  await locator.click({ force: true });
+}
+
+module.exports = { waitForValue, openOverlaySurface, clickWhenSettled };
