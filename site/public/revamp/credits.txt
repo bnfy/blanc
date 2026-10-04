@@ -1,14 +1,15 @@
-Blanc website Island captures — captured October 3, 2026
+Blanc website Island captures — captured October 4, 2026
 
-island-webb-rest.webp, island-webb-tabs.webp and island-webb-command.webp
-show the official Blanc v1.26.0 macOS app with three sample NASA Science tabs.
+island-roman-rest.webp, island-roman-tabs.webp and island-roman-command.webp
+show the official Blanc v1.27.0 macOS app with three sample NASA Science tabs.
 Exports are lossless center crops of native screenshots. Product pixels have
 not been generated, recolored or repainted. Transitions between stills are
 website choreography, not recorded application motion.
 
-Sample webpage: “Cosmic Cliffs” in the Carina Nebula (NIRCam Image).
-Source: NASA Science. Image credit: NASA, ESA, CSA, STScI.
-https://science.nasa.gov/asset/webb/cosmic-cliffs-in-the-carina-nebula-nircam-image/
+Sample webpage: NASA Science homepage, “Adopt a Pixel” section.
+Imagery: Nancy Grace Roman Space Telescope against a purple field of galaxies.
+Source: NASA Science.
+https://science.nasa.gov/
 
 NASA media usage guidelines:
 https://www.nasa.gov/nasa-brand-center/images-and-media/

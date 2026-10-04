@@ -123,9 +123,9 @@ initHorizonShield(document.querySelector(".horizon-study"));
   };
   const islandAlts = {
     resting:
-      "Blanc v1.26.0: the resting Island above NASA’s Cosmic Cliffs image",
-    tabs: "Blanc v1.26.0: the open Island lists the Webb telescope and two Cosmic Cliffs image pages",
-    commands: "Blanc v1.26.0: typing / reveals the unfiltered slash-command list, starting with Favorites, Bring Your Tabs, Save, History, Downloads and Settings",
+      "Blanc v1.27.0: the resting Island above NASA’s Adopt a Pixel telescope scene",
+    tabs: "Blanc v1.27.0: the open Island lists the Roman telescope, Adopt a Pixel and NASA Science pages",
+    commands: "Blanc v1.27.0: typing / reveals the unfiltered slash-command list, starting with Favorites, Bring Your Tabs, Save, History, Downloads and Settings",
   };
   let islandTimer = null,
     islandPlaying = false,

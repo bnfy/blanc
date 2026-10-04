@@ -430,3 +430,24 @@ A merge is not public-release evidence: publication still waits for the app.
 Validation: production site/SEO build and all 37 focused consent, navigation,
 claims, shield and trust checks passed. Browser checks confirmed the Trust deep
 link opens the revised disclosure and both tested mobile pages fit the viewport.
+
+## Adopt a Pixel Island scene (October 4)
+
+Replaced the three Cosmic Cliffs stills with native captures of NASA Science's
+Adopt a Pixel section, featuring the darker Roman telescope illustration. The
+center crop keeps the native Island geometry and puts the telescope below it;
+the NASA headline is outside the displayed crop. The resting backdrop received
+a final framing adjustment; only the panels from the other stills are revealed
+by the existing transition masks. No product pixels were repainted.
+
+Captured installed public v1.27.0 in a separate Launch demo window. Strict deep
+codesign passed outside the sandbox, and the five renderer files match release
+602a1a85a9b80453b2561b3e10c5e5795c3ff659. The sample window was closed. Updated
+asset hashes, capture history, accessible descriptions and shipped source credits.
+This only updates the Island demo's version evidence; other historical demo
+captures retain their recorded versions.
+
+Validation: all three images load; desktop and 390px mobile rest/tabs/commands
+previews checked with no horizontal overflow. Site build and SEO verification
+passed (29 pages / 27 sitemap URLs); 13 focused feature-evidence, launch-claims
+and trust regression tests passed. No production deployment.
