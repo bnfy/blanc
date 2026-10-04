@@ -1759,6 +1759,29 @@
 .home-revamp .hero-copy {
   padding-bottom: 20px;
 }
+/* The opening is a full viewport; the laptop begins in the following section.
+   Min-height allows enlarged text and short landscape windows to grow safely. */
+.home-revamp #opening > .frame {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(12px, 3vh, 32px);
+  padding: clamp(32px, 6vh, 80px) 0;
+}
+.home-revamp #opening .hero-copy {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.home-revamp #wallpaper .hero-product {
+  padding-top: clamp(24px, 5vw, 64px);
+}
+.home-revamp #wallpaper .device-composition {
+  width: 88%;
+  margin: 0 auto;
+}
 @media (max-width: 760px) {
   .home-revamp .daylight-caption {
     width: calc(100% - 48px);
@@ -1768,6 +1791,10 @@
   }
   .home-revamp .hero-product {
     padding-bottom: 45px;
+  }
+  .home-revamp #wallpaper .device-composition {
+    width: 108%;
+    margin-left: -4%;
   }
   .home-revamp .daylight-aura {
     inset: 0 -10% 25%;

@@ -93,7 +93,13 @@ const structuredData = {
           </div><p class="hero-offer">
             Free browser. Patron adds saved Named Workspaces.
           </p>
-        </div><figure
+        </div>
+        <NativeIslandHero />
+      </div>
+    </section>
+    <section class="beat" id="wallpaper" aria-label="Time-of-day wallpaper preview">
+      <div class="frame">
+        <figure
           class="hero-product"
           id="hero-daylight"
           data-phase="dawn"
@@ -103,10 +109,11 @@ const structuredData = {
             <span data-aura="dawn" class="is-current"></span><span
               data-aura="day"></span><span data-aura="dusk"></span><span
               data-aura="night"></span>
-          </div><NativeIslandHero /><div class="device-composition device-laptop">
+          </div><div class="device-composition device-laptop">
             <img
               class="device-shell"
-              fetchpriority="high"
+              loading="lazy"
+              decoding="async"
               src="/revamp/space-black-laptop-v2.webp"
               width="1536"
               height="1024"

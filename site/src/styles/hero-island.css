@@ -5,7 +5,8 @@
   z-index: 3;
   width: min(100%, 1140px);
   height: clamp(160px, 20vw, 260px);
-  margin: 0 auto -48px;
+  margin: 0 auto;
+  flex: none;
   perspective: 1200px;
   perspective-origin: 50% 50%;
   pointer-events: auto;
@@ -41,18 +42,13 @@
   transform: scaleY(.5);
   pointer-events: none;
 }
-.home-revamp .hero-product:has(.hero-island-stage) .device-composition {
-  width: 88%;
-  margin: 0 auto;
-}
 @media (max-width: 1000px) {
-  .home-revamp .hero-island-stage {--art-scale:1.5; margin-bottom:-32px;}
+  .home-revamp .hero-island-stage {--art-scale:1.5;}
 }
 @media (max-width: 600px) {
-  .home-revamp .hero-island-stage {--art-scale:.72; height:130px; margin-bottom:-18px; perspective:600px;}
+  .home-revamp .hero-island-stage {--art-scale:.72; height:130px; perspective:600px;}
   .hero-island-plane {inset-inline:5%;}
   .hero-island-shadow {filter:blur(15px);}
-  .home-revamp .hero-product:has(.hero-island-stage) .device-composition {width:108%;margin-left:-4%;}
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-island-plane {animation:none; transform:none;}

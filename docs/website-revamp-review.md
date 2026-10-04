@@ -388,3 +388,18 @@ accessible Play/Pause/Replay label; desktop keeps the longer visible labels.
 Verified alignment and no horizontal overflow at 320px and 390px, keyboard
 arrow navigation, and play/pause. Production site/SEO build and all 13
 feature-evidence/trust checks passed.
+
+## Full-viewport opening (October 3)
+
+The opening now fills one viewport with the unchanged tagline, download links
+and animated native Island. The MacBook wallpaper demo starts in its own
+section below the fold, retaining its existing captures, controls and responsive
+device proportions. The Island's appearance still follows the wallpaper's
+light/dark selection across the separate sections. A 100vh/100svh minimum
+height allows enlarged text and short landscape windows to grow without clipping.
+
+Verified a 792px hero at 855×792 and an 844px hero at 390×844, with the MacBook
+below the fold and no horizontal overflow. The relocated demo's time slider
+and appearance switch work, all images load, and the browser reports no
+warnings/errors. Production site/SEO build, ESLint and all 16 native-Island,
+feature-evidence and trust checks passed. Website PR #491 remains a draft.

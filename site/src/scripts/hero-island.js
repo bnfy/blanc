@@ -20,7 +20,7 @@ export function initHeroIsland(stage, {view = window} = {}) {
     updateMotion();
   }).observe(stage);
   view.document.addEventListener('visibilitychange', updateMotion);
-  const daylight = stage.closest('#hero-daylight');
+  const daylight = view.document.getElementById?.('hero-daylight');
   if (daylight) {
     const appearance = () => {model.dataset.appearance = daylight.dataset.appearance;};
     new view.MutationObserver(appearance).observe(daylight, {attributes:true, attributeFilter:['data-appearance']});
