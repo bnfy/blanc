@@ -5,6 +5,7 @@ import { initHorizonShield } from "./horizon-shield.js";
 import { initMahjongPreview } from "./mahjong-preview.js";
 import { createImagePreview } from "./image-preview.js";
 import { initHandheldDownload } from "./handheld-download.js";
+import { initToolDemos } from "./tool-demos.js";
 initHorizonShield(document.querySelector(".horizon-study"));
 
 (() => {
@@ -395,3 +396,4 @@ initHorizonShield(document.querySelector(".horizon-study"));
 })();
 
 initGestureDemo(document.querySelector(".gesture-study"));
+initToolDemos(document.getElementById("tools"));

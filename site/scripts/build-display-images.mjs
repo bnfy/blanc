@@ -22,6 +22,9 @@ const jobs = [
     // Full-size lossy copy for desktops; the lossless original stays pinned.
     { source: `revamp/island-roman-${name}.webp`, output: `revamp/island-roman-${name}-display.webp` },
   ]),
+  // Glance demo: a phone copy of the wide Nyhavn photo. (A WebP copy of the
+  // noisy Kusama JPEG came out larger than the original, so it stays as is.)
+  { source: 'revamp/glance-nyhavn.webp', output: 'revamp/glance-nyhavn-800.webp', width: 800 },
   // Device frames (lossless, pinned in docs/website-revamp-assets.json).
   ...['champagne-desktop-v2', 'space-black-laptop-v2'].map(name => ({
     source: `revamp/${name}.webp`,

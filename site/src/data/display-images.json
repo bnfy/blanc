@@ -42,6 +42,13 @@
     "height": 1000
   },
   {
+    "source": "revamp/glance-nyhavn.webp",
+    "sourceSha256": "95cec15601f3c3d4371fcb8d17d3455091bd25c79c347ac000a2d096734a3e31",
+    "output": "revamp/glance-nyhavn-800.webp",
+    "width": 800,
+    "height": 364
+  },
+  {
     "source": "revamp/champagne-desktop-v2.webp",
     "sourceSha256": "6b66146dfa0c8dbe72bdbfca465d320e10e4b3a97b7b06d43b61ceda554476a7",
     "output": "revamp/champagne-desktop-v2-display.webp",
