@@ -252,8 +252,8 @@ Given('a private-only secondary window bound to a named workspace', async functi
   for (const tab of target.tabs.filter((t) => !t.private)) await this.call('closeTabInWindow', this.secondary, tab.id);
 });
 When('I close that window and reopen its workspace', async function () {
-  await this.call('closeWindowRuntime', this.secondary);
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(await this.call('closeWindowRuntime', this.secondary), true);
+  await waitForValue(() => this.call('windowRuntimes'), windows => !windows.some(window => window.id === this.secondary), 'secondary window to finish closing');
   const opened = await this.call('workspaceAction', 'open', this.closedWorkspace, { newWindow: true }); assert.equal(opened.ok, true, JSON.stringify(opened)); this.reopenedWindow = opened.windowId;
 });
 Then('no removed ordinary page is restored', async function () {
