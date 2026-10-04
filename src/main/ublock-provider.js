@@ -13,6 +13,12 @@ const { captureDocuments, currentDocuments, guardScript } = require('./ublock-do
 
 const DEADLINE_MS = 2000;
 const OPERATION_DEADLINE_MS = 10000;
+// A profile's first start compiles every bundled filter list before uBO
+// reports ready, and that takes 6–10 s on hosted Intel Macs and sometimes
+// more than 15 s. Navigation stays held until then, and a startup that misses
+// this deadline still fails closed; it only stops a slow machine from being
+// treated as a broken one.
+const STARTUP_DEADLINE_MS = 45000;
 const MAX_PENDING = 256;
 const instances = new Map();
 let ipcInstalled = false;
@@ -468,7 +474,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
         extension = await loadManaged(installed.path, { allowFileAccess: false });
         resolveBackground();
         await Promise.race([backgroundReady, new Promise((_, reject) => {
-          backgroundTimer = setTimeout(() => reject(new Error('ubo-background-startup-timeout')), 15000);
+          backgroundTimer = setTimeout(() => reject(new Error('ubo-background-startup-timeout')), STARTUP_DEADLINE_MS);
         })]);
       } finally { app.removeListener('web-contents-created', created); clearTimeout(backgroundTimer); }
 
@@ -481,7 +487,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       helper.webContents.on('will-navigate', event => event.preventDefault());
       helper.webContents.on('render-process-gone', () => fail('ubo-bridge-crashed'));
       await helper.webContents.loadURL(`chrome-extension://${extension.id}/blanc-bridge.html`);
-      const timer = setTimeout(() => fail('ubo-startup-timeout'), 15000);
+      const timer = setTimeout(() => fail('ubo-startup-timeout'), STARTUP_DEADLINE_MS);
       try { await readyPromise; } finally { clearTimeout(timer); }
       return status();
     } catch { fail(error || 'ubo-initialization-failed'); throw new Error(error); }
