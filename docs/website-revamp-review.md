@@ -665,3 +665,49 @@ The committed master, display export, outline, and native icon still require
 their exact ledger hashes. The pixel check verifies the 960px export geometry
 and bounds visible color differences within the existing lossy export quality.
 The six focused shield checks and lint pass locally after this correction.
+
+## Homepage audit fixes (October 4)
+
+The hero small print now leads with "Free and open source. Ad and tracker
+blocking is on by default." The Patron offer stays in the tab-groups note and
+the Patron card. The privacy section leads with the default: "Ad and tracker
+blocking, on by default." Its lead names Blanc Blocker as on from first launch
+and uBlock Origin as the regular-tab option on supported builds. Both match
+public v1.27.0 (`adblockEnabled: true`, `adblockProvider: 'blanc'`).
+
+The wallpaper preview gains a kicker, heading and lead. They explain that
+Time-of-day wallpaper is turned on in Settings → General; it is off by default
+in v1.27.0. The heading wraps with `text-wrap: balance` rather than a forced
+break, which left "Page" orphaned at desktop widths. The caption is a single
+row: play button and time slider.
+
+Homepage appearance supersedes the earlier note above. Light was the documented
+default; the page now follows `prefers-color-scheme`, including live system
+changes, until the visitor uses the new header Dark mode toggle. A manual choice
+is saved under `blanc-home-appearance` and wins from then on. The toggle replaces
+the wallpaper Light/Dark button, appears only on the homepage, keeps a stable
+"Dark mode" name, and reports state through `aria-pressed`. If the system theme
+cannot be queried, the page starts light and the toggle still works. Below 380px
+the header tightens its gap and gutter while the toggle is shown, so it fits
+beside the Download pill at 320px.
+
+"Ready to try Blanc?" now precedes the Patron card as an h2. It is the larger
+of the two at every width: 96px against a 68px Patron title and 80px price at
+1440px; 48px against 36px and 48px at 320px. The closing links' inline margin
+moved into CSS. The detailed Patron lapse paragraph remains on the homepage
+because the trust and public-truth tests require it there.
+
+The claim ledger retires `reddit-393`, `blocking-127-1` and `blocking-127-2`
+with reasons. It adds seven entries for the new copy and a `blockingDefault`
+evidence group citing `src/main/settings.js`. The blocking launch record carries
+the two reworded privacy claims and pins `settings.js` to its v1.27.0 hash.
+
+Verified: 119 site, claim, trust and Patron checks pass, including four new
+system-preference cases. Each of three deliberate controller mutations failed
+at least one of them. Site and SEO build pass (29 pages, 27 sitemap URLs). Layouts
+at 1440, 1024, 768, 761, 390, 380, 360, 340 and 320px show no horizontal page
+overflow and no header wrap; light and dark were both captured at 1440 and 320px.
+
+Still pending, and needing the owner's machine with public v1.27.0: Start Page
+recaptures with a non-zero weekly blocked count, and with Patron active so the
+upgrade pill is hidden.

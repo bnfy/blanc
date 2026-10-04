@@ -398,7 +398,7 @@
   margin-bottom: 28px;
 }
 .home-revamp .patron-section .patron-title {
-  font-size: clamp(52px, 6.3vw, 84px);
+  font-size: clamp(44px, 5vw, 68px);
   letter-spacing: -0.025em;
   color: var(--site-gold-on-dark);
 }
@@ -443,7 +443,7 @@
   white-space: nowrap;
 }
 .home-revamp .patron-amount {
-  font: 400 96px/1 var(--site-font-patron);
+  font: 400 clamp(48px, 5.6vw, 80px)/1 var(--site-font-patron);
   font-optical-sizing: auto;
   font-variant-numeric: lining-nums;
   letter-spacing: -0.04em;
@@ -500,7 +500,7 @@
     gap: 28px;
   }
   .home-revamp .patron-section .patron-title {
-    font-size: clamp(40px, 11vw, 64px);
+    font-size: clamp(36px, 9.5vw, 52px);
   }
   .home-revamp .patron-description {
     font-size: 14px;
@@ -511,7 +511,7 @@
     border-top: 1px solid #d4ad6640;
   }
   .home-revamp .patron-amount {
-    font-size: 84px;
+    font-size: 48px;
   }
   .home-revamp .patron-boundary {
     margin-top: 28px;
@@ -521,9 +521,6 @@
 .home-revamp .download-close {
   text-align: center;
   padding: 45px 50px;
-}
-.home-revamp .download-close h3 {
-  font-size: 40px;
 }
 .home-revamp .platforms {
   display: flex;
@@ -819,8 +816,23 @@
   margin: auto;
   padding: 85px 40px;
 }
+/* The closing download is the page's final, largest call to action; the
+   Patron card that follows stays a step smaller. */
 .home-revamp .download-close {
-  padding: 70px 30px;
+  padding: 88px 30px 80px;
+}
+.home-revamp .download-close h2 {
+  font-size: clamp(56px, 7vw, 96px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+.home-revamp .download-close .planned-action {
+  padding: 15px 30px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+.home-revamp .download-close .closing-links {
+  margin-top: 20px;
 }
 .home-revamp .material-limit {
   max-width: 900px;
@@ -853,7 +865,10 @@
     font-size: 38px;
   }
   .home-revamp .download-close {
-    padding: 42px 24px;
+    padding: 56px 24px 52px;
+  }
+  .home-revamp .download-close h2 {
+    font-size: clamp(48px, 14vw, 64px);
   }
 }
 .home-revamp code,
@@ -1182,15 +1197,29 @@
   padding-top: 62px;
   padding-bottom: 62px;
 }
-.home-revamp #island .split-title {
+.home-revamp #island .split-title,
+.home-revamp .wallpaper-intro .split-title {
   grid-template-columns: 1fr 1fr;
   align-items: center;
+}
+/* The wallpaper figure follows as a sibling, so the intro keeps less below. */
+.home-revamp .wallpaper-intro {
+  padding-top: 62px;
+  padding-bottom: 36px;
+}
+/* Too long for one forced break in its column; balance avoids an orphan. */
+.home-revamp .wallpaper-intro h2 {
+  text-wrap: balance;
 }
 @media (max-width: 760px) {
   .home-revamp #island .frame-inner {
     padding: 42px 24px;
   }
-  .home-revamp #island .split-title {
+  .home-revamp .wallpaper-intro {
+    padding: 42px 24px 24px;
+  }
+  .home-revamp #island .split-title,
+  .home-revamp .wallpaper-intro .split-title {
     grid-template-columns: 1fr;
     gap: 18px;
   }

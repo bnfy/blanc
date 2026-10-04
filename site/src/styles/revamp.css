@@ -400,6 +400,14 @@ main :is(.section-kicker, .eyebrow) {
     max-width: 260px;
   }
 }
+/* With the homepage toggle the bar needs 354px at its usual spacing; tighten so
+   the toggle stays beside Download down to 320px. */
+@media (max-width: 380px) {
+  .site-header .revamp-nav:has(.site-appearance:not([hidden])) {
+    gap: 14px;
+    padding: 0 16px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .site-header.revamp-header {
     transition: none;

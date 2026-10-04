@@ -23,7 +23,8 @@ export function restoreHomeAppearance(document, view) {
 export function initHomeAppearance({ document = window.document, view = window, onChange = () => {} } = {}) {
   const root = document.documentElement;
   const button = document.getElementById('home-appearance');
-  const system = view.matchMedia(SYSTEM_DARK);
+  let system = null;
+  try { system = view.matchMedia(SYSTEM_DARK); } catch { /* Only the toggle changes the page. */ }
   let followSystem = true;
   try {
     const stored = view.localStorage.getItem(STORAGE_KEY);
@@ -50,7 +51,7 @@ export function initHomeAppearance({ document = window.document, view = window, 
     apply({ manual: true });
   });
   // Until the visitor chooses, a system theme change carries the page with it.
-  system.addEventListener('change', () => {
+  system?.addEventListener('change', () => {
     if (!followSystem) return;
     root.dataset.homeAppearance = system.matches ? 'dark' : 'light';
     apply();
