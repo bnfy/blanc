@@ -201,23 +201,34 @@
 }
 .home-revamp .gallery-controls {
   display: flex;
-  gap: 10px;
   margin: 25px 0 18px;
   flex-wrap: wrap;
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 28px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--control-border);
 }
 .home-revamp .gallery-controls button {
-  padding: 8px 15px;
-  min-height: 42px;
-  border: 1px solid var(--line);
   border-radius: 22px;
-  background: transparent;
   color: var(--dim);
   font-size: 13px;
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  min-height: 40px;
+  padding: 8px 15px;
+  transition: color 180ms ease;
 }
 .home-revamp .gallery-controls button[aria-pressed="true"] {
-  background: var(--ink);
   border-color: var(--ink);
-  color: var(--paper);
+  background: transparent;
+  border: 0;
+  color: #fff;
 }
 .home-revamp .caption {
   font-size: 13px;
@@ -350,6 +361,7 @@
   font-size: 15px;
   line-height: 1.75;
   text-wrap: pretty;
+  color: #e6dfd3;
 }
 .home-revamp .patron-help {
   display: inline-flex;
@@ -394,18 +406,16 @@
 }
 .home-revamp .patron-monthly {
   display: block;
-  margin-top: 18px;
   color: #d5ccbd;
   font-size: 13px;
   line-height: 1.75;
+  margin-top: 14px;
 }
 .home-revamp .patron-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
   min-height: 52px;
-  margin-top: 28px;
   padding: 14px 20px;
   border-radius: 999px;
   background: var(--site-gold-on-dark);
@@ -413,6 +423,8 @@
   font: 500 14px/1.5 var(--font-ui);
   text-decoration: none;
   transition: background-color 160ms ease;
+  gap: 8px;
+  margin-top: 26px;
 }
 .home-revamp .patron-cta:hover {
   background: var(--paper);
@@ -422,13 +434,14 @@
   outline-offset: 5px;
 }
 .home-revamp .patron-boundary {
-  margin-top: 40px;
-  padding-top: 28px;
   border-top: 1px solid #d4ad6640;
-  font-size: 13px;
-  line-height: 1.8;
-  color: #d5ccbd;
   text-wrap: pretty;
+  padding-right: max(0px, calc(100% - 78ch));
+  margin-top: 48px;
+  padding-top: 24px;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #a59c8e;
 }
 @media (max-width: 760px) {
   .home-revamp .patron-section {
@@ -456,8 +469,8 @@
     font-size: 48px;
   }
   .home-revamp .patron-boundary {
-    margin-top: 28px;
     padding-top: 24px;
+    margin-top: 28px;
   }
 }
 .home-revamp .download-close {
@@ -702,12 +715,14 @@
   letter-spacing: -0.03em;
 }
 .home-revamp .download-close .planned-action {
-  padding: 15px 30px;
   border-radius: 999px;
-  font-size: 15px;
+  margin-top: 36px;
+  padding: 17px 36px;
+  font-size: 16px;
 }
 .home-revamp .download-close .closing-links {
-  margin-top: 20px;
+  margin-top: 14px;
+  font-size: 12px;
 }
 .home-revamp .material-limit {
   max-width: 900px;
@@ -842,30 +857,6 @@
     margin-left: 0;
     margin-right: 0;
   }
-}
-.home-revamp .gallery-controls {
-  position: relative;
-  isolation: isolate;
-  width: fit-content;
-  padding: 4px;
-  gap: 4px;
-  border-radius: 28px;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--control-border);
-}
-.home-revamp .gallery-controls button {
-  position: relative;
-  z-index: 1;
-  border: 0;
-  background: transparent;
-  min-height: 40px;
-  padding: 8px 15px;
-  transition: color 180ms ease;
-}
-.home-revamp .gallery-controls button[aria-pressed="true"] {
-  background: transparent;
-  border: 0;
-  color: #fff;
 }
 .home-revamp .gallery-indicator {
   position: absolute;
@@ -1152,6 +1143,7 @@
   gap: 12px;
   background: #fff;
   font-size: 11px;
+  height: 52px;
 }
 .home-revamp .glance-reference-chrome > span:first-child {
   font-size: 9px;
@@ -1292,6 +1284,7 @@
   color: var(--ink);
   font: 500 12px/1.5 var(--font-ui);
   text-underline-offset: 5px;
+  white-space: nowrap;
 }
 .home-revamp #mahjong-back:hover { text-decoration: underline; }
 .home-revamp .glance-window.is-closed {
@@ -1386,9 +1379,6 @@
   .tile-pair
   > span:last-child {
   transform: translate(3px, -2px) rotate(16deg);
-}
-.home-revamp #mahjong-back {
-  white-space: nowrap;
 }
 .home-revamp .start-discovery.is-playing .tile-pair > span {
   transform: rotate(0);
@@ -1705,9 +1695,6 @@
   font: 22px/1 var(--font-ui);
   color: var(--dim);
   margin-left: auto;
-}
-.home-revamp .glance-reference-chrome {
-  height: 52px;
 }
 @media (max-width: 760px) {
   .home-revamp .glance-toolbar { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 18px; }
@@ -2423,8 +2410,6 @@ html[data-home-appearance] .home-revamp #tools .glance-actions button:is(:hover,
 .home-revamp #closing .home-foundations a { font-size: 12px; }
 .home-revamp #closing .trust-summary h2 { font-size: 15px; }
 .home-revamp #closing .download-close { padding-top: 64px; }
-.home-revamp .patron-cta { gap: 8px; }
-.home-revamp .patron-boundary { padding-right: max(0px, calc(100% - 78ch)); color: #b9b0a2; }
 @media (max-width: 760px) {
   .home-revamp #closing .trust-intro { padding-bottom: 24px; }
   .home-revamp #closing .home-foundations { gap: 20px; }
@@ -2439,22 +2424,15 @@ html[data-home-appearance] .home-revamp #tools .glance-actions button:is(:hover,
 .home-revamp .patron-offer { padding: 40px 36px 36px; border: 1px solid #d4ad6633; border-radius: 20px; background: rgb(255 255 255 / 0.035); }
 .home-revamp .patron-currency { align-self: flex-start; margin-top: 12px; color: #d5ccbd; }
 .home-revamp .patron-period { color: #d5ccbd; }
-.home-revamp .patron-monthly { margin-top: 14px; }
-.home-revamp .patron-cta { margin-top: 26px; }
-.home-revamp .patron-description { color: #e6dfd3; }
-.home-revamp .patron-boundary { margin-top: 48px; padding-top: 24px; font-size: 12px; line-height: 1.75; color: #a59c8e; }
 @media (max-width: 760px) {
   .home-revamp .patron-offer { padding: 28px 20px 22px; border-top: 1px solid #d4ad6633; }
-  .home-revamp .patron-boundary { margin-top: 28px; }
 }
 
 /* Download close: the one button follows the headline directly; the
    platform shortcuts and help links sit beneath it as quiet secondary
    rows, so nothing competes with the main action. */
 .home-revamp .download-close { display: flex; flex-direction: column; align-items: center; }
-.home-revamp .download-close .planned-action { margin-top: 36px; padding: 17px 36px; font-size: 16px; }
 .home-revamp .download-close .platforms { gap: 4px 24px; margin: 28px 0 0; color: var(--dim); }
 .home-revamp .download-close .platforms a:is(:hover, :focus-visible) { color: var(--ink); }
 .home-revamp .download-close .platform-logo { width: 15px; height: 17px; }
 .home-revamp .download-close .platform-logo--linux { width: 17px; }
-.home-revamp .download-close .closing-links { margin-top: 14px; font-size: 12px; }
