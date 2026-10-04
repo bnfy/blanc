@@ -76,6 +76,17 @@ async function select(pane) {
   }
   return frame;
 }
+// Upstream re-renders the lists on 'staticFilteringDataChanged' and reassigns
+// #autoUpdate from the value it fetched earlier, which can undo a click made
+// while a filter reload is settling. Toggle until the choice holds.
+async function setAutoUpdate(frame, checked) {
+  const box = frame.locator('#autoUpdate');
+  await waitForValue(async () => {
+    if (await box.isChecked() !== checked) await box.click();
+    await new Promise(resolve => setTimeout(resolve, 250));
+    return box.isChecked();
+  }, value => value === checked, 'auto-update choice held', 15000);
+}
 async function noOverflow(frame) {
   assert.equal(await frame.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, frame.url());
 }
@@ -99,7 +110,7 @@ try {
   await lists.locator('[data-key="easylist"] input').waitFor();
   assert.equal(await lists.locator('#blancListOptions input').count(), 4);
   const initialAuto = await lists.locator('#autoUpdate').isChecked();
-  await lists.locator('#autoUpdate').setChecked(!initialAuto);
+  await setAutoUpdate(lists, !initialAuto);
   await lists.locator('input[type="search"]').fill('EasyPrivacy');
   await lists.locator('#lists.searchMode').waitFor();
   assert.equal(await lists.locator('[data-key="easyprivacy"]').isVisible(), true);
@@ -156,7 +167,7 @@ try {
   assert.equal(await settings.locator('[data-setting-name="contextMenuEnabled"]').isChecked(), !beforeMenu);
   lists = await select('3p-filters.html');
   assert.equal(await lists.locator('#autoUpdate').isChecked(), !initialAuto);
-  await lists.locator('#autoUpdate').setChecked(initialAuto);
+  await setAutoUpdate(lists, initialAuto);
   stage = 'wide and narrow panels';
   for (const pane of ['1p-filters.html', 'dyna-rules.html', 'whitelist.html', 'support.html', 'about.html']) {
     const frame = await select(pane);
