@@ -4552,6 +4552,16 @@
       "verdict": "qualified"
     },
     {
+      "id": "revamp-mahjong-built-in",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Mahjong, built into Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified"
+    },
+    {
       "id": "revamp-copy-038",
       "source": "site/src/pages/index.astro",
       "exactWording": "Small conveniences. Useful every day.",

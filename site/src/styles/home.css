@@ -1428,6 +1428,14 @@
   padding: 4px 0;
   color: var(--ink);
 }
+.home-revamp .break-copy {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+.home-revamp .break-description {
+  font: 400 13px/1.5 var(--font-ui);
+}
 .home-revamp .break-label {
   font: 400 25px/1.2 var(--site-font-display);
   letter-spacing: -0.025em;
