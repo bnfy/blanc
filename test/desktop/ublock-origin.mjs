@@ -18,6 +18,10 @@ fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
   onboardingVersion: 1, adblockProvider: 'ublock-origin', adblockEnabled: true,
   searchSuggestions: false, usagePing: false, onePasswordEnabled: false,
 }));
+// A cold start (a fresh profile) compiles every filter list. The provider's
+// own startup waits are 2 + 45 + 45 s plus extraction and native loading, so
+// wait longer than that: a stall must be reported by the provider, not here.
+const COLD_START_MS = 100000;
 const hits = [];
 const methods = [];
 const socketUpgrades = [];
@@ -114,7 +118,7 @@ try {
       if (!popup.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
     }),
   ]);
-  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', 20000);
+  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', COLD_START_MS);
   timing.startupReadyMs = Date.now() - started;
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getBackgroundThrottling()), false);
@@ -623,17 +627,23 @@ try {
   const named = await call('createProfileWindow', 'uBO isolated profile');
   await call('setHomePage', '');
   assert(named.ok);
-  // The provider has successive CSS/background/bridge waits (2/15/15 s),
-  // in addition to extraction and native load time. Give this test 40 s, but
-  // surface a provider failure immediately and record the observed latency.
+  // A new profile is a cold start (see COLD_START_MS). Surface a provider
+  // failure immediately and record the observed latency.
   await waitForValue(async () => {
     const state = await call('blockingStatusInWindow', named.runtimeId);
     assert.notEqual(state.phase, 'failed', `named profile provider failed: ${JSON.stringify(state)}`);
     return state;
-  }, state => state.phase === 'ready', 'named profile ready', 40000);
+  }, state => state.phase === 'ready', 'named profile ready', COLD_START_MS);
   timing.namedProfileReadyMs = Date.now() - profileStarted;
   console.log('Named profile initialization:', timing.namedProfileReadyMs, 'ms');
-  const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness');
+  // The navigation held during startup is replayed once the provider is
+  // ready. On failure, report whether it reached the fixture server and what
+  // each tab shows, so a slow replay and a missing one differ.
+  const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness', 15000)
+    .catch(async error => {
+      const tabs = (await call('state').catch(() => null))?.tabs?.map(tab => ({ url: tab.url, loadedUrl: tab.loadedUrl, isLoading: tab.isLoading })) ?? null;
+      throw new Error(`${error.message}; fixture hits: ${hits.filter(url => url === '/?named-profile-first-load').length}; provider: ${JSON.stringify(await call('blockingStatusInWindow', named.runtimeId).catch(() => null))}; tabs: ${JSON.stringify(tabs)}`);
+    });
   await initialProfilePage.waitForFunction(() => window.fixtureAllowed === true);
   assert.equal(hits.filter(url => url === '/?named-profile-first-load').length, 1, 'first profile GET must reach the server once after readiness');
   await call('blockingOpenInWindow', named.runtimeId, 'dashboard');
