@@ -41,6 +41,8 @@ jobs:
       - run: npm ci
       - name: Dependency compliance artifacts match the lockfiles
         run: npm run compliance:check
+      - name: Compatibility evidence and generated matrix match
+        run: npm run compatibility:check
       - name: Dependency advisories satisfy the security policy
         run: npm run security:dependencies
       - name: JavaScript correctness checks
