@@ -1,6 +1,7 @@
 ---
 import PlatformLogo from "../components/PlatformLogo.astro";
 import BrandMark from "../components/BrandMark.astro";
+import NativeIslandHero from "../components/NativeIslandHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/home.css";
 import pkg from "../../../package.json";
@@ -101,7 +102,7 @@ const structuredData = {
             <span data-aura="dawn" class="is-current"></span><span
               data-aura="day"></span><span data-aura="dusk"></span><span
               data-aura="night"></span>
-          </div><div class="device-composition device-laptop">
+          </div><NativeIslandHero /><div class="device-composition device-laptop">
             <img
               class="device-shell"
               fetchpriority="high"

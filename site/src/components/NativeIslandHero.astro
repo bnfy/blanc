@@ -1,0 +1,30 @@
+---
+import styles from '../../../src/renderer/styles.css?raw';
+import document from '../../../src/renderer/index.html?raw';
+import renderer from '../../../src/renderer/renderer.js?raw';
+import nativeFont from '../../../src/renderer/pages/inter-latin.woff2?url';
+import { nativeIslandArt } from '../lib/native-island-art.mjs';
+import '../styles/hero-island.css';
+const art = nativeIslandArt({styles, document, renderer});
+const presentation = `
+  :host {display:block; width:100%; height:100%; font:13px var(--font-ui); color:var(--text);}
+  .native-stage {display:grid; place-items:center; height:100%;}
+  [hidden] {display:none!important;}
+  #islandPill {margin:0; max-width:none; flex:none; width:max-content; zoom:calc(var(--pill-zoom) * var(--art-scale, 1));}
+`;
+---
+
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}`} />
+<div class="hero-island-stage" data-native-island role="img" aria-label="An enlarged perspective view of Blanc’s resting Island, rendered from its native interface code. Sample tabs on blancbrowser.com.">
+  <div class="hero-island-shadow" aria-hidden="true"></div>
+  <div class="hero-island-plane">
+    <blanc-native-island class="hero-native-model" data-appearance="light" aria-hidden="true" inert>
+      <template shadowrootmode="open">
+        <style is:inline set:html={art.css + presentation} />
+        <div class="native-stage" set:html={art.html}></div>
+      </template>
+    </blanc-native-island>
+  </div>
+  <div class="hero-island-hover-target" data-island-hover aria-hidden="true"></div>
+</div>
+<script src="../scripts/hero-island.js"></script>

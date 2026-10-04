@@ -1,0 +1,58 @@
+/* Perspective belongs to the presentation plane; native Island ratios stay intact. */
+.home-revamp .hero-island-stage {
+  --art-scale: 2.25;
+  position: relative;
+  z-index: 3;
+  width: min(100%, 1140px);
+  height: clamp(160px, 20vw, 260px);
+  margin: 0 auto -48px;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
+  pointer-events: auto;
+}
+.hero-island-plane {
+  position: absolute;
+  inset: 0 5%;
+  transform: translate3d(var(--island-pan-x, 0px), var(--island-pan-y, 0px), 0)
+    rotateX(var(--island-pitch, 48deg));
+  transform-origin: 50% 50%;
+  transition: transform 650ms cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+.hero-native-model {display:block; width:100%; height:100%;}
+.hero-island-hover-target {
+  position: absolute;
+  inset-inline: 5%;
+  top: 50%;
+  height: calc(var(--island-hover-height, 100px) + 16px);
+  transform: translateY(-50%);
+}
+.hero-island-shadow {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 67%;
+  height: 18%;
+  border-radius: 50%;
+  background: #574b3921;
+  filter: blur(24px);
+  transform: translate3d(calc(var(--island-pan-x, 0px) * -.4), 0, 0) scaleY(.5);
+  transition: transform 650ms cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+.home-revamp .hero-product:has(.hero-island-stage) .device-composition {
+  width: 88%;
+  margin: 0 auto;
+}
+@media (max-width: 1000px) {
+  .home-revamp .hero-island-stage {--art-scale:1.5; margin-bottom:-32px;}
+}
+@media (max-width: 600px) {
+  .home-revamp .hero-island-stage {--art-scale:.72; height:130px; margin-bottom:-18px; perspective:500px;}
+  .hero-island-plane {inset-inline:5%;}
+  .hero-island-shadow {filter:blur(15px);}
+  .home-revamp .hero-product:has(.hero-island-stage) .device-composition {width:108%;margin-left:-4%;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-island-plane,.hero-island-shadow {transition:none;}
+}

@@ -109,6 +109,21 @@ public authentication links use the completed post-release evidence revision.
 
 ## Visuals and interactions
 
+- Enlarged native Island above the hero laptop, extracted at build time from
+  `src/renderer/styles.css`, `index.html` and `renderer.js`, using the bundled
+  native Inter font. Shadow DOM isolates the original geometry, material and
+  SVG controls from website styles. This is an inert code rendering with sample
+  tabs, not a new public-release screenshot; desktop renderer code never runs
+  on the site. The Horizon Shield artwork retains the launch gate below.
+  After the owner's perspective correction, the level Island tilts backward
+  48 degrees around its horizontal axis: its top recedes toward the center,
+  with no sideways yaw or roll. Hover eases it upright and head-on; leaving
+  restores the current scroll perspective. A stable hit area avoids flicker as
+  its projected shape changes. Bounded scroll parallax is presentation only.
+  Reduced motion disables scroll parallax and makes hover changes immediate;
+  offscreen motion pauses. Desktop 1440px and mobile 390px were inspected without overflow;
+  light/dark synchronization and pointer movement were verified. The three
+  new extraction/motion tests and 13 existing Island/evidence tests pass.
 - Space Black hero laptop, with actual v1.25.0 light/dark wallpaper captures,
   a time scrubber and accelerated day preview. It pauses offscreen or when the
   document is hidden; manual interaction stops playback.
