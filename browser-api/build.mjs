@@ -786,6 +786,10 @@ const ELECTRON_PARAMS = [
 ];
 const ELECTRON_DTS = path.join(ROOT, 'node_modules', 'electron', 'electron.d.ts');
 
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function splitTopLevel(text, separator = ',') {
   const entries = [];
   let depth = 0;
@@ -906,7 +910,7 @@ function argumentShapes(file, expr, at, depth = 0) {
   // The innermost scope that declares the name (or the file), then every
   // assignment to it anywhere in that scope.
   const enclosing = scopes.filter((s) => s.start < at && at < s.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
-  const name = e.replace(/\$/g, '\\$');
+  const name = escapeRegExp(e);
   for (const scope of [...enclosing, { name: null, params: [], start: 0, end: file.text.length }]) {
     const body = file.text.slice(scope.start, scope.end);
     const index = scope.params.findIndex((p) => paramName(p) === e);
@@ -921,7 +925,7 @@ function argumentShapes(file, expr, at, depth = 0) {
       const param = scope.params[index];
       if (paramDefault(param) !== null) shapes.push(...argumentShapes(file, paramDefault(param), scope.start, depth + 1));
       if (!scope.name) throw new Error(`"${e}" is a parameter of an anonymous function`);
-      for (const site of file.text.matchAll(new RegExp(`(?<![\\w$.])${scope.name}\\(`, 'g'))) {
+      for (const site of file.text.matchAll(new RegExp(`(?<![\\w$.])${escapeRegExp(scope.name)}\\(`, 'g'))) {
         if (/\bfunction\s+$/.test(file.text.slice(Math.max(0, site.index - 20), site.index))) continue; // the definition
         const args = splitTopLevel(parenthesized(file.text, site.index + scope.name.length).slice(1, -1));
         if (index < args.length) shapes.push(...argumentShapes(file, args[index], site.index, depth + 1));
@@ -942,9 +946,9 @@ function rendererCalls(sources, member) {
   const aliases = new Set(['browserAPI']);
   for (const { text } of sources) for (const [, alias] of text.matchAll(/\b([A-Za-z_$][\w$]*):\s*window\.browserAPI\b/g)) aliases.add(alias);
   const calls = [];
-  const names = [...aliases].join('|');
+  const names = [...aliases].map(escapeRegExp).join('|');
   for (const file of sources) {
-    for (const m of file.text.matchAll(new RegExp(`\\b(?:${names})\\??\\.${member}\\??\\.?\\(`, 'g'))) {
+    for (const m of file.text.matchAll(new RegExp(`\\b(?:${names})\\??\\.${escapeRegExp(member)}\\??\\.?\\(`, 'g'))) {
       calls.push({ file, at: m.index, args: splitTopLevel(parenthesized(file.text, m.index + m[0].length - 1).slice(1, -1)) });
     }
   }
@@ -955,7 +959,7 @@ function rendererCalls(sources, member) {
 // following it into local functions it is passed to.
 function readsOf(name, body, sources, file, depth = 0) {
   const reads = [];
-  const n = name.replace(/\$/g, '\\$');
+  const n = escapeRegExp(name);
   for (const m of body.matchAll(new RegExp(`(?<![\\w$.])${n}((?:\\??\\.[A-Za-z_$][\\w$]*)+)`, 'g'))) {
     reads.push(m[1].split(/\??\./).filter(Boolean));
   }
@@ -983,7 +987,7 @@ function paramReads(param, body, sources, file, depth) {
 
 function mainHandlers(source, channel) {
   const sites = [];
-  for (const m of source.matchAll(new RegExp(`\\b(?:chromeHandle|chromeOn|ipcMain\\.on|ipcMain\\.handle)\\('${channel}',\\s*(?:async\\s*)?\\(`, 'g'))) {
+  for (const m of source.matchAll(new RegExp(`\\b(?:chromeHandle|chromeOn|ipcMain\\.on|ipcMain\\.handle)\\('${escapeRegExp(channel)}',\\s*(?:async\\s*)?\\(`, 'g'))) {
     const open = m.index + m[0].length - 1;
     const params = parenthesized(source, open);
     let i = source.indexOf('=>', open + params.length) + 2;
