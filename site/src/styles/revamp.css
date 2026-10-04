@@ -216,12 +216,74 @@ summary:focus-visible {
 .revamp-nav a:hover {
   color: #000;
 }
+/* The one action in the bar reads as a button at every width. */
+.revamp-nav .site-nav-cta {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.revamp-nav .site-nav-cta:hover {
+  color: var(--paper);
+  background: #000;
+}
 .revamp-nav a:focus-visible {
   outline-offset: -3px;
+}
+/* Homepage-only appearance toggle; the page otherwise follows the system. */
+.revamp-nav .site-appearance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0 0 0 -16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #41403d;
+  cursor: pointer;
+}
+.revamp-nav .site-appearance[hidden] {
+  display: none;
+}
+.revamp-nav .site-appearance:hover {
+  color: #000;
+  background: rgb(14 14 14 / 0.06);
+}
+.revamp-nav .site-appearance:focus-visible {
+  outline-offset: 0;
+}
+.revamp-nav .site-appearance svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.revamp-nav .site-appearance .appearance-sun {
+  display: none;
 }
 .website-footer a,
 .website-footer-grid h2 {
   font-family: var(--font-ui);
+}
+/* Standalone footer links keep at least a 24px target (WCAG 2.5.8). */
+.website-footer-bottom nav a,
+.website-footer .footer-social a {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+}
+.website-footer-identity a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 .website-footer-identity > p {
   font-family: var(--site-font-display);
@@ -347,14 +409,23 @@ main :is(.section-kicker, .eyebrow) {
     margin-right: auto;
   }
   .revamp-nav .site-nav-cta {
-    min-height: 32px;
     padding: 0 12px;
-    border-radius: 18px;
-    background: var(--ink);
-    color: var(--paper);
+  }
+  .revamp-nav .site-appearance {
+    width: 40px;
+    height: 40px;
+    margin: 0 -8px 0 -12px;
   }
   .website-footer .foot-news {
     max-width: 260px;
+  }
+}
+/* With the homepage toggle the bar needs 354px at its usual spacing; tighten so
+   the toggle stays beside Download down to 320px. */
+@media (max-width: 380px) {
+  .site-header .revamp-nav:has(.site-appearance:not([hidden])) {
+    gap: 14px;
+    padding: 0 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

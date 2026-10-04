@@ -9,19 +9,21 @@
   "publicationBoundary": "The app prerequisite is complete: immutable public v1.27.0 is published and independently verified. Provider claims are reconciled to its release tag and completed evidence. Website merge is authorized by the owner on October 4; deployment remains a separate action.",
   "claims": [
     {
-      "exactWording": "Choose your ad blocker.",
+      "exactWording": "Ad and tracker blocking, on by default.",
       "verdict": "qualified",
       "evidence": [
         "src/renderer/pages/settings.html",
-        "src/main/blocking-providers.js"
+        "src/main/blocking-providers.js",
+        "src/main/settings.js"
       ]
     },
     {
-      "exactWording": "Choose how Blanc blocks ads and trackers.",
+      "exactWording": "Blanc Blocker is on from first launch. Prefer uBlock Origin? On supported builds, you can choose it for regular tabs.",
       "verdict": "qualified",
       "evidence": [
         "src/renderer/pages/settings.html",
-        "src/main/blocking-providers.js"
+        "src/main/blocking-providers.js",
+        "src/main/settings.js"
       ],
       "assetEvidence": "03621de6:docs/verification/2026-10-03-horizon-shield.md"
     },
@@ -171,6 +173,11 @@
       "path": "src/main/ublock-platforms.json",
       "sha256": "f2cb0cdc59466bb26bf60e979955a8d7c1395d55c6eb85af6501765c6d2acc92",
       "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/ublock-platforms.json"
+    },
+    {
+      "path": "src/main/settings.js",
+      "sha256": "7fafb60c2a16e1ed1abd7c8bc2ff2e86212d3469170b98d3248a01dde6e23f01",
+      "url": "https://github.com/bnfy/blanc/blob/602a1a85a9b80453b2561b3e10c5e5795c3ff659/src/main/settings.js"
     }
   ],
   "verifiedPlatforms": [

@@ -6,3 +6,8 @@ export const directLinks = [
   { href: '/about', key: 'about', label: 'About' },
   { href: '/support', key: 'support', label: 'Support' },
 ];
+
+// Page path without extension or trailing slash. The build emits the homepage
+// as /index.html (build.format: 'file'), so /index is the homepage too.
+export const pagePath = pathname =>
+  pathname.replace(/\.html$/, '').replace(/\/(index)?$/, '') || '/';

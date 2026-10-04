@@ -134,9 +134,12 @@ const openAIAttribution = (() => {
   // artifact server-side. Generic 'mac' stays on /download (arm64 vs x64
   // can't be told from a UA — see pickAsset).
   if (os && os !== 'mac') {
+    const label = os === 'win' ? 'Download for Windows' : 'Download for Linux';
     ctas.forEach((cta) => {
       cta.href = '/dl/' + os;
       cta.dataset.platform = os;
+      // This link now downloads the installer directly, so say which one.
+      cta.textContent = label;
     });
   }
 

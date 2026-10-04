@@ -148,9 +148,10 @@
         "src/main/page-tint-policy.js",
         "src/main/main.js",
         "src/renderer/renderer.js",
-        "src/renderer/styles.css"
+        "src/renderer/styles.css",
+        "src/renderer/pages/settings.html"
       ],
-      "qualification": "Optional bundled artwork follows the local clock through four phases; the released transition is two seconds and respects reduced motion. The homepage uses unretouched light- and dark-mode Billboard captures with sample renderer-clock fixtures and an explicitly accelerated preview, rather than claiming the app cycles through a whole day in seconds."
+      "qualification": "Optional bundled artwork follows the local clock through four phases; the released transition is two seconds and respects reduced motion. The homepage uses unretouched light- and dark-mode Billboard captures with sample renderer-clock fixtures and an explicitly accelerated preview, rather than claiming the app cycles through a whole day in seconds. Time-of-day wallpaper is off by default (newtabDynamicWallpaper: false) and is turned on in Settings → General or from the Start Page."
     },
     "navigation": {
       "evidence": [
@@ -230,6 +231,15 @@
         "src/renderer/pages/settings.html"
       ],
       "qualification": "Public v1.27.0 provides optional uBlock Origin 1.75.0 for regular tabs on Apple Silicon, native Intel Mac, Windows x64 and Linux x64. Intel under Rosetta is excluded. Blanc Blocker remains the default and protects private tabs. Changes require a restart and each provider retains separate site settings. This is bundled blocking integration, not general extension installation."
+    },
+    "blockingDefault": {
+      "evidence": [
+        "src/main/settings.js",
+        "src/main/blocking-providers.js",
+        "src/main/adblock.js",
+        "src/renderer/pages/settings.html"
+      ],
+      "qualification": "Public v1.27.0 settings default adblockEnabled to true with Blanc Blocker as the provider, so a fresh profile blocks from first launch. Blocking can be turned off in Settings or allowed per site. uBlock Origin is an opt-in alternative for regular tabs on supported builds; private tabs always use Blanc Blocker. Blocking reduces known ads and trackers; coverage is not universal."
     }
   },
   "claims": [
@@ -3118,13 +3128,43 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-393",
+      "id": "home-audit-hero-offer",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Free browser. Patron adds saved Named Workspaces.",
-      "claimType": "qualified capability or maintainer process statement",
+      "exactWording": "Free and open source. Ad and tracker blocking is on by default.",
+      "subject": "Blanc",
       "evidenceGroups": [
-        "workspaces",
-        "trust"
+        "trust",
+        "blockingDefault"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "home-audit-wallpaper-kicker",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Time-of-day wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "home-audit-wallpaper-heading",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Match your Start Page to the time of day.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "home-audit-wallpaper-lead",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Turn on Time-of-day wallpaper in Settings → General, and the Start Page artwork follows your computer’s clock through dawn, day, dusk and night. Drag the slider to preview each phase.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
       ],
       "verdict": "qualified"
     },
@@ -9181,22 +9221,35 @@
       "verdict": "qualified"
     },
     {
-      "id": "blocking-127-1",
+      "id": "home-audit-privacy-heading",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Choose your ad blocker.",
+      "exactWording": "Ad and tracker blocking, on by default.",
       "subject": "Blanc",
       "evidenceGroups": [
+        "blockingDefault",
+        "builtInBlocking",
         "blockingProviders"
       ],
       "verdict": "qualified"
     },
     {
-      "id": "blocking-127-2",
+      "id": "home-audit-privacy-lead",
       "source": "site/src/pages/index.astro",
-      "exactWording": "Choose how Blanc blocks ads and trackers.",
+      "exactWording": "Blanc Blocker is on from first launch. Prefer uBlock Origin? On supported builds, you can choose it for regular tabs.",
       "subject": "Blanc",
       "evidenceGroups": [
+        "blockingDefault",
         "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "home-audit-download-close",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Ready to try Blanc?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
       ],
       "verdict": "qualified"
     },
@@ -9237,6 +9290,78 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-home-label",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Send to my computer",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-home-note",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-download-heading",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "On a phone or tablet?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-download-note",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "handheld-copied",
+      "source": "site/src/scripts/handheld-download.js",
+      "exactWording": "Link copied",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "b2-download-windows",
+      "source": "site/src/scripts/site.js",
+      "exactWording": "Download for Windows",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "b2-download-linux",
+      "source": "site/src/scripts/site.js",
+      "exactWording": "Download for Linux",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releaseAuthentication"
       ],
       "verdict": "qualified"
     }
@@ -9432,6 +9557,40 @@
       ],
       "verdict": "qualified",
       "reason": "Tabs section simplified October 4, 2026: replaced illustrative controls and competing feature stories with one native named-groups capture. Detailed recovery, profiles, Sync and Workspaces content remains in linked guides and Patron."
+    },
+    {
+      "id": "reddit-393",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free browser. Patron adds saved Named Workspaces.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "workspaces",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit October 4, 2026: the hero small print now leads with free and open source and default blocking. The Patron offer remains in the tab-groups note and the Patron card."
+    },
+    {
+      "id": "blocking-127-1",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose your ad blocker.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit October 4, 2026: the privacy heading now leads with blocking on by default; uBlock Origin is presented as the option in the lead."
+    },
+    {
+      "id": "blocking-127-2",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose how Blanc blocks ads and trackers.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified",
+      "reason": "Homepage audit October 4, 2026: the privacy lead now states Blanc Blocker is on from first launch and offers uBlock Origin for regular tabs on supported builds."
     }
   ],
   "supersededCandidateClaims": [
