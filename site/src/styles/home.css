@@ -2432,3 +2432,18 @@ html[data-home-appearance] .home-revamp #tools .glance-actions button:is(:hover,
   .home-revamp #closing .home-foundations > div + div { border-left: 0; padding-top: 20px; border-top: 1px solid var(--line); }
   .home-revamp #closing .download-close { padding-top: 48px; }
 }
+
+/* Patron: price and action sit in their own inset panel, the currency
+   rides high beside the figure, and the description and footnote step
+   down so the gold title and button lead. */
+.home-revamp .patron-offer { padding: 40px 36px 36px; border: 1px solid #d4ad6633; border-radius: 20px; background: rgb(255 255 255 / 0.035); }
+.home-revamp .patron-currency { align-self: flex-start; margin-top: 12px; color: #d5ccbd; }
+.home-revamp .patron-period { color: #d5ccbd; }
+.home-revamp .patron-monthly { margin-top: 14px; }
+.home-revamp .patron-cta { margin-top: 26px; }
+.home-revamp .patron-description { color: #e6dfd3; }
+.home-revamp .patron-boundary { margin-top: 48px; padding-top: 24px; font-size: 12px; line-height: 1.75; color: #a59c8e; }
+@media (max-width: 760px) {
+  .home-revamp .patron-offer { padding: 28px 20px 22px; border-top: 1px solid #d4ad6633; }
+  .home-revamp .patron-boundary { margin-top: 28px; }
+}
