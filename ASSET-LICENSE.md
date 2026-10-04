@@ -30,8 +30,6 @@ Source mark:
 Product marks:
 
 - `assets/horizon-shield.png` — layered copper/bronze Horizon Shield source artwork
-- The Horizon Shield SVG inside `src/renderer/index.html` — monochrome product
-  mark only; the surrounding source code retains its MIT licence
 
 App-icon colorways:
 
