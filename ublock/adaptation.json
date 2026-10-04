@@ -21,7 +21,7 @@
     },
     {
       "path": "src/main/ublock-package.js",
-      "sha256": "b2d74c4b54808c06054acacff3bcd3edb54d2dfff56a877b211027e17d70c609"
+      "sha256": "3f98fb1677f2fef306838b5e051bbb960d9d6cd81b74df5617a11601179e7afb"
     },
     {
       "path": "src/main/ublock-host-policy.js",
@@ -258,6 +258,11 @@
       "adaptedSha256": "9c4788b04b9a174a3af07a331b9297ee1b98197b9b141752c9cfbd5681068fbb"
     },
     {
+      "path": "js/contentscript.js",
+      "upstreamSha256": "9a4405fc2fa2a7c7c1564f60927b403db9aec5853900f384378996c10fcd6f76",
+      "adaptedSha256": "4735087743dcd48924fb8567d014427d1f332341a29be627c01a0008c9396522"
+    },
+    {
       "path": "js/diff-updater.js",
       "upstreamSha256": "7d291341c2bb917858158c10c69ab002759630720e0c029bd4a962b5404a95bf",
       "adaptedSha256": "1b80160820078ed5a1e3750261d672c7a2776d74592297fa817dfb3fa7710a45"
@@ -295,7 +300,7 @@
     {
       "path": "js/scriptlets/dom-inspector.js",
       "upstreamSha256": "a3cc079ca08142ff36e01b2d8e15069b99b26fe600ef276bec38291ea76f6c88",
-      "adaptedSha256": "294839385e650c6b60dc2bba8b8f7f93fe28e6fd24d20bb8b89ae4ad65b6bee2"
+      "adaptedSha256": "6901209ff94000623a6345a009419768f87830617b1a2250552ae9164a114749"
     },
     {
       "path": "js/scriptlets/epicker.js",
@@ -558,5 +563,5 @@
       "adaptedSha256": "8b215d90d69f4ec0dd1d0e9f8d7f8d51e1be5111762d1db2f1b0496d19e2a128"
     }
   ],
-  "patchSha256": "d967de63e8dc1e965a2f34691362e9ad672bb4722b2113d339eb4f11688ecbb6"
+  "patchSha256": "a1f4ec7e1f890e6dc212444cbddbac2a5dad96ccbd56fd0bda80e9a98765b1eb"
 }

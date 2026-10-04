@@ -330,8 +330,34 @@ try {
   assert(inspector);
   // A new document must reconnect the original logger channel through the
   // host's sender-validated DOMContentLoaded event, without exposing private tabs.
+  // Deterministically cover a slow native cosmetic-parameter reply. Upstream
+  // awaits its procedural helper before replying; DOMContentLoaded may already
+  // have triggered the logger's inspector injection during that await.
+  await electron.evaluate(async ({ webContents }, tabId) => {
+    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    await bg.executeJavaScript(`(() => {
+      const original = vAPI.tabs.executeScript;
+      self.uboFixtureDelayedBootstraps = 0;
+      vAPI.tabs.executeScript = function(id, details, ...rest) {
+        const result = original.call(this, id, details, ...rest);
+        if (id !== ${tabId} || details.file !== '/js/contentscript-extra.js') return result;
+        self.uboFixtureDelayedBootstraps++;
+        return Promise.resolve(result).then(async value => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return value;
+        });
+      };
+      self.uboFixtureRestoreInjection = () => { vAPI.tabs.executeScript = original; };
+    })()`);
+  }, Number(inspectorTab));
   await page.reload();
   await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation');
+  const delayedBootstraps = await electron.evaluate(async ({ webContents }) => {
+    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    return bg.executeJavaScript('uboFixtureRestoreInjection(); uboFixtureDelayedBootstraps');
+  });
+  assert(delayedBootstraps >= 1, 'navigation exercised the delayed native bootstrap reply');
+  console.log('DOM inspector reconnected after delayed native cosmetic bootstrap:', delayedBootstraps);
   await waitForValue(() => logger.locator('#domTree').innerText(), text => text.includes('body'), 'DOM inspector reconnected tree');
   await logger.locator('#showdom').dispatchEvent('click');
   await waitForValue(async () => page.frames().some(frame => frame.url().includes('/dom-inspector.html')), value => !value, 'DOM inspector dismissed');

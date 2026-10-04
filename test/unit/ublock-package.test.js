@@ -117,3 +117,46 @@ test('source inventory regeneration retains immutable component archives and rej
   fs.writeFileSync(path.join(temporary,'preferred-sources.json'),JSON.stringify(record));
   assert.throws(() => sourceInputs(temporary), /preferred-source-integrity/);
 });
+
+
+test('native inspector waits for the existing cosmetic bootstrap before its filtering guard', async () => {
+  const vm = require('node:vm');
+  const { files } = readVerifiedPackage(path.join(root, 'ublock'));
+  const adapted = adaptPackage(files, hosts);
+  const script = adapted.get('js/scriptlets/dom-inspector.js').toString();
+  const prefix = script.slice(script.indexOf('(async ( ) => {'), script.indexOf('const inspectorUniqueId'));
+  let ready;
+  const vAPI = { blancBootstrapReady: new Promise(resolve => { ready = resolve; }) };
+  const context = vm.createContext({ vAPI, Object });
+  let settled = false;
+  const pending = vm.runInContext(prefix + 'return true; })()', context).then(result => { settled = true; return result; });
+  await Promise.resolve();
+  assert.equal(settled, false, 'early injection must not silently return before the native cosmetic reply');
+  vAPI.domFilterer = {};
+  ready();
+  assert.equal(await pending, true);
+  for (const domFilterer of [null, undefined]) {
+    assert.equal(await vm.runInNewContext(prefix + 'return true; })()', { vAPI: { domFilterer, blancBootstrapReady: Promise.resolve() }, Object }), undefined,
+      'completed bootstrap with cosmetic filtering unavailable retains upstream refusal');
+  }
+});
+
+test('content bootstrap completion follows its original response handler without another message', async () => {
+  const vm = require('node:vm');
+  const { files } = readVerifiedPackage(path.join(root, 'ublock'));
+  const source = adaptPackage(files, hosts).get('js/contentscript.js').toString();
+  const bootstrap = source.match(/vAPI\.bootstrap = function\(\) \{[\s\S]*?\n    \};/)?.[0];
+  assert.ok(bootstrap);
+  let reply, processed = false, sends = 0;
+  const vAPI = { effectiveSelf: { location: { href: 'https://fixture.invalid/' } }, messaging: { send(channel, request) {
+    assert.equal(channel, 'contentscript'); assert.equal(request.what, 'retrieveContentScriptParameters'); sends++;
+    return new Promise(resolve => { reply = resolve; });
+  } } };
+  const context = vm.createContext({ vAPI, self: {}, onResponseReady: () => { processed = true; } });
+  vm.runInContext(bootstrap, context);
+  const pending = vAPI.bootstrap();
+  assert.equal(pending, vAPI.blancBootstrapReady);
+  assert.equal(processed, false);
+  reply({}); await pending;
+  assert.equal(processed, true); assert.equal(sends, 1);
+});

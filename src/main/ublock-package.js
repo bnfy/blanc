@@ -129,6 +129,12 @@ function adaptPackage(files, hostSources) {
     "permissions.push(directive.value.replaceAll('|', ', ')); // Blanc: serialize every directive separator")));
   result.set('js/reverselookup-worker.js', Buffer.from(replace(result.get('js/reverselookup-worker.js').toString('utf8'),
     '    const response = {};', '    const response = Object.create(null); // Blanc: literal filter keys cannot change the result prototype')));
+  // Native DOMContentLoaded can precede the asynchronous cosmetic bootstrap.
+  // Expose completion of that existing request; tools await it without polling
+  // or changing any filtering decisions or document authorization.
+  result.set('js/contentscript.js', Buffer.from(replace(result.get('js/contentscript.js').toString('utf8'),
+    "vAPI.bootstrap = function() {\n        vAPI.messaging.send('contentscript', {",
+    "vAPI.bootstrap = function() {\n        return vAPI.blancBootstrapReady = vAPI.messaging.send('contentscript', {")));
   // Authenticate the tools with a single-use native-extension capability. An
   // invalid first window message must not consume the bootstrap listener.
   for (const [tool, scriptlet, ui, startName] of [
@@ -136,6 +142,9 @@ function adaptPackage(files, hostSources) {
     ['inspector', 'dom-inspector', 'dom-inspector', 'startInspector'],
   ]) {
     let content = result.get('js/scriptlets/' + scriptlet + '.js').toString('utf8');
+    if (tool === 'inspector') content = replace(content,
+      'if ( vAPI.domFilterer instanceof Object === false ) { return; }',
+      'await vAPI.blancBootstrapReady; // Blanc: wait for this document cosmetic bootstrap\nif ( vAPI.domFilterer instanceof Object === false ) { return; }');
     const indentation = tool === 'picker' ? '    ' : '        ';
     const marker = indentation + 'return new Promise(resolve => {';
     content = replace(content, marker,
