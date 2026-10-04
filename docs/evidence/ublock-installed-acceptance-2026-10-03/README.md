@@ -97,3 +97,47 @@ explicitly approved temporary write access for the one intake job. After the
 passing test, the draft and only asset were deleted and the temporary tag was
 confirmed absent. The intake job and its elevated permission are removed. The
 public release/updater feed remain unchanged.
+
+## Native Linux installed AppImage restart and sandbox verification
+
+The real outer AppImage first failed its shield restart at `0872ed72`; switching
+to a stable outer executable at `373723c` still failed. The later `1c63f1b`
+diagnostic again saw the old process exit with no new CDP endpoint, while
+confirming the working directory was outside the mount. All three failures are
+retained. Raw fixture logs are not committed.
+
+The official AppImage extraction launcher mode fixed the tested restart path:
+[private validation 37163617450](https://github.com/bnfy/blanc/actions/runs/37163617450)
+at `2094cdeb` passed installed controls, three provider restarts, custom filters
+and cosmetics, original tools, private isolation, quiet/wake, persistence, global
+blocking and last-window process exit. Every renderer after each restart had
+seccomp mode 2, NoNewPrivs 1 and a separate user namespace. No request/startup
+deadline or sandbox was relaxed, and official Electron 44.5.1 was retained. The
+no-scripting test uses bytes extracted from that same outer AppImage. Packaged
+Settings/crash recovery, permissions, protocol, metadata and payload checks pass.
+
+The two native Ubuntu 22.04/24.04 jobs also pass all 30 uBO-selected launch cases
+each: direct, desktop-menu, nested and extracted startup plus sandbox-disabled
+refusals. Every sampled renderer is sandboxed; denied cases make zero browsing
+requests. The sanitized summary preserves counts without machine paths or raw
+launcher output. CI enables the disposable host's user namespaces; no existing
+VM or shipped sandbox policy is changed.
+
+The existing ARM64 VM limitation remains recorded. A final added check now
+relaunches the actual outer AppImage after last-window exit using the same uBO
+profile and re-verifies its saved custom filter and real blocking. Its separate
+validation result will be recorded before Linux enablement.
+
+The final [Linux validation 37164080999](https://github.com/bnfy/blanc/actions/runs/37164080999)
+at `de6c0017` passes every job, including that same-profile normal AppImage
+close/relaunch check, saved-filter enforcement and second last-window exit.
+`linux-appimage-de6c-passed.json`, its no-scripting companion and the two-OS
+sandbox summary bind the observations to exact source and executable bytes.
+Native Linux x64 is now proposed for enablement. The existing ARM64 VM remains
+unmodified and uncertified; no new VM or sandbox bypass was introduced.
+
+All four desktop jobs and the ordinary package gate pass at `cd6ede0f`
+([37163867214](https://github.com/bnfy/blanc/actions/runs/37163867214)). CodeQL
+there matches all 39 approved baseline numbers, rules and source locations, with
+no first-party alert. Nothing has been dismissed while PR #490 remains draft.
+Final exact-head checks and owner release confirmation still precede publication.

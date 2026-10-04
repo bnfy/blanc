@@ -16,8 +16,8 @@
       "reason": "Signed installed build 1272 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
     },
     "linux-x64": {
-      "enabled": false,
-      "reason": "Linux desktop, renderer sandbox and installed AppImage acceptance pending"
+      "enabled": true,
+      "reason": "Native installed AppImage controls, normal relaunch, persistence and Ubuntu 22.04/24.04 renderer sandbox acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
     }
   }
 }

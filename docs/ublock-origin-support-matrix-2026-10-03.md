@@ -11,11 +11,12 @@ provided.
 | macOS Apple Silicon (`darwin-arm64`) | Enabled | Signed/notarized DMG-installed build 1272: blocking, tools, persistence, three provider restarts, native close/reopen/Quit, no-scripting; authenticated v1.26.0 → candidate through the actual Restart Now prompt. |
 | Windows x64 (`win32-x64`) | Enabled | Timestamp-signed NSIS installed on native hosted Windows x64: blocking, tools, persistence, provider restarts, last-window exit, no-scripting. Existing Windows 11 ARM64 VM complements this with x64 emulation and actual v1.26.0 → candidate Restart Now. The owner confirmed post-update close, Start-menu relaunch at v1.27.0, and second close; no process remained. |
 | macOS Intel (`darwin-x64`, native) | Enabled | Exact signed/notarized DMG-installed build 1273 on native hosted Intel: publisher/ticket/hashes/fuses, controls, persistence, three provider restarts, close/reopen/Quit and no-scripting all pass. Rosetta is unavailable and uses Blanc Blocker; both translated startup failures are retained. |
-| Linux x64 (`linux-x64`) | Unavailable; Blanc Blocker remains active | Desktop and package CI passed; installed AppImage, desktop integration and renderer sandbox acceptance remain incomplete. |
+| Linux x64 (`linux-x64`) | Enabled | Native outer AppImage: blocking/tools, three provider restarts, post-restart renderer sandbox, saved filters, normal last-window exit/relaunch and no-scripting pass. Ubuntu 22.04/24.04 uBO-selected direct/menu/nested/extracted sandbox and refusal suites pass. |
 
 Sanitized observations and exact source/artifact bindings are in the
 [installed acceptance record](evidence/ublock-installed-acceptance-2026-10-03/README.md).
 The Mac arm64 and Windows candidates were produced from `92e27667916b2f556b148268f5a7ee3ce53000fd`; exact signed Intel build 1273 is bound to `0872ed7225d3561e98fdee2f80cee1d12a72af09`.
+Linux installed/normal relaunch acceptance is bound to `de6c00170639381a80e0fbcf786bc200e57b32b0`.
 The final release is reserved as bundle build 1274 or later and requires
 final exact-head CI and normal release signature/payload verification. Internal
 build 1272 bypasses platform enablement only; no runtime fuse or sandbox was
@@ -23,8 +24,9 @@ relaxed. This is not a claim that the final release binary has already shipped.
 
 The existing Linux VM is Ubuntu 26.04 ARM64. The x86-64 AppImage cannot execute
 there, and the ordinary user namespace probe is denied. No second VM, emulator,
-AppArmor change or sandbox bypass was introduced. Native Intel installed acceptance now passes. Linux can be enabled after its
-remaining full validation gates pass. Windows ARM64 emulation
+AppArmor change or sandbox bypass was introduced. Native Intel and native Linux x64 installed acceptance now pass. Linux observations
+come from hosted native x64 desktops; they do not certify the incompatible
+ARM64 VM. Windows ARM64 emulation
 is supplemental evidence, not a new distributed architecture or a replacement
 for the native x64 suite. The VM's first installed attempt timed out at Dashboard
 Apply; the unchanged second attempt passed. Intel CI's first attempt hit the

@@ -1,0 +1,35 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": true,
+  "os": "linux",
+  "harnessArchitecture": "x64",
+  "osRelease": "6.17.0-1022-azure",
+  "executableSha256": "7f4e078dfe2a159135ce241d1fb3d534f855b7cb52f84da33f33ca185061f12e",
+  "checks": {
+    "restart-ublock-origin-renderer-sandbox": true,
+    "restart-ublock-origin": true,
+    "networkAndCosmetics": true,
+    "popupMarkAndMoreAndLogger": true,
+    "privateShieldAndLoggerIsolation": true,
+    "quietWakeControls": true,
+    "restart-blanc-renderer-sandbox": true,
+    "restart-blanc": true,
+    "filtersSurviveProviderRestarts": true,
+    "globalSwitch": true,
+    "lastWindowExit": true
+  },
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "sourceSha": "2094cdeb0b41202f90ff62270c214f2f8bbadc6e",
+  "ciRun": "https://github.com/bnfy/blanc/actions/runs/37163617450"
+}
