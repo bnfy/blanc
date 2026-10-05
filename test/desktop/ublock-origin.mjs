@@ -545,13 +545,22 @@ try {
   let settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'backup settings');
   stage = 'backup and restore';
   stage = 'backup import and native reload';
-  const backupFile = path.join(dir, 'ubo-backup.txt');
+  const downloadedBackup = path.join(dir, 'ubo-backup.txt');
+  // The edited copy is a separate file. On Windows the browser (or a virus
+  // scan of the new download) can still hold the downloaded file, so
+  // rewriting it in place failed with EBUSY.
+  const backupFile = path.join(dir, 'ubo-backup-edited.txt');
   await electron.evaluate(({ session }, savePath) => {
-    session.defaultSession.once('will-download', (_event, item) => item.setSavePath(savePath));
-  }, backupFile);
+    globalThis.uboBackupDownloadState = null;
+    session.defaultSession.once('will-download', (_event, item) => {
+      item.setSavePath(savePath);
+      item.once('done', (_doneEvent, state) => { globalThis.uboBackupDownloadState = state; });
+    });
+  }, downloadedBackup);
   await settingsPane.locator('#export').click();
-  await waitForValue(() => fs.existsSync(backupFile) && fs.statSync(backupFile).size > 10, Boolean, 'original backup downloaded');
-  const backup = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+  // A non-empty file is not a finished download; wait for Chromium to report it.
+  await waitForValue(() => electron.evaluate(() => globalThis.uboBackupDownloadState), state => state === 'completed', 'original backup downloaded');
+  const backup = JSON.parse(fs.readFileSync(downloadedBackup, 'utf8'));
   assert(backup.userFilters.includes('/blocked-ubo.js'));
   assert(!JSON.stringify(backup).includes('private-marker'));
   backup.hiddenSettings = { ...backup.hiddenSettings, userResourcesLocation: fixture + 'forbidden-resource.js' };
