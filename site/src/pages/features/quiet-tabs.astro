@@ -8,7 +8,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   page="feature-quiet-tabs"
   current="features"
   ogDescription={"Tabs you are not using give their memory back and reload when you return. You choose the delay."}
-  ogImageAlt={"Blanc Browser"}
+  ogImage="/feature-quiet-tabs.png"
+  ogImageAlt={"Blanc's resting island with five tab dots, two drawn as smaller quiet cores."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Quiet tabs","item":"https://blancbrowser.com/features/quiet-tabs"}]}
@@ -45,6 +46,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>Anything you are part way through.</h3><p>A half-filled form, a ticked checkbox, a page that asks before you leave, or the result of something you submitted. Blanc checks every frame on the page, not just the top one.</p></article>
       <article><h3>Anything playing, pinned, or connected.</h3><p>Sound, video you have paused, muted tabs, pinned tabs, a window a page opened for a sign-in, and any tab waiting on a permission prompt.</p></article>
       <article><h3>Anything you have read deep into.</h3><p>A page you have scrolled a long way down is left as it is, because a reloaded feed cannot honestly put you back where you were.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="quiet-launch-title">
+    <div><p class="section-kicker">at launch, and when you want it off</p><h2 id="quiet-launch-title">A big session opens without loading every page.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Restored tabs start quiet.</h3><p>When Blanc restores your tabs at launch, only the tab you were on in each window loads. The others wait, quiet, until you open them.</p></article>
+      <article><h3>Turn it off any time.</h3><p>Choose Off under Settings, General, Quiet inactive tabs. Tabs that are already quiet stay quiet until you open them.</p></article>
     </div>
   </section>
   <aside class="truth-note" aria-labelledby="quiet-note-title"><p class="section-kicker">good to know</p><h2 id="quiet-note-title">A quiet tab reloads. It does not resume.</h2><p>Coming back fetches the page again. Site session storage survives, but anything held only in the page's running script is gone — and on an endlessly scrolling feed you land near where you were rather than exactly there. Private tabs come back where they were, not how they were: Blanc keeps no copy of a private page. Turning the setting off stops Blanc quieting anything new and leaves tabs that are already quiet exactly as they are.</p><a class="text-link" href="/features/vertical-tabs" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="related-feature">See the optional vertical tab rail <span aria-hidden="true">↗</span></a></aside>

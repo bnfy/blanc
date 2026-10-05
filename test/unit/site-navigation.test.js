@@ -18,7 +18,7 @@ test('all sixteen feature pages remain alongside the Support and Trust guides', 
   assert.ok(read(`site/src/pages/${topic.page}.astro`).includes(`<GuideTopics page="${topic.page}"`));
  }
  assert.equal(routes['/faq'],'/support');assert.equal(routes['/how-it-works'],'/trust');
- assert.equal(routes['/private'],'/trust?topic=private-tabs');
+ assert.equal(routes['/private'],'/features/private-tabs');
  assert.equal(routes['/features'],undefined);
  assert.match(read('site/src/components/GuideTopics.astro'), /href=\{`\/features\/\$\{topic.id\}`\}/);
 });
@@ -36,7 +36,8 @@ test('retained feature pages preserve their search metadata, prose and anchors f
   }
   const after = read(file);
   for (const property of ['title', 'description', 'path']) {
-   const value = before.match(new RegExp(`\\b${property}=(\\{?"[^"]+"\\}?)`))[0];
+   // Search metadata changes only through a recorded, reviewed copy update.
+   const value = reviewedBefore.match(new RegExp(`\\b${property}=(\\{?"[^"]+"\\}?)`))[0];
    assert.ok(after.includes(value), `${file}: changed ${property}`);
   }
   assert.deepEqual(prose(after), prose(reviewedBefore), `${file}: lost existing content outside reviewed copy corrections`);
@@ -71,5 +72,6 @@ test('immutable release note links resolve to current destinations without losin
  assert.equal(currentWebsiteLink('https://blancbrowser.com/features/security#security-audit-title'),'https://blancbrowser.com/features/security#security-audit-title');
  assert.equal(currentWebsiteLink('/features/quiet-tabs'),'/features/quiet-tabs');
  assert.equal(currentWebsiteLink('/faq#bookmark-import'),'/support#bookmark-import');
+ assert.equal(currentWebsiteLink('/private'),'/features/private-tabs');
  assert.equal(currentWebsiteLink('https://github.com/bnfy/blanc/releases'),'https://github.com/bnfy/blanc/releases');
 });

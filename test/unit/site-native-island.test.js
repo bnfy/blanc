@@ -63,6 +63,7 @@ test('hero pause control persists across visibility and reduced-motion changes',
   };
   initHeroIsland(stage, {view});
   assert.ok(Math.abs(Number(values.get('--art-scale')) - 2) < 1e-10);
+  assert.equal(values.get('--art-visibility'), 'visible', 'the island stays hidden until it is fitted');
   assert.equal(values.get('--island-motion-state'),'paused');
   observer([{isIntersecting:true}]);
   assert.equal(values.get('--island-motion-state'),'running');

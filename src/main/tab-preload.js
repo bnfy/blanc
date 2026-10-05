@@ -118,6 +118,12 @@ if (window.location.protocol === 'blanc:') {
     api = {
       mahjong: { played: () => invoke('pages:mahjong:played') },
     };
+  } else if (host === 'error') {
+    // Argument-free by design: main resolves this tab's own certificate
+    // failure and re-checks eligibility (certificate spec §4.4).
+    api = {
+      errorPage: { continueUnsafe: () => invoke('pages:error:continue-unsafe') },
+    };
   } else if (host === 'tab-handoff') {
     api = {
       surface,
