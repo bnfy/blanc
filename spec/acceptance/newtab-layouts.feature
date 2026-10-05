@@ -49,7 +49,7 @@ Feature: Start page layouts
     And a profile whose start page layout is "billboard"
     When I open a new tab
     Then the Billboard lists "youtube.com" before "cnet.com"
-    And the Billboard uses full local titles and cached site icons
+    And the Billboard uses short site names, full-title tooltips and cached site icons
     When I hide "youtube.com" from the Billboard
     Then "youtube.com" is absent from the Billboard
     And the Billboard dismissal stays in local page storage without deleting history
@@ -123,6 +123,13 @@ Feature: Start page layouts
     And Customize stays open with "tally" pressed
     When I press Escape on the start page
     Then Customize is closed and its button has focus
+
+  @F35-15 @desktop
+  Scenario: Billboard shows its recent sites as one row of short names
+    Given local history contains repeated visits for the Billboard
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    Then the Billboard shows one row of single-line site names at 1440x840 and 820x840
 
   @F35-17 @desktop
   Scenario: Tally balances its columns and puts the data first when narrow

@@ -299,19 +299,6 @@ const hostOf = (url) => {
   }
 };
 
-/** Short label for a favicon-only tile — the site's own name, not whatever
- * subdomain it happens to serve from: "github.com" and "developer.mozilla.org"
- * give "github" and "mozilla", not "github" and "developer". Drops the TLD,
- * then a second-level suffix like the "co" in "bbc.co.uk". */
-const shortLabel = (url, title) => {
-  const parts = hostOf(url).split('.').filter(Boolean);
-  if (parts.length > 1) {
-    parts.pop();
-    if (parts.length > 1 && parts[parts.length - 1].length <= 3) parts.pop();
-  }
-  return (parts[parts.length - 1] || (title || '').trim().split(/\s+/)[0] || '·').toLowerCase();
-};
-
 // Synced icons are the ONE thing this page draws from another device. The sync
 // design guarantees them as inert `data:image/png` payloads resolved by the
 // PUBLISHING device (2026-07-21-tab-sync-design.md), so rendering them adds no
@@ -509,18 +496,21 @@ function renderBillboard() {
     const tile = document.createElement('span');
     tile.className = 'tile';
     decorateTile(tile, site);
+    // A short name reads at a glance; the full title stays one hover or one
+    // screen-reader announcement away.
+    const fullTitle = (site.title || hostOf(site.url) || 'Untitled site').trim();
     const label = document.createElement('span');
     label.className = 'label';
-    label.textContent = (site.title || hostOf(site.url) || 'Untitled site').trim();
-    label.title = label.textContent;
-    link.setAttribute('aria-label', `Open ${label.textContent}`);
+    label.textContent = globalThis.blancStartSiteName.shortSiteName(fullTitle, site.url);
+    label.title = fullTitle;
+    link.setAttribute('aria-label', `Open ${fullTitle}`);
     link.append(tile, label);
 
     const dismiss = document.createElement('button');
     dismiss.type = 'button';
     dismiss.className = 'bb-site-dismiss';
-    dismiss.title = `Hide ${label.textContent}`;
-    dismiss.setAttribute('aria-label', `Hide ${label.textContent} from Billboard`);
+    dismiss.title = `Hide ${fullTitle}`;
+    dismiss.setAttribute('aria-label', `Hide ${fullTitle} from Billboard`);
     const closeIcon = document.createElement('img');
     closeIcon.src = 'close.svg';
     closeIcon.alt = '';
@@ -531,7 +521,7 @@ function renderBillboard() {
       rememberHiddenTopSite(site.key);
       renderBillboard();
       document.getElementById('bbTopSitesStatus').textContent =
-        `${label.textContent} hidden from Billboard.`;
+        `${fullTitle} hidden from Billboard.`;
       const next = favs.children[Math.min(index, favs.children.length - 1)]
         ?.querySelector('.bb-fav, .bb-site-dismiss');
       next?.focus();

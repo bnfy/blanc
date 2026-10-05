@@ -739,8 +739,12 @@ From the desktop `DEFAULTS`:
   narrow windows). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
   derives up to six hostname-level sites from the active local profile's
   on-device history, ranked by visit count with recency as the tie-breaker. A
-  full, bounded local page title labels each tile, and a bounded profile-local
-  cache reuses sanitized 32 px favicon pixels captured during normal visits;
+  short site name labels each tile: the bounded local title's first segment
+  when it is 20 characters or fewer, otherwise the domain's first label. The
+  full title stays the tile's tooltip and accessible name. The row never
+  wraps; the narrowest windows show the first four sites. A bounded
+  profile-local cache reuses sanitized 32 px favicon pixels captured during
+  normal visits;
   rendering the row never starts a favicon request. A
   hover/focus dismiss button stores only a bounded hostname list in that
   profile's `blanc://newtab` localStorage; it does not delete history, sync,

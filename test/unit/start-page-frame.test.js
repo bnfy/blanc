@@ -158,6 +158,12 @@ test('Ledger is a centered spread: Favorites left, groups and devices right', ()
   assert.match(css, /\.group-row \.cluster \{[^}]*flex: 0 0 46px;/s, 'group names line up');
 });
 
+test('Billboard keeps its recent sites on one row', () => {
+  const css = frameCss();
+  assert.match(css, /\.bb-favs \{[^}]*flex-wrap: nowrap;/s);
+  assert.match(css, /@media \(max-width: 640px\) \{\s*\.bb-site:nth-child\(n \+ 5\) \{ display: none; \}/);
+});
+
 test('Tally is two balanced columns with warm bars, data first when narrow', () => {
   const css = frameCss();
   const all = read('src/renderer/pages/pages.css');
