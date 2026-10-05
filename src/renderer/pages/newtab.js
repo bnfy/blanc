@@ -299,19 +299,6 @@ const hostOf = (url) => {
   }
 };
 
-/** Short label for a favicon-only tile — the site's own name, not whatever
- * subdomain it happens to serve from: "github.com" and "developer.mozilla.org"
- * give "github" and "mozilla", not "github" and "developer". Drops the TLD,
- * then a second-level suffix like the "co" in "bbc.co.uk". */
-const shortLabel = (url, title) => {
-  const parts = hostOf(url).split('.').filter(Boolean);
-  if (parts.length > 1) {
-    parts.pop();
-    if (parts.length > 1 && parts[parts.length - 1].length <= 3) parts.pop();
-  }
-  return (parts[parts.length - 1] || (title || '').trim().split(/\s+/)[0] || '·').toLowerCase();
-};
-
 // Synced icons are the ONE thing this page draws from another device. The sync
 // design guarantees them as inert `data:image/png` payloads resolved by the
 // PUBLISHING device (2026-07-21-tab-sync-design.md), so rendering them adds no
