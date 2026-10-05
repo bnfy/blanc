@@ -106,3 +106,9 @@ Feature: Start page layouts
   Scenario: Private start pages never offer Patron or blocked counts
     Given a private start page is open
     Then no start-page layout shows the Patron upgrade or a blocked count
+
+  @F35-13 @desktop
+  Scenario: An empty Favorites list explains how to fill it
+    Given a profile with no favorites
+    When I open a new tab
+    Then Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none

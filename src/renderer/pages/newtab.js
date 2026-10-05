@@ -391,14 +391,21 @@ function groupChip(group, { withCount = false } = {}) {
   return chip;
 }
 
+// One empty state for every layout that draws the Favorites feed. Billboard
+// draws recent sites instead, so this copy would be untrue there.
+const EMPTY_FAVORITES_HINT = 'Favorite a page with ♥ to pin it here';
+function emptyFavoritesHint() {
+  const hint = document.createElement('p');
+  hint.className = 'start-empty-hint';
+  hint.textContent = EMPTY_FAVORITES_HINT;
+  return hint;
+}
+
 function renderLedgerFavorites(items) {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
   if (!items.length) {
-    const hint = document.createElement('div');
-    hint.className = 'ledger-empty';
-    hint.textContent = '♥ a page to pin it here';
-    list.appendChild(hint);
+    list.appendChild(emptyFavoritesHint());
     return;
   }
   for (const b of items.slice(0, 6)) list.appendChild(favRow(b));
@@ -584,7 +591,8 @@ function renderShelf() {
 
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
-  grid.hidden = !state.favorites.length;
+  grid.hidden = false;
+  if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 8)) {
     const tileLink = document.createElement('a');
     tileLink.className = 'shelf-tile';
@@ -619,10 +627,9 @@ function renderTally() {
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
-  favs.hidden = !state.favorites.length;
-  // A label above an empty list would name nothing (and unlike the ledger,
-  // this column adds no "♥ a page…" hint — no copy on the new layouts).
-  document.querySelector('.tally-label').hidden = !state.favorites.length;
+  favs.hidden = false;
+  document.querySelector('.tally-label').hidden = false;
+  if (!state.favorites.length) favs.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
 
   const groups = document.getElementById('tlGroups');

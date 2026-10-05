@@ -603,3 +603,19 @@ Then('no start-page layout shows the Patron upgrade or a blocked count', async f
     }
   }
 });
+
+Given('a profile with no favorites', async function () {
+  assert.deepEqual(await this.call('bookmarkUrls'), []);
+});
+
+Then('Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none', async function () {
+  for (const [layout, expected] of [['ledger', 1], ['shelf', 1], ['tally', 1], ['billboard', 0]]) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout,
+      `${layout} frame`,
+    );
+    assert.equal(frame.emptyHints, expected, `${layout} empty hints`);
+  }
+});

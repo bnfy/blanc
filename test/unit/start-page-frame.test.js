@@ -67,3 +67,16 @@ test('private tabs never show the Patron chip or blocked counts', () => {
   assert.match(js, /document\.getElementById\('shBlocked'\)\.closest\('\.shelf-card'\)\.hidden = isPrivate;/);
   assert.match(js, /document\.querySelector\('\.tally-right'\)\.hidden = isPrivate;/);
 });
+
+test('Ledger, Shelf and Tally explain an empty Favorites list; Billboard does not', () => {
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(js, /const EMPTY_FAVORITES_HINT = 'Favorite a page with ♥ to pin it here';/);
+  for (const fn of ['renderLedgerFavorites', 'renderShelf', 'renderTally']) {
+    const body = js.match(new RegExp(`function ${fn}\\([^)]*\\) \\{([\\s\\S]*?)\\n\\}`))?.[1] ?? '';
+    assert.match(body, /emptyFavoritesHint\(\)/, `${fn} renders the hint`);
+  }
+  const billboard = js.match(/function renderBillboard\(\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  assert.doesNotMatch(billboard, /emptyFavoritesHint/);
+  assert.doesNotMatch(js, /♥ a page to pin it here/);
+  assert.match(frameCss(), /\.start-empty-hint \{/);
+});

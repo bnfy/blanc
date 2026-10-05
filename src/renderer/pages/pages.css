@@ -1220,7 +1220,6 @@ a.ledger-label:hover { color: var(--accent); }
 .cluster { display: inline-flex; gap: 4px; align-items: center; }
 .cluster i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
 
-.ledger-empty { font-family: var(--font-ui); font-size: 11.5px; color: var(--text-dim); }
 
 /* Quiet Patron chip — the last item of every informational layout, hidden
    for Patrons and in private tabs. Outlined in Sunrise gold with no fill, so
@@ -3203,6 +3202,14 @@ body[data-layout="tally"] #layoutTally {
     white-space: nowrap;
   }
 }
+
+.start-empty-hint {
+  margin: 0;
+  color: var(--text-dim);
+  font: 400 12px/1.45 var(--font-ui);
+  letter-spacing: 0.005em;
+}
+.shelf-grid > .start-empty-hint { grid-column: 1 / -1; }
 
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant
