@@ -99,3 +99,18 @@ test('the footer offers one Customize popover with four layout previews and the 
   assert.match(css, /:root:not\(\[data-theme="private"\]\) body:not\(\[data-layout="ledger"\]\) #footerLeft \{ display: none; \}/,
     'only Ledger repeats the blocked count in the footer');
 });
+
+test('labels are sentence case without tracking, and the date keeps locale case', () => {
+  const html = read('src/renderer/pages/newtab.html');
+  const js = read('src/renderer/pages/newtab.js');
+  for (const label of ['Favorites', 'Pick up where you left off', 'On your other devices', 'Blocked this week', 'Blocked']) {
+    assert.match(html, new RegExp(`>${label}<`), `label "${label}"`);
+  }
+  assert.doesNotMatch(html, />(favorites|pick up where you left off|on your other devices|blocked this week|blocked)</);
+  assert.match(js, /const dateText = isPrivate\s*\? 'Private tab'/);
+  assert.doesNotMatch(js.match(/const dateText[\s\S]*?;\n/)[0], /toLowerCase/);
+  const css = frameCss();
+  assert.match(css, /\.ledger-label,\s*\.shelf-label \{[^}]*font: 600 12px\/1\.3 var\(--font-ui\);[^}]*letter-spacing: 0\.005em;[^}]*text-transform: none;/s);
+  assert.match(css, /\.start-brand-date \{[^}]*font: 500 12px\/1\.3 var\(--font-ui\);[^}]*letter-spacing: 0;[^}]*text-transform: none;/s);
+  assert.match(css, /\.shelf-count,\s*\.tally-count \{[^}]*letter-spacing: -0\.02em;[^}]*font-variant-numeric: tabular-nums;/s);
+});

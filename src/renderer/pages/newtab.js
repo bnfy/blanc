@@ -47,10 +47,8 @@ if (isPrivate) document.documentElement.dataset.theme = 'private';
 
 // Shared by every layout through the single Sunrise header.
 const dateText = isPrivate
-  ? 'private tab'
-  : new Date()
-      .toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
-      .toLowerCase();
+  ? 'Private tab'
+  : new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('startDate').textContent = dateText;
 
