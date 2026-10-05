@@ -818,6 +818,23 @@ window.bowserPages?.start.onStatus((status) => {
   }
 });
 
+// Footer edge: the fixed footer shows a soft fade only while content runs
+// underneath it. The sentinel ends the content area; "under" means it sits
+// below the band the footer leaves visible.
+const startContentEnd = document.getElementById('startContentEnd');
+const layoutFooter = document.getElementById('layoutFooter');
+let underflowObserver = null;
+function observeUnderflow() {
+  underflowObserver?.disconnect();
+  underflowObserver = new IntersectionObserver(([entry]) => {
+    const under = !entry.isIntersecting && entry.boundingClientRect.top >= entry.rootBounds.bottom;
+    document.body.classList.toggle('has-underflow', under);
+  }, { rootMargin: `0px 0px -${layoutFooter.offsetHeight}px 0px` });
+  underflowObserver.observe(startContentEnd);
+}
+observeUnderflow();
+new ResizeObserver(observeUnderflow).observe(layoutFooter);
+
 // The pill's caret says keystrokes land somewhere. They do: a printable
 // character typed on a blank start page opens the island with that character
 // already in it.

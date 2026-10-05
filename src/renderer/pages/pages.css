@@ -1179,7 +1179,7 @@ a.ledger-label:hover { color: var(--accent); }
 .fav .tile {
   width: 22px;
   height: 22px;
-  border-radius: 5px;
+  border-radius: 6px;
   background: var(--surface);
   border: 1px solid var(--border);
   display: flex;
@@ -2490,7 +2490,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   border: 1px solid var(--border);
   border-radius: 50%;
   background: var(--surface-raised);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--start-shadow-icon);
   opacity: 0;
   pointer-events: none;
   transform: scale(0.88);
@@ -2790,7 +2790,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 .bb-fav .tile {
   background-color: var(--surface-raised);
   border-color: color-mix(in srgb, var(--border) 84%, transparent);
-  box-shadow: 0 7px 22px -17px rgba(18, 16, 11, 0.65);
 }
 .fav .name { font-size: 14px; }
 .fav .host,
@@ -2830,9 +2829,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 .shelf-tile,
 .shelf-card {
   border-color: color-mix(in srgb, var(--border) 86%, transparent);
-  background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
-  box-shadow: 0 14px 36px -30px rgba(18, 16, 11, 0.68);
-  backdrop-filter: blur(8px);
 }
 .shelf-tile { min-height: 108px; border-radius: 10px; padding: 16px; gap: 12px; }
 .shelf-tile:hover { border-color: var(--accent); transform: translateY(-1px); }
@@ -2909,7 +2905,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   min-height: 54px;
   margin: 0;
   padding: 11px clamp(24px, 4vw, 58px);
-  border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   background: var(--start-footer);
   color: var(--text-dim);
   font-family: var(--font-ui);
@@ -3290,6 +3285,90 @@ body[data-layout="tally"] #layoutTally {
   font-variant-numeric: tabular-nums;
 }
 .shelf-count { font-size: 32px; }
+
+/* Surface weight ladder. Level 0 sits on the landscape with no fill; level 1
+   cards are translucent; level 2 floats (the popover and the compact
+   checklist, defined above) and is near-opaque. */
+.fav .tile,
+.shelf-tile .tile,
+.bb-fav .tile {
+  border-radius: 6px;
+  box-shadow: var(--start-shadow-icon);
+}
+.shelf-tile,
+.shelf-card {
+  border-radius: 10px;
+  background: var(--start-card-fill);
+  box-shadow: var(--start-shadow-card), var(--start-card-highlight);
+  backdrop-filter: blur(12px) saturate(140%);
+}
+.group-chip {
+  border-color: color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+/* Footer: no hard line. A soft fade appears only while content actually
+   runs underneath (body.has-underflow, set by newtab.js). */
+.ledger-footer,
+body:not([data-layout="ledger"]) .ledger-footer { border-top: 0; }
+.ledger-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, var(--start-footer));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms var(--start-ease);
+}
+body.has-underflow .ledger-footer::before { opacity: 1; }
+
+/* The clock's glow helps it over the light landscape; in dark and private it
+   reads as a halo. */
+@media (prefers-color-scheme: dark) {
+  .bb-clock { text-shadow: none; }
+}
+:root[data-theme="private"] .bb-clock { text-shadow: none; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .ledger-body,
+  :root[data-theme="private"] .ledger-body {
+    --start-card-fill: var(--onboarding-surface);
+    --start-float-fill: var(--onboarding-surface);
+    --start-footer: var(--onboarding-surface);
+  }
+  .shelf-tile,
+  .shelf-card,
+  .start-customize-popover,
+  .migration-checklist,
+  .ledger-footer,
+  body:not([data-layout="ledger"]) .ledger-footer { backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .ledger-body,
+  :root[data-theme="private"] .ledger-body {
+    --start-card-fill: var(--onboarding-surface);
+    --start-float-fill: var(--onboarding-surface);
+    --start-footer: var(--onboarding-surface);
+  }
+  .shelf-tile,
+  .shelf-card,
+  .start-customize-popover,
+  .migration-checklist,
+  .ledger-footer,
+  body:not([data-layout="ledger"]) .ledger-footer { backdrop-filter: none; }
+  .shelf-tile,
+  .shelf-card,
+  .group-chip,
+  .start-customize,
+  .start-customize-popover,
+  .layout-thumb,
+  .js-patron-callout a { border-color: var(--text-dim); }
+}
 
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant

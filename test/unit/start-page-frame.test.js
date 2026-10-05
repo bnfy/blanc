@@ -114,3 +114,21 @@ test('labels are sentence case without tracking, and the date keeps locale case'
   assert.match(css, /\.start-brand-date \{[^}]*font: 500 12px\/1\.3 var\(--font-ui\);[^}]*letter-spacing: 0;[^}]*text-transform: none;/s);
   assert.match(css, /\.shelf-count,\s*\.tally-count \{[^}]*letter-spacing: -0\.02em;[^}]*font-variant-numeric: tabular-nums;/s);
 });
+
+test('surfaces follow one weight ladder with accessibility fallbacks', () => {
+  const css = frameCss();
+  const all = read('src/renderer/pages/pages.css');
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(css, /\.shelf-tile,\s*\.shelf-card \{[^}]*background: var\(--start-card-fill\);[^}]*box-shadow: var\(--start-shadow-card\), var\(--start-card-highlight\);[^}]*backdrop-filter: blur\(12px\) saturate\(140%\);/s);
+  assert.match(css, /\.group-chip \{[^}]*background: transparent;[^}]*backdrop-filter: none;/s);
+  assert.match(css, /\.ledger-footer,\s*body:not\(\[data-layout="ledger"\]\) \.ledger-footer \{ border-top: 0; \}/);
+  assert.match(css, /\.ledger-footer::before \{[^}]*height: 24px;[^}]*opacity: 0;/s);
+  assert.match(css, /body\.has-underflow \.ledger-footer::before \{ opacity: 1; \}/);
+  assert.match(js, /new IntersectionObserver\(/);
+  assert.match(css, /@media \(prefers-reduced-transparency: reduce\) \{[\s\S]*?backdrop-filter: none;/);
+  assert.match(css, /@media \(prefers-contrast: more\) \{[\s\S]*?border-color: var\(--text-dim\);/);
+  assert.match(css, /@media \(prefers-color-scheme: dark\) \{\s*\.bb-clock \{ text-shadow: none; \}/);
+  assert.match(css, /:root\[data-theme="private"\] \.bb-clock \{ text-shadow: none; \}/);
+  assert.match(css, /\.fav \.tile,\s*\.shelf-tile \.tile,\s*\.bb-fav \.tile \{[^}]*border-radius: 6px;[^}]*box-shadow: var\(--start-shadow-icon\);/s);
+  assert.doesNotMatch(all, /\.bb-site-dismiss \{[^}]*box-shadow: 0 2px 8px/s, 'the dismiss button uses the icon shadow');
+});
