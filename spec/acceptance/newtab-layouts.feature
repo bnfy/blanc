@@ -95,3 +95,14 @@ Feature: Start page layouts
     And eight favorites fill the Start Page
     When I open a new tab
     Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840
+
+  @F35-11 @desktop
+  Scenario: The Patron upgrade sits in the same slot on every layout
+    Given a profile that completed first run
+    When I open a new tab
+    Then every start-page layout ends with a visible Patron upgrade
+
+  @F35-12 @desktop
+  Scenario: Private start pages never offer Patron or blocked counts
+    Given a private start page is open
+    Then no start-page layout shows the Patron upgrade or a blocked count

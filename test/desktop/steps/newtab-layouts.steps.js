@@ -573,3 +573,33 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
     await this.call('setWindowContentSize', original.width, original.height);
   }
 });
+
+Then('every start-page layout ends with a visible Patron upgrade', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout,
+      `${layout} frame`,
+    );
+    assert.equal(frame.patronLast, true, `${layout} ends with the Patron chip`);
+    assert.equal(frame.patronVisible, true, `${layout} shows the Patron chip`);
+  }
+});
+
+Then('no start-page layout shows the Patron upgrade or a blocked count', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout && value.private === true,
+      `private ${layout} frame`,
+    );
+    assert.equal(frame.patronVisible, false, `private ${layout} hides Patron`);
+    const selectors = frame.content.map((entry) => String(entry.selector));
+    assert.ok(!selectors.some((s) => /tally-chart|tally-caption/.test(s)), `private ${layout} hides the Tally data column`);
+    if (layout === 'shelf') {
+      assert.equal(await this.call('readStartBlockedCard'), false, 'private Shelf hides its blocked card');
+    }
+  }
+});

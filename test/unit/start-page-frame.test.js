@@ -60,3 +60,10 @@ test('each layout ends with the Patron chip', () => {
       `${main.slice(0, 60)}… ends with its Patron chip`);
   }
 });
+
+test('private tabs never show the Patron chip or blocked counts', () => {
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(js, /function renderPatronCallout\(patronActive\) \{[\s\S]*?const hide = !!patronActive \|\| isPrivate;/);
+  assert.match(js, /document\.getElementById\('shBlocked'\)\.closest\('\.shelf-card'\)\.hidden = isPrivate;/);
+  assert.match(js, /document\.querySelector\('\.tally-right'\)\.hidden = isPrivate;/);
+});

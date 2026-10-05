@@ -121,13 +121,13 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   }, state.onboarding);
 }
 
-// Quiet, understated Patron callout — one per start-page layout (ledger,
-// billboard, shelf, tally), hidden outright once the user is a Patron. Driven
-// from both the initial pages:start:data load and every later
-// pages:start:status push, so activating mid-session hides it on an
-// already-open start page, whichever layout is active.
+// Quiet Patron chip — one per layout, always its layout's last item. Hidden
+// for Patrons and, whatever the Patron state, in private tabs: a private
+// window is never a place to sell. Driven from both the initial
+// pages:start:data load and every later pages:start:status push.
 function renderPatronCallout(patronActive) {
-  for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = !!patronActive;
+  const hide = !!patronActive || isPrivate;
+  for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = hide;
 }
 
 // Main owns durable checklist progress; this renderer only reflects that
@@ -579,6 +579,8 @@ async function fillBillboardSites() {
 
 function renderShelf() {
   document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString();
+  // Private tabs show no blocked counts on any layout.
+  document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
 
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
@@ -612,6 +614,8 @@ function renderShelf() {
 
 function renderTally() {
   document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString();
+  // Private tabs show no blocked counts; the data column goes entirely.
+  document.querySelector('.tally-right').hidden = isPrivate;
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();

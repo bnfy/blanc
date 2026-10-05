@@ -45,9 +45,6 @@
   --on-danger: #ffffff;
   /* Patron's own gold. Blanc's warm surfaces use the --sunrise-* palette. */
   --patron-gold: #d4ad66;
-  --patron-surface: #12100b;
-  --patron-label: #f7f0e5;
-  --patron-halo: rgba(128, 93, 40, 0.24);
   --sunrise-bg: #f7f0e5;
   --sunrise-surface: #efe6d8;
   --sunrise-surface-raised: #fffcf7;
@@ -92,7 +89,6 @@
     --accent-dim: rgba(245, 245, 245, 0.12);
     --danger: #ff453a;
     --on-danger: #0e0e0e;
-    --patron-halo: rgba(212, 173, 102, 0.26);
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -119,7 +115,6 @@
   --accent-dim: rgba(245, 245, 245, 0.12);
   --danger: #ff453a;
   --on-danger: #0a0a0a;
-  --patron-halo: rgba(212, 173, 102, 0.26);
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -1227,40 +1222,34 @@ a.ledger-label:hover { color: var(--accent); }
 
 .ledger-empty { font-family: var(--font-ui); font-size: 11.5px; color: var(--text-dim); }
 
-/* Compact Patron CTA — one per informational layout, hidden once the user is a
-   Patron. This is the sole warm start-page surface: warm ink carries the gold
-   Sunrise mark without competing with the larger migration checklist. */
-.js-patron-callout { font-family: var(--font-ui); font-size: 11.5px; }
+/* Quiet Patron chip — the last item of every informational layout, hidden
+   for Patrons and in private tabs. Outlined in Sunrise gold with no fill, so
+   it never outweighs the layout's own content. */
+.js-patron-callout { margin: 0; font-family: var(--font-ui); font-size: 12px; }
 .js-patron-callout a {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 36px;
-  color: var(--patron-label);
+  min-height: 32px;
+  padding: 4px 12px 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--patron-gold) 60%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
   font-family: var(--font-ui);
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid color-mix(in srgb, var(--patron-gold) 58%, transparent);
-  border-radius: 999px;
-  background: var(--patron-surface);
-  padding: 6px 12px 6px 8px;
-  box-shadow: 0 5px 18px -9px var(--patron-halo);
-  transition: filter 120ms ease;
+  transition: border-color 120ms ease;
 }
-.js-patron-callout a:hover {
-  color: var(--patron-label);
-  background: var(--patron-surface);
-  box-shadow: 0 5px 18px -9px var(--patron-halo);
-  filter: brightness(1.16);
-}
+.js-patron-callout a:hover { color: var(--text); background: transparent; border-color: var(--patron-gold); }
 .js-patron-callout a:focus-visible {
   outline: 1px solid var(--text-dim);
   outline-offset: 4px;
   border-radius: 999px;
 }
 .patron-cta-mark {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
   object-fit: contain;
 }
@@ -2837,12 +2826,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 .cluster i { background: var(--accent); }
 .ledger-patron { margin-top: 34px; }
 
-/* The existing compact CTA is the only Patron copy shown here. */
-.js-patron-callout a {
-  min-height: 34px;
-  border-color: color-mix(in srgb, var(--patron-gold) 50%, transparent);
-  box-shadow: 0 8px 22px -14px var(--patron-halo);
-}
 
 /* Billboard: a centered clock and recents composition, set slightly above
    the horizon so the background remains legible rather than decorative noise. */

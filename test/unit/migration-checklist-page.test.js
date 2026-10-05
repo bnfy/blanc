@@ -29,30 +29,23 @@ test('every start-page template names the Blanc Patron upgrade as an action', ()
 
   assert.equal(ctas.length, 4, 'Ledger, Billboard, Shelf, and Tally share the explicit Patron CTA');
   assert.doesNotMatch(html, />Support Blanc</);
-  assert.match(css, /\.js-patron-callout a \{[\s\S]{0,620}?display: inline-flex;[\s\S]{0,620}?border: 1px solid color-mix\(in srgb, var\(--patron-gold\) 58%, transparent\);[\s\S]{0,620}?border-radius: 999px;/,
-    'the upgrade link is a compact pill action');
-  assert.match(css, /--patron-gold: #d4ad66;/i, 'the CTA uses the Sunrise gold');
-  assert.match(css, /--patron-surface: #12100b;/i, 'the CTA uses Patron warm ink');
-  assert.match(css, /\.js-patron-callout a \{[\s\S]{0,800}?color: var\(--patron-label\);[\s\S]{0,800}?background: var\(--patron-surface\);/,
-    'the Patron pill reserves the warm dark surface for the upgrade action');
-  assert.match(css, /\.patron-cta-mark \{[\s\S]{0,180}?width: 20px;[\s\S]{0,180}?height: 20px;/,
-    'the local Sunrise mark is sized as the pill’s leading brand asset');
-  assert.match(css, /\.patron-cta-arrow \{[\s\S]{0,100}?color: var\(--patron-gold\);/,
-    'the action arrow repeats the mark’s gold accent');
-  assert.match(css, /\.js-patron-callout a:hover \{[\s\S]{0,300}?background: var\(--patron-surface\);/,
-    'hover preserves the warm-ink material instead of inverting the pill');
-  assert.match(css, /\.js-patron-callout a:hover \.patron-cta-arrow \{ transform: translateX\(2px\); \}/,
-    'hover emphasizes the action through the arrow rather than recoloring the brand');
-  const hover = css.match(/\.js-patron-callout a:hover \{([\s\S]*?)\n\}/)?.[1] ?? '';
-  assert.doesNotMatch(hover, /transform|padding|font-size|min-height|border(?:-width|-color)?\s*:/,
-    'hover cannot resize, move, or repaint the Patron pill border');
-  assert.match(hover, /box-shadow: 0 5px 18px -9px var\(--patron-halo\);/,
-    'hover keeps the resting shadow geometry');
-  assert.match(hover, /filter: brightness\(1\.16\);/,
-    'hover visibly brightens the complete capsule without changing geometry');
-  for (const name of ['patron-gold', 'patron-surface', 'patron-label', 'patron-halo']) {
-    const token = tokens.tokens.find((entry) => entry.name === name);
-    assert.deepEqual(token?.consumers, ['pages'], `${name} belongs to the guarded pages token source`);
+  const chip = css.match(/\.js-patron-callout a \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  assert.match(chip, /border: 1px solid color-mix\(in srgb, var\(--patron-gold\) 60%, transparent\);/,
+    'the upgrade is an outlined chip edged in Sunrise gold');
+  assert.match(chip, /border-radius: 999px;/);
+  assert.match(chip, /background: transparent;/, 'the chip carries no fill');
+  assert.match(chip, /color: var\(--text\);/);
+  assert.match(css, /\.patron-cta-mark \{[\s\S]{0,180}?width: 16px;[\s\S]{0,180}?height: 16px;/);
+  assert.match(css, /\.patron-cta-arrow \{[\s\S]{0,100}?color: var\(--patron-gold\);/);
+  const hover = css.match(/\.js-patron-callout a:hover \{([\s\S]*?)\}/)?.[1] ?? '';
+  assert.match(hover, /border-color: var\(--patron-gold\);/);
+  assert.doesNotMatch(hover, /transform|padding|font-size|min-height|border-width/,
+    'hover cannot resize or move the chip');
+  assert.match(css, /--patron-gold: #d4ad66;/i);
+  assert.equal(tokens.tokens.find((entry) => entry.name === 'patron-gold')?.consumers?.[0], 'pages');
+  for (const name of ['patron-surface', 'patron-label', 'patron-halo']) {
+    assert.equal(tokens.tokens.find((entry) => entry.name === name), undefined, `${name} is retired`);
+    assert.doesNotMatch(css, new RegExp(`--${name}`), `${name} has no CSS use left`);
   }
 });
 

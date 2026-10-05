@@ -832,6 +832,15 @@ function install(refs) {
         };
       })()`);
     },
+    readStartBlockedCard() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const card = document.getElementById('shBlocked')?.closest('.shelf-card');
+        return !!card && !card.hidden && getComputedStyle(card).display !== 'none';
+      })()`);
+    },
     clickMigrationChecklist(action) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
