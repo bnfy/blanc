@@ -325,8 +325,14 @@ try {
   assert(!(await logger.locator('body').innerText()).includes('private-marker'));
   assert(!(await logger.locator('body').innerText()).includes('private-network-marker'));
   stage = 'original DOM inspector';
-  const inspectorTab = await logger.locator('#pageSelector option').evaluateAll(options => options.find(option => Number(option.value) > 0 && option.textContent.includes('uBO acceptance fixture'))?.value);
-  assert(inspectorTab, 'fixture tab appears in the original logger selector');
+  // Select the fixture by its uBO tab id, not by title: ?disabled-new-page
+  // shares the title, and right after the reload above uBO briefly titles
+  // the fixture's page store with its raw URL, so a title match could pick
+  // the other tab and inject the inspector there.
+  const inspectorTab = String(stableId);
+  await waitForValue(() => logger.locator('#pageSelector option').evaluateAll((options, id) =>
+    options.find(option => option.value === id)?.textContent ?? '', inspectorTab),
+  text => text.includes('uBO acceptance fixture'), 'fixture tab appears in the original logger selector');
   await logger.locator('#pageSelector').selectOption(inspectorTab);
   await logger.locator('#showdom').dispatchEvent('click');
   const inspector = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'original DOM inspector');
@@ -385,6 +391,15 @@ try {
   await dashboard.waitForLoadState('load');
   await dashboard.locator('.tabButton.selected').waitFor();
   await dashboard.frameLocator('#iframe').locator('body').waitFor();
+  // A fresh profile's startup asset update ends with µb.loadFilterLists(), and
+  // uBO folds any reload requested while one is running into that one, which
+  // has already read the old list selection. An Apply landing inside it is
+  // never loaded or fetched. Let the updater and its reload settle before
+  // importing, the same barrier the update-clock stage uses below.
+  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())")), Boolean, 'startup updater cycle complete', 30000);
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript('µBlock.loadFilterLists().then(() => true)'));
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
   await lists.locator('#autoUpdate').waitFor();
@@ -545,13 +560,22 @@ try {
   let settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'backup settings');
   stage = 'backup and restore';
   stage = 'backup import and native reload';
-  const backupFile = path.join(dir, 'ubo-backup.txt');
+  const downloadedBackup = path.join(dir, 'ubo-backup.txt');
+  // The edited copy is a separate file. On Windows the browser (or a virus
+  // scan of the new download) can still hold the downloaded file, so
+  // rewriting it in place failed with EBUSY.
+  const backupFile = path.join(dir, 'ubo-backup-edited.txt');
   await electron.evaluate(({ session }, savePath) => {
-    session.defaultSession.once('will-download', (_event, item) => item.setSavePath(savePath));
-  }, backupFile);
+    globalThis.uboBackupDownloadState = null;
+    session.defaultSession.once('will-download', (_event, item) => {
+      item.setSavePath(savePath);
+      item.once('done', (_doneEvent, state) => { globalThis.uboBackupDownloadState = state; });
+    });
+  }, downloadedBackup);
   await settingsPane.locator('#export').click();
-  await waitForValue(() => fs.existsSync(backupFile) && fs.statSync(backupFile).size > 10, Boolean, 'original backup downloaded');
-  const backup = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+  // A non-empty file is not a finished download; wait for Chromium to report it.
+  await waitForValue(() => electron.evaluate(() => globalThis.uboBackupDownloadState), state => state === 'completed', 'original backup downloaded');
+  const backup = JSON.parse(fs.readFileSync(downloadedBackup, 'utf8'));
   assert(backup.userFilters.includes('/blocked-ubo.js'));
   assert(!JSON.stringify(backup).includes('private-marker'));
   backup.hiddenSettings = { ...backup.hiddenSettings, userResourcesLocation: fixture + 'forbidden-resource.js' };
@@ -732,6 +756,9 @@ try {
   assert.equal(await awake.evaluate(() => fetch('/allowed-control.js?after-capacity').then(() => true, () => false)), true);
   assert(hits.includes('/allowed-control.js?after-capacity'));
   stage = 'decision deadline';
+  // Decisions get a longer window for 15 s after each ready; this stage
+  // proves the normal two-second boundary, so wait for that window to close.
+  await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed', 20000);
   // Suspending the real request listener proves the two-second boundary:
   // requests cannot reach the server while the provider is unresponsive.
   await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
@@ -744,6 +771,7 @@ try {
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === deadlineId)?.isLoading, value => value === false, 'deadline recovery page');
   await call('blockingRetry');
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'deadline retry', 20000);
+  assert.equal(await call('blockingDecisionDeadline'), 10000, 'a fresh ready opens the decision warm-up window');
   await waitForValue(() => electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), count => count === 1, 'one background after retry');
   const awakeWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
   assert.equal((await call('blockingMapping')).find(item => item.webContentsId === awakeWC).tabId, stableId);
