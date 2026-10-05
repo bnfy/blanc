@@ -122,7 +122,7 @@ try {
   await waitForValue(() => bg(tabId), isDark, 'Settings on darkens page', 6000);
   await sheet.fill('#darkExceptionInput', 'https://www.Example.com/path');
   await sheet.click('#darkExceptionAdd');
-  await waitForValue(async () => (await settingsNow()).darkWebsitesExceptions, (v) => v.includes('example.com'), 'site added from Settings', 4000);
+  await waitForValue(async () => (await settingsNow()).darkWebsitesExceptions, (v) => JSON.stringify(v) === '["example.com"]', 'site added from Settings, normalized', 4000);
   await sheet.keyboard.press('Escape');
 
   console.log(JSON.stringify({ ok: true, profile: root }));
