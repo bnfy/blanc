@@ -76,7 +76,7 @@ const CARDS = [
     out: 'feature-ad-blocking.png',
     page: '/features/ad-blocking.html',
     figure: '.island-figure--site-controls',
-    headline: 'A clearer control for a quieter site.',
+    headline: 'Ad blocking built in. uBlock Origin if you prefer it.',
     // Keeps the shield and the popover's state row — the site, whether blocking
     // is on, and the switch. Uncropped, the pill-plus-popover stack is tall
     // enough that fitting it whole shrank that payload to fine print.
@@ -96,16 +96,34 @@ const CARDS = [
     out: 'feature-private-tabs.png',
     page: '/features/private-tabs.html',
     figure: '.island-figure',
-    headline: 'Private tabs that stay out of the record.',
+    headline: 'Private browsing tabs that stay out of the record.',
   },
   {
     out: 'feature-tab-groups.png',
     page: '/features/tab-groups.html',
     figure: '.island-figure--panel',
-    headline: 'Keep the tabs you need. Tuck away the rest.',
+    headline: 'Named tab groups: keep the tabs you need. Tuck away the rest.',
     // Deliberately NOT cropped: pinned above two named groups is the whole
     // point, and that only reads as a complete shape. One card in the set has
     // to show what the open panel actually looks like.
+  },
+  {
+    out: 'feature-quiet-tabs.png',
+    page: '/features/quiet-tabs.html',
+    figure: '.island-figure',
+    headline: 'Tabs you are not using give their memory back.',
+  },
+  {
+    out: 'feature-security.png',
+    page: '/features/security.html',
+    figure: '.island-figure',
+    headline: 'Private by architecture.',
+  },
+  {
+    out: 'feature-sync.png',
+    page: '/features/sync.html',
+    figure: '.island-figure--panel',
+    headline: 'Your favorites and settings on your other devices.',
   },
 ];
 
@@ -148,7 +166,8 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 
 const brandMark = dataUrl(path.join(PUBLIC_ROOT, 'favicon.svg'), 'image/svg+xml');
 const inter = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), 'font/woff2');
-const mono = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2'), 'font/woff2');
+// The site no longer depends on @fontsource/jetbrains-mono; use the face the app bundles.
+const mono = dataUrl(path.join(SITE_ROOT, '../src/renderer/pages/jetbrains-mono-latin.woff2'), 'font/woff2');
 const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2'), 'font/woff2');
 
 try {

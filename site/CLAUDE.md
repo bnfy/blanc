@@ -2,7 +2,7 @@
 
 A self-contained **Astro** project (own `package.json` — the Electron app's root
 dependency tree is untouched). Pages live in `src/pages/` (`index`, `download`,
-`features`, `about`, `privacy`, `terms`, `changelog`, and
+`features`, `about`, `privacy`, `terms`, `changelog`, `arc-alternative`, and
 `features/{island,ad-blocking,private-tabs,command-palette,tab-groups,sync,security}`),
 sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
 island (index: the masthead is solid from the start, hides while scrolling down and returns on scroll up, rich OG), standard (masthead raised from the start), legal

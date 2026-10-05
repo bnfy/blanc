@@ -61,6 +61,21 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
   }
 });
 
+test('the Arc alternative page is fully covered by the exact-wording ledger and cites its external source', () => {
+  const file = 'site/src/pages/arc-alternative.astro';
+  const claims = ledger.claims.filter(claim => claim.source === file);
+  const wording = new Set(claims.map(claim => claim.exactWording));
+  for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    assert.ok(wording.has(normalize(match[2])), `arc-alternative: unrecorded wording: ${normalize(match[2])}`);
+  }
+  // A claim about another product carries no release evidence, so it must name a recorded first-party source.
+  const sources = new Set((ledger.externalSources || []).map(source => source.url));
+  for (const claim of claims.filter(claim => claim.evidenceGroups.length === 0)) {
+    assert.ok(sources.has(claim.externalSource), `${claim.id}: external claim without a recorded source`);
+    assert.ok(read(file).includes(`href="${claim.externalSource}"`), `${claim.id}: the page does not link its source`);
+  }
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],

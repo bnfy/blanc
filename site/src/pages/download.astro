@@ -2,6 +2,7 @@
 import PlatformLogo from '../components/PlatformLogo.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import releases from '../data/releases.json';
+import pkg from '../../../package.json';
 
 const latest = releases[0];
 ---
@@ -13,6 +14,25 @@ const latest = releases[0];
   current="download"
   ogDescription={"A minimal desktop browser with built-in ad and tracker blocking, private tabs, and a floating island interface."}
 >
+<script
+  type="application/ld+json"
+  is:inline
+  slot="head"
+  set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": "https://blancbrowser.com/#software",
+    name: "Blanc Browser",
+    alternateName: "Blanc",
+    url: "https://blancbrowser.com/",
+    applicationCategory: "BrowserApplication",
+    operatingSystem: "macOS, Windows, Linux",
+    softwareVersion: pkg.version,
+    downloadUrl: "https://github.com/bnfy/blanc/releases/latest",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    publisher: { "@id": "https://blancbrowser.com/#organization" },
+  })}
+/>
 <script type="application/ld+json" is:inline slot="head">
 {
   "@context": "https://schema.org",
