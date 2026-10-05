@@ -1,6 +1,7 @@
 ---
 import '@fontsource-variable/inter';
 import '@fontsource-variable/newsreader/opsz.css';
+import newsreaderLatin from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2?url';
 import '../styles/site.css';
 import '../styles/revamp.css';
 import Header from '../components/Header.astro';
@@ -30,6 +31,7 @@ const ogImageUrl = SITE + ogImage;
 <html lang="en" data-home-appearance={page === 'home' ? 'light' : undefined}>
 <head>
 <meta charset="utf-8">
+<link rel="preload" href={newsreaderLatin} as="font" type="font/woff2" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content={description}>
