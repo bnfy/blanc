@@ -3,34 +3,36 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title="About Blanc Browser — Independent by design"
-  description="Blanc Browser is built and maintained by Anthony J. Loria through Bananify Creative, without venture funding or an advertising business."
+  description="Blanc is a minimal desktop browser built on Chromium, with a floating Island, built-in ad and tracker blocking, and no advertising business."
   path="/about"
   page="about"
   current="about"
   ogTitle="About Blanc Browser — Independent by design"
-  ogDescription="Learn how the independent browser is built and funded."
+  ogDescription="What Blanc is, what it stands for, and how it is built and funded."
 >
 <main id="main-content" class="about-page">
   <section class="about-hero" aria-labelledby="about-title">
-    <p class="section-kicker">independent by design</p>
-    <h1 id="about-title">A browser with a studio accountable for it.</h1>
-    <p>Blanc is built and maintained by Anthony J. Loria through Bananify Creative. It currently has one human maintainer, so product decisions, development, and support all lead back to the same person.</p>
+    <p class="section-kicker">about blanc</p>
+    <h1 id="about-title">A little less browser.</h1>
+    <p>Blanc is a desktop browser for macOS, Windows and Linux, built on Chromium. One floating Island holds your tabs, navigation and page controls, so the page stays in front, and ad and tracker blocking is built in.</p>
   </section>
 
-  <section class="about-proof-list" aria-label="How Blanc is built and funded">
+  <section class="about-proof-list" aria-label="What Blanc stands for and how it is built">
     <article class="about-proof-row">
-      <p class="about-label">the studio</p>
+      <p class="about-label">the idea</p>
       <div>
-        <h2>A direct line to the person building it.</h2>
-        <p>Anthony designs and develops Blanc, writes its release notes, and answers its support email through Bananify Creative. Feedback does not travel through departments before it reaches the maintainer.</p>
+        <h2>Less browser around the page.</h2>
+        <p>Tabs, navigation and page controls share a compact Island in a slim top band. Its expanded panel opens over the page.</p>
+        <a class="text-link" href="/features/island">Meet the Island <span aria-hidden="true">↗</span></a>
       </div>
     </article>
 
     <article class="about-proof-row">
-      <p class="about-label">the evidence</p>
+      <p class="about-label">built in</p>
       <div>
-        <h2>Public checks, with their limits stated.</h2>
-        <p>Blanc publishes source, release checks, signed manifests, an SBOM, and compatibility evidence. No independent external security audit has been completed. Those records support specific claims; they are not an external certification or a blanket security guarantee.</p>
+        <h2>Blocking that is already there.</h2>
+        <p>Blanc Blocker stops ads and known trackers at the browser level, without asking you to start with an extension. It is on by default and also protects private tabs.</p>
+        <a class="text-link" href="/features/ad-blocking">See site controls <span aria-hidden="true">↗</span></a>
       </div>
     </article>
 
@@ -43,10 +45,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </article>
 
     <article class="about-proof-row">
-      <p class="about-label">the process</p><div><h2>Human accountability, with AI assistance.</h2><p>AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.</p><p>No independent external security audit has been completed. The next step is preparing an audit scope and funding proposal; no audit date is promised. <a href="/trust#security-audit-title">Read the audit status and verification evidence</a>.</p></div>
+      <p class="about-label">open source</p>
+      <div>
+        <h2>Code you can read.</h2>
+        <p>Blanc’s own code is MIT-licensed and public on GitHub. Its name and logos, and the third-party components it includes, keep their own terms.</p>
+        <a class="text-link" href="/support#open-source">Licensing and exceptions <span aria-hidden="true">↗</span></a>
+      </div>
     </article>
+
+    <article class="about-proof-row">
+      <p class="about-label">the evidence</p>
+      <div>
+        <h2>Public checks, with their limits stated.</h2>
+        <p>Blanc publishes source, release checks, signed manifests, an SBOM, and compatibility evidence. No independent external security audit has been completed. Those records support specific claims; they are not an external certification or a blanket security guarantee.</p>
+        <p>Blanc has no general third-party extension runtime. Its optional 1Password bridge and device-bound Touch ID passkeys are macOS-only.</p>
+        <a class="text-link" href="/trust">Privacy and security <span aria-hidden="true">↗</span></a>
+      </div>
+    </article>
+
     <article class="about-proof-row about-supporter">
-      <p class="about-label">supporters</p>
+      <p class="about-label">how it’s funded</p>
       <div>
         <h2>The browser is complete without a subscription.</h2>
         <p>Browsing essentials and ordinary tab groups are free. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It adds saved Named Workspaces. Creating a named workspace requires an active Patron subscription. If membership lapses, existing workspaces remain openable, switchable, and automatically updated. Renaming and removing existing workspaces continue to work if it lapses. Earlier one-time supporters keep their lifetime Patron access.</p>
@@ -54,6 +72,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </article>
   </section>
+
+  <p class="about-maker">Made by <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a>, an independent software studio. AI assists implementation and security review; the maintainer remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.</p>
 
   <section class="about-close" aria-labelledby="about-close-title">
     <p class="section-kicker">support is human</p>

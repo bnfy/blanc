@@ -1709,26 +1709,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-252",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "Blanc is built and maintained by Anthony J. Loria through Bananify Creative. It currently has one human maintainer, so product decisions, development, and support all lead back to the same person.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-253",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "Anthony designs and develops Blanc, writes its release notes, and answers its support email through Bananify Creative. Feedback does not travel through departments before it reaches the maintainer.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-254",
       "source": "site/src/pages/about.astro",
       "exactWording": "Public checks, with their limits stated.",
@@ -3236,36 +3216,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-430",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "independent by design",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-431",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "A browser with a studio accountable for it.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-432",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "A direct line to the person building it.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-433",
       "source": "site/src/pages/about.astro",
       "exactWording": "Independently controlled, without an ads business.",
@@ -3282,36 +3232,6 @@
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-435",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "Human accountability, with AI assistance.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-436",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "process"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-437",
-      "source": "site/src/pages/about.astro",
-      "exactWording": "No independent external security audit has been completed. The next step is preparing an audit scope and funding proposal; no audit date is promised. Read the audit status and verification evidence.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "process"
       ],
       "verdict": "qualified"
     },
@@ -9454,6 +9374,134 @@
         "trust"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-01",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "about blanc",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-02",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "A little less browser.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-03",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux, built on Chromium. One floating Island holds your tabs, navigation and page controls, so the page stays in front, and ad and tracker blocking is built in.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "foundations",
+        "navigation",
+        "builtInBlocking",
+        "releaseAuthentication"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-04",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Less browser around the page.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-05",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Tabs, navigation and page controls share a compact Island in a slim top band. Its expanded panel opens over the page.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "navigation"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-06",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blocking that is already there.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "builtInBlocking"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-07",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc Blocker stops ads and known trackers at the browser level, without asking you to start with an extension. It is on by default and also protects private tabs.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "builtInBlocking",
+        "blockingDefault",
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-08",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Code you can read.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-09",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc’s own code is MIT-licensed and public on GitHub. Its name and logos, and the third-party components it includes, keep their own terms.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-10",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc has no general third-party extension runtime. Its optional 1Password bridge and device-bound Touch ID passkeys are macOS-only.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust",
+        "onepassword"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "about-2026-10-04-11",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Made by Bananify, an independent software studio. AI assists implementation and security review; the maintainer remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.",
+      "subject": "Blanc",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process",
+        "trust"
+      ],
+      "verdict": "qualified"
     }
   ],
   "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
@@ -10012,6 +10060,94 @@
       ],
       "verdict": "qualified",
       "reason": "Download page redesign (October 4, 2026): focused download, install steps and requirements; copy replaced or removed with owner approval in session."
+    },
+    {
+      "id": "website-115-252",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Blanc is built and maintained by Anthony J. Loria through Bananify Creative. It currently has one human maintainer, so product decisions, development, and support all lead back to the same person.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "website-115-253",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Anthony designs and develops Blanc, writes its release notes, and answers its support email through Bananify Creative. Feedback does not travel through departments before it reaches the maintainer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "reddit-430",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "independent by design",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "reddit-431",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "A browser with a studio accountable for it.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "reddit-432",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "A direct line to the person building it.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "reddit-435",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "Human accountability, with AI assistance.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "reddit-436",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "AI assists implementation and security review. Anthony J. Loria remains accountable for product decisions and release approval. AI-assisted checks and maintainer review do not constitute an independent security audit.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
+    },
+    {
+      "id": "reddit-437",
+      "source": "site/src/pages/about.astro",
+      "exactWording": "No independent external security audit has been completed. The next step is preparing an audit scope and funding proposal; no audit date is promised. Read the audit status and verification evidence.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "process"
+      ],
+      "verdict": "qualified",
+      "reason": "About page rewrite (October 4, 2026): product-first page; personal attribution removed and maker reduced to one Bananify line, with owner approval in session."
     }
   ],
   "supersededCandidateClaims": [
