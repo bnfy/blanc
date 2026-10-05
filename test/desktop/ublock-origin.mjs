@@ -325,8 +325,14 @@ try {
   assert(!(await logger.locator('body').innerText()).includes('private-marker'));
   assert(!(await logger.locator('body').innerText()).includes('private-network-marker'));
   stage = 'original DOM inspector';
-  const inspectorTab = await logger.locator('#pageSelector option').evaluateAll(options => options.find(option => Number(option.value) > 0 && option.textContent.includes('uBO acceptance fixture'))?.value);
-  assert(inspectorTab, 'fixture tab appears in the original logger selector');
+  // Select the fixture by its uBO tab id, not by title: ?disabled-new-page
+  // shares the title, and right after the reload above uBO briefly titles
+  // the fixture's page store with its raw URL, so a title match could pick
+  // the other tab and inject the inspector there.
+  const inspectorTab = String(stableId);
+  await waitForValue(() => logger.locator('#pageSelector option').evaluateAll((options, id) =>
+    options.find(option => option.value === id)?.textContent ?? '', inspectorTab),
+  text => text.includes('uBO acceptance fixture'), 'fixture tab appears in the original logger selector');
   await logger.locator('#pageSelector').selectOption(inspectorTab);
   await logger.locator('#showdom').dispatchEvent('click');
   const inspector = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'original DOM inspector');
