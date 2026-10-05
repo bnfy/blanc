@@ -364,6 +364,16 @@ The active tab's shield popover: shieldPopoverModel() plus provider controls.
 | `countLine` | `string` |  |
 | `connection` | `ConnectionState \| null` |  |
 | `controls` | `ShieldProviderControls` |  |
+| `darkSite` | `ShieldDarkSite \| null` |  |
+
+### `ShieldDarkSite`
+
+The shield popover's Dark website switch. `on` describes the site while Blanc is dark (what /dark-site flips); `appliesNow` is whether Blanc is dark now.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `on` | `boolean` |  |
+| `appliesNow` | `boolean` |  |
 
 ### `CaptureChip`
 

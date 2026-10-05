@@ -381,6 +381,20 @@
         },
         "controls": {
           "type": "ShieldProviderControls"
+        },
+        "darkSite": {
+          "type": "ShieldDarkSite | null"
+        }
+      }
+    },
+    "ShieldDarkSite": {
+      "doc": "The shield popover's Dark website switch. `on` describes the site while Blanc is dark (what /dark-site flips); `appliesNow` is whether Blanc is dark now.",
+      "fields": {
+        "on": {
+          "type": "boolean"
+        },
+        "appliesNow": {
+          "type": "boolean"
         }
       }
     },
