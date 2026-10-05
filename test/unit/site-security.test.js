@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
   buildSiteInfo, certificateErrorMessage, certificateErrorQuery,
-  createCertificateObserver, isLoopbackHost, sanitizeCertificate,
+  createCertificateObserver, isLocalNetworkHost, isLoopbackHost, sanitizeCertificate,
 } = require('../../src/main/site-security');
 
 test('certificate metadata is bounded and contains display fields only', () => {
@@ -63,4 +63,41 @@ test('certificate query is dedicated, display-only, and contains no bypass', () 
   assert.equal(query.get('subject'), 'bad.test');
   assert.match(certificateErrorMessage(query.get('certError')), /expired/);
   assert.doesNotMatch(query.toString(), /proceed|bypass|raw/i);
+});
+
+test('local-network hosts: private, link-local, CGNAT, IPv6 and local-use names', () => {
+  const yes = [
+    'localhost', 'app.localhost', '127.0.0.1', '[::1]',
+    '10.0.0.0', '10.255.255.255',
+    '172.16.0.0', '172.31.255.255',
+    '192.168.0.1', '192.168.255.255',
+    '169.254.1.1',
+    '100.64.0.0', '100.127.255.255',
+    '[fd00::1]', '[fc00::]', 'fd12:3456::1', '[fe80::1]', '[febf::1]',
+    'proxmox', 'nas.local', 'router.lan', 'svc.internal', 'nas.home.arpa', 'NAS.HOME.ARPA',
+  ];
+  const no = [
+    '', 'example.com', '8.8.8.8', '172.15.255.255', '172.32.0.0',
+    '100.63.255.255', '100.128.0.0', '192.169.0.1', '11.0.0.1',
+    '[2001:db8::1]', '[fec0::1]', 'badcert.test', 'lan.example.com',
+    'local.example.com', 'home.arpa.example.com', '256.1.1.1', '10.0.0',
+  ];
+  for (const host of yes) assert.equal(isLocalNetworkHost(host), true, host);
+  for (const host of no) assert.equal(isLocalNetworkHost(host), false, host);
+});
+
+test('observer remembers hosts verified this run even after a later failure', () => {
+  const observer = createCertificateObserver();
+  let proc;
+  const browsingSession = { setCertificateVerifyProc: (fn) => { proc = fn; } };
+  const other = { setCertificateVerifyProc: () => {} };
+  observer.observe(browsingSession);
+  observer.observe(other);
+  assert.equal(observer.wasVerifiedThisRun(browsingSession, 'https://nas.home.arpa/'), false);
+  proc({ hostname: 'nas.home.arpa', verificationResult: 'OK' }, () => {});
+  proc({ hostname: 'nas.home.arpa', verificationResult: 'net::ERR_CERT_AUTHORITY_INVALID' }, () => {});
+  assert.equal(observer.get(browsingSession, 'https://nas.home.arpa/'), null);
+  assert.equal(observer.wasVerifiedThisRun(browsingSession, 'https://nas.home.arpa:8006/x'), true);
+  assert.equal(observer.wasVerifiedThisRun(other, 'https://nas.home.arpa/'), false);
+  assert.equal(observer.wasVerifiedThisRun(browsingSession, 'not a url'), false);
 });
