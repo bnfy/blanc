@@ -239,3 +239,28 @@ test('approved native Intel remains selectable without the Rosetta fallback', ()
   assert.equal(manager.status('personal').supported, true);
   assert.equal(manager.status('personal').fallback, null);
 });
+
+test('a provider failure keeps its startup stage and stage timings in the bounded diagnostics', async () => {
+  const module = { exports: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8'), {
+    module, process: { env: { BLANC_UBLOCK_TEST: '1' }, platform: 'darwin', arch: 'arm64', versions: { electron: '44.5.1' } },
+    require: name => {
+      if (name === 'electron') return { app: { isPackaged: false, getAppPath: () => '/app' } };
+      if (name === './adblock') return { attachAdBlockerToSession() {}, detachAdBlockerFromSession() {}, coordinator: { setProvider() {} } };
+      if (name === './ublock-platforms.json') return { electron: '44.5.1', platforms: {} };
+      if (name === './ublock-provider') return { createUblockProvider: ({ onStateChange }) => {
+        let state = { id: 'ublock-origin', version: '1.75.0', phase: 'initializing', error: null, stage: 'cssHostLoad', timings: {} };
+        return { setEnabled() {}, status: () => state, initialize: async () => {
+          state = { ...state, phase: 'failed', error: 'ubo-initialization-failed', stage: 'install', timings: { cssHostLoad: 12.5, cssHostReady: 3, install: 18000 } };
+          onStateChange(state);
+          throw new Error('ubo-initialization-failed');
+        } };
+      } };
+      return require(name.startsWith('./') ? '../../src/main/' + name.slice(2) : name);
+    },
+  });
+  const manager = module.exports.createBlockingProviders({ settings: { getSettings: () => ({ adblockProvider: 'ublock-origin', adblockEnabled: true }) }, hooks: {} });
+  await assert.rejects(manager.attach('personal', { normal: {}, private: {} }));
+  assert.deepEqual(JSON.parse(JSON.stringify(manager.status('personal').diagnostics)), [{ provider: 'ublock-origin', version: '1.75.0', error: 'ubo-initialization-failed',
+    stage: 'install', timings: { cssHostLoad: 12.5, cssHostReady: 3, install: 18000 } }]);
+});
