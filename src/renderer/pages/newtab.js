@@ -589,7 +589,6 @@ function renderShelf() {
 
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
-  grid.hidden = false;
   if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 8)) {
     const tileLink = document.createElement('a');
@@ -625,8 +624,6 @@ function renderTally() {
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
-  favs.hidden = false;
-  document.querySelector('.tally-label').hidden = false;
   if (!state.favorites.length) favs.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
 
