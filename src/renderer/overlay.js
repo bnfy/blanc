@@ -471,7 +471,7 @@
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
     panelSiteInfo.className = `site-info-button ${siteInfo?.state ?? ''}`;
-    panelSiteInfo.innerHTML = siteInfo?.state === 'insecure' || siteInfo?.state === 'certificate-error'
+    panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
     panelSiteInfo.title = siteInfo?.title ?? 'Site information';
@@ -1294,12 +1294,27 @@
       window.browserAPI.closeOverlay();
       window.browserAPI.openPage('settings');
     });
-    footer.append(protection, settingsButton);
+    const footerActions = [protection];
+    if (info.state === 'certificate-exception') {
+      const stopButton = document.createElement('button');
+      stopButton.type = 'button';
+      stopButton.className = 'site-info-settings site-info-stop-allowing';
+      stopButton.textContent = 'Stop allowing';
+      stopButton.addEventListener('click', () => {
+        window.browserAPI.closeOverlay();
+        window.browserAPI.siteInfoForgetCertificateException();
+      });
+      footerActions.push(stopButton);
+    }
+    footerActions.push(settingsButton);
+    footer.append(...footerActions);
     card.append(footer);
     islandList.replaceChildren(card);
     islandHint.textContent = info.state === 'certificate-error'
-      ? 'Blanc did not offer a bypass'
-      : 'connection details are supplied by Chromium';
+      ? 'this certificate could not be verified'
+      : info.state === 'certificate-exception'
+        ? 'you continued past a certificate warning'
+        : 'connection details are supplied by Chromium';
   }
 
   function renderList() {
