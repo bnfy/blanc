@@ -3,6 +3,11 @@
 Researched October 5, 2026 at the owner's request. **Status: research only.
 No code. The realistic routes need Bitwarden's cooperation.**
 
+**Partnership request submitted October 5, 2026** by the owner through
+Bitwarden's partner form (bitwarden.com/partners/become-a-partner/), asking
+for a DuckDuckGo-style desktop integration for Blanc, macOS first. Replies go
+to anthony@bnfy.me. Awaiting a reply.
+
 The model is Blanc's 1Password fill (`docs/1password-integration.md`):
 - explicit invoke only;
 - the user approves Blanc in the password manager's own app;
