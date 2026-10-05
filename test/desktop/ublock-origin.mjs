@@ -348,8 +348,17 @@ try {
     await bg.executeJavaScript(`(() => {
       const original = vAPI.tabs.executeScript;
       self.uboFixtureDelayedBootstraps = 0;
+      // Record every injection into the fixture tab, so a reconnect failure
+      // shows whether the logger asked again and how the injection ended.
+      self.uboFixtureInjections = [];
       vAPI.tabs.executeScript = function(id, details, ...rest) {
         const result = original.call(this, id, details, ...rest);
+        if (id === ${tabId}) {
+          const record = { file: details.file || 'code', frameId: details.frameId ?? 0, at: Date.now(), outcome: 'pending' };
+          self.uboFixtureInjections.push(record);
+          Promise.resolve(result).then(value => { record.outcome = Array.isArray(value) ? 'ok:' + value.length : 'ok'; },
+            error => { record.outcome = 'error: ' + String(error?.message || error).slice(0, 160); });
+        }
         if (id !== ${tabId} || details.file !== '/js/contentscript-extra.js') return result;
         self.uboFixtureDelayedBootstraps++;
         return Promise.resolve(result).then(async value => {
@@ -360,8 +369,37 @@ try {
       self.uboFixtureRestoreInjection = () => { vAPI.tabs.executeScript = original; };
     })()`);
   }, Number(inspectorTab));
+  const reconnectStarted = Date.now();
   await page.reload();
-  await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation');
+  // On failure, record which step of the reconnect never happened: the
+  // logger's selection and toggle, every injection into the fixture tab after
+  // the reload, and whether the page holds an unloaded inspector iframe.
+  await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation')
+    .catch(async error => {
+      const injections = await electron.evaluate(async ({ webContents }) => {
+        const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+        return bg.executeJavaScript('JSON.stringify(self.uboFixtureInjections ?? null)');
+      }).catch(failure => String(failure));
+      const loggerState = await logger.evaluate(() => ({
+        hash: location.hash,
+        selected: document.querySelector('#pageSelector')?.value,
+        showdom: document.querySelector('#showdom')?.className,
+        domTree: document.querySelector('#domTree')?.innerText.slice(0, 120),
+      })).catch(failure => String(failure));
+      const pageState = await page.evaluate(() => ({
+        url: location.href,
+        readyState: document.readyState,
+        iframes: [...document.querySelectorAll('iframe')].map(frame => ({
+          src: frame.src, attributes: frame.getAttributeNames().filter(name => name !== 'style').join(' '),
+        })),
+      })).catch(failure => String(failure));
+      const tab = (await call('state').catch(() => null))?.tabs?.find(item => item.url.startsWith(fixture));
+      console.error('DOM inspector reconnect diagnostics:', JSON.stringify({
+        sinceReloadMs: Date.now() - reconnectStarted, reconnectStarted, injections: injections, logger: loggerState, page: pageState,
+        frames: page.frames().map(frame => frame.url()), tab: tab && { url: tab.url, isLoading: tab.isLoading },
+      }));
+      throw error;
+    });
   const delayedBootstraps = await electron.evaluate(async ({ webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript('uboFixtureRestoreInjection(); uboFixtureDelayedBootstraps');

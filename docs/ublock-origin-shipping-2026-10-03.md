@@ -668,3 +668,33 @@ is ever let through unfiltered. The 10-second operation deadline and the
 45-second startup deadline are unchanged. `test/unit/ublock-operation-deadline.test.js`
 covers both windows, and this change also needs the uBO platform acceptance
 and CodeQL review that CLAUDE.md requires for uBO runtime changes.
+
+## Desktop test flakes after #567 (October 5, 2026)
+
+A survey of the 150 most recent `ublock-origin.yml` runs (October 3–5) sorted
+the remaining desktop-step failures. Test-only changes; no product code changed.
+
+- **Shield clicks** (`#shieldPopChangeProvider`, `#pillShield`; six Ubuntu
+  failures) all ran code from before #567's `clickWhenSettled` fix. The
+  retirement test still clicked the same overlay buttons with Playwright's
+  frame-counting wait, so it now uses `clickWhenSettled` too.
+- **DOM inspector after navigation** (three macOS failures, two Intel and one
+  Apple Silicon, one of them after #567): after the fixture reloads, the logger
+  never re-attaches the inspector within 5 s. In the post-#567 failure (job
+  112005680334) the logger still selected the fixture tab (`#3`), which rules
+  out a lost selection. Locally on Linux, 100 reload cycles under CPU load,
+  with and without the delayed cosmetic bootstrap, all reconnected in
+  0.6–2.0 s, so this is not a slow-but-working wait and a longer timeout
+  would only hide it. The test now records every injection into the fixture
+  tab and, on failure, prints them with the logger's selection and toggle and
+  the page's inspector iframes, which shows the step that went missing.
+- **First fixture tab in `ublock-retirement.mjs --unavailable`** (one Windows
+  failure, no diagnostics): the first navigation after startup did not reach a
+  Playwright page within 5 s, while the neighbouring retirement run completed
+  four visits in 2.5 s. On failure the test now prints the fixture server's
+  hits, the tab's URL and loading state, the open pages, the blocker status and
+  startup readiness, which separates a stalled request from a held navigation
+  or a missing Playwright page.
+
+Both remaining failures occur in roughly 1–2% of macOS Intel and Windows runs.
+Fix the next one from its diagnostics rather than by raising timeouts.
