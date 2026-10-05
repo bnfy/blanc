@@ -810,6 +810,7 @@
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
+    { cmd: '/dark-site', hint: 'Darken this site, or leave it as drawn', run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
     { cmd: '/1password', hint: 'Fill a login from 1Password',
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },

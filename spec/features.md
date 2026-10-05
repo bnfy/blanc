@@ -284,6 +284,8 @@ From the desktop `DEFAULTS`:
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
 | `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
+| `darkWebsites` | `false` | desktop-only boolean; device-local, never synced (F42) |
+| `darkWebsitesExceptions` | `[]` | desktop-only hostnames kept as drawn; same normalization as `adblockExceptions`; device-local, never synced (F42) |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
@@ -946,3 +948,28 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   covers explicit session reads, quit safety, duplicate/order/group fidelity,
   opaque renderer projection, transactional apply, ownership/cancellation,
   onboarding, and the separate workspace handoff.
+
+## F42 — Dark websites
+
+- When the person turns on **Dark websites** and Blanc is dark (the Dark
+  theme, or System on a dark OS), Blanc darkens http(s) pages from their first
+  paint using the pinned, unmodified Dark Reader engine. Sites that already
+  honour `prefers-color-scheme: dark` stay dark rather than being inverted.
+  Off by default; the setting and its site list are device-local and never
+  Profile Synced.
+- `/dark-site` flips the current site between darkened and as drawn, and turns
+  the feature on if it was off. In a private tab the choice lasts only until
+  Blanc quits and is never written to settings; the site list is edited in
+  Settings → General.
+- The engine runs in its own isolated world: the page cannot see or call it,
+  and the page's CSP cannot block its styles. That world's only capability is
+  asking main for the text of a stylesheet; main fetches only public http(s)
+  `text/css`, without cookies, redirects or private-network addresses, within
+  size, time and rate limits.
+- Internal `blanc://` pages, Blanc's chrome, extension pages and iframes are
+  never darkened. Iframes are a known gap: Blanc runs session preloads only in
+  main frames, as the capture indicator does.
+- **Acceptance:**
+  [`acceptance/settings-and-theming.feature`](./acceptance/settings-and-theming.feature)
+  (`@F42`); `test/desktop/dark-websites-smoke.mjs` drives the shipping app.
+

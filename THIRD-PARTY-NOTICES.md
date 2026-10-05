@@ -86,6 +86,18 @@ License; the full notice ships in
 [compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt). Upstream:
 <https://github.com/lucide-icons/lucide>.
 
+## Dark Reader — MIT
+
+Dark websites embeds the unmodified npm API build of Dark Reader 4.9.133
+(`dark-reader/upstream/darkreader.js`, pinned by hash in
+`dark-reader/pinned.json`) in the generated
+`src/main/dark-websites-preload.js`.
+Copyright (c) 2026 Dark Reader Ltd. It remains under Dark Reader's MIT
+License, kept in `dark-reader/darkreader-LICENSE.txt` and shipped as
+`ThirdPartyLicenses/darkreader-LICENSE.txt`. The MIT License covers the code,
+not the Dark Reader name or logo. Upstream:
+<https://github.com/darkreader/darkreader>.
+
 ## Runtime dependencies
 
 Blanc is built on Electron (MIT) and bundles the Chromium engine, which carries

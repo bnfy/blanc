@@ -52,6 +52,24 @@
               <label class="toggle"><input id="islandSiteColors" type="checkbox" aria-label="Match site colors" aria-describedby="islandSiteColorsHint" /><span class="track"></span></label>
             </div>
 
+            <div class="setting" id="darkWebsitesSetting">
+              <div class="label">
+                <span>Dark websites</span>
+                <span class="hint" id="darkWebsitesHint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</span>
+              </div>
+              <label class="toggle"><input id="darkWebsites" type="checkbox" aria-label="Dark websites" aria-describedby="darkWebsitesHint" /><span class="track"></span></label>
+            </div>
+            <div id="darkWebsitesExceptionsBlock">
+              <p class="section-hint">
+                Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.
+              </p>
+              <div class="toolbar-row">
+                <input id="darkExceptionInput" type="text" placeholder="example.com" aria-label="Site to keep in its own colors" />
+                <button id="darkExceptionAdd">Add</button>
+              </div>
+              <div id="darkExceptionList" class="row-list"></div>
+            </div>
+
             <div class="setting">
               <div class="label">
                 <span>New tab layout</span>

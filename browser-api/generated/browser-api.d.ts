@@ -322,6 +322,12 @@ export interface WorkspacesPayload {
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
 export type ThemeAppearance = 'light' | 'dark' | 'pending';
 
+/** The outcome of /dark-site. `darkened` describes the site while Blanc is dark; in a private tab the choice lasts until Blanc quits. */
+export interface DarkSiteResult {
+  hostname: string;
+  darkened: boolean;
+}
+
 /** A tab's sampled page color, sent as a color-only update. */
 export interface PageTint {
   id: TabId;
@@ -996,6 +1002,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:adblock-exempt-active`.
    */
   allowAdsOnActiveSite(): Promise<string | null | AllowAdsError>;
+  /**
+   * Darken the active site, or leave it as the site drew it (Dark websites). Resolves to the hostname and whether it is now darkened while Blanc is dark, or null when the page has no website.
+   * IPC: invoke `chrome:dark-site-active`.
+   */
+  toggleDarkSiteOnActiveSite(): Promise<DarkSiteResult | null>;
   /**
    * Stop allowing the active tab's origin past its certificate warning for this session, close that session's connections, and reload the tab. Resolves false when there was nothing to forget.
    * IPC: invoke `chrome:site-info-forget-certificate-exception`.
