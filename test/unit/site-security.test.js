@@ -54,15 +54,39 @@ test('observer records success but always delegates the decision to Chromium', (
   assert.equal(observer.get(browsingSession, 'https://example.com/').certificate.subject, 'example.com');
 });
 
-test('certificate query is dedicated, display-only, and contains no bypass', () => {
-  const query = certificateErrorQuery({
+test('certificate query offers continue only when main says the failure is eligible', () => {
+  const record = {
     url: 'https://bad.test/', error: 'net::ERR_CERT_DATE_INVALID',
     certificate: { subject: 'bad.test', issuer: 'Expired CA', validTo: 1000 },
-  }, { code: -201, desc: 'certificate error' });
-  assert.equal(query.get('kind'), 'certificate');
-  assert.equal(query.get('subject'), 'bad.test');
-  assert.match(certificateErrorMessage(query.get('certError')), /expired/);
-  assert.doesNotMatch(query.toString(), /proceed|bypass|raw/i);
+  };
+  const publicQuery = certificateErrorQuery(record, { code: -201, desc: 'certificate error' });
+  assert.equal(publicQuery.get('kind'), 'certificate');
+  assert.equal(publicQuery.get('subject'), 'bad.test');
+  assert.match(certificateErrorMessage(publicQuery.get('certError')), /expired/);
+  assert.equal(publicQuery.has('continue'), false);
+  assert.doesNotMatch(publicQuery.toString(), /proceed|bypass|raw|fingerprint/i);
+
+  const localQuery = certificateErrorQuery(
+    { ...record, url: 'https://192.168.1.5:8006/' }, { code: -202 }, { canContinue: true });
+  assert.equal(localQuery.get('continue'), '1');
+  assert.doesNotMatch(localQuery.toString(), /fingerprint/i);
+});
+
+test('site info reports a document loaded past a certificate warning', () => {
+  const certificate = { subject: 'nas.home.arpa', issuer: 'nas.home.arpa', validFrom: 1, validTo: 2, fingerprint: 'sha256/AAA' };
+  const info = buildSiteInfo('https://nas.home.arpa:8006/', {
+    certificateException: { origin: 'https://nas.home.arpa:8006', certificate },
+  });
+  assert.equal(info.state, 'certificate-exception');
+  assert.equal(info.title, 'Not secure');
+  assert.equal(info.summary,
+    'You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts.');
+  assert.deepEqual(info.certificate, certificate);
+  const errored = buildSiteInfo('https://nas.home.arpa:8006/', {
+    certificateError: { url: 'https://nas.home.arpa:8006/', error: 'net::ERR_CERT_AUTHORITY_INVALID', certificate },
+    certificateException: { origin: 'https://nas.home.arpa:8006', certificate },
+  });
+  assert.equal(errored.state, 'certificate-error', 'a live error outranks a stale document record');
 });
 
 test('local-network hosts: private, link-local, CGNAT, IPv6 and local-use names', () => {

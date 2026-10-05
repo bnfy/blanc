@@ -135,6 +135,7 @@ function createCertificateObserver() {
 function buildSiteInfo(url, {
   certificateRecord = null,
   certificateError = null,
+  certificateException = null,
   blockedCount = 0,
   permissions = [],
 } = {}) {
@@ -164,6 +165,15 @@ function buildSiteInfo(url, {
       error: cleanText(certificateError.error, 120),
     };
   }
+  if (certificateException) {
+    return {
+      ...base,
+      certificate: certificateException.certificate ?? base.certificate,
+      state: 'certificate-exception',
+      title: 'Not secure',
+      summary: 'You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts.',
+    };
+  }
   if (parsed.protocol === 'https:') {
     return {
       ...base,
@@ -186,9 +196,9 @@ function buildSiteInfo(url, {
   return { ...base, state: 'neutral', title: 'Connection information', summary: 'This page does not use an HTTP connection.' };
 }
 
-function certificateErrorQuery(record, fallback = {}) {
+function certificateErrorQuery(record, fallback = {}, { canContinue = false } = {}) {
   const certificate = record?.certificate ?? null;
-  return new URLSearchParams({
+  const query = new URLSearchParams({
     kind: 'certificate',
     url: record?.url ?? fallback.url ?? '',
     code: String(fallback.code ?? ''),
@@ -199,6 +209,10 @@ function certificateErrorQuery(record, fallback = {}) {
     subject: certificate?.subject ?? '',
     validTo: certificate?.validTo ? String(certificate.validTo) : '',
   });
+  // Main alone decides eligibility (certificate spec §4.3); the page only
+  // reads this flag and never receives a fingerprint.
+  if (canContinue === true) query.set('continue', '1');
+  return query;
 }
 
 module.exports = {
