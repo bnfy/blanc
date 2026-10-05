@@ -64,6 +64,8 @@ const {
   buildSiteInfo,
   certificateErrorQuery,
 } = require('./site-security');
+const { createCertificateExceptions } = require('./certificate-exceptions');
+const { emptyEntryMarks } = require('./certificate-history');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   mergeDisabledFeatures,
@@ -308,6 +310,12 @@ const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
+// Session-only "continue anyway" choices for local certificate failures
+// (certificate spec §4.1). Eviction closes the session's pooled connections
+// so a connection cannot outlive its exception.
+const certificateExceptions = createCertificateExceptions({
+  onEvict: (browsingSession) => { browsingSession.closeAllConnections?.()?.catch?.(() => {}); },
+});
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -3977,6 +3985,7 @@ function serializeTabs() {
       const siteInfo = buildSiteInfo(targetUrl, {
         certificateRecord,
         certificateError: tab.certificateError,
+        certificateException: tab.documentCertificateException,
         blockedCount: rest.blockedCount,
       });
       if (rest.private && rest.favicon) {
@@ -5459,6 +5468,8 @@ initTabView({
   recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
   sanitizeCertificate,
   certificateErrorQuery,
+  certificateExceptions,
+  certificateObserver,
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
   onMainFrameCommit,
@@ -5554,6 +5565,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     navEpoch: 0,
     // In-memory only: bounded details for the rejected top-level TLS load.
     certificateError: null,
+    // In-memory only (certificate spec §4.5): the request allowed past a
+    // local certificate warning, the committed document it produced, and the
+    // per-history-entry marks that let Back/Forward keep the warning.
+    pendingCertificateException: null,
+    documentCertificateException: null,
+    certificateEntryMarks: emptyEntryMarks(),
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
     asleep: bornQuiet,        // renderer discarded; tab.view is null
@@ -6343,7 +6360,7 @@ function reopenEntry(entry) {
     if (id) {
       heldWebContents.delete(wcId);
       const tab = tabs.get(id);
-      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled
+      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled, navEpoch, documentCertificateException, certificateEntryMarks
       finishReopen(id, entry);
       return;
     }
@@ -8428,6 +8445,8 @@ async function clearNamedProfileSessions(profileId) {
     if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
   }
   profileNavigationGates.forget(profileId);
+  certificateExceptions.clear(owned.normal);
+  certificateExceptions.clear(owned.private);
   await blockingProviders?.dispose(profileId, owned);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),

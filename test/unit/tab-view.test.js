@@ -417,3 +417,11 @@ test('native tool rooting excludes websites, private tabs, macOS and stale owner
     assert.equal(h.handlers.length, 0);
   }
 });
+
+test('certificate-error allows only through the exception store and never by default', () => {
+  const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
+  const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
+  assert.match(handler, /certificateExceptions\.matches\(wc\.session/);
+  assert.match(handler, /event\.preventDefault\(\);\s*return callback\(true\);/);
+  assert.equal((handler.match(/callback\(true\)/g) ?? []).length, 1);
+});

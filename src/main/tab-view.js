@@ -25,6 +25,7 @@ const {
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
 const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navigation');
+const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 
@@ -115,6 +116,7 @@ function initTabView(injected) {
     'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
     'dispatchMouseGesture',
     'sanitizeCertificate', 'certificateErrorQuery',
+    'certificateExceptions', 'certificateObserver',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -172,6 +174,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
     dispatchMouseGesture,
     sanitizeCertificate, certificateErrorQuery,
+    certificateExceptions, certificateObserver,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
@@ -335,6 +338,24 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.navEpoch++;
+    // The not-secure mark belongs to the history entry that committed
+    // (certificate spec §4.5). The session-wide certificate observer is
+    // deliberately not consulted: a host-scoped trusted record says nothing
+    // about which document an entry holds.
+    const nav = wc.navigationHistory;
+    const { state: entryMarks, record: documentException } = commitEntryMarks(tab.certificateEntryMarks, {
+      entryUrls: nav.getAllEntries().map((entry) => entry.url),
+      activeIndex: nav.getActiveIndex(),
+      committedUrl: url,
+      freshRecord: freshCertificateRecord({
+        committedUrl: url,
+        pending: tab.pendingCertificateException,
+        stored: certificateExceptions.get(wc.session, url),
+      }),
+    });
+    tab.pendingCertificateException = null;
+    tab.certificateEntryMarks = entryMarks;
+    tab.documentCertificateException = documentException;
     const shouldReclaimChromeFocus = url === tab.url && getOwner().tabsWantingAddressBarFocus.has(id) && getOwner().activeTabId === id;
     if (url !== tab.url) getOwner().tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
@@ -426,28 +447,41 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (!isMainFrame || !validatedURL) return;
     if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) return;
     if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
+    const canContinue = !!tab.certificateError && certificateExceptions.isEligible({
+      url: tab.certificateError.url,
+      error: tab.certificateError.error,
+      certificate: tab.certificateError.certificate,
+      verifiedThisRun: certificateObserver.wasVerifiedThisRun(wc.session, tab.certificateError.url),
+    });
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {
           url: validatedURL,
           code: errorCode,
           desc: errorDescription,
-        })
+        }, { canContinue })
       : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
     queueTabNavigation(wc, {
       isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
       run: contents => contents.loadURL(`blanc://error/?${q}`),
     });
   }));
-  // Chromium remains authoritative. Capture only bounded presentation data
-  // for top-level failures and always reject; subframe failures stay denied
-  // without replacing the visible page.
-  wc.on('certificate-error', boundToTab((_event, failedUrl, error, certificate, callback, isMainFrame) => {
+  // Chromium remains authoritative. A local failure the user chose to
+  // continue past (certificate spec §4.2) is allowed only on an exact
+  // origin+fingerprint+error+validity match; everything else is rejected,
+  // and subframe failures stay denied without replacing the visible page.
+  wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, callback, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return callback(false);
+    const sanitized = sanitizeCertificate(certificate);
+    if (certificateExceptions.matches(wc.session, { url: failedUrl, error, certificate: sanitized, now: Date.now() })) {
+      if (isMainFrame) tab.pendingCertificateException = { url: failedUrl, certificate: sanitized };
+      event.preventDefault();
+      return callback(true);
+    }
     if (isMainFrame) {
       tab.certificateError = {
         url: failedUrl,
         error,
-        certificate: sanitizeCertificate(certificate),
+        certificate: sanitized,
       };
     }
     callback(false);
