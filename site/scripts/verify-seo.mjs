@@ -334,10 +334,10 @@ const privateRules = redirectRules.filter((rule) => rule.source === '/private');
 const privateSlashRules = redirectRules.filter((rule) => rule.source === '/private/');
 if (
   privateRules.length !== 1 || privateSlashRules.length !== 1
-  || privateRules[0].destination !== '/trust' || privateRules[0].status !== 301
-  || privateSlashRules[0].destination !== '/trust' || privateSlashRules[0].status !== 301
+  || privateRules[0].destination !== '/features/private-tabs' || privateRules[0].status !== 301
+  || privateSlashRules[0].destination !== '/features/private-tabs' || privateSlashRules[0].status !== 301
 ) {
-  errors.push('/private and /private/ must redirect directly to /trust with status 301');
+  errors.push('/private and /private/ must redirect directly to /features/private-tabs with status 301');
 }
 
 const robots = await readFile(new URL('../dist/robots.txt', import.meta.url), 'utf8');
