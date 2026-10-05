@@ -9643,6 +9643,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      continueUnsafeForSender,
+      forgetActiveCertificateException,
+      certificateExceptions,
       blockingStatus: () => blockingProviders.status(rt().profileId),
       blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
       blockingOpen: openUblockTool,
