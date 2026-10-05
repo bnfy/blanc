@@ -4,6 +4,17 @@ Oct 4, 2026 · Evaluation for owner decision. This file is the canonical
 record; the "Blanc Platform Migration: Electron to Chromium" Claude Doc was the
 drafting copy and may lag behind it.
 
+**Owner decision, October 5, 2026: Decision 1 is no, not now. Blanc stays on
+Electron.** A Chromium fork needs a near-full rebuild for each platform with
+every four-weekly Chromium major, plus prompt security updates and a rebase of
+Blanc's patches each cycle. That is not sustainable for one maintainer on one
+MacBook Pro. The spike (Phase 1) and everything after it are not planned. The
+rest of this file stays as the record of the evaluation. Revisit only if Blanc
+gains dedicated browser-core staffing, if a fork release cycle is shown to fit
+in a few days a month, or if Electron stops loading Manifest V2. The Phase 0
+bridge contract and test vectors stay in use as guards for the Electron build,
+and the Widevine inquiry to Google stays open at no cost.
+
 **Leading hypothesis: option C, a true Chromium-based Blanc built as a thin fork. This is not yet a recommendation.** Shipping Blanc stays on Electron, per the current platform direction, at least until Decision 2 below. Two separate owner decisions gate the work:
 
 - **Decision 1, investigation authorization (before Phase 1).** Authorizes the time-boxed Chromium fork spike (Phase 1) and, if the spike gate passes, the Island proof (Phase 2). Shipping Blanc stays on Electron throughout. No fork work happens before this decision.
@@ -218,7 +229,7 @@ Phase 0 needs no fork work. Phases 1 and 2 run only under Decision 1, and shippi
 Text version:
 
 1. **Phase 0, Prepare (2–4 weeks, on Electron):** bridge contract, test vectors, Widevine questions to Google. The owner dropped the extension demand check on October 5, 2026.
-    - **Decision 1:** owner authorizes the spike and, if the spike gate passes, the proof.
+    - **Decision 1:** owner authorizes the spike and, if the spike gate passes, the proof. Declined on October 5, 2026.
 2. **Phase 1, Spike (2–3 weeks):** Chromium build with one patch and one rebase; CEF control test; Web Store acceptance tests. Spike gate: measured rebase cost and the CEF result.
 3. **Phase 2, Proof (6–10 weeks):** Island as WebUI, a 20-method shim, pixel diff, focus, accessibility and input routing, top 20 extensions. Kill gate: patch budget, popups, pixels, staffing.
     - **Decision 2:** owner migration go/no-go.
@@ -255,11 +266,11 @@ Text version:
 
 **Test vectors: recorded on Electron.** `browser-api/generated/vectors.json` holds, for every member, example calls with the exact message sent, example replies the call must resolve to, and example event payloads with what subscribers receive, all as type-valid samples. `replayVectors()` replays them against any implementation through a small adapter, and the check replays them against the Electron preload on every run. A Chromium build would supply its own adapter for step 5.
 
-Steps 3 to 5 (the Mojo interface, the native controller, and running the shared vectors against a Chromium build) involve fork work. They wait for Decision 1. The remaining Phase 0 item, the Widevine questions, is with Google.
+Steps 3 to 5 (the Mojo interface, the native controller, and running the shared vectors against a Chromium build) involve fork work. They waited on Decision 1, which the owner declined on October 5, 2026, so they are not planned. The remaining Phase 0 item, the Widevine questions, is with Google.
 
 ## Open questions and caveats
 
-- [ ] Decision 1: does the owner authorize the time-boxed spike and proof?
+- [x] Decision 1: does the owner authorize the time-boxed spike and proof? No, not now (owner, October 5, 2026): the fork's build and rebase cadence does not fit one maintainer on one MacBook Pro.
 - [ ] Decision 2 (after the kill gate): migrate or stop?
 - [ ] Can an independently branded build install and update from the live Chrome Web Store? Phase 1 acceptance test.
 - [ ] Does the Island reach parity as WebUI, including focus, accessibility and input routing? Phase 2.
