@@ -3539,6 +3539,35 @@
         }
       ]
     },
+    "toggleDarkSiteOnActiveSite": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:dark-site-active",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:dark-site-active",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "hostname": "dark-site-result-1",
+          "darkened": true
+        },
+        null
+      ]
+    },
     "siteInfoForgetCertificateException": {
       "kind": "invoke",
       "platforms": [

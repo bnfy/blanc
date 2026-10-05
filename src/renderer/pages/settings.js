@@ -191,6 +191,76 @@
     document.getElementById('islandSiteColorsSetting')?.remove();
   }
 
+  // --- Dark websites (device-local) ---
+  if (supports('darkWebsites')) {
+    const darkWebsites = document.getElementById('darkWebsites');
+    const darkExceptionInput = document.getElementById('darkExceptionInput');
+    const darkExceptionAdd = document.getElementById('darkExceptionAdd');
+    const darkExceptionList = document.getElementById('darkExceptionList');
+    const darkExceptionsBlock = document.getElementById('darkWebsitesExceptionsBlock');
+
+    function renderDarkExceptions(current) {
+      darkWebsites.checked = current.darkWebsites === true;
+      darkExceptionsBlock.hidden = !darkWebsites.checked;
+      const exceptions = current.darkWebsitesExceptions ?? [];
+      darkExceptionList.replaceChildren();
+      if (exceptions.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No sites added.';
+        darkExceptionList.append(empty);
+        return;
+      }
+      for (const hostname of [...exceptions].sort()) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const main = document.createElement('div');
+        main.className = 'main';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = hostname;
+        main.append(title);
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const remove = document.createElement('button');
+        remove.className = 'danger';
+        remove.textContent = 'Remove';
+        remove.addEventListener('click', async () => {
+          renderDarkExceptions(await window.bowserPages.settings.set({
+            darkWebsitesExceptions: exceptions.filter((h) => h !== hostname),
+          }));
+        });
+        actions.append(remove);
+        row.append(main, actions);
+        darkExceptionList.append(row);
+      }
+    }
+
+    async function addDarkException() {
+      const value = darkExceptionInput.value.trim();
+      if (!value) return;
+      const { settings: current } = await window.bowserPages.settings.get();
+      // Main normalizes and drops anything that is not a hostname.
+      const next = await window.bowserPages.settings.set({
+        darkWebsitesExceptions: [...(current.darkWebsitesExceptions ?? []), value],
+      });
+      darkExceptionInput.value = '';
+      renderDarkExceptions(next);
+    }
+
+    darkWebsites.addEventListener('change', async () => {
+      renderDarkExceptions(await window.bowserPages.settings.set({ darkWebsites: darkWebsites.checked }));
+    });
+    darkExceptionAdd.addEventListener('click', addDarkException);
+    darkExceptionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addDarkException();
+    });
+    renderDarkExceptions(settings);
+  } else {
+    document.getElementById('darkWebsitesSetting')?.remove();
+    document.getElementById('darkWebsitesExceptionsBlock')?.remove();
+  }
+
   if (supports('tabSleep')) {
     const tabSleep = document.getElementById('tabSleep');
     tabSleep.value = settings.tabSleep ?? '1h';

@@ -150,6 +150,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
+  toggleDarkSiteOnActiveSite: () => ipcRenderer.invoke('chrome:dark-site-active'),
   siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
   ...(ONE_PASSWORD_AVAILABLE ? {

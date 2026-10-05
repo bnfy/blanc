@@ -44,3 +44,38 @@ Feature: Settings and theming
     Then long setting explanations are folded to two lines with a More control
     When I open the first folded explanation
     Then it shows its full text, unchanged
+
+  @F42-1 @F42 @desktop
+  Scenario: Dark websites darkens a white page while Blanc is dark
+    Given Blanc uses the dark theme
+    And Dark websites is turned on
+    When I open a website that has no dark mode
+    Then the page is dark from its first paint
+    And the page's own scripts cannot see the Dark Reader engine
+
+  @F42-2 @F42 @desktop
+  Scenario: Dark websites leaves pages alone while it is off or Blanc is light
+    Given Dark websites is turned off
+    When I open a website that has no dark mode
+    Then the page keeps its own colors
+    When I turn Dark websites on while Blanc uses the light theme
+    Then the page keeps its own colors
+
+  @F42-3 @F42 @desktop
+  Scenario: /dark-site keeps one site in its own colors
+    Given Blanc uses the dark theme
+    And Dark websites is turned on
+    And a website that has no dark mode is open
+    When I run "/dark-site"
+    Then the page returns to its own colors without a reload
+    And the site appears in the Dark websites site list
+
+  @F42-4 @F42 @desktop
+  Scenario: A private tab's /dark-site choice is not saved
+    Given Blanc uses the dark theme
+    And Dark websites is turned on
+    And a website that has no dark mode is open in a private tab
+    When I run "/dark-site"
+    Then the page returns to its own colors
+    And the Dark websites site list is unchanged
+

@@ -80,6 +80,11 @@ function normalizeAdblockHostname(value) {
   }
 }
 
+function normalizeHostnameList(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(normalizeAdblockHostname).filter(Boolean))];
+}
+
 const DEFAULTS = {
   searchEngine: 'duckduckgo',
   // Live address-bar prefixes are sent to the selected search provider.
@@ -112,6 +117,11 @@ const DEFAULTS = {
   presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
+  // Dark websites: darken sites without their own dark mode while Blanc is
+  // dark. Off until chosen. Device-local — deliberately NOT in SYNCED_KEYS.
+  darkWebsites: false,
+  // Sites left as drawn; same normalization as adblockExceptions.
+  darkWebsitesExceptions: [],
   // Network privacy (device-local — deliberately NOT in SYNCED_KEYS).
   webrtcPolicy: 'standard',
   // Call playback continuity (device-local — deliberately NOT in SYNCED_KEYS).
@@ -296,6 +306,8 @@ function getSettings() {
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
+  if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
+  data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
@@ -386,6 +398,10 @@ function sanitize(partial) {
           .filter(Boolean)
       ),
     ];
+  }
+  if (typeof partial.darkWebsites === 'boolean') clean.darkWebsites = partial.darkWebsites;
+  if (Array.isArray(partial.darkWebsitesExceptions)) {
+    clean.darkWebsitesExceptions = normalizeHostnameList(partial.darkWebsitesExceptions);
   }
   return clean;
 }

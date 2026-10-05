@@ -1,9 +1,12 @@
 # Dark Reader built into Blanc: plan
 
-Drafted October 5, 2026 at the owner's request. **Status: proposal. The spike
-ran the same day and recommends going ahead with three design changes; see
-[`dark-reader-spike-2026-10-05.md`](dark-reader-spike-2026-10-05.md). Nothing
-is built in Blanc yet, and the build needs the owner's go-ahead.**
+Drafted October 5, 2026 at the owner's request. **Status: built. The spike
+ran the same day and recommended going ahead with three design changes; see
+[`dark-reader-spike-2026-10-05.md`](dark-reader-spike-2026-10-05.md). The owner
+approved the build the same day, and it landed as **Dark websites** (spec F42)
+in PR #566: main frames only, the engine in its own isolated world, and a
+stylesheet fetch bridge that the tab's blocker must allow. Not yet in a public
+release.**
 
 ## Goal
 
@@ -147,13 +150,20 @@ downloads fixes at runtime.
 
 - [x] Go or no-go on the spike. The owner asked to explore it; the spike ran on
       October 5, 2026.
-- [ ] Go or no-go on the build, with main-frame-only darkening first.
-- [ ] Feature name, for example **Dark websites**.
-- [ ] Where the per-site switch lives: shield popover, slash command, or both.
-- [ ] Whether the setting and the site list sync between devices.
-- [ ] Whether a per-site switch flipped in a private tab is saved.
-- [ ] Brightness, contrast and sepia controls in the first version, or later.
-- [ ] If the spike needs it, whether to add the cross-origin stylesheet fetch
-      bridge.
+- [x] Go or no-go on the build, with main-frame-only darkening first. Approved
+      October 5, 2026; built in PR #566 with these defaults: the name **Dark
+      websites**, `/dark-site` plus a Settings site list, device-local (not
+      synced), private-tab choices kept in memory only, no brightness or
+      contrast controls yet, and the fetch bridge included.
+- [x] Feature name: **Dark websites** (build default; the owner can rename it).
+- [x] Where the per-site switch lives: `/dark-site` and the Settings site list for
+      now; a shield-popover control remains a possible follow-up.
+- [x] Whether the setting and the site list sync between devices: not synced
+      (device-local).
+- [x] Whether a per-site switch flipped in a private tab is saved: no, it lasts
+      until Blanc quits.
+- [x] Brightness, contrast and sepia controls: later, not in the first version.
+- [x] The cross-origin stylesheet fetch bridge: added, after a security review,
+      and gated on the tab's blocker.
 - [ ] Optional courtesy: tell the Dark Reader project or support it. Not
       required by the licence.
