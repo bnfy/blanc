@@ -13,7 +13,9 @@ rest of this file stays as the record of the evaluation. Revisit only if Blanc
 gains dedicated browser-core staffing, if a fork release cycle is shown to fit
 in a few days a month, or if Electron stops loading Manifest V2. The Phase 0
 bridge contract and test vectors stay in use as guards for the Electron build,
-and the Widevine inquiry to Google stays open at no cost.
+and the Widevine inquiry stays open at no cost. Google replied on October 5,
+2026 by referring Blanc to castlabs, one of its third-party partners; the
+questions now go to castlabs.
 
 **Leading hypothesis: option C, a true Chromium-based Blanc built as a thin fork. This is not yet a recommendation.** Shipping Blanc stays on Electron, per the current platform direction, at least until Decision 2 below. Two separate owner decisions gate the work:
 
@@ -168,7 +170,7 @@ A Chromium fork gets the engine, not Google's services. Rows marked as questions
 | Safe Browsing | The free API is non-commercial-only, with Web Risk for commercial use (verified by review). Brave proxies Safe Browsing (verified). Blanc on Electron has none today (no Safe Browsing code in `src/main`). | Decide provider and budget |
 | Component updater | Question: which components (for example CRLSets, CT logs, Widevine, origin trials) Blanc needs and where they come from. Brave proxies component updates (verified). | Engineering question for the spike |
 | Chrome Web Store | No contract grants third-party browsers access; derived builds also face API-key and service restrictions | Phase 1 acceptance test, then accept the residual dependency risk |
-| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | Asked Google on October 5, 2026 through the General Questions form at widevine.com; awaiting a reply |
+| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | Asked Google on October 5, 2026 through the General Questions form at widevine.com. Google replied the same day: contact castlabs, one of its third-party partners. castlabs publishes Electron for Content Security (ECS), a Widevine-enabled Electron build, and EVS, a free signing service for apps derived from official ECS releases (verified on the [castlabs-evs package page](https://pypi.org/project/castlabs-evs)). Adopting ECS would replace official Electron, so the uBO review, packaging gates and security-update timing would need re-checking. A castlabs inquiry is pending |
 | Proprietary codecs | Legal question: patent licensing for proprietary codecs. Codec support differs between Chromium and Chrome (verified by review). | Legal read; prefer OS decoders where possible |
 | Distribution | Signing, notarization, Sigstore and SBOM gates carry over | Keep `me.bnfy.bowser`; necessary for continuity, but the updater handoff itself is unproven (installed-upgrade spike) |
 
@@ -266,7 +268,7 @@ Text version:
 
 **Test vectors: recorded on Electron.** `browser-api/generated/vectors.json` holds, for every member, example calls with the exact message sent, example replies the call must resolve to, and example event payloads with what subscribers receive, all as type-valid samples. `replayVectors()` replays them against any implementation through a small adapter, and the check replays them against the Electron preload on every run. A Chromium build would supply its own adapter for step 5.
 
-Steps 3 to 5 (the Mojo interface, the native controller, and running the shared vectors against a Chromium build) involve fork work. They waited on Decision 1, which the owner declined on October 5, 2026, so they are not planned. The remaining Phase 0 item, the Widevine questions, is with Google.
+Steps 3 to 5 (the Mojo interface, the native controller, and running the shared vectors against a Chromium build) involve fork work. They waited on Decision 1, which the owner declined on October 5, 2026, so they are not planned. The remaining Phase 0 item, the Widevine questions, is with castlabs, to which Google referred Blanc on October 5, 2026.
 
 ## Open questions and caveats
 
@@ -279,7 +281,8 @@ Steps 3 to 5 (the Mojo interface, the native controller, and running the shared 
 - [ ] Can Blanc fund the measured staffing and CI cost? The figures in this doc are hypotheses.
 - [ ] How does CEF map multiple tabs per window today? Settled by the control test.
 - [ ] Current state of MV2 at the spike's Chromium version.
-- [ ] Widevine: has Google responded? (Inquiry sent October 5, 2026: eligibility, technical requirements, platform differences, fees and timeline, and whether it covers the current Electron build.)
+- [x] Widevine: has Google responded? Yes, October 5, 2026: Google does not license Blanc directly and referred it to castlabs, one of its third-party partners. (Inquiry sent October 5, 2026: eligibility, technical requirements, platform differences, fees and timeline, and whether it covers the current Electron build.)
+- [ ] Widevine via castlabs: how far ECS releases trail upstream Electron security updates, whether ECS loads Manifest V2 extensions for uBO, EVS terms for a free MIT-licensed browser, and what playback quality major streaming services allow per platform.
 - [ ] Which Google services (Safe Browsing, push, geolocation, translate) need paid or alternative providers?
 
 This analysis draws on the repository at commit 8ec7389 and on knowledge of Chromium, CEF and Electron through mid-2026. External claims were checked on October 4 where reachable; the Sources section below records the status of each. An independent review on October 4 confirmed the Electron, uBO, ExtensionsContainer, Google private-API, Safe Browsing and codec claims, and its corrections are incorporated here. It does not authorise fork work: the current `CLAUDE.md` direction holds until the owner decides.
@@ -304,7 +307,7 @@ As of Oct 4, 2026, 11 of the doc's external claims are verified against pages op
 | Helium keeps MV2 extensions and proxies Web Store requests | Secondary only | Search snippets only; Helium's site blocked |
 | Bitwarden's desktop app writes native-messaging manifests only for a hardcoded browser list per OS, which now includes Helium | Verified | [native-messaging.main.ts](https://github.com/bitwarden/clients/blob/245879a5e3269da22197d3306a2f8b0355794095/apps/desktop/src/main/native-messaging.main.ts) |
 | 1Password lets users add a browser on macOS and Linux, not on Windows | Secondary only | Forum snippets only; 1Password sites blocked |
-| Widevine needs a Google licence; small vendors report long waits | Unverified | Google and vendor pages blocked; ask Google directly |
+| Widevine needs a Google licence; small vendors report long waits | Unverified | Google replied on October 5, 2026 by referring Blanc to castlabs; terms and timeline are a castlabs question |
 | Chrome disabled MV2 extensions in 2025 | Secondary only | Search snippets only; check at the spike's Chromium version |
 | A Chromium build needs at least 100 GB disk and 8 GB RAM, with over 16 GB recommended (Linux) | Verified | [linux/build_instructions.md](https://github.com/chromium/chromium/blob/5a1c6c2fc7307d48b99aff4c361636f356a96291/docs/linux/build_instructions.md) |
 | Staffing, rebase days and $2–6k/month CI | Unverified | Planning hypotheses; Phase 1 measures them |
