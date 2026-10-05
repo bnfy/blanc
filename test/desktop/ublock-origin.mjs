@@ -385,6 +385,15 @@ try {
   await dashboard.waitForLoadState('load');
   await dashboard.locator('.tabButton.selected').waitFor();
   await dashboard.frameLocator('#iframe').locator('body').waitFor();
+  // A fresh profile's startup asset update ends with µb.loadFilterLists(), and
+  // uBO folds any reload requested while one is running into that one, which
+  // has already read the old list selection. An Apply landing inside it is
+  // never loaded or fetched. Let the updater and its reload settle before
+  // importing, the same barrier the update-clock stage uses below.
+  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())")), Boolean, 'startup updater cycle complete', 30000);
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript('µBlock.loadFilterLists().then(() => true)'));
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
   await lists.locator('#autoUpdate').waitFor();
