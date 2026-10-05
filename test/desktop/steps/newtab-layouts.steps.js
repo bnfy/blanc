@@ -92,17 +92,20 @@ Then('the Billboard lists {string} before {string}', async function (first, seco
     dom.sites.findIndex((site) => site.key === first) <
       dom.sites.findIndex((site) => site.key === second),
   );
-  assert.equal(dom.sites[0].dismissLabel, `Hide ${dom.sites[0].label} from Billboard`);
+  assert.equal(dom.sites[0].dismissLabel, `Hide ${dom.sites[0].title} from Billboard`);
 });
 
-Then('the Billboard uses full local titles and cached site icons', async function () {
+Then('the Billboard uses short site names, full-title tooltips and cached site icons', async function () {
   const dom = await waitForValue(
     () => this.call('readBillboardSites'),
     (value) => value?.sites?.length === 6 && value.sites.every((site) => site.hasIcon),
     'Billboard cached site icons to render',
   );
-  assert.equal(dom.sites[0].label, 'YouTube – videos worth watching');
-  assert.equal(dom.sites[1].label, 'CNET – technology news and reviews');
+  assert.equal(dom.sites[0].label, 'YouTube');
+  assert.equal(dom.sites[0].title, 'YouTube – videos worth watching');
+  assert.equal(dom.sites[0].ariaLabel, 'Open YouTube – videos worth watching');
+  assert.equal(dom.sites[1].label, 'CNET');
+  assert.equal(dom.sites[1].title, 'CNET – technology news and reviews');
 });
 
 When('I hide {string} from the Billboard', async function (key) {

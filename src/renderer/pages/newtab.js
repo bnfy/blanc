@@ -496,18 +496,21 @@ function renderBillboard() {
     const tile = document.createElement('span');
     tile.className = 'tile';
     decorateTile(tile, site);
+    // A short name reads at a glance; the full title stays one hover or one
+    // screen-reader announcement away.
+    const fullTitle = (site.title || hostOf(site.url) || 'Untitled site').trim();
     const label = document.createElement('span');
     label.className = 'label';
-    label.textContent = (site.title || hostOf(site.url) || 'Untitled site').trim();
-    label.title = label.textContent;
-    link.setAttribute('aria-label', `Open ${label.textContent}`);
+    label.textContent = globalThis.blancStartSiteName.shortSiteName(fullTitle, site.url);
+    label.title = fullTitle;
+    link.setAttribute('aria-label', `Open ${fullTitle}`);
     link.append(tile, label);
 
     const dismiss = document.createElement('button');
     dismiss.type = 'button';
     dismiss.className = 'bb-site-dismiss';
-    dismiss.title = `Hide ${label.textContent}`;
-    dismiss.setAttribute('aria-label', `Hide ${label.textContent} from Billboard`);
+    dismiss.title = `Hide ${fullTitle}`;
+    dismiss.setAttribute('aria-label', `Hide ${fullTitle} from Billboard`);
     const closeIcon = document.createElement('img');
     closeIcon.src = 'close.svg';
     closeIcon.alt = '';
@@ -518,7 +521,7 @@ function renderBillboard() {
       rememberHiddenTopSite(site.key);
       renderBillboard();
       document.getElementById('bbTopSitesStatus').textContent =
-        `${label.textContent} hidden from Billboard.`;
+        `${fullTitle} hidden from Billboard.`;
       const next = favs.children[Math.min(index, favs.children.length - 1)]
         ?.querySelector('.bb-fav, .bb-site-dismiss');
       next?.focus();

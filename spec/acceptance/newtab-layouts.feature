@@ -49,7 +49,7 @@ Feature: Start page layouts
     And a profile whose start page layout is "billboard"
     When I open a new tab
     Then the Billboard lists "youtube.com" before "cnet.com"
-    And the Billboard uses full local titles and cached site icons
+    And the Billboard uses short site names, full-title tooltips and cached site icons
     When I hide "youtube.com" from the Billboard
     Then "youtube.com" is absent from the Billboard
     And the Billboard dismissal stays in local page storage without deleting history

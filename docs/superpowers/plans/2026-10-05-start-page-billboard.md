@@ -189,7 +189,7 @@ In `test/unit/newtab-top-sites.test.js`, replace the assertions on `label.textCo
   assert.match(renderer, /label\.title = fullTitle;/);
   assert.match(renderer, /link\.setAttribute\('aria-label', `Open \$\{fullTitle\}`\);/);
   assert.match(css, /\.bb-fav \.label \{[^}]*white-space: nowrap;[^}]*text-overflow: ellipsis;/s);
-  assert.doesNotMatch(css, /-webkit-line-clamp: 2/);
+  assert.doesNotMatch((css.match(/\.bb-fav \.label \{[^}]*\}/g) ?? []).join(''), /line-clamp/);
   assert.match(renderer, /Hide \$\{fullTitle\} from Billboard/);
 ```
 
