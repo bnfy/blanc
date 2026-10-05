@@ -802,7 +802,11 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   invalidate();
 });
 
-Promise.all([favoritesReady, dataReady]).then(() => applyLayout(state.layout));
+Promise.all([favoritesReady, dataReady]).then(() => {
+  applyLayout(state.layout);
+  // Layout changes fade in from now on; the first paint never does.
+  requestAnimationFrame(() => document.body.classList.add('layout-ready'));
+});
 
 window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));
 window.bowserPages?.start.onRemoteTabs(renderRemote);

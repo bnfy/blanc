@@ -2831,7 +2831,7 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
   border-color: color-mix(in srgb, var(--border) 86%, transparent);
 }
 .shelf-tile { min-height: 108px; border-radius: 10px; padding: 16px; gap: 12px; }
-.shelf-tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+.shelf-tile:hover { border-color: var(--accent); }
 .shelf-tile .name { font-size: 13px; }
 .shelf-tile .host { font-family: var(--font-ui); }
 .shelf-cards { grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr); gap: 12px; margin-top: 12px; }
@@ -3368,6 +3368,84 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .start-customize-popover,
   .layout-thumb,
   .js-patron-callout a { border-color: var(--text-dim); }
+}
+
+/* Motion: settle without overshoot, grow from the source, leave the frame
+   still. CSS transitions reverse from the current value when toggled
+   mid-flight, which is all the interruptibility this page needs. */
+.start-customize-popover {
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+  transform-origin: bottom center;
+  transition:
+    opacity 150ms var(--start-ease),
+    transform 150ms var(--start-ease),
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+.start-customize-popover:popover-open {
+  opacity: 1;
+  transform: none;
+  transition-duration: 200ms;
+}
+@starting-style {
+  .start-customize-popover:popover-open { opacity: 0; transform: translateY(4px) scale(0.96); }
+}
+@media (max-width: 960px), (max-height: 640px) {
+  .migration-checklist {
+    transform-origin: top right;
+    transition: opacity 200ms var(--start-ease), transform 200ms var(--start-ease), display 200ms allow-discrete;
+  }
+  @starting-style {
+    .migration-checklist-shell.is-expanded .migration-checklist { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  }
+}
+
+/* A layout change fades in only the new content; never on first paint. */
+body.layout-ready .start-content > main { transition: opacity 160ms var(--start-ease); }
+@starting-style {
+  body.layout-ready .start-content > main { opacity: 0; }
+}
+
+/* Press feedback lands on pointer-down; release eases back. */
+.fav,
+.bb-fav,
+.shelf-tile,
+.group-chip,
+.layout-preview,
+.start-customize,
+.js-patron-callout a { transition: transform 120ms var(--start-ease), border-color 120ms ease; }
+.shelf-tile:hover { transform: translateY(-1px); }
+.fav:active,
+.bb-fav:active,
+.shelf-tile:active,
+.group-chip:active,
+.layout-preview:active,
+.start-customize:active,
+.js-patron-callout a:active { transform: scale(0.98); transition-duration: 0ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .start-customize-popover,
+  .start-customize-popover:popover-open,
+  .migration-checklist {
+    transform: none;
+    transition: opacity 120ms linear, overlay 120ms allow-discrete, display 120ms allow-discrete;
+  }
+  body.layout-ready .start-content > main { transition: none; }
+  .shelf-tile:hover,
+  .fav:active,
+  .bb-fav:active,
+  .shelf-tile:active,
+  .group-chip:active,
+  .layout-preview:active,
+  .start-customize:active,
+  .js-patron-callout a:active { transform: none; }
+  .ledger-footer::before { transition: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @starting-style {
+    .start-customize-popover:popover-open { transform: none; }
+  }
 }
 
 /* ---------- first-run onboarding dialog ----------
