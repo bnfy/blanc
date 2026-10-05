@@ -86,3 +86,40 @@ Feature: Start page layouts
     And a profile whose start page layout is "billboard"
     When I open a new tab
     Then the Billboard moving-in checklist stays above its recent sites
+
+  @F35-10 @desktop
+  Scenario: The checklist and the footer never cover start-page content
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    And local history contains repeated visits for the Billboard
+    And eight favorites fill the Start Page
+    When I open a new tab
+    Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840
+
+  @F35-11 @desktop
+  Scenario: The Patron upgrade sits in the same slot on every layout
+    Given a profile that completed first run
+    When I open a new tab
+    Then every start-page layout ends with a visible Patron upgrade
+
+  @F35-12 @desktop
+  Scenario: Private start pages never offer Patron or blocked counts
+    Given a private start page is open
+    Then no start-page layout shows the Patron upgrade or a blocked count
+
+  @F35-13 @desktop
+  Scenario: An empty Favorites list explains how to fill it
+    Given a profile with no favorites
+    When I open a new tab
+    Then Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none
+
+  @F35-14 @desktop
+  Scenario: Customize chooses the layout and closes with Escape
+    Given a new tab is open
+    When I open Customize on the start page
+    And I choose the "tally" start page layout from its footer
+    Then the start page renders the "tally" layout
+    And the saved start page layout is "tally"
+    And Customize stays open with "tally" pressed
+    When I press Escape on the start page
+    Then Customize is closed and its button has focus

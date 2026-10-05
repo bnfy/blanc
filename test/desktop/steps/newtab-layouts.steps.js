@@ -140,7 +140,7 @@ Then('the start page uses Newsreader for the Billboard clock and invitation head
   );
   assert.deepEqual(usage.page.jetbrains, []);
   assert.equal(usage.page.newsreaderLoaded, true);
-  assert.equal(usage.page.newsreader.length, 8);
+  assert.equal(usage.page.newsreader.length, 9);
   assert.deepEqual(usage.page.newsreaderOutsideApproved, []);
   for (const sample of usage.page.newsreader) {
     assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
@@ -536,4 +536,114 @@ Then('Mahjong is a private managed tab', async function () {
   assert.equal(game?.sessionKind, 'private');
   assert.ok(game?.loadedUrl?.startsWith('blanc://mahjong/?private=1'));
   assert.equal(state.tabs.find((tab) => tab.id === this.mahjongSource.id)?.private, true);
+});
+
+const intersects = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+
+Then('no start-page layout is covered by its checklist or footer at 1440x840 or 820x840', async function () {
+  const original = await this.call('windowContentBounds');
+  const originalLayout = await this.call('newtabLayout');
+  try {
+    for (const size of [{ width: 1440, height: 840 }, { width: 820, height: 840 }]) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} content bounds`,
+      );
+      for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+        assert.equal(await this.call('setNewtabLayout', layout), layout);
+        const frame = await waitForValue(
+          () => this.call('readStartFrameGeometry'),
+          (value) => value?.layout === layout && value.viewportWidth === size.width && value.shell && value.content.length > 0,
+          `${layout} frame at ${size.width}x${size.height}`,
+        );
+        const context = `${layout} at ${size.width}x${size.height}`;
+        for (const entry of frame.content) {
+          assert.ok(!intersects(frame.shell, entry.rect),
+            `${context}: checklist ${JSON.stringify(frame.shell)} covers ${entry.selector} ${JSON.stringify(entry.rect)}`);
+          const atBottom = { ...entry.rect, top: entry.rect.top - frame.maxScrollY, bottom: entry.rect.bottom - frame.maxScrollY };
+          assert.ok(!intersects(frame.footer, atBottom),
+            `${context}: footer covers ${entry.selector} when scrolled to the end`);
+        }
+      }
+    }
+  } finally {
+    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});
+
+Then('every start-page layout ends with a visible Patron upgrade', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout,
+      `${layout} frame`,
+    );
+    assert.equal(frame.patronLast, true, `${layout} ends with the Patron chip`);
+    assert.equal(frame.patronVisible, true, `${layout} shows the Patron chip`);
+  }
+});
+
+Then('no start-page layout shows the Patron upgrade or a blocked count', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout && value.private === true,
+      `private ${layout} frame`,
+    );
+    assert.equal(frame.patronVisible, false, `private ${layout} hides Patron`);
+    const selectors = frame.content.map((entry) => String(entry.selector));
+    assert.ok(!selectors.some((s) => /tally-chart|tally-caption/.test(s)), `private ${layout} hides the Tally data column`);
+    if (layout === 'shelf') {
+      assert.equal(await this.call('readStartBlockedCard'), false, 'private Shelf hides its blocked card');
+    }
+  }
+});
+
+Given('a profile with no favorites', async function () {
+  assert.deepEqual(await this.call('bookmarkUrls'), []);
+});
+
+Then('Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none', async function () {
+  for (const [layout, expected] of [['ledger', 1], ['shelf', 1], ['tally', 1], ['billboard', 0]]) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout,
+      `${layout} frame`,
+    );
+    assert.equal(frame.emptyHints, expected, `${layout} empty hints`);
+  }
+});
+
+When('I open Customize on the start page', async function () {
+  assert.equal(await this.call('openStartCustomize'), true);
+});
+
+Then('Customize stays open with {string} pressed', async function (layout) {
+  const state = await waitForValue(
+    () => this.call('readStartCustomize'),
+    (value) => value?.open === true && value.pressed.length === 1,
+    'Customize open with one pressed layout',
+  );
+  assert.deepEqual(state.pressed, [layout]);
+  assert.equal(state.expanded, 'true');
+});
+
+When('I press Escape on the start page', async function () {
+  assert.equal(await this.call('pressStartPageKey', 'Escape'), true);
+});
+
+Then('Customize is closed and its button has focus', async function () {
+  const state = await waitForValue(
+    () => this.call('readStartCustomize'),
+    // The toggle event that mirrors aria-expanded is queued after the close.
+    (value) => value?.open === false && value.expanded === 'false',
+    'Customize to close and its button to report collapsed',
+  );
+  assert.equal(state.focusedId, 'customizeButton');
 });

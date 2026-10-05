@@ -47,10 +47,8 @@ if (isPrivate) document.documentElement.dataset.theme = 'private';
 
 // Shared by every layout through the single Sunrise header.
 const dateText = isPrivate
-  ? 'private tab'
-  : new Date()
-      .toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
-      .toLowerCase();
+  ? 'Private tab'
+  : new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('startDate').textContent = dateText;
 
@@ -121,13 +119,13 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   }, state.onboarding);
 }
 
-// Quiet, understated Patron callout — one per start-page layout (ledger,
-// billboard, shelf, tally), hidden outright once the user is a Patron. Driven
-// from both the initial pages:start:data load and every later
-// pages:start:status push, so activating mid-session hides it on an
-// already-open start page, whichever layout is active.
+// Quiet Patron chip — one per layout, always its layout's last item. Hidden
+// for Patrons and, whatever the Patron state, in private tabs: a private
+// window is never a place to sell. Driven from both the initial
+// pages:start:data load and every later pages:start:status push.
 function renderPatronCallout(patronActive) {
-  for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = !!patronActive;
+  const hide = !!patronActive || isPrivate;
+  for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = hide;
 }
 
 // Main owns durable checklist progress; this renderer only reflects that
@@ -391,14 +389,21 @@ function groupChip(group, { withCount = false } = {}) {
   return chip;
 }
 
+// One empty state for every layout that draws the Favorites feed. Billboard
+// draws recent sites instead, so this copy would be untrue there.
+const EMPTY_FAVORITES_HINT = 'Favorite a page with ♥ to pin it here';
+function emptyFavoritesHint() {
+  const hint = document.createElement('p');
+  hint.className = 'start-empty-hint';
+  hint.textContent = EMPTY_FAVORITES_HINT;
+  return hint;
+}
+
 function renderLedgerFavorites(items) {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
   if (!items.length) {
-    const hint = document.createElement('div');
-    hint.className = 'ledger-empty';
-    hint.textContent = '♥ a page to pin it here';
-    list.appendChild(hint);
+    list.appendChild(emptyFavoritesHint());
     return;
   }
   for (const b of items.slice(0, 6)) list.appendChild(favRow(b));
@@ -579,10 +584,12 @@ async function fillBillboardSites() {
 
 function renderShelf() {
   document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString();
+  // Private tabs show no blocked counts on any layout.
+  document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
 
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
-  grid.hidden = !state.favorites.length;
+  if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 8)) {
     const tileLink = document.createElement('a');
     tileLink.className = 'shelf-tile';
@@ -612,13 +619,12 @@ function renderShelf() {
 
 function renderTally() {
   document.getElementById('tlCount').textContent = state.blockedThisWeek.toLocaleString();
+  // Private tabs show no blocked counts; the data column goes entirely.
+  document.querySelector('.tally-right').hidden = isPrivate;
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
-  favs.hidden = !state.favorites.length;
-  // A label above an empty list would name nothing (and unlike the ledger,
-  // this column adds no "♥ a page…" hint — no copy on the new layouts).
-  document.querySelector('.tally-label').hidden = !state.favorites.length;
+  if (!state.favorites.length) favs.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
 
   const groups = document.getElementById('tlGroups');
@@ -724,6 +730,15 @@ for (const button of document.querySelectorAll('[data-layout-pick]')) {
   });
 }
 
+// Customize: the native popover owns opening, Escape, click-outside and
+// focus return. This only mirrors its state onto the opener. Picking a layout
+// leaves it open so layouts can be compared.
+const customizeButton = document.getElementById('customizeButton');
+const customizePopover = document.getElementById('customizePopover');
+customizePopover.addEventListener('toggle', (event) => {
+  customizeButton.setAttribute('aria-expanded', String(event.newState === 'open'));
+});
+
 // Favorites and start data resolve independently. A layout rendered from
 // whichever landed first would cache a half-empty draw, so the alternative
 // layouts wait for both; the ledger still paints incrementally as it always
@@ -784,7 +799,11 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   invalidate();
 });
 
-Promise.all([favoritesReady, dataReady]).then(() => applyLayout(state.layout));
+Promise.all([favoritesReady, dataReady]).then(() => {
+  applyLayout(state.layout);
+  // Layout changes fade in from now on; the first paint never does.
+  requestAnimationFrame(() => document.body.classList.add('layout-ready'));
+});
 
 window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));
 window.bowserPages?.start.onRemoteTabs(renderRemote);
@@ -799,6 +818,23 @@ window.bowserPages?.start.onStatus((status) => {
     renderMigrationChecklist(status.migrationChecklist ?? null);
   }
 });
+
+// Footer edge: the fixed footer shows a soft fade only while content runs
+// underneath it. The sentinel ends the content area; "under" means it sits
+// below the band the footer leaves visible.
+const startContentEnd = document.getElementById('startContentEnd');
+const layoutFooter = document.getElementById('layoutFooter');
+let underflowObserver = null;
+function observeUnderflow() {
+  underflowObserver?.disconnect();
+  underflowObserver = new IntersectionObserver(([entry]) => {
+    const under = !entry.isIntersecting && entry.boundingClientRect.top >= entry.rootBounds.bottom;
+    document.body.classList.toggle('has-underflow', under);
+  }, { rootMargin: `0px 0px -${layoutFooter.offsetHeight}px 0px` });
+  underflowObserver.observe(startContentEnd);
+}
+observeUnderflow();
+new ResizeObserver(observeUnderflow).observe(layoutFooter);
 
 // The pill's caret says keystrokes land somewhere. They do: a printable
 // character typed on a blank start page opens the island with that character

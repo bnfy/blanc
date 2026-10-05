@@ -816,6 +816,57 @@ function install(refs) {
         };
       })()`);
     },
+    // F35-10/11/12/13: one read of the frame — collapsed checklist, active
+    // layout content, footer, Patron slot and empty hints — so scenarios can
+    // prove "nothing covers content" without per-layout selectors.
+    readStartFrameGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element) return null;
+          const style = getComputedStyle(element);
+          if (style.display === 'none' || style.visibility === 'hidden') return null;
+          const r = element.getBoundingClientRect();
+          if (!r.width || !r.height) return null;
+          return { top: r.top, right: r.right, bottom: r.bottom, left: r.left, width: r.width, height: r.height };
+        };
+        const layout = document.body.dataset.layout;
+        const name = layout.charAt(0).toUpperCase() + layout.slice(1);
+        const rootEl = document.getElementById('layout' + name);
+        const shellEl = document.getElementById('migrationChecklistShell');
+        const shell = shellEl && !shellEl.hidden ? rect(shellEl) : null;
+        const content = [...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
+          .map((element) => ({ selector: element.id ? '#' + element.id : element.className || element.tagName, rect: rect(element) }))
+          .filter((entry) => entry.rect);
+        const patron = rootEl.querySelector(':scope > .js-patron-callout');
+        const root = document.documentElement;
+        return {
+          layout,
+          private: document.documentElement.dataset.theme === 'private',
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          maxScrollY: Math.max(0, Math.max(root.scrollHeight, document.body.scrollHeight) - innerHeight),
+          shell,
+          compact: !!shellEl && getComputedStyle(document.getElementById('migrationChecklistCompact')).display !== 'none',
+          content,
+          footer: rect(document.getElementById('layoutFooter')),
+          patronLast: rootEl.lastElementChild === patron,
+          patronVisible: !!patron && !patron.hidden && !!rect(patron),
+          emptyHints: [...rootEl.querySelectorAll('.start-empty-hint')].filter((element) => rect(element)).length,
+        };
+      })()`);
+    },
+    readStartBlockedCard() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const card = document.getElementById('shBlocked')?.closest('.shelf-card');
+        return !!card && !card.hidden && getComputedStyle(card).display !== 'none';
+      })()`);
+    },
     clickMigrationChecklist(action) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
@@ -874,7 +925,7 @@ function install(refs) {
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
-        const newsreaderSelector = '.bb-clock, .migration-checklist-heading h2, .ob-content h1';
+        const newsreaderSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
         const newsreader = [...document.querySelectorAll(newsreaderSelector)];
         const newsreaderElements = [...document.querySelectorAll('body, body *')]
           .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
@@ -1463,11 +1514,48 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const button = document.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
+        const popover = document.getElementById('customizePopover');
+        const opener = document.getElementById('customizeButton');
+        if (!popover || !opener) return false;
+        if (!popover.matches(':popover-open')) { opener.focus(); opener.click(); }
+        if (!popover.matches(':popover-open')) return false;
+        const button = popover.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
         if (!button) return false;
         button.click();
         return true;
       })()`);
+    },
+    openStartCustomize() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        const opener = document.getElementById('customizeButton');
+        if (!popover || !opener) return false;
+        if (!popover.matches(':popover-open')) { opener.focus(); opener.click(); }
+        return popover.matches(':popover-open');
+      })()`);
+    },
+    readStartCustomize() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        open: document.getElementById('customizePopover')?.matches(':popover-open') ?? false,
+        expanded: document.getElementById('customizeButton')?.getAttribute('aria-expanded') ?? null,
+        focusedId: document.activeElement?.id ?? null,
+        pressed: [...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map((b) => b.dataset.layoutPick),
+      }))()`);
+    },
+    pressStartPageKey(keyCode) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: String(keyCode) });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: String(keyCode) });
+      return true;
     },
     readMahjongFooterLink() {
       const tab = tabs.get(getActiveTabId());
