@@ -4,7 +4,7 @@
 // every page with the build date.
 import topics from '../data/guide-topics.json';
 
-const MANIFEST = ['/', '/download', '/support', '/trust', '/changelog', '/about', '/privacy', '/terms', '/press', '/ambassadors', '/features', ...topics.map(topic => `/features/${topic.id}`)];
+const MANIFEST = ['/', '/download', '/support', '/trust', '/changelog', '/about', '/privacy', '/terms', '/press', '/ambassadors', '/arc-alternative', '/features', ...topics.map(topic => `/features/${topic.id}`)];
 
 const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]']);
 
