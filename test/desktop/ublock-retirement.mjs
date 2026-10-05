@@ -93,10 +93,10 @@ try {
   assert.equal(await overlay.locator('#shieldPopCurrentProvider').innerText(), 'Blanc Blocker');
   assert((await overlay.locator('#shieldPop').innerText()).includes('Your uBO settings are saved.'));
   if (unavailable) assert((await overlay.locator('#shieldPop').innerText()).includes('uBlock Origin isn’t available in this build.'));
-  await overlay.locator('#shieldPopChangeProvider').click();
+  await clickWhenSettled(overlay.locator('#shieldPopChangeProvider'), 'Change blocker');
   assert(await overlay.locator('[name="shieldProvider"][value="blanc"]').isChecked());
   assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Done');
-  await overlay.locator('#shieldPopClose').click();
+  await clickWhenSettled(overlay.locator('#shieldPopClose'), 'shield popover close');
   assert.equal(JSON.parse(fs.readFileSync(settingsFile, 'utf8')).adblockProvider, 'ublock-origin', 'opening/closing the chooser preserves uBO preference');
   await call('setAdblock', false);
   const off = await visit('/off');
