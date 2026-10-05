@@ -66,6 +66,24 @@ const watchdog = setTimeout(() => {
 }, 120000);
 const call = (method, ...args) => hooks.callTestHook(electron, method, args);
 const providerRadio = (overlay, provider) => overlay.locator(`[name="shieldProvider"][value="${provider}"]`);
+// Overlay and popup renderers can stop producing animation frames on CI
+// displays, which stalls Playwright's frame-counted stability check while the
+// target sits still (see clickWhenSettled). Every pointer action in this
+// suite therefore waits for a settled box instead.
+async function choose(overlay, provider) {
+  const radio = providerRadio(overlay, provider);
+  await clickWhenSettled(radio, `${provider} choice`);
+  assert(await radio.isChecked(), `${provider} is the pending choice`);
+}
+// Evidence for the frame-stall explanation: note it when it happens, without
+// failing, so CI logs show stalls the settled click rode through.
+async function noteFrameStall(page, label) {
+  const produced = await Promise.race([
+    page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve(true)))),
+    new Promise(resolve => setTimeout(() => resolve(false), 1000)),
+  ]).catch(() => null);
+  if (produced === false) console.log(`Frame stall observed before ${label}: no animation frame within 1 s`);
+}
 async function launch(supported) {
   electron = await _electron.launch({
     args: [supported ? root : appDir, `--user-data-dir=${dir}`], chromiumSandbox: true,
@@ -119,7 +137,10 @@ async function chooser(overlay, selected, keyboard = false) {
   if (keyboard) {
     await button.focus();
     await button.press('Enter');
-  } else await button.click();
+  } else {
+    await noteFrameStall(overlay, 'Change blocker');
+    await clickWhenSettled(button, 'Change blocker');
+  }
   await overlay.locator('#shieldPopChooser').waitFor({ state: 'visible' });
   assert.equal(await overlay.locator('.shield-pop-mark').getAttribute('src'), 'sunrise-hero-mark.png');
   await overlay.waitForFunction(() => {
@@ -131,7 +152,7 @@ async function chooser(overlay, selected, keyboard = false) {
 }
 async function closeShield(overlay, key = false) {
   if (key) await overlay.locator(':focus').press('Escape');
-  else await overlay.locator('#shieldPopClose').click();
+  else await clickWhenSettled(overlay.locator('#shieldPopClose'), 'shield close');
   await waitForValue(() => call('overlayMode'), mode => mode === null, 'shield dismissed');
   const chrome = (await electron.windows()).find(page => page.url() === 'blanc-chrome://index/');
   assert(chrome);
@@ -191,7 +212,7 @@ async function assertShortWindow(overlay) {
   }
   await assertFits(overlay);
   await assertAnchored(overlay);
-  await providerRadio(overlay, 'ublock-origin').click();
+  await choose(overlay, 'ublock-origin');
   await assertDraftOnly('blanc');
 }
 async function restartFromChooser(overlay, keyboard = false) {
@@ -207,7 +228,7 @@ async function restartFromChooser(overlay, keyboard = false) {
   const closed = new Promise(resolve => electron.once('close', resolve));
   const button = overlay.locator('#shieldPopApply');
   if (keyboard) await button.focus();
-  await (keyboard ? button.press('Enter') : button.click()).catch(error => {
+  await (keyboard ? button.press('Enter') : clickWhenSettled(button, 'Restart Blanc')).catch(error => {
     if (!/closed|destroyed/i.test(error.message)) throw error;
   });
   await closed;
@@ -239,7 +260,7 @@ try {
   assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('forged-provider')), false);
   assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('blanc', 'yes')), false);
   await assertDraftOnly('blanc');
-  await overlay.locator('#shieldPopBack').click();
+  await clickWhenSettled(overlay.locator('#shieldPopBack'), '#shieldPopBack');
   await summary(overlay, true);
   await closeShield(overlay);
   await electron.close(); electron = null;
@@ -251,7 +272,7 @@ try {
   const before = visits;
   await chooser(overlay, 'blanc', true);
   assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Done');
-  await overlay.locator('#shieldPopApply').click();
+  await clickWhenSettled(overlay.locator('#shieldPopApply'), '#shieldPopApply');
   await waitForValue(() => call('overlayMode'), mode => mode === null, 'Done closes the unchanged chooser');
   await assertDraftOnly('blanc');
   overlay = await openShield();
@@ -273,23 +294,23 @@ try {
   await overlay.waitForFunction(() => window.__shieldTestBroadcastReceived === true);
   assert(await providerRadio(overlay, 'ublock-origin').isChecked(), 'tabs broadcast preserves the draft');
   await assertDraftOnly('blanc');
-  await overlay.locator('#shieldPopBack').click();
+  await clickWhenSettled(overlay.locator('#shieldPopBack'), '#shieldPopBack');
   await summary(overlay, true);
   await assertDraftOnly('blanc');
   await chooser(overlay, 'blanc');
-  await providerRadio(overlay, 'ublock-origin').check();
-  await overlay.locator('#shieldPopBack').click();
+  await choose(overlay, 'ublock-origin');
+  await clickWhenSettled(overlay.locator('#shieldPopBack'), '#shieldPopBack');
   await summary(overlay, true);
   await assertDraftOnly('blanc');
   await chooser(overlay, 'blanc');
-  await providerRadio(overlay, 'ublock-origin').check();
+  await choose(overlay, 'ublock-origin');
   await closeShield(overlay);
   await assertDraftOnly('blanc');
 
   stage = 'Blanc to uBO apply';
   overlay = await openShield();
   await chooser(overlay, 'blanc');
-  await providerRadio(overlay, 'ublock-origin').check();
+  await choose(overlay, 'ublock-origin');
   await assertFits(overlay);
   fs.mkdirSync('output/playwright', { recursive: true });
   await setAppearance(overlay, 'light');
@@ -307,7 +328,7 @@ try {
     globalThis.__restoreSettingsFlush = settings.flushSettings;
     settings.flushSettings = () => false;
   });
-  await overlay.locator('#shieldPopApply').click();
+  await clickWhenSettled(overlay.locator('#shieldPopApply'), '#shieldPopApply');
   await overlay.locator('#shieldPopChooserError').waitFor({ state: 'visible' });
   assert.equal((await call('blockingStatus')).selected, 'blanc', 'failed persistence does not change provider or quit');
   assert.equal(await overlay.locator('#shieldPopApply').innerText(), 'Restart Blanc');
@@ -316,7 +337,7 @@ try {
     delete globalThis.__restoreSettingsFlush;
   });
   assert.equal(await overlay.evaluate(() => window.browserAPI.selectBlockingProvider('ublock-origin')), true);
-  await overlay.locator('#shieldPopBack').click();
+  await clickWhenSettled(overlay.locator('#shieldPopBack'), '#shieldPopBack');
   await summary(overlay, true);
   await waitForValue(() => call('blockingStatus'), state => state.selected === 'ublock-origin' && state.active === 'blanc' && state.restartPending, 'uBO pending');
   await waitForValue(persistedProvider, value => value === 'ublock-origin', 'uBO selection persisted');
@@ -349,10 +370,10 @@ try {
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-summary-dark.png' });
   await setAppearance(overlay, 'light');
   await chooser(overlay, 'ublock-origin');
-  await overlay.locator('#shieldPopBack').click();
+  await clickWhenSettled(overlay.locator('#shieldPopBack'), '#shieldPopBack');
   await summary(overlay, true);
   await overlay.screenshot({ animations: 'disabled', path: 'output/playwright/shield-provider-ubo.png' });
-  await overlay.locator('#shieldPopUblock').click();
+  await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const popup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup');
   await popup.locator('body:not(.loading)').waitFor();
   await popup.locator('#switch').waitFor();
@@ -370,29 +391,29 @@ try {
   await popup.waitForFunction(() => document.querySelector('#no-scripting').classList.contains('on'));
   await popup.locator('#no-scripting').press('Space');
   await popup.waitForFunction(() => !document.querySelector('#no-scripting').classList.contains('on'));
-  await popup.locator('#blancMore').click();
+  await clickWhenSettled(popup.locator('#blancMore'), 'More controls');
   await popup.locator('#no-scripting').waitFor({ state: 'hidden' });
   await popup.locator('#switch').press('Space');
   await popup.waitForFunction(() => document.body.classList.contains('off'));
   assert.equal(await popup.locator('#switch').getAttribute('aria-checked'), 'false');
   await popup.locator('#switch').press('Space');
   await popup.waitForFunction(() => !document.body.classList.contains('off'));
-  await Promise.all([popup.waitForEvent('close'), popup.locator('#blancBack').click()]);
+  await Promise.all([popup.waitForEvent('close'), clickWhenSettled(popup.locator('#blancBack'), 'Back')]);
   await overlay.locator('#shieldPop').waitFor({ state: 'visible' });
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners, 'Back removes outside input observers');
-  await overlay.locator('#shieldPopUblock').click();
+  await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const dashboardPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'styled popup reopened');
   await dashboardPopup.locator('body:not(.loading)').waitFor();
-  await Promise.all([dashboardPopup.waitForEvent('close'), dashboardPopup.locator('a[href="dashboard.html"] span').last().click()]);
+  await Promise.all([dashboardPopup.waitForEvent('close'), clickWhenSettled(dashboardPopup.locator('a[href="dashboard.html"] span').last(), 'Dashboard link')]);
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/dashboard.html')), Boolean, 'Dashboard link opens a managed tab');
   await call('activateTab', regular);
-  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const loggerPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for logger');
   await loggerPopup.locator('body:not(.loading)').waitFor();
-  await Promise.all([loggerPopup.waitForEvent('close'), loggerPopup.locator('a[href="logger-ui.html#_"] span').last().click()]);
+  await Promise.all([loggerPopup.waitForEvent('close'), clickWhenSettled(loggerPopup.locator('a[href="logger-ui.html#_"] span').last(), 'Logger link')]);
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/logger-ui.html')), Boolean, 'Logger link opens a managed tab');
   await call('activateTab', regular);
-  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const outsidePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for outside click');
   await outsidePopup.locator('body:not(.loading)').waitFor();
   await electron.evaluate(({ webContents }, id) => {
@@ -403,7 +424,7 @@ try {
   await waitForValue(async () => (await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), open => !open, 'outside click dismisses native popup');
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), regularContents), outsideListeners, 'outside dismissal removes its observers');
   stage = 'outside input on a later woken view';
-  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const laterPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup before later tab creation');
   await laterPopup.locator('body:not(.loading)').waitFor();
   const laterTab = await call('createQuietTab', url, 'Later outside-click fixture');
@@ -420,7 +441,7 @@ try {
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), laterContents), outsideListeners, 'later view observers removed after dismissal');
   await call('closeTab', laterTab);
   stage = 'original uBO popup Escape';
-  overlay = await openShield(); await overlay.locator('#shieldPopUblock').click();
+  overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
   await escapePopup.locator('body:not(.loading)').waitFor();
   await escapePopup.locator('#switch').waitFor();
@@ -438,7 +459,7 @@ try {
     window.__shieldIslandStates = [];
     window.__shieldIslandStateOff = window.browserAPI.onIslandState(({ mode }) => window.__shieldIslandStates.push(mode));
   });
-  await overlay.locator('#shieldPopUblock').click();
+  await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const secondPopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'original popup reopened');
   await secondPopup.locator('body:not(.loading)').waitFor();
   await secondPopup.locator('#switch').waitFor();
@@ -500,6 +521,11 @@ try {
     const chrome = (await Promise.resolve().then(() => electron.windows()).catch(() => [])).find(page => page.url() === 'blanc-chrome://index/');
     console.error('Chrome animation frame:', await Promise.race([
       chrome?.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve('produced')))),
+      new Promise(resolve => setTimeout(() => resolve('none within 2 s'), 2000)),
+    ]).catch(error => error.message));
+    const overlayPage = (await Promise.resolve().then(() => electron.windows()).catch(() => [])).find(page => page.url() === 'blanc-chrome://overlay/');
+    console.error('Overlay animation frame:', await Promise.race([
+      overlayPage?.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve('produced')))),
       new Promise(resolve => setTimeout(() => resolve('none within 2 s'), 2000)),
     ]).catch(error => error.message));
     console.error('Shield geometry:', await chrome?.evaluate(() => ['islandPill', 'pillShield'].map(id => {

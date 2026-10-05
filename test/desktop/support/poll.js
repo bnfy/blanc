@@ -44,10 +44,13 @@ async function openOverlaySurface(world, openMethod, mode) {
 }
 
 /**
- * Click with real input once the element is visible, enabled and has kept the
- * same box across two polls. Playwright's own stability check counts animation
- * frames, and under Xvfb a chrome renderer can stop producing them: the click
- * then waits forever on an element that is visible, focused and not moving.
+ * Click with real input once the element is visible, enabled, has kept the
+ * same box across two polls, and is the hit target at its own center.
+ * Playwright's own stability check counts animation frames, and on CI displays
+ * (seen under Xvfb, for chrome and overlay renderers alike) a renderer can stop
+ * producing them: the click then waits forever on an element that is visible,
+ * focused and not moving. The forced click skips that frame wait, so the hit
+ * test keeps the guarantee Playwright's "receives events" check would give.
  */
 async function clickWhenSettled(locator, label, timeout = 8000) {
   let previous = null;
@@ -56,8 +59,13 @@ async function clickWhenSettled(locator, label, timeout = 8000) {
     const ready = !!box && await locator.isVisible() && await locator.isEnabled();
     const settled = ready && !!previous && ['x', 'y', 'width', 'height'].every((key) => box[key] === previous[key]);
     previous = box;
-    return { box, ready, settled };
-  }, (value) => value.settled, `${label} to settle`, timeout);
+    const hit = settled && await locator.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return target === element || element.contains(target);
+    });
+    return { box, ready, settled, hit };
+  }, (value) => value.settled && value.hit, `${label} to settle as the hit target`, timeout);
   await locator.click({ force: true });
 }
 
