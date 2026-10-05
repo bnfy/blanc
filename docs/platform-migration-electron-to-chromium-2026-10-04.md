@@ -157,7 +157,7 @@ A Chromium fork gets the engine, not Google's services. Rows marked as questions
 | Safe Browsing | The free API is non-commercial-only, with Web Risk for commercial use (verified by review). Brave proxies Safe Browsing (verified). Blanc on Electron has none today (no Safe Browsing code in `src/main`). | Decide provider and budget |
 | Component updater | Question: which components (for example CRLSets, CT logs, Widevine, origin trials) Blanc needs and where they come from. Brave proxies component updates (verified). | Engineering question for the spike |
 | Chrome Web Store | No contract grants third-party browsers access; derived builds also face API-key and service restrictions | Phase 1 acceptance test, then accept the residual dependency risk |
-| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | **Ask Google now** |
+| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | Asked Google on October 5, 2026 through the General Questions form at widevine.com; awaiting a reply |
 | Proprietary codecs | Legal question: patent licensing for proprietary codecs. Codec support differs between Chromium and Chrome (verified by review). | Legal read; prefer OS decoders where possible |
 | Distribution | Signing, notarization, Sigstore and SBOM gates carry over | Keep `me.bnfy.bowser`; necessary for continuity, but the updater handoff itself is unproven (installed-upgrade spike) |
 
@@ -200,7 +200,7 @@ Not applicable: Brave's scale and the funding behind it.
 
 ```mermaid
 flowchart LR
-  P0["0 · Prepare<br/>2–4 weeks, on Electron<br/>demand data<br/>bridge contract<br/>Widevine questions"]
+  P0["0 · Prepare<br/>2–4 weeks, on Electron<br/>bridge contract<br/>Widevine questions"]
   D1{{"Decision 1<br/>authorize spike and proof"}}
   P1["1 · Spike<br/>2–3 weeks<br/>Chromium build, one patch, one rebase<br/>CEF control test<br/>Web Store tests"]
   G1{"Spike gate<br/>rebase cost and CEF result"}
@@ -217,7 +217,7 @@ Phase 0 needs no fork work. Phases 1 and 2 run only under Decision 1, and shippi
 
 Text version:
 
-1. **Phase 0, Prepare (2–4 weeks, on Electron):** demand data, bridge contract, test vectors, Widevine questions to Google.
+1. **Phase 0, Prepare (2–4 weeks, on Electron):** bridge contract, test vectors, Widevine questions to Google. The owner dropped the extension demand check on October 5, 2026.
     - **Decision 1:** owner authorizes the spike and, if the spike gate passes, the proof.
 2. **Phase 1, Spike (2–3 weeks):** Chromium build with one patch and one rebase; CEF control test; Web Store acceptance tests. Spike gate: measured rebase cost and the CEF result.
 3. **Phase 2, Proof (6–10 weeks):** Island as WebUI, a 20-method shim, pixel diff, focus, accessibility and input routing, top 20 extensions. Kill gate: patch budget, popups, pixels, staffing.
@@ -253,13 +253,12 @@ Text version:
 
 **Page bridges: exposure and host authority are pinned.** `browser-api/bridges.json` describes `window.bowserPages`: 88 members across the nine `blanc://` hosts that get one. It also describes the fill-status capsule bridge, `window.blancFillStatus`. The same check runs the page preload as each host and compares each channel's hosts with the host allowlist `pages.js` gives its handler. It also checks the page scripts and the fill-status payloads. `bowserPages` parameters and results are still `unknown`; pinning them is the next contract step.
 
-Steps 3 to 5 (the Mojo interface, the native controller and shared contract tests against both builds) involve fork work. They wait for Decision 1. The other Phase 0 items (demand data, test vectors and the Widevine questions) are not covered by this work.
+Steps 3 to 5 (the Mojo interface, the native controller and shared contract tests against both builds) involve fork work. They wait for Decision 1. The remaining Phase 0 items (test vectors and the Widevine questions) are not covered by this work.
 
 ## Open questions and caveats
 
 - [ ] Decision 1: does the owner authorize the time-boxed spike and proof?
 - [ ] Decision 2 (after the kill gate): migrate or stop?
-- [ ] Which extensions do users actually request? Tag every request from support, GitHub, Reddit and Product Hunt with name and APIs used.
 - [ ] Can an independently branded build install and update from the live Chrome Web Store? Phase 1 acceptance test.
 - [ ] Does the Island reach parity as WebUI, including focus, accessibility and input routing? Phase 2.
 - [ ] Can the shipping updater hand off to a Chromium build on all three platforms, with data migration and rollback? Installed-upgrade spike.
@@ -267,7 +266,7 @@ Steps 3 to 5 (the Mojo interface, the native controller and shared contract test
 - [ ] Can Blanc fund the measured staffing and CI cost? The figures in this doc are hypotheses.
 - [ ] How does CEF map multiple tabs per window today? Settled by the control test.
 - [ ] Current state of MV2 at the spike's Chromium version.
-- [ ] Widevine: has Google responded?
+- [ ] Widevine: has Google responded? (Inquiry sent October 5, 2026: eligibility, technical requirements, platform differences, fees and timeline, and whether it covers the current Electron build.)
 - [ ] Which Google services (Safe Browsing, push, geolocation, translate) need paid or alternative providers?
 
 This analysis draws on the repository at commit 8ec7389 and on knowledge of Chromium, CEF and Electron through mid-2026. External claims were checked on October 4 where reachable; the Sources section below records the status of each. An independent review on October 4 confirmed the Electron, uBO, ExtensionsContainer, Google private-API, Safe Browsing and codec claims, and its corrections are incorporated here. It does not authorise fork work: the current `CLAUDE.md` direction holds until the owner decides.
