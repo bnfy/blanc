@@ -572,6 +572,14 @@ async function fillBillboardSites() {
   }
 }
 
+/** Shelf's column count follows its favorites so the tiles form full rows:
+ * up to four sit on one row (at least two columns), five to eight split into
+ * two rows. The cards below then fill one row of the same grid. */
+function shelfColumns(count) {
+  if (count <= 4) return Math.max(count, 2);
+  return Math.ceil(Math.min(count, 8) / 2);
+}
+
 function renderShelf() {
   document.getElementById('shBlocked').textContent = state.blockedThisWeek.toLocaleString();
   // Private tabs show no blocked counts on any layout.
@@ -579,6 +587,7 @@ function renderShelf() {
 
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
+  document.getElementById('layoutShelf').dataset.columns = String(shelfColumns(Math.min(state.favorites.length, 8)));
   if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
   for (const b of state.favorites.slice(0, 8)) {
     const tileLink = document.createElement('a');

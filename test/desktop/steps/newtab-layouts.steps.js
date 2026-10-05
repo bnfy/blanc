@@ -675,3 +675,29 @@ Then('the Billboard shows one row of single-line site names at 1440x840 and 820x
     await this.call('setWindowContentSize', original.width, original.height);
   }
 });
+
+When(/^I seed (\d+) (?:more )?favorites and open a new tab$/, async function (count) {
+  const existing = (await this.call('bookmarkUrls')).length;
+  for (let index = existing; index < existing + Number(count); index += 1) {
+    await this.call('seedFavorite', `https://shelf-${index}.example/`, `Shelf ${index + 1}`);
+  }
+  await this.call('newTab');
+  await this.waitForState((state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://newtab'));
+});
+
+Then('Shelf shows {int} columns with full rows of tiles and cards', async function (columns) {
+  const shelf = await waitForValue(
+    () => this.call('readShelfGeometry'),
+    (value) => value?.columns === String(columns) && value.tiles.length > 0 && value.groups && value.blocked,
+    `Shelf with ${columns} columns`,
+  );
+  const lefts = [...new Set(shelf.tiles.map((tile) => tile.left))].sort((a, b) => a - b);
+  const rights = [...new Set(shelf.tiles.map((tile) => tile.right))].sort((a, b) => a - b);
+  assert.equal(lefts.length, columns, `tiles use ${columns} columns: ${JSON.stringify(lefts)}`);
+  const rows = new Map();
+  for (const tile of shelf.tiles) rows.set(tile.top, (rows.get(tile.top) ?? 0) + 1);
+  assert.ok([...rows.values()].every((n) => n === columns), `every tile row is full: ${JSON.stringify([...rows])}`);
+  assert.equal(shelf.groups.left, lefts[0], 'the groups card starts at the first column');
+  assert.equal(shelf.blocked.right, rights[rights.length - 1], 'the blocked card ends at the last column');
+  assert.equal(shelf.groups.top, shelf.blocked.top, 'both cards share one row');
+});
