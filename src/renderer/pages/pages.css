@@ -2690,16 +2690,16 @@ body:not([data-layout="ledger"]) .ledger-footer {
    full nowrap text), and the fixed insets/columns gain narrow-window floors. */
 .shelf-tile, .shelf-card { min-width: 0; }
 .bb-favs, .bb-groups { flex-wrap: wrap; justify-content: center; }
+/* One line: a short site name, ellipsized only if a name is still too long
+   for its 96px slot. The full title is the tooltip and accessible name. */
 .bb-fav .label {
-  max-width: 112px;
-  min-height: 2.7em;
+  display: block;
+  max-width: 96px;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   line-height: 1.35;
   text-align: center;
-  white-space: normal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 /* The clock is exactly 148px at any normal window; the clamp only bites in
    windows too narrow to hold "12:58 pm" at full size. */
@@ -3510,6 +3510,13 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
 .group-row .cluster { flex: 0 0 46px; width: 46px; justify-content: flex-end; }
 @media (max-width: 900px) {
   .ledger-spread { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Billboard: one row of recent sites. Six fit at every supported width; the
+   narrowest windows keep the four most-visited. */
+.bb-favs { flex-wrap: nowrap; justify-content: center; }
+@media (max-width: 640px) {
+  .bb-site:nth-child(n + 5) { display: none; }
 }
 
 /* ---------- first-run onboarding dialog ----------
