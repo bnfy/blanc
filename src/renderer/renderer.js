@@ -679,8 +679,7 @@
 
     // tab.connection is main's single derivation (null while loading, so the
     // old page's security state can't linger under a "Loading…" domain).
-    const securityWarning = tab?.siteInfo?.state === 'insecure' ||
-      tab?.siteInfo?.state === 'certificate-error';
+    const securityWarning = ['insecure', 'certificate-error', 'certificate-exception'].includes(tab?.siteInfo?.state);
     pillInsecure.hidden = !securityWarning;
     pillInsecure.title = tab?.siteInfo?.title ?? 'Connection is not secure';
     pillInsecure.setAttribute('aria-label', `${pillInsecure.title}. Open site controls.`);

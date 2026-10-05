@@ -7,6 +7,7 @@
     "hosts": [
       "newtab",
       "mahjong",
+      "error",
       "bookmarks",
       "history",
       "downloads",
@@ -15,9 +16,7 @@
       "tab-import",
       "tab-handoff"
     ],
-    "unexposedHosts": [
-      "error"
-    ],
+    "unexposedHosts": [],
     "signals": [
       {
         "channel": "page-tint:changed",
@@ -544,6 +543,17 @@
         "params": [],
         "returns": "unknown",
         "doc": "Record the once-per-session mahjong_play event after the first real move (subject to telemetry consent)."
+      },
+      {
+        "name": "errorPage.continueUnsafe",
+        "kind": "invoke",
+        "channel": "pages:error:continue-unsafe",
+        "hosts": [
+          "error"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Continue past this tab's certificate warning for the session. Takes no arguments: main reads the tab's own recorded failure and re-checks eligibility."
       },
       {
         "name": "tabHandoff.get",

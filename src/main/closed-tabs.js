@@ -4,6 +4,8 @@
 // tab-sleep.js). The clock is injected, never read.
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
+const { cloneEntryMarks } = require('./certificate-history');
+
 /** Held views live this long before degrading to their snapshot (§2.1). */
 const CLOSED_GRACE_MS = 30_000;
 /** Recently closed is an undo buffer, not an archive. */
@@ -97,6 +99,11 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
       // The document is older than its new record; stale async probes and
       // snapshot work must be judged against the document's real generation.
       navEpoch: tab.navEpoch ?? 0,
+      // The page was loaded past a certificate warning; adoption keeps the
+      // same navigation history, so it must keep saying so (certificate
+      // spec §4.6). Main-only, like the snapshot.
+      documentCertificateException: tab.documentCertificateException ?? null,
+      certificateEntryMarks: cloneEntryMarks(tab.certificateEntryMarks),
     },
     view: null,
     heldAt: null,

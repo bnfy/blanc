@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-100 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+101 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -90,6 +90,7 @@
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
+| `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<FillLoginSuccess \| FillLoginFailure \| false>` | darwin |
 | `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<ThemePreference>` | all |
@@ -270,7 +271,7 @@ Page-info model, built by buildSiteInfo() in site-security.js.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `state` | `'neutral' \| 'certificate-error' \| 'secure' \| 'local' \| 'insecure' \| 'internal'` |  |
+| `state` | `'neutral' \| 'certificate-error' \| 'certificate-exception' \| 'secure' \| 'local' \| 'insecure' \| 'internal'` |  |
 | `origin` | `string` |  |
 | `host` | `string` |  |
 | `title` | `string` |  |

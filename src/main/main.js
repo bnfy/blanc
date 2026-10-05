@@ -64,6 +64,8 @@ const {
   buildSiteInfo,
   certificateErrorQuery,
 } = require('./site-security');
+const { createCertificateExceptions } = require('./certificate-exceptions');
+const { emptyEntryMarks } = require('./certificate-history');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   mergeDisabledFeatures,
@@ -308,6 +310,12 @@ const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
+// Session-only "continue anyway" choices for local certificate failures
+// (certificate spec §4.1). Eviction closes the session's pooled connections
+// so a connection cannot outlive its exception.
+const certificateExceptions = createCertificateExceptions({
+  onEvict: (browsingSession) => { browsingSession.closeAllConnections?.()?.catch?.(() => {}); },
+});
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -2550,6 +2558,40 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+
+/** Stop allowing (certificate spec §4.5): forget the active tab's origin in
+ *  its session, drop pooled connections, and reload so the warning returns.
+ *  Other entries and tabs keep their marks until their documents change. */
+function forgetActiveCertificateException() {
+  const tab = tabs.get(rt().activeTabId);
+  const wc = liveContents(tab);
+  const origin = tab?.documentCertificateException?.origin;
+  if (!wc || !origin) return false;
+  const forgotten = certificateExceptions.forget(wc.session, origin);
+  Promise.resolve(wc.session.closeAllConnections?.())
+    .catch(() => {})
+    .then(() => { if (!wc.isDestroyed()) wc.reload(); });
+  return forgotten;
+}
+
+/** The warning page's Continue (certificate spec §4.4). Takes only the
+ *  sender: the URL, error and certificate come from the tab's own main-held
+ *  failure record, and eligibility is checked again here. */
+function continueUnsafeForSender(wc) {
+  const tabId = tabIdByWebContentsId.get(wc?.id);
+  const tab = tabId ? tabs.get(tabId) : null;
+  const failure = tab?.certificateError;
+  if (!tab || liveContents(tab) !== wc || !failure) return { ok: false, error: 'no-certificate-error' };
+  const input = { url: failure.url, error: failure.error, certificate: failure.certificate };
+  const verifiedThisRun = certificateObserver.wasVerifiedThisRun(wc.session, failure.url);
+  if (!certificateExceptions.isEligible({ ...input, verifiedThisRun })) return { ok: false, error: 'not-eligible' };
+  certificateExceptions.allow(wc.session, { ...input, now: Date.now() });
+  queueTabNavigation(wc, {
+    isCurrent: () => tabs.get(tabId) === tab && liveContents(tab) === wc,
+    run: (contents) => contents.loadURL(failure.url),
+  });
+  return { ok: true };
+}
 /** webContents id -> the HTTP method of its last main-frame request. The only
  * place a method is observable is onBeforeSendHeaders, and it is needed at
  * did-navigate time. Deliberately not on the tab record: that record is an
@@ -3995,6 +4037,7 @@ function serializeTabs() {
       const siteInfo = buildSiteInfo(targetUrl, {
         certificateRecord,
         certificateError: tab.certificateError,
+        certificateException: tab.documentCertificateException,
         blockedCount: rest.blockedCount,
       });
       if (rest.private && rest.favicon) {
@@ -5477,6 +5520,8 @@ initTabView({
   recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
   sanitizeCertificate,
   certificateErrorQuery,
+  certificateExceptions,
+  certificateObserver,
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
   onMainFrameCommit,
@@ -5572,6 +5617,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     navEpoch: 0,
     // In-memory only: bounded details for the rejected top-level TLS load.
     certificateError: null,
+    // In-memory only (certificate spec §4.5): the request allowed past a
+    // local certificate warning, the committed document it produced, and the
+    // per-history-entry marks that let Back/Forward keep the warning.
+    pendingCertificateException: null,
+    documentCertificateException: null,
+    certificateEntryMarks: emptyEntryMarks(),
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
     asleep: bornQuiet,        // renderer discarded; tab.view is null
@@ -6361,7 +6412,7 @@ function reopenEntry(entry) {
     if (id) {
       heldWebContents.delete(wcId);
       const tab = tabs.get(id);
-      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled
+      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled, navEpoch, documentCertificateException, certificateEntryMarks
       finishReopen(id, entry);
       return;
     }
@@ -7351,6 +7402,7 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
+  chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -8446,6 +8498,8 @@ async function clearNamedProfileSessions(profileId) {
     if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
   }
   profileNavigationGates.forget(profileId);
+  certificateExceptions.clear(owned.normal);
+  certificateExceptions.clear(owned.private);
   await blockingProviders?.dispose(profileId, owned);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),
@@ -9389,13 +9443,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         rt().utilitySheetEscapeArmed = !!armed;
       },
     },
+    errorPage: { continueUnsafe: continueUnsafeForSender },
     pageSurfaces: {
       owns: (host, wc) => {
         const runtime = runtimeForPageWebContents(wc);
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab' && host !== 'mahjong') return false;
+          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });
@@ -9606,6 +9661,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      continueUnsafeForSender,
+      forgetActiveCertificateException,
+      certificateExceptions,
       blockingStatus: () => blockingProviders.status(rt().profileId),
       blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
       blockingOpen: openUblockTool,

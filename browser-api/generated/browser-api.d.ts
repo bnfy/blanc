@@ -102,7 +102,7 @@ export interface CertificateSummary {
 
 /** Page-info model, built by buildSiteInfo() in site-security.js. */
 export interface SiteInfo {
-  state: 'neutral' | 'certificate-error' | 'secure' | 'local' | 'insecure' | 'internal';
+  state: 'neutral' | 'certificate-error' | 'certificate-exception' | 'secure' | 'local' | 'insecure' | 'internal';
   origin: string;
   host: string;
   title: string;
@@ -996,6 +996,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:adblock-exempt-active`.
    */
   allowAdsOnActiveSite(): Promise<string | null | AllowAdsError>;
+  /**
+   * Stop allowing the active tab's origin past its certificate warning for this session, close that session's connections, and reload the tab. Resolves false when there was nothing to forget.
+   * IPC: invoke `chrome:site-info-forget-certificate-exception`.
+   */
+  siteInfoForgetCertificateException(): Promise<boolean>;
   /**
    * Quiet all background tabs now. Resolves to the ids of the tabs that were quieted.
    * IPC: invoke `chrome:sleep-background-tabs`.

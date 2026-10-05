@@ -13,6 +13,36 @@ function isLoopbackHost(hostname) {
     host === '[::1]' || host === '::1' || LOOPBACK_V4.test(host);
 }
 
+const LOCAL_USE_SUFFIXES = ['.local', '.lan', '.internal', '.home.arpa'];
+
+function ipv4Octets(host) {
+  const parts = host.split('.');
+  if (parts.length !== 4) return null;
+  const octets = parts.map((part) => (/^\d{1,3}$/.test(part) ? Number(part) : NaN));
+  return octets.every((n) => Number.isInteger(n) && n <= 255) ? octets : null;
+}
+
+function isLocalNetworkHost(hostname) {
+  const host = String(hostname ?? '').toLowerCase();
+  if (!host) return false;
+  if (isLoopbackHost(host)) return true;
+  const v4 = ipv4Octets(host);
+  if (v4) {
+    const [a, b] = v4;
+    return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) ||
+      (a === 169 && b === 254) || (a === 100 && b >= 64 && b <= 127);
+  }
+  if (/^\d+(\.\d+)*$/.test(host)) return false; // malformed numeric, never a name
+  const v6 = host.replace(/^\[|\]$/g, '');
+  if (v6.includes(':')) {
+    const first = parseInt(v6.split(':')[0] || '0', 16);
+    if (!Number.isFinite(first)) return false;
+    return (first & 0xfe00) === 0xfc00 || (first & 0xffc0) === 0xfe80;
+  }
+  if (!host.includes('.')) return true; // single-label intranet name
+  return LOCAL_USE_SUFFIXES.some((suffix) => host.endsWith(suffix));
+}
+
 function cleanText(value, max = 240) {
   return typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null;
 }
@@ -45,6 +75,9 @@ function certificateErrorMessage(error) {
 
 function createCertificateObserver() {
   const records = new WeakMap();
+  // Hosts that passed verification this run, never cleared on a later
+  // failure: such a host is ineligible for Continue (certificate spec §3.3).
+  const verified = new WeakMap();
   const observed = new WeakSet();
 
   function observe(browsingSession) {
@@ -53,10 +86,13 @@ function createCertificateObserver() {
     observed.add(browsingSession);
     const byHost = new Map();
     records.set(browsingSession, byHost);
+    const verifiedHosts = new Set();
+    verified.set(browsingSession, verifiedHosts);
     browsingSession.setCertificateVerifyProc((request, callback) => {
       try {
         const hostname = cleanText(request?.hostname, 255)?.toLowerCase();
         if (hostname && request?.verificationResult === 'OK') {
+          verifiedHosts.add(hostname);
           byHost.delete(hostname);
           byHost.set(hostname, {
             certificate: sanitizeCertificate(request.validatedCertificate ?? request.certificate),
@@ -84,12 +120,22 @@ function createCertificateObserver() {
     }
   }
 
-  return { observe, get };
+  function wasVerifiedThisRun(browsingSession, url) {
+    try {
+      const parsed = new URL(unwrapViewSource(url));
+      return verified.get(browsingSession)?.has(parsed.hostname.toLowerCase()) === true;
+    } catch {
+      return false;
+    }
+  }
+
+  return { observe, get, wasVerifiedThisRun };
 }
 
 function buildSiteInfo(url, {
   certificateRecord = null,
   certificateError = null,
+  certificateException = null,
   blockedCount = 0,
   permissions = [],
 } = {}) {
@@ -119,6 +165,15 @@ function buildSiteInfo(url, {
       error: cleanText(certificateError.error, 120),
     };
   }
+  if (certificateException) {
+    return {
+      ...base,
+      certificate: certificateException.certificate ?? base.certificate,
+      state: 'certificate-exception',
+      title: 'Not secure',
+      summary: 'You chose to continue even though this site’s certificate isn’t trusted. Blanc will warn you again after it restarts.',
+    };
+  }
   if (parsed.protocol === 'https:') {
     return {
       ...base,
@@ -141,9 +196,9 @@ function buildSiteInfo(url, {
   return { ...base, state: 'neutral', title: 'Connection information', summary: 'This page does not use an HTTP connection.' };
 }
 
-function certificateErrorQuery(record, fallback = {}) {
+function certificateErrorQuery(record, fallback = {}, { canContinue = false } = {}) {
   const certificate = record?.certificate ?? null;
-  return new URLSearchParams({
+  const query = new URLSearchParams({
     kind: 'certificate',
     url: record?.url ?? fallback.url ?? '',
     code: String(fallback.code ?? ''),
@@ -154,6 +209,10 @@ function certificateErrorQuery(record, fallback = {}) {
     subject: certificate?.subject ?? '',
     validTo: certificate?.validTo ? String(certificate.validTo) : '',
   });
+  // Main alone decides eligibility (certificate spec §4.3); the page only
+  // reads this flag and never receives a fingerprint.
+  if (canContinue === true) query.set('continue', '1');
+  return query;
 }
 
 module.exports = {
@@ -162,6 +221,7 @@ module.exports = {
   certificateErrorMessage,
   certificateErrorQuery,
   createCertificateObserver,
+  isLocalNetworkHost,
   isLoopbackHost,
   sanitizeCertificate,
 };

@@ -176,7 +176,7 @@
       "doc": "Page-info model, built by buildSiteInfo() in site-security.js.",
       "fields": {
         "state": {
-          "type": "'neutral' | 'certificate-error' | 'secure' | 'local' | 'insecure' | 'internal'"
+          "type": "'neutral' | 'certificate-error' | 'certificate-exception' | 'secure' | 'local' | 'insecure' | 'internal'"
         },
         "origin": {
           "type": "string"
@@ -2264,6 +2264,15 @@
       "params": [],
       "returns": "string | null | AllowAdsError",
       "doc": "Allow ads on the active site. Resolves to the allowed hostname, null when there is no tab or the page has no blockable site, or an error."
+    },
+    {
+      "name": "siteInfoForgetCertificateException",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:site-info-forget-certificate-exception",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Stop allowing the active tab's origin past its certificate warning for this session, close that session's connections, and reload the tab. Resolves false when there was nothing to forget."
     },
     {
       "name": "sleepBackgroundTabs",
