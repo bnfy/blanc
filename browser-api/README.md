@@ -349,5 +349,6 @@ in the same way as `browserAPI`.
 ## Not in scope
 
 No Mojo interface or Chromium code is generated, and there is no Chromium
-replay adapter. That would only follow the owner's Decision 1 in the platform
-evaluation.
+replay adapter. The owner declined the platform evaluation's Decision 1 on
+October 5, 2026, so Blanc stays on Electron; the contract and vectors guard the
+Electron bridge.
