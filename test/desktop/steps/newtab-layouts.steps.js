@@ -647,3 +647,37 @@ Then('Customize is closed and its button has focus', async function () {
   );
   assert.equal(state.focusedId, 'customizeButton');
 });
+
+async function tallyAt(world, width, height) {
+  await world.call('setWindowContentSize', width, height);
+  await waitForValue(
+    () => world.call('windowContentBounds'),
+    (bounds) => bounds?.width === width && bounds?.height === height,
+    `${width}x${height} content bounds`,
+  );
+  return waitForValue(
+    () => world.call('readTallyGeometry'),
+    (value) => value?.viewportWidth === width && value.left && value.right,
+    `Tally at ${width}x${height}`,
+  );
+}
+
+Then('Tally shows two equal, top-aligned columns centered at 1440x840', async function () {
+  this.tallyOriginalBounds = await this.call('windowContentBounds');
+  const tally = await tallyAt(this, 1440, 840);
+  assert.ok(Math.abs(tally.left.width - tally.right.width) <= 1, `equal columns: ${tally.left.width} vs ${tally.right.width}`);
+  assert.equal(tally.left.top, tally.right.top, 'tops aligned');
+  const leftGap = tally.left.left - tally.content.left;
+  const rightGap = tally.content.right - tally.right.right;
+  assert.ok(Math.abs(leftGap - rightGap) <= 2, `centered: ${leftGap} vs ${rightGap}`);
+});
+
+Then('Tally stacks the data above the list at 820x840', async function () {
+  try {
+    const tally = await tallyAt(this, 820, 840);
+    assert.ok(tally.right.bottom <= tally.left.top, `data first: right ${JSON.stringify(tally.right)} left ${JSON.stringify(tally.left)}`);
+  } finally {
+    const original = this.tallyOriginalBounds;
+    if (original) await this.call('setWindowContentSize', original.width, original.height);
+  }
+});

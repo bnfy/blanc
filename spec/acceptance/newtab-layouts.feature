@@ -123,3 +123,11 @@ Feature: Start page layouts
     And Customize stays open with "tally" pressed
     When I press Escape on the start page
     Then Customize is closed and its button has focus
+
+  @F35-17 @desktop
+  Scenario: Tally balances its columns and puts the data first when narrow
+    Given eight favorites fill the Start Page
+    And a profile whose start page layout is "tally"
+    When I open a new tab
+    Then Tally shows two equal, top-aligned columns centered at 1440x840
+    And Tally stacks the data above the list at 820x840
