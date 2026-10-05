@@ -790,6 +790,48 @@ function install(refs) {
         };
       })()`);
     },
+    // F35-10/11/12/13: one read of the frame — collapsed checklist, active
+    // layout content, footer, Patron slot and empty hints — so scenarios can
+    // prove "nothing covers content" without per-layout selectors.
+    readStartFrameGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element) return null;
+          const style = getComputedStyle(element);
+          if (style.display === 'none' || style.visibility === 'hidden') return null;
+          const r = element.getBoundingClientRect();
+          if (!r.width || !r.height) return null;
+          return { top: r.top, right: r.right, bottom: r.bottom, left: r.left, width: r.width, height: r.height };
+        };
+        const layout = document.body.dataset.layout;
+        const name = layout.charAt(0).toUpperCase() + layout.slice(1);
+        const rootEl = document.getElementById('layout' + name);
+        const shellEl = document.getElementById('migrationChecklistShell');
+        const shell = shellEl && !shellEl.hidden ? rect(shellEl) : null;
+        const content = [...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
+          .map((element) => ({ selector: element.id ? '#' + element.id : element.className || element.tagName, rect: rect(element) }))
+          .filter((entry) => entry.rect);
+        const patron = rootEl.querySelector(':scope > .js-patron-callout');
+        const root = document.documentElement;
+        return {
+          layout,
+          private: document.documentElement.dataset.theme === 'private',
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          maxScrollY: Math.max(0, Math.max(root.scrollHeight, document.body.scrollHeight) - innerHeight),
+          shell,
+          compact: !!shellEl && getComputedStyle(document.getElementById('migrationChecklistCompact')).display !== 'none',
+          content,
+          footer: rect(document.getElementById('layoutFooter')),
+          patronLast: rootEl.lastElementChild === patron,
+          patronVisible: !!patron && !patron.hidden && !!rect(patron),
+          emptyHints: [...rootEl.querySelectorAll('.start-empty-hint')].filter((element) => rect(element)).length,
+        };
+      })()`);
+    },
     clickMigrationChecklist(action) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;

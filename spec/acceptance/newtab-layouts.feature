@@ -86,3 +86,12 @@ Feature: Start page layouts
     And a profile whose start page layout is "billboard"
     When I open a new tab
     Then the Billboard moving-in checklist stays above its recent sites
+
+  @F35-10 @desktop
+  Scenario: The checklist and the footer never cover start-page content
+    Given a profile that completed first run
+    And the moving-in checklist is incomplete and not hidden
+    And local history contains repeated visits for the Billboard
+    And eight favorites fill the Start Page
+    When I open a new tab
+    Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840

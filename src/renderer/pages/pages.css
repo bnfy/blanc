@@ -1275,22 +1275,7 @@ a.ledger-label:hover { color: var(--accent); }
 .tally-patron { margin-top: 28px; }
 
 /* A single moving-in checklist replaces the separate Sync and tab-import
-   promos. It uses the lower-right margin by default and remains outside the
-   page's primary content hierarchy. */
-.migration-checklist-shell {
-  position: fixed;
-  z-index: 8;
-  right: clamp(48px, 7vw, 110px);
-  bottom: 84px;
-  width: 286px;
-}
-/* Billboard's recent-site row occupies the lower middle/right at the same
-   vertical level as the default checklist slot. Keep this layout's checklist
-   above the clock instead, leaving every recent-site action unobstructed. */
-body[data-layout="billboard"] .migration-checklist-shell {
-  top: 92px;
-  bottom: auto;
-}
+   promos. Its slot is the start page header's right cell (frame section). */
 .migration-checklist {
   color: var(--text);
   user-select: none;
@@ -1398,52 +1383,8 @@ body[data-layout="billboard"] .migration-checklist-shell {
 @keyframes migration-checklist-retire {
   to { opacity: 0; transform: translateY(5px); }
 }
-:root[data-theme="private"] .migration-checklist-shell,
-body.ledger-body:has(> #startupCard:not([hidden])) > .migration-checklist-shell {
+:root[data-theme="private"] .migration-checklist-shell {
   display: none;
-}
-
-@media (max-width: 960px), (max-height: 640px) {
-  .migration-checklist-shell {
-    right: 24px;
-    bottom: 72px;
-    width: 48px;
-  }
-  .migration-checklist-compact {
-    display: grid;
-    width: 48px;
-    height: 48px;
-    min-width: 0;
-    padding: 0;
-    place-items: center;
-    border: 0;
-    border-radius: 50%;
-    background: var(--bg);
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 48px;
-    height: 48px;
-    border-width: 3px;
-    font-size: 11px;
-  }
-  .migration-checklist {
-    position: absolute;
-    right: 0;
-    bottom: 58px;
-    display: none;
-    width: 270px;
-    padding: 16px;
-    background: var(--bg);
-  }
-  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
-  body[data-layout="billboard"] .migration-checklist-shell {
-    top: 76px;
-    bottom: auto;
-  }
-  body[data-layout="billboard"] .migration-checklist {
-    top: 58px;
-    bottom: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2443,7 +2384,8 @@ body.ledger-body:has(> #startupCard:not([hidden])) {
   padding: 24px;
   overflow: auto;
 }
-body.ledger-body:has(> #startupCard:not([hidden])) > main,
+body.ledger-body:has(> #startupCard:not([hidden])) > .start-header,
+body.ledger-body:has(> #startupCard:not([hidden])) > .start-content,
 body.ledger-body:has(> #startupCard:not([hidden])) > .ledger-footer {
   display: none;
 }
@@ -2508,8 +2450,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* ---------- billboard ---------- */
 .billboard {
-  position: absolute;
-  inset: 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -2611,36 +2551,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-groups .group-chip { padding: 7px 16px; }
 .bb-groups .group-chip .chip-name { font-size: 12.5px; }
 
-/* The migration entry adds a row to a populated two-row Billboard. At short
-   desktop heights that stack exceeds the viewport; centering it would make
-   its first rows unreachable. Put it and its footer in document flow so every
-   row remains reachable, including at the minimum desktop size. */
-@media (max-height: 640px) {
-  body[data-layout="billboard"] { padding: 0; }
-  .billboard {
-    position: relative;
-    inset: auto;
-    flex: 1 0 auto;
-    justify-content: flex-start;
-    padding: 16px 24px 24px;
-  }
-  .billboard > * { flex-shrink: 0; }
-  body[data-layout="billboard"] .ledger-footer {
-    position: static;
-    margin: 0 24px 24px;
-  }
-  .bb-clock-row { margin-top: 8px; }
-  .bb-blocked { margin-top: 10px; }
-  .bb-favs { margin-top: 24px; }
-  .bb-groups { margin-top: 18px; }
-}
-
 /* ---------- shelf ---------- */
 .shelf {
-  position: absolute;
-  left: 110px;
-  right: 110px;
-  top: 120px;
   user-select: none;
 }
 .shelf-grid {
@@ -2712,10 +2624,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* ---------- tally ---------- */
 .tally-left {
-  position: absolute;
-  left: 110px;
-  top: 120px;
-  width: 460px;
   user-select: none;
 }
 /* The left column IS the ledger column, so it reuses .ledger-* / .fav rows
@@ -2725,10 +2633,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .tally-label-groups { margin-top: 40px; }
 .tally-chiprow { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
 .tally-right {
-  position: absolute;
-  right: 110px;
-  top: 120px;
-  width: 280px;
   user-select: none;
 }
 .tally-count {
@@ -2891,17 +2795,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background-image: var(--start-wallpaper-overlay), url("start-page-sunrise.png");
 }
 
-.start-brand {
-  position: fixed;
-  z-index: 6;
-  top: clamp(30px, 5vh, 48px);
-  left: clamp(48px, 7.2vw, 110px);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: var(--text-dim);
-  user-select: none;
-}
 .start-brand-mark {
   display: block;
   width: 52px;
@@ -2915,16 +2808,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
   text-transform: lowercase;
 }
 
-body.ledger-body:has(> #startupCard:not([hidden])) > .start-brand { display: none; }
 
 /* Ledger: compact reading column on the left, with the landscape allowed to
    remain visible through the lower half of the page. */
-body[data-layout="ledger"] .ledger {
-  width: min(510px, calc(100vw - 96px));
-  max-width: none;
-  margin: clamp(148px, 22vh, 190px) 0 100px clamp(48px, 7.2vw, 110px);
-  user-select: none;
-}
 body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 .ledger-section { margin-top: 34px; }
 .ledger-list { gap: 12px; margin-top: 13px; }
@@ -2960,10 +2846,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 
 /* Billboard: a centered clock and recents composition, set slightly above
    the horizon so the background remains legible rather than decorative noise. */
-.billboard {
-  padding: 120px 80px 118px;
-  transform: translateY(-28px);
-}
 .bb-clock-row { gap: 8px; margin-top: 0; }
 .bb-clock {
   font-family: var(--font-display);
@@ -2987,13 +2869,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 
 /* Shelf: dense, modular cards with enough space on wide screens for the
    shared moving-in checklist at the right edge. */
-.shelf {
-  left: clamp(48px, 7.2vw, 110px);
-  right: auto;
-  top: clamp(146px, 21vh, 184px);
-  width: min(880px, calc(100vw - 520px));
-  padding-bottom: 84px;
-}
 .shelf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 0; }
 .shelf-tile,
 .shelf-card {
@@ -3014,16 +2889,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 
 /* Tally: readable lists on the left, data on the right, and a reserved lower
    right zone for the migration checklist. */
-.tally-left {
-  left: clamp(48px, 7.2vw, 110px);
-  top: clamp(152px, 22vh, 194px);
-  width: min(470px, calc(50vw - 90px));
-}
-.tally-right {
-  right: clamp(64px, 10vw, 150px);
-  top: clamp(154px, 22vh, 196px);
-  width: min(310px, calc(38vw - 64px));
-}
 .tally-label { margin-top: 0; }
 .tally-label-groups { margin-top: 32px; }
 .tally-count {
@@ -3041,14 +2906,6 @@ body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 
 /* Migration checklist: editorial Newsreader title plus Inter controls. The
    former handwritten underline is intentionally gone. */
-.migration-checklist-shell {
-  top: clamp(154px, 22vh, 194px);
-  right: clamp(48px, 7.2vw, 110px);
-  bottom: auto;
-  width: 286px;
-}
-body[data-layout="billboard"] .migration-checklist-shell { top: clamp(30px, 5vh, 48px); }
-body[data-layout="tally"] .migration-checklist-shell { top: clamp(420px, 58vh, 500px); }
 .migration-checklist {
   padding: 0;
   border: 0;
@@ -3187,115 +3044,13 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ledger-version { font-size: 10px; }
 #goAnywhere { font-family: var(--font-ui); }
 
-/* At medium widths the checklist collapses before it can compete with Shelf
-   or Tally. The same panel remains one click away. */
-@media (max-width: 1120px) {
-  .shelf { right: 48px; width: auto; }
-  .migration-checklist-shell {
-    top: auto;
-    right: 28px;
-    bottom: 72px;
-    width: 48px;
-  }
-  body[data-layout="billboard"] .migration-checklist-shell,
-  body[data-layout="tally"] .migration-checklist-shell { top: auto; bottom: 72px; }
-  .migration-checklist-compact {
-    display: grid;
-    width: 48px;
-    height: 48px;
-    min-width: 0;
-    padding: 0;
-    place-items: center;
-    border: 0;
-    border-radius: 50%;
-    background: var(--surface-raised);
-    box-shadow: 0 12px 28px -18px rgba(18, 16, 11, 0.72);
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 48px;
-    height: 48px;
-    border-width: 3px;
-    font-size: 11px;
-  }
-  .migration-checklist {
-    position: absolute;
-    right: 0;
-    top: auto;
-    bottom: 58px;
-    display: none;
-    width: 276px;
-    padding: 16px 18px 14px;
-    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--surface-raised) 86%, transparent);
-    box-shadow: 0 18px 42px -34px rgba(18, 16, 11, 0.72);
-    backdrop-filter: blur(10px);
-  }
-  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
-}
-
-@media (max-width: 960px) {
-  .start-brand { left: 48px; }
-  body[data-layout="ledger"] .ledger { margin-left: 48px; }
-  .shelf { left: 48px; right: 48px; }
-  .tally-left,
-  .tally-right { margin-inline: 48px; }
-  .tally-left { padding-top: 150px; }
-}
-
 @media (max-width: 760px) {
-  .migration-checklist-shell,
-  body[data-layout="billboard"] .migration-checklist-shell,
-  body[data-layout="tally"] .migration-checklist-shell {
-    top: auto;
-    right: 20px;
-    bottom: 72px;
-    width: 136px;
-  }
-  .migration-checklist-compact {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 136px;
-    height: 44px;
-    padding: 3px 10px 3px 3px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--surface-raised);
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 36px;
-    height: 36px;
-    border-width: 2px;
-    font-size: 10px;
-  }
-  .migration-compact-label {
-    display: inline;
-    color: var(--text);
-    font: 600 11px/1.1 var(--font-ui);
-    white-space: nowrap;
-  }
-  body[data-layout="billboard"] .migration-checklist {
-    top: auto;
-    bottom: 54px;
-  }
   .ledger-body { padding-bottom: 104px; background-size: auto 100%, auto 100%; }
-  .start-brand { top: 22px; left: 30px; }
   .start-brand-mark { width: 44px; height: 44px; }
-  body[data-layout="ledger"] .ledger {
-    width: calc(100vw - 60px);
-    margin: 118px 30px 122px;
-  }
-  .shelf { top: 118px; left: 30px; right: 30px; }
-  .shelf { padding-bottom: 116px; }
   .shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .shelf-cards { grid-template-columns: 1fr; }
-  .billboard { padding: 110px 30px 140px; transform: none; }
   .bb-favs { gap: 10px; }
   .bb-site { width: 86px; }
-  .tally-left,
-  .tally-right { margin-inline: 30px; }
-  .tally-left { padding-top: 122px; }
 }
 
 /* Make room for the wallpaper switch before the footer columns overlap. */
@@ -3312,46 +3067,157 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .ledger-footer .footer-left { order: 2; }
   .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
   .ledger-footer .footer-right { order: 3; align-items: center; }
-  .migration-checklist-shell,
-  body[data-layout="billboard"] .migration-checklist-shell,
-  body[data-layout="tally"] .migration-checklist-shell { bottom: 102px; }
 }
 
 @media (max-height: 640px) {
-  .start-brand { position: absolute; top: 16px; }
   .start-brand-mark { width: 40px; height: 40px; }
-  body[data-layout="ledger"] .ledger { margin-top: 98px; }
-  body[data-layout="billboard"] { padding: 0 0 72px; }
-  .billboard {
-    position: relative;
-    inset: auto;
-    min-height: calc(100vh - 72px);
-    padding: 88px 24px 92px;
-    transform: none;
-  }
   .bb-clock { font-size: clamp(60px, 11vw, 90px); }
   .bb-favs { margin-top: 20px; }
   .bb-groups { margin-top: 14px; }
-  body[data-layout="billboard"] .ledger-footer { position: fixed; margin: 0; }
-  .shelf { top: 92px; }
   .shelf-tile { min-height: 92px; padding: 12px; }
-  .tally-left { padding-top: 100px; }
 }
 
-@media (max-width: 500px) and (max-height: 320px) {
-  .migration-checklist-shell,
-  body[data-layout="billboard"] .migration-checklist-shell,
-  body[data-layout="tally"] .migration-checklist-shell {
-    top: 8px;
-    right: 8px;
-    bottom: auto;
+/* ---------- Start page frame (2026-10-05 polish) ----------
+   One page grid: an in-flow header (brand left, checklist right), one
+   centered content area every layout renders into, and the fixed footer
+   whose height the body reserves. Nothing below is absolutely positioned,
+   so the checklist and the footer cannot cover content by construction.
+   Spec: docs/superpowers/specs/2026-10-05-start-page-layouts-polish-design.md */
+.ledger-body {
+  --start-measure: 1080px;
+  --start-gutter: clamp(24px, 5vw, 72px);
+  --start-ease: cubic-bezier(0.2, 0, 0, 1);
+  --start-shadow-icon: 0 7px 22px -17px rgba(18, 16, 11, 0.65);
+  --start-shadow-card: 0 14px 36px -30px rgba(18, 16, 11, 0.68);
+  --start-shadow-float: 0 24px 60px -32px rgba(18, 16, 11, 0.7);
+  --start-card-fill: color-mix(in srgb, var(--surface-raised) 80%, transparent);
+  --start-float-fill: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  --start-card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.55);
+  display: flex;
+  flex-direction: column;
+}
+@media (prefers-color-scheme: dark) {
+  .ledger-body { --start-card-highlight: inset 0 0 0 transparent; }
+}
+:root[data-theme="private"] .ledger-body { --start-card-highlight: inset 0 0 0 transparent; }
+
+.start-header {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  max-width: calc(var(--start-measure) + 2 * var(--start-gutter));
+  margin-inline: auto;
+  padding: clamp(30px, 5vh, 48px) var(--start-gutter) 0;
+}
+.start-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  color: var(--text-dim);
+  user-select: none;
+}
+.start-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(var(--start-measure) + 2 * var(--start-gutter));
+  margin-inline: auto;
+  padding: clamp(32px, 6vh, 64px) var(--start-gutter) 48px;
+}
+body[data-layout="billboard"] .start-content { justify-content: center; }
+.start-content-end { flex: 0 0 auto; height: 0; }
+
+/* PR 1 places the three other layouts in flow; their reworks follow. */
+.billboard { position: static; padding: 0; transform: none; }
+.shelf { position: static; width: auto; padding-bottom: 0; }
+body[data-layout="tally"] #layoutTally {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 310px);
+  column-gap: 64px;
+  row-gap: 32px;
+  align-items: start;
+}
+#layoutTally:has(> .tally-right[hidden]) { grid-template-columns: minmax(0, 1fr); }
+.tally-left,
+.tally-right { position: static; width: auto; margin: 0; padding: 0; }
+.tally-patron { grid-column: 1 / -1; margin-top: 0; }
+@media (max-width: 900px) {
+  body[data-layout="tally"] #layoutTally { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The checklist owns the header's right cell on every layout. Tight windows
+   keep it in that same corner as a ring that opens downward. */
+.migration-checklist-shell {
+  position: relative;
+  z-index: 8;
+  flex: 0 0 auto;
+  width: 286px;
+}
+@media (max-width: 960px), (max-height: 640px) {
+  .migration-checklist-shell { width: 48px; }
+  .migration-checklist-compact {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    min-width: 0;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--surface-raised);
+    box-shadow: var(--start-shadow-float);
   }
-  .migration-checklist-shell .migration-checklist,
-  body[data-layout="billboard"] .migration-checklist-shell .migration-checklist {
-    top: 52px;
+  .migration-checklist-compact .migration-progress-ring {
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+    font-size: 11px;
+  }
+  .migration-checklist {
+    position: absolute;
+    top: 58px;
+    right: 0;
     bottom: auto;
-    max-height: calc(100vh - 70px);
-    overflow-y: auto;
+    display: none;
+    width: 276px;
+    padding: 16px 18px 14px;
+    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+    border-radius: 14px;
+    background: var(--start-float-fill);
+    box-shadow: var(--start-shadow-float);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
+}
+@media (max-width: 760px) {
+  .migration-checklist-shell { width: 136px; }
+  .migration-checklist-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 136px;
+    height: 44px;
+    padding: 3px 10px 3px 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .migration-checklist-compact .migration-progress-ring {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+    font-size: 10px;
+  }
+  .migration-compact-label {
+    display: inline;
+    color: var(--text);
+    font: 600 11px/1.1 var(--font-ui);
+    white-space: nowrap;
   }
 }
 

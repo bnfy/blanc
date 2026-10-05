@@ -537,3 +537,39 @@ Then('Mahjong is a private managed tab', async function () {
   assert.ok(game?.loadedUrl?.startsWith('blanc://mahjong/?private=1'));
   assert.equal(state.tabs.find((tab) => tab.id === this.mahjongSource.id)?.private, true);
 });
+
+const intersects = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+
+Then('no start-page layout is covered by its checklist or footer at 1440x840 or 820x840', async function () {
+  const original = await this.call('windowContentBounds');
+  const originalLayout = await this.call('newtabLayout');
+  try {
+    for (const size of [{ width: 1440, height: 840 }, { width: 820, height: 840 }]) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} content bounds`,
+      );
+      for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+        assert.equal(await this.call('setNewtabLayout', layout), layout);
+        const frame = await waitForValue(
+          () => this.call('readStartFrameGeometry'),
+          (value) => value?.layout === layout && value.viewportWidth === size.width && value.shell && value.content.length > 0,
+          `${layout} frame at ${size.width}x${size.height}`,
+        );
+        const context = `${layout} at ${size.width}x${size.height}`;
+        for (const entry of frame.content) {
+          assert.ok(!intersects(frame.shell, entry.rect),
+            `${context}: checklist ${JSON.stringify(frame.shell)} covers ${entry.selector} ${JSON.stringify(entry.rect)}`);
+          const atBottom = { ...entry.rect, top: entry.rect.top - frame.maxScrollY, bottom: entry.rect.bottom - frame.maxScrollY };
+          assert.ok(!intersects(frame.footer, atBottom),
+            `${context}: footer covers ${entry.selector} when scrolled to the end`);
+        }
+      }
+    }
+  } finally {
+    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});

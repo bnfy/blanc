@@ -58,13 +58,14 @@ test('every start-page template names the Blanc Patron upgrade as an action', ()
 
 test('checklist occupies the corner, compacts at tight viewports, and avoids private tabs', () => {
   const css = read('src/renderer/pages/pages.css');
+  const html = read('src/renderer/pages/newtab.html');
 
-  assert.match(css, /\/\* ---------- Sunrise start-page presentation ----------[\s\S]*?\.migration-checklist-shell \{[\s\S]{0,260}?top: clamp\(154px, 22vh, 194px\);[\s\S]{0,260}?bottom: auto;/);
-  assert.match(css, /body\[data-layout="billboard"\] \.migration-checklist-shell \{ top: clamp\(30px, 5vh, 48px\); \}/,
-    'Billboard keeps the checklist in its quiet upper-right margin');
-  assert.match(css, /@media \(max-width: 1120px\) \{[\s\S]{0,900}?\.migration-checklist-compact \{[\s\S]{0,300}?display: grid;/);
-  assert.match(css, /\.migration-checklist \{[\s\S]{0,340}?bottom: 58px;[\s\S]{0,340}?display: none;/,
-    'the compact checklist expands above the footer trigger');
+  assert.match(html, /<header class="start-header"[\s\S]*?<div id="migrationChecklistShell"[\s\S]*?<\/header>/,
+    'the checklist lives in the header row');
+  assert.match(css, /\/\* ---------- Start page frame \(2026-10-05 polish\) ----------[\s\S]*?\.migration-checklist-shell \{[^}]*position: relative;/);
+  assert.match(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[\s\S]{0,900}?\.migration-checklist-compact \{[\s\S]{0,300}?display: grid;/);
+  assert.match(css, /\.migration-checklist \{[\s\S]{0,340}?top: 58px;[\s\S]{0,340}?display: none;/,
+    'the compact checklist opens downward from its ring');
   assert.doesNotMatch(css, /body\[data-layout="mahjong"\] \.migration-checklist-shell/);
   assert.match(css, /:root\[data-theme="private"\] \.migration-checklist-shell/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]{0,320}?animation: none;/);
