@@ -745,13 +745,20 @@ try {
     }
   }, namedUrl);
   let deletionTimer;
+  let deletion;
   try {
-    await Promise.race([call('deleteProfile', named.profile.id, named.profile.name), new Promise((_, reject) => {
+    deletion = await Promise.race([call('deleteProfile', named.profile.id, named.profile.name), new Promise((_, reject) => {
       deletionTimer = setTimeout(async () => reject(new Error('Profile deletion timed out: ' + JSON.stringify(await electron.evaluate(() => uboDeletionEvents)))), 15000);
     })]);
   } finally { clearTimeout(deletionTimer); }
-  assert(!fs.existsSync(path.join(dir + '-Dev', 'managed-ublock', named.profile.id)));
-  assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), 1);
+  assert.equal(deletion?.ok, true, `profile deletion accepted: ${JSON.stringify(deletion)}`);
+  // Deletion may report pending (on macOS a covered window can update its
+  // visibility without a hide event, so the first pass gives up after 2 s);
+  // its recovery pass then finishes about a second later. Wait for that.
+  await waitForValue(async () => ({
+    folder: fs.existsSync(path.join(dir + '-Dev', 'managed-ublock', named.profile.id)),
+    backgrounds: await electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length),
+  }), state => !state.folder && state.backgrounds === 1, `named profile data erased (deletion: ${JSON.stringify(deletion)})`, 15000);
   const erased = await electron.evaluate(async ({ session, app, webContents }, { profileId, expectedId }) => {
     const fs = process.getBuiltinModule('node:fs'), path = process.getBuiltinModule('node:path');
     const require = process.getBuiltinModule('node:module').createRequire(path.join(app.getAppPath(), 'package.json'));
