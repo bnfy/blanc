@@ -3897,7 +3897,9 @@ function isHostnameExcepted(url) {
 }
 
 function serializeTabs() {
-  const { adblockEnabled } = settings.getSettings();
+  // Settings → General → Match site colors. Off keeps the strip on the
+  // theme background by projecting no site color at all.
+  const { adblockEnabled, islandSiteColors } = settings.getSettings();
   // Keep this projection self-contained: unit tests lift it without the rest
   // of Electron. The full byte/dimension validator already ran at every tab,
   // session, bookmark, and sync ingress; this final guard ensures only PNG
@@ -3931,8 +3933,8 @@ function serializeTabs() {
         // actually reach the speakers.
         audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
         groupId: tab.groupId,
-        pageBg: tab.pageBg,
-        themeColor: tab.themeColor,
+        pageBg: islandSiteColors ? tab.pageBg : null,
+        themeColor: islandSiteColors ? tab.themeColor : null,
         // The sole Quiet Tabs field chrome may see. Operational sleep state
         // and snapshots remain main-process-only.
         asleep: tab.asleep,
@@ -4680,6 +4682,7 @@ function dominantColor(image) {
 function activePageTintTarget(runtime) {
   const window = runtime.window;
   if (runtime.closing || !window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return null;
+  if (!settings.getSettings().islandSiteColors) return null;
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!shouldSamplePageTint(tab) || !wc || wc.isLoading() || tab.view?.getVisible() !== true) return null;
@@ -4703,6 +4706,9 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
       || tab.url !== url || tab.navEpoch !== epoch) return false;
     if (color && color !== tab.pageBg) {
       tab.pageBg = color;
+      // A capture already in flight when Match site colors was turned off
+      // still records the sample, but must not repaint the strip.
+      if (!settings.getSettings().islandSiteColors) return false;
       // Color-only updates avoid rebuilding tabs and menus during a fade.
       owner.window.webContents.send('chrome:page-tint', { id: tab.id, color });
       return true;
@@ -8704,6 +8710,8 @@ function broadcastWebrtcAudioBufferToBrowsingContents() {
 // every settings write, and clearing the cache mid-session isn't free.
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
+// Same idea for Match site colors: re-project strips only on a real change.
+let lastIslandSiteColors = null;
 let displayCaptureRegistry = null;
 let displayCaptureBroker = null;
 let displayCapturePicker = null;
@@ -8817,6 +8825,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
     settings.setSettings({ syncMigrationCompleted: true });
   }
+  // Baseline for the settings fan-out's Match site colors re-projection.
+  lastIslandSiteColors = settings.getSettings().islandSiteColors;
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
   // including the private-browsing session, so private tabs inherit it by
@@ -9884,6 +9894,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
+    if (s.islandSiteColors !== lastIslandSiteColors) {
+      lastIslandSiteColors = s.islandSiteColors;
+      // Re-project every window's strip; turning colors back on resamples
+      // the active page because samples were skipped while it was off.
+      forEachWindowRuntime((runtime) => {
+        broadcastTabs();
+        const active = runtime.activeTabId != null ? tabs.get(runtime.activeTabId) : null;
+        if (s.islandSiteColors && active) scheduleSampleTint(active);
+      }, { liveOnly: true });
+    }
     // setPatron() uses this same fan-out after activation and each scheduled
     // subscription validation. Re-project the derived entitlement so an open
     // Workspaces popover hides or restores creation controls immediately;

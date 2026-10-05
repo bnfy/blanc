@@ -178,6 +178,19 @@
   }
 
   // --- Quiet Tabs idle delay (device-local memory policy) ---
+  // Device-local: the Island strip's site-color tint. Off leaves it on the
+  // theme background (near-black in Dark).
+  if (supports('islandSiteColors')) {
+    const siteColors = document.getElementById('islandSiteColors');
+    siteColors.checked = settings.islandSiteColors;
+    siteColors.addEventListener('change', async () => {
+      const result = await window.bowserPages.settings.set({ islandSiteColors: siteColors.checked });
+      siteColors.checked = result.islandSiteColors;
+    });
+  } else {
+    document.getElementById('islandSiteColorsSetting')?.remove();
+  }
+
   if (supports('tabSleep')) {
     const tabSleep = document.getElementById('tabSleep');
     tabSleep.value = settings.tabSleep ?? '1h';
