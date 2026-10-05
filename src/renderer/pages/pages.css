@@ -2709,17 +2709,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .ledger-footer { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
 }
 
-@media (max-width: 960px) {
-  /* Tally's fixed columns cannot share a narrow window — stack them. */
-  .tally-left, .tally-right {
-    position: static;
-    width: auto;
-    margin: 0 48px;
-  }
-  .tally-left { padding-top: 120px; }
-  .tally-right { margin-top: 56px; max-width: 280px; padding-bottom: 96px; }
-}
-
 /* Every billboard site occupies the same slot width, so the icons land
    on an even rhythm regardless of how long each label is — with real sites
    ("benjaminmoore" beside "nest") a bare gap spaces the columns evenly but
@@ -2866,8 +2855,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   color: var(--text);
 }
 .tally-chart { height: 92px; margin-top: 20px; border-color: var(--border); }
-.tally-bar { border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); background: var(--accent-dim); }
-.tally-bar.today { background: var(--accent); border-color: var(--accent); }
 .tally-days,
 .tally-caption { font-family: var(--font-ui); }
 
@@ -3070,19 +3057,30 @@ body[data-layout="billboard"] .start-content { justify-content: center; }
 /* PR 1 places the three other layouts in flow; their reworks follow. */
 .billboard { position: static; padding: 0; transform: none; }
 .shelf { position: static; width: auto; padding-bottom: 0; }
-body[data-layout="tally"] #layoutTally {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 310px);
+/* Tally: two balanced columns at Ledger's measure, tops aligned. The column
+   rules sit at #id specificity so the private and narrow overrides below can
+   win; a body[data-layout] selector would outrank them. */
+body[data-layout="tally"] #layoutTally { display: grid; }
+#layoutTally {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   column-gap: 64px;
   row-gap: 32px;
   align-items: start;
+  width: 100%;
+  max-width: 904px;
+  margin-inline: auto;
 }
-#layoutTally:has(> .tally-right[hidden]) { grid-template-columns: minmax(0, 1fr); }
+/* Private tabs hide the data column; the list then centers alone. */
+#layoutTally:has(> .tally-right[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 420px;
+}
 .tally-left,
 .tally-right { position: static; width: auto; margin: 0; padding: 0; }
 .tally-patron { grid-column: 1 / -1; margin-top: 0; }
 @media (max-width: 900px) {
-  body[data-layout="tally"] #layoutTally { grid-template-columns: minmax(0, 1fr); }
+  #layoutTally { grid-template-columns: minmax(0, 1fr); }
+  .tally-right { order: -1; }
 }
 
 /* The checklist owns the header's right cell on every layout. Tight windows
@@ -3532,6 +3530,14 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   #layoutShelf[data-columns] .shelf-card-groups,
   .shelf-card-blocked { grid-column: 1 / -1; }
 }
+
+/* Past days in a warm Sunrise tint, today solid; colour alone marks today. */
+.tally-bar {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  border: 0;
+  border-radius: 3px 3px 0 0;
+}
+.tally-bar.today { background: var(--accent); }
 
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant

@@ -186,3 +186,15 @@ test('Shelf tiles and cards share one grid with full rows', () => {
   assert.match(css, /#layoutShelf:has\(\.shelf-card-blocked\[hidden\]\) \.shelf-card-groups \{ grid-column: 1 \/ -1; \}/);
   assert.match(css, /\.shelf-tile \{[^}]*min-height: 92px;[^}]*padding: 14px;/s);
 });
+
+test('Tally is two balanced columns with warm bars, data first when narrow', () => {
+  const css = frameCss();
+  const all = read('src/renderer/pages/pages.css');
+  assert.match(css, /body\[data-layout="tally"\] #layoutTally \{ display: grid; \}/);
+  assert.match(css, /#layoutTally \{[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);[^}]*max-width: 904px;[^}]*margin-inline: auto;/s);
+  assert.match(css, /#layoutTally:has\(> \.tally-right\[hidden\]\) \{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*max-width: 420px;/s);
+  assert.match(css, /@media \(max-width: 900px\) \{[\s\S]*?#layoutTally \{ grid-template-columns: minmax\(0, 1fr\); \}[\s\S]*?\.tally-right \{ order: -1; \}/);
+  assert.match(css, /\.tally-bar \{[^}]*background: color-mix\(in srgb, var\(--accent\) 32%, transparent\);[^}]*border: 0;/s);
+  assert.match(css, /\.tally-bar\.today \{ background: var\(--accent\); \}/);
+  assert.doesNotMatch(all, /\.tally-right \{ margin-top: 56px; max-width: 280px;/, 'the old 280px cap is gone');
+});

@@ -890,6 +890,25 @@ function install(refs) {
         };
       })()`);
     },
+    readTallyGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element || element.hidden || getComputedStyle(element).display === 'none') return null;
+          const r = element.getBoundingClientRect();
+          return { left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width) };
+        };
+        return {
+          viewportWidth: innerWidth,
+          private: document.documentElement.dataset.theme === 'private',
+          content: rect(document.getElementById('startContent')),
+          left: rect(document.querySelector('.tally-left')),
+          right: rect(document.querySelector('.tally-right')),
+        };
+      })()`);
+    },
     clickMigrationChecklist(action) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;

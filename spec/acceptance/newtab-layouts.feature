@@ -139,3 +139,11 @@ Feature: Start page layouts
     Then Shelf shows 3 columns with full rows of tiles and cards
     When I seed 2 more favorites and open a new tab
     Then Shelf shows 4 columns with full rows of tiles and cards
+
+  @F35-17 @desktop
+  Scenario: Tally balances its columns and puts the data first when narrow
+    Given eight favorites fill the Start Page
+    And a profile whose start page layout is "tally"
+    When I open a new tab
+    Then Tally shows two equal, top-aligned columns centered at 1440x840
+    And Tally stacks the data above the list at 820x840
