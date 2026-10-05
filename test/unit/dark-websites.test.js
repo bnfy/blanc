@@ -309,7 +309,7 @@ function runPreload({ url = 'https://example.com/', top = true, state = { on: tr
 }
 
 test('the generated preload is current and built from the pinned engine', async () => {
-  const { generate } = await import(path.join(ROOT, 'dark-reader/build.mjs'));
+  const { generate } = await import('../../dark-reader/build.mjs');
   assert.equal(fs.readFileSync(PRELOAD, 'utf8'), generate());
   const pinned = JSON.parse(fs.readFileSync(path.join(ROOT, 'dark-reader/pinned.json'), 'utf8'));
   assert.equal(pinned.license, 'MIT');
