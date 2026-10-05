@@ -123,3 +123,12 @@ Feature: Start page layouts
     And Customize stays open with "tally" pressed
     When I press Escape on the start page
     Then Customize is closed and its button has focus
+
+  @F35-16 @desktop
+  Scenario: Shelf fills full rows for its favorites and cards
+    Given a group "research" with 2 tabs
+    And a profile whose start page layout is "shelf"
+    When I seed 6 favorites and open a new tab
+    Then Shelf shows 3 columns with full rows of tiles and cards
+    When I seed 2 more favorites and open a new tab
+    Then Shelf shows 4 columns with full rows of tiles and cards
