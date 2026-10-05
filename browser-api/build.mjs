@@ -22,6 +22,7 @@ import vm from 'node:vm';
 import { Module, createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { bridgeArtifacts, checkBridges, loadBridges, validateBridges } from './bridges.mjs';
+import { VECTORS_FILE, checkVectorTypes, electronAdapter, replayVectorsSync, vectorsText } from './vectors.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SPEC = path.join(ROOT, 'browser-api', 'contract.json');
@@ -1406,6 +1407,15 @@ export function checkRenderers(contract) {
     .map(([name, files]) => `renderer calls browserAPI.${name} (${[...files].join(', ')}), which is not in the contract`);
 }
 
+// The committed test vectors (generated/vectors.json) must still replay
+// against the preload, and every value in them must fit its contract type.
+// A stale file is reported separately with the other generated files.
+export function checkVectors(contract, { file = path.join(OUT, VECTORS_FILE), adapter = electronAdapter() } = {}) {
+  if (!fs.existsSync(file)) return [`browser-api/generated/${VECTORS_FILE} is missing — run \`npm run browser-api:build\``];
+  const vectors = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return [...replayVectorsSync(vectors, adapter), ...checkVectorTypes(vectors, contract, validateValue)];
+}
+
 export function check(contract = loadContract(), bridges = loadBridges()) {
   const sections = [
     ['contract', validateContract(contract)],
@@ -1416,8 +1426,14 @@ export function check(contract = loadContract(), bridges = loadBridges()) {
   ];
   // The smaller page bridges (bowserPages, blancFillStatus) live in bridges.json.
   sections.push(...checkBridges(bridges));
+  sections.push(['vectors', checkVectors(contract)]);
   const stale = [];
-  for (const [name, content] of Object.entries({ ...artifacts(contract), ...bridgeArtifacts(bridges) })) {
+  let vectors;
+  try { vectors = { [VECTORS_FILE]: vectorsText(contract) }; } catch (error) {
+    vectors = {};
+    stale.push(`browser-api/generated/${VECTORS_FILE} could not be generated: ${error.message}`);
+  }
+  for (const [name, content] of Object.entries({ ...artifacts(contract), ...bridgeArtifacts(bridges), ...vectors })) {
     const p = path.join(OUT, name);
     const onDisk = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
     if (onDisk !== content) stale.push(`browser-api/generated/${name} — run \`npm run browser-api:build\``);
@@ -1435,7 +1451,7 @@ function build() {
     process.exit(1);
   }
   fs.mkdirSync(OUT, { recursive: true });
-  for (const [name, content] of Object.entries({ ...artifacts(contract), ...bridgeArtifacts(bridges) })) {
+  for (const [name, content] of Object.entries({ ...artifacts(contract), ...bridgeArtifacts(bridges), [VECTORS_FILE]: vectorsText(contract) })) {
     fs.writeFileSync(path.join(OUT, name), content);
     console.log(`wrote browser-api/generated/${name}`);
   }
@@ -1453,7 +1469,7 @@ function runCheck() {
   const { members } = loadContract();
   const { bowserPages, blancFillStatus } = loadBridges();
   console.log(`browser-api:check OK — preload, main and renderers match all ${members.length} browserAPI members, `
-    + `${bowserPages.members.length} bowserPages members and ${blancFillStatus.members.length} blancFillStatus members; generated files current.`);
+    + `${bowserPages.members.length} bowserPages members and ${blancFillStatus.members.length} blancFillStatus members; test vectors replay; generated files current.`);
 }
 
 // Entry guard: unit tests import the checkers without running the CLI.

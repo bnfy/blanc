@@ -376,3 +376,78 @@ test('an Electron options type must name the same fields as Electron', { skip: !
   delete contract.types.FindInPageOptions.fields.matchCase;
   assert.ok(api.checkParamShapes(contract).some((p) => p.includes("Electron's FindInPageOptions")));
 });
+
+// ---- test vectors ----
+
+let vec;
+test.before(async () => {
+  vec = await import('../../browser-api/vectors.mjs');
+});
+const committedVectors = () => JSON.parse(fs.readFileSync(path.join(__dirname, '../../browser-api/generated/vectors.json'), 'utf8'));
+
+test('the committed vectors are current and replay against the preload', () => {
+  assert.deepEqual(api.checkVectors(api.loadContract()), []);
+  const fresh = vec.vectorsText(api.loadContract());
+  assert.equal(fresh, fs.readFileSync(path.join(__dirname, '../../browser-api/generated/vectors.json'), 'utf8'));
+});
+
+test('vectors cover every member, with calls, replies and deliveries', () => {
+  const v = committedVectors();
+  const contract = api.loadContract();
+  assert.deepEqual(Object.keys(v.members).sort(), contract.members.map((m) => m.name).sort());
+  for (const m of contract.members) {
+    const entry = v.members[m.name];
+    if (m.kind === 'invoke' || m.kind === 'send') assert.ok(entry.calls.length > 0, m.name);
+    if (m.kind === 'invoke' && m.returns !== 'void') assert.ok(entry.replies.length > 0, m.name);
+    if (m.kind === 'event') assert.ok(entry.deliveries.length > 0, m.name);
+  }
+});
+
+test('a renamed channel fails the replay', () => {
+  const problems = vec.replayVectorsSync(committedVectors(),
+    vec.electronAdapter(mutate("ipcRenderer.invoke('tabs:navigate', id, url)", "ipcRenderer.invoke('tabs:go', id, url)")));
+  assert.ok(problems.some((p) => p.includes('navigate (typical)') && p.includes('tabs:go')), problems.join('\n'));
+});
+
+test('a leaked event listener fails the replay', () => {
+  const problems = vec.replayVectorsSync(committedVectors(),
+    vec.electronAdapter(mutate("return () => ipcRenderer.removeListener('chrome:glance-status', listener);", 'return () => {};')));
+  assert.ok(problems.some((p) => p.includes('onGlanceStatus') && p.includes('leaves a listener')), problems.join('\n'));
+});
+
+test('a bridge exposed to an untrusted document fails the replay', () => {
+  const v = committedVectors();
+  v.surfaces.untrusted.push(v.surfaces.trusted[0]);
+  assert.ok(vec.replayVectorsSync(v, vec.electronAdapter()).some((p) => p.includes('untrusted document')));
+});
+
+test('an implementation whose replies are promises replays asynchronously', async () => {
+  const base = vec.electronAdapter();
+  // A stand-in for a Mojo or real IPC bridge: every invoke resolves later.
+  const promised = {
+    name: 'promised',
+    load(doc) {
+      const host = base.load(doc);
+      if (!host.api) return host;
+      let reply;
+      host.setReply = (value) => { reply = value; };
+      const wrapped = Object.fromEntries(Object.entries(host.api).map(([k, fn]) => [k, typeof fn === 'function'
+        ? (...args) => { const r = fn(...args); return api.loadContract().members.find((m) => m.name === k).kind === 'invoke' ? Promise.resolve(reply) : r; }
+        : fn]));
+      return { ...host, api: wrapped };
+    },
+  };
+  assert.deepEqual(await vec.replayVectors(committedVectors(), promised), []);
+  assert.ok(vec.replayVectorsSync(committedVectors(), promised).some((p) => p.includes('came back as promises')));
+});
+
+test('a vector value that no longer fits its type is reported', () => {
+  const v = committedVectors();
+  v.members.navigate.calls[0].args[1] = 42;
+  assert.ok(vec.checkVectorTypes(v, api.loadContract(), api.validateValue).some((p) => p.includes('navigate(url)')));
+});
+
+test('undefined survives the JSON encoding', () => {
+  const value = [undefined, { a: undefined, b: [undefined, 1] }];
+  assert.deepEqual(vec.decode(JSON.parse(JSON.stringify(vec.encode(value)))), value);
+});

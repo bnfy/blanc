@@ -16,11 +16,13 @@ browser-api/
   build.mjs          generator + drift checker
   bridges.json       the source of truth for window.bowserPages and window.blancFillStatus
   bridges.mjs        their checker and generator, run by build.mjs
+  vectors.mjs        test vector generator and replay
   generated/
     browser-api.d.ts   TypeScript declarations for window.browserAPI
     browser-api.md     a reference table of every member
     pages-api.d.ts     declarations for bowserPages (one interface per host) and blancFillStatus
     pages-api.md       a reference table of both
+    vectors.json       test vectors for window.browserAPI (see below)
 ```
 
 ## Commands
@@ -221,10 +223,53 @@ A parameter whose type is a structured type (`ShieldAnchor`,
 Main reads are found by name, so a value copied into another variable or
 object (`popup.anchor = rect.shieldAnchor`) is not followed further.
 
+## Test vectors
+
+`generated/vectors.json` records what `window.browserAPI` does, as data any
+implementation can be tested against. It is Phase 0 groundwork for bridge step
+5 of the platform evaluation, "shared contract tests run against both
+builds". The Electron preload is the reference: the vectors are recorded from it.
+
+For every member, the file holds:
+
+- **Calls** (`invoke`, `send`): arguments, and the exact message the bridge
+  sends (kind, channel, arguments). There is a typical call, a variant for
+  each other union arm, literal or boolean value of each parameter, and a call
+  with trailing optional arguments left out.
+- **Replies** (`invoke`): example browser replies; the call must resolve to
+  each one unchanged.
+- **Deliveries** (events): example payloads and what the subscriber receives,
+  and the unsubscribe must remove the listener.
+- **Values and platforms:** per-platform values, and on which platforms each
+  member exists.
+- **Surfaces:** the documents that get the bridge and some that must not.
+
+Arguments, replies and payloads are deterministic samples of the contract's
+types: the minimal and the full form of each object, each union arm and each
+literal. `undefined` is written as `{"$undefined": true}`. The check validates
+every value against its type, replays the committed file against the preload,
+and fails if the file is stale.
+
+**Replaying against another implementation.** `replayVectors(vectors,
+adapter)` in `vectors.mjs` takes an adapter whose `load({ platform, href })`
+returns `{ api, takeSent(), setReply(value), emit(channel, payload),
+listenerCount(channel) }`: the bridge object a document sees, plus a stub for
+the browser side. `electronAdapter()` is the stub for today's preload. A
+Chromium build would provide one that stands in for its page handler, and can
+answer with promises. Replay resolves to a list of problems; empty means the
+implementation behaves as the reference did.
+
+The vectors cover the bridge only, the renderer-to-browser boundary. What the
+browser does with a call (opening the tab, the next `tabs:updated` payload) is
+checked by the payload checks above and by the desktop acceptance suite. Vectors
+use type-valid arguments, so the preload's handling of mistyped input (for
+example `!!` coercion) stays covered by the preload probe, not the vectors.
+
 ## Changing the bridge
 
 Change `src/main/preload.js` and `contract.json` together, then run
-`npm run browser-api:build` and commit the regenerated files. Argument shaping
+`npm run browser-api:build` and commit the regenerated files, including
+`vectors.json`. A changed vector is a changed bridge: review its diff. Argument shaping
 is described by `ipcArgs` when it differs from passing the parameters in order:
 `"$0"` is the first parameter, `"bool($0)"` coerces it, and an object maps
 fields to parameters.
@@ -303,5 +348,6 @@ in the same way as `browserAPI`.
 
 ## Not in scope
 
-No Mojo interface or Chromium code is generated. That would only follow the
-owner's Decision 1 in the platform evaluation.
+No Mojo interface or Chromium code is generated, and there is no Chromium
+replay adapter. That would only follow the owner's Decision 1 in the platform
+evaluation.
