@@ -8,7 +8,9 @@
 
 **Tech Stack:** Electron 44.5.1 main process (CommonJS), `node --test` unit tests, Cucumber + Playwright-Electron desktop acceptance, the `browser-api` contract checker.
 
-**Spec:** `docs/superpowers/specs/2026-10-05-certificate-continue-local-design.md` (revision 3, approved 2026-10-05). Read it first; this plan argues from it.
+**Spec:** `docs/superpowers/specs/2026-10-05-certificate-continue-local-design.md` (revision 3, approved 2026-10-05; Task 1 adds the per-entry addendum approved with plan revision 2). Read it first; this plan argues from it.
+
+**Plan revision 2 (2026-10-05):** replaced the origin-wide `continuedOrigins` + observer rule, which could label a restored unsafe document secure after a trusted load on the same host, with per-history-entry marks (Task 3b). Electron 44's `NavigationEntry` exposes only `url`, `title` and `pageState`, with no stable entry id, so Blanc mirrors the entry list by position and resolves every ambiguity toward Not secure.
 
 ## Global Constraints
 
@@ -21,6 +23,7 @@
 - The error page never decides eligibility and never names a URL or fingerprint over IPC.
 - User-visible copy (exact): panel text and link per spec §4.3; site-info title "Not secure"; summary "You chose to continue even though this site's certificate isn't trusted. Blanc will warn you again after it restarts."; island hint "you continued past a certificate warning"; button "Stop allowing".
 - Do not claim parity with Chrome's HSTS rule anywhere (spec §3.3).
+- The not-secure mark belongs to a navigation-history entry, never to an origin or a session-wide verification record. When Blanc cannot tell which entry committed, it keeps the mark (fails toward Not secure).
 - Policy guards change in the same commit as the behavior they pin (`test/unit/site-security.test.js`, the F39 acceptance step).
 - Work happens in the worktree `.claude/worktrees/cert-continue` on branch `spec/certificate-continue-local` (rename to `feat/certificate-continue-local` before opening the PR). Run `npm ci` there first: the worktree has no `node_modules` and `npm ci` also regenerates the ignored adblock seed some unit tests need.
 - CSS in stylesheets, not inline styles. Hairline `:focus-visible` on new controls, no thick rings.
@@ -30,7 +33,8 @@
 | File | Change | Responsibility |
 | --- | --- | --- |
 | `src/main/site-security.js` | modify | `isLocalNetworkHost`; observer's verified-this-run set; `certificateErrorQuery({ canContinue })`; `buildSiteInfo` `certificate-exception` state |
-| `src/main/certificate-exceptions.js` | create | Pure store, eligibility, validity snapshot, `documentExceptionAfterCommit` |
+| `src/main/certificate-exceptions.js` | create | Pure store, eligibility, validity snapshot |
+| `src/main/certificate-history.js` | create | Pure per-history-entry marks: which entries loaded past a warning |
 | `src/main/tab-view.js` | modify | `certificate-error` allow path; commit-time recompute in `did-navigate` |
 | `src/main/closed-tabs.js` | modify | Carry the document record in the entry `seed` |
 | `src/main/main.js` | modify | Store instance + wiring; tab defaults; site-info input; continue + forget handlers; profile `clear`; `pageSurfaces.owns` for `error` |
@@ -44,7 +48,7 @@
 | `test/desktop/support/{hooks,context,fixtures-server}.js`, `world.js` | modify | `nas.home.arpa` fixture with swappable certificate and a same-origin script |
 | `test/desktop/steps/site-certificate-safety.steps.js`, `test/desktop/cucumber.mjs` | modify | New steps; runnable ids |
 | `spec/features.md`, `spec/acceptance/site-certificate-safety.feature` | modify | F39 contract and scenarios |
-| `test/unit/site-security.test.js`, `test/unit/certificate-exceptions.test.js` (new), `test/unit/closed-tabs.test.js` | modify/create | Unit coverage |
+| `test/unit/site-security.test.js`, `test/unit/certificate-exceptions.test.js` (new), `test/unit/certificate-history.test.js` (new), `test/unit/closed-tabs.test.js` | modify/create | Unit coverage |
 
 ---
 
@@ -149,6 +153,18 @@ Feature: Certificate safety
     And the reopened tab still reports that I continued past a warning
     When the local address's choice is evicted
     Then the reopened tab still reports that I continued past a warning
+
+  @desktop @F39-7
+  Scenario: Going back to a page loaded past a warning still reports it after a trusted load on the same host
+    Given I continued past the warning on the lab address
+    When the lab address starts presenting a trusted certificate
+    And I stop allowing the lab address without reloading
+    And I navigate the lab tab to another page on the same address
+    Then the lab tab reports a secure connection
+    When I go back in the lab tab
+    Then the lab tab still reports that I continued past a warning
+    When I go forward in the lab tab
+    Then the lab tab reports a secure connection
 ```
 
 (The old file put both tags on the `Feature:` line; moving them onto scenarios keeps `@F39-1` selecting exactly the original scenario.)
@@ -158,16 +174,41 @@ Feature: Certificate safety
 In the design spec §4.5, change "next to the existing `tab.certificateError` reset at `tab-view.js:369`" to "in the `did-navigate` handler (`tab-view.js:335`); `tab-view.js:369` is the `did-start-navigation` reset of `certificateError`". Append to §4.5's bullet list:
 
 ```markdown
-- **Back/forward and pooled loads.** A commit can arrive without a new
-  `certificate-error` (a back/forward cache restore, or a request on an
-  already-open connection). The tab therefore keeps `continuedOrigins`, a
-  `Map<origin, certificate>` of every origin it committed under an exception.
-  On commit, if the committed origin is in that map and the certificate
-  observer has no trusted-verification record for the host
-  (`certificateObserver.get(session, url) === null`), the document stays
-  marked. A trusted record means Chromium has since verified a valid
-  certificate, so the page is genuinely secure. `continuedOrigins` travels in
-  the Reopen Closed Tab `seed` alongside `documentCertificateException`.
+- **The mark belongs to a history entry (plan revision 2).** A commit can
+  arrive without a new `certificate-error`: a back/forward cache restore, or
+  a request on an already-open connection. An origin-wide memory cannot
+  handle that safely, because a later trusted load on the same host would
+  clear it while an older entry still holds the unsafe document. Electron 44
+  exposes no stable navigation-entry id (`NavigationEntry` is only `url`,
+  `title`, `pageState`), so each tab keeps `certificateEntryMarks`
+  (`{ urls, marks, index }`), a mirror of its navigation history by position,
+  where `marks[i]` is the not-secure record of the document entry `i`
+  committed, or `null`.
+- On every main-frame cross-document commit, Blanc reads
+  `navigationHistory.getAllEntries()` and `getActiveIndex()` and updates the
+  mirror with a pure function (`commitEntryMarks`, `certificate-history.js`):
+  - **Fresh record:** the commit's own load was allowed by an exception
+    (`pendingCertificateException`, same origin), or the store still holds an
+    exception for the committed origin (a pooled connection). Either marks
+    the committed entry.
+  - **Traversal:** the active index changed, the entry count did not, and
+    the mirror's URL at the new index equals the committed URL. Without a
+    fresh record, a traversal restores that entry's stored mark. A new load
+    always creates or replaces an entry, so a trusted load never inherits a
+    mark and never clears another entry's mark.
+  - **Ambiguous cases fail toward Not secure.** A new load of exactly the
+    URL already in the next forward slot looks like a traversal and keeps
+    that slot's mark. If Chromium pruned entries from the front at its entry
+    cap, the mirror realigns by one position; if it cannot realign, every
+    entry whose origin carried a mark is marked.
+- The session-wide certificate observer is not consulted: a host-scoped
+  trusted-verification record says nothing about which document an entry
+  holds.
+- `certificateEntryMarks` and `documentCertificateException` travel in the
+  Reopen Closed Tab `seed`: live-view adoption keeps the same
+  `navigationHistory`, so the mirror stays valid. Snapshot and URL restores
+  build a new WebContents whose entries reload from the network, so they
+  start with an empty mirror.
 ```
 
 And in §6, replace the `spec/parity-matrix.md` bullet with: "`spec/parity-matrix.md` has no F39 row today; none is added."
@@ -328,7 +369,6 @@ git commit -m "Classify local-network hosts and remember verified hosts per run"
     - `matches(session, { url, error, certificate, now }) → boolean`
     - `get(session, url) → { error, certificate } | null`
     - `forget(session, url) → boolean`; `clear(session) → void`; `setCapForTest(n) → void`
-  - `documentExceptionAfterCommit({ committedUrl, pending, stored, continued, trustedNow }) → { origin, certificate } | null`
   - `certificate` everywhere is the `sanitizeCertificate` shape: `{ subject, issuer, validFrom, validTo, fingerprint }` (ms epochs).
 
 - [ ] **Step 1: Write the failing tests**
@@ -342,7 +382,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
   ELIGIBLE_CERTIFICATE_ERRORS, originKey, isTimeValid,
-  createCertificateExceptions, documentExceptionAfterCommit,
+  createCertificateExceptions,
 } = require('../../src/main/certificate-exceptions');
 
 const DAY = 86_400_000;
@@ -444,29 +484,6 @@ test('the cap evicts the oldest origin and reports the session', () => {
   assert.equal(evicted.length, 2);
 });
 
-test('document record after commit: pending, stored, continued-and-unverified, else null', () => {
-  const c = cert();
-  const pending = { url: URL_A, certificate: c };
-  assert.deepEqual(
-    documentExceptionAfterCommit({ committedUrl: `${URL_A}#x`, pending, stored: null, continued: new Map(), trustedNow: false }),
-    { origin: 'https://nas.home.arpa:8006', certificate: c });
-  assert.equal(
-    documentExceptionAfterCommit({ committedUrl: 'https://10.0.0.9/', pending, stored: null, continued: new Map(), trustedNow: false }),
-    null, 'pending for another origin does not apply');
-  assert.deepEqual(
-    documentExceptionAfterCommit({ committedUrl: URL_A, pending: null, stored: { certificate: c }, continued: new Map(), trustedNow: false }),
-    { origin: 'https://nas.home.arpa:8006', certificate: c }, 'pooled connection');
-  const continued = new Map([['https://nas.home.arpa:8006', c]]);
-  assert.deepEqual(
-    documentExceptionAfterCommit({ committedUrl: URL_A, pending: null, stored: null, continued, trustedNow: false }),
-    { origin: 'https://nas.home.arpa:8006', certificate: c }, 'back/forward restore after forget');
-  assert.equal(
-    documentExceptionAfterCommit({ committedUrl: URL_A, pending: null, stored: null, continued, trustedNow: true }),
-    null, 'a trusted verification clears it');
-  assert.equal(
-    documentExceptionAfterCommit({ committedUrl: 'blanc://error/?x', pending, stored: null, continued, trustedNow: false }),
-    null);
-});
 ```
 
 - [ ] **Step 2: Run them to see them fail**
@@ -602,34 +619,229 @@ function createCertificateExceptions({ cap = DEFAULT_CAP, onEvict = () => {} } =
   return { isEligible, allow, matches, get, forget, clear, setCapForTest };
 }
 
-function documentExceptionAfterCommit({ committedUrl, pending, stored, continued, trustedNow }) {
-  const origin = originKey(committedUrl);
-  if (!origin) return null;
-  if (pending && originKey(pending.url) === origin) return { origin, certificate: pending.certificate };
-  if (stored) return { origin, certificate: stored.certificate };
-  if (!trustedNow && continued?.has(origin)) return { origin, certificate: continued.get(origin) };
-  return null;
-}
-
 module.exports = {
   ELIGIBLE_CERTIFICATE_ERRORS,
   originKey,
   isTimeValid,
   createCertificateExceptions,
-  documentExceptionAfterCommit,
 };
 ```
 
 - [ ] **Step 4: Run the tests**
 
 Run: `node --test test/unit/certificate-exceptions.test.js`
-Expected: PASS (8 tests).
+Expected: PASS (7 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/main/certificate-exceptions.js test/unit/certificate-exceptions.test.js
 git commit -m "Add the session-only certificate exception store"
+```
+
+---
+
+### Task 3b: Per-history-entry marks
+
+**Files:**
+- Create: `src/main/certificate-history.js`
+- Test: `test/unit/certificate-history.test.js`
+
+**Interfaces:**
+- Consumes: `originKey` (Task 3).
+- Produces:
+  - `emptyEntryMarks() → { urls: string[], marks: Array<Record|null>, index: number }` (`index` is −1 when empty)
+  - `freshCertificateRecord({ committedUrl, pending, stored }) → Record | null`
+  - `commitEntryMarks(prior, { entryUrls, activeIndex, committedUrl, freshRecord }) → { state, record }`
+  - `cloneEntryMarks(state) → state` (new arrays; records are shared and never mutated)
+  - `Record` is `{ origin: string, certificate }` (the `sanitizeCertificate` shape).
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `test/unit/certificate-history.test.js`:
+
+```js
+'use strict';
+
+const assert = require('node:assert/strict');
+const test = require('node:test');
+const {
+  emptyEntryMarks, freshCertificateRecord, commitEntryMarks, cloneEntryMarks,
+} = require('../../src/main/certificate-history');
+
+const cert = { subject: 'nas', issuer: 'nas', validFrom: 1, validTo: 2, fingerprint: 'sha256/AAA' };
+const ORIGIN = 'https://nas.home.arpa:443';
+const MARK = { origin: ORIGIN, certificate: cert };
+const A = 'https://nas.home.arpa/one';
+const B = 'https://nas.home.arpa/two';
+const C = 'https://nas.home.arpa/three';
+
+function commit(prior, entryUrls, activeIndex, freshRecord = null) {
+  return commitEntryMarks(prior, { entryUrls, activeIndex, committedUrl: entryUrls[activeIndex], freshRecord });
+}
+
+test('fresh record: pending for the committed origin, else a stored exception, else nothing', () => {
+  assert.deepEqual(freshCertificateRecord({ committedUrl: A, pending: { url: B, certificate: cert }, stored: null }), MARK);
+  assert.deepEqual(freshCertificateRecord({ committedUrl: A, pending: null, stored: { certificate: cert } }), MARK);
+  assert.equal(freshCertificateRecord({ committedUrl: A, pending: { url: 'https://10.0.0.1/', certificate: cert }, stored: null }), null);
+  assert.equal(freshCertificateRecord({ committedUrl: 'blanc://error/?x', pending: { url: A, certificate: cert }, stored: { certificate: cert } }), null);
+});
+
+test('a trusted same-host load gets its own entry; Back restores the unsafe entry and Forward does not', () => {
+  let r = commit(emptyEntryMarks(), [A], 0, MARK);
+  assert.deepEqual(r.record, MARK);
+  r = commit(r.state, [A, B], 1);                // new trusted load, same host
+  assert.equal(r.record, null);
+  assert.deepEqual(r.state.marks, [MARK, null]);
+  r = commit(r.state, [A, B], 0);                // Back (traversal, no request)
+  assert.deepEqual(r.record, MARK);
+  r = commit(r.state, [A, B], 1);                // Forward
+  assert.equal(r.record, null);
+});
+
+test('a new load from the middle replaces forward entries and their marks', () => {
+  let r = commit(emptyEntryMarks(), [A], 0);
+  r = commit(r.state, [A, B], 1, MARK);
+  r = commit(r.state, [A, B], 0);                // Back to A
+  r = commit(r.state, [A, C], 1);                // new load replaces B
+  assert.equal(r.record, null);
+  assert.deepEqual(r.state.marks, [null, null]);
+});
+
+test('reload and replace at the same index recompute instead of inheriting', () => {
+  let r = commit(emptyEntryMarks(), [A], 0, MARK);
+  r = commit(r.state, [A], 0);                   // reload after Stop allowing
+  assert.equal(r.record, null);
+});
+
+test('ambiguous: a new load of the URL already in the forward slot keeps its mark', () => {
+  let r = commit(emptyEntryMarks(), [A], 0);
+  r = commit(r.state, [A, B], 1, MARK);
+  r = commit(r.state, [A, B], 0);
+  r = commit(r.state, [A, B], 1);                // Forward, or a new load of B
+  assert.deepEqual(r.record, MARK, 'fails toward Not secure');
+});
+
+test('front pruning at the entry cap realigns marks by one position', () => {
+  const urls = Array.from({ length: 50 }, (_, i) => `https://site${i}.test/`);
+  const marked = 'https://nas.home.arpa/p10';
+  urls[10] = marked;
+  const prior = { urls, marks: urls.map((u) => (u === marked ? MARK : null)), index: 49 };
+  const next = [...urls.slice(1), 'https://site50.test/'];
+  const r = commit(prior, next, 49);
+  assert.equal(r.record, null);
+  assert.deepEqual(r.state.marks[9], MARK);
+  assert.equal(r.state.marks.filter(Boolean).length, 1);
+});
+
+test('an unresolvable history marks every entry of a marked origin', () => {
+  const prior = { urls: [A, 'https://other.test/'], marks: [MARK, null], index: 1 };
+  const r = commit(prior, ['https://x.test/', C, 'https://y.test/'], 2);
+  assert.equal(r.record, null);
+  assert.deepEqual(r.state.marks, [null, MARK, null]);
+});
+
+test('clone copies arrays so a closed entry and a live tab never share state', () => {
+  const r = commit(emptyEntryMarks(), [A], 0, MARK);
+  const copy = cloneEntryMarks(r.state);
+  copy.marks[0] = null;
+  assert.deepEqual(r.state.marks[0], MARK);
+  assert.deepEqual(cloneEntryMarks(null), emptyEntryMarks());
+});
+```
+
+- [ ] **Step 2: Run them to see them fail**
+
+Run: `node --test test/unit/certificate-history.test.js`
+Expected: FAIL — `Cannot find module '../../src/main/certificate-history'`.
+
+- [ ] **Step 3: Implement**
+
+Create `src/main/certificate-history.js`:
+
+```js
+'use strict';
+
+// Which navigation-history entries hold a document loaded past a certificate
+// warning (certificate spec §4.5, plan revision 2). Electron exposes no
+// stable entry id, so this mirrors the entry list by position. Every case it
+// cannot resolve keeps the mark: it fails toward "Not secure". Pure.
+const { originKey } = require('./certificate-exceptions');
+
+function emptyEntryMarks() {
+  return { urls: [], marks: [], index: -1 };
+}
+
+function cloneEntryMarks(state) {
+  if (!state || !Array.isArray(state.urls)) return emptyEntryMarks();
+  return { urls: [...state.urls], marks: [...state.marks], index: state.index };
+}
+
+function freshCertificateRecord({ committedUrl, pending, stored }) {
+  const origin = originKey(committedUrl);
+  if (!origin) return null;
+  if (pending && originKey(pending.url) === origin) return { origin, certificate: pending.certificate };
+  if (stored) return { origin, certificate: stored.certificate };
+  return null;
+}
+
+// Chromium's per-tab navigation entry cap (content::kMaxSessionHistoryEntries).
+const MAX_ENTRIES = 50;
+
+// Chromium never rewrites entries below the lower of the old and new active
+// index, except when it prunes one entry from the front at its entry cap.
+// Returns the prior mirror in new coordinates, or null when unresolvable.
+function alignPrior(prior, entryUrls, activeIndex) {
+  if (!prior || prior.index < 0) return emptyEntryMarks();
+  for (const shift of [0, 1]) {
+    const atCap = entryUrls.length === prior.urls.length && entryUrls.length >= MAX_ENTRIES;
+    if (shift === 1 && !atCap) continue;
+    const stable = Math.min(prior.index - shift, activeIndex);
+    let aligned = true;
+    for (let j = 0; j < stable; j++) {
+      if (prior.urls[j + shift] !== entryUrls[j]) { aligned = false; break; }
+    }
+    if (aligned) {
+      return { urls: prior.urls.slice(shift), marks: prior.marks.slice(shift), index: prior.index - shift };
+    }
+  }
+  return null;
+}
+
+function commitEntryMarks(prior, { entryUrls, activeIndex, committedUrl, freshRecord }) {
+  const urls = [...entryUrls];
+  const aligned = alignPrior(prior, urls, activeIndex);
+  if (!aligned) {
+    const byOrigin = new Map();
+    for (const mark of prior?.marks ?? []) if (mark) byOrigin.set(mark.origin, mark);
+    const marks = urls.map((url) => byOrigin.get(originKey(url)) ?? null);
+    if (freshRecord) marks[activeIndex] = freshRecord;
+    return { state: { urls, marks, index: activeIndex }, record: marks[activeIndex] ?? null };
+  }
+  const traversal = aligned.index !== activeIndex &&
+    aligned.urls.length === urls.length &&
+    aligned.urls[activeIndex] === committedUrl;
+  const record = freshRecord ?? (traversal ? aligned.marks[activeIndex] ?? null : null);
+  const marks = urls.map((url, j) => {
+    if (j === activeIndex) return record;
+    return aligned.urls[j] === url ? aligned.marks[j] ?? null : null;
+  });
+  return { state: { urls, marks, index: activeIndex }, record };
+}
+
+module.exports = { emptyEntryMarks, cloneEntryMarks, freshCertificateRecord, commitEntryMarks };
+```
+
+- [ ] **Step 4: Run the tests**
+
+Run: `node --test test/unit/certificate-history.test.js`
+Expected: PASS (8 tests).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/main/certificate-history.js test/unit/certificate-history.test.js
+git commit -m "Track which history entries loaded past a certificate warning"
 ```
 
 ---
@@ -732,29 +944,29 @@ git commit -m "Flag eligible certificate failures and model the not-secure docum
 - Test: `test/unit/closed-tabs.test.js`, `test/unit/tab-view.test.js`
 
 **Interfaces:**
-- Consumes: Task 2 observer `wasVerifiedThisRun`, `get`; Task 3 store and `documentExceptionAfterCommit`; Task 4 `certificateErrorQuery(..., { canContinue })`, `buildSiteInfo({ certificateException })`.
-- Produces (tab record fields, main-only): `pendingCertificateException: {url, certificate} | null`, `documentCertificateException: {origin, certificate} | null`, `continuedOrigins: Map<string, certificate>`. New `initTabView` deps: `certificateExceptions`, `certificateObserver`. Main exports nothing new.
+- Consumes: Task 2 observer `wasVerifiedThisRun`; Task 3 store; Task 3b `freshCertificateRecord`, `commitEntryMarks`, `cloneEntryMarks`, `emptyEntryMarks`; Task 4 `certificateErrorQuery(..., { canContinue })`, `buildSiteInfo({ certificateException })`.
+- Produces (tab record fields, main-only): `pendingCertificateException: {url, certificate} | null`, `documentCertificateException: {origin, certificate} | null`, `certificateEntryMarks: {urls, marks, index}`. New `initTabView` deps: `certificateExceptions`, `certificateObserver`. Main exports nothing new.
 
 - [ ] **Step 1: Write the failing closed-tabs test**
 
 Append to `test/unit/closed-tabs.test.js`:
 
 ```js
-test('the not-secure document record rides in the seed and never in the projection', () => {
+test('the not-secure document record and entry marks ride in the seed, never in the projection', () => {
   const certificate = { subject: 'nas', issuer: 'nas', validFrom: 1, validTo: 2, fingerprint: 'sha256/AAA' };
   const record = { origin: 'https://nas.home.arpa:443', certificate };
-  const continued = new Map([[record.origin, certificate]]);
+  const marks = { urls: ['https://nas.home.arpa/'], marks: [record], index: 0 };
   const entry = buildTabEntry(baseTab({
-    url: 'https://nas.home.arpa/', documentCertificateException: record, continuedOrigins: continued,
+    url: 'https://nas.home.arpa/', documentCertificateException: record, certificateEntryMarks: marks,
   }), SNAP, {}, 0);
   assert.deepEqual(entry.seed.documentCertificateException, record);
-  assert.notEqual(entry.seed.continuedOrigins, continued, 'copied, not shared');
-  assert.deepEqual([...entry.seed.continuedOrigins], [...continued]);
+  assert.deepEqual(entry.seed.certificateEntryMarks, marks);
+  assert.notEqual(entry.seed.certificateEntryMarks.marks, marks.marks, 'copied, not shared');
   const projected = JSON.stringify(projectEntries([entry]));
   assert.doesNotMatch(projected, /sha256|certificate|nas\.home/);
   const plain = buildTabEntry(baseTab(), SNAP, {}, 0);
   assert.equal(plain.seed.documentCertificateException, null);
-  assert.equal(plain.seed.continuedOrigins.size, 0);
+  assert.deepEqual(plain.seed.certificateEntryMarks, { urls: [], marks: [], index: -1 });
 });
 ```
 
@@ -773,10 +985,10 @@ In `buildTabEntry`'s `seed`, after `navEpoch`:
       // The page was loaded past a certificate warning; adoption must keep
       // saying so (certificate spec §4.6). Main-only, like the snapshot.
       documentCertificateException: tab.documentCertificateException ?? null,
-      continuedOrigins: new Map(tab.continuedOrigins ?? []),
+      certificateEntryMarks: cloneEntryMarks(tab.certificateEntryMarks),
 ```
 
-Run: `node --test test/unit/closed-tabs.test.js` → PASS. `main.js:6346` already does `Object.assign(tab, entry.seed)`; update its trailing comment to list the two new fields.
+Add `const { cloneEntryMarks } = require('./certificate-history');` to `closed-tabs.js` (pure module; no electron). Run: `node --test test/unit/closed-tabs.test.js` → PASS. `main.js:6346` already does `Object.assign(tab, entry.seed)`; update its trailing comment to list the two new fields.
 
 - [ ] **Step 4: Wire the store into main and tab-view**
 
@@ -797,7 +1009,7 @@ Tab defaults (beside `certificateError: null`, `:5556`):
     // local certificate warning, and the committed document it produced.
     pendingCertificateException: null,
     documentCertificateException: null,
-    continuedOrigins: new Map(),
+    certificateEntryMarks: emptyEntryMarks(),
 ```
 
 Add `'certificateExceptions', 'certificateObserver'` to `initTabView`'s `required` list and to the destructuring in `wireTabView`; pass both from `main.js`'s `initTabView({ … })` call (next to `sanitizeCertificate, certificateErrorQuery` at `:5460`).
@@ -844,19 +1056,23 @@ Add `'certificateExceptions', 'certificateObserver'` to `initTabView`'s `require
 - [ ] **Step 7: Recompute on commit** (`did-navigate`, after `tab.navEpoch++;` at `:337`)
 
 ```js
-    const documentException = documentExceptionAfterCommit({
+    const nav = wc.navigationHistory;
+    const { state: entryMarks, record: documentException } = commitEntryMarks(tab.certificateEntryMarks, {
+      entryUrls: nav.getAllEntries().map((entry) => entry.url),
+      activeIndex: nav.getActiveIndex(),
       committedUrl: url,
-      pending: tab.pendingCertificateException,
-      stored: certificateExceptions.get(wc.session, url),
-      continued: tab.continuedOrigins,
-      trustedNow: certificateObserver.get(wc.session, url) !== null,
+      freshRecord: freshCertificateRecord({
+        committedUrl: url,
+        pending: tab.pendingCertificateException,
+        stored: certificateExceptions.get(wc.session, url),
+      }),
     });
     tab.pendingCertificateException = null;
+    tab.certificateEntryMarks = entryMarks;
     tab.documentCertificateException = documentException;
-    if (documentException) tab.continuedOrigins.set(documentException.origin, documentException.certificate);
 ```
 
-with `const { documentExceptionAfterCommit } = require('./certificate-exceptions');` at the top of `tab-view.js` (it is pure, so a direct require is consistent with the module's other pure imports). `did-navigate-in-page` is untouched.
+with `const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');` at the top of `tab-view.js` (pure, consistent with the module's other pure imports), and `emptyEntryMarks` required in `main.js` for the tab defaults. The session-wide certificate observer is deliberately **not** consulted here: a host-scoped trusted record says nothing about which document an entry holds. `did-navigate-in-page` is untouched.
 
 - [ ] **Step 8: Feed site info** (`main.js` near `:3976`)
 
@@ -1148,7 +1364,6 @@ function forgetActiveCertificateException() {
   const origin = tab?.documentCertificateException?.origin;
   if (!wc || !origin) return false;
   const forgotten = certificateExceptions.forget(wc.session, origin);
-  tab.continuedOrigins?.delete(origin);
   wc.session.closeAllConnections?.().catch?.(() => {});
   wc.reload();
   return forgotten;
@@ -1156,7 +1371,7 @@ function forgetActiveCertificateException() {
 chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
 ```
 
-Deleting from this tab's `continuedOrigins` is what makes the reload show the warning instead of the back/forward rule re-marking it. Other tabs keep their own maps (spec §4.5).
+The reload is a same-index commit, so `commitEntryMarks` recomputes the entry from a fresh record; with the exception forgotten and connections closed, the reload fails verification and shows the warning. Other entries in this tab's history, and other tabs, keep their marks until their documents are replaced (spec §4.5).
 
 - [ ] **Step 3: Overlay card**
 
@@ -1246,7 +1461,7 @@ git commit -m "Show the not-secure state and Stop allowing in the island"
 
 ---
 
-### Task 8: Desktop acceptance scenarios F39-2…F39-6
+### Task 8: Desktop acceptance scenarios F39-2…F39-7
 
 **Files:**
 - Modify: `test/desktop/support/fixtures-server.js` (`startSecure` returns `setCertificate`; `/asset/probe.js`)
@@ -1256,7 +1471,7 @@ git commit -m "Show the not-secure state and Stop allowing in the island"
 
 **Interfaces:**
 - Consumes: `continueUnsafeForSender` (Task 6), `forgetActiveCertificateException` (Task 7), `certificateExceptions.setCapForTest` (Task 3).
-- Produces: test-hook methods `continueUnsafeInTab(id)`, `forgetCertificateExceptionInTab(id)`, `setCertificateExceptionCap(n)`, `tabWebContentsId(id)`; world helper `localFixtureUrl(name)`; context `localFixturesBase`, `localFixtures` handle.
+- Produces: test-hook methods `continueUnsafeInTab(id)`, `forgetCertificateExceptionInTab(id)`, `forgetCertificateExceptionOnly(id)`, `setCertificateExceptionCap(n)`, `resetCertificateExceptionsForTest()`, `tabWebContentsId(id)`; world helper `localFixtureUrl(name, query, host)`; context `localFixturesBase`, `localFixturesPort`, `localFixtures` handle.
 
 - [ ] **Step 1: Fixture server**
 
@@ -1291,17 +1506,24 @@ In `pageBody`, when `raw.includes('probe=1')`, append `<script src="/asset/probe
 
 - [ ] **Step 2: Harness**
 
-`hooks.js`: generate two more self-signed pairs with the existing `openssl` invocation pattern — `local-a` and `local-b`, both `-subj /CN=nas.home.arpa -addext subjectAltName=DNS:nas.home.arpa` — start `localFixturesHandle = await fixtures.startSecure(localA)`, set `ctx.localFixturesBase = \`https://nas.home.arpa:${localFixturesHandle.port}\``, `ctx.localFixtures = { handle: localFixturesHandle, certA: localA, certB: localB }`, add `, MAP nas.home.arpa 127.0.0.1` to `--host-resolver-rules`, and close it in the `AfterAll` beside `untrustedFixturesHandle`. `context.js`: add `localFixturesBase: null, localFixtures: null`. `world.js`:
+`hooks.js`: generate three more key/cert pairs with the existing `openssl` invocation pattern, each with `-addext subjectAltName=DNS:nas.home.arpa,DNS:lab.home.arpa`:
+
+- `localA` and `localB`: self-signed, **not** in the SPKI allowlist (two different keys, so different fingerprints).
+- `localTrusted`: its SPKI hash is computed exactly like `secureSpkiHash` and appended to the flag: `--ignore-certificate-errors-spki-list=${secureSpkiHash},${localTrustedSpkiHash}`.
+
+Start `localFixturesHandle = await fixtures.startSecure(localA)`; set `ctx.localFixturesPort = localFixturesHandle.port`, `ctx.localFixturesBase = \`https://nas.home.arpa:${localFixturesHandle.port}\``, `ctx.localFixtures = { handle: localFixturesHandle, certA: localA, certB: localB, certTrusted: localTrusted }`; append `, MAP nas.home.arpa 127.0.0.1, MAP lab.home.arpa 127.0.0.1` to `--host-resolver-rules`; close the handle in the `AfterAll` beside `untrustedFixturesHandle`. `context.js`: add `localFixturesBase: null, localFixturesPort: null, localFixtures: null`. `world.js`:
 
 ```js
-  /** HTTPS on a local-use name (nas.home.arpa) with its own self-signed key,
-   *  absent from the SPKI allowlist: eligible for Continue (F39-2..6). */
-  localFixtureUrl(name, query = '') {
-    return `${ctx.localFixturesBase}/site/${encodeURIComponent(name)}${query}`;
+  /** HTTPS on a local-use name with its own key, absent from the SPKI
+   *  allowlist unless the trusted pair is swapped in (F39-2..7). */
+  localFixtureUrl(name, query = '', host = 'nas.home.arpa') {
+    return `https://${host}:${ctx.localFixturesPort}/site/${encodeURIComponent(name)}${query}`;
   }
 ```
 
-**Each scenario must start with a fresh exception store and the A certificate.** Add a `Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6' })` hook that calls `this.call('resetCertificateExceptionsForTest')` and `ctx.localFixtures.handle.setCertificate(ctx.localFixtures.certA)`.
+`lab.home.arpa` is used **only** by F39-7: its trusted load records the host as verified for the rest of the run (spec §3.3), which would make later scenarios' Continue ineligible on that name.
+
+**Each scenario must start with a fresh exception store and the A certificate.** Add a `Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7' })` hook that calls `this.call('resetCertificateExceptionsForTest')` and `ctx.localFixtures.handle.setCertificate(ctx.localFixtures.certA)`.
 
 - [ ] **Step 3: Test-hook drivers** (`test-hook.js`, beside `executeTab`; refs passed from `main.js`'s `install({ … })`)
 
@@ -1313,6 +1535,14 @@ In `pageBody`, when `raw.includes('probe=1')`, append `<script src="/asset/probe
     forgetCertificateExceptionInTab(id) {
       setActiveTab(id, { focusContent: false });
       return refs.forgetActiveCertificateException();
+    },
+    forgetCertificateExceptionOnly(id) {
+      const tab = tabs.get(id);
+      const wc = tab?.view?.webContents;
+      const origin = tab?.documentCertificateException?.origin;
+      if (!wc || !origin) return false;
+      const forgotten = refs.certificateExceptions.forget(wc.session, origin);
+      return wc.session.closeAllConnections().then(() => forgotten);
     },
     setCertificateExceptionCap(n) { refs.certificateExceptions.setCapForTest(Number(n)); },
     resetCertificateExceptionsForTest() {
@@ -1461,28 +1691,66 @@ Then('the reopened tab still reports that I continued past a warning', async fun
 When("the local address's choice is evicted", async function () {
   await this.call('setCertificateExceptionCap', 0);
 });
+
+Given('I continued past the warning on the lab address', async function () {
+  this.labTabId = await this.call('openTab', this.localFixtureUrl('lab-one', '', 'lab.home.arpa'));
+  await continueLocal(this, this.labTabId);
+});
+
+When('the lab address starts presenting a trusted certificate', function () {
+  ctx.localFixtures.handle.setCertificate(ctx.localFixtures.certTrusted);
+});
+
+When('I stop allowing the lab address without reloading', async function () {
+  assert.equal(await this.call('forgetCertificateExceptionOnly', this.labTabId), true);
+});
+
+When('I navigate the lab tab to another page on the same address', async function () {
+  const target = this.localFixtureUrl('lab-two', '', 'lab.home.arpa');
+  await this.call('executeTab', this.labTabId, `location.href = ${JSON.stringify(target)}`);
+});
+
+Then('the lab tab reports a secure connection', async function () {
+  await waitForSiteState(this, this.labTabId, 'secure');
+});
+
+When('I go back in the lab tab', async function () {
+  await this.call('executeTab', this.labTabId, 'history.back()');
+});
+
+When('I go forward in the lab tab', async function () {
+  await this.call('executeTab', this.labTabId, 'history.forward()');
+});
+
+Then('the lab tab still reports that I continued past a warning', async function () {
+  await waitForSiteState(this, this.labTabId, 'certificate-exception');
+});
 ```
 
 Check that `state()` exposes `activeTabId` (`grep -n "activeTabId" src/main/test-hook.js`); use the field it does expose if named differently. Scenario F39-2's interstitial step reads `this.untrustedCertificateTabId`, hence the alias in the first Given.
 
 - [ ] **Step 5: Positive control before trusting the new scenarios**
 
-Temporarily change `forgetActiveCertificateException` to skip `tab.continuedOrigins?.delete(origin)`, run `@F39-4` only, and confirm it FAILS at "the first tab shows the certificate safety interstitial" (the back/forward rule would keep it marked). Restore the line. Then temporarily remove the `continuedOrigins`/`documentCertificateException` lines from `buildTabEntry`'s seed and confirm `@F39-6` FAILS at "still reports". Restore. (Memory: positive controls before conclusions.)
+Each new scenario must be shown able to fail before its pass is trusted:
 
-Run (macOS local): `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F39-4"` (prefix `xvfb-run -a` on Linux).
+- Temporarily make `commitEntryMarks` return `record: freshRecord` (ignore stored marks on traversal). Run `@F39-7`: it must FAIL at "the lab tab still reports that I continued past a warning". Restore.
+- Temporarily drop `certificateEntryMarks` and `documentCertificateException` from `buildTabEntry`'s seed. Run `@F39-6`: it must FAIL at "the reopened tab still reports". Restore.
+- Temporarily make `forgetActiveCertificateException` skip both `forget` and `closeAllConnections`. Run `@F39-4`: it must FAIL at "the first tab shows the certificate safety interstitial". Restore.
+
+Run one scenario (macOS local) with: `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F39-7"` (prefix `xvfb-run -a` on Linux).
 
 - [ ] **Step 6: Make them runnable and run the whole F39 set**
 
-`cucumber.mjs:54`: replace `'@F39-1',` with `'@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6',`.
+`cucumber.mjs:54`: replace `'@F39-1',` with `'@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6', '@F39-7',`.
 
-Run: `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F39-1 or @F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6"`
-Expected: 6 scenarios passed. Then `npm run test:acceptance:dry` → PASS.
+Run: `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F39-1 or @F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7"`
+Expected: 7 scenarios passed. Then `npm run test:acceptance:dry` → PASS.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add test/desktop src/main/test-hook.js src/main/main.js
-git commit -m "Cover local certificate continue, revocation, private isolation and reopen in acceptance"
+git commit -m "Cover local certificate continue, Stop allowing, private isolation, reopen and Back in acceptance"
 ```
 
 ---
