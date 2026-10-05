@@ -2559,9 +2559,6 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
 
-/** The warning page's Continue (certificate spec §4.4). Takes only the
- *  sender: the URL, error and certificate come from the tab's own main-held
- *  failure record, and eligibility is checked again here. */
 /** Stop allowing (certificate spec §4.5): forget the active tab's origin in
  *  its session, drop pooled connections, and reload so the warning returns.
  *  Other entries and tabs keep their marks until their documents change. */
@@ -2577,6 +2574,9 @@ function forgetActiveCertificateException() {
   return forgotten;
 }
 
+/** The warning page's Continue (certificate spec §4.4). Takes only the
+ *  sender: the URL, error and certificate come from the tab's own main-held
+ *  failure record, and eligibility is checked again here. */
 function continueUnsafeForSender(wc) {
   const tabId = tabIdByWebContentsId.get(wc?.id);
   const tab = tabId ? tabs.get(tabId) : null;
