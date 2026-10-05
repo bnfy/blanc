@@ -253,7 +253,9 @@ Text version:
 
 **Page bridges: exposure and host authority are pinned.** `browser-api/bridges.json` describes `window.bowserPages`: 88 members across the nine `blanc://` hosts that get one. It also describes the fill-status capsule bridge, `window.blancFillStatus`. The same check runs the page preload as each host and compares each channel's hosts with the host allowlist `pages.js` gives its handler. It also checks the page scripts and the fill-status payloads. `bowserPages` parameters and results are still `unknown`; pinning them is the next contract step.
 
-Steps 3 to 5 (the Mojo interface, the native controller and shared contract tests against both builds) involve fork work. They wait for Decision 1. The remaining Phase 0 items (test vectors and the Widevine questions) are not covered by this work.
+**Test vectors: recorded on Electron.** `browser-api/generated/vectors.json` holds, for every member, example calls with the exact message sent, example replies the call must resolve to, and example event payloads with what subscribers receive, all as type-valid samples. `replayVectors()` replays them against any implementation through a small adapter, and the check replays them against the Electron preload on every run. A Chromium build would supply its own adapter for step 5.
+
+Steps 3 to 5 (the Mojo interface, the native controller, and running the shared vectors against a Chromium build) involve fork work. They wait for Decision 1. The remaining Phase 0 item, the Widevine questions, is with Google.
 
 ## Open questions and caveats
 
