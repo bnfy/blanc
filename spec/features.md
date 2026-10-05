@@ -734,8 +734,9 @@ From the desktop `DEFAULTS`:
 
 - The start page offers four layouts: **ledger** (the original column),
   **billboard** (a live clock over locally ranked frequent-site tiles), **shelf** (a favorites grid
-  with group and blocked-count cards), **tally** (the ledger column beside a
-  week-of-blocking bar chart). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
+  with group and blocked-count cards), **tally** (favorites and groups beside a
+  week-of-blocking bar chart, as two balanced columns that stack data-first on
+  narrow windows). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
   derives up to six hostname-level sites from the active local profile's
   on-device history, ranked by visit count with recency as the tie-breaker. A
   full, bounded local page title labels each tile, and a bounded profile-local
