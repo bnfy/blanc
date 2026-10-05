@@ -9,6 +9,7 @@ const {
   GET_CHANNEL,
   UPDATE_CHANNEL,
   FETCH_CHANNEL,
+  darkSiteHostname,
   shouldDarken,
   resolveDarkSiteCommand,
 } = require('./dark-websites');
@@ -112,7 +113,28 @@ function createDarkWebsitesService({ ipcMain, nativeTheme, settings, getFetchSes
     return { hostname: result.hostname, darkened: result.darkened };
   }
 
-  return { install, broadcast, runDarkSiteCommand, stateFor };
+  /**
+   * The shield popover's Dark website switch for a tab: null when the tab has
+   * no website, else whether the site is darkened while Blanc is dark (the
+   * same state "/dark-site" flips) and whether Blanc is dark right now.
+   */
+  function siteState(tab) {
+    if (!tab || !darkSiteHostname(tab.url)) return null;
+    const s = settings.getSettings();
+    return {
+      on: shouldDarken({
+        url: tab.url,
+        enabled: s.darkWebsites,
+        exceptions: s.darkWebsitesExceptions,
+        systemDark: true,
+        isPrivate: tab.private === true,
+        privateOverrides,
+      }),
+      appliesNow: nativeTheme.shouldUseDarkColors === true,
+    };
+  }
+
+  return { install, broadcast, runDarkSiteCommand, stateFor, siteState };
 }
 
 module.exports = { createDarkWebsitesService, mainFrameWebUrl, isPrivateContents };

@@ -285,6 +285,25 @@ test('theme changes and private /dark-site choices reach open tabs without touch
   assert.equal(h.service.runDarkSiteCommand(null), null);
 });
 
+test('the shield popover switch shows the site\'s state while dark, in normal and private tabs', () => {
+  const h = serviceHarness({ darkWebsites: false, dark: false });
+  assert.equal(h.service.siteState(null), null);
+  assert.equal(h.service.siteState({ url: 'blanc://newtab/' }), null);
+  // Feature off: every site reads off, and the note shows while Blanc is light.
+  assert.deepEqual(h.service.siteState({ url: 'https://example.com/' }), { on: false, appliesNow: false });
+
+  // Flipping from the popover is /dark-site: it turns the feature on for the site.
+  h.service.runDarkSiteCommand({ url: 'https://example.com/', private: false });
+  assert.deepEqual(h.service.siteState({ url: 'https://example.com/' }), { on: true, appliesNow: false });
+  h.nativeTheme.shouldUseDarkColors = true;
+  assert.deepEqual(h.service.siteState({ url: 'https://example.com/' }), { on: true, appliesNow: true });
+
+  // A private tab's flip shows in that private tab only.
+  h.service.runDarkSiteCommand({ url: 'https://example.com/', private: true });
+  assert.equal(h.service.siteState({ url: 'https://example.com/', private: true }).on, false);
+  assert.equal(h.service.siteState({ url: 'https://example.com/', private: false }).on, true);
+});
+
 function runPreload({ url = 'https://example.com/', top = true, state = { on: true } } = {}) {
   const calls = { expose: [], info: [], execute: [], listeners: [] };
   const location = new URL(url);

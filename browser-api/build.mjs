@@ -1306,6 +1306,22 @@ export function payloadFixtures() {
   const { projectEntries } = requireMain('./closed-tabs');
   const { projectDisplayShares } = requireMain('./display-capture-indicator');
   const captureState = requireMain('./capture-state');
+  const { createDarkWebsitesService } = requireMain('./dark-websites-service');
+  // The real darkSite projection, over each settings and appearance combination.
+  const darkSites = [];
+  for (const [darkWebsites, darkWebsitesExceptions] of [[false, []], [true, []], [true, ['example.com']]]) {
+    for (const shouldUseDarkColors of [false, true]) {
+      const service = createDarkWebsitesService({
+        ipcMain: null,
+        nativeTheme: { shouldUseDarkColors },
+        settings: { getSettings: () => ({ darkWebsites, darkWebsitesExceptions }) },
+        getFetchSession: () => null,
+        forEachTabContents: () => {},
+        allowStylesheet: async () => false,
+      });
+      darkSites.push((url, privateTab) => service.siteState({ url, private: privateTab }));
+    }
+  }
 
   const urls = ['https://example.com/a', 'http://example.com/', 'http://localhost:3000/', 'blanc://newtab/', 'file:///tmp/x.html', 'not a url', ''];
   const cert = sanitizeCertificate({ subjectName: 'example.com', issuerName: 'Example CA', validStart: 1700000000, validExpiry: 1800000000, fingerprint: 'sha256/abc' });
@@ -1328,7 +1344,11 @@ export function payloadFixtures() {
           for (const status of statuses) {
             for (const privateTab of [false, true]) {
               const model = shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, provider, readiness, connection: connectionFor({ url, isLoading: false }) });
-              if (model) add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab) });
+              if (model) {
+                for (const darkSite of darkSites) {
+                  add(`shieldPopover(${url}, ${provider}, ${readiness})`, 'ShieldPopover', { ...model, controls: shieldProviderModel(status, privateTab), darkSite: darkSite(url, privateTab) });
+                }
+              }
             }
           }
         }

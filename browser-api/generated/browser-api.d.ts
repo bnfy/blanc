@@ -189,6 +189,13 @@ export interface ShieldPopover {
   countLine: string;
   connection: ConnectionState | null;
   controls: ShieldProviderControls;
+  darkSite: ShieldDarkSite | null;
+}
+
+/** The shield popover's Dark website switch. `on` describes the site while Blanc is dark (what /dark-site flips); `appliesNow` is whether Blanc is dark now. */
+export interface ShieldDarkSite {
+  on: boolean;
+  appliesNow: boolean;
 }
 
 /** Window-wide capture chip state. */

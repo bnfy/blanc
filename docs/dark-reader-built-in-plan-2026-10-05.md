@@ -156,8 +156,8 @@ downloads fixes at runtime.
       synced), private-tab choices kept in memory only, no brightness or
       contrast controls yet, and the fetch bridge included.
 - [x] Feature name: **Dark websites** (build default; the owner can rename it).
-- [x] Where the per-site switch lives: `/dark-site` and the Settings site list for
-      now; a shield-popover control remains a possible follow-up.
+- [x] Where the per-site switch lives: `/dark-site`, the Settings site list and,
+      since October 5, 2026, a **Dark website** switch in the shield popover.
 - [x] Whether the setting and the site list sync between devices: not synced
       (device-local).
 - [x] Whether a per-site switch flipped in a private tab is saved: no, it lasts
