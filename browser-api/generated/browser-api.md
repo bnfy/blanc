@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-101 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+102 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -90,6 +90,7 @@
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
 | `toggleAdblock` | blocking | invoke | `chrome:adblock-toggle` | `() => Promise<ProviderBlockAdsResult \| BlockAdsResult>` | all |
 | `allowAdsOnActiveSite` | blocking | invoke | `chrome:adblock-exempt-active` | `() => Promise<string \| null \| AllowAdsError>` | all |
+| `toggleDarkSiteOnActiveSite` | appearance | invoke | `chrome:dark-site-active` | `() => Promise<DarkSiteResult \| null>` | all |
 | `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<FillLoginSuccess \| FillLoginFailure \| false>` | darwin |
@@ -530,6 +531,15 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 The chrome's effective appearance; pending while a system theme is still resolving.
 
 `'light' \| 'dark' \| 'pending'`
+
+### `DarkSiteResult`
+
+The outcome of /dark-site. `darkened` describes the site while Blanc is dark; in a private tab the choice lasts until Blanc quits.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `hostname` | `string` |  |
+| `darkened` | `boolean` |  |
 
 ### `PageTint`
 

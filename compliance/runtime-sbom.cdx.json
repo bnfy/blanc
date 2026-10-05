@@ -78,6 +78,46 @@
       ]
     },
     {
+      "type": "library",
+      "bom-ref": "asset:dark-reader-engine",
+      "name": "Dark Reader engine (Dark websites)",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82619e7a0bcabbea15a91488bc74fd0f9ba8f8f2a1cc67527f78166037cce166"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Dark Reader Ltd. and contributors; the unmodified npm API build is embedded in src/main/dark-websites-preload.js"
+        },
+        {
+          "name": "blanc:file",
+          "value": "dark-reader/upstream/darkreader.js"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "dark-reader/darkreader-LICENSE.txt"
+        }
+      ],
+      "version": "4.9.133",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/darkreader/darkreader"
+        }
+      ]
+    },
+    {
       "type": "data",
       "bom-ref": "asset:easylist-data",
       "name": "EasyList",
@@ -1883,6 +1923,10 @@
     },
     {
       "ref": "asset:caveat-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:dark-reader-engine",
       "dependsOn": []
     },
     {
