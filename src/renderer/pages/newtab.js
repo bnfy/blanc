@@ -735,6 +735,15 @@ for (const button of document.querySelectorAll('[data-layout-pick]')) {
   });
 }
 
+// Customize: the native popover owns opening, Escape, click-outside and
+// focus return. This only mirrors its state onto the opener. Picking a layout
+// leaves it open so layouts can be compared.
+const customizeButton = document.getElementById('customizeButton');
+const customizePopover = document.getElementById('customizePopover');
+customizePopover.addEventListener('toggle', (event) => {
+  customizeButton.setAttribute('aria-expanded', String(event.newState === 'open'));
+});
+
 // Favorites and start data resolve independently. A layout rendered from
 // whichever landed first would cache a half-empty draw, so the alternative
 // layouts wait for both; the ledger still paints incrementally as it always

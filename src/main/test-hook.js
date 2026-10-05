@@ -1488,11 +1488,48 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const button = document.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
+        const popover = document.getElementById('customizePopover');
+        const opener = document.getElementById('customizeButton');
+        if (!popover || !opener) return false;
+        if (!popover.matches(':popover-open')) { opener.focus(); opener.click(); }
+        if (!popover.matches(':popover-open')) return false;
+        const button = popover.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
         if (!button) return false;
         button.click();
         return true;
       })()`);
+    },
+    openStartCustomize() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        const opener = document.getElementById('customizeButton');
+        if (!popover || !opener) return false;
+        if (!popover.matches(':popover-open')) { opener.focus(); opener.click(); }
+        return popover.matches(':popover-open');
+      })()`);
+    },
+    readStartCustomize() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        open: document.getElementById('customizePopover')?.matches(':popover-open') ?? false,
+        expanded: document.getElementById('customizeButton')?.getAttribute('aria-expanded') ?? null,
+        focusedId: document.activeElement?.id ?? null,
+        pressed: [...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map((b) => b.dataset.layoutPick),
+      }))()`);
+    },
+    pressStartPageKey(keyCode) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: String(keyCode) });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: String(keyCode) });
+      return true;
     },
     readMahjongFooterLink() {
       const tab = tabs.get(getActiveTabId());

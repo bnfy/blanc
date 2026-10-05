@@ -2395,18 +2395,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   padding: 0;
 }
 .footer-left { display: inline-flex; align-items: baseline; gap: 8px; }
-.layout-switcher { display: inline-flex; align-items: baseline; gap: 4px; }
-.layout-switcher button {
-  font-family: var(--font-ui);
-  font-size: 11.5px;
-  color: var(--text-dim);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-.layout-switcher button:hover { color: var(--text); }
-.layout-switcher button.active { color: var(--text); }
 .footer-right { display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap; }
 #mahjongLink { color: var(--text-dim); text-decoration: none; }
 #mahjongLink:hover { color: var(--text); text-decoration: underline; }
@@ -2946,46 +2934,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
 }
 .ledger-footer { align-items: center; }
-.layout-switcher {
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
-}
-.layout-switcher-label {
-  padding: 0 7px 0 8px;
-  color: var(--text-dim);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.layout-switcher button {
-  min-width: 0;
-  padding: 4px 8px;
-  border: 0;
-  border-radius: 999px;
-  color: var(--text-dim);
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  line-height: 1.25;
-}
-.layout-switcher button:hover { color: var(--text); background: var(--surface); }
-.layout-switcher button.active,
-.layout-switcher button[aria-pressed="true"] { color: var(--bg); background: var(--text); }
 .wallpaper-toggle {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 24px;
-  padding: 2px 0 2px 14px;
+  padding: 2px 0;
   border: 0;
-  border-left: 1px solid var(--border);
   border-radius: 0;
   background: transparent;
   color: var(--text-dim);
@@ -3210,6 +3167,105 @@ body[data-layout="tally"] #layoutTally {
   letter-spacing: 0.005em;
 }
 .shelf-grid > .start-empty-hint { grid-column: 1 / -1; }
+
+/* Footer: the blocked count repeats here only on Ledger; the other layouts
+   already show it. Private tabs keep their explanation on every layout. */
+:root:not([data-theme="private"]) body:not([data-layout="ledger"]) #footerLeft { display: none; }
+
+.start-customize {
+  min-height: 28px;
+  padding: 4px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  cursor: pointer;
+  anchor-name: --start-customize;
+}
+.start-customize:hover,
+.start-customize[aria-expanded="true"] { color: var(--text); border-color: var(--border); background: transparent; }
+.start-customize:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 3px; }
+
+/* Level-2 material: near-opaque, because it floats over the translucent footer. */
+.start-customize-popover {
+  position: fixed;
+  position-anchor: --start-customize;
+  position-area: top center;
+  inset: auto;
+  margin: 0 0 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 14px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 14px;
+  background: var(--start-float-fill);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--start-shadow-float);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+.customize-label {
+  margin: 0 0 8px;
+  color: var(--text-dim);
+  font: 600 12px/1.3 var(--font-ui);
+  letter-spacing: 0.005em;
+}
+.layout-switcher { display: flex; gap: 6px; }
+.layout-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-dim);
+  font: 500 11px/1.3 var(--font-ui);
+  letter-spacing: 0.005em;
+  cursor: pointer;
+}
+.layout-preview:hover { background: color-mix(in srgb, var(--text) 6%, transparent); color: var(--text); border: 0; }
+.layout-preview:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.layout-preview[aria-pressed="true"] { color: var(--text); }
+.layout-preview[aria-pressed="true"] .layout-thumb { outline: 2px solid var(--accent); outline-offset: 1px; }
+.layout-thumb {
+  display: grid;
+  width: 64px;
+  height: 40px;
+  padding: 5px;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-raised);
+}
+.layout-thumb i { display: block; min-width: 0; min-height: 0; border-radius: 2px; background: color-mix(in srgb, var(--text-dim) 38%, transparent); }
+/* Ledger: a heading line over two columns. */
+.layout-thumb[data-thumb="ledger"] { grid-template-columns: 1fr 1fr; grid-template-rows: 4px 1fr 1fr; }
+.layout-thumb[data-thumb="ledger"] i:nth-child(1) { grid-column: 1; }
+.layout-thumb[data-thumb="ledger"] i:nth-child(2) { grid-column: 1; grid-row: 2 / 4; }
+.layout-thumb[data-thumb="ledger"] i:nth-child(3) { grid-column: 2; grid-row: 2; }
+.layout-thumb[data-thumb="ledger"] i:nth-child(4) { grid-column: 2; grid-row: 3; }
+/* Billboard: a clock over a row of sites and a chip. */
+.layout-thumb[data-thumb="billboard"] { grid-template-rows: 1fr 4px 4px; justify-items: center; }
+.layout-thumb[data-thumb="billboard"] i:nth-child(1) { width: 26px; }
+.layout-thumb[data-thumb="billboard"] i:nth-child(2) { width: 38px; }
+.layout-thumb[data-thumb="billboard"] i:nth-child(3) { width: 18px; }
+/* Shelf: a grid of cards. */
+.layout-thumb[data-thumb="shelf"] { grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; }
+/* Tally: a list beside a chart. */
+.layout-thumb[data-thumb="tally"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.layout-thumb[data-thumb="tally"] i:nth-child(1) { grid-column: 1; grid-row: 1; }
+.layout-thumb[data-thumb="tally"] i:nth-child(2) { grid-column: 1; grid-row: 2; }
+.layout-thumb[data-thumb="tally"] i:nth-child(3) { grid-column: 2; grid-row: 1 / 3; }
+.customize-divider {
+  height: 1px;
+  margin: 12px 0 8px;
+  border: 0;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+}
 
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant

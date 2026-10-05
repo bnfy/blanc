@@ -112,3 +112,14 @@ Feature: Start page layouts
     Given a profile with no favorites
     When I open a new tab
     Then Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none
+
+  @F35-14 @desktop
+  Scenario: Customize chooses the layout and closes with Escape
+    Given a new tab is open
+    When I open Customize on the start page
+    And I choose the "tally" start page layout from its footer
+    Then the start page renders the "tally" layout
+    And the saved start page layout is "tally"
+    And Customize stays open with "tally" pressed
+    When I press Escape on the start page
+    Then Customize is closed and its button has focus

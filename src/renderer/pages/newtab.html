@@ -152,20 +152,36 @@
       <span id="version" class="ledger-version"></span>
     </span>
     <span class="footer-appearance">
-      <span id="layoutSwitcher" class="layout-switcher" role="group" aria-label="Start page layout">
-        <span class="layout-switcher-label">layout</span>
-        <button type="button" data-layout-pick="ledger">ledger</button>
-        <button type="button" data-layout-pick="billboard">billboard</button>
-        <button type="button" data-layout-pick="shelf">shelf</button>
-        <button type="button" data-layout-pick="tally">tally</button>
-      </span>
-      <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled>
-        <span class="wallpaper-toggle-track" aria-hidden="true"></span>
-        <span>dynamic wallpaper</span>
-      </button>
+      <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize</button>
+      <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">
+        <div id="customizeLayoutLabel" class="customize-label">Layout</div>
+        <div id="layoutSwitcher" class="layout-switcher" role="group" aria-labelledby="customizeLayoutLabel">
+          <button type="button" class="layout-preview" data-layout-pick="ledger" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="ledger" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span class="layout-name">Ledger</span>
+          </button>
+          <button type="button" class="layout-preview" data-layout-pick="billboard" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="billboard" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="layout-name">Billboard</span>
+          </button>
+          <button type="button" class="layout-preview" data-layout-pick="shelf" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="layout-name">Shelf</span>
+          </button>
+          <button type="button" class="layout-preview" data-layout-pick="tally" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="tally" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="layout-name">Tally</span>
+          </button>
+        </div>
+        <hr class="customize-divider" />
+        <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled>
+          <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+          <span>Dynamic wallpaper</span>
+        </button>
+      </div>
     </span>
     <span class="footer-right">
-      <a id="mahjongLink" href="blanc://mahjong/" target="_blank">mahjong</a>
+      <a id="mahjongLink" href="blanc://mahjong/" target="_blank">Mahjong</a>
       <span id="goAnywhere"></span>
     </span>
   </footer>

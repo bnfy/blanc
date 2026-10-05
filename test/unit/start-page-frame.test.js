@@ -80,3 +80,22 @@ test('Ledger, Shelf and Tally explain an empty Favorites list; Billboard does no
   assert.doesNotMatch(js, /♥ a page to pin it here/);
   assert.match(frameCss(), /\.start-empty-hint \{/);
 });
+
+test('the footer offers one Customize popover with four layout previews and the wallpaper switch', () => {
+  const html = read('src/renderer/pages/newtab.html');
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(html, /<button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize<\/button>/);
+  const popover = html.match(/<div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">([\s\S]*?)<\/div>\s*<\/span>/)?.[1] ?? '';
+  assert.deepEqual(
+    [...popover.matchAll(/data-layout-pick="(\w+)"/g)].map((m) => m[1]),
+    ['ledger', 'billboard', 'shelf', 'tally'],
+    'the four layouts keep their order',
+  );
+  assert.match(popover, /id="dynamicWallpaperToggle"/);
+  assert.doesNotMatch(html, /layout-switcher-label/);
+  assert.match(js, /customizePopover\.addEventListener\('toggle', \(event\) => \{\s*customizeButton\.setAttribute\('aria-expanded', String\(event\.newState === 'open'\)\);/);
+  const css = frameCss();
+  assert.match(css, /\.start-customize-popover \{[^}]*position-anchor: --start-customize;[^}]*position-area: top center;/s);
+  assert.match(css, /:root:not\(\[data-theme="private"\]\) body:not\(\[data-layout="ledger"\]\) #footerLeft \{ display: none; \}/,
+    'only Ledger repeats the blocked count in the footer');
+});

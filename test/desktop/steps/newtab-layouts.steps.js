@@ -619,3 +619,31 @@ Then('Ledger, Shelf and Tally each show one empty Favorites hint and Billboard s
     assert.equal(frame.emptyHints, expected, `${layout} empty hints`);
   }
 });
+
+When('I open Customize on the start page', async function () {
+  assert.equal(await this.call('openStartCustomize'), true);
+});
+
+Then('Customize stays open with {string} pressed', async function (layout) {
+  const state = await waitForValue(
+    () => this.call('readStartCustomize'),
+    (value) => value?.open === true && value.pressed.length === 1,
+    'Customize open with one pressed layout',
+  );
+  assert.deepEqual(state.pressed, [layout]);
+  assert.equal(state.expanded, 'true');
+});
+
+When('I press Escape on the start page', async function () {
+  assert.equal(await this.call('pressStartPageKey', 'Escape'), true);
+});
+
+Then('Customize is closed and its button has focus', async function () {
+  const state = await waitForValue(
+    () => this.call('readStartCustomize'),
+    // The toggle event that mirrors aria-expanded is queued after the close.
+    (value) => value?.open === false && value.expanded === 'false',
+    'Customize to close and its button to report collapsed',
+  );
+  assert.equal(state.focusedId, 'customizeButton');
+});
