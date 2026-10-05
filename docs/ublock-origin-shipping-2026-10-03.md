@@ -251,7 +251,7 @@ The current main-branch repository direction also requires an automatic Blanc
 Blocker fallback when Electron ceases to support MV2. That retirement path still
 needs implementation and verification before public uBO enablement. It is
 separate from the two-second background-decision failure policy, which remains
-fail closed. A fallback must identify the effective provider, retain separate
+fail closed (including the post-ready warm-up window added October 5). A fallback must identify the effective provider, retain separate
 uBO configuration and respect the global blocking switch; it must not silently
 substitute a provider or replay POST pages.
 
@@ -395,7 +395,7 @@ unsupported native extension and uses the existing entire-session cleanup.
 This is a build-availability decision made once before attaching sessions.
 An available uBO's initialization, package-integrity, crash and request-timeout
 failures do not trigger substitution. Its two-second decision policy remains
-unchanged. Blanc startup failures still surface Retry/Continue, rather than
+unchanged apart from the post-ready warm-up window added October 5. Blanc startup failures still surface Retry/Continue, rather than
 claiming protection or silently permitting traffic.
 
 The saved uBO selection/configuration remain intact. Shield and Settings say
@@ -646,3 +646,25 @@ navigation 15 seconds and, on failure, records fixture hits, provider status
 and tab URLs. Warm restarts and retries keep their 20-second waits. Rosetta
 remains excluded, and this change still needs the uBO platform acceptance and
 CodeQL review that CLAUDE.md requires for uBO runtime changes.
+
+## Decision warm-up after ready (October 5, 2026)
+
+The replayed-first-navigation failure recurred on hosted macOS Intel runners
+with a different cause. Both saved failure logs (jobs 111332799420 and
+111505300082) show the named profile reaching `ready` and then the provider
+failing with `ubo-decision-timeout`. The held first navigation was replayed,
+its first network decision missed the 2-second deadline on a still-cold
+background, the provider failed closed, and the replay was cancelled with
+`ERR_BLOCKED_BY_CLIENT` and never retried. A real slow Mac opening a new
+profile would see its first page fail the same way.
+
+At the owner's direction, network decisions now get a 10-second deadline
+(`WARMUP_DEADLINE_MS`) for the first 15 seconds after each `ready`
+(`WARMUP_WINDOW_MS`), including a ready reached after retry or restart.
+Outside that window the 2-second deadline applies as before. During the window
+requests stay held while they wait, and a decision that misses the longer
+deadline still fails the provider closed with `ubo-decision-timeout`. Nothing
+is ever let through unfiltered. The 10-second operation deadline and the
+45-second startup deadline are unchanged. `test/unit/ublock-operation-deadline.test.js`
+covers both windows, and this change also needs the uBO platform acceptance
+and CodeQL review that CLAUDE.md requires for uBO runtime changes.
