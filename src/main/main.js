@@ -1800,6 +1800,8 @@ function handleNativeThemeUpdated() {
   // app theme changes already invalidated before assigning themeSource; doing
   // it again here is harmless and keeps this path self-contained.
   forEachWindowRuntime(refreshActivePageTintForThemeChange, { liveOnly: true });
+  // The shield popover's Dark website note depends on the appearance.
+  forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
 }
 
 // Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
@@ -4427,7 +4429,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
     // the popover and the active tab row cannot disagree within a broadcast.
     connection: activeConnection(serialized, rt().activeTabId),
   });
-  return model ? { ...model, controls } : null;
+  return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab) } : null;
 }
 
 function currentTabsPayload() {
@@ -7440,9 +7442,13 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
-  chromeHandle('chrome:dark-site-active', () => (
-    darkWebsites.runDarkSiteCommand(rt().activeTabId ? tabs.get(rt().activeTabId) : null)
-  ));
+  chromeHandle('chrome:dark-site-active', () => {
+    const result = darkWebsites.runDarkSiteCommand(rt().activeTabId ? tabs.get(rt().activeTabId) : null);
+    // A private tab's choice changes no setting, so refresh the shield
+    // popover's Dark website switch here.
+    if (result) broadcastTabs();
+    return result;
+  });
   chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
@@ -10022,6 +10028,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (nextDarkWebsitesKey !== lastDarkWebsitesKey) {
       lastDarkWebsitesKey = nextDarkWebsitesKey;
       darkWebsites.broadcast();
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
     }
     if (s.islandSiteColors !== lastIslandSiteColors) {
       lastIslandSiteColors = s.islandSiteColors;

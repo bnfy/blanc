@@ -30,6 +30,8 @@
   const shieldPopConnection = document.getElementById('shieldPopConnection');
   const shieldPopCount = document.getElementById('shieldPopCount');
   const shieldPopNote = document.getElementById('shieldPopNote');
+  const shieldPopDark = document.getElementById('shieldPopDark');
+  const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const shieldPopLabel = document.getElementById('shieldPopLabel');
   const shieldPopProvider = document.getElementById('shieldPopProvider');
@@ -1814,6 +1816,16 @@
     shieldPopConnection.classList.toggle('insecure', v.connection === 'http');
     shieldPopCount.textContent = v.countLine;
     shieldPopNote.hidden = v.variant !== 'site';
+    // Dark websites (F42): the same flip as /dark-site. `on` describes the
+    // site while Blanc is dark, so the switch keeps meaning while it's light.
+    const dark = v.darkSite;
+    shieldPopDark.hidden = !dark;
+    if (dark) {
+      document.getElementById('shieldPopDarkOnOff').textContent = dark.on ? 'on' : 'off';
+      shieldPopDarkToggle.classList.toggle('on', dark.on);
+      shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
+      document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -1822,6 +1834,9 @@
     // reach its global branch from the pill.
     if (state.shieldPopover?.on) window.browserAPI.allowAdsOnActiveSite();
     else window.browserAPI.toggleAdblock();
+  });
+  shieldPopDarkToggle.addEventListener('click', () => {
+    window.browserAPI.toggleDarkSiteOnActiveSite();
   });
   function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
 

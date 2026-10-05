@@ -965,8 +965,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   honour `prefers-color-scheme: dark` stay dark rather than being inverted.
   Off by default; the setting and its site list are device-local and never
   Profile Synced.
-- `/dark-site` flips the current site between darkened and as drawn, and turns
-  the feature on if it was off. In a private tab the choice lasts only until
+- `/dark-site`, or the **Dark website** switch in the site's shield popover,
+  flips the current site between darkened and as drawn, and turns the feature
+  on if it was off. The switch shows the site's state while Blanc is dark, and
+  says so while Blanc is light. In a private tab the choice lasts only until
   Blanc quits and is never written to settings; the site list is edited in
   Settings → General.
 - The engine runs in its own isolated world: the page cannot see or call it,

@@ -1,6 +1,7 @@
 // Dark websites (F42) against the shipping app: first-paint darkening, strict
 // CSP, live Settings/theme changes, /dark-site, private-tab choices staying
-// out of settings, and the stylesheet fetch refusing private addresses.
+// out of settings, the stylesheet fetch refusing private addresses, and the
+// shield popover's Dark website switch.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -9,8 +10,9 @@ import http from 'node:http';
 import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import focus from './support/popup-focus-trace.js';
 const { callTestHook } = testHookCall;
-const { waitForValue } = poll;
+const { waitForValue, clickWhenSettled } = poll;
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-dark-websites-'));
 const profile = path.join(root, 'profile');
@@ -124,6 +126,29 @@ try {
   await sheet.click('#darkExceptionAdd');
   await waitForValue(async () => (await settingsNow()).darkWebsitesExceptions, (v) => JSON.stringify(v) === '["example.com"]', 'site added from Settings, normalized', 4000);
   await sheet.keyboard.press('Escape');
+
+  // 8. The shield popover's Dark website switch is /dark-site for this site.
+  await callTestHook(app, 'activateTab', [tabId]);
+  await focus.focusFixtureWindow(app);
+  await clickWhenSettled(chrome.locator('#pillShield'), 'Island shield');
+  const overlay = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc-chrome://overlay/'), Boolean, 'shield overlay');
+  const darkToggle = overlay.locator('#shieldPopDarkToggle');
+  await darkToggle.waitFor({ state: 'visible' });
+  assert.equal(await darkToggle.getAttribute('aria-checked'), 'true');
+  assert.equal(await overlay.locator('#shieldPopDarkNote').isHidden(), true, 'no light-theme note while Blanc is dark');
+  await clickWhenSettled(darkToggle, 'Dark website switch');
+  await waitForValue(() => bg(tabId), isLight, 'site restored from the shield popover', 6000);
+  await waitForValue(() => darkToggle.getAttribute('aria-checked'), (v) => v === 'false', 'switch reads off');
+  assert.equal(await overlay.locator('#shieldPopDarkOnOff').innerText(), 'off');
+  assert.deepEqual((await settingsNow()).darkWebsitesExceptions, ['example.com', '127.0.0.1']);
+  await clickWhenSettled(darkToggle, 'Dark website switch');
+  await waitForValue(() => bg(tabId), isDark, 'site darkened from the shield popover', 6000);
+  await waitForValue(() => darkToggle.getAttribute('aria-checked'), (v) => v === 'true', 'switch reads on');
+  assert.deepEqual((await settingsNow()).darkWebsitesExceptions, ['example.com']);
+  // While Blanc is light the switch keeps its meaning and says when it applies.
+  await chrome.evaluate(() => window.browserAPI.cycleTheme('light'));
+  await waitForValue(() => overlay.locator('#shieldPopDarkNote').isVisible(), Boolean, 'light-theme note shown', 6000);
+  assert.equal(await darkToggle.getAttribute('aria-checked'), 'true');
 
   console.log(JSON.stringify({ ok: true, profile: root }));
 } finally {

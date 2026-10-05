@@ -3875,6 +3875,10 @@
                   "detail": "shield-provider-controls-1",
                   "availability": "shield-provider-controls-1",
                   "scope": "shield-provider-controls-1"
+                },
+                "darkSite": {
+                  "on": true,
+                  "appliesNow": true
                 }
               },
               "captureChip": {
@@ -3921,6 +3925,10 @@
                     "detail": "shield-provider-controls-1",
                     "availability": "shield-provider-controls-1",
                     "scope": "shield-provider-controls-1"
+                  },
+                  "darkSite": {
+                    "on": true,
+                    "appliesNow": true
                   }
                 },
                 "captureChip": {
@@ -4033,6 +4041,10 @@
                   "detail": "shield-provider-controls-1",
                   "availability": "shield-provider-controls-1",
                   "scope": "shield-provider-controls-1"
+                },
+                "darkSite": {
+                  "on": true,
+                  "appliesNow": true
                 }
               },
               "captureChip": {
@@ -4161,6 +4173,10 @@
                     "detail": "shield-provider-controls-1",
                     "availability": "shield-provider-controls-1",
                     "scope": "shield-provider-controls-1"
+                  },
+                  "darkSite": {
+                    "on": true,
+                    "appliesNow": true
                   }
                 },
                 "captureChip": {
