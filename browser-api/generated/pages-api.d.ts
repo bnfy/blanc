@@ -72,6 +72,14 @@ export interface MahjongPagesAPI {
   };
 }
 
+/** window.bowserPages on blanc://error/ */
+export interface ErrorPagesAPI {
+  errorPage: {
+    /** Continue past this tab's certificate warning for the session. Takes no arguments: main reads the tab's own recorded failure and re-checks eligibility. IPC: invoke `pages:error:continue-unsafe`. */
+    continueUnsafe: () => Promise<unknown>;
+  };
+}
+
 /** window.bowserPages on blanc://bookmarks/ */
 export interface BookmarksPagesAPI {
   surface: {

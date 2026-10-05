@@ -2558,6 +2558,25 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+
+/** The warning page's Continue (certificate spec §4.4). Takes only the
+ *  sender: the URL, error and certificate come from the tab's own main-held
+ *  failure record, and eligibility is checked again here. */
+function continueUnsafeForSender(wc) {
+  const tabId = tabIdByWebContentsId.get(wc?.id);
+  const tab = tabId ? tabs.get(tabId) : null;
+  const failure = tab?.certificateError;
+  if (!tab || liveContents(tab) !== wc || !failure) return { ok: false, error: 'no-certificate-error' };
+  const input = { url: failure.url, error: failure.error, certificate: failure.certificate };
+  const verifiedThisRun = certificateObserver.wasVerifiedThisRun(wc.session, failure.url);
+  if (!certificateExceptions.isEligible({ ...input, verifiedThisRun })) return { ok: false, error: 'not-eligible' };
+  certificateExceptions.allow(wc.session, { ...input, now: Date.now() });
+  queueTabNavigation(wc, {
+    isCurrent: () => tabs.get(tabId) === tab && liveContents(tab) === wc,
+    run: (contents) => contents.loadURL(failure.url),
+  });
+  return { ok: true };
+}
 /** webContents id -> the HTTP method of its last main-frame request. The only
  * place a method is observable is onBeforeSendHeaders, and it is needed at
  * did-navigate time. Deliberately not on the tab record: that record is an
@@ -9390,13 +9409,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         rt().utilitySheetEscapeArmed = !!armed;
       },
     },
+    errorPage: { continueUnsafe: continueUnsafeForSender },
     pageSurfaces: {
       owns: (host, wc) => {
         const runtime = runtimeForPageWebContents(wc);
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab' && host !== 'mahjong') return false;
+          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });

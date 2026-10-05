@@ -125,3 +125,13 @@ test('observer remembers hosts verified this run even after a later failure', ()
   assert.equal(observer.wasVerifiedThisRun(other, 'https://nas.home.arpa/'), false);
   assert.equal(observer.wasVerifiedThisRun(browsingSession, 'not a url'), false);
 });
+
+test('main re-checks eligibility before recording a continue', () => {
+  const source = require('node:fs').readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  const start = source.indexOf('function continueUnsafeForSender(');
+  assert.ok(start > 0, 'continueUnsafeForSender exists');
+  const body = source.slice(start, source.indexOf('\n}\n', start));
+  assert.ok(body.indexOf('isEligible(') < body.indexOf('.allow('), 'eligibility before allow');
+  assert.match(body, /wasVerifiedThisRun\(wc\.session/);
+  assert.doesNotMatch(body, /args|\.\.\.rest|event\.args/, 'takes nothing from the page');
+});
