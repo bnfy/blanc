@@ -18,9 +18,10 @@ const FIND_CAPSULE_HORIZONTAL_GUTTER = 24;
 // a 380px card, with room below for the approved layout and its shadow.
 // Short windows clamp the view and let the card scroll within these bounds.
 const SHIELD_POPOVER_WIDTH = 404;
-// Allow status/restart guidance to fit without scrolling at ordinary window sizes.
+// Allow status/restart guidance and the Dark website switch (with its
+// light-theme note) to fit without scrolling at ordinary window sizes.
 // The card itself keeps its natural content height inside this transparent view.
-const SHIELD_POPOVER_HEIGHT = 500;
+const SHIELD_POPOVER_HEIGHT = 580;
 const SHIELD_POPOVER_MARGIN = 12;
 
 const TAB_LAYOUTS = new Set(['island', 'vertical']);
