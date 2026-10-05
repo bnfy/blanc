@@ -157,7 +157,7 @@ A Chromium fork gets the engine, not Google's services. Rows marked as questions
 | Safe Browsing | The free API is non-commercial-only, with Web Risk for commercial use (verified by review). Brave proxies Safe Browsing (verified). Blanc on Electron has none today (no Safe Browsing code in `src/main`). | Decide provider and budget |
 | Component updater | Question: which components (for example CRLSets, CT logs, Widevine, origin trials) Blanc needs and where they come from. Brave proxies component updates (verified). | Engineering question for the spike |
 | Chrome Web Store | No contract grants third-party browsers access; derived builds also face API-key and service restrictions | Phase 1 acceptance test, then accept the residual dependency risk |
-| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | **Ask Google now** |
+| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | Asked Google on October 5, 2026 through the General Questions form at widevine.com; awaiting a reply |
 | Proprietary codecs | Legal question: patent licensing for proprietary codecs. Codec support differs between Chromium and Chrome (verified by review). | Legal read; prefer OS decoders where possible |
 | Distribution | Signing, notarization, Sigstore and SBOM gates carry over | Keep `me.bnfy.bowser`; necessary for continuity, but the updater handoff itself is unproven (installed-upgrade spike) |
 
@@ -266,7 +266,7 @@ Steps 3 to 5 (the Mojo interface, the native controller and shared contract test
 - [ ] Can Blanc fund the measured staffing and CI cost? The figures in this doc are hypotheses.
 - [ ] How does CEF map multiple tabs per window today? Settled by the control test.
 - [ ] Current state of MV2 at the spike's Chromium version.
-- [ ] Widevine: has Google responded?
+- [ ] Widevine: has Google responded? (Inquiry sent October 5, 2026: eligibility, technical requirements, platform differences, fees and timeline, and whether it covers the current Electron build.)
 - [ ] Which Google services (Safe Browsing, push, geolocation, translate) need paid or alternative providers?
 
 This analysis draws on the repository at commit 8ec7389 and on knowledge of Chromium, CEF and Electron through mid-2026. External claims were checked on October 4 where reachable; the Sources section below records the status of each. An independent review on October 4 confirmed the Electron, uBO, ExtensionsContainer, Google private-API, Safe Browsing and codec claims, and its corrections are incorporated here. It does not authorise fork work: the current `CLAUDE.md` direction holds until the owner decides.
