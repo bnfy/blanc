@@ -756,6 +756,9 @@ try {
   assert.equal(await awake.evaluate(() => fetch('/allowed-control.js?after-capacity').then(() => true, () => false)), true);
   assert(hits.includes('/allowed-control.js?after-capacity'));
   stage = 'decision deadline';
+  // Decisions get a longer window for 15 s after each ready; this stage
+  // proves the normal two-second boundary, so wait for that window to close.
+  await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed', 20000);
   // Suspending the real request listener proves the two-second boundary:
   // requests cannot reach the server while the provider is unresponsive.
   await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
@@ -768,6 +771,7 @@ try {
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === deadlineId)?.isLoading, value => value === false, 'deadline recovery page');
   await call('blockingRetry');
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'deadline retry', 20000);
+  assert.equal(await call('blockingDecisionDeadline'), 10000, 'a fresh ready opens the decision warm-up window');
   await waitForValue(() => electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), count => count === 1, 'one background after retry');
   const awakeWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
   assert.equal((await call('blockingMapping')).find(item => item.webContentsId === awakeWC).tabId, stableId);
