@@ -146,3 +146,14 @@ test('motion grows surfaces from their source and respects reduced motion', () =
   assert.match(js, /requestAnimationFrame\(\(\) => document\.body\.classList\.add\('layout-ready'\)\)/);
   assert.doesNotMatch(css, /cubic-bezier\([^)]*1\.[0-9]/, 'no overshooting curves');
 });
+
+test('Ledger is a centered spread: Favorites left, groups and devices right', () => {
+  const html = read('src/renderer/pages/newtab.html');
+  const ledger = html.match(/<main class="ledger" id="layoutLedger">([\s\S]*?)<\/main>/)[1];
+  assert.match(ledger, /<div class="ledger-spread">\s*<div class="ledger-col ledger-col-primary">[\s\S]*?id="favoritesList"[\s\S]*?<\/div>\s*<div class="ledger-col ledger-col-secondary">[\s\S]*?id="groupsSection"[\s\S]*?id="remoteSection"[\s\S]*?<\/div>\s*<\/div>/);
+  const css = frameCss();
+  assert.match(css, /body\[data-layout="ledger"\] \.ledger \{[^}]*max-width: 904px;[^}]*margin-inline: auto;/s);
+  assert.match(css, /\.ledger-spread \{[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);[^}]*column-gap: 64px;/s);
+  assert.match(css, /@media \(max-width: 900px\) \{[\s\S]*?\.ledger-spread \{ grid-template-columns: minmax\(0, 1fr\); \}/);
+  assert.match(css, /\.group-row \.cluster \{[^}]*flex: 0 0 46px;/s, 'group names line up');
+});

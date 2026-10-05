@@ -2782,7 +2782,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* Ledger: compact reading column on the left, with the landscape allowed to
    remain visible through the lower half of the page. */
-body[data-layout="ledger"] .ledger-section:first-of-type { margin-top: 0; }
 .ledger-section { margin-top: 34px; }
 .ledger-list { gap: 12px; margin-top: 13px; }
 .fav .tile,
@@ -3446,6 +3445,42 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   @starting-style {
     .start-customize-popover:popover-open { transform: none; }
   }
+}
+
+/* Ledger: one Newsreader line over a centered two-column spread. With
+   nothing on the right, Favorites centers alone. */
+body[data-layout="ledger"] .ledger {
+  width: 100%;
+  max-width: 904px;
+  margin-inline: auto;
+  user-select: none;
+}
+body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not([hidden]))) { max-width: 420px; }
+.ledger-where {
+  margin: 0 0 32px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-optical-sizing: auto;
+}
+.ledger-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 64px;
+  row-gap: 34px;
+  align-items: start;
+}
+.ledger-spread:not(:has(.ledger-col-secondary > section:not([hidden]))) { grid-template-columns: minmax(0, 1fr); }
+.ledger-spread:not(:has(.ledger-col-secondary > section:not([hidden]))) .ledger-col-secondary { display: none; }
+.ledger-col > .ledger-section:first-child,
+.ledger-col > .ledger-section[hidden] + .ledger-section { margin-top: 0; }
+.ledger-patron { margin-top: 34px; }
+.group-row .cluster { flex: 0 0 46px; width: 46px; justify-content: flex-end; }
+@media (max-width: 900px) {
+  .ledger-spread { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---------- first-run onboarding dialog ----------

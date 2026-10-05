@@ -899,7 +899,7 @@ function install(refs) {
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
-        const newsreaderSelector = '.bb-clock, .migration-checklist-heading h2, .ob-content h1';
+        const newsreaderSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
         const newsreader = [...document.querySelectorAll(newsreaderSelector)];
         const newsreaderElements = [...document.querySelectorAll('body, body *')]
           .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));

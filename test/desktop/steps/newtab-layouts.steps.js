@@ -140,7 +140,7 @@ Then('the start page uses Newsreader for the Billboard clock and invitation head
   );
   assert.deepEqual(usage.page.jetbrains, []);
   assert.equal(usage.page.newsreaderLoaded, true);
-  assert.equal(usage.page.newsreader.length, 8);
+  assert.equal(usage.page.newsreader.length, 9);
   assert.deepEqual(usage.page.newsreaderOutsideApproved, []);
   for (const sample of usage.page.newsreader) {
     assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
