@@ -5,8 +5,43 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
-function readVerifiedPackage(root) {
-  const pin = JSON.parse(fs.readFileSync(path.join(root, 'pinned.json'), 'utf8'));
+// Every filesystem step below is yielded rather than called, so each integrity
+// check exists once. Build and release scripts run the steps synchronously.
+// The browser awaits each one instead: a synchronous install blocks the main
+// process, which also serves blanc://newtab, and on a slow disk with
+// antivirus scanning that kept the start page from loading for 18+ s.
+const SYNC = {
+  readFile: fs.readFileSync, readdir: fs.readdirSync, lstat: fs.lstatSync, exists: fs.existsSync,
+  mkdir: fs.mkdirSync, mkdtemp: fs.mkdtempSync, writeFile: fs.writeFileSync, rename: fs.renameSync, rm: fs.rmSync,
+};
+const ASYNC = {
+  readFile: fs.promises.readFile, readdir: fs.promises.readdir, lstat: fs.promises.lstat,
+  exists: file => fs.promises.access(file).then(() => true, () => false),
+  mkdir: fs.promises.mkdir, mkdtemp: fs.promises.mkdtemp, writeFile: fs.promises.writeFile, rename: fs.promises.rename, rm: fs.promises.rm,
+};
+function runSync(steps) {
+  let next = steps.next();
+  while (!next.done) {
+    const [operation, ...args] = next.value;
+    let value;
+    try { value = SYNC[operation](...args); } catch (error) { next = steps.throw(error); continue; }
+    next = steps.next(value);
+  }
+  return next.value;
+}
+async function runAsync(steps) {
+  let next = steps.next();
+  while (!next.done) {
+    const [operation, ...args] = next.value;
+    let value;
+    try { value = await ASYNC[operation](...args); } catch (error) { next = steps.throw(error); continue; }
+    next = steps.next(value);
+  }
+  return next.value;
+}
+
+function* readVerifiedPackageSteps(root) {
+  const pin = JSON.parse(yield ['readFile', path.join(root, 'pinned.json'), 'utf8']);
   if (pin.format !== 1 || pin.version !== '1.75.0' || !Array.isArray(pin.files)
     || pin.files.length > 2000 || !Array.isArray(pin.sources)) throw new Error('ubo-package-invalid');
   const files = new Map();
@@ -15,16 +50,18 @@ function readVerifiedPackage(root) {
     if (!/^[a-zA-Z0-9_./+@-]+$/.test(entry.path) || entry.path.split('/').some(p => !p || p === '..' || p === '.')) throw new Error('ubo-package-path');
     if (seen.has(entry.path)) throw new Error('ubo-package-duplicate');
     seen.add(entry.path);
-    const bytes = fs.readFileSync(path.join(root, 'upstream', entry.path));
+    const bytes = yield ['readFile', path.join(root, 'upstream', entry.path)];
     if (bytes.length !== entry.size || hash(bytes) !== entry.sha256) throw new Error('ubo-package-integrity');
     files.set(entry.path, bytes);
   }
   for (const entry of pin.sources) {
     if (!/^[a-zA-Z0-9_./+-]+$/.test(entry.path) || entry.path.split('/').some(p => !p || p === '..' || p === '.')) throw new Error('ubo-source-path');
-    if (hash(fs.readFileSync(path.join(root, entry.path))) !== entry.sha256) throw new Error('ubo-source-integrity');
+    if (hash(yield ['readFile', path.join(root, entry.path)]) !== entry.sha256) throw new Error('ubo-source-integrity');
   }
   return { pin, files };
 }
+const readVerifiedPackage = root => runSync(readVerifiedPackageSteps(root));
+const readVerifiedPackageAsync = root => runAsync(readVerifiedPackageSteps(root));
 
 const UI_ICONS = ['pipette', 'zap', 'list', 'settings', 'chevron-left', 'chevron-right', 'chevron-down', 'x', 'ellipsis', 'lock-keyhole', 'undo-2', 'rotate-cw', 'house', 'external-link', 'search', 'check', 'refresh-cw', 'download', 'upload', 'save', 'book-open', 'info', 'circle-help'];
 const HOST_INPUTS = [
@@ -34,17 +71,21 @@ const HOST_INPUTS = [
   ...UI_ICONS.map(name => 'src/renderer/ublock-popup-icons/' + name + '.svg'),
   'src/renderer/ublock-popup-icons/README.md', 'src/renderer/ublock-popup-icons/lucide-LICENSE.txt',
 ];
-function readHostSources(root) {
-  const read = name => fs.readFileSync(path.join(root, name));
-  return {
-    identity: JSON.parse(read('ublock/identity.json')),
-    adapter: read('src/main/ublock-host-mainworld.js'), bridge: read('src/main/ublock-bridge-mainworld.js'),
-    dashboardScript: read('src/main/ublock-dashboard-mainworld.js'), dashboardStyle: read('src/renderer/ublock-dashboard.css'),
-    popupScript: read('src/main/ublock-popup-mainworld.js'), popupStyle: read('src/renderer/ublock-popup.css'),
-    popupFont: read('src/renderer/pages/inter-latin.woff2'),
-    popupIcons: new Map(UI_ICONS.map(name => [name, read('src/renderer/ublock-popup-icons/' + name + '.svg')])),
+function* readHostSourcesSteps(root) {
+  const read = name => ['readFile', path.join(root, name)];
+  const sources = {
+    identity: JSON.parse(yield read('ublock/identity.json')),
+    adapter: yield read('src/main/ublock-host-mainworld.js'), bridge: yield read('src/main/ublock-bridge-mainworld.js'),
+    dashboardScript: yield read('src/main/ublock-dashboard-mainworld.js'), dashboardStyle: yield read('src/renderer/ublock-dashboard.css'),
+    popupScript: yield read('src/main/ublock-popup-mainworld.js'), popupStyle: yield read('src/renderer/ublock-popup.css'),
+    popupFont: yield read('src/renderer/pages/inter-latin.woff2'),
+    popupIcons: new Map(),
   };
+  for (const name of UI_ICONS) sources.popupIcons.set(name, yield read('src/renderer/ublock-popup-icons/' + name + '.svg'));
+  return sources;
 }
+const readHostSources = root => runSync(readHostSourcesSteps(root));
+const readHostSourcesAsync = root => runAsync(readHostSourcesSteps(root));
 
 function adaptPackage(files, hostSources) {
   const result = new Map(files);
@@ -211,7 +252,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   return result;
 }
 
-function installVerifiedFiles(adapted, destination) {
+function* installVerifiedFilesSteps(adapted, destination) {
   if (adapted.size > 2000) throw new Error('ubo-package-capacity');
   for (const [name] of adapted) {
     if (!/^[a-zA-Z0-9_./+@-]+$/.test(name) || name.split('/').some(part => !part || part === '.' || part === '..')) throw new Error('ubo-package-path');
@@ -219,61 +260,68 @@ function installVerifiedFiles(adapted, destination) {
   // Reject parent symlinks before reading or replacing managed files. A
   // compromised extraction may never redirect writes outside this profile.
   for (let current = path.resolve(destination); current !== path.dirname(current); current = path.dirname(current)) {
-    if (fs.existsSync(current) && fs.lstatSync(current).isSymbolicLink()) throw new Error('ubo-package-symlink');
+    if ((yield ['exists', current]) && (yield ['lstat', current]).isSymbolicLink()) throw new Error('ubo-package-symlink');
   }
-  const verify = directory => {
+  const verify = function* (directory) {
     try {
       // Only known extension bytes may execute, including after interrupted updates.
       let count = 0;
-      const scan = dir => {
-        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const scan = function* (dir) {
+        for (const entry of (yield ['readdir', dir, { withFileTypes: true }])) {
           if (entry.isSymbolicLink()) throw new Error('ubo-package-symlink');
-          if (entry.isDirectory()) scan(path.join(dir, entry.name));
+          if (entry.isDirectory()) yield* scan(path.join(dir, entry.name));
           else if (entry.isFile()) count++;
           else throw new Error('ubo-package-type');
         }
       };
-      scan(directory);
+      yield* scan(directory);
       if (count !== adapted.size) return false;
       for (const [name, bytes] of adapted) {
-        if (!fs.readFileSync(path.join(directory, name)).equals(Buffer.from(bytes))) return false;
+        if (!(yield ['readFile', path.join(directory, name)]).equals(Buffer.from(bytes))) return false;
       }
       return true;
     } catch { return false; }
   };
-  if (!verify(destination)) {
+  if (!(yield* verify(destination))) {
     const parent = path.dirname(destination);
-    fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+    yield ['mkdir', parent, { recursive: true, mode: 0o700 }];
     const stagingPrefix = `.${path.basename(destination)}.staging-`;
     // Staging directories contain only verified executable assets, never
     // user storage. Recover interrupted installs without accumulating files.
-    for (const name of fs.readdirSync(parent)) if (name.startsWith(stagingPrefix)) fs.rmSync(path.join(parent, name), { recursive: true, force: true });
-    const staging = fs.mkdtempSync(path.join(parent, stagingPrefix));
+    for (const name of (yield ['readdir', parent])) if (name.startsWith(stagingPrefix)) yield ['rm', path.join(parent, name), { recursive: true, force: true }];
+    const staging = yield ['mkdtemp', path.join(parent, stagingPrefix)];
     try {
       for (const [name, bytes] of adapted) {
         const file = path.join(staging, name);
-        fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-        fs.writeFileSync(file, bytes, { mode: 0o600, flag: 'wx' });
+        yield ['mkdir', path.dirname(file), { recursive: true, mode: 0o700 }];
+        yield ['writeFile', file, bytes, { mode: 0o600, flag: 'wx' }];
       }
-      if (!verify(staging)) throw new Error('ubo-extraction-integrity');
+      if (!(yield* verify(staging))) throw new Error('ubo-extraction-integrity');
       // No user configuration lives here. A crash before rename is recovered
       // by recreating this exact managed package at the same identity path.
       const backup = path.join(parent, `.${path.basename(destination)}.previous`);
-      fs.rmSync(backup, { recursive: true, force: true });
-      if (fs.existsSync(destination)) fs.renameSync(destination, backup);
-      try { fs.renameSync(staging, destination); }
-      catch (error) { if (fs.existsSync(backup)) fs.renameSync(backup, destination); throw error; }
-      fs.rmSync(backup, { recursive: true, force: true });
-    } finally { fs.rmSync(staging, { recursive: true, force: true }); }
+      yield ['rm', backup, { recursive: true, force: true }];
+      if (yield ['exists', destination]) yield ['rename', destination, backup];
+      try { yield ['rename', staging, destination]; }
+      catch (error) { if (yield ['exists', backup]) yield ['rename', backup, destination]; throw error; }
+      yield ['rm', backup, { recursive: true, force: true }];
+    } finally { yield ['rm', staging, { recursive: true, force: true }]; }
   }
   return destination;
 }
+const installVerifiedFiles = (adapted, destination) => runSync(installVerifiedFilesSteps(adapted, destination));
+const installVerifiedFilesAsync = (adapted, destination) => runAsync(installVerifiedFilesSteps(adapted, destination));
 
-function installVerifiedPackage({ root, destination, hostSources }) {
-  const { pin, files } = readVerifiedPackage(root);
+function* installVerifiedPackageSteps({ root, destination, hostSources }) {
+  const { pin, files } = yield* readVerifiedPackageSteps(root);
   const adapted = adaptPackage(files, hostSources);
-  installVerifiedFiles(adapted, destination);
+  yield* installVerifiedFilesSteps(adapted, destination);
   return { path: destination, version: pin.version, scripts: new Map([...adapted].filter(([name]) => name.endsWith('.js'))) };
 }
+const installVerifiedPackage = options => runSync(installVerifiedPackageSteps(options));
+const installVerifiedPackageAsync = options => runAsync(installVerifiedPackageSteps(options));
 
-module.exports = { hash, readVerifiedPackage, adaptPackage, installVerifiedPackage, installVerifiedFiles, readHostSources, HOST_INPUTS };
+module.exports = {
+  hash, readVerifiedPackage, readVerifiedPackageAsync, adaptPackage, installVerifiedPackage, installVerifiedPackageAsync,
+  installVerifiedFiles, installVerifiedFilesAsync, readHostSources, readHostSourcesAsync, HOST_INPUTS,
+};

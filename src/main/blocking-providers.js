@@ -77,7 +77,10 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
       const provider = createUblockProvider({
         session: owned.normal, profileId, hooks,
         onStateChange: state => {
-          if (state.error) { diagnostics.push({ provider: state.id, version: state.version, error: state.error }); if (diagnostics.length > 32) diagnostics.shift(); }
+          if (state.error) {
+            diagnostics.push({ provider: state.id, version: state.version, error: state.error, stage: state.stage, timings: state.timings });
+            if (diagnostics.length > 32) diagnostics.shift();
+          }
           onStateChange?.(status(profileId));
         }, onBlocked,
       });
