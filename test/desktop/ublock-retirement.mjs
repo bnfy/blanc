@@ -76,7 +76,22 @@ try {
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().some(wc => wc.getType() === 'backgroundPage')), false, 'no native uBO background loaded');
   async function visit(route, privateTab = false) {
     const id = await call('openTab', origin + route, { private: privateTab });
-    const page = await waitForValue(async () => (await electron.windows()).find(page => page.url() === origin + route), Boolean, 'fixture tab');
+    const opened = Date.now();
+    // On failure, show whether the request reached the fixture server and
+    // what the tab and the blocker report, so a stalled navigation, a held
+    // one and a missing Playwright page differ.
+    const page = await waitForValue(async () => (await electron.windows()).find(page => page.url() === origin + route), Boolean, 'fixture tab')
+      .catch(async error => {
+        const tab = (await call('state').catch(() => null))?.tabs?.find(item => item.id === id);
+        console.error('fixture tab diagnostics:', JSON.stringify({
+          route, sinceOpenMs: Date.now() - opened, hits,
+          tab: tab && { url: tab.url, loadedUrl: tab.loadedUrl, isLoading: tab.isLoading, sessionKind: tab.sessionKind },
+          pages: (await electron.windows()).map(item => item.url()),
+          blocking: await call('blockingStatus').then(value => ({ phase: value.phase, active: value.active, fallback: value.fallback })).catch(failure => String(failure)),
+          startupReady: await call('startupReady').catch(failure => String(failure)),
+        }));
+        throw error;
+      });
     await page.locator('#ready').waitFor();
     await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === id && !tab.isLoading), Boolean, 'fixture finished');
     return page;
