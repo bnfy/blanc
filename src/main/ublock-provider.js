@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { isBrowserResource } = require('./blocking-resources');
-const { installVerifiedPackage, installVerifiedFiles, readHostSources } = require('./ublock-package');
+const { installVerifiedPackageAsync, installVerifiedFilesAsync, readHostSourcesAsync } = require('./ublock-package');
 const { createUblockRegistry } = require('./ublock-registry');
 const { validBridgeSender } = require('./ublock-host-policy');
 const { ublockTool } = require('./ublock-tool-url');
@@ -77,7 +77,14 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let readyPromise;
   let disposed = false;
   let focusedWindowId = -1;
-  const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase, error });
+  // Startup stage durations in milliseconds. A failed startup keeps the stage
+  // it stopped in, so diagnostics show which step stalled or failed.
+  let stage = null;
+  let stageStarted = 0;
+  let timings = {};
+  const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase, error, stage, timings: { ...timings } });
+  function endStage() { if (stage) timings[stage] = Math.round((performance.now() - stageStarted) * 10) / 10; }
+  function beginStage(name) { endStage(); stage = name; stageStarted = performance.now(); }
   const browserResource = url => isBrowserResource(url, app.getAppPath());
   function managedFetch(details) {
     // Chromium's native extension webRequest API excludes the extension's
@@ -91,6 +98,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   }
   function fail(code) {
     if (disposed || phase === 'failed') return;
+    endStage();
     state('failed', code);
     readyReject?.(new Error(code));
     for (const item of pending.values()) { clearTimeout(item.timer); item.reject(new Error(code)); }
@@ -403,20 +411,22 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     try { return await initializePromise; } finally { initializePromise = undefined; }
   }
   async function initializeInner() {
+    timings = {}; stage = null;
     state('initializing');
     readyPromise = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
     // Handle the promise immediately; extraction/load failure can precede await.
     readyPromise.catch(() => {});
     try {
+      beginStage('cssHostLoad');
       fs.mkdirSync(app.getPath('userData'), { recursive: true, mode: 0o700 });
       const managedRoot = path.join(fs.realpathSync(app.getPath('userData')), 'managed-ublock', profileId);
       const cssPath = path.join(managedRoot, 'css-host');
       const cssFiles = {
         'manifest.json': JSON.stringify({ name: 'Blanc uBlock Origin CSS host', version: '1.0.0', manifest_version: 3, permissions: ['scripting'], host_permissions: ['http://*/*', 'https://*/*'] }),
         'bridge.html': '<!doctype html><html><head><meta charset="utf-8"></head><body><script src="bridge.js"></script></body></html>',
-        'bridge.js': fs.readFileSync(path.join(__dirname, 'ublock-css-mainworld.js')),
+        'bridge.js': await fs.promises.readFile(path.join(__dirname, 'ublock-css-mainworld.js')),
       };
-      installVerifiedFiles(new Map(Object.entries(cssFiles).map(([name, bytes]) => [name, Buffer.from(bytes)])), cssPath);
+      await installVerifiedFilesAsync(new Map(Object.entries(cssFiles).map(([name, bytes]) => [name, Buffer.from(bytes)])), cssPath);
       async function loadManaged(directory, options) {
         const onLoaded = (_event, loaded) => { if (loaded.path === directory) loadingIds.add(loaded.id); };
         session.extensions.on('extension-loaded', onLoaded);
@@ -455,13 +465,17 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       cssHelper.webContents.on('will-navigate', event => event.preventDefault());
       cssHelper.webContents.on('render-process-gone', () => fail('ubo-css-crashed'));
       await cssHelper.webContents.loadURL(`chrome-extension://${cssExtension.id}/bridge.html`);
+      beginStage('cssHostReady');
       let cssTimer;
       try { await Promise.race([cssReady, new Promise((_, reject) => { cssTimer = setTimeout(() => reject(new Error('ubo-css-startup-timeout')), DEADLINE_MS); })]); }
       finally { clearTimeout(cssTimer); }
-      const installed = installVerifiedPackage({
+      // Awaited per file: the main process keeps serving pages meanwhile.
+      // Web traffic stays held until uBO reports ready.
+      beginStage('install');
+      const installed = await installVerifiedPackageAsync({
         root: path.join(app.getAppPath(), 'ublock'),
         destination: path.join(managedRoot, 'extension'),
-        hostSources: readHostSources(app.getAppPath()),
+        hostSources: await readHostSourcesAsync(app.getAppPath()),
       });
       scripts = installed.scripts;
       let backgroundReadyResolve;
@@ -483,13 +497,16 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       app.on('web-contents-created', created);
       let backgroundTimer;
       try {
+        beginStage('loadExtension');
         extension = await loadManaged(installed.path, { allowFileAccess: false });
+        beginStage('background');
         resolveBackground();
         await Promise.race([backgroundReady, new Promise((_, reject) => {
           backgroundTimer = setTimeout(() => reject(new Error('ubo-background-startup-timeout')), STARTUP_DEADLINE_MS);
         })]);
       } finally { app.removeListener('web-contents-created', created); clearTimeout(backgroundTimer); }
 
+      beginStage('bridge');
       helper = new WebContentsView({ webPreferences: {
         session, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false,
         preload: path.join(__dirname, 'ublock-bridge-preload.js'),
@@ -499,8 +516,10 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       helper.webContents.on('will-navigate', event => event.preventDefault());
       helper.webContents.on('render-process-gone', () => fail('ubo-bridge-crashed'));
       await helper.webContents.loadURL(`chrome-extension://${extension.id}/blanc-bridge.html`);
+      beginStage('ready');
       const timer = setTimeout(() => fail('ubo-startup-timeout'), STARTUP_DEADLINE_MS);
       try { await readyPromise; } finally { clearTimeout(timer); }
+      beginStage(null);
       return status();
     } catch { fail(error || 'ubo-initialization-failed'); throw new Error(error); }
   }

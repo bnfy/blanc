@@ -89,6 +89,7 @@ jobs:
             xvfb-run -a npm run test:ublock-retirement:desktop
             xvfb-run -a npm run test:ublock-unavailable:desktop
             xvfb-run -a npm run test:ublock-noscript:desktop
+            xvfb-run -a npm run test:ublock-slow-install:desktop
           else
             npm run test:shield-provider:desktop
             npm run test:ublock:desktop
@@ -96,6 +97,7 @@ jobs:
             npm run test:ublock-retirement:desktop
             npm run test:ublock-unavailable:desktop
             npm run test:ublock-noscript:desktop
+            npm run test:ublock-slow-install:desktop
           fi
 
   installed-intel:
