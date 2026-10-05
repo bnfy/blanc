@@ -871,6 +871,25 @@ function install(refs) {
         return !!card && !card.hidden && getComputedStyle(card).display !== 'none';
       })()`);
     },
+    readShelfGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element || element.hidden || getComputedStyle(element).display === 'none') return null;
+          const r = element.getBoundingClientRect();
+          return { left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom) };
+        };
+        return {
+          columns: document.getElementById('layoutShelf').dataset.columns ?? null,
+          viewportWidth: innerWidth,
+          tiles: [...document.querySelectorAll('#shFavorites .shelf-tile')].map(rect).filter(Boolean),
+          groups: rect(document.querySelector('.shelf-card-groups')),
+          blocked: rect(document.querySelector('.shelf-card-blocked')),
+        };
+      })()`);
+    },
     readTallyGeometry() {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;

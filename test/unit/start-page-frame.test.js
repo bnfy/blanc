@@ -164,6 +164,29 @@ test('Billboard keeps its recent sites on one row', () => {
   assert.match(css, /@media \(max-width: 640px\) \{\s*\.bb-site:nth-child\(n \+ 5\) \{ display: none; \}/);
 });
 
+test('Shelf columns follow the favorites count', () => {
+  const js = read('src/renderer/pages/newtab.js');
+  const source = js.match(/function shelfColumns\(count\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(source, 'newtab.js defines shelfColumns');
+  const shelfColumns = require('node:vm').runInNewContext(`${source}; shelfColumns;`);
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7, 8].map(shelfColumns), [2, 2, 2, 3, 4, 3, 3, 4, 4]);
+  assert.match(js, /document\.getElementById\('layoutShelf'\)\.dataset\.columns = String\(shelfColumns\(/);
+});
+
+test('Shelf tiles and cards share one grid with full rows', () => {
+  const html = read('src/renderer/pages/newtab.html');
+  assert.match(html, /<div class="shelf-card shelf-card-groups">/);
+  assert.match(html, /<div class="shelf-card shelf-card-blocked">/);
+  const css = frameCss();
+  assert.match(css, /body\[data-layout="shelf"\] #layoutShelf \{ display: grid; \}/);
+  assert.match(css, /#shFavorites,\s*\.shelf-cards \{ display: contents; \}/);
+  assert.match(css, /#layoutShelf\[data-columns="3"\] \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); \}/);
+  assert.match(css, /#layoutShelf\[data-columns="3"\] \.shelf-card-groups \{ grid-column: span 2; \}/);
+  assert.match(css, /#layoutShelf\[data-columns="4"\] \.shelf-card-groups \{ grid-column: span 3; \}/);
+  assert.match(css, /#layoutShelf:has\(\.shelf-card-blocked\[hidden\]\) \.shelf-card-groups \{ grid-column: 1 \/ -1; \}/);
+  assert.match(css, /\.shelf-tile \{[^}]*min-height: 92px;[^}]*padding: 14px;/s);
+});
+
 test('Tally is two balanced columns with warm bars, data first when narrow', () => {
   const css = frameCss();
   const all = read('src/renderer/pages/pages.css');

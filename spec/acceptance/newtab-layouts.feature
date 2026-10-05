@@ -131,6 +131,15 @@ Feature: Start page layouts
     When I open a new tab
     Then the Billboard shows one row of single-line site names at 1440x840 and 820x840
 
+  @F35-16 @desktop
+  Scenario: Shelf fills full rows for its favorites and cards
+    Given a group "research" with 2 tabs
+    And a profile whose start page layout is "shelf"
+    When I seed 6 favorites and open a new tab
+    Then Shelf shows 3 columns with full rows of tiles and cards
+    When I seed 2 more favorites and open a new tab
+    Then Shelf shows 4 columns with full rows of tiles and cards
+
   @F35-17 @desktop
   Scenario: Tally balances its columns and puts the data first when narrow
     Given eight favorites fill the Start Page

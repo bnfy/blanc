@@ -2560,12 +2560,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf {
   user-select: none;
 }
-.shelf-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 30px;
-}
 .shelf-tile {
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -2609,7 +2603,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.shelf-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 14px; }
 .shelf-card { border: 1px solid var(--border); border-radius: 6px; padding: 18px 16px; }
 .shelf-label {
   font-family: var(--font-ui);
@@ -2714,12 +2707,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 /* Too narrow for one row: wrap as centered lines instead (no overflow). */
 @media (max-width: 760px) {
   .ledger-footer { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
-}
-
-@media (max-width: 960px) {
-  .shelf { left: 48px; right: 48px; }
-  .shelf-grid { grid-template-columns: repeat(2, 1fr); }
-  .shelf-cards { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 }
 
 /* Every billboard site occupies the same slot width, so the icons land
@@ -2845,17 +2832,13 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* Shelf: dense, modular cards with enough space on wide screens for the
    shared moving-in checklist at the right edge. */
-.shelf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 0; }
 .shelf-tile,
 .shelf-card {
   border-color: color-mix(in srgb, var(--border) 86%, transparent);
 }
-.shelf-tile { min-height: 108px; border-radius: 10px; padding: 16px; gap: 12px; }
 .shelf-tile:hover { border-color: var(--accent); }
 .shelf-tile .name { font-size: 13px; }
 .shelf-tile .host { font-family: var(--font-ui); }
-.shelf-cards { grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr); gap: 12px; margin-top: 12px; }
-.shelf-card { min-height: 100px; border-radius: 10px; padding: 16px; }
 .shelf-count { font-family: var(--font-ui); font-size: 32px; color: var(--accent); }
 .shelf-unit { font-family: var(--font-ui); }
 .shelf-patron { margin-top: 16px; }
@@ -2988,8 +2971,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 @media (max-width: 760px) {
   .ledger-body { padding-bottom: 104px; background-size: auto 100%, auto 100%; }
   .start-brand-mark { width: 44px; height: 44px; }
-  .shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .shelf-cards { grid-template-columns: 1fr; }
   .bb-favs { gap: 10px; }
   .bb-site { width: 86px; }
 }
@@ -3015,7 +2996,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .bb-clock { font-size: clamp(60px, 11vw, 90px); }
   .bb-favs { margin-top: 20px; }
   .bb-groups { margin-top: 14px; }
-  .shelf-tile { min-height: 92px; padding: 12px; }
 }
 
 /* ---------- Start page frame (2026-10-05 polish) ----------
@@ -3518,6 +3498,37 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
 .bb-favs { flex-wrap: nowrap; justify-content: center; }
 @media (max-width: 640px) {
   .bb-site:nth-child(n + 5) { display: none; }
+}
+
+/* Shelf: one grid holds the favorite tiles, both cards and the Patron chip.
+   Its column count follows the favorites (data-columns, set by newtab.js) so
+   every row is full: the groups card takes all but one column and the
+   blocked card the last. */
+body[data-layout="shelf"] #layoutShelf { display: grid; }
+/* The column rules stay at #id specificity so data-columns can override the
+   four-column default; the body[data-layout] selector above would outrank it. */
+#layoutShelf {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+#layoutShelf[data-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#layoutShelf[data-columns="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#layoutShelf[data-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#shFavorites,
+.shelf-cards { display: contents; }
+.shelf-card-groups { grid-column: span 3; }
+#layoutShelf[data-columns="2"] .shelf-card-groups { grid-column: span 1; }
+#layoutShelf[data-columns="3"] .shelf-card-groups { grid-column: span 2; }
+#layoutShelf[data-columns="4"] .shelf-card-groups { grid-column: span 3; }
+#layoutShelf:has(.shelf-card-blocked[hidden]) .shelf-card-groups { grid-column: 1 / -1; }
+.shelf-patron { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
+.shelf-tile { min-height: 92px; padding: 14px; gap: 12px; }
+.shelf-card { min-height: 0; padding: 14px; }
+@media (max-width: 760px) {
+  #layoutShelf[data-columns] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #layoutShelf[data-columns] .shelf-card-groups,
+  .shelf-card-blocked { grid-column: 1 / -1; }
 }
 
 /* Past days in a warm Sunrise tint, today solid; colour alone marks today. */
