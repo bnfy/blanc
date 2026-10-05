@@ -13,6 +13,13 @@ const { captureDocuments, currentDocuments, guardScript } = require('./ublock-do
 
 const DEADLINE_MS = 2000;
 const OPERATION_DEADLINE_MS = 10000;
+// Right after ready, a cold background (new profile, slow machine) can need
+// more than two seconds for its first network decisions; the held first
+// navigation then failed closed and was never replayed. For a short window
+// after each ready, decisions get longer to answer. Requests stay held while
+// they wait and a missed decision still fails closed.
+const WARMUP_DEADLINE_MS = 10000;
+const WARMUP_WINDOW_MS = 15000;
 // A profile's first start compiles every bundled filter list before uBO
 // reports ready, and that takes 6–10 s on hosted Intel Macs and sometimes
 // more than 15 s. Navigation stays held until then, and a startup that misses
@@ -63,6 +70,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let sequence = 0;
   let enabled = true;
   let phase = 'initializing';
+  let warmUntil = 0;
   let error = null;
   let readyResolve;
   let readyReject;
@@ -105,6 +113,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       wc.loadURL('blanc://error?code=-20&desc=uBlock%20Origin%20needs%20retry').catch(() => {});
     }
   }
+  function decisionDeadline() {
+    return Date.now() < warmUntil ? WARMUP_DEADLINE_MS : DEADLINE_MS;
+  }
   function ask(message) {
     if (phase !== 'ready') return Promise.reject(new Error(error || 'ubo-not-ready'));
     // Reject excess work without invalidating already pending decisions. The
@@ -116,7 +127,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       const timer = setTimeout(() => {
         if (critical) fail('ubo-decision-timeout');
         else { pending.delete(id); reject(new Error('ubo-operation-timeout')); }
-      }, critical ? DEADLINE_MS : OPERATION_DEADLINE_MS);
+      }, critical ? decisionDeadline() : OPERATION_DEADLINE_MS);
       pending.set(id, { resolve, reject, timer, critical, transport: 'background' });
       try { send({ ...message, id }); } catch { fail('ubo-background-unavailable'); }
     });
@@ -367,6 +378,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
         const processStatus = fs.readFileSync(`/proc/${bg.getOSProcessId()}/status`, 'utf8');
         if (!/^Seccomp:\s+2$/m.test(processStatus) || !/^NoNewPrivs:\s+1$/m.test(processStatus)) return fail('ubo-background-unsandboxed');
       }
+      warmUntil = Date.now() + WARMUP_WINDOW_MS;
       send({ kind: 'enabled', value: enabled });
       state('ready'); refresh(); readyResolve?.(status()); return;
     }
@@ -616,7 +628,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     });
   }
   return { id: 'ublock-origin', initialize, retry, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
-    get extensionId() { return extension?.id; } };
+    get extensionId() { return extension?.id; },
+    // Read-only, for the acceptance harness.
+    decisionDeadlineMs: decisionDeadline };
 }
 
 module.exports = { createUblockProvider, DEADLINE_MS, MAX_PENDING };
