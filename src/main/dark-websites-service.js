@@ -37,9 +37,10 @@ function isPrivateContents(wc) {
  *   settings: { getSettings(): object, setSettings(partial: object): object },
  *   getFetchSession: () => Electron.Session,
  *   forEachTabContents: (fn: (wc: Electron.WebContents) => void) => void,
+ *   allowStylesheet: (wc: Electron.WebContents, url: string) => Promise<boolean>,
  * }} deps
  */
-function createDarkWebsitesService({ ipcMain, nativeTheme, settings, getFetchSession, forEachTabContents }) {
+function createDarkWebsitesService({ ipcMain, nativeTheme, settings, getFetchSession, forEachTabContents, allowStylesheet }) {
   // This run's /dark-site choices from private tabs, by hostname. Memory only.
   const privateOverrides = new Map();
   const fetchStylesheet = createStylesheetFetcher({ getSession: getFetchSession });
@@ -83,7 +84,7 @@ function createDarkWebsitesService({ ipcMain, nativeTheme, settings, getFetchSes
         watched.add(wc);
         wc.once('destroyed', () => fetchStylesheet.forget(wc.id));
       }
-      return fetchStylesheet(wc.id, rawUrl);
+      return fetchStylesheet(wc.id, rawUrl, (url) => allowStylesheet(wc, url));
     });
     nativeTheme.on('updated', broadcast);
   }

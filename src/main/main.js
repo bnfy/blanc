@@ -1841,7 +1841,28 @@ const darkWebsites = createDarkWebsitesService({
   settings,
   getFetchSession: () => session.fromPartition('dark-websites-stylesheets'),
   forEachTabContents: (fn) => { for (const tab of tabs.values()) fn(liveContents(tab)); },
+  // Ask the tab's own blocker, as if the page had requested the stylesheet,
+  // so a blocked tracker stylesheet is not fetched for Dark Reader instead.
+  // No tab or no provider yet fails closed.
+  allowStylesheet: async (wc, url) => {
+    const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+    const provider = tab ? blockingProviders?.effectiveForTab(tab) : null;
+    if (!provider) return false;
+    const pageUrl = wc.getURL();
+    const decision = await provider.decide('onBeforeRequest', {
+      id: `dark-websites-${++darkWebsitesStylesheetSeq}`,
+      url,
+      method: 'GET',
+      resourceType: 'stylesheet',
+      webContentsId: wc.id,
+      frame: wc.mainFrame,
+      referrer: pageUrl,
+      timestamp: Date.now(),
+    });
+    return !(decision?.cancel || decision?.redirectURL);
+  },
 });
+let darkWebsitesStylesheetSeq = 0;
 /**
  * @typedef {object} SleepSnapshot
  * @property {import('electron').WebContentsView|null} view

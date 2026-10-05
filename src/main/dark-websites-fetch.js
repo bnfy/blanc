@@ -9,13 +9,17 @@
 // - http(s) only, no URL credentials, at most MAX_STYLESHEET_URL_LENGTH;
 // - no loopback, private, link-local or other non-public address, checked
 //   on the IP literal or on every address the host resolves to;
+// - the page's blocker (Blanc Blocker or uBO) must allow the stylesheet, so
+//   a request it blocked for the page is never fetched here instead;
 // - an isolated in-memory session: no cookies, cache or credentials;
 // - no redirects, a timeout, `text/css` only, and a byte cap;
 // - per-page rate and concurrency limits.
 //
-// DNS can change between the check and the fetch (rebinding). The window is
-// small and the response must still be text/css; the residual risk is
-// recorded in docs/dark-reader-built-in-plan-2026-10-05.md.
+// DNS can change between the address check and the fetch (rebinding). The
+// window is small, the target must answer an attacker-chosen Host with a
+// text/css 200, and the page only ever sees the colour overrides Dark Reader
+// derives from the text. Closing it fully needs the fetch to connect to the
+// checked address, which Electron's fetch does not offer.
 
 const {
   MAX_STYLESHEET_BYTES,
@@ -48,7 +52,8 @@ async function readCapped(response, maxBytes) {
 
 /**
  * @param {{ getSession: () => Electron.Session, now?: () => number }} deps
- * @returns {((key: number, rawUrl: unknown) => Promise<string|null>) & { forget(key: number): void }}
+ * @returns {((key: number, rawUrl: unknown, allow: (url: string) => Promise<boolean>) => Promise<string|null>)
+ *   & { forget(key: number): void }}
  */
 function createStylesheetFetcher({ getSession, now = Date.now }) {
   const budgets = new Map();
@@ -71,12 +76,14 @@ function createStylesheetFetcher({ getSession, now = Date.now }) {
     return budget;
   }
 
-  async function fetchStylesheet(key, rawUrl) {
+  // `allow(url)` is the page's blocker decision; it must resolve to true.
+  async function fetchStylesheet(key, rawUrl, allow) {
     const parsed = parseStylesheetUrl(rawUrl);
-    if (!parsed) return null;
+    if (!parsed || typeof allow !== 'function') return null;
     const budget = admit(key);
     if (!budget) return null;
     try {
+      if (await allow(parsed.url.href) !== true) return null;
       const ses = getSession();
       if (!parsed.literal) {
         const resolved = await ses.resolveHost(parsed.host);

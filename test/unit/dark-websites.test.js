@@ -105,6 +105,8 @@ test('stylesheet URLs are limited to public http(s) hosts without credentials', 
   }
 });
 
+const allowAll = async () => true;
+
 function cssResponse(body, { type = 'text/css; charset=utf-8', status = 200, length } = {}) {
   const headers = new Map([['content-type', type]]);
   if (length !== undefined) headers.set('content-length', String(length));
@@ -127,35 +129,50 @@ function fakeSession({ addresses = ['93.184.216.34'], respond = () => cssRespons
 test('the stylesheet fetch is cookieless, redirect-free and CSS-only', async () => {
   const ses = fakeSession();
   const fetchCss = createStylesheetFetcher({ getSession: () => ses });
-  assert.equal(await fetchCss(1, 'https://cdn.example.com/a.css'), 'a{color:red}');
+  assert.equal(await fetchCss(1, 'https://cdn.example.com/a.css', allowAll), 'a{color:red}');
   const { init } = ses.calls.fetch[0];
   assert.equal(init.credentials, 'omit');
   assert.equal(init.redirect, 'error');
   assert.ok(init.signal);
 
   const html = fakeSession({ respond: () => cssResponse('<html>', { type: 'text/html' }) });
-  assert.equal(await createStylesheetFetcher({ getSession: () => html })(1, 'https://cdn.example.com/a.css'), null);
+  assert.equal(await createStylesheetFetcher({ getSession: () => html })(1, 'https://cdn.example.com/a.css', allowAll), null);
   const missing = fakeSession({ respond: () => cssResponse('', { status: 404 }) });
-  assert.equal(await createStylesheetFetcher({ getSession: () => missing })(1, 'https://cdn.example.com/a.css'), null);
+  assert.equal(await createStylesheetFetcher({ getSession: () => missing })(1, 'https://cdn.example.com/a.css', allowAll), null);
+});
+
+test('a stylesheet the page\'s blocker would block is never fetched', async () => {
+  const ses = fakeSession();
+  const fetchCss = createStylesheetFetcher({ getSession: () => ses });
+  const asked = [];
+  assert.equal(await fetchCss(1, 'https://tracker.example/t.css', async (url) => { asked.push(url); return false; }), null);
+  assert.deepEqual(asked, ['https://tracker.example/t.css']);
+  // A missing or non-boolean decision fails closed, before any lookup.
+  assert.equal(await fetchCss(1, 'https://cdn.example.com/a.css'), null);
+  assert.equal(await fetchCss(1, 'https://cdn.example.com/a.css', async () => 'yes'), null);
+  assert.equal(await fetchCss(1, 'https://cdn.example.com/a.css', async () => { throw new Error('provider failed'); }), null);
+  assert.equal(ses.calls.resolve.length + ses.calls.fetch.length, 0);
+  // Invalid URLs never reach the blocker.
+  assert.equal(await fetchCss(1, 'http://127.0.0.1/a.css', async () => { throw new Error('asked'); }), null);
 });
 
 test('hosts resolving to any private address are refused before fetching', async () => {
   for (const addresses of [['10.0.0.5'], ['93.184.216.34', '127.0.0.1'], []]) {
     const ses = fakeSession({ addresses });
-    assert.equal(await createStylesheetFetcher({ getSession: () => ses })(1, 'https://rebind.example/a.css'), null);
+    assert.equal(await createStylesheetFetcher({ getSession: () => ses })(1, 'https://rebind.example/a.css', allowAll), null);
     assert.equal(ses.calls.fetch.length, 0, addresses.join());
   }
   const local = fakeSession();
-  assert.equal(await createStylesheetFetcher({ getSession: () => local })(1, 'http://192.168.0.1/a.css'), null);
+  assert.equal(await createStylesheetFetcher({ getSession: () => local })(1, 'http://192.168.0.1/a.css', allowAll), null);
   assert.equal(local.calls.resolve.length + local.calls.fetch.length, 0);
 });
 
 test('oversized stylesheets are dropped, declared or streamed', async () => {
   const big = 'a'.repeat(policy.MAX_STYLESHEET_BYTES + 1);
   const declared = fakeSession({ respond: () => cssResponse('x', { length: policy.MAX_STYLESHEET_BYTES + 1 }) });
-  assert.equal(await createStylesheetFetcher({ getSession: () => declared })(1, 'https://cdn.example.com/a.css'), null);
+  assert.equal(await createStylesheetFetcher({ getSession: () => declared })(1, 'https://cdn.example.com/a.css', allowAll), null);
   const streamed = fakeSession({ respond: () => cssResponse(big) });
-  assert.equal(await createStylesheetFetcher({ getSession: () => streamed })(1, 'https://cdn.example.com/a.css'), null);
+  assert.equal(await createStylesheetFetcher({ getSession: () => streamed })(1, 'https://cdn.example.com/a.css', allowAll), null);
 });
 
 test('each page has a fetch rate limit and a concurrency limit', async () => {
@@ -163,12 +180,12 @@ test('each page has a fetch rate limit and a concurrency limit', async () => {
   const ses = fakeSession();
   const fetchCss = createStylesheetFetcher({ getSession: () => ses, now: () => t });
   for (let i = 0; i < policy.MAX_STYLESHEET_FETCHES_PER_MINUTE; i += 1) {
-    assert.notEqual(await fetchCss(7, `https://cdn.example.com/${i}.css`), null);
+    assert.notEqual(await fetchCss(7, `https://cdn.example.com/${i}.css`, allowAll), null);
   }
-  assert.equal(await fetchCss(7, 'https://cdn.example.com/over.css'), null);
-  assert.notEqual(await fetchCss(8, 'https://cdn.example.com/other-page.css'), null);
+  assert.equal(await fetchCss(7, 'https://cdn.example.com/over.css', allowAll), null);
+  assert.notEqual(await fetchCss(8, 'https://cdn.example.com/other-page.css', allowAll), null);
   t += 60_000;
-  assert.notEqual(await fetchCss(7, 'https://cdn.example.com/next-minute.css'), null);
+  assert.notEqual(await fetchCss(7, 'https://cdn.example.com/next-minute.css', allowAll), null);
 
   let release;
   const gate = new Promise((resolve) => { release = resolve; });
@@ -176,15 +193,15 @@ test('each page has a fetch rate limit and a concurrency limit', async () => {
   const limited = createStylesheetFetcher({ getSession: () => slow, now: () => 0 });
   const pending = [];
   for (let i = 0; i < policy.MAX_CONCURRENT_STYLESHEET_FETCHES; i += 1) {
-    pending.push(limited(9, `https://cdn.example.com/slow-${i}.css`));
+    pending.push(limited(9, `https://cdn.example.com/slow-${i}.css`, allowAll));
   }
-  assert.equal(await limited(9, 'https://cdn.example.com/one-too-many.css'), null);
+  assert.equal(await limited(9, 'https://cdn.example.com/one-too-many.css', allowAll), null);
   release();
   assert.deepEqual(await Promise.all(pending), pending.map(() => 'b{}'));
-  assert.equal(await limited(9, 'https://cdn.example.com/after.css'), 'b{}');
+  assert.equal(await limited(9, 'https://cdn.example.com/after.css', allowAll), 'b{}');
 });
 
-function serviceHarness({ darkWebsites = true, exceptions = [], dark = true } = {}) {
+function serviceHarness({ darkWebsites = true, exceptions = [], dark = true, blocked = [] } = {}) {
   const ipcMain = new EventEmitter();
   const handlers = new Map();
   ipcMain.handle = (channel, fn) => handlers.set(channel, fn);
@@ -199,10 +216,12 @@ function serviceHarness({ darkWebsites = true, exceptions = [], dark = true } = 
   };
   const sent = [];
   const tabs = [];
+  const allowAsked = [];
   const service = createDarkWebsitesService({
     ipcMain, nativeTheme, settings,
     getFetchSession: () => fakeSession(),
     forEachTabContents: (fn) => tabs.forEach(fn),
+    allowStylesheet: async (wc, url) => { allowAsked.push([wc.getURL(), url]); return !blocked.includes(url); },
   });
   service.install();
   const contents = (url, { persistent = true, id = 1 } = {}) => ({
@@ -218,7 +237,7 @@ function serviceHarness({ darkWebsites = true, exceptions = [], dark = true } = 
     ipcMain.emit(policy.GET_CHANNEL, event);
     return event.returnValue;
   };
-  return { service, settings, writes, sent, tabs, contents, get, handlers, nativeTheme, listeners };
+  return { service, settings, writes, sent, tabs, contents, get, handlers, nativeTheme, listeners, allowAsked };
 }
 
 test('main answers the preload only for http(s) main frames', () => {
@@ -231,13 +250,16 @@ test('main answers the preload only for http(s) main frames', () => {
 });
 
 test('the stylesheet channel serves only pages that are being darkened', async () => {
-  const h = serviceHarness({ exceptions: ['kept.example'] });
+  const h = serviceHarness({ exceptions: ['kept.example'], blocked: ['https://tracker.example/t.css'] });
   const fetchCss = h.handlers.get(policy.FETCH_CHANNEL);
   const call = (pageUrl, opts = {}) => fetchCss({ sender: h.contents(pageUrl), senderFrame: { url: pageUrl, parent: opts.parent ?? null } }, 'https://cdn.example.com/a.css');
   assert.equal(await call('https://example.com/'), 'a{color:red}');
   assert.equal(await call('https://kept.example/'), null);
   assert.equal(await call('https://example.com/', { parent: {} }), null);
   assert.equal(await call('blanc://newtab/'), null);
+  assert.deepEqual(h.allowAsked, [['https://example.com/', 'https://cdn.example.com/a.css']]);
+  const blockedCall = await fetchCss({ sender: h.contents('https://example.com/'), senderFrame: { url: 'https://example.com/', parent: null } }, 'https://tracker.example/t.css');
+  assert.equal(blockedCall, null);
 });
 
 test('theme changes and private /dark-site choices reach open tabs without touching settings', () => {

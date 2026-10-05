@@ -963,9 +963,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   Settings → General.
 - The engine runs in its own isolated world: the page cannot see or call it,
   and the page's CSP cannot block its styles. That world's only capability is
-  asking main for the text of a stylesheet; main fetches only public http(s)
-  `text/css`, without cookies, redirects or private-network addresses, within
-  size, time and rate limits.
+  asking main for the text of a stylesheet; main fetches it only if the
+  tab's blocker would allow it, and only public http(s) `text/css`, without
+  cookies, redirects or private-network addresses, within size, time and rate
+  limits.
 - Internal `blanc://` pages, Blanc's chrome, extension pages and iframes are
   never darkened. Iframes are a known gap: Blanc runs session preloads only in
   main frames, as the capture indicator does.
