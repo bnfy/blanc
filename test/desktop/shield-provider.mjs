@@ -60,10 +60,14 @@ function observePageErrors(page) {
     }
   });
 }
+// A profile's first uBO start compiles every bundled list before ready and
+// the provider allows 45 s per startup wait (STARTUP_DEADLINE_MS); slow hosted
+// runners need well over 20 s. Same budget as ublock-origin.mjs.
+const COLD_START_MS = 100000;
 const watchdog = setTimeout(() => {
   console.error('Shield suite deadline at ' + stage);
   electron?.process().kill('SIGKILL');
-}, 120000);
+}, 240000);
 const call = (method, ...args) => hooks.callTestHook(electron, method, args);
 const providerRadio = (overlay, provider) => overlay.locator(`[name="shieldProvider"][value="${provider}"]`);
 async function launch(supported) {
@@ -80,8 +84,14 @@ async function launch(supported) {
   electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-8000); });
   await popupFocusTrace.install(electron);
   await electron.firstWindow();
+  // Startup is released only once the provider settles, so wait on the
+  // provider with the cold-start budget and stop at once if it fails.
+  await waitForValue(async () => {
+    const state = await call('blockingStatus');
+    assert.notEqual(state?.phase, 'failed', `provider failed: ${JSON.stringify(state)}`);
+    return state;
+  }, state => supported ? state?.phase === 'ready' : state?.phase === 'disabled', 'provider settled', COLD_START_MS);
   await waitForValue(() => call('startupReady'), Boolean, 'browser startup complete', 20000);
-  await waitForValue(() => call('blockingStatus'), state => supported ? state.phase === 'ready' : state.phase === 'disabled', 'provider settled', 20000);
 }
 async function openShield() {
   await popupFocusTrace.focusFixtureWindow(electron);

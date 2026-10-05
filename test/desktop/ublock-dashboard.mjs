@@ -29,7 +29,7 @@ void ignored;
 let electron;
 let stage = 'startup';
 const errors = [];
-const watchdog = setTimeout(() => { console.error('Dashboard suite exceeded 120 seconds at ' + stage); electron?.process().kill('SIGKILL'); }, 120000);
+const watchdog = setTimeout(() => { console.error('Dashboard suite exceeded 240 seconds at ' + stage); electron?.process().kill('SIGKILL'); }, 240000);
 async function launch() {
   electron = await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
@@ -39,8 +39,27 @@ async function launch() {
   electron.context().setDefaultTimeout(8000);
   electron.context().on('page', page => page.on('pageerror', error => errors.push(error.message)));
   await electron.firstWindow();
+  // The first launch is a cold uBO start (see COLD_START_MS in ublock-origin.mjs);
+  // startup is released only once the provider settles.
+  await waitForValue(async () => {
+    const status = await call('blockingStatus');
+    assert.notEqual(status?.phase, 'failed', `provider failed: ${JSON.stringify(status)}`);
+    return status;
+  }, status => status?.phase === 'ready', 'real uBO ready', 100000);
   await waitForValue(() => call('startupReady'), Boolean, 'browser restore ready', 20000);
-  await waitForValue(() => call('blockingStatus'), status => status.phase === 'ready', 'real uBO ready', 20000);
+  await settleUpdater();
+}
+const inBackground = source => electron.evaluate(({ webContents }, code) => webContents.getAllWebContents()
+  .find(wc => wc.getType() === 'backgroundPage').executeJavaScript(code), source);
+// A fresh profile's bundled lists count as never updated, so uBO starts an
+// update cycle shortly after ready, and that cycle ends in its own
+// loadFilterLists(). That reload resets the engine without suspending
+// requests and absorbs any Apply that lands inside it. Run the cycle now and
+// let it and its reload finish before the suite exercises filters.
+async function settleUpdater() {
+  await inBackground('µBlock.scheduleAssetUpdater({ now: true, fetchDelay: 100, auto: true }).then(() => true)');
+  await waitForValue(() => inBackground("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())"), Boolean, 'uBO updater cycle complete', 60000);
+  await inBackground('µBlock.loadFilterLists().then(() => true)');
 }
 const call = (method, ...args) => testCalls.callTestHook(electron, method, args);
 let dashboard;
