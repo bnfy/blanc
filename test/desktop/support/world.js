@@ -55,6 +55,12 @@ class BlancWorld {
   untrustedFixtureUrl(name) {
     return `${ctx.untrustedFixturesBase}/site/${encodeURIComponent(name)}`;
   }
+
+  /** HTTPS on a local-use name with its own key, absent from the SPKI
+   *  allowlist unless the trusted pair is swapped in (F39-2..7). */
+  localFixtureUrl(name, query = '', host = 'nas.home.arpa') {
+    return `https://${host}:${ctx.localFixturesPort}/site/${encodeURIComponent(name)}${query}`;
+  }
 }
 
 setWorldConstructor(BlancWorld);

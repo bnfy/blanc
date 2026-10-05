@@ -271,6 +271,15 @@
         "src/main/tab-sleep.js"
       ],
       "qualification": "Public v1.27.0. ⌘/Ctrl+Shift+N and /private open a private tab; new-tab links and window.open children inherit the opener tab’s private state and group; private permission decisions and private download metadata are memory-only while the saved file remains. Move to Group offers New Group…, existing groups and Remove from Group; with groups, ⌘/Ctrl+1–9 jump to the nth cluster; /close-group records one group entry that ⌘/Ctrl+Shift+T restores whole, subject to the Recently Closed reload limits. Launch restore creates every saved tab quiet and wakes only each window’s selected tab; Off stops future quieting and wakes nothing."
+    },
+    "ublockUpstream": {
+      "evidence": [
+        "ublock/upstream/manifest.json",
+        "ublock/pinned.json",
+        "docs/ublock-origin-support-matrix-2026-10-03.md",
+        "THIRD-PARTY-NOTICES.md"
+      ],
+      "qualification": "Public v1.27.0 bundles uBlock Origin 1.75.0, whose upstream manifest declares manifest_version 2. The GPL-covered extension, preferred-source inputs, adaptation patches, build instructions and notices are packaged and checked; the owner-directed distribution decision claims no outside legal sign-off. Backup/restore remains available; remote executable resource updates and custom resource URLs, including in imported advanced settings, stay blocked. A later build without uBO activates Blanc Blocker with a notice and preserves uBO settings."
     }
   },
   "claims": [
@@ -9961,7 +9970,9 @@
       "subject": "Blanc",
       "evidenceGroups": [],
       "verdict": "qualified",
-      "externalSource": "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
+      "externalSources": [
+        "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
+      ]
     },
     {
       "id": "seo-2026-10-05-arc-alternative-04",
@@ -10214,6 +10225,281 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-01",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "after manifest v2",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-02",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Chrome stopped running full uBlock Origin. Blanc still includes it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders",
+        "ublockUpstream"
+      ],
+      "verdict": "qualified",
+      "externalSources": [
+        "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline"
+      ]
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-03",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Since Chrome 138 in July 2025, Chrome has disabled Manifest V2 extensions for every user, and on August 31, 2026 Google removed the remaining ones from the Chrome Web Store. The full uBlock Origin is a Manifest V2 extension. Blanc, a desktop browser built on Chromium, includes it as an optional blocker.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders",
+        "ublockUpstream"
+      ],
+      "verdict": "qualified",
+      "externalSources": [
+        "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline"
+      ]
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-04",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "what you get",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-05",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "The full uBlock Origin, not a Lite version.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-06",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "The tools you used.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-07",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Blanc includes uBlock Origin 1.75.0 with its popup, dashboard, logger, element picker, custom filters and filter-list subscriptions.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-08",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Filter lists still update.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-09",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Filter lists can update on their own. uBlock Origin itself updates only with reviewed Blanc releases.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-10",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Not uBO Lite.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-11",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "uBlock Origin Lite is a separate extension its developers built on Chrome’s newer Manifest V3 API, and it filters declaratively. Blanc includes the original uBlock Origin.",
+      "subject": "Blanc",
+      "evidenceGroups": [],
+      "verdict": "qualified",
+      "externalSources": [
+        "https://github.com/uBlockOrigin/uBOL-home"
+      ]
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-12",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "switching",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-13",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Three steps to switch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-14",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "1. Download Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-15",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Blanc is free for macOS, Windows and Linux. Download it here.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-16",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "2. Choose uBlock Origin from the shield.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-17",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Click the shield on the island, choose uBlock Origin, then restart Blanc to apply it. Blanc Blocker stays the default until you switch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders",
+        "blockingDefault"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-18",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "3. Bring your settings, if you saved them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-19",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "uBlock Origin’s backup and restore work in Blanc, so a backup file from another browser can be restored in its dashboard. Advanced settings that point to custom resource URLs stay blocked.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders",
+        "ublockUpstream"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-20",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "good to know",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-21",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Where it runs, and its limits.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-22",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "uBlock Origin is available for regular tabs on Apple Silicon and Intel Macs, Windows x64 and Linux x64. Private tabs always use Blanc Blocker, and so does the Intel build when it runs under Rosetta on an Apple Silicon Mac. Each profile keeps its own uBlock Origin settings, and they are not synced.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-23",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "uBlock Origin is the one extension Blanc includes; Blanc does not install other browser extensions. Blanc can offer it only while its Electron runtime can load Manifest V2 extensions. If a later build cannot, Blanc switches to Blanc Blocker with a notice and keeps your uBlock Origin settings.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders",
+        "ublockUpstream"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-24",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "uBlock Origin is an independent open-source project under the GPLv3 license. Blanc ships it with its source, license notices and Blanc’s adaptation patches, and is not affiliated with the uBlock Origin project.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ublockUpstream"
+      ],
+      "verdict": "qualified",
+      "externalSources": [
+        "https://github.com/gorhill/uBlock"
+      ]
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-25",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "keep the blocker you trust",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "seo-2026-10-05-ublock-after-chrome-26",
+      "source": "site/src/pages/ublock-origin-after-chrome.astro",
+      "exactWording": "Full uBlock Origin, in a calmer browser.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blockingProviders"
       ],
       "verdict": "qualified"
     }
@@ -12478,6 +12764,25 @@
       "published": "2025-05-26",
       "accessedAt": "2026-10-05",
       "supports": "Arc: “we stopped actively building new features”; “we never stopped maintaining Arc. We do regular Chromium upgrades, fix security vulnerabilities, related bugs, and more.” Supports only the Arc sentence on /arc-alternative."
+    },
+    {
+      "url": "https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline",
+      "publisher": "Google (Chrome for Developers)",
+      "published": "2026-09-09 (last updated)",
+      "accessedAt": "2026-10-05",
+      "supports": "“July 24th, 2025: With Chrome 138 all users on all channels of Chrome have now Manifest V2 extensions disabled.” “August 31st, 2026: All remaining Manifest V2 extensions have been removed from the Chrome Web Store.”"
+    },
+    {
+      "url": "https://github.com/gorhill/uBlock",
+      "publisher": "uBlock Origin project",
+      "accessedAt": "2026-10-05",
+      "supports": "Project licence GPLv3; its README records “Aug 31st 2026: All remaining Manifest V2 extensions removed from the Chrome Web Store.” Supports the licence statement only."
+    },
+    {
+      "url": "https://github.com/uBlockOrigin/uBOL-home",
+      "publisher": "uBlock Origin project",
+      "accessedAt": "2026-10-05",
+      "supports": "“uBO Lite (uBOL) is an efficient content blocker based on the MV3 API.” “uBOL operates entirely declaratively.” Supports the uBO Lite description only."
     }
   ]
 }

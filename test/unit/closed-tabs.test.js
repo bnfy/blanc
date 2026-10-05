@@ -200,3 +200,20 @@ test('projectEntries hides recovery tiers and emits only display-safe fields', (
   assert.deepEqual(projected.map((p) => p.tabCount), [1, 1, 1, 2]);
   assert.equal(projected[3].title, 'work');
 });
+
+test('the not-secure document record and entry marks ride in the seed, never in the projection', () => {
+  const certificate = { subject: 'nas', issuer: 'nas', validFrom: 1, validTo: 2, fingerprint: 'sha256/AAA' };
+  const record = { origin: 'https://nas.home.arpa:443', certificate };
+  const marks = { urls: ['https://nas.home.arpa/'], marks: [record], index: 0 };
+  const entry = buildTabEntry(baseTab({
+    url: 'https://nas.home.arpa/', documentCertificateException: record, certificateEntryMarks: marks,
+  }), SNAP, {}, 0);
+  assert.deepEqual(entry.seed.documentCertificateException, record);
+  assert.deepEqual(entry.seed.certificateEntryMarks, marks);
+  assert.notEqual(entry.seed.certificateEntryMarks.marks, marks.marks, 'copied, not shared');
+  const projected = JSON.stringify(projectEntries([entry]));
+  assert.doesNotMatch(projected, /sha256|certificate|nas\.home/);
+  const plain = buildTabEntry(baseTab(), SNAP, {}, 0);
+  assert.equal(plain.seed.documentCertificateException, null);
+  assert.deepEqual(plain.seed.certificateEntryMarks, { urls: [], marks: [], index: -1 });
+});

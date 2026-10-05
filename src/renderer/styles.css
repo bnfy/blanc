@@ -1480,7 +1480,8 @@ button.insecure-badge {
 .site-info-button:focus-visible,
 .site-info-button[aria-expanded="true"] { color: var(--text); background: var(--surface-raised); }
 .site-info-button.insecure,
-.site-info-button.certificate-error { color: var(--danger); }
+.site-info-button.certificate-error,
+.site-info-button.certificate-exception { color: var(--danger); }
 .site-info-button[hidden] { display: none; }
 .site-info-button svg {
   width: 14px;
@@ -1508,7 +1509,8 @@ button.insecure-badge {
   background: var(--accent);
 }
 .site-info-card.insecure .site-info-state,
-.site-info-card.certificate-error .site-info-state { background: var(--danger); }
+.site-info-card.certificate-error .site-info-state,
+.site-info-card.certificate-exception .site-info-state { background: var(--danger); }
 .site-info-card.local .site-info-state { background: var(--text-dim); }
 .site-info-title { font-size: 13px; font-weight: 600; }
 .site-info-origin {
@@ -1538,6 +1540,7 @@ button.insecure-badge {
 }
 .site-info-protection { align-self: center; color: var(--text-dim); font-size: 11px; }
 .site-info-settings { color: var(--accent); background: transparent; border: none; font-size: 11px; }
+.site-info-stop-allowing { color: var(--danger); }
 
 /* Site favicon slot: domain initial fallback, spinner while loading. */
 .favicon {
