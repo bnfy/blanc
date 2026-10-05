@@ -738,8 +738,12 @@ From the desktop `DEFAULTS`:
   week-of-blocking bar chart). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
   derives up to six hostname-level sites from the active local profile's
   on-device history, ranked by visit count with recency as the tie-breaker. A
-  full, bounded local page title labels each tile, and a bounded profile-local
-  cache reuses sanitized 32 px favicon pixels captured during normal visits;
+  short site name labels each tile: the bounded local title's first segment
+  when it is 20 characters or fewer, otherwise the domain's first label. The
+  full title stays the tile's tooltip and accessible name. The row never
+  wraps; the narrowest windows show the first four sites. A bounded
+  profile-local cache reuses sanitized 32 px favicon pixels captured during
+  normal visits;
   rendering the row never starts a favicon request. A
   hover/focus dismiss button stores only a bounded hostname list in that
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
@@ -759,11 +763,11 @@ From the desktop `DEFAULTS`:
   Billboard titles, and rejects horizontal overflow, unreachable text, or
   unintended clipping.
 - The choice is a synced setting (`newtabLayout`, default `billboard`), changeable
-  instantly from the start page's own footer switcher and from Settings; a
+  instantly from the start page's footer Customize popover and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.
-- Every layout footer has a separate Mahjong link, outside the centered layout
-  switcher. It opens `blanc://mahjong/` in a new managed tab and leaves the
+- Every layout footer has a separate Mahjong link, beside the Customize
+  button. It opens `blanc://mahjong/` in a new managed tab and leaves the
   start page and selected layout intact. Private tabs open
   `blanc://mahjong/?private=1` in the private session. Direct game URLs remain
   valid. A stored `newtabLayout: mahjong` migrates once to Billboard with a
@@ -786,16 +790,18 @@ From the desktop `DEFAULTS`:
   compact insets, wrap rows, and stack the tally columns rather than overflow.
   At supported browser zoom levels, Mahjong's standalone controls and board
   remain reachable through vertical scrolling.
-  Empty feeds remove their section — row, label, and card — with no
-  placeholder copy on the three newer layouts.
+  Empty feeds remove their section — row, label, and card — except
+  Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
+  here" when there are none. Billboard, which shows recent sites, shows no
+  hint. Private start pages show no Patron upgrade and no blocked counts.
 - After first run, Personal non-private start pages show one corner
-  moving-in checklist on ledger, billboard, shelf, and tally. It stays
-  lower-right on ledger, shelf, and tally, and moves upper-right on Billboard
-  to preserve the recent-site row and its dismissal actions. It tracks the
+  moving-in checklist on ledger, billboard, shelf, and tally. It sits in the
+  start page header's right corner on every layout, in normal flow, so it
+  never covers content. It tracks the
   device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
   permanently, and retires after a brief 2/2 confirmation. The standalone game omits it.
-  Tight windows collapse it to a progress-ring trigger so primary content and
-  the footer stay reachable.
+  Tight windows collapse it to a progress-ring trigger in that same corner,
+  opening downward.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
