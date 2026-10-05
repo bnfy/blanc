@@ -1,7 +1,7 @@
 # Continue past a certificate warning on local addresses — design
 
 **Date:** 2026-10-05
-**Status:** draft for owner review — revision 3 (round 1: HSTS on local names, expiry under a higher-priority error, document-bound warning state; round 2: Reopen Closed Tab live-view adoption, `clear()` for profile deletion, stored-entry shape). Design approved for implementation planning on round 2, conditional on these round-2 changes.
+**Status:** approved for implementation — revision 3, plus the plan-revision-2 per-entry addendum in §4.5 (round 1: HSTS on local names, expiry under a higher-priority error, document-bound warning state; round 2: Reopen Closed Tab live-view adoption, `clear()` for profile deletion, stored-entry shape). Design approved for implementation planning on round 2, conditional on these round-2 changes.
 **Trigger:** [bnfy/blanc#544](https://github.com/bnfy/blanc/issues/544). A
 Blanc 1.27.0 user on Linux cannot reach their self-hosted Proxmox server at
 `https://192.168.x.x:8006` because it uses a self-signed certificate. Blanc
@@ -275,8 +275,8 @@ page's bytes were still fetched over a connection Blanc could not verify.
 
 - The handler in §4.2 sets `tab.pendingCertificateException` when it allows a
   **main-frame** request.
-- On main-frame cross-document commit (`did-navigate`, next to the existing
-  `tab.certificateError` reset at `tab-view.js:369`), the tab sets
+- On main-frame cross-document commit (`did-navigate`, `tab-view.js:335`; `tab-view.js:369` is
+  the `did-start-navigation` reset of `certificateError`), the tab sets
   `tab.documentCertificateException` to the pending record when its origin
   equals the committed URL's origin, **or** when the store still has an
   exception for the committed origin (a navigation served on a pooled
@@ -289,6 +289,41 @@ page's bytes were still fetched over a connection Blanc could not verify.
   that document is replaced.
 - Like `certificateError`, it is main-process state and crosses IPC only as
   the site-info projection.
+- **The mark belongs to a history entry (plan revision 2).** A commit can
+  arrive without a new `certificate-error`: a back/forward cache restore, or
+  a request on an already-open connection. An origin-wide memory cannot
+  handle that safely, because a later trusted load on the same host would
+  clear it while an older entry still holds the unsafe document. Electron 44
+  exposes no stable navigation-entry id (`NavigationEntry` is only `url`,
+  `title`, `pageState`), so each tab keeps `certificateEntryMarks`
+  (`{ urls, marks, index }`), a mirror of its navigation history by position,
+  where `marks[i]` is the not-secure record of the document entry `i`
+  committed, or `null`.
+- On every main-frame cross-document commit, Blanc reads
+  `navigationHistory.getAllEntries()` and `getActiveIndex()` and updates the
+  mirror with a pure function (`commitEntryMarks`, `certificate-history.js`):
+  - **Fresh record:** the commit's own load was allowed by an exception
+    (`pendingCertificateException`, same origin), or the store still holds an
+    exception for the committed origin (a pooled connection). Either marks
+    the committed entry.
+  - **Traversal:** the active index changed, the entry count did not, and
+    the mirror's URL at the new index equals the committed URL. Without a
+    fresh record, a traversal restores that entry's stored mark. A new load
+    always creates or replaces an entry, so a trusted load never inherits a
+    mark and never clears another entry's mark.
+  - **Ambiguous cases fail toward Not secure.** A new load of exactly the
+    URL already in the next forward slot looks like a traversal and keeps
+    that slot's mark. If Chromium pruned entries from the front at its entry
+    cap, the mirror realigns by one position; if it cannot realign, every
+    entry whose origin carried a mark is marked.
+- The session-wide certificate observer is not consulted: a host-scoped
+  trusted-verification record says nothing about which document an entry
+  holds.
+- `certificateEntryMarks` and `documentCertificateException` travel in the
+  Reopen Closed Tab `seed`: live-view adoption keeps the same
+  `navigationHistory`, so the mirror stays valid. Snapshot and URL restores
+  build a new WebContents whose entries reload from the network, so they
+  start with an empty mirror.
 
 ### 4.6 Lifecycles that keep or replace the document
 
@@ -373,7 +408,7 @@ Per the repository's spec-first rule, the change ratifies the new contract in
 - `test/unit/site-security.test.js`: the "contains no bypass" test becomes
   "offers continue only for eligible local failures", asserting `continue`
   is absent for `badcert.test` and present for a `192.168.*` host.
-- `spec/parity-matrix.md`: F39 status note for desktop.
+- `spec/parity-matrix.md` has no F39 row today; none is added.
 
 ## 7. Testing
 
