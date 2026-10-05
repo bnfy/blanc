@@ -1,13 +1,15 @@
 // Blanc browserAPI contract generator + drift guard (Phase 0 bridge contract).
 //
-//   node browser-api/build.mjs           emit generated/{browser-api.d.ts,browser-api.md}
+//   node browser-api/build.mjs           emit generated/{browser-api,pages-api}.{d.ts,md}
 //   node browser-api/build.mjs --check   verify src/main/preload.js exposes exactly the
 //                                        contract (members, IPC kind, channel, argument
 //                                        shaping, platform availability, trusted documents),
 //                                        every channel still exists in main, every
 //                                        browserAPI call in the renderers is a contract
 //                                        member, and the generated files are current.
-//                                        Exit 1 on drift.
+//                                        Exit 1 on drift. The same run checks the
+//                                        bowserPages and blancFillStatus bridges
+//                                        against bridges.json (see bridges.mjs).
 //
 // Same shape as tokens/, settings-schema/ and copy/: one source (contract.json),
 // desktop guarded rather than generated. Unlike those checkers, the preload is not
@@ -19,6 +21,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { Module, createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { bridgeArtifacts, checkBridges, loadBridges, validateBridges } from './bridges.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SPEC = path.join(ROOT, 'browser-api', 'contract.json');
@@ -1403,7 +1406,7 @@ export function checkRenderers(contract) {
     .map(([name, files]) => `renderer calls browserAPI.${name} (${[...files].join(', ')}), which is not in the contract`);
 }
 
-export function check(contract = loadContract()) {
+export function check(contract = loadContract(), bridges = loadBridges()) {
   const sections = [
     ['contract', validateContract(contract)],
     ['preload', checkPreload(contract)],
@@ -1411,8 +1414,10 @@ export function check(contract = loadContract()) {
     ['renderers', checkRenderers(contract)],
     ['payloads', checkPayloads(contract)],
   ];
+  // The smaller page bridges (bowserPages, blancFillStatus) live in bridges.json.
+  sections.push(...checkBridges(bridges));
   const stale = [];
-  for (const [name, content] of Object.entries(artifacts(contract))) {
+  for (const [name, content] of Object.entries({ ...artifacts(contract), ...bridgeArtifacts(bridges) })) {
     const p = path.join(OUT, name);
     const onDisk = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
     if (onDisk !== content) stale.push(`browser-api/generated/${name} — run \`npm run browser-api:build\``);
@@ -1423,13 +1428,14 @@ export function check(contract = loadContract()) {
 
 function build() {
   const contract = loadContract();
-  const problems = validateContract(contract);
+  const bridges = loadBridges();
+  const problems = [...validateContract(contract), ...validateBridges(bridges)];
   if (problems.length) {
-    console.error('contract.json is invalid:\n' + problems.map((p) => '  ' + p).join('\n'));
+    console.error('contract.json or bridges.json is invalid:\n' + problems.map((p) => '  ' + p).join('\n'));
     process.exit(1);
   }
   fs.mkdirSync(OUT, { recursive: true });
-  for (const [name, content] of Object.entries(artifacts(contract))) {
+  for (const [name, content] of Object.entries({ ...artifacts(contract), ...bridgeArtifacts(bridges) })) {
     fs.writeFileSync(path.join(OUT, name), content);
     console.log(`wrote browser-api/generated/${name}`);
   }
@@ -1445,7 +1451,9 @@ function runCheck() {
     process.exit(1);
   }
   const { members } = loadContract();
-  console.log(`browser-api:check OK — preload, main and renderers match all ${members.length} contract members; generated files current.`);
+  const { bowserPages, blancFillStatus } = loadBridges();
+  console.log(`browser-api:check OK — preload, main and renderers match all ${members.length} browserAPI members, `
+    + `${bowserPages.members.length} bowserPages members and ${blancFillStatus.members.length} blancFillStatus members; generated files current.`);
 }
 
 // Entry guard: unit tests import the checkers without running the CLI.

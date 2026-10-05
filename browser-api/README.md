@@ -14,9 +14,13 @@ involves no fork work.
 browser-api/
   contract.json      the source of truth — edit HERE
   build.mjs          generator + drift checker
+  bridges.json       the source of truth for window.bowserPages and window.blancFillStatus
+  bridges.mjs        their checker and generator, run by build.mjs
   generated/
     browser-api.d.ts   TypeScript declarations for window.browserAPI
     browser-api.md     a reference table of every member
+    pages-api.d.ts     declarations for bowserPages (one interface per host) and blancFillStatus
+    pages-api.md       a reference table of both
 ```
 
 ## Commands
@@ -247,6 +251,55 @@ their literal returns are checked.
 
 Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
 `OverlayShowPayload` because it is deliberately mode-specific.
+
+## Page bridges (`bridges.json`)
+
+Two smaller bridges sit beside `browserAPI` and are checked in the same run:
+
+- **`window.bowserPages`** (`src/main/tab-preload.js`): what each `blanc://`
+  page gets. The internal pages are slated to become WebUI with their own
+  handlers, so they need the same Blanc-owned contract as the Island. Each of the
+  88 members lists the hosts it is exposed on.
+- **`window.blancFillStatus`** (`src/main/fill-status-preload.js`): the
+  1Password fill-status capsule at `blanc-chrome://fill-status/`.
+
+What the check verifies:
+
+- **Exposure per host.** The preload is executed as the main frame of every
+  `blanc://` host, `blanc://error/` and plain web pages. Each host must get
+  exactly its contract members, and web pages and `error` must get no bridge.
+  Each member's IPC kind, channel and arguments are probed as for `browserAPI`
+  (`surface.armEscape` and `start.openMahjong` coerce to boolean, and
+  `openMahjong` defaults to `false`).
+- **Events.** Each one listens on its channel and forwards its payload
+  (`start.onUtilitySheetVisibility` forwards `payload === true`). Only
+  `surface.onEscape` returns an unsubscribe function. The others must return
+  nothing, so none of them can pass back `ipcRenderer.on`'s return value.
+- **Load-time IPC.** The only IPC a document may make at load is a declared
+  signal, with no arguments: `page-tint:changed`, from web pages and
+  `blanc://newtab/` only.
+- **Host authority in main.** Every `handle()`/`handleEvent()` registration in
+  `pages.js` is read with its host list (`'host'`, `['a', 'b']` or
+  `[...UTILITY_PAGES]`). For each channel, the hosts it allows must equal the
+  hosts the preload exposes it on. A handler with no member fails, and so does a
+  member with no handler. Each event channel must have a `.send('<channel>'`
+  site in `src/main`.
+- **Page scripts.** Every `bowserPages` reference in the scripts a
+  `<host>.html` loads (direct chains and `const x = window.bowserPages?.ns`
+  aliases) must be exposed on that host.
+- **Fill-status payloads.** `FillKind`, `FillMode` and `FillVerb` must equal
+  `FILL_KINDS`, `MODES` and the union of their verbs in `fill-status-kinds.js`.
+  The `fill:show` and `fill:hide` literals in `fill-status-surface.js`, the
+  renderer's `reply({ … })` literal and the `payload?.` fields main reads must
+  all match their types.
+
+`test/unit/browser-api-bridges.test.js` makes deliberate drifts on each side
+and requires each to be reported.
+
+**Not typed yet:** `bowserPages` parameters and results are `unknown`, except
+the two coerced booleans. The fill-status bridge is fully typed. Pinning the
+`pages:*` results against `pages.js` and the modules behind it is the next step,
+in the same way as `browserAPI`.
 
 ## Not in scope
 

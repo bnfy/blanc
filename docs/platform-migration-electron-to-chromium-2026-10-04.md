@@ -251,6 +251,8 @@ Text version:
 - **Generated output:** TypeScript declarations and a reference table are generated from the contract.
 - **Limits:** navigation, find and search results forward Electron and wake results that can't be read statically, so only their literal returns are checked. Overlay `purpose` stays `unknown` because it is deliberately mode-specific.
 
+**Page bridges: exposure and host authority are pinned.** `browser-api/bridges.json` describes `window.bowserPages`: 88 members across the nine `blanc://` hosts that get one. It also describes the fill-status capsule bridge, `window.blancFillStatus`. The same check runs the page preload as each host and compares each channel's hosts with the host allowlist `pages.js` gives its handler. It also checks the page scripts and the fill-status payloads. `bowserPages` parameters and results are still `unknown`; pinning them is the next contract step.
+
 Steps 3 to 5 (the Mojo interface, the native controller and shared contract tests against both builds) involve fork work. They wait for Decision 1. The other Phase 0 items (demand data, test vectors and the Widevine questions) are not covered by this work.
 
 ## Open questions and caveats
