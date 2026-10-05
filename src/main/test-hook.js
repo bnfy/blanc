@@ -556,6 +556,31 @@ function install(refs) {
       if (!tab?.view?.webContents) return false;
       return refs.navigateTabToAddress(id, String(url));
     },
+    continueUnsafeInTab(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      return wc ? refs.continueUnsafeForSender(wc) : { ok: false, error: 'no-tab' };
+    },
+    forgetCertificateExceptionInTab(id) {
+      setActiveTab(id, { focusContent: false });
+      return refs.forgetActiveCertificateException();
+    },
+    forgetCertificateExceptionOnly(id) {
+      const tab = tabs.get(id);
+      const wc = tab?.view?.webContents;
+      const origin = tab?.documentCertificateException?.origin;
+      if (!wc || !origin) return false;
+      const forgotten = refs.certificateExceptions.forget(wc.session, origin);
+      return wc.session.closeAllConnections().then(() => forgotten);
+    },
+    setCertificateExceptionCap(n) { refs.certificateExceptions.setCapForTest(Number(n)); },
+    resetCertificateExceptionsForTest() {
+      for (const tab of tabs.values()) {
+        const wc = tab.view?.webContents;
+        if (wc) refs.certificateExceptions.clear(wc.session);
+      }
+      refs.certificateExceptions.setCapForTest(64);
+    },
+    tabWebContentsId(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     executeTab(id, source) {
       const tab = tabs.get(id);
       if (!tab?.view?.webContents) return null;

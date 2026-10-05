@@ -1473,6 +1473,35 @@ a.ledger-label:hover { color: var(--accent); }
 .newtab-links a:first-child { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 .newtab-links a:hover { border-color: var(--text-dim); background: var(--surface); }
 .newtab-links a:first-child:hover { background: var(--text); border-color: var(--text); color: var(--bg); }
+.newtab-links .advanced-toggle {
+  min-height: 34px;
+  padding: 7px 13px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  cursor: pointer;
+}
+.newtab-links .advanced-toggle:hover { color: var(--text); }
+.advanced-panel {
+  width: min(440px, calc(100vw - 64px));
+  margin: 16px auto 0;
+  text-align: left;
+}
+.advanced-panel[hidden] { display: none; }
+.continue-unsafe {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.continue-unsafe:disabled { opacity: 0.5; cursor: default; }
+.advanced-toggle:focus-visible,
+.continue-unsafe:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- Keyboard shortcuts (blanc://shortcuts) ---------- */
 

@@ -17,7 +17,8 @@ blocker count close at hand, then expands when you need more.
 - **A quieter interface:** Island chrome, the Quick Switcher, tab groups,
   Quiet Tabs, Glance, and multiple windows without a permanent toolbar.
 - **Blocking built in:** ads and trackers are filtered at the network layer
-  from bundled, hash-verified EasyList and EasyPrivacy snapshots.
+  from bundled, hash-verified EasyList and EasyPrivacy snapshots. On supported
+  builds, full uBlock Origin is an optional blocker for regular tabs.
 - **Private and local choices:** private tabs use a separate in-memory session;
   local profiles separate site data, history, Favorites, downloads, and
   remembered permissions.
@@ -98,7 +99,7 @@ releases carry timestamped Authenticode signatures. The release process signs
 the complete checksum manifest with Sigstore, while Windows and Linux CI
 artifacts receive GitHub provenance attestations. These records authenticate
 the published artifacts; they do not make local builds reproducible. See the
-[FAQ](https://blancbrowser.com/faq) for the plain-English version and the
+[Support page](https://blancbrowser.com/support) for the plain-English version and the
 [release repository](https://github.com/bnfy/blanc/releases) for the records.
 
 ## Free browser, optional Patron

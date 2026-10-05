@@ -18,6 +18,8 @@ let userDataDir;
 let fixturesHandle;
 let secureFixturesHandle;
 let untrustedFixturesHandle;
+let localFixturesHandle;
+let localTrustedSpkiHash;
 let secureSpkiHash = null;
 let browserHomeDir;
 let savedClipboard = null;
@@ -67,11 +69,11 @@ async function launchApp() {
       // Both names map to loopback at the resolver, so scheme-classified
       // pages load offline: the connection model reads HOSTNAMES, and every
       // plain fixtures-server URL is 127.0.0.1 (i.e. 'local', never 'http').
-      '--host-resolver-rules=MAP insecure.test 127.0.0.1, MAP secure.test 127.0.0.1, MAP badcert.test 127.0.0.1',
+      '--host-resolver-rules=MAP insecure.test 127.0.0.1, MAP secure.test 127.0.0.1, MAP badcert.test 127.0.0.1, MAP nas.home.arpa 127.0.0.1, MAP lab.home.arpa 127.0.0.1',
       // Trust EXACTLY the throwaway per-run fixture cert, by SPKI hash —
       // Chromium's scoped testing flag, not a blanket ignore. Every other
       // certificate error keeps its normal handling.
-      `--ignore-certificate-errors-spki-list=${secureSpkiHash}`,
+      `--ignore-certificate-errors-spki-list=${secureSpkiHash},${localTrustedSpkiHash}`,
     ],
     env: {
       ...cleanEnv,
@@ -141,6 +143,37 @@ BeforeAll({ timeout: 120_000 }, async () => {
     cert: fs.readFileSync(badCertPath),
   });
   ctx.untrustedFixturesBase = `https://badcert.test:${untrustedFixturesHandle.port}`;
+
+  // Local-use names (F39-2..7). A and B are two untrusted keys, so their
+  // fingerprints differ; the trusted pair's SPKI is added to the allowlist
+  // so F39-7 can make a genuinely trusted load on the same host.
+  const localCertDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-local-cert-'));
+  const mintLocal = (name) => {
+    const key = path.join(localCertDir, `${name}-key.pem`);
+    const cert = path.join(localCertDir, `${name}-cert.pem`);
+    execFileSync('openssl', [
+      'req', '-x509', '-newkey', 'rsa:2048', '-keyout', key, '-out', cert,
+      '-days', '2', '-nodes', '-subj', '/CN=nas.home.arpa',
+      '-addext', 'subjectAltName=DNS:nas.home.arpa,DNS:lab.home.arpa',
+    ], { stdio: 'pipe' });
+    return { key: fs.readFileSync(key), cert: fs.readFileSync(cert), certPath: cert };
+  };
+  const localA = mintLocal('a');
+  const localB = mintLocal('b');
+  const localTrusted = mintLocal('trusted');
+  localTrustedSpkiHash = execFileSync('sh', ['-c',
+    `openssl x509 -in '${localTrusted.certPath}' -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64`,
+  ]).toString().trim();
+  const pair = ({ key, cert }) => ({ key, cert });
+  localFixturesHandle = await fixtures.startSecure(pair(localA));
+  ctx.localFixturesPort = localFixturesHandle.port;
+  ctx.localFixturesBase = `https://nas.home.arpa:${localFixturesHandle.port}`;
+  ctx.localFixtures = {
+    handle: localFixturesHandle,
+    certA: pair(localA),
+    certB: pair(localB),
+    certTrusted: pair(localTrusted),
+  };
 
   // Isolated, throwaway profile so no prior session/history/settings leaks in.
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
@@ -313,6 +346,13 @@ Before(async function () {
   await callTestHook(ctx.app, 'reset');
 });
 
+// F39 local-certificate scenarios share one fixture server and one exception
+// store: start each from certificate A and no remembered choices.
+Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7' }, async function () {
+  ctx.localFixtures.handle.setCertificate(ctx.localFixtures.certA);
+  await callTestHook(ctx.app, 'resetCertificateExceptionsForTest');
+});
+
 AfterAll(async () => {
   let closeFailure = null;
   if (ctx.app && savedClipboard !== null) {
@@ -331,6 +371,7 @@ AfterAll(async () => {
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
   if (untrustedFixturesHandle) await untrustedFixturesHandle.close();
+  if (localFixturesHandle) await localFixturesHandle.close();
   if (userDataDir) fs.rmSync(userDataDir, { recursive: true, force: true });
   if (browserHomeDir) fs.rmSync(browserHomeDir, { recursive: true, force: true });
   if (closeFailure) throw closeFailure;

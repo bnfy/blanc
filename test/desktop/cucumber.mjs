@@ -51,7 +51,7 @@ const RUNNABLE = [
   '@F34-1',
   '@F37-1', '@F37-2', '@F37-3',
   '@F38-2', '@F38-3', '@F38-4', '@F38-5', '@F38-6', '@F38-7',
-  '@F39-1',
+  '@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6', '@F39-7',
   // F39 is already the current certificate-safety scenario. Migration uses
   // F40 so reconciling PR #205 cannot alias or replace that safety coverage.
   '@F40-1', '@F40-2', '@F40-4', '@F40-5',

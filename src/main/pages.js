@@ -498,6 +498,11 @@ function setupPages(hooks = {}) {
   handleEvent('pages:mahjong:played', ['mahjong'], (event) =>
     hooks.telemetry?.mahjongPlayed?.(event.sender) === true);
 
+  // The warning page names nothing: main resolves the sender's own tab and
+  // its recorded certificate failure (certificate spec §4.4).
+  handleEvent('pages:error:continue-unsafe', ['error'], (event) =>
+    hooks.errorPage?.continueUnsafe?.(event.sender) ?? { ok: false, error: 'no-certificate-error' });
+
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
   // canSet: a dev run must never register the bare Electron binary as a
   // browser, and Linux has no default-protocol-client API in Electron.

@@ -36,7 +36,8 @@ test('retained feature pages preserve their search metadata, prose and anchors f
   }
   const after = read(file);
   for (const property of ['title', 'description', 'path']) {
-   const value = before.match(new RegExp(`\\b${property}=(\\{?"[^"]+"\\}?)`))[0];
+   // Search metadata changes only through a recorded, reviewed copy update.
+   const value = reviewedBefore.match(new RegExp(`\\b${property}=(\\{?"[^"]+"\\}?)`))[0];
    assert.ok(after.includes(value), `${file}: changed ${property}`);
   }
   assert.deepEqual(prose(after), prose(reviewedBefore), `${file}: lost existing content outside reviewed copy corrections`);

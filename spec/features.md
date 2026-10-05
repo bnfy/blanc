@@ -898,7 +898,24 @@ From the desktop `DEFAULTS`:
 ## F39 — Certificate safety
 
 - Invalid certificates are rejected with a safety interstitial and certificate
-  problem details. No certificate bypass is offered.
+  problem details.
+- **Public sites:** no way past the warning is offered.
+- **Local and private-network `https:` addresses** (loopback, RFC 1918,
+  link-local, 100.64.0.0/10, IPv6 unique-local and link-local, single-label
+  names, `.local`, `.lan`, `.internal`, `.home.arpa`): an **Advanced**
+  disclosure offers **Continue to <host:port> (unsafe)** for an allowlisted set
+  of certificate errors (untrusted issuer, name mismatch, local self-signed,
+  date, weak signature, validity too long, non-unique name). Revoked and
+  generic-invalid certificates, and hosts already verified as trusted during
+  the current run, keep the hard stop.
+- The choice lasts until the app quits, is never stored or synced, and applies
+  only to that origin and that exact certificate while its validity status is
+  unchanged. Private browsing keeps its own, separate choices.
+- A page loaded after continuing reports **Not secure** until that document is
+  replaced, even if the choice is later withdrawn; **Stop allowing** withdraws
+  it.
+- This does not reproduce Chromium's HSTS refusal: platforms that cannot read
+  the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
 
 ## F40 — Bring Your Tabs (direct open-tab migration)

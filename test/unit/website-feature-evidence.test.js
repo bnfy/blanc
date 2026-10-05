@@ -61,6 +61,26 @@ test('new guide benefit and qualification paragraphs remain covered by the exact
   }
 });
 
+test('search landing pages are fully covered by the exact-wording ledger and link their external sources', () => {
+  const sources = new Set((ledger.externalSources || []).map(source => source.url));
+  for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
+    const page = read(file);
+    const claims = ledger.claims.filter(claim => claim.source === file);
+    const wording = new Set(claims.map(claim => claim.exactWording));
+    for (const match of page.matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+      assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
+    }
+    // A claim about another product rests on a recorded first-party source the page links.
+    for (const claim of claims) {
+      if (claim.evidenceGroups.length === 0) assert.ok(claim.externalSources?.length, `${claim.id}: no release evidence or external source`);
+      for (const url of claim.externalSources || []) {
+        assert.ok(sources.has(url), `${claim.id}: unrecorded external source ${url}`);
+        assert.ok(page.includes(`href="${url}"`), `${claim.id}: the page does not link ${url}`);
+      }
+    }
+  }
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
