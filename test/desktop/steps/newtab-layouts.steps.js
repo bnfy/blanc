@@ -650,3 +650,28 @@ Then('Customize is closed and its button has focus', async function () {
   );
   assert.equal(state.focusedId, 'customizeButton');
 });
+
+Then('the Billboard shows one row of single-line site names at 1440x840 and 820x840', async function () {
+  const original = await this.call('windowContentBounds');
+  try {
+    for (const size of [{ width: 1440, height: 840 }, { width: 820, height: 840 }]) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} content bounds`,
+      );
+      const dom = await waitForValue(
+        () => this.call('readBillboardSites'),
+        (value) => value?.sites?.length === 6,
+        `Billboard sites at ${size.width}x${size.height}`,
+      );
+      const shown = dom.sites.filter((site) => site.visible);
+      assert.equal(shown.length, 6, `${size.width}: six sites show`);
+      assert.equal(new Set(shown.map((site) => site.top)).size, 1, `${size.width}: one row ${JSON.stringify(shown.map((s) => s.top))}`);
+      assert.ok(shown.every((site) => site.lines === 1), `${size.width}: single-line labels ${JSON.stringify(shown.map((s) => s.lines))}`);
+    }
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});

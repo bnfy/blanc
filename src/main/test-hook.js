@@ -1041,6 +1041,13 @@ function install(refs) {
           dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
           title: item.querySelector('.label')?.title ?? null,
           ariaLabel: item.querySelector('.bb-fav')?.getAttribute('aria-label') ?? null,
+          top: Math.round(item.getBoundingClientRect().top),
+          visible: getComputedStyle(item).display !== 'none',
+          lines: (() => {
+            const label = item.querySelector('.label');
+            if (!label) return 0;
+            return Math.round(label.getBoundingClientRect().height / parseFloat(getComputedStyle(label).lineHeight));
+          })(),
         })),
         hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
       }))()`);

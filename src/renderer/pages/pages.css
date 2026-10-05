@@ -3512,6 +3512,13 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
   .ledger-spread { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* Billboard: one row of recent sites. Six fit at every supported width; the
+   narrowest windows keep the four most-visited. */
+.bb-favs { flex-wrap: nowrap; justify-content: center; }
+@media (max-width: 640px) {
+  .bb-site:nth-child(n + 5) { display: none; }
+}
+
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant
    (privacy consent is step 5, per the 2026-08-16 spec). State that varies at
