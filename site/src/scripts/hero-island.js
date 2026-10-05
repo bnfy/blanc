@@ -1,3 +1,16 @@
+// Fits the enlarged pill to its stage and reveals it (hero-island.css keeps it
+// hidden until fitted). NativeIslandHero also inlines this right after the
+// island markup so it appears during parsing, not after this deferred module;
+// keep it self-contained, because it runs from its source text.
+export function fitHeroIsland(stage, view) {
+  const model = stage.querySelector('.hero-native-model');
+  const pill = model?.shadowRoot?.getElementById('islandPill');
+  if (!pill) return;
+  const zoom = parseFloat(view.getComputedStyle(pill).getPropertyValue('--pill-zoom'));
+  model.style.setProperty('--art-scale', String(model.clientWidth / (pill.offsetWidth * zoom)));
+  model.style.setProperty('--art-visibility', 'visible');
+}
+
 export function initHeroIsland(stage, {view = window} = {}) {
   const model = stage.querySelector('.hero-native-model');
   const pill = model?.shadowRoot?.getElementById('islandPill');
@@ -5,11 +18,7 @@ export function initHeroIsland(stage, {view = window} = {}) {
   const toggle = stage.querySelector('.hero-island-motion');
   const motion = view.matchMedia('(prefers-reduced-motion: reduce)');
   let visible = false, pausedByUser = false;
-  const resize = () => {
-    const zoom = parseFloat(view.getComputedStyle(pill).getPropertyValue('--pill-zoom'));
-    const scale = model.clientWidth / (pill.offsetWidth * zoom);
-    model.style.setProperty('--art-scale', String(scale));
-  };
+  const resize = () => fitHeroIsland(stage, view);
   const updateMotion = () => {
     const playing = visible && !view.document.hidden && !motion.matches && !pausedByUser;
     stage.style.setProperty('--island-motion-state', playing ? 'running' : 'paused');
