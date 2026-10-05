@@ -105,4 +105,3 @@ test('the cap evicts the oldest origin and reports the session', () => {
   assert.equal(store.get(s, 'https://10.0.0.2/'), null, 'lowering the cap evicts immediately');
   assert.equal(evicted.length, 2);
 });
-
