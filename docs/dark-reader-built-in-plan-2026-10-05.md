@@ -1,7 +1,9 @@
 # Dark Reader built into Blanc: plan
 
-Drafted October 5, 2026 at the owner's request. **Status: proposal. Nothing is
-built yet, and the build itself needs the owner's go-ahead.**
+Drafted October 5, 2026 at the owner's request. **Status: proposal. The spike
+ran the same day and recommends going ahead with three design changes; see
+[`dark-reader-spike-2026-10-05.md`](dark-reader-spike-2026-10-05.md). Nothing
+is built in Blanc yet, and the build needs the owner's go-ahead.**
 
 ## Goal
 
@@ -143,7 +145,9 @@ downloads fixes at runtime.
 
 ## Open owner decisions
 
-- [ ] Go or no-go on the spike.
+- [x] Go or no-go on the spike. The owner asked to explore it; the spike ran on
+      October 5, 2026.
+- [ ] Go or no-go on the build, with main-frame-only darkening first.
 - [ ] Feature name, for example **Dark websites**.
 - [ ] Where the per-site switch lives: shield popover, slash command, or both.
 - [ ] Whether the setting and the site list sync between devices.
