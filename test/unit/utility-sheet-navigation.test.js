@@ -26,12 +26,15 @@ function loadQueue(onFailure = () => {}) {
       return wc && !wc.isDestroyed() ? wc : null;
     },
     sameUtilityPage: (a, b) => a === b,
+    // Resolve the globals at call time so node:test mock timers apply.
+    setTimeout: (...args) => setTimeout(...args),
+    clearTimeout: (id) => clearTimeout(id),
   };
   vm.runInNewContext(
-    `${queueSource}\nthis.__schedule = scheduleUtilitySheetNavigation; this.__cancel = cancelUtilitySheetNavigation;`,
+    `${queueSource}\nthis.__schedule = scheduleUtilitySheetNavigation; this.__cancel = cancelUtilitySheetNavigation; this.__deadline = UTILITY_SHEET_LOAD_DEADLINE_MS;`,
     sandbox
   );
-  return { schedule: sandbox.__schedule, cancel: sandbox.__cancel };
+  return { schedule: sandbox.__schedule, cancel: sandbox.__cancel, deadline: sandbox.__deadline };
 }
 
 function controlledSheet() {
@@ -156,5 +159,56 @@ test('a superseded failure on the same view leaves the newest request queued', a
   reject(new Error('old load failed'));
   await Promise.all([first, second]);
   assert.deepEqual(h.calls, ['blanc://history/', 'blanc://settings/']);
+  assert.equal(failed.length, 0);
+});
+
+
+// #548: the sheet is attached, transparent and focused before its document
+// commits. A load that never settles must not leave it swallowing clicks.
+test('a utility load that never settles is discarded at the deadline', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const failed = [];
+  const { schedule, deadline } = loadQueue((runtime, sheet) => failed.push([runtime, sheet]));
+  assert.ok(deadline >= 5000 && deadline <= 15000, `deadline ${deadline} ms`);
+  const h = controlledSheet();
+  const runtime = { utilitySheetView: h.sheet.view, utilitySheetUrl: 'blanc://settings/' };
+  schedule(runtime, h.sheet, runtime.utilitySheetUrl);
+  await Promise.resolve();
+  t.mock.timers.tick(deadline - 1);
+  assert.equal(failed.length, 0);
+  t.mock.timers.tick(1);
+  assert.equal(failed.length, 1);
+  assert.equal(failed[0][1], h.sheet);
+});
+
+test('a utility load that settles in time disarms the deadline', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const failed = [];
+  const { schedule, deadline } = loadQueue(() => failed.push(true));
+  const h = controlledSheet();
+  const runtime = { utilitySheetView: h.sheet.view, utilitySheetUrl: 'blanc://settings/' };
+  const pending = schedule(runtime, h.sheet, runtime.utilitySheetUrl);
+  await Promise.resolve();
+  h.pending.shift()();
+  await pending;
+  t.mock.timers.tick(deadline * 2);
+  assert.equal(failed.length, 0);
+});
+
+test('hiding or redirecting the sheet disarms the old deadline', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const failed = [];
+  const { schedule, cancel, deadline } = loadQueue(() => failed.push(true));
+  const hidden = controlledSheet();
+  const hiddenRuntime = { utilitySheetView: hidden.sheet.view, utilitySheetUrl: 'blanc://settings/' };
+  schedule(hiddenRuntime, hidden.sheet, hiddenRuntime.utilitySheetUrl);
+  hiddenRuntime.utilitySheetUrl = null;
+  cancel(hidden.sheet.view);
+
+  const moved = controlledSheet();
+  const movedRuntime = { utilitySheetView: moved.sheet.view, utilitySheetUrl: 'blanc://settings/' };
+  schedule(movedRuntime, moved.sheet, movedRuntime.utilitySheetUrl);
+  movedRuntime.utilitySheetUrl = 'blanc://history/';
+  t.mock.timers.tick(deadline);
   assert.equal(failed.length, 0);
 });
