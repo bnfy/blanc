@@ -1,0 +1,12 @@
+{
+  "name": "darkreader",
+  "version": "4.9.133",
+  "license": "MIT",
+  "homepage": "https://github.com/darkreader/darkreader",
+  "tarball": "https://registry.npmjs.org/darkreader/-/darkreader-4.9.133.tgz",
+  "integrity": "sha512-d3dRGpVgoBnMXl9qfnTuRvrdtO/9e6puFbsDwxfycTwbRNFI+sNX+093h6qnNo4VosyHHUaIXyunDWvbEudTRQ==",
+  "files": {
+    "upstream/darkreader.js": "82619e7a0bcabbea15a91488bc74fd0f9ba8f8f2a1cc67527f78166037cce166",
+    "darkreader-LICENSE.txt": "f0a5f835174494f8981b2cbb1a34054d4f887a5c865318650d6a17afe1c7850e"
+  }
+}

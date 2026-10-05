@@ -752,6 +752,10 @@ function install(refs) {
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
+    darkWebsitesSettings() {
+      const { darkWebsites, darkWebsitesExceptions } = settings.getSettings();
+      return { darkWebsites, darkWebsitesExceptions };
+    },
     setMouseGestures(enabled, mapping) {
       const partial = { mouseGesturesEnabled: !!enabled };
       if (mapping !== undefined) partial.mouseGestureMapping = mapping;

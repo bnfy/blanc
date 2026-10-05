@@ -24,6 +24,7 @@ const SLASH_COMMANDS = [
   ['/find', 'Find in page'],
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
+  ['/dark-site', 'Darken this site, or leave it as drawn'],
   ['/1password', 'Fill a login from 1Password'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],

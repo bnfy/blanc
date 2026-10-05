@@ -671,6 +671,17 @@
       "ts": "'light' | 'dark' | 'pending'",
       "doc": "The chrome's effective appearance; pending while a system theme is still resolving."
     },
+    "DarkSiteResult": {
+      "doc": "The outcome of /dark-site. `darkened` describes the site while Blanc is dark; in a private tab the choice lasts until Blanc quits.",
+      "fields": {
+        "hostname": {
+          "type": "string"
+        },
+        "darkened": {
+          "type": "boolean"
+        }
+      }
+    },
     "PageTint": {
       "doc": "A tab's sampled page color, sent as a color-only update.",
       "fields": {
@@ -2264,6 +2275,15 @@
       "params": [],
       "returns": "string | null | AllowAdsError",
       "doc": "Allow ads on the active site. Resolves to the allowed hostname, null when there is no tab or the page has no blockable site, or an error."
+    },
+    {
+      "name": "toggleDarkSiteOnActiveSite",
+      "group": "appearance",
+      "kind": "invoke",
+      "channel": "chrome:dark-site-active",
+      "params": [],
+      "returns": "DarkSiteResult | null",
+      "doc": "Darken the active site, or leave it as the site drew it (Dark websites). Resolves to the hostname and whether it is now darkened while Blanc is dark, or null when the page has no website."
     },
     {
       "name": "siteInfoForgetCertificateException",
