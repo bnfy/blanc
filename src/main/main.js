@@ -3380,10 +3380,16 @@ function broadcastStartPageUtilitySheetVisibility(runtime, visible) {
 // requested destination run.
 const utilitySheetNavigations = new WeakMap();
 
+// The sheet is attached, visible and focused before its document commits, and
+// its background is transparent. A load that never settles would leave an
+// invisible layer over the page that swallows every click (#548), so a
+// destination that has not finished loading by this deadline is discarded.
+const UTILITY_SHEET_LOAD_DEADLINE_MS = 8000;
+
 function utilitySheetNavigationState(view) {
   let state = utilitySheetNavigations.get(view);
   if (!state) {
-    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve() };
+    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve(), deadline: null };
     utilitySheetNavigations.set(view, state);
   }
   return state;
@@ -3394,11 +3400,20 @@ function cancelUtilitySheetNavigation(view) {
   if (!state) return;
   state.generation += 1;
   state.settledGeneration = state.generation;
+  clearTimeout(state.deadline);
 }
 
 function scheduleUtilitySheetNavigation(runtime, sheet, url) {
   const state = utilitySheetNavigationState(sheet.view);
   const generation = ++state.generation;
+  clearTimeout(state.deadline);
+  state.deadline = setTimeout(() => {
+    if (
+      state.generation === generation &&
+      runtime.utilitySheetView === sheet.view &&
+      runtime.utilitySheetUrl === url
+    ) discardFailedUtilitySheet(runtime, sheet);
+  }, UTILITY_SHEET_LOAD_DEADLINE_MS);
   const navigate = async () => {
     if (
       state.generation !== generation ||
@@ -3416,7 +3431,10 @@ function scheduleUtilitySheetNavigation(runtime, sheet, url) {
     }
   };
   state.tail = state.tail.then(navigate, navigate).finally(() => {
-    if (state.generation === generation) state.settledGeneration = generation;
+    if (state.generation === generation) {
+      state.settledGeneration = generation;
+      clearTimeout(state.deadline);
+    }
   });
   return state.tail;
 }
