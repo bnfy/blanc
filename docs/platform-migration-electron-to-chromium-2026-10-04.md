@@ -15,7 +15,7 @@ in a few days a month, or if Electron stops loading Manifest V2. The Phase 0
 bridge contract and test vectors stay in use as guards for the Electron build,
 and the Widevine inquiry stays open at no cost. Google replied on October 5,
 2026 by referring Blanc to castlabs, one of its third-party partners; the
-questions now go to castlabs.
+questions went to castlabs the same day and await a reply.
 
 **Leading hypothesis: option C, a true Chromium-based Blanc built as a thin fork. This is not yet a recommendation.** Shipping Blanc stays on Electron, per the current platform direction, at least until Decision 2 below. Two separate owner decisions gate the work:
 
@@ -170,7 +170,7 @@ A Chromium fork gets the engine, not Google's services. Rows marked as questions
 | Safe Browsing | The free API is non-commercial-only, with Web Risk for commercial use (verified by review). Brave proxies Safe Browsing (verified). Blanc on Electron has none today (no Safe Browsing code in `src/main`). | Decide provider and budget |
 | Component updater | Question: which components (for example CRLSets, CT logs, Widevine, origin trials) Blanc needs and where they come from. Brave proxies component updates (verified). | Engineering question for the spike |
 | Chrome Web Store | No contract grants third-party browsers access; derived builds also face API-key and service restrictions | Phase 1 acceptance test, then accept the residual dependency risk |
-| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | Asked Google on October 5, 2026 through the General Questions form at widevine.com. Google replied the same day: contact castlabs, one of its third-party partners. castlabs publishes Electron for Content Security (ECS), a Widevine-enabled Electron build, and EVS, a free signing service for apps derived from official ECS releases (verified on the [castlabs-evs package page](https://pypi.org/project/castlabs-evs)). Adopting ECS would replace official Electron, so the uBO review, packaging gates and security-update timing would need re-checking. A castlabs inquiry is pending |
+| Widevine | Vendor question (unverified here): what licence, signing and timeline Google requires for a new browser | Asked Google on October 5, 2026 through the General Questions form at widevine.com. Google replied the same day: contact castlabs, one of its third-party partners. castlabs publishes Electron for Content Security (ECS), a Widevine-enabled Electron build, and EVS, a free signing service for apps derived from official ECS releases (verified on the [castlabs-evs package page](https://pypi.org/project/castlabs-evs)). Adopting ECS would replace official Electron, so the uBO review, packaging gates and security-update timing would need re-checking. The castlabs inquiry went to 3pl@castlabs.com, the contact castlabs gives in its [EVS wiki](https://github.com/castlabs/electron-releases/wiki/EVS), on October 5, 2026; awaiting a reply |
 | Proprietary codecs | Legal question: patent licensing for proprietary codecs. Codec support differs between Chromium and Chrome (verified by review). | Legal read; prefer OS decoders where possible |
 | Distribution | Signing, notarization, Sigstore and SBOM gates carry over | Keep `me.bnfy.bowser`; necessary for continuity, but the updater handoff itself is unproven (installed-upgrade spike) |
 
@@ -282,7 +282,7 @@ Steps 3 to 5 (the Mojo interface, the native controller, and running the shared 
 - [ ] How does CEF map multiple tabs per window today? Settled by the control test.
 - [ ] Current state of MV2 at the spike's Chromium version.
 - [x] Widevine: has Google responded? Yes, October 5, 2026: Google does not license Blanc directly and referred it to castlabs, one of its third-party partners. (Inquiry sent October 5, 2026: eligibility, technical requirements, platform differences, fees and timeline, and whether it covers the current Electron build.)
-- [ ] Widevine via castlabs: how far ECS releases trail upstream Electron security updates, whether ECS loads Manifest V2 extensions for uBO, EVS terms for a free MIT-licensed browser, and what playback quality major streaming services allow per platform.
+- [ ] Widevine via castlabs (asked October 5, 2026; awaiting a reply): how far ECS releases trail upstream Electron security updates, whether ECS loads Manifest V2 extensions for uBO, EVS terms for a free MIT-licensed browser, what playback quality major streaming services allow per platform, and where EVS signing fits relative to macOS notarization and Windows Authenticode signing.
 - [ ] Which Google services (Safe Browsing, push, geolocation, translate) need paid or alternative providers?
 
 This analysis draws on the repository at commit 8ec7389 and on knowledge of Chromium, CEF and Electron through mid-2026. External claims were checked on October 4 where reachable; the Sources section below records the status of each. An independent review on October 4 confirmed the Electron, uBO, ExtensionsContainer, Google private-API, Safe Browsing and codec claims, and its corrections are incorporated here. It does not authorise fork work: the current `CLAUDE.md` direction holds until the owner decides.
