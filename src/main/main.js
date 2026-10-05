@@ -2562,6 +2562,21 @@ const tabIdByWebContentsId = new Map();
 /** The warning page's Continue (certificate spec §4.4). Takes only the
  *  sender: the URL, error and certificate come from the tab's own main-held
  *  failure record, and eligibility is checked again here. */
+/** Stop allowing (certificate spec §4.5): forget the active tab's origin in
+ *  its session, drop pooled connections, and reload so the warning returns.
+ *  Other entries and tabs keep their marks until their documents change. */
+function forgetActiveCertificateException() {
+  const tab = tabs.get(rt().activeTabId);
+  const wc = liveContents(tab);
+  const origin = tab?.documentCertificateException?.origin;
+  if (!wc || !origin) return false;
+  const forgotten = certificateExceptions.forget(wc.session, origin);
+  Promise.resolve(wc.session.closeAllConnections?.())
+    .catch(() => {})
+    .then(() => { if (!wc.isDestroyed()) wc.reload(); });
+  return forgotten;
+}
+
 function continueUnsafeForSender(wc) {
   const tabId = tabIdByWebContentsId.get(wc?.id);
   const tab = tabId ? tabs.get(tabId) : null;
@@ -7369,6 +7384,7 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
+  chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
