@@ -91,7 +91,10 @@ function controlNextSync() {
 }
 async function withHold(body) {
   const hold = controlNextSync();
-  try { return await body(hold); } finally { hold.done(); }
+  // Workspace retry timers are unref'd: keep the event loop alive while a
+  // test waits on a held write, or node:test cancels it as stalled.
+  const keepAlive = setInterval(() => {}, 1000);
+  try { return await body(hold); } finally { clearInterval(keepAlive); hold.done(); }
 }
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const tick = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));
@@ -805,7 +808,7 @@ test('one drain per profile, and a capture queued during it is written by that d
 });
 ```
 
-- [ ] **Step 2: Run to verify failure** — Run: `node --test test/unit/workspaces-store.test.js`. Expected: the new tests FAIL. The checkpoint reports `saved` while the disk is old, and `drained` / `timerArmed` are not functions. After Step 3, check the positive controls once by hand: dropping the re-arm in `settle` makes the stranding test time out, and assigning `s.draining` after starting the pass (the earlier draft) makes the empty-pass test time out.
+- [ ] **Step 2: Run to verify failure** — Run: `node --test test/unit/workspaces-store.test.js`. Expected: the new tests FAIL. The checkpoint reports `saved` while the disk is old, and `drained` / `timerArmed` are not functions. After Step 3, check the positive controls once by hand: dropping the re-arm at the end of `drain` makes the stranding test time out, and an empty pass that clears `draining` before a settled promise is assigned to it (the earlier draft) makes the empty-pass test time out.
 
 - [ ] **Step 3: Implement in `src/main/workspaces.js`**
 
@@ -826,6 +829,8 @@ test('one drain per profile, and a capture queued during it is written by that d
     }
 ```
 
+`saveCapture` passes its id through `mutate(operation, capturedId)` to `write(result, capturedId)`, which deletes that capture from `pending` **before** computing the status (`s.status = s.pending.size ? 'pending' : 'saved'`), replacing the delete `saveCapture` used to do after `write` returned. Today a checkpoint of the only queued capture reports `pending` until the timer's next pass sets `saved`; a drain it superseded must change no status, so without this the status would stay `pending` (found while running Task 5: the unchanged-but-dirty and superseded-drain tests failed with `pending`).
+
 `scheduleRetry(s)`: refuse disposed profiles and run the drain:
 
 ```js
@@ -841,31 +846,26 @@ test('one drain per profile, and a capture queued during it is written by that d
 New `drain(s)` and `drainPass(s)`:
 
 ```js
-  // The timer path: one asynchronous drain per profile. The promise is
-  // installed before the pass starts, so even a pass that never awaits clears
-  // it afterwards instead of leaving a settled promise that blocks every later
-  // drain. A timer that fires during a drain starts nothing: the running pass
-  // rereads `pending` until it is empty.
+  // The timer path: one asynchronous drain per profile. The pass starts a
+  // microtask later, so `draining` is always assigned before it runs and is
+  // cleared after it ends, even when the pass never awaits. A timer that fires
+  // during a drain starts nothing: the running pass rereads `pending`.
   function drain(s) {
     s.timer = null;
     if (s.disposed || unavailable(s)) return Promise.resolve();
     if (s.draining) return s.draining;
-    let finish;
-    const current = new Promise((resolve) => { finish = resolve; });
+    const current = Promise.resolve()
+      .then(() => drainPass(s))
+      .catch((error) => { console.warn('[workspaces] autosave failed:', error?.message); })
+      .then(() => {
+        if (s.draining === current) s.draining = null;
+        // A superseded or failed pass can leave captures queued with no timer
+        // (a checkpoint of one workspace while another waits): arm a fresh
+        // pass under the new epoch. scheduleRetry refuses disposed and
+        // unavailable profiles and an already armed timer.
+        if (s.pending.size) scheduleRetry(s);
+      });
     s.draining = current;
-    const settle = () => {
-      if (s.draining === current) s.draining = null;
-      // A superseded or failed pass can leave captures queued with no timer
-      // (a checkpoint of one workspace while another waits): arm a fresh pass,
-      // which runs under the new epoch. scheduleRetry refuses disposed and
-      // unavailable profiles and an already armed timer.
-      if (s.pending.size) scheduleRetry(s);
-      finish();
-    };
-    drainPass(s).then(settle, (error) => {
-      console.warn('[workspaces] autosave failed:', error?.message);
-      settle();
-    });
     return current;
   }
 
@@ -882,7 +882,7 @@ New `drain(s)` and `drainPass(s)`:
         ? await store.commitPending()
         : await store.updateAndCommit((data) => Object.assign(data, result.file));
       if (!owns()) return;
-      if (!ok) { s.status = 'storage-failed'; onStatus(); return; } // settle arms the backoff retry
+      if (!ok) { s.status = 'storage-failed'; onStatus(); return; } // the end of drain() arms the backoff retry
       if (s.pending.get(id) === capture) s.pending.delete(id);
     }
     if (owns()) { s.status = 'saved'; s.attempts = 0; onStatus(); }

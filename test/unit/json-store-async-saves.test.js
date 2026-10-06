@@ -45,7 +45,10 @@ function controlNextSync() {
 }
 async function withHold(body) {
   const hold = controlNextSync();
-  try { return await body(hold); } finally { hold.done(); }
+  // Workspace retry timers are unref'd: keep the event loop alive while a
+  // test waits on a held write, or node:test cancels it as stalled.
+  const keepAlive = setInterval(() => {}, 1000);
+  try { return await body(hold); } finally { clearInterval(keepAlive); hold.done(); }
 }
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const tick = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));

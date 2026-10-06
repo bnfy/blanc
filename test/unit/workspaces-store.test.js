@@ -234,3 +234,176 @@ test('delete and restore survive a new repository instance; a failed restore kee
     assert.equal(restarted.remove(made.workspace.id).ok, true); assert.equal(restarted.forget(made.workspace.id).ok, true); assert.equal(restarted.restore(made.workspace.id).error, 'not-found');
   });
 });
+
+// Hold (or fail) FileHandle.sync() of the next async write (copied from json-store-async-saves.test.js).
+function controlNextSync() {
+  const original = fs.promises.open;
+  let release, fail, entered;
+  const gate = new Promise((resolve, reject) => { release = resolve; fail = reject; });
+  gate.catch(() => {}); // a failed gate that no write awaited is not an unhandled rejection
+  const syncEntered = new Promise(resolve => { entered = resolve; });
+  const closed = [];
+  fs.promises.open = async (...args) => {
+    fs.promises.open = original;
+    const handle = await original(...args);
+    const sync = handle.sync.bind(handle), close = handle.close.bind(handle);
+    handle.sync = async () => { entered(); await gate; return sync(); };
+    handle.close = async () => { closed.push(args[0]); return close(); };
+    return handle;
+  };
+  return {
+    syncEntered, closed,
+    release: () => release(), fail: error => fail(error),
+    done: () => { fs.promises.open = original; release(); },
+  };
+}
+async function withHold(body) {
+  const hold = controlNextSync();
+  // Workspace retry timers are unref'd: keep the event loop alive while a
+  // test waits on a held write, or node:test cancels it as stalled.
+  const keepAlive = setInterval(() => {}, 1000);
+  try { return await body(hold); } finally { clearInterval(keepAlive); hold.done(); }
+}
+
+const tick = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));
+async function until(predicate, ms = 5000) {
+  const deadline = Date.now() + ms;
+  while (!predicate()) {
+    if (Date.now() > deadline) throw new Error('timed out waiting for the condition');
+    await tick(10);
+  }
+}
+const urlsOnDisk = (file, id) => JSON.parse(fs.readFileSync(file, 'utf8')).workspaces.find((w) => w.id === id).urls;
+
+test('a synchronous checkpoint of an unchanged but unsaved capture flushes it', async () => {
+  await withLocalProfile('profile_dirty_sync', async () => {
+    const { workspace } = workspaces.create({ name: 'D', capture: CAPTURE() });
+    const file = path.join(userData, 'profiles', 'profile_dirty_sync', 'workspaces.json');
+    await withHold(async hold => {
+      workspaces.queueCapture(workspace.id, CAPTURE(['https://new.test/']));
+      await hold.syncEntered; // the drain applied the capture; its write is held
+      const result = workspaces.saveCapture(workspace.id, CAPTURE(['https://new.test/']));
+      assert.equal(result.ok, true); assert.equal(workspaces.status(), 'saved');
+      assert.deepEqual(urlsOnDisk(file, workspace.id), ['https://new.test/']);
+      hold.release(); await workspaces.drained();
+    });
+  });
+});
+
+test('if that synchronous flush fails, the checkpoint reports storage-failed and the retry persists it', async () => {
+  await withLocalProfile('profile_dirty_fail', async () => {
+    const { workspace } = workspaces.create({ name: 'F', capture: CAPTURE() });
+    const file = path.join(userData, 'profiles', 'profile_dirty_fail', 'workspaces.json');
+    await withHold(async hold => {
+      workspaces.queueCapture(workspace.id, CAPTURE(['https://new.test/']));
+      await hold.syncEntered;
+      hold.fail(new Error('EIO'));
+      await until(() => workspaces.status() === 'storage-failed'); // the drain failed and armed a retry
+      const original = fs.fsyncSync; fs.fsyncSync = () => { throw Object.assign(new Error('EIO'), { code: 'EIO' }); };
+      try { assert.equal(workspaces.saveCapture(workspace.id, CAPTURE(['https://new.test/'])).error, 'storage-failed'); }
+      finally { fs.fsyncSync = original; }
+      assert.equal(workspaces.status(), 'storage-failed');
+    });
+    await until(() => workspaces.status() === 'saved'); // the retry commits unchanged-but-dirty data
+    assert.deepEqual(urlsOnDisk(file, workspace.id), ['https://new.test/']);
+  });
+});
+
+test('a superseded drain cannot overwrite a newer checkpoint or arm a retry', async () => {
+  await withLocalProfile('profile_obsolete', async () => {
+    const { workspace } = workspaces.create({ name: 'O', capture: CAPTURE() });
+    const file = path.join(userData, 'profiles', 'profile_obsolete', 'workspaces.json');
+    await withHold(async hold => {
+      workspaces.queueCapture(workspace.id, CAPTURE(['https://older.test/']));
+      await hold.syncEntered;
+      assert.equal(workspaces.saveCapture(workspace.id, CAPTURE(['https://latest.test/'])).ok, true);
+      hold.fail(new Error('EIO')); await workspaces.drained();
+    });
+    assert.deepEqual(urlsOnDisk(file, workspace.id), ['https://latest.test/']);
+    assert.equal(workspaces.status(), 'saved');
+    assert.equal(workspaces.timerArmed(), false);
+  });
+});
+
+test('a checkpoint of one workspace never strands another workspace\'s queued capture', async () => {
+  await withLocalProfile('profile_strand', async () => {
+    const a = workspaces.create({ name: 'A', capture: CAPTURE() }).workspace;
+    const b = workspaces.create({ name: 'B', capture: CAPTURE() }).workspace;
+    const file = path.join(userData, 'profiles', 'profile_strand', 'workspaces.json');
+    await withHold(async hold => {
+      workspaces.queueCapture(a.id, CAPTURE(['https://a-new.test/']));
+      workspaces.queueCapture(b.id, CAPTURE(['https://b-new.test/']));
+      await hold.syncEntered; // the drain is writing A; B is still queued
+      assert.equal(workspaces.saveCapture(a.id, CAPTURE(['https://a-new.test/'])).ok, true); // supersedes the drain
+      hold.release();
+    });
+    await until(() => urlsOnDisk(file, b.id)[0] === 'https://b-new.test/'); // a fresh pass writes B
+    await workspaces.drained();
+    assert.equal(workspaces.status(), 'saved');
+    assert.equal(workspaces.timerArmed(), false);
+  });
+});
+
+test('an empty drain pass leaves autosave working', async () => {
+  await withLocalProfile('profile_empty_pass', async () => {
+    const { workspace } = workspaces.create({ name: 'E', capture: CAPTURE() });
+    const file = path.join(userData, 'profiles', 'profile_empty_pass', 'workspaces.json');
+    workspaces.queueCapture(workspace.id, CAPTURE(['https://one.test/']));
+    // A checkpoint empties the queue, but the timer stays armed: its pass finds nothing.
+    assert.equal(workspaces.saveCapture(workspace.id, CAPTURE(['https://one.test/'])).ok, true);
+    await until(() => !workspaces.timerArmed()); await workspaces.drained();
+    workspaces.queueCapture(workspace.id, CAPTURE(['https://two.test/']));
+    await until(() => urlsOnDisk(file, workspace.id)[0] === 'https://two.test/');
+    await workspaces.drained();
+    assert.equal(workspaces.status(), 'saved');
+  });
+});
+
+test('disposing a profile during a drain schedules no timer and sends no status', async () => {
+  await withLocalProfile('profile_disposed', async () => {
+    const { workspace } = workspaces.create({ name: 'X', capture: CAPTURE() });
+    await withHold(async hold => {
+      workspaces.queueCapture(workspace.id, CAPTURE(['https://x.test/']));
+      await hold.syncEntered;
+      const running = workspaces.drained();
+      // Observe the real effects, not timerArmed(): disposal removes the state
+      // from the map, so that would read false whatever the drain did.
+      const scheduled = []; let notices = 0;
+      const realSetTimeout = globalThis.setTimeout;
+      globalThis.setTimeout = (fn, ms, ...rest) => { scheduled.push(ms); return realSetTimeout(fn, ms, ...rest); };
+      workspaces.setStatusObserver(() => { notices++; });
+      try {
+        workspaces.disposeProfile('profile_disposed');
+        hold.fail(new Error('EIO')); await running;
+      } finally {
+        globalThis.setTimeout = realSetTimeout;
+        workspaces.setStatusObserver(null);
+      }
+      assert.deepEqual(scheduled, [], 'no retry timer was scheduled');
+      assert.equal(notices, 0, 'no status notification was sent');
+    });
+  });
+});
+
+test('one drain per profile, and a capture queued during it is written by that drain', async () => {
+  await withLocalProfile('profile_follow', async () => {
+    const { workspace } = workspaces.create({ name: 'Q', capture: CAPTURE() });
+    const file = path.join(userData, 'profiles', 'profile_follow', 'workspaces.json');
+    const original = fs.promises.open; let opens = 0, maxOpen = 0, open = 0;
+    await withHold(async hold => {
+      workspaces.queueCapture(workspace.id, CAPTURE(['https://one.test/']));
+      await hold.syncEntered;
+      const held = fs.promises.open; // the hold's one-shot hook was already consumed
+      fs.promises.open = async (...args) => { opens++; maxOpen = Math.max(maxOpen, ++open); try { return await held(...args); } finally { open--; } };
+      try {
+        workspaces.queueCapture(workspace.id, CAPTURE(['https://two.test/']));
+        await until(() => !workspaces.timerArmed()); // its timer fired while the first drain is held
+        assert.equal(opens, 0, 'the timer started no second drain');
+        hold.release(); await workspaces.drained();
+      } finally { fs.promises.open = original; }
+    });
+    assert.deepEqual(urlsOnDisk(file, workspace.id), ['https://two.test/']);
+    assert.equal(opens, 1, 'the running drain wrote the newer capture once');
+    assert.equal(maxOpen, 1);
+  });
+});
