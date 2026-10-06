@@ -86,6 +86,18 @@ License; the full notice ships in
 [compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt). Upstream:
 <https://github.com/lucide-icons/lucide>.
 
+## Dark Reader — MIT
+
+Dark websites embeds the unmodified npm API build of Dark Reader 4.9.133
+(`dark-reader/upstream/darkreader.js`, pinned by hash in
+`dark-reader/pinned.json`) in the generated
+`src/main/dark-websites-preload.js`.
+Copyright (c) 2026 Dark Reader Ltd. It remains under Dark Reader's MIT
+License, kept in `dark-reader/darkreader-LICENSE.txt` and shipped as
+`ThirdPartyLicenses/darkreader-LICENSE.txt`. The MIT License covers the code,
+not the Dark Reader name or logo. Upstream:
+<https://github.com/darkreader/darkreader>.
+
 ## Runtime dependencies
 
 Blanc is built on Electron (MIT) and bundles the Chromium engine, which carries
@@ -135,3 +147,28 @@ recorded in `docs/website-summary-icons.json`. The four-pane platform glyph
 is original geometry, and the Patron mark uses Blanc’s reserved Sunrise
 identity through a black presentation filter. These are website assets and
 are not bundled in the desktop app.
+
+## Website platform symbols — Font Awesome Free 6.7.2
+
+The Apple, Windows, and Linux brand symbols used on the website are from
+Font Awesome Free 6.7.2, copyright 2024 Fonticons, Inc., licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The upstream SVG attribution is preserved. Files, license and source URLs
+are in `site/public/revamp/`. Presentation adds CSS sizing and decorative
+accessibility attributes; the symbol paths are unchanged. These are website
+assets, not an endorsement by the platform vendors.
+
+### Website sample-page captures
+
+The website's `site/public/revamp/{rest,tabs,command-filtered}.png` files contain
+Wikipedia article content and photographs with separate reuse terms. Their
+attribution, source links, display treatment and licenses are recorded in
+`site/public/revamp/credits.txt`, linked beside the Island demo. The Wikipedia
+article text remains CC BY-SA 4.0; it is not included in Blanc's MIT grant.
+
+## Website 3D rendering — Three.js 0.186.1
+
+The homepage's Horizon Shield uses Three.js and its RoomEnvironment helper.
+Copyright © 2010–2026 three.js authors; MIT licensed. The complete notice ships
+at `site/public/licenses/three-MIT.txt`. The shield artwork remains a reserved
+Blanc product mark; the rendering library does not confer rights to that mark.

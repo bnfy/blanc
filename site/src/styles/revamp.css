@@ -1,0 +1,466 @@
+.website-footer {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+}
+.website-footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 54px 40px 26px;
+}
+.website-footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 32px;
+}
+.website-footer-identity img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+.website-footer-identity > p {
+  font: 400 24px/1.2 var(--site-font-display);
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  margin: 12px 0 22px;
+}
+.website-footer a {
+  font: 400 12px/1.5 var(--font-ui);
+  color: inherit;
+  text-decoration: none;
+}
+.website-footer a:hover {
+  text-decoration: underline;
+  color: var(--ink);
+}
+.website-footer a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+.website-footer .footer-newsletter {
+  font-size: 11px;
+  line-height: 1.65;
+  display: inline-block;
+}
+.footer-newsletter span {
+  color: var(--ink);
+}
+.website-footer-grid nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.website-footer-grid h2 {
+  font: 500 12px/1.5 var(--font-ui);
+  letter-spacing: 0;
+  color: var(--ink);
+  margin: 0 0 7px;
+}
+.website-footer-grid nav a {
+  min-height: 24px;
+}
+.website-footer-bottom {
+  margin-top: 40px;
+  border-top: 1px solid #d9d2c7;
+  padding-top: 20px;
+  display: flex;
+  gap: 14px 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.website-footer-bottom p,
+.website-footer-bottom a,
+.website-footer-bottom .footer-privacy-choice {
+  font: 400 10px/1.7 var(--font-ui);
+  margin: 0;
+}
+.website-footer-bottom nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.website-footer-bottom .footer-social {
+  margin-left: auto;
+}
+@media (max-width: 760px) {
+  .website-footer-inner {
+    padding: 38px 24px 22px;
+  }
+  .website-footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px 18px;
+  }
+  .website-footer-identity {
+    grid-column: 1/-1;
+  }
+  .website-footer-identity > p {
+    margin-bottom: 12px;
+  }
+  .website-footer-grid nav a {
+    padding: 5px 0;
+    min-height: 30px;
+  }
+  .website-footer-bottom {
+    margin-top: 24px;
+  }
+  .website-footer-bottom .footer-social {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+:root {
+  --site-bg: #f8f2e8;
+  --site-bg-rgb: 248, 242, 232;
+  --site-surface: #f2eade;
+  --site-surface-raised: #fff;
+  --site-border: #e1d7c9;
+  --site-text-dim: #696865;
+  --site-gold: #7d653d;
+  --line: var(--site-border);
+  --dim: var(--site-text-dim);
+  --ink: var(--site-text);
+  --gold: var(--site-gold);
+  --paper: var(--site-bg);
+  --font-mono: var(--font-ui);
+}
+html {
+  scroll-padding-top: 64px;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--site-gold);
+  outline-offset: 4px;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 120;
+  padding: 12px 18px;
+  background: #fff;
+  transform: translateY(-160%);
+  border-radius: 4px;
+}
+.skip-link:focus {
+  transform: none;
+}
+.site-header.revamp-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #fff;
+  border: 0;
+  box-shadow: none;
+  transform: translateY(0);
+  transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.site-header.revamp-header.is-scroll-hidden {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+.site-header .revamp-nav {
+  height: 48px;
+  min-height: 48px;
+  max-width: 1040px;
+  padding: 0 30px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  flex-wrap: nowrap;
+}
+.revamp-nav .site-brand {
+  width: 25px;
+  height: 48px;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.revamp-nav .site-brand-mark {
+  width: 23px;
+  height: 23px;
+}
+.revamp-nav .revamp-nav-link,
+.revamp-nav .site-nav-cta {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: #41403d;
+  font: 400 12px/1 var(--font-ui);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.revamp-nav a:hover {
+  color: #000;
+}
+/* The one action in the bar reads as a button at every width. */
+.revamp-nav .site-nav-cta {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.revamp-nav .site-nav-cta:hover {
+  color: var(--paper);
+  background: #000;
+}
+.revamp-nav a:focus-visible {
+  outline-offset: -3px;
+}
+/* Homepage-only appearance toggle; the page otherwise follows the system. */
+.revamp-nav .site-appearance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0 0 0 -16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #41403d;
+  cursor: pointer;
+}
+.revamp-nav .site-appearance[hidden] {
+  display: none;
+}
+.revamp-nav .site-appearance:hover {
+  color: #000;
+  background: rgb(14 14 14 / 0.06);
+}
+.revamp-nav .site-appearance:focus-visible {
+  outline-offset: 0;
+}
+.revamp-nav .site-appearance svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.revamp-nav .site-appearance .appearance-sun {
+  display: none;
+}
+.website-footer a,
+.website-footer-grid h2 {
+  font-family: var(--font-ui);
+}
+/* Standalone footer links keep at least a 24px target (WCAG 2.5.8). */
+.website-footer-bottom nav a,
+.website-footer .footer-social a {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+}
+.website-footer-identity a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+.website-footer-identity > p {
+  font-family: var(--site-font-display);
+}
+.website-footer .foot-news {
+  width: 100%;
+  max-width: 240px;
+  margin: 0;
+}
+.website-footer .foot-news-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.website-footer .foot-news-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid #bdb4a5;
+  margin-top: 8px;
+}
+.website-footer .foot-news-controls input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: none;
+  font: 400 11px/1.5 var(--font-ui);
+  padding: 8px 0;
+}
+.website-footer .foot-news-controls button {
+  flex: none;
+  border: 0;
+  background: none;
+  padding: 8px 0;
+  font: 400 11px/1.5 var(--font-ui);
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.website-footer .foot-news-controls[hidden] {
+  display: none;
+}
+.website-footer .foot-news-status {
+  font: 400 11px/1.5 var(--font-ui);
+}
+.footer-privacy-choice {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.footer-privacy-choice:hover {
+  text-decoration: underline;
+}
+.anchor-alias {
+  display: block;
+  height: 0;
+  position: relative;
+  top: -64px;
+  visibility: hidden;
+}
+.home-revamp {
+  --paper: #f8f2e8;
+  --surface: #f2eade;
+  --raised: #fff;
+  --line: #e1d7c9;
+  --dim: #696865;
+  --ink: #0e0e0e;
+  --gold: #7d653d;
+  --gold-dark: #c8ac78;
+  --warm-ink: #151411;
+}
+.home-revamp h1,
+.home-revamp h2,
+.home-revamp h3 {
+  font-family: var(--site-font-display);
+}
+.home-revamp {
+  font-family: var(--font-ui);
+}
+main :is(.section-kicker, .eyebrow) {
+  font-family: var(--font-ui);
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+:is(
+    .about-page,
+    .ambassador-page,
+    .download-page,
+    .faq-page,
+    .works-page,
+    .press-page,
+    .legal-page,
+    .changelog-page
+  )
+  h1 {
+  font-family: var(--site-font-display);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+@media (max-width: 760px) {
+  html {
+    scroll-padding-top: 70px;
+  }
+  .site-header .revamp-nav {
+    height: 58px;
+    min-height: 58px;
+    gap: 22px;
+    padding: 0 23px;
+    justify-content: flex-start;
+  }
+  .revamp-nav .nav-secondary {
+    display: none;
+  }
+  .revamp-nav .site-brand {
+    margin-right: auto;
+  }
+  .revamp-nav .site-nav-cta {
+    padding: 0 12px;
+  }
+  .revamp-nav .site-appearance {
+    width: 40px;
+    height: 40px;
+    margin: 0 -8px 0 -12px;
+  }
+  .website-footer .foot-news {
+    max-width: 260px;
+  }
+}
+/* With the homepage toggle the bar needs 354px at its usual spacing; tighten so
+   the toggle stays beside Download down to 320px. */
+@media (max-width: 380px) {
+  .site-header .revamp-nav:has(.site-appearance:not([hidden])) {
+    gap: 14px;
+    padding: 0 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header.revamp-header {
+    transition: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+.platform-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.platform-logo {
+  width: 18px;
+  height: 20px;
+  flex: none;
+}
+.platform-logo--linux {
+  width: 20px;
+}
+.legal-doc h1 {
+  font-family: var(--site-font-display);
+  font-size: clamp(38px, 4vw, 56px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+.site-header .site-brand-mark {
+  object-fit: contain;
+}
+.website-footer {
+  font-family: var(--font-ui);
+}
+.site-header .revamp-nav {
+  background: #fff;
+}

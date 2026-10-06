@@ -24,122 +24,133 @@
     <p id="recoveryError" class="section-hint" role="status" hidden></p>
   </section>
 
-  <header class="start-brand" aria-label="Blanc start page">
-    <img class="start-brand-mark" src="sunrise-mark.png" alt="" />
-    <span id="startDate" class="start-brand-date"></span>
+  <header class="start-header" aria-label="Blanc start page">
+    <div class="start-brand">
+      <img class="start-brand-mark" src="sunrise-mark.png" alt="" />
+      <span id="startDate" class="start-brand-date"></span>
+    </div>
+    <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
+      <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
+        <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
+        <span class="migration-compact-label" aria-hidden="true">finish setup</span>
+        <span class="page-sr-only">Open moving-in checklist</span>
+      </button>
+      <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
+        <div class="migration-checklist-heading">
+          <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
+          <h2 id="migrationChecklistTitle">ready to move in?</h2>
+        </div>
+        <ul class="migration-checklist-tasks">
+          <li id="migrationSyncTask">
+            <button id="migrationSyncAction" class="migration-task" type="button">
+              <span class="migration-task-check" aria-hidden="true"></span>
+              <span class="migration-task-label">Set up Sync</span>
+              <span class="page-sr-only migration-task-status">Not completed</span>
+            </button>
+          </li>
+          <li id="migrationTabsTask">
+            <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
+              <span class="migration-task-check" aria-hidden="true"></span>
+              <span class="migration-task-label">Bring your tabs</span>
+              <span class="page-sr-only migration-task-status">Not completed</span>
+            </a>
+          </li>
+        </ul>
+        <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
+      </aside>
+    </div>
   </header>
 
-  <main class="ledger" id="layoutLedger">
-    <h1 class="page-sr-only">Ledger start page</h1>
+  <div class="start-content" id="startContent">
+    <main class="ledger" id="layoutLedger">
+      <h1 class="page-sr-only">Ledger start page</h1>
 
-    <section class="ledger-section">
-      <a class="ledger-label" href="blanc://bookmarks/">favorites</a>
-      <div id="favoritesList" class="ledger-list"></div>
-    </section>
+      <h2 class="ledger-where">Where to?</h2>
 
-    <section id="groupsSection" class="ledger-section" hidden>
-      <div class="ledger-label">pick up where you left off</div>
-      <div id="groupsList" class="ledger-list ledger-groups"></div>
-    </section>
+      <div class="ledger-spread">
+        <div class="ledger-col ledger-col-primary">
+          <section class="ledger-section">
+            <a class="ledger-label" href="blanc://bookmarks/">Favorites</a>
+            <div id="favoritesList" class="ledger-list"></div>
+          </section>
+        </div>
+        <div class="ledger-col ledger-col-secondary">
+          <section id="groupsSection" class="ledger-section" hidden>
+            <div class="ledger-label">Pick up where you left off</div>
+            <div id="groupsList" class="ledger-list ledger-groups"></div>
+          </section>
 
-    <section id="remoteSection" class="ledger-section" hidden>
-      <div class="ledger-label">on your other devices</div>
-      <div id="remoteList" class="ledger-list"></div>
-    </section>
-
-    <p id="patron-callout" class="ledger-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-    </p>
-  </main>
-
-  <!-- The three alternative layouts (design system, "New tab v2" handoff).
-       No `hidden` attributes: pages.css's [hidden] rule is !important and
-       would outrank the data-layout selectors that show the active one. -->
-  <main class="billboard" id="layoutBillboard">
-    <h1 class="page-sr-only">Billboard start page</h1>
-    <div class="bb-clock-row">
-      <span id="bbClock" class="bb-clock"></span>
-      <span id="bbMeridiem" class="bb-meridiem"></span>
-    </div>
-    <div id="bbBlocked" class="bb-blocked"></div>
-    <div id="bbFavorites" class="bb-favs"></div>
-    <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
-    <div id="bbGroups" class="bb-groups"></div>
-    <p class="bb-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-    </p>
-  </main>
-
-  <main class="shelf" id="layoutShelf">
-    <h1 class="page-sr-only">Shelf start page</h1>
-    <div id="shFavorites" class="shelf-grid"></div>
-    <div class="shelf-cards">
-      <div class="shelf-card">
-        <div class="shelf-label">pick up where you left off</div>
-        <div id="shGroups" class="shelf-chiprow"></div>
-      </div>
-      <div class="shelf-card">
-        <div class="shelf-label">blocked</div>
-        <div class="shelf-stat">
-          <span id="shBlocked" class="shelf-count"></span>
-          <span class="shelf-unit">ads this week</span>
+          <section id="remoteSection" class="ledger-section" hidden>
+            <div class="ledger-label">On your other devices</div>
+            <div id="remoteList" class="ledger-list"></div>
+          </section>
         </div>
       </div>
-    </div>
-    <p class="shelf-patron js-patron-callout" hidden>
-      <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-    </p>
-  </main>
 
-  <main class="tally" id="layoutTally">
-    <div class="tally-left">
-      <h1 class="page-sr-only">Tally start page</h1>
-      <div class="ledger-label tally-label">favorites</div>
-      <div id="tlFavorites" class="ledger-list"></div>
-      <div class="ledger-label tally-label tally-label-groups">pick up where you left off</div>
-      <div id="tlGroups" class="tally-chiprow"></div>
+      <p id="patron-callout" class="ledger-patron js-patron-callout" hidden>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
+      </p>
+    </main>
+
+    <!-- The three alternative layouts (design system, "New tab v2" handoff).
+         No `hidden` attributes: pages.css's [hidden] rule is !important and
+         would outrank the data-layout selectors that show the active one. -->
+    <main class="billboard" id="layoutBillboard">
+      <h1 class="page-sr-only">Billboard start page</h1>
+      <div class="bb-clock-row">
+        <span id="bbClock" class="bb-clock"></span>
+        <span id="bbMeridiem" class="bb-meridiem"></span>
+      </div>
+      <div id="bbBlocked" class="bb-blocked"></div>
+      <div id="bbFavorites" class="bb-favs"></div>
+      <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="bbGroups" class="bb-groups"></div>
+      <p class="bb-patron js-patron-callout" hidden>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
+      </p>
+    </main>
+
+    <main class="shelf" id="layoutShelf">
+      <h1 class="page-sr-only">Shelf start page</h1>
+      <div id="shFavorites" class="shelf-grid"></div>
+      <div class="shelf-cards">
+        <div class="shelf-card shelf-card-groups">
+          <div class="shelf-label">Pick up where you left off</div>
+          <div id="shGroups" class="shelf-chiprow"></div>
+        </div>
+        <div class="shelf-card shelf-card-blocked">
+          <div class="shelf-label">Blocked</div>
+          <div class="shelf-stat">
+            <span id="shBlocked" class="shelf-count"></span>
+            <span class="shelf-unit">ads this week</span>
+          </div>
+        </div>
+      </div>
+      <p class="shelf-patron js-patron-callout" hidden>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
+      </p>
+    </main>
+
+    <main class="tally" id="layoutTally">
+      <div class="tally-left">
+        <h1 class="page-sr-only">Tally start page</h1>
+        <div class="ledger-label tally-label">Favorites</div>
+        <div id="tlFavorites" class="ledger-list"></div>
+        <div class="ledger-label tally-label tally-label-groups">Pick up where you left off</div>
+        <div id="tlGroups" class="tally-chiprow"></div>
+      </div>
+      <div class="tally-right">
+        <div class="ledger-label">Blocked this week</div>
+        <div id="tlCount" class="tally-count"></div>
+        <div id="tlChart" class="tally-chart"></div>
+        <div id="tlDays" class="tally-days"></div>
+        <div id="tlCaption" class="tally-caption"></div>
+      </div>
       <p class="tally-patron js-patron-callout" hidden>
         <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
       </p>
-    </div>
-    <div class="tally-right">
-      <div class="ledger-label">blocked this week</div>
-      <div id="tlCount" class="tally-count"></div>
-      <div id="tlChart" class="tally-chart"></div>
-      <div id="tlDays" class="tally-days"></div>
-      <div id="tlCaption" class="tally-caption"></div>
-    </div>
-  </main>
-
-  <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
-    <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
-      <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
-      <span class="migration-compact-label" aria-hidden="true">finish setup</span>
-      <span class="page-sr-only">Open moving-in checklist</span>
-    </button>
-    <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
-      <div class="migration-checklist-heading">
-        <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
-        <h2 id="migrationChecklistTitle">ready to move in?</h2>
-      </div>
-      <ul class="migration-checklist-tasks">
-        <li id="migrationSyncTask">
-          <button id="migrationSyncAction" class="migration-task" type="button">
-            <span class="migration-task-check" aria-hidden="true"></span>
-            <span class="migration-task-label">Set up Sync</span>
-            <span class="page-sr-only migration-task-status">Not completed</span>
-          </button>
-        </li>
-        <li id="migrationTabsTask">
-          <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
-            <span class="migration-task-check" aria-hidden="true"></span>
-            <span class="migration-task-label">Bring your tabs</span>
-            <span class="page-sr-only migration-task-status">Not completed</span>
-          </a>
-        </li>
-      </ul>
-      <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
-    </aside>
+    </main>
+    <div id="startContentEnd" class="start-content-end" aria-hidden="true"></div>
   </div>
 
   <footer id="layoutFooter" class="ledger-footer">
@@ -148,20 +159,36 @@
       <span id="version" class="ledger-version"></span>
     </span>
     <span class="footer-appearance">
-      <span id="layoutSwitcher" class="layout-switcher" role="group" aria-label="Start page layout">
-        <span class="layout-switcher-label">layout</span>
-        <button type="button" data-layout-pick="ledger">ledger</button>
-        <button type="button" data-layout-pick="billboard">billboard</button>
-        <button type="button" data-layout-pick="shelf">shelf</button>
-        <button type="button" data-layout-pick="tally">tally</button>
-      </span>
-      <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled>
-        <span class="wallpaper-toggle-track" aria-hidden="true"></span>
-        <span>dynamic wallpaper</span>
-      </button>
+      <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize</button>
+      <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">
+        <div id="customizeLayoutLabel" class="customize-label">Layout</div>
+        <div id="layoutSwitcher" class="layout-switcher" role="group" aria-labelledby="customizeLayoutLabel">
+          <button type="button" class="layout-preview" data-layout-pick="ledger" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="ledger" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span class="layout-name">Ledger</span>
+          </button>
+          <button type="button" class="layout-preview" data-layout-pick="billboard" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="billboard" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="layout-name">Billboard</span>
+          </button>
+          <button type="button" class="layout-preview" data-layout-pick="shelf" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="layout-name">Shelf</span>
+          </button>
+          <button type="button" class="layout-preview" data-layout-pick="tally" aria-pressed="false">
+            <span class="layout-thumb" data-thumb="tally" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="layout-name">Tally</span>
+          </button>
+        </div>
+        <hr class="customize-divider" />
+        <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled>
+          <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+          <span>Dynamic wallpaper</span>
+        </button>
+      </div>
     </span>
     <span class="footer-right">
-      <a id="mahjongLink" href="blanc://mahjong/" target="_blank">mahjong</a>
+      <a id="mahjongLink" href="blanc://mahjong/" target="_blank">Mahjong</a>
       <span id="goAnywhere"></span>
     </span>
   </footer>
@@ -272,6 +299,7 @@
   <script src="type-to-open.js"></script>
   <script src="onboarding.js"></script>
   <script src="newtab-wallpaper.js"></script>
+  <script src="start-site-name.js"></script>
   <script src="newtab.js"></script>
 </body>
 </html>

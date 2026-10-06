@@ -160,3 +160,95 @@ test('content bootstrap completion follows its original response handler without
   reply({}); await pending;
   assert.equal(processed, true); assert.equal(sends, 1);
 });
+
+// The browser's main process awaits these. The synchronous forms remain for
+// build and release scripts; both must produce identical verified results.
+const listTree = directory => {
+  const result = new Map();
+  const scan = relative => {
+    for (const entry of fs.readdirSync(path.join(directory, relative), { withFileTypes: true })) {
+      const name = relative ? relative + '/' + entry.name : entry.name;
+      if (entry.isDirectory()) scan(name); else result.set(name, fs.readFileSync(path.join(directory, name)));
+    }
+  };
+  scan('');
+  return result;
+};
+test('awaited install reproduces the synchronous verified package byte for byte', async t => {
+  const { installVerifiedPackage, installVerifiedPackageAsync, readHostSourcesAsync } = require('../../src/main/ublock-package');
+  const temporary = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-async-install-')));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+  const expected = installVerifiedPackage({ root: path.join(root, 'ublock'), destination: path.join(temporary, 'sync'), hostSources: hosts });
+  const actual = await installVerifiedPackageAsync({ root: path.join(root, 'ublock'), destination: path.join(temporary, 'async'), hostSources: await readHostSourcesAsync(root) });
+  assert.equal(actual.path, path.join(temporary, 'async'));
+  assert.equal(actual.version, expected.version);
+  assert.deepEqual([...actual.scripts.keys()], [...expected.scripts.keys()]);
+  for (const [name, bytes] of expected.scripts) assert(Buffer.isBuffer(actual.scripts.get(name)) && actual.scripts.get(name).equals(bytes), name);
+  const syncTree = listTree(expected.path), asyncTree = listTree(actual.path);
+  assert.deepEqual([...asyncTree.keys()].sort(), [...syncTree.keys()].sort());
+  for (const [name, bytes] of syncTree) assert(asyncTree.get(name).equals(bytes), name);
+  assert.deepEqual(fs.readdirSync(temporary).sort(), ['async', 'sync'], 'no staging or backup directory remains');
+});
+test('awaited read fails closed with the same integrity and path errors', async t => {
+  const { hash, readVerifiedPackageAsync } = require('../../src/main/ublock-package');
+  const temporary = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-async-corruption-')));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(temporary, 'upstream'));
+  const script = Buffer.from('pinned executable');
+  const source = Buffer.from('pinned source');
+  fs.writeFileSync(path.join(temporary, 'upstream/script.js'), script);
+  fs.writeFileSync(path.join(temporary, 'source.txt'), source);
+  const pin = { format: 1, version: '1.75.0', files: [{ path: 'script.js', size: script.length, sha256: hash(script) }], sources: [{ path: 'source.txt', sha256: hash(source) }] };
+  fs.writeFileSync(path.join(temporary, 'pinned.json'), JSON.stringify(pin));
+  assert((await readVerifiedPackageAsync(temporary)).files.get('script.js').equals(script));
+  fs.writeFileSync(path.join(temporary, 'upstream/script.js'), 'altered');
+  await assert.rejects(readVerifiedPackageAsync(temporary), /ubo-package-integrity/);
+  fs.writeFileSync(path.join(temporary, 'upstream/script.js'), script);
+  fs.writeFileSync(path.join(temporary, 'source.txt'), 'altered');
+  await assert.rejects(readVerifiedPackageAsync(temporary), /ubo-source-integrity/);
+  fs.writeFileSync(path.join(temporary, 'pinned.json'), JSON.stringify({ ...pin, files: [{ ...pin.files[0], path: '../script.js' }] }));
+  await assert.rejects(readVerifiedPackageAsync(temporary), /ubo-package-path/);
+  fs.writeFileSync(path.join(temporary, 'pinned.json'), JSON.stringify({ ...pin, version: '1.74.0' }));
+  await assert.rejects(readVerifiedPackageAsync(temporary), /ubo-package-invalid/);
+});
+test('awaited managed install repairs interruption and rejects traversal and symlink parents', async t => {
+  const { installVerifiedFilesAsync } = require('../../src/main/ublock-package');
+  const temporary = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-async-managed-')));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+  const destination = path.join(temporary, 'extension');
+  const bytes = new Map([['manifest.json', Buffer.from('{}')], ['js/script.js', Buffer.from('verified')]]);
+  assert.equal(await installVerifiedFilesAsync(bytes, destination), destination);
+  fs.writeFileSync(path.join(destination, 'js/script.js'), 'corrupted');
+  fs.writeFileSync(path.join(destination, 'unlisted.js'), 'bad');
+  fs.mkdirSync(path.join(temporary, '.extension.staging-interrupted'));
+  assert.equal(await installVerifiedFilesAsync(bytes, destination), destination);
+  assert.equal(fs.readFileSync(path.join(destination, 'js/script.js'), 'utf8'), 'verified');
+  assert(!fs.existsSync(path.join(destination, 'unlisted.js')));
+  assert(!fs.existsSync(path.join(temporary, '.extension.staging-interrupted')));
+  fs.renameSync(destination, path.join(temporary, '.extension.previous'));
+  await installVerifiedFilesAsync(bytes, destination);
+  assert(fs.existsSync(path.join(destination, 'manifest.json')));
+  assert(!fs.existsSync(path.join(temporary, '.extension.previous')));
+  await assert.rejects(installVerifiedFilesAsync(new Map([['../escape', Buffer.from('bad')]]), path.join(temporary, 'other')), /ubo-package-path/);
+  fs.symlinkSync(temporary, path.join(temporary, 'link'), process.platform === 'win32' ? 'junction' : 'dir');
+  await assert.rejects(installVerifiedFilesAsync(new Map([['x', Buffer.from('bad')]]), path.join(temporary, 'link', 'extension')), /ubo-package-symlink/);
+});
+test('awaited install returns to the event loop between file operations', async t => {
+  // A synchronous install held the main process for 18+ s on a slow Windows
+  // disk, so main-process pages such as blanc://newtab could not load.
+  const { installVerifiedPackageAsync, readHostSourcesAsync } = require('../../src/main/ublock-package');
+  const temporary = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-async-turns-')));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+  const destination = path.join(temporary, 'extension');
+  const { files } = readVerifiedPackage(path.join(root, 'ublock'));
+  for (const label of ['cold', 'warm']) {
+    const hostSources = await readHostSourcesAsync(root);
+    let turns = 0, done = false;
+    const spin = () => { if (done) return; turns++; setImmediate(spin); };
+    setImmediate(spin);
+    try { await installVerifiedPackageAsync({ root: path.join(root, 'ublock'), destination, hostSources }); } finally { done = true; }
+    // Every file is read (and on a cold start written) with its own awaited
+    // operation; a single await around synchronous work yields only once.
+    assert(turns > files.size, `${label} install yielded ${turns} times for ${files.size} files`);
+  }
+});

@@ -20,7 +20,7 @@ async function evidence(page, name, nativeCapture = false) {
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { overlayPage } = require('../support/overlay');
 const ctx = require('../support/context');
-const { openOverlaySurface } = require('../support/poll');
+const { openOverlaySurface, waitForValue } = require('../support/poll');
 
 Given('a named workspace with a live unsaved draft', async function () {
   await this.call('workspacePatron');
@@ -33,6 +33,9 @@ Given('a named workspace with a live unsaved draft', async function () {
     history.pushState({}, '', '#keep-history'); return true;
   })()`);
   this.draftIdentity = await this.call('workspacePageIdentity', this.draftId);
+  // Reset also opens a Start Page. All pages, not only the draft, must finish
+  // loading before the next step exercises a Workspace switch.
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   const saved = await this.call('workspaceAction', 'save', 'Draft workspace'); assert.equal(saved.ok, true);
   this.workspaceA = saved.workspace.id;
 });
@@ -106,12 +109,19 @@ Then('the saved workspace has no ordinary tabs', async function () {
 });
 
 When('I quiet a grouped pinned page and switch away', async function () {
-  this.quietId = await this.call('openTab', this.insecureFixtureUrl('workspace-quiet'));
+  // This scenario tests ownership of a quiet tab, not the optional
+  // storage-bearing renderer-discard path. Avoid the general fixture's load
+  // counter, which can correctly keep a shared/uncertain renderer awake.
+  this.quietId = await this.call('openTab', this.insecureFixtureUrl('workspace-quiet') + '?nostore=1');
   await this.waitForState((s) => s.tabs.some((t) => t.id === this.quietId && t.title === 'workspace-quiet' && !t.isLoading));
   await this.call('pinTab', this.quietId);
   await this.call('groupTabByName', this.quietId, 'Research');
   await this.call('activateTab', this.draftId);
-  assert.equal(await this.call('sleepTab', this.quietId), true);
+  // Quieting is deliberately best-effort: a cold/throttled CI renderer can
+  // miss its first dirty-probe budget. Retry the ordinary safe operation;
+  // never force destruction or relax the app's eligibility checks.
+  await waitForValue(() => this.call('sleepTab', this.quietId), value => value === true, 'eligible fixture page to become quiet');
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   const made = await this.call('workspaceAction', 'create', 'Away'); assert.equal(made.ok, true, JSON.stringify(made));
 });
 Then('inactive navigation belongs to the original workspace and its quiet tab survives', async function () {
@@ -132,6 +142,7 @@ Then('inactive navigation belongs to the original workspace and its quiet tab su
   assert.equal(await this.call('workspacePageScript', this.draftId, 'location.hash'), '#inactive-navigation');
 });
 When('I switch away and delete the inactive workspace', async function () {
+  await this.waitForState(state => state.tabs.every(tab => !tab.isLoading));
   assert.equal((await this.call('workspaceAction', 'create', 'Away')).ok, true);
   assert.equal((await this.call('workspaceAction', 'remove', this.workspaceA)).ok, true);
 });
@@ -146,20 +157,23 @@ Given('twenty five named workspaces with long names', async function () {
 });
 Then('the workspace list scrolls while creation controls remain visible', async function () {
   const checkFooter = async (page) => {
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
     const geometry = await page.evaluate(() => {
       const footer = document.getElementById('islandFooter').getBoundingClientRect();
       const rects = [...document.querySelectorAll('#islandFooter button')].map((button) => ({ id: button.id, rect: button.getBoundingClientRect().toJSON() }));
       const label = document.getElementById('footerWorkspaceLabel');
-      return { footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
+      return { viewport: { width: innerWidth, height: innerHeight }, footer: footer.toJSON(), rects, labelRect: label.getBoundingClientRect().toJSON(), labelWidth: label.getBoundingClientRect().width, truncated: label.scrollWidth > label.clientWidth };
     });
     assert.ok(geometry.truncated, 'long footer name should truncate instead of consuming the toolbar');
+    assert.ok(geometry.footer.left >= -1 && geometry.footer.right <= geometry.viewport.width + 1, 'footer must stay inside the viewport');
+    assert.ok(geometry.footer.top >= -1 && geometry.footer.bottom <= geometry.viewport.height + 1, 'footer controls must remain visible vertically');
     assert.ok(geometry.labelWidth < 100, 'footer title must keep its compact width');
     const workspace = geometry.rects.find((entry) => entry.id === 'footerWorkspace').rect;
     assert.ok(workspace.width > 28, 'named workspace must use the existing name-bearing button geometry');
     assert.ok(geometry.labelRect.left >= workspace.left && geometry.labelRect.right <= workspace.right, 'workspace title must stay inside its button');
     for (const { id, rect } of geometry.rects) {
-      assert.ok(rect.left >= geometry.footer.left - 1 && rect.right <= geometry.footer.right + 1, `${id} must fit inside the footer`);
+      assert.ok(rect.left >= geometry.footer.left - 1 && rect.right <= geometry.footer.right + 1, `${id} must fit inside the footer: ${JSON.stringify(geometry)}`);
       assert.ok(rect.top >= geometry.footer.top - 1 && rect.bottom <= geometry.footer.bottom + 1, `${id} must fit vertically`);
     }
     for (let i = 0; i < geometry.rects.length; i++) for (let j = i + 1; j < geometry.rects.length; j++) {
@@ -180,19 +194,52 @@ Then('the workspace list scrolls while creation controls remain visible', async 
   assert.equal(geometry.rows, 25); assert.equal(geometry.scroll, true); assert.ok(geometry.popupTop >= 0 && geometry.popupBottom <= geometry.height); assert.ok(geometry.createBottom <= geometry.height);
   await evidence(page, 'long-workspace-list');
   await this.call('setTabLayout', 'vertical');
-  await openOverlaySurface(this, 'openPanel', 'panel'); await page.click('#footerWorkspace');
+  await openOverlaySurface(this, 'openPanel', 'panel');
+  await page.waitForFunction(() => !document.querySelector('#islandPanel.morph-start, #islandPanel.morph-run, #islandPanel.retracting'));
+  await page.click('#footerWorkspace');
   await ctx.app.evaluate(({ webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1.25); });
-  await page.waitForTimeout(100);
-  const scaled = await page.evaluate(() => {
-    const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
-    const button = document.getElementById('wsSwitcherNew').getBoundingClientRect();
-    return { top: popup.top, bottom: popup.bottom, left: popup.left, right: popup.right, width: innerWidth, height: innerHeight, buttonBottom: button.bottom, buttonHeight: button.height };
-  });
-  assert.ok(scaled.top >= 0 && scaled.bottom <= scaled.height + 1); assert.ok(scaled.left >= 0 && scaled.right <= scaled.width + 1); assert.ok(scaled.buttonBottom <= scaled.height + 1); assert.ok(scaled.buttonHeight >= 24);
+  // Native zoom, the renderer resize event, and popup placement settle
+  // asynchronously. Measure a stable rectangle at the actual target zoom,
+  // not an arbitrary 100ms into that sequence. A stable overflow still fails.
+  let previousScaled;
+  const scaled = await waitForValue(async () => {
+    const bounds = await this.call('overlayBounds');
+    const value = await page.evaluate(() => {
+      const popup = document.getElementById('workspaceSwitcher').getBoundingClientRect();
+      const button = document.getElementById('wsSwitcherNew').getBoundingClientRect();
+      return { top: popup.top, bottom: popup.bottom, left: popup.left, right: popup.right, width: innerWidth, height: innerHeight, buttonBottom: button.bottom, buttonHeight: button.height };
+    });
+    return { ...value, nativeWidth: bounds.width, nativeHeight: bounds.height };
+  }, value => {
+    const stable = previousScaled && Object.keys(value).every(key => value[key] === previousScaled[key]);
+    previousScaled = value;
+    return stable && Math.abs(value.width - value.nativeWidth / 1.25) <= 1 && Math.abs(value.height - value.nativeHeight / 1.25) <= 1;
+  }, '125% Workspace popup geometry to settle');
+  assert.ok(scaled.top >= 0 && scaled.bottom <= scaled.height + 1, `zoomed popup must fit vertically: ${JSON.stringify(scaled)}`);
+  assert.ok(scaled.left >= 0 && scaled.right <= scaled.width + 1, `zoomed popup must fit horizontally: ${JSON.stringify(scaled)}`);
+  assert.ok(scaled.buttonBottom <= scaled.height + 1); assert.ok(scaled.buttonHeight >= 24);
   await evidence(page, 'long-workspace-list-vertical-125percent', true);
   await page.keyboard.press('Escape');
   await page.waitForSelector('#workspaceSwitcher', { state: 'hidden' });
   await checkFooter(page); await evidence(page, 'compact-footer-vertical-125percent', true);
+  // Cover both native shortcut widths on every platform: macOS alone must
+  // not let the longer Windows/Linux labels escape the regression check.
+  const nativeShortcuts = await page.evaluate(() => ['footerNewTabKbd', 'footerNewPrivateKbd'].map(id => document.getElementById(id).textContent));
+  try {
+    for (const shortcuts of [['⌘T', '⌘⇧N'], ['ctrl+T', 'ctrl+shift+N']]) {
+      await page.evaluate(values => {
+        document.getElementById('footerNewTabKbd').textContent = values[0];
+        document.getElementById('footerNewPrivateKbd').textContent = values[1];
+      }, shortcuts);
+      await checkFooter(page);
+      await evidence(page, shortcuts[0].startsWith('ctrl') ? 'compact-footer-control-labels-125percent' : 'compact-footer-command-labels-125percent', true);
+    }
+  } finally {
+    await page.evaluate(values => {
+      document.getElementById('footerNewTabKbd').textContent = values[0];
+      document.getElementById('footerNewPrivateKbd').textContent = values[1];
+    }, nativeShortcuts);
+  }
   await ctx.app.evaluate(({ BrowserWindow, webContents }) => { webContents.getAllWebContents().find((wc) => wc.getURL() === 'blanc-chrome://overlay/').setZoomFactor(1); BrowserWindow.getAllWindows().find((w) => w.webContents.getURL() === 'blanc-chrome://index/').setSize(1280, 800); });
   await this.call('setTabLayout', 'island');
 });
@@ -205,8 +252,8 @@ Given('a private-only secondary window bound to a named workspace', async functi
   for (const tab of target.tabs.filter((t) => !t.private)) await this.call('closeTabInWindow', this.secondary, tab.id);
 });
 When('I close that window and reopen its workspace', async function () {
-  await this.call('closeWindowRuntime', this.secondary);
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(await this.call('closeWindowRuntime', this.secondary), true);
+  await waitForValue(() => this.call('windowRuntimes'), windows => !windows.some(window => window.id === this.secondary), 'secondary window to finish closing');
   const opened = await this.call('workspaceAction', 'open', this.closedWorkspace, { newWindow: true }); assert.equal(opened.ok, true, JSON.stringify(opened)); this.reopenedWindow = opened.windowId;
 });
 Then('no removed ordinary page is restored', async function () {

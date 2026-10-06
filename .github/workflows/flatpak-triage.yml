@@ -1,0 +1,37 @@
+name: Flatpak triage
+
+# The Flatpak is a community package (FlatPark, bnfy/blanc#580). Its packager
+# triages Flatpak issues first, so loop them in whenever an issue is labelled
+# `flatpak` (the Flatpak issue template applies the label on open).
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    if: github.event.label.name == 'flatpak'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # Comment on and assign the issue.
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ github.event.issue.number }}
+      PACKAGER: jing2uo
+    steps:
+      - name: Mention the packager once
+        run: |
+          marker='<!-- flatpak-triage -->'
+          if gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate --jq '.[].body' | grep -qF "$marker"; then
+            echo "Already notified."
+          else
+            gh issue comment "$ISSUE" --body "$marker
+          @$PACKAGER this is a Flatpak report. Could you triage it first? If it also reproduces on the plain AppImage, hand it back to us."
+          fi
+      - name: Assign the packager when GitHub allows it
+        # Non-collaborators can only be assigned on issues they've commented on.
+        run: gh issue edit "$ISSUE" --add-assignee "$PACKAGER" || echo "Couldn't assign $PACKAGER; the mention covers it."

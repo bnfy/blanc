@@ -49,3 +49,22 @@ test('staging rejects credentials, query, fragment, and unsafe status configurat
   assert.equal(resolve({ ...auto, BLANC_UPDATE_STAGING_STATUS_FILE: 'relative.json' }).enabled, false);
   assert.equal(resolve({ ...auto, BLANC_UPDATE_STAGING_AUTO_INSTALL: '0' }).enabled, false);
 });
+
+test('the Flatpak channel is honored only inside a Linux Flatpak sandbox', () => {
+  const env = { BLANC_UPDATE_CHANNEL: 'flatpak' };
+  const at = (platform, isFlatpak) => resolveUpdaterPolicy({
+    isPackaged: true, env, platform, isFlatpak: () => isFlatpak,
+  });
+  assert.deepEqual(at('linux', true), {
+    enabled: false, mode: 'flatpak', reason: 'updates for this copy of Blanc come from Flatpak',
+    feed: null, allowPrerelease: false, autoInstall: false, statusFile: null,
+  });
+  for (const policy of [at('linux', false), at('darwin', true), at('win32', true)]) {
+    assert.equal(policy.enabled, false);
+    assert.equal(policy.mode, 'disabled');
+    assert.match(policy.reason, /unsupported BLANC_UPDATE_CHANNEL: flatpak/);
+  }
+  assert.equal(resolveUpdaterPolicy({
+    isPackaged: false, env, platform: 'linux', isFlatpak: () => true,
+  }).mode, 'disabled');
+});

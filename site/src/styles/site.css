@@ -1,12 +1,21 @@
-/* The website stays light: Sunrise ivory, warm surfaces, and dark controls.
+/* Metric-matched stand-ins shown until the web fonts load, so the swap does not
+   reflow the page (measured 2026-10-05: the phone hero heading wrapped to two
+   lines in Iowan Old Style, then shrank to one in Newsreader, shifting the hero
+   by 46px). size-adjust is Newsreader's width relative to Georgia at the phone
+   hero size (optical sizing narrows it further at larger sizes) and Inter's
+   relative to Arial; the overrides are each web font's own vertical metrics
+   divided by that scale. Re-measure if either web font changes. */
+@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); font-weight: 400; size-adjust: 95%; ascent-override: 77.37%; descent-override: 27.89%; line-gap-override: 0%; }
+@font-face { font-family: "Inter Fallback"; src: local("Arial"), local("ArialMT"); font-weight: 400; size-adjust: 106.69%; ascent-override: 90.8%; descent-override: 22.61%; line-gap-override: 0%; }
+@font-face { font-family: "Inter Fallback"; src: local("Arial Bold"), local("Arial-BoldMT"); font-weight: 700; size-adjust: 106.69%; ascent-override: 90.8%; descent-override: 22.61%; line-gap-override: 0%; }
+
+/* Default website palette. The homepage has an explicit appearance override.
    Product replicas use the separate, release-backed neutral palette below. */
 :root {
   color-scheme: light;
-  --font-ui: "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  /* Shortcut glyphs only. JetBrains Mono draws ⌘, ⇧, ⌥ and ⎋ malformed, so the
-     app moved every keyboard glyph to the system font in 1.1.0; the demo's
-     ⌘T / ⌘⇧N / ⌘L hints have the same problem and take the same escape. */
+  --font-ui: "Inter Variable", "Inter", "Inter Fallback", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-ui);
+  /* Shortcut glyphs retain the native system font. */
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 6px;
 
@@ -29,7 +38,7 @@
 
   /* Website presentation only. Ivory is sampled from the Sunrise source art. */
   /* Newsreader's optical-size axis sharpens automatically at Patron display sizes. */
-  --site-font-patron: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --site-font-patron: "Newsreader Variable", "Newsreader", "Newsreader Fallback", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   /* The one Newsreader line per page (page headlines, the press quote) shares
      the Patron stack. Everything scanned rather than read stays in Inter. */
   --site-font-display: var(--site-font-patron);
@@ -945,7 +954,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .home-start-heading { text-align: left; }
 }
 .section-kicker { margin: 0 0 14px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.17em; text-transform: uppercase; color: var(--site-gold); }
-.home-feature h2, .home-faq h2, .download-details h2 { margin: 0; font-size: clamp(31px, 4.1vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
+.home-feature h2, .home-faq h2, .download-section-head h2 { margin: 0; font-size: clamp(31px, 4.1vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
 .download-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(34px, 4.4vw, 56px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.06; text-wrap: balance; font-variant-numeric: lining-nums; }
 .text-link { display: inline-flex; gap: 8px; margin-top: 22px; color: var(--site-text); text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 3px; font-family: var(--font-mono); font-size: 12.5px; transition: border-color 0.15s ease, color 0.15s ease; }
 .text-link > span[aria-hidden="true"] { color: var(--site-gold); }
@@ -982,7 +991,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .faq-page-item p { margin: 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.72; }
 .faq-page-item p + p { margin-top: 13px; }
 /* Editorial links only: these containers exclude product controls and marks. */
-:is(.faq-page-item, .feature-copy-list, .truth-note, .download-details) p a:is(:hover, :focus-visible),
+:is(.faq-page-item, .feature-copy-list, .truth-note, .download-columns) p a:is(:hover, :focus-visible),
 :is(.ambassador-fineprint, .ambassador-form-note, .press-assets-contact) a:is(:hover, :focus-visible),
 .press-announcement-copy p a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); text-decoration-color: var(--site-gold); }
 @media (max-width: 680px) {
@@ -1109,11 +1118,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   line-height: 1.65;
 }
 
-.download-page { max-width: 1180px; margin: 0 auto; padding: 112px 24px 88px; }
+.download-page { max-width: 1180px; margin: 0 auto; padding: 40px 24px 88px; }
 .download-hero { max-width: 740px; margin: 0 auto; text-align: center; }
 .download-hero > p:last-child { max-width: 48ch; margin: 20px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
-.download-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 70px 0 0; border-top: 1px solid var(--site-border); border-left: 1px solid var(--site-border); }
-.platform-card { display: flex; min-height: 235px; flex-direction: column; justify-content: flex-end; padding: 28px; border-right: 1px solid var(--site-border); border-bottom: 1px solid var(--site-border); color: var(--site-text); text-decoration: none; transition: background 0.18s ease, color 0.18s ease; }
+/* Shown only on phones and tablets by handheld-download.js. */
+.download-handheld { max-width: 560px; margin: 32px auto 0; padding: 24px; border: 1px solid var(--site-border); border-radius: 20px; text-align: center; }
+.download-handheld[hidden] { display: none; }
+.download-handheld h2 { margin: 0; font-family: var(--site-font-display); font-size: 28px; font-weight: 400; letter-spacing: -0.01em; }
+.download-handheld p { margin: 8px 0 0; color: var(--site-text-dim); }
+.download-handheld-action { display: inline-flex; align-items: center; min-height: 48px; margin-top: 16px; padding: 0 24px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); text-decoration: none; }
+.download-handheld [role="status"] { color: var(--site-text); font-weight: 500; }
+.download-handheld [role="status"]:empty { display: none; }
+/* Cards flex to fill each row, so three or four visible downloads never
+   leave an orphan cell. */
+.download-options { display: flex; flex-wrap: wrap; margin: 70px 0 0; border-top: 1px solid var(--site-border); border-left: 1px solid var(--site-border); }
+.platform-card { flex: 1 1 220px; display: flex; min-height: 190px; flex-direction: column; justify-content: flex-end; padding: 28px; border-right: 1px solid var(--site-border); border-bottom: 1px solid var(--site-border); color: var(--site-text); text-decoration: none; transition: background 0.18s ease, color 0.18s ease; }
 .platform-card[hidden] { display: none; }
 .platform-card:hover { background: var(--site-accent); color: var(--site-bg); }
 .platform-label { margin-bottom: auto; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.18s ease; }
@@ -1122,13 +1141,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .platform-card strong { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
 .platform-card span:last-child { margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--site-text-dim); transition: color 0.18s ease; }
 .platform-card:hover span:last-child { color: rgba(255,255,255,0.72); }
-.download-details { display: grid; grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr); gap: clamp(42px, 9vw, 150px); padding: 0 0 96px; }
-.download-details h2 { max-width: 12ch; font-size: clamp(28px, 3.5vw, 43px); }
-.download-detail-list { border-top: 1px solid var(--site-border); }
-.download-detail-list article { padding: 21px 0 23px; border-bottom: 1px solid var(--site-border); }
-.download-detail-list h3 { margin: 0; font-size: 15px; font-weight: 600; }
-.download-detail-list p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
-.fit-block .download-detail-list p + p { margin-top: 18px; }
+/* A quiet download arrow in each card's corner, so the title never wraps
+   around it; it drops slightly on hover. */
+.platform-card { position: relative; }
+.platform-card::after { content: "\2193" / ""; position: absolute; top: 24px; right: 28px; font-size: 18px; color: var(--site-text-dim); transition: color 0.18s ease, transform 0.18s ease; }
+.platform-card:is(:hover, :focus-visible)::after { color: inherit; transform: translateY(3px); }
+@media (min-width: 761px) and (max-width: 1100px) { .platform-card { flex-basis: 40%; } }
 .download-footnote { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; padding: 26px 0 0; border-top: 1px solid var(--site-border); color: var(--site-text-dim); }
 .download-footnote p { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; }
 .download-footnote a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
@@ -1137,10 +1155,37 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-whatsnew { margin: 24px 0 96px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--site-text-dim); }
 .download-whatsnew a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-whatsnew a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
-.download-note { margin: 0 auto; }
-.download-note + .download-details { margin-top: 128px; }
-.download-note > p:not(.section-kicker) a { color: inherit; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
-.download-note > p:not(.section-kicker) a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
+/* With a detected platform, its download becomes the one primary action
+   and the rest drop to a compact row beneath it. Without detection (no
+   script, unknown OS) every card stays equal. */
+.download-options.has-preferred > .platform-card { flex: 1 1 200px; min-height: 0; justify-content: flex-start; padding: 20px 24px; }
+.download-options.has-preferred > .platform-card .platform-label { margin-bottom: 10px; }
+.download-options.has-preferred > .platform-card strong { font-size: 16px; }
+.download-options.has-preferred > .platform-card::after { top: 18px; right: 24px; font-size: 16px; }
+.download-options.has-preferred > .platform-card[data-preferred] { flex-basis: 100%; min-height: 200px; justify-content: flex-end; padding: 34px 40px; background: var(--site-text); color: var(--site-bg); }
+.download-options.has-preferred > .platform-card[data-preferred] strong { font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.025em; }
+.download-options.has-preferred > .platform-card[data-preferred] :is(.platform-label, span:last-child) { color: rgba(255,255,255,0.68); }
+.download-options.has-preferred > .platform-card[data-preferred]::after { top: 30px; right: 40px; font-size: 26px; color: inherit; }
+.download-options.has-preferred > .platform-card[data-preferred]:hover { background: var(--site-accent); }
+
+.download-section-head h2 { font-size: clamp(28px, 3.5vw, 43px); }
+.download-block { padding: 0 0 96px; }
+.install-platforms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 36px; }
+.install-platform { padding: 26px 28px 28px; border: 1px solid var(--site-border); border-radius: 16px; }
+/* The detected platform's steps are outlined in ink; all three stay visible. */
+.install-platform[data-preferred] { border-color: var(--site-text); background: rgb(255 255 255 / 0.45); }
+.install-platform h3 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 16px; font-weight: 600; }
+.install-platform h3 .platform-logo { width: 16px; height: 18px; fill: currentColor; }
+.install-requirement { margin: 10px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; }
+.install-platform ol { display: grid; gap: 10px; margin: 18px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+.install-platform li::marker { color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; }
+.install-platform code { padding: 1px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.05); font-size: 12px; overflow-wrap: anywhere; }
+.download-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 36px; border-top: 1px solid var(--site-border); }
+.download-columns article { padding: 24px 28px 0 0; }
+.download-columns article + article { padding-left: 28px; border-left: 1px solid var(--site-border); }
+.download-columns h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.download-columns p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
+.download-columns .text-link { margin-top: 12px; font-size: 13px; }
 
 /* ---------- changelog ---------- */
 .changelog-page { max-width: 880px; margin: 0 auto; padding: 112px 24px 96px; }
@@ -1204,7 +1249,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 }
 
 /* ---------- about / independence ---------- */
-.about-page { max-width: 1040px; margin: 0 auto; padding: 112px 24px 96px; }
+.about-page { max-width: 1040px; margin: 0 auto; padding: 64px 24px 96px; }
 .about-hero { max-width: 790px; margin: 0 auto 96px; text-align: center; }
 .about-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(37px, 5.1vw, 64px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; text-wrap: balance; }
 .about-hero > p:last-child { max-width: 58ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.68; text-wrap: balance; }
@@ -1213,26 +1258,53 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .about-label { margin: 3px 0 0; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--site-text-dim); }
 .about-proof-row h2 { max-width: 19ch; margin: 0; font-size: clamp(25px, 3vw, 38px); font-weight: 500; letter-spacing: -0.032em; line-height: 1.08; text-wrap: balance; }
 .about-proof-row div > p { max-width: 58ch; margin: 18px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.7; }
-.about-supporter { margin: 0 -24px; padding-right: 24px; padding-left: 24px; background: var(--site-surface); }
+.about-supporter { margin: 40px 0 0; border-bottom: 0; border-radius: 16px; background: var(--site-surface); }
 .about-close { margin-top: 96px; padding: 70px 24px; border: 1px solid var(--site-border); border-radius: 14px; text-align: center; }
 .about-close h2 { margin: 0; font-size: clamp(29px, 3.8vw, 46px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; }
 .about-close > p:last-child { max-width: 58ch; margin: 18px auto 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.7; }
 .about-close a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .about-close a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
+/* Each section: label on top, heading on the left, its text on the right,
+   so the rows use the full width. Supporters is an aligned card. */
+.about-proof-row { display: block; padding: 44px 0 48px; }
+.about-proof-row .about-label { margin: 0 0 18px; }
+.about-proof-row > div { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); column-gap: 64px; align-items: start; }
+.about-proof-row > div > h2 { grid-row: 1 / span 6; }
+.about-proof-row > div > :not(h2) { grid-column: 2; }
+.about-proof-row > div > p:first-of-type { margin-top: 0; }
+.about-proof-row > div > .text-link { justify-self: start; margin-top: 16px; }
+.about-proof-row.about-supporter { padding: 44px 40px 48px; }
+/* The one line about who makes Blanc sits quietly between the content and the close. */
+.about-maker { max-width: 72ch; margin: 56px auto 0; color: var(--site-text-dim); font-size: 13px; line-height: 1.7; text-align: center; text-wrap: balance; }
+.about-maker a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
+.about-maker a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
+.about-maker + .about-close { margin-top: 56px; }
+@media (max-width: 760px) {
+  .about-proof-row { padding: 34px 0 38px; }
+  .about-proof-row > div { grid-template-columns: minmax(0, 1fr); }
+  .about-proof-row > div > h2 { grid-row: auto; }
+  .about-proof-row > div > :not(h2) { grid-column: 1; }
+  .about-proof-row > div > p:first-of-type { margin-top: 16px; }
+}
 @media (max-width: 640px) {
-  .about-page { padding: 78px 18px 68px; }
+  .about-page { padding: 40px 18px 68px; }
   .about-hero { margin-bottom: 68px; }
   .about-proof-row { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 34px 0 38px; }
-  .about-supporter { margin: 0 -18px; padding-right: 18px; padding-left: 18px; }
+  .about-supporter { margin: 28px 0 0; }
+  .about-proof-row.about-supporter { padding: 30px 22px 34px; }
   .about-close { margin-top: 72px; padding: 56px 20px; }
 }
 
 /* ---------- feature discovery ---------- */
 .feature-page { max-width: 1180px; margin: 0 auto; padding: 0 24px 96px; }
 .breadcrumb { display: flex; align-items: center; gap: 8px; padding: 32px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 11.5px; }
-.breadcrumb--page { padding-top: 0; margin-bottom: 54px; }
+.breadcrumb--page { padding-top: 0; margin-bottom: 40px; }
 .breadcrumb a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; transition: color 0.15s ease, border-color 0.15s ease; }
 .breadcrumb a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
+/* Border-underlined links grow upward to a 24px target (WCAG 2.5.8) so the underline stays under the text. */
+.breadcrumb a, .download-whatsnew a, .text-link { display: inline-flex; align-items: flex-end; min-height: 24px; }
+/* Breadcrumb links keep their 24px target but centre their text on the row. */
+.breadcrumb a { align-items: center; }
 .feature-hero { max-width: 780px; margin: 0 auto; text-align: center; }
 .feature-hero--hub { padding: 112px 0 88px; }
 .feature-hero--detail { padding: 84px 0 62px; }
@@ -1251,6 +1323,31 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .feature-row-end .text-link { margin-top: 18px; }
 .feature-row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 20px; }
 .feature-row-actions .text-link { margin-top: 0; }
+/* The hub reads as a two-column grid of cards: number in the corner,
+   label and title, then the summary with its link pinned to the foot. */
+.feature-hub-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-left: 1px solid var(--site-border); }
+.feature-hub-row { position: relative; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 34px 40px 36px; border-right: 1px solid var(--site-border); }
+.feature-hub-row--featured, .feature-hub-row--patron { margin: 0; padding: 34px 40px 36px; }
+.feature-hub-row .feature-number { position: absolute; top: 36px; right: 40px; }
+.feature-hub-row .feature-label { padding-right: 48px; }
+.feature-hub-row h2 { max-width: 20ch; font-size: clamp(23px, 2.2vw, 29px); }
+.feature-hub-row .feature-row-end { display: flex; flex: 1; flex-direction: column; align-items: flex-start; padding-top: 16px; }
+.feature-hub-row .feature-row-end p { max-width: 46ch; }
+.feature-hub-row .feature-row-end > .text-link, .feature-hub-row .feature-row-actions { margin-top: auto; padding-top: 20px; }
+/* The everyday details follow the grid at its full width, with room above. */
+.feature-hub-page .feature-copy-grid { max-width: none; margin-top: 96px; padding-bottom: 0; }
+@media (max-width: 1100px) {
+  .feature-hub-row, .feature-hub-row--featured, .feature-hub-row--patron { padding: 28px 28px 30px; }
+  .feature-hub-row .feature-number { top: 30px; right: 28px; }
+}
+@media (max-width: 760px) {
+  .feature-hub-page .feature-copy-grid { margin-top: 64px; }
+  .feature-hub-list { grid-template-columns: 1fr; border-left: 0; }
+  .feature-hub-row, .feature-hub-row--featured, .feature-hub-row--patron { padding: 28px 0 30px; border-right: 0; }
+  .feature-hub-row--featured, .feature-hub-row--patron { margin: 0 -18px; padding-right: 18px; padding-left: 18px; }
+  .feature-hub-row .feature-number { top: 30px; right: 0; }
+  .feature-hub-row--featured .feature-number, .feature-hub-row--patron .feature-number { right: 18px; }
+}
 .feature-patron-cta { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 0 16px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-family: var(--font-mono); font-size: 11.5px; text-decoration: none; transition: opacity 0.15s ease, transform 0.15s ease; }
 .feature-patron-cta:hover { opacity: 0.8; transform: translateY(-1px); }
 .feature-patron-cta:focus-visible { outline: 2px solid var(--site-accent); outline-offset: 3px; }
@@ -1494,7 +1591,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .site-footer .foot-news button { flex-shrink: 0; min-height: 44px; padding: 10px 16px; border: 1px solid var(--site-accent); border-radius: var(--radius); background: var(--site-accent); color: var(--site-bg); font: inherit; font-weight: 500; cursor: pointer; }
 .site-footer .foot-news button:hover { background: var(--site-text); }
 .site-footer .foot-news button:disabled { opacity: 0.6; cursor: default; }
-.site-footer .foot-news-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .site-footer .foot-news-status:empty { display: none; }
 .site-footer :is(a, button, input) { scroll-margin-block: 88px; }
 
@@ -1529,16 +1625,22 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .demo-scrub { gap: 8px; width: min(94%, 440px); margin-top: 16px; padding: 7px 9px; }
   .demo-scrub-current { flex-basis: 72px; font-size: 9px; }
   .hero .platforms { margin-top: 12px; white-space: normal; line-height: 1.7; }
-  .download-page { padding: 78px 18px 68px; }
-  .download-options { grid-template-columns: 1fr; margin: 52px 0 0; }
+  .download-page { padding: 24px 18px 68px; }
+  .download-options { margin: 52px 0 0; }
   .download-whatsnew { margin: 24px 0 64px; }
-  .download-note { padding: 28px 20px; }
-  .download-note + .download-details { margin-top: 96px; }
+  .download-block { padding-bottom: 72px; }
+  .install-platforms { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; }
+  .install-platform { padding: 22px 22px 24px; }
+  .download-columns { grid-template-columns: 1fr; margin-top: 28px; }
+  .download-columns article, .download-columns article + article { padding: 22px 0; border-left: 0; }
+  .download-columns article + article { border-top: 1px solid var(--site-border); }
+  .download-options.has-preferred > .platform-card[data-preferred] { min-height: 0; padding: 26px 24px; }
+  .download-options.has-preferred > .platform-card[data-preferred]::after { top: 22px; right: 24px; }
   /* Stacked on one column, the tall bottom-aligned cards become mostly-empty
      boxes — make them compact and top-aligned so each is a tight tap target. */
-  .platform-card { min-height: auto; justify-content: flex-start; padding: 22px 24px; }
+  .platform-card { flex-basis: 100%; min-height: auto; justify-content: flex-start; padding: 22px 24px; }
+  .platform-card::after { top: 20px; right: 24px; }
   .platform-label { margin-bottom: 10px; }
-  .download-details { grid-template-columns: 1fr; gap: 36px; padding-bottom: 72px; }
   .download-footnote { grid-template-columns: 1fr; gap: 14px; }
   .feature-page { padding: 0 18px 72px; }
   .breadcrumb { padding-top: 24px; }
@@ -2352,7 +2454,7 @@ body[data-page="press"] > .legal-top { display: none; }
    it wins over the per-section size rules above; those keep their sizes and
    line heights. Body copy, labels, controls, the legal pages, the consent
    card, the demo's figure title, and every product replica stay in Inter. */
-.home-feature h2, .home-faq h2, .download-details h2,
+.home-feature h2, .home-faq h2, .download-section-head h2,
 .faq-page-item h2, .faq-list summary,
 .release-body h2,
 .about-proof-row h2, .about-close h2,
@@ -2360,7 +2462,6 @@ body[data-page="press"] > .legal-top { display: none; }
 .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2,
 .press-product-heading h2, .press-proof h2, .press-contact h2, .press-newsroom h2, .press-announcement h2,
 .memchart-heading h2,
-.download-detail-list h3, .feature-copy-list h3, .ambassador-fit-grid h3, .ambassador-steps h3,
 .site-footer .foot-identity p {
   font-family: var(--site-font-display); font-weight: 400; letter-spacing: -0.015em; font-optical-sizing: auto;
 }
@@ -2368,18 +2469,17 @@ body[data-page="press"] > .legal-top { display: none; }
 .faq-list summary { font-size: 19px; letter-spacing: -0.005em; }
 .faq-page-item h2 { font-size: 21px; letter-spacing: -0.005em; }
 .release-body h2 { font-size: 25px; }
-.download-detail-list h3, .feature-copy-list h3, .ambassador-fit-grid h3, .ambassador-steps h3 { font-size: 22px; letter-spacing: -0.005em; }
 .site-footer .foot-identity p { font-size: 20px; line-height: 1.3; color: var(--site-text); }
 
 /* Clear product hierarchy and direct navigation. */
 [hidden] { display: none !important; }
 .site-nav-links { display: flex; gap: clamp(14px, 2vw, 27px); align-items: center; }
-.site-nav-links > a { font: 500 13px/1.4 Inter, sans-serif; letter-spacing: 0; text-transform: none; }
+.site-nav-links > a { font: 500 13px/1.4 Inter, 'Inter Fallback', sans-serif; letter-spacing: 0; text-transform: none; }
 .site-nav-links > a[aria-current="page"] { color: var(--site-accent); text-decoration: underline; text-underline-offset: 5px; }
 .trust-hero { max-width: 1160px; margin: 0 auto; padding: 64px 48px 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 44px; justify-items: center; text-align: center; }
 .trust-hero-copy { width: 100%; max-width: 760px; }
 .trust-hero-mark { display: block; width: 66px; height: 66px; margin: 0 auto 25px; }
-.trust-hero h1 { font: 400 clamp(38px, 4.1vw, 62px)/1.03 'Newsreader Variable', Newsreader, Georgia, serif; letter-spacing: -.035em; margin: 16px 0 22px; }
+.trust-hero h1 { font: 400 clamp(38px, 4.1vw, 62px)/1.03 'Newsreader Variable', Newsreader, 'Newsreader Fallback', Georgia, serif; letter-spacing: -.035em; margin: 16px 0 22px; }
 .trust-hero-copy > p:not(.section-kicker) { font-size: 17px; line-height: 1.65; color: var(--site-text-dim); max-width: 55ch; margin-inline: auto; }
 .trust-hero-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: center; margin: 28px 0 15px; }
 .trust-demo-button { gap: 8px; border: 1px solid var(--site-border); background: transparent; color: var(--site-text); cursor: pointer; }
@@ -2411,9 +2511,9 @@ body[data-page="press"] > .legal-top { display: none; }
 .trust-facts a { font-size: 12px; color: var(--site-accent); text-underline-offset: 4px; }
 .trust-benefits { padding: 80px 0; display: grid; grid-template-columns: repeat(2,1fr); gap: 40px; }
 .trust-section-head { grid-column: 1 / -1; margin-bottom: 10px; }
-.trust-section-head h2, .trust-explain h2 { font: 400 clamp(30px,3vw,44px)/1.15 'Newsreader Variable', Newsreader, Georgia, serif; margin: 14px 0; }
+.trust-section-head h2, .trust-explain h2 { font: 400 clamp(30px,3vw,44px)/1.15 'Newsreader Variable', Newsreader, 'Newsreader Fallback', Georgia, serif; margin: 14px 0; }
 .trust-number { font: 12px/1.5 'JetBrains Mono', monospace; color: var(--site-accent); }
-.trust-benefits h3 { font: 400 29px/1.2 'Newsreader Variable', Newsreader, Georgia, serif; margin: 16px 0; }
+.trust-benefits h3 { font: 400 29px/1.2 'Newsreader Variable', Newsreader, 'Newsreader Fallback', Georgia, serif; margin: 16px 0; }
 .trust-benefits p, .trust-explain p { font-size: 15px; line-height: 1.8; color: var(--site-text-dim); }
 .trust-benefits .text-link { display: inline-block; margin-top: 16px; }
 .trust-explain { background: var(--site-surface); border: 1px solid var(--site-border); border-radius: 18px; padding: 40px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 55px; align-items: center; }
@@ -2429,10 +2529,10 @@ body[data-page="press"] > .legal-top { display: none; }
 .home-faq-list details[open] .faq-toggle-vertical { display: none; }
 .home-faq-list p { line-height: 1.75; margin-bottom: 22px; }
 .trust-home .demo-showcase { margin: 50px 0; scroll-margin-top: 90px; }
-.trust-home .hero-message h2 { font: 400 clamp(22px, 2.5vw, 32px)/1.2 'Newsreader Variable', Newsreader, Georgia, serif; }
+.trust-home .hero-message h2 { font: 400 clamp(22px, 2.5vw, 32px)/1.2 'Newsreader Variable', Newsreader, 'Newsreader Fallback', Georgia, serif; }
 .works-page { max-width: 900px; padding: 74px 30px 80px; margin: 0 auto; }
-.works-page h1 { font: 400 clamp(42px,6vw,66px)/1.1 'Newsreader Variable', Newsreader, Georgia, serif; margin: 18px 0 24px; }
-.works-page h2 { font: 400 34px/1.2 'Newsreader Variable', Newsreader, Georgia, serif; margin: 0 0 22px; }
+.works-page h1 { font: 400 clamp(42px,6vw,66px)/1.1 'Newsreader Variable', Newsreader, 'Newsreader Fallback', Georgia, serif; margin: 18px 0 24px; }
+.works-page h2 { font: 400 34px/1.2 'Newsreader Variable', Newsreader, 'Newsreader Fallback', Georgia, serif; margin: 0 0 22px; }
 .works-page section { padding: 44px 0; border-top: 1px solid var(--site-border); scroll-margin-top: 90px; }
 .works-page p, .works-page li, .works-page dd { font-size: 16px; line-height: 1.85; color: var(--site-text-dim); }
 .works-page a { color: var(--site-accent); text-underline-offset: 4px; }
@@ -2446,7 +2546,7 @@ body[data-page="press"] > .legal-top { display: none; }
   .site-header[data-enhanced] .site-nav-links { display: none; }
   .site-header[data-enhanced] .site-menu-toggle { display: grid; }
   .site-mobile-menu { position: absolute; top: calc(100% + 8px); right: 0; display: grid; padding: 20px; width: min(340px,calc(100vw - 32px)); background: var(--site-bg); border: 1px solid var(--site-border); border-radius: 16px; box-shadow: 0 8px 30px #805d2814; max-height: calc(100dvh - 95px); overflow: auto; }
-  .site-mobile-menu a { padding: 12px; font: 500 15px/1.4 Inter, sans-serif; text-decoration: none; color: var(--site-text); }
+  .site-mobile-menu a { padding: 12px; font: 500 15px/1.4 Inter, 'Inter Fallback', sans-serif; text-decoration: none; color: var(--site-text); }
   .site-header:not([data-enhanced]) .site-nav { flex-wrap: wrap; height: auto; min-height: 64px; }
   .site-header:not([data-enhanced]) .site-nav-links { display: flex; flex-wrap: wrap; order: 3; width: 100%; padding-block: 12px; }
   .trust-hero { padding-top: 45px; gap: 30px; }

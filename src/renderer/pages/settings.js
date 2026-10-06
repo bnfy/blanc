@@ -178,6 +178,89 @@
   }
 
   // --- Quiet Tabs idle delay (device-local memory policy) ---
+  // Device-local: the Island strip's site-color tint. Off leaves it on the
+  // theme background (near-black in Dark).
+  if (supports('islandSiteColors')) {
+    const siteColors = document.getElementById('islandSiteColors');
+    siteColors.checked = settings.islandSiteColors;
+    siteColors.addEventListener('change', async () => {
+      const result = await window.bowserPages.settings.set({ islandSiteColors: siteColors.checked });
+      siteColors.checked = result.islandSiteColors;
+    });
+  } else {
+    document.getElementById('islandSiteColorsSetting')?.remove();
+  }
+
+  // --- Dark websites (device-local) ---
+  if (supports('darkWebsites')) {
+    const darkWebsites = document.getElementById('darkWebsites');
+    const darkExceptionInput = document.getElementById('darkExceptionInput');
+    const darkExceptionAdd = document.getElementById('darkExceptionAdd');
+    const darkExceptionList = document.getElementById('darkExceptionList');
+    const darkExceptionsBlock = document.getElementById('darkWebsitesExceptionsBlock');
+
+    function renderDarkExceptions(current) {
+      darkWebsites.checked = current.darkWebsites === true;
+      darkExceptionsBlock.hidden = !darkWebsites.checked;
+      const exceptions = current.darkWebsitesExceptions ?? [];
+      darkExceptionList.replaceChildren();
+      if (exceptions.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No sites added.';
+        darkExceptionList.append(empty);
+        return;
+      }
+      for (const hostname of [...exceptions].sort()) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const main = document.createElement('div');
+        main.className = 'main';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = hostname;
+        main.append(title);
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const remove = document.createElement('button');
+        remove.className = 'danger';
+        remove.textContent = 'Remove';
+        remove.addEventListener('click', async () => {
+          renderDarkExceptions(await window.bowserPages.settings.set({
+            darkWebsitesExceptions: exceptions.filter((h) => h !== hostname),
+          }));
+        });
+        actions.append(remove);
+        row.append(main, actions);
+        darkExceptionList.append(row);
+      }
+    }
+
+    async function addDarkException() {
+      const value = darkExceptionInput.value.trim();
+      if (!value) return;
+      const { settings: current } = await window.bowserPages.settings.get();
+      // Main normalizes and drops anything that is not a hostname.
+      const next = await window.bowserPages.settings.set({
+        darkWebsitesExceptions: [...(current.darkWebsitesExceptions ?? []), value],
+      });
+      darkExceptionInput.value = '';
+      renderDarkExceptions(next);
+    }
+
+    darkWebsites.addEventListener('change', async () => {
+      renderDarkExceptions(await window.bowserPages.settings.set({ darkWebsites: darkWebsites.checked }));
+    });
+    darkExceptionAdd.addEventListener('click', addDarkException);
+    darkExceptionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addDarkException();
+    });
+    renderDarkExceptions(settings);
+  } else {
+    document.getElementById('darkWebsitesSetting')?.remove();
+    document.getElementById('darkWebsitesExceptionsBlock')?.remove();
+  }
+
   if (supports('tabSleep')) {
     const tabSleep = document.getElementById('tabSleep');
     tabSleep.value = settings.tabSleep ?? '1h';
@@ -1163,6 +1246,59 @@
     })();
   } else {
     document.getElementById('group-sync')?.remove();
+  }
+
+  // --- About & Trust: a local, read-only receipt ---
+  if (typeof window.bowserPages?.settings?.trustReceipt === 'function') {
+    const trustStatus = document.getElementById('trustReceiptStatus');
+    const trustList = document.getElementById('trustReceiptList');
+    const trustLinks = document.getElementById('trustReceiptLinks');
+    const yesNo = (value) => value ? 'On' : 'Off';
+    const addFact = (label, value) => {
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      term.textContent = label;
+      detail.textContent = value;
+      trustList.append(term, detail);
+    };
+
+    window.bowserPages.settings.trustReceipt().then((receipt) => {
+      const signature = {
+        verified: `Verified locally — ${receipt.signature.observedPublisher}`,
+        mismatch: `Expected ${receipt.signature.expectedPublisher} · observed ${receipt.signature.observedPublisher || 'unknown publisher'}`,
+        unavailable: `Expected ${receipt.signature.expectedPublisher} · local inspection unavailable`,
+        development: 'Development build — not a signed release build',
+        'manifest-backed': 'Linux publisher verification relies on the signed manifest for the matching release',
+      }[receipt.signature.status] ?? 'Unknown';
+      addFact('Build', `${receipt.app.version} (${receipt.app.bundleBuild}) · ${receipt.app.packaged ? 'packaged' : 'development'}`);
+      addFact('Runtime', `Electron ${receipt.app.electron} · Chromium ${receipt.app.chromium} · Node ${receipt.app.node}`);
+      addFact('Platform', `${receipt.app.platform} · ${receipt.app.architecture}`);
+      addFact('Publisher', signature);
+      addFact('Blocker snapshot', `${receipt.blocker.snapshotDate} · ${receipt.blocker.lists.map((list) => list.name).join(' + ')}`);
+      for (const list of receipt.blocker.lists) addFact(`Blocker · ${list.name}`, list.sha256);
+      addFact('Combined blocker digest', receipt.blocker.combinedSha256);
+      addFact('Sync', receipt.sync.enabled ? `${receipt.sync.categories.join(', ')} · ${receipt.sync.profileScope}` : 'Off');
+      addFact('Open-tab sharing', yesNo(receipt.sync.openTabsEnabled));
+      addFact('Usage measurement', yesNo(receipt.choices.usageMeasurement));
+      addFact('Search suggestions', yesNo(receipt.choices.searchSuggestions));
+      addFact('Secure DNS', receipt.choices.secureDns);
+      addFact('Crash ledger', `Device only · automatic upload off · ${receipt.choices.crashLedger.eventCount}/${receipt.choices.crashLedger.eventLimit} events`);
+      for (const link of receipt.links) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'quiet';
+        button.textContent = link.label;
+        button.addEventListener('click', () => window.bowserPages.settings.openTrustLink(link.id));
+        trustLinks.append(button);
+      }
+      trustStatus.textContent = 'Receipt checked locally.';
+      trustList.hidden = false;
+      trustLinks.hidden = false;
+    }).catch(() => {
+      trustStatus.textContent = 'Couldn’t build the local trust receipt.';
+    });
+  } else {
+    document.getElementById('group-trust')?.remove();
   }
 
   // --- Device-local crash ledger / explicit export ---

@@ -179,6 +179,13 @@
         <div id="shieldPopNote" class="shield-pop-note">Changing site protection reloads this page.</div>
         <button id="shieldPopUblock" class="shield-pop-ubo" aria-label="Open uBlock Origin controls" hidden>Open controls <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg></button>
       </div>
+      <div id="shieldPopDark" class="shield-pop-dark" hidden>
+        <div class="shield-pop-head">
+          <div class="shield-pop-state"><span>Dark website</span> <strong id="shieldPopDarkOnOff">off</strong></div>
+          <button id="shieldPopDarkToggle" role="switch" aria-checked="false" aria-label="Dark website for this site" aria-describedby="shieldPopDarkNote"><span class="knob"></span></button>
+        </div>
+        <p id="shieldPopDarkNote" class="shield-pop-note" hidden>Applies while Blanc is dark.</p>
+      </div>
       <div class="shield-pop-metadata">
         <div id="shieldPopConnection" hidden><span>Connection</span><span id="shieldPopConnectionValue"></span></div>
         <button id="shieldPopSettings" class="shield-pop-footer">Blocking settings <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>

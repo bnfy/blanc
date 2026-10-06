@@ -3,6 +3,22 @@
 This is the required visual-identity check for Blanc marketing, social assets,
 press materials, product demos, thumbnails, avatars, and generated imagery.
 
+## Messaging: explicit feature names and explanations
+
+**Standing owner preference, October 4, 2026:** Assume the reader is new to
+Blanc. Name the feature, explain what it does and state the concrete benefit.
+Use this throughout the website and all other communications: social, email,
+release notes, support, demos and product copy. Avoid flowery or ambiguous
+headings that rely on screenshots, branded names or prior knowledge to make
+sense. Keep the approved tagline “A little less browser.” See the examples and
+claim requirements in [Marketing claims](marketing-claims.md#explicit-feature-and-benefit-message-gate).
+
+**Homepage detail level, October 4 owner correction:** Lead with the product
+and concise facts visitors can use. Put development-process, AI-assistance,
+audit-status and full licensing detail on linked About, Trust and Support
+pages. Do not turn the homepage into a disclosure report. Preserve material
+limits beside the claims they qualify and keep deeper information easy to find.
+
 ## Current identity: Sunrise only
 
 **Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.
@@ -167,11 +183,19 @@ textual distinction. The Start Page keeps its landscape and translucent
 surfaces; the product's other warm surfaces follow *Desktop Sunrise surfaces*
 below.
 
-Use one straight, subtle footer divider. Do not add a hand-drawn horizon line,
-a typeset Blanc wordmark, or a large “Where to?” heading. Mahjong remains a
-standalone footer action and is never a fifth layout. Preserve the four-layout
-selector order and the existing compact Patron action; visual explorations are
-not a source for new marketing claims or replacement copy.
+All four layouts share one frame (owner decision, October 5, 2026): the
+Sunrise mark and date on the left of an in-flow header row, the moving-in
+checklist on its right, one centered content area, and a fixed footer. The
+footer has no divider line; a soft fade appears above it only while content
+runs underneath. Ledger leads with one 32px Newsreader "Where to?" line; no
+other layout adds a heading. Labels are sentence case without letter-spacing.
+Icon tiles use 6px corners, cards 10px, floating surfaces 14px, chips fully
+rounded. The Patron upgrade is a quiet chip outlined in Sunrise gold with no
+fill, always its layout's last item, never in private tabs. The four-layout
+picker (same order) and the dynamic-wallpaper switch live behind the footer's
+Customize button. Mahjong remains a standalone footer action and is never a
+fifth layout. Visual explorations are not a source for new marketing claims or
+replacement copy.
 
 ### Desktop Sunrise surfaces
 

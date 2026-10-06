@@ -1,0 +1,37 @@
+---
+import styles from '../../../src/renderer/styles.css?raw';
+import document from '../../../src/renderer/index.html?raw';
+import renderer from '../../../src/renderer/renderer.js?raw';
+import nativeFont from '../../../src/renderer/pages/inter-latin.woff2?url';
+import { nativeIslandArt } from '../lib/native-island-art.mjs';
+import '../styles/hero-island.css';
+import { fitHeroIsland } from '../scripts/hero-island.js';
+const art = nativeIslandArt({styles, document, renderer});
+const presentation = `
+  :host {display:block; width:100%; height:100%; font:13px var(--font-ui); color:var(--text);}
+  .native-stage {display:grid; place-items:center; height:100%;}
+  [hidden] {display:none!important;}
+  #islandPill {margin:0; max-width:none; flex:none; width:max-content; zoom:calc(var(--pill-zoom) * var(--art-scale, 1));}
+  #islandPill, button, #pillDomain {transition:color var(--home-motion, 0ms), background-color var(--home-motion, 0ms), border-color var(--home-motion, 0ms);}
+`;
+---
+
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}`} />
+<div class="hero-island-stage" data-native-island>
+  <div class="hero-island-shadow" aria-hidden="true"></div>
+  <div class="hero-island-plane" role="img" aria-label="An enlarged view of Blanc’s resting Island, rendered from its native interface code. Illustration with sample tabs on blancbrowser.com and a blocker badge showing one.">
+    <blanc-native-island class="hero-native-model" data-appearance="light" aria-hidden="true" inert>
+      <template shadowrootmode="open">
+        <style is:inline set:html={art.css + presentation} />
+        <div class="native-stage" set:html={art.html}></div>
+      </template>
+    </blanc-native-island>
+  </div>
+  <button class="hero-island-motion" type="button" aria-label="Pause Island animation" aria-pressed="false" hidden>
+    <svg class="motion-pause" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="3" height="12" rx="1" /><rect x="12" y="4" width="3" height="12" rx="1" /></svg>
+    <svg class="motion-play" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 3.5 16 10 6 16.5Z" /></svg>
+  </button>
+</div>
+<noscript><style>.hero-native-model {--art-visibility: visible;}</style></noscript>
+<script is:inline set:html={`(${fitHeroIsland.toString()})(document.currentScript.previousElementSibling, window);`} />
+<script src="../scripts/hero-island.js"></script>

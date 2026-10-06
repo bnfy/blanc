@@ -1,0 +1,18 @@
+---
+interface Props {
+  variant?: 'horizon' | 'blocker';
+}
+const { variant = 'horizon' } = Astro.props;
+const artwork = variant === 'blocker' ? '/blocker-shield-bronze.webp' : '/horizon-shield.webp';
+const label = variant === 'blocker' ? 'Blanc Blocker shield in bronze' : 'Horizon Shield';
+---
+<figure class="horizon-study" aria-label={label}>
+  <div class="horizon-stage" aria-hidden="true">
+    <div class="horizon-light"></div>
+    <div class="horizon-turn" data-shield-variant={variant}>
+      <!-- crossorigin matches three.js's TextureLoader request so the 3D view reuses this download. -->
+      <img class="horizon-fallback" src={artwork} alt="" width="960" height="960" loading="lazy" decoding="async" crossorigin="anonymous" />
+    </div>
+    <div class="horizon-shadow"></div>
+  </div>
+</figure>

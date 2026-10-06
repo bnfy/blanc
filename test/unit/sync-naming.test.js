@@ -15,7 +15,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const SURFACES = [
   ...fs.readdirSync(path.join(root, 'site/src/pages')).filter((f) => f.endsWith('.astro')).map((f) => `site/src/pages/${f}`),
-  ...fs.readdirSync(path.join(root, 'site/src/pages/features')).filter((f) => f.endsWith('.astro')).map((f) => `site/src/pages/features/${f}`),
+  ...fs.readdirSync(path.join(root, 'site/src/components/guides')).filter((f) => f.endsWith('.astro')).map((f) => `site/src/components/guides/${f}`),
   'site/src/data/navigation.mjs',
   'src/renderer/pages/settings.html',
   'src/renderer/pages/newtab.html',
@@ -31,14 +31,8 @@ test('no user-facing surface says Profile Sync or Tab Sync', () => {
   }
 });
 
-test('the sync feature page names itself Sync in its breadcrumb and structured data', () => {
-  const source = read('site/src/pages/features/sync.astro');
-  assert.match(source, /<span aria-current="page">sync<\/span>/);
-  // The JSON-LD block is one line; find it rather than matching across the
-  // whole file, which needs a dot-all lazy scan.
-  const ld = source.split('\n').find((line) => line.includes('"@type":"BreadcrumbList"'));
-  const breadcrumb = JSON.parse(ld ?? '{}');
-  const last = breadcrumb.itemListElement?.at(-1);
-  assert.equal(last?.name, 'Sync');
-  assert.equal(last?.item, 'https://blancbrowser.com/features/sync');
+test('Sync remains a clearly named and reachable consolidated topic', () => {
+  const topics=JSON.parse(read('site/src/data/guide-topics.json'));
+  assert.deepEqual(topics.find(topic=>topic.id==='sync'), {id:'sync',label:'Sync',page:'support'});
+  assert.match(read('site/src/components/guides/sync.astro'), /sync/);
 });

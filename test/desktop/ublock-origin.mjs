@@ -18,6 +18,10 @@ fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
   onboardingVersion: 1, adblockProvider: 'ublock-origin', adblockEnabled: true,
   searchSuggestions: false, usagePing: false, onePasswordEnabled: false,
 }));
+// A cold start (a fresh profile) compiles every filter list. The provider's
+// own startup waits are 2 + 45 + 45 s plus extraction and native loading, so
+// wait longer than that: a stall must be reported by the provider, not here.
+const COLD_START_MS = 100000;
 const hits = [];
 const methods = [];
 const socketUpgrades = [];
@@ -114,7 +118,7 @@ try {
       if (!popup.isClosed() || !error.message.includes('Target page, context or browser has been closed')) throw error;
     }),
   ]);
-  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', 20000);
+  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'real uBO ready', COLD_START_MS);
   timing.startupReadyMs = Date.now() - started;
   assert.equal((await call('blockingStatus')).active, 'ublock-origin');
   assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getBackgroundThrottling()), false);
@@ -321,8 +325,14 @@ try {
   assert(!(await logger.locator('body').innerText()).includes('private-marker'));
   assert(!(await logger.locator('body').innerText()).includes('private-network-marker'));
   stage = 'original DOM inspector';
-  const inspectorTab = await logger.locator('#pageSelector option').evaluateAll(options => options.find(option => Number(option.value) > 0 && option.textContent.includes('uBO acceptance fixture'))?.value);
-  assert(inspectorTab, 'fixture tab appears in the original logger selector');
+  // Select the fixture by its uBO tab id, not by title: ?disabled-new-page
+  // shares the title, and right after the reload above uBO briefly titles
+  // the fixture's page store with its raw URL, so a title match could pick
+  // the other tab and inject the inspector there.
+  const inspectorTab = String(stableId);
+  await waitForValue(() => logger.locator('#pageSelector option').evaluateAll((options, id) =>
+    options.find(option => option.value === id)?.textContent ?? '', inspectorTab),
+  text => text.includes('uBO acceptance fixture'), 'fixture tab appears in the original logger selector');
   await logger.locator('#pageSelector').selectOption(inspectorTab);
   await logger.locator('#showdom').dispatchEvent('click');
   const inspector = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'original DOM inspector');
@@ -338,8 +348,17 @@ try {
     await bg.executeJavaScript(`(() => {
       const original = vAPI.tabs.executeScript;
       self.uboFixtureDelayedBootstraps = 0;
+      // Record every injection into the fixture tab, so a reconnect failure
+      // shows whether the logger asked again and how the injection ended.
+      self.uboFixtureInjections = [];
       vAPI.tabs.executeScript = function(id, details, ...rest) {
         const result = original.call(this, id, details, ...rest);
+        if (id === ${tabId}) {
+          const record = { file: details.file || 'code', frameId: details.frameId ?? 0, at: Date.now(), outcome: 'pending' };
+          self.uboFixtureInjections.push(record);
+          Promise.resolve(result).then(value => { record.outcome = Array.isArray(value) ? 'ok:' + value.length : 'ok'; },
+            error => { record.outcome = 'error: ' + String(error?.message || error).slice(0, 160); });
+        }
         if (id !== ${tabId} || details.file !== '/js/contentscript-extra.js') return result;
         self.uboFixtureDelayedBootstraps++;
         return Promise.resolve(result).then(async value => {
@@ -350,8 +369,37 @@ try {
       self.uboFixtureRestoreInjection = () => { vAPI.tabs.executeScript = original; };
     })()`);
   }, Number(inspectorTab));
+  const reconnectStarted = Date.now();
   await page.reload();
-  await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation');
+  // On failure, record which step of the reconnect never happened: the
+  // logger's selection and toggle, every injection into the fixture tab after
+  // the reload, and whether the page holds an unloaded inspector iframe.
+  await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'DOM inspector after navigation')
+    .catch(async error => {
+      const injections = await electron.evaluate(async ({ webContents }) => {
+        const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+        return bg.executeJavaScript('JSON.stringify(self.uboFixtureInjections ?? null)');
+      }).catch(failure => String(failure));
+      const loggerState = await logger.evaluate(() => ({
+        hash: location.hash,
+        selected: document.querySelector('#pageSelector')?.value,
+        showdom: document.querySelector('#showdom')?.className,
+        domTree: document.querySelector('#domTree')?.innerText.slice(0, 120),
+      })).catch(failure => String(failure));
+      const pageState = await page.evaluate(() => ({
+        url: location.href,
+        readyState: document.readyState,
+        iframes: [...document.querySelectorAll('iframe')].map(frame => ({
+          src: frame.src, attributes: frame.getAttributeNames().filter(name => name !== 'style').join(' '),
+        })),
+      })).catch(failure => String(failure));
+      const tab = (await call('state').catch(() => null))?.tabs?.find(item => item.url.startsWith(fixture));
+      console.error('DOM inspector reconnect diagnostics:', JSON.stringify({
+        sinceReloadMs: Date.now() - reconnectStarted, reconnectStarted, injections: injections, logger: loggerState, page: pageState,
+        frames: page.frames().map(frame => frame.url()), tab: tab && { url: tab.url, isLoading: tab.isLoading },
+      }));
+      throw error;
+    });
   const delayedBootstraps = await electron.evaluate(async ({ webContents }) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript('uboFixtureRestoreInjection(); uboFixtureDelayedBootstraps');
@@ -381,6 +429,15 @@ try {
   await dashboard.waitForLoadState('load');
   await dashboard.locator('.tabButton.selected').waitFor();
   await dashboard.frameLocator('#iframe').locator('body').waitFor();
+  // A fresh profile's startup asset update ends with µb.loadFilterLists(), and
+  // uBO folds any reload requested while one is running into that one, which
+  // has already read the old list selection. An Apply landing inside it is
+  // never loaded or fetched. Let the updater and its reload settle before
+  // importing, the same barrier the update-clock stage uses below.
+  await waitForValue(() => electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())")), Boolean, 'startup updater cycle complete', 30000);
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage')
+    .executeJavaScript('µBlock.loadFilterLists().then(() => true)'));
   await dashboard.locator('[data-pane="3p-filters.html"]').dispatchEvent('click');
   const lists = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/3p-filters.html')), Boolean, 'filter lists');
   await lists.locator('#autoUpdate').waitFor();
@@ -541,13 +598,22 @@ try {
   let settingsPane = await waitForValue(async () => dashboard.frames().find(frame => frame.url().endsWith('/settings.html')), Boolean, 'backup settings');
   stage = 'backup and restore';
   stage = 'backup import and native reload';
-  const backupFile = path.join(dir, 'ubo-backup.txt');
+  const downloadedBackup = path.join(dir, 'ubo-backup.txt');
+  // The edited copy is a separate file. On Windows the browser (or a virus
+  // scan of the new download) can still hold the downloaded file, so
+  // rewriting it in place failed with EBUSY.
+  const backupFile = path.join(dir, 'ubo-backup-edited.txt');
   await electron.evaluate(({ session }, savePath) => {
-    session.defaultSession.once('will-download', (_event, item) => item.setSavePath(savePath));
-  }, backupFile);
+    globalThis.uboBackupDownloadState = null;
+    session.defaultSession.once('will-download', (_event, item) => {
+      item.setSavePath(savePath);
+      item.once('done', (_doneEvent, state) => { globalThis.uboBackupDownloadState = state; });
+    });
+  }, downloadedBackup);
   await settingsPane.locator('#export').click();
-  await waitForValue(() => fs.existsSync(backupFile) && fs.statSync(backupFile).size > 10, Boolean, 'original backup downloaded');
-  const backup = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+  // A non-empty file is not a finished download; wait for Chromium to report it.
+  await waitForValue(() => electron.evaluate(() => globalThis.uboBackupDownloadState), state => state === 'completed', 'original backup downloaded');
+  const backup = JSON.parse(fs.readFileSync(downloadedBackup, 'utf8'));
   assert(backup.userFilters.includes('/blocked-ubo.js'));
   assert(!JSON.stringify(backup).includes('private-marker'));
   backup.hiddenSettings = { ...backup.hiddenSettings, userResourcesLocation: fixture + 'forbidden-resource.js' };
@@ -623,17 +689,23 @@ try {
   const named = await call('createProfileWindow', 'uBO isolated profile');
   await call('setHomePage', '');
   assert(named.ok);
-  // The provider has successive CSS/background/bridge waits (2/15/15 s),
-  // in addition to extraction and native load time. Give this test 40 s, but
-  // surface a provider failure immediately and record the observed latency.
+  // A new profile is a cold start (see COLD_START_MS). Surface a provider
+  // failure immediately and record the observed latency.
   await waitForValue(async () => {
     const state = await call('blockingStatusInWindow', named.runtimeId);
     assert.notEqual(state.phase, 'failed', `named profile provider failed: ${JSON.stringify(state)}`);
     return state;
-  }, state => state.phase === 'ready', 'named profile ready', 40000);
+  }, state => state.phase === 'ready', 'named profile ready', COLD_START_MS);
   timing.namedProfileReadyMs = Date.now() - profileStarted;
   console.log('Named profile initialization:', timing.namedProfileReadyMs, 'ms');
-  const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness');
+  // The navigation held during startup is replayed once the provider is
+  // ready. On failure, report whether it reached the fixture server and what
+  // each tab shows, so a slow replay and a missing one differ.
+  const initialProfilePage = await waitForValue(async () => (await electron.windows()).find(item => item.url() === initialProfileUrl), Boolean, 'named profile first navigation after readiness', 15000)
+    .catch(async error => {
+      const tabs = (await call('state').catch(() => null))?.tabs?.map(tab => ({ url: tab.url, loadedUrl: tab.loadedUrl, isLoading: tab.isLoading })) ?? null;
+      throw new Error(`${error.message}; fixture hits: ${hits.filter(url => url === '/?named-profile-first-load').length}; provider: ${JSON.stringify(await call('blockingStatusInWindow', named.runtimeId).catch(() => null))}; tabs: ${JSON.stringify(tabs)}`);
+    });
   await initialProfilePage.waitForFunction(() => window.fixtureAllowed === true);
   assert.equal(hits.filter(url => url === '/?named-profile-first-load').length, 1, 'first profile GET must reach the server once after readiness');
   await call('blockingOpenInWindow', named.runtimeId, 'dashboard');
@@ -673,13 +745,20 @@ try {
     }
   }, namedUrl);
   let deletionTimer;
+  let deletion;
   try {
-    await Promise.race([call('deleteProfile', named.profile.id, named.profile.name), new Promise((_, reject) => {
+    deletion = await Promise.race([call('deleteProfile', named.profile.id, named.profile.name), new Promise((_, reject) => {
       deletionTimer = setTimeout(async () => reject(new Error('Profile deletion timed out: ' + JSON.stringify(await electron.evaluate(() => uboDeletionEvents)))), 15000);
     })]);
   } finally { clearTimeout(deletionTimer); }
-  assert(!fs.existsSync(path.join(dir + '-Dev', 'managed-ublock', named.profile.id)));
-  assert.equal(await electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), 1);
+  assert.equal(deletion?.ok, true, `profile deletion accepted: ${JSON.stringify(deletion)}`);
+  // Deletion may report pending (on macOS a covered window can update its
+  // visibility without a hide event, so the first pass gives up after 2 s);
+  // its recovery pass then finishes about a second later. Wait for that.
+  await waitForValue(async () => ({
+    folder: fs.existsSync(path.join(dir + '-Dev', 'managed-ublock', named.profile.id)),
+    backgrounds: await electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length),
+  }), state => !state.folder && state.backgrounds === 1, `named profile data erased (deletion: ${JSON.stringify(deletion)})`, 15000);
   const erased = await electron.evaluate(async ({ session, app, webContents }, { profileId, expectedId }) => {
     const fs = process.getBuiltinModule('node:fs'), path = process.getBuiltinModule('node:path');
     const require = process.getBuiltinModule('node:module').createRequire(path.join(app.getAppPath(), 'package.json'));
@@ -722,6 +801,9 @@ try {
   assert.equal(await awake.evaluate(() => fetch('/allowed-control.js?after-capacity').then(() => true, () => false)), true);
   assert(hits.includes('/allowed-control.js?after-capacity'));
   stage = 'decision deadline';
+  // Decisions get a longer window for 15 s after each ready; this stage
+  // proves the normal two-second boundary, so wait for that window to close.
+  await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed', 20000);
   // Suspending the real request listener proves the two-second boundary:
   // requests cannot reach the server while the provider is unresponsive.
   await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
@@ -734,6 +816,7 @@ try {
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === deadlineId)?.isLoading, value => value === false, 'deadline recovery page');
   await call('blockingRetry');
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'deadline retry', 20000);
+  assert.equal(await call('blockingDecisionDeadline'), 10000, 'a fresh ready opens the decision warm-up window');
   await waitForValue(() => electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), count => count === 1, 'one background after retry');
   const awakeWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;
   assert.equal((await call('blockingMapping')).find(item => item.webContentsId === awakeWC).tabId, stableId);

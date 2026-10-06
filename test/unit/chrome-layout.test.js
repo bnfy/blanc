@@ -139,7 +139,7 @@ test('dimensions clamp safely during transient zero or undersized window bounds'
 
 test('shield bounds sit below the strip, right-aligned to the anchor', () => {
   const b = calculateShieldBounds({ windowWidth: 1280, stripHeight: CHROME_HEIGHT, anchorRight: 900 });
-  assert.deepEqual(b, { x: 496, y: 68, width: 404, height: 500 });
+  assert.deepEqual(b, { x: 496, y: 68, width: 404, height: 580 });
 });
 
 test('shield bounds clamp to the window with a margin on both sides', () => {
@@ -163,7 +163,7 @@ test('shield bounds center under the window without an anchor', () => {
 test('shield provider controls fit the normal card and clamp to short windows below the strip', () => {
   const input = { windowWidth: 640, stripHeight: CHROME_HEIGHT, anchorRight: 500 };
   const normal = calculateShieldBounds({ ...input, windowHeight: 800 });
-  assert.deepEqual(normal, { x: 96, y: 68, width: 404, height: 500 });
+  assert.deepEqual(normal, { x: 96, y: 68, width: 404, height: 580 });
   for (const windowHeight of [528, 480, 300, 100, 68]) {
     const bounds = calculateShieldBounds({ ...input, windowHeight });
     assert.equal(bounds.y, CHROME_HEIGHT);
@@ -204,7 +204,7 @@ test('calculateCaptureBounds clamps inside the window like the shield popover', 
 test('measured shield centers the card and shortens its vertical join', () => {
   const bounds = calculateShieldBounds({ windowWidth: 1280, windowHeight: 800,
     stripHeight: 68, anchorCenter: 718.75, anchorBottom: 47.296875 });
-  assert.deepEqual(bounds, { x: 517, y: 48, width: 404, height: 500 });
+  assert.deepEqual(bounds, { x: 517, y: 48, width: 404, height: 580 });
   assert.ok(Math.abs(bounds.x + bounds.width / 2 - 718.75) < 1);
   assert.ok(bounds.y + 10 - 47.296875 <= 11, 'circle-to-card join stays short');
 });

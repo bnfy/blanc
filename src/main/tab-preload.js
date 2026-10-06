@@ -106,7 +106,9 @@ if (window.location.protocol === 'blanc:') {
         onStatus: (callback) => {
           ipcRenderer.on('pages:start:status', (_event, status) => callback(status));
         },
-        onVisibility: (callback) => ipcRenderer.on('pages:start:visibility', (_event, visible) => callback(visible)),
+        onVisibility: (callback) => {
+          ipcRenderer.on('pages:start:visibility', (_event, visible) => callback(visible));
+        },
         onRemoteTabs: (callback) => {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
         },
@@ -115,6 +117,12 @@ if (window.location.protocol === 'blanc:') {
   } else if (host === 'mahjong') {
     api = {
       mahjong: { played: () => invoke('pages:mahjong:played') },
+    };
+  } else if (host === 'error') {
+    // Argument-free by design: main resolves this tab's own certificate
+    // failure and re-checks eligibility (certificate spec §4.4).
+    api = {
+      errorPage: { continueUnsafe: () => invoke('pages:error:continue-unsafe') },
     };
   } else if (host === 'tab-handoff') {
     api = {
@@ -155,6 +163,8 @@ if (window.location.protocol === 'blanc:') {
       downloads: {
         list: () => invoke('pages:downloads:list'),
         cancel: (id) => invoke('pages:downloads:cancel', id),
+        resume: (id) => invoke('pages:downloads:resume', id),
+        retry: (id) => invoke('pages:downloads:retry', id),
         open: (id) => invoke('pages:downloads:open', id),
         show: (id) => invoke('pages:downloads:show', id),
         clearFinished: () => invoke('pages:downloads:clear-finished'),
@@ -192,10 +202,14 @@ if (window.location.protocol === 'blanc:') {
         blockingStatus: () => invoke('pages:blocking:status'),
         blockingRetry: () => invoke('pages:blocking:retry'),
         blockingOpen: (tool) => invoke('pages:blocking:open', tool),
-        onBlockingStatus: (callback) => ipcRenderer.on('pages:blocking:status', (_event, status) => callback(status)),
+        onBlockingStatus: (callback) => {
+          ipcRenderer.on('pages:blocking:status', (_event, status) => callback(status));
+        },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
-        onAppearance: (callback) => ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status)),
+        onAppearance: (callback) => {
+          ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
+        },
         activateSupporter: (key) => invoke('pages:settings:supporter-activate', key),
         syncGet: () => invoke('pages:settings:sync-get'),
         syncEnable: (payload) => invoke('pages:settings:sync-enable', payload),
@@ -207,6 +221,8 @@ if (window.location.protocol === 'blanc:') {
         onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
         onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),
         openOnePasswordApp: () => invoke('pages:settings:open-onepassword-app'),
+        trustReceipt: () => invoke('pages:settings:trust-receipt'),
+        openTrustLink: (kind) => invoke('pages:settings:open-trust-link', kind),
       },
       profiles: {
         list: () => invoke('pages:profiles:list'),

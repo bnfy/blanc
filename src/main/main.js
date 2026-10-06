@@ -47,6 +47,7 @@ const { createBlockingRecovery } = require('./blocking-recovery');
 const { createAppRestarter } = require('./app-restart');
 const { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
 const islandProximity = require('./island-proximity');
@@ -64,6 +65,8 @@ const {
   buildSiteInfo,
   certificateErrorQuery,
 } = require('./site-security');
+const { createCertificateExceptions } = require('./certificate-exceptions');
+const { emptyEntryMarks } = require('./certificate-history');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   mergeDisabledFeatures,
@@ -201,6 +204,7 @@ const {
   tabImportClaimUrl,
   tabImportUrlsFromArgv,
 } = require('./tab-import-handoff');
+const { bananifyServiceAllowed } = require('./bananify-services');
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
@@ -308,6 +312,12 @@ const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
+// Session-only "continue anyway" choices for local certificate failures
+// (certificate spec §4.1). Eviction closes the session's pooled connections
+// so a connection cannot outlive its exception.
+const certificateExceptions = createCertificateExceptions({
+  onEvict: (browsingSession) => { browsingSession.closeAllConnections?.()?.catch?.(() => {}); },
+});
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -805,14 +815,18 @@ function tabHandoffErrorMessage(code) {
   }
   if (code === 'unavailable') return 'This handoff has expired, was already used, or is unavailable.';
   if (code === 'offline') return 'Blanc could not reach the tab handoff service. Check your connection and try again.';
+  if (code === 'service-unavailable') return 'Tab handoff is available only in official Blanc builds.';
   return 'Blanc could not import these tabs.';
 }
 
 async function claimTabHandoff(parsed) {
+  // A renamed build may not use Bananify's relay (bananify-services.js).
+  const origin = tabImportRelayOrigin();
+  if (!bananifyServiceAllowed(origin)) throw new Error('service-unavailable');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
   try {
-    const response = await net.fetch(tabImportClaimUrl(parsed.id, tabImportRelayOrigin()), {
+    const response = await net.fetch(tabImportClaimUrl(parsed.id, origin), {
       method: 'POST',
       redirect: 'error',
       cache: 'no-store',
@@ -1791,6 +1805,8 @@ function handleNativeThemeUpdated() {
   // app theme changes already invalidated before assigning themeSource; doing
   // it again here is harmless and keeps this path self-contained.
   forEachWindowRuntime(refreshActivePageTintForThemeChange, { liveOnly: true });
+  // The shield popover's Dark website note depends on the appearance.
+  forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
 }
 
 // Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
@@ -1824,6 +1840,36 @@ const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
+// Dark websites (dark-websites-service.js). Stylesheet fetches use their own
+// in-memory session so no cookies, cache or credentials are shared.
+const darkWebsites = createDarkWebsitesService({
+  ipcMain,
+  nativeTheme,
+  settings,
+  getFetchSession: () => session.fromPartition('dark-websites-stylesheets'),
+  forEachTabContents: (fn) => { for (const tab of tabs.values()) fn(liveContents(tab)); },
+  // Ask the tab's own blocker, as if the page had requested the stylesheet,
+  // so a blocked tracker stylesheet is not fetched for Dark Reader instead.
+  // No tab or no provider yet fails closed.
+  allowStylesheet: async (wc, url) => {
+    const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+    const provider = tab ? blockingProviders?.effectiveForTab(tab) : null;
+    if (!provider) return false;
+    const pageUrl = wc.getURL();
+    const decision = await provider.decide('onBeforeRequest', {
+      id: `dark-websites-${++darkWebsitesStylesheetSeq}`,
+      url,
+      method: 'GET',
+      resourceType: 'stylesheet',
+      webContentsId: wc.id,
+      frame: wc.mainFrame,
+      referrer: pageUrl,
+      timestamp: Date.now(),
+    });
+    return !(decision?.cancel || decision?.redirectURL);
+  },
+});
+let darkWebsitesStylesheetSeq = 0;
 /**
  * @typedef {object} SleepSnapshot
  * @property {import('electron').WebContentsView|null} view
@@ -2550,6 +2596,40 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+
+/** Stop allowing (certificate spec §4.5): forget the active tab's origin in
+ *  its session, drop pooled connections, and reload so the warning returns.
+ *  Other entries and tabs keep their marks until their documents change. */
+function forgetActiveCertificateException() {
+  const tab = tabs.get(rt().activeTabId);
+  const wc = liveContents(tab);
+  const origin = tab?.documentCertificateException?.origin;
+  if (!wc || !origin) return false;
+  const forgotten = certificateExceptions.forget(wc.session, origin);
+  Promise.resolve(wc.session.closeAllConnections?.())
+    .catch(() => {})
+    .then(() => { if (!wc.isDestroyed()) wc.reload(); });
+  return forgotten;
+}
+
+/** The warning page's Continue (certificate spec §4.4). Takes only the
+ *  sender: the URL, error and certificate come from the tab's own main-held
+ *  failure record, and eligibility is checked again here. */
+function continueUnsafeForSender(wc) {
+  const tabId = tabIdByWebContentsId.get(wc?.id);
+  const tab = tabId ? tabs.get(tabId) : null;
+  const failure = tab?.certificateError;
+  if (!tab || liveContents(tab) !== wc || !failure) return { ok: false, error: 'no-certificate-error' };
+  const input = { url: failure.url, error: failure.error, certificate: failure.certificate };
+  const verifiedThisRun = certificateObserver.wasVerifiedThisRun(wc.session, failure.url);
+  if (!certificateExceptions.isEligible({ ...input, verifiedThisRun })) return { ok: false, error: 'not-eligible' };
+  certificateExceptions.allow(wc.session, { ...input, now: Date.now() });
+  queueTabNavigation(wc, {
+    isCurrent: () => tabs.get(tabId) === tab && liveContents(tab) === wc,
+    run: (contents) => contents.loadURL(failure.url),
+  });
+  return { ok: true };
+}
 /** webContents id -> the HTTP method of its last main-frame request. The only
  * place a method is observable is onBeforeSendHeaders, and it is needed at
  * did-navigate time. Deliberately not on the tab record: that record is an
@@ -3380,10 +3460,16 @@ function broadcastStartPageUtilitySheetVisibility(runtime, visible) {
 // requested destination run.
 const utilitySheetNavigations = new WeakMap();
 
+// The sheet is attached, visible and focused before its document commits, and
+// its background is transparent. A load that never settles would leave an
+// invisible layer over the page that swallows every click (#548), so a
+// destination that has not finished loading by this deadline is discarded.
+const UTILITY_SHEET_LOAD_DEADLINE_MS = 8000;
+
 function utilitySheetNavigationState(view) {
   let state = utilitySheetNavigations.get(view);
   if (!state) {
-    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve() };
+    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve(), deadline: null };
     utilitySheetNavigations.set(view, state);
   }
   return state;
@@ -3394,11 +3480,20 @@ function cancelUtilitySheetNavigation(view) {
   if (!state) return;
   state.generation += 1;
   state.settledGeneration = state.generation;
+  clearTimeout(state.deadline);
 }
 
 function scheduleUtilitySheetNavigation(runtime, sheet, url) {
   const state = utilitySheetNavigationState(sheet.view);
   const generation = ++state.generation;
+  clearTimeout(state.deadline);
+  state.deadline = setTimeout(() => {
+    if (
+      state.generation === generation &&
+      runtime.utilitySheetView === sheet.view &&
+      runtime.utilitySheetUrl === url
+    ) discardFailedUtilitySheet(runtime, sheet);
+  }, UTILITY_SHEET_LOAD_DEADLINE_MS);
   const navigate = async () => {
     if (
       state.generation !== generation ||
@@ -3416,7 +3511,10 @@ function scheduleUtilitySheetNavigation(runtime, sheet, url) {
     }
   };
   state.tail = state.tail.then(navigate, navigate).finally(() => {
-    if (state.generation === generation) state.settledGeneration = generation;
+    if (state.generation === generation) {
+      state.settledGeneration = generation;
+      clearTimeout(state.deadline);
+    }
   });
   return state.tail;
 }
@@ -3897,7 +3995,9 @@ function isHostnameExcepted(url) {
 }
 
 function serializeTabs() {
-  const { adblockEnabled } = settings.getSettings();
+  // Settings → General → Match site colors. Off keeps the strip on the
+  // theme background by projecting no site color at all.
+  const { adblockEnabled, islandSiteColors } = settings.getSettings();
   // Keep this projection self-contained: unit tests lift it without the rest
   // of Electron. The full byte/dimension validator already ran at every tab,
   // session, bookmark, and sync ingress; this final guard ensures only PNG
@@ -3931,8 +4031,8 @@ function serializeTabs() {
         // actually reach the speakers.
         audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
         groupId: tab.groupId,
-        pageBg: tab.pageBg,
-        themeColor: tab.themeColor,
+        pageBg: islandSiteColors ? tab.pageBg : null,
+        themeColor: islandSiteColors ? tab.themeColor : null,
         // The sole Quiet Tabs field chrome may see. Operational sleep state
         // and snapshots remain main-process-only.
         asleep: tab.asleep,
@@ -3977,6 +4077,7 @@ function serializeTabs() {
       const siteInfo = buildSiteInfo(targetUrl, {
         certificateRecord,
         certificateError: tab.certificateError,
+        certificateException: tab.documentCertificateException,
         blockedCount: rest.blockedCount,
       });
       if (rest.private && rest.favicon) {
@@ -4333,7 +4434,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
     // the popover and the active tab row cannot disagree within a broadcast.
     connection: activeConnection(serialized, rt().activeTabId),
   });
-  return model ? { ...model, controls } : null;
+  return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab) } : null;
 }
 
 function currentTabsPayload() {
@@ -4680,6 +4781,7 @@ function dominantColor(image) {
 function activePageTintTarget(runtime) {
   const window = runtime.window;
   if (runtime.closing || !window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return null;
+  if (!settings.getSettings().islandSiteColors) return null;
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!shouldSamplePageTint(tab) || !wc || wc.isLoading() || tab.view?.getVisible() !== true) return null;
@@ -4703,6 +4805,9 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
       || tab.url !== url || tab.navEpoch !== epoch) return false;
     if (color && color !== tab.pageBg) {
       tab.pageBg = color;
+      // A capture already in flight when Match site colors was turned off
+      // still records the sample, but must not repaint the strip.
+      if (!settings.getSettings().islandSiteColors) return false;
       // Color-only updates avoid rebuilding tabs and menus during a fade.
       owner.window.webContents.send('chrome:page-tint', { id: tab.id, color });
       return true;
@@ -5459,6 +5564,8 @@ initTabView({
   recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
   sanitizeCertificate,
   certificateErrorQuery,
+  certificateExceptions,
+  certificateObserver,
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
   onMainFrameCommit,
@@ -5554,6 +5661,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     navEpoch: 0,
     // In-memory only: bounded details for the rejected top-level TLS load.
     certificateError: null,
+    // In-memory only (certificate spec §4.5): the request allowed past a
+    // local certificate warning, the committed document it produced, and the
+    // per-history-entry marks that let Back/Forward keep the warning.
+    pendingCertificateException: null,
+    documentCertificateException: null,
+    certificateEntryMarks: emptyEntryMarks(),
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
     asleep: bornQuiet,        // renderer discarded; tab.view is null
@@ -6343,7 +6456,7 @@ function reopenEntry(entry) {
     if (id) {
       heldWebContents.delete(wcId);
       const tab = tabs.get(id);
-      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled
+      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled, navEpoch, documentCertificateException, certificateEntryMarks
       finishReopen(id, entry);
       return;
     }
@@ -6928,6 +7041,7 @@ async function runAllowAdsCommand() {
 }
 
 function registerIpcHandlers() {
+  darkWebsites.install();
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
@@ -7333,6 +7447,14 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
+  chromeHandle('chrome:dark-site-active', () => {
+    const result = darkWebsites.runDarkSiteCommand(rt().activeTabId ? tabs.get(rt().activeTabId) : null);
+    // A private tab's choice changes no setting, so refresh the shield
+    // popover's Dark website switch here.
+    if (result) broadcastTabs();
+    return result;
+  });
+  chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -7514,6 +7636,7 @@ const SLASH_COMMANDS = [
   ['/find', 'Find in page'],
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
+  ['/dark-site', 'Darken this site, or leave it as drawn'],
   ['/1password', 'Fill a login from 1Password'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
@@ -8428,6 +8551,8 @@ async function clearNamedProfileSessions(profileId) {
     if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
   }
   profileNavigationGates.forget(profileId);
+  certificateExceptions.clear(owned.normal);
+  certificateExceptions.clear(owned.private);
   await blockingProviders?.dispose(profileId, owned);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),
@@ -8704,6 +8829,9 @@ function broadcastWebrtcAudioBufferToBrowsingContents() {
 // every settings write, and clearing the cache mid-session isn't free.
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
+// Same idea for Match site colors: re-project strips only on a real change.
+let lastIslandSiteColors = null;
+let lastDarkWebsitesKey = null;
 let displayCaptureRegistry = null;
 let displayCaptureBroker = null;
 let displayCapturePicker = null;
@@ -8817,6 +8945,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
     settings.setSettings({ syncMigrationCompleted: true });
   }
+  // Baseline for the settings fan-out's Match site colors re-projection.
+  lastIslandSiteColors = settings.getSettings().islandSiteColors;
+  lastDarkWebsitesKey = JSON.stringify([
+    settings.getSettings().darkWebsites,
+    settings.getSettings().darkWebsitesExceptions,
+  ]);
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
   // including the private-browsing session, so private tabs inherit it by
@@ -8860,6 +8994,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       browsingSession.registerPreloadScript({
         type: 'frame',
         filePath: path.join(__dirname, 'webrtc-audio-buffer-preload.js'),
+      });
+      // Generated by dark-reader/build.mjs; does nothing unless main says to
+      // darken the page (dark-websites-service.js).
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'dark-websites-preload.js'),
       });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
@@ -9371,13 +9511,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         rt().utilitySheetEscapeArmed = !!armed;
       },
     },
+    errorPage: { continueUnsafe: continueUnsafeForSender },
     pageSurfaces: {
       owns: (host, wc) => {
         const runtime = runtimeForPageWebContents(wc);
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab' && host !== 'mahjong') return false;
+          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });
@@ -9588,10 +9729,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      continueUnsafeForSender,
+      forgetActiveCertificateException,
+      certificateExceptions,
       blockingStatus: () => blockingProviders.status(rt().profileId),
       blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
       blockingOpen: openUblockTool,
       blockingRetry: () => blockingProviders.retry(),
+      blockingDecisionDeadline: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.decisionDeadlineMs?.() ?? null,
       blockingPopup: openUblockPopup,
       // Playwright calls globalThis.__blanc.* from OUTSIDE any ALS context
       // (electronApp.evaluate() reaches straight into the main process) —
@@ -9621,7 +9766,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
           const original = fs.renameSync; let writes = 0;
-          fs.renameSync = (from, to) => { if (String(to).endsWith('/session.json') && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
+          fs.renameSync = (from, to) => { if (path.basename(String(to)) === 'session.json' && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
           try { return createBlankWorkspaceAndSwitch(rt(), args[0]); }
           finally { fs.renameSync = original; }
         }
@@ -9884,6 +10029,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
+    const nextDarkWebsitesKey = JSON.stringify([s.darkWebsites, s.darkWebsitesExceptions]);
+    if (nextDarkWebsitesKey !== lastDarkWebsitesKey) {
+      lastDarkWebsitesKey = nextDarkWebsitesKey;
+      darkWebsites.broadcast();
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
+    if (s.islandSiteColors !== lastIslandSiteColors) {
+      lastIslandSiteColors = s.islandSiteColors;
+      // Re-project every window's strip; turning colors back on resamples
+      // the active page because samples were skipped while it was off.
+      forEachWindowRuntime((runtime) => {
+        broadcastTabs();
+        const active = runtime.activeTabId != null ? tabs.get(runtime.activeTabId) : null;
+        if (s.islandSiteColors && active) scheduleSampleTint(active);
+      }, { liveOnly: true });
+    }
     // setPatron() uses this same fan-out after activation and each scheduled
     // subscription validation. Re-project the derived entitlement so an open
     // Workspaces popover hides or restores creation controls immediately;

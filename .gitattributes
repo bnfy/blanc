@@ -60,3 +60,14 @@ ublock/adaptation.patch -whitespace
 
 # Full license texts are byte-checked with the uBO source inputs.
 /ublock/licenses/*.txt text eol=lf
+
+# browserAPI contract and its byte-checked generated files (browser-api:check).
+/browser-api/contract.json text eol=lf
+/browser-api/generated/* text eol=lf
+
+# Dark websites: pinned Dark Reader bytes and the preload generated from them.
+/dark-reader/upstream/* -text -whitespace
+/dark-reader/*.txt text eol=lf
+/dark-reader/*.json text eol=lf
+/dark-reader/*.js text eol=lf
+/src/main/dark-websites-preload.js text eol=lf -whitespace

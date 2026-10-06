@@ -1,65 +1,13 @@
-// Navigation content for the masthead's mega menus and the mobile sheet.
-// Feature descriptions are each feature page's own headline, so the menu
-// never says more than the page; test/unit/site-navigation.test.js keeps
-// them in step. The release card's version and names are filled in by
-// Header.astro from site/src/data at build time.
-export const menus = [
-  {
-    key: 'features',
-    label: 'features',
-    groups: [
-      { title: 'Interface', links: [
-        { href: '/features/island', label: 'The island', description: 'One small island. The whole browser.' },
-        { href: '/features/start-page', label: 'Start Page', description: 'Four ways to begin. Mahjong when you want a break.' },
-        { href: '/features/glance', label: 'Glance', description: 'Keep a reference beside the page you’re using.' },
-        { href: '/features/vertical-tabs', label: 'Vertical tabs', description: 'A tab rail when you want one. The island either way.' },
-        { href: '/features/tab-groups', label: 'Tab groups', description: 'Keep the tabs you need. Tuck away the rest.' },
-        { href: '/features/quiet-tabs', label: 'Quiet tabs', description: 'Tabs you are not using give their memory back.' },
-      ] },
-      { title: 'Privacy and security', links: [
-        { href: '/features/1password', label: '1Password (macOS)', description: 'Keep your 1Password logins close.' },
-        { href: '/features/ad-blocking', label: 'Ad blocking', description: 'A clearer control for a quieter site.' },
-        { href: '/features/private-tabs', label: 'Private tabs', description: 'Private tabs that stay out of the record.' },
-        { href: '/features/security', label: 'Security', description: 'Private by architecture.' },
-      ] },
-      { title: 'Workflow', links: [
-        { href: '/features/command-palette', label: 'Command palette', description: 'One shortcut to move through your whole session.' },
-        { href: '/features/mouse-gestures', label: 'Mouse gestures', description: 'Move through the browser without moving to the toolbar.' },
-        { href: '/features/reopen-closed-tabs', label: 'Reopen Closed Tabs', description: 'Get the tab back, not just its address.' },
-        { href: '/features/profiles', label: 'Profiles & Windows', description: 'Separate browsing identities. Keep every window independent.' },
-        { href: '/features/sync', label: 'Sync', description: 'Your favorites and settings on your other devices, and, if you choose, your open tabs.' },
-        { href: '/features/workspaces', label: 'Named Workspaces', description: 'Save a whole window. Return to it by name.' },
-      ] },
-    ],
-    spotlight: { kind: 'image', image: '/feature-island.png', alt: 'The Blanc island resting over a web page', kicker: 'Start here', title: 'One small island. The whole browser.', copy: 'Back, forward, tabs, search and commands in one floating pill.', href: '/features/island', cta: 'See the island' },
-    foot: { note: 'Less browser. More of what you opened it for.', label: 'All features', href: '/features' },
-  },
-  {
-    key: 'company',
-    label: 'company',
-    groups: [
-      { title: 'Learn', links: [
-        { href: '/faq', label: 'FAQ', description: 'Straight answers on price, privacy and AI.' },
-        { href: '/press', label: 'Press', description: 'Fact sheet, captures and the launch card.' },
-        { href: '/about', label: 'About', description: 'Who makes Blanc and how to reach them.' },
-      ] },
-      { title: 'Community', links: [
-        { href: '/ambassadors', label: 'Ambassadors', description: 'Help people see a different kind of browser.' },
-        { href: '#newsletter', label: 'Newsletter', description: 'Release notes, occasionally.' },
-        { href: 'https://github.com/bnfy/blanc', label: 'Source on GitHub', description: 'MIT licensed. Read it, build it, audit it.' },
-      ] },
-    ],
-    spotlight: { kind: 'release', kicker: "What's new", href: '/changelog', cta: 'Read the changelog' },
-    foot: { note: 'Blanc is free to browse. Patron is optional.', label: 'Blanc Patron', href: '/#home-patron-title' },
-  },
-];
-
-// The masthead uses direct links; the feature catalogue above remains available
-// to tools that verify feature-page coverage and released copy.
+// Primary website navigation. Detailed answers live in Support and Trust.
 export const directLinks = [
   { href: '/features', key: 'features', label: 'Features' },
-  { href: '/how-it-works', key: 'how-it-works', label: 'How it works' },
-  { href: '/features/security', key: 'security', label: 'Security' },
-  { href: '/faq', key: 'faq', label: 'FAQ' },
-  { href: '/changelog', key: 'changelog', label: "What's new" },
+  { href: '/trust', key: 'privacy', label: 'Privacy & Security' },
+  { href: '/#patron', key: 'patron', label: 'Patron' },
+  { href: '/about', key: 'about', label: 'About' },
+  { href: '/support', key: 'support', label: 'Support' },
 ];
+
+// Page path without extension or trailing slash. The build emits the homepage
+// as /index.html (build.format: 'file'), so /index is the homepage too.
+export const pagePath = pathname =>
+  pathname.replace(/\.html$/, '').replace(/\/(index)?$/, '') || '/';

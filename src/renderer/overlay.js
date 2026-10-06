@@ -30,6 +30,8 @@
   const shieldPopConnection = document.getElementById('shieldPopConnection');
   const shieldPopCount = document.getElementById('shieldPopCount');
   const shieldPopNote = document.getElementById('shieldPopNote');
+  const shieldPopDark = document.getElementById('shieldPopDark');
+  const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
   const shieldPopLabel = document.getElementById('shieldPopLabel');
   const shieldPopProvider = document.getElementById('shieldPopProvider');
@@ -471,7 +473,7 @@
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
     panelSiteInfo.className = `site-info-button ${siteInfo?.state ?? ''}`;
-    panelSiteInfo.innerHTML = siteInfo?.state === 'insecure' || siteInfo?.state === 'certificate-error'
+    panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
     panelSiteInfo.title = siteInfo?.title ?? 'Site information';
@@ -810,6 +812,7 @@
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
+    { cmd: '/dark-site', hint: 'Darken this site, or leave it as drawn', run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
     { cmd: '/1password', hint: 'Fill a login from 1Password',
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
@@ -1294,12 +1297,27 @@
       window.browserAPI.closeOverlay();
       window.browserAPI.openPage('settings');
     });
-    footer.append(protection, settingsButton);
+    const footerActions = [protection];
+    if (info.state === 'certificate-exception') {
+      const stopButton = document.createElement('button');
+      stopButton.type = 'button';
+      stopButton.className = 'site-info-settings site-info-stop-allowing';
+      stopButton.textContent = 'Stop allowing';
+      stopButton.addEventListener('click', () => {
+        window.browserAPI.closeOverlay();
+        window.browserAPI.siteInfoForgetCertificateException();
+      });
+      footerActions.push(stopButton);
+    }
+    footerActions.push(settingsButton);
+    footer.append(...footerActions);
     card.append(footer);
     islandList.replaceChildren(card);
     islandHint.textContent = info.state === 'certificate-error'
-      ? 'Blanc did not offer a bypass'
-      : 'connection details are supplied by Chromium';
+      ? 'this certificate could not be verified'
+      : info.state === 'certificate-exception'
+        ? 'you continued past a certificate warning'
+        : 'connection details are supplied by Chromium';
   }
 
   function renderList() {
@@ -1798,6 +1816,16 @@
     shieldPopConnection.classList.toggle('insecure', v.connection === 'http');
     shieldPopCount.textContent = v.countLine;
     shieldPopNote.hidden = v.variant !== 'site';
+    // Dark websites (F42): the same flip as /dark-site. `on` describes the
+    // site while Blanc is dark, so the switch keeps meaning while it's light.
+    const dark = v.darkSite;
+    shieldPopDark.hidden = !dark;
+    if (dark) {
+      document.getElementById('shieldPopDarkOnOff').textContent = dark.on ? 'on' : 'off';
+      shieldPopDarkToggle.classList.toggle('on', dark.on);
+      shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
+      document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -1806,6 +1834,9 @@
     // reach its global branch from the pill.
     if (state.shieldPopover?.on) window.browserAPI.allowAdsOnActiveSite();
     else window.browserAPI.toggleAdblock();
+  });
+  shieldPopDarkToggle.addEventListener('click', () => {
+    window.browserAPI.toggleDarkSiteOnActiveSite();
   });
   function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
 

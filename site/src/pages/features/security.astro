@@ -8,12 +8,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   page="feature-security"
   current="security"
   ogDescription={"Sandboxed pages, built-in blocking, encrypted sync, and privacy that is structural, not bolted on."}
+  ogImage="/feature-security.png"
+  ogImageAlt={"Blanc's island showing github.com with a shield count of two blocked items."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Security","item":"https://blancbrowser.com/features/security"}]}
 </script>
 
-<main class="feature-page feature-detail-page">
+<main id="main-content" class="feature-page feature-detail-page">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">security</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="security-title"><p class="section-kicker">the quiet parts</p><h1 id="security-title">Private by architecture.</h1><p>Blanc&rsquo;s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.</p></section>
   <figure class="product-capture feature-capture">
@@ -48,9 +50,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="security-runs-title">
     <div><p class="section-kicker">what runs, and what does not</p><h2 id="security-runs-title">The browser itself is the security layer.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>Blocking lives in the network layer.</h3><p>Ad and tracker blocking runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. <a href="/features/ad-blocking">How blocking works</a>.</p></article>
+      <article><h3>Blocking lives in the network layer.</h3><p>Blanc Blocker runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. <a href="/features/ad-blocking">How blocking works</a>.</p></article>
       <article><h3>Every page runs sandboxed.</h3><p>Web pages run inside Chromium&rsquo;s sandbox, isolated from the browser and from your files. Blanc&rsquo;s own pages — settings, history, favorites — live on a privileged internal scheme that ordinary web content cannot link into, and the browser re-checks who is calling on every internal request.</p></article>
-      <article><h3>No extension runtime — on purpose.</h3><p>Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.</p></article>
+      <article><h3>No general extension installation.</h3><p>Blanc does not support installing arbitrary browser extensions. The bundled uBlock Origin provider is an optional blocking integration for regular tabs on supported builds, not general Chrome Web Store support. Private tabs use Blanc Blocker.</p></article>
     </div>
   </section>
   <section class="feature-copy-grid" aria-labelledby="security-leaves-title">
@@ -113,11 +115,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </ul>
   </section>
   <section class="release-verification" aria-labelledby="release-verification-title">
-    <p class="section-kicker">public v1.26.0 · October 2, 2026</p><h2 id="release-verification-title">Verify the package for your platform.</h2>
-    <table><caption>Authentication evidence for the official v1.26.0 downloads</caption><thead><tr><th scope="col">Platform</th><th scope="col">What is checked</th><th scope="col">Artifacts and evidence</th></tr></thead><tbody>
-      <tr><th scope="row">macOS</th><td>Developer ID signature, notarization, Gatekeeper assessment and the app’s stapled ticket.</td><td><a href="https://github.com/bnfy/blanc/releases/tag/v1.26.0">Official DMG</a> · <a href="https://github.com/bnfy/blanc/blob/v1.26.0/docs/release-verification.md">Mac verification steps</a> · <a href="https://github.com/bnfy/blanc/blob/8e48359fae44865857a5bd3a8a955af96af71650/docs/release-incidents/2026-10-02-v1.26.0.md#publication-and-independent-verification">v1.26.0 verification record</a></td></tr>
-      <tr><th scope="row">Windows</th><td>Valid, timestamped Authenticode signature with the exact expected publisher; installer digest bound to windows-signature.json.</td><td><a href="https://github.com/bnfy/blanc/releases/tag/v1.26.0">Official installer and signature report</a> · <a href="https://github.com/bnfy/blanc/blob/v1.26.0/docs/release-verification.md">Windows verification steps</a> · <a href="https://github.com/bnfy/blanc/blob/8e48359fae44865857a5bd3a8a955af96af71650/docs/release-incidents/2026-10-02-v1.26.0.md#publication-and-independent-verification">v1.26.0 native checks</a></td></tr>
-      <tr><th scope="row">Linux</th><td>AppImage checksum authenticated by the Sigstore-signed SHA256SUMS manifest. Linux has no equivalent OS-level publisher signature here.</td><td><a href="https://github.com/bnfy/blanc/releases/tag/v1.26.0">Official AppImage, manifest and Sigstore bundle</a> · <a href="https://github.com/bnfy/blanc/blob/v1.26.0/docs/release-verification.md">Manifest verification steps</a> · <a href="https://github.com/bnfy/blanc/blob/8e48359fae44865857a5bd3a8a955af96af71650/docs/release-incidents/2026-10-02-v1.26.0.md#publication-and-independent-verification">v1.26.0 public-download checks</a></td></tr>
+    <p class="section-kicker">public v1.27.0 · October 3, 2026</p><h2 id="release-verification-title">Verify the package for your platform.</h2>
+    <table><caption>Authentication evidence for the official v1.27.0 downloads</caption><thead><tr><th scope="col">Platform</th><th scope="col">What is checked</th><th scope="col">Artifacts and evidence</th></tr></thead><tbody>
+      <tr><th scope="row">macOS</th><td>Developer ID signature, notarization, Gatekeeper assessment and the app’s stapled ticket.</td><td><a href="https://github.com/bnfy/blanc/releases/tag/v1.27.0">Official DMG</a> · <a href="https://github.com/bnfy/blanc/blob/v1.27.0/docs/release-verification.md">Mac verification steps</a> · <a href="https://github.com/bnfy/blanc/blob/7ca557b04dc723ca6158cce3ef4ea8aeb29f03da/docs/release-incidents/2026-10-03-v1.27.0.md#publication-and-independent-verification">v1.27.0 verification record</a></td></tr>
+      <tr><th scope="row">Windows</th><td>Valid, timestamped Authenticode signature with the exact expected publisher; installer digest bound to windows-signature.json.</td><td><a href="https://github.com/bnfy/blanc/releases/tag/v1.27.0">Official installer and signature report</a> · <a href="https://github.com/bnfy/blanc/blob/v1.27.0/docs/release-verification.md">Windows verification steps</a> · <a href="https://github.com/bnfy/blanc/blob/7ca557b04dc723ca6158cce3ef4ea8aeb29f03da/docs/release-incidents/2026-10-03-v1.27.0.md#publication-and-independent-verification">v1.27.0 native checks</a></td></tr>
+      <tr><th scope="row">Linux</th><td>AppImage checksum authenticated by the Sigstore-signed SHA256SUMS manifest. Linux has no equivalent OS-level publisher signature here.</td><td><a href="https://github.com/bnfy/blanc/releases/tag/v1.27.0">Official AppImage, manifest and Sigstore bundle</a> · <a href="https://github.com/bnfy/blanc/blob/v1.27.0/docs/release-verification.md">Manifest verification steps</a> · <a href="https://github.com/bnfy/blanc/blob/7ca557b04dc723ca6158cce3ef4ea8aeb29f03da/docs/release-incidents/2026-10-03-v1.27.0.md#publication-and-independent-verification">v1.27.0 public-download checks</a></td></tr>
     </tbody></table>
     <p>These checks authenticate the publisher and downloaded bytes. They do not establish that the application is free of security flaws or provide an independent review of its architecture. The release record distinguishes hosted checks, physical-machine confirmations and owner waivers.</p>
   </section>

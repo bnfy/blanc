@@ -1,0 +1,69 @@
+---
+import GlanceIsland from './GlanceIsland.astro';
+---
+<div class="tool-feature" id="glance" aria-labelledby="glance-title">
+  <h3 id="glance-title">View two tabs with Glance.</h3>
+  <p class="lead">Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.</p>
+  <figure class="glance-demo" id="glance-demo">
+    <figcaption class="glance-toolbar">
+      <div class="glance-invitation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v16M15 4v16M6 9l-3 3 3 3M3 12h3M18 9l3 3-3 3M18 12h3" /></svg>
+        <div><strong>Interactive demo</strong><p id="glance-hint">Drag the divider to resize.</p></div>
+      </div>
+      <div class="glance-actions">
+        <button type="button" id="glance-swap">Swap pages</button>
+        <button type="button" id="glance-reset">Reset</button>
+        <button type="button" id="glance-close">Close Glance view</button>
+        <button type="button" id="glance-reopen" hidden>Open Glance view</button>
+      </div>
+    </figcaption>
+    <div class="glance-viewport" id="glance-viewport">
+      <div class="glance-window" id="glance-window" data-main-page="copenhagen" style="--split:62%">
+        <section class="glance-pane glance-main" aria-label="Main page illustration">
+          <div class="glance-chrome">
+            <GlanceIsland page="copenhagen" />
+            <GlanceIsland page="louisiana" />
+          </div>
+          <div class="glance-document" id="glance-main-document">
+            <div class="glance-site glance-copenhagen" data-page="copenhagen" data-title="Nyhavn — Visit Copenhagen">
+              <div class="glance-site-nav" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" /><path d="m15 15 5 5" /></svg>
+                <span class="copenhagen-wordmark">visit<br />copenhagen</span>
+                <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </div>
+              <div class="copenhagen-photo">
+                <picture><source media="(max-width: 760px)" srcset="/revamp/glance-nyhavn-800.webp" width="800" height="364" /><img src="/revamp/glance-nyhavn.webp" width="1600" height="727" alt="Brightly colored waterfront houses at Nyhavn in Copenhagen" loading="lazy" decoding="async" draggable="false" /></picture>
+              </div>
+              <div class="copenhagen-title">
+                <h4>Nyhavn</h4>
+                <p>Copenhagen’s Colourful Harbour</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="glance-divider" id="glance-divider" role="slider" tabindex="0" aria-label="Resize the Glance split" aria-valuemin="50" aria-valuemax="78" aria-valuenow="62" aria-valuetext="Main page 62 percent, reference 38 percent" aria-orientation="horizontal" aria-describedby="glance-hint">
+          <span aria-hidden="true"></span>
+        </div>
+        <section class="glance-pane glance-reference" aria-label="Reference page illustration">
+          <div class="glance-reference-chrome">
+            <span>Glance</span><span class="reference-name">Kusama installation — Louisiana</span><span class="glance-close-mark" aria-hidden="true">×</span>
+          </div>
+          <div class="glance-document" id="glance-reference-document">
+            <div class="glance-site glance-louisiana" data-page="louisiana" data-title="Kusama installation — Louisiana">
+              <img class="louisiana-photo" src="/revamp/glance-kusama.jpg" width="640" height="959" alt="Colored lights reflected in Yayoi Kusama’s Gleaming Lights of the Souls installation" loading="lazy" decoding="async" draggable="false" />
+              <div class="glance-site-nav" aria-hidden="true">
+                <span class="louisiana-wordmark">LOUISIANA</span>
+                <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </div>
+              <div class="louisiana-title">
+                <h4>Kusama<br />installation</h4>
+                <p>Gleaming Lights of the Souls</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <p class="sr-only" id="glance-status" aria-live="polite"></p>
+  </figure>
+</div>

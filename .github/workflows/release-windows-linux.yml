@@ -208,7 +208,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -218,6 +218,13 @@ jobs:
           $product = node -p "require('./package.json').productName"
           $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path "dist/win-unpacked/$product.exe").Path
           node test/desktop/packaged-media-smoke.mjs
+
+      - name: Verify packaged Workspace quit/restart recovery
+        shell: pwsh
+        run: |
+          $product = node -p "require('./package.json').productName"
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path "dist/win-unpacked/$product.exe").Path
+          node test/desktop/packaged-workspace-recovery-smoke.mjs
 
       - name: Verify Authenticode signature
         shell: pwsh
@@ -552,7 +559,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -562,6 +569,13 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             xvfb-run -a node test/desktop/packaged-media-smoke.mjs
+
+      - name: Verify packaged Workspace quit/restart recovery
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            xvfb-run -a node test/desktop/packaged-workspace-recovery-smoke.mjs
 
       - name: Verify installed blanc-import protocol
         run: |

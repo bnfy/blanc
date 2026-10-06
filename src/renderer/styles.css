@@ -1480,7 +1480,8 @@ button.insecure-badge {
 .site-info-button:focus-visible,
 .site-info-button[aria-expanded="true"] { color: var(--text); background: var(--surface-raised); }
 .site-info-button.insecure,
-.site-info-button.certificate-error { color: var(--danger); }
+.site-info-button.certificate-error,
+.site-info-button.certificate-exception { color: var(--danger); }
 .site-info-button[hidden] { display: none; }
 .site-info-button svg {
   width: 14px;
@@ -1508,7 +1509,8 @@ button.insecure-badge {
   background: var(--accent);
 }
 .site-info-card.insecure .site-info-state,
-.site-info-card.certificate-error .site-info-state { background: var(--danger); }
+.site-info-card.certificate-error .site-info-state,
+.site-info-card.certificate-exception .site-info-state { background: var(--danger); }
 .site-info-card.local .site-info-state { background: var(--text-dim); }
 .site-info-title { font-size: 13px; font-weight: 600; }
 .site-info-origin {
@@ -1538,6 +1540,7 @@ button.insecure-badge {
 }
 .site-info-protection { align-self: center; color: var(--text-dim); font-size: 11px; }
 .site-info-settings { color: var(--accent); background: transparent; border: none; font-size: 11px; }
+.site-info-stop-allowing { color: var(--danger); }
 
 /* Site favicon slot: domain initial fallback, spinner while loading. */
 .favicon {
@@ -2541,7 +2544,13 @@ body[data-glance-purpose="change"] .glance-picker {
   border-top: 1px solid var(--border);
 }
 .footer-launchers, .footer-tools { display: flex; align-items: center; gap: 4px; }
-.footer-launchers { flex: 0 0 auto; }
+/* At narrow/zoomed widths, wrap the longer ctrl shortcut labels without
+   shrinking the launch buttons or letting their group overflow the footer. */
+.footer-launchers {
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
 .footer-tools { flex: 1 1 197px; min-width: 197px; justify-content: flex-end; }
 
 /* "new tab" is the panel's one primary action, so it's the one solid accent
@@ -2986,17 +2995,19 @@ body[data-glance-purpose="change"] .glance-picker {
 #shieldPopCount { font-variant-numeric: tabular-nums; }
 .shield-pop-head:not([hidden]) + #shieldPopCount { margin-top: 12px; }
 .shield-pop-note { color: var(--text-dim); font-size: 12px; margin-top: 5px; }
-#shieldPopToggle {
+#shieldPopToggle, #shieldPopDarkToggle {
   appearance: none; width: 34px; height: 20px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--surface);
   position: relative; flex: 0 0 auto; cursor: pointer; padding: 0;
 }
-#shieldPopToggle .knob {
+#shieldPopToggle .knob, #shieldPopDarkToggle .knob {
   position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
   border-radius: 50%; background: var(--text-dim); transition: left 120ms ease, background 120ms ease;
 }
-#shieldPopToggle.on { background: var(--accent); border-color: var(--accent); }
-#shieldPopToggle.on .knob { left: 16px; background: var(--bg); }
+#shieldPopToggle.on, #shieldPopDarkToggle.on { background: var(--accent); border-color: var(--accent); }
+#shieldPopToggle.on .knob, #shieldPopDarkToggle.on .knob { left: 16px; background: var(--bg); }
+.shield-pop-dark { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+#shieldPopDarkOnOff { font-weight: 600; }
 #shieldPop[data-step="chooser"] .shield-pop-header {
   display: grid; grid-template-columns: 24px 28px minmax(0, 1fr) 24px;
   column-gap: 10px; text-align: left; align-items: center;

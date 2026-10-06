@@ -126,8 +126,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
-  // opts: { force?: true } — skips the scratch guard (a confirmed "discard
-  // and switch"). Omitted for a plain open/create attempt.
+  // opts: { decision?: string, newWindow?: true } — `decision` echoes the token
+  // from an unsaved-scratch result (a confirmed "discard and switch");
+  // `newWindow` opens elsewhere. Omitted for a plain open/create attempt.
   openWorkspace: (id, opts) => ipcRenderer.invoke('chrome:workspaces-open', id, opts),
   createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
   renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
@@ -149,6 +150,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
+  toggleDarkSiteOnActiveSite: () => ipcRenderer.invoke('chrome:dark-site-active'),
+  siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
   ...(ONE_PASSWORD_AVAILABLE ? {
     fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),

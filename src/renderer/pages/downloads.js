@@ -42,6 +42,7 @@
     for (const d of items) {
       const row = document.createElement('div');
       row.className = 'row';
+      row.dataset.state = d.state;
 
       const main = document.createElement('div');
       main.className = 'main';
@@ -96,15 +97,15 @@
         b.addEventListener('click', async () => { await fn(); refresh(); });
         return b;
       };
-      if (d.state === 'progressing') {
-        actions.append(mkBtn('Cancel', () => window.bowserPages.downloads.cancel(d.id), 'cancel', 'danger'));
-      }
-      if (d.state === 'completed') {
-        actions.append(
-          mkBtn('Open', () => window.bowserPages.downloads.open(d.id), 'open'),
-          mkBtn('Show in folder', () => window.bowserPages.downloads.show(d.id), 'show')
-        );
-      }
+      const api = window.bowserPages.downloads;
+      const ACTIONS = {
+        cancel: () => mkBtn('Cancel', () => api.cancel(d.id), 'cancel', 'danger'),
+        resume: () => mkBtn('Resume', () => api.resume(d.id), 'resume'),
+        retry: () => mkBtn('Retry', () => api.retry(d.id), 'retry'),
+        open: () => mkBtn('Open', () => api.open(d.id), 'open'),
+        show: () => mkBtn('Show in folder', () => api.show(d.id), 'show'),
+      };
+      for (const action of window.blancDownloadsRow.rowActions(d)) actions.append(ACTIONS[action]());
       row.append(main, meta, actions);
       list.append(row);
     }

@@ -16,8 +16,12 @@ fs.writeFileSync(path.join(dir + '-Dev', 'settings.json'), JSON.stringify({
   searchSuggestions: false, usagePing: false, onePasswordEnabled: false, theme: 'light',
 }));
 const hits = [];
+// Timestamped copy for the failure dump, so a leak shows when it happened.
+const hitLog = [];
+let restartedAt = null;
 const server = http.createServer((request, response) => {
   hits.push(request.url);
+  hitLog.push({ at: Date.now(), url: request.url });
   if (request.url.endsWith('.js')) { response.setHeader('Content-Type', 'application/javascript'); response.end('window.dashboardAllowed=true;'); return; }
   response.setHeader('Content-Type', 'text/html');
   response.end('<!doctype html><title>Dashboard fixture</title><script src="/dashboard-blocked.js"></script><script src="/allowed.js"></script>');
@@ -29,8 +33,8 @@ void ignored;
 let electron;
 let stage = 'startup';
 const errors = [];
-const watchdog = setTimeout(() => { console.error('Dashboard suite exceeded 120 seconds at ' + stage); electron?.process().kill('SIGKILL'); }, 120000);
-async function launch() {
+const watchdog = setTimeout(() => { console.error('Dashboard suite exceeded 240 seconds at ' + stage); electron?.process().kill('SIGKILL'); }, 240000);
+async function launch({ settle = true } = {}) {
   electron = await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
     args: [path.resolve('.'), `--user-data-dir=${dir}`], chromiumSandbox: true, colorScheme: null,
@@ -39,8 +43,27 @@ async function launch() {
   electron.context().setDefaultTimeout(8000);
   electron.context().on('page', page => page.on('pageerror', error => errors.push(error.message)));
   await electron.firstWindow();
+  // The first launch is a cold uBO start (see COLD_START_MS in ublock-origin.mjs);
+  // startup is released only once the provider settles.
+  await waitForValue(async () => {
+    const status = await call('blockingStatus');
+    assert.notEqual(status?.phase, 'failed', `provider failed: ${JSON.stringify(status)}`);
+    return status;
+  }, status => status?.phase === 'ready', 'real uBO ready', 100000);
   await waitForValue(() => call('startupReady'), Boolean, 'browser restore ready', 20000);
-  await waitForValue(() => call('blockingStatus'), status => status.phase === 'ready', 'real uBO ready', 20000);
+  if (settle) await settleUpdater();
+}
+const inBackground = source => electron.evaluate(({ webContents }, code) => webContents.getAllWebContents()
+  .find(wc => wc.getType() === 'backgroundPage').executeJavaScript(code), source);
+// A fresh profile's bundled lists count as never updated, so uBO starts an
+// update cycle shortly after ready, and that cycle ends in its own
+// loadFilterLists(). That reload resets the engine without suspending
+// requests and absorbs any Apply that lands inside it. Run the cycle now and
+// let it and its reload finish before the suite exercises filters.
+async function settleUpdater() {
+  await inBackground('µBlock.scheduleAssetUpdater({ now: true, fetchDelay: 100, auto: true }).then(() => true)');
+  await waitForValue(() => inBackground("import('./js/assets.js').then(({ default: io }) => !io.isUpdating())"), Boolean, 'uBO updater cycle complete', 60000);
+  await inBackground('µBlock.loadFilterLists().then(() => true)');
 }
 const call = (method, ...args) => testCalls.callTestHook(electron, method, args);
 let dashboard;
@@ -194,7 +217,11 @@ try {
   await page.waitForFunction(() => window.dashboardAllowed === true);
   assert(!hits.includes('/dashboard-blocked.js'), 'native filter blocks before the server');
   await electron.close();
-  await launch();
+  restartedAt = Date.now();
+  // Only the fresh profile's first launch needs the updater settled. Forcing a
+  // cycle here would add a filter reload, during which requests pass, while
+  // session restore reloads the fixture tab this restart check measures.
+  await launch({ settle: false });
   await openDashboard();
   settings = await select('settings.html');
   assert.equal(await settings.locator('[data-setting-name="contextMenuEnabled"]').isChecked(), !beforeMenu);
@@ -209,6 +236,7 @@ try {
   console.log('uBO Dashboard passed: native settings/themes, lists/search/keyboard, editor/unsaved guard, all panels/narrow layout, real blocking and restart persistence.');
 } catch (error) {
   console.error('Dashboard failure at ' + stage);
+  console.error('Fixture hits:', JSON.stringify(hitLog.slice(-20).map(hit => ({ url: hit.url, sinceRestartMs: restartedAt ? hit.at - restartedAt : null }))));
   if (dashboard) console.error('Dashboard state:', await dashboard.evaluate(() => ({
     selected: document.querySelector('.tabButton.selected')?.dataset.pane,
     unsavedWarning: document.getElementById('unsavedWarning')?.classList.contains('on'),

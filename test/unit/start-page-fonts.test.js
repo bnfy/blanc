@@ -44,11 +44,12 @@ test('Newsreader is bundled for the Billboard clock, invitations, and sheet head
   assert.match(pages, /--font-display:\s*"Newsreader Variable"[^;]*serif;/);
   assert.match(pages, /body\.sheet \.page h1\s*\{[^}]*font-family:\s*var\(--font-display\)/s);
   assert.match(pages, /body\.sheet \.group-title,\s*body\.sheet \.shortcut-section \.section-title\s*\{[^}]*font-family:\s*var\(--font-display\)/s);
-  assert.match(pages, /\.bb-clock\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*clamp\(80px, 12vw, 148px\)[^}]*font-weight:\s*650/s);
+  assert.match(pages, /\.bb-clock\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*clamp\(80px, 12vw, 148px\)[^}]*font-weight:\s*650[^}]*font-optical-sizing:\s*auto/s);
   assert.match(pages, /\.migration-checklist-heading h2\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*28px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.05[^}]*letter-spacing:\s*-0\.02em[^}]*font-optical-sizing:\s*auto/s);
   assert.match(pages, /\.ob-content h1\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*22px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.15[^}]*letter-spacing:\s*-0\.015em[^}]*font-optical-sizing:\s*auto[^}]*text-wrap:\s*balance/s);
   assert.match(newtab, /id="startDate" class="start-brand-date"/);
-  assert.doesNotMatch(newtab, /Where to\?/);
+  assert.match(newtab, /<h2 class="ledger-where">Where to\?<\/h2>/, 'Ledger leads with one Newsreader line');
+  assert.match(pages, /\.ledger-where \{[^}]*font-family: var\(--font-display\);[^}]*font-size: 32px;[^}]*font-weight: 400;[^}]*line-height: 1\.1;[^}]*letter-spacing: -0\.015em;[^}]*font-optical-sizing: auto;/s);
   assert.equal((newtab.match(/<section data-step="[0-5]"/g) || []).length, 6);
   assert.equal((newtab.match(/<h1>/g) || []).length, 6, 'all six plain h1 elements are onboarding titles');
   assert.doesNotMatch(chrome, /Newsreader|--font-display/);
