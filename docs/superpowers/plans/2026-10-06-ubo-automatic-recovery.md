@@ -311,7 +311,11 @@ const until = async (predicate, ms = 3000) => {
   throw new Error('condition not reached');
 };
 
-module.exports = { createProviderHarness, settle, until };
+// Values built inside the vm sandbox have another realm's prototypes; copy
+// them before structural comparison.
+const plain = value => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
+
+module.exports = { createProviderHarness, settle, until, plain };
 ```
 
 - [ ] **Step 2: Point the startup test at the harness**
@@ -332,7 +336,7 @@ Run: `node --test test/unit/ublock-provider-startup.test.js` — Expected: both 
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createProviderHarness, settle, until } = require('./support/ublock-provider-harness');
+const { createProviderHarness, settle, until, plain } = require('./support/ublock-provider-harness');
 
 const STAGE = { cssLoad: 'cssHostLoad', cssBridgeLoad: 'cssHostLoad', install: 'install',
   extensionLoad: 'loadExtension', backgroundReady: 'background', bridgeLoad: 'bridge', ready: 'ready' };
@@ -481,7 +485,7 @@ git commit -m "Cancel a running uBO initialization when the provider is disposed
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createProviderHarness, until } = require('./support/ublock-provider-harness');
+const { createProviderHarness, until, plain } = require('./support/ublock-provider-harness');
 const { createRecoveryBudget } = require('../../src/main/ublock-recovery');
 
 const fast = (options = {}) => ({ budget: createRecoveryBudget({ delaysMs: [0, 0, 0], ...options }), deadlineMs: 2000 });
@@ -494,7 +498,7 @@ test('a crash after ready restarts uBO automatically', async t => {
   assert.equal(h.provider.status().phase, 'recovering');
   assert.equal(h.provider.status().recovery.kind, 'restarting');
   await until(() => h.provider.status().phase === 'ready');
-  assert.deepEqual(h.provider.status().recovery, { kind: 'recovered', attempt: 1 });
+  assert.deepEqual(plain(h.provider.status().recovery), { kind: 'recovered', attempt: 1 });
   assert.equal(h.created.extensions.filter(id => id === 'ublockorigin').length, 2);
 });
 
@@ -514,7 +518,7 @@ test('an ineligible failure goes straight to manual recovery', async t => {
   const decision = h.provider.decide('onBeforeRequest', { id: 1, url: 'https://example.org/', resourceType: 'mainFrame', method: 'GET', webContentsId: 9 });
   await until(() => h.requests().length === 1);
   h.answer(h.requests()[0].message.id, 'not-an-object');
-  assert.deepEqual(await decision, { cancel: true });
+  assert.deepEqual(plain(await decision), { cancel: true });
   assert.equal(h.provider.status().phase, 'failed');
   assert.equal(h.provider.status().error, 'ubo-response-invalid');
 });
@@ -715,10 +719,11 @@ Episode functions (add after `fail`):
 In `receive`, the `ready` branch ends recovery at network readiness:
 
 ```js
-      warmUntil = Date.now() + WARMUP_WINDOW_MS;
-      send({ kind: 'enabled', value: enabled });
       everReady = true;
       if (recovering) finishEpisode();
+      // Keep this sequence adjacent: ublock-operation-deadline.test.js pins it.
+      warmUntil = Date.now() + WARMUP_WINDOW_MS;
+      send({ kind: 'enabled', value: enabled });
       state('ready'); refresh(); readyResolve?.(status()); return;
 ```
 
@@ -798,7 +803,7 @@ git commit -m "Restart a uBO provider automatically after a mid-session failure"
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createProviderHarness, settle, until } = require('./support/ublock-provider-harness');
+const { createProviderHarness, settle, until, plain } = require('./support/ublock-provider-harness');
 const { createRecoveryBudget } = require('../../src/main/ublock-recovery');
 
 const recovery = { budget: createRecoveryBudget({ delaysMs: [0, 0, 0] }), deadlineMs: 2000 };
@@ -816,7 +821,7 @@ test('a request during recovery waits and is decided by the restarted uBO', asyn
   await until(() => h.provider.status().phase === 'ready');
   await until(() => h.requests().length === 1);
   h.answer(h.requests()[0].message.id, {});
-  assert.deepEqual(await held, {});
+  assert.deepEqual(plain(await held), {});
 });
 
 test('512 held requests drain with bounded concurrency and none is cancelled', async t => {
@@ -864,7 +869,7 @@ test('the 513th held request is cancelled', async t => {
   h.stall.ready = 'never';
   h.crashBackground();
   Array.from({ length: 512 }, () => request(h));
-  assert.deepEqual(await request(h), { cancel: true });
+  assert.deepEqual(plain(await request(h)), { cancel: true });
 });
 
 test('held requests are cancelled when the episode deadline passes', async t => {
@@ -872,7 +877,7 @@ test('held requests are cancelled when the episode deadline passes', async t => 
   await h.provider.initialize();
   h.stall.ready = 'never';
   h.crashBackground();
-  assert.deepEqual(await request(h), { cancel: true });
+  assert.deepEqual(plain(await request(h)), { cancel: true });
   assert.equal(h.provider.status().phase, 'failed');
 });
 
@@ -880,7 +885,7 @@ test('without an episode a failed provider still cancels at once', async t => {
   const h = createProviderHarness(t, { recovery: { budget: createRecoveryBudget({ limit: 0 }), deadlineMs: 2000 } });
   await h.provider.initialize();
   h.crashBackground();
-  assert.deepEqual(await request(h), { cancel: true });
+  assert.deepEqual(plain(await request(h)), { cancel: true });
 });
 ```
 
@@ -996,7 +1001,7 @@ git commit -m "Hold uBO requests during automatic recovery and drain them with b
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createProviderHarness, until } = require('./support/ublock-provider-harness');
+const { createProviderHarness, until, plain } = require('./support/ublock-provider-harness');
 const { createRecoveryBudget } = require('../../src/main/ublock-recovery');
 
 const PAGE = 'https://example.org/article';
@@ -1024,7 +1029,7 @@ test('the outage\'s own failure claims a token, and the page reloads after commi
   h.provider.noteMainFrameCommitted(9, errorUrl(token));
   assert.equal(reloads.length, 0, 'waits for uBO');
   await until(() => h.provider.status().phase === 'ready');
-  assert.deepEqual(reloads, [{ webContentsId: 9, token, url: PAGE }]);
+  assert.deepEqual(plain(reloads), [{ webContentsId: 9, token, url: PAGE }]);
 });
 
 test('recovery may finish before the error page commits', async t => {
@@ -1034,7 +1039,7 @@ test('recovery may finish before the error page commits', async t => {
   await until(() => h.provider.status().phase === 'ready');
   assert.equal(reloads.length, 0, 'waits for the error page');
   h.provider.noteMainFrameCommitted(9, errorUrl(token));
-  assert.deepEqual(reloads, [{ webContentsId: 9, token, url: PAGE }]);
+  assert.deepEqual(plain(reloads), [{ webContentsId: 9, token, url: PAGE }]);
 });
 
 test('a later navigation to the same URL cannot claim the older record', async t => {

@@ -114,4 +114,8 @@ const until = async (predicate, ms = 3000) => {
   throw new Error('condition not reached');
 };
 
-module.exports = { createProviderHarness, settle, until };
+// Values built inside the vm sandbox have another realm's prototypes; copy
+// them before structural comparison.
+const plain = value => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
+
+module.exports = { createProviderHarness, settle, until, plain };

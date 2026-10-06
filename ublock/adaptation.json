@@ -29,7 +29,7 @@
     },
     {
       "path": "src/main/ublock-provider.js",
-      "sha256": "890078bacf38377b86a4f0c355b435096099d8394495ffcd28e66c606ca1c15b"
+      "sha256": "7b3c847ea5bab4db46b59585b766f7817f60c6f519fb069460df938cfcefb65c"
     },
     {
       "path": "src/main/ublock-registry.js",

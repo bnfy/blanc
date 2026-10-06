@@ -10,6 +10,7 @@ const { createUblockRegistry } = require('./ublock-registry');
 const { validBridgeSender } = require('./ublock-host-policy');
 const { ublockTool } = require('./ublock-tool-url');
 const { captureDocuments, currentDocuments, guardScript } = require('./ublock-documents');
+const recoveryPolicy = require('./ublock-recovery');
 
 const DEADLINE_MS = 2000;
 const OPERATION_DEADLINE_MS = 10000;
@@ -43,7 +44,7 @@ const headersToElectron = values => {
   return result;
 };
 
-function createUblockProvider({ session, profileId, hooks, onStateChange = () => {}, onBlocked = () => {} }) {
+function createUblockProvider({ session, profileId, hooks, onStateChange = () => {}, onBlocked = () => {}, recovery: recoveryOptions = {} }) {
   const registry = createUblockRegistry({ profileId, ...hooks });
   const pending = new Map();
   const injectionLeases = new Map();
@@ -86,13 +87,21 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     cancelRun?.(); cancelRun = null;
     readyReject?.(new Error(CANCELLED));
   }
+  // Automatic recovery (docs/superpowers/specs/2026-10-06-ubo-automatic-recovery-design.md).
+  const budget = recoveryOptions.budget ?? recoveryPolicy.createRecoveryBudget();
+  const RECOVERY_DEADLINE = recoveryOptions.deadlineMs ?? recoveryPolicy.RECOVERY_DEADLINE_MS;
+  let everReady = false;
+  let recovering = false;
+  let episode = null; // { code, attempt, firstDelay, scheduled, deadlineAt, deadline, retryTimer }
+  let lastRecovery = null;
   let focusedWindowId = -1;
   // Startup stage durations in milliseconds. A failed startup keeps the stage
   // it stopped in, so diagnostics show which step stalled or failed.
   let stage = null;
   let stageStarted = 0;
   let timings = {};
-  const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase, error, stage, timings: { ...timings } });
+  const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase: recovering ? 'recovering' : phase, error, stage,
+    timings: { ...timings }, ...(lastRecovery ? { recovery: { ...lastRecovery } } : {}) });
   function endStage() { if (stage) timings[stage] = Math.round((performance.now() - stageStarted) * 10) / 10; }
   function beginStage(name) { endStage(); stage = name; stageStarted = performance.now(); }
   const browserResource = url => isBrowserResource(url, app.getAppPath());
@@ -109,26 +118,82 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   function fail(code) {
     if (disposed || phase === 'failed') return;
     endStage();
+    if (!recovering && everReady && recoveryPolicy.RECOVERABLE.has(code)) beginEpisode(code);
     state('failed', code);
     readyReject?.(new Error(code));
     for (const item of pending.values()) { clearTimeout(item.timer); item.reject(new Error(code)); }
     pending.clear();
+    if (!recovering) releaseHeld();
     suspendTools();
     // Keep the failed provider in the coordinator so traffic stays closed.
     if (!cleanupScheduled) {
       cleanupScheduled = true;
-      setImmediate(() => { cleanupScheduled = false; cleanup('background'); });
+      setImmediate(() => {
+        cleanupScheduled = false; cleanup('background');
+        if (episode && !episode.scheduled) { episode.scheduled = true; scheduleAttempt(episode, episode.firstDelay); }
+      });
     }
   }
+  function noteRecovery(kind, attempt, reason) {
+    lastRecovery = { kind, attempt, ...(reason ? { reason } : {}) };
+    onStateChange(status());
+  }
+  function beginEpisode(code) {
+    const ticket = budget.take();
+    if (!ticket.allowed) { lastRecovery = { kind: 'exhausted', attempt: 0, reason: 'budget' }; return; }
+    recovering = true;
+    const current = { code, attempt: ticket.attempt, firstDelay: ticket.delayMs, scheduled: false,
+      deadlineAt: Date.now() + RECOVERY_DEADLINE, retryTimer: null };
+    current.deadline = setTimeout(() => endEpisode(current, 'deadline'), RECOVERY_DEADLINE);
+    episode = current;
+    lastRecovery = { kind: 'restarting', attempt: ticket.attempt };
+  }
+  function scheduleAttempt(current, delayMs) {
+    clearTimeout(current.retryTimer);
+    current.retryTimer = setTimeout(() => {
+      if (episode !== current || disposed) return;
+      restartNetwork().then(restoreTools, caught => attemptFailed(current, caught));
+    }, delayMs);
+  }
+  function attemptFailed(current, caught) {
+    if (episode !== current) return;
+    const code = error || caught?.message;
+    if (!recoveryPolicy.ATTEMPT_RECOVERABLE.has(code)) return endEpisode(current, 'ineligible');
+    const ticket = budget.take();
+    if (!ticket.allowed) return endEpisode(current, 'budget');
+    if (Date.now() + ticket.delayMs >= current.deadlineAt) return endEpisode(current, 'deadline');
+    current.attempt = ticket.attempt;
+    noteRecovery('restarting', ticket.attempt);
+    // The attempt's own fail() queued background cleanup first.
+    setImmediate(() => scheduleAttempt(current, ticket.delayMs));
+  }
+  function endEpisode(current, reason) {
+    if (episode !== current) return;
+    episode = null; recovering = false;
+    clearTimeout(current.deadline); clearTimeout(current.retryTimer);
+    cancelInitialization();
+    releaseHeld();
+    lastRecovery = { kind: 'exhausted', attempt: current.attempt, reason };
+    state('failed', current.code);
+  }
+  function finishEpisode() {
+    const current = episode;
+    episode = null; recovering = false;
+    clearTimeout(current.deadline); clearTimeout(current.retryTimer);
+    lastRecovery = { kind: 'recovered', attempt: current.attempt };
+  }
+  // Task 4 replaces this with the hold queue.
+  function releaseHeld() {}
   function suspendTools() {
     if (!extension) return;
+    const desc = recovering ? 'uBlock%20Origin%20is%20restarting' : 'uBlock%20Origin%20needs%20retry';
     const prefix = `chrome-extension://${extension.id}/`;
     hooks.closePopup?.(profileId);
     for (const entry of registry.mapping()) {
       const wc = registry.ownedContents(entry.tabId)?.wc;
       if (!wc || hooks.isHeld?.(wc) || !wc.getURL().startsWith(prefix)) continue;
       suspendedTools.set(wc.id, { wc, url: wc.getURL() });
-      wc.loadURL('blanc://error?code=-20&desc=uBlock%20Origin%20needs%20retry').catch(() => {});
+      wc.loadURL(`blanc://error?code=-20&desc=${desc}`).catch(() => {});
     }
   }
   function decisionDeadline() {
@@ -396,6 +461,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
         const processStatus = fs.readFileSync(`/proc/${bg.getOSProcessId()}/status`, 'utf8');
         if (!/^Seccomp:\s+2$/m.test(processStatus) || !/^NoNewPrivs:\s+1$/m.test(processStatus)) return fail('ubo-background-unsandboxed');
       }
+      everReady = true;
+      // Recovery ends when filtering works again, not when retry() returns.
+      if (recovering) finishEpisode();
       warmUntil = Date.now() + WARMUP_WINDOW_MS;
       send({ kind: 'enabled', value: enabled });
       state('ready'); refresh(); readyResolve?.(status()); return;
@@ -657,20 +725,38 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   }
   function dispose() {
     disposed = true;
+    if (episode) { clearTimeout(episode.deadline); clearTimeout(episode.retryTimer); episode = null; }
+    recovering = false;
     cancelInitialization();
     cleanup();
     suspendedTools.clear();
     state('disposed');
   }
-  async function retry() {
+  async function restartNetwork() {
     if (disposed || initializePromise || cleanupScheduled) throw new Error('ubo-retry-unavailable');
     await removeOwnedCss();
     suspendTools();
     cleanup();
     await initialize();
+  }
+  // Best effort once filtering works again; recovery never waits for it.
+  function restoreTools() {
+    const run = generation;
     const tools = [...suspendedTools.values()]; suspendedTools.clear();
-    await Promise.allSettled(tools.filter(item => !item.wc.isDestroyed() && item.wc.session === session)
-      .map(item => item.wc.loadURL(item.url)));
+    for (const item of tools) {
+      if (item.wc.isDestroyed() || item.wc.session !== session) continue;
+      Promise.resolve().then(() => {
+        if (run === generation && !disposed && phase === 'ready') return item.wc.loadURL(item.url);
+      }).catch(() => {});
+    }
+  }
+  async function retry() {
+    await restartNetwork();
+    restoreTools();
+  }
+  function exhaustRecoveryForTest() {
+    if (app.isPackaged || process.env.BLANC_TEST !== '1') throw new Error('test-only');
+    budget.exhaust();
   }
   if (!ipcInstalled) {
     ipcInstalled = true;
@@ -678,7 +764,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       Promise.resolve().then(() => instances.get(event.sender.id)?.(event, message)).catch(() => {});
     });
   }
-  return { id: 'ublock-origin', initialize, retry, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
+  return { id: 'ublock-origin', initialize, retry, exhaustRecoveryForTest, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
     get extensionId() { return extension?.id; },
     // Read-only, for the acceptance harness.
     decisionDeadlineMs: decisionDeadline };
