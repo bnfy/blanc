@@ -14,3 +14,12 @@ CLEANUP_ENABLED = "true"
 
 [triggers]
 crons = ["17 4 * * *"]
+
+# Keep the Worker's own console lines (the daily cleanup summary logs only
+# counts) but not per-request invocation logs: request URLs carry the account
+# locator, which is a bearer capability and must not be persisted.
+[observability]
+enabled = true
+
+[observability.logs]
+invocation_logs = false
