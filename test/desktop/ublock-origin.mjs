@@ -815,9 +815,12 @@ try {
     const fs = process.getBuiltinModule('node:fs'), path = process.getBuiltinModule('node:path');
     const require = process.getBuiltinModule('node:module').createRequire(path.join(app.getAppPath(), 'package.json'));
     const packageApi = require(path.join(app.getAppPath(), 'src/main/ublock-package'));
-    const installed = packageApi.installVerifiedPackage({ root: path.join(app.getAppPath(), 'ublock'),
+    // Install with the async API the provider uses. The sync variant blocks
+    // Blanc's main process (up to ~2.6 s on hosted Windows runners) while the
+    // default profile's uBO is live, which can trip its 2 s decision deadline.
+    const installed = await packageApi.installVerifiedPackageAsync({ root: path.join(app.getAppPath(), 'ublock'),
       destination: path.join(app.getPath('userData'), 'managed-ublock', profileId, 'extension'),
-      hostSources: packageApi.readHostSources(app.getAppPath()) });
+      hostSources: await packageApi.readHostSourcesAsync(app.getAppPath()) });
     const owned = session.fromPartition('persist:blanc-profile-' + profileId);
     const extension = await owned.extensions.loadExtension(installed.path);
     if (extension.id !== expectedId) throw new Error('Deleted native principal identity changed');
