@@ -1330,10 +1330,13 @@ In `shieldProviderModel`, after `else if (off) detail = 'Blocking is off.';`:
 `src/renderer/styles.css` after `.shield.shield-off`:
 
 ```css
-/* uBO is restarting: requests are paused, neither protected nor off. */
-.shield.shield-restarting { color: var(--text-dim); animation: shield-restarting 1.6s ease-in-out infinite; }
-@keyframes shield-restarting { 50% { opacity: 0.4; } }
-@media (prefers-reduced-motion: reduce) { .shield.shield-restarting { animation: none; opacity: 0.7; } }
+/* uBO is restarting: requests are paused, neither protected nor off. A dashed
+   outline reads as "not settled" without motion; butt caps keep the dashes
+   square so it holds the shield's shape. The cut is trimmed short of the
+   outline at both ends here: where it met a dash it formed a checkmark. */
+.shield.shield-restarting { color: var(--text-dim); }
+.shield.shield-restarting svg path:first-child { stroke-dasharray: 2.4 1.3; stroke-linecap: butt; }
+.shield.shield-restarting svg path:last-child { stroke-dasharray: 0 1.9 7.6 6; }
 ```
 
 `browser-api/contract.json:143`: `"type": "'hidden' | 'off' | 'count' | 'quiet' | 'restarting'"`, then run `npm run browser-api:build`.
