@@ -26,14 +26,19 @@ until every gate passes, and a failed attempt leaves no public artifacts.
    verifies this and refuses otherwise):
 
    ```bash
-   BLANC_RELEASE_MODE=stable BLANC_RELEASE_PLATFORMS=mac,windows,linux BLANC_MAC_ARCHES=arm64 npm run release
+   BLANC_RELEASE_MODE=stable BLANC_RELEASE_PLATFORMS=mac,windows,linux BLANC_MAC_ARCHES=arm64,x64 npm run release
    ```
 
    All three env vars are **required** — the script exits immediately without them.
    `BLANC_RELEASE_MODE=candidate` requires a prerelease version (`X.Y.Z-rc.N`) and
-   publishes with `--prerelease`; `stable` refuses prerelease versions. Recent
-   releases ship mac **arm64 only**; add `x64` to `BLANC_MAC_ARCHES` only when the
-   x64 build is actually verified.
+   publishes with `--prerelease`; `stable` refuses prerelease versions. Every
+   release ships **both** Mac architectures: Apple Silicon (arm64) is the default
+   Mac build and the native host the script smoke-tests, and Intel (x64) ships
+   alongside it so Intel installs keep updating. The script refuses a single
+   architecture unless `BLANC_MAC_ARCH_WAIVER` gives the reason, which must also be
+   recorded in the release incident. The post-release `prerelease-smoke.yml`
+   dispatch verifies and launches the published Intel DMG on a native
+   `macos-15-intel` runner.
 3. **After publication**, the script regenerates `site/src/data/releases.json` from
    the GitHub release body (`npm run site:changelog`). Commit that as
    "Record Blanc X.Y.Z in the public changelog" (its own PR), then deploy the site

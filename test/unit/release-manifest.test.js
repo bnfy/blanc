@@ -243,8 +243,16 @@ test('published macOS smoke verifies the immutable DMG and pinned signing identi
   assert.ok(start >= 0, 'published smoke must include an independent macOS DMG job');
   const job = workflow.slice(start);
 
-  assert.match(job, /runs-on: macos-15/);
-  assert.match(job, /Blanc-\$VERSION-arm64\.dmg/);
+  // Apple Silicon is the default Mac build; Intel ships in every release, so
+  // each published DMG is verified and launched on its own native runner.
+  assert.match(job, /runs-on: \$\{\{ matrix\.runner \}\}/);
+  assert.match(job, /arch: arm64\s+runner: macos-15\s+artifact_suffix: '-arm64'\s+binary_arch: arm64/);
+  assert.match(job, /arch: x64\s+runner: macos-15-intel\s+artifact_suffix: ''\s+binary_arch: x86_64/);
+  assert.match(job, /--pattern "Blanc-\$VERSION\$ARTIFACT_SUFFIX\.dmg"/);
+  assert.match(job, /ARTIFACT="Blanc-\$VERSION\$ARTIFACT_SUFFIX\.dmg"/);
+  assert.match(job, /lipo -archs "\$EXECUTABLE"/);
+  assert.match(job, /\[ "\$ARCHS" = "\$BINARY_ARCH" \]/);
+  assert.match(job, /--user-data-dir="\$PROFILE_DIR"/);
   assert.match(job, /--pattern SHA256SUMS/);
   assert.match(job, /ACTUAL=\$\(shasum -a 256/);
   assert.match(job, /\[ "\$ACTUAL" = "\$EXPECTED" \]/);
@@ -256,6 +264,23 @@ test('published macOS smoke verifies the immutable DMG and pinned signing identi
   assert.match(job, /55283A84D3706D5A22386D5F002A0CD4845ECFD4/);
   assert.match(job, /xcrun stapler validate/);
   assert.match(job, /hdiutil detach/);
+});
+
+test('every release ships Apple Silicon and Intel Macs unless a reason is recorded', () => {
+  const releaseScript = fs.readFileSync(path.join(root, 'scripts/release.sh'), 'utf8');
+  const skill = fs.readFileSync(path.join(root, '.claude/skills/releasing-blanc/SKILL.md'), 'utf8');
+  const runbook = fs.readFileSync(path.join(root, 'docs/release-verification.md'), 'utf8');
+
+  assert.match(releaseScript, /MAC_ARCH_WAIVER="\$\{BLANC_MAC_ARCH_WAIVER:-\}"/);
+  assert.match(
+    releaseScript,
+    /if ! \{ \$HAS_MAC_ARM64 && \$HAS_MAC_X64; \} && \[ -z "\$MAC_ARCH_WAIVER" \]; then[\s\S]*?exit 1/
+  );
+  for (const doc of [skill, runbook]) {
+    assert.match(doc, /BLANC_MAC_ARCHES=arm64,x64/);
+    assert.doesNotMatch(doc, /BLANC_MAC_ARCHES=arm64(?!,x64)/);
+    assert.match(doc, /BLANC_MAC_ARCH_WAIVER/);
+  }
 });
 
 test('release authentication uses an explicit interactive operator, 1Password desktop auth, and Safari', () => {
