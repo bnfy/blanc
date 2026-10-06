@@ -12288,14 +12288,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/source-map-js@1.2.1",
+      "bom-ref": "pkg:npm/source-map-js@1.2.2",
       "name": "source-map-js",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "51758c2a12cec1529bef6f0852d40f5f17d853ebac7726ed52b2bff2e184f0240cbeb84ea70bf30c1c23d108522fb31073bbc8b084811bc550f3e203431a5f40"
+          "content": "2868fff18e37c77e5a6550edb7e27898ad61a0b18750b3187d290e0c93508cd0c2de85b53ea3e8c4cc28d292d4b1633f5041b338dfcdc5e1f2c047cd5cd3f757"
         }
       ],
       "licenses": [
@@ -12305,7 +12305,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/source-map-js@1.2.1",
+      "purl": "pkg:npm/source-map-js@1.2.2",
       "properties": [
         {
           "name": "blanc:development",
@@ -12327,7 +12327,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz"
+          "url": "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.2.tgz"
         }
       ]
     },
@@ -14635,14 +14635,14 @@
       "ref": "pkg:npm/css-tree@2.2.1",
       "dependsOn": [
         "pkg:npm/mdn-data@2.0.28",
-        "pkg:npm/source-map-js@1.2.1"
+        "pkg:npm/source-map-js@1.2.2"
       ]
     },
     {
       "ref": "pkg:npm/css-tree@3.2.1",
       "dependsOn": [
         "pkg:npm/mdn-data@2.27.1",
-        "pkg:npm/source-map-js@1.2.1"
+        "pkg:npm/source-map-js@1.2.2"
       ]
     },
     {
@@ -14962,7 +14962,7 @@
       "dependsOn": [
         "pkg:npm/%40babel/parser@7.29.7",
         "pkg:npm/%40babel/types@7.29.7",
-        "pkg:npm/source-map-js@1.2.1"
+        "pkg:npm/source-map-js@1.2.2"
       ]
     },
     {
@@ -15120,7 +15120,7 @@
       "dependsOn": [
         "pkg:npm/nanoid@3.3.19",
         "pkg:npm/picocolors@1.1.1",
-        "pkg:npm/source-map-js@1.2.1"
+        "pkg:npm/source-map-js@1.2.2"
       ]
     },
     {
@@ -15274,7 +15274,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/source-map-js@1.2.1",
+      "ref": "pkg:npm/source-map-js@1.2.2",
       "dependsOn": []
     },
     {
