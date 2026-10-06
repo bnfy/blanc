@@ -1,8 +1,13 @@
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
 
 const STAGING_CHANNEL = 'staging';
+// Set by a Flatpak wrapper whose package manager delivers updates. Honored only
+// inside a Flatpak sandbox; anywhere else it is just another unsupported value.
+const FLATPAK_CHANNEL = 'flatpak';
+const FLATPAK_INFO_FILE = '/.flatpak-info';
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
 
 function disabled(reason) {
@@ -10,6 +15,10 @@ function disabled(reason) {
     enabled: false, mode: 'disabled', reason, feed: null,
     allowPrerelease: false, autoInstall: false, statusFile: null,
   };
+}
+
+function insideFlatpak() {
+  try { return fs.statSync(FLATPAK_INFO_FILE).isFile(); } catch { return false; }
 }
 
 function production() {
@@ -34,10 +43,15 @@ function parseStagingUrl(raw, allowHttp) {
   return url.toString();
 }
 
-function resolveUpdaterPolicy({ isPackaged, env = process.env } = {}) {
+function resolveUpdaterPolicy({
+  isPackaged, env = process.env, platform = process.platform, isFlatpak = insideFlatpak,
+} = {}) {
   if (!isPackaged) return disabled('development builds do not self-update');
   const channel = String(env.BLANC_UPDATE_CHANNEL || '').trim();
   if (!channel) return production();
+  if (channel === FLATPAK_CHANNEL && platform === 'linux' && isFlatpak()) {
+    return { ...disabled('updates for this copy of Blanc come from Flatpak'), mode: FLATPAK_CHANNEL };
+  }
   if (channel !== STAGING_CHANNEL) return disabled(`unsupported BLANC_UPDATE_CHANNEL: ${channel}`);
 
   const rawUrl = String(env.BLANC_UPDATE_STAGING_URL || '').trim();
@@ -69,4 +83,4 @@ function resolveUpdaterPolicy({ isPackaged, env = process.env } = {}) {
   };
 }
 
-module.exports = { STAGING_CHANNEL, resolveUpdaterPolicy };
+module.exports = { STAGING_CHANNEL, FLATPAK_CHANNEL, resolveUpdaterPolicy };
