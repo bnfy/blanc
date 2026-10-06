@@ -2,8 +2,9 @@
 // #594: on Linux (Electron 44 / Wayland) a utility sheet detached on close and
 // re-attached on the next open keeps a hidden renderer that still takes focus
 // and clicks — Settings never appears the second time and the page goes dead.
-// The sheet must share the overlay's Linux lifecycle (overlay-view-lifecycle.js):
-// stay window-owned and toggle visibility instead of detaching.
+// Reused child views must share the overlay's Linux lifecycle
+// (overlay-view-lifecycle.js): stay window-owned and toggle visibility instead
+// of detaching.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -38,4 +39,16 @@ test('a discarded or crashed sheet view never stays attached after its contents 
   const create = functionBody('createUtilitySheet');
   const crash = create.slice(create.indexOf("'render-process-gone'"), create.indexOf("'destroyed'"));
   assert.match(crash, /retireUtilitySheetView\(runtime, view\)/);
+});
+
+// The permission prompt is reused for every request. Re-attached on Linux, it
+// stopped drawing: later prompts showed the previous question (or nothing)
+// while Allow/Block answered the new one.
+test('the permission prompt shares the overlay lifecycle and never detaches directly', () => {
+  assert.match(functionBody('attachPermissionView'), /showOverlayView\(rt\(\)\.window, view\)/);
+  const detach = functionBody('detachPermissionView');
+  assert.match(detach, /hideOverlayView\(rt\(\)\.window, rt\(\)\.permissionView\)/);
+  assert.doesNotMatch(detach, /removeChildView/);
+  const ensure = functionBody('ensurePermissionView');
+  assert.match(ensure.slice(ensure.indexOf("once('destroyed'")), /removeChildView\(view\)/);
 });

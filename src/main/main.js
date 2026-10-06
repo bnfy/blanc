@@ -2985,6 +2985,14 @@ function ensurePermissionView() {
       rt().permissionView = null;
       rt().permissionViewAttached = false;
     }
+    // On Linux a hidden prompt stays window-owned (hideOverlayView); drop the
+    // dead view once its native destruction has returned.
+    setImmediate(() => {
+      const window = owner.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
   }));
   view.setBackgroundColor('#00000000');
   // Electron focuses a brand-new view when it is first attached, which would
@@ -3022,7 +3030,11 @@ function attachPermissionView() {
   if (!hasLiveWindow()) return;
   const view = ensurePermissionView();
   view.setBounds(permissionViewBounds());
-  rt().window.contentView.addChildView(view);
+  // Never detached between prompts on Linux: Electron 44 / Wayland stops a
+  // re-attached renderer drawing, so a later prompt showed the previous
+  // question while Allow/Block answered the new one (see #594).
+  view.setVisible(true);
+  showOverlayView(rt().window, view);
   rt().permissionViewAttached = true;
   cancelAddressBarFocusReclaim();
   // Deliberately not focused: the site chooses when this appears, and a
@@ -3033,7 +3045,7 @@ function detachPermissionView() {
   if (!rt().permissionViewAttached) return;
   rt().permissionViewAttached = false;
   if (hasLiveWindow() && rt().permissionView) {
-    rt().window.contentView.removeChildView(rt().permissionView);
+    hideOverlayView(rt().window, rt().permissionView);
   }
 }
 
