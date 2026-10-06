@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "web-ext": "10.6.0"
+  },
+  "overrides": {
+    "shell-quote": "^1.11.0"
   }
 }
