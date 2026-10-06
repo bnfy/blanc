@@ -20,9 +20,12 @@ const OUTAGE_CLAIM_MS = 10000;
 const MAX_OUTAGE_TOKENS = 32;
 // Decision-deadline grace (docs/superpowers/specs/2026-10-06-ubo-deadline-grace-design.md):
 // a timeout callback at least LATE_TIMER_MS late means main was frozen when
-// it was due; answers queued behind the freeze get up to MAX_GRACE_COUNT
-// periods of GRACE_MS before the decision fails closed.
+// it was due. The first grace period is a fresh FIRST_GRACE_MS window: the
+// request itself may only leave main once the freeze ends, so the whole round
+// trip can still be ahead. Later periods are GRACE_MS, granted only while main
+// keeps freezing, up to MAX_GRACE_COUNT periods before failing closed.
 const LATE_TIMER_MS = 100;
+const FIRST_GRACE_MS = 2000;
 const GRACE_MS = 250;
 const MAX_GRACE_COUNT = 8;
 
@@ -64,6 +67,6 @@ function outageReloadTarget(currentUrl, token) {
 
 module.exports = {
   RECOVERABLE, ATTEMPT_RECOVERABLE, RECOVERY_DEADLINE_MS, HOLD_CAPACITY, DRAIN_RESERVE,
-  OUTAGE_CLAIM_MS, MAX_OUTAGE_TOKENS, LATE_TIMER_MS, GRACE_MS, MAX_GRACE_COUNT,
+  OUTAGE_CLAIM_MS, MAX_OUTAGE_TOKENS, LATE_TIMER_MS, FIRST_GRACE_MS, GRACE_MS, MAX_GRACE_COUNT,
   createRecoveryBudget, outageReloadTarget,
 };

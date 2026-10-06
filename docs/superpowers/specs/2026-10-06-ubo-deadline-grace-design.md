@@ -1,7 +1,8 @@
 # Don't count Blanc's own freezes against uBO's decision deadline
 
 **Date:** 2026-10-06
-**Status:** approved 2026-10-06 (revision 2, after review) — implemented in
+**Status:** approved 2026-10-06 (revision 2, after review); amended 2026-10-06
+(first grace period, see below) — implemented in
 https://github.com/bnfy/blanc/pull/599
 **Amends:** the decision-deadline behavior in `src/main/ublock-provider.js`
 (`ask()`), recorded as "Blocking decisions have a two-second deadline" in
@@ -38,6 +39,29 @@ Evidence from the 2026-10-06 investigation:
 Recovery limits the damage, but each false timeout still cancels the request
 in flight, pauses the profile for a restart, and uses one of the three
 automatic restarts allowed per 10 minutes.
+
+## Amendment (2026-10-06): the first grace period is a fresh 2 s window
+
+The freeze-and-answer control failed once on `desktop (macos-15-intel)` (head
+`f00ea88c`). With grace on, the decision received one 250 ms grace period
+(`granted: 1, saved: 0`), the re-check then ran on time with no answer, and uBO
+went into recovery. Intel had passed the same control on the four earlier
+heads, and the other three platforms passed on this one.
+
+The original reasoning assumed uBO's answer was already queued behind the
+freeze. It need not be: the request may only leave main once the freeze ends,
+so the whole round trip (bridge → background → bridge → main) can still be
+ahead when the late timer runs, and on a slow runner catching up after a
+2.5 s freeze that takes more than 250 ms. A late timer also cannot say how long
+the round trip was held up. In the control, the 2 s deadline falls inside the
+2.5 s freeze, so the timer runs only about 0.5 s late.
+
+Decision (owner, 2026-10-06): when the timer is late, **the first grace period
+is a fresh 2 s window** (`FIRST_GRACE_MS = 2000`, uBO's normal deadline).
+Later periods stay 250 ms and are granted only while main keeps freezing, up
+to 8 periods in total. Scheduled grace per decision is therefore at most
+2 s + 7 × 250 ms = **3.75 s** (previously 2 s). An on-time timer still fails
+exactly as before.
 
 ## Decisions
 

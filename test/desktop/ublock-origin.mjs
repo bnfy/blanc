@@ -874,8 +874,12 @@ try {
   const deadlineId = await call('openTab', fixture + 'deadline-gated');
   await deadlinePostPage.evaluate(() => document.querySelector('form').submit());
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'recovering', 'automatic recovery starts', 6000);
-  assert(Date.now() - deadlineStarted < 5000);
-  console.log('uBO hung-decision grace delta:', ((await call('blockingStatus')).decisionGrace?.granted ?? 0) - graceBeforeHang);
+  // With main free the hung decision fails at its 2 s deadline. If a real
+  // runner freeze landed on it, grace may add up to 3.75 s (2 s, then 250 ms
+  // periods), so the bound widens only when grace was actually granted.
+  const hungGraceDelta = ((await call('blockingStatus')).decisionGrace?.granted ?? 0) - graceBeforeHang;
+  console.log('uBO hung-decision grace delta:', hungGraceDelta);
+  assert(Date.now() - deadlineStarted < (hungGraceDelta ? 9000 : 5000), `hung decision failed closed in time (grace delta ${hungGraceDelta})`);
   assert(!hits.includes('/deadline-gated'), 'the hung request never reached the server');
   const recoveryStarted = Date.now();
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'automatic recovery without Retry', 30000);

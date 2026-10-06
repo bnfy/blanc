@@ -301,7 +301,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
           // behind the freeze get a bounded grace before failing closed.
           if (performance.now() - due >= recoveryPolicy.LATE_TIMER_MS && item.graced < item.maxGrace) {
             item.graced++; decisionGrace.granted++;
-            arm(recoveryPolicy.GRACE_MS);
+            arm(item.graced === 1 ? recoveryPolicy.FIRST_GRACE_MS : recoveryPolicy.GRACE_MS);
             return;
           }
           fail('ubo-decision-timeout');

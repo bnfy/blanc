@@ -96,7 +96,7 @@ test('a timeout 99 ms late fails at once; 100 ms late gets grace', async () => {
   const late = fixture(); late.ask({ kind: 'request', name: 'onBeforeRequest' });
   fire(late, 0, 100);
   assert.deepEqual(late.failures, []);
-  assert.equal(late.timers[1].delay, 250);
+  assert.equal(late.timers[1].delay, 2000, 'the first grace period is a fresh 2 s window');
   assert.equal(late.decisionGrace.granted, 1);
 });
 
@@ -143,4 +143,12 @@ test('non-critical operations never get grace', async () => {
   fire(f, 0, 5000); await rejected;
   assert.equal(f.decisionGrace.granted, 0);
   assert.deepEqual(f.failures, []);
+});
+
+test('after a fresh 2 s first grace, later grace periods are 250 ms', async () => {
+  const f = fixture(); const result = f.ask({ kind: 'request', name: 'onBeforeRequest' });
+  const rejected = assert.rejects(result, /ubo-decision-timeout/);
+  for (let i = 0; i <= 8; i++) fire(f, i, 500);
+  await rejected;
+  assert.deepEqual(f.timers.map(timer => timer.delay), [2000, 2000, 250, 250, 250, 250, 250, 250, 250]);
 });

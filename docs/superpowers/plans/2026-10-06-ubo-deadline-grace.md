@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-06-ubo-deadline-grace-design.md` (approved 2026-10-06). Read it first.
 
+> **Amended 2026-10-06** (see the spec's Amendment section): when the timer is late, the first grace period is `FIRST_GRACE_MS = 2000`; later ones are `GRACE_MS = 250`. Scheduled grace per decision is at most 3.75 s. The desktop hung-uBO bound is 5 s when no grace was granted and 9 s when it was.
+
 ## Global Constraints
 
 - Only critical decisions (`onBeforeRequest`, `onBeforeSendHeaders`, `onHeadersReceived`) get grace. Non-critical operations keep their 10 s `ubo-operation-timeout`; the CSS-helper deadline is unchanged.
