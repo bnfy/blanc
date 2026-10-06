@@ -25,7 +25,8 @@
 - Bridge contract: the chip `mode` union in `browser-api/contract.json` gains `'restarting'`; run `npm run browser-api:build` and commit the regenerated vectors.
 - `CLAUDE.md` and `AGENTS.md` are mirrored verbatim; `cmp` their shared paragraph after editing.
 - Work on a branch from `origin/main`, never on `main`. Per the owner's global instructions, run `/verify` and `/simplify` before each commit that changes non-test code. Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
-- Gates before any PR: `npm run lint`, `npm run test:unit`, `npm run browser-api:check`, `npm run substrate:check`, `npm run test:ublock:desktop`, `npm run test:shield-provider:desktop`.
+- `src/main/ublock-provider.js` is a hashed uBO host input: after any change to it, run `node scripts/build-ublock-adaptation.cjs --write` and commit `ublock/adaptation.json` and `ublock/adaptation.patch` with the change (`npm run ublock:check` fails otherwise).
+- Gates before any PR: `npm run ublock:check`, `npm run lint`, `npm run test:unit`, `npm run browser-api:check`, `npm run substrate:check`, `npm run test:ublock:desktop`, `npm run test:shield-provider:desktop`.
 
 ---
 
