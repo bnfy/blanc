@@ -14,6 +14,23 @@ verification separately.
 3. `wrangler deploy`
 4. Confirm the URL matches `SYNC_ENDPOINT` in `src/main/sync.js`.
 
+## Storage budget
+
+Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
+
+- `seen:<accountId>` records activity. A successful upload or a read that
+  finds data refreshes it, at most every 30 days; it expires after 365 days.
+- `new:<UTC day>` counts new accounts. Past `NEW_ACCOUNT_DAILY_LIMIT`, a new
+  account's upload gets `503 {"error":"busy"}` with `Retry-After`; existing
+  accounts are never refused.
+- A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
+  at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
+  `CLEANUP_ENABLED = "true"`.
+
+Never set `CLEANUP_ENABLED` until every account has a marker:
+`node scripts/backfill-seen-markers.mjs`, then
+`node scripts/backfill-seen-markers.mjs --verify` must exit 0.
+
 ## Local dev
 
 `wrangler dev` serves on http://127.0.0.1:8787; temporarily point

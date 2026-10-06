@@ -6,3 +6,10 @@ compatibility_date = "2026-07-01"
 [[kv_namespaces]]
 binding = "SYNC"
 id = "0e6ba79c73d64d77bbb76886666c33d5"
+
+[vars]
+NEW_ACCOUNT_DAILY_LIMIT = "100"
+CLEANUP_MAX_DELETES = "1000"
+
+[triggers]
+crons = ["17 4 * * *"]
