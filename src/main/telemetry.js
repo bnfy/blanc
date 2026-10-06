@@ -1,4 +1,5 @@
 const { randomInt, randomUUID } = require('crypto');
+const { bananifyServiceAllowed } = require('./bananify-services');
 
 // The collector Worker in cloudflare/ping-worker — accepts a JSON POST,
 // returns 204.
@@ -76,8 +77,8 @@ function productUsageAllowed({ firstRunComplete, usagePing, privateTab }) {
 // events share a GA session id. Every event is attempted at most once per app
 // session; the Worker separately dedupes and counts distinct installs by day,
 // week, and month. Consent/private-tab policy stays in main.js, at the trusted
-// event boundary. This layer independently refuses development builds and
-// unknown layout values.
+// event boundary. This layer independently refuses development builds,
+// renamed builds (bananify-services.js), and unknown layout values.
 function createTelemetrySender({
   isPackaged,
   fetchImpl,
@@ -88,6 +89,7 @@ function createTelemetrySender({
   getSystemVersion,
   makeSessionId = () => randomInt(1, 0x80000000),
   newtabLayouts,
+  serviceAllowed = bananifyServiceAllowed,
   warn = console.warn,
 }) {
   const allowedLayouts = new Set(newtabLayouts ?? []);
@@ -113,7 +115,7 @@ function createTelemetrySender({
   }
 
   function postOnce(key, endpoint, payload, label) {
-    if (!isPackaged() || sent.has(key)) return false;
+    if (!isPackaged() || !serviceAllowed(endpoint) || sent.has(key)) return false;
     sent.add(key);
     try {
       const options = {
