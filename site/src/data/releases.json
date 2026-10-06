@@ -1,5 +1,170 @@
 [
   {
+    "tag": "v1.28.0",
+    "version": "1.28.0",
+    "name": "1.28.0",
+    "publishedAt": "2026-10-06T01:15:03.000Z",
+    "humanDate": "October 5, 2026",
+    "machineDate": "2026-10-05",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.28.0",
+    "anchor": "v1-28-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Dark websites: while Blanc is dark, it can darken websites that have no dark mode of their own, from the first paint. Turn it on in Settings → General. It is off by default and stays on this device. The Island shield's new "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Dark website"
+                  },
+                  {
+                    "type": "text",
+                    "value": " switch, or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/dark-site"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", darkens or restores a single site. It uses the open-source Dark Reader engine, bundled with Blanc. Embedded frames keep their original colors."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Match site colors, in Settings → General, controls whether the Island bar takes on the color of the page you're on. It is on by default; turn it off to keep the bar on your theme's background."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Interrupted downloads can be resumed, or retried from the original link when resuming isn't possible. Retry reuses the save location you already chose."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On local and private-network addresses, such as a home server with a self-signed certificate, the certificate warning offers "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Advanced"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and a way to continue. The choice lasts until Blanc quits, applies only to that site and certificate, and is never saved or synced. Public sites keep the warning with no way through."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The start page has one shared frame for all four layouts: the date and moving-in checklist at the top, centered content, and a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " popover in the footer for the layout and dynamic wallpaper."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Ledger is a centered spread, with Favorites beside your tab groups and other devices. Billboard labels its tiles with short site names on one row. Shelf arranges its tiles and cards on one grid sized to how many you have. Tally balances its columns and gives its chart a warmer tint."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With uBlock Origin selected, a slow first install no longer leaves a new start page loading until it finishes, and a slow first start on a fresh profile has 45 seconds, not 15, before it is treated as stalled."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With uBlock Origin selected, the first page you open right after it starts no longer fails to load on a slower computer. For its first 15 seconds, uBO gets 10 seconds instead of 2 to decide on each request; nothing is let through unfiltered while it decides."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A Settings, History or other sheet whose page never finishes loading is removed after 8 seconds instead of leaving an invisible layer over the page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The new tab and private buttons at the bottom of the Island panel no longer overflow on Windows and Linux in small windows or at 125% zoom."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.27.0",
     "version": "1.27.0",
     "name": "1.27.0",

@@ -79,14 +79,15 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.27.0; platform acceptance limits and
-owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-03-v1.27.0.md). Installed
-candidates keep their original source/artifact bindings; hosted verification
-does not establish physical-machine outcomes. Historical wallpaper/Linux
-waivers and v1.26.0 updater confirmations remain in their original reports:
+These boundaries describe public v1.28.0; its acceptance scope, the duplicate
+macOS build number and pending adjacent public-feed updater handoffs are
+recorded in [the release report](release-incidents/2026-10-05-v1.28.0.md).
+Installed candidates keep their original source/artifact bindings; hosted
+verification does not establish physical-machine outcomes. The v1.27.0 uBO
+acceptance, historical wallpaper/Linux waivers and earlier updater
+confirmations remain in their original reports:
 
-- **Optional uBlock Origin:** Public v1.27.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.28.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -95,6 +96,18 @@ waivers and v1.26.0 updater confirmations remain in their original reports:
   pinned to reviewed releases. This does not provide general extension-store
   installation. Keep the [support matrix](ublock-origin-support-matrix-2026-10-03.md)
   and its limits beside broader compatibility claims.
+- **Dark websites:** Off by default and device-local. While Blanc is dark it
+  darkens http(s) pages that have no dark mode of their own, using the bundled,
+  pinned Dark Reader engine; there is no runtime download. Embedded frames
+  keep their original colors. Do not claim every site renders correctly dark,
+  that it works while Blanc is light, or that it darkens iframes.
+- **Local certificate warnings:** Only local and private-network addresses
+  offer Advanced and a way to continue, for that origin and certificate until
+  Blanc quits; the choice is never saved or synced. Public sites keep the hard
+  stop. Do not describe this as a general certificate bypass.
+- **Downloads:** Interrupted downloads offer Resume when Chromium can continue
+  them and Retry (http/https) otherwise. Retry restarts from the source URL;
+  do not promise that every interrupted download can be completed.
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. Its resting controls occupy a
   reserved 68px band above the page; its expanded panel overlays the page.
@@ -171,7 +184,7 @@ waivers and v1.26.0 updater confirmations remain in their original reports:
   second, trading responsiveness for more tolerance of choppy playback. Do not
   promise that either mode eliminates every crackle or fixes source-side,
   network, Bluetooth, driver, or hardware faults.
-- **Time-of-day wallpaper:** Free and off by default. The start-page footer or
+- **Time-of-day wallpaper:** Free and off by default. The start page's Customize popover or
   Settings → General enables bundled Sunrise artwork for dawn (05:00–08:00),
   day (08:00–17:00), dusk (17:00–20:00), and night (20:00–05:00), using the
   device's local clock without location permission or artwork requests.
