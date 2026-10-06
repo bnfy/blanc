@@ -52,7 +52,8 @@ function fixture({ warmUntil = 0 } = {}) {
     fail: code => { failures.push(code); for (const item of pending.values()) item.reject(new Error(code)); pending.clear(); },
   };
   // ...lift and run unchanged...
-  return { ...context, timers, failures, clock };
+  // The live context, so tests can set sandbox state such as graceDisabledNext.
+  return Object.assign(context, { timers, failures, clock });
 }
 ```
 

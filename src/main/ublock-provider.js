@@ -94,6 +94,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let recovering = false;
   let episode = null; // { code, attempt, firstDelay, scheduled, deadlineAt, deadline, retryTimer }
   let lastRecovery = null;
+  const decisionGrace = { granted: 0, saved: 0 };
+  let stallNextDecisionMs = 0;    // test-only, see stallAfterNextDecisionForTest()
+  let graceDisabledNext = false;  // test-only negative control, same hook
   const holdQueue = [];      // FIFO of { resolve, timer }
   let inTransit = 0;         // released from the queue, not yet in `pending`
   let drainOutstanding = 0;  // released and not yet settled
@@ -109,7 +112,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let stageStarted = 0;
   let timings = {};
   const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase: recovering ? 'recovering' : phase, error, stage,
-    timings: { ...timings }, ...(lastRecovery ? { recovery: { ...lastRecovery } } : {}) });
+    timings: { ...timings }, decisionGrace: { ...decisionGrace }, ...(lastRecovery ? { recovery: { ...lastRecovery } } : {}) });
   function endStage() { if (stage) timings[stage] = Math.round((performance.now() - stageStarted) * 10) / 10; }
   function beginStage(name) { endStage(); stage = name; stageStarted = performance.now(); }
   const browserResource = url => isBrowserResource(url, app.getAppPath());
@@ -285,14 +288,35 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     if (pending.size >= MAX_PENDING) return Promise.reject(new Error('ubo-request-capacity'));
     const id = ++sequence;
     const critical = message.kind === 'request' && ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'].includes(message.name);
+    const item = { timer: null, critical, transport: 'background', graced: 0,
+      maxGrace: critical && !graceDisabledNext ? recoveryPolicy.MAX_GRACE_COUNT : 0 };
+    if (critical) graceDisabledNext = false;
     const promise = new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        if (critical) fail('ubo-decision-timeout');
-        else { pending.delete(id); reject(new Error('ubo-operation-timeout')); }
-      }, critical ? decisionDeadline() : OPERATION_DEADLINE_MS);
-      pending.set(id, { resolve, reject, timer, critical, transport: 'background' });
+      item.resolve = resolve; item.reject = reject;
+      const arm = delay => {
+        const due = performance.now() + delay;
+        item.timer = setTimeout(() => {
+          if (!critical) { pending.delete(id); reject(new Error('ubo-operation-timeout')); return; }
+          // Late means main was frozen when this was due: answers queued
+          // behind the freeze get a bounded grace before failing closed.
+          if (performance.now() - due >= recoveryPolicy.LATE_TIMER_MS && item.graced < item.maxGrace) {
+            item.graced++; decisionGrace.granted++;
+            arm(recoveryPolicy.GRACE_MS);
+            return;
+          }
+          fail('ubo-decision-timeout');
+        }, delay);
+      };
+      arm(critical ? decisionDeadline() : OPERATION_DEADLINE_MS);
+      pending.set(id, item);
       try { send({ ...message, id }); } catch { fail('ubo-background-unavailable'); }
+      if (critical && stallNextDecisionMs) {
+        const end = Date.now() + stallNextDecisionMs; stallNextDecisionMs = 0;
+        while (Date.now() < end) { /* test-only main-process freeze */ }
+      }
     });
+    // decideNow() counts a saved decision only once the reply validates.
+    promise.graced = () => item.graced;
     // A settled decision frees a slot for held requests.
     promise.then(pump, pump);
     return promise;
@@ -740,9 +764,10 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   async function decideNow(name, details, drained) {
     const converted = registry.request(details);
     let result;
+    const asked = ask({ kind: 'request', name, details: converted });
     try {
       // The extension's own filter-data fetches use its native background.
-      result = await ask({ kind: 'request', name, details: converted });
+      result = await asked;
     } catch (caught) {
       if (caught?.message !== 'ubo-request-capacity') noteOutage(details);
       throw caught;
@@ -756,7 +781,10 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       counted.add(details.id);
       if (converted.tabId !== -1) onBlocked(registry.tabFor(converted.tabId));
     }
+    // A decision saved by grace counts only once it is usable.
+    const usable = () => { if (asked.graced()) decisionGrace.saved++; };
     if (result.cancel === true) {
+      usable();
       return { cancel: true };
     }
     const value = {};
@@ -772,6 +800,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       value.requestHeaders = Object.fromEntries(Object.entries(headers).map(([name, values]) => [name, values.join(', ')]));
     }
     } catch { fail('ubo-response-invalid'); return { cancel: true }; }
+    usable();
     return value;
   }
   async function observe(name, details) {
@@ -858,6 +887,13 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     await restartNetwork();
     restoreTools();
   }
+  // Freeze main right after the next critical decision is sent; with
+  // { grace: false } that one decision gets no grace (the negative control).
+  function stallAfterNextDecisionForTest(ms, { grace = true } = {}) {
+    if (app.isPackaged || process.env.BLANC_TEST !== '1') throw new Error('test-only');
+    stallNextDecisionMs = Math.min(Math.max(Number(ms) || 0, 0), 10000);
+    graceDisabledNext = !grace;
+  }
   function exhaustRecoveryForTest() {
     if (app.isPackaged || process.env.BLANC_TEST !== '1') throw new Error('test-only');
     budget.exhaust();
@@ -868,7 +904,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       Promise.resolve().then(() => instances.get(event.sender.id)?.(event, message)).catch(() => {});
     });
   }
-  return { id: 'ublock-origin', initialize, retry, exhaustRecoveryForTest, claimOutage, noteMainFrameCommitted, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
+  return { id: 'ublock-origin', initialize, retry, exhaustRecoveryForTest, stallAfterNextDecisionForTest, claimOutage, noteMainFrameCommitted, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
     get extensionId() { return extension?.id; },
     // Read-only, for the acceptance harness.
     decisionDeadlineMs: decisionDeadline };

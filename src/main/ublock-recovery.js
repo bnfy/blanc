@@ -18,6 +18,13 @@ const HOLD_CAPACITY = 512;
 const DRAIN_RESERVE = 32;
 const OUTAGE_CLAIM_MS = 10000;
 const MAX_OUTAGE_TOKENS = 32;
+// Decision-deadline grace (docs/superpowers/specs/2026-10-06-ubo-deadline-grace-design.md):
+// a timeout callback at least LATE_TIMER_MS late means main was frozen when
+// it was due; answers queued behind the freeze get up to MAX_GRACE_COUNT
+// periods of GRACE_MS before the decision fails closed.
+const LATE_TIMER_MS = 100;
+const GRACE_MS = 250;
+const MAX_GRACE_COUNT = 8;
 
 function createRecoveryBudget({ limit = 3, windowMs = 600000, delaysMs = [0, 2000, 10000], now = Date.now } = {}) {
   const started = [];
@@ -57,5 +64,6 @@ function outageReloadTarget(currentUrl, token) {
 
 module.exports = {
   RECOVERABLE, ATTEMPT_RECOVERABLE, RECOVERY_DEADLINE_MS, HOLD_CAPACITY, DRAIN_RESERVE,
-  OUTAGE_CLAIM_MS, MAX_OUTAGE_TOKENS, createRecoveryBudget, outageReloadTarget,
+  OUTAGE_CLAIM_MS, MAX_OUTAGE_TOKENS, LATE_TIMER_MS, GRACE_MS, MAX_GRACE_COUNT,
+  createRecoveryBudget, outageReloadTarget,
 };
