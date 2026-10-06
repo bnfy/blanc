@@ -338,6 +338,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.navEpoch++;
+    deps.noteMainFrameCommitted?.(tab, wc, url);
     // The not-secure mark belongs to the history entry that committed
     // (certificate spec §4.5). The session-wide certificate observer is
     // deliberately not consulted: a host-scoped trusted record says nothing
@@ -460,6 +461,10 @@ function wireTabView(tab, view, { owner, adopted }) {
           desc: errorDescription,
         }, { canContinue })
       : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
+    // A load uBO's automatic recovery cancelled gets a one-time token, so
+    // that page (and only that page) reloads once uBO is back.
+    const outage = !tab.certificateError && errorCode === -20 ? deps.claimOutage?.(tab, wc, validatedURL) : null;
+    if (outage) q.set('outage', outage);
     queueTabNavigation(wc, {
       isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
       run: contents => contents.loadURL(`blanc://error/?${q}`),
