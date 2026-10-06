@@ -1,6 +1,6 @@
 # Blanc trademark policy
 
-_Last updated: October 3, 2026_
+_Last updated: October 6, 2026_
 
 Blanc is open source. The [MIT License](LICENSE) lets anyone study, build,
 change, share, and sell Bananify Creative's code. This policy covers something
