@@ -203,3 +203,16 @@ test('profile deletion waits for in-flight writes, repeated discards wait too, a
   });
   assert.equal(fs.existsSync(dir), false, 'the folder is never recreated');
 });
+
+test('the first load sweeps only this store\'s exact orphan temps and never promotes one', () => {
+  store.enableTempSweep();
+  const file = path.join(userData, 'sweep.json');
+  const keep = ['other.json.123.tmp', 'sweep.json.bak', `sweep.json.${process.pid}.9.tmp`, 'sweep.json.12a.tmp', 'sweep.json.12.tmp.keep'];
+  const remove = ['sweep.json.123.tmp', 'sweep.json.123.45.tmp'];
+  for (const name of [...keep, ...remove]) fs.writeFileSync(path.join(userData, name), JSON.stringify({ n: 99 }));
+  const s = new JsonStore('sweep', { n: 0 });
+  assert.equal(s.data.n, 0, 'an orphan is never promoted, even with no committed file');
+  for (const name of remove) assert.equal(fs.existsSync(path.join(userData, name)), false, name);
+  for (const name of keep) assert.equal(fs.existsSync(path.join(userData, name)), true, name);
+  assert.equal(fs.existsSync(file), false);
+});

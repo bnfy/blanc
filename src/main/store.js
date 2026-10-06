@@ -19,6 +19,11 @@ const tombstoned = new Set();
 // entries and returning at once.
 const profileDrains = new Map();
 
+let tempSweepEnabled = false;
+/** Called once Blanc holds the single-instance lock (never in acceptance mode). */
+function enableTempSweep() { tempSweepEnabled = true; }
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
  * Minimal JSON-file persistence. Device stores keep their one root file;
  * profile stores retain Personal's shipped root file and place each named
@@ -53,6 +58,18 @@ class JsonStore {
   }
 
   #load(file) {
+    if (tempSweepEnabled) {
+      // Best effort: only this store's exact orphan temps, never this
+      // process's own, and never promoted (spec: stale temp files).
+      try {
+        const pattern = new RegExp(`^${escapeRegExp(path.basename(file))}\\.(\\d+)(?:\\.\\d+)?\\.tmp$`);
+        for (const name of fs.readdirSync(path.dirname(file))) {
+          const match = pattern.exec(name);
+          if (!match || Number(match[1]) === process.pid) continue;
+          try { fs.unlinkSync(path.join(path.dirname(file), name)); } catch { /* best effort */ }
+        }
+      } catch { /* the directory may not exist yet */ }
+    }
     try {
       const loaded = { ...this.defaults, ...JSON.parse(fs.readFileSync(file, 'utf8')) };
       // Tighten legacy files on first read, not only after their next update.
@@ -322,4 +339,4 @@ async function discardProfileStoreEntries(profileId) {
   return true;
 }
 
-module.exports = { JsonStore, discardProfileStoreEntries };
+module.exports = { JsonStore, discardProfileStoreEntries, enableTempSweep };
