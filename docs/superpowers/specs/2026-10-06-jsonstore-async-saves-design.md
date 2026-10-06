@@ -1,8 +1,9 @@
 # Routine JSON-store saves off the main thread
 
 **Date:** 2026-10-06
-**Status:** approved 2026-10-06 (revision 3, after two reviews) — not
-implemented
+**Status:** approved 2026-10-06 (revision 4: revision 3 after two reviews,
+plus the plan review's corrections to drain ownership, repeated discards and
+serialization failures) — not implemented
 **Amends:** the persistence behavior in `src/main/store.js` (`JsonStore`) and
 Named Workspace autosave in `src/main/workspaces.js`, and the "Persistence"
 paragraph in `CLAUDE.md`/`AGENTS.md` ("normally saved on a 250ms debounce.
@@ -80,6 +81,9 @@ Triggered by the debounce timer, by the 5 s cap, or by `updateAndCommit()`
    `rewrite` and start one more write with a fresh snapshot.
 2. Otherwise, synchronously on main, snapshot `JSON.stringify(entry.data,
    null, 2)` and the current `changeSeq`, and take `writeSeq = ++entry.writeSeq`.
+   If serialization throws, nothing is written: log it, keep the entry dirty,
+   resolve the waiters this write covered with `false`, and return. Never
+   throw out of the save timer.
 3. If the entry is discarded, stop. Otherwise, asynchronously: `mkdir`
    (recursive), `fs.promises.open(temp, 'w', 0o600)` with
    `temp = <file>.<pid>.<writeSeq>.tmp`, `handle.writeFile(json)`,
@@ -163,7 +167,9 @@ profile's folder back. So:
   a module-level set, then marks each of its entries `discarded`, clears their
   timers, removes them, and **returns a promise** that settles when their
   in-flight routine writes have closed their handles and removed their temp
-  files.
+  files. The promise is kept per profile until it settles, so a repeated or
+  overlapping discard waits for the same writes instead of finding no entries
+  and returning at once.
 - For a tombstoned profile, `#entry()` returns an **inert** entry: data from
   `defaults`, never loaded from disk, and never written. `update()` applies in
   memory only, `flush()` and `updateAndFlush()` return `false`, and
@@ -220,9 +226,11 @@ Per profile, the workspace state gains `epoch` (a number), `draining` (one
 asynchronous drain at a time) and `disposed`.
 
 - **One drain per profile.** The timer starts the asynchronous drain only if
-  none is running; otherwise it sets a follow-up flag. The drain processes the
-  pending captures it found, then, if newer captures were queued meanwhile or
-  the follow-up flag is set, runs once more before it ends.
+  none is running; otherwise it does nothing, because the running pass rereads
+  `pending` until it is empty. The drain's promise is installed in `draining`
+  **before** its pass starts and cleared afterwards, so a pass that never
+  awaits (nothing queued) cannot leave a settled promise that blocks every
+  later drain.
 - **Epoch.** The drain captures `epoch` when it starts.
   - Every synchronous checkpoint (`saveCapture()` called directly, the
     synchronous `flushPending()`) increments `epoch` after it finishes.
@@ -235,11 +243,17 @@ asynchronous drain at a time) and `disposed`.
   the profile not `disposed`.
   - It removes a capture from `pending` only if the queued capture is still
     the same object.
-  - It sets status (`saved` / `storage-failed`) and calls `scheduleRetry` only
-    if it still owns the state.
-  - An obsolete completion (superseded or disposed) changes nothing. In
-    particular, it never replaces a newer checkpoint's status and never
-    re-arms a disposed profile's timer.
+  - It sets status (`saved` / `storage-failed`) only if it still owns the
+    state.
+  - An obsolete completion (superseded or disposed) changes no status. In
+    particular, it never replaces a newer checkpoint's status.
+- **No stranded captures.** When a drain ends for any reason (finished,
+  failed or superseded) and captures are still queued, it calls
+  `scheduleRetry`, which arms a fresh pass under the new epoch. Otherwise a
+  checkpoint of one workspace during a drain would leave another workspace's
+  queued capture with no timer. `scheduleRetry` arms nothing for a disposed or
+  unavailable profile or when a timer is already armed, so a disposed
+  profile's timer is never re-armed.
 - `scheduleRetry` also refuses to arm a timer for a `disposed` profile.
 
 The synchronous `flushPending()` stays for quit (`main.js:4191`) and the test
@@ -316,6 +330,11 @@ held or made to fail):
   store; leaves other stores' temps, unrelated files, this process's own temps
   and non-matching names. It never promotes a temp file, including when the
   main file is missing.
+- **Serialization failure:** an unserializable value fails the routine save
+  without throwing from the timer, resolves `updateAndCommit()` `false`, and
+  leaves the entry dirty.
+- **Repeated discard:** a second discard of the same profile during a held
+  write waits for that write too.
 - **Updated existing test:** `json-store-profile-scope.test.js`
   (`discardProfileStoreEntries` now returns a promise; the default-profile
   case still returns or resolves `false`).
@@ -338,6 +357,10 @@ held or made to fail):
     disposed profile;
   - **one drain per profile:** a timer firing during a drain starts no second
     drain;
+  - **empty pass:** a drain that finds nothing queued leaves autosave working
+    for the next capture;
+  - **no stranded captures:** with captures for workspaces A and B queued, a
+    synchronous checkpoint of A during A's held write still gets B written;
   - the synchronous `flushPending()` keeps its results.
 
 **Desktop:** the full acceptance profile and the uBO, shield, session and
@@ -353,6 +376,14 @@ this change), on Windows and the other three platforms:
 
 `#flush` and `fsyncSync` must no longer appear in routine-save freezes, and
 any remaining stall must be explained in the PR.
+
+**Affected-machine confirmation before merge.** Hosted checks are not
+physical-machine confirmation. The owner confirms packaged candidates on this
+Mac and on the Windows VM's normal install with a real profile: settings,
+Favorites, history and Named Workspace changes survive a quit and relaunch, a
+deleted named profile's folder is removed, and no new freezes appear. The PR
+records that confirmation, or a written waiver that names the missing evidence
+and the risk.
 
 ## Docs to update with the implementation
 
