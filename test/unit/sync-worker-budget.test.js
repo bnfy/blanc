@@ -96,3 +96,45 @@ test('erasing the server copy removes the activity marker', async () => {
   assert.equal(marker(env, accountA), null);
   assert.deepEqual(blobKeys(env), []);
 });
+
+const counter = (env) => {
+  const key = [...env.records.keys()].find((k) => k.startsWith('new:'));
+  return key ? Number(env.records.get(key)) : 0;
+};
+
+test('a new account counts once toward the day’s budget, an existing one never', async () => {
+  const env = storage({ NEW_ACCOUNT_DAILY_LIMIT: '5' });
+  await putBlob(env, accountA, 'bookmarks');
+  await putBlob(env, accountA, 'settings');
+  assert.equal(counter(env), 1);
+  const key = [...env.records.keys()].find((k) => k.startsWith('new:'));
+  assert.match(key, /^new:\d{4}-\d{2}-\d{2}$/);
+  assert.equal(env.ttl.get(key), 2 * 24 * 60 * 60);
+});
+
+test('at the limit a new account gets 503 busy with Retry-After and nothing is stored', async () => {
+  const env = storage({ NEW_ACCOUNT_DAILY_LIMIT: '1' });
+  assert.equal((await putBlob(env, accountA)).status, 200);
+  const res = await putBlob(env, accountB);
+  assert.equal(res.status, 503);
+  assert.deepEqual(await res.json(), { error: 'busy' });
+  const retry = Number(res.headers.get('Retry-After'));
+  assert.ok(Number.isInteger(retry) && retry >= 1 && retry <= 86_400, `Retry-After ${retry}`);
+  assert.equal(env.records.has(`blob:${accountB}:bookmarks`), false);
+  assert.equal(marker(env, accountB), null);
+});
+
+test('at the limit an existing account still uploads', async () => {
+  const env = storage({ NEW_ACCOUNT_DAILY_LIMIT: '1' });
+  await putBlob(env, accountA, 'bookmarks');
+  assert.equal((await putBlob(env, accountA, 'settings')).status, 200);
+});
+
+test('a missing or unreadable limit falls back to 100', async () => {
+  for (const vars of [{}, { NEW_ACCOUNT_DAILY_LIMIT: 'lots' }]) {
+    const env = storage(vars);
+    env.records.set(`new:${new Date().toISOString().slice(0, 10)}`, '99');
+    assert.equal((await putBlob(env, accountA)).status, 200);
+    assert.equal((await putBlob(env, accountB)).status, 503);
+  }
+});

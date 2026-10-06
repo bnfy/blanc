@@ -29,6 +29,40 @@ async function touchAccount(env, accountId, marker, now = Date.now()) {
   await env.SYNC.put(seenKey(accountId), JSON.stringify({ touchedAt: now }), { expirationTtl: SEEN_TTL_SECONDS });
 }
 
+// Daily new-account budget (design 2026-10-05 §4.2). An account with no
+// marker is new; only new accounts are ever refused, so a flood can block
+// sign-ups for a day but never existing users. KV has no atomic increment,
+// so like bumpLimited this is an order-of-magnitude bound, not an exact one.
+const DEFAULT_NEW_ACCOUNT_DAILY_LIMIT = 100;
+const NEW_COUNTER_TTL_SECONDS = 2 * 24 * 60 * 60;
+const utcDay = (now) => new Date(now).toISOString().slice(0, 10);
+
+function limitFrom(value, fallback) {
+  const n = Number.parseInt(value ?? '', 10);
+  return Number.isSafeInteger(n) && n >= 0 ? n : fallback;
+}
+
+async function newAccountRefusal(env, now = Date.now()) {
+  const limit = limitFrom(env.NEW_ACCOUNT_DAILY_LIMIT, DEFAULT_NEW_ACCOUNT_DAILY_LIMIT);
+  const used = Number.parseInt((await env.SYNC.get(`new:${utcDay(now)}`)) ?? '0', 10);
+  if (used < limit) return null;
+  const midnight = new Date(now);
+  midnight.setUTCHours(24, 0, 0, 0);
+  return new Response(JSON.stringify({ error: 'busy' }), {
+    status: 503,
+    headers: {
+      'Content-Type': 'application/json',
+      'Retry-After': String(Math.max(1, Math.ceil((midnight.getTime() - now) / 1000))),
+    },
+  });
+}
+
+async function countNewAccount(env, now = Date.now()) {
+  const key = `new:${utcDay(now)}`;
+  const used = Number.parseInt((await env.SYNC.get(key)) ?? '0', 10);
+  await env.SYNC.put(key, String(used + 1), { expirationTtl: NEW_COUNTER_TTL_SECONDS });
+}
+
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
 
@@ -64,10 +98,15 @@ async function handlePut(env, accountId, store, body) {
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
   if (new TextEncoder().encode(JSON.stringify(body.blob)).byteLength > MAX_BLOB_BYTES) return json({ error: 'too large' }, 413);
   const marker = await readMarker(env, accountId);
+  if (!marker) {
+    const busy = await newAccountRefusal(env);
+    if (busy) return busy;
+  }
   const cur = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   const version = crypto.randomUUID();
   await env.SYNC.put(blobKey(accountId, store), JSON.stringify({ version, blob: body.blob }));
+  if (!marker) await countNewAccount(env);
   await touchAccount(env, accountId, marker);
   return json({ version });
 }
