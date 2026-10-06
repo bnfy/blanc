@@ -9753,6 +9753,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
       blockingOpen: openUblockTool,
       blockingRetry: () => blockingProviders.retry(),
+      blockingExhaustRecovery: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.exhaustRecoveryForTest?.(),
       blockingDecisionDeadline: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.decisionDeadlineMs?.() ?? null,
       blockingPopup: openUblockPopup,
       // Playwright calls globalThis.__blanc.* from OUTSIDE any ALS context

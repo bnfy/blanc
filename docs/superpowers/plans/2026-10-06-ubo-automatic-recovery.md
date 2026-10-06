@@ -1384,15 +1384,17 @@ git commit -m "Show a distinct Restarting state while uBO recovers"
 Replace from `const deadlineStarted = Date.now();` through the `await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'deadline retry', 20000);` line with:
 
 ```js
-  const postTab = await call('openTab', fixture + 'post-form');
-  const postPage = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/post-form')), Boolean, 'POST fixture');
-  await postPage.waitForSelector('form');
+  const deadlinePostTab = await call('openTab', fixture + 'post-form');
+  const deadlinePostPage = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/post-form')), Boolean, 'POST fixture');
+  await deadlinePostPage.waitForSelector('form');
+  // An earlier stage already POSTed this form once; count from here.
+  const postsBefore = methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length;
   // Hang uBO (as before), then cause one GET and one POST main-frame load.
   await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
     "chrome.webRequest.onBeforeRequest.addListener(() => new Promise(() => {}), {urls:['<all_urls>']}, ['blocking']); true"));
   const deadlineStarted = Date.now();
   const deadlineId = await call('openTab', fixture + 'deadline-gated');
-  await postPage.evaluate(() => document.querySelector('form').submit());
+  await deadlinePostPage.evaluate(() => document.querySelector('form').submit());
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'recovering', 'automatic recovery starts', 6000);
   assert(Date.now() - deadlineStarted < 5000);
   assert(!hits.includes('/deadline-gated'), 'the hung request never reached the server');
@@ -1401,8 +1403,8 @@ Replace from `const deadlineStarted = Date.now();` through the `await waitForVal
   console.log('uBO automatic recovery ms:', Date.now() - recoveryStarted);
   assert.equal(await call('blockingDecisionDeadline'), 10000, 'a fresh ready opens the decision warm-up window');
   await waitForValue(() => hits.filter(hit => hit === '/deadline-gated').length, count => count === 1, 'the cancelled GET page reloads once', 15000);
-  assert(!methods.some(item => item.method === 'POST' && item.url.startsWith('/post-result')), 'the cancelled POST is not resubmitted');
-  await call('closeTab', postTab);
+  assert.equal(methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length, postsBefore, 'the cancelled POST is not resubmitted');
+  await call('closeTab', deadlinePostTab);
   await call('closeTab', deadlineId);
   // Manual path: with the budget spent, a failure shows manual recovery.
   await call('blockingExhaustRecovery');
