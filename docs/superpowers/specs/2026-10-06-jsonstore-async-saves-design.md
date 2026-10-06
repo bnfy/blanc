@@ -3,7 +3,7 @@
 **Date:** 2026-10-06
 **Status:** approved 2026-10-06 (revision 4: revision 3 after two reviews,
 plus the plan review's corrections to drain ownership, repeated discards and
-serialization failures) — not implemented
+serialization failures) — implemented in https://github.com/bnfy/blanc/pull/606
 **Amends:** the persistence behavior in `src/main/store.js` (`JsonStore`) and
 Named Workspace autosave in `src/main/workspaces.js`, and the "Persistence"
 paragraph in `CLAUDE.md`/`AGENTS.md` ("normally saved on a 250ms debounce.
