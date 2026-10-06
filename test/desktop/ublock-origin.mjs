@@ -361,7 +361,11 @@ try {
   const inspectorClickedAt = Date.now();
   let inspector;
   try {
-    inspector = await waitForValue(async () => findInspector(), Boolean, 'original DOM inspector');
+    // Normally ~0.4-0.9 s (uBO's 353 ms defer plus injection), but a stalled
+    // shared Intel macOS runner once took over 5 s (run 37414775568). Allow
+    // 10 s like the neighbouring logger steps; a lost injection still fails
+    // and the diagnostics below show which request never completed.
+    inspector = await waitForValue(async () => findInspector(), Boolean, 'original DOM inspector', 10000);
   } catch (error) {
     // Diagnose intermittent CI timeouts: a late frame means slow injection,
     // no frame at all means uBO never injected into the selected tab.
