@@ -10,6 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
+const { showOverlayView } = require('../../src/main/overlay-view-lifecycle');
 
 const ROOT = path.join(__dirname, '../..');
 const promptSource = fs.readFileSync(path.join(ROOT, 'src/renderer/permission.js'), 'utf8');
@@ -158,27 +159,33 @@ test('nothing held the keyboard, so nothing is handed back', () => {
   assert.doesNotThrow(() => view.webContents.emit('focus'));
 });
 
-test('attaching the prompt view shows it without focusing it', () => {
-  const added = [];
-  const view = {
-    focusCalls: 0,
-    bounds: null,
-    setBounds(bounds) { this.bounds = bounds; },
-    webContents: { focus() { view.focusCalls += 1; } },
-  };
-  const runtime = { window: { contentView: { addChildView: (child) => added.push(child) } }, permissionViewAttached: false };
-  let cancelledReclaim = false;
-  const sandbox = {
-    cancelAddressBarFocusReclaim: () => { cancelledReclaim = true; },
-    hasLiveWindow: () => true,
-    ensurePermissionView: () => view,
-    permissionViewBounds: () => ({ x: 0, y: 736, width: 560, height: 84 }),
-    rt: () => runtime,
-  };
-  vm.createContext(sandbox);
-  vm.runInContext(`${attachSource}; attachPermissionView();`, sandbox);
-  assert.deepEqual(added, [view], 'the prompt view must be attached');
-  assert.equal(runtime.permissionViewAttached, true);
-  assert.equal(cancelledReclaim, true);
-  assert.equal(view.focusCalls, 0);
-});
+for (const platform of ['linux', 'darwin']) {
+  test(`${platform}: attaching the prompt view shows it without focusing it`, () => {
+    const added = [];
+    const view = {
+      focusCalls: 0,
+      bounds: null,
+      visible: false,
+      setBounds(bounds) { this.bounds = bounds; },
+      setVisible(value) { this.visible = value; },
+      webContents: { focus() { view.focusCalls += 1; } },
+    };
+    const runtime = { window: { contentView: { addChildView: (child) => added.push(child) } }, permissionViewAttached: false };
+    let cancelledReclaim = false;
+    const sandbox = {
+      cancelAddressBarFocusReclaim: () => { cancelledReclaim = true; },
+      hasLiveWindow: () => true,
+      ensurePermissionView: () => view,
+      permissionViewBounds: () => ({ x: 0, y: 736, width: 560, height: 84 }),
+      rt: () => runtime,
+      showOverlayView: (window, child) => showOverlayView(window, child, platform),
+    };
+    vm.createContext(sandbox);
+    vm.runInContext(`${attachSource}; attachPermissionView();`, sandbox);
+    assert.deepEqual(added, [view], 'the prompt view must be attached');
+    assert.equal(view.visible, true, 'a prompt hidden after the last request must show again');
+    assert.equal(runtime.permissionViewAttached, true);
+    assert.equal(cancelledReclaim, true);
+    assert.equal(view.focusCalls, 0);
+  });
+}
