@@ -12,6 +12,12 @@ const MAX_SAVE_DELAY_MS = 5000;
 
 /** All live stores, so we can flush pending writes on quit. */
 const instances = [];
+/** Profiles deleted this launch: their entries are inert from now on. */
+const tombstoned = new Set();
+// profileId → the promise for that profile's in-flight writes, so a repeated
+// or overlapping discard waits for the same writes instead of finding no
+// entries and returning at once.
+const profileDrains = new Map();
 
 /**
  * Minimal JSON-file persistence. Device stores keep their one root file;
@@ -61,6 +67,20 @@ class JsonStore {
 
   #entry() {
     const profileId = this.#profileId();
+    if (this.scope === 'profile' && tombstoned.has(profileId)) {
+      let inert = this.entries.get(profileId);
+      if (!inert?.inert) {
+        // A deleted profile: in-memory only, never loaded or written, so
+        // nothing can recreate its folder.
+        inert = {
+          file: this.#fileFor(profileId), data: structuredClone(this.defaults), saveTimer: null, pendingSince: null,
+          changeSeq: 0, committedChangeSeq: 0, writeSeq: 0, committedWriteSeq: 0,
+          inFlight: null, rewrite: false, discarded: true, inert: true, waiters: [],
+        };
+        this.entries.set(profileId, inert);
+      }
+      return inert;
+    }
     let entry = this.entries.get(profileId);
     if (!entry) {
       const file = this.#fileFor(profileId);
@@ -276,14 +296,29 @@ app.on('before-quit', () => {
   }
 });
 
-function discardProfileStoreEntries(profileId) {
+/** Tombstone a deleted profile and resolve once its in-flight writes have
+ * closed their files and removed their temp files. */
+async function discardProfileStoreEntries(profileId) {
   if (!validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) return false;
+  tombstoned.add(profileId);
+  const flights = profileDrains.has(profileId) ? [profileDrains.get(profileId)] : [];
   for (const store of instances) {
     if (store.scope !== 'profile') continue;
     const entry = store.entries.get(profileId);
-    if (entry?.saveTimer) clearTimeout(entry.saveTimer);
+    if (!entry || entry.inert) continue;
+    entry.discarded = true;
+    clearTimeout(entry.saveTimer);
+    entry.saveTimer = null;
+    for (const waiter of entry.waiters) waiter.resolve(false);
+    entry.waiters = [];
+    if (entry.inFlight) flights.push(entry.inFlight);
     store.entries.delete(profileId);
   }
+  const drain = Promise.allSettled(flights).then(() => {
+    if (profileDrains.get(profileId) === drain) profileDrains.delete(profileId);
+  });
+  profileDrains.set(profileId, drain);
+  await drain;
   return true;
 }
 

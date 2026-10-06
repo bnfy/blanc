@@ -8648,7 +8648,9 @@ async function completeNamedProfileDeletion(profileId, {
   try {
     discardProfileDownloads(profileId);
     namedWorkspaces.disposeProfile(profileId);
-    discardProfileStoreEntries(profileId);
+    // Wait for in-flight routine saves to close their files first: an open
+    // temp file would make the recursive delete fail on Windows.
+    await discardProfileStoreEntries(profileId);
     fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
   } catch (error) {
     errors.push(error);

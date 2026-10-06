@@ -466,6 +466,7 @@ test('profile deletion waits for in-flight writes, repeated discards wait too, a
       assert.equal(s.flush(), false, 'during the drain: inert');
       assert.equal(await s.updateAndCommit(d => { d.n = 4; }), false);
     });
+    await tick(20); // a real wait, not microtasks: the held write cannot finish meanwhile
     assert.equal(first, false, 'waits for the held write');
     assert.equal(second, false, 'a repeated discard waits for the held write too');
     hold.release();

@@ -167,3 +167,39 @@ test('commitPending on a clean entry resolves true without writing', async () =>
   assert.equal(await s.commitPending(), true);
   assert.equal(fs.existsSync(s.file), false);
 });
+
+const { withLocalProfile } = require('../../src/main/local-profile-context');
+test('profile deletion waits for in-flight writes, repeated discards wait too, and nothing recreates the folder', async () => {
+  const id = 'profile_doomed';
+  const dir = path.join(userData, 'profiles', id);
+  const file = path.join(dir, 'doomed.json');
+  const s = new JsonStore('doomed', { n: 0 }, { scope: 'profile' });
+  await withLocalProfile(id, async () => { s.update(d => { d.n = 1; }); assert.equal(s.flush(), true); });
+  await withHold(async hold => {
+    await withLocalProfile(id, async () => { s.update(d => { d.n = 2; }); await hold.syncEntered; });
+    let first = false, second = false;
+    const discarding = store.discardProfileStoreEntries(id).then(value => { first = true; return value; });
+    // Deletion recovery can run the discard again; it must wait for the same write.
+    const again = store.discardProfileStoreEntries(id).then(value => { second = true; return value; });
+    await withLocalProfile(id, async () => {
+      s.update(d => { d.n = 3; });
+      assert.equal(s.flush(), false, 'during the drain: inert');
+      assert.equal(await s.updateAndCommit(d => { d.n = 4; }), false);
+    });
+    await tick(20); // a real wait, not microtasks: the held write cannot finish meanwhile
+    assert.equal(first, false, 'waits for the held write');
+    assert.equal(second, false, 'a repeated discard waits for the held write too');
+    hold.release();
+    assert.equal(await discarding, true);
+    assert.equal(await again, true);
+    assert.equal(hold.closed.length, 1, 'the held write closed its file before the discard settled');
+    assert.deepEqual(temps(file), [], 'and removed its temp file');
+    assert.equal(read(file).n, 1, 'the discarded write never committed');
+  });
+  fs.rmSync(dir, { recursive: true, force: true }); // the deletion flow removes the folder only after awaiting
+  await withLocalProfile(id, async () => {
+    s.update(d => { d.n = 5; }); assert.equal(s.flush(), false, 'after the drain: inert');
+    await tick(300);
+  });
+  assert.equal(fs.existsSync(dir), false, 'the folder is never recreated');
+});
