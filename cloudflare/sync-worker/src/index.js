@@ -63,6 +63,38 @@ async function countNewAccount(env, now = Date.now()) {
   await env.SYNC.put(key, String(used + 1), { expirationTtl: NEW_COUNTER_TTL_SECONDS });
 }
 
+// Daily cleanup (design 2026-10-05 §4.3). Deletes blobs whose account has no
+// live marker. Off unless CLEANUP_ENABLED is exactly "true", which is set only
+// after the backfill gives every existing account a marker. Bounded per run;
+// anything left is picked up the next day.
+const DEFAULT_CLEANUP_MAX_DELETES = 1000;
+
+async function listNames(env, prefix) {
+  const names = [];
+  let cursor;
+  do {
+    const page = await env.SYNC.list({ prefix, cursor });
+    for (const key of page.keys) names.push(key.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  return names;
+}
+
+async function cleanupInactive(env) {
+  if (env.CLEANUP_ENABLED !== 'true') return { skipped: true, deleted: 0 };
+  const max = limitFrom(env.CLEANUP_MAX_DELETES, DEFAULT_CLEANUP_MAX_DELETES);
+  const live = new Set((await listNames(env, 'seen:')).map((name) => name.slice('seen:'.length)));
+  let deleted = 0;
+  for (const name of await listNames(env, 'blob:')) {
+    if (deleted >= max) break;
+    if (live.has(name.split(':')[1])) continue;
+    await env.SYNC.delete(name);
+    deleted += 1;
+  }
+  console.log(JSON.stringify({ event: 'sync-cleanup', deleted, live: live.size }));
+  return { skipped: false, deleted };
+}
+
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
 
@@ -174,5 +206,8 @@ export default {
       return handlePut(env, accountId, store, parsed.body);
     }
     return new Response('method not allowed', { status: 405 });
+  },
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(cleanupInactive(env));
   },
 };

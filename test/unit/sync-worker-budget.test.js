@@ -138,3 +138,44 @@ test('a missing or unreadable limit falls back to 100', async () => {
     assert.equal((await putBlob(env, accountB)).status, 503);
   }
 });
+
+async function runCleanup(env) {
+  const pending = [];
+  await (await workerPromise).scheduled({ cron: '17 4 * * *' }, env, { waitUntil: (p) => pending.push(p) });
+  return Promise.all(pending);
+}
+
+function seed(env, account, { live }) {
+  for (const store of ['bookmarks', 'settings', 'session']) env.records.set(`blob:${account}:${store}`, '{}');
+  if (live) env.records.set(`seen:${account}`, JSON.stringify({ touchedAt: Date.now() }));
+}
+
+test('cleanup does nothing unless CLEANUP_ENABLED is exactly "true"', async () => {
+  for (const vars of [{}, { CLEANUP_ENABLED: 'false' }, { CLEANUP_ENABLED: '1' }]) {
+    const env = storage(vars);
+    seed(env, accountB, { live: false });
+    await runCleanup(env);
+    assert.deepEqual(env.deletes, []);
+  }
+});
+
+test('cleanup deletes only accounts without a marker, across listing pages', async () => {
+  const env = storage({ CLEANUP_ENABLED: 'true' });
+  seed(env, accountA, { live: true });
+  seed(env, accountB, { live: false });
+  const accountC = 'c'.repeat(64);
+  seed(env, accountC, { live: true });
+  await runCleanup(env);
+  assert.deepEqual(blobKeys(env).map((k) => k.split(':')[1]).sort(), [accountA, accountA, accountA, accountC, accountC, accountC].sort());
+  assert.ok(env.deletes.every((k) => k.startsWith(`blob:${accountB}:`)));
+  assert.equal(env.deletes.length, 3);
+});
+
+test('cleanup stops at CLEANUP_MAX_DELETES and resumes on the next run', async () => {
+  const env = storage({ CLEANUP_ENABLED: 'true', CLEANUP_MAX_DELETES: '2' });
+  seed(env, accountB, { live: false });
+  await runCleanup(env);
+  assert.equal(env.deletes.length, 2);
+  await runCleanup(env);
+  assert.deepEqual(blobKeys(env), []);
+});
