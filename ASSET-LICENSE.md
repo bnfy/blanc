@@ -66,8 +66,8 @@ Platform-packaged forms of the same mark:
 A build that replaces these files with its own artwork is unencumbered by this
 statement. Rebuilding Blanc from source without modification reproduces them,
 which is expected and permitted; redistributing that build under the Blanc name
-and mark as though it were an official release is not — see the trademark note
-in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+and mark as though it were an official release is not — see
+[TRADEMARKS.md](TRADEMARKS.md).
 
 ## Third-party marks and depicted material
 
