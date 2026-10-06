@@ -37,7 +37,7 @@ try {
       if (!wc) return null;
       return wc.executeJavaScript('window.bowserPages?.settings?.trustReceipt?.()');
     }),
-    (value) => value?.app?.version === '1.21.0',
+    (value) => value?.app?.version === JSON.parse(fs.readFileSync('package.json', 'utf8')).version,
     'trust receipt',
   );
   assert.equal(receipt.app.packaged, false);

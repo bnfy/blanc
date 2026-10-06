@@ -1253,8 +1253,6 @@
     const trustStatus = document.getElementById('trustReceiptStatus');
     const trustList = document.getElementById('trustReceiptList');
     const trustLinks = document.getElementById('trustReceiptLinks');
-    const trustExport = document.getElementById('trustDiagnosticsExport');
-    const trustExportStatus = document.getElementById('trustDiagnosticsStatus');
     const yesNo = (value) => value ? 'On' : 'Off';
     const addFact = (label, value) => {
       const term = document.createElement('dt');
@@ -1298,14 +1296,6 @@
       trustLinks.hidden = false;
     }).catch(() => {
       trustStatus.textContent = 'Couldn’t build the local trust receipt.';
-    });
-
-    trustExport.addEventListener('click', async () => {
-      trustExport.disabled = true;
-      trustExportStatus.textContent = 'Preparing report…';
-      const result = await window.bowserPages.diagnostics.export();
-      trustExport.disabled = false;
-      trustExportStatus.textContent = result.ok ? 'Saved.' : (result.cancelled ? 'Export canceled.' : 'Couldn’t save diagnostics.');
     });
   } else {
     document.getElementById('group-trust')?.remove();
