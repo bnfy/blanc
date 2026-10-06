@@ -668,6 +668,38 @@
         "doc": "Cancel a download in progress."
       },
       {
+        "name": "downloads.resume",
+        "kind": "invoke",
+        "channel": "pages:downloads:resume",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Continue an interrupted download where it stopped."
+      },
+      {
+        "name": "downloads.retry",
+        "kind": "invoke",
+        "channel": "pages:downloads:retry",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Start an interrupted download over from its source."
+      },
+      {
         "name": "downloads.open",
         "kind": "invoke",
         "channel": "pages:downloads:open",

@@ -460,6 +460,8 @@ body.sheet .row .actions button {
 }
 .row .actions { flex: 0 0 auto; display: flex; gap: 6px; opacity: 0; }
 .row:hover .actions, .row:focus-within .actions, .row.editing .actions { opacity: 1; }
+/* A stalled download's way forward stays in view instead of waiting for hover. */
+.row[data-state="interrupted"] .actions { opacity: 1; }
 .row .actions button { padding: 3px 9px; font-size: 11px; }
 body.sheet .row-list:not(:empty),
 body.sheet .shortcut-list {

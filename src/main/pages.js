@@ -275,6 +275,8 @@ function setupPages(hooks = {}) {
 
   handle('pages:downloads:list', 'downloads', () => downloads.listDownloads());
   handle('pages:downloads:cancel', 'downloads', (id) => downloads.cancelDownload(id));
+  handle('pages:downloads:resume', 'downloads', (id) => downloads.resumeDownload(id));
+  handle('pages:downloads:retry', 'downloads', (id) => downloads.retryDownload(id));
   handle('pages:downloads:open', 'downloads', (id) => downloads.openDownload(id));
   handle('pages:downloads:show', 'downloads', (id) => downloads.showDownloadInFolder(id));
   handle('pages:downloads:clear-finished', 'downloads', () => downloads.clearFinishedDownloads());

@@ -50,6 +50,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `history.clear` | invoke | `pages:history:clear` | history | Clear all history. |
 | `downloads.list` | invoke | `pages:downloads:list` | downloads | List downloads. |
 | `downloads.cancel` | invoke | `pages:downloads:cancel` | downloads | Cancel a download in progress. |
+| `downloads.resume` | invoke | `pages:downloads:resume` | downloads | Continue an interrupted download where it stopped. |
+| `downloads.retry` | invoke | `pages:downloads:retry` | downloads | Start an interrupted download over from its source. |
 | `downloads.open` | invoke | `pages:downloads:open` | downloads | Open a finished download. |
 | `downloads.show` | invoke | `pages:downloads:show` | downloads | Reveal a download in the file manager. |
 | `downloads.clearFinished` | invoke | `pages:downloads:clear-finished` | downloads | Remove finished downloads from the list; files stay on disk. |

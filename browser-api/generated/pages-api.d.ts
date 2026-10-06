@@ -147,6 +147,10 @@ export interface DownloadsPagesAPI {
     list: () => Promise<unknown>;
     /** Cancel a download in progress. IPC: invoke `pages:downloads:cancel`. */
     cancel: (id: unknown) => Promise<unknown>;
+    /** Continue an interrupted download where it stopped. IPC: invoke `pages:downloads:resume`. */
+    resume: (id: unknown) => Promise<unknown>;
+    /** Start an interrupted download over from its source. IPC: invoke `pages:downloads:retry`. */
+    retry: (id: unknown) => Promise<unknown>;
     /** Open a finished download. IPC: invoke `pages:downloads:open`. */
     open: (id: unknown) => Promise<unknown>;
     /** Reveal a download in the file manager. IPC: invoke `pages:downloads:show`. */
