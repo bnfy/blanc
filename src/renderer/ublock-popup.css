@@ -1,0 +1,74 @@
+/* Blanc's approved neutral uBO popup. Native uBO rule colors retain meaning. */
+@font-face { font-family: Inter; src: url('blanc-inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+:root { --blanc-bg:#fff; --blanc-ink:#0e0e0e; --blanc-dim:#6b6b6b; --blanc-border:#dedede; --blanc-hover:#f7f7f7; }
+@media (prefers-color-scheme: dark) { :root { --blanc-bg:#1f1f1f; --blanc-ink:#f5f5f5; --blanc-dim:#9c9c9c; --blanc-border:#2e2e2e; --blanc-hover:#171717; } }
+:root, :root body { background:transparent; margin:0; padding:0; min-width:0; width:100%; height:auto; overflow:hidden; }
+:root body { --font-size:13px; --ink-1:var(--blanc-ink); --ink-2:var(--blanc-dim); --surface-1:var(--blanc-bg); --popup-toolbar-surface:var(--blanc-bg); --hr-ink:var(--blanc-border); font:13px/20px Inter,system-ui,sans-serif; color:var(--blanc-ink); }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+#blancPopup { margin:10px 12px 12px; padding:18px; background:var(--blanc-bg); border:1px solid var(--blanc-border); border-radius:18px; box-shadow:0 4px 12px -6px #00000012; max-height:var(--popup-max-height, 650px); overflow:auto; }
+#blancPointer { position:absolute; top:4px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:6px solid var(--blanc-border); transform:translateX(-50%); }
+#blancPointer::after { content:''; position:absolute; left:-5px; top:1px; border-left:5px solid transparent; border-right:5px solid transparent; border-bottom:5px solid var(--blanc-bg); }
+#blancHeader { display:grid; grid-template-columns:24px 34px minmax(0,1fr) 24px; column-gap:10px; align-items:center; margin-bottom:24px; }
+#blancMark { width:34px; height:34px; }
+#blancHeader h1 { font-size:16px; line-height:22px; font-weight:650; letter-spacing:-.02em; margin:0; }
+#hostname { padding:0; margin-top:3px; text-align:left; background:none; color:var(--blanc-dim); font-size:12px; line-height:18px; }
+#hostname span + span { font-weight:400; }
+#blancPopup button, #blancPopup a { font:inherit; color:inherit; background:none; border:0; padding:0; text-decoration:none; letter-spacing:normal; cursor:pointer; }
+#blancHeader button { width:24px; height:28px; color:var(--blanc-dim); display:grid; place-items:center; }
+.blanc-icon { display:inline-block; width:20px; height:20px; flex:0 0 20px; background:currentColor; mask:var(--icon) center/contain no-repeat; }
+#panes { display:block; }
+:root #main { min-width:0; max-width:none; width:100%; }
+#blancSite { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
+#blancSite strong { font-size:14px; font-weight:600; }
+#blancSite small { display:block; margin-top:3px; color:var(--blanc-dim); font-size:12px; line-height:18px; }
+:root #switch { flex:0 0 46px; width:46px; height:26px; margin:0; padding:2px; border:1px solid var(--blanc-ink); border-radius:99px; background:var(--blanc-ink); cursor:pointer; display:block; }
+#switch::after { content:''; display:block; width:20px; height:20px; margin-left:20px; border-radius:50%; background:var(--blanc-bg); }
+:root body.off #switch { background:var(--blanc-bg); }
+body.off #switch::after { margin-left:0; background:var(--blanc-dim); }
+#blancStats { margin-bottom:18px; }
+#blancStats > div:first-child { display:flex; flex-wrap:wrap; column-gap:8px; }
+#blancPageCount { font-weight:600; }
+#blancPagePercent, #blancDomains { color:var(--blanc-dim); font-size:12px; }
+#blancDomains { margin-top:3px; }
+#blancPageTools { border-top:1px solid var(--blanc-border); }
+.blanc-page-tool { display:flex; align-items:center; gap:18px; padding:16px 0; cursor:pointer; }
+.blanc-page-tool + .blanc-page-tool { border-top:1px solid var(--blanc-border); }
+.blanc-page-tool > .blanc-icon:first-child { width:30px; height:30px; flex-basis:30px; }
+.blanc-page-tool > span:nth-child(2) { flex:1; min-width:0; }
+.blanc-page-tool strong { display:block; font-size:14px; font-weight:600; }
+.blanc-page-tool small { display:block; color:var(--blanc-dim); font-size:12px; line-height:18px; margin-top:3px; }
+.blanc-page-tool > .blanc-icon:last-child { color:var(--blanc-dim); }
+.blanc-page-tool[aria-disabled=true] { opacity:.45; cursor:default; }
+#blancToolLinks { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--blanc-border); padding:15px 0; }
+#blancToolLinks .blanc-icon { width:24px; height:24px; flex-basis:24px; }
+#blancPopup .blanc-tool-link { display:flex; gap:16px; align-items:center; padding:0 8px; }
+#blancPopup .blanc-tool-link + .blanc-tool-link { border-left:1px solid var(--blanc-border); justify-content:center; }
+#blancFooter { border-top:1px solid var(--blanc-border); padding-top:15px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+#blancPopup #blancMore { display:flex; gap:10px; align-items:center; }
+.blanc-expanded #blancMore .blanc-icon { transform:rotate(180deg); }
+#blancOverflow { position:relative; }
+#blancOverflow summary { list-style:none; cursor:pointer; height:24px; display:grid; place-items:center; }
+#blancOverflow summary::-webkit-details-marker { display:none; }
+#blancOverflowMenu { position:absolute; bottom:30px; right:0; width:230px; padding:12px; border:1px solid var(--blanc-border); background:var(--blanc-bg); border-radius:8px; z-index:10; box-shadow:0 4px 12px -6px #00000025; }
+.blanc-report { display:block; padding:4px 0 10px; cursor:pointer; }
+.blanc-report[aria-disabled=true] { display:none; }
+.blanc-since { display:flex; justify-content:space-between; gap:10px; font-size:11px; color:var(--blanc-dim); }
+#blancExtra { display:none; border-top:1px solid var(--blanc-border); margin-top:16px; padding-top:16px; }
+.blanc-expanded #blancExtra { display:block; }
+#blancExtra h2 { font-size:13px; font-weight:600; margin:0 0 10px; }
+:root #extraTools { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); background:none; margin:0 0 20px; }
+:root #extraTools .tool { padding:8px 2px; font-size:16px; min-width:0; }
+:root #extraTools .caption { display:block; font-family:Inter,system-ui,sans-serif; font-size:10px; line-height:13px; white-space:normal; }
+#blancRuleTools { display:flex; flex-wrap:wrap; gap:14px; }
+#blancRuleTools > span { display:none; align-items:center; gap:5px; font-size:12px; cursor:pointer; margin-top:14px; }
+body.needSave #saveRules, body.needSave #revertRules, body.needReload #refresh { display:flex; }
+#blancRuleTools .blanc-icon { width:16px; height:16px; flex-basis:16px; }
+:root #firewall { width:100%; min-width:0; max-width:none; max-height:none; padding:0; margin:0; border:0; font-size:11px; --popup-rule-cell-width:3em; }
+:root #firewall > div { min-width:0; }
+:root #firewall > div > span:first-of-type { width:calc(100% - 6em); }
+:root #firewall > div > span[data-src] { width:3em; }
+#moreOrLess, #firewall-vspacer { display:none !important; }
+#unprocessedRequestWarning { font-size:12px; }
+#blancPopup :focus-visible { outline:1px solid var(--blanc-ink); outline-offset:3px; border-radius:3px; }
+#blancPopup :is(button,a,[role=button]):hover:not([aria-disabled=true]) { color:var(--blanc-dim); }

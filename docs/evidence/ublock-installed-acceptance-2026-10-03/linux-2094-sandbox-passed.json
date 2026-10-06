@@ -1,0 +1,500 @@
+{
+  "ciRun": "https://github.com/bnfy/blanc/actions/runs/37163617450",
+  "sourceSha": "2094cdeb0b41202f90ff62270c214f2f8bbadc6e",
+  "passed": true,
+  "observations": [
+    {
+      "os": "Ubuntu 22.04",
+      "cases": [
+        {
+          "label": "direct-allowed---no-sandbox-helper",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "direct-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "direct-refused---disable-gpu-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-gpu-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-namespace-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-namespace-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-seccomp-filter-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-seccomp-filter-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-setuid-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-setuid-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-webnn-compiler-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-webnn-compiler-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-zygote-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-zygote-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-gpu-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-namespace-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-seccomp-filter-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-setuid-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-webnn-compiler-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--no-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--no-zygote-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "extracted-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "extracted-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "menu-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "menu-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "nested-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "nested-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        }
+      ]
+    },
+    {
+      "os": "Ubuntu 24.04",
+      "cases": [
+        {
+          "label": "direct-allowed---no-sandbox-helper",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "direct-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "direct-refused---disable-gpu-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-gpu-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-namespace-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-namespace-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-seccomp-filter-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-seccomp-filter-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-setuid-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-setuid-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-webnn-compiler-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---disable-webnn-compiler-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-zygote-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused---no-zygote-sandbox_false",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-gpu-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-namespace-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-seccomp-filter-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-setuid-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--disable-webnn-compiler-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--no-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused--no-zygote-sandbox",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "direct-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "extracted-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "extracted-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "menu-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "menu-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        },
+        {
+          "label": "nested-allowed-default",
+          "expected": "allowed",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 2,
+          "renderers": 7,
+          "sandboxed": 7
+        },
+        {
+          "label": "nested-refused-default",
+          "expected": "refused",
+          "selectedProvider": "ublock-origin",
+          "browsingRequests": 0,
+          "renderers": 0,
+          "sandboxed": 0
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Disposable hosted native Linux x64 desktop environment; not the existing ARM64 VM."
+  ]
+}

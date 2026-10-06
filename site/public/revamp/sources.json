@@ -1,0 +1,22 @@
+[
+  {
+    "file": "apple.svg",
+    "url": "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.7.2/svgs/brands/apple.svg",
+    "sha256": "ceb71de1c7d28f27e228e089e318aa1a8ff06463761c421b4b6e1ed411d6e8a0"
+  },
+  {
+    "file": "windows.svg",
+    "url": "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.7.2/svgs/brands/windows.svg",
+    "sha256": "3281516c46173004468aed49e275ad4458b5f9f900bc688d06007526fd4e1729"
+  },
+  {
+    "file": "linux.svg",
+    "url": "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.7.2/svgs/brands/linux.svg",
+    "sha256": "72cdb6253a075d210b461a10211eee76bc2cd22ce08bf53ee745caa6260dc778"
+  },
+  {
+    "file": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.7.2/LICENSE.txt",
+    "sha256": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc"
+  }
+]

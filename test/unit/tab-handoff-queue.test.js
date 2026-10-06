@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const { sanitizeTabHandoff } = require('../../src/main/tab-import-handoff');
+const { bananifyServiceAllowed } = require('../../src/main/bananify-services');
 
 // Run the real orchestration functions with deferred network and native-window
 // boundaries. These are behavioral tests, not source-pattern assertions.
@@ -159,6 +160,7 @@ test('claim timeout covers response-body reads and always clears its timer', asy
     net: { fetch: async (_url, options) => ({ ok: true, signal: options.signal }) },
     tabImportClaimUrl: () => 'https://tabs.blancbrowser.com/v1/handoffs/id/claim',
     tabImportRelayOrigin: () => 'https://tabs.blancbrowser.com',
+    bananifyServiceAllowed,
     MAX_TAB_IMPORT_ENVELOPE_BYTES: 256 * 1024,
     readBoundedResponseBytes: async (response) => {
       fireTimeout();

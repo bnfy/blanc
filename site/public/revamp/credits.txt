@@ -1,0 +1,70 @@
+Blanc website Island captures — captured October 4, 2026
+
+island-roman-rest.webp, island-roman-tabs.webp and island-roman-command.webp
+show the official Blanc v1.27.0 macOS app with three sample NASA Science tabs.
+Exports are lossless center crops of native screenshots. Product pixels have
+not been generated, recolored or repainted. Transitions between stills are
+website choreography, not recorded application motion.
+
+Sample webpage: NASA Science homepage, “Adopt a Pixel” section.
+Imagery: Nancy Grace Roman Space Telescope against a purple field of galaxies.
+Source: NASA Science.
+https://science.nasa.gov/
+
+NASA media usage guidelines:
+https://www.nasa.gov/nasa-brand-center/images-and-media/
+NASA and other third-party names and marks remain their owners' property.
+Their appearance within the real browser interface identifies the sample
+webpages; it does not imply affiliation with or endorsement of Blanc.
+Third-party imagery is not covered by Blanc's MIT grant.
+
+Hardware illustrations were generated separately with OpenAI image generation.
+Apple, Windows and Linux symbols: Font Awesome Free 6.7.2, CC BY 4.0.
+https://fontawesome.com/license/free
+The original icon attribution and terms are retained in LICENSE.txt and the SVGs.
+
+Tab groups capture — captured October 4, 2026
+
+tab-groups-native.webp shows the actual named-groups panel in official Blanc
+v1.27.0 for macOS. Native screenshot, lossless panel crop; no UI reconstruction.
+Sample page titles and favicons identify NASA Science and Wikipedia pages:
+https://science.nasa.gov/
+https://science.nasa.gov/mission/roman-space-telescope/
+https://en.wikipedia.org/wiki/Typography
+https://en.wikipedia.org/wiki/Scandinavian_design
+Only the browser panel is presented; article content is outside the crop.
+Third-party names and marks remain their owners' property; no endorsement implied.
+
+Mahjong gameplay previews — captured October 4, 2026
+
+mahjong-peaks-v1.27.0.mp4, mahjong-butterfly-v1.27.0.mp4 and
+mahjong-fortress-v1.27.0.mp4 show matching pairs in official Blanc v1.27.0
+for macOS. Peaks and Fortress use Burst Auto; Butterfly uses Classic.
+Native window recordings are trimmed at normal speed and exported at 30fps.
+No game UI or motion was generated. The app chrome is cropped out and game
+content is scaled proportionally. Clips are silent and load only on opening
+the Mahjong preview.
+Companion WebP files are first-frame posters for paused/reduced-motion previews.
+Source and asset hashes: docs/website-revamp-assets.json in the repository.
+
+Mouse gesture demo: illustrative cursor, trail and page transitions over the existing native NASA Roman Island capture (Blanc v1.27.0) and Billboard dawn capture (Blanc v1.25.0). The page transitions and perspective are website presentation, not a recording of the native gesture overlay. Existing NASA and wallpaper credits above apply.
+
+Glance interactive illustration — updated October 4, 2026
+
+Responsive excerpts of Visit Copenhagen’s Nyhavn page and Louisiana Museum of
+Modern Art’s Kusama installation page; the layout is a website illustration,
+not a screenshot or recording of those pages in the app. Chrome uses Blanc’s
+native Island markup/styles with sample domains and the sites’ favicons.
+
+Nyhavn photograph: © Jacob Schjørring & Simon Lau, via Visit Copenhagen.
+https://www.visitcopenhagen.com/copenhagen/planning/nyhavn-gdk474735
+
+Yayoi Kusama, Gleaming Lights of the Souls. Photograph via Louisiana Museum
+of Modern Art; artwork and photography retain their respective owners’ rights.
+https://louisiana.dk/en/exhibition/kusama-installation/
+
+Files: glance-nyhavn.webp, glance-kusama.jpg, visit-copenhagen-favicon.ico,
+louisiana-favicon.ico. Original asset URLs and SHA-256 hashes are recorded in
+docs/website-revamp-assets.json. These images and third-party names and marks
+are excluded from Blanc’s MIT grant. Their use identifies example webpages;
+no affiliation with or endorsement of Blanc is implied.

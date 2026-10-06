@@ -24,6 +24,9 @@ const CARDS = [
   'feature-workspaces.png',
   'feature-profiles.png',
   'feature-reopen-closed-tabs.png',
+  'feature-quiet-tabs.png',
+  'feature-security.png',
+  'feature-sync.png',
 ];
 
 function png(relativePath) {

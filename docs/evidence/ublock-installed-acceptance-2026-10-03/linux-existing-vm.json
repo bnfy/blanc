@@ -1,0 +1,19 @@
+{
+  "kind": "existing-linux-vm-candidate-launch",
+  "guestArchitecture": "aarch64",
+  "candidateElfMachine": 62,
+  "namespaceProbeExit": 1,
+  "namespaceProbeError": "unshare: write failed /proc/self/uid_map: Operation not permitted",
+  "launch": {
+    "errno": 8,
+    "error": "Exec format error"
+  },
+  "candidateSha256": "1fff3eec0ed04f4b43002013117e0e2801564b4d9d4d5dddd710d8257ba36ea8",
+  "passed": false,
+  "limits": [
+    "Existing installed Ubuntu 26.04 ARM64 VM only.",
+    "Cannot execute the x86-64 AppImage; no Linux x86-64 installed acceptance claim.",
+    "Namespace probe is a host-policy observation, not an observed x86-64 renderer sandbox.",
+    "No sandbox bypass, kernel-policy change or new VM."
+  ]
+}

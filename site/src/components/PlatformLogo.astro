@@ -1,0 +1,14 @@
+---
+import apple from "../../public/revamp/apple.svg?raw";
+import windows from "../../public/revamp/windows.svg?raw";
+import linux from "../../public/revamp/linux.svg?raw";
+const { platform } = Astro.props;
+const icons = { apple, windows, linux };
+// Upstream CC BY attribution stays inside the SVG; platform name is adjacent text.
+const svg = icons[platform].replace(
+  "<svg ",
+  `<svg class="platform-logo platform-logo--${platform}" aria-hidden="true" focusable="false" fill="currentColor" `,
+);
+---
+
+<Fragment set:html={svg} />

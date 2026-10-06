@@ -284,6 +284,8 @@ From the desktop `DEFAULTS`:
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
 | `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
+| `darkWebsites` | `false` | desktop-only boolean; device-local, never synced (F42) |
+| `darkWebsitesExceptions` | `[]` | desktop-only hostnames kept as drawn; same normalization as `adblockExceptions`; device-local, never synced (F42) |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
@@ -734,12 +736,18 @@ From the desktop `DEFAULTS`:
 
 - The start page offers four layouts: **ledger** (the original column),
   **billboard** (a live clock over locally ranked frequent-site tiles), **shelf** (a favorites grid
-  with group and blocked-count cards), **tally** (the ledger column beside a
-  week-of-blocking bar chart). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
+  whose column count follows the favorites so every row is full, with the
+  group and blocked-count cards filling one row of the same grid), **tally**
+  (favorites and groups beside a week-of-blocking bar chart, as two balanced
+  columns that stack data-first on narrow windows). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
   derives up to six hostname-level sites from the active local profile's
   on-device history, ranked by visit count with recency as the tie-breaker. A
-  full, bounded local page title labels each tile, and a bounded profile-local
-  cache reuses sanitized 32 px favicon pixels captured during normal visits;
+  short site name labels each tile: the bounded local title's first segment
+  when it is 20 characters or fewer, otherwise the domain's first label. The
+  full title stays the tile's tooltip and accessible name. The row never
+  wraps; the narrowest windows show the first four sites. A bounded
+  profile-local cache reuses sanitized 32 px favicon pixels captured during
+  normal visits;
   rendering the row never starts a favicon request. A
   hover/focus dismiss button stores only a bounded hostname list in that
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
@@ -759,11 +767,11 @@ From the desktop `DEFAULTS`:
   Billboard titles, and rejects horizontal overflow, unreachable text, or
   unintended clipping.
 - The choice is a synced setting (`newtabLayout`, default `billboard`), changeable
-  instantly from the start page's own footer switcher and from Settings; a
+  instantly from the start page's footer Customize popover and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.
-- Every layout footer has a separate Mahjong link, outside the centered layout
-  switcher. It opens `blanc://mahjong/` in a new managed tab and leaves the
+- Every layout footer has a separate Mahjong link, beside the Customize
+  button. It opens `blanc://mahjong/` in a new managed tab and leaves the
   start page and selected layout intact. Private tabs open
   `blanc://mahjong/?private=1` in the private session. Direct game URLs remain
   valid. A stored `newtabLayout: mahjong` migrates once to Billboard with a
@@ -786,16 +794,18 @@ From the desktop `DEFAULTS`:
   compact insets, wrap rows, and stack the tally columns rather than overflow.
   At supported browser zoom levels, Mahjong's standalone controls and board
   remain reachable through vertical scrolling.
-  Empty feeds remove their section — row, label, and card — with no
-  placeholder copy on the three newer layouts.
+  Empty feeds remove their section — row, label, and card — except
+  Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
+  here" when there are none. Billboard, which shows recent sites, shows no
+  hint. Private start pages show no Patron upgrade and no blocked counts.
 - After first run, Personal non-private start pages show one corner
-  moving-in checklist on ledger, billboard, shelf, and tally. It stays
-  lower-right on ledger, shelf, and tally, and moves upper-right on Billboard
-  to preserve the recent-site row and its dismissal actions. It tracks the
+  moving-in checklist on ledger, billboard, shelf, and tally. It sits in the
+  start page header's right corner on every layout, in normal flow, so it
+  never covers content. It tracks the
   device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
   permanently, and retires after a brief 2/2 confirmation. The standalone game omits it.
-  Tight windows collapse it to a progress-ring trigger so primary content and
-  the footer stay reachable.
+  Tight windows collapse it to a progress-ring trigger in that same corner,
+  opening downward.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
@@ -896,7 +906,24 @@ From the desktop `DEFAULTS`:
 ## F39 — Certificate safety
 
 - Invalid certificates are rejected with a safety interstitial and certificate
-  problem details. No certificate bypass is offered.
+  problem details.
+- **Public sites:** no way past the warning is offered.
+- **Local and private-network `https:` addresses** (loopback, RFC 1918,
+  link-local, 100.64.0.0/10, IPv6 unique-local and link-local, single-label
+  names, `.local`, `.lan`, `.internal`, `.home.arpa`): an **Advanced**
+  disclosure offers **Continue to <host:port> (unsafe)** for an allowlisted set
+  of certificate errors (untrusted issuer, name mismatch, local self-signed,
+  date, weak signature, validity too long, non-unique name). Revoked and
+  generic-invalid certificates, and hosts already verified as trusted during
+  the current run, keep the hard stop.
+- The choice lasts until the app quits, is never stored or synced, and applies
+  only to that origin and that exact certificate while its validity status is
+  unchanged. Private browsing keeps its own, separate choices.
+- A page loaded after continuing reports **Not secure** until that document is
+  replaced, even if the choice is later withdrawn; **Stop allowing** withdraws
+  it.
+- This does not reproduce Chromium's HSTS refusal: platforms that cannot read
+  the engine's HSTS state must not claim it.
 - **Acceptance:** [`acceptance/site-certificate-safety.feature`](./acceptance/site-certificate-safety.feature).
 
 ## F40 — Bring Your Tabs (direct open-tab migration)
@@ -929,3 +956,31 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   covers explicit session reads, quit safety, duplicate/order/group fidelity,
   opaque renderer projection, transactional apply, ownership/cancellation,
   onboarding, and the separate workspace handoff.
+
+## F42 — Dark websites
+
+- When the person turns on **Dark websites** and Blanc is dark (the Dark
+  theme, or System on a dark OS), Blanc darkens http(s) pages from their first
+  paint using the pinned, unmodified Dark Reader engine. Sites that already
+  honour `prefers-color-scheme: dark` stay dark rather than being inverted.
+  Off by default; the setting and its site list are device-local and never
+  Profile Synced.
+- `/dark-site`, or the **Dark website** switch in the site's shield popover,
+  flips the current site between darkened and as drawn, and turns the feature
+  on if it was off. The switch shows the site's state while Blanc is dark, and
+  says so while Blanc is light. In a private tab the choice lasts only until
+  Blanc quits and is never written to settings; the site list is edited in
+  Settings → General.
+- The engine runs in its own isolated world: the page cannot see or call it,
+  and the page's CSP cannot block its styles. That world's only capability is
+  asking main for the text of a stylesheet; main fetches it only if the
+  tab's blocker would allow it, and only public http(s) `text/css`, without
+  cookies, redirects or private-network addresses, within size, time and rate
+  limits.
+- Internal `blanc://` pages, Blanc's chrome, extension pages and iframes are
+  never darkened. Iframes are a known gap: Blanc runs session preloads only in
+  main frames, as the capture indicator does.
+- **Acceptance:**
+  [`acceptance/settings-and-theming.feature`](./acceptance/settings-and-theming.feature)
+  (`@F42`); `test/desktop/dark-websites-smoke.mjs` drives the shipping app.
+

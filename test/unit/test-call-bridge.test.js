@@ -19,6 +19,21 @@ test('a repeated call id returns the original result without repeating its mutat
   assert.equal(mutations, 1);
 });
 
+test('a hook never runs inside the turn that delivered the call', async () => {
+  let ran = false;
+  const target = {};
+  installTestCallBridge(target, { act() { ran = true; return 'done'; } });
+
+  const pending = target.__blancCall(1, 'act', []);
+  // The inspector can deliver a call in the middle of Node's timer dispatch.
+  // Neither the call itself nor the microtasks that follow may run the hook.
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(ran, false, 'the hook waits for its own event-loop turn');
+  assert.equal(await pending, 'done');
+  assert.equal(ran, true);
+});
+
 test('a lost Playwright reply retries the same id and runs a mutating hook once', async () => {
   let mutations = 0;
   let inspectorAttempts = 0;

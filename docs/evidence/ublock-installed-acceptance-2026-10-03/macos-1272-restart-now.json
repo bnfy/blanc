@@ -1,0 +1,44 @@
+{
+  "kind": "signed-native-restart-now-handoff",
+  "passed": true,
+  "platform": "darwin",
+  "architecture": "arm64",
+  "fromVersion": "1.26.0",
+  "toVersion": "1.27.0",
+  "toBundleVersion": "1272",
+  "candidateSourceCommit": "92e27667916b2f556b148268f5a7ee3ce53000fd",
+  "startingPublicZipSha256": "d714c0b2bf743ce8456daad0b08a0a99a4cb82d8b930f44a9688bc0a2d421482",
+  "candidateExecutableSha256": "6cb3af89bc6308295681bfe3e3298b871dc1e20c1592b115a56f21cf56834cda",
+  "candidateAsarSha256": "88966aa2e78353b35ccb1ac8fc35f4337fb40d76ce84f1f11427b80e63b1328e",
+  "checks": {
+    "authenticatedPublicStartingApp": true,
+    "isolatedLoopbackCandidateFeed": true,
+    "autoInstallSmokeMode": false,
+    "ownerClickedActualRestartNow": true,
+    "nativeInstallationCompleted": true,
+    "nativeAutomaticRelaunch": true,
+    "differentBrowserProcess": true,
+    "reopenedUiVersion": "1.27.0",
+    "reopenedUiElectron": "44.5.1",
+    "reopenedUiChromium": "152.0.7977.130",
+    "reopenedUiArchitecture": "arm64",
+    "reopenedDefaultBlocker": "Blanc Blocker ready",
+    "updatedStrictDeepSignature": true,
+    "updatedBytesMatchSignedCandidate": true,
+    "originalProfileCachesLogsRestored": true,
+    "originalDirectoryIdentitiesVerified": true,
+    "publicAppReopenedWithOriginalSession": true
+  },
+  "ownerConfirmation": "Yes, I clicked Restart Now",
+  "nativeObservations": {
+    "installationCompletedAt": "2026-10-03 18:52:10",
+    "automaticRelaunchSucceededAt": "2026-10-03 18:52:11"
+  },
+  "limits": [
+    "Isolated copy of the authenticated public v1.26.0 app; the normal public installation was not replaced.",
+    "Private staging feed, not published v1.27.0 updater metadata.",
+    "The owner clicked before the agent captured the native prompt; confirmation plus native ShipIt relaunch logs establish this handoff.",
+    "Only generated test data was used; the original data directories were renamed intact and restored.",
+    "Provider/filter persistence is covered separately by macos-1272-passed.json."
+  ]
+}

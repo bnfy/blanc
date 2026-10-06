@@ -1,0 +1,35 @@
+{
+  "kind": "exact-signed-native-intel-intake",
+  "passed": true,
+  "sourceSha": "0872ed7225d3561e98fdee2f80cee1d12a72af09",
+  "harnessSha": "d02c22ae",
+  "ciRun": "https://github.com/bnfy/blanc/actions/runs/37163485751",
+  "platform": "macos-15-intel",
+  "bundleVersion": "1273",
+  "dmgSha256": "58408120dc32ab25ab49ce76a98285fddfaa8991f69f8793bdee9b77ba34e38e",
+  "executableSha256": "d7139aea0780fc823b5ca169199ca4c5bddeee8889841d440f647a0d7c3a2162",
+  "asarSha256": "5c80d8702a062dd3e26f29dfdf48439e7d2dc690534da1eb667e5165b42064bf",
+  "signingCertificateSha1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+  "verified": [
+    "Installed from read-only DMG",
+    "Gatekeeper Notarized Developer ID acceptance",
+    "Strict deep codesign",
+    "Stapled app ticket",
+    "Pinned signing certificate",
+    "Exact DMG, executable and ASAR hashes",
+    "Hardened Electron fuses",
+    "Packaged uBO inputs and corresponding source",
+    "Full installed controls and provider round trip",
+    "No-scripting policy"
+  ],
+  "transferCleanup": {
+    "draftRemoved": true,
+    "assetRemoved": true,
+    "temporaryTagAbsent": true,
+    "ciWritePermissionRemoved": true
+  },
+  "limits": [
+    "Native Intel acceptance does not certify Rosetta; two Rosetta failures retained.",
+    "Internal candidate; final release bytes still require ordinary release checks."
+  ]
+}

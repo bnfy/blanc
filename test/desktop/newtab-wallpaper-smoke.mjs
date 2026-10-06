@@ -20,6 +20,13 @@ if (output) fs.mkdirSync(output, { recursive: true });
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 const uncaught = path.join(root, 'uncaught.log');
 let app;
+// The wallpaper switch lives in the footer's Customize popover, so it is only
+// exposed to assistive tech (and getByRole) while that popover is open.
+const openCustomize = async (target) => {
+  const isOpen = () => target.evaluate(() => document.getElementById('customizePopover').matches(':popover-open'));
+  if (!(await isOpen())) await target.getByRole('button', { name: 'Customize', exact: true }).click();
+  await target.waitForFunction(() => document.getElementById('customizePopover').matches(':popover-open'));
+};
 try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught } });
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
@@ -29,6 +36,7 @@ try {
   assert.equal(data.patronActive, false);
   assert.equal(data.dynamicWallpaperEnabled, false, 'wallpaper remains opt-in');
   assert.equal('newtabWallpaperCity' in JSON.parse(fs.readFileSync(path.join(`${profile}-Dev`, 'settings.json'))), false);
+  await openCustomize(page);
   assert.equal(await footerToggle.getAttribute('aria-pressed'), 'false');
   for (const value of ['true', 1, null, { newtabDynamicWallpaper: true, usagePing: true }]) {
     assert.equal(await page.evaluate((value) => window.bowserPages.start.setDynamicWallpaper(value), value), false,
@@ -75,11 +83,13 @@ try {
         assert.equal(check.private, style === 'private');
         if (output) await current.screenshot({ path: path.join(output, `${phase}-${layout}-${style}.png`) });
       }
-      // Use the visible footer in every layout and styling combination.
+      // Use the Customize popover in every layout and styling combination.
+      await openCustomize(current);
       const switcher = current.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
       for (const width of [640, 800, 1040, 1041, 1200]) {
         await app.evaluate(({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setContentSize(width, 820), width);
         await current.waitForFunction((width) => innerWidth === width, width);
+        await openCustomize(current);
         const boxes = await current.evaluate(() => {
           const rect = (selector) => {
             const { x, y, right, bottom, width, height } = document.querySelector(selector).getBoundingClientRect();
@@ -87,27 +97,32 @@ try {
           };
           return {
             footer: rect('#layoutFooter'), toggle: rect('#dynamicWallpaperToggle'),
-            layout: rect('#layoutSwitcher'), appearance: rect('.footer-appearance'),
+            layout: rect('#layoutSwitcher'), popover: rect('#customizePopover'),
+            customize: rect('#customizeButton'),
             left: rect('.footer-left'), right: rect('.footer-right'),
             viewport: { width: innerWidth, height: innerHeight },
           };
         });
+        const inside = (inner, outer) => inner.x >= outer.x - 0.5 && inner.right <= outer.right + 0.5
+          && inner.y >= outer.y - 0.5 && inner.bottom <= outer.bottom + 0.5;
+        const apart = (a, b) => a.x >= b.right || a.right <= b.x || a.y >= b.bottom || a.bottom <= b.y;
         assert.ok(boxes.toggle.width > 0 && boxes.toggle.height >= 24);
-        assert.ok(boxes.toggle.x >= 0 && boxes.toggle.right <= boxes.viewport.width);
-        assert.ok(boxes.toggle.y >= boxes.footer.y && boxes.toggle.bottom <= boxes.viewport.height);
-        assert.ok(Math.abs((boxes.layout.y + boxes.layout.height / 2)
-          - (boxes.toggle.y + boxes.toggle.height / 2)) < 1, 'appearance controls share a vertical center');
-        assert.ok(boxes.toggle.x - boxes.layout.right >= 10 && boxes.toggle.x - boxes.layout.right <= 20,
-          'wallpaper switch sits beside the layout picker');
-        for (const other of [boxes.appearance, boxes.left]) {
-          assert.ok(boxes.right.x >= other.right || boxes.right.right <= other.x
-            || boxes.right.y >= other.bottom || boxes.right.bottom <= other.y,
-          `footer controls do not overlap at ${width}px in ${layout}/${style}`);
+        assert.ok(boxes.popover.x >= 0 && boxes.popover.right <= boxes.viewport.width && boxes.popover.y >= 0,
+          `Customize stays inside the window at ${width}px in ${layout}/${style}`);
+        assert.ok(boxes.popover.bottom <= boxes.customize.y + 0.5, 'Customize opens upward from its button');
+        assert.ok(inside(boxes.layout, boxes.popover) && inside(boxes.toggle, boxes.popover),
+          'layout previews and the wallpaper switch live in the Customize popover');
+        assert.ok(boxes.layout.bottom <= boxes.toggle.y, 'the wallpaper switch sits below the layout previews');
+        assert.ok(boxes.customize.y >= boxes.footer.y && boxes.customize.bottom <= boxes.viewport.height,
+          'the Customize button sits in the footer');
+        for (const other of [boxes.customize, boxes.left]) {
+          assert.ok(apart(boxes.right, other), `footer controls do not overlap at ${width}px in ${layout}/${style}`);
         }
         if (output && [640, 1200].includes(width)) {
           await current.screenshot({ path: path.join(output, `footer-${width}-${layout}-${style}.png`) });
         }
       }
+      await openCustomize(current);
       await switcher.click();
       await current.waitForFunction(() => document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed') === 'false'
         && !document.body.dataset.wallpaperPhase);
@@ -126,6 +141,7 @@ try {
   await privatePage.evaluate(() => { Date.prototype.getHours = () => 12; wallpaper.refresh(); });
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
+  await openCustomize(privatePage);
   const privateSwitch = privatePage.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
   await privateSwitch.click();
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase

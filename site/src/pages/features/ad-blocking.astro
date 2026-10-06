@@ -3,8 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import MemoryChart from '../../components/MemoryChart.astro';
 ---
 <BaseLayout
-  title={"Ad and Tracker Blocking with Direct Site Controls | Blanc"}
-  description={"Blanc includes ad and tracker blocking in the browser, with direct site controls for the connection, blocked-request count, and per-site setting."}
+  title={"Built-in Ad Blocking, or Full uBlock Origin | Blanc Browser"}
+  description={"Blanc blocks ads and trackers from first launch, with direct site controls. Prefer uBlock Origin? Choose full uBO 1.75.0 for regular tabs on supported builds."}
   path="/features/ad-blocking"
   page="feature-ad-blocking"
   current="features"
@@ -24,11 +24,11 @@ import MemoryChart from '../../components/MemoryChart.astro';
 }
 </script>
 
-<main class="feature-page feature-detail-page">
+<main id="main-content" class="feature-page feature-detail-page">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">ad blocking</span></nav>
   <section class="feature-hero feature-hero--detail" aria-labelledby="blocking-title">
     <p class="section-kicker">built in</p>
-    <h1 id="blocking-title">A clearer control for a quieter site.</h1>
+    <h1 id="blocking-title">Ad blocking built in. uBlock Origin if you prefer it.</h1>
     <p>Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc&rsquo;s own mark — opens direct controls for the site you are visiting.</p>
   </section>
 
@@ -89,6 +89,31 @@ import MemoryChart from '../../components/MemoryChart.astro';
       <article>
         <h3>Let a site through when you choose.</h3>
         <p>Need a site exception? Use the switch in the shield popover, or type <code>/allow-ads</code>. Blanc keeps the choice specific to that site instead of making it an all-or-nothing setting.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="feature-copy-grid" aria-labelledby="ublock-title">
+    <div>
+      <p class="section-kicker">prefer uBlock Origin?</p>
+      <h2 id="ublock-title">Full uBlock Origin, not a Lite version.</h2>
+    </div>
+    <div class="feature-copy-list">
+      <article>
+        <h3>Choose it from the shield.</h3>
+        <p>Click the shield on the island, choose uBlock Origin, then restart Blanc to apply it. Blanc Blocker stays the default until you switch.</p>
+      </article>
+      <article>
+        <h3>The uBlock Origin you know.</h3>
+        <p>Blanc includes <a href="/ublock-origin-after-chrome">uBlock Origin 1.75.0</a> with its popup, dashboard, logger, element picker, custom filters and filter-list subscriptions. Filter lists can update on their own; uBlock Origin itself updates only with reviewed Blanc releases.</p>
+      </article>
+      <article>
+        <h3>Where it runs.</h3>
+        <p>uBlock Origin is available for regular tabs on Apple Silicon and Intel Macs, Windows x64 and Linux x64. Private tabs always use Blanc Blocker, and so does the Intel build when it runs under Rosetta on an Apple Silicon Mac. Each profile keeps its own uBlock Origin settings, and they are not synced.</p>
+      </article>
+      <article>
+        <h3>One bundled extension, not an extension store.</h3>
+        <p>uBlock Origin is the one extension Blanc includes. Blanc does not install other browser extensions.</p>
       </article>
     </div>
   </section>

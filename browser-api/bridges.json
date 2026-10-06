@@ -1,0 +1,1447 @@
+{
+  "$comment": "Source of truth for the two smaller page bridges: window.bowserPages (src/main/tab-preload.js) and window.blancFillStatus (src/main/fill-status-preload.js). Edit HERE, then run npm run browser-api:build. See browser-api/README.md.",
+  "version": 1,
+  "bowserPages": {
+    "preload": "src/main/tab-preload.js",
+    "global": "bowserPages",
+    "hosts": [
+      "newtab",
+      "mahjong",
+      "error",
+      "bookmarks",
+      "history",
+      "downloads",
+      "settings",
+      "shortcuts",
+      "tab-import",
+      "tab-handoff"
+    ],
+    "unexposedHosts": [],
+    "signals": [
+      {
+        "channel": "page-tint:changed",
+        "documents": [
+          "https://example.com/",
+          "http://example.com/",
+          "blanc://newtab/"
+        ],
+        "doc": "Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page."
+      }
+    ],
+    "members": [
+      {
+        "name": "surface.close",
+        "kind": "invoke",
+        "channel": "pages:surface:close",
+        "hosts": [
+          "tab-handoff",
+          "bookmarks",
+          "history",
+          "downloads",
+          "shortcuts",
+          "tab-import",
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Close the utility sheet hosting this page."
+      },
+      {
+        "name": "surface.armEscape",
+        "kind": "invoke",
+        "channel": "pages:surface:escape-arm",
+        "hosts": [
+          "tab-handoff",
+          "bookmarks",
+          "history",
+          "downloads",
+          "shortcuts",
+          "tab-import",
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "armed",
+            "type": "boolean"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses.",
+        "ipcArgs": [
+          "bool($0)"
+        ]
+      },
+      {
+        "name": "surface.onEscape",
+        "kind": "event",
+        "channel": "pages:surface:escape",
+        "hosts": [
+          "tab-handoff",
+          "bookmarks",
+          "history",
+          "downloads",
+          "shortcuts",
+          "tab-import",
+          "settings"
+        ],
+        "payload": null,
+        "doc": "Escape was pressed while armed; the page closes its own consumer.",
+        "unsubscribe": true
+      },
+      {
+        "name": "appVersion",
+        "kind": "invoke",
+        "channel": "pages:app-version",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The running app version string."
+      },
+      {
+        "name": "bookmarks.list",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:list",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "List Favorites (internal name: bookmarks)."
+      },
+      {
+        "name": "bookmarks.clearFavicon",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:clear-favicon",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "url",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Drop a Favorite's cached favicon after it failed to load."
+      },
+      {
+        "name": "bookmarks.browserSources",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:browser-sources",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "List installed browsers Favorites can be imported from."
+      },
+      {
+        "name": "bookmarks.importBrowser",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:import-browser",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Import Favorites from one installed browser."
+      },
+      {
+        "name": "bookmarks.import",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:import",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Import Favorites from a bookmarks HTML file chosen in a native dialog."
+      },
+      {
+        "name": "bookmarks.remove",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:remove",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove one Favorite."
+      },
+      {
+        "name": "bookmarks.setFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:set-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "folder",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Move a Favorite into a folder, or out of folders with null."
+      },
+      {
+        "name": "bookmarks.renameFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:rename-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "oldName",
+            "type": "unknown"
+          },
+          {
+            "name": "newName",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Rename a Favorites folder."
+      },
+      {
+        "name": "bookmarks.removeFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:remove-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove a Favorites folder, keeping its Favorites."
+      },
+      {
+        "name": "start.data",
+        "kind": "invoke",
+        "channel": "pages:start:data",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Everything the Start Page renders at load: groups, top sites, blocked counts, synced devices, onboarding and the shared start status."
+      },
+      {
+        "name": "start.topSites",
+        "kind": "invoke",
+        "channel": "pages:start:top-sites",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "options",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Frequently visited sites for the Start Page."
+      },
+      {
+        "name": "start.focusGroup",
+        "kind": "invoke",
+        "channel": "pages:start:focus-group",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Focus a tab group picked on the Start Page."
+      },
+      {
+        "name": "start.setLayout",
+        "kind": "invoke",
+        "channel": "pages:start:set-layout",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save the Start Page layout."
+      },
+      {
+        "name": "start.setDynamicWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:set-dynamic-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "enabled",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Turn the dynamic Start Page wallpaper on or off."
+      },
+      {
+        "name": "start.openMahjong",
+        "kind": "invoke",
+        "channel": "pages:start:open-mahjong",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "background",
+            "type": "boolean",
+            "optional": true,
+            "default": false
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open blanc://mahjong as an ordinary tab.",
+        "ipcArgs": [
+          "bool($0)"
+        ]
+      },
+      {
+        "name": "start.layoutUsed",
+        "kind": "invoke",
+        "channel": "pages:start:layout-used",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Record the once-per-session newtab_layout usage event (subject to telemetry consent)."
+      },
+      {
+        "name": "start.openIsland",
+        "kind": "invoke",
+        "channel": "pages:start:open-island",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "char",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Type-to-open: summon the Island panel seeded with the typed character."
+      },
+      {
+        "name": "start.retryStartup",
+        "kind": "invoke",
+        "channel": "pages:start:startup-retry",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Retry a blocker startup that failed."
+      },
+      {
+        "name": "start.continueWithoutBlocking",
+        "kind": "invoke",
+        "channel": "pages:start:startup-continue",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Continue browsing after a blocker startup failure, without blocking."
+      },
+      {
+        "name": "start.recoverSession",
+        "kind": "invoke",
+        "channel": "pages:start:recover-session",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "choice",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Answer the session-recovery prompt."
+      },
+      {
+        "name": "start.completePrivacy",
+        "kind": "invoke",
+        "channel": "pages:start:privacy-complete",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "choices",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save the fresh-profile privacy choices."
+      },
+      {
+        "name": "start.openSettings",
+        "kind": "invoke",
+        "channel": "pages:start:open-settings",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "section",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open Settings at a section."
+      },
+      {
+        "name": "start.dismissMigrationChecklist",
+        "kind": "invoke",
+        "channel": "pages:start:migration-checklist-dismiss",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Dismiss the migration checklist."
+      },
+      {
+        "name": "start.defaultBrowser",
+        "kind": "invoke",
+        "channel": "pages:default-browser:get",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Default-browser status, for onboarding."
+      },
+      {
+        "name": "start.setDefaultBrowser",
+        "kind": "invoke",
+        "channel": "pages:default-browser:set",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Ask to become the default browser (opens system settings on Windows)."
+      },
+      {
+        "name": "start.onboardingSet",
+        "kind": "invoke",
+        "channel": "pages:start:onboarding-set",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "partial",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save onboarding progress."
+      },
+      {
+        "name": "start.onUtilitySheetVisibility",
+        "kind": "event",
+        "channel": "pages:start:utility-sheet-visibility",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "boolean",
+        "doc": "A utility sheet opened or closed over this Start Page. The callback receives `payload === true`.",
+        "forward": "strictTrue",
+        "unsubscribe": false
+      },
+      {
+        "name": "start.onStatus",
+        "kind": "event",
+        "channel": "pages:start:status",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "Startup and blocker status changed.",
+        "unsubscribe": false
+      },
+      {
+        "name": "start.onVisibility",
+        "kind": "event",
+        "channel": "pages:start:visibility",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "The Start Page became visible or hidden.",
+        "unsubscribe": false
+      },
+      {
+        "name": "start.onRemoteTabs",
+        "kind": "event",
+        "channel": "pages:start:remote-tabs",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "Open tabs from other synced devices changed.",
+        "unsubscribe": false
+      },
+      {
+        "name": "mahjong.played",
+        "kind": "invoke",
+        "channel": "pages:mahjong:played",
+        "hosts": [
+          "mahjong"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Record the once-per-session mahjong_play event after the first real move (subject to telemetry consent)."
+      },
+      {
+        "name": "errorPage.continueUnsafe",
+        "kind": "invoke",
+        "channel": "pages:error:continue-unsafe",
+        "hosts": [
+          "error"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Continue past this tab's certificate warning for the session. Takes no arguments: main reads the tab's own recorded failure and re-checks eligibility."
+      },
+      {
+        "name": "tabHandoff.get",
+        "kind": "invoke",
+        "channel": "pages:tab-handoff:get",
+        "hosts": [
+          "tab-handoff"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The pending tab handoff to review."
+      },
+      {
+        "name": "tabHandoff.accept",
+        "kind": "invoke",
+        "channel": "pages:tab-handoff:accept",
+        "hosts": [
+          "tab-handoff"
+        ],
+        "params": [
+          {
+            "name": "destination",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Accept the handoff into a destination."
+      },
+      {
+        "name": "tabHandoff.cancel",
+        "kind": "invoke",
+        "channel": "pages:tab-handoff:cancel",
+        "hosts": [
+          "tab-handoff"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Cancel the handoff."
+      },
+      {
+        "name": "history.list",
+        "kind": "invoke",
+        "channel": "pages:history:list",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "opts",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "List history entries, optionally filtered."
+      },
+      {
+        "name": "history.remove",
+        "kind": "invoke",
+        "channel": "pages:history:remove",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "url",
+            "type": "unknown"
+          },
+          {
+            "name": "visitedAt",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove one visit."
+      },
+      {
+        "name": "history.clear",
+        "kind": "invoke",
+        "channel": "pages:history:clear",
+        "hosts": [
+          "history"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Clear all history."
+      },
+      {
+        "name": "downloads.list",
+        "kind": "invoke",
+        "channel": "pages:downloads:list",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "List downloads."
+      },
+      {
+        "name": "downloads.cancel",
+        "kind": "invoke",
+        "channel": "pages:downloads:cancel",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Cancel a download in progress."
+      },
+      {
+        "name": "downloads.resume",
+        "kind": "invoke",
+        "channel": "pages:downloads:resume",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Continue an interrupted download where it stopped."
+      },
+      {
+        "name": "downloads.retry",
+        "kind": "invoke",
+        "channel": "pages:downloads:retry",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Start an interrupted download over from its source."
+      },
+      {
+        "name": "downloads.open",
+        "kind": "invoke",
+        "channel": "pages:downloads:open",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a finished download."
+      },
+      {
+        "name": "downloads.show",
+        "kind": "invoke",
+        "channel": "pages:downloads:show",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Reveal a download in the file manager."
+      },
+      {
+        "name": "downloads.clearFinished",
+        "kind": "invoke",
+        "channel": "pages:downloads:clear-finished",
+        "hosts": [
+          "downloads"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Remove finished downloads from the list; files stay on disk."
+      },
+      {
+        "name": "shortcuts.list",
+        "kind": "invoke",
+        "channel": "pages:shortcuts:list",
+        "hosts": [
+          "shortcuts"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Keyboard shortcuts for the current platform."
+      },
+      {
+        "name": "tabImport.sources",
+        "kind": "invoke",
+        "channel": "pages:tab-import:sources",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Browsers whose open tabs can be brought in."
+      },
+      {
+        "name": "tabImport.openSource",
+        "kind": "invoke",
+        "channel": "pages:tab-import:open-source",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "options",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Read one browser's open tabs into an import session."
+      },
+      {
+        "name": "tabImport.setSelection",
+        "kind": "invoke",
+        "channel": "pages:tab-import:set-selection",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          },
+          {
+            "name": "selection",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Update which tabs the session will import."
+      },
+      {
+        "name": "tabImport.suggestSourceGroups",
+        "kind": "invoke",
+        "channel": "pages:tab-import:suggest-source-groups",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Suggest groups from the source browser's own groups."
+      },
+      {
+        "name": "tabImport.suggestEmbed",
+        "kind": "invoke",
+        "channel": "pages:tab-import:suggest-embed",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Start an on-device grouping suggestion for the session."
+      },
+      {
+        "name": "tabImport.submitEmbeddings",
+        "kind": "invoke",
+        "channel": "pages:tab-import:submit-embeddings",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          },
+          {
+            "name": "generation",
+            "type": "unknown"
+          },
+          {
+            "name": "matrix",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Return embeddings computed in the page for a suggestion generation."
+      },
+      {
+        "name": "tabImport.apply",
+        "kind": "invoke",
+        "channel": "pages:tab-import:apply",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          },
+          {
+            "name": "request",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open the selected tabs."
+      },
+      {
+        "name": "tabImport.cancel",
+        "kind": "invoke",
+        "channel": "pages:tab-import:cancel",
+        "hosts": [
+          "tab-import"
+        ],
+        "params": [
+          {
+            "name": "sessionId",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Discard the import session."
+      },
+      {
+        "name": "settings.get",
+        "kind": "invoke",
+        "channel": "pages:settings:get",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Current settings plus derived status for the Settings page."
+      },
+      {
+        "name": "settings.set",
+        "kind": "invoke",
+        "channel": "pages:settings:set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "partial",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Write a partial settings update."
+      },
+      {
+        "name": "settings.blockingStatus",
+        "kind": "invoke",
+        "channel": "pages:blocking:status",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Blocking provider status."
+      },
+      {
+        "name": "settings.blockingRetry",
+        "kind": "invoke",
+        "channel": "pages:blocking:retry",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Retry a blocking provider that failed to start."
+      },
+      {
+        "name": "settings.blockingOpen",
+        "kind": "invoke",
+        "channel": "pages:blocking:open",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "tool",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a managed uBlock Origin tool view."
+      },
+      {
+        "name": "settings.onBlockingStatus",
+        "kind": "event",
+        "channel": "pages:blocking:status",
+        "hosts": [
+          "settings"
+        ],
+        "payload": "unknown",
+        "doc": "Blocking provider status changed.",
+        "unsubscribe": false
+      },
+      {
+        "name": "settings.checkForUpdates",
+        "kind": "invoke",
+        "channel": "pages:settings:check-for-updates",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Check for an app update now."
+      },
+      {
+        "name": "settings.onAppearance",
+        "kind": "event",
+        "channel": "pages:settings:appearance",
+        "hosts": [
+          "settings"
+        ],
+        "payload": "unknown",
+        "doc": "Appearance changed outside the page (for example /theme).",
+        "unsubscribe": false
+      },
+      {
+        "name": "settings.activateSupporter",
+        "kind": "invoke",
+        "channel": "pages:settings:supporter-activate",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "key",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Activate a Patron key. The key stays in main."
+      },
+      {
+        "name": "settings.syncGet",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-get",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Profile Sync status. Never carries keys."
+      },
+      {
+        "name": "settings.syncEnable",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-enable",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "payload",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Turn on Profile Sync."
+      },
+      {
+        "name": "settings.syncPreflight",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-preflight",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "payload",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Check a sync passphrase before enabling."
+      },
+      {
+        "name": "settings.syncDisable",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-disable",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "opts",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Turn off Profile Sync."
+      },
+      {
+        "name": "settings.syncNow",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-now",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Sync now, then return the new status."
+      },
+      {
+        "name": "settings.syncTabsSet",
+        "kind": "invoke",
+        "channel": "pages:settings:sync-tabs-set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "on",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Turn open-tab sync on or off; main coerces to boolean."
+      },
+      {
+        "name": "settings.welcomeTour",
+        "kind": "invoke",
+        "channel": "pages:settings:welcome-tour",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Replay the welcome tour."
+      },
+      {
+        "name": "settings.onePasswordStatus",
+        "kind": "invoke",
+        "channel": "pages:settings:onepassword-status",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "1Password fill status. Main registers this handler only when 1Password fill is available."
+      },
+      {
+        "name": "settings.onePasswordVerify",
+        "kind": "invoke",
+        "channel": "pages:settings:onepassword-verify",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "account",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Verify a 1Password account. Registered only when 1Password fill is available."
+      },
+      {
+        "name": "settings.openOnePasswordApp",
+        "kind": "invoke",
+        "channel": "pages:settings:open-onepassword-app",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Open the 1Password app. Registered only when 1Password fill is available."
+      },
+      {
+        "name": "settings.trustReceipt",
+        "kind": "invoke",
+        "channel": "pages:settings:trust-receipt",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Facts about the installed build for About & Trust, checked on this device."
+      },
+      {
+        "name": "settings.openTrustLink",
+        "kind": "invoke",
+        "channel": "pages:settings:open-trust-link",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "kind",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a release, verification, SBOM or provenance link for this version."
+      },
+      {
+        "name": "profiles.list",
+        "kind": "invoke",
+        "channel": "pages:profiles:list",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Local profiles."
+      },
+      {
+        "name": "profiles.create",
+        "kind": "invoke",
+        "channel": "pages:profiles:create",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Create a named profile."
+      },
+      {
+        "name": "profiles.open",
+        "kind": "invoke",
+        "channel": "pages:profiles:open",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a profile in a new window."
+      },
+      {
+        "name": "profiles.rename",
+        "kind": "invoke",
+        "channel": "pages:profiles:rename",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Rename a named profile."
+      },
+      {
+        "name": "profiles.remove",
+        "kind": "invoke",
+        "channel": "pages:profiles:remove",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "confirmation",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Delete a named profile; requires its exact name as confirmation."
+      },
+      {
+        "name": "permissions.list",
+        "kind": "invoke",
+        "channel": "pages:permissions:list",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Remembered site permission decisions."
+      },
+      {
+        "name": "permissions.remove",
+        "kind": "invoke",
+        "channel": "pages:permissions:remove",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "key",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Forget one permission decision."
+      },
+      {
+        "name": "defaultBrowser.get",
+        "kind": "invoke",
+        "channel": "pages:default-browser:get",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Default-browser status."
+      },
+      {
+        "name": "defaultBrowser.set",
+        "kind": "invoke",
+        "channel": "pages:default-browser:set",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Ask to become the default browser (opens system settings on Windows)."
+      },
+      {
+        "name": "clearBrowsingData",
+        "kind": "invoke",
+        "channel": "pages:clear-browsing-data",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Clear cookies, site storage and cache in the browsing sessions of the calling window."
+      },
+      {
+        "name": "resetInstallId",
+        "kind": "invoke",
+        "channel": "pages:telemetry:reset-install-id",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Replace the telemetry install id."
+      },
+      {
+        "name": "diagnostics.status",
+        "kind": "invoke",
+        "channel": "pages:diagnostics:status",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Local diagnostics status."
+      },
+      {
+        "name": "diagnostics.export",
+        "kind": "invoke",
+        "channel": "pages:diagnostics:export",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Export local diagnostics through a native save dialog."
+      },
+      {
+        "name": "diagnostics.clear",
+        "kind": "invoke",
+        "channel": "pages:diagnostics:clear",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Clear local diagnostics."
+      }
+    ]
+  },
+  "blancFillStatus": {
+    "preload": "src/main/fill-status-preload.js",
+    "global": "blancFillStatus",
+    "document": "blanc-chrome://fill-status/",
+    "types": {
+      "FillKind": {
+        "ts": "'setup-enable' | 'setup-account' | 'confirm-heuristic' | 'busy' | 'unsupported-page' | 'page-changed' | 'no-form' | 'no-match' | 'empty-login' | 'nothing-filled' | 'unexpected' | 'desktop-unavailable' | 'account-not-found' | 'not-authorized' | 'session-expired' | 'timed-out' | 'broker-stopped' | 'sdk-error' | 'selection-changed' | 'filled'",
+        "doc": "A fixed capsule message kind, keyed in FILL_KINDS (src/main/fill-status-kinds.js)."
+      },
+      "FillMode": {
+        "ts": "'decision' | 'notice'",
+        "doc": "Capsule mode (MODES in fill-status-kinds.js)."
+      },
+      "FillVerb": {
+        "ts": "'open-settings' | 'cancel' | 'fill' | 'dismiss'",
+        "doc": "A capsule button verb: every verb some FILL_KINDS entry allows."
+      },
+      "FillShowPayload": {
+        "doc": "Show the capsule. Credential-free: fixed ids only.",
+        "fields": {
+          "kind": {
+            "type": "FillKind"
+          },
+          "mode": {
+            "type": "FillMode"
+          },
+          "requestId": {
+            "type": "number",
+            "doc": "Per-process counter; replies must echo it."
+          }
+        }
+      },
+      "FillHidePayload": {
+        "doc": "Hide the capsule for a request.",
+        "fields": {
+          "requestId": {
+            "type": "number"
+          }
+        }
+      },
+      "FillReplyPayload": {
+        "doc": "The user picked a verb. main checks the requestId echo and the kind's verb set.",
+        "fields": {
+          "requestId": {
+            "type": "number"
+          },
+          "verb": {
+            "type": "FillVerb"
+          }
+        }
+      }
+    },
+    "members": [
+      {
+        "name": "onShow",
+        "kind": "event",
+        "channel": "fill:show",
+        "payload": "FillShowPayload",
+        "unsubscribe": false,
+        "doc": "Show the capsule with a fixed message kind."
+      },
+      {
+        "name": "onHide",
+        "kind": "event",
+        "channel": "fill:hide",
+        "payload": "FillHidePayload",
+        "unsubscribe": false,
+        "doc": "Hide the capsule."
+      },
+      {
+        "name": "reply",
+        "kind": "send",
+        "channel": "fill:reply",
+        "params": [
+          {
+            "name": "payload",
+            "type": "FillReplyPayload"
+          }
+        ],
+        "doc": "Answer the capsule. Accepted only from this window's capsule view."
+      }
+    ]
+  }
+}

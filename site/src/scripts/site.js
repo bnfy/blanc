@@ -94,7 +94,13 @@ const openAIAttribution = (() => {
       link.dataset.platform === os ||
       (os === 'mac' && link.dataset.platform === 'mac-arm64')
     );
-    if (preferred?.parentElement === downloadOptions) downloadOptions.prepend(preferred);
+    if (preferred?.parentElement === downloadOptions) {
+      downloadOptions.prepend(preferred);
+      preferred.dataset.preferred = '';
+      downloadOptions.classList.add('has-preferred');
+    }
+    // The matching install steps lead their row; the others stay visible.
+    document.querySelector(`[data-install-os="${os}"]`)?.setAttribute('data-preferred', '');
   }
 
   const pickAsset = (assets, kind) => {
@@ -134,9 +140,12 @@ const openAIAttribution = (() => {
   // artifact server-side. Generic 'mac' stays on /download (arm64 vs x64
   // can't be told from a UA — see pickAsset).
   if (os && os !== 'mac') {
+    const label = os === 'win' ? 'Download for Windows' : 'Download for Linux';
     ctas.forEach((cta) => {
       cta.href = '/dl/' + os;
       cta.dataset.platform = os;
+      // This link now downloads the installer directly, so say which one.
+      cta.textContent = label;
     });
   }
 

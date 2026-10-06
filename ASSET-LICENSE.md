@@ -29,8 +29,12 @@ Source mark:
 
 Product marks:
 
-- `assets/horizon-shield.png` — layered gold Horizon Shield source artwork
-- `src/renderer/shield-horizon.png` — transparent Island toolbar export
+- `assets/horizon-shield.png` — layered copper/bronze Horizon Shield source artwork
+- `site/public/horizon-shield.webp` — transparent website export
+- `site/src/assets/blocker-shield-bronze.png` — bronze display interpretation of the original Blocker outline and slash
+- `site/public/blocker-shield-bronze.webp` — transparent website export of that interpretation
+- `site/src/data/blocker-shield-outline.json` — silhouette for that 3D display variant
+- `site/src/data/horizon-shield-outline.json` — silhouette for the website’s 3D product mark
 
 App-icon colorways:
 
@@ -45,6 +49,8 @@ Platform-packaged forms of the same mark:
 - `build/windows-icons/icon-sunrise.ico`
 - `ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png`
 - `src/renderer/pages/icon.svg`
+- `site/public/sunrise-hero-mark.png` and `src/renderer/sunrise-hero-mark.png` —
+  the original gold Sunrise mark for the website and blocker dialog
 - `site/public/logo.png`, `site/public/favicon.svg`,
   `site/public/favicon.ico`, `site/public/favicon-16x16.png`,
   `site/public/favicon-32x32.png`, and `site/public/apple-touch-icon.png`
@@ -70,6 +76,12 @@ and mark as though it were an official release is not — see
   trademark of its respective owner. They are not licensed under Blanc's MIT
   grant and are not redistributable as part of a derivative work on the strength
   of it.
+- `site/public/revamp/glance-nyhavn.webp`, `glance-kusama.jpg`,
+  `visit-copenhagen-favicon.ico`, and `louisiana-favicon.ico` — third-party
+  photography, depicted artwork, and website marks used in the Glance demo.
+  Their owners retain their rights; these files are not covered by Blanc’s MIT
+  grant. Credits and source pages are recorded in
+  `site/public/revamp/credits.txt` and `docs/website-revamp-assets.json`.
 - Screenshots, videos, demos, and other media in this repository may reproduce
   third-party websites, interfaces, names, logos, icons, or other content. The
   MIT grant covers only the portions of those files owned by Bananify Creative;

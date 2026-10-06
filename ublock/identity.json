@@ -1,0 +1,5 @@
+{
+  "format": 1,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtxBB2qwMMouEGONjphxwuIpIMG52BtBVlqskd/oClZjq7ttgWOjaVxfduilgWp1SeLGJ3/g1RyO03js94zagHWSiFp0An3hX74dIUL9Saik8rbtzuzvT34gyobBxoGpaF0GHtOGk6eyuDtjEWoaJtp9GiI688dS8PPpIANX4FGkR3bYgiqwxrVvkO/pi6DBg3dUKDdqx/DfM/xLvpl867cQfjHzekIysj03yJ6+Z/dObNfZ6E/Gl7PyAGrgqdmGG4Ks1RhRfSkU+iraHYEjLARBLXW4TIwANL3TYtMdcsv2Ii0FAF2SydK9YjaRFPKM14mnSq/BELNQnpCc+Gt5SzwIDAQAB",
+  "purpose": "Fixed Blanc host identity for managed uBO; public key only, shared across profiles/platforms"
+}

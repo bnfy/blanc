@@ -1,0 +1,25 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": false,
+  "os": "win32",
+  "harnessArchitecture": "x64",
+  "osRelease": "10.0.26100",
+  "executableSha256": "95bf3ad35746b24b45f8f57a0a593c32ae025d89d72fa8803a0e90462691887b",
+  "checks": {},
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "win32",
+    "architecture": "x64"
+  },
+  "failure": {
+    "stage": "shield switch and actual restart",
+    "name": "Error"
+  }
+}

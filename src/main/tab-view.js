@@ -24,9 +24,10 @@ const {
   updateFaviconFromPage,
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
+const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navigation');
+const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { chromeWebStoreErrorPageUrl } = require('./chrome-web-store-guard');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -115,6 +116,7 @@ function initTabView(injected) {
     'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
     'dispatchMouseGesture',
     'sanitizeCertificate', 'certificateErrorQuery',
+    'certificateExceptions', 'certificateObserver',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -172,6 +174,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
     dispatchMouseGesture,
     sanitizeCertificate, certificateErrorQuery,
+    certificateExceptions, certificateObserver,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
@@ -335,6 +338,24 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.navEpoch++;
+    // The not-secure mark belongs to the history entry that committed
+    // (certificate spec §4.5). The session-wide certificate observer is
+    // deliberately not consulted: a host-scoped trusted record says nothing
+    // about which document an entry holds.
+    const nav = wc.navigationHistory;
+    const { state: entryMarks, record: documentException } = commitEntryMarks(tab.certificateEntryMarks, {
+      entryUrls: nav.getAllEntries().map((entry) => entry.url),
+      activeIndex: nav.getActiveIndex(),
+      committedUrl: url,
+      freshRecord: freshCertificateRecord({
+        committedUrl: url,
+        pending: tab.pendingCertificateException,
+        stored: certificateExceptions.get(wc.session, url),
+      }),
+    });
+    tab.pendingCertificateException = null;
+    tab.certificateEntryMarks = entryMarks;
+    tab.documentCertificateException = documentException;
     const shouldReclaimChromeFocus = url === tab.url && getOwner().tabsWantingAddressBarFocus.has(id) && getOwner().activeTabId === id;
     if (url !== tab.url) getOwner().tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
@@ -404,6 +425,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // navigation uses loadURL and therefore bypasses this page-initiated guard.
   wc.on('will-navigate', boundToTab((event, targetUrl) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if (/^chrome-extension:/i.test(targetUrl) && !wc.getURL().startsWith('chrome-extension://')) { event.preventDefault(); return; }
     if (getOwner().resident && !/^https?:/i.test(targetUrl)) { event.preventDefault(); return; }
     if (isForbiddenTopLevelUrl(targetUrl)) {
       event.preventDefault();
@@ -423,32 +445,43 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
-    const guardedErrorUrl = chromeWebStoreErrorPageUrl(validatedURL, errorCode);
-    if (guardedErrorUrl) {
-      wc.loadURL(guardedErrorUrl).catch(() => {});
-      return;
-    }
-    if (errorCode === -3) return;
-    if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
+    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) return;
+    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
+    const canContinue = !!tab.certificateError && certificateExceptions.isEligible({
+      url: tab.certificateError.url,
+      error: tab.certificateError.error,
+      certificate: tab.certificateError.certificate,
+      verifiedThisRun: certificateObserver.wasVerifiedThisRun(wc.session, tab.certificateError.url),
+    });
     const q = tab.certificateError
       ? certificateErrorQuery(tab.certificateError, {
           url: validatedURL,
           code: errorCode,
           desc: errorDescription,
-        })
+        }, { canContinue })
       : new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    queueTabNavigation(wc, {
+      isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+      run: contents => contents.loadURL(`blanc://error/?${q}`),
+    });
   }));
-  // Chromium remains authoritative. Capture only bounded presentation data
-  // for top-level failures and always reject; subframe failures stay denied
-  // without replacing the visible page.
-  wc.on('certificate-error', boundToTab((_event, failedUrl, error, certificate, callback, isMainFrame) => {
+  // Chromium remains authoritative. A local failure the user chose to
+  // continue past (certificate spec §4.2) is allowed only on an exact
+  // origin+fingerprint+error+validity match; everything else is rejected,
+  // and subframe failures stay denied without replacing the visible page.
+  wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, callback, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return callback(false);
+    const sanitized = sanitizeCertificate(certificate);
+    if (certificateExceptions.matches(wc.session, { url: failedUrl, error, certificate: sanitized, now: Date.now() })) {
+      if (isMainFrame) tab.pendingCertificateException = { url: failedUrl, certificate: sanitized };
+      event.preventDefault();
+      return callback(true);
+    }
     if (isMainFrame) {
       tab.certificateError = {
         url: failedUrl,
         error,
-        certificate: sanitizeCertificate(certificate),
+        certificate: sanitized,
       };
     }
     callback(false);
@@ -467,7 +500,10 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (details.reason === 'clean-exit') return;
     recordRendererCrash('tab', details);
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+    queueTabNavigation(wc, {
+      isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+      run: contents => contents.loadURL(`blanc://error/?${q}`),
+    });
   }));
   // Electron's polarity is deliberately inverted: preventing this event lets
   // the underlying unload proceed.
@@ -497,7 +533,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   // requests (OAuth/SSO and payments) keep a real BrowserWindow so their
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
-    installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs));
+    installExternalNavigationHandlers(targetWc, boundToTab(handOffToOs),
+      (url, source, event) => deps.allowManagedExtensionNavigation?.(tab, targetWc, url, source, event) === true);
     targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition, referrer }) => {
       if (getOwner().resident) return { action: 'deny' };
       if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
@@ -507,7 +544,8 @@ function wireTabView(tab, view, { owner, adopted }) {
       }
       if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) return { action: 'deny' };
       const source = targetWc.getURL();
-      if (handOffToOs(targetUrl, { source })) return { action: 'deny' };
+      const managedExtension = /^chrome-extension:/i.test(targetUrl) && deps.allowManagedExtensionNavigation?.(tab, targetWc, targetUrl, source, { isMainFrame: true }) === true;
+      if (!managedExtension && handOffToOs(targetUrl, { source })) return { action: 'deny' };
       if (disposition === 'new-window') {
         return {
           action: 'allow',
@@ -532,7 +570,7 @@ function wireTabView(tab, view, { owner, adopted }) {
             : null;
           // A discarded opener leaves this child's window.opener unusable.
           const newId = createTab(targetUrl, {
-            private: tab.private, groupId: tab.groupId, view: childView,
+            private: tab.private, groupId: tab.groupId, view: childView, managedExtension,
             openerTabId: childView ? tab.id : null,
             // Custom creation bypasses Electron's normal construction and
             // navigation. Keep the inherited HTML/CSP sandbox and referrer
@@ -545,12 +583,12 @@ function wireTabView(tab, view, { owner, adopted }) {
         }),
       };
     }));
-    targetWc.on('did-create-window', boundToTab((childWindow) => {
+    targetWc.on('did-create-window', boundToTab((childWindow, details) => {
       const childId = childWindow.webContents.id;
       const isManagedTab = [...tabs.values()].some((candidate) => liveContents(candidate)?.id === childId);
       if (!isManagedTab) {
         applyWindowOpenPolicy(childWindow.webContents);
-        notePopupChild(tab.id, childWindow);
+        notePopupChild(tab.id, childWindow, targetWc.id, details?.url);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
         windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
@@ -565,6 +603,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   };
   applyWindowOpenPolicy(wc);
   attachContextMenu(wc, {
+    extensionItems: (params) => deps.extensionContextItems?.(tab, params) ?? [],
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;

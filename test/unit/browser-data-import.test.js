@@ -390,7 +390,7 @@ test('tree reads reject empty sources and enforce the candidate cap after dedup'
   });
 });
 
-test('listSources reports permission-blocked browsers instead of omitting them', async (t) => {
+test('listSources reports permission-blocked browsers instead of omitting them', { skip: process.platform === 'win32' && 'POSIX directory permission fixture; Windows chmod does not deny directory access' }, async (t) => {
   const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-blocked-'));
   t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
   const chromeRoot = browserDataRoot('chrome', { platform: 'darwin', homeDir, env: {} });

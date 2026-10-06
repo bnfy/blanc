@@ -45,20 +45,12 @@ test('website Island proximity and morph match the released interaction', () => 
 });
 
 test('resting website figures show the quiet Plus shortcut in horizontal layouts', () => {
-  const restingFigures = [
-    'site/src/pages/index.astro',
-    'site/src/pages/features/island.astro',
-    'site/src/pages/features/quiet-tabs.astro',
-    'site/src/pages/features/ad-blocking.astro',
-    'site/src/pages/features/security.astro',
-    'site/src/pages/features/private-tabs.astro',
-    'site/src/components/PressIslandDemo.astro',
-  ];
+  const restingFigures = ['site/src/components/PressIslandDemo.astro'];
   for (const file of restingFigures) {
     assert.match(source(file), /class="pill-shortcut"|class="pill-shortcut" id="pressIslandPillNewTab"/, `${file} should show Plus`);
   }
 
-  const verticalTabs = source('site/src/pages/features/vertical-tabs.astro');
+  const verticalTabs = source('site/src/components/guides/vertical-tabs.astro');
   assert.doesNotMatch(verticalTabs, /pill-shortcut/, 'vertical-tabs figure should omit the redundant Plus');
   assert.match(styles, /\.pill-shortcuts \{[^}]*gap: calc\(4px \/ var\(--pill-zoom\)\)/s);
   assert.match(styles, /\.pill-slash,\s*\.demo-island \.pill-shortcut \{[^}]*width: 22px;[^}]*height: 22px/s);
@@ -66,7 +58,7 @@ test('resting website figures show the quiet Plus shortcut in horizontal layouts
   assert.match(pressScript, /enterBlankTab\(\)/);
 });
 
-test('the masthead is a sticky top bar and the tuck-on-scroll island is gone', () => {
+test('the masthead is a sticky top bar and the navigation hides on scroll down and returns on scroll up', () => {
   assert.match(styles, /\.site-header \{ position: sticky; top: 0; z-index: 30;/);
   assert.doesNotMatch(styles, /is-tucked/);
   assert.doesNotMatch(styles, /\.site-header[^{}]*\{[^}]*inset: auto 0 0/s);
@@ -74,16 +66,18 @@ test('the masthead is a sticky top bar and the tuck-on-scroll island is gone', (
   assert.match(styles, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(styles, /\.site-mega::before \{[^}]*var\(--site-gold-on-dark\)/);
   assert.doesNotMatch(header, /tuckDistance|is-tucked/);
-  assert.match(header, /import \{ directLinks \} from '\.\.\/data\/navigation\.mjs'/);
-  assert.match(header, /aria-controls="siteMobileMenu"/);
+  assert.match(header, /import \{ directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
+  assert.match(header, /is-scroll-hidden/);
+  assert.match(header, /focusin/);
+  assert.match(header, /travel >= 8/);
   assert.doesNotMatch(header, /pointerenter|mouseenter|site-mega/);
 });
 
 test('homepage keeps the Sunrise mark above the hero eyebrow', () => {
   const homepage = source('site/src/pages/index.astro');
-  assert.match(homepage, /import BrandMark from '\.\.\/components\/BrandMark\.astro'/);
-  assert.match(homepage, /class="trust-hero-mark" src="\/sunrise-hero-mark\.png"[^>]*\/>\s*<p class="section-kicker">/);
-  assert.match(styles, /\.hero-sunrise-mark \{ width: 32px; height: 32px; margin: 0 auto 14px; color: var\(--site-text\); \}/);
+  assert.match(homepage, /src="\/sunrise-hero-mark\.png" alt=""\s*\/?>(?:\s*)<p class="frame-kicker">\s*Blanc Browser\s*<\/p>\s*<h1[^>]*>A little less browser\.<\/h1>/);
+  assert.doesNotMatch(layout, /jetbrains-mono/);
+
 });
 
 test('optional measurement uses the selected upper-right toast and stays reopenable', () => {

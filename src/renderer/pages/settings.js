@@ -79,6 +79,66 @@
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
+  if (typeof window.bowserPages.settings.blockingStatus === 'function') {
+    const selector = document.getElementById('adblockProvider');
+    const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
+    const renderBlocking = (state) => {
+      if (!state) return;
+      document.getElementById('blockingProviderSetting').hidden = state.exposed === false;
+      selector.value = state.fallback ? state.active : state.selected;
+      selector.querySelector('[value="ublock-origin"]').disabled = !state.supported;
+      const status = document.getElementById('blockingProviderStatus');
+      const unavailable = 'uBlock Origin isn’t available in this build.';
+      status.textContent = state.restartPending
+        ? `${label(state.selected)} selected. Restart Blanc to apply; ${label(state.active)} is active.`
+        : state.phase === 'failed'
+          ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
+          : state.phase === 'unsupported'
+            ? unavailable
+            : `${label(state.active)} ${state.enabled ? state.phase : 'disabled'}.${state.supported || state.exposed === false || state.fallback ? '' : ' ' + unavailable}`;
+      if (state.fallback) {
+        const protection = state.enabled && state.phase === 'ready' ? 'Blanc Blocker is active.'
+          : state.enabled ? status.textContent : 'Blocking is off.';
+        const reason = state.fallback === 'manifest-v2-retired'
+          ? 'This browser engine can’t run uBlock Origin.' : 'uBlock Origin isn’t available in this build.';
+        status.textContent = `${reason} ${protection} Your uBO settings are saved.`;
+      }
+      if (state.internalCandidate) status.textContent += ' Internal validation candidate; platform support is not certified.';
+      const ubo = state.active === 'ublock-origin';
+      document.getElementById('ublockTools').hidden = !ubo;
+      document.getElementById('ublockLimits').hidden = !ubo;
+      const failed = ['failed', 'unsupported'].includes(state.phase);
+      document.getElementById('blockingRecovery').hidden = !failed;
+      document.getElementById('ublockRetry').hidden = !failed;
+      document.getElementById('ublockRetry').textContent = `Retry ${label(state.active)}`;
+      document.getElementById('ublockUseBlanc').hidden = !failed || !ubo;
+      document.getElementById('ublockContinue').hidden = !failed;
+    };
+    renderBlocking(await window.bowserPages.settings.blockingStatus());
+    window.bowserPages.settings.onBlockingStatus(renderBlocking);
+    selector.addEventListener('change', async () => {
+      await window.bowserPages.settings.set({ adblockProvider: selector.value });
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+    for (const [id, tool] of [['ublockDashboard', 'dashboard'], ['ublockLogger', 'logger']]) {
+      document.getElementById(id).addEventListener('click', () => window.bowserPages.settings.blockingOpen(tool));
+    }
+    document.getElementById('ublockRetry').addEventListener('click', async () => {
+      try { await window.bowserPages.settings.blockingRetry(); } catch {}
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+    document.getElementById('ublockUseBlanc').addEventListener('click', async () => {
+      await window.bowserPages.settings.set({ adblockProvider: 'blanc' });
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+    document.getElementById('ublockContinue').addEventListener('click', async () => {
+      await window.bowserPages.settings.set({ adblockEnabled: false });
+      adblockEnabled.checked = false;
+      renderBlocking(await window.bowserPages.settings.blockingStatus());
+    });
+  } else {
+    document.getElementById('blockingProviderSetting')?.remove();
+  }
 
   for (const [key, label] of Object.entries(searchEngines)) {
     const opt = document.createElement('option');
@@ -118,6 +178,89 @@
   }
 
   // --- Quiet Tabs idle delay (device-local memory policy) ---
+  // Device-local: the Island strip's site-color tint. Off leaves it on the
+  // theme background (near-black in Dark).
+  if (supports('islandSiteColors')) {
+    const siteColors = document.getElementById('islandSiteColors');
+    siteColors.checked = settings.islandSiteColors;
+    siteColors.addEventListener('change', async () => {
+      const result = await window.bowserPages.settings.set({ islandSiteColors: siteColors.checked });
+      siteColors.checked = result.islandSiteColors;
+    });
+  } else {
+    document.getElementById('islandSiteColorsSetting')?.remove();
+  }
+
+  // --- Dark websites (device-local) ---
+  if (supports('darkWebsites')) {
+    const darkWebsites = document.getElementById('darkWebsites');
+    const darkExceptionInput = document.getElementById('darkExceptionInput');
+    const darkExceptionAdd = document.getElementById('darkExceptionAdd');
+    const darkExceptionList = document.getElementById('darkExceptionList');
+    const darkExceptionsBlock = document.getElementById('darkWebsitesExceptionsBlock');
+
+    function renderDarkExceptions(current) {
+      darkWebsites.checked = current.darkWebsites === true;
+      darkExceptionsBlock.hidden = !darkWebsites.checked;
+      const exceptions = current.darkWebsitesExceptions ?? [];
+      darkExceptionList.replaceChildren();
+      if (exceptions.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No sites added.';
+        darkExceptionList.append(empty);
+        return;
+      }
+      for (const hostname of [...exceptions].sort()) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const main = document.createElement('div');
+        main.className = 'main';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = hostname;
+        main.append(title);
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const remove = document.createElement('button');
+        remove.className = 'danger';
+        remove.textContent = 'Remove';
+        remove.addEventListener('click', async () => {
+          renderDarkExceptions(await window.bowserPages.settings.set({
+            darkWebsitesExceptions: exceptions.filter((h) => h !== hostname),
+          }));
+        });
+        actions.append(remove);
+        row.append(main, actions);
+        darkExceptionList.append(row);
+      }
+    }
+
+    async function addDarkException() {
+      const value = darkExceptionInput.value.trim();
+      if (!value) return;
+      const { settings: current } = await window.bowserPages.settings.get();
+      // Main normalizes and drops anything that is not a hostname.
+      const next = await window.bowserPages.settings.set({
+        darkWebsitesExceptions: [...(current.darkWebsitesExceptions ?? []), value],
+      });
+      darkExceptionInput.value = '';
+      renderDarkExceptions(next);
+    }
+
+    darkWebsites.addEventListener('change', async () => {
+      renderDarkExceptions(await window.bowserPages.settings.set({ darkWebsites: darkWebsites.checked }));
+    });
+    darkExceptionAdd.addEventListener('click', addDarkException);
+    darkExceptionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addDarkException();
+    });
+    renderDarkExceptions(settings);
+  } else {
+    document.getElementById('darkWebsitesSetting')?.remove();
+    document.getElementById('darkWebsitesExceptionsBlock')?.remove();
+  }
+
   if (supports('tabSleep')) {
     const tabSleep = document.getElementById('tabSleep');
     tabSleep.value = settings.tabSleep ?? '1h';
@@ -1103,6 +1246,59 @@
     })();
   } else {
     document.getElementById('group-sync')?.remove();
+  }
+
+  // --- About & Trust: a local, read-only receipt ---
+  if (typeof window.bowserPages?.settings?.trustReceipt === 'function') {
+    const trustStatus = document.getElementById('trustReceiptStatus');
+    const trustList = document.getElementById('trustReceiptList');
+    const trustLinks = document.getElementById('trustReceiptLinks');
+    const yesNo = (value) => value ? 'On' : 'Off';
+    const addFact = (label, value) => {
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      term.textContent = label;
+      detail.textContent = value;
+      trustList.append(term, detail);
+    };
+
+    window.bowserPages.settings.trustReceipt().then((receipt) => {
+      const signature = {
+        verified: `Verified locally — ${receipt.signature.observedPublisher}`,
+        mismatch: `Expected ${receipt.signature.expectedPublisher} · observed ${receipt.signature.observedPublisher || 'unknown publisher'}`,
+        unavailable: `Expected ${receipt.signature.expectedPublisher} · local inspection unavailable`,
+        development: 'Development build — not a signed release build',
+        'manifest-backed': 'Linux publisher verification relies on the signed manifest for the matching release',
+      }[receipt.signature.status] ?? 'Unknown';
+      addFact('Build', `${receipt.app.version} (${receipt.app.bundleBuild}) · ${receipt.app.packaged ? 'packaged' : 'development'}`);
+      addFact('Runtime', `Electron ${receipt.app.electron} · Chromium ${receipt.app.chromium} · Node ${receipt.app.node}`);
+      addFact('Platform', `${receipt.app.platform} · ${receipt.app.architecture}`);
+      addFact('Publisher', signature);
+      addFact('Blocker snapshot', `${receipt.blocker.snapshotDate} · ${receipt.blocker.lists.map((list) => list.name).join(' + ')}`);
+      for (const list of receipt.blocker.lists) addFact(`Blocker · ${list.name}`, list.sha256);
+      addFact('Combined blocker digest', receipt.blocker.combinedSha256);
+      addFact('Sync', receipt.sync.enabled ? `${receipt.sync.categories.join(', ')} · ${receipt.sync.profileScope}` : 'Off');
+      addFact('Open-tab sharing', yesNo(receipt.sync.openTabsEnabled));
+      addFact('Usage measurement', yesNo(receipt.choices.usageMeasurement));
+      addFact('Search suggestions', yesNo(receipt.choices.searchSuggestions));
+      addFact('Secure DNS', receipt.choices.secureDns);
+      addFact('Crash ledger', `Device only · automatic upload off · ${receipt.choices.crashLedger.eventCount}/${receipt.choices.crashLedger.eventLimit} events`);
+      for (const link of receipt.links) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'quiet';
+        button.textContent = link.label;
+        button.addEventListener('click', () => window.bowserPages.settings.openTrustLink(link.id));
+        trustLinks.append(button);
+      }
+      trustStatus.textContent = 'Receipt checked locally.';
+      trustList.hidden = false;
+      trustLinks.hidden = false;
+    }).catch(() => {
+      trustStatus.textContent = 'Couldn’t build the local trust receipt.';
+    });
+  } else {
+    document.getElementById('group-trust')?.remove();
   }
 
   // --- Device-local crash ledger / explicit export ---

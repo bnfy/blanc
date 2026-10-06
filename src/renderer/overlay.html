@@ -153,19 +153,60 @@
       <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
     </button>
   </div>
-  <div id="shieldPop" hidden>
-    <div class="shield-pop-head">
-      <div class="shield-pop-id">
-        <div id="shieldPopHost"></div>
-        <div class="shield-pop-state">Ad &amp; tracker blocking <strong id="shieldPopOnOff">on</strong></div>
+  <div id="shieldPopPointer" aria-hidden="true" hidden></div>
+  <section id="shieldPop" role="dialog" aria-labelledby="shieldPopTitle" aria-describedby="shieldPopHost" hidden>
+    <header class="shield-pop-header">
+      <button id="shieldPopBack" class="shield-pop-nav shield-pop-back" aria-label="Back to site protection" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m9.5 3.5-4.5 4.5 4.5 4.5"/></svg></button>
+      <img class="shield-pop-mark" src="sunrise-hero-mark.png" width="28" height="28" alt="" />
+      <h2 id="shieldPopTitle">Site protection</h2>
+      <p id="shieldPopHost"></p>
+      <button id="shieldPopClose" class="shield-pop-nav shield-pop-close" aria-label="Close site protection"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 5 6 6m0-6-6 6"/></svg></button>
+    </header>
+    <div id="shieldPopSummary">
+      <div class="shield-pop-provider-summary">
+        <div class="shield-pop-provider-row">
+          <div><p class="shield-pop-eyebrow">Current blocker</p><strong id="shieldPopCurrentProvider">Blanc Blocker</strong></div>
+          <button id="shieldPopChangeProvider" class="shield-pop-change" aria-label="Change blocker">Change <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+        </div>
+        <p id="shieldPopProviderStatus" role="status"></p>
       </div>
-      <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site"><span class="knob"></span></button>
+      <div class="shield-pop-summary">
+        <div id="shieldPopSiteControl" class="shield-pop-head">
+          <div class="shield-pop-state"><span id="shieldPopLabel">Ad &amp; tracker blocking</span> <strong id="shieldPopOnOff">on</strong></div>
+          <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site"><span class="knob"></span></button>
+        </div>
+        <div id="shieldPopCount"></div>
+        <div id="shieldPopNote" class="shield-pop-note">Changing site protection reloads this page.</div>
+        <button id="shieldPopUblock" class="shield-pop-ubo" aria-label="Open uBlock Origin controls" hidden>Open controls <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg></button>
+      </div>
+      <div id="shieldPopDark" class="shield-pop-dark" hidden>
+        <div class="shield-pop-head">
+          <div class="shield-pop-state"><span>Dark website</span> <strong id="shieldPopDarkOnOff">off</strong></div>
+          <button id="shieldPopDarkToggle" role="switch" aria-checked="false" aria-label="Dark website for this site" aria-describedby="shieldPopDarkNote"><span class="knob"></span></button>
+        </div>
+        <p id="shieldPopDarkNote" class="shield-pop-note" hidden>Applies while Blanc is dark.</p>
+      </div>
+      <div class="shield-pop-metadata">
+        <div id="shieldPopConnection" hidden><span>Connection</span><span id="shieldPopConnectionValue"></span></div>
+        <button id="shieldPopSettings" class="shield-pop-footer">Blocking settings <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+      </div>
+      <p id="shieldPopProviderScope" class="shield-pop-note"></p>
     </div>
-    <div id="shieldPopConnection" hidden></div>
-    <div id="shieldPopCount"></div>
-    <div id="shieldPopNote" class="shield-pop-note">Changing this reloads the page.</div>
-    <button id="shieldPopSettings" class="shield-pop-footer">blocking settings →</button>
-  </div>
+    <div id="shieldPopChooser" hidden>
+      <fieldset id="shieldPopProvider" aria-describedby="shieldPopRestartNote shieldPopPrivateNote shieldPopAvailability">
+        <legend class="sr-only">Choose a blocker</legend>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>Blanc Blocker</strong><span class="shield-provider-active" data-provider="blanc" hidden>Active</span></span><small>EasyList + EasyPrivacy</small></span><input type="radio" name="shieldProvider" value="blanc" /></label>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>uBlock Origin</strong><span class="shield-provider-active" data-provider="ublock-origin" hidden>Active</span></span><small>Advanced filtering and controls</small></span><input type="radio" name="shieldProvider" value="ublock-origin" /></label>
+      </fieldset>
+      <div class="shield-pop-chooser-note">
+        <p id="shieldPopRestartNote">Changes take effect after restarting Blanc.</p>
+        <p id="shieldPopPrivateNote">Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.</p>
+      </div>
+      <p id="shieldPopAvailability" class="shield-pop-note" hidden></p>
+      <p id="shieldPopChooserError" role="alert" hidden></p>
+      <div class="shield-pop-actions"><button id="shieldPopApply" class="shield-pop-primary">Done</button></div>
+    </div>
+  </section>
   <section id="capturePop" class="capture-pop" hidden>
     <header id="capturePopHead" class="capture-pop-head">in use</header>
     <ul id="capturePopRows" class="capture-pop-rows"></ul>

@@ -22,6 +22,18 @@ const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
+const { ublockBrandResourcePath } = require('./ublock-brand-resource');
+const { buildTrustReceipt, inspectLocalSignature } = require('./trust-receipt');
+
+function trustLinksForVersion(version) {
+  const release = encodeURIComponent(String(version));
+  return Object.freeze({
+    release: `https://github.com/bnfy/blanc/releases/tag/v${release}`,
+    verification: `https://github.com/bnfy/blanc/blob/v${release}/docs/release-verification.md`,
+    sbom: `https://github.com/bnfy/blanc/releases/download/v${release}/Blanc-${release}.cdx.json`,
+    provenance: 'https://github.com/bnfy/blanc/attestations',
+  });
+}
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
@@ -43,6 +55,7 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
+  const trustLinks = trustLinksForVersion(app.getVersion());
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
   const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
   const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
@@ -59,8 +72,19 @@ function setupPages(hooks = {}) {
       ? { ...process.env, LOCALAPPDATA: testBrowserHome }
       : process.env,
   });
+  let signatureInspection;
+  const localSignature = () => {
+    signatureInspection ??= inspectLocalSignature({
+      platform: process.platform,
+      packaged: app.isPackaged,
+      executablePath: process.execPath,
+    });
+    return signatureInspection;
+  };
 
   const serveBlanc = (request) => {
+    const branding = ublockBrandResourcePath(request.url);
+    if (branding) return net.fetch(pathToFileURL(branding).toString());
     const { host, pathname } = new URL(request.url);
     if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
 
@@ -272,6 +296,8 @@ function setupPages(hooks = {}) {
 
   handle('pages:downloads:list', 'downloads', () => downloads.listDownloads());
   handle('pages:downloads:cancel', 'downloads', (id) => downloads.cancelDownload(id));
+  handle('pages:downloads:resume', 'downloads', (id) => downloads.resumeDownload(id));
+  handle('pages:downloads:retry', 'downloads', (id) => downloads.retryDownload(id));
   handle('pages:downloads:open', 'downloads', (id) => downloads.openDownload(id));
   handle('pages:downloads:show', 'downloads', (id) => downloads.showDownloadInFolder(id));
   handle('pages:downloads:clear-finished', 'downloads', () => downloads.clearFinishedDownloads());
@@ -320,6 +346,9 @@ function setupPages(hooks = {}) {
     appIcons: settings.APP_ICON_LABELS,
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
+  handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
+  handle('pages:blocking:retry', 'settings', () => hooks.blocking?.retry() ?? false);
+  handle('pages:blocking:open', 'settings', (tool) => hooks.blocking?.open(tool) ?? false);
   handle('pages:settings:set', 'settings', (partial) => {
     const next = partial && typeof partial === 'object' ? { ...partial } : {};
     if (!onePasswordAvailable()) {
@@ -331,6 +360,37 @@ function setupPages(hooks = {}) {
     // actual stored state (e.g. a rejected strict-custom DNS transition). Never
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
+  });
+  handle('pages:settings:trust-receipt', 'settings', async () => {
+    const current = settings.getSettings();
+    const blocker = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'adblock/sources/pinned.json'), 'utf8'));
+    const pkg = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8'));
+    return buildTrustReceipt({
+      appInfo: {
+        version: app.getVersion(),
+        bundleBuild: pkg.build?.mac?.bundleVersion ?? app.getVersion(),
+        electron: process.versions.electron,
+        chromium: process.versions.chrome,
+        node: process.versions.node,
+        platform: process.platform,
+        architecture: process.arch,
+        packaged: app.isPackaged,
+      },
+      signature: await localSignature(),
+      blocker,
+      sync: sync.status(),
+      choices: current,
+      diagnostics: diagnostics.status(),
+      links: Object.keys(trustLinks).map((id) => ({
+        id,
+        label: { release: 'Matching release', verification: 'Verification guide', sbom: 'Release SBOM', provenance: 'Provenance attestations' }[id],
+      })),
+    });
+  });
+  handle('pages:settings:open-trust-link', 'settings', async (kind) => {
+    if (typeof kind !== 'string' || !Object.hasOwn(trustLinks, kind)) return { ok: false, error: 'unknown-link' };
+    await shell.openExternal(trustLinks[kind]);
+    return { ok: true };
   });
   handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
   if (onePasswordAvailable()) {
@@ -491,6 +551,11 @@ function setupPages(hooks = {}) {
   // Standalone games invoke from their exact top-level document.
   handleEvent('pages:mahjong:played', ['mahjong'], (event) =>
     hooks.telemetry?.mahjongPlayed?.(event.sender) === true);
+
+  // The warning page names nothing: main resolves the sender's own tab and
+  // its recorded certificate failure (certificate spec §4.4).
+  handleEvent('pages:error:continue-unsafe', ['error'], (event) =>
+    hooks.errorPage?.continueUnsafe?.(event.sender) ?? { ok: false, error: 'no-certificate-error' });
 
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
   // canSet: a dev run must never register the bare Electron binary as a

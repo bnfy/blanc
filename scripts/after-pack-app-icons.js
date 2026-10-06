@@ -8,6 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 const APP_ICON_ASSETS = require('../src/main/app-icon-assets');
 const { verifyPackagedAdblock } = require('./verify-packaged-adblock');
+const { verifyPackagedUblock } = require('./verify-packaged-ublock');
 const { packageCompliance } = require('./package-compliance');
 const { verifyPackagedCompliance } = require('./verify-packaged-compliance');
 const { verifyPackagedCaptureRuntime } = require('./verify-packaged-capture-runtime');
@@ -81,6 +82,7 @@ module.exports = async function afterPackAppIcons(context) {
     ? path.join(macAppPath, 'Contents/Resources')
     : path.join(context.appOutDir, 'resources');
   verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
+  verifyPackagedUblock(path.join(resourcesDir, 'app.asar'));
   verifyPackagedCaptureRuntime(path.join(resourcesDir, 'app.asar'), context.electronPlatformName);
   await packageCompliance(context);
   verifyPackagedCompliance(resourcesDir);

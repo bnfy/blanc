@@ -35,12 +35,12 @@ const HOST_ASSETS = new Map([
     ['/', 'index.html'],
     ['/renderer.js', 'renderer.js'],
     ['/vertical-tabs.js', 'vertical-tabs.js'],
-    ['/shield-horizon.png', 'shield-horizon.png'],
   ])],
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
     ['/workspace-ui.js', 'workspace-ui.js'],
+    ['/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
   ])],
   ['permission', new Map([
     ['/', 'permission.html'],

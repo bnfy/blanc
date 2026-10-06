@@ -38,21 +38,30 @@ each one, record:
 Do not publish while a material claim is `remove`, while an aspiration reads
 as a present capability, or while the evidence describes a different release.
 
-## Benefit-first message gate
+## Explicit feature and benefit message gate
 
-A shipped feature is evidence, not the whole message. Feature-led marketing
-must make the reader's benefit explicit so a person can understand why the
-capability should matter to them.
+**Standing owner direction, October 4, 2026:** Be explicit throughout the
+website and all other Blanc communications. Assume readers are new to Blanc.
+They should understand which feature is being discussed, what it does and why
+it matters without relying on an image, prior page or familiarity with Blanc.
+This applies to headings, supporting copy, social posts, email, release notes,
+support replies, demos and product messages.
 
-Use this order:
+Use this order for feature messaging:
 
-1. **Tension:** name the familiar frustration, tradeoff, or feeling in the
-   user's experience.
-2. **Payoff:** state the relief or better experience Blanc offers in plain,
-   human language.
-3. **Mechanism:** connect that payoff to a specific shipped capability.
-4. **Qualification and action:** preserve every material limit, then give the
-   reader an honest next step.
+1. **Feature and action:** name the feature and explain what the user can do.
+   Pair an unfamiliar product name with its meaning rather than using it alone.
+2. **Concrete benefit:** explain the useful result in plain language. A
+   familiar problem can provide context, but must not delay naming the feature.
+3. **Qualification and action:** preserve material limits and give an honest
+   next step.
+
+Prefer “Choose your Start Page layout” to “Start with a view that suits you,”
+“View two tabs with Glance” to “Keep a reference beside your page,” and
+“Navigate with mouse gestures” to “Let a small movement take you somewhere.”
+Warmth and personality are welcome when the meaning remains clear. Do not
+replace a feature explanation with an evocative slogan. The approved brand
+tagline remains “A little less browser.”
 
 Do not open with a feature inventory and leave the reader to infer the value.
 Do not make internal state vocabulary carry the message: words such as
@@ -70,14 +79,35 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe the verified v1.26.0 public release; platform
-acceptance limits and updater status are recorded in
-[the release report](release-incidents/2026-10-02-v1.26.0.md). Historical
-wallpaper and Linux acceptance waivers remain in the v1.24.0 report. The
-v1.26.0 report records the named physical-machine waiver and owner-confirmed
-adjacent public updater handoffs; hosted verification does not establish those
-physical-machine outcomes:
+These boundaries describe public v1.28.0; its acceptance scope, the duplicate
+macOS build number and pending adjacent public-feed updater handoffs are
+recorded in [the release report](release-incidents/2026-10-05-v1.28.0.md).
+Installed candidates keep their original source/artifact bindings; hosted
+verification does not establish physical-machine outcomes. The v1.27.0 uBO
+acceptance, historical wallpaper/Linux waivers and earlier updater
+confirmations remain in their original reports:
 
+- **Optional uBlock Origin:** Public v1.28.0 offers full uBO 1.75.0 on
+  Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
+  Electron 44.5.1. Click the Island shield to choose a blocker and restart
+  Blanc to apply it. Blanc Blocker stays the default and protects private
+  tabs; Rosetta uses Blanc Blocker. Profile configuration is separate and
+  outside Sync. Filter data can update, while executable resources remain
+  pinned to reviewed releases. This does not provide general extension-store
+  installation. Keep the [support matrix](ublock-origin-support-matrix-2026-10-03.md)
+  and its limits beside broader compatibility claims.
+- **Dark websites:** Off by default and device-local. While Blanc is dark it
+  darkens http(s) pages that have no dark mode of their own, using the bundled,
+  pinned Dark Reader engine; there is no runtime download. Embedded frames
+  keep their original colors. Do not claim every site renders correctly dark,
+  that it works while Blanc is light, or that it darkens iframes.
+- **Local certificate warnings:** Only local and private-network addresses
+  offer Advanced and a way to continue, for that origin and certificate until
+  Blanc quits; the choice is never saved or synced. Public sites keep the hard
+  stop. Do not describe this as a general certificate bypass.
+- **Downloads:** Interrupted downloads offer Resume when Chromium can continue
+  them and Retry (http/https) otherwise. Retry restarts from the source URL;
+  do not promise that every interrupted download can be completed.
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. Its resting controls occupy a
   reserved 68px band above the page; its expanded panel overlays the page.
@@ -154,7 +184,7 @@ physical-machine outcomes:
   second, trading responsiveness for more tolerance of choppy playback. Do not
   promise that either mode eliminates every crackle or fixes source-side,
   network, Bluetooth, driver, or hardware faults.
-- **Time-of-day wallpaper:** Free and off by default. The start-page footer or
+- **Time-of-day wallpaper:** Free and off by default. The start page's Customize popover or
   Settings → General enables bundled Sunrise artwork for dawn (05:00–08:00),
   day (08:00–17:00), dusk (17:00–20:00), and night (20:00–05:00), using the
   device's local clock without location permission or artwork requests.

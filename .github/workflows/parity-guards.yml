@@ -27,13 +27,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: tokens / settings / copy / adblock match their sources
+      - name: tokens / settings / copy / browserAPI / adblock match their sources
         # Drift guards — the build.mjs checkers use only node builtins,
         # no dependency install needed for this step.
         run: |
           node tokens/build.mjs --check
           node settings-schema/build.mjs --check
           node copy/build.mjs --check
+          node browser-api/build.mjs --check
           node adblock/build.mjs --check
       - name: Enable Chromium user namespaces in this disposable Linux runner
         if: runner.os == 'Linux'
@@ -41,6 +42,8 @@ jobs:
       - run: npm ci
       - name: Dependency compliance artifacts match the lockfiles
         run: npm run compliance:check
+      - name: Compatibility evidence and generated matrix match
+        run: npm run compatibility:check
       - name: Dependency advisories satisfy the security policy
         run: npm run security:dependencies
       - name: JavaScript correctness checks
@@ -151,3 +154,72 @@ jobs:
         run: xvfb-run -a npm run test:tab-handoff
       - name: Closing the last window quits Blanc (Linux path of #368)
         run: xvfb-run -a npm run test:window-close-quit
+
+  workspace-regressions:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Workspace preservation and opener families (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:workspaces:desktop
+      - name: Workspace preservation and opener families (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:workspaces:desktop
+
+  browser-shortcuts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Browser commands and Settings (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          for attempt in 1 2 3 4 5; do
+            xvfb-run -a npm run test:browser-shortcuts:desktop || exit $?
+          done
+      - name: Browser commands and Settings (Windows, five fresh processes)
+        if: runner.os == 'Windows'
+        run: |
+          foreach ($attempt in 1..5) {
+            npm run test:browser-shortcuts:desktop
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Browser commands and Settings (macOS)
+        if: runner.os == 'macOS'
+        run: npm run test:browser-shortcuts:desktop
+      - name: Real Chrome Web Store documents (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:web-store
+      - name: Real Chrome Web Store documents (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:web-store
+      - name: Retain private native command failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-command-failure-${{ runner.os }}
+          path: dist/browser-command-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 3

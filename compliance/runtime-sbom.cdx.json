@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.26.0",
+      "bom-ref": "application:runtime:blanc@1.28.0",
       "name": "Blanc",
-      "version": "1.26.0",
+      "version": "1.28.0",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -74,6 +74,46 @@
         {
           "type": "website",
           "url": "https://github.com/googlefonts/caveat"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "asset:dark-reader-engine",
+      "name": "Dark Reader engine (Dark websites)",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82619e7a0bcabbea15a91488bc74fd0f9ba8f8f2a1cc67527f78166037cce166"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Dark Reader Ltd. and contributors; the unmodified npm API build is embedded in src/main/dark-websites-preload.js"
+        },
+        {
+          "name": "blanc:file",
+          "value": "dark-reader/upstream/darkreader.js"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "dark-reader/darkreader-LICENSE.txt"
+        }
+      ],
+      "version": "4.9.133",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/darkreader/darkreader"
         }
       ]
     },
@@ -292,6 +332,90 @@
         {
           "type": "website",
           "url": "https://github.com/productiontype/Newsreader"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "bom-ref": "asset:ublock-origin",
+      "name": "uBlock Origin managed extension (distribution clearance pending)",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "efe5fa22eba2a0c4978b0c17420f73836dac298433f4d29ae4bb4a097071ec3d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:additionalLicenseFiles",
+          "value": "ublock/licenses/LGPL-3.0.txt"
+        },
+        {
+          "name": "blanc:attribution",
+          "value": "Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/; adapted Swatinem diff code declares LGPLv3 (Arpad Borsos), with full license text separately included"
+        },
+        {
+          "name": "blanc:file",
+          "value": "ublock/pinned.json"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "ublock/LICENSE.txt"
+        }
+      ],
+      "version": "1.75.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/gorhill/uBlock"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:ublock-popup-icons",
+      "name": "Lucide uBO popup icons",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f51bd83b0ac7778e92b88d465a84eb4e91627c7ea64576734cd748bb0563374"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "Lucide Contributors 2022; portions by Cole Bemis 2013–2022 (Feather, MIT)"
+        },
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/ublock-popup-icons/README.md"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/ublock-popup-icons/lucide-LICENSE.txt"
+        }
+      ],
+      "version": "0.468.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/lucide-icons/lucide/tree/0.468.0"
         }
       ]
     },
@@ -1775,7 +1899,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.26.0",
+      "ref": "application:runtime:blanc@1.28.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
         "asset:caveat-font",
@@ -1802,6 +1926,10 @@
       "dependsOn": []
     },
     {
+      "ref": "asset:dark-reader-engine",
+      "dependsOn": []
+    },
+    {
       "ref": "asset:easylist-data",
       "dependsOn": []
     },
@@ -1823,6 +1951,14 @@
     },
     {
       "ref": "asset:newsreader-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:ublock-origin",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:ublock-popup-icons",
       "dependsOn": []
     },
     {

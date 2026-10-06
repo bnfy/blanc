@@ -1,0 +1,113 @@
+{
+  "sourceCommit": "2bbcbc844116b4de3e6599f1828ad3fa0986dc74",
+  "checkedAt": "2026-10-03T21:05:50.705502+00:00",
+  "scope": "Apps inside read-only mounted DMGs, not owner installation or acceptance.",
+  "candidates": [
+    {
+      "architecture": "arm64",
+      "artifact": "Blanc-1.27.0-arm64.dmg",
+      "checks": [
+        {
+          "command": [
+            "codesign",
+            "--verify",
+            "--deep",
+            "--strict",
+            "--verbose=2",
+            "<mounted-candidate>/Blanc.app"
+          ],
+          "exitCode": 0,
+          "output": "--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (GPU).app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (GPU).app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Plugin).app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Plugin).app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper.app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper.app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/Helpers/chrome_crashpad_handler\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/Helpers/chrome_crashpad_handler\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Mantle.framework/Versions/Current/.\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Mantle.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/ReactiveObjC.framework/Versions/Current/.\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/ReactiveObjC.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Squirrel.framework/Versions/Current/.\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Squirrel.framework/Versions/Current/.\n<mounted-candidate>/Blanc.app: valid on disk\n<mounted-candidate>/Blanc.app: satisfies its Designated Requirement\n"
+        },
+        {
+          "command": [
+            "spctl",
+            "--assess",
+            "--type",
+            "execute",
+            "--verbose=2",
+            "<mounted-candidate>/Blanc.app"
+          ],
+          "exitCode": 0,
+          "output": "<mounted-candidate>/Blanc.app: accepted\nsource=Notarized Developer ID\n"
+        },
+        {
+          "command": [
+            "xcrun",
+            "stapler",
+            "validate",
+            "<mounted-candidate>/Blanc.app"
+          ],
+          "exitCode": 0,
+          "output": "Processing: <mounted-candidate>/Blanc.app\nThe validate action worked!\n"
+        },
+        {
+          "command": [
+            "node",
+            "scripts/verify-packaged-ublock.js",
+            "<mounted-candidate>/Blanc.app/Contents/Resources/app.asar"
+          ],
+          "exitCode": 0,
+          "output": "verify-packaged-ublock: 1.75.0, 658 upstream files, source, license, host and adaptation verified.\n"
+        }
+      ],
+      "signingCertificateSha1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+      "executableSha256": "b45db48c869a5cefe1ec1337a8ba6b700316b82cf8cadc15f1992a790e76452c",
+      "asarSha256": "020c775450bb8d29890d780af4f3d373bf12901b0ea45d474900cae42f52d31b",
+      "probeBytesMatchDmg": true
+    },
+    {
+      "architecture": "x64",
+      "artifact": "Blanc-1.27.0.dmg",
+      "checks": [
+        {
+          "command": [
+            "codesign",
+            "--verify",
+            "--deep",
+            "--strict",
+            "--verbose=2",
+            "<mounted-candidate>/Blanc.app"
+          ],
+          "exitCode": 0,
+          "output": "--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (GPU).app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (GPU).app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Plugin).app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Plugin).app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper (Renderer).app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper.app\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Blanc Helper.app\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/Helpers/chrome_crashpad_handler\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/Helpers/chrome_crashpad_handler\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Mantle.framework/Versions/Current/.\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Mantle.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/ReactiveObjC.framework/Versions/Current/.\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/ReactiveObjC.framework/Versions/Current/.\n--prepared:<mounted-candidate>/Blanc.app/Contents/Frameworks/Squirrel.framework/Versions/Current/.\n--validated:<mounted-candidate>/Blanc.app/Contents/Frameworks/Squirrel.framework/Versions/Current/.\n<mounted-candidate>/Blanc.app: valid on disk\n<mounted-candidate>/Blanc.app: satisfies its Designated Requirement\n"
+        },
+        {
+          "command": [
+            "spctl",
+            "--assess",
+            "--type",
+            "execute",
+            "--verbose=2",
+            "<mounted-candidate>/Blanc.app"
+          ],
+          "exitCode": 0,
+          "output": "<mounted-candidate>/Blanc.app: accepted\nsource=Notarized Developer ID\n"
+        },
+        {
+          "command": [
+            "xcrun",
+            "stapler",
+            "validate",
+            "<mounted-candidate>/Blanc.app"
+          ],
+          "exitCode": 0,
+          "output": "Processing: <mounted-candidate>/Blanc.app\nThe validate action worked!\n"
+        },
+        {
+          "command": [
+            "node",
+            "scripts/verify-packaged-ublock.js",
+            "<mounted-candidate>/Blanc.app/Contents/Resources/app.asar"
+          ],
+          "exitCode": 0,
+          "output": "verify-packaged-ublock: 1.75.0, 658 upstream files, source, license, host and adaptation verified.\n"
+        }
+      ],
+      "signingCertificateSha1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+      "executableSha256": "f02cdf9f914f6760ae1676358bceb993869b37065ddd024e7c02907135adb427",
+      "asarSha256": "020c775450bb8d29890d780af4f3d373bf12901b0ea45d474900cae42f52d31b",
+      "probeBytesMatchDmg": true
+    }
+  ]
+}

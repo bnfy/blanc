@@ -19,7 +19,12 @@ function installTestCallBridge(target, methods, { maxEntries = 4096 } = {}) {
     if (!Array.isArray(args)) return Promise.reject(new Error('test call args must be an array'));
 
     while (calls.size >= maxEntries) calls.delete(calls.keys().next().value);
-    const promise = Promise.resolve().then(() => methods[method](...args));
+    // Playwright evaluates through the Node inspector, which can interrupt
+    // running JavaScript: this call may arrive while Node is between checking
+    // a timer and invoking it. A hook that then clears that timer crashes the
+    // dispatch ("timer._onTimeout is not a function"). Start every hook from
+    // its own event-loop turn so it only runs where ordinary app code can.
+    const promise = new Promise(resolve => setImmediate(resolve)).then(() => methods[method](...args));
     calls.set(id, { method, promise });
     return promise;
   };

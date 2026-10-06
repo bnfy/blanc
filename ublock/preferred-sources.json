@@ -1,0 +1,118 @@
+{
+  "format": 1,
+  "version": "1.75.0",
+  "clearance": false,
+  "components": [
+    {
+      "name": "css-tree-2.2.1",
+      "repository": "csstree/csstree",
+      "revision": "50004d59219e5ea2ce709b323139ebea35b349cd",
+      "url": "https://codeload.github.com/csstree/csstree/tar.gz/50004d59219e5ea2ce709b323139ebea35b349cd",
+      "sha256": "390f9cf64fcaa40844464a0b7846e220300234c0293dc2b1438ed01f547ffb89",
+      "file": "css-tree-2.2.1.tar.gz",
+      "sourcePath": "sources/css-tree-2.2.1.tar.gz",
+      "runtimePath": "lib/csstree/css-tree.js",
+      "exactBundledMatches": [],
+      "buildReproduced": false
+    },
+    {
+      "name": "js-beautify-1.14.7",
+      "repository": "beautifier/js-beautify",
+      "revision": "01c1c8982ce172ea251db832e4f5e385fb986ee1",
+      "url": "https://codeload.github.com/beautifier/js-beautify/tar.gz/01c1c8982ce172ea251db832e4f5e385fb986ee1",
+      "sha256": "ab8dcf70a2969aa28d71d86e0eda478c405de091c6d9dde8a482bafc6f08538e",
+      "file": "js-beautify-1.14.7.tar.gz",
+      "sourcePath": "sources/js-beautify-1.14.7.tar.gz",
+      "runtimePath": "lib/js-beautify/beautifier.min.js",
+      "exactBundledMatches": [],
+      "buildReproduced": false
+    },
+    {
+      "name": "hsluv-0.1.0",
+      "repository": "hsluv/hsluv",
+      "revision": "9cd8574fad8874828b3a8119843527d62d79887a",
+      "url": "https://codeload.github.com/hsluv/hsluv/tar.gz/9cd8574fad8874828b3a8119843527d62d79887a",
+      "sha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee",
+      "file": "hsluv-0.1.0.tar.gz",
+      "sourcePath": "sources/hsluv-0.1.0.tar.gz",
+      "runtimePath": "lib/hsluv/hsluv-0.1.0.min.js",
+      "exactBundledMatches": [
+        "hsluv-9cd8574fad8874828b3a8119843527d62d79887a/javascript/dist/hsluv-0.0.3.min.js",
+        "hsluv-9cd8574fad8874828b3a8119843527d62d79887a/javascript/dist/hsluv-0.1.0.min.js"
+      ],
+      "buildReproduced": false
+    },
+    {
+      "name": "uAssets-1.75.0-main",
+      "repository": "uBlockOrigin/uAssets",
+      "revision": "f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/f9bd781375aeefae03196d07d079c772fa15e3e6",
+      "sha256": "1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7",
+      "file": "uAssets-1.75.0-main.tar.gz",
+      "sourcePath": "sources/uAssets-1.75.0-main.tar.gz",
+      "role": "preferred filter sources and build scripts",
+      "runtimePaths": [
+        "assets/thirdparties/pgl.yoyo.org/as/README.md",
+        "assets/thirdparties/pgl.yoyo.org/as/serverlist",
+        "assets/thirdparties/publicsuffix.org/list/effective_tld_names.dat",
+        "assets/thirdparties/urlhaus-filter/LICENSE.md",
+        "assets/thirdparties/urlhaus-filter/urlhaus-filter-online.txt"
+      ],
+      "exactBundledMatches": [
+        "thirdparties/pgl.yoyo.org/as/README.md",
+        "thirdparties/pgl.yoyo.org/as/serverlist",
+        "thirdparties/publicsuffix.org/list/effective_tld_names.dat",
+        "thirdparties/urlhaus-filter/LICENSE.md",
+        "thirdparties/urlhaus-filter/urlhaus-filter-online.txt"
+      ],
+      "buildReproduced": false,
+      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
+    },
+    {
+      "name": "uAssets-1.75.0-prod",
+      "repository": "uBlockOrigin/uAssets",
+      "revision": "11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "url": "https://codeload.github.com/uBlockOrigin/uAssets/tar.gz/11527b7c1a4d432095cc3890dac2c35d9ebd122f",
+      "sha256": "09dff5368b8d135432ca2e5967c8850261747e3c32ebbf988dcc5af009bad97e",
+      "file": "uAssets-1.75.0-prod.tar.gz",
+      "sourcePath": "sources/uAssets-1.75.0-prod.tar.gz",
+      "role": "exact release asset snapshot",
+      "runtimePaths": [
+        "assets/thirdparties/easylist/easylist.txt",
+        "assets/thirdparties/easylist/easyprivacy.txt",
+        "assets/ublock/badlists.txt",
+        "assets/ublock/badware.min.txt",
+        "assets/ublock/filters.min.txt",
+        "assets/ublock/privacy.min.txt",
+        "assets/ublock/quick-fixes.min.txt",
+        "assets/ublock/unbreak.min.txt"
+      ],
+      "exactBundledMatches": [
+        "thirdparties/easylist.txt",
+        "thirdparties/easyprivacy.txt",
+        "filters/badlists.txt",
+        "filters/badware.min.txt",
+        "filters/filters.min.txt",
+        "filters/privacy.min.txt",
+        "filters/quick-fixes.min.txt",
+        "filters/unbreak.min.txt"
+      ],
+      "buildReproduced": false,
+      "evidence": "docs/evidence/2026-10-03-ubo-component-rebuilds/asset-inputs.json"
+    },
+    {
+      "name": "swatinem-diff-b58391504759",
+      "repository": "Swatinem/diff",
+      "revision": "b583915047596e2c67fe9f117d9cb775bd88dcd7",
+      "url": "https://codeload.github.com/Swatinem/diff/tar.gz/b583915047596e2c67fe9f117d9cb775bd88dcd7",
+      "sha256": "4cc5f75d595fc7051760bc22f7a671dc15b4d7ec0fd13be884e603e46cf7e089",
+      "file": "swatinem-diff-b58391504759.tar.gz",
+      "sourcePath": "sources/swatinem-diff-b58391504759.tar.gz",
+      "runtimePath": "lib/diff/swatinem_diff.js",
+      "role": "Original readable diff source cited by uBO; uBO-modified source remains in upstream/ and the uBO tag archive",
+      "exactBundledMatches": [],
+      "buildReproduced": false,
+      "licenseNotice": "LGPLv3 as declared by the pinned upstream README and package.json; full GNU LGPLv3 text in licenses/LGPL-3.0.txt"
+    }
+  ]
+}

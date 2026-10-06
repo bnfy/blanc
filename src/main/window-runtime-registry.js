@@ -74,6 +74,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Chip right edge (window coords) captured when the shield popover
      * opens; reused if bounds recompute (e.g. window resize) while it's up. */
     shieldAnchorRight: null,
+    shieldAnchorCenter: null,
+    shieldAnchorBottom: null,
     /** Same, for the capture popover's chip (its only trigger control). */
     captureAnchorRight: null,
     /** The site the open shield popover describes, captured at open time —
@@ -105,6 +107,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     fillStatusViewAttached: false,
     fillStatusViewLoaded: false,
     tabsWantingAddressBarFocus: new Set(),
+    addressFocusGeneration: 0,
     /** Tab ids in activation order, most recent last, one occurrence per id.
      * Closing the active tab and the last-active-tab shortcut both return to
      * the most recent survivor here (see tab-activation.js). Memory-only:
@@ -180,6 +183,8 @@ function detachWindow(runtime) {
   }
   runtime.window = null;
   runtime.chromeReady = false;
+  runtime.addressFocusGeneration += 1;
+  runtime.tabsWantingAddressBarFocus.clear();
   runtime.overlayView = null;
   runtime.overlayMode = null;
   runtime.workspaceSwitcherOpen = false;

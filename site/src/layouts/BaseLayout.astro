@@ -1,13 +1,13 @@
 ---
 import '@fontsource-variable/inter';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/500.css';
-import '@fontsource/jetbrains-mono/700.css';
 import '@fontsource-variable/newsreader/opsz.css';
+import newsreaderLatin from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2?url';
 import '../styles/site.css';
+import '../styles/revamp.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
+import { restoreHomeAppearance } from '../scripts/home-appearance.js';
 
 const SITE = 'https://blancbrowser.com';
 const {
@@ -28,14 +28,16 @@ const {
 const canonical = SITE + path;
 const ogImageUrl = SITE + ogImage;
 ---
-<html lang="en">
+<html lang="en" data-home-appearance={page === 'home' ? 'light' : undefined}>
 <head>
 <meta charset="utf-8">
+<link rel="preload" href={newsreaderLatin} as="font" type="font/woff2" crossorigin>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content={description}>
 <meta name="robots" content={robots}>
-<meta name="theme-color" content="#F7F0E5">
+<meta name="theme-color" content="#ffffff">
+{page === 'home' && <script is:inline set:html={`(${restoreHomeAppearance.toString()})(document, window);`} />}
 {social !== 'none' && <meta name="application-name" content="Blanc Browser">}
 {social === 'rich' && <meta name="apple-mobile-web-app-title" content="Blanc">}
 <link rel="canonical" href={canonical}>

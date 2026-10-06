@@ -92,17 +92,20 @@ Then('the Billboard lists {string} before {string}', async function (first, seco
     dom.sites.findIndex((site) => site.key === first) <
       dom.sites.findIndex((site) => site.key === second),
   );
-  assert.equal(dom.sites[0].dismissLabel, `Hide ${dom.sites[0].label} from Billboard`);
+  assert.equal(dom.sites[0].dismissLabel, `Hide ${dom.sites[0].title} from Billboard`);
 });
 
-Then('the Billboard uses full local titles and cached site icons', async function () {
+Then('the Billboard uses short site names, full-title tooltips and cached site icons', async function () {
   const dom = await waitForValue(
     () => this.call('readBillboardSites'),
     (value) => value?.sites?.length === 6 && value.sites.every((site) => site.hasIcon),
     'Billboard cached site icons to render',
   );
-  assert.equal(dom.sites[0].label, 'YouTube – videos worth watching');
-  assert.equal(dom.sites[1].label, 'CNET – technology news and reviews');
+  assert.equal(dom.sites[0].label, 'YouTube');
+  assert.equal(dom.sites[0].title, 'YouTube – videos worth watching');
+  assert.equal(dom.sites[0].ariaLabel, 'Open YouTube – videos worth watching');
+  assert.equal(dom.sites[1].label, 'CNET');
+  assert.equal(dom.sites[1].title, 'CNET – technology news and reviews');
 });
 
 When('I hide {string} from the Billboard', async function (key) {
@@ -140,7 +143,7 @@ Then('the start page uses Newsreader for the Billboard clock and invitation head
   );
   assert.deepEqual(usage.page.jetbrains, []);
   assert.equal(usage.page.newsreaderLoaded, true);
-  assert.equal(usage.page.newsreader.length, 8);
+  assert.equal(usage.page.newsreader.length, 9);
   assert.deepEqual(usage.page.newsreaderOutsideApproved, []);
   for (const sample of usage.page.newsreader) {
     assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
@@ -536,4 +539,199 @@ Then('Mahjong is a private managed tab', async function () {
   assert.equal(game?.sessionKind, 'private');
   assert.ok(game?.loadedUrl?.startsWith('blanc://mahjong/?private=1'));
   assert.equal(state.tabs.find((tab) => tab.id === this.mahjongSource.id)?.private, true);
+});
+
+const intersects = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+
+Then('no start-page layout is covered by its checklist or footer at 1440x840 or 820x840', async function () {
+  const original = await this.call('windowContentBounds');
+  const originalLayout = await this.call('newtabLayout');
+  try {
+    for (const size of [{ width: 1440, height: 840 }, { width: 820, height: 840 }]) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} content bounds`,
+      );
+      for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+        assert.equal(await this.call('setNewtabLayout', layout), layout);
+        const frame = await waitForValue(
+          () => this.call('readStartFrameGeometry'),
+          (value) => value?.layout === layout && value.viewportWidth === size.width && value.shell && value.content.length > 0,
+          `${layout} frame at ${size.width}x${size.height}`,
+        );
+        const context = `${layout} at ${size.width}x${size.height}`;
+        for (const entry of frame.content) {
+          assert.ok(!intersects(frame.shell, entry.rect),
+            `${context}: checklist ${JSON.stringify(frame.shell)} covers ${entry.selector} ${JSON.stringify(entry.rect)}`);
+          const atBottom = { ...entry.rect, top: entry.rect.top - frame.maxScrollY, bottom: entry.rect.bottom - frame.maxScrollY };
+          assert.ok(!intersects(frame.footer, atBottom),
+            `${context}: footer covers ${entry.selector} when scrolled to the end`);
+        }
+      }
+    }
+  } finally {
+    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});
+
+Then('every start-page layout ends with a visible Patron upgrade', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout,
+      `${layout} frame`,
+    );
+    assert.equal(frame.patronLast, true, `${layout} ends with the Patron chip`);
+    assert.equal(frame.patronVisible, true, `${layout} shows the Patron chip`);
+  }
+});
+
+Then('no start-page layout shows the Patron upgrade or a blocked count', async function () {
+  for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout && value.private === true,
+      `private ${layout} frame`,
+    );
+    assert.equal(frame.patronVisible, false, `private ${layout} hides Patron`);
+    const selectors = frame.content.map((entry) => String(entry.selector));
+    assert.ok(!selectors.some((s) => /tally-chart|tally-caption/.test(s)), `private ${layout} hides the Tally data column`);
+    if (layout === 'shelf') {
+      assert.equal(await this.call('readStartBlockedCard'), false, 'private Shelf hides its blocked card');
+    }
+  }
+});
+
+Given('a profile with no favorites', async function () {
+  assert.deepEqual(await this.call('bookmarkUrls'), []);
+});
+
+Then('Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none', async function () {
+  for (const [layout, expected] of [['ledger', 1], ['shelf', 1], ['tally', 1], ['billboard', 0]]) {
+    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    const frame = await waitForValue(
+      () => this.call('readStartFrameGeometry'),
+      (value) => value?.layout === layout,
+      `${layout} frame`,
+    );
+    assert.equal(frame.emptyHints, expected, `${layout} empty hints`);
+  }
+});
+
+When('I open Customize on the start page', async function () {
+  assert.equal(await this.call('openStartCustomize'), true);
+});
+
+Then('Customize stays open with {string} pressed', async function (layout) {
+  const state = await waitForValue(
+    () => this.call('readStartCustomize'),
+    (value) => value?.open === true && value.pressed.length === 1,
+    'Customize open with one pressed layout',
+  );
+  assert.deepEqual(state.pressed, [layout]);
+  assert.equal(state.expanded, 'true');
+});
+
+When('I press Escape on the start page', async function () {
+  assert.equal(await this.call('pressStartPageKey', 'Escape'), true);
+});
+
+Then('Customize is closed and its button has focus', async function () {
+  const state = await waitForValue(
+    () => this.call('readStartCustomize'),
+    // The toggle event that mirrors aria-expanded is queued after the close.
+    (value) => value?.open === false && value.expanded === 'false',
+    'Customize to close and its button to report collapsed',
+  );
+  assert.equal(state.focusedId, 'customizeButton');
+});
+
+Then('the Billboard shows one row of single-line site names at 1440x840 and 820x840', async function () {
+  const original = await this.call('windowContentBounds');
+  try {
+    for (const size of [{ width: 1440, height: 840 }, { width: 820, height: 840 }]) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} content bounds`,
+      );
+      const dom = await waitForValue(
+        () => this.call('readBillboardSites'),
+        (value) => value?.sites?.length === 6,
+        `Billboard sites at ${size.width}x${size.height}`,
+      );
+      const shown = dom.sites.filter((site) => site.visible);
+      assert.equal(shown.length, 6, `${size.width}: six sites show`);
+      assert.equal(new Set(shown.map((site) => site.top)).size, 1, `${size.width}: one row ${JSON.stringify(shown.map((s) => s.top))}`);
+      assert.ok(shown.every((site) => site.lines === 1), `${size.width}: single-line labels ${JSON.stringify(shown.map((s) => s.lines))}`);
+    }
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});
+
+When(/^I seed (\d+) (?:more )?favorites and open a new tab$/, async function (count) {
+  const existing = (await this.call('bookmarkUrls')).length;
+  for (let index = existing; index < existing + Number(count); index += 1) {
+    await this.call('seedFavorite', `https://shelf-${index}.example/`, `Shelf ${index + 1}`);
+  }
+  await this.call('newTab');
+  await this.waitForState((state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://newtab'));
+});
+
+Then('Shelf shows {int} columns with full rows of tiles and cards', async function (columns) {
+  const shelf = await waitForValue(
+    () => this.call('readShelfGeometry'),
+    (value) => value?.columns === String(columns) && value.tiles.length > 0 && value.groups && value.blocked,
+    `Shelf with ${columns} columns`,
+  );
+  const lefts = [...new Set(shelf.tiles.map((tile) => tile.left))].sort((a, b) => a - b);
+  const rights = [...new Set(shelf.tiles.map((tile) => tile.right))].sort((a, b) => a - b);
+  assert.equal(lefts.length, columns, `tiles use ${columns} columns: ${JSON.stringify(lefts)}`);
+  const rows = new Map();
+  for (const tile of shelf.tiles) rows.set(tile.top, (rows.get(tile.top) ?? 0) + 1);
+  assert.ok([...rows.values()].every((n) => n === columns), `every tile row is full: ${JSON.stringify([...rows])}`);
+  assert.equal(shelf.groups.left, lefts[0], 'the groups card starts at the first column');
+  assert.equal(shelf.blocked.right, rights[rights.length - 1], 'the blocked card ends at the last column');
+  assert.equal(shelf.groups.top, shelf.blocked.top, 'both cards share one row');
+});
+
+async function tallyAt(world, width, height) {
+  await world.call('setWindowContentSize', width, height);
+  await waitForValue(
+    () => world.call('windowContentBounds'),
+    (bounds) => bounds?.width === width && bounds?.height === height,
+    `${width}x${height} content bounds`,
+  );
+  return waitForValue(
+    () => world.call('readTallyGeometry'),
+    (value) => value?.viewportWidth === width && value.left && value.right,
+    `Tally at ${width}x${height}`,
+  );
+}
+
+Then('Tally shows two equal, top-aligned columns centered at 1440x840', async function () {
+  this.tallyOriginalBounds = await this.call('windowContentBounds');
+  const tally = await tallyAt(this, 1440, 840);
+  assert.ok(Math.abs(tally.left.width - tally.right.width) <= 1, `equal columns: ${tally.left.width} vs ${tally.right.width}`);
+  assert.equal(tally.left.top, tally.right.top, 'tops aligned');
+  const leftGap = tally.left.left - tally.content.left;
+  const rightGap = tally.content.right - tally.right.right;
+  assert.ok(Math.abs(leftGap - rightGap) <= 2, `centered: ${leftGap} vs ${rightGap}`);
+});
+
+Then('Tally stacks the data above the list at 820x840', async function () {
+  try {
+    const tally = await tallyAt(this, 820, 840);
+    assert.ok(tally.right.bottom <= tally.left.top, `data first: right ${JSON.stringify(tally.right)} left ${JSON.stringify(tally.left)}`);
+  } finally {
+    const original = this.tallyOriginalBounds;
+    if (original) await this.call('setWindowContentSize', original.width, original.height);
+  }
 });

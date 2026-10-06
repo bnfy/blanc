@@ -82,6 +82,7 @@ function applyHarness(runtime) {
     },
     pruneEmptyGroups: () => calls.push(['pruneEmptyGroups']),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
+    restorableUblockTool: () => false,
     filterRestoredSession,
     restoreTargetId,
     isUtilityUrl: () => false,

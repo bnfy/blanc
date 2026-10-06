@@ -25,12 +25,14 @@ test('liveContents is still liftable from tab-view.js', () => {
 /** Run the real function; returns a `flush()` that fires the deferred turn. */
 function load() {
   let deferred = null;
-  const sandbox = { setImmediate: (fn) => { deferred = fn; } };
+  const methods = new Map();
+  const sandbox = { lastMainFrameMethod: methods, setImmediate: (fn) => { deferred = fn; } };
   vm.runInNewContext(
     `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = reloadTabAfterSettingsFanout;`,
     sandbox
   );
   return {
+    post: wc => methods.set(wc.id, 'POST'),
     call: (tab) => sandbox.__fn(tab),
     flush: () => { const fn = deferred; deferred = null; fn?.(); },
     scheduled: () => deferred !== null,
@@ -52,6 +54,20 @@ test('a live tab reloads on the deferred turn', () => {
   assert.equal(calls.reload, 0, 'must not reload synchronously');
   h.flush();
   assert.equal(calls.reload, 1);
+});
+
+test('a POST result is never replayed by a provider/site preference change', () => {
+  const h = load();
+  const { view, calls } = liveView();
+  h.post(view.webContents); h.call({ view });
+  assert.equal(h.scheduled(), false); assert.equal(calls.reload, 0);
+});
+
+test('a page that becomes a POST result before the deferred turn is not replayed', () => {
+  const h = load();
+  const { view, calls } = liveView();
+  h.call({ view }); h.post(view.webContents); h.flush();
+  assert.equal(calls.reload, 0);
 });
 
 test('a tab whose webContents was destroyed does not reload', () => {

@@ -80,12 +80,19 @@ function normalizeAdblockHostname(value) {
   }
 }
 
+function normalizeHostnameList(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(normalizeAdblockHostname).filter(Boolean))];
+}
+
 const DEFAULTS = {
   searchEngine: 'duckduckgo',
   // Live address-bar prefixes are sent to the selected search provider.
   // Device-local and user-disableable; private tabs override it off.
   searchSuggestions: true,
   adblockEnabled: true,
+  // Provider/configuration are device/profile local, outside Profile Sync.
+  adblockProvider: 'blanc',
   // Empty string = the built-in blanc://newtab page.
   homePage: '',
   theme: 'system',
@@ -95,6 +102,9 @@ const DEFAULTS = {
   newtabDynamicWallpaper: false,
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
+  // Paint the Island strip with the active site's top-edge/theme color.
+  // Off keeps it on the theme background. Device-local, not Profile Synced.
+  islandSiteColors: true,
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
@@ -107,6 +117,11 @@ const DEFAULTS = {
   presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
+  // Dark websites: darken sites without their own dark mode while Blanc is
+  // dark. Off until chosen. Device-local — deliberately NOT in SYNCED_KEYS.
+  darkWebsites: false,
+  // Sites left as drawn; same normalization as adblockExceptions.
+  darkWebsitesExceptions: [],
   // Network privacy (device-local — deliberately NOT in SYNCED_KEYS).
   webrtcPolicy: 'standard',
   // Call playback continuity (device-local — deliberately NOT in SYNCED_KEYS).
@@ -290,9 +305,13 @@ function getSettings() {
     if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
+  if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
+  if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
+  data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!['blanc', 'ublock-origin'].includes(data.adblockProvider)) data.adblockProvider = DEFAULTS.adblockProvider;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
   data.mouseGestureMapping = mappingOrDefault(data.mouseGestureMapping);
   if (!WEBRTC_POLICIES.includes(data.webrtcPolicy)) data.webrtcPolicy = DEFAULTS.webrtcPolicy;
@@ -333,6 +352,7 @@ function sanitize(partial) {
     clean.searchSuggestions = partial.searchSuggestions;
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
+  if (['blanc', 'ublock-origin'].includes(partial.adblockProvider)) clean.adblockProvider = partial.adblockProvider;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
   for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
     if (typeof partial[key] === 'boolean') clean[key] = partial[key];
@@ -344,6 +364,7 @@ function sanitize(partial) {
   if (typeof partial.newtabDynamicWallpaper === 'boolean') clean.newtabDynamicWallpaper = partial.newtabDynamicWallpaper;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
+  if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
   if (validMapping(partial.mouseGestureMapping)) clean.mouseGestureMapping = { ...partial.mouseGestureMapping };
@@ -377,6 +398,10 @@ function sanitize(partial) {
           .filter(Boolean)
       ),
     ];
+  }
+  if (typeof partial.darkWebsites === 'boolean') clean.darkWebsites = partial.darkWebsites;
+  if (Array.isArray(partial.darkWebsitesExceptions)) {
+    clean.darkWebsitesExceptions = normalizeHostnameList(partial.darkWebsitesExceptions);
   }
   return clean;
 }
@@ -578,6 +603,7 @@ module.exports = {
   getSettings,
   setExistingProfileHint,
   setSettings,
+  flushSettings: () => ensureStore().flush(),
   onSettingsChanged,
   isFirstRunComplete,
   completeFirstRunPrivacyChoices,

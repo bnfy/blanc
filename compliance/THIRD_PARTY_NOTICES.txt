@@ -47,6 +47,11 @@ EMBEDDED FRAMEWORK
 
 BUNDLED ASSETS AND DATA
 
+- uBlock Origin managed extension (distribution clearance pending) 1.75.0 — GPL-3.0-or-later
+  Attribution: Raymond Hill and contributors; individual upstream notices remain in ublock/upstream/; adapted Swatinem diff code declares LGPLv3 (Arpad Borsos), with full license text separately included
+  Source: https://github.com/gorhill/uBlock
+  Full text: ThirdPartyLicenses/LICENSE.txt
+  Full text: ThirdPartyLicenses/LGPL-3.0.txt
 - Inter Latin webfont — OFL-1.1
   Source: https://github.com/rsms/inter
   Full text: ThirdPartyLicenses/inter-OFL.txt
@@ -70,6 +75,14 @@ BUNDLED ASSETS AND DATA
 - Ghostery adblocker resources c4c20aa63e3a72113f66777cf35a3f58877a36ee — MPL-2.0
   Source: https://github.com/ghostery/adblocker
 - Blanc compiled blocker seed 194ddc2d204c13b9 — MPL-2.0 AND CC-BY-SA-3.0-or-later
+- Lucide uBO popup icons 0.468.0 — ISC
+  Attribution: Lucide Contributors 2022; portions by Cole Bemis 2013–2022 (Feather, MIT)
+  Source: https://github.com/lucide-icons/lucide/tree/0.468.0
+  Full text: ThirdPartyLicenses/lucide-LICENSE.txt
+- Dark Reader engine (Dark websites) 4.9.133 — MIT
+  Attribution: Dark Reader Ltd. and contributors; the unmodified npm API build is embedded in src/main/dark-websites-preload.js
+  Source: https://github.com/darkreader/darkreader
+  Full text: ThirdPartyLicenses/darkreader-LICENSE.txt
 
 MPL SOURCE AVAILABILITY
 

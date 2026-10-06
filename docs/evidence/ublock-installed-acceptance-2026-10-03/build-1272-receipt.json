@@ -1,0 +1,42 @@
+{
+  "sourceCommit": "92e27667916b2f556b148268f5a7ee3ce53000fd",
+  "version": "1.27.0",
+  "macBundleVersion": "1272",
+  "electron": "44.5.1",
+  "ublock": "1.75.0",
+  "internalValidationCandidate": true,
+  "mac": {
+    "installerSha256": "c438d3e23271628a509f13c2f32244c7f25e8b3549ea230d218cde62bdc62010",
+    "executableSha256": "6cb3af89bc6308295681bfe3e3298b871dc1e20c1592b115a56f21cf56834cda",
+    "asarSha256": "88966aa2e78353b35ccb1ac8fc35f4337fb40d76ce84f1f11427b80e63b1328e",
+    "strictDeepSignature": true,
+    "gatekeeper": "accepted: Notarized Developer ID",
+    "stapledAppTicket": "validated",
+    "certificateSha1": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+    "team": "XYGUCY4498",
+    "location": "isolated Applications folder, copied from read-only DMG",
+    "restartNow": "passed: owner clicked actual prompt; native automatic relaunch verified; original profile restored"
+  },
+  "windows": {
+    "validationRun": 37158994208,
+    "validationResult": "success",
+    "installerSha256": "4122fdd7541ae10aad48a1e0756452e97e8e8d0c5ab3b74dd1695a087cfd77d1",
+    "installedSuite": "passed on native hosted x64 and unchanged second attempt in existing Windows ARM64 VM",
+    "restartNow": "passed in existing ARM64 VM under x64 emulation: actual prompt, installer-owned automatic relaunch and exact signed-byte verification",
+    "shortcutRelaunch": "owner confirmed final close, Start Menu relaunch as v1.27.0 and second close; no owned process remained",
+    "originalDataRestored": true
+  },
+  "ci": {
+    "ublockRun": 37158984018,
+    "platformsAndOrdinaryPackage": "all passed on attempt 2",
+    "intelFirstAttempt": "two-second decision timeout alongside repeated GPU initialization failures; failed job rerun passed without changes",
+    "codeqlOpenCount": 39,
+    "codeqlSameBaseline": true,
+    "alertsDismissed": false
+  },
+  "remaining": [
+    "Linux x86-64 installed desktop acceptance unavailable on the existing ARM64 VM.",
+    "Intel Mac installed acceptance unperformed.",
+    "Owner affected-machine confirmation before public enablement, merge and release."
+  ]
+}

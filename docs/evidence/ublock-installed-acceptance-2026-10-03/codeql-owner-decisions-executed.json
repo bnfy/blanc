@@ -1,0 +1,339 @@
+{
+  "pr": 490,
+  "head": "d9fd1c165d55d4bd0c5d0a2b8f7d49ae49884493",
+  "draftAtExecution": false,
+  "executedAtUtc": "2026-10-04T00:28:17.149078+00:00",
+  "scanningRemainsEnabled": true,
+  "dispositions": [
+    {
+      "number": 72,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) click-to-load targets (BlancUboHost.navigationURL). See docs/ublock-origin-codeql-dispositions-2026-10-03.md.",
+      "dismissedAt": "2026-10-04T00:28:17Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/72"
+    },
+    {
+      "number": 73,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) click-to-load targets (BlancUboHost.navigationURL). See docs/ublock-origin-codeql-dispositions-2026-10-03.md.",
+      "dismissedAt": "2026-10-04T00:28:19Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/73"
+    },
+    {
+      "number": 74,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) document-blocked targets (BlancUboHost.navigationURL).",
+      "dismissedAt": "2026-10-04T00:28:20Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/74"
+    },
+    {
+      "number": 75,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) document-blocked targets (BlancUboHost.navigationURL).",
+      "dismissedAt": "2026-10-04T00:28:21Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/75"
+    },
+    {
+      "number": 76,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Sets only a same-document #hash from an existing select option; cannot become a script URL or parse HTML.",
+      "dismissedAt": "2026-10-04T00:28:22Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/76"
+    },
+    {
+      "number": 77,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "No script execution observed with uBO's no-scripting switch: signed, notarized macOS arm64 build passed the packaged probe. Original kept byte-exact; re-test if uBO changes its noScriptingCSP default.",
+      "dismissedAt": "2026-10-04T00:28:24Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/77"
+    },
+    {
+      "number": 78,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "CodeMirror XML tokenizer for syntax colouring; not an HTML sanitizer and authorizes nothing.",
+      "dismissedAt": "2026-10-04T00:28:25Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/78"
+    },
+    {
+      "number": 79,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "Logger Markdown export reaches a textarea via textContent; no execution sink. Not a sanitizer for later consumers. Upstream code retained.",
+      "dismissedAt": "2026-10-04T00:28:26Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/79"
+    },
+    {
+      "number": 80,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "requote builds filter text for display/diagnostics; never evaluated as code (scriptlet args use JSON.stringify).",
+      "dismissedAt": "2026-10-04T00:28:27Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/80"
+    },
+    {
+      "number": 81,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Hostname branch is guarded by /^\\w[\\w.-]*[a-z]$/i, so no backslash reaches the dot-only escape; the other branch escapes all regex metacharacters.",
+      "dismissedAt": "2026-10-04T00:28:28Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/81"
+    },
+    {
+      "number": 82,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "Real uBO bug (only first | replaced, malformed Permissions-Policy). Fixed in Blanc's adaptation (replaceAll); reported upstream uBlockOrigin/uBlock-issues#4145. Original kept byte-exact.",
+      "dismissedAt": "2026-10-04T00:28:29Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/82"
+    },
+    {
+      "number": 83,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "LogData.requote serializes values into diagnostic filter text; not code generation.",
+      "dismissedAt": "2026-10-04T00:28:31Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/83"
+    },
+    {
+      "number": 84,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation generates these tokens with crypto.getRandomValues (128 bits).",
+      "dismissedAt": "2026-10-04T00:28:32Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/84"
+    },
+    {
+      "number": 85,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation generates these tokens with crypto.getRandomValues (128 bits).",
+      "dismissedAt": "2026-10-04T00:28:33Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/85"
+    },
+    {
+      "number": 86,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) click-to-load targets (BlancUboHost.navigationURL). See docs/ublock-origin-codeql-dispositions-2026-10-03.md.",
+      "dismissedAt": "2026-10-04T00:28:34Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/86"
+    },
+    {
+      "number": 87,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) click-to-load targets (BlancUboHost.navigationURL). See docs/ublock-origin-codeql-dispositions-2026-10-03.md.",
+      "dismissedAt": "2026-10-04T00:28:35Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/87"
+    },
+    {
+      "number": 88,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) document-blocked targets (BlancUboHost.navigationURL).",
+      "dismissedAt": "2026-10-04T00:28:36Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/88"
+    },
+    {
+      "number": 89,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Blanc's shipped adaptation allows only http(s) document-blocked targets (BlancUboHost.navigationURL).",
+      "dismissedAt": "2026-10-04T00:28:37Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/89"
+    },
+    {
+      "number": 90,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Page-compat surrogate checks player HTML for a site string; not URL or hostname authorization.",
+      "dismissedAt": "2026-10-04T00:28:38Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/90"
+    },
+    {
+      "number": 91,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Intentional cookie-value range; setCookie percent-encodes ; \\\\ newline and NUL before serialization.",
+      "dismissedAt": "2026-10-04T00:28:39Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/91"
+    },
+    {
+      "number": 92,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "CodeMirror CSS colour-token range defect; editor styling only. Upstream code retained.",
+      "dismissedAt": "2026-10-04T00:28:40Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/92"
+    },
+    {
+      "number": 93,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "CodeMirror CSS colour-token range defect; editor styling only. Upstream code retained.",
+      "dismissedAt": "2026-10-04T00:28:41Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/93"
+    },
+    {
+      "number": 94,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "CodeMirror CSS colour-token range defect; editor styling only. Upstream code retained.",
+      "dismissedAt": "2026-10-04T00:28:42Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/94"
+    },
+    {
+      "number": 95,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "CodeMirror htmlmixed tag-regexp escape defect affects syntax colouring only; no security effect. Upstream code retained.",
+      "dismissedAt": "2026-10-04T00:28:43Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/95"
+    },
+    {
+      "number": 96,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "CodeMirror htmlmixed tag-regexp escape defect affects syntax colouring only; no security effect. Upstream code retained.",
+      "dismissedAt": "2026-10-04T00:28:45Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/96"
+    },
+    {
+      "number": 97,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Shipped adaptation limits code-viewer fetches to http(s) or uBO's own extension origin.",
+      "dismissedAt": "2026-10-04T00:28:46Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/97"
+    },
+    {
+      "number": 98,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Shipped adaptation accepts only http(s) diff-update URLs.",
+      "dismissedAt": "2026-10-04T00:28:47Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/98"
+    },
+    {
+      "number": 100,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact. Shipped adaptation gives the reverse-lookup response a null prototype.",
+      "dismissedAt": "2026-10-04T00:28:48Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/100"
+    },
+    {
+      "number": 101,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Dictionaries are Object.create(null); no inherited __proto__ setter, keys are diagnostic text.",
+      "dismissedAt": "2026-10-04T00:28:49Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/101"
+    },
+    {
+      "number": 102,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Dictionaries are Object.create(null); no inherited __proto__ setter, keys are diagnostic text.",
+      "dismissedAt": "2026-10-04T00:28:51Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/102"
+    },
+    {
+      "number": 103,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Alternatives are joined into ^https?://[\\w-]+\\.(...)/. \u2014 the whole regex is anchored.",
+      "dismissedAt": "2026-10-04T00:28:52Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/103"
+    },
+    {
+      "number": 104,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Alternatives are joined into ^https?://[\\w-]+\\.(...)/. \u2014 the whole regex is anchored.",
+      "dismissedAt": "2026-10-04T00:28:53Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/104"
+    },
+    {
+      "number": 105,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Alternatives are joined into ^https?://[\\w-]+\\.(...)/. \u2014 the whole regex is anchored.",
+      "dismissedAt": "2026-10-04T00:28:54Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/105"
+    },
+    {
+      "number": 106,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Alternatives are joined into ^https?://[\\w-]+\\.(...)/. \u2014 the whole regex is anchored.",
+      "dismissedAt": "2026-10-04T00:28:56Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/106"
+    },
+    {
+      "number": 107,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Dedicated Worker handler reachable only via the extension page's private Worker handle; web pages cannot post to it.",
+      "dismissedAt": "2026-10-04T00:28:57Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/107"
+    },
+    {
+      "number": 108,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact; Blanc ships an authenticated single-use capability handshake for the inspector/picker port.",
+      "dismissedAt": "2026-10-04T00:28:58Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/108"
+    },
+    {
+      "number": 109,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Dedicated Worker handler reachable only via the extension page's private Worker handle; web pages cannot post to it.",
+      "dismissedAt": "2026-10-04T00:29:00Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/109"
+    },
+    {
+      "number": 110,
+      "state": "dismissed",
+      "reason": "won't fix",
+      "comment": "uBO original kept byte-exact; Blanc ships an authenticated single-use capability handshake for the inspector/picker port.",
+      "dismissedAt": "2026-10-04T00:29:01Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/110"
+    },
+    {
+      "number": 111,
+      "state": "dismissed",
+      "reason": "false positive",
+      "comment": "Dedicated Worker handler reachable only via the extension page's private Worker handle; web pages cannot post to it.",
+      "dismissedAt": "2026-10-04T00:29:02Z",
+      "url": "https://github.com/bnfy/blanc/security/code-scanning/111"
+    }
+  ],
+  "resolvedApprovedAlertThreads": [
+    {
+      "threadId": "PRRT_kwDOTMt2KM6otWW-",
+      "alert": 91
+    },
+    {
+      "threadId": "PRRT_kwDOTMt2KM6otWXC",
+      "alert": 92
+    },
+    {
+      "threadId": "PRRT_kwDOTMt2KM6otWXG",
+      "alert": 93
+    },
+    {
+      "threadId": "PRRT_kwDOTMt2KM6otWXJ",
+      "alert": 94
+    }
+  ]
+}

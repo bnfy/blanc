@@ -1,0 +1,23 @@
+{
+  "electron": "44.5.1",
+  "manifestV2": "supported",
+  "ublock": "1.75.0",
+  "platforms": {
+    "darwin-arm64": {
+      "enabled": true,
+      "reason": "Signed installed build 1272 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
+    },
+    "darwin-x64": {
+      "enabled": true,
+      "reason": "Signed DMG-installed native Intel build 1273 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; Rosetta excluded; owner release confirmation required before merge"
+    },
+    "win32-x64": {
+      "enabled": true,
+      "reason": "Signed installed build 1272 acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
+    },
+    "linux-x64": {
+      "enabled": true,
+      "reason": "Native installed AppImage controls, normal relaunch, persistence and Ubuntu 22.04/24.04 renderer sandbox acceptance recorded in docs/evidence/ublock-installed-acceptance-2026-10-03; owner release confirmation required before merge"
+    }
+  }
+}

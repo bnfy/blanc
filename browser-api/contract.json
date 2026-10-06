@@ -1,0 +1,2453 @@
+{
+  "$comment": "Source of truth for window.browserAPI. Edit HERE, then run npm run browser-api:build. See browser-api/README.md.",
+  "version": 1,
+  "surfaces": [
+    "blanc-chrome://index/",
+    "blanc-chrome://overlay/",
+    "blanc-chrome://permission/"
+  ],
+  "types": {
+    "Platform": {
+      "ts": "'darwin' | 'win32' | 'linux'",
+      "doc": "Supported desktop platforms."
+    },
+    "TabId": {
+      "ts": "string",
+      "doc": "Opaque tab id minted by main (a UUID today)."
+    },
+    "GroupId": {
+      "ts": "string",
+      "doc": "Opaque tab group id minted by main."
+    },
+    "WorkspaceId": {
+      "ts": "string",
+      "doc": "Opaque Named Workspace id."
+    },
+    "ClosedEntryId": {
+      "ts": "string",
+      "doc": "Opaque closed-entry id."
+    },
+    "PermissionPromptId": {
+      "ts": "number",
+      "doc": "Id of a pending permission prompt: a per-process counter in main."
+    },
+    "CaptureSurfaceId": {
+      "ts": "string",
+      "doc": "Id of a capturing surface: a TabId for a tab, or `popup:<webContentsId>` for an auxiliary popup."
+    },
+    "DisplayShareId": {
+      "ts": "string",
+      "doc": "Id of an active screen share (`share-<n>`), minted by the display-capture registry."
+    },
+    "BlockingProviderId": {
+      "ts": "'blanc' | 'ublock-origin'",
+      "doc": "A blocking provider."
+    },
+    "ConnectionState": {
+      "ts": "'https' | 'http' | 'local'",
+      "doc": "Connection claim for a committed URL. null in a payload means no claim (loading, or not HTTP)."
+    },
+    "TabLayout": {
+      "ts": "'island' | 'vertical'",
+      "doc": "Tab presentation; main ignores other values."
+    },
+    "ThemePreference": {
+      "ts": "'system' | 'light' | 'dark'",
+      "doc": "Appearance preference."
+    },
+    "WorkspaceMoveDirection": {
+      "ts": "'up' | 'down'",
+      "doc": "Direction for reordering a workspace."
+    },
+    "CreateTabOptions": {
+      "ts": "{ private?: boolean }",
+      "doc": "Options for a new tab. Only `private` is read by main today."
+    },
+    "OpenWorkspaceOptions": {
+      "doc": "Options for opening or creating a workspace.",
+      "fields": {
+        "decision": {
+          "type": "string",
+          "doc": "The token from an unsaved-scratch result, confirming \"discard and switch\".",
+          "optional": true
+        },
+        "newWindow": {
+          "type": "boolean",
+          "doc": "Open in a new window instead of this one.",
+          "optional": true
+        }
+      }
+    },
+    "Point": {
+      "doc": "A point in window coordinates.",
+      "fields": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "Rect": {
+      "doc": "A rectangle in window coordinates.",
+      "fields": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      }
+    },
+    "PermissionPromptPayload": {
+      "doc": "A pending permission prompt, built by the permission prompter in main.js.",
+      "fields": {
+        "id": {
+          "type": "PermissionPromptId"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "permission": {
+          "type": "string",
+          "doc": "Electron permission name, such as media or geolocation."
+        },
+        "mediaTypes": {
+          "type": "string[]",
+          "doc": "Requested media types, per the prompter JSDoc in permissions.js."
+        }
+      }
+    },
+    "TabCapture": {
+      "doc": "A tab's live capture state.",
+      "fields": {
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ShieldChip": {
+      "doc": "Shield chip state, derived by shieldChipState() in shield-model.js.",
+      "fields": {
+        "mode": {
+          "type": "'hidden' | 'off' | 'count' | 'quiet'"
+        },
+        "count": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "CertificateSummary": {
+      "doc": "Certificate fields sanitized by sanitizeCertificate() in site-security.js.",
+      "fields": {
+        "subject": {
+          "type": "string | null"
+        },
+        "issuer": {
+          "type": "string | null"
+        },
+        "validFrom": {
+          "type": "number | null",
+          "doc": "Milliseconds since the epoch."
+        },
+        "validTo": {
+          "type": "number | null",
+          "doc": "Milliseconds since the epoch."
+        },
+        "fingerprint": {
+          "type": "string | null"
+        }
+      }
+    },
+    "SiteInfo": {
+      "doc": "Page-info model, built by buildSiteInfo() in site-security.js.",
+      "fields": {
+        "state": {
+          "type": "'neutral' | 'certificate-error' | 'certificate-exception' | 'secure' | 'local' | 'insecure' | 'internal'"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "certificate": {
+          "type": "CertificateSummary | null"
+        },
+        "blockedCount": {
+          "type": "number"
+        },
+        "permissions": {
+          "type": "unknown[]",
+          "doc": "Always empty in tabs:updated today."
+        },
+        "error": {
+          "type": "string | null",
+          "doc": "Present only when state is certificate-error.",
+          "optional": true
+        }
+      }
+    },
+    "TabEntry": {
+      "doc": "One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only state never crosses this projection.",
+      "fields": {
+        "id": {
+          "type": "TabId"
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "isLoading": {
+          "type": "boolean"
+        },
+        "canGoBack": {
+          "type": "boolean"
+        },
+        "canGoForward": {
+          "type": "boolean"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A data:image/png;base64 URL, or null. Always null for private tabs."
+        },
+        "bookmarked": {
+          "type": "boolean",
+          "doc": "Whether the page is a Favorite."
+        },
+        "blockedCount": {
+          "type": "number"
+        },
+        "private": {
+          "type": "boolean"
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "audible": {
+          "type": "boolean",
+          "doc": "Playing sound that can reach the speakers."
+        },
+        "groupId": {
+          "type": "GroupId | null"
+        },
+        "pageBg": {
+          "type": "string | null",
+          "doc": "Sampled top-edge page color."
+        },
+        "themeColor": {
+          "type": "string | null",
+          "doc": "The page theme-color meta value."
+        },
+        "asleep": {
+          "type": "boolean",
+          "doc": "Quiet Tabs state."
+        },
+        "capture": {
+          "type": "TabCapture"
+        },
+        "fillHint": {
+          "type": "boolean",
+          "doc": "A login form is present (structure only)."
+        },
+        "excepted": {
+          "type": "boolean",
+          "doc": "Ads are allowed on this site."
+        },
+        "shield": {
+          "type": "ShieldChip"
+        },
+        "connection": {
+          "type": "ConnectionState | null"
+        },
+        "siteInfo": {
+          "type": "SiteInfo"
+        }
+      }
+    },
+    "TabGroup": {
+      "doc": "A tab group. Groups have names, not colors.",
+      "fields": {
+        "id": {
+          "type": "GroupId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "collapsed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ClosedEntrySummary": {
+      "doc": "A closed entry as renderers see it, projected by projectEntries() in closed-tabs.js.",
+      "fields": {
+        "id": {
+          "type": "ClosedEntryId"
+        },
+        "title": {
+          "type": "string"
+        },
+        "favicon": {
+          "type": "string | null"
+        },
+        "tabCount": {
+          "type": "number"
+        }
+      }
+    },
+    "ShieldProviderControls": {
+      "doc": "Blocking provider controls, from shieldProviderModel() in shield-model.js.",
+      "fields": {
+        "active": {
+          "type": "BlockingProviderId"
+        },
+        "selected": {
+          "type": "BlockingProviderId"
+        },
+        "choice": {
+          "type": "BlockingProviderId"
+        },
+        "restartPending": {
+          "type": "boolean"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "activeLabel": {
+          "type": "'Off' | 'Active' | 'Starting' | 'Unavailable'"
+        },
+        "ublockAvailable": {
+          "type": "boolean"
+        },
+        "canOpenUblock": {
+          "type": "boolean"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "availability": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    "ShieldPopover": {
+      "doc": "The active tab's shield popover: shieldPopoverModel() plus provider controls.",
+      "fields": {
+        "variant": {
+          "type": "'site' | 'global-off' | 'recovery' | 'ublock'"
+        },
+        "host": {
+          "type": "string"
+        },
+        "on": {
+          "type": "boolean"
+        },
+        "countLine": {
+          "type": "string"
+        },
+        "connection": {
+          "type": "ConnectionState | null"
+        },
+        "controls": {
+          "type": "ShieldProviderControls"
+        },
+        "darkSite": {
+          "type": "ShieldDarkSite | null"
+        }
+      }
+    },
+    "ShieldDarkSite": {
+      "doc": "The shield popover's Dark website switch. `on` describes the site while Blanc is dark (what /dark-site flips); `appliesNow` is whether Blanc is dark now.",
+      "fields": {
+        "on": {
+          "type": "boolean"
+        },
+        "appliesNow": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CaptureChip": {
+      "doc": "Window-wide capture chip state.",
+      "fields": {
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CaptureRow": {
+      "doc": "One capturing surface in the capture popover.",
+      "fields": {
+        "surfaceId": {
+          "type": "CaptureSurfaceId"
+        },
+        "host": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "'tab' | 'popup'"
+        },
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CapturePopover": {
+      "doc": "Capture popover rows.",
+      "fields": {
+        "rows": {
+          "type": "CaptureRow[]"
+        }
+      }
+    },
+    "DisplayShareSummary": {
+      "doc": "A screen share, projected by projectDisplayShares() in display-capture-indicator.js.",
+      "fields": {
+        "shareId": {
+          "type": "DisplayShareId"
+        },
+        "pending": {
+          "type": "boolean"
+        },
+        "origin": {
+          "type": "string | null"
+        },
+        "surfaceLabel": {
+          "type": "string | null"
+        },
+        "surfaceKind": {
+          "type": "string | null"
+        },
+        "computerAudio": {
+          "type": "boolean"
+        },
+        "tabId": {
+          "type": "TabId | null"
+        }
+      }
+    },
+    "TabsSnapshot": {
+      "doc": "Result of getAllTabs, built by the tabs:get-all handler in main.js.",
+      "fields": {
+        "tabs": {
+          "type": "TabEntry[]"
+        },
+        "activeTabId": {
+          "type": "TabId | null"
+        },
+        "glanceTabId": {
+          "type": "TabId | null"
+        },
+        "groups": {
+          "type": "TabGroup[]"
+        },
+        "closed": {
+          "type": "ClosedEntrySummary[]"
+        },
+        "tabLayout": {
+          "type": "TabLayout"
+        },
+        "verticalTabsWidth": {
+          "type": "number"
+        },
+        "verticalTabsPreferredWidth": {
+          "type": "number"
+        },
+        "verticalTabsMinWidth": {
+          "type": "number"
+        },
+        "verticalTabsMaxWidth": {
+          "type": "number"
+        },
+        "verticalTabsDefaultWidth": {
+          "type": "number"
+        }
+      }
+    },
+    "TabsUpdatedPayload": {
+      "doc": "The tabs:updated broadcast, built by currentTabsPayload() in main.js.",
+      "fields": {
+        "tabs": {
+          "type": "TabEntry[]"
+        },
+        "activeTabId": {
+          "type": "TabId | null"
+        },
+        "glanceTabId": {
+          "type": "TabId | null"
+        },
+        "groups": {
+          "type": "TabGroup[]"
+        },
+        "closed": {
+          "type": "ClosedEntrySummary[]"
+        },
+        "tabLayout": {
+          "type": "TabLayout"
+        },
+        "adblockEnabled": {
+          "type": "boolean"
+        },
+        "shieldPopover": {
+          "type": "ShieldPopover | null"
+        },
+        "captureChip": {
+          "type": "CaptureChip"
+        },
+        "capturePopover": {
+          "type": "CapturePopover"
+        },
+        "displayShares": {
+          "type": "DisplayShareSummary[]"
+        },
+        "verticalTabsWidth": {
+          "type": "number"
+        },
+        "verticalTabsPreferredWidth": {
+          "type": "number"
+        },
+        "verticalTabsMinWidth": {
+          "type": "number"
+        },
+        "verticalTabsMaxWidth": {
+          "type": "number"
+        },
+        "verticalTabsDefaultWidth": {
+          "type": "number"
+        }
+      }
+    },
+    "ShieldAnchorUpdate": {
+      "doc": "Where the shield popover's arrow sits, sent by syncShieldAnchor() in main.js.",
+      "fields": {
+        "x": {
+          "type": "number",
+          "doc": "Horizontal position in the overlay's own coordinates."
+        },
+        "connected": {
+          "type": "boolean",
+          "doc": "Whether the popover is anchored to a known chip."
+        }
+      }
+    },
+    "VerticalTabsMetrics": {
+      "doc": "Vertical tab rail widths, from verticalTabsMetrics() in main.js.",
+      "fields": {
+        "verticalTabsWidth": {
+          "type": "number"
+        },
+        "verticalTabsPreferredWidth": {
+          "type": "number"
+        },
+        "verticalTabsMinWidth": {
+          "type": "number"
+        },
+        "verticalTabsMaxWidth": {
+          "type": "number"
+        },
+        "verticalTabsDefaultWidth": {
+          "type": "number"
+        }
+      }
+    },
+    "GlanceLayout": {
+      "doc": "Glance split geometry, from calculateGlanceLayout() in glance-layout.js.",
+      "fields": {
+        "direction": {
+          "type": "'horizontal' | 'vertical'"
+        },
+        "ratio": {
+          "type": "number"
+        },
+        "page": {
+          "type": "Rect"
+        },
+        "primary": {
+          "type": "Rect"
+        },
+        "divider": {
+          "type": "Rect"
+        },
+        "glanceHeader": {
+          "type": "Rect"
+        },
+        "glanceContent": {
+          "type": "Rect"
+        },
+        "glance": {
+          "type": "Rect",
+          "doc": "Alias of glanceContent kept for older consumers."
+        }
+      }
+    },
+    "WorkspaceSaveStatus": {
+      "ts": "'saved' | 'pending' | 'read-failed' | 'future-format' | 'repair-failed' | 'storage-failed'",
+      "doc": "Named Workspaces storage status, from workspaces.js."
+    },
+    "DeletedWorkspace": {
+      "doc": "A recently deleted workspace that can still be restored.",
+      "fields": {
+        "id": {
+          "type": "WorkspaceId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "deletedAt": {
+          "type": "number",
+          "doc": "Milliseconds since the epoch."
+        }
+      }
+    },
+    "WorkspaceListItem": {
+      "doc": "A Named Workspace row.",
+      "fields": {
+        "id": {
+          "type": "WorkspaceId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean",
+          "doc": "Bound to this window."
+        },
+        "openElsewhere": {
+          "type": "boolean",
+          "doc": "Open in another window."
+        },
+        "resident": {
+          "type": "boolean"
+        },
+        "revision": {
+          "type": "number"
+        },
+        "tabCount": {
+          "type": "number"
+        }
+      }
+    },
+    "WorkspacesPayload": {
+      "doc": "Named Workspaces projection, from workspacesProjection() in main.js.",
+      "fields": {
+        "patronActive": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "WorkspaceSaveStatus"
+        },
+        "deleted": {
+          "type": "DeletedWorkspace[]"
+        },
+        "items": {
+          "type": "WorkspaceListItem[]"
+        }
+      }
+    },
+    "ThemeAppearance": {
+      "ts": "'light' | 'dark' | 'pending'",
+      "doc": "The chrome's effective appearance; pending while a system theme is still resolving."
+    },
+    "DarkSiteResult": {
+      "doc": "The outcome of /dark-site. `darkened` describes the site while Blanc is dark; in a private tab the choice lasts until Blanc quits.",
+      "fields": {
+        "hostname": {
+          "type": "string"
+        },
+        "darkened": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PageTint": {
+      "doc": "A tab's sampled page color, sent as a color-only update.",
+      "fields": {
+        "id": {
+          "type": "TabId"
+        },
+        "color": {
+          "type": "string"
+        }
+      }
+    },
+    "DownloadsActivity": {
+      "doc": "Download activity for the strip, from downloadsActivity() in downloads.js.",
+      "fields": {
+        "active": {
+          "type": "number",
+          "doc": "Downloads in flight."
+        },
+        "hasRecent": {
+          "type": "boolean",
+          "doc": "A finished download is unacknowledged."
+        },
+        "receivedBytes": {
+          "type": "number"
+        },
+        "totalBytes": {
+          "type": "number"
+        },
+        "lastCompletedAt": {
+          "type": "number | null",
+          "doc": "Milliseconds since the epoch."
+        }
+      }
+    },
+    "OverlayMode": {
+      "ts": "'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share'",
+      "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
+    },
+    "ShieldTrigger": {
+      "ts": "'shield' | 'insecure'",
+      "doc": "Which strip control opened the shield popover."
+    },
+    "RestoreTrigger": {
+      "ts": "'shield' | 'insecure' | 'capture' | 'glance-change'",
+      "doc": "The strip control that should regain focus when the overlay closes."
+    },
+    "OverlayShowPayload": {
+      "doc": "Sent when main shows the overlay.",
+      "fields": {
+        "mode": {
+          "type": "OverlayMode"
+        },
+        "prefill": {
+          "type": "string | null",
+          "doc": "Initial input text."
+        },
+        "purpose": {
+          "type": "unknown",
+          "doc": "Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing."
+        },
+        "pillRect": {
+          "type": "Rect | null",
+          "doc": "The resting pill in the overlay's coordinates; absent when replayed after the overlay loads.",
+          "optional": true
+        }
+      }
+    },
+    "OverlayHidePayload": {
+      "doc": "Sent when main hides the overlay.",
+      "fields": {
+        "retract": {
+          "type": "boolean",
+          "doc": "Animate the panel back into the pill."
+        }
+      }
+    },
+    "IslandState": {
+      "doc": "Island presentation state for the strip.",
+      "fields": {
+        "mode": {
+          "type": "OverlayMode | null"
+        },
+        "trigger": {
+          "type": "ShieldTrigger | null"
+        },
+        "restoreTrigger": {
+          "type": "RestoreTrigger | null",
+          "doc": "Present only when the overlay closes.",
+          "optional": true
+        }
+      }
+    },
+    "FindResult": {
+      "doc": "Find-in-page counts for the active tab, sent from tab-view.js.",
+      "fields": {
+        "activeMatchOrdinal": {
+          "type": "number"
+        },
+        "matches": {
+          "type": "number"
+        }
+      }
+    },
+    "WorkspaceErrorCode": {
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-record' | 'limit' | 'not-found' | 'not-patron' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
+      "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
+    },
+    "WorkspaceProtectionReason": {
+      "ts": "'permission-or-transition' | 'active-page' | 'resident-capacity'",
+      "doc": "Why a window may not switch workspaces right now, from workspaceProtection() in main.js."
+    },
+    "WorkspaceAction": {
+      "ts": "'swap' | 'noop' | 'focus'",
+      "doc": "What a successful open or create did: swapped this window, found it already here, or focused another window."
+    },
+    "WorkspaceActionResult": {
+      "doc": "Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "WorkspaceErrorCode",
+          "optional": true
+        },
+        "cause": {
+          "type": "WorkspaceErrorCode",
+          "doc": "Why a saved workspace could not be opened (with saved-not-opened).",
+          "optional": true
+        },
+        "reason": {
+          "type": "WorkspaceProtectionReason",
+          "doc": "With protected-pages.",
+          "optional": true
+        },
+        "tabCount": {
+          "type": "number",
+          "doc": "Unsaved tabs (with unsaved-scratch).",
+          "optional": true
+        },
+        "privateCount": {
+          "type": "number",
+          "doc": "Private tabs among them (with unsaved-scratch).",
+          "optional": true
+        },
+        "decision": {
+          "type": "string",
+          "doc": "Token to send back as a confirmed \"discard and switch\" (with unsaved-scratch).",
+          "optional": true
+        },
+        "action": {
+          "type": "WorkspaceAction",
+          "optional": true
+        },
+        "windowId": {
+          "type": "string",
+          "doc": "The window that now shows the workspace (with action focus).",
+          "optional": true
+        },
+        "workspaceId": {
+          "type": "WorkspaceId",
+          "doc": "The new workspace, after a create or save, including a save that could not be opened.",
+          "optional": true
+        },
+        "patronActive": {
+          "type": "boolean",
+          "optional": true
+        },
+        "status": {
+          "type": "WorkspaceSaveStatus",
+          "optional": true
+        },
+        "deleted": {
+          "type": "DeletedWorkspace[]",
+          "optional": true
+        },
+        "items": {
+          "type": "WorkspaceListItem[]",
+          "optional": true
+        }
+      }
+    },
+    "SearchEngineId": {
+      "ts": "'duckduckgo' | 'google' | 'bing' | 'brave'",
+      "doc": "A search engine id. Must match the searchEngines ids in settings-schema/schema.json."
+    },
+    "HistoryEntry": {
+      "doc": "A history entry, from listHistory() in history.js: the stored visit plus the site's cached favicon.",
+      "fields": {
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The page title, or the URL when the page had none."
+        },
+        "visitedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds of the latest visit."
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        }
+      }
+    },
+    "FavoriteItem": {
+      "doc": "A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The page title, or the URL when the page had none."
+        },
+        "favicon": {
+          "type": "string | null",
+          "optional": true,
+          "doc": "A sanitized PNG data URL, or null. Items saved by older versions may lack it."
+        },
+        "addedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds."
+        },
+        "updatedAt": {
+          "type": "number",
+          "optional": true,
+          "doc": "Epoch milliseconds of the last synced edit. Items saved by older versions may lack it."
+        },
+        "folder": {
+          "type": "string | null",
+          "optional": true,
+          "doc": "The folder name, or null when ungrouped. Items saved by older versions may lack it."
+        }
+      }
+    },
+    "RemoteTab": {
+      "doc": "Another device's open tab, sanitized by tabsync-model.js, with its synced icon attached by tabicons-model.js.",
+      "fields": {
+        "url": {
+          "type": "string",
+          "doc": "Always http(s)."
+        },
+        "title": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string | null"
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        }
+      }
+    },
+    "RemoteGroup": {
+      "doc": "A tab group on another device.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "RemoteDevice": {
+      "doc": "Another device's open tabs, from displayDevices() in tabsync-model.js. Newest first; devices without tabs or older than the prune window are left out.",
+      "fields": {
+        "deviceId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds."
+        },
+        "tabs": {
+          "type": "RemoteTab[]"
+        },
+        "groups": {
+          "type": "RemoteGroup[]"
+        }
+      }
+    },
+    "SearchSuggestions": {
+      "doc": "Search suggestions for the address bar, labelled with the engine that produced them.",
+      "fields": {
+        "engine": {
+          "type": "SearchEngineId"
+        },
+        "label": {
+          "type": "string",
+          "doc": "The engine's display name."
+        },
+        "suggestions": {
+          "type": "string[]",
+          "doc": "Empty when suggestions are off, the tab is private, or the query is ineligible."
+        }
+      }
+    },
+    "ProviderBlockAdsResult": {
+      "doc": "uBlock Origin handled the block-ads command; its state arrives with the next tabs:updated.",
+      "fields": {
+        "provider": {
+          "type": "'ublock-origin'"
+        }
+      }
+    },
+    "BlockAdsResult": {
+      "doc": "What Blanc Blocker did for the block-ads command, from resolveBlockAdsCommand() in adblock-exceptions.js.",
+      "fields": {
+        "action": {
+          "type": "'unexcept' | 'toggle'",
+          "doc": "unexcept: the active site left the allow-list and blocking is on. toggle: blocking was switched."
+        },
+        "hostname": {
+          "type": "string | null",
+          "doc": "The site removed from the allow-list, or null for a toggle."
+        },
+        "enabled": {
+          "type": "boolean",
+          "doc": "Whether blocking is on afterwards."
+        },
+        "exceptions": {
+          "type": "string[]",
+          "doc": "The full allow-list afterwards."
+        }
+      }
+    },
+    "AllowAdsError": {
+      "doc": "Why ads could not be allowed on the active site. Settings opens on its blocking section.",
+      "fields": {
+        "error": {
+          "type": "'blocking-not-ready' | 'blocking-site-change-failed'"
+        }
+      }
+    },
+    "FillLoginFailure": {
+      "doc": "A 1Password fill that did not fill, from credential-fill-controller.js. The user has already been told why.",
+      "fields": {
+        "ok": {
+          "type": "false"
+        },
+        "reason": {
+          "type": "string",
+          "doc": "A flow reason such as 'cancelled' or 'no-match', or a broker/SDK error code."
+        }
+      }
+    },
+    "FillLoginSuccess": {
+      "doc": "A 1Password fill that filled at least one field. No credential data is returned.",
+      "fields": {
+        "ok": {
+          "type": "true"
+        },
+        "filledUser": {
+          "type": "boolean"
+        },
+        "filledPass": {
+          "type": "boolean"
+        }
+      }
+    },
+    "IslandRectReport": {
+      "doc": "The resting pill's rectangle as the strip reports it, plus the open shield popover's anchor.",
+      "fields": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "shieldAnchor": {
+          "type": "ShieldAnchor",
+          "optional": true,
+          "doc": "Present while the shield popover is open, so a uBlock Origin popup can follow the pill."
+        }
+      }
+    },
+    "ShieldAnchor": {
+      "doc": "Where the shield popover opens, from the strip control that opened it. Main validates the coordinates against the window.",
+      "fields": {
+        "right": {
+          "type": "number",
+          "doc": "The control's right edge."
+        },
+        "center": {
+          "type": "number",
+          "doc": "The control's horizontal centre."
+        },
+        "bottom": {
+          "type": "number",
+          "doc": "The control's bottom edge."
+        },
+        "trigger": {
+          "type": "ShieldTrigger"
+        }
+      }
+    },
+    "CaptureAnchor": {
+      "doc": "Where the capture popover opens.",
+      "fields": {
+        "right": {
+          "type": "number",
+          "doc": "The capture chip's right edge."
+        }
+      }
+    },
+    "FindInPageOptions": {
+      "doc": "Options for findInPage, passed to Electron's webContents.findInPage unchanged. Must name the same fields as Electron's FindInPageOptions.",
+      "fields": {
+        "forward": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Search forward (default true)."
+        },
+        "findNext": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Start a new find session (default false)."
+        },
+        "matchCase": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Case-sensitive (default false)."
+        }
+      }
+    },
+    "HistoryListOptions": {
+      "doc": "Filters for listHistory, read by listHistory() in history.js.",
+      "fields": {
+        "query": {
+          "type": "string",
+          "optional": true,
+          "doc": "Case-insensitive substring of the URL or title."
+        },
+        "limit": {
+          "type": "number",
+          "optional": true,
+          "doc": "At most this many entries (default 500)."
+        }
+      }
+    },
+    "DisplayPickerChoice": {
+      "doc": "The overlay's answer to the screen-share picker, read by display-capture-picker.js. Main ignores it unless the sender owns that live request.",
+      "fields": {
+        "requestId": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string | null",
+          "optional": true,
+          "doc": "The chosen source. Ignored on Linux, where the system portal chooses."
+        },
+        "computerAudioApproved": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Only honored when the page asked for audio."
+        },
+        "cancelled": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "true cancels the request. The overlay cancels through closeOverlay instead."
+        }
+      }
+    }
+  },
+  "members": [
+    {
+      "name": "platform",
+      "group": "environment",
+      "kind": "value",
+      "type": "Platform",
+      "source": "process.platform",
+      "doc": "The host OS as Electron's sandboxed process reports it."
+    },
+    {
+      "name": "createTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:create",
+      "params": [
+        {
+          "name": "url",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "opts",
+          "type": "CreateTabOptions",
+          "optional": true
+        }
+      ],
+      "returns": "TabId",
+      "doc": "Open a new tab. A plain new tab is always ungrouped. Resolves to the new tab id."
+    },
+    {
+      "name": "closeTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:close",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Close a tab and record a closed entry."
+    },
+    {
+      "name": "reopenClosedTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:reopen-closed",
+      "params": [],
+      "returns": "void",
+      "doc": "Reopen the most recent closed entry in this window."
+    },
+    {
+      "name": "reopenClosedEntry",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:reopen-entry",
+      "params": [
+        {
+          "name": "entryId",
+          "type": "ClosedEntryId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Reopen a specific closed entry."
+    },
+    {
+      "name": "forgetClosedEntry",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:forget-closed-entry",
+      "params": [
+        {
+          "name": "entryId",
+          "type": "ClosedEntryId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Forget one closed entry and destroy any parked view."
+    },
+    {
+      "name": "clearClosedEntries",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:clear-closed",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Forget every closed entry in this window."
+    },
+    {
+      "name": "switchTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:switch",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Activate a tab."
+    },
+    {
+      "name": "navigate",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:navigate",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean | undefined",
+      "doc": "Navigate a tab to typed input; main normalizes it. Resolves to undefined when nothing loads in the tab itself (unknown tab, an OS hand-off, a utility page, or a quiet tab, which wakes in the background); otherwise to whether the queued load ran and finished (false when superseded or failed)."
+    },
+    {
+      "name": "search",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:search",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "engine",
+          "type": "string",
+          "optional": true,
+          "doc": "Ignored by main; the engine comes from Settings."
+        }
+      ],
+      "returns": "boolean | string | undefined",
+      "doc": "Search for a query in a tab with the engine from Settings. Resolves to undefined for an empty query, an unknown tab or a started load, and to whether a quiet tab woke. Under the desktop test hook only, it resolves to the search URL instead of loading it."
+    },
+    {
+      "name": "goBack",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:back",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean | undefined",
+      "doc": "Go back in a tab. Resolves to whether a quiet tab woke, otherwise to undefined."
+    },
+    {
+      "name": "goForward",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:forward",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean | undefined",
+      "doc": "Go forward in a tab. Resolves to whether a quiet tab woke, otherwise to undefined."
+    },
+    {
+      "name": "reload",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:reload",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean | undefined",
+      "doc": "Reload a tab. Resolves to whether a quiet tab woke, otherwise to undefined."
+    },
+    {
+      "name": "stop",
+      "group": "navigation",
+      "kind": "invoke",
+      "channel": "tabs:stop",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Stop loading a tab. Resolves to the Electron WebContents method's undefined result.",
+      "resultCheck": "none"
+    },
+    {
+      "name": "reorderTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:reorder",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "toIndex",
+          "type": "number"
+        }
+      ],
+      "returns": "void",
+      "doc": "Move a tab to an index in the tab order."
+    },
+    {
+      "name": "reorderTabWithinBucket",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:reorder-within-bucket",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "beforeId",
+          "type": "TabId | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move a tab before another within its pinned/group bucket."
+    },
+    {
+      "name": "activateTabFromRail",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:activate-from-rail",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Activate a tab from the vertical tab rail."
+    },
+    {
+      "name": "setGlanceTab",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "tabs:set-glance",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Show a tab as the Glance side view."
+    },
+    {
+      "name": "openGlancePicker",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "tabs:open-glance-picker",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Open the Glance tab picker."
+    },
+    {
+      "name": "closeGlance",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "tabs:close-glance",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Close the Glance view."
+    },
+    {
+      "name": "promoteGlance",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "tabs:promote-glance",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Promote the Glance tab to the active tab. Resolves to whether the Glance tab became the active tab."
+    },
+    {
+      "name": "setTabGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "tabs:set-group",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "groupId",
+          "type": "GroupId | null"
+        }
+      ],
+      "returns": "void",
+      "doc": "Move a tab into a group, or out of all groups with null."
+    },
+    {
+      "name": "groupTabByName",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "tabs:group-by-name",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "void",
+      "doc": "Find or create a named group and move the tab into it."
+    },
+    {
+      "name": "toggleGroupCollapsed",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "tabs:toggle-group-collapsed",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Fold or unfold a group in the panel."
+    },
+    {
+      "name": "focusGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "tabs:focus-group",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Activate a group's first tab, unfolding it."
+    },
+    {
+      "name": "closeGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "tabs:close-group",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Close every tab in a group as one closed entry."
+    },
+    {
+      "name": "toggleBookmark",
+      "group": "favorites",
+      "kind": "invoke",
+      "channel": "tabs:toggle-bookmark",
+      "params": [],
+      "returns": "void",
+      "doc": "Toggle Favorite for the active tab."
+    },
+    {
+      "name": "saveFavorite",
+      "group": "favorites",
+      "kind": "invoke",
+      "channel": "tabs:save-favorite",
+      "params": [
+        {
+          "name": "folder",
+          "type": "string | null",
+          "doc": "A folder name, or null for no folder. Main trims and validates it."
+        }
+      ],
+      "returns": "void",
+      "doc": "Save the active tab as a Favorite in a folder."
+    },
+    {
+      "name": "toggleTabPinned",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:toggle-pinned",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Pin or unpin a tab. Resolves to the new pinned state, or false when the tab is unknown."
+    },
+    {
+      "name": "toggleTabMuted",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:toggle-muted",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Mute or unmute a tab. Resolves to the new muted state, or false when the tab is unknown."
+    },
+    {
+      "name": "duplicateTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:duplicate",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "TabId | undefined",
+      "doc": "Duplicate a tab. Resolves to the duplicate's id, or undefined when the tab is unknown."
+    },
+    {
+      "name": "openPage",
+      "group": "pages",
+      "kind": "invoke",
+      "channel": "tabs:open-page",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "section",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "returns": "void",
+      "doc": "Open an internal page (utility pages open in the sheet)."
+    },
+    {
+      "name": "getAllTabs",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:get-all",
+      "params": [],
+      "returns": "TabsSnapshot",
+      "doc": "Read the current tab list on demand."
+    },
+    {
+      "name": "findInPage",
+      "group": "find",
+      "kind": "invoke",
+      "channel": "tabs:find",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "options",
+          "type": "FindInPageOptions",
+          "optional": true
+        }
+      ],
+      "returns": "number | boolean | undefined",
+      "doc": "Find text in a page. Resolves to Electron's find request id, to whether a quiet tab woke (find again once it has), or to undefined for an unknown tab. Counts arrive through onFindResult."
+    },
+    {
+      "name": "stopFindInPage",
+      "group": "find",
+      "kind": "invoke",
+      "channel": "tabs:find-stop",
+      "params": [
+        {
+          "name": "id",
+          "type": "TabId"
+        }
+      ],
+      "returns": "void",
+      "doc": "Stop find-in-page. Resolves to the Electron WebContents method's undefined result.",
+      "resultCheck": "none"
+    },
+    {
+      "name": "respondPermission",
+      "group": "permissions",
+      "kind": "send",
+      "channel": "permissions:respond",
+      "params": [
+        {
+          "name": "id",
+          "type": "PermissionPromptId"
+        },
+        {
+          "name": "allow",
+          "type": "boolean"
+        }
+      ],
+      "doc": "Answer a pending permission prompt.",
+      "ipcArgs": [
+        {
+          "id": "$0",
+          "allow": "$1"
+        }
+      ]
+    },
+    {
+      "name": "onPermissionPrompt",
+      "group": "permissions",
+      "kind": "event",
+      "channel": "permissions:prompt",
+      "payload": "PermissionPromptPayload",
+      "doc": "A permission prompt is pending."
+    },
+    {
+      "name": "reportChromeLayout",
+      "group": "layout",
+      "kind": "send",
+      "channel": "chrome:layout",
+      "params": [
+        {
+          "name": "height",
+          "type": "number"
+        }
+      ],
+      "doc": "Report the strip height so main can lay out tab views.",
+      "ipcArgs": [
+        {
+          "height": "$0"
+        }
+      ]
+    },
+    {
+      "name": "reportIslandRect",
+      "group": "layout",
+      "kind": "send",
+      "channel": "chrome:island-rect",
+      "params": [
+        {
+          "name": "rect",
+          "type": "IslandRectReport"
+        }
+      ],
+      "doc": "Report the resting pill's rectangle."
+    },
+    {
+      "name": "onShieldAnchor",
+      "group": "layout",
+      "kind": "event",
+      "channel": "overlay:shield-anchor",
+      "payload": "ShieldAnchorUpdate",
+      "doc": "Where the shield popover should anchor."
+    },
+    {
+      "name": "onIslandProximity",
+      "group": "layout",
+      "kind": "event",
+      "channel": "chrome:island-proximity",
+      "payload": "number",
+      "doc": "Pointer proximity to the island, sent only when it changes (0 beyond range)."
+    },
+    {
+      "name": "setTabLayout",
+      "group": "layout",
+      "kind": "invoke",
+      "channel": "chrome:set-tab-layout",
+      "params": [
+        {
+          "name": "layout",
+          "type": "TabLayout"
+        }
+      ],
+      "returns": "TabLayout",
+      "doc": "Switch between island and vertical tabs; returns the layout now in effect."
+    },
+    {
+      "name": "previewVerticalTabsWidth",
+      "group": "layout",
+      "kind": "send",
+      "channel": "chrome:preview-vertical-tabs-width",
+      "params": [
+        {
+          "name": "width",
+          "type": "number"
+        }
+      ],
+      "doc": "Preview a vertical tab rail width while dragging."
+    },
+    {
+      "name": "setVerticalTabsWidth",
+      "group": "layout",
+      "kind": "invoke",
+      "channel": "chrome:set-vertical-tabs-width",
+      "params": [
+        {
+          "name": "width",
+          "type": "number"
+        }
+      ],
+      "returns": "number",
+      "doc": "Commit a vertical tab rail width. Resolves to the width actually committed."
+    },
+    {
+      "name": "onVerticalTabsWidth",
+      "group": "layout",
+      "kind": "event",
+      "channel": "chrome:vertical-tabs-width",
+      "payload": "VerticalTabsMetrics",
+      "doc": "Vertical tab rail metrics changed."
+    },
+    {
+      "name": "resizeGlance",
+      "group": "glance",
+      "kind": "send",
+      "channel": "chrome:resize-glance",
+      "params": [
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "doc": "Resize the Glance view to a pointer position."
+    },
+    {
+      "name": "resetGlance",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "chrome:reset-glance",
+      "params": [],
+      "returns": "number | null",
+      "doc": "Reset the Glance view size. Resolves to the reset ratio, or null when no Glance is open."
+    },
+    {
+      "name": "onGlanceLayout",
+      "group": "glance",
+      "kind": "event",
+      "channel": "chrome:glance-layout",
+      "payload": "GlanceLayout | null",
+      "doc": "Glance layout changed.",
+      "payloadCheck": "fixtures"
+    },
+    {
+      "name": "onGlanceStatus",
+      "group": "glance",
+      "kind": "event",
+      "channel": "chrome:glance-status",
+      "payload": "string",
+      "doc": "A Glance status message for the chrome to show."
+    },
+    {
+      "name": "openIsland",
+      "group": "island",
+      "kind": "send",
+      "channel": "chrome:open-island",
+      "params": [],
+      "doc": "Expand the island panel."
+    },
+    {
+      "name": "openIslandCommands",
+      "group": "island",
+      "kind": "send",
+      "channel": "chrome:open-island-commands",
+      "params": [],
+      "doc": "Expand the island panel in slash-command mode."
+    },
+    {
+      "name": "openIslandTyping",
+      "group": "island",
+      "kind": "send",
+      "channel": "chrome:open-island-typing",
+      "params": [
+        {
+          "name": "char",
+          "type": "string"
+        }
+      ],
+      "doc": "Expand the island panel, seeding the input with a typed character."
+    },
+    {
+      "name": "openFindBar",
+      "group": "island",
+      "kind": "send",
+      "channel": "chrome:open-find",
+      "params": [],
+      "doc": "Open the find capsule."
+    },
+    {
+      "name": "openShieldPopover",
+      "group": "blocking",
+      "kind": "send",
+      "channel": "chrome:open-shield",
+      "params": [
+        {
+          "name": "anchor",
+          "type": "ShieldAnchor"
+        }
+      ],
+      "doc": "Open the site-protection popover."
+    },
+    {
+      "name": "selectBlockingProvider",
+      "group": "blocking",
+      "kind": "invoke",
+      "channel": "chrome:blocking-provider",
+      "params": [
+        {
+          "name": "provider",
+          "type": "string"
+        },
+        {
+          "name": "restart",
+          "type": "boolean",
+          "optional": true,
+          "default": false
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Choose the blocking provider from the shield popover. Resolves to false when refused; on a restart, to whether the restart went ahead."
+    },
+    {
+      "name": "openBlockingPopup",
+      "group": "blocking",
+      "kind": "invoke",
+      "channel": "chrome:blocking-popup",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Open the active blocking provider's popup."
+    },
+    {
+      "name": "openCapturePopover",
+      "group": "capture",
+      "kind": "send",
+      "channel": "chrome:open-capture",
+      "params": [
+        {
+          "name": "anchor",
+          "type": "CaptureAnchor"
+        }
+      ],
+      "doc": "Open the capture indicator popover."
+    },
+    {
+      "name": "captureStop",
+      "group": "capture",
+      "kind": "send",
+      "channel": "chrome:capture-stop",
+      "params": [
+        {
+          "name": "surfaceId",
+          "type": "CaptureSurfaceId"
+        }
+      ],
+      "doc": "Stop capture on a surface."
+    },
+    {
+      "name": "captureFocus",
+      "group": "capture",
+      "kind": "send",
+      "channel": "chrome:capture-focus",
+      "params": [
+        {
+          "name": "surfaceId",
+          "type": "CaptureSurfaceId"
+        }
+      ],
+      "doc": "Focus the surface that is capturing."
+    },
+    {
+      "name": "stopDisplayShare",
+      "group": "capture",
+      "kind": "send",
+      "channel": "display-capture:stop",
+      "params": [
+        {
+          "name": "shareId",
+          "type": "DisplayShareId"
+        }
+      ],
+      "doc": "Stop a screen share.",
+      "ipcArgs": [
+        {
+          "shareId": "$0"
+        }
+      ]
+    },
+    {
+      "name": "resolveDisplayPicker",
+      "group": "capture",
+      "kind": "send",
+      "channel": "display-capture:picker-resolve",
+      "params": [
+        {
+          "name": "choice",
+          "type": "DisplayPickerChoice"
+        }
+      ],
+      "doc": "Answer the screen-share picker."
+    },
+    {
+      "name": "openMainMenu",
+      "group": "window",
+      "kind": "invoke",
+      "channel": "chrome:open-main-menu",
+      "params": [
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Open the platform main menu at a point (strip only). Resolves to whether a menu item was chosen."
+    },
+    {
+      "name": "closeOverlay",
+      "group": "overlay",
+      "kind": "send",
+      "channel": "overlay:close",
+      "params": [
+        {
+          "name": "reason",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "doc": "Dismiss the overlay."
+    },
+    {
+      "name": "setWorkspaceSwitcherOpen",
+      "group": "workspaces",
+      "kind": "send",
+      "channel": "chrome:workspace-switcher",
+      "params": [
+        {
+          "name": "open",
+          "type": "boolean"
+        }
+      ],
+      "doc": "Tell main whether the workspace popover is open, so Escape closes it first.",
+      "ipcArgs": [
+        "bool($0)"
+      ]
+    },
+    {
+      "name": "onOverlayEscape",
+      "group": "overlay",
+      "kind": "event",
+      "channel": "overlay:escape",
+      "payload": null,
+      "doc": "Escape was pressed while the overlay had focus."
+    },
+    {
+      "name": "listHistory",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:history-list",
+      "params": [
+        {
+          "name": "opts",
+          "type": "HistoryListOptions",
+          "optional": true
+        }
+      ],
+      "returns": "HistoryEntry[]",
+      "doc": "List history entries, newest first."
+    },
+    {
+      "name": "listFavorites",
+      "group": "favorites",
+      "kind": "invoke",
+      "channel": "chrome:favorites-list",
+      "params": [],
+      "returns": "FavoriteItem[]",
+      "doc": "List Favorites."
+    },
+    {
+      "name": "listRemoteTabs",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:remote-tabs-list",
+      "params": [],
+      "returns": "RemoteDevice[]",
+      "doc": "List other devices' open tabs. Empty unless Profile Sync is on in the Personal profile."
+    },
+    {
+      "name": "cancelWorkspaceAction",
+      "group": "workspaces",
+      "kind": "send",
+      "channel": "chrome:workspaces-cancel",
+      "params": [],
+      "doc": "Cancel a pending workspace action."
+    },
+    {
+      "name": "listWorkspaces",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-list",
+      "params": [],
+      "returns": "WorkspacesPayload",
+      "doc": "List Named Workspaces."
+    },
+    {
+      "name": "saveWorkspaceAs",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-save-as",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Save the current window as a Named Workspace."
+    },
+    {
+      "name": "openWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-open",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        },
+        {
+          "name": "opts",
+          "type": "OpenWorkspaceOptions",
+          "optional": true
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Open a Named Workspace."
+    },
+    {
+      "name": "createBlankWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-blank",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "opts",
+          "type": "OpenWorkspaceOptions",
+          "optional": true
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create and open an empty Named Workspace."
+    },
+    {
+      "name": "renameWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-rename",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Rename a Named Workspace."
+    },
+    {
+      "name": "removeWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-remove",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Delete a Named Workspace (undoable)."
+    },
+    {
+      "name": "restoreWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-restore",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Undo a workspace deletion."
+    },
+    {
+      "name": "forgetWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-forget",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Make a workspace deletion permanent."
+    },
+    {
+      "name": "moveWorkspace",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-move",
+      "params": [
+        {
+          "name": "id",
+          "type": "WorkspaceId"
+        },
+        {
+          "name": "direction",
+          "type": "WorkspaceMoveDirection"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Move a workspace up or down in the list."
+    },
+    {
+      "name": "searchSuggestions",
+      "group": "search",
+      "kind": "invoke",
+      "channel": "chrome:search-suggestions",
+      "params": [
+        {
+          "name": "query",
+          "type": "string"
+        }
+      ],
+      "returns": "SearchSuggestions",
+      "doc": "Fetch search suggestions when enabled in Settings."
+    },
+    {
+      "name": "onRemoteTabsUpdated",
+      "group": "sync",
+      "kind": "event",
+      "channel": "chrome:remote-tabs-updated",
+      "payload": "RemoteDevice[]",
+      "doc": "Other devices' open tabs changed. Same projection as listRemoteTabs.",
+      "payloadCheck": "fixtures"
+    },
+    {
+      "name": "onWorkspacesUpdated",
+      "group": "workspaces",
+      "kind": "event",
+      "channel": "chrome:workspaces-updated",
+      "payload": "WorkspacesPayload",
+      "doc": "Named Workspaces changed."
+    },
+    {
+      "name": "clearHistory",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:history-clear",
+      "params": [],
+      "returns": "void",
+      "doc": "Clear browsing history."
+    },
+    {
+      "name": "toggleAdblock",
+      "group": "blocking",
+      "kind": "invoke",
+      "channel": "chrome:adblock-toggle",
+      "params": [],
+      "returns": "ProviderBlockAdsResult | BlockAdsResult",
+      "doc": "Turn blocking on or off for the active tab's provider, or take the active site off the allow-list. The result includes the whole allow-list, which only trusted chrome receives."
+    },
+    {
+      "name": "allowAdsOnActiveSite",
+      "group": "blocking",
+      "kind": "invoke",
+      "channel": "chrome:adblock-exempt-active",
+      "params": [],
+      "returns": "string | null | AllowAdsError",
+      "doc": "Allow ads on the active site. Resolves to the allowed hostname, null when there is no tab or the page has no blockable site, or an error."
+    },
+    {
+      "name": "toggleDarkSiteOnActiveSite",
+      "group": "appearance",
+      "kind": "invoke",
+      "channel": "chrome:dark-site-active",
+      "params": [],
+      "returns": "DarkSiteResult | null",
+      "doc": "Darken the active site, or leave it as the site drew it (Dark websites). Resolves to the hostname and whether it is now darkened while Blanc is dark, or null when the page has no website."
+    },
+    {
+      "name": "siteInfoForgetCertificateException",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:site-info-forget-certificate-exception",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Stop allowing the active tab's origin past its certificate warning for this session, close that session's connections, and reload the tab. Resolves false when there was nothing to forget."
+    },
+    {
+      "name": "sleepBackgroundTabs",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "chrome:sleep-background-tabs",
+      "params": [],
+      "returns": "TabId[]",
+      "doc": "Quiet all background tabs now. Resolves to the ids of the tabs that were quieted."
+    },
+    {
+      "name": "fillLoginFromOnePassword",
+      "group": "passwords",
+      "kind": "invoke",
+      "channel": "chrome:onepassword-fill",
+      "params": [],
+      "returns": "FillLoginSuccess | FillLoginFailure | false",
+      "doc": "Fill a login from 1Password (explicit invoke only). Resolves to false when the broker is unavailable.",
+      "platforms": [
+        "darwin"
+      ]
+    },
+    {
+      "name": "cycleTheme",
+      "group": "appearance",
+      "kind": "invoke",
+      "channel": "chrome:cycle-theme",
+      "params": [
+        {
+          "name": "theme",
+          "type": "ThemePreference",
+          "optional": true
+        }
+      ],
+      "returns": "ThemePreference",
+      "doc": "Set or cycle the theme (system, light, dark). Resolves to the theme now in effect."
+    },
+    {
+      "name": "onThemeAppearance",
+      "group": "appearance",
+      "kind": "event",
+      "channel": "chrome:theme-appearance",
+      "payload": "ThemeAppearance",
+      "doc": "The effective appearance changed."
+    },
+    {
+      "name": "minimizeWindow",
+      "group": "window",
+      "kind": "send",
+      "channel": "window:minimize",
+      "params": [],
+      "doc": "Minimize the window."
+    },
+    {
+      "name": "maximizeWindow",
+      "group": "window",
+      "kind": "send",
+      "channel": "window:maximize",
+      "params": [],
+      "doc": "Maximize or restore the window."
+    },
+    {
+      "name": "closeWindow",
+      "group": "window",
+      "kind": "send",
+      "channel": "window:close",
+      "params": [],
+      "doc": "Close the window."
+    },
+    {
+      "name": "onTabsUpdated",
+      "group": "tabs",
+      "kind": "event",
+      "channel": "tabs:updated",
+      "payload": "TabsUpdatedPayload",
+      "doc": "The tab model changed; the payload is the full projection.",
+      "payloadCheck": "custom"
+    },
+    {
+      "name": "onPageTint",
+      "group": "appearance",
+      "kind": "event",
+      "channel": "chrome:page-tint",
+      "payload": "PageTint",
+      "doc": "The active page's tint changed."
+    },
+    {
+      "name": "onDownloadsActivity",
+      "group": "downloads",
+      "kind": "event",
+      "channel": "chrome:downloads",
+      "payload": "DownloadsActivity",
+      "doc": "Download activity for the strip indicator."
+    },
+    {
+      "name": "acknowledgeDownloads",
+      "group": "downloads",
+      "kind": "send",
+      "channel": "chrome:downloads-ack",
+      "params": [],
+      "doc": "Mark download activity as seen."
+    },
+    {
+      "name": "onOverlayShow",
+      "group": "overlay",
+      "kind": "event",
+      "channel": "overlay:show",
+      "payload": "OverlayShowPayload",
+      "doc": "Main is showing the overlay in a mode."
+    },
+    {
+      "name": "onOverlayHide",
+      "group": "overlay",
+      "kind": "event",
+      "channel": "overlay:hide",
+      "payload": "OverlayHidePayload",
+      "doc": "Main hid the overlay."
+    },
+    {
+      "name": "onOverlayToggle",
+      "group": "overlay",
+      "kind": "event",
+      "channel": "overlay:toggle",
+      "payload": null,
+      "doc": "Toggle the overlay panel."
+    },
+    {
+      "name": "onIslandState",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:island-state",
+      "payload": "IslandState",
+      "doc": "Island presentation state changed."
+    },
+    {
+      "name": "onFindResult",
+      "group": "find",
+      "kind": "event",
+      "channel": "chrome:find-result",
+      "payload": "FindResult",
+      "doc": "Find-in-page match counts changed."
+    }
+  ]
+}

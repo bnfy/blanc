@@ -1,0 +1,26 @@
+{
+  "kind": "installed-production-appimage-restart-failure",
+  "passed": false,
+  "candidateSourceCommit": "0872ed7225d3561e98fdee2f80cee1d12a72af09",
+  "run": "https://github.com/bnfy/blanc/actions/runs/37162009464",
+  "platform": "linux",
+  "architecture": "x64",
+  "version": "1.27.0",
+  "electron": "44.5.1",
+  "ublock": "1.75.0",
+  "failure": {
+    "stage": "shield switch and actual restart",
+    "firstProviderSwitch": "blanc to ublock-origin",
+    "startedAt": "2026-10-03T23:32:10.7776911Z",
+    "failedAt": "2026-10-03T23:32:51.1913315Z",
+    "error": "Relaunched package CDP endpoint never became available within 40 seconds",
+    "oldBrowserDisconnected": true,
+    "oldProcessExited": null
+  },
+  "limits": [
+    "Native hosted Ubuntu x64 with the actual AppImage and production fuses; synthetic loopback page and disposable profile.",
+    "The initial workflow omitted this failed JSON from its always-upload artifact. This sanitized record is derived from the retained job log; the old browser process exit was not established.",
+    "Separate uBO-selected direct/menu/extracted launcher and kernel sandbox probes passed on Ubuntu 22.04 and 24.04 in this run.",
+    "This failure remains recorded; a later pass does not erase it. No Linux platform was enabled."
+  ]
+}
