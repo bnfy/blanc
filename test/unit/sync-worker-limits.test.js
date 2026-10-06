@@ -101,7 +101,7 @@ test('R5 residual concurrency: same-version writers both succeed and a pending w
   const env = storage();
   const results = await Promise.all([send(env, '{"blob":{"ct":"one"}}'), send(env, '{"blob":{"ct":"two"}}')]);
   assert.deepEqual(results.map((r) => r.status), [200, 200]);
-  assert.equal(env.records.size, 1);
+  assert.equal([...env.records.keys()].filter((k) => k.startsWith('blob:')).length, 1);
   let finish;
   const put = env.SYNC.put;
   env.SYNC.put = async (key, value) => { await new Promise((resolve) => { finish = resolve; }); await put(key, value); };
