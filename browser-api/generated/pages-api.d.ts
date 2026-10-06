@@ -209,6 +209,10 @@ export interface SettingsPagesAPI {
     onePasswordVerify: (account: unknown) => Promise<unknown>;
     /** Open the 1Password app. Registered only when 1Password fill is available. IPC: invoke `pages:settings:open-onepassword-app`. */
     openOnePasswordApp: () => Promise<unknown>;
+    /** Facts about the installed build for About & Trust, checked on this device. IPC: invoke `pages:settings:trust-receipt`. */
+    trustReceipt: () => Promise<unknown>;
+    /** Open a release, verification, SBOM or provenance link for this version. IPC: invoke `pages:settings:open-trust-link`. */
+    openTrustLink: (kind: unknown) => Promise<unknown>;
   };
   profiles: {
     /** Local profiles. IPC: invoke `pages:profiles:list`. */

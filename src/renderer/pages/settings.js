@@ -1248,6 +1248,69 @@
     document.getElementById('group-sync')?.remove();
   }
 
+  // --- About & Trust: a local, read-only receipt ---
+  if (typeof window.bowserPages?.settings?.trustReceipt === 'function') {
+    const trustStatus = document.getElementById('trustReceiptStatus');
+    const trustList = document.getElementById('trustReceiptList');
+    const trustLinks = document.getElementById('trustReceiptLinks');
+    const trustExport = document.getElementById('trustDiagnosticsExport');
+    const trustExportStatus = document.getElementById('trustDiagnosticsStatus');
+    const yesNo = (value) => value ? 'On' : 'Off';
+    const addFact = (label, value) => {
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      term.textContent = label;
+      detail.textContent = value;
+      trustList.append(term, detail);
+    };
+
+    window.bowserPages.settings.trustReceipt().then((receipt) => {
+      const signature = {
+        verified: `Verified locally — ${receipt.signature.observedPublisher}`,
+        mismatch: `Expected ${receipt.signature.expectedPublisher} · observed ${receipt.signature.observedPublisher || 'unknown publisher'}`,
+        unavailable: `Expected ${receipt.signature.expectedPublisher} · local inspection unavailable`,
+        development: 'Development build — not a signed release build',
+        'manifest-backed': 'Linux publisher verification relies on the signed manifest for the matching release',
+      }[receipt.signature.status] ?? 'Unknown';
+      addFact('Build', `${receipt.app.version} (${receipt.app.bundleBuild}) · ${receipt.app.packaged ? 'packaged' : 'development'}`);
+      addFact('Runtime', `Electron ${receipt.app.electron} · Chromium ${receipt.app.chromium} · Node ${receipt.app.node}`);
+      addFact('Platform', `${receipt.app.platform} · ${receipt.app.architecture}`);
+      addFact('Publisher', signature);
+      addFact('Blocker snapshot', `${receipt.blocker.snapshotDate} · ${receipt.blocker.lists.map((list) => list.name).join(' + ')}`);
+      for (const list of receipt.blocker.lists) addFact(`Blocker · ${list.name}`, list.sha256);
+      addFact('Combined blocker digest', receipt.blocker.combinedSha256);
+      addFact('Sync', receipt.sync.enabled ? `${receipt.sync.categories.join(', ')} · ${receipt.sync.profileScope}` : 'Off');
+      addFact('Open-tab sharing', yesNo(receipt.sync.openTabsEnabled));
+      addFact('Usage measurement', yesNo(receipt.choices.usageMeasurement));
+      addFact('Search suggestions', yesNo(receipt.choices.searchSuggestions));
+      addFact('Secure DNS', receipt.choices.secureDns);
+      addFact('Crash ledger', `Device only · automatic upload off · ${receipt.choices.crashLedger.eventCount}/${receipt.choices.crashLedger.eventLimit} events`);
+      for (const link of receipt.links) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'quiet';
+        button.textContent = link.label;
+        button.addEventListener('click', () => window.bowserPages.settings.openTrustLink(link.id));
+        trustLinks.append(button);
+      }
+      trustStatus.textContent = 'Receipt checked locally.';
+      trustList.hidden = false;
+      trustLinks.hidden = false;
+    }).catch(() => {
+      trustStatus.textContent = 'Couldn’t build the local trust receipt.';
+    });
+
+    trustExport.addEventListener('click', async () => {
+      trustExport.disabled = true;
+      trustExportStatus.textContent = 'Preparing report…';
+      const result = await window.bowserPages.diagnostics.export();
+      trustExport.disabled = false;
+      trustExportStatus.textContent = result.ok ? 'Saved.' : (result.cancelled ? 'Export canceled.' : 'Couldn’t save diagnostics.');
+    });
+  } else {
+    document.getElementById('group-trust')?.remove();
+  }
+
   // --- Device-local crash ledger / explicit export ---
   if (window.bowserPages?.diagnostics) {
     const summary = document.getElementById('diagnosticsSummary');

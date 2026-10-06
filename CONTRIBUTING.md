@@ -4,6 +4,23 @@ Public contributions are welcome: bug reports, documentation corrections,
 tests, and focused code changes. Start a [GitHub issue](https://github.com/bnfy/blanc/issues)
 before a large feature or architectural change so we can discuss scope.
 
+## Your first contribution
+
+1. Pick a bounded issue whose reproduction and acceptance criteria you can
+   verify. The `good first issue` label is the best starting point once issues
+   are available; documentation and regression-test fixes are welcome too.
+2. Comment on the issue before coding so the single maintainer can confirm it
+   is still current and avoid duplicated work.
+3. Create one branch for one outcome. Add the smallest relevant test or explain
+   why the change is documentation-only.
+4. Run the checks named below and report only results you actually observed.
+5. Open a pull request with the problem, the behavior after the change, and any
+   platform or manual verification still missing.
+
+Small does not mean low-value. A precise reproduction, a failing regression
+test, or a correction backed by a public release is often the most useful first
+contribution.
+
 ## Reports and questions
 
 For a bug, use the bug-report template and include the Blanc version, operating
@@ -52,7 +69,8 @@ npm run substrate:check
 npm run test:acceptance:dry
 ```
 
-There is no generic `npm test` command or configured linter. The acceptance
+There is no generic `npm test` command. Run `npm run lint` for first-party
+desktop and Worker JavaScript. The acceptance
 dry run checks step wiring; it does not exercise the desktop. For desktop
 behavior changes, also run `npm run test:acceptance:desktop` on a machine with
 a graphical session. OAuth changes have `npm run test:oauth:desktop`. Explain

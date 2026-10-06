@@ -83,6 +83,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.onePasswordStatus` | invoke | `pages:settings:onepassword-status` | settings | 1Password fill status. Main registers this handler only when 1Password fill is available. |
 | `settings.onePasswordVerify` | invoke | `pages:settings:onepassword-verify` | settings | Verify a 1Password account. Registered only when 1Password fill is available. |
 | `settings.openOnePasswordApp` | invoke | `pages:settings:open-onepassword-app` | settings | Open the 1Password app. Registered only when 1Password fill is available. |
+| `settings.trustReceipt` | invoke | `pages:settings:trust-receipt` | settings | Facts about the installed build for About & Trust, checked on this device. |
+| `settings.openTrustLink` | invoke | `pages:settings:open-trust-link` | settings | Open a release, verification, SBOM or provenance link for this version. |
 | `profiles.list` | invoke | `pages:profiles:list` | settings | Local profiles. |
 | `profiles.create` | invoke | `pages:profiles:create` | settings | Create a named profile. |
 | `profiles.open` | invoke | `pages:profiles:open` | settings | Open a profile in a new window. |
