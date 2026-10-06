@@ -250,7 +250,7 @@ Shield chip state, derived by shieldChipState() in shield-model.js.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `mode` | `'hidden' \| 'off' \| 'count' \| 'quiet'` |  |
+| `mode` | `'hidden' \| 'off' \| 'count' \| 'quiet' \| 'restarting'` |  |
 | `count` | `number` |  |
 | `title` | `string` |  |
 

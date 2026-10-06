@@ -3,13 +3,14 @@
 const { app, WebContentsView, ipcMain, webContents } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, randomBytes } = require('node:crypto');
 const { isBrowserResource } = require('./blocking-resources');
 const { installVerifiedPackageAsync, installVerifiedFilesAsync, readHostSourcesAsync } = require('./ublock-package');
 const { createUblockRegistry } = require('./ublock-registry');
 const { validBridgeSender } = require('./ublock-host-policy');
 const { ublockTool } = require('./ublock-tool-url');
 const { captureDocuments, currentDocuments, guardScript } = require('./ublock-documents');
+const recoveryPolicy = require('./ublock-recovery');
 
 const DEADLINE_MS = 2000;
 const OPERATION_DEADLINE_MS = 10000;
@@ -43,7 +44,7 @@ const headersToElectron = values => {
   return result;
 };
 
-function createUblockProvider({ session, profileId, hooks, onStateChange = () => {}, onBlocked = () => {} }) {
+function createUblockProvider({ session, profileId, hooks, onStateChange = () => {}, onBlocked = () => {}, recovery: recoveryOptions = {} }) {
   const registry = createUblockRegistry({ profileId, ...hooks });
   const pending = new Map();
   const injectionLeases = new Map();
@@ -76,13 +77,39 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let readyReject;
   let readyPromise;
   let disposed = false;
+  // Cancels a running initialization (disposal, or a recovery episode giving
+  // up): every async step races `cancelled`, then checks the generation.
+  let generation = 0;
+  let cancelRun = null;
+  const CANCELLED = 'ubo-initialization-cancelled';
+  function cancelInitialization() {
+    generation++;
+    cancelRun?.(); cancelRun = null;
+    readyReject?.(new Error(CANCELLED));
+  }
+  // Automatic recovery (docs/superpowers/specs/2026-10-06-ubo-automatic-recovery-design.md).
+  const budget = recoveryOptions.budget ?? recoveryPolicy.createRecoveryBudget();
+  const RECOVERY_DEADLINE = recoveryOptions.deadlineMs ?? recoveryPolicy.RECOVERY_DEADLINE_MS;
+  let everReady = false;
+  let recovering = false;
+  let episode = null; // { code, attempt, firstDelay, scheduled, deadlineAt, deadline, retryTimer }
+  let lastRecovery = null;
+  const holdQueue = [];      // FIFO of { resolve, timer }
+  let inTransit = 0;         // released from the queue, not yet in `pending`
+  let drainOutstanding = 0;  // released and not yet settled
+  // Reloading pages the outage cancelled, bound to the exact request (spec §3).
+  const OUTAGE_CLAIM = recoveryOptions.outageClaimMs ?? recoveryPolicy.OUTAGE_CLAIM_MS;
+  const latestMainFrame = new Map(); // webContentsId → id of its current http(s) main-frame request
+  const outageRecords = new Map();   // request id → { webContentsId, url, at }
+  const outageTokens = new Map();    // token → { webContentsId, url, committed, recovered }
   let focusedWindowId = -1;
   // Startup stage durations in milliseconds. A failed startup keeps the stage
   // it stopped in, so diagnostics show which step stalled or failed.
   let stage = null;
   let stageStarted = 0;
   let timings = {};
-  const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase, error, stage, timings: { ...timings } });
+  const status = () => ({ id: 'ublock-origin', version: '1.75.0', phase: recovering ? 'recovering' : phase, error, stage,
+    timings: { ...timings }, ...(lastRecovery ? { recovery: { ...lastRecovery } } : {}) });
   function endStage() { if (stage) timings[stage] = Math.round((performance.now() - stageStarted) * 10) / 10; }
   function beginStage(name) { endStage(); stage = name; stageStarted = performance.now(); }
   const browserResource = url => isBrowserResource(url, app.getAppPath());
@@ -99,26 +126,153 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   function fail(code) {
     if (disposed || phase === 'failed') return;
     endStage();
+    if (!recovering && everReady && recoveryPolicy.RECOVERABLE.has(code)) beginEpisode(code);
     state('failed', code);
     readyReject?.(new Error(code));
     for (const item of pending.values()) { clearTimeout(item.timer); item.reject(new Error(code)); }
     pending.clear();
+    if (!recovering) releaseHeld();
     suspendTools();
     // Keep the failed provider in the coordinator so traffic stays closed.
     if (!cleanupScheduled) {
       cleanupScheduled = true;
-      setImmediate(() => { cleanupScheduled = false; cleanup('background'); });
+      setImmediate(() => {
+        cleanupScheduled = false; cleanup('background');
+        if (episode && !episode.scheduled) { episode.scheduled = true; scheduleAttempt(episode, episode.firstDelay); }
+      });
     }
+  }
+  function noteRecovery(kind, attempt, reason) {
+    lastRecovery = { kind, attempt, ...(reason ? { reason } : {}) };
+    onStateChange(status());
+  }
+  function beginEpisode(code) {
+    const ticket = budget.take();
+    if (!ticket.allowed) { lastRecovery = { kind: 'exhausted', attempt: 0, reason: 'budget' }; return; }
+    recovering = true;
+    const current = { code, attempt: ticket.attempt, firstDelay: ticket.delayMs, scheduled: false,
+      deadlineAt: Date.now() + RECOVERY_DEADLINE, retryTimer: null };
+    current.deadline = setTimeout(() => endEpisode(current, 'deadline'), RECOVERY_DEADLINE);
+    episode = current;
+    lastRecovery = { kind: 'restarting', attempt: ticket.attempt };
+  }
+  function scheduleAttempt(current, delayMs) {
+    clearTimeout(current.retryTimer);
+    current.retryTimer = setTimeout(() => {
+      if (episode !== current || disposed) return;
+      restartNetwork().then(restoreTools, caught => attemptFailed(current, caught));
+    }, delayMs);
+  }
+  function attemptFailed(current, caught) {
+    if (episode !== current) return;
+    const code = error || caught?.message;
+    if (!recoveryPolicy.ATTEMPT_RECOVERABLE.has(code)) return endEpisode(current, 'ineligible');
+    const ticket = budget.take();
+    if (!ticket.allowed) return endEpisode(current, 'budget');
+    if (Date.now() + ticket.delayMs >= current.deadlineAt) return endEpisode(current, 'deadline');
+    current.attempt = ticket.attempt;
+    noteRecovery('restarting', ticket.attempt);
+    // The attempt's own fail() queued background cleanup first.
+    setImmediate(() => scheduleAttempt(current, ticket.delayMs));
+  }
+  function endEpisode(current, reason) {
+    if (episode !== current) return;
+    episode = null; recovering = false;
+    clearTimeout(current.deadline); clearTimeout(current.retryTimer);
+    cancelInitialization();
+    releaseHeld();
+    lastRecovery = { kind: 'exhausted', attempt: current.attempt, reason };
+    state('failed', current.code);
+  }
+  function finishEpisode() {
+    const current = episode;
+    episode = null; recovering = false;
+    clearTimeout(current.deadline); clearTimeout(current.retryTimer);
+    lastRecovery = { kind: 'recovered', attempt: current.attempt };
+  }
+  const drainActive = () => holdQueue.length > 0 || drainOutstanding > 0;
+  // Resolves true when the request may ask uBO, false when it must be cancelled.
+  function holdForRecovery() {
+    if (holdQueue.length >= recoveryPolicy.HOLD_CAPACITY) return Promise.resolve(false);
+    return new Promise(resolve => {
+      const entry = { resolve, timer: null };
+      entry.timer = setTimeout(() => {
+        const index = holdQueue.indexOf(entry);
+        if (index !== -1) holdQueue.splice(index, 1);
+        resolve(false);
+      }, RECOVERY_DEADLINE);
+      holdQueue.push(entry);
+      pump();
+    });
+  }
+  // Release held requests while decision slots remain, leaving room for other
+  // operations; every settled decision calls this again.
+  function pump() {
+    while (phase === 'ready' && !recovering && holdQueue.length
+      && pending.size + inTransit < MAX_PENDING - recoveryPolicy.DRAIN_RESERVE) {
+      const entry = holdQueue.shift();
+      clearTimeout(entry.timer);
+      inTransit++; drainOutstanding++;
+      entry.resolve(true);
+    }
+  }
+  function releaseHeld() {
+    for (const entry of holdQueue.splice(0)) { clearTimeout(entry.timer); entry.resolve(false); }
+  }
+  const httpMainFrame = details => details.resourceType === 'mainFrame'
+    && Number.isInteger(details.webContentsId) && /^https?:/i.test(details.url || '');
+  function trackMainFrame(details) {
+    if (!httpMainFrame(details) || latestMainFrame.get(details.webContentsId) === details.id) return;
+    latestMainFrame.delete(details.webContentsId);
+    latestMainFrame.set(details.webContentsId, details.id);
+    if (latestMainFrame.size > 512) latestMainFrame.delete(latestMainFrame.keys().next().value);
+    for (const [id, record] of outageRecords) if (record.webContentsId === details.webContentsId && id !== details.id) outageRecords.delete(id);
+  }
+  // Only a main-frame GET the outage itself cancelled; never uBO's own blocks.
+  function noteOutage(details) {
+    if (!httpMainFrame(details) || details.method !== 'GET') return;
+    const now = Date.now();
+    for (const [id, record] of outageRecords) if (now - record.at >= OUTAGE_CLAIM) outageRecords.delete(id);
+    outageRecords.set(details.id, { webContentsId: details.webContentsId, url: details.url, at: now });
+  }
+  function claimOutage(webContentsId, url) {
+    const latest = latestMainFrame.get(webContentsId);
+    let found = null;
+    for (const [id, record] of outageRecords) {
+      if (record.webContentsId !== webContentsId) continue;
+      outageRecords.delete(id); // consumed either way
+      if (id === latest && record.url === url && Date.now() - record.at < OUTAGE_CLAIM) found = record;
+    }
+    if (!found || outageTokens.size >= recoveryPolicy.MAX_OUTAGE_TOKENS) return null;
+    const token = randomBytes(16).toString('hex');
+    outageTokens.set(token, { webContentsId, url, committed: false, recovered: phase === 'ready' && !recovering });
+    return token;
+  }
+  function maybeReload(token, entry) {
+    if (!entry.committed || !entry.recovered) return;
+    outageTokens.delete(token);
+    hooks.reloadAfterOutage?.({ webContentsId: entry.webContentsId, token, url: entry.url });
+  }
+  function noteMainFrameCommitted(webContentsId, url) {
+    for (const [token, entry] of outageTokens) {
+      if (entry.webContentsId !== webContentsId) continue;
+      if (recoveryPolicy.outageReloadTarget(url, token) === entry.url) { entry.committed = true; maybeReload(token, entry); }
+      else outageTokens.delete(token); // the tab left that error page
+    }
+  }
+  function markOutageRecovered() {
+    for (const [token, entry] of outageTokens) { entry.recovered = true; maybeReload(token, entry); }
   }
   function suspendTools() {
     if (!extension) return;
+    const desc = recovering ? 'uBlock%20Origin%20is%20restarting' : 'uBlock%20Origin%20needs%20retry';
     const prefix = `chrome-extension://${extension.id}/`;
     hooks.closePopup?.(profileId);
     for (const entry of registry.mapping()) {
       const wc = registry.ownedContents(entry.tabId)?.wc;
       if (!wc || hooks.isHeld?.(wc) || !wc.getURL().startsWith(prefix)) continue;
       suspendedTools.set(wc.id, { wc, url: wc.getURL() });
-      wc.loadURL('blanc://error?code=-20&desc=uBlock%20Origin%20needs%20retry').catch(() => {});
+      wc.loadURL(`blanc://error?code=-20&desc=${desc}`).catch(() => {});
     }
   }
   function decisionDeadline() {
@@ -131,7 +285,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     if (pending.size >= MAX_PENDING) return Promise.reject(new Error('ubo-request-capacity'));
     const id = ++sequence;
     const critical = message.kind === 'request' && ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'].includes(message.name);
-    return new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         if (critical) fail('ubo-decision-timeout');
         else { pending.delete(id); reject(new Error('ubo-operation-timeout')); }
@@ -139,6 +293,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       pending.set(id, { resolve, reject, timer, critical, transport: 'background' });
       try { send({ ...message, id }); } catch { fail('ubo-background-unavailable'); }
     });
+    // A settled decision frees a slot for held requests.
+    promise.then(pump, pump);
+    return promise;
   }
   function refresh() {
     registry.refresh();
@@ -386,9 +543,12 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
         const processStatus = fs.readFileSync(`/proc/${bg.getOSProcessId()}/status`, 'utf8');
         if (!/^Seccomp:\s+2$/m.test(processStatus) || !/^NoNewPrivs:\s+1$/m.test(processStatus)) return fail('ubo-background-unsandboxed');
       }
+      everReady = true;
+      // Recovery ends when filtering works again, not when retry() returns.
+      if (recovering) finishEpisode();
       warmUntil = Date.now() + WARMUP_WINDOW_MS;
       send({ kind: 'enabled', value: enabled });
-      state('ready'); refresh(); readyResolve?.(status()); return;
+      state('ready'); refresh(); readyResolve?.(status()); pump(); markOutageRecovered(); return;
     }
     if (message.kind === 'disconnected') return fail('ubo-background-disconnected');
     if (message.kind === 'host-failed') return fail('ubo-host-capacity');
@@ -411,6 +571,15 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     try { return await initializePromise; } finally { initializePromise = undefined; }
   }
   async function initializeInner() {
+    const run = ++generation;
+    const cancelled = new Promise((_, reject) => { cancelRun = () => reject(new Error(CANCELLED)); });
+    cancelled.catch(() => {});
+    const stale = () => run !== generation || disposed;
+    const step = async value => {
+      const result = await Promise.race([value, cancelled]);
+      if (stale()) throw new Error(CANCELLED);
+      return result;
+    };
     timings = {}; stage = null;
     state('initializing');
     readyPromise = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
@@ -424,14 +593,17 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       const cssFiles = {
         'manifest.json': JSON.stringify({ name: 'Blanc uBlock Origin CSS host', version: '1.0.0', manifest_version: 3, permissions: ['scripting'], host_permissions: ['http://*/*', 'https://*/*'] }),
         'bridge.html': '<!doctype html><html><head><meta charset="utf-8"></head><body><script src="bridge.js"></script></body></html>',
-        'bridge.js': await fs.promises.readFile(path.join(__dirname, 'ublock-css-mainworld.js')),
+        'bridge.js': await step(fs.promises.readFile(path.join(__dirname, 'ublock-css-mainworld.js'))),
       };
-      await installVerifiedFilesAsync(new Map(Object.entries(cssFiles).map(([name, bytes]) => [name, Buffer.from(bytes)])), cssPath);
+      await step(installVerifiedFilesAsync(new Map(Object.entries(cssFiles).map(([name, bytes]) => [name, Buffer.from(bytes)])), cssPath));
       async function loadManaged(directory, options) {
         const onLoaded = (_event, loaded) => { if (loaded.path === directory) loadingIds.add(loaded.id); };
         session.extensions.on('extension-loaded', onLoaded);
         try {
-          const loaded = await session.extensions.loadExtension(directory, options);
+          const loading = session.extensions.loadExtension(directory, options);
+          // A load that completes after cancellation is unloaded when it lands.
+          Promise.resolve(loading).then(late => { if (stale()) { try { session.extensions.removeExtension(late.id); } catch {} } }, () => {});
+          const loaded = await step(loading);
           loadingIds.add(loaded.id);
           return loaded;
         } finally { session.extensions.removeListener('extension-loaded', onLoaded); }
@@ -464,19 +636,19 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       cssHelper.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
       cssHelper.webContents.on('will-navigate', event => event.preventDefault());
       cssHelper.webContents.on('render-process-gone', () => fail('ubo-css-crashed'));
-      await cssHelper.webContents.loadURL(`chrome-extension://${cssExtension.id}/bridge.html`);
+      await step(cssHelper.webContents.loadURL(`chrome-extension://${cssExtension.id}/bridge.html`));
       beginStage('cssHostReady');
       let cssTimer;
-      try { await Promise.race([cssReady, new Promise((_, reject) => { cssTimer = setTimeout(() => reject(new Error('ubo-css-startup-timeout')), DEADLINE_MS); })]); }
+      try { await step(Promise.race([cssReady, new Promise((_, reject) => { cssTimer = setTimeout(() => reject(new Error('ubo-css-startup-timeout')), DEADLINE_MS); })])); }
       finally { clearTimeout(cssTimer); }
       // Awaited per file: the main process keeps serving pages meanwhile.
       // Web traffic stays held until uBO reports ready.
       beginStage('install');
-      const installed = await installVerifiedPackageAsync({
+      const installed = await step(installVerifiedPackageAsync({
         root: path.join(app.getAppPath(), 'ublock'),
         destination: path.join(managedRoot, 'extension'),
-        hostSources: await readHostSourcesAsync(app.getAppPath()),
-      });
+        hostSources: await step(readHostSourcesAsync(app.getAppPath())),
+      }));
       scripts = installed.scripts;
       let backgroundReadyResolve;
       let backgroundDomReady = false;
@@ -501,9 +673,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
         extension = await loadManaged(installed.path, { allowFileAccess: false });
         beginStage('background');
         resolveBackground();
-        await Promise.race([backgroundReady, new Promise((_, reject) => {
+        await step(Promise.race([backgroundReady, new Promise((_, reject) => {
           backgroundTimer = setTimeout(() => reject(new Error('ubo-background-startup-timeout')), STARTUP_DEADLINE_MS);
-        })]);
+        })]));
       } finally { app.removeListener('web-contents-created', created); clearTimeout(backgroundTimer); }
 
       beginStage('bridge');
@@ -515,15 +687,25 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       helper.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
       helper.webContents.on('will-navigate', event => event.preventDefault());
       helper.webContents.on('render-process-gone', () => fail('ubo-bridge-crashed'));
-      await helper.webContents.loadURL(`chrome-extension://${extension.id}/blanc-bridge.html`);
+      await step(helper.webContents.loadURL(`chrome-extension://${extension.id}/blanc-bridge.html`));
       beginStage('ready');
       const timer = setTimeout(() => fail('ubo-startup-timeout'), STARTUP_DEADLINE_MS);
-      try { await readyPromise; } finally { clearTimeout(timer); }
+      try { await step(readyPromise); } finally { clearTimeout(timer); }
       beginStage(null);
+      cancelRun = null;
       return status();
-    } catch { fail(error || 'ubo-initialization-failed'); throw new Error(error); }
+    } catch (caught) {
+      if (caught?.message === CANCELLED || stale()) {
+        // Close whatever this run created; nothing outlives the cancellation.
+        cleanup();
+        cancelRun = null;
+        throw new Error(CANCELLED);
+      }
+      fail(error || 'ubo-initialization-failed'); throw new Error(error);
+    }
   }
   async function decide(name, details) {
+    trackMainFrame(details);
     // The browser's own error/recovery pages must remain usable after a
     // provider failure. Their scheme is served by Blanc's exact allowlist.
     if (browserResource(details.url)) return {};
@@ -544,10 +726,29 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       if (!guardedResource) return {};
     }
     if (!enabled && !guardedResource) return {};
-    if (phase !== 'ready') return { cancel: true };
+    if (phase !== 'ready' && !recovering) return { cancel: true };
+    // During recovery, and until its drain has settled, requests wait in one
+    // FIFO queue instead of failing; they never go out undecided.
+    if (phase !== 'ready' || drainActive()) {
+      if (!(await holdForRecovery())) { noteOutage(details); return { cancel: true }; }
+      inTransit--;
+      if (phase !== 'ready') { drainOutstanding--; pump(); noteOutage(details); return { cancel: true }; }
+      return decideNow(name, details, true);
+    }
+    return decideNow(name, details, false);
+  }
+  async function decideNow(name, details, drained) {
     const converted = registry.request(details);
-    // The extension's own filter-data fetches use its native background.
-    const result = await ask({ kind: 'request', name, details: converted });
+    let result;
+    try {
+      // The extension's own filter-data fetches use its native background.
+      result = await ask({ kind: 'request', name, details: converted });
+    } catch (caught) {
+      if (caught?.message !== 'ubo-request-capacity') noteOutage(details);
+      throw caught;
+    } finally {
+      if (drained) { drainOutstanding--; pump(); }
+    }
     if (!result || typeof result !== 'object' || Array.isArray(result)
       || Object.keys(result).some(key => !['cancel', 'redirectUrl', 'requestHeaders', 'responseHeaders'].includes(key))
       || (result.cancel !== undefined && typeof result.cancel !== 'boolean')) { fail('ubo-response-invalid'); return { cancel: true }; }
@@ -626,19 +827,40 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   }
   function dispose() {
     disposed = true;
+    if (episode) { clearTimeout(episode.deadline); clearTimeout(episode.retryTimer); episode = null; }
+    recovering = false;
+    releaseHeld();
+    latestMainFrame.clear(); outageRecords.clear(); outageTokens.clear();
+    cancelInitialization();
     cleanup();
     suspendedTools.clear();
     state('disposed');
   }
-  async function retry() {
+  async function restartNetwork() {
     if (disposed || initializePromise || cleanupScheduled) throw new Error('ubo-retry-unavailable');
     await removeOwnedCss();
     suspendTools();
     cleanup();
     await initialize();
+  }
+  // Best effort once filtering works again; recovery never waits for it.
+  function restoreTools() {
+    const run = generation;
     const tools = [...suspendedTools.values()]; suspendedTools.clear();
-    await Promise.allSettled(tools.filter(item => !item.wc.isDestroyed() && item.wc.session === session)
-      .map(item => item.wc.loadURL(item.url)));
+    for (const item of tools) {
+      if (item.wc.isDestroyed() || item.wc.session !== session) continue;
+      Promise.resolve().then(() => {
+        if (run === generation && !disposed && phase === 'ready') return item.wc.loadURL(item.url);
+      }).catch(() => {});
+    }
+  }
+  async function retry() {
+    await restartNetwork();
+    restoreTools();
+  }
+  function exhaustRecoveryForTest() {
+    if (app.isPackaged || process.env.BLANC_TEST !== '1') throw new Error('test-only');
+    budget.exhaust();
   }
   if (!ipcInstalled) {
     ipcInstalled = true;
@@ -646,7 +868,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       Promise.resolve().then(() => instances.get(event.sender.id)?.(event, message)).catch(() => {});
     });
   }
-  return { id: 'ublock-origin', initialize, retry, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
+  return { id: 'ublock-origin', initialize, retry, exhaustRecoveryForTest, claimOutage, noteMainFrameCommitted, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
     get extensionId() { return extension?.id; },
     // Read-only, for the acceptance harness.
     decisionDeadlineMs: decisionDeadline };

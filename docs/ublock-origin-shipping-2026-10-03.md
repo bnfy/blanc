@@ -698,3 +698,14 @@ the remaining desktop-step failures. Test-only changes; no product code changed.
 
 Both remaining failures occur in roughly 1–2% of macOS Intel and Windows runs.
 Fix the next one from its diagnostics rather than by raising timeouts.
+
+## Automatic recovery (2026-10-06)
+
+An available uBO that fails after it has been ready now restarts automatically
+instead of waiting for Settings → Retry. It stays fail closed: requests are
+held, never sent unfiltered; Blanc Blocker is never substituted. At most three
+restarts per profile in 10 minutes, each episode bounded to 30 s, then manual
+recovery as before. Only main-frame GET loads the outage cancelled reload,
+bound to their own token; POST is never replayed. Startup failures, private
+tabs and security-posture failures are unchanged. Design:
+`docs/superpowers/specs/2026-10-06-ubo-automatic-recovery-design.md`.

@@ -50,6 +50,7 @@ const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-excepti
 const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
+const { outageReloadTarget } = require('./ublock-recovery');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -2984,6 +2985,14 @@ function ensurePermissionView() {
       rt().permissionView = null;
       rt().permissionViewAttached = false;
     }
+    // On Linux a hidden prompt stays window-owned (hideOverlayView); drop the
+    // dead view once its native destruction has returned.
+    setImmediate(() => {
+      const window = owner.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
   }));
   view.setBackgroundColor('#00000000');
   // Electron focuses a brand-new view when it is first attached, which would
@@ -3021,7 +3030,11 @@ function attachPermissionView() {
   if (!hasLiveWindow()) return;
   const view = ensurePermissionView();
   view.setBounds(permissionViewBounds());
-  rt().window.contentView.addChildView(view);
+  // Never detached between prompts on Linux: Electron 44 / Wayland stops a
+  // re-attached renderer drawing, so a later prompt showed the previous
+  // question while Allow/Block answered the new one (see #594).
+  view.setVisible(true);
+  showOverlayView(rt().window, view);
   rt().permissionViewAttached = true;
   cancelAddressBarFocusReclaim();
   // Deliberately not focused: the site chooses when this appears, and a
@@ -3032,7 +3045,7 @@ function detachPermissionView() {
   if (!rt().permissionViewAttached) return;
   rt().permissionViewAttached = false;
   if (hasLiveWindow() && rt().permissionView) {
-    rt().window.contentView.removeChildView(rt().permissionView);
+    hideOverlayView(rt().window, rt().permissionView);
   }
 }
 
@@ -3536,7 +3549,22 @@ function discardFailedUtilitySheet(runtime, sheet) {
   bindWindowRuntime(runtime, () => hideUtilitySheet())();
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
+  retireUtilitySheetView(runtime, sheet.view);
   if (!sheet.wc.isDestroyed()) sheet.wc.close();
+}
+
+// On Linux a closed sheet stays window-owned (hideOverlayView), so a sheet
+// view that is being thrown away must also leave the view tree — after its
+// native destruction has returned, never against a detached Aura hierarchy.
+function retireUtilitySheetView(runtime, view) {
+  const window = runtime.window;
+  const remove = () => setImmediate(() => {
+    if (window && !window.isDestroyed() && !liveViewContents(view) &&
+        window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+  });
+  const wc = liveViewContents(view);
+  if (wc) wc.once('destroyed', remove);
+  else remove();
 }
 
 function createUtilitySheet() {
@@ -3570,6 +3598,7 @@ function createUtilitySheet() {
     diagnostics.recordRendererCrash('utility-sheet', details);
     if (runtime.utilitySheetView !== view) return;
     hideUtilitySheet();
+    retireUtilitySheetView(runtime, view);
     if (!wc.isDestroyed()) wc.close();
     if (runtime.utilitySheetView === view) {
       runtime.utilitySheetView = null;
@@ -3660,8 +3689,11 @@ function showUtilityPage(url) {
   scheduleUtilitySheetNavigation(runtime, sheet, url);
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
+  // On Linux the sheet is never detached between opens (#594): Electron 44 /
+  // Wayland leaves a re-attached renderer hidden while it still takes focus
+  // and clicks — the same failure overlay-view-lifecycle.js guards against.
   sheet.view.setVisible(true);
-  runtime.window.contentView.addChildView(sheet.view);
+  showOverlayView(runtime.window, sheet.view);
   // A pending permission prompt must stay above the sheet — a buried prompt
   // has no visible Allow/Block until the sheet happens to be dismissed.
   bindWindowRuntime(runtime, restackPermissionView)();
@@ -3698,7 +3730,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
   const sheet = liveUtilitySheet(runtime);
   if (hasLiveWindow() && sheet) {
-    runtime.window.contentView.removeChildView(sheet.view);
+    hideOverlayView(runtime.window, sheet.view);
     sheet.view.setVisible(false);
   }
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
@@ -5466,6 +5498,8 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
+  claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
+  noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
   allowManagedExtensionNavigation: (tab, wc, url, source, event) => {
     const provider = blockingProviders?.forTab(tab);
     if (!provider?.extensionId || tab.private) return false;
@@ -8869,6 +8903,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isHeld: (wc) => heldWebContents.has(wc.id)
         || runtimeForPageWebContents(wc)?.resident === true,
       methodFor: (wc) => lastMainFrameMethod.get(wc.id),
+      // Reload a page uBO's outage cancelled, revalidating right before the
+      // load and again when the queued navigation actually runs (spec §3).
+      reloadAfterOutage: ({ webContentsId, token }) => {
+        const wc = webContents.fromId(webContentsId);
+        const tab = wc && tabs.get(tabIdByWebContentsId.get(wc.id));
+        const target = () => (tab && !wc.isDestroyed() && !tab.private && !tab.sleeping
+          && !heldWebContents.has(wc.id) && liveContents(tab) === wc
+          ? outageReloadTarget(wc.getURL(), token) : null);
+        const url = target();
+        if (!url) return;
+        queueTabNavigation(wc, { isCurrent: () => target() === url, run: contents => contents.loadURL(url) });
+      },
       createTab: async (runtime, url, options) => withWindowRuntime(runtime, () => {
         const id = createTab(url, { managedExtension: /^chrome-extension:/.test(url) });
         if (options.active !== false) setActiveTab(id);
@@ -9738,6 +9784,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
       blockingOpen: openUblockTool,
       blockingRetry: () => blockingProviders.retry(),
+      blockingExhaustRecovery: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.exhaustRecoveryForTest?.(),
       blockingDecisionDeadline: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.decisionDeadlineMs?.() ?? null,
       blockingPopup: openUblockPopup,
       // Playwright calls globalThis.__blanc.* from OUTSIDE any ALS context
