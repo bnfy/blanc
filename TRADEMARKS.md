@@ -98,10 +98,13 @@ look like it comes from us.
   the About box, dialogs, and the installer. You don't have to rename internal
   identifiers users never see, such as module names, IPC channels, or the
   internal `blanc://` and `blanc-chrome://` schemes.
-- **Our hosted services.** Point the sync service (`src/main/sync.js`), usage
-  measurement (`src/main/telemetry.js`), the tab-import relay
-  (`src/main/tab-import-handoff.js`), and Blanc Patron activation
-  (`src/main/patron.js`) at your own services, or remove them.
+- **Our hosted services.** Once you change `productName`, the sync service
+  (`src/main/sync.js`), usage measurement (`src/main/telemetry.js`), and the
+  tab-import relay (`src/main/tab-import-handoff.js`) stop contacting
+  Bananify's servers on their own (`src/main/bananify-services.js`). Point
+  them at your own services if you want those features. Blanc Patron
+  activation (`src/main/patron.js`) is not switched off automatically; remove
+  it or replace it.
 
 ### Bananify's hosted services
 
