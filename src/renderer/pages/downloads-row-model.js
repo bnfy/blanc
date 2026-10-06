@@ -21,5 +21,19 @@
     return ext.length >= 2 && ext.length <= 9 ? { stem: text.slice(0, dot), ext } : { stem: text, ext: '' };
   }
 
-  return { sourceLabel, splitFileName };
+  // Which buttons a row offers, in order. An interrupted download that
+  // Chromium can continue offers Resume; otherwise one with a web source
+  // offers Retry. One still held in flight can also be cancelled outright.
+  function rowActions(d) {
+    if (d?.state === 'progressing') return ['cancel'];
+    if (d?.state === 'completed') return ['open', 'show'];
+    if (d?.state !== 'interrupted') return [];
+    const actions = [];
+    if (d.canResume) actions.push('resume');
+    else if (/^https?:/i.test(String(d.url ?? ''))) actions.push('retry');
+    if (d.inFlight) actions.push('cancel');
+    return actions;
+  }
+
+  return { sourceLabel, splitFileName, rowActions };
 });

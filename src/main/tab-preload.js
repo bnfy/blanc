@@ -163,6 +163,8 @@ if (window.location.protocol === 'blanc:') {
       downloads: {
         list: () => invoke('pages:downloads:list'),
         cancel: (id) => invoke('pages:downloads:cancel', id),
+        resume: (id) => invoke('pages:downloads:resume', id),
+        retry: (id) => invoke('pages:downloads:retry', id),
         open: (id) => invoke('pages:downloads:open', id),
         show: (id) => invoke('pages:downloads:show', id),
         clearFinished: () => invoke('pages:downloads:clear-finished'),
