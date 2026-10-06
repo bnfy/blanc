@@ -1,0 +1,70 @@
+name: Flatpak (FlatPark) problem
+description: Something goes wrong in the community Flatpak of Blanc from FlatPark
+labels: ["flatpak"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The Flatpak is a **community package, maintained independently** by
+        @jing2uo on FlatPark. It isn't an official Bananify release. Reports
+        filed here are triaged by the packager first.
+
+        If the same problem happens with the plain AppImage from our releases,
+        please file a regular **Bug report** instead.
+
+        **Please don't report security vulnerabilities here.** This tracker is
+        public. Email support@blancbrowser.com instead.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected, and what Blanc did instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. flatpak run com.blancbrowser.Blanc
+        2. …
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Blanc version
+      description: "Find it under **Help → About Blanc**, or run `flatpak info com.blancbrowser.Blanc`."
+      placeholder: "1.28.0"
+    validations:
+      required: true
+
+  - type: input
+    id: distro
+    attributes:
+      label: Distribution and desktop
+      placeholder: "Fedora 43, GNOME 49 (Wayland)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: appimage
+    attributes:
+      label: Does it also happen with the plain AppImage?
+      options:
+        - "Haven't tried"
+        - "Yes, the AppImage does it too"
+        - "No, only the Flatpak"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Output of `flatpak run com.blancbrowser.Blanc` from a terminal, screenshots, or permission overrides you've set (Flatseal etc.).
+    validations:
+      required: false
