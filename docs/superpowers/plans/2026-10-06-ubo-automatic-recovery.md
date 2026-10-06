@@ -68,10 +68,12 @@ test('the budget allows three attempts per rolling window with growing delays', 
   let now = 1000;
   const budget = recovery.createRecoveryBudget({ now: () => now });
   assert.deepEqual(budget.take(), { allowed: true, attempt: 1, delayMs: 0 });
+  now += 1000;
   assert.deepEqual(budget.take(), { allowed: true, attempt: 2, delayMs: 2000 });
+  now += 1000;
   assert.deepEqual(budget.take(), { allowed: true, attempt: 3, delayMs: 10000 });
   assert.deepEqual(budget.take(), { allowed: false });
-  now += 600000 - 1;
+  now = 1000 + 600000 - 1;
   assert.deepEqual(budget.take(), { allowed: false }, 'still inside the 10-minute window');
   now += 1;
   assert.deepEqual(budget.take(), { allowed: true, attempt: 3, delayMs: 10000 }, 'the oldest attempt aged out');
