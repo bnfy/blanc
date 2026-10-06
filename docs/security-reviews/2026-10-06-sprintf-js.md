@@ -2,7 +2,8 @@
 
 Reviewer: Claude (Claude Code), with the owner's approval to record this
 exception on October 6, 2026. Reviewed source: `main` at
-`8634fb6c7dc6aad445bfbc7b00b4f232f201fcd4`.
+`6974fbc0` (after #603 patched the same day's sharp and shell-quote
+advisories, leaving this one open).
 
 [GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
 affects sprintf-js through 1.1.3. A format string whose precision specifier
