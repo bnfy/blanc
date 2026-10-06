@@ -1027,6 +1027,20 @@ body.sheet .card-title {
 /* The last row in a card sits right above its own border — a trailing
    hairline there would double up against it. */
 .settings-card > .setting:last-child { border-bottom: none; }
+.trust-receipt-list {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr);
+  margin: 12px 0 16px;
+}
+.trust-receipt-list dt,
+.trust-receipt-list dd {
+  margin: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.trust-receipt-list dt { color: var(--text-dim); }
+.trust-receipt-list dd { overflow-wrap: anywhere; }
+.trust-receipt-links button { white-space: nowrap; }
 
 /* Ad-block exceptions / Site permissions read as children of the toggle
    above them, not peers of the Privacy & Security category itself. */

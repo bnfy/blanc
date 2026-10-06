@@ -1146,6 +1146,33 @@
         "doc": "Open the 1Password app. Registered only when 1Password fill is available."
       },
       {
+        "name": "settings.trustReceipt",
+        "kind": "invoke",
+        "channel": "pages:settings:trust-receipt",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Facts about the installed build for About & Trust, checked on this device."
+      },
+      {
+        "name": "settings.openTrustLink",
+        "kind": "invoke",
+        "channel": "pages:settings:open-trust-link",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "kind",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a release, verification, SBOM or provenance link for this version."
+      },
+      {
         "name": "profiles.list",
         "kind": "invoke",
         "channel": "pages:profiles:list",

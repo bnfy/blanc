@@ -221,6 +221,8 @@ if (window.location.protocol === 'blanc:') {
         onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
         onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),
         openOnePasswordApp: () => invoke('pages:settings:open-onepassword-app'),
+        trustReceipt: () => invoke('pages:settings:trust-receipt'),
+        openTrustLink: (kind) => invoke('pages:settings:open-trust-link', kind),
       },
       profiles: {
         list: () => invoke('pages:profiles:list'),

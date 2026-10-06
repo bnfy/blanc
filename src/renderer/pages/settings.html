@@ -23,6 +23,7 @@
         <a href="#group-sync" data-group="sync">Sync</a>
         <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
+        <a href="#group-trust" data-group="trust">About &amp; Trust</a>
         <a href="#group-diagnostics" data-group="diagnostics">Diagnostics</a>
         <a href="#group-patron" data-group="patron">Patron</a>
         <a href="#group-help" data-group="help">Help</a>
@@ -504,6 +505,16 @@
               <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
               <span id="clearBrowsingDataStatus" class="section-hint"></span>
             </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-trust">
+          <h2 class="group-title">About &amp; Trust</h2>
+          <div class="settings-card settings-card--content trust-receipt" aria-live="polite">
+            <p class="section-hint">Facts checked on this device. Opening this section makes no network request.</p>
+            <p class="section-hint" id="trustReceiptStatus">Checking the installed build…</p>
+            <dl class="trust-receipt-list" id="trustReceiptList" hidden></dl>
+            <div class="toolbar-row trust-receipt-links" id="trustReceiptLinks" hidden></div>
           </div>
         </section>
 
