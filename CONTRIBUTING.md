@@ -7,10 +7,10 @@ before a large feature or architectural change so we can discuss scope.
 ## Your first contribution
 
 1. Pick a bounded issue whose reproduction and acceptance criteria you can
-   verify. The `good first issue` label is the best starting point once issues
-   are available; documentation and regression-test fixes are welcome too.
-2. Comment on the issue before coding so the single maintainer can confirm it
-   is still current and avoid duplicated work.
+   verify. Issues labelled `good first issue` are the best starting point when
+   there are any. Documentation and regression-test fixes are always welcome.
+2. Comment on the issue before coding so we can confirm it is still current
+   and that nobody else is already working on it.
 3. Create one branch for one outcome. Add the smallest relevant test or explain
    why the change is documentation-only.
 4. Run the checks named below and report only results you actually observed.
