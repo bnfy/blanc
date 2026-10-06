@@ -1,7 +1,8 @@
 # Don't count Blanc's own freezes against uBO's decision deadline
 
 **Date:** 2026-10-06
-**Status:** approved 2026-10-06 (revision 2, after review) — not implemented
+**Status:** approved 2026-10-06 (revision 2, after review) — implemented in
+https://github.com/bnfy/blanc/pull/599
 **Amends:** the decision-deadline behavior in `src/main/ublock-provider.js`
 (`ask()`), recorded as "Blocking decisions have a two-second deadline" in
 `docs/ublock-origin-implementation-2026-10-02.md`. The deadline values and
