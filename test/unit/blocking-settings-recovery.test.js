@@ -46,3 +46,15 @@ for (const fallback of ['manifest-v2-retired', 'ublock-unavailable']) test(`Sett
   assert.equal(element('blockingRecovery').hidden, false);
   assert.equal(element('ublockRetry').textContent, 'Retry Blanc Blocker');
 });
+
+test('Settings shows a restarting uBO without recovery buttons', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
+  const render = source.match(/const renderBlocking = \(state\) => \{[\s\S]*?\n    \};/)[0];
+  const elements = new Map();
+  const element = id => { if (!elements.has(id)) elements.set(id, { hidden: false, textContent: '', querySelector: () => ({}) }); return elements.get(id); };
+  const context = { document: { getElementById: element }, selector: element('adblockProvider'), label: id => id === 'blanc' ? 'Blanc Blocker' : 'uBlock Origin' };
+  vm.runInNewContext(render + '\nthis.render = renderBlocking;', context);
+  context.render({ active: 'ublock-origin', selected: 'ublock-origin', exposed: true, supported: true, phase: 'recovering', enabled: true, error: 'ubo-decision-timeout' });
+  assert.equal(element('blockingProviderStatus').textContent, 'uBlock Origin is restarting. New requests are paused.');
+  for (const id of ['blockingRecovery', 'ublockRetry', 'ublockUseBlanc', 'ublockContinue']) assert.equal(element(id).hidden, true, id);
+});

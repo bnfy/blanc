@@ -91,6 +91,8 @@
       const unavailable = 'uBlock Origin isn’t available in this build.';
       status.textContent = state.restartPending
         ? `${label(state.selected)} selected. Restart Blanc to apply; ${label(state.active)} is active.`
+        : state.phase === 'recovering'
+          ? `${label(state.active)} is restarting. New requests are paused.`
         : state.phase === 'failed'
           ? `${label(state.active)} could not continue (${state.error}). ${state.enabled ? 'Affected requests remain blocked.' : 'Blocking is disabled.'}`
           : state.phase === 'unsupported'

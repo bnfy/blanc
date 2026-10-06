@@ -71,9 +71,13 @@ function countPhrase(blocked) {
   return `${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'}`;
 }
 
+const RESTARTING = 'uBlock Origin is restarting. New requests are paused.';
+
 function shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider = 'blanc', readiness = 'ready' }) {
   if (provider === 'ublock-origin') {
     if (!blockableHostname(url)) return { mode: 'hidden', count: 0, title: '' };
+    // Requests are held while uBO restarts: neither protected nor off.
+    if (readiness === 'recovering' && adblockEnabled) return { mode: 'restarting', count: 0, title: RESTARTING };
     if (readiness !== 'ready') return { mode: 'off', count: 0, title: 'uBlock Origin unavailable — open Settings for recovery' };
     if (!adblockEnabled) return { mode: 'off', count: 0, title: 'uBlock Origin is off — click for controls' };
     const count = blockedCount ?? 0;
@@ -106,8 +110,9 @@ function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, conne
   if (provider === 'ublock-origin') {
     const blocked = blockedCount ?? 0;
     const countLine = !adblockEnabled ? 'Ad blocking is off everywhere'
-      : readiness !== 'ready' ? 'Blocking needs attention. Open blocking settings to recover.'
-        : `${blocked} ${blocked === 1 ? 'request' : 'requests'} blocked on this page`;
+      : readiness === 'recovering' ? RESTARTING
+        : readiness !== 'ready' ? 'Blocking needs attention. Open blocking settings to recover.'
+          : `${blocked} ${blocked === 1 ? 'request' : 'requests'} blocked on this page`;
     // uBO owns its exceptions. Never infer its site switch from Blanc's list
     // or label a trusted uBO site as protected without querying its popup.
     return { variant: 'ublock', host, on: adblockEnabled, countLine, connection };
@@ -144,6 +149,7 @@ function shieldProviderModel(status, privateTab = false) {
     const off = status?.enabled === false || status?.phase === 'disabled';
     if (unavailable) detail = `${label(active)} is unavailable. ${off ? 'Blocking is off. ' : ''}Open blocking settings to recover.`;
     else if (off) detail = 'Blocking is off.';
+    else if (status?.phase === 'recovering') detail = RESTARTING;
     else if (status?.phase === 'initializing') detail = `${label(active)} is starting…`;
     // A pending choice never establishes that the current provider is
     // filtering. Preserve failure/disable/startup guidance alongside restart.
