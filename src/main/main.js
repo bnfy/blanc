@@ -3537,7 +3537,22 @@ function discardFailedUtilitySheet(runtime, sheet) {
   bindWindowRuntime(runtime, () => hideUtilitySheet())();
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
+  retireUtilitySheetView(runtime, sheet.view);
   if (!sheet.wc.isDestroyed()) sheet.wc.close();
+}
+
+// On Linux a closed sheet stays window-owned (hideOverlayView), so a sheet
+// view that is being thrown away must also leave the view tree — after its
+// native destruction has returned, never against a detached Aura hierarchy.
+function retireUtilitySheetView(runtime, view) {
+  const window = runtime.window;
+  const remove = () => setImmediate(() => {
+    if (window && !window.isDestroyed() && !liveViewContents(view) &&
+        window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+  });
+  const wc = liveViewContents(view);
+  if (wc) wc.once('destroyed', remove);
+  else remove();
 }
 
 function createUtilitySheet() {
@@ -3571,6 +3586,7 @@ function createUtilitySheet() {
     diagnostics.recordRendererCrash('utility-sheet', details);
     if (runtime.utilitySheetView !== view) return;
     hideUtilitySheet();
+    retireUtilitySheetView(runtime, view);
     if (!wc.isDestroyed()) wc.close();
     if (runtime.utilitySheetView === view) {
       runtime.utilitySheetView = null;
@@ -3661,8 +3677,11 @@ function showUtilityPage(url) {
   scheduleUtilitySheetNavigation(runtime, sheet, url);
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
+  // On Linux the sheet is never detached between opens (#594): Electron 44 /
+  // Wayland leaves a re-attached renderer hidden while it still takes focus
+  // and clicks — the same failure overlay-view-lifecycle.js guards against.
   sheet.view.setVisible(true);
-  runtime.window.contentView.addChildView(sheet.view);
+  showOverlayView(runtime.window, sheet.view);
   // A pending permission prompt must stay above the sheet — a buried prompt
   // has no visible Allow/Block until the sheet happens to be dismissed.
   bindWindowRuntime(runtime, restackPermissionView)();
@@ -3699,7 +3718,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
   const sheet = liveUtilitySheet(runtime);
   if (hasLiveWindow() && sheet) {
-    runtime.window.contentView.removeChildView(sheet.view);
+    hideOverlayView(runtime.window, sheet.view);
     sheet.view.setVisible(false);
   }
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
