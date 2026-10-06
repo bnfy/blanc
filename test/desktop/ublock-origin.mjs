@@ -334,8 +334,60 @@ try {
     options.find(option => option.value === id)?.textContent ?? '', inspectorTab),
   text => text.includes('uBO acceptance fixture'), 'fixture tab appears in the original logger selector');
   await logger.locator('#pageSelector').selectOption(inspectorTab);
+  // Record uBO's injections into the fixture tab for this first inspector
+  // open, so an intermittent CI timeout shows whether injection was ever
+  // requested and how it ended. Restored before the reconnect step wraps it.
+  const injectionLog = (expression) => electron.evaluate(async ({ webContents }, code) => {
+    const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
+    return bg.executeJavaScript(code);
+  }, expression);
+  await injectionLog(`(() => {
+    const original = vAPI.tabs.executeScript;
+    self.uboFixtureFirstInjections = [];
+    vAPI.tabs.executeScript = function(id, details, ...rest) {
+      const result = original.call(this, id, details, ...rest);
+      if (id === ${Number(inspectorTab)}) {
+        const record = { file: details.file || 'code', frameId: details.frameId ?? 0, at: Date.now(), outcome: 'pending' };
+        self.uboFixtureFirstInjections.push(record);
+        Promise.resolve(result).then(value => { record.outcome = (Array.isArray(value) ? 'ok:' + value.length : 'ok') + ' +' + (Date.now() - record.at) + 'ms'; },
+          error => { record.outcome = 'error: ' + String(error?.message || error).slice(0, 160); });
+      }
+      return result;
+    };
+    self.uboFixtureRestoreFirstInjections = () => { vAPI.tabs.executeScript = original; };
+  })()`);
   await logger.locator('#showdom').dispatchEvent('click');
-  const inspector = await waitForValue(async () => page.frames().find(frame => frame.url().includes('/dom-inspector.html')), Boolean, 'original DOM inspector');
+  const findInspector = () => page.frames().find(frame => frame.url().includes('/dom-inspector.html'));
+  const inspectorClickedAt = Date.now();
+  let inspector;
+  try {
+    // Normally ~0.4-0.9 s (uBO's 353 ms defer plus injection), but a stalled
+    // shared Intel macOS runner once took over 5 s (run 37414775568). Allow
+    // 10 s like the neighbouring logger steps; a lost injection still fails
+    // and the diagnostics below show which request never completed.
+    inspector = await waitForValue(async () => findInspector(), Boolean, 'original DOM inspector', 10000);
+  } catch (error) {
+    // Diagnose intermittent CI timeouts: a late frame means slow injection,
+    // no frame at all means uBO never injected into the selected tab.
+    const late = await waitForValue(async () => findInspector(), Boolean, 'late DOM inspector', 15000).then(() => Date.now() - inspectorClickedAt, () => null);
+    const injections = await injectionLog('JSON.stringify(self.uboFixtureFirstInjections ?? null)').catch(String);
+    console.error('DOM inspector injection diagnostics:', JSON.stringify({
+      waitedMs: Date.now() - inspectorClickedAt,
+      lateArrivalMs: late,
+      clickedAt: inspectorClickedAt,
+      injections,
+      expectedTab: inspectorTab,
+      selectedTab: await logger.locator('#pageSelector').inputValue().catch(String),
+      showdomActive: await logger.locator('#showdom').evaluate(el => el.classList.contains('active')).catch(String),
+      loggerUrl: logger.url(),
+      pageUrl: page.url(),
+      pageFrames: page.frames().map(frame => frame.url()),
+    }));
+    throw error;
+  } finally {
+    await injectionLog('self.uboFixtureRestoreFirstInjections?.()').catch(() => {});
+  }
+  console.log('DOM inspector appeared after ms:', Date.now() - inspectorClickedAt);
   await waitForValue(() => logger.locator('#domTree').innerText(), text => text.includes('body'), 'DOM inspector tree populated');
   assert(inspector);
   // A new document must reconnect the original logger channel through the
