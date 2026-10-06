@@ -12,6 +12,23 @@ const RATE_LIMIT = 30;                             // GETs per accountId per min
 const IP_RATE_LIMIT = 120;                         // requests per client IP per minute — the anti-guessing throttle
 
 const blobKey = (a, s) => `blob:${a}:${s}`;
+
+// Activity marker (storage budget design 2026-10-05): any successful read or
+// write keeps the account alive; one untouched for a year expires, and the
+// daily cleanup then deletes its blobs. Refreshed at most every 30 days so a
+// busy account costs about one KV write a month. A separate key, because
+// extending an expiry on the blob itself would mean rewriting user data
+// during a GET, which can race with and undo a newer PUT.
+const SEEN_TTL_SECONDS = 365 * 24 * 60 * 60;
+const SEEN_REFRESH_MS = 30 * 24 * 60 * 60 * 1000;
+const seenKey = (a) => `seen:${a}`;
+const readMarker = (env, accountId) => env.SYNC.get(seenKey(accountId), { type: 'json' });
+
+async function touchAccount(env, accountId, marker, now = Date.now()) {
+  if (marker && now - marker.touchedAt < SEEN_REFRESH_MS) return;
+  await env.SYNC.put(seenKey(accountId), JSON.stringify({ touchedAt: now }), { expirationTtl: SEEN_TTL_SECONDS });
+}
+
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
 
@@ -35,6 +52,7 @@ async function handleGet(env, accountId, store) {
   if (await rateLimited(env, accountId)) return json({ error: 'rate-limited' }, 429);
   const rec = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if (!rec) return new Response('not found', { status: 404 });
+  await touchAccount(env, accountId, await readMarker(env, accountId));
   return json({ version: rec.version, blob: rec.blob });
 }
 
@@ -45,15 +63,20 @@ async function handleGet(env, accountId, store) {
 async function handlePut(env, accountId, store, body) {
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
   if (new TextEncoder().encode(JSON.stringify(body.blob)).byteLength > MAX_BLOB_BYTES) return json({ error: 'too large' }, 413);
+  const marker = await readMarker(env, accountId);
   const cur = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   const version = crypto.randomUUID();
   await env.SYNC.put(blobKey(accountId, store), JSON.stringify({ version, blob: body.blob }));
+  await touchAccount(env, accountId, marker);
   return json({ version });
 }
 
 async function handleDelete(env, accountId) {
-  await Promise.all([...STORES].map((s) => env.SYNC.delete(blobKey(accountId, s))));
+  await Promise.all([
+    ...[...STORES].map((s) => env.SYNC.delete(blobKey(accountId, s))),
+    env.SYNC.delete(seenKey(accountId)),
+  ]);
   return new Response(null, { status: 204 });
 }
 
