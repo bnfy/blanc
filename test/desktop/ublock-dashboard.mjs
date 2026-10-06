@@ -66,6 +66,32 @@ async function settleUpdater() {
   await inBackground('µBlock.loadFilterLists().then(() => true)');
 }
 const call = (method, ...args) => testCalls.callTestHook(electron, method, args);
+// Timestamp uBO update cycles and filter reloads after startup settles, so a
+// leak can be compared with when the fixture opened: requests pass while a
+// reload resets the engine.
+async function recordEngineEvents() {
+  await inBackground(`(async () => {
+    self.blancEngineEvents = [];
+    const log = what => self.blancEngineEvents.push({ what, at: Date.now() });
+    const load = µBlock.loadFilterLists;
+    µBlock.loadFilterLists = function(...args) {
+      log('reload start');
+      return Promise.resolve(load.apply(this, args)).finally(() => log('reload end'));
+    };
+    const schedule = µBlock.scheduleAssetUpdater;
+    µBlock.scheduleAssetUpdater = function(details = {}) {
+      log('update scheduled ' + JSON.stringify(details));
+      return schedule.call(this, details);
+    };
+    const { default: io } = await import('./js/assets.js');
+    const start = io.updateStart;
+    io.updateStart = function(...args) { log('update start'); return start.apply(this, args); };
+    return true;
+  })()`);
+}
+const engineEvents = since => inBackground('JSON.stringify(self.blancEngineEvents ?? null)')
+  .then(json => (JSON.parse(json) ?? []).map(event => `${event.what} @${event.at - since}ms`)).catch(String);
+let fixtureOpenedAt = null;
 let dashboard;
 async function openDashboard() {
   await call('blockingOpen', 'dashboard');
@@ -115,6 +141,7 @@ async function noOverflow(frame) {
 }
 try {
   await launch();
+  await recordEngineEvents();
   await openDashboard();
   stage = 'native Settings';
   let settings = await select('settings.html');
@@ -191,6 +218,12 @@ try {
   lists = await select('3p-filters.html');
   assert.equal(await lists.locator('#autoUpdate').isChecked(), !initialAuto);
   await setAutoUpdate(lists, initialAuto);
+  // Turning auto-update back on schedules an update cycle 2 s later
+  // (upstream scheduleAssetUpdater({ updateDelay: 2000 })), and that cycle
+  // ends in a filter reload during which requests pass. Without this, the
+  // fixture below could load inside that reload on a slow runner and leak
+  // /dashboard-blocked.js. Run the cycle now and let its reload finish.
+  await settleUpdater();
   stage = 'wide and narrow panels';
   for (const pane of ['1p-filters.html', 'dyna-rules.html', 'whitelist.html', 'support.html', 'about.html']) {
     const frame = await select(pane);
@@ -212,9 +245,11 @@ try {
   const shortLayout = await shortRules.evaluate(() => ({ overflow: getComputedStyle(document.body).overflowY, needed: document.body.scrollHeight > document.body.clientHeight }));
   assert(!shortLayout.needed || ['auto', 'scroll'].includes(shortLayout.overflow), 'editor toolbar and editor remain scrollable in short windows');
   stage = 'real request decisions and restart persistence';
+  fixtureOpenedAt = Date.now();
   await call('openTab', fixture);
   let page = await waitForValue(async () => (await electron.windows()).find(item => item.url() === fixture), Boolean, 'fixture');
   await page.waitForFunction(() => window.dashboardAllowed === true);
+  console.log('Engine events relative to fixture open:', JSON.stringify(await engineEvents(fixtureOpenedAt)));
   assert(!hits.includes('/dashboard-blocked.js'), 'native filter blocks before the server');
   await electron.close();
   restartedAt = Date.now();
@@ -236,7 +271,8 @@ try {
   console.log('uBO Dashboard passed: native settings/themes, lists/search/keyboard, editor/unsaved guard, all panels/narrow layout, real blocking and restart persistence.');
 } catch (error) {
   console.error('Dashboard failure at ' + stage);
-  console.error('Fixture hits:', JSON.stringify(hitLog.slice(-20).map(hit => ({ url: hit.url, sinceRestartMs: restartedAt ? hit.at - restartedAt : null }))));
+  console.error('Fixture hits:', JSON.stringify(hitLog.slice(-20).map(hit => ({ url: hit.url, sinceRestartMs: restartedAt ? hit.at - restartedAt : null, sinceFixtureOpenMs: fixtureOpenedAt ? hit.at - fixtureOpenedAt : null }))));
+  if (fixtureOpenedAt && !restartedAt) console.error('Engine events relative to fixture open:', JSON.stringify(await engineEvents(fixtureOpenedAt).catch(String)));
   if (dashboard) console.error('Dashboard state:', await dashboard.evaluate(() => ({
     selected: document.querySelector('.tabButton.selected')?.dataset.pane,
     unsavedWarning: document.getElementById('unsavedWarning')?.classList.contains('on'),
