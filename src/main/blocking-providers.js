@@ -78,7 +78,8 @@ function createBlockingProviders({ settings, hooks, onStateChange, onBlocked }) 
         session: owned.normal, profileId, hooks,
         onStateChange: state => {
           if (state.error) {
-            diagnostics.push({ provider: state.id, version: state.version, error: state.error, stage: state.stage, timings: state.timings });
+            diagnostics.push({ provider: state.id, version: state.version, error: state.error, stage: state.stage, timings: state.timings,
+              ...(state.recovery ? { recovery: state.recovery.kind, attempt: state.recovery.attempt, ...(state.recovery.reason ? { reason: state.recovery.reason } : {}) } : {}) });
             if (diagnostics.length > 32) diagnostics.shift();
           }
           onStateChange?.(status(profileId));

@@ -346,3 +346,14 @@ for (const fallback of ['manifest-v2-retired', 'ublock-unavailable']) test(`MV2 
   const privateTab = shieldProviderModel(state, true);
   assert.equal(privateTab.choice, 'blanc'); assert(!privateTab.detail.includes('settings are saved'));
 });
+
+const RESTARTING = 'uBlock Origin is restarting. New requests are paused.';
+test('a restarting uBO has its own chip, popover and chooser state', () => {
+  const input = { url: HTTP, blockedCount: 4, adblockEnabled: true, provider: 'ublock-origin', readiness: 'recovering' };
+  assert.deepEqual(shieldChipState(input), { mode: 'restarting', count: 0, title: RESTARTING });
+  assert.equal(shieldPopoverModel(input).countLine, RESTARTING);
+  assert.equal(shieldProviderModel({ active: 'ublock-origin', selected: 'ublock-origin', phase: 'recovering', enabled: true }).detail, RESTARTING);
+  // With blocking switched off nothing is paused; the off state stays.
+  assert.equal(shieldChipState({ ...input, adblockEnabled: false }).mode, 'off');
+  assert.equal(shieldPopoverModel({ ...input, adblockEnabled: false }).countLine, 'Ad blocking is off everywhere');
+});

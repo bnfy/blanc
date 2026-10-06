@@ -861,16 +861,38 @@ try {
   await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed', 20000);
   // Suspending the real request listener proves the two-second boundary:
   // requests cannot reach the server while the provider is unresponsive.
+  const deadlinePostTab = await call('openTab', fixture + 'post-form');
+  const deadlinePostPage = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/post-form')), Boolean, 'POST fixture');
+  await deadlinePostPage.waitForSelector('form');
+  // An earlier stage already POSTed this form once; count from here.
+  const postsBefore = methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length;
+  // Hang uBO (as before), then cause one GET and one POST main-frame load.
   await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
     "chrome.webRequest.onBeforeRequest.addListener(() => new Promise(() => {}), {urls:['<all_urls>']}, ['blocking']); true"));
   const deadlineStarted = Date.now();
   const deadlineId = await call('openTab', fixture + 'deadline-gated');
-  await waitForValue(() => call('blockingStatus'), state => state.phase === 'failed', 'request deadline', 6000);
+  await deadlinePostPage.evaluate(() => document.querySelector('form').submit());
+  await waitForValue(() => call('blockingStatus'), state => state.phase === 'recovering', 'automatic recovery starts', 6000);
   assert(Date.now() - deadlineStarted < 5000);
-  assert(!(hits.includes('/deadline-gated')));
-  await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === deadlineId)?.isLoading, value => value === false, 'deadline recovery page');
+  assert(!hits.includes('/deadline-gated'), 'the hung request never reached the server');
+  const recoveryStarted = Date.now();
+  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'automatic recovery without Retry', 30000);
+  console.log('uBO automatic recovery ms:', Date.now() - recoveryStarted);
+  assert.equal(await call('blockingDecisionDeadline'), 10000, 'a fresh ready opens the decision warm-up window');
+  await waitForValue(() => hits.filter(hit => hit === '/deadline-gated').length, count => count === 1, 'the cancelled GET page reloads once', 15000);
+  assert.equal(methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length, postsBefore, 'the cancelled POST is not resubmitted');
+  await call('closeTab', deadlinePostTab);
+  await call('closeTab', deadlineId);
+  // Manual path: with the budget spent, a failure shows manual recovery.
+  await call('blockingExhaustRecovery');
+  await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed again', 20000);
+  await electron.evaluate(async ({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').executeJavaScript(
+    "chrome.webRequest.onBeforeRequest.addListener(() => new Promise(() => {}), {urls:['<all_urls>']}, ['blocking']); true"));
+  await call('openTab', fixture + 'deadline-gated?manual');
+  await waitForValue(() => call('blockingStatus'), state => state.phase === 'failed', 'manual recovery after the budget', 6000);
+  assert.equal((await call('blockingStatus')).recovery?.reason, 'budget');
   await call('blockingRetry');
-  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'deadline retry', 20000);
+  await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'manual retry', 20000);
   assert.equal(await call('blockingDecisionDeadline'), 10000, 'a fresh ready opens the decision warm-up window');
   await waitForValue(() => electron.evaluate(({ webContents }) => webContents.getAllWebContents().filter(wc => wc.getType() === 'backgroundPage').length), count => count === 1, 'one background after retry');
   const awakeWC = (await call('state')).tabs.find(tab => tab.id === regular).webContentsId;

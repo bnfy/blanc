@@ -140,7 +140,7 @@
       "doc": "Shield chip state, derived by shieldChipState() in shield-model.js.",
       "fields": {
         "mode": {
-          "type": "'hidden' | 'off' | 'count' | 'quiet'"
+          "type": "'hidden' | 'off' | 'count' | 'quiet' | 'restarting'"
         },
         "count": {
           "type": "number"
