@@ -204,6 +204,7 @@ const {
   tabImportClaimUrl,
   tabImportUrlsFromArgv,
 } = require('./tab-import-handoff');
+const { bananifyServiceAllowed } = require('./bananify-services');
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
@@ -814,14 +815,18 @@ function tabHandoffErrorMessage(code) {
   }
   if (code === 'unavailable') return 'This handoff has expired, was already used, or is unavailable.';
   if (code === 'offline') return 'Blanc could not reach the tab handoff service. Check your connection and try again.';
+  if (code === 'service-unavailable') return 'Tab handoff is available only in official Blanc builds.';
   return 'Blanc could not import these tabs.';
 }
 
 async function claimTabHandoff(parsed) {
+  // A renamed build may not use Bananify's relay (bananify-services.js).
+  const origin = tabImportRelayOrigin();
+  if (!bananifyServiceAllowed(origin)) throw new Error('service-unavailable');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
   try {
-    const response = await net.fetch(tabImportClaimUrl(parsed.id, tabImportRelayOrigin()), {
+    const response = await net.fetch(tabImportClaimUrl(parsed.id, origin), {
       method: 'POST',
       redirect: 'error',
       cache: 'no-store',

@@ -18,11 +18,15 @@ const {
   isDefaultLocalProfile,
 } = require('./local-profile-context');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { bananifyServiceAllowed } = require('./bananify-services');
 
 // Blanc-hosted E2EE profile sync. This module holds the only network calls;
 // the Worker (cloudflare/sync-worker) stores AES-GCM ciphertext keyed by an
 // opaque accountId and can't read anything. See the design spec.
 const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev -> http://127.0.0.1:8787
+// A renamed build may not store data on Bananify's server (bananify-services.js).
+// disable() still lets it erase a copy that is already there.
+const SERVICE_UNAVAILABLE = 'Sync is available only in official Blanc builds.';
 
 let store = null;
 let keyProtectionError = null;
@@ -208,6 +212,7 @@ async function enable({ handle, passphrase }) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => enable({ handle, passphrase }));
   }
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, message: SERVICE_UNAVAILABLE, status: status() };
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
   if (h.length < 2) return { ok: false, message: 'Choose a sync name (at least 2 characters).', status: status() };
@@ -268,6 +273,7 @@ async function preflight({ handle, passphrase }) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => preflight({ handle, passphrase }));
   }
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, outcome: 'error', message: SERVICE_UNAVAILABLE };
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
   if (h.length < 2) {
@@ -415,6 +421,7 @@ async function syncNow(names = null) {
   if (suspended || !d.enabled || !d.accountId || !d.protectedKey) {
     return { ok: false, message: keyProtectionError || 'Sync is off.' };
   }
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, message: SERVICE_UNAVAILABLE };
   // Palette open / Sync Now / scheduled session churn can fire before restore
   // finishes. Skip only the tab-dependent stores; Favorites/settings still run.
   if (names && names.length > 0 && names.every((name) => !tabSyncStoreReady(name))) {
