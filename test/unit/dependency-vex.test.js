@@ -192,3 +192,51 @@ test('http-cache-semantics VEX remains limited to the reviewed, cache-free build
       `${path.relative(ROOT, file)}: astro image processing requires VEX re-review`);
   }
 });
+
+test('sprintf-js VEX remains limited to the reviewed, proxy-free build tooling', () => {
+  const statement = readJson('security/openvex.json').statements.find(
+    (entry) => entry.vulnerability.name === 'GHSA-hp3w-g68c-fv3c' && entry.status === 'not_affected'
+  );
+  if (!statement) return; // Without the exception, the ordinary audit owns this finding.
+
+  const entriesOf = (lock, name) => Object.entries(lock.packages).filter(([key]) => key.endsWith(`node_modules/${name}`));
+  const consumersOf = (lock, name) => Object.entries(lock.packages)
+    .filter(([, entry]) => [entry.dependencies, entry.optionalDependencies, entry.peerDependencies]
+      .some((dependencies) => dependencies && name in dependencies))
+    .map(([key]) => key);
+
+  for (const file of ['site/package-lock.json', 'cloudflare/tab-import-worker/package-lock.json', 'extensions/blanc-tab-import/package-lock.json']) {
+    assert.deepEqual(entriesOf(readJson(file), 'sprintf-js'), [],
+      `${file}: sprintf-js entered another dependency graph; re-review the VEX statement`);
+  }
+
+  // Desktop: development-only electron-builder download chain, pinned to the reviewed versions.
+  const desktopLock = readJson('package-lock.json');
+  for (const [key, version, consumer] of [
+    ['node_modules/sprintf-js', '1.1.3', 'node_modules/roarr'],
+    ['node_modules/roarr', '2.15.4', 'node_modules/global-agent'],
+    ['node_modules/global-agent', '3.0.0', 'node_modules/app-builder-lib/node_modules/@electron/get'],
+  ]) {
+    const name = key.slice('node_modules/'.length);
+    const entry = desktopLock.packages[key];
+    assert.equal(entry?.version, version, `${key}: re-review the dependency source`);
+    assert.equal(entry.dev, true, `${key}: build tooling must stay development-only`);
+    assert.deepEqual(entriesOf(desktopLock, name).map(([k]) => k), [key], `${name}: re-review the dependency chain`);
+    assert.deepEqual(consumersOf(desktopLock, name), [consumer], `${name}: a new consumer needs reachability review`);
+  }
+  assert.equal(desktopLock.packages['node_modules/app-builder-lib/node_modules/@electron/get']?.version, '3.1.0',
+    '@electron/get: re-review when global-agent is loaded');
+
+  // global-agent loads only when a proxy is requested; nothing in the repository requests one.
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+  });
+  const files = [...walk(path.join(ROOT, 'scripts')), ...walk(path.join(ROOT, '.github')), ...walk(path.join(ROOT, 'build')),
+    path.join(ROOT, 'package.json')].filter((file) => /\.(?:[cm]?js|sh|ya?ml|json|nsh)$/.test(file));
+  assert.ok(files.length > 10, 'proxy scan found too few files');
+  for (const file of files) {
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /ELECTRON_GET_USE_PROXY|GLOBAL_AGENT_/,
+      `${path.relative(ROOT, file)}: enabling global-agent requires VEX re-review`);
+  }
+});
