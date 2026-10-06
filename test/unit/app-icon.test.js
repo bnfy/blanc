@@ -8,6 +8,7 @@ const APP_ICON_ASSETS = require('../../src/main/app-icon-assets');
 const { createIconDocument } = require('../../scripts/after-pack-app-icons');
 const {
   applyDockAppIcon,
+  createDockIconApplier,
   macOSMajorVersion,
   nativeIconNameFor,
   setWindowsAppUserModelId,
@@ -299,6 +300,69 @@ test('falls back to the PNG if the packaged asset catalog cannot resolve a name'
     ['named', 'Icon'],
     ['path', path.join('/icons', 'icon-sunrise.png')],
   ]);
+});
+
+// Decoding the 1024 px PNG and handing it to the Dock blocks the main process
+// for hundreds of milliseconds (about 2 s on hosted Intel Macs), long enough
+// for uBlock Origin's 2 s network-decision deadline to fail closed. Settings
+// writes and appearance changes therefore reapply the icon only when the image
+// the Dock would show actually changes.
+const decodes = (h) => h.calls.filter(([kind]) => kind === 'path' || kind === 'named').length;
+const dockApplier = (h, options = {}) => createDockIconApplier({
+  app: h.app, nativeImage: h.nativeImage, platform: 'darwin', iconsDirectory: '/icons', ...options,
+});
+
+test('an unrelated settings write does not reload the same Dock icon', () => {
+  const h = harness({ packaged: false });
+  const apply = dockApplier(h);
+  assert.deepEqual(apply({ appIcon: 'sunrise-dark' }), { source: 'png', appIcon: 'sunrise-dark' });
+  assert.equal(apply({ appIcon: 'sunrise-dark' }), null);
+  assert.equal(decodes(h), 1);
+  assert.equal(h.calls.filter(([kind]) => kind === 'setIcon').length, 1);
+});
+
+test('choosing another icon reloads the Dock icon', () => {
+  const h = harness({ packaged: false });
+  const apply = dockApplier(h);
+  apply({ appIcon: 'sunrise-dark' });
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'png', appIcon: 'sunrise' });
+  assert.deepEqual(h.calls.at(-2), ['path', path.join('/icons', 'icon-sunrise.png')]);
+});
+
+test('an appearance change reloads only an icon that follows appearance', () => {
+  const fixed = harness({ packaged: false });
+  const applyFixed = dockApplier(fixed);
+  applyFixed({ appIcon: 'sunrise-dark', darkAppearance: false });
+  assert.equal(applyFixed({ appIcon: 'sunrise-dark', darkAppearance: true }), null);
+  assert.equal(decodes(fixed), 1);
+
+  const adaptive = harness({ packaged: false });
+  const applyAdaptive = dockApplier(adaptive);
+  applyAdaptive({ appIcon: 'sunrise', darkAppearance: false });
+  assert.deepEqual(applyAdaptive({ appIcon: 'sunrise', darkAppearance: true }), { source: 'png', appIcon: 'sunrise-dark' });
+  assert.equal(decodes(adaptive), 2);
+
+  const native = harness({ packaged: true });
+  const applyNative = dockApplier(native, { systemVersion: '26.0' });
+  applyNative({ appIcon: 'sunrise', darkAppearance: false });
+  assert.equal(applyNative({ appIcon: 'sunrise', darkAppearance: true }), null, 'AppKit renders the adaptive stack itself');
+  assert.equal(decodes(native), 1);
+});
+
+test('a forced reapply restores the Dock icon even when unchanged', () => {
+  const h = harness({ packaged: false });
+  const apply = dockApplier(h);
+  apply({ appIcon: 'sunrise-dark' });
+  assert.deepEqual(apply({ appIcon: 'sunrise-dark' }, { force: true }), { source: 'png', appIcon: 'sunrise-dark' });
+  assert.equal(decodes(h), 2);
+});
+
+test('a Dock icon that failed to load is retried on the next apply', () => {
+  const h = harness({ packaged: false, pathEmpty: true });
+  const apply = dockApplier(h);
+  assert.equal(apply({ appIcon: 'sunrise-dark' }), null);
+  assert.equal(apply({ appIcon: 'sunrise-dark' }), null);
+  assert.equal(decodes(h), 2);
 });
 
 test('unknown ids safely resolve to Sunrise', () => {
