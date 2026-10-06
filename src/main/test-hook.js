@@ -416,6 +416,7 @@ function install(refs) {
     blockingOpenInWindow(id, tool) { return refs.runInWindowRuntime(id, () => refs.blockingOpen(tool)); },
     blockingRetry() { return refs.blockingRetry(); },
     blockingExhaustRecovery() { return refs.blockingExhaustRecovery(); },
+    blockingStallAfterNextDecision(ms, options) { return refs.blockingStallAfterNextDecision(ms, options); },
     blockingDecisionDeadline() { return refs.blockingDecisionDeadline(); },
     blockingPopup() { return refs.blockingPopup({ right: 20 }); },
     workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
