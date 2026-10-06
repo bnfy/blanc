@@ -44,6 +44,10 @@ test('constants match the approved spec', () => {
   assert.equal(recovery.DRAIN_RESERVE, 32);
   assert.equal(recovery.OUTAGE_CLAIM_MS, 10000);
   assert.equal(recovery.MAX_OUTAGE_TOKENS, 32);
+  assert.equal(recovery.LATE_TIMER_MS, 100);
+  assert.equal(recovery.FIRST_GRACE_MS, 2000);
+  assert.equal(recovery.GRACE_MS, 250);
+  assert.equal(recovery.MAX_GRACE_COUNT, 8);
 });
 
 test('a reload target exists only for the error page carrying that exact token', () => {

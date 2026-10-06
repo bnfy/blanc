@@ -864,6 +864,7 @@ try {
   const deadlinePostTab = await call('openTab', fixture + 'post-form');
   const deadlinePostPage = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/post-form')), Boolean, 'POST fixture');
   await deadlinePostPage.waitForSelector('form');
+  const graceBeforeHang = (await call('blockingStatus')).decisionGrace?.granted ?? 0;
   // An earlier stage already POSTed this form once; count from here.
   const postsBefore = methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length;
   // Hang uBO (as before), then cause one GET and one POST main-frame load.
@@ -873,7 +874,12 @@ try {
   const deadlineId = await call('openTab', fixture + 'deadline-gated');
   await deadlinePostPage.evaluate(() => document.querySelector('form').submit());
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'recovering', 'automatic recovery starts', 6000);
-  assert(Date.now() - deadlineStarted < 5000);
+  // With main free the hung decision fails at its 2 s deadline. If a real
+  // runner freeze landed on it, grace may add up to 3.75 s (2 s, then 250 ms
+  // periods), so the bound widens only when grace was actually granted.
+  const hungGraceDelta = ((await call('blockingStatus')).decisionGrace?.granted ?? 0) - graceBeforeHang;
+  console.log('uBO hung-decision grace delta:', hungGraceDelta);
+  assert(Date.now() - deadlineStarted < (hungGraceDelta ? 9000 : 5000), `hung decision failed closed in time (grace delta ${hungGraceDelta})`);
   assert(!hits.includes('/deadline-gated'), 'the hung request never reached the server');
   const recoveryStarted = Date.now();
   await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', 'automatic recovery without Retry', 30000);
@@ -883,6 +889,29 @@ try {
   assert.equal(methods.filter(item => item.method === 'POST' && item.url.startsWith('/post-result')).length, postsBefore, 'the cancelled POST is not resubmitted');
   await call('closeTab', deadlinePostTab);
   await call('closeTab', deadlineId);
+  // Freeze controls (spec 2026-10-06-ubo-deadline-grace). The same 2.5 s
+  // main-process freeze right after a decision is sent must fail uBO when
+  // grace is disabled for that one decision, and must not when it is enabled.
+  const freezeControl = async (path, grace) => {
+    await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, `warm-up closed for ${path}`, 20000);
+    const before = (await call('blockingStatus')).decisionGrace;
+    const phases = new Set();
+    const watch = setInterval(() => { call('blockingStatus').then(state => phases.add(state.phase), () => {}); }, 50);
+    await call('blockingStallAfterNextDecision', 2500, { grace });
+    const tabId = await call('openTab', fixture + path);
+    await waitForValue(() => hits.includes('/' + path), Boolean, `${path} loads`, 30000);
+    await waitForValue(() => call('blockingStatus'), state => state.phase === 'ready', `${path} ends ready`, 30000);
+    clearInterval(watch);
+    const after = (await call('blockingStatus')).decisionGrace;
+    await call('closeTab', tabId);
+    return { phases: [...phases], before, after };
+  };
+  const negative = await freezeControl('grace-negative', false);
+  assert(negative.phases.includes('recovering'), `without grace the freeze fails uBO: ${JSON.stringify(negative)}`);
+  const positive = await freezeControl('grace-positive', true);
+  assert(!positive.phases.includes('recovering') && !positive.phases.includes('failed'), `with grace the freeze does not fail uBO: ${JSON.stringify(positive)}`);
+  assert(positive.after.saved > positive.before.saved, `grace saved the frozen decision: ${JSON.stringify(positive)}`);
+  console.log('uBO decision grace:', JSON.stringify({ negative, positive }));
   // Manual path: with the budget spent, a failure shows manual recovery.
   await call('blockingExhaustRecovery');
   await waitForValue(() => call('blockingDecisionDeadline'), value => value === 2000, 'decision warm-up window closed again', 20000);

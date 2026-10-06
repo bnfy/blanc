@@ -709,3 +709,13 @@ recovery as before. Only main-frame GET loads the outage cancelled reload,
 bound to their own token; POST is never replayed. Startup failures, private
 tabs and security-posture failures are unchanged. Design:
 `docs/superpowers/specs/2026-10-06-ubo-automatic-recovery-design.md`.
+
+## Decision-deadline grace (2026-10-06)
+
+A critical uBO decision whose timeout callback runs at least 100 ms late,
+meaning Blanc's main process was frozen when it was due, gets up to eight
+250 ms grace periods for answers already queued behind the freeze. An
+on-time timeout still fails closed exactly as before; no request is sent
+undecided during grace. Under a coincident freeze a genuinely late answer can
+be accepted within that bound. The base deadlines are unchanged. Design:
+`docs/superpowers/specs/2026-10-06-ubo-deadline-grace-design.md`.
