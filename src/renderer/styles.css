@@ -1366,6 +1366,11 @@ body.mac .vertical-tabs-toolbar {
    dim, which is what separates off from quiet at a glance now that neither
    carries a background or border. */
 .shield.shield-off { color: var(--text-dim); opacity: 0.45; }
+/* uBO is restarting: requests are paused, neither protected nor off. The
+   shield stays whole; the empty count badge shrinks to a small accent dot on
+   the same shoulder, keeping its ring. */
+.shield.shield-restarting { color: var(--text-dim); }
+.shield.shield-restarting #pillShieldCount { display: block; min-width: 0; width: 4px; height: 4px; padding: 0; top: 4px; left: 16px; }
 
 /* Live-capture chip: same anatomy as the shield, but the one pill state
    that earns an alarm color (--danger) — steady, no pulse, no count. */

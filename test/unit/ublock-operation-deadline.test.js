@@ -9,7 +9,7 @@ function fixture({ warmUntil = 0 } = {}) {
   const pending = new Map(), timers = [], failures = [];
   const context = { phase: 'ready', sequence: 0, MAX_PENDING: 256, DEADLINE_MS: 2000, OPERATION_DEADLINE_MS: 10000,
     WARMUP_DEADLINE_MS: 10000, warmUntil,
-    pending, send() {}, error: null,
+    pending, send() {}, error: null, pump() {},
     setTimeout: (callback, delay) => { const timer = { callback, delay }; timers.push(timer); return timer; },
     fail: code => { failures.push(code); for (const item of pending.values()) item.reject(new Error(code)); pending.clear(); },
   };

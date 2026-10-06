@@ -50,6 +50,7 @@ const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-excepti
 const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
+const { outageReloadTarget } = require('./ublock-recovery');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -5485,6 +5486,8 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
+  claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
+  noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
   allowManagedExtensionNavigation: (tab, wc, url, source, event) => {
     const provider = blockingProviders?.forTab(tab);
     if (!provider?.extensionId || tab.private) return false;
@@ -8888,6 +8891,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isHeld: (wc) => heldWebContents.has(wc.id)
         || runtimeForPageWebContents(wc)?.resident === true,
       methodFor: (wc) => lastMainFrameMethod.get(wc.id),
+      // Reload a page uBO's outage cancelled, revalidating right before the
+      // load and again when the queued navigation actually runs (spec §3).
+      reloadAfterOutage: ({ webContentsId, token }) => {
+        const wc = webContents.fromId(webContentsId);
+        const tab = wc && tabs.get(tabIdByWebContentsId.get(wc.id));
+        const target = () => (tab && !wc.isDestroyed() && !tab.private && !tab.sleeping
+          && !heldWebContents.has(wc.id) && liveContents(tab) === wc
+          ? outageReloadTarget(wc.getURL(), token) : null);
+        const url = target();
+        if (!url) return;
+        queueTabNavigation(wc, { isCurrent: () => target() === url, run: contents => contents.loadURL(url) });
+      },
       createTab: async (runtime, url, options) => withWindowRuntime(runtime, () => {
         const id = createTab(url, { managedExtension: /^chrome-extension:/.test(url) });
         if (options.active !== false) setActiveTab(id);
@@ -9757,6 +9772,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
       blockingOpen: openUblockTool,
       blockingRetry: () => blockingProviders.retry(),
+      blockingExhaustRecovery: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.exhaustRecoveryForTest?.(),
       blockingDecisionDeadline: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.decisionDeadlineMs?.() ?? null,
       blockingPopup: openUblockPopup,
       // Playwright calls globalThis.__blanc.* from OUTSIDE any ALS context

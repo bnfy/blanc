@@ -264,3 +264,15 @@ test('a provider failure keeps its startup stage and stage timings in the bounde
   assert.deepEqual(JSON.parse(JSON.stringify(manager.status('personal').diagnostics)), [{ provider: 'ublock-origin', version: '1.75.0', error: 'ubo-initialization-failed',
     stage: 'install', timings: { cssHostLoad: 12.5, cssHostReady: 3, install: 18000 } }]);
 });
+
+test('Settings retry leaves a recovering provider to its own episode', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/blocking-providers.js'), 'utf8');
+  const retry = source.match(/  async function retry\(\) \{[\s\S]*?\n  \}/)?.[0];
+  assert(retry, 'blocking-providers still defines retry()');
+  const calls = [];
+  const provider = phase => ({ status: () => ({ phase }), retry: async () => calls.push(phase) });
+  const context = { profiles: new Map([['a', { provider: provider('recovering') }], ['b', { provider: provider('failed') }]]) };
+  vm.runInNewContext(`${retry}\nthis.retry = retry;`, context);
+  await context.retry();
+  assert.deepEqual(calls, ['failed']);
+});

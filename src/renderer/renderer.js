@@ -706,6 +706,7 @@
     pillShield.hidden = shield.mode === 'hidden';
     pillShield.classList.toggle('shield-off', shield.mode === 'off');
     pillShield.classList.toggle('shield-quiet', shield.mode === 'quiet');
+    pillShield.classList.toggle('shield-restarting', shield.mode === 'restarting');
     pillShieldCount.textContent = shield.mode === 'count' ? String(shield.count) : '';
     pillShield.title = shield.title;
     pillShield.setAttribute('aria-label', shield.title);
