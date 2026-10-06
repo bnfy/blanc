@@ -3,7 +3,7 @@
 const { app, WebContentsView, ipcMain, webContents } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, randomBytes } = require('node:crypto');
 const { isBrowserResource } = require('./blocking-resources');
 const { installVerifiedPackageAsync, installVerifiedFilesAsync, readHostSourcesAsync } = require('./ublock-package');
 const { createUblockRegistry } = require('./ublock-registry');
@@ -97,6 +97,11 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   const holdQueue = [];      // FIFO of { resolve, timer }
   let inTransit = 0;         // released from the queue, not yet in `pending`
   let drainOutstanding = 0;  // released and not yet settled
+  // Reloading pages the outage cancelled, bound to the exact request (spec §3).
+  const OUTAGE_CLAIM = recoveryOptions.outageClaimMs ?? recoveryPolicy.OUTAGE_CLAIM_MS;
+  const latestMainFrame = new Map(); // webContentsId → id of its current http(s) main-frame request
+  const outageRecords = new Map();   // request id → { webContentsId, url, at }
+  const outageTokens = new Map();    // token → { webContentsId, url, committed, recovered }
   let focusedWindowId = -1;
   // Startup stage durations in milliseconds. A failed startup keeps the stage
   // it stopped in, so diagnostics show which step stalled or failed.
@@ -213,6 +218,50 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   }
   function releaseHeld() {
     for (const entry of holdQueue.splice(0)) { clearTimeout(entry.timer); entry.resolve(false); }
+  }
+  const httpMainFrame = details => details.resourceType === 'mainFrame'
+    && Number.isInteger(details.webContentsId) && /^https?:/i.test(details.url || '');
+  function trackMainFrame(details) {
+    if (!httpMainFrame(details) || latestMainFrame.get(details.webContentsId) === details.id) return;
+    latestMainFrame.delete(details.webContentsId);
+    latestMainFrame.set(details.webContentsId, details.id);
+    if (latestMainFrame.size > 512) latestMainFrame.delete(latestMainFrame.keys().next().value);
+    for (const [id, record] of outageRecords) if (record.webContentsId === details.webContentsId && id !== details.id) outageRecords.delete(id);
+  }
+  // Only a main-frame GET the outage itself cancelled; never uBO's own blocks.
+  function noteOutage(details) {
+    if (!httpMainFrame(details) || details.method !== 'GET') return;
+    const now = Date.now();
+    for (const [id, record] of outageRecords) if (now - record.at >= OUTAGE_CLAIM) outageRecords.delete(id);
+    outageRecords.set(details.id, { webContentsId: details.webContentsId, url: details.url, at: now });
+  }
+  function claimOutage(webContentsId, url) {
+    const latest = latestMainFrame.get(webContentsId);
+    let found = null;
+    for (const [id, record] of outageRecords) {
+      if (record.webContentsId !== webContentsId) continue;
+      outageRecords.delete(id); // consumed either way
+      if (id === latest && record.url === url && Date.now() - record.at < OUTAGE_CLAIM) found = record;
+    }
+    if (!found || outageTokens.size >= recoveryPolicy.MAX_OUTAGE_TOKENS) return null;
+    const token = randomBytes(16).toString('hex');
+    outageTokens.set(token, { webContentsId, url, committed: false, recovered: phase === 'ready' && !recovering });
+    return token;
+  }
+  function maybeReload(token, entry) {
+    if (!entry.committed || !entry.recovered) return;
+    outageTokens.delete(token);
+    hooks.reloadAfterOutage?.({ webContentsId: entry.webContentsId, token, url: entry.url });
+  }
+  function noteMainFrameCommitted(webContentsId, url) {
+    for (const [token, entry] of outageTokens) {
+      if (entry.webContentsId !== webContentsId) continue;
+      if (recoveryPolicy.outageReloadTarget(url, token) === entry.url) { entry.committed = true; maybeReload(token, entry); }
+      else outageTokens.delete(token); // the tab left that error page
+    }
+  }
+  function markOutageRecovered() {
+    for (const [token, entry] of outageTokens) { entry.recovered = true; maybeReload(token, entry); }
   }
   function suspendTools() {
     if (!extension) return;
@@ -499,7 +548,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       if (recovering) finishEpisode();
       warmUntil = Date.now() + WARMUP_WINDOW_MS;
       send({ kind: 'enabled', value: enabled });
-      state('ready'); refresh(); readyResolve?.(status()); pump(); return;
+      state('ready'); refresh(); readyResolve?.(status()); pump(); markOutageRecovered(); return;
     }
     if (message.kind === 'disconnected') return fail('ubo-background-disconnected');
     if (message.kind === 'host-failed') return fail('ubo-host-capacity');
@@ -656,6 +705,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     }
   }
   async function decide(name, details) {
+    trackMainFrame(details);
     // The browser's own error/recovery pages must remain usable after a
     // provider failure. Their scheme is served by Blanc's exact allowlist.
     if (browserResource(details.url)) return {};
@@ -680,9 +730,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     // During recovery, and until its drain has settled, requests wait in one
     // FIFO queue instead of failing; they never go out undecided.
     if (phase !== 'ready' || drainActive()) {
-      if (!(await holdForRecovery())) return { cancel: true };
+      if (!(await holdForRecovery())) { noteOutage(details); return { cancel: true }; }
       inTransit--;
-      if (phase !== 'ready') { drainOutstanding--; pump(); return { cancel: true }; }
+      if (phase !== 'ready') { drainOutstanding--; pump(); noteOutage(details); return { cancel: true }; }
       return decideNow(name, details, true);
     }
     return decideNow(name, details, false);
@@ -693,6 +743,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     try {
       // The extension's own filter-data fetches use its native background.
       result = await ask({ kind: 'request', name, details: converted });
+    } catch (caught) {
+      if (caught?.message !== 'ubo-request-capacity') noteOutage(details);
+      throw caught;
     } finally {
       if (drained) { drainOutstanding--; pump(); }
     }
@@ -777,6 +830,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     if (episode) { clearTimeout(episode.deadline); clearTimeout(episode.retryTimer); episode = null; }
     recovering = false;
     releaseHeld();
+    latestMainFrame.clear(); outageRecords.clear(); outageTokens.clear();
     cancelInitialization();
     cleanup();
     suspendedTools.clear();
@@ -814,7 +868,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       Promise.resolve().then(() => instances.get(event.sender.id)?.(event, message)).catch(() => {});
     });
   }
-  return { id: 'ublock-origin', initialize, retry, exhaustRecoveryForTest, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
+  return { id: 'ublock-origin', initialize, retry, exhaustRecoveryForTest, claimOutage, noteMainFrameCommitted, decide, observe, status, setEnabled, setSite, siteState, getBlockedCount: tab => tab?.blockedCount || 0, eraseStorage, dispose, refresh, emit, registry, menus, badges, ownedCss,
     get extensionId() { return extension?.id; },
     // Read-only, for the acceptance harness.
     decisionDeadlineMs: decisionDeadline };
