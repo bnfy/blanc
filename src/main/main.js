@@ -235,7 +235,7 @@ const { setupWebAuthn } = require('./webauthn');
 const { classifyExternalNavigation, createExternalHandoff } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const {
-  applyDockAppIcon,
+  createDockIconApplier,
   setWindowsAppUserModelId,
   windowsDevelopmentIconPath,
 } = require('./app-icon');
@@ -1810,8 +1810,11 @@ function handleNativeThemeUpdated() {
 }
 
 // Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
-// into Blanc.exe by electron-builder.
-function applyAppIcon() {
+// into Blanc.exe by electron-builder. Every settings write and appearance
+// change calls this; the applier skips the slow reload unless the icon the
+// Dock would show changes.
+let applyDockIcon;
+function applyAppIcon({ force = false } = {}) {
   // getSettings() already falls back a stale retired icon id (hand-edited or
   // copied settings.json) to the default — nothing further to validate here.
   const { appIcon } = settings.getSettings();
@@ -1821,14 +1824,13 @@ function applyAppIcon() {
   const developmentDarkPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW
     ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW)
     : null;
-  applyDockAppIcon({
-    app,
-    nativeImage,
+  applyDockIcon ??= createDockIconApplier({ app, nativeImage });
+  applyDockIcon({
     appIcon,
     developmentPreviewPath,
     developmentDarkPreviewPath,
     darkAppearance: nativeTheme.shouldUseDarkColors,
-  });
+  }, { force });
 }
 
 function developmentPreviewPath(environmentKey) {
@@ -9077,7 +9079,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // native window is realized. Reapply Blanc's selected flat icon afterward
   // so the development Dock tile matches Settings from the first launch.
   if (process.platform === 'darwin' && !app.isPackaged) {
-    app.once('browser-window-created', applyAppIcon);
+    app.once('browser-window-created', () => applyAppIcon({ force: true }));
   }
   dockMenuHandle = installDockMenu({
     app, Menu, nativeImage,
