@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: Optional published version whose Linux AppImage should be launched and macOS DMG verified (for example, 1.8.1)
+        description: Optional published version whose Linux AppImage should be launched and Apple Silicon and Intel macOS DMGs verified (for example, 1.8.1)
         required: false
         type: string
   push:
@@ -105,7 +105,22 @@ jobs:
 
   published-macos-dmg:
     if: ${{ inputs.release_version != '' }}
-    runs-on: macos-15
+    # Apple Silicon is the default Mac build; Intel ships alongside it in every
+    # release, so each published DMG is checked on its own native runner.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+            artifact_suffix: '-arm64'
+            binary_arch: arm64
+          - arch: x64
+            runner: macos-15-intel
+            artifact_suffix: ''
+            binary_arch: x86_64
+    name: published-macos-dmg (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate release version
@@ -120,19 +135,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.release_version }}
+          ARTIFACT_SUFFIX: ${{ matrix.artifact_suffix }}
         run: |
           mkdir release-smoke-mac
           gh release download "v$VERSION" \
             --repo "$GITHUB_REPOSITORY" \
-            --pattern "Blanc-$VERSION-arm64.dmg" \
+            --pattern "Blanc-$VERSION$ARTIFACT_SUFFIX.dmg" \
             --pattern SHA256SUMS \
             --dir release-smoke-mac
-      - name: Verify published DMG digest and signing identity
+      - name: Verify published DMG digest, signing identity, architecture and launch
         env:
           VERSION: ${{ inputs.release_version }}
+          ARTIFACT_SUFFIX: ${{ matrix.artifact_suffix }}
+          BINARY_ARCH: ${{ matrix.binary_arch }}
         run: |
           set -euo pipefail
-          ARTIFACT="Blanc-$VERSION-arm64.dmg"
+          ARTIFACT="Blanc-$VERSION$ARTIFACT_SUFFIX.dmg"
           EXPECTED=$(awk -v file="$ARTIFACT" '$2 == file { print $1 }' release-smoke-mac/SHA256SUMS)
           [ -n "$EXPECTED" ] || { echo "$ARTIFACT is missing from SHA256SUMS" >&2; exit 1; }
           ACTUAL=$(shasum -a 256 "release-smoke-mac/$ARTIFACT" | awk '{ print $1 }')
@@ -168,3 +186,27 @@ jobs:
             exit 1
           }
           xcrun stapler validate "$APP"
+
+          EXECUTABLE="$APP/Contents/MacOS/Blanc"
+          ARCHS=$(lipo -archs "$EXECUTABLE")
+          [ "$ARCHS" = "$BINARY_ARCH" ] || {
+            echo "Expected a $BINARY_ARCH executable, found: $ARCHS" >&2
+            exit 1
+          }
+
+          # Native launch on this runner's architecture: the process must still
+          # be running (not crashed or exited) after startup settles.
+          PROFILE_DIR=$(mktemp -d "$RUNNER_TEMP/blanc-profile-XXXXXX")
+          "$EXECUTABLE" --user-data-dir="$PROFILE_DIR" >"$RUNNER_TEMP/blanc-launch.log" 2>&1 &
+          BLANC_PID=$!
+          sleep 20
+          STATE=$(ps -o stat= -p "$BLANC_PID" || true)
+          kill "$BLANC_PID" 2>/dev/null || true
+          wait "$BLANC_PID" 2>/dev/null || true
+          case "$STATE" in
+            ''|Z*)
+              cat "$RUNNER_TEMP/blanc-launch.log" >&2
+              echo "Published $ARTIFACT did not stay running on $BINARY_ARCH" >&2
+              exit 1
+              ;;
+          esac

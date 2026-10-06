@@ -127,7 +127,10 @@ use the connected GitHub app for repository/PR operations and verify whether
 the existing Git credential can push. Do not ask the user to run `gh auth login`
 unless the unsandboxed CLI check, GitHub app, and Git credential have all failed.
 
-For the normal Apple-Silicon stable release from Terminal.app:
+For the normal stable release from Terminal.app. Apple Silicon is the default
+Mac build and Intel ships alongside it in every release; `release.sh` refuses a
+single Mac architecture unless `BLANC_MAC_ARCH_WAIVER` gives a reason, which
+the release incident must record:
 
 ```sh
 cd "/Users/anthonyjloria/Projects/Blanc Browser"
@@ -136,7 +139,7 @@ BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
-BLANC_MAC_ARCHES=arm64 \
+BLANC_MAC_ARCHES=arm64,x64 \
 npm run release
 ```
 
@@ -150,7 +153,7 @@ BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
 BLANC_RELEASE_PLATFORMS=mac,windows,linux \
-BLANC_MAC_ARCHES=arm64 \
+BLANC_MAC_ARCHES=arm64,x64 \
 npm run release
 ```
 
@@ -263,9 +266,11 @@ trust anchor. Never copy the expected identity from the bundle being checked.
   its SHA-256 digest and the authenticated manifest.
 
 The exact-tag `.github/workflows/prerelease-smoke.yml` dispatch also downloads
-the public macOS DMG on a hosted `macos-15` runner, checks its manifest digest,
-mounts it read-only, runs strict deep `codesign`, pins the Developer ID team and
-leaf-certificate fingerprint, and validates the stapled application ticket.
+each public macOS DMG on a native hosted runner (Apple Silicon on `macos-15`,
+Intel on `macos-15-intel`), checks its manifest digest, mounts it read-only,
+runs strict deep `codesign`, pins the Developer ID team and leaf-certificate
+fingerprint, validates the stapled application ticket, confirms the executable's
+architecture, and checks that the app stays running after a native launch.
 This independent hosted check complements rather than replaces the local
 Gatekeeper assessment above.
 
