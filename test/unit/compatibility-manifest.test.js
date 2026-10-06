@@ -55,7 +55,10 @@ test('generated matrix exposes pinned references, dates and untested limitations
   const rendered = render(copy());
   assert.match(rendered, /Evidence date \| Pinned evidence/);
   assert.match(rendered, new RegExp(original.release.sha));
-  assert.match(rendered, /https:\/\/github.com\/bnfy\/blanc\/blob\/[a-f0-9]{40}\//);
+  const pinnedLinks = [...rendered.matchAll(/\]\((https:[^)\s]+)\)/g)]
+    .map((match) => new URL(match[1]))
+    .filter((url) => url.hostname === 'github.com' && /^\/bnfy\/blanc\/blob\/[a-f0-9]{40}\//.test(url.pathname));
+  assert.ok(pinnedLinks.length > 0, 'expected commit-pinned github.com/bnfy/blanc links');
   assert.equal(rendered, fs.readFileSync(path.join(root, 'docs/compatibility/README.md'), 'utf8'));
   const special = copy(); special.scenarios[0].notes = 'one | two\nthree';
   assert.ok(render(special).includes('one \\| two three'));
