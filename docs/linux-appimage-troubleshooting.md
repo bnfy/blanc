@@ -125,6 +125,25 @@ Sources:
 - [snapd browser-support policy](https://github.com/canonical/snapd/blob/master/interfaces/builtin/browser_support.go)
 - [Electron process sandboxing](https://www.electronjs.org/docs/latest/tutorial/sandbox)
 
+## Flatpak packages
+
+Bananify Creative does not publish a Blanc Flatpak. FlatPark lists a
+community package, `com.blancbrowser.Blanc`, which unpacks the official
+AppImage unmodified and runs it through zypak with the Chromium sandbox on.
+Bananify has not tested it. Follow
+[issue #580](https://github.com/bnfy/blanc/issues/580) for status, and report
+package problems to [FlatPark](https://github.com/flatpark/flatpark/issues).
+
+### For packagers
+
+A Flatpak that delivers Blanc updates itself should set
+`BLANC_UPDATE_CHANNEL=flatpak` in its launcher. Inside a Flatpak sandbox
+(`/.flatpak-info` exists) on Linux, Blanc then never checks for or downloads
+updates, and **Check for Updates** says that Flatpak keeps it current. The same
+value outside a Flatpak sandbox is unsupported, and updates stay off with a
+warning. The sandbox rules above apply unchanged: launch without
+sandbox-disabling switches.
+
 ## Older AppImages
 
 Public v1.23.0 and earlier can fail with

@@ -5,7 +5,7 @@ const { createUpdateRestarter } = require('./update-restart');
 const { createUpdaterLog } = require('./updater-log');
 const { createWindowsSignatureVerifier } = require('./updater-signature');
 const { createWindowsUpdateTrustGate } = require('./windows-update-trust');
-const { resolveUpdaterPolicy } = require('./updater-policy');
+const { FLATPAK_CHANNEL, resolveUpdaterPolicy } = require('./updater-policy');
 const { buildStagingStatus, writeStagingStatus } = require('./updater-staging-status');
 const {
   createDownloadProgressLogger,
@@ -164,6 +164,10 @@ function setupAutoUpdater() {
   if (!app.isPackaged) return; // dev builds have nothing to update against
 
   activePolicy = resolveUpdaterPolicy({ isPackaged: app.isPackaged });
+  if (activePolicy.mode === FLATPAK_CHANNEL) {
+    console.info(`[updater] off: ${activePolicy.reason}`);
+    return;
+  }
   if (!activePolicy.enabled) {
     console.warn(`[updater] disabled for this launch: ${activePolicy.reason}`);
     return;
@@ -313,6 +317,14 @@ function setupAutoUpdater() {
 async function checkForUpdatesManually() {
   if (!app.isPackaged) {
     showDialog({ type: 'info', message: 'Updates are only available in packaged builds.' });
+    return;
+  }
+  if (activePolicy?.mode === FLATPAK_CHANNEL) {
+    showDialog({
+      type: 'info',
+      message: 'Flatpak keeps Blanc up to date',
+      detail: 'Update Blanc from your software center, or run "flatpak update" in a terminal.',
+    });
     return;
   }
   if (activePolicy && !activePolicy.enabled) {
