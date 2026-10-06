@@ -194,6 +194,30 @@ class JsonStore {
     });
   }
 
+  /** Whether the active entry has changes not yet committed to disk. */
+  get dirty() { return this.#dirtyEntry(this.#entry()); }
+
+  #waitFor(entry, target) {
+    return new Promise(resolve => { entry.waiters.push({ target, resolve }); this.#routine(entry); });
+  }
+
+  /** Apply a change and write it now, off the main thread (no rollback). */
+  updateAndCommit(fn) {
+    const entry = this.#entry();
+    if (entry.inert) return Promise.resolve(false);
+    fn(entry.data);
+    entry.changeSeq++;
+    return this.#waitFor(entry, entry.changeSeq);
+  }
+
+  /** Write already-applied changes now, off the main thread. */
+  commitPending() {
+    const entry = this.#entry();
+    if (entry.inert) return Promise.resolve(false);
+    if (!this.#dirtyEntry(entry)) return Promise.resolve(true);
+    return this.#waitFor(entry, entry.changeSeq);
+  }
+
   /** Test support: resolves when the active entry has no routine write in flight. */
   async settled() {
     const entry = this.#entry();

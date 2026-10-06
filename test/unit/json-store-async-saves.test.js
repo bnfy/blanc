@@ -127,3 +127,43 @@ test('a failed updateAndFlush during a held write never persists the rejected ch
   s.flushPending();
   assert.deepEqual(read(s.file), { a: 1, b: 0 }, 'B never reaches disk');
 }));
+
+test('updateAndCommit resolves true on commit, including when a newer flush covers it', async () => {
+  const s = new JsonStore('commit-ok', { n: 0 });
+  assert.equal(await s.updateAndCommit(d => { d.n = 1; }), true);
+  assert.equal(read(s.file).n, 1); assert.equal(s.dirty, false);
+  await withHold(async hold => {
+    const pending = s.updateAndCommit(d => { d.n = 2; });
+    await hold.syncEntered;
+    assert.equal(s.flush(), true);
+    hold.release();
+    assert.equal(await pending, true);
+  });
+});
+
+test('updateAndCommit resolves false on failure and keeps the change dirty in memory', async () => {
+  const s = new JsonStore('commit-fail', { n: 0 });
+  await withHold(async hold => {
+    const pending = s.updateAndCommit(d => { d.n = 1; });
+    await hold.syncEntered; hold.fail(new Error('EIO'));
+    assert.equal(await pending, false);
+  });
+  assert.equal(s.data.n, 1); assert.equal(s.dirty, true);
+  assert.equal(await s.commitPending(), true);
+  assert.equal(read(s.file).n, 1); assert.equal(s.dirty, false);
+});
+
+test('a serialization failure resolves updateAndCommit false and keeps the change dirty', async () => {
+  const s = new JsonStore('unserializable-commit', { n: 0 });
+  assert.equal(await s.updateAndCommit(d => { d.n = 1; d.bad = 1n; }), false);
+  assert.equal(s.dirty, true);
+  delete s.data.bad;
+  assert.equal(await s.commitPending(), true);
+  assert.equal(read(s.file).n, 1);
+});
+
+test('commitPending on a clean entry resolves true without writing', async () => {
+  const s = new JsonStore('commit-clean', { n: 0 });
+  assert.equal(await s.commitPending(), true);
+  assert.equal(fs.existsSync(s.file), false);
+});
