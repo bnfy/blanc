@@ -134,6 +134,15 @@ done
   echo "At least one mac architecture must be selected." >&2
   exit 1
 }
+# Intel Macs are a supported platform: every release ships arm64 and x64 so
+# Intel installs keep receiving updates. Dropping one needs a recorded reason.
+MAC_ARCH_WAIVER="${BLANC_MAC_ARCH_WAIVER:-}"
+if ! { $HAS_MAC_ARM64 && $HAS_MAC_X64; } && [ -z "$MAC_ARCH_WAIVER" ]; then
+  echo "BLANC_MAC_ARCHES must be arm64,x64: Apple Silicon and Intel are both supported." >&2
+  echo "To ship a single architecture, set BLANC_MAC_ARCH_WAIVER to the reason and record it in the release incident." >&2
+  exit 1
+fi
+[ -z "$MAC_ARCH_WAIVER" ] || echo "==> Mac architecture waiver: $MAC_ARCH_WAIVER"
 
 HOST_ARCH="$(uname -m)"
 case "$HOST_ARCH" in
