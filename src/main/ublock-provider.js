@@ -94,6 +94,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
   let recovering = false;
   let episode = null; // { code, attempt, firstDelay, scheduled, deadlineAt, deadline, retryTimer }
   let lastRecovery = null;
+  const holdQueue = [];      // FIFO of { resolve, timer }
+  let inTransit = 0;         // released from the queue, not yet in `pending`
+  let drainOutstanding = 0;  // released and not yet settled
   let focusedWindowId = -1;
   // Startup stage durations in milliseconds. A failed startup keeps the stage
   // it stopped in, so diagnostics show which step stalled or failed.
@@ -182,8 +185,35 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     clearTimeout(current.deadline); clearTimeout(current.retryTimer);
     lastRecovery = { kind: 'recovered', attempt: current.attempt };
   }
-  // Task 4 replaces this with the hold queue.
-  function releaseHeld() {}
+  const drainActive = () => holdQueue.length > 0 || drainOutstanding > 0;
+  // Resolves true when the request may ask uBO, false when it must be cancelled.
+  function holdForRecovery() {
+    if (holdQueue.length >= recoveryPolicy.HOLD_CAPACITY) return Promise.resolve(false);
+    return new Promise(resolve => {
+      const entry = { resolve, timer: null };
+      entry.timer = setTimeout(() => {
+        const index = holdQueue.indexOf(entry);
+        if (index !== -1) holdQueue.splice(index, 1);
+        resolve(false);
+      }, RECOVERY_DEADLINE);
+      holdQueue.push(entry);
+      pump();
+    });
+  }
+  // Release held requests while decision slots remain, leaving room for other
+  // operations; every settled decision calls this again.
+  function pump() {
+    while (phase === 'ready' && !recovering && holdQueue.length
+      && pending.size + inTransit < MAX_PENDING - recoveryPolicy.DRAIN_RESERVE) {
+      const entry = holdQueue.shift();
+      clearTimeout(entry.timer);
+      inTransit++; drainOutstanding++;
+      entry.resolve(true);
+    }
+  }
+  function releaseHeld() {
+    for (const entry of holdQueue.splice(0)) { clearTimeout(entry.timer); entry.resolve(false); }
+  }
   function suspendTools() {
     if (!extension) return;
     const desc = recovering ? 'uBlock%20Origin%20is%20restarting' : 'uBlock%20Origin%20needs%20retry';
@@ -206,7 +236,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     if (pending.size >= MAX_PENDING) return Promise.reject(new Error('ubo-request-capacity'));
     const id = ++sequence;
     const critical = message.kind === 'request' && ['onBeforeRequest', 'onBeforeSendHeaders', 'onHeadersReceived'].includes(message.name);
-    return new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         if (critical) fail('ubo-decision-timeout');
         else { pending.delete(id); reject(new Error('ubo-operation-timeout')); }
@@ -214,6 +244,9 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       pending.set(id, { resolve, reject, timer, critical, transport: 'background' });
       try { send({ ...message, id }); } catch { fail('ubo-background-unavailable'); }
     });
+    // A settled decision frees a slot for held requests.
+    promise.then(pump, pump);
+    return promise;
   }
   function refresh() {
     registry.refresh();
@@ -466,7 +499,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       if (recovering) finishEpisode();
       warmUntil = Date.now() + WARMUP_WINDOW_MS;
       send({ kind: 'enabled', value: enabled });
-      state('ready'); refresh(); readyResolve?.(status()); return;
+      state('ready'); refresh(); readyResolve?.(status()); pump(); return;
     }
     if (message.kind === 'disconnected') return fail('ubo-background-disconnected');
     if (message.kind === 'host-failed') return fail('ubo-host-capacity');
@@ -643,10 +676,26 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
       if (!guardedResource) return {};
     }
     if (!enabled && !guardedResource) return {};
-    if (phase !== 'ready') return { cancel: true };
+    if (phase !== 'ready' && !recovering) return { cancel: true };
+    // During recovery, and until its drain has settled, requests wait in one
+    // FIFO queue instead of failing; they never go out undecided.
+    if (phase !== 'ready' || drainActive()) {
+      if (!(await holdForRecovery())) return { cancel: true };
+      inTransit--;
+      if (phase !== 'ready') { drainOutstanding--; pump(); return { cancel: true }; }
+      return decideNow(name, details, true);
+    }
+    return decideNow(name, details, false);
+  }
+  async function decideNow(name, details, drained) {
     const converted = registry.request(details);
-    // The extension's own filter-data fetches use its native background.
-    const result = await ask({ kind: 'request', name, details: converted });
+    let result;
+    try {
+      // The extension's own filter-data fetches use its native background.
+      result = await ask({ kind: 'request', name, details: converted });
+    } finally {
+      if (drained) { drainOutstanding--; pump(); }
+    }
     if (!result || typeof result !== 'object' || Array.isArray(result)
       || Object.keys(result).some(key => !['cancel', 'redirectUrl', 'requestHeaders', 'responseHeaders'].includes(key))
       || (result.cancel !== undefined && typeof result.cancel !== 'boolean')) { fail('ubo-response-invalid'); return { cancel: true }; }
@@ -727,6 +776,7 @@ function createUblockProvider({ session, profileId, hooks, onStateChange = () =>
     disposed = true;
     if (episode) { clearTimeout(episode.deadline); clearTimeout(episode.retryTimer); episode = null; }
     recovering = false;
+    releaseHeld();
     cancelInitialization();
     cleanup();
     suspendedTools.clear();

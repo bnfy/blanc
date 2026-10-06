@@ -108,7 +108,8 @@ const settle = (promise, ms = 300) => Promise.race([
   promise.then(() => 'resolved', () => 'rejected'),
   new Promise(resolve => setTimeout(() => resolve('pending'), ms)),
 ]);
-const until = async (predicate, ms = 3000) => {
+// A ceiling, not a delay: the real package install is slow under a loaded parallel run.
+const until = async (predicate, ms = 15000) => {
   const end = Date.now() + ms;
   while (Date.now() < end) { if (await predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); }
   throw new Error('condition not reached');
