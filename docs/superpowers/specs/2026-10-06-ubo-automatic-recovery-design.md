@@ -1,8 +1,8 @@
 # Automatic recovery when uBlock Origin fails mid-session
 
 **Date:** 2026-10-06
-**Status:** approved 2026-10-06 (revision 3, after two reviews) — not
-implemented
+**Status:** approved 2026-10-06 (revision 3, after two reviews) — implemented in
+https://github.com/bnfy/blanc/pull/596
 **Amends:** the runtime-failure behavior in
 `docs/ublock-origin-implementation-2026-10-02.md` ("timeout/background loss
 cancels affected requests and marks failure") and the matching sentence in

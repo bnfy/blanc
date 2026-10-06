@@ -1330,13 +1330,11 @@ In `shieldProviderModel`, after `else if (off) detail = 'Blocking is off.';`:
 `src/renderer/styles.css` after `.shield.shield-off`:
 
 ```css
-/* uBO is restarting: requests are paused, neither protected nor off. A dashed
-   outline reads as "not settled" without motion; butt caps keep the dashes
-   square so it holds the shield's shape. The cut is trimmed short of the
-   outline at both ends here: where it met a dash it formed a checkmark. */
+/* uBO is restarting: requests are paused, neither protected nor off. The
+   shield stays whole; the empty count badge shrinks to a small accent dot on
+   the same shoulder, keeping its ring. */
 .shield.shield-restarting { color: var(--text-dim); }
-.shield.shield-restarting svg path:first-child { stroke-dasharray: 2.4 1.3; stroke-linecap: butt; }
-.shield.shield-restarting svg path:last-child { stroke-dasharray: 0 1.9 7.6 6; }
+.shield.shield-restarting #pillShieldCount { display: block; min-width: 0; width: 4px; height: 4px; padding: 0; top: 4px; left: 16px; }
 ```
 
 `browser-api/contract.json:143`: `"type": "'hidden' | 'off' | 'count' | 'quiet' | 'restarting'"`, then run `npm run browser-api:build`.
