@@ -4,7 +4,9 @@ const assert = require('node:assert/strict');
 const { createProviderHarness, until, plain } = require('./support/ublock-provider-harness');
 const { createRecoveryBudget } = require('../../src/main/ublock-recovery');
 
-const fast = (options = {}) => ({ budget: createRecoveryBudget({ delaysMs: [0, 0, 0], ...options }), deadlineMs: 2000 });
+// Tests that are not about the episode deadline give it far longer than a
+// restart takes, since the harness reinstalls the real package each time.
+const fast = (options = {}) => ({ budget: createRecoveryBudget({ delaysMs: [0, 0, 0], ...options }), deadlineMs: 60000 });
 async function ready(h) { await h.provider.initialize(); assert.equal(h.provider.status().phase, 'ready'); }
 
 test('a crash after ready restarts uBO automatically', async t => {

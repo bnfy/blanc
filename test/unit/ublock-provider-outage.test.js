@@ -8,7 +8,7 @@ const PAGE = 'https://example.org/article';
 const errorUrl = token => `blanc://error/?${new URLSearchParams({ url: PAGE, code: '-20', desc: 'ERR_BLOCKED_BY_CLIENT', ...(token ? { outage: token } : {}) })}`;
 function setup(t, extra = {}) {
   const reloads = [];
-  const h = createProviderHarness(t, { recovery: { budget: createRecoveryBudget({ delaysMs: [0, 0, 0] }), deadlineMs: 2000, ...extra },
+  const h = createProviderHarness(t, { recovery: { budget: createRecoveryBudget({ delaysMs: [0, 0, 0] }), deadlineMs: 60000, ...extra },
     hooks: { reloadAfterOutage: entry => reloads.push(entry) } });
   return { h, reloads };
 }

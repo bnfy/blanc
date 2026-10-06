@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { createProviderHarness, settle, until, plain } = require('./support/ublock-provider-harness');
 const { createRecoveryBudget } = require('../../src/main/ublock-recovery');
 
-const recovery = { budget: createRecoveryBudget({ delaysMs: [0, 0, 0] }), deadlineMs: 2000 };
+const recovery = { budget: createRecoveryBudget({ delaysMs: [0, 0, 0] }), deadlineMs: 60000 };
 let nextRequest = 1;
 const request = (h, extra = {}) => h.provider.decide('onBeforeRequest',
   { id: nextRequest++, url: `https://example.org/r${nextRequest}`, resourceType: 'script', method: 'GET', webContentsId: 9, ...extra });
@@ -80,7 +80,7 @@ test('held requests are cancelled when the episode deadline passes', async t => 
 });
 
 test('without an episode a failed provider still cancels at once', async t => {
-  const h = createProviderHarness(t, { recovery: { budget: createRecoveryBudget({ limit: 0 }), deadlineMs: 2000 } });
+  const h = createProviderHarness(t, { recovery: { budget: createRecoveryBudget({ limit: 0 }), deadlineMs: 60000 } });
   await h.provider.initialize();
   h.crashBackground();
   assert.deepEqual(plain(await request(h)), { cancel: true });
