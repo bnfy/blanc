@@ -234,7 +234,7 @@ New `#routine(entry)` and helpers:
     clearTimeout(entry.saveTimer);
     entry.saveTimer = null;
     entry.pendingSince = null;
-    if (entry.discarded || entry.inert) return;
+    if (entry.discarded) return; // inert entries are created discarded
     if (entry.inFlight) { entry.rewrite = true; return; }
     if (!this.#dirtyEntry(entry)) { this.#settleWaiters(entry); return; }
     const changeSeq = entry.changeSeq;
@@ -323,7 +323,8 @@ New `#routine(entry)` and helpers:
 ```js
   flushPending() {
     for (const entry of this.entries.values()) {
-      if (!entry.inert && (entry.saveTimer || this.#dirtyEntry(entry))) this.#flush(entry);
+      // A save timer is only armed after a change, so dirty covers it.
+      if (this.#dirtyEntry(entry)) this.#flush(entry);
     }
   }
 ```
