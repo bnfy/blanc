@@ -170,7 +170,183 @@
     return dissolves ? `${base}. Group ${nameOf(from)} removed` : base;
   }
 
+  function createDragSession(fx) {
+    let phase = 'idle';
+    let pointerId = null;
+    let source = null;
+    let startX = 0;
+    let startY = 0;
+    let lastY = 0;
+    let model = null;
+    let hit = null;
+    let frame = 0;
+    // Bumped by every end(); a drop result only counts for the drop that
+    // issued it. There is deliberately no timeout: the IPC cannot be
+    // cancelled, so a renderer timeout could announce a failure main later
+    // turns into a success. Main's broadcast stays the source of truth.
+    let generation = 0;
+
+    const resolve = () => {
+      hit = source.kind === 'group'
+        ? resolveGroupDrop(model, source.id, lastY)
+        : resolveTabDrop(model, source, lastY);
+      fx.setIndicator(hit ? hit.indicator : null);
+    };
+
+    const edgeSpeed = () => {
+      if (!model) return 0;
+      const { EDGE_PX, MAX_SCROLL_STEP } = constants;
+      if (lastY < model.top + EDGE_PX) {
+        return -Math.ceil(((model.top + EDGE_PX - lastY) / EDGE_PX) * MAX_SCROLL_STEP);
+      }
+      if (lastY > model.bottom - EDGE_PX) {
+        return Math.ceil(((lastY - (model.bottom - EDGE_PX)) / EDGE_PX) * MAX_SCROLL_STEP);
+      }
+      return 0;
+    };
+
+    const tick = () => {
+      frame = 0;
+      if (phase !== 'dragging') return;
+      const speed = edgeSpeed();
+      if (!speed) return;
+      fx.scrollBy(Math.max(-constants.MAX_SCROLL_STEP, Math.min(constants.MAX_SCROLL_STEP, speed)));
+      model = fx.readModel();
+      resolve();
+      frame = fx.requestFrame(tick);
+    };
+
+    const scheduleScroll = () => {
+      if (!frame && edgeSpeed()) frame = fx.requestFrame(tick);
+    };
+
+    /** The single teardown every exit path uses (spec §2, endDrag). */
+    function end() {
+      const wasActive = phase === 'dragging' || phase === 'settling';
+      const wasDragging = phase === 'dragging';
+      generation += 1;
+      if (frame) fx.cancelFrame(frame);
+      frame = 0;
+      const id = pointerId;
+      phase = 'idle';
+      pointerId = null;
+      hit = null;
+      if (!wasActive) { source = null; return; }
+      if (wasDragging) fx.release(id);
+      fx.removeGhost();
+      fx.setIndicator(null);
+      fx.setSourceDim(false);
+      fx.setDragging(false);
+      source = null;
+      model = null;
+      fx.onActiveChange(false);
+    }
+
+    function start() {
+      phase = 'dragging';
+      fx.capture(pointerId);
+      fx.setDragging(true);
+      model = fx.readModel();
+      fx.setSourceDim(true);
+      fx.showGhost(source, lastY);
+      fx.suppressClick();
+      fx.onActiveChange(true);
+    }
+
+    function drop() {
+      const intent = hit?.intent;
+      if (!intent) { end(); return; }
+      const title = source.title || (source.kind === 'group' ? 'group' : 'tab');
+      // Settling first: releasing capture can fire lostpointercapture
+      // synchronously, and that must not cancel the drop being committed.
+      phase = 'settling';
+      fx.release(pointerId);
+      fx.removeGhost();
+      fx.setIndicator(null);
+      if (frame) { fx.cancelFrame(frame); frame = 0; }
+      const mine = generation;
+      const finish = (ok) => {
+        if (mine !== generation || phase !== 'settling') return; // aborted or already ended
+        if (ok !== true) fx.announce(`Couldn't move ${title}`);
+        end();
+      };
+      let result;
+      try { result = fx.onDrop(intent); } catch { finish(false); return; }
+      Promise.resolve(result).then(finish, () => finish(false));
+    }
+
+    function sourceStillValid(payload) {
+      if (source.kind === 'group') return (payload?.groups || []).some((g) => g.id === source.id);
+      const tab = (payload?.tabs || []).find((t) => t.id === source.id);
+      if (!tab) return false;
+      if (!!tab.pinned !== !!source.pinned) return false;
+      const original = source.groupId ?? null;
+      if ((tab.groupId ?? null) !== original) return false;
+      if (original !== null && !(payload?.groups || []).some((g) => g.id === original)) return false;
+      return true;
+    }
+
+    return {
+      phase: () => phase,
+      isActive: () => phase === 'dragging' || phase === 'settling',
+      pointerDown(event) {
+        if (phase !== 'idle' || !event.source) return;
+        phase = 'pending';
+        pointerId = event.pointerId;
+        source = event.source;
+        startX = event.x;
+        startY = event.y;
+        lastY = event.y;
+      },
+      pointerMove(event) {
+        if (event.pointerId !== pointerId) return;
+        lastY = event.y;
+        if (phase === 'pending') {
+          // Total distance from the press point (Euclidean), per the spec.
+          if (Math.hypot(event.x - startX, event.y - startY) < constants.DRAG_THRESHOLD_PX) return;
+          start();
+        }
+        if (phase !== 'dragging') return;
+        fx.moveGhost(lastY);
+        resolve();
+        scheduleScroll();
+      },
+      pointerUp(event) {
+        if (event.pointerId !== pointerId) return;
+        if (phase === 'pending') { end(); return; }
+        if (phase === 'dragging') drop();
+      },
+      pointerCancel(event) {
+        if (event.pointerId === pointerId && (phase === 'pending' || phase === 'dragging')) end();
+      },
+      lostCapture(event) {
+        if (event.pointerId === pointerId && phase === 'dragging') end();
+      },
+      escape() {
+        if (phase === 'dragging') { end(); return true; }
+        // Consume, but never cancel a move that has already been sent.
+        return phase === 'settling';
+      },
+      scrolled() {
+        if (phase !== 'dragging') return;
+        model = fx.readModel();
+        resolve();
+      },
+      notePayload(payload) {
+        // While settling, payloads are expected to reflect the move itself.
+        if (phase !== 'dragging' || !source) return;
+        if (!sourceStillValid(payload)) end();
+      },
+      /** Forced end for pagehide, overlay hide, list-mode and layout changes:
+       * works in every phase and invalidates a pending drop result. */
+      cancel() {
+        end();
+      },
+    };
+  }
+
   globalThis.blancTabDrag = {
     constants, resolveTabDrop, resolveGroupDrop, keyboardTabMove, keyboardGroupMove, describeMove,
+    createDragSession,
   };
 })();
