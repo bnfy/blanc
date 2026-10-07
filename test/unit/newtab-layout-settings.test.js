@@ -3,6 +3,7 @@ const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { waitForJson } = require('./support/wait-for-json');
 
 const electronId = require.resolve('electron');
 const originalElectron = require.cache[electronId];
@@ -317,7 +318,7 @@ test('time-of-day wallpaper is free, strict, persistent and synced without its l
   settings.setSettings({ newtabDynamicWallpaper: true });
   assert.equal(settings.isPatronActive(), false);
   assert.equal(settings.isDynamicWallpaperEnabled(), true);
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await waitForJson(path.join(userData, 'settings.json'), (json) => json.newtabDynamicWallpaper === true);
   settings = loadSettings(userData);
   assert.equal(settings.isDynamicWallpaperEnabled(), true);
   const exported = settings.exportForSync();
