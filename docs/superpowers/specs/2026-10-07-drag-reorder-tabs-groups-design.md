@@ -1,6 +1,6 @@
 # Drag to reorder tabs and groups — vertical rail and expanded island
 
-Status: design approved in conversation 2026-10-07; awaiting written-spec review.
+Status: design approved in conversation 2026-10-07; revised after written-spec review round 1.
 
 ## Goal
 
@@ -62,8 +62,13 @@ Replaces `tabs:reorder-within-bucket`.
   members first (`clusterList`, both renderers), so only order relative to
   bucket members matters.
 - Rejected: an unknown or foreign-window tab, `beforeId` or group, and a
-  `beforeId` outside the target bucket. `beforeId === id` is an accepted
-  no-op.
+  `beforeId` outside the target bucket.
+- Self-target: `beforeId === id` is an accepted no-op **only** when
+  `groupId` equals the tab's current group (the target bucket is the one the
+  tab already occupies). When a group change is requested, the tab is not a
+  member of the target bucket, so `beforeId === id` fails target-bucket
+  validation and is rejected like any other wrong-bucket `beforeId`. The
+  self-target check never runs before, or instead of, bucket validation.
 - A group change goes through the same path as Move to Group, so
   `pruneEmptyGroups` dissolves a group whose last tab leaves. The target
   group's `collapsed` state is untouched.
@@ -124,18 +129,75 @@ tab-id payload a web page could otherwise receive.
   are valid targets.
 - The list auto-scrolls near its top and bottom edges. Row rects are cached
   at drag start and refreshed on scroll.
-- Escape, `pointercancel` or `lostpointercapture` cancel. On drop, the source
-  row stays dimmed until the IPC resolves; the `tabs:updated` broadcast then
-  re-renders the list, so nothing snaps back first.
+- Escape, `pointercancel` or `lostpointercapture` cancel. The controller
+  stops Escape's propagation while dragging, so the rail's own Escape handler
+  (return focus to the active tab) does not also fire.
+- Releasing outside the list (over page content, or outside the overlay's
+  bounds) resolves to no target and cancels. Nothing is put on a
+  `DataTransfer`, the clipboard or any other channel a page can read.
 
-### Overlay focus guard
+### Drop outcome
+
+On drop the source row stays dimmed (the drag is "settling") until the IPC
+promise settles:
+
+- **Resolves `true`:** the deferred render (below) applies the broadcast
+  order.
+- **Resolves `false` (rejected or stale) or rejects (IPC error):** the
+  source row is undimmed, the lifted copy and indicators are removed, the
+  latest deferred payload (if any) is rendered, and the live region
+  announces "Couldn't move *title*". The order is whatever main reports; the
+  controller never applies an order of its own.
+
+Every exit path (drop settled, cancel, error, `lostpointercapture`, the
+source disappearing, `pagehide`) runs the same `endDrag()` teardown: release
+capture, remove the lifted copy, dimming and indicators, stop auto-scroll,
+flush the deferred render, and (overlay only) report drag-state `false`.
+
+### Live re-renders during a drag
+
+A `tabs:updated` broadcast can arrive mid-drag (title, favicon, loading,
+blocker count, a new tab elsewhere) and would replace the captured source
+row. Resting-list renders are therefore **deferred** while a drag is active
+or settling:
+
+- Each surface keeps only the latest payload. The other chrome (the pill,
+  the rail's header) keeps rendering normally; only the draggable list is
+  frozen.
+- Row rects, the source row and the lifted copy stay valid for the whole
+  drag because the list DOM does not change.
+- If a deferred payload no longer contains the source tab (closed) or the
+  source group (dissolved), the drag is cancelled immediately and that
+  payload is rendered. A vanished *target* is left to main's validation,
+  which takes the rejected-drop path above.
+- In the island, anything that switches the list out of its resting mode
+  (typing into the input, a notice row appearing) cancels the drag before
+  rendering.
+- `endDrag()` renders the latest deferred payload exactly once.
+
+### Overlay focus guard (`overlay:drag-state`)
 
 Main intercepts Escape for the overlay (`before-input-event`) and dismisses
-panel/palette on overlay `blur`. While a drag is active the overlay reports
-`overlay:drag-state` (`true` / `false`). While it is true, main lets Escape
-reach the overlay so it can cancel the drag, and it ignores overlay blur, the
-same treatment a pending focus reclaim gets. The flag resets whenever the
-overlay hides. With the flag false, nothing changes.
+panel/palette on overlay `blur`. While an island drag is active, those two
+behaviours are suspended:
+
+- **Sender.** Main accepts `overlay:drag-state` only when `event.sender` is
+  the registered overlay `webContents` of the window runtime that sender
+  belongs to. Messages from the chrome strip, a tab, a utility sheet, the
+  permission or fill views, or another window's overlay are ignored and do
+  not change any runtime's flag. The payload must be a boolean; anything
+  else is ignored.
+- **Effect while true.** Escape reaches the overlay so it can cancel the
+  drag, and overlay `blur` is ignored, the same treatment a pending focus
+  reclaim gets.
+- **Reset to false** on: `hideOverlay` (any mode change away from
+  panel/palette included), the overlay `webContents` being destroyed or its
+  render process going away, the window runtime closing, and every renderer
+  `endDrag()` path listed above.
+- With the flag false, behaviour is exactly as today.
+
+The rail runs in the chrome window's own `webContents`, which has no
+blur-dismiss behaviour, so it needs no main-side flag.
 
 ### Per surface
 
@@ -148,31 +210,83 @@ overlay hides. With the flag false, nothing changes.
 
 ### Keyboard
 
-- **⌥⇧↑ / ⌥⇧↓** moves the focused rail row, or the selected island row while
-  the island input is empty (so it never clashes with text selection), one
-  visible step.
-- At a group's edge the tab steps into the adjacent bucket of the same pinned
-  state, exactly as a drag would. On a group header the keys move the whole
-  group.
-- Both surfaces send the same `tabs:move` / `groups:reorder` calls.
+**⌥⇧↑ / ⌥⇧↓** acts on the focused rail row, or on the selected island row
+while the island input is empty (so it never clashes with text selection).
+Both surfaces send the same `tabs:move` / `groups:reorder` calls, computed
+by one pure helper in `tab-drag.js` so the surfaces cannot disagree.
+
+**Tab rows: precise boundary rule.** For a tab with pinned state *p*, the
+*eligible buckets* in render order are:
+
+1. the standalone pinned section, if *p* is pinned;
+2. each **expanded** group's *p*-bucket, in group order, **including an
+   empty one** (an expanded group whose members are all of the opposite
+   pinned state still has a valid, visible slot: after its pins for an
+   unpinned tab, before its unpinned members for a pinned tab);
+3. the loose section, if *p* is unpinned (even when empty).
+
+Collapsed groups are **skipped**: they have no visible tab slots. A
+collapsed group can still be joined by dropping on its header or with Move
+to Group. Buckets of the opposite pinned state are never eligible.
+
+- ⌥⇧↓: if the tab is not last in its bucket, swap with the next member.
+  Otherwise move to the **first** slot of the next eligible bucket.
+- ⌥⇧↑: if the tab is not first in its bucket, swap with the previous
+  member. Otherwise move to the **last** slot of the previous eligible
+  bucket.
+- At the first or last eligible slot: **stop**. No IPC is sent, and the live
+  region announces "Already at the top" / "Already at the bottom".
+- Focus (rail) or selection (island) follows the moved tab. Leaving a group
+  announces "Moved to *group*" or "Moved out of *group*". If the source
+  group dissolves, that is announced too.
+
+**Group headers.** ⌥⇧↑/↓ moves the group one place among groups
+(`groups:reorder`), whether collapsed or not, and stops at either end with
+the same announcement. Focus or selection stays on the header.
 
 ## 3. Testing and acceptance
 
 ### Unit (`npm run test:unit`)
 
-- `test/unit/tab-order.test.js`: table tests for `moveTab`. Covers in-bucket
-  reorder; loose → group, group → loose and group → group; a standalone pin ↔
-  a group's pinned rows; rejection of unpinned→pinned and pinned→unpinned
-  moves, a missing group, a wrong-bucket `beforeId` and a foreign window;
-  self-target no-op; empty-bucket append. Covers `reorderGroup` valid moves,
-  `null` end and unknown ids.
-- `test/unit/tab-drag.test.js`: the controller in a vm with fake rects.
-  Covers the 4px threshold, gap → `{groupId, beforeId}` resolution, header
-  hits, invalid gaps resolving to cancel, and Escape / `pointercancel`. It
-  asserts the lift actually found its functions, so a rename cannot make it
-  pass silently.
-- Main overlay guard: `overlay:drag-state` stops blur and Escape from
-  closing the panel only while it is true, and it resets on hide.
+- `test/unit/tab-order.test.js`: table tests for `moveTab`.
+  - Accepted: in-bucket reorder; loose → group, group → loose and
+    group → group; a standalone pin ↔ a group's pinned rows; empty-bucket
+    append (including an unpinned tab into a group holding only pins).
+  - Rejected: unpinned→pinned and pinned→unpinned moves, a missing group, a
+    wrong-bucket `beforeId`, a foreign window.
+  - Self-target: `beforeId === id` with the current group is an accepted
+    no-op. `beforeId === id` with a **different** group is rejected and
+    leaves order and group unchanged.
+  - `reorderGroup`: valid moves, `null` meaning the end, unknown ids.
+- `test/unit/tab-drag.test.js`: the controller in a vm with fake rects and
+  fake pointer events. It asserts the lift actually found its functions, so
+  a rename cannot make it pass silently. Covers:
+  - the 4px threshold (click vs drag);
+  - gap → `{groupId, beforeId}` resolution, header hits, and invalid gaps or
+    release outside the list resolving to cancel;
+  - Escape (and that its propagation stops), `pointercancel` and
+    `lostpointercapture`, each running the full `endDrag()` teardown;
+  - auto-scroll near both edges, with rects refreshed after each scroll step
+    so the resolved target matches the scrolled position;
+  - drop outcomes: IPC resolving `true`, resolving `false` and rejecting.
+    The last two restore the source row (undimmed, no lifted copy or
+    indicators) and announce the failure;
+  - deferred renders: payloads received mid-drag are not applied, only the
+    latest is applied exactly once at `endDrag()`, and a payload missing
+    the source tab or source group cancels the drag;
+  - the keyboard helper: in-bucket swaps, crossing into the next or
+    previous eligible bucket, **skipping a collapsed group**, entering an
+    expanded group whose same-state bucket is empty, never entering an
+    opposite-state bucket, and stopping (no intent) at both ends; group
+    header moves and their end stops.
+- Main overlay guard, alongside the existing focus-guard tests:
+  - `overlay:drag-state` `true` from the window's registered overlay stops
+    blur and Escape from closing the panel; `false` restores them;
+  - **forged or wrong sender:** the same message from the chrome strip, a
+    tab, a utility sheet, or another window's overlay changes no runtime's
+    flag, and blur still dismisses; a non-boolean payload is ignored;
+  - the flag resets on `hideOverlay`, overlay destruction or
+    render-process-gone, and window close.
 
 ### Guards
 
@@ -185,16 +299,34 @@ audit-surface inventory and the `blanc-chrome://` allowlist test.
   reorder, F28 (Vertical tabs) with the shared gesture, and F2/F3 with the
   island drag.
 - `spec/acceptance/vertical-tabs.feature`: rewrite "Drag reorder rejects
-  cross-bucket drops" as a pin-crossing rejection, and add "Drag moves a tab
-  into another group".
-- New island scenarios:
-  - reorder within a group;
-  - drag into another group;
-  - drop on a collapsed header (the tab joins and the group stays collapsed);
-  - reorder groups (⌘1 then targets the new first group);
-  - Escape mid-drag keeps the panel open;
-  - the source group dissolves when its last tab leaves.
-- Keyboard: ⌥⇧↓ across a group boundary on both surfaces.
+  cross-bucket drops" as a pin-crossing rejection.
+
+Parity matrix: each row below is a scenario on **both** surfaces (rail and
+island), so the two cannot drift.
+
+| Behaviour | Rail | Island |
+|---|---|---|
+| Reorder within a group | ✓ | ✓ |
+| Move a tab from one group to another | ✓ | ✓ |
+| Move a grouped tab to the loose section | ✓ | ✓ |
+| Move a loose tab into a group | ✓ | ✓ |
+| Drop on a collapsed header: tab joins, group stays collapsed | ✓ | ✓ |
+| Reorder groups; ⌘1 then targets the new first group | ✓ | ✓ |
+| Source group dissolves when its last tab leaves | ✓ | ✓ |
+| Pin-crossing drop is rejected | ✓ | ✓ |
+| Keyboard ⌥⇧↓ across a group boundary, skipping a collapsed group | ✓ | ✓ |
+| Drag out over page content cancels with no page effect (below) | ✓ | ✓ |
+| Escape mid-drag keeps the panel open | n/a | ✓ |
+
+**Drag out over page content.** The active tab loads a fixture page that
+records `dragenter`, `dragover`, `drop` and `paste` events, plus any
+navigation. The test drags a tab row out over the page area and releases it
+there. Assertions:
+
+- the page's URL and history length are unchanged (no navigation);
+- the fixture recorded none of those events;
+- the page's DOM and its recorded event data contain no tab id;
+- tab order and groups are unchanged.
 
 ### Manual
 
