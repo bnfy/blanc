@@ -146,7 +146,7 @@
     "@ghostery/adblocker": "^2.18.2",
     "electron": "^44.5.1",
     "electron-builder": "^26.15.3",
-    "eslint": "10.11.0",
+    "eslint": "10.12.0",
     "globals": "17.12.0",
     "playwright": "^1.63.0",
     "sharp": "^0.35.5"
