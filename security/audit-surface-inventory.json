@@ -3,17 +3,23 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
     "src/main/capture-preload-playout.js",
     "src/main/capture-preload.js",
     "src/main/chrome-compat-preload.js",
+    "src/main/dark-websites-preload.js",
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/preload.js",
+    "src/main/scoped-capture-preload-linux.js",
+    "src/main/scoped-capture-preload-playout.js",
+    "src/main/scoped-capture-preload.js",
     "src/main/tab-preload.js",
+    "src/main/ublock-bridge-preload.js",
+    "src/main/ublock-popup-preload.js",
     "src/main/webrtc-audio-buffer-preload.js"
   ],
   "boundaries": [
@@ -128,7 +134,9 @@
     {
       "file": "src/main/chrome-protocol.js",
       "sha256": "3acf60f87ac2eef11195e4b743ede642e70541827812454ad1eafd821aa2e064",
-      "literalChannels": [],
+      "literalChannels": [
+        "blanc-chrome"
+      ],
       "role": "privileged implementation or service"
     },
     {
@@ -142,6 +150,16 @@
       "sha256": "ee66d05296580924f3c6ea86fd96d7622571a05aa4907e823942a3bfac111cfb",
       "literalChannels": [],
       "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/dark-websites-preload.js",
+      "sha256": "f7a5e70f7f7498a9fad46461b59ebdf44d4c6626cdd12804e46ea58d11ffcce6",
+      "literalChannels": [
+        "dark-websites:fetch-css",
+        "dark-websites:get",
+        "dark-websites:update"
+      ],
+      "role": "preload"
     },
     {
       "file": "src/main/display-capture-helper-preload.js",
@@ -606,6 +624,66 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/scoped-capture-preload-linux.js",
+      "sha256": "4c6ed2a7f53ed1a53d3f18ea62546dc77a0c28d6231f465421fb4eda8db09a02",
+      "literalChannels": [
+        "capture:permission-changed",
+        "capture:permission-query",
+        "capture:report",
+        "capture:stop",
+        "display-capture:abort",
+        "display-capture:page-diag",
+        "display-capture:request",
+        "display-capture:signal",
+        "display-capture:track-added",
+        "display-capture:track-ready",
+        "display-capture:track-stopped"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/scoped-capture-preload-playout.js",
+      "sha256": "f68f331a5a582824fd253dc6e0b6a25af0d558273ac2579e3de4288b0db071a7",
+      "literalChannels": [
+        "capture:permission-changed",
+        "capture:permission-query",
+        "capture:report",
+        "capture:stop",
+        "display-capture:abort",
+        "display-capture:page-diag",
+        "display-capture:request",
+        "display-capture:signal",
+        "display-capture:track-added",
+        "display-capture:track-ready",
+        "display-capture:track-stopped"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/scoped-capture-preload.js",
+      "sha256": "4c6ed2a7f53ed1a53d3f18ea62546dc77a0c28d6231f465421fb4eda8db09a02",
+      "literalChannels": [
+        "capture:permission-changed",
+        "capture:permission-query",
+        "capture:report",
+        "capture:stop",
+        "display-capture:abort",
+        "display-capture:page-diag",
+        "display-capture:request",
+        "display-capture:signal",
+        "display-capture:track-added",
+        "display-capture:track-ready",
+        "display-capture:track-stopped"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/scoped-session-preload.js",
+      "sha256": "880c90775ee36d8cc60ae46e166d0f7afe3e24d9821646dfa47f63590b7fba60",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "src/main/sync-crypto.js",
       "sha256": "5438ffffd4cd4b4895225116bb17ca1afe89fc825f00763b89f5a00b2be52749",
       "literalChannels": [],
@@ -765,6 +843,23 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/ublock-bridge-preload.js",
+      "sha256": "3ba5563d03cb615da9266b8440f60db360c29b8a33da3a1e4e73a9cc1ebc266a",
+      "literalChannels": [
+        "ublock:bridge"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/ublock-popup-preload.js",
+      "sha256": "9b00c6b57b611029e59c9c01332131c3febed05d009773ea4dcf887616c5b4d1",
+      "literalChannels": [
+        "ublock:popup",
+        "ublock:popup-state"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/update-restart.js",
       "sha256": "caf58874c80d945134aea4b41829b04e3b2f86dcc4327ea18dae60cb82e4b454",
       "literalChannels": [
@@ -803,7 +898,10 @@
     {
       "file": "src/main/webrtc-audio-buffer-preload.js",
       "sha256": "cedcabada378224580f879eacdf741a80ab054d6a38ad4cd6918c2e957811d94",
-      "literalChannels": [],
+      "literalChannels": [
+        "webrtc:audio-buffer:get",
+        "webrtc:audio-buffer:update"
+      ],
       "role": "preload"
     },
     {
