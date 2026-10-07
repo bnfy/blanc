@@ -166,7 +166,7 @@ const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
-const { JsonStore, discardProfileStoreEntries } = require('./store');
+const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const {
   PRIMARY_WINDOW_ID,
@@ -1354,6 +1354,8 @@ if (tabImportProtocolRegistration.attempted && !tabImportProtocolRegistration.re
 if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
   app.quit();
 } else {
+  // Blanc holds the user-data lock now, so no other instance owns orphan temps.
+  if (!acceptanceTestMode) enableTempSweep();
   diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
     const runtime = resolveExternalRuntime();
@@ -8648,7 +8650,9 @@ async function completeNamedProfileDeletion(profileId, {
   try {
     discardProfileDownloads(profileId);
     namedWorkspaces.disposeProfile(profileId);
-    discardProfileStoreEntries(profileId);
+    // Wait for in-flight routine saves to close their files first: an open
+    // temp file would make the recursive delete fail on Windows.
+    await discardProfileStoreEntries(profileId);
     fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
   } catch (error) {
     errors.push(error);
