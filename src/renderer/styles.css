@@ -824,7 +824,10 @@ body.mac .vertical-tabs-toolbar {
   opacity: 0.45;
 }
 
-.tab-drag-ghost {
+/* The lifted copy is a clone of a row, so it carries row classes such as
+   .island-row.active (transparent background). The attribute + element
+   qualifiers keep this rule above any two-class row rule. */
+body > .tab-drag-ghost[aria-hidden="true"] {
   position: fixed;
   z-index: 50;
   top: var(--drag-y);
@@ -2217,6 +2220,16 @@ body[data-glance-purpose="change"] .glance-picker {
 .island-ghead .ghead-n { margin-right: 0; }
 
 /* Named groups only: present --surface field (not empty whitespace). */
+.island-drag-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.island-ghead:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
 .island-group-band {
   background: var(--surface);
   border-radius: 10px;
