@@ -1145,14 +1145,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40electron/asar@4.3.0",
+      "bom-ref": "pkg:npm/%40electron/asar@4.3.1",
       "name": "@electron/asar",
-      "version": "4.3.0",
+      "version": "4.3.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "93f1450bf350a13ca41818bf19ae0be0aa2bb002837642b42df3551bdd1e506eaf3d5a4968bde247d57564b6f3040177429a232b90dc68639d40e85e299bf825"
+          "content": "ea923ae33fed31206451364b405621b3662207b7d2f6c280ea0cbbff69c7d49bbb186c13df650fb23e0cc6cc2ce4d326b51e82d3361d5d5c4453fac6a8944224"
         }
       ],
       "licenses": [
@@ -1162,7 +1162,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40electron/asar@4.3.0",
+      "purl": "pkg:npm/%40electron/asar@4.3.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -1184,7 +1184,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@electron/asar/-/asar-4.3.0.tgz"
+          "url": "https://registry.npmjs.org/@electron/asar/-/asar-4.3.1.tgz"
         }
       ]
     },
@@ -20987,7 +20987,7 @@
       "dependsOn": [
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40cucumber/cucumber@13.2.1",
-        "pkg:npm/%40electron/asar@4.3.0",
+        "pkg:npm/%40electron/asar@4.3.1",
         "pkg:npm/%40eslint/js@10.0.1",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/%40ghostery/adblocker@2.18.2",
@@ -21183,7 +21183,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40electron/asar@4.3.0",
+      "ref": "pkg:npm/%40electron/asar@4.3.1",
       "dependsOn": [
         "pkg:npm/glob@13.0.6",
         "pkg:npm/minimatch@10.2.5"
