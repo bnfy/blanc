@@ -1,7 +1,7 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.29.0",
+  "version": "1.30.0",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -212,7 +212,7 @@
     "beforePack": "scripts/before-pack.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
-      "bundleVersion": "1290",
+      "bundleVersion": "1300",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,
