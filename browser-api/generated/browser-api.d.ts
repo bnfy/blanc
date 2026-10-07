@@ -44,6 +44,14 @@ export type WorkspaceMoveDirection = 'up' | 'down';
 /** Options for a new tab. Only `private` is read by main today. */
 export type CreateTabOptions = { private?: boolean };
 
+/** Where a dragged or keyboard-moved tab should land. The pinned state never changes. */
+export interface TabMoveTarget {
+  /** Target group, or null for the loose section / standalone pins. */
+  groupId: GroupId | null;
+  /** Land before this tab of the target bucket; null means that bucket's end. */
+  beforeId: TabId | null;
+}
+
 /** Options for opening or creating a workspace. */
 export interface OpenWorkspaceOptions {
   /** The token from an unsaved-scratch result, confirming "discard and switch". */
@@ -658,15 +666,15 @@ export interface BlancBrowserAPI {
    */
   stop(id: TabId): Promise<void>;
   /**
-   * Move a tab to an index in the tab order.
-   * IPC: invoke `tabs:reorder`.
+   * Move a tab within its bucket or into another group's matching bucket. Never changes pinned state. Resolves false for a rejected request.
+   * IPC: invoke `tabs:move`.
    */
-  reorderTab(id: TabId, toIndex: number): Promise<void>;
+  moveTab(id: TabId, target: TabMoveTarget): Promise<boolean>;
   /**
-   * Move a tab before another within its pinned/group bucket.
-   * IPC: invoke `tabs:reorder-within-bucket`.
+   * Move a group before another group, or to the end with null.
+   * IPC: invoke `groups:reorder`.
    */
-  reorderTabWithinBucket(id: TabId, beforeId: TabId | null): Promise<boolean>;
+  reorderGroup(id: GroupId, beforeGroupId: GroupId | null): Promise<boolean>;
   /**
    * Activate a tab from the vertical tab rail.
    * IPC: invoke `tabs:activate-from-rail`.
@@ -909,6 +917,11 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:workspace-switcher`.
    */
   setWorkspaceSwitcherOpen(open: boolean): void;
+  /**
+   * Tell main an island drag started or ended, so Escape cancels the drag and blur does not dismiss the panel.
+   * IPC: send `overlay:drag-state`.
+   */
+  setOverlayDragState(active: boolean): void;
   /**
    * Escape was pressed while the overlay had focus.
    * IPC: event `overlay:escape`.

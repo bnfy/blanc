@@ -11,6 +11,10 @@ const { EventEmitter } = require('node:events');
 const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const start = main.indexOf("  rt().overlayView.webContents.on('blur', bindWindowRuntime(owner, () => {");
 const registration = main.slice(start, main.indexOf('\n  // The address menu', start));
+test('lift found the blur registration', () => {
+  assert.ok(start !== -1 && registration.includes('overlayDragActive'),
+    'lifted the production blur registration including the drag guard');
+});
 function fixture() {
   const wc = new EventEmitter(), scheduled = [];
   const owner = { overlayView: { webContents: wc }, closing: false, surfaceGeneration: 1,
@@ -18,6 +22,7 @@ function fixture() {
   let locked = false, hides = 0;
   const context = { owner, isQuitting: false, acceptanceTestMode: false, rt: () => owner,
     bindWindowRuntime: (_owner, fn) => fn, setImmediate: fn => scheduled.push(fn),
+    overlayDragActive: (r) => r.overlayDragging === true,
     hasLiveWindow: () => true, hideOverlay: () => {
       assert.equal(locked, false, 'must not mutate a native view tree during its blur callback');
       hides++; owner.overlayMode = null;
@@ -50,4 +55,11 @@ test('Find and address menu keep their existing production blur exceptions', () 
     if (special === 'find') f.owner.overlayMode = 'find'; else f.owner.addressMenuTicket = 1;
     f.blur(); f.settle(); assert.equal(f.hides(), 0);
   }
+});
+
+test('blur is not a dismissal while an island drag is active', () => {
+  const f = fixture(); f.owner.overlayMode = 'panel'; f.owner.overlayDragging = true;
+  f.blur(); f.settle(); assert.equal(f.hides(), 0);
+  f.owner.overlayDragging = false;
+  f.blur(); f.settle(); assert.equal(f.hides(), 1);
 });

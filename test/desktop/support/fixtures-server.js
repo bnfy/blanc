@@ -26,6 +26,15 @@ function pageBody(req) {
       : loginVariant === 'invisible'
         ? '<form><input type="password" autocomplete="current-password" style="opacity:0"></form>'
         : '';
+  // Drag-out probe (F3-15): records anything a page could learn from a tab
+  // drag released over it. Read back with workspacePageScript.
+  const dragProbe = raw.includes('dragprobe=1')
+    ? '<script>window.__dragProbe={events:[],data:[]};' +
+      "for(const t of ['dragenter','dragover','drop','paste']){" +
+      'document.addEventListener(t,(e)=>{window.__dragProbe.events.push(t);' +
+      'const d=e.dataTransfer||e.clipboardData;if(d){for(const k of d.types)window.__dragProbe.data.push(d.getData(k));}},true);}' +
+      '</script>'
+    : '';
   return (
     `<!doctype html><html><head><meta charset="utf-8"><title>page</title></head>` +
     `<body><h1>page</h1><script>` +
@@ -33,6 +42,7 @@ function pageBody(req) {
     `document.title=fixtureName;document.querySelector('h1').textContent=fixtureName;` +
     `</script><p>widget widget widget</p>` +
     loginForm +
+    dragProbe +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +
     `<input id="acceptance-check" type="checkbox" aria-label="Unsaved checkbox">` +
     `<form id="acceptance-post" method="post"><button type="submit">Post</button></form>` +

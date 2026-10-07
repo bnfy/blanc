@@ -254,7 +254,8 @@ const {
   calculateGlanceLayout,
   ratioForGlanceDivider,
 } = require('./glance-layout');
-const { reorderWithinBucket } = require('./tab-order');
+const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
+const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
   installPlatformMainMenuShortcut,
   popupPlatformMainMenu,
@@ -3168,8 +3169,10 @@ function createOverlay() {
   const overlayWcId = overlay.webContents.id;
   overlay.webContents.on('render-process-gone', bindWindowRuntime(owner, (_event, details) => {
     diagnostics.recordRendererCrash('overlay', details);
+    resetOverlayDragState(owner);
   }));
   overlay.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    resetOverlayDragState(owner);
     windowRuntimes.unregisterChromeSurface(overlayWcId);
     if (rt().overlayView === overlay) rt().overlayView = null;
   }));
@@ -3199,6 +3202,8 @@ function createOverlay() {
   // popover (or one of its editors) is open, forward Esc to the overlay so
   // it can cancel/close the popover first — the island stays up.
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    // An island drag owns Escape: let it reach the overlay to cancel the drag.
+    if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
@@ -3222,6 +3227,8 @@ function createOverlay() {
       // A native address-bar context menu takes OS focus; that blur is not a
       // dismissal — the popup's close callback owns what happens next.
       if (rt().addressMenuTicket) return;
+      // Pointer capture during an island drag can move OS focus; not a dismissal.
+      if (overlayDragActive(rt())) return;
       // Playwright's Electron main-process evaluate calls steal focus from the
       // guest view while the acceptance harness inspects it. Keep the real blur
       // policy in production; tests dismiss explicitly between edit sessions.
@@ -3381,6 +3388,7 @@ function openIslandTyping(char) {
 const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
+  resetOverlayDragState(rt());
   cancelAddressBarFocusReclaim();
   if (!rt().overlayMode) return;
   bumpSurfaceGeneration();
@@ -6535,15 +6543,36 @@ function reorderTab(id, toIndex) {
   scheduleMenuRebuild();
 }
 
-function reorderTabWithinBucket(id, beforeId) {
+function moveTabTo(id, target) {
   if (windowRuntimes.runtimeForTab(id) !== rt()) return false;
-  if (beforeId != null && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
-  // Renderer input is only a proposal. Main re-resolves both ids against its
-  // live model and rejects a stale/cross-group/cross-pin target.
-  const next = reorderWithinBucket(rt().tabOrder, tabs, id, beforeId);
+  const beforeId = target?.beforeId;
+  if (typeof beforeId === 'string' && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
+  // Renderer input is only a proposal. Main re-resolves every id against its
+  // live model; a stale/cross-window/pin-crossing target is rejected.
+  const result = resolveTabMove(rt().tabOrder, tabs, rt().groups, id, target);
+  if (!result) return false;
+  const tab = tabs.get(id);
+  const groupChanged = (tab.groupId ?? null) !== result.groupId;
+  const orderChanged = result.order.some((tabId, index) => rt().tabOrder[index] !== tabId);
+  if (!groupChanged && !orderChanged) return true;
+  rt().tabOrder = result.order;
+  if (groupChanged) {
+    // Same effect as Move to Group (setTabGroup): a group whose last tab
+    // left dissolves; the target keeps its collapsed state.
+    tab.groupId = result.groupId;
+    pruneEmptyGroups();
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return true;
+}
+
+function reorderGroupBefore(id, beforeGroupId) {
+  // rt().groups is per-window, so another window's group id simply fails.
+  const next = resolveGroupReorder(rt().groups, id, beforeGroupId);
   if (!next) return false;
-  if (next.some((tabId, index) => rt().tabOrder[index] !== tabId)) {
-    rt().tabOrder = next;
+  if (next.some((group, index) => rt().groups[index] !== group)) {
+    rt().groups = next;
     broadcastTabs();
     scheduleMenuRebuild();
   }
@@ -7104,7 +7133,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:reopen-entry', (_e, entryId) => {
     // Renderer input is a proposal: main re-resolves the id against its own
-    // list; a stale or forged id is a no-op (the reorderTabWithinBucket rule).
+    // list; a stale or forged id is a no-op (the moveTabTo rule).
     const list = rt().closedEntries ?? [];
     const at = list.findIndex((entry) => entry.id === String(entryId));
     if (at === -1) return;
@@ -7172,9 +7201,11 @@ function registerIpcHandlers() {
     return liveContents(tab)?.reload();
   });
   chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
-  chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
-  chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
-    reorderTabWithinBucket(id, beforeId));
+  chromeHandle('tabs:move', (_e, id, target) => moveTabTo(id, target));
+  chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
+  chromeOn('overlay:drag-state', (event, active) => {
+    acceptOverlayDragState(rt(), event.sender, active);
+  });
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
   chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
@@ -8152,6 +8183,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    // The macOS primary runtime survives close for Dock reopen; the drag flag
+    // must not outlive the window it was set in.
+    resetOverlayDragState(runtime);
     runtime.pageTintController?.dispose();
     runtime.pageTintController = null;
     // macOS retains detached start pages for Dock reopen. Notify them after
@@ -9810,7 +9844,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, closeGroup, newTabUrl,
+      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      closeGroup, newTabUrl,
+      getOverlayDragging: () => overlayDragActive(rt()),
+      selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
       workspaceTestAction(action, args = []) {

@@ -32,9 +32,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   goForward: (id) => ipcRenderer.invoke('tabs:forward', id),
   reload: (id) => ipcRenderer.invoke('tabs:reload', id),
   stop: (id) => ipcRenderer.invoke('tabs:stop', id),
-  reorderTab: (id, toIndex) => ipcRenderer.invoke('tabs:reorder', id, toIndex),
-  reorderTabWithinBucket: (id, beforeId) =>
-    ipcRenderer.invoke('tabs:reorder-within-bucket', id, beforeId),
+  moveTab: (id, target) => ipcRenderer.invoke('tabs:move', id, target),
+  reorderGroup: (id, beforeGroupId) => ipcRenderer.invoke('groups:reorder', id, beforeGroupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
   openGlancePicker: () => ipcRenderer.invoke('tabs:open-glance-picker'),
@@ -114,6 +113,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   /** Keep main's Escape handler in sync with the footer workspace popover so
    * Esc can cancel an editor / close the menu without dismissing the island. */
   setWorkspaceSwitcherOpen: (open) => ipcRenderer.send('chrome:workspace-switcher', !!open),
+  setOverlayDragState: (active) => ipcRenderer.send('overlay:drag-state', !!active),
   onOverlayEscape: (callback) => {
     const listener = () => callback();
     ipcRenderer.on('overlay:escape', listener);
