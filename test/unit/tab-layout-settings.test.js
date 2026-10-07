@@ -3,6 +3,7 @@ const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { waitForJson } = require('./support/wait-for-json');
 
 const settingsSchema = require('../../settings-schema/schema.json');
 
@@ -79,7 +80,7 @@ test('tab layout and rail width default, validate, persist, and stay out of Prof
   assert.equal(settings.setSettings({ verticalTabsWidth: 999 }).verticalTabsWidth, 360);
   assert.equal(settings.setSettings({ verticalTabsWidth: 320 }).verticalTabsWidth, 320);
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await waitForJson(path.join(userData, 'settings.json'), (json) => json.tabLayout === 'vertical' && json.verticalTabsWidth === 320);
   settings = loadSettings(userData);
   assert.equal(settings.getSettings().tabLayout, 'vertical');
   assert.equal(settings.getSettings().verticalTabsWidth, 320);
