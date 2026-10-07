@@ -15,8 +15,11 @@
 - A drag or keyboard move may change a tab's position and group, **never its pinned state**. The target bucket is always `{target groupId, source.pinned}`.
 - Renderer requests are proposals: main re-validates every id against its own window runtime and returns a boolean.
 - `beforeId === id` is an accepted no-op **only** when `groupId` equals the tab's current group; otherwise it is rejected.
-- Drag starts after **4px** of pointer movement; below that a press stays a click.
+- Drag starts after **4px** of total pointer movement (Euclidean); below that a press stays a click.
 - Collapsed groups are skipped by keyboard moves; a drop on any group header appends to that group and leaves `collapsed` unchanged.
+- Keyboard moves act on the row or group header holding keyboard focus, on both surfaces; never from the island's address input.
+- A drop awaits its IPC result with **no renderer timeout**. Forced ends (pagehide, overlay hide, list-mode or layout change) work in every phase and invalidate a pending result. Escape while settling is consumed without ending the drop.
+- The drag threshold is total (Euclidean) pointer distance.
 - While a drag is active or settling, only the draggable list's redraw is deferred; the latest payload is applied exactly once at the end.
 - `overlay:drag-state` is accepted only from the sender runtime's own registered overlay `webContents`, as a boolean, and reset on hide, overlay destruction, render-process-gone and every renderer end path.
 - No HTML5 drag-and-drop and no `DataTransfer` payloads anywhere in this feature.
@@ -625,6 +628,7 @@ Run both files → FAIL (guard missing).
 ```
 
   - In `createOverlay`, inside the `render-process-gone` handler add `resetOverlayDragState(owner);` and inside the `destroyed` handler add `resetOverlayDragState(owner);`.
+  - In the main window's `'closed'` handler (`rt().window.on('closed', bindWindowRuntime(runtime, () => {` ~8154), make the first statement `resetOverlayDragState(runtime);`. On macOS the primary runtime survives a window close for Dock reopen, so the flag must not outlive the window it was set in.
   - In `hideOverlay`, make the first line `resetOverlayDragState(rt());` (before `cancelAddressBarFocusReclaim()`), so every hide path clears it even when `overlayMode` is already null.
   - Register next to the `tabs:move` handler:
 
@@ -656,7 +660,7 @@ Run both files → FAIL (guard missing).
 - [ ] **Step 5: Hide-path guard test.** Append to `test/unit/overlay-drag-state.test.js` a structural check that every reset site exists (the behavioural reset is covered by the module tests and the Task 8 acceptance scenario):
 
 ```js
-test('main resets the drag flag on hide, destroy and render-process-gone', () => {
+test('main resets the drag flag on hide, destroy, render-process-gone and window close', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const src = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
@@ -665,6 +669,10 @@ test('main resets the drag flag on hide, destroy and render-process-gone', () =>
   const create = src.slice(src.indexOf('function createOverlay('), src.indexOf("rt().overlayView.setBackgroundColor('#00000000')"));
   assert.match(create, /'render-process-gone'[\s\S]*resetOverlayDragState\(owner\)/);
   assert.match(create, /'destroyed'[\s\S]*resetOverlayDragState\(owner\)/);
+  const closedStart = src.indexOf("rt().window.on('closed', bindWindowRuntime(runtime, () => {");
+  assert.ok(closedStart !== -1, 'window closed handler moved: update this check');
+  const closed = src.slice(closedStart, src.indexOf('\n  }));', closedStart));
+  assert.match(closed, /resetOverlayDragState\(runtime\)/, 'window close resets the runtime flag');
 });
 ```
 
@@ -690,7 +698,7 @@ git commit -m "Add sender-checked overlay drag-state guard for island drags"
 
 **Interfaces:**
 - Produces on `globalThis.blancTabDrag`:
-  - `constants: { DRAG_THRESHOLD_PX: 4, EDGE_PX: 24, MAX_SCROLL_STEP: 12, DROP_TIMEOUT_MS: 2000 }`
+  - `constants: { DRAG_THRESHOLD_PX: 4, EDGE_PX: 24, MAX_SCROLL_STEP: 12 }`
   - `resolveTabDrop(model, source, y) → { intent, indicator } | null`
   - `resolveGroupDrop(model, groupId, y) → { intent, indicator } | null`
   - `keyboardTabMove(snapshot, id, direction) → { intent } | { stop: 'top'|'bottom' } | null`
@@ -896,7 +904,6 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (file missing).
     DRAG_THRESHOLD_PX: 4,
     EDGE_PX: 24,
     MAX_SCROLL_STEP: 12,
-    DROP_TIMEOUT_MS: 2000,
   });
 
   const inside = (y, box) => y >= box.top && y <= box.bottom;
@@ -1075,8 +1082,8 @@ git commit -m "Add pure drop resolvers and keyboard move helper for tab drag"
 **Interfaces:**
 - Consumes: `resolveTabDrop`, `resolveGroupDrop`, `constants` (Task 4).
 - Produces: `createDragSession(effects) → Session` where `effects` is:
-  `{ readModel(): Model, capture(pointerId), release(pointerId), setDragging(bool), setSourceDim(bool), showGhost(source, y), moveGhost(y), removeGhost(), setIndicator(Indicator|null), scrollBy(dy), onDrop(intent) → Promise<boolean>|boolean, onActiveChange(active: bool), announce(message), requestFrame(fn) → handle, cancelFrame(handle), setTimer(fn, ms) → handle, clearTimer(handle), suppressClick() }`
-- `Session`: `pointerDown({pointerId, x, y, source})`, `pointerMove({pointerId, x, y})`, `pointerUp({pointerId})`, `pointerCancel({pointerId})`, `lostCapture({pointerId})`, `escape() → boolean`, `scrolled()`, `notePayload(payload)`, `cancel()`, `isActive() → boolean`, `phase() → 'idle'|'pending'|'dragging'|'settling'`.
+  `{ readModel(): Model, capture(pointerId), release(pointerId), setDragging(bool), setSourceDim(bool), showGhost(source, y), moveGhost(y), removeGhost(), setIndicator(Indicator|null), scrollBy(dy), onDrop(intent) → Promise<boolean>|boolean, onActiveChange(active: bool), announce(message), requestFrame(fn) → handle, cancelFrame(handle), suppressClick() }` — no timers: a drop awaits its IPC result.
+- `Session`: `pointerDown({pointerId, x, y, source})`, `pointerMove({pointerId, x, y})`, `pointerUp({pointerId})`, `pointerCancel({pointerId})`, `lostCapture({pointerId})`, `escape() → boolean` (true when consumed: cancels while dragging, swallows without ending while settling), `scrolled()`, `notePayload(payload)` (cancels a drag whose source tab/group/membership/pinned state changed; ignored while settling), `cancel()` (forced end in **any** phase, including settling; invalidates a pending drop result), `isActive() → boolean`, `phase() → 'idle'|'pending'|'dragging'|'settling'`.
 
 - [ ] **Step 1: Failing tests** — append to `test/unit/tab-drag.test.js`:
 
@@ -1084,9 +1091,9 @@ git commit -m "Add pure drop resolvers and keyboard move helper for tab drag"
 function harness({ dropResult = true, modelOverride } = {}) {
   const calls = [];
   const frames = [];
-  const timers = [];
   let currentModel = modelOverride || model;
   let dropResolve;
+  let dropReject;
   const effects = {
     readModel: () => { calls.push(['readModel']); return currentModel; },
     capture: (id) => calls.push(['capture', id]),
@@ -1100,7 +1107,7 @@ function harness({ dropResult = true, modelOverride } = {}) {
     scrollBy: (dy) => calls.push(['scrollBy', dy]),
     onDrop: (intent) => {
       calls.push(['onDrop', intent]);
-      if (dropResult === 'pending') return new Promise((r) => { dropResolve = r; });
+      if (dropResult === 'pending') return new Promise((res, rej) => { dropResolve = res; dropReject = rej; });
       if (dropResult === 'reject') return Promise.reject(new Error('ipc'));
       return Promise.resolve(dropResult);
     },
@@ -1109,15 +1116,14 @@ function harness({ dropResult = true, modelOverride } = {}) {
     // Handles are stable 1-based indices; a run or cancelled frame becomes null.
     requestFrame: (fn) => { frames.push(fn); return frames.length; },
     cancelFrame: (h) => { frames[h - 1] = null; },
-    setTimer: (fn, ms) => { timers.push({ fn, ms }); return timers.length; },
-    clearTimer: (h) => { if (timers[h - 1]) timers[h - 1].fn = null; },
     suppressClick: () => calls.push(['suppressClick']),
   };
   const session = drag.createDragSession(effects);
   return {
-    session, calls, frames, timers,
+    session, calls, frames,
     setModel: (m) => { currentModel = m; },
     resolveDrop: (v) => dropResolve(v),
+    rejectDrop: () => dropReject(new Error('ipc')),
     named: (name) => calls.filter((c) => c[0] === name),
     pendingFrames: () => frames.filter(Boolean).length,
     runFrame: (index) => { const f = frames[index]; frames[index] = null; f(); },
@@ -1125,6 +1131,13 @@ function harness({ dropResult = true, modelOverride } = {}) {
 }
 const settle = () => new Promise((r) => setImmediate(r));
 const L2 = tabSource('L2', false, null);
+
+test('session: a 3px × 3px diagonal (over 4px in total) starts a drag', () => {
+  const h = harness();
+  h.session.pointerDown({ pointerId: 1, x: 10, y: 150, source: L2 });
+  h.session.pointerMove({ pointerId: 1, x: 13, y: 147 });
+  assert.equal(h.session.phase(), 'dragging', 'Euclidean distance, not per-axis');
+});
 
 test('session: under 4px stays a click; 4px starts a drag', () => {
   const h = harness();
@@ -1179,18 +1192,40 @@ for (const outcome of [false, 'reject']) {
   });
 }
 
-test('session: a drop that never settles times out as a failure', async () => {
+test('session: Escape while settling is consumed and does not end the drop', async () => {
   const h = harness({ dropResult: 'pending' });
   h.session.pointerDown({ pointerId: 1, x: 0, y: 150, source: L2 });
   h.session.pointerMove({ pointerId: 1, x: 0, y: 79 });
   h.session.pointerUp({ pointerId: 1 });
-  const timeout = h.timers.find((t) => t.ms === drag.constants.DROP_TIMEOUT_MS);
-  assert.ok(timeout, 'drop timeout armed');
-  timeout.fn();
+  assert.equal(h.session.escape(), true, 'consumed so the island cannot close');
+  assert.equal(h.session.phase(), 'settling', 'the already-sent move is not cancelled');
+  h.resolveDrop(true);
   await settle();
   assert.equal(h.session.phase(), 'idle');
-  assert.deepEqual(h.named('announce').at(-1), ['announce', 'Couldn\'t move L2']);
+  assert.equal(h.named('announce').length, 0);
 });
+
+for (const late of ['true', 'false', 'reject']) {
+  test(`session: a forced end while settling tears down and ignores a late ${late}`, async () => {
+    const h = harness({ dropResult: 'pending' });
+    h.session.pointerDown({ pointerId: 1, x: 0, y: 150, source: L2 });
+    h.session.pointerMove({ pointerId: 1, x: 0, y: 79 });
+    h.session.pointerUp({ pointerId: 1 });
+    h.session.cancel();
+    assert.equal(h.session.phase(), 'idle');
+    assert.equal(h.session.isActive(), false);
+    assert.deepEqual(h.named('setSourceDim').at(-1), ['setSourceDim', false]);
+    assert.deepEqual(h.named('setDragging').at(-1), ['setDragging', false]);
+    assert.deepEqual(h.named('active'), [['active', true], ['active', false]]);
+    const callsBefore = h.calls.length;
+    if (late === 'reject') h.rejectDrop(); else h.resolveDrop(late === 'true');
+    await settle();
+    assert.equal(h.calls.length, callsBefore, 'a late result neither announces nor tears down again');
+    // A fresh drag after the abort is unaffected by the stale result.
+    h.session.pointerDown({ pointerId: 2, x: 0, y: 150, source: L2 });
+    assert.equal(h.session.phase(), 'pending');
+  });
+}
 
 for (const [label, end] of [
   ['Escape', (s) => assert.equal(s.escape(), true)],
@@ -1271,6 +1306,42 @@ test('session: a payload missing the source cancels; a present source does not',
   assert.equal(g.session.phase(), 'idle', 'dissolved source group cancels');
 });
 
+test('session: a tab drag cancels when its original group or pinned state changes', () => {
+  const W2 = tabSource('W2', false, 'work');
+  const start = () => {
+    const h = harness();
+    h.session.pointerDown({ pointerId: 1, x: 0, y: 70, source: W2 });
+    h.session.pointerMove({ pointerId: 1, x: 0, y: 120 });
+    assert.equal(h.session.phase(), 'dragging');
+    return h;
+  };
+  const groups = [{ id: 'work' }, { id: 'play' }];
+  let h = start();
+  h.session.notePayload({ tabs: [{ id: 'W2', groupId: 'work', pinned: false }], groups });
+  assert.equal(h.session.phase(), 'dragging', 'unchanged source keeps dragging');
+  h = start();
+  h.session.notePayload({ tabs: [{ id: 'W2', groupId: 'work', pinned: false }], groups: [{ id: 'play' }] });
+  assert.equal(h.session.phase(), 'idle', 'original group gone');
+  h = start();
+  h.session.notePayload({ tabs: [{ id: 'W2', groupId: 'play', pinned: false }], groups });
+  assert.equal(h.session.phase(), 'idle', 'moved out of its original group elsewhere');
+  h = start();
+  h.session.notePayload({ tabs: [{ id: 'W2', groupId: 'work', pinned: true }], groups });
+  assert.equal(h.session.phase(), 'idle', 'pinned state changed');
+});
+
+test('session: payloads while settling are only deferred', async () => {
+  const h = harness({ dropResult: 'pending' });
+  h.session.pointerDown({ pointerId: 1, x: 0, y: 150, source: L2 });
+  h.session.pointerMove({ pointerId: 1, x: 0, y: 79 });
+  h.session.pointerUp({ pointerId: 1 });
+  h.session.notePayload({ tabs: [{ id: 'L2', groupId: 'work', pinned: false }], groups: [{ id: 'work' }] });
+  assert.equal(h.session.phase(), 'settling', 'the payload reflects the move itself');
+  h.resolveDrop(true);
+  await settle();
+  assert.equal(h.session.phase(), 'idle');
+});
+
 test('session: a group drag drops a group intent', async () => {
   const h = harness();
   h.session.pointerDown({ pointerId: 1, x: 0, y: 110, source: { kind: 'group', id: 'play', title: 'play' } });
@@ -1303,7 +1374,11 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (`createDragSession is no
     let model = null;
     let hit = null;
     let frame = 0;
-    let dropTimer = 0;
+    // Bumped by every end(); a drop result only counts for the drop that
+    // issued it. There is deliberately no timeout: the IPC cannot be
+    // cancelled, so a renderer timeout could announce a failure main later
+    // turns into a success. Main's broadcast stays the source of truth.
+    let generation = 0;
 
     const resolve = () => {
       hit = source.kind === 'group'
@@ -1339,13 +1414,13 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (`createDragSession is no
       if (!frame && edgeSpeed()) frame = fx.requestFrame(tick);
     };
 
+    /** The single teardown every exit path uses (spec §2, endDrag). */
     function end() {
       const wasActive = phase === 'dragging' || phase === 'settling';
       const wasDragging = phase === 'dragging';
+      generation += 1;
       if (frame) fx.cancelFrame(frame);
-      if (dropTimer) fx.clearTimer(dropTimer);
       frame = 0;
-      dropTimer = 0;
       const id = pointerId;
       phase = 'idle';
       pointerId = null;
@@ -1383,17 +1458,26 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (`createDragSession is no
       fx.removeGhost();
       fx.setIndicator(null);
       if (frame) { fx.cancelFrame(frame); frame = 0; }
-      let settled = false;
+      const mine = generation;
       const finish = (ok) => {
-        if (settled || phase !== 'settling') return;
-        settled = true;
+        if (mine !== generation || phase !== 'settling') return; // aborted or already ended
         if (ok !== true) fx.announce(`Couldn't move ${title}`);
         end();
       };
-      dropTimer = fx.setTimer(() => finish(false), constants.DROP_TIMEOUT_MS);
       let result;
       try { result = fx.onDrop(intent); } catch { finish(false); return; }
       Promise.resolve(result).then(finish, () => finish(false));
+    }
+
+    function sourceStillValid(payload) {
+      if (source.kind === 'group') return (payload?.groups || []).some((g) => g.id === source.id);
+      const tab = (payload?.tabs || []).find((t) => t.id === source.id);
+      if (!tab) return false;
+      if (!!tab.pinned !== !!source.pinned) return false;
+      const original = source.groupId ?? null;
+      if ((tab.groupId ?? null) !== original) return false;
+      if (original !== null && !(payload?.groups || []).some((g) => g.id === original)) return false;
+      return true;
     }
 
     return {
@@ -1412,9 +1496,8 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (`createDragSession is no
         if (event.pointerId !== pointerId) return;
         lastY = event.y;
         if (phase === 'pending') {
-          const { DRAG_THRESHOLD_PX } = constants;
-          if (Math.abs(event.y - startY) < DRAG_THRESHOLD_PX
-            && Math.abs(event.x - startX) < DRAG_THRESHOLD_PX) return;
+          // Total distance from the press point (Euclidean), per the spec.
+          if (Math.hypot(event.x - startX, event.y - startY) < constants.DRAG_THRESHOLD_PX) return;
           start();
         }
         if (phase !== 'dragging') return;
@@ -1428,15 +1511,15 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (`createDragSession is no
         if (phase === 'dragging') drop();
       },
       pointerCancel(event) {
-        if (event.pointerId === pointerId && phase !== 'settling') end();
+        if (event.pointerId === pointerId && (phase === 'pending' || phase === 'dragging')) end();
       },
       lostCapture(event) {
         if (event.pointerId === pointerId && phase === 'dragging') end();
       },
       escape() {
-        if (phase !== 'dragging') return false;
-        end();
-        return true;
+        if (phase === 'dragging') { end(); return true; }
+        // Consume, but never cancel a move that has already been sent.
+        return phase === 'settling';
       },
       scrolled() {
         if (phase !== 'dragging') return;
@@ -1444,14 +1527,13 @@ Run: `node --test test/unit/tab-drag.test.js` → FAIL (`createDragSession is no
         resolve();
       },
       notePayload(payload) {
+        // While settling, payloads are expected to reflect the move itself.
         if (phase !== 'dragging' || !source) return;
-        const present = source.kind === 'group'
-          ? (payload?.groups || []).some((g) => g.id === source.id)
-          : (payload?.tabs || []).some((t) => t.id === source.id);
-        if (!present) end();
+        if (!sourceStillValid(payload)) end();
       },
+      /** Forced end for pagehide, overlay hide, list-mode and layout changes:
+       * works in every phase and invalidates a pending drop result. */
       cancel() {
-        if (phase === 'settling') return;
         end();
       },
     };
@@ -1612,8 +1694,6 @@ Confirm how `SHARED_ASSETS` paths map to files (the `/pages/…` entries map int
       announce,
       requestFrame: (fn) => win.requestAnimationFrame(fn),
       cancelFrame: (h) => win.cancelAnimationFrame(h),
-      setTimer: (fn, ms) => win.setTimeout(fn, ms),
-      clearTimer: (h) => win.clearTimeout(h),
       suppressClick: () => { suppressClickArmed = true; },
     });
 
@@ -1805,7 +1885,7 @@ Check `--bg` is the surface token used by both the rail and the island panel (`g
   }
 ```
 
-  (`drag.cancel()` / a cancelling `notePayload` end the session, whose `onActiveChange(false)` renders the deferred payload once. A settling drag ignores `cancel()`; its own end flushes.)
+  (`drag.cancel()` / a cancelling `notePayload` end the session in any phase, including settling; its `onActiveChange(false)` renders the deferred payload once.)
   Keep `window.blancVerticalTabs = Object.freeze({ render });` exporting the deferring `render`.
   - Keyboard: at the top of `primaryKeydown(event, tab, …)`:
 
@@ -2351,4 +2431,5 @@ Expected: PASS, or failures that also fail on `main` (record which).
 - Spec §1 rule, self-target, empty bucket, prune, collapsed untouched, boolean return, broadcast-only-on-change → Tasks 1–2. `groups:reorder` → Tasks 1–2. Cleanup of `reorderTab`/`reorderTabWithinBucket`/contract/test-hook/inventory → Task 2.
 - Spec §2 controller, threshold, capture, ghost, line/header indicator, invalid gaps, group drag, auto-scroll with refresh, Escape/pointercancel/lostpointercapture, release outside, no DataTransfer → Tasks 5–6. Drop outcome (true/false/reject, timeout) → Task 5. Live re-render deferral and source-missing cancel → Tasks 5–7. Island list-mode change cancels → Task 7. Overlay drag-state sender/reset contract → Task 3 (+ renderer side Task 7). Per-surface rules → Tasks 6–7. Keyboard rule (collapsed skip, empty same-state bucket, stops, announcements, focus) → Tasks 4, 6, 7.
 - Spec §3 unit list → Tasks 1, 3, 4, 5; guards → Tasks 2, 3, 6, 9; acceptance matrix incl. drag-out probe and Escape → Task 8; manual → Tasks 6, 7, 9.
-- Interpretation recorded: the island has no "selected row" at rest, so island ⌥⇧↑/↓ acts on the row or header holding keyboard focus (reached with Tab). It never acts from the address input, which removes any text-selection clash. Group headers in the island become focusable buttons to support this.
+- The island keyboard target (focused row or header, never the input), the Euclidean threshold, settling-phase Escape and forced-end behaviour, and the absence of a drop timeout are all written into the spec itself (amended during plan review), so the spec and this plan agree.
+- Plan-review round 1 fixes: drop timeout removed (Task 5); forced `cancel()` ends settling and invalidates late results (Task 5); Escape consumed while settling (Task 5); tab drags cancel on original-group loss, membership change or pinned change (Task 5); window-close reset of the overlay flag (Task 3); Euclidean threshold (Task 5).

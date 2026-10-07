@@ -1,6 +1,6 @@
 # Drag to reorder tabs and groups — vertical rail and expanded island
 
-Status: design approved in conversation 2026-10-07; revised after written-spec review round 1.
+Status: approved 2026-10-07; amended during plan review (threshold, settling, keyboard target).
 
 ## Goal
 
@@ -114,9 +114,10 @@ tab-id payload a web page could otherwise receive.
 
 ### Gesture
 
-- Starts on primary-button `pointerdown` on a tab row or group header, after
-  **4px** of movement. Below that the press stays a click, so row selection
-  and header fold/unfold keep working.
+- Starts on primary-button `pointerdown` on a tab row or group header, once
+  the pointer has moved **4px in total** (Euclidean distance from the press
+  point). Below that the press stays a click, so row selection and header
+  fold/unfold keep working.
 - On start the list takes pointer capture. The source row dims in place, and
   a lifted copy follows the pointer on the vertical axis only.
 - The drop position is a **hairline insertion line** (matching the rail's
@@ -129,9 +130,11 @@ tab-id payload a web page could otherwise receive.
   are valid targets.
 - The list auto-scrolls near its top and bottom edges. Row rects are cached
   at drag start and refreshed on scroll.
-- Escape, `pointercancel` or `lostpointercapture` cancel. The controller
-  stops Escape's propagation while dragging, so the rail's own Escape handler
-  (return focus to the active tab) does not also fire.
+- While dragging, Escape, `pointercancel` or `lostpointercapture` cancel.
+  While a drop is settling (below), Escape is **consumed** without cancelling
+  the move that was already sent, so it can neither close the island nor
+  trigger the rail's own Escape handler. In both phases the controller stops
+  Escape's propagation.
 - Releasing outside the list (over page content, or outside the overlay's
   bounds) resolves to no target and cancels. Nothing is put on a
   `DataTransfer`, the clipboard or any other channel a page can read.
@@ -139,7 +142,10 @@ tab-id payload a web page could otherwise receive.
 ### Drop outcome
 
 On drop the source row stays dimmed (the drag is "settling") until the IPC
-promise settles:
+promise settles. There is **no timeout**: the call is local IPC, and a
+renderer-side timeout cannot cancel a move main may still accept, so it could
+announce a failure that then succeeds. The controller simply awaits
+settlement:
 
 - **Resolves `true`:** the deferred render (below) applies the broadcast
   order.
@@ -150,9 +156,16 @@ promise settles:
   controller never applies an order of its own.
 
 Every exit path (drop settled, cancel, error, `lostpointercapture`, the
-source disappearing, `pagehide`) runs the same `endDrag()` teardown: release
-capture, remove the lifted copy, dimming and indicators, stop auto-scroll,
-flush the deferred render, and (overlay only) report drag-state `false`.
+source disappearing, `pagehide`, overlay hide, an island list-mode change, a
+rail layout change) runs the same `endDrag()` teardown: release capture,
+remove the lifted copy, dimming and indicators, stop auto-scroll, flush the
+deferred render, and (overlay only) report drag-state `false`.
+
+Forced ends (`pagehide`, overlay hide, list-mode change, layout change) apply
+in **every** phase, including settling. Ending a settling drop this way does
+not try to undo the move already sent; it invalidates the pending result, so
+a late resolution neither announces anything nor touches the (now idle)
+session. Main's broadcast is still the source of truth for the order.
 
 ### Live re-renders during a drag
 
@@ -166,9 +179,12 @@ or settling:
   frozen.
 - Row rects, the source row and the lifted copy stay valid for the whole
   drag because the list DOM does not change.
-- If a deferred payload no longer contains the source tab (closed) or the
-  source group (dissolved), the drag is cancelled immediately and that
-  payload is rendered. A vanished *target* is left to main's validation,
+- While dragging, the drag is cancelled immediately, and that payload
+  rendered, if the payload no longer contains the source tab (closed), the
+  source tab's original group no longer exists or the tab is no longer in it,
+  the tab's pinned state changed, or (for a group drag) the source group no
+  longer exists. While settling, payloads are only deferred: they are
+  expected to reflect the move itself. A vanished *target* is left to main's validation,
   which takes the rejected-drop path above.
 - In the island, anything that switches the list out of its resting mode
   (typing into the input, a notice row appearing) cancels the drag before
@@ -210,8 +226,10 @@ blur-dismiss behaviour, so it needs no main-side flag.
 
 ### Keyboard
 
-**⌥⇧↑ / ⌥⇧↓** acts on the focused rail row, or on the selected island row
-while the island input is empty (so it never clashes with text selection).
+**⌥⇧↑ / ⌥⇧↓** acts on the tab row or group header that holds keyboard focus,
+in the rail or in the island's resting list (reached with Tab). It never acts
+from the island's address input, so it cannot clash with text selection.
+Island group headers become focusable buttons (Enter/Space folds) for this.
 Both surfaces send the same `tabs:move` / `groups:reorder` calls, computed
 by one pure helper in `tab-drag.js` so the surfaces cannot disagree.
 
@@ -261,11 +279,15 @@ the same announcement. Focus or selection stays on the header.
 - `test/unit/tab-drag.test.js`: the controller in a vm with fake rects and
   fake pointer events. It asserts the lift actually found its functions, so
   a rename cannot make it pass silently. Covers:
-  - the 4px threshold (click vs drag);
+  - the 4px Euclidean threshold (click vs drag, including a 3px × 3px
+    diagonal starting a drag);
   - gap → `{groupId, beforeId}` resolution, header hits, and invalid gaps or
     release outside the list resolving to cancel;
   - Escape (and that its propagation stops), `pointercancel` and
     `lostpointercapture`, each running the full `endDrag()` teardown;
+    Escape while settling is consumed and does not end the drop;
+  - forced end while settling: full teardown, and a late resolution of
+    either outcome is ignored (no announcement, no second teardown);
   - auto-scroll near both edges, with rects refreshed after each scroll step
     so the resolved target matches the scrolled position;
   - drop outcomes: IPC resolving `true`, resolving `false` and rejecting.
@@ -273,7 +295,9 @@ the same announcement. Focus or selection stays on the header.
     indicators) and announce the failure;
   - deferred renders: payloads received mid-drag are not applied, only the
     latest is applied exactly once at `endDrag()`, and a payload missing
-    the source tab or source group cancels the drag;
+    the source tab, removing its original group, moving it out of that
+    group, changing its pinned state, or missing the dragged group cancels
+    the drag;
   - the keyboard helper: in-bucket swaps, crossing into the next or
     previous eligible bucket, **skipping a collapsed group**, entering an
     expanded group whose same-state bucket is empty, never entering an
