@@ -28,6 +28,10 @@ const executable = process.env.BLANC_PACKAGED_EXECUTABLE || defaultExecutable;
 const baseline = process.env.BLANC_BASELINE_EXECUTABLE || '';
 const seedFrom = process.env.BLANC_SEED_FROM || '';
 const workloadSeconds = Number(process.env.BLANC_WORKLOAD_SECONDS || 60);
+// BLANC_WORKLOAD_ONLY=1 skips the persistence checks; BLANC_WORKLOAD_ROUNDS
+// alternates candidate and baseline workloads to average out machine noise.
+const workloadOnly = process.env.BLANC_WORKLOAD_ONLY === '1';
+const workloadRounds = Math.max(1, Number(process.env.BLANC_WORKLOAD_ROUNDS || 1));
 assert.ok(fs.existsSync(executable), `Packaged Blanc not found: ${executable}`);
 if (baseline) assert.ok(fs.existsSync(baseline), `Baseline Blanc not found: ${baseline}`);
 const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
@@ -212,12 +216,14 @@ async function workload(exe, label) {
   for (const id of initial) await chrome.evaluate(id => window.browserAPI.closeTab(id), id);
   assert.equal((await chrome.evaluate(() => window.browserAPI.saveWorkspaceAs('Workload'))).ok, true);
   await chrome.evaluate(() => {
-    window.__probe = { samples: [], stop: false };
+    window.__probe = { samples: [], slow: [], stop: false, start: performance.now() };
     const tick = async () => {
       while (!window.__probe.stop) {
         const t = performance.now();
         await window.browserAPI.getAllTabs();
-        window.__probe.samples.push(performance.now() - t);
+        const ms = performance.now() - t;
+        window.__probe.samples.push(ms);
+        if (ms > 60) window.__probe.slow.push({ atS: +((t - window.__probe.start) / 1000).toFixed(2), ms: +ms.toFixed(1) });
         await new Promise(resolve => setTimeout(resolve, 25));
       }
     };
@@ -230,7 +236,7 @@ async function workload(exe, label) {
     if (open_.length > 6) await chrome.evaluate(id => window.browserAPI.closeTab(id), open_.shift());
     await new Promise(resolve => setTimeout(resolve, 400));
   }
-  const samples = await chrome.evaluate(() => { window.__probe.stop = true; return window.__probe.samples; });
+  const { samples, slow } = await chrome.evaluate(() => { window.__probe.stop = true; return { samples: window.__probe.samples, slow: window.__probe.slow }; });
   await quit();
   const sorted = [...samples].sort((a, b) => a - b);
   const stat = {
@@ -241,6 +247,7 @@ async function workload(exe, label) {
     over100: samples.filter(x => x > 100).length,
     over250: samples.filter(x => x > 250).length,
     historyBytes: fs.statSync(path.join(dir, 'history.json')).size,
+    slow, // every round trip over 60 ms, seconds into the workload
   };
   console.log(`WORKLOAD ${JSON.stringify(stat)}`);
   return stat;
@@ -248,13 +255,15 @@ async function workload(exe, label) {
 
 try {
   console.log(`Candidate: ${executable}${baseline ? `\nBaseline: ${baseline}` : ''}${seedFrom ? `\nSeeded from: ${seedFrom}` : ''}`);
-  await persistenceChecks(executable);
-  const candidate = await workload(executable, 'candidate');
-  if (baseline) {
-    const reference = await workload(baseline, 'baseline');
-    console.log(`RESPONSIVENESS candidate vs baseline: max ${candidate.max} vs ${reference.max} ms, p99 ${candidate.p99} vs ${reference.p99} ms, round trips over 250 ms ${candidate.over250} vs ${reference.over250}`);
+  if (!workloadOnly) await persistenceChecks(executable);
+  const runs = { candidate: [], baseline: [] };
+  for (let round = 1; round <= workloadRounds; round++) {
+    runs.candidate.push(await workload(executable, `candidate#${round}`));
+    if (baseline) runs.baseline.push(await workload(baseline, `baseline#${round}`));
   }
-  console.log(`Packaged persistence PASS (${process.platform}): ${results.length} checks`);
+  const sum = list => ({ maxes: list.map(r => r.max), p99s: list.map(r => r.p99), over100: list.reduce((n, r) => n + r.over100, 0), over250: list.reduce((n, r) => n + r.over250, 0) });
+  if (baseline) console.log(`RESPONSIVENESS candidate ${JSON.stringify(sum(runs.candidate))} vs baseline ${JSON.stringify(sum(runs.baseline))}`);
+  console.log(`Packaged persistence PASS (${process.platform}): ${workloadOnly ? 'workload only' : `${results.length} checks`}`);
 } finally {
   try { if (app) app.process.kill('SIGKILL'); } catch {}
   server.close();
