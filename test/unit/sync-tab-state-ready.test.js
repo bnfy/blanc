@@ -5,6 +5,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { waitForJson } = require('./support/wait-for-json');
 
 // Regression for the pre-restore sync race: showOverlay('palette'|'panel')
 // calls refreshSession() before startProfileSync registers snapshot providers.
@@ -173,8 +174,9 @@ test('turning share-tabs off before restore still publishes retractions', async 
   // Drive the same stores scheduleTabs(1000) would invoke.
   const result = await sync.syncNow(['session', 'icons']);
   assert.equal(result.ok, true);
-  // JsonStore debounces writes; wait for the retraction to reach disk.
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  // JsonStore saves are debounced and written off the main thread.
+  await waitForJson(path.join(tmp, 'tab-sync.json'), (json) => json.devices?.[DEVICE_ID]?.retracted === true);
+  await waitForJson(path.join(tmp, 'tab-icons.json'), (json) => json.devices?.[DEVICE_ID]?.retracted === true);
 
   assert.equal(readDevices('tab-sync.json')[DEVICE_ID].retracted, true);
   assert.equal(readDevices('tab-icons.json')[DEVICE_ID].retracted, true);
@@ -220,7 +222,7 @@ test('after restore marks ready, session/icons refresh can run with providers', 
 
   // Bypass the 60s refreshSession throttle from the earlier palette open.
   await sync.syncNow(['session', 'icons']);
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await waitForJson(path.join(tmp, 'tab-sync.json'), (json) => json.devices?.[DEVICE_ID]?.tabs?.length > 0);
   const methods = requests.map(({ method }) => method);
   assert.ok(methods.includes('GET'), 'ready sync reaches the Worker');
   assert.equal(readDevices('tab-sync.json')[DEVICE_ID].retracted, undefined);
