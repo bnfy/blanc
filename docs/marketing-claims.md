@@ -79,15 +79,16 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.29.0; its scope, publication evidence and
-owner-confirmed adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-06-v1.29.0.md). Installed
+These boundaries describe public v1.30.0; its scope, publication evidence and
+pending adjacent public-feed updater handoffs are recorded in
+[the release report](release-incidents/2026-10-07-v1.30.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
-v1.28.0 duplicate macOS build number, historical wallpaper/Linux waivers and
-earlier updater confirmations remain in their original reports:
+v1.28.0 duplicate macOS build number, the v1.29.0 updater confirmations,
+historical wallpaper/Linux waivers and earlier updater confirmations remain in
+their original reports:
 
-- **Optional uBlock Origin:** Public v1.29.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.30.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -149,6 +150,14 @@ earlier updater confirmations remain in their original reports:
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
   categorize tabs semantically, or organize them automatically.
+- **Drag to reorder:** Since v1.30.0 the user can drag tabs and group headers
+  in the expanded Island and in vertical tabs, or use Alt/Option+Shift+Up and
+  Down on a focused row or header. A drag can move a tab within its group,
+  into another group or out of it, and reorder whole groups; it never changes
+  pinned state, and releasing over a page does nothing. Ordering is entirely
+  user-directed. The owner hand-tested it on macOS; Windows and Linux are
+  covered by hosted automated pointer tests only, so do not claim
+  hands-on verification there.
 - **Favorites folder picker:** v1.25.0 keeps the move picker above neighboring
   rows and inside the window, with internal scrolling for long folder lists
   and a visible new-folder field. Escape closes the picker and returns focus
