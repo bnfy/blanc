@@ -9474,14 +9474,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/eslint@10.11.0",
+      "bom-ref": "pkg:npm/eslint@10.12.0",
       "name": "eslint",
-      "version": "10.11.0",
+      "version": "10.12.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3fb6ba50412a6fd1bde4c600b6a926b136d55c8632cc87e5e8d18e209935eb63da6a117117278672b9576054a26a0102838b049bc22c78975904a477af1e8cb1"
+          "content": "9e91e3ac76f6a387a11f7984f98bb100147ed20c9bd1a556088a258090c0af00a21c422ca27066dd92a37a5e5bd14e7e6be31b12f232442182cc3dde28a2b634"
         }
       ],
       "licenses": [
@@ -9491,7 +9491,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/eslint@10.11.0",
+      "purl": "pkg:npm/eslint@10.12.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -9513,7 +9513,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/eslint/-/eslint-10.11.0.tgz"
+          "url": "https://registry.npmjs.org/eslint/-/eslint-10.12.0.tgz"
         }
       ]
     },
@@ -20994,7 +20994,7 @@
         "pkg:npm/electron-builder@26.15.3",
         "pkg:npm/electron-updater@6.8.9",
         "pkg:npm/electron@44.5.1",
-        "pkg:npm/eslint@10.11.0",
+        "pkg:npm/eslint@10.12.0",
         "pkg:npm/globals@17.12.0",
         "pkg:npm/playwright@1.63.0",
         "pkg:npm/sharp@0.35.5"
@@ -22291,7 +22291,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/eslint@10.11.0",
+      "ref": "pkg:npm/eslint@10.12.0",
       "dependsOn": [
         "pkg:npm/%40eslint-community/eslint-utils@4.10.1",
         "pkg:npm/%40eslint-community/regexpp@4.12.2",
