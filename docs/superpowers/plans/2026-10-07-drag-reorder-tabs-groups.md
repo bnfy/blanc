@@ -19,7 +19,6 @@
 - Collapsed groups are skipped by keyboard moves; a drop on any group header appends to that group and leaves `collapsed` unchanged.
 - Keyboard moves act on the row or group header holding keyboard focus, on both surfaces; never from the island's address input.
 - A drop awaits its IPC result with **no renderer timeout**. Forced ends (pagehide, overlay hide, list-mode or layout change) work in every phase and invalidate a pending result. Escape while settling is consumed without ending the drop.
-- The drag threshold is total (Euclidean) pointer distance.
 - While a drag is active or settling, only the draggable list's redraw is deferred; the latest payload is applied exactly once at the end.
 - `overlay:drag-state` is accepted only from the sender runtime's own registered overlay `webContents`, as a boolean, and reset on hide, overlay destruction, render-process-gone and every renderer end path.
 - No HTML5 drag-and-drop and no `DataTransfer` payloads anywhere in this feature.
@@ -2429,7 +2428,7 @@ Expected: PASS, or failures that also fail on `main` (record which).
 ## Self-review notes
 
 - Spec §1 rule, self-target, empty bucket, prune, collapsed untouched, boolean return, broadcast-only-on-change → Tasks 1–2. `groups:reorder` → Tasks 1–2. Cleanup of `reorderTab`/`reorderTabWithinBucket`/contract/test-hook/inventory → Task 2.
-- Spec §2 controller, threshold, capture, ghost, line/header indicator, invalid gaps, group drag, auto-scroll with refresh, Escape/pointercancel/lostpointercapture, release outside, no DataTransfer → Tasks 5–6. Drop outcome (true/false/reject, timeout) → Task 5. Live re-render deferral and source-missing cancel → Tasks 5–7. Island list-mode change cancels → Task 7. Overlay drag-state sender/reset contract → Task 3 (+ renderer side Task 7). Per-surface rules → Tasks 6–7. Keyboard rule (collapsed skip, empty same-state bucket, stops, announcements, focus) → Tasks 4, 6, 7.
+- Spec §2 controller, threshold, capture, ghost, line/header indicator, invalid gaps, group drag, auto-scroll with refresh, Escape/pointercancel/lostpointercapture, release outside, no DataTransfer → Tasks 5–6. Drop outcome (true/false/reject, no timeout) → Task 5. Live re-render deferral and source-missing cancel → Tasks 5–7. Island list-mode change cancels → Task 7. Overlay drag-state sender/reset contract → Task 3 (+ renderer side Task 7). Per-surface rules → Tasks 6–7. Keyboard rule (collapsed skip, empty same-state bucket, stops, announcements, focus) → Tasks 4, 6, 7.
 - Spec §3 unit list → Tasks 1, 3, 4, 5; guards → Tasks 2, 3, 6, 9; acceptance matrix incl. drag-out probe and Escape → Task 8; manual → Tasks 6, 7, 9.
 - The island keyboard target (focused row or header, never the input), the Euclidean threshold, settling-phase Escape and forced-end behaviour, and the absence of a drop timeout are all written into the spec itself (amended during plan review), so the spec and this plan agree.
 - Plan-review round 1 fixes: drop timeout removed (Task 5); forced `cancel()` ends settling and invalidates late results (Task 5); Escape consumed while settling (Task 5); tab drags cancel on original-group loss, membership change or pinned change (Task 5); window-close reset of the overlay flag (Task 3); Euclidean threshold (Task 5).
