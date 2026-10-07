@@ -1,5 +1,46 @@
 [
   {
+    "tag": "v1.30.0",
+    "version": "1.30.0",
+    "name": "1.30.0",
+    "publishedAt": "2026-10-07T21:17:02.000Z",
+    "humanDate": "October 7, 2026",
+    "machineDate": "2026-10-07",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.30.0",
+    "anchor": "v1-30-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "You can drag to reorder tabs and groups, in the expanded Island and in vertical tabs. Drag a tab within its group, into another group, or out of its group. Dropping a tab on a group's header adds it to that group, even when the group is folded. Drag a group's header to move the whole group, and Cmd/Ctrl+1–9 follow the new order. Pinned tabs stay pinned, and releasing a drag over the page does nothing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The same moves work from the keyboard: focus a tab or a group header and press Alt+Shift+Up or Alt+Shift+Down (Option+Shift on macOS). Folded groups are skipped."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.29.0",
     "version": "1.29.0",
     "name": "1.29.0",
