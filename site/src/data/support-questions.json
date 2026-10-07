@@ -51,6 +51,15 @@
     ]
   },
   {
+    "id": "tabs-on-quit",
+    "q": "What happens to my tabs when I quit?",
+    "a": [
+      "Blanc reopens them. When you quit and launch Blanc again, your windows, tabs and tab groups come back automatically. Only the tab you were looking at loads right away; the others load when you open them. This is free and needs no setting.",
+      "If Blanc closes unexpectedly, such as after a crash or a forced quit, the start page asks whether to restore your tabs or start fresh. Private tabs are never restored.",
+      "Patron's Named Workspaces are something different: named sets of tabs you save and switch between on purpose."
+    ]
+  },
+  {
     "id": "1password",
     "q": "Does Blanc work with 1Password?",
     "a": [
