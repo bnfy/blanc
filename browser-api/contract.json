@@ -63,6 +63,19 @@
       "ts": "{ private?: boolean }",
       "doc": "Options for a new tab. Only `private` is read by main today."
     },
+    "TabMoveTarget": {
+      "doc": "Where a dragged or keyboard-moved tab should land. The pinned state never changes.",
+      "fields": {
+        "groupId": {
+          "type": "GroupId | null",
+          "doc": "Target group, or null for the loose section / standalone pins."
+        },
+        "beforeId": {
+          "type": "TabId | null",
+          "doc": "Land before this tab of the target bucket; null means that bucket's end."
+        }
+      }
+    },
     "OpenWorkspaceOptions": {
       "doc": "Options for opening or creating a workspace.",
       "fields": {
@@ -1385,40 +1398,40 @@
       "resultCheck": "none"
     },
     {
-      "name": "reorderTab",
+      "name": "moveTab",
       "group": "tabs",
       "kind": "invoke",
-      "channel": "tabs:reorder",
+      "channel": "tabs:move",
       "params": [
         {
           "name": "id",
           "type": "TabId"
         },
         {
-          "name": "toIndex",
-          "type": "number"
-        }
-      ],
-      "returns": "void",
-      "doc": "Move a tab to an index in the tab order."
-    },
-    {
-      "name": "reorderTabWithinBucket",
-      "group": "tabs",
-      "kind": "invoke",
-      "channel": "tabs:reorder-within-bucket",
-      "params": [
-        {
-          "name": "id",
-          "type": "TabId"
-        },
-        {
-          "name": "beforeId",
-          "type": "TabId | null"
+          "name": "target",
+          "type": "TabMoveTarget"
         }
       ],
       "returns": "boolean",
-      "doc": "Move a tab before another within its pinned/group bucket."
+      "doc": "Move a tab within its bucket or into another group's matching bucket. Never changes pinned state. Resolves false for a rejected request."
+    },
+    {
+      "name": "reorderGroup",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "groups:reorder",
+      "params": [
+        {
+          "name": "id",
+          "type": "GroupId"
+        },
+        {
+          "name": "beforeGroupId",
+          "type": "GroupId | null"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move a group before another group, or to the end with null."
     },
     {
       "name": "activateTabFromRail",
@@ -2040,6 +2053,22 @@
         }
       ],
       "doc": "Tell main whether the workspace popover is open, so Escape closes it first.",
+      "ipcArgs": [
+        "bool($0)"
+      ]
+    },
+    {
+      "name": "setOverlayDragState",
+      "group": "overlay",
+      "kind": "send",
+      "channel": "overlay:drag-state",
+      "params": [
+        {
+          "name": "active",
+          "type": "boolean"
+        }
+      ],
+      "doc": "Tell main an island drag started or ended, so Escape cancels the drag and blur does not dismiss the panel.",
       "ipcArgs": [
         "bool($0)"
       ]

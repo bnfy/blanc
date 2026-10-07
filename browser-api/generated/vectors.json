@@ -511,73 +511,82 @@
       ],
       "replies": []
     },
-    "reorderTab": {
+    "moveTab": {
       "kind": "invoke",
       "platforms": [
         "darwin",
         "win32",
         "linux"
       ],
-      "channel": "tabs:reorder",
+      "channel": "tabs:move",
       "calls": [
         {
           "label": "typical",
           "args": [
             "tab-id-1",
-            1
+            {
+              "groupId": "group-id-1",
+              "beforeId": "tab-id-1"
+            }
           ],
           "sends": [
             {
               "kind": "invoke",
-              "channel": "tabs:reorder",
+              "channel": "tabs:move",
               "args": [
                 "tab-id-1",
-                1
+                {
+                  "groupId": "group-id-1",
+                  "beforeId": "tab-id-1"
+                }
               ]
             }
           ]
         }
       ],
-      "replies": []
+      "replies": [
+        true,
+        false
+      ]
     },
-    "reorderTabWithinBucket": {
+    "reorderGroup": {
       "kind": "invoke",
       "platforms": [
         "darwin",
         "win32",
         "linux"
       ],
-      "channel": "tabs:reorder-within-bucket",
+      "channel": "groups:reorder",
       "calls": [
         {
           "label": "typical",
           "args": [
-            "tab-id-1",
-            "tab-id-1"
+            "group-id-1",
+            "group-id-1"
           ],
           "sends": [
             {
               "kind": "invoke",
-              "channel": "tabs:reorder-within-bucket",
+              "channel": "groups:reorder",
               "args": [
-                "tab-id-1",
-                "tab-id-1"
+                "group-id-1",
+                "group-id-1"
               ]
             }
           ]
         },
         {
-          "label": "beforeId = null",
+          "label": "beforeGroupId = null",
           "args": [
-            "tab-id-1",
+            "group-id-1",
             null
           ],
           "sends": [
             {
               "kind": "invoke",
-              "channel": "tabs:reorder-within-bucket",
+              "channel": "groups:reorder",
               "args": [
-                "tab-id-1",
+                "group-id-1",
                 null
               ]
             }
@@ -2381,6 +2390,47 @@
             {
               "kind": "send",
               "channel": "chrome:workspace-switcher",
+              "args": [
+                false
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "setOverlayDragState": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "overlay:drag-state",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            true
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "overlay:drag-state",
+              "args": [
+                true
+              ]
+            }
+          ]
+        },
+        {
+          "label": "active = false",
+          "args": [
+            false
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "overlay:drag-state",
               "args": [
                 false
               ]

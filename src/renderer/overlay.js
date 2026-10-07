@@ -124,7 +124,8 @@
       pendingWorkspacesPayload = null;
       commitWorkspacesPayload(payload);
     }
-    if (!renderQueued) return;
+    // An active drag's own end flushes the queued render.
+    if (!renderQueued || islandDrag.isActive()) return;
     renderQueued = false;
     renderList();
   }
@@ -182,6 +183,67 @@
     trigger: footerWorkspace, label: footerWorkspaceLabel,
     feedback: document.getElementById('workspaceFeedback'),
     onOpenChange(open) { workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open); },
+  });
+
+  // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
+  const dragApi = window.blancTabDrag;
+  const islandDragLive = document.getElementById('islandDragLive');
+  function announceIsland(message) {
+    islandDragLive.textContent = '';
+    requestAnimationFrame(() => { islandDragLive.textContent = message; });
+  }
+  /** The resting list (pinned, groups, loose): the only list mode that can be dragged. */
+  function restingList() {
+    if (mode !== 'panel' && mode !== 'palette') return false;
+    if (siteInfoOpen || commandNotice) return false;
+    const value = addressInput.value;
+    return !(inputTouched && (value.startsWith('/') || value.trim()));
+  }
+  async function islandMove(intent) {
+    const message = dragApi.describeMove(state, intent);
+    let ok = false;
+    try {
+      ok = intent.kind === 'group'
+        ? await window.browserAPI.reorderGroup(intent.id, intent.beforeGroupId)
+        : await window.browserAPI.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+    } catch (error) {
+      console.error('Island: move failed', error);
+    }
+    if (ok === true) announceIsland(message);
+    return ok === true;
+  }
+  const islandDrag = dragApi.attach({
+    list: islandList,
+    document,
+    window,
+    enabled: restingList,
+    onDrop: islandMove,
+    announce: announceIsland,
+    onActiveChange(active) {
+      window.browserAPI.setOverlayDragState(active);
+      if (!active && renderQueued && !pointerHeld) {
+        renderQueued = false;
+        renderList();
+      }
+    },
+  });
+  islandList.addEventListener('keydown', (event) => {
+    if (!event.altKey || !event.shiftKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
+    if (!restingList()) return;
+    const direction = event.key === 'ArrowUp' ? 'up' : 'down';
+    const header = event.target.closest?.('[data-drag-header]');
+    const row = event.target.closest?.('.island-row[data-tab-id]');
+    const result = header
+      ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction)
+      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
+    if (!result) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (result.stop) {
+      announceIsland(result.stop === 'top' ? 'Already at the top' : 'Already at the bottom');
+      return;
+    }
+    islandMove(result.intent);
   });
 
   const ICONS = {
@@ -497,6 +559,10 @@
       (tab.id === state.activeTabId ? ' active' : '') +
       (tab.asleep ? ' quiet' : '');
     row.dataset.tabId = tab.id;
+    row.dataset.dragTab = '';
+    row.dataset.pinned = String(!!tab.pinned);
+    row.dataset.groupId = tab.groupId ?? '';
+    row.dataset.dragTitle = tab.title || 'New Tab';
     // A row contains multiple real buttons, so it is a labelled group—not an
     // option/button, whose children would become presentational.
     row.setAttribute('role', 'group');
@@ -547,6 +613,7 @@
 
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
+    pin.dataset.noDrag = '';
     pin.title = tab.pinned ? 'Unpin tab' : 'Pin tab';
     pin.setAttribute('aria-label', pin.title);
     pin.innerHTML = ICONS.pin;
@@ -559,6 +626,7 @@
     if (tab.audible || tab.muted) {
       const mute = document.createElement('button');
       mute.className = 'row-mute' + (tab.muted ? ' on' : '');
+      mute.dataset.noDrag = '';
       mute.title = tab.muted ? 'Unmute tab' : 'Mute tab';
       mute.setAttribute('aria-label', mute.title);
       mute.innerHTML = ICONS.mute;
@@ -573,6 +641,7 @@
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
+      glance.dataset.noDrag = '';
       glance.textContent = 'glance';
       glance.title = isGlance ? 'Close Glance' : 'Open this tab in Glance';
       glance.setAttribute('aria-label', `${glance.title}: ${label}`);
@@ -589,6 +658,7 @@
 
     const close = document.createElement('button');
     close.className = 'row-close';
+    close.dataset.noDrag = '';
     close.title = 'Close tab';
     close.setAttribute('aria-label', 'Close tab');
     close.innerHTML = ICONS.close;
@@ -617,11 +687,33 @@
 
   /** Named-group band: present --surface tint behind header + member tabs.
    * Only named groups get this — pinned / loose / furniture stay flat. */
-  function groupBand(nodes) {
+  function groupBand(group, nodes) {
     const band = document.createElement('div');
     band.className = 'island-group-band';
+    band.dataset.dragSection = 'group';
+    band.dataset.groupId = group.id;
+    band.dataset.collapsed = String(!!group.collapsed);
     band.append(...nodes);
     return band;
+  }
+
+  /** A drag section wrapper for the standalone pinned and loose rows, so the
+   * shared drag controller can measure them like group bands. */
+  function dragSection(kind, nodes) {
+    const section = document.createElement('div');
+    section.className = 'island-drag-section';
+    section.dataset.dragSection = kind;
+    section.append(...nodes);
+    return section;
+  }
+
+  /** Empty pinned/loose drop target; takes no space until a drag reveals it. */
+  function dragEmptyZone(kind) {
+    const zone = document.createElement('div');
+    zone.className = 'drag-empty-zone';
+    zone.dataset.dragSection = kind;
+    zone.setAttribute('aria-hidden', 'true');
+    return zone;
   }
 
   /** "pinned" section header for pins without a named group. */
@@ -647,7 +739,20 @@
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelector('.ghead-n').textContent = String(count);
     row.title = group.collapsed ? 'Unfold group' : 'Fold group';
+    row.dataset.dragHeader = '';
+    row.dataset.groupId = group.id;
+    row.dataset.dragTitle = group.name;
+    // Focusable so ⌥⇧↑/↓ can move the group from the keyboard.
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-expanded', String(!group.collapsed));
     row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        window.browserAPI.toggleGroupCollapsed(group.id);
+      }
+    });
     return row;
   }
 
@@ -846,10 +951,12 @@
     if (command.resultNotice) {
       Promise.resolve(result).then((value) => {
         if (resultGeneration !== commandResultGeneration) return;
+        islandDrag.cancel();
         commandNotice = command.resultNotice(value);
         renderList();
       }, () => {
         if (resultGeneration !== commandResultGeneration) return;
+        islandDrag.cancel();
         commandNotice = 'Could not quiet background tabs.';
         renderList();
       });
@@ -1212,6 +1319,8 @@
   // menu key / VoiceOver open the row menu from the focused row).
   function focusedRowAnchor() {
     const el = document.activeElement;
+    const header = el?.closest?.('[data-drag-header]');
+    if (header && islandList.contains(header)) return { groupId: header.dataset.groupId };
     const row = el && el.closest && el.closest('.island-row[data-tab-id]');
     if (!row || !islandList.contains(row)) return null;
     const control = ['row-primary', 'row-pin', 'row-mute', 'row-glance', 'row-close']
@@ -1220,6 +1329,10 @@
   }
   function restoreRowFocus(anchor) {
     if (!anchor) return;
+    if (anchor.groupId) {
+      islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`)?.focus();
+      return;
+    }
     const row = islandList.querySelector(
       `.island-row[data-tab-id="${CSS.escape(anchor.tabId)}"]`);
     (row?.querySelector(`.${anchor.control}`) ?? row?.querySelector('.row-primary'))?.focus();
@@ -1321,7 +1434,7 @@
   }
 
   function renderList() {
-    if (pointerHeld) {
+    if (pointerHeld || islandDrag.isActive()) {
       renderQueued = true;
       return;
     }
@@ -1383,10 +1496,9 @@
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
-      if (pinned.length) {
-        rows.push(pinnedHeaderRow(pinned.length));
-        rows.push(...pinned.map(tabRow));
-      }
+      rows.push(pinned.length
+        ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
+        : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
@@ -1401,11 +1513,12 @@
               bandNodes.push(row);
             }
           }
-          rows.push(groupBand(bandNodes));
+          rows.push(groupBand(group, bandNodes));
         } else {
-          rows.push(...gtabs.map(tabRow));
+          rows.push(dragSection('loose', gtabs.map(tabRow)));
         }
       }
+      if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
 
       const furniture = [];
       for (const device of remoteDevices) {
@@ -2064,6 +2177,7 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    islandDrag.cancel();
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
@@ -2236,6 +2350,8 @@
     renderList();
   });
   addressInput.addEventListener('input', (e) => {
+    // Typing switches the list out of its resting mode: end any drag first.
+    islandDrag.cancel();
     siteInfoOpen = false;
     inputTouched = true;
     commandResultGeneration += 1;
@@ -2370,6 +2486,7 @@
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     state = payload;
+    islandDrag.notePayload(payload);
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {

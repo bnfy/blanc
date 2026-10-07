@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-102 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+103 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -20,8 +20,8 @@
 | `goForward` | navigation | invoke | `tabs:forward` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
-| `reorderTab` | tabs | invoke | `tabs:reorder` | `(id: TabId, toIndex: number) => Promise<void>` | all |
-| `reorderTabWithinBucket` | tabs | invoke | `tabs:reorder-within-bucket` | `(id: TabId, beforeId: TabId \| null) => Promise<boolean>` | all |
+| `moveTab` | tabs | invoke | `tabs:move` | `(id: TabId, target: TabMoveTarget) => Promise<boolean>` | all |
+| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
 | `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `() => Promise<boolean>` | all |
@@ -70,6 +70,7 @@
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
 | `closeOverlay` | overlay | send | `overlay:close` | `(reason?: string)` | all |
 | `setWorkspaceSwitcherOpen` | workspaces | send | `chrome:workspace-switcher` | `(open: boolean)` | all |
+| `setOverlayDragState` | overlay | send | `overlay:drag-state` | `(active: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
 | `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
@@ -194,6 +195,15 @@ Direction for reordering a workspace.
 Options for a new tab. Only `private` is read by main today.
 
 `{ private?: boolean }`
+
+### `TabMoveTarget`
+
+Where a dragged or keyboard-moved tab should land. The pinned state never changes.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `groupId` | `GroupId \| null` | Target group, or null for the loose section / standalone pins. |
+| `beforeId` | `TabId \| null` | Land before this tab of the target bucket; null means that bucket's end. |
 
 ### `OpenWorkspaceOptions`
 

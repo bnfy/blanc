@@ -22,6 +22,7 @@ assert.equal(
 );
 
 const poll = require('./../support/poll');
+const { pointerDrag } = require('../support/tab-drag');
 // Rail scenarios drive real window resizes/animations, so they keep a longer
 // default deadline than the shared helper's 5s — semantics live in support/poll.
 const waitForValue = (read, predicate, label, timeout = 7000) =>
@@ -151,46 +152,14 @@ async function railSnapshot(page) {
   });
 }
 
-async function dragRow(page, sourceId, targetId, position) {
-  return page.evaluate(({ sourceId: source, targetId: target, position: where }) => {
-    const sourcePrimary = document.querySelector(
-      `.vertical-tab-primary[data-tab-id="${CSS.escape(source)}"]`
-    );
-    const targetRow = document.querySelector(
-      `.vertical-tab-row[data-tab-id="${CSS.escape(target)}"]`
-    );
-    if (!sourcePrimary || !targetRow) {
-      throw new Error(`missing drag source ${source} or target ${target}`);
-    }
-    const rect = targetRow.getBoundingClientRect();
-    const dataTransfer = new DataTransfer();
-    const clientY = where === 'before' ? rect.top + 1 : rect.bottom - 1;
-    sourcePrimary.dispatchEvent(new DragEvent('dragstart', {
-      bubbles: true,
-      cancelable: true,
-      dataTransfer,
-      clientY,
-    }));
-    targetRow.dispatchEvent(new DragEvent('dragover', {
-      bubbles: true,
-      cancelable: true,
-      dataTransfer,
-      clientY,
-    }));
-    const dropAccepted = !targetRow.dispatchEvent(new DragEvent('drop', {
-      bubbles: true,
-      cancelable: true,
-      dataTransfer,
-      clientY,
-    }));
-    sourcePrimary.dispatchEvent(new DragEvent('dragend', {
-      bubbles: true,
-      cancelable: true,
-      dataTransfer,
-      clientY,
-    }));
-    return { dropAccepted };
-  }, { sourceId, targetId, position });
+// Real pointer drag (tab-drag.js has no HTML5 drag-and-drop): 'before' is the
+// gap at the target row's top edge, 'after' the gap at its bottom edge.
+async function dragRow(world, page, sourceId, targetId, position) {
+  const list = page.locator('#verticalTabsList');
+  const target = await list.locator(`[data-drag-tab][data-tab-id="${targetId}"]`).boundingBox();
+  assert.ok(target, `drag target ${targetId} has a box`);
+  const y = position === 'before' ? target.y + 2 : target.y + target.height - 2;
+  await pointerDrag(world, page, list.locator(`[data-drag-tab][data-tab-id="${sourceId}"]`), { y });
 }
 
 async function waitForOrder(world, expected) {
@@ -1440,7 +1409,8 @@ Given('three rail rows share the same group and pinned state', async function ()
 });
 
 When('I drag the third row before the first row', async function () {
-  this.firstDrag = await dragRow(
+  await dragRow(
+    this,
     this.railPage,
     this.dragTabs[2],
     this.dragTabs[0],
@@ -1457,7 +1427,6 @@ When('I drag the third row before the first row', async function () {
 });
 
 Then('the canonical tab order reflects that move', async function () {
-  assert.equal(this.firstDrag.dropAccepted, true);
   const state = await this.state();
   assert.deepEqual(state.tabOrder.filter((id) => this.dragTabs.includes(id)), [
     this.dragTabs[2],
@@ -1486,7 +1455,7 @@ When('I drag the first row to the end of that source bucket', async function () 
   ).evaluateAll((rows) => rows.map((row) => row.dataset.tabId));
   const withoutSource = domOrder.filter((id) => id !== source);
   this.endDropBeforeId = withoutSource[withoutSource.indexOf(target) + 1] ?? null;
-  this.endDrag = await dragRow(this.railPage, source, target, 'after');
+  await dragRow(this, this.railPage, source, target, 'after');
   this.dragEndExpected = [...current.slice(1), source];
   await this.waitForState((candidate) =>
     candidate.tabOrder.filter((id) => this.dragTabs.includes(id)).join(',') ===
@@ -1497,7 +1466,6 @@ Then('the reorder request uses no before-row id', function () {
   // The live DOM target was the last row after removing the source, so the
   // renderer's before-row contract necessarily supplies null.
   assert.equal(this.endDropBeforeId, null);
-  assert.equal(this.endDrag.dropAccepted, true);
 });
 
 Then("the canonical tab order places it at that bucket's end", async function () {
@@ -1521,38 +1489,21 @@ Given('rail rows span different groups and pinned states', async function () {
   this.railPage = await showRail(this);
 });
 
-When('I drag a row across a group boundary', async function () {
-  this.crossGroupDrag = await dragRow(
-    this.railPage,
-    this.boundaryTabs.groupRegular,
-    this.boundaryTabs.otherGroup,
-    'before'
-  );
-  await sleep(100);
-});
-
-Then('the drop is rejected', function () {
-  const result = this.crossPinDrag ?? this.crossGroupDrag;
-  assert.equal(result.dropAccepted, false);
-});
-
-Then('canonical tab order and group membership are unchanged', async function () {
-  const state = await this.state();
-  assert.deepEqual(state.tabOrder, this.boundaryBefore.tabOrder);
-  assert.deepEqual(
-    state.tabs.map(({ id, groupId }) => ({ id, groupId })),
-    this.boundaryBefore.tabs.map(({ id, groupId }) => ({ id, groupId }))
-  );
+Then('the drop is rejected', async function () {
+  // Rejected drops change nothing; give a mistaken drop time to land first.
+  await sleep(300);
+  assert.deepEqual((await this.state()).tabOrder, this.boundaryBefore.tabOrder);
 });
 
 When('I drag a pinned row into an unpinned bucket', async function () {
-  this.crossPinDrag = await dragRow(
+  // The end of beta's unpinned rows is a gap only unpinned tabs may use.
+  await dragRow(
+    this,
     this.railPage,
     this.boundaryTabs.groupPinned,
-    this.boundaryTabs.groupRegular,
-    'before'
+    this.boundaryTabs.otherGroup,
+    'after'
   );
-  await sleep(100);
 });
 
 Then('canonical tab order and pinned state are unchanged', async function () {
