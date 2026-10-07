@@ -32,8 +32,12 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
     )[1],
   );
   const current = JSON.parse(read("site/src/data/support-questions.json"));
+  // New answers may be added; every original must survive verbatim, in order.
+  const survivors = current.filter((entry) =>
+    original.some(({ id }) => id === entry.id),
+  );
   assert.deepEqual(
-    current,
+    survivors,
     original,
     "All engine, privacy, AI, audit, licensing and Patron answers must survive.",
   );
