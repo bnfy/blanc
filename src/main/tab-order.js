@@ -6,12 +6,6 @@ function tabFor(tabs, id) {
   return tabs?.[id];
 }
 
-function sameBucket(a, b) {
-  return !!a && !!b
-    && (a.groupId ?? null) === (b.groupId ?? null)
-    && !!a.pinned === !!b.pinned;
-}
-
 /**
  * Move `id` into the bucket {target.groupId, source.pinned}, before
  * target.beforeId (null = end of that bucket). A drag may change position and
@@ -22,7 +16,10 @@ function moveTab(order, tabs, groups, id, target) {
   if (!Array.isArray(order) || !target || typeof target !== 'object') return null;
   const source = tabFor(tabs, id);
   if (!source || !order.includes(id)) return null;
-  const groupId = target.groupId ?? null;
+  // groupId is required: null means loose/standalone pins, a string names a
+  // group. A missing or malformed one must never silently ungroup the tab.
+  const { groupId } = target;
+  if (groupId !== null && typeof groupId !== 'string') return null;
   if (groupId !== null && !(Array.isArray(groups) && groups.some((g) => g.id === groupId))) return null;
   const { beforeId } = target;
   if (beforeId !== null && typeof beforeId !== 'string') return null;
@@ -72,4 +69,4 @@ function reorderGroup(groups, id, beforeGroupId) {
   return next;
 }
 
-module.exports = { sameBucket, moveTab, reorderGroup };
+module.exports = { moveTab, reorderGroup };

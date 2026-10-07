@@ -103,3 +103,15 @@ test('reorderGroup moves a group before another or to the end', () => {
   assert.deepEqual(groups.map((g) => g.id), ['a', 'b', 'c'], 'input never mutated');
   assert.equal(reorderGroup(groups, 'c', 'a')[0], groups[2], 'group records are moved, not copied');
 });
+
+test('moveTab requires an explicit groupId: a missing one never ungroups a tab', () => {
+  const model = tabs([['a', 'work'], ['b', 'work'], ['l', null]]);
+  const order = ['a', 'b', 'l'];
+  const groups = groupsOf('work');
+  assert.equal(moveTab(order, model, groups, 'a', { beforeId: null }), null, 'groupId omitted');
+  assert.equal(moveTab(order, model, groups, 'a', { groupId: undefined, beforeId: null }), null);
+  assert.equal(moveTab(order, model, groups, 'a', { groupId: 7, beforeId: null }), null, 'non-string id');
+  assert.equal(moveTab(order, model, groups, 'a', { groupId: '', beforeId: null }), null, 'empty id is not loose');
+  assert.deepEqual(moveTab(order, model, groups, 'a', { groupId: null, beforeId: null }),
+    { order: ['b', 'l', 'a'], groupId: null }, 'explicit null is the loose section');
+});
