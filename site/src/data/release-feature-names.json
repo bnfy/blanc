@@ -1,4 +1,5 @@
 {
+  "1.29.0": ["About & Trust", "Intel Mac builds", "uBO auto-restart"],
   "1.28.0": ["Dark websites", "Match site colors", "Resumable downloads"],
   "1.27.0": ["Optional uBlock Origin"],
   "1.26.0": ["About Blanc"],
