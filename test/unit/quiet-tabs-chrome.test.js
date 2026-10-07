@@ -120,7 +120,7 @@ test('no chrome surface ever says "asleep" to a user or a screen reader', () => 
 // ---------------------------------------------------------------------------
 
 const railRowSource = railSource.match(
-  /function tabRow\(tab, bucketTabs, activeTabId\) \{[\s\S]*?\n  \}/
+  /function tabRow\(tab, activeTabId\) \{[\s\S]*?\n  \}/
 )?.[0];
 
 test('the rail tabRow could be lifted from source', () => {

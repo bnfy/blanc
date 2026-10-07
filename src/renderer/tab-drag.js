@@ -176,6 +176,7 @@
     let source = null;
     let startX = 0;
     let startY = 0;
+    let lastX = 0;
     let lastY = 0;
     let model = null;
     let hit = null;
@@ -186,7 +187,13 @@
     // turns into a success. Main's broadcast stays the source of truth.
     let generation = 0;
 
+    // Beside the list (over page content) is never a target, whatever the y.
+    const besideList = () => model
+      && Number.isFinite(model.left) && Number.isFinite(model.right)
+      && (lastX < model.left || lastX > model.right);
+
     const resolve = () => {
+      if (besideList()) { hit = null; fx.setIndicator(null); return; }
       hit = source.kind === 'group'
         ? resolveGroupDrop(model, source.id, lastY)
         : resolveTabDrop(model, source, lastY);
@@ -296,10 +303,12 @@
         source = event.source;
         startX = event.x;
         startY = event.y;
+        lastX = event.x;
         lastY = event.y;
       },
       pointerMove(event) {
         if (event.pointerId !== pointerId) return;
+        lastX = event.x;
         lastY = event.y;
         if (phase === 'pending') {
           // Total distance from the press point (Euclidean), per the spec.
@@ -345,8 +354,157 @@
     };
   }
 
+  function attach({ list, document: doc, window: win, enabled = () => true, onDrop, onActiveChange, announce }) {
+    list.dataset.dragRoot = '';
+    let ghost = null;
+    let grabOffset = 0;
+    let sourceEl = null;
+    let headerTarget = null;
+    let suppressClickArmed = false;
+    const line = doc.createElement('div');
+    line.className = 'tab-drag-line';
+    line.hidden = true;
+    line.setAttribute('aria-hidden', 'true');
+    doc.body.appendChild(line);
+
+    const rectOf = (el) => el.getBoundingClientRect();
+    const visible = (r) => r.height > 0;
+
+    function readModel() {
+      const listRect = rectOf(list);
+      const sections = [];
+      for (const el of list.querySelectorAll('[data-drag-section]')) {
+        let r = rectOf(el);
+        if (!visible(r)) {
+          // An empty zone takes no layout space (revealing it would shift every
+          // row under the pointer); it is a drop slot exactly where it sits.
+          if (!el.classList.contains('drag-empty-zone') || !el.getClientRects().length) continue;
+          r = { top: r.top, bottom: r.top };
+        }
+        const headerEl = el.querySelector('[data-drag-header]');
+        const hr = headerEl ? rectOf(headerEl) : null;
+        sections.push({
+          kind: el.dataset.dragSection,
+          groupId: el.dataset.groupId || null,
+          collapsed: el.dataset.collapsed === 'true',
+          top: r.top, bottom: r.bottom,
+          header: hr && visible(hr) ? { top: hr.top, bottom: hr.bottom } : null,
+          rows: [...el.querySelectorAll('[data-drag-tab]')]
+            .map((row) => ({ row, r: rectOf(row) }))
+            .filter(({ r: rr }) => visible(rr))
+            .map(({ row, r: rr }) => ({
+              id: row.dataset.tabId, pinned: row.dataset.pinned === 'true', top: rr.top, bottom: rr.bottom,
+            })),
+        });
+      }
+      return { top: listRect.top, bottom: listRect.bottom, left: listRect.left, right: listRect.right, sections };
+    }
+
+    function sourceFor(target) {
+      if (!target?.closest || target.closest('[data-no-drag]')) return null;
+      const header = target.closest('[data-drag-header]');
+      if (header && list.contains(header)) {
+        return { el: header.closest('[data-drag-section]') || header, grab: header,
+          source: { kind: 'group', id: header.dataset.groupId, title: header.dataset.dragTitle || '' } };
+      }
+      const row = target.closest('[data-drag-tab]');
+      if (row && list.contains(row)) {
+        return { el: row, grab: row, source: {
+          kind: 'tab', id: row.dataset.tabId, pinned: row.dataset.pinned === 'true',
+          groupId: row.dataset.groupId || null, title: row.dataset.dragTitle || '',
+        } };
+      }
+      return null;
+    }
+
+    const session = createDragSession({
+      readModel,
+      capture: (id) => { try { list.setPointerCapture(id); } catch {} },
+      release: (id) => { try { if (list.hasPointerCapture(id)) list.releasePointerCapture(id); } catch {} },
+      setDragging: (on) => { if (on) list.dataset.tabDragging = 'true'; else delete list.dataset.tabDragging; },
+      setSourceDim: (on) => sourceEl?.classList.toggle('tab-drag-source', on),
+      showGhost: (_source, y) => {
+        const grab = sourceEl.matches('[data-drag-section]') ? sourceEl.querySelector('[data-drag-header]') : sourceEl;
+        const r = rectOf(grab);
+        grabOffset = y - r.top;
+        ghost = grab.cloneNode(true);
+        ghost.classList.add('tab-drag-ghost');
+        ghost.removeAttribute('id');
+        ghost.setAttribute('aria-hidden', 'true');
+        ghost.style.setProperty('--drag-left', `${r.left}px`);
+        ghost.style.setProperty('--drag-width', `${r.width}px`);
+        ghost.style.setProperty('--drag-y', `${y - grabOffset}px`);
+        doc.body.appendChild(ghost);
+      },
+      moveGhost: (y) => ghost?.style.setProperty('--drag-y', `${y - grabOffset}px`),
+      removeGhost: () => { ghost?.remove(); ghost = null; },
+      setIndicator: (indicator) => {
+        headerTarget?.classList.remove('tab-drag-target');
+        headerTarget = null;
+        line.hidden = !(indicator && indicator.type === 'line');
+        if (indicator?.type === 'line') {
+          const r = rectOf(list);
+          line.style.setProperty('--drag-left', `${r.left + 7}px`);
+          line.style.setProperty('--drag-width', `${Math.max(0, r.width - 14)}px`);
+          line.style.setProperty('--drag-y', `${indicator.y - 1}px`);
+        } else if (indicator?.type === 'header') {
+          headerTarget = list.querySelector(`[data-drag-header][data-group-id="${CSS.escape(indicator.groupId)}"]`);
+          headerTarget?.classList.add('tab-drag-target');
+        }
+      },
+      scrollBy: (dy) => { list.scrollTop += dy; },
+      onDrop,
+      onActiveChange: (active) => {
+        if (!active) sourceEl = null;
+        onActiveChange?.(active);
+      },
+      announce,
+      requestFrame: (fn) => win.requestAnimationFrame(fn),
+      cancelFrame: (h) => win.cancelAnimationFrame(h),
+      suppressClick: () => { suppressClickArmed = true; },
+    });
+
+    list.addEventListener('pointerdown', (event) => {
+      suppressClickArmed = false;
+      if (event.button !== 0 || !event.isPrimary || !enabled()) return;
+      const found = sourceFor(event.target);
+      if (!found) return;
+      sourceEl = found.el;
+      session.pointerDown({ pointerId: event.pointerId, x: event.clientX, y: event.clientY, source: found.source });
+    });
+    list.addEventListener('pointermove', (event) => {
+      session.pointerMove({ pointerId: event.pointerId, x: event.clientX, y: event.clientY });
+    });
+    list.addEventListener('pointerup', (event) => session.pointerUp({ pointerId: event.pointerId }));
+    list.addEventListener('pointercancel', (event) => session.pointerCancel({ pointerId: event.pointerId }));
+    list.addEventListener('lostpointercapture', (event) => session.lostCapture({ pointerId: event.pointerId }));
+    list.addEventListener('scroll', () => session.scrolled(), { passive: true });
+    // A completed drag must not also activate the row or fold the header the
+    // press started on.
+    doc.addEventListener('click', (event) => {
+      if (!suppressClickArmed) return;
+      suppressClickArmed = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
+    // window capture runs before any document-level key handler.
+    win.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && session.escape()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, true);
+    win.addEventListener('pagehide', () => session.cancel());
+
+    return {
+      isActive: () => session.isActive(),
+      cancel: () => session.cancel(),
+      notePayload: (payload) => session.notePayload(payload),
+    };
+  }
+
   globalThis.blancTabDrag = {
     constants, resolveTabDrop, resolveGroupDrop, keyboardTabMove, keyboardGroupMove, describeMove,
-    createDragSession,
+    createDragSession, attach,
   };
 })();

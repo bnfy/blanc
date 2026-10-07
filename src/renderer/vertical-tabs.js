@@ -27,7 +27,6 @@
   // The authoritative tab/group model is never copied out of renderer.js.
   let lastSignature = null;
   let pendingFocusKey = null;
-  let dragState = null;
   let suppressFocusRestore = false;
   let resizeState = null;
   let resizePreviewFrame = 0;
@@ -232,12 +231,6 @@
     return rail.contains(element) ? element.closest('[data-focus-key]')?.dataset.focusKey ?? null : null;
   }
 
-  function clearDropIndicators() {
-    for (const row of list.querySelectorAll('.drop-before, .drop-after')) {
-      row.classList.remove('drop-before', 'drop-after');
-    }
-  }
-
   function closeTabFromRail(tab, keepFocus) {
     if (keepFocus) {
       const buttons = visiblePrimaryButtons();
@@ -253,6 +246,11 @@
   }
 
   function primaryKeydown(event, tab, primary, closeButton) {
+    if (event.altKey && event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault();
+      keyboardMove('tab', tab.id, event.key === 'ArrowUp' ? 'up' : 'down');
+      return;
+    }
     if (event.key === 'ArrowUp') {
       event.preventDefault();
       movePrimaryFocus(primary, 'previous');
@@ -277,76 +275,7 @@
     }
   }
 
-  function beforeIdForDrop(tab, bucketTabs, afterTarget) {
-    if (!dragState || dragState.id === tab.id) return undefined;
-    const withoutSource = bucketTabs.filter((candidate) => candidate.id !== dragState.id);
-    const targetIndex = withoutSource.findIndex((candidate) => candidate.id === tab.id);
-    if (targetIndex === -1) return undefined;
-    const insertionIndex = targetIndex + (afterTarget ? 1 : 0);
-    return withoutSource[insertionIndex]?.id ?? null;
-  }
-
-  function addDragBehavior(row, primary, tab, bucketTabs) {
-    const tabBucket = bucketKey(tab);
-    primary.draggable = true;
-
-    primary.addEventListener('dragstart', (event) => {
-      const scrollingTitle = primary.querySelector('.vertical-tab-title.scrolling');
-      if (scrollingTitle) stopTitleScroll(scrollingTitle);
-      dragState = { id: tab.id, bucket: tabBucket, title: titleFor(tab) };
-      row.classList.add('dragging');
-      if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', tab.id);
-      }
-    });
-
-    primary.addEventListener('dragend', () => {
-      row.classList.remove('dragging');
-      dragState = null;
-      clearDropIndicators();
-    });
-
-    row.addEventListener('dragover', (event) => {
-      if (!dragState || dragState.bucket !== tabBucket || dragState.id === tab.id) return;
-      event.preventDefault();
-      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-      const afterTarget = event.clientY >= row.getBoundingClientRect().top + row.offsetHeight / 2;
-      clearDropIndicators();
-      row.classList.add(afterTarget ? 'drop-after' : 'drop-before');
-    });
-
-    row.addEventListener('dragleave', (event) => {
-      if (!row.contains(event.relatedTarget)) row.classList.remove('drop-before', 'drop-after');
-    });
-
-    row.addEventListener('drop', (event) => {
-      if (!dragState || dragState.bucket !== tabBucket || dragState.id === tab.id) return;
-      event.preventDefault();
-      const source = dragState;
-      const afterTarget = event.clientY >= row.getBoundingClientRect().top + row.offsetHeight / 2;
-      const beforeId = beforeIdForDrop(tab, bucketTabs, afterTarget);
-      dragState = null;
-      clearDropIndicators();
-      if (beforeId === undefined) return;
-      const reorderFocusKey = `tab:${source.id}`;
-      pendingFocusKey = reorderFocusKey;
-      invoke('reorder tab', () => Promise.resolve(
-        api.moveTab(source.id, { groupId: tab.groupId ?? null, beforeId })
-      ).then((accepted) => {
-        if (accepted) announce(`Moved ${source.title}`);
-      }).finally(() => {
-        // A changed order broadcasts and consumes this key immediately.
-        // Accepted no-ops and rejected/stale requests do not broadcast; clear
-        // their otherwise-stale intent after the IPC round trip.
-        window.setTimeout(() => {
-          if (pendingFocusKey === reorderFocusKey) pendingFocusKey = null;
-        }, 100);
-      }));
-    });
-  }
-
-  function tabRow(tab, bucketTabs, activeTabId) {
+  function tabRow(tab, activeTabId) {
     const title = titleFor(tab);
     const active = tab.id === activeTabId;
     const row = document.createElement('div');
@@ -359,6 +288,10 @@
     row.setAttribute('role', 'listitem');
     row.dataset.tabId = tab.id;
     row.dataset.bucket = bucketKey(tab);
+    row.dataset.dragTab = '';
+    row.dataset.pinned = String(!!tab.pinned);
+    row.dataset.groupId = tab.groupId ?? '';
+    row.dataset.dragTitle = title;
 
     const primary = document.createElement('button');
     primary.type = 'button';
@@ -421,6 +354,7 @@
     // ArrowRight from the row primary reaches this sibling without placing
     // every close action into the document's sequential Tab order.
     close.tabIndex = -1;
+    close.dataset.noDrag = '';
 
     primary.addEventListener('focus', () => setRovingPrimary(primary));
     primary.addEventListener('click', () => activateTab(tab));
@@ -441,15 +375,25 @@
         primary.focus();
       }
     });
-    addDragBehavior(row, primary, tab, bucketTabs);
 
     row.append(primary, close);
     return row;
   }
 
-  function staticBucket(label, tabs, activeTabId) {
-    if (!tabs.length) return null;
+  // Pinned and loose always render a drop target: an empty one is a hidden
+  // zone that CSS reveals only while a drag is active.
+  function emptyZone(kind) {
+    const zone = document.createElement('div');
+    zone.className = 'drag-empty-zone';
+    zone.dataset.dragSection = kind;
+    zone.setAttribute('aria-hidden', 'true');
+    return zone;
+  }
+
+  function staticBucket(label, kind, tabs, activeTabId) {
+    if (!tabs.length) return emptyZone(kind);
     const section = document.createElement('section');
+    section.dataset.dragSection = kind;
     section.className = 'vertical-tabs-section';
     section.setAttribute('role', 'group');
     section.setAttribute('aria-label', label);
@@ -461,7 +405,7 @@
     count.textContent = String(tabs.length);
     heading.appendChild(count);
     section.appendChild(heading);
-    for (const tab of tabs) section.appendChild(tabRow(tab, tabs, activeTabId));
+    for (const tab of tabs) section.appendChild(tabRow(tab, activeTabId));
     return section;
   }
 
@@ -470,6 +414,9 @@
     const section = document.createElement('section');
     section.className = 'vertical-tabs-section vertical-tabs-group';
     section.setAttribute('role', 'group');
+    section.dataset.dragSection = 'group';
+    section.dataset.groupId = group.id;
+    section.dataset.collapsed = String(!!group.collapsed);
 
     const containsActive = members.some((tab) => tab.id === activeTabId);
     const header = document.createElement('button');
@@ -479,6 +426,9 @@
       (group.collapsed ? ' collapsed' : '') +
       (containsActive && group.collapsed ? ' contains-active' : '');
     header.dataset.focusKey = `group:${group.id}`;
+    header.dataset.dragHeader = '';
+    header.dataset.groupId = group.id;
+    header.dataset.dragTitle = group.name;
     header.setAttribute('aria-expanded', String(!group.collapsed));
     header.setAttribute(
       'aria-label',
@@ -513,6 +463,11 @@
       invoke('toggle group', () => api.toggleGroupCollapsed(group.id));
     });
     header.addEventListener('keydown', (event) => {
+      if (event.altKey && event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        event.preventDefault();
+        keyboardMove('group', group.id, event.key === 'ArrowUp' ? 'up' : 'down');
+        return;
+      }
       if (event.key === 'ArrowRight' && group.collapsed) {
         event.preventDefault();
         header.click();
@@ -533,8 +488,8 @@
     if (!group.collapsed) {
       const pinned = members.filter((tab) => tab.pinned);
       const regular = members.filter((tab) => !tab.pinned);
-      for (const tab of pinned) section.appendChild(tabRow(tab, pinned, activeTabId));
-      for (const tab of regular) section.appendChild(tabRow(tab, regular, activeTabId));
+      for (const tab of pinned) section.appendChild(tabRow(tab, activeTabId));
+      for (const tab of regular) section.appendChild(tabRow(tab, activeTabId));
     }
     return section;
   }
@@ -555,7 +510,20 @@
     }
   }
 
+  // A drag (or a settling drop) freezes only the list: the newest payload
+  // waits here and is rendered exactly once when the drag ends.
   function render(payload = {}) {
+    if (drag.isActive()) {
+      deferredPayload = payload;
+      if (payload.tabLayout !== 'vertical') { drag.cancel(); return; }
+      drag.notePayload(payload);
+      return;
+    }
+    renderNow(payload);
+  }
+
+  function renderNow(payload = {}) {
+    lastPayload = payload;
     const layout = payload.tabLayout === 'vertical' ? 'vertical' : 'island';
     if (!applyWidthMetrics(payload)) {
       // A vertical payload without main's authoritative width is incomplete;
@@ -570,14 +538,12 @@
     rail.dataset.activeTabId = payload.activeTabId || '';
     if (layout !== 'vertical') {
       lastSignature = null;
-      dragState = null;
       return;
     }
 
     const signature = railSignature(payload);
     if (signature === lastSignature) return;
     lastSignature = signature;
-    dragState = null;
 
     // A blurred chrome document retains its last activeElement. Never treat
     // that stale element as a restoration request: a later title/favicon/
@@ -596,8 +562,7 @@
     const fragment = document.createDocumentFragment();
 
     const standalonePins = tabs.filter((tab) => tab.pinned && (tab.groupId ?? null) === null);
-    const pinnedSection = staticBucket('pinned', standalonePins, activeTabId);
-    if (pinnedSection) fragment.appendChild(pinnedSection);
+    fragment.appendChild(staticBucket('pinned', 'pinned', standalonePins, activeTabId));
 
     groups.forEach((group, index) => {
       const members = tabs.filter((tab) => tab.groupId === group.id);
@@ -611,12 +576,65 @@
       !tab.pinned &&
       ((tab.groupId ?? null) === null || !knownGroupIds.has(tab.groupId))
     ));
-    const looseSection = staticBucket('tabs', looseTabs, activeTabId);
-    if (looseSection) fragment.appendChild(looseSection);
+    fragment.appendChild(staticBucket('tabs', 'loose', looseTabs, activeTabId));
 
     list.replaceChildren(fragment);
     list.scrollTop = scrollTop;
     restoreRovingFocus(payload, focusedKey, shouldRestoreFocus);
+  }
+
+  const dragApi = window.blancTabDrag;
+  let lastPayload = null;
+  let deferredPayload = null;
+
+  async function railMove(intent) {
+    const message = dragApi.describeMove(lastPayload, intent);
+    const focusKey = intent.kind === 'group' ? `group:${intent.id}` : `tab:${intent.id}`;
+    pendingFocusKey = focusKey;
+    let ok = false;
+    try {
+      ok = intent.kind === 'group'
+        ? await api.reorderGroup(intent.id, intent.beforeGroupId)
+        : await api.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+    } catch (error) {
+      console.error('Vertical tabs: move failed', error);
+    }
+    if (ok === true) {
+      announce(message);
+    } else {
+      // No broadcast will consume the focus intent of a rejected move.
+      window.setTimeout(() => {
+        if (pendingFocusKey === focusKey) pendingFocusKey = null;
+      }, 100);
+    }
+    return ok === true;
+  }
+
+  const drag = dragApi.attach({
+    list,
+    document,
+    window,
+    onDrop: railMove,
+    announce,
+    onActiveChange(active) {
+      if (active) return;
+      const payload = deferredPayload;
+      deferredPayload = null;
+      if (payload) renderNow(payload);
+    },
+  });
+
+  function keyboardMove(kind, id, direction) {
+    if (!lastPayload) return;
+    const result = kind === 'group'
+      ? dragApi.keyboardGroupMove(lastPayload, id, direction)
+      : dragApi.keyboardTabMove(lastPayload, id, direction);
+    if (!result) return;
+    if (result.stop) {
+      announce(result.stop === 'top' ? 'Already at the top' : 'Already at the bottom');
+      return;
+    }
+    invoke('move with keyboard', () => railMove(result.intent));
   }
 
   useIslandButton.addEventListener('click', () => {

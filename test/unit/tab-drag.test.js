@@ -432,3 +432,16 @@ test('session: events for another pointer are ignored', () => {
   h.session.pointerMove({ pointerId: 2, x: 0, y: 100 });
   assert.equal(h.session.phase(), 'pending');
 });
+
+test('session: releasing beside the list (over the page) is not a drop', async () => {
+  const h = harness({ modelOverride: { ...model, left: 0, right: 240 } });
+  h.session.pointerDown({ pointerId: 1, x: 20, y: 150, source: L2 });
+  h.session.pointerMove({ pointerId: 1, x: 20, y: 79 });
+  assert.notDeepEqual(h.named('setIndicator').at(-1), ['setIndicator', null], 'inside: a target');
+  h.session.pointerMove({ pointerId: 1, x: 600, y: 79 });
+  assert.deepEqual(h.named('setIndicator').at(-1), ['setIndicator', null], 'beside the list: no target');
+  h.session.pointerUp({ pointerId: 1 });
+  await settle();
+  assert.equal(h.named('onDrop').length, 0);
+  assert.equal(h.session.phase(), 'idle');
+});
