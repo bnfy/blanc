@@ -255,6 +255,7 @@ const {
   ratioForGlanceDivider,
 } = require('./glance-layout');
 const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
+const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
   installPlatformMainMenuShortcut,
   popupPlatformMainMenu,
@@ -3168,8 +3169,10 @@ function createOverlay() {
   const overlayWcId = overlay.webContents.id;
   overlay.webContents.on('render-process-gone', bindWindowRuntime(owner, (_event, details) => {
     diagnostics.recordRendererCrash('overlay', details);
+    resetOverlayDragState(owner);
   }));
   overlay.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    resetOverlayDragState(owner);
     windowRuntimes.unregisterChromeSurface(overlayWcId);
     if (rt().overlayView === overlay) rt().overlayView = null;
   }));
@@ -3199,6 +3202,8 @@ function createOverlay() {
   // popover (or one of its editors) is open, forward Esc to the overlay so
   // it can cancel/close the popover first — the island stays up.
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    // An island drag owns Escape: let it reach the overlay to cancel the drag.
+    if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
@@ -3222,6 +3227,8 @@ function createOverlay() {
       // A native address-bar context menu takes OS focus; that blur is not a
       // dismissal — the popup's close callback owns what happens next.
       if (rt().addressMenuTicket) return;
+      // Pointer capture during an island drag can move OS focus; not a dismissal.
+      if (overlayDragActive(rt())) return;
       // Playwright's Electron main-process evaluate calls steal focus from the
       // guest view while the acceptance harness inspects it. Keep the real blur
       // policy in production; tests dismiss explicitly between edit sessions.
@@ -3381,6 +3388,7 @@ function openIslandTyping(char) {
 const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
+  resetOverlayDragState(rt());
   cancelAddressBarFocusReclaim();
   if (!rt().overlayMode) return;
   bumpSurfaceGeneration();
@@ -7195,6 +7203,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
   chromeHandle('tabs:move', (_e, id, target) => moveTabTo(id, target));
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
+  chromeOn('overlay:drag-state', (event, active) => {
+    acceptOverlayDragState(rt(), event.sender, active);
+  });
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
   chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
@@ -8172,6 +8183,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    // The macOS primary runtime survives close for Dock reopen; the drag flag
+    // must not outlive the window it was set in.
+    resetOverlayDragState(runtime);
     runtime.pageTintController?.dispose();
     runtime.pageTintController = null;
     // macOS retains detached start pages for Dock reopen. Notify them after
@@ -9830,7 +9844,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab, closeGroup, newTabUrl,
+      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      closeGroup, newTabUrl,
+      getOverlayDragging: () => overlayDragActive(rt()),
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
       workspaceTestAction(action, args = []) {

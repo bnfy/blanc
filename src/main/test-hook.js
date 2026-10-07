@@ -83,6 +83,7 @@ function install(refs) {
     toggleGroupCollapsed,
     moveTabTo,
     reorderGroupBefore,
+    getOverlayDragging,
     reopenClosedTab,
     newTabUrl,
     setTabLayout,
@@ -542,6 +543,7 @@ function install(refs) {
     toggleGroup(id) { toggleGroupCollapsed(id); },
     moveTab(id, target) { return moveTabTo(id, target); },
     reorderGroup(id, beforeGroupId) { return reorderGroupBefore(id, beforeGroupId); },
+    overlayDragging() { return getOverlayDragging(); },
     setTabPresentation(id, patch = {}) {
       const tab = tabs.get(id);
       if (!tab) return false;

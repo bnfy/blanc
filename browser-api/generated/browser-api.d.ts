@@ -918,6 +918,11 @@ export interface BlancBrowserAPI {
    */
   setWorkspaceSwitcherOpen(open: boolean): void;
   /**
+   * Tell main an island drag started or ended, so Escape cancels the drag and blur does not dismiss the panel.
+   * IPC: send `overlay:drag-state`.
+   */
+  setOverlayDragState(active: boolean): void;
+  /**
    * Escape was pressed while the overlay had focus.
    * IPC: event `overlay:escape`.
    */

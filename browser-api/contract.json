@@ -2058,6 +2058,22 @@
       ]
     },
     {
+      "name": "setOverlayDragState",
+      "group": "overlay",
+      "kind": "send",
+      "channel": "overlay:drag-state",
+      "params": [
+        {
+          "name": "active",
+          "type": "boolean"
+        }
+      ],
+      "doc": "Tell main an island drag started or ended, so Escape cancels the drag and blur does not dismiss the panel.",
+      "ipcArgs": [
+        "bool($0)"
+      ]
+    },
+    {
       "name": "onOverlayEscape",
       "group": "overlay",
       "kind": "event",

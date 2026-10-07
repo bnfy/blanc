@@ -113,6 +113,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   /** Keep main's Escape handler in sync with the footer workspace popover so
    * Esc can cancel an editor / close the menu without dismissing the island. */
   setWorkspaceSwitcherOpen: (open) => ipcRenderer.send('chrome:workspace-switcher', !!open),
+  setOverlayDragState: (active) => ipcRenderer.send('overlay:drag-state', !!active),
   onOverlayEscape: (callback) => {
     const listener = () => callback();
     ipcRenderer.on('overlay:escape', listener);

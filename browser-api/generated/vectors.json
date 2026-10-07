@@ -2398,6 +2398,47 @@
         }
       ]
     },
+    "setOverlayDragState": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "overlay:drag-state",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            true
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "overlay:drag-state",
+              "args": [
+                true
+              ]
+            }
+          ]
+        },
+        {
+          "label": "active = false",
+          "args": [
+            false
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "overlay:drag-state",
+              "args": [
+                false
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "onOverlayEscape": {
       "kind": "event",
       "platforms": [
