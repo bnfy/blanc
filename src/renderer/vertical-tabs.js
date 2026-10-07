@@ -332,7 +332,7 @@
       const reorderFocusKey = `tab:${source.id}`;
       pendingFocusKey = reorderFocusKey;
       invoke('reorder tab', () => Promise.resolve(
-        api.reorderTabWithinBucket(source.id, beforeId)
+        api.moveTab(source.id, { groupId: tab.groupId ?? null, beforeId })
       ).then((accepted) => {
         if (accepted) announce(`Moved ${source.title}`);
       }).finally(() => {

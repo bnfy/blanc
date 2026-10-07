@@ -254,7 +254,7 @@ const {
   calculateGlanceLayout,
   ratioForGlanceDivider,
 } = require('./glance-layout');
-const { reorderWithinBucket } = require('./tab-order');
+const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
 const {
   installPlatformMainMenuShortcut,
   popupPlatformMainMenu,
@@ -6535,15 +6535,36 @@ function reorderTab(id, toIndex) {
   scheduleMenuRebuild();
 }
 
-function reorderTabWithinBucket(id, beforeId) {
+function moveTabTo(id, target) {
   if (windowRuntimes.runtimeForTab(id) !== rt()) return false;
-  if (beforeId != null && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
-  // Renderer input is only a proposal. Main re-resolves both ids against its
-  // live model and rejects a stale/cross-group/cross-pin target.
-  const next = reorderWithinBucket(rt().tabOrder, tabs, id, beforeId);
+  const beforeId = target?.beforeId;
+  if (typeof beforeId === 'string' && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
+  // Renderer input is only a proposal. Main re-resolves every id against its
+  // live model; a stale/cross-window/pin-crossing target is rejected.
+  const result = resolveTabMove(rt().tabOrder, tabs, rt().groups, id, target);
+  if (!result) return false;
+  const tab = tabs.get(id);
+  const groupChanged = (tab.groupId ?? null) !== result.groupId;
+  const orderChanged = result.order.some((tabId, index) => rt().tabOrder[index] !== tabId);
+  if (!groupChanged && !orderChanged) return true;
+  rt().tabOrder = result.order;
+  if (groupChanged) {
+    // Same effect as Move to Group (setTabGroup): a group whose last tab
+    // left dissolves; the target keeps its collapsed state.
+    tab.groupId = result.groupId;
+    pruneEmptyGroups();
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return true;
+}
+
+function reorderGroupBefore(id, beforeGroupId) {
+  // rt().groups is per-window, so another window's group id simply fails.
+  const next = resolveGroupReorder(rt().groups, id, beforeGroupId);
   if (!next) return false;
-  if (next.some((tabId, index) => rt().tabOrder[index] !== tabId)) {
-    rt().tabOrder = next;
+  if (next.some((group, index) => rt().groups[index] !== group)) {
+    rt().groups = next;
     broadcastTabs();
     scheduleMenuRebuild();
   }
@@ -7104,7 +7125,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:reopen-entry', (_e, entryId) => {
     // Renderer input is a proposal: main re-resolves the id against its own
-    // list; a stale or forged id is a no-op (the reorderTabWithinBucket rule).
+    // list; a stale or forged id is a no-op (the moveTabTo rule).
     const list = rt().closedEntries ?? [];
     const at = list.findIndex((entry) => entry.id === String(entryId));
     if (at === -1) return;
@@ -7172,9 +7193,8 @@ function registerIpcHandlers() {
     return liveContents(tab)?.reload();
   });
   chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
-  chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
-  chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
-    reorderTabWithinBucket(id, beforeId));
+  chromeHandle('tabs:move', (_e, id, target) => moveTabTo(id, target));
+  chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
   chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
@@ -9810,7 +9830,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, closeGroup, newTabUrl,
+      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab, closeGroup, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
       workspaceTestAction(action, args = []) {

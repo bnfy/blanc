@@ -81,7 +81,8 @@ function install(refs) {
     groupTabByName,
     closeGroup,
     toggleGroupCollapsed,
-    reorderTabWithinBucket,
+    moveTabTo,
+    reorderGroupBefore,
     reopenClosedTab,
     newTabUrl,
     setTabLayout,
@@ -539,7 +540,8 @@ function install(refs) {
     },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
-    reorderWithinBucket(id, beforeId) { return reorderTabWithinBucket(id, beforeId); },
+    moveTab(id, target) { return moveTabTo(id, target); },
+    reorderGroup(id, beforeGroupId) { return reorderGroupBefore(id, beforeGroupId); },
     setTabPresentation(id, patch = {}) {
       const tab = tabs.get(id);
       if (!tab) return false;
