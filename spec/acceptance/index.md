@@ -19,6 +19,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 |--------|------|----------|
 | Island / palette / slash | `island-and-commands.feature` | F1, F6, F7 |
 | Tabs & groups | `tabs-and-groups.feature` | F2, F3 |
+| Drag to reorder | `tab-drag.feature` | F3, F28 |
 | Private tabs | `private-tabs.feature` | F4 |
 | Navigation & context menu | `navigation-and-context-menu.feature` | F5, F19 |
 | Find / favorites / history | `find-favorites-history.feature` | F8, F9, F10 |

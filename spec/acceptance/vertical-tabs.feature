@@ -191,11 +191,8 @@ Feature: Desktop vertical tabs
     And the canonical tab order places it at that bucket's end
 
   @F28-11 @F28 @desktop @D19
-  Scenario: Drag reorder rejects cross-bucket drops
+  Scenario: Drag reorder rejects pin-crossing drops
     Given rail rows span different groups and pinned states
-    When I drag a row across a group boundary
-    Then the drop is rejected
-    And canonical tab order and group membership are unchanged
     When I drag a pinned row into an unpinned bucket
     Then the drop is rejected
     And canonical tab order and pinned state are unchanged

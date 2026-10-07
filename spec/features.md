@@ -81,6 +81,13 @@ toolbar (Bowser Design System "Island Chrome").
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
   nth *group's* first tab when groups exist.
 - New **private** tabs are never grouped.
+- **Drag to reorder** (rail and expanded island, same gesture): drag a tab
+  within its section, into another group's section or onto any group header
+  (appends; a collapsed group stays collapsed), or out to the loose section.
+  Dragging never changes pinned state. Drag a group header to reorder groups;
+  cluster order (⌘1–9, ⌥⌘↑/↓, pill dots) follows. ⌥⇧↑/↓ does the same from the
+  keyboard, skipping collapsed groups and stopping at either end. Dragging out
+  over page content does nothing and gives the page no data.
 - **Acceptance:** With one standalone pin, 2 tabs in `work`, and 3 tabs in
   `play`, activating `work` shows 3 direct dots and `+3`; activating `play`
   shows 4 direct dots and `+2`. Collapse `work` → its tabs show as "N tabs
@@ -557,12 +564,12 @@ From the desktop `DEFAULTS`:
   Remote-device tabs stay in the Quick Switcher and start page; they never
   become rail rows.
 - Pointer actions switch, close, middle-click close, create a new tab, and
-  fold/unfold groups. Drag reorder is accepted only within the same
-  `{groupId,pinned}` bucket; `beforeId: null` means the validated source
-  bucket's end. Cross-group and pinned↔unpinned drops are rejected without
-  changing order or membership. Pin/unpin, mute/unmute, duplicate, and group
-  membership editing remain available through the Island and native menus in
-  the first rail release.
+  fold/unfold groups. Drag reorder follows F3's rule: tabs may move between
+  groups and the loose section, never across the pinned boundary; a
+  pin-crossing drop is rejected without changing order, membership or pinned
+  state. Pin/unpin, mute/unmute, duplicate, and group membership editing
+  remain available through the Island and native menus in the first rail
+  release.
 - A rail activation atomically dismisses any panel, palette, find capsule, or
   utility sheet, activates the requested tab at most once, and focuses its
   content — including when the row already represents the active tab. Primary

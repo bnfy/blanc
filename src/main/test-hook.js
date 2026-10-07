@@ -84,6 +84,7 @@ function install(refs) {
     moveTabTo,
     reorderGroupBefore,
     getOverlayDragging,
+    selectTabAtIndex,
     reopenClosedTab,
     newTabUrl,
     setTabLayout,
@@ -544,6 +545,8 @@ function install(refs) {
     moveTab(id, target) { return moveTabTo(id, target); },
     reorderGroup(id, beforeGroupId) { return reorderGroupBefore(id, beforeGroupId); },
     overlayDragging() { return getOverlayDragging(); },
+    // The function the Cmd/Ctrl+1–9 menu items call.
+    selectTabAtIndex(index) { selectTabAtIndex(index); },
     setTabPresentation(id, patch = {}) {
       const tab = tabs.get(id);
       if (!tab) return false;

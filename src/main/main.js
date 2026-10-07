@@ -9847,6 +9847,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
+      selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
       workspaceTestAction(action, args = []) {
