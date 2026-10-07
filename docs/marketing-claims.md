@@ -79,15 +79,15 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.28.0; its acceptance scope, the duplicate
-macOS build number and pending adjacent public-feed updater handoffs are
-recorded in [the release report](release-incidents/2026-10-05-v1.28.0.md).
-Installed candidates keep their original source/artifact bindings; hosted
-verification does not establish physical-machine outcomes. The v1.27.0 uBO
-acceptance, historical wallpaper/Linux waivers and earlier updater
-confirmations remain in their original reports:
+These boundaries describe public v1.29.0; its scope, publication evidence and
+pending adjacent public-feed updater handoffs are recorded in
+[the release report](release-incidents/2026-10-06-v1.29.0.md). Installed
+candidates keep their original source/artifact bindings; hosted verification
+does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
+v1.28.0 duplicate macOS build number, historical wallpaper/Linux waivers and
+earlier updater confirmations remain in their original reports:
 
-- **Optional uBlock Origin:** Public v1.28.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.29.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.5.1. Click the Island shield to choose a blocker and restart
   Blanc to apply it. Blanc Blocker stays the default and protects private
@@ -96,6 +96,15 @@ confirmations remain in their original reports:
   pinned to reviewed releases. This does not provide general extension-store
   installation. Keep the [support matrix](ublock-origin-support-matrix-2026-10-03.md)
   and its limits beside broader compatibility claims.
+  If uBO fails mid-session, Blanc restarts it automatically (at most three
+  times per profile in 10 minutes) while holding requests, then offers a
+  manual restart; do not claim uBO can never fail or that pages load
+  unfiltered while it restarts.
+- **About & Trust:** Settings shows facts about the installed build checked
+  on the device and links to the release, verification guide, SBOM and
+  provenance. It makes no network request. It does not itself verify the
+  Sigstore manifest or prove the build is untampered; do not describe it as
+  a security audit.
 - **Dark websites:** Off by default and device-local. While Blanc is dark it
   darkens http(s) pages that have no dark mode of their own, using the bundled,
   pinned Dark Reader engine; there is no runtime download. Embedded frames

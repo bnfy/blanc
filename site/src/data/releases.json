@@ -1,5 +1,137 @@
 [
   {
+    "tag": "v1.29.0",
+    "version": "1.29.0",
+    "name": "1.29.0",
+    "publishedAt": "2026-10-07T01:16:26.000Z",
+    "humanDate": "October 6, 2026",
+    "machineDate": "2026-10-06",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.29.0",
+    "anchor": "v1-29-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Settings has a new "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "About & Trust"
+                  },
+                  {
+                    "type": "text",
+                    "value": " section. It shows facts about the installed build, checked on your device: the version, the Electron and Chromium versions, the blocker's filter sources and, on macOS and Windows, the app's code signature. It links to the release, the verification guide, the software bill of materials and the build provenance, and can export diagnostics. Opening it makes no network request."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Intel Macs get every release again. Each release now ships both an Apple Silicon and an Intel build."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc saves its settings, Favorites, history and workspaces in the background instead of pausing the app while it writes to disk. Quitting still saves everything before Blanc closes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In a Flatpak, Check for Updates says that Flatpak keeps Blanc current instead of showing an unsupported-channel warning."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With uBlock Origin selected, uBO now restarts on its own if it fails while you browse. Pages wait while it restarts instead of loading unfiltered, and the shield shows that it is restarting. After three restarts in 10 minutes, Blanc offers to restart it for you instead."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With uBlock Origin selected, a moment when Blanc itself was busy no longer counts against uBO's time to decide on a request, so pages stop failing after a brief freeze."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, changing a setting no longer briefly freezes Blanc while it reloads the Dock icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Linux under Wayland, Settings and other sheets appear every time you open them, not only the first time, and the page underneath keeps responding."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Linux under Wayland, each permission prompt shows its own question instead of the previous one."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.28.0",
     "version": "1.28.0",
     "name": "1.28.0",
