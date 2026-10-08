@@ -2134,7 +2134,7 @@
     {
       "id": "trust-125-296",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 5, 2026",
+      "exactWording": "Last updated October 8, 2026",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2554,7 +2554,7 @@
     {
       "id": "trust-125-338",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Where a legal basis is required, usage measurement follows the saved in-app choice; optional website Google analytics, ad-conversion measurement, and newsletter enrollment rely on consent; and Cloudflare’s cookieless site counts are used to understand aggregate traffic. A tab handoff and an ambassador application are processed only to perform and respond to the user's explicit request. Choices can be withdrawn for future processing. Patron and supporter purchases and activation are necessary to provide the requested transaction. Security logs, rate limits, signed-update delivery, and service reliability rely on our legitimate interests in operating and protecting Blanc without overriding user rights. Legal obligations may require limited processing or preservation in exceptional cases.",
+      "exactWording": "Where a legal basis is required, usage measurement follows the saved in-app choice; optional website Google analytics, ad-conversion measurement, and newsletter and Blanc Mail waitlist enrollment rely on consent; and Cloudflare’s cookieless site counts are used to understand aggregate traffic. A tab handoff and an ambassador application are processed only to perform and respond to the user's explicit request. Choices can be withdrawn for future processing. Patron and supporter purchases and activation are necessary to provide the requested transaction. Security logs, rate limits, signed-update delivery, and service reliability rely on our legitimate interests in operating and protecting Blanc without overriding user rights. Legal obligations may require limited processing or preservation in exceptional cases.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2574,7 +2574,7 @@
     {
       "id": "trust-125-340",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Cloudflare hosts the site and Blanc-owned Workers, including the encrypted tab-handoff relay, and receives cookieless page-view counts where described; GitHub hosts source code and releases; Resend delivers confirmation, newsletter, and ambassador-application messages; Polar handles Patron and supporter purchases; 1Password handles an account interaction only when its optional login-fill integration is enabled and invoked; OpenAI receives the limited ChatGPT-ad conversion event described above only after Allow and separately processes selected tab metadata on the user-invoked ChatGPT handoff path; and Google receives optional site analytics only after Allow or an existing saved grant, and app analytics only when the saved usage-ping setting is enabled and that mirror is configured. Google also receives searches and eligible suggestion prefixes when selected as the app’s search provider. These providers process data under their own terms and may process it in the United States or other countries using their applicable transfer safeguards.",
+      "exactWording": "Cloudflare hosts the site and Blanc-owned Workers, including the encrypted tab-handoff relay, and receives cookieless page-view counts where described; GitHub hosts source code and releases; Resend delivers confirmation, newsletter, Blanc Mail waitlist, and ambassador-application messages; Polar handles Patron and supporter purchases; 1Password handles an account interaction only when its optional login-fill integration is enabled and invoked; OpenAI receives the limited ChatGPT-ad conversion event described above only after Allow and separately processes selected tab metadata on the user-invoked ChatGPT handoff path; and Google receives optional site analytics only after Allow or an existing saved grant, and app analytics only when the saved usage-ping setting is enabled and that mirror is configured. Google also receives searches and eligible suggestion prefixes when selected as the app’s search provider. These providers process data under their own terms and may process it in the United States or other countries using their applicable transfer safeguards.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -2604,7 +2604,7 @@
     {
       "id": "trust-125-343",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "You can turn search suggestions and usage measurement off before completing first run or later in Settings, leave 1Password login fill off or disable it to end Blanc's cached SDK session, reset the installation ID, leave Sync off or erase its server copy, avoid creating a tab handoff or cancel it at Blanc's review sheet, clear local browsing records, decline full site analytics and ad-conversion measurement, and unsubscribe from email. Depending on where you live, you may also have rights to access, correct, delete, restrict, object to, or receive a portable copy of personal information, withdraw consent, and appeal or complain to a data-protection authority. Blanc does not sell personal information or share it for cross-context behavioral advertising.",
+      "exactWording": "You can turn search suggestions and usage measurement off before completing first run or later in Settings, leave 1Password login fill off or disable it to end Blanc's cached SDK session, reset the installation ID, leave Sync off or erase its server copy, avoid creating a tab handoff or cancel it at Blanc's review sheet, clear local browsing records, decline full site analytics and ad-conversion measurement, and unsubscribe from email or leave the Blanc Mail waitlist. Depending on where you live, you may also have rights to access, correct, delete, restrict, object to, or receive a portable copy of personal information, withdraw consent, and appeal or complain to a data-protection authority. Blanc does not sell personal information or share it for cross-context behavioral advertising.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"

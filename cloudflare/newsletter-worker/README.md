@@ -2,9 +2,9 @@
 
 Consent-first newsletter enrollment for `blancbrowser.com`. An address is not
 a subscriber until its owner follows a one-time confirmation link delivered by
-Resend. The same Worker also delivers short ambassador applications to Blanc's
-support inbox without adding applicants to the newsletter or retaining an
-application database.
+Resend. The same flow runs a separate Blanc Mail waitlist, and the Worker
+also delivers short ambassador applications to Blanc's support inbox without
+adding applicants to the newsletter or retaining an application database.
 
 ## Data and abuse controls
 
@@ -26,6 +26,26 @@ application database.
   cooldown keys use an HMAC of the address and expire after ten minutes.
 - Missing mail or token secrets make enrollment return 503. There is no
   consent-bypassing fallback.
+
+## Blanc Mail waitlist
+
+- `POST /mail-waitlist` runs the newsletter's double opt-in against its own
+  KV prefixes (`mailwait:`, `mailwait-pending:`, `mailwait-sent:`,
+  `mailwait-hp:`, `mailwait-leave:`) and its own per-IP rate-limit scope. No
+  waitlist prefix begins with a newsletter prefix, so the newsletter export,
+  removal and confirmation paths never see a waitlist record.
+- `GET /mail-waitlist/confirm?token=...` creates `mailwait:<email>`; a
+  newsletter `/confirm` cannot redeem a waitlist token, or the reverse.
+  `GET /mail-waitlist/leave?token=...` deletes the record.
+- The confirmation email states that joining does not subscribe the address to
+  the newsletter and that the address is deleted after the launch
+  announcement. The privacy page's "Blanc Mail waitlist" section and
+  `site/src/components/MailWaitlistForm.astro` describe the same contract;
+  change all three together.
+- The waitlist may be used only for the Blanc Mail launch announcement and any
+  pre-release invitation. Every message must include the member's exact
+  `unsubscribeUrl` from the export. After the launch announcement is sent,
+  purge the whole list (below).
 
 ## Ambassador applications
 
@@ -125,3 +145,22 @@ curl -X DELETE \
 The endpoint returns 204 whether or not the address existed and deletes the
 confirmed record, associated unsubscribe lookup, and quarantine record when
 present.
+
+## Blanc Mail waitlist export, removal and purge
+
+```sh
+ADMIN="Authorization: Bearer $(op read 'op://Dev/Blanc Newsletter Admin/password')"
+# Export: same shape as /subscribers; unsubscribeUrl is the waitlist removal link.
+curl -H "$ADMIN" https://blanc-newsletter.bnfy-441.workers.dev/mail-waitlist/members
+# Remove one address.
+curl -X DELETE -H "$ADMIN" \
+  "https://blanc-newsletter.bnfy-441.workers.dev/mail-waitlist/member?email=a@example.com"
+# After the launch announcement: delete every waitlist record.
+curl -X DELETE -H "$ADMIN" \
+  "https://blanc-newsletter.bnfy-441.workers.dev/mail-waitlist/members?confirm=delete-all"
+```
+
+The purge refuses to run without `confirm=delete-all`, deletes every
+`mailwait*` key (confirmed, removal lookup, quarantine, pending and cooldown),
+leaves newsletter records untouched, and returns `{"deleted": <confirmed
+count>}`.

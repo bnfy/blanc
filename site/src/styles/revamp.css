@@ -420,6 +420,26 @@ main :is(.section-kicker, .eyebrow) {
     max-width: 260px;
   }
 }
+/* Mail joins the full bar only once it fits on one row beside the homepage
+   toggle; below that it waits in the footer with the other secondary links. */
+@media (max-width: 800px) {
+  .revamp-nav .nav-mail {
+    display: none;
+  }
+}
+/* Mail pages name the Browser download, shortened where the longer label
+   would push the bar onto a second row. */
+.revamp-nav .cta-narrow {
+  display: none;
+}
+@media (max-width: 389px) {
+  .revamp-nav .cta-wide {
+    display: none;
+  }
+  .revamp-nav .cta-narrow {
+    display: inline;
+  }
+}
 /* With the homepage toggle the bar needs 354px at its usual spacing; tighten so
    the toggle stays beside Download down to 320px. */
 @media (max-width: 380px) {

@@ -1,6 +1,8 @@
-// Consent-first newsletter enrollment. An address is not a subscriber until
-// its owner follows a one-time confirmation link. Confirmation mail is sent
-// through Resend; the verified subscriber list remains in Blanc's own KV.
+// Consent-first newsletter and Blanc Mail waitlist enrollment. An address is
+// not on either list until its owner follows a one-time confirmation link.
+// Confirmation mail is sent through Resend; the verified lists remain in
+// Blanc's own KV. The two lists share this flow but never share keys: joining
+// the Mail waitlist does not subscribe anyone to the newsletter.
 
 const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 100;
@@ -19,6 +21,48 @@ const SUBSCRIBE_RATE_LIMIT = 6;
 const EMAIL_RETRY_TTL = 10 * 60;
 const CONFIRM_TTL = 24 * 60 * 60;
 const QUARANTINE_TTL = 30 * 24 * 60 * 60;
+const WORKER_ORIGIN = 'https://blanc-newsletter.bnfy-441.workers.dev';
+// Workers allow about 1000 KV operations per invocation. A purge deletes at
+// most this many keys per request and reports whether more remain.
+const PURGE_BATCH = 900;
+
+// Each list owns a disjoint set of KV prefixes; none of the waitlist prefixes
+// starts with a newsletter prefix, so a newsletter export or removal can
+// never see a waitlist record and vice versa.
+const LISTS = {
+  newsletter: {
+    member: 'sub:',
+    pending: 'pending:',
+    sent: 'sent:',
+    quarantine: 'hp:',
+    leave: 'unsub:',
+    rateScope: 'subscribe',
+    idempotency: 'blanc-confirm-',
+    confirmPath: '/confirm',
+    leavePath: '/unsubscribe',
+    subject: 'Confirm your Blanc release notes subscription',
+    request: 'Confirm that you want occasional Blanc release notes',
+    confirmLabel: 'Confirm subscription',
+    confirmed: ['Subscription confirmed', 'You will receive occasional Blanc release notes.'],
+    left: ['Unsubscribe complete', 'No active subscription was found.', 'The address has been removed from Blanc release notes.'],
+  },
+  mailWaitlist: {
+    member: 'mailwait:',
+    pending: 'mailwait-pending:',
+    sent: 'mailwait-sent:',
+    quarantine: 'mailwait-hp:',
+    leave: 'mailwait-leave:',
+    rateScope: 'mail-waitlist',
+    idempotency: 'blanc-mail-waitlist-',
+    confirmPath: '/mail-waitlist/confirm',
+    leavePath: '/mail-waitlist/leave',
+    subject: 'Confirm your place on the Blanc Mail waitlist',
+    request: 'Confirm that you want an email when Blanc Mail for macOS is ready. This does not subscribe you to the Blanc newsletter, and your address is deleted after the launch announcement',
+    confirmLabel: 'Join the waitlist',
+    confirmed: ['You are on the waitlist', 'We will email you when Blanc Mail for macOS is ready, then delete your address from the waitlist.'],
+    left: ['Waitlist removal complete', 'No waitlist entry was found.', 'The address has been removed from the Blanc Mail waitlist.'],
+  },
+};
 
 const json = (obj, status = 200, headers = {}) => new Response(JSON.stringify(obj), {
   status,
@@ -72,7 +116,7 @@ async function ipRateLimited(env, ip, scope = 'subscribe', limit = SUBSCRIBE_RAT
   return false;
 }
 
-async function sendConfirmation(env, email, confirmationUrl, idempotencyKey) {
+async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKey) {
   if (!env.RESEND_API_KEY || !env.NEWSLETTER_FROM) return false;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -84,21 +128,21 @@ async function sendConfirmation(env, email, confirmationUrl, idempotencyKey) {
     body: JSON.stringify({
       from: env.NEWSLETTER_FROM,
       to: [email],
-      subject: 'Confirm your Blanc release notes subscription',
-      text: `Confirm that you want occasional Blanc release notes:\n\n${confirmationUrl}\n\nIf you did not request this, ignore this email. The request expires in 24 hours.`,
-      html: `<p>Confirm that you want occasional Blanc release notes.</p><p><a href="${confirmationUrl}">Confirm subscription</a></p><p>If you did not request this, ignore this email. The request expires in 24 hours.</p>`,
+      subject: list.subject,
+      text: `${list.request}:\n\n${confirmationUrl}\n\nIf you did not request this, ignore this email. The request expires in 24 hours.`,
+      html: `<p>${list.request}.</p><p><a href="${confirmationUrl}">${list.confirmLabel}</a></p><p>If you did not request this, ignore this email. The request expires in 24 hours.</p>`,
     }),
   });
   return response.ok;
 }
 
-async function handleSubscribe(request, env, cors) {
+async function handleSubscribe(request, env, cors, list = LISTS.newsletter) {
   if (
     !env.NEWSLETTER_TOKEN_SECRET ||
     !env.RESEND_API_KEY ||
     !env.NEWSLETTER_FROM
   ) return json({ error: 'service unavailable' }, 503, cors);
-  if (await ipRateLimited(env, request.headers.get('CF-Connecting-IP'))) {
+  if (await ipRateLimited(env, request.headers.get('CF-Connecting-IP'), list.rateScope)) {
     return json({ error: 'rate-limited' }, 429, cors);
   }
   let body;
@@ -113,9 +157,9 @@ async function handleSubscribe(request, env, cors) {
   // but never send mail or create a subscriber without a clean re-submission
   // followed by mailbox confirmation.
   if (typeof body.website === 'string' && body.website.trim() !== '') {
-    if (emailValid && (await env.SUBSCRIBERS.get(`sub:${email}`)) === null) {
+    if (emailValid && (await env.SUBSCRIBERS.get(`${list.member}${email}`)) === null) {
       await env.SUBSCRIBERS.put(
-        `hp:${email}`,
+        `${list.quarantine}${email}`,
         JSON.stringify({ ts: new Date().toISOString() }),
         { expirationTtl: QUARANTINE_TTL }
       );
@@ -126,11 +170,11 @@ async function handleSubscribe(request, env, cors) {
 
   // Enumeration-resistant and mailbomb-resistant: subscribed addresses and
   // recently sent confirmations produce the same generic response.
-  if ((await env.SUBSCRIBERS.get(`sub:${email}`)) !== null) {
+  if ((await env.SUBSCRIBERS.get(`${list.member}${email}`)) !== null) {
     return json({ ok: true, confirmationRequired: true }, 202, cors);
   }
   const emailKey = await keyedEmail(env, email);
-  const sentKey = `sent:${emailKey}`;
+  const sentKey = `${list.sent}${emailKey}`;
   if ((await env.SUBSCRIBERS.get(sentKey)) !== null) {
     return json({ ok: true, confirmationRequired: true }, 202, cors);
   }
@@ -138,23 +182,23 @@ async function handleSubscribe(request, env, cors) {
   const token = randomToken();
   const unsubscribeToken = randomToken();
   const tokenHash = await sha256(token);
-  const pendingKey = `pending:${tokenHash}`;
+  const pendingKey = `${list.pending}${tokenHash}`;
   await env.SUBSCRIBERS.put(pendingKey, JSON.stringify({
     email,
     unsubscribeToken,
     requestedAt: new Date().toISOString(),
   }), { expirationTtl: CONFIRM_TTL });
-  const confirmationUrl = `${new URL(request.url).origin}/confirm?token=${token}`;
+  const confirmationUrl = `${new URL(request.url).origin}${list.confirmPath}?token=${token}`;
   let sent = false;
   try {
-    sent = await sendConfirmation(env, email, confirmationUrl, `blanc-confirm-${tokenHash}`);
+    sent = await sendConfirmation(env, list, email, confirmationUrl, `${list.idempotency}${tokenHash}`);
   } catch { /* fail closed below */ }
   if (!sent) {
     await env.SUBSCRIBERS.delete(pendingKey);
     return json({ error: 'service unavailable' }, 503, cors);
   }
   await env.SUBSCRIBERS.put(sentKey, '1', { expirationTtl: EMAIL_RETRY_TTL });
-  await env.SUBSCRIBERS.delete(`hp:${email}`);
+  await env.SUBSCRIBERS.delete(`${list.quarantine}${email}`);
   return json({ ok: true, confirmationRequired: true }, 202, cors);
 }
 
@@ -318,84 +362,121 @@ const htmlResult = (title, message) => new Response(
   }
 );
 
-async function handleConfirm(env, url) {
+async function handleConfirm(env, url, list = LISTS.newsletter) {
   const token = url.searchParams.get('token') ?? '';
   if (!TOKEN_RE.test(token)) return htmlResult('Confirmation unavailable', 'This confirmation link is invalid or expired.');
-  const pendingKey = `pending:${await sha256(token)}`;
+  const pendingKey = `${list.pending}${await sha256(token)}`;
   const pending = await env.SUBSCRIBERS.get(pendingKey, { type: 'json' });
   if (!pending || typeof pending.email !== 'string' || !TOKEN_RE.test(pending.unsubscribeToken)) {
     return htmlResult('Confirmation unavailable', 'This confirmation link is invalid or expired.');
   }
   const ts = new Date().toISOString();
   const unsubscribeHash = await sha256(pending.unsubscribeToken);
+  // A second confirmation replaces the member's removal token; drop the old
+  // lookup so it cannot keep the address after the record is removed.
+  const previous = await env.SUBSCRIBERS.get(`${list.member}${pending.email}`, { type: 'json' });
+  if (TOKEN_RE.test(previous?.unsubscribeToken ?? '') && previous.unsubscribeToken !== pending.unsubscribeToken) {
+    await env.SUBSCRIBERS.delete(`${list.leave}${await sha256(previous.unsubscribeToken)}`);
+  }
+  const member = { ts, unsubscribeToken: pending.unsubscribeToken };
   await Promise.all([
-    env.SUBSCRIBERS.put(`sub:${pending.email}`, JSON.stringify({ ts, unsubscribeToken: pending.unsubscribeToken })),
-    env.SUBSCRIBERS.put(`unsub:${unsubscribeHash}`, pending.email),
+    // The metadata copy lets an export read every member from list() pages
+    // instead of one get() per member.
+    env.SUBSCRIBERS.put(`${list.member}${pending.email}`, JSON.stringify(member), { metadata: member }),
+    env.SUBSCRIBERS.put(`${list.leave}${unsubscribeHash}`, pending.email),
     env.SUBSCRIBERS.delete(pendingKey),
-    env.SUBSCRIBERS.delete(`hp:${pending.email}`),
+    env.SUBSCRIBERS.delete(`${list.quarantine}${pending.email}`),
   ]);
-  return htmlResult('Subscription confirmed', 'You will receive occasional Blanc release notes.');
+  return htmlResult(...list.confirmed);
 }
 
-async function handleUnsubscribe(env, url) {
+async function handleUnsubscribe(env, url, list = LISTS.newsletter) {
+  const [title, missing, removed] = list.left;
   const token = url.searchParams.get('token') ?? '';
-  if (!TOKEN_RE.test(token)) return htmlResult('Unsubscribe complete', 'No active subscription was found.');
-  const key = `unsub:${await sha256(token)}`;
+  if (!TOKEN_RE.test(token)) return htmlResult(title, missing);
+  const key = `${list.leave}${await sha256(token)}`;
   const email = await env.SUBSCRIBERS.get(key);
-  if (email) await Promise.all([env.SUBSCRIBERS.delete(`sub:${email}`), env.SUBSCRIBERS.delete(key)]);
-  return htmlResult('Unsubscribe complete', 'The address has been removed from Blanc release notes.');
+  if (email) await Promise.all([env.SUBSCRIBERS.delete(`${list.member}${email}`), env.SUBSCRIBERS.delete(key)]);
+  return htmlResult(title, removed);
 }
 
 const authorized = (request, env) =>
   env.ADMIN_TOKEN && request.headers.get('Authorization') === `Bearer ${env.ADMIN_TOKEN}`;
 
-async function listSubscribers(env) {
-  const subscribers = [];
+async function keysWithPrefix(env, prefix, limit = Infinity) {
+  const keys = [];
   let cursor;
   do {
-    const result = await env.SUBSCRIBERS.list({ prefix: 'sub:', cursor });
-    for (const { name } of result.keys) {
-      const record = await env.SUBSCRIBERS.get(name, { type: 'json' });
-      const token = record?.unsubscribeToken;
-      subscribers.push({
-        email: name.slice(4),
-        ts: record?.ts,
-        unsubscribeUrl: TOKEN_RE.test(token ?? '')
-          ? `https://blanc-newsletter.bnfy-441.workers.dev/unsubscribe?token=${token}`
-          : null,
-      });
-    }
+    const result = await env.SUBSCRIBERS.list({ prefix, cursor });
+    keys.push(...result.keys);
     cursor = result.list_complete ? undefined : result.cursor;
-  } while (cursor);
+  } while (cursor && keys.length < limit);
+  return keys;
+}
+
+async function listMembers(env, list = LISTS.newsletter) {
+  const subscribers = [];
+  for (const { name, metadata } of await keysWithPrefix(env, list.member)) {
+    // Records confirmed before metadata was written still need one read.
+    const record = metadata?.ts ? metadata : await env.SUBSCRIBERS.get(name, { type: 'json' });
+    const token = record?.unsubscribeToken;
+    subscribers.push({
+      email: name.slice(list.member.length),
+      ts: record?.ts,
+      unsubscribeUrl: TOKEN_RE.test(token ?? '')
+        ? `${WORKER_ORIGIN}${list.leavePath}?token=${token}`
+        : null,
+    });
+  }
   subscribers.sort((a, b) => (a.ts < b.ts ? -1 : 1));
 
   const quarantined = [];
-  cursor = undefined;
-  do {
-    const result = await env.SUBSCRIBERS.list({ prefix: 'hp:', cursor });
-    for (const { name } of result.keys) {
-      const record = await env.SUBSCRIBERS.get(name, { type: 'json' });
-      quarantined.push({ email: name.slice(3), ts: record?.ts });
-    }
-    cursor = result.list_complete ? undefined : result.cursor;
-  } while (cursor);
+  for (const { name } of await keysWithPrefix(env, list.quarantine)) {
+    const record = await env.SUBSCRIBERS.get(name, { type: 'json' });
+    quarantined.push({ email: name.slice(list.quarantine.length), ts: record?.ts });
+  }
   quarantined.sort((a, b) => (a.ts < b.ts ? -1 : 1));
   return json({ count: subscribers.length, subscribers, quarantined });
 }
 
-async function handleRemove(env, url) {
+async function handleRemove(env, url, list = LISTS.newsletter) {
   const email = (url.searchParams.get('email') ?? '').trim().toLowerCase();
   if (!email) return json({ error: 'email required' }, 400);
-  const record = await env.SUBSCRIBERS.get(`sub:${email}`, { type: 'json' });
+  const record = await env.SUBSCRIBERS.get(`${list.member}${email}`, { type: 'json' });
   const tokenHash = TOKEN_RE.test(record?.unsubscribeToken ?? '')
     ? await sha256(record.unsubscribeToken)
     : null;
   await Promise.all([
-    env.SUBSCRIBERS.delete(`sub:${email}`),
-    env.SUBSCRIBERS.delete(`hp:${email}`),
-    tokenHash ? env.SUBSCRIBERS.delete(`unsub:${tokenHash}`) : Promise.resolve(),
+    env.SUBSCRIBERS.delete(`${list.member}${email}`),
+    env.SUBSCRIBERS.delete(`${list.quarantine}${email}`),
+    tokenHash ? env.SUBSCRIBERS.delete(`${list.leave}${tokenHash}`) : Promise.resolve(),
   ]);
   return new Response(null, { status: 204 });
+}
+
+// The waitlist promise is deletion after the launch announcement. Purging
+// takes an explicit confirmation value so a stray DELETE cannot empty it, and
+// works in bounded batches: repeat the request until `remaining` is false.
+async function purgeWaitlist(env, url) {
+  if (url.searchParams.get('confirm') !== 'delete-all') {
+    return json({ error: 'confirm=delete-all required' }, 400);
+  }
+  const list = LISTS.mailWaitlist;
+  const prefixes = [list.member, list.leave, list.quarantine, list.pending, list.sent];
+  let budget = PURGE_BATCH;
+  let deleted = 0;
+  for (const prefix of prefixes) {
+    const keys = (await keysWithPrefix(env, prefix, budget)).slice(0, budget);
+    for (const { name } of keys) await env.SUBSCRIBERS.delete(name);
+    if (prefix === list.member) deleted = keys.length;
+    budget -= keys.length;
+    if (budget <= 0) break;
+  }
+  let remaining = false;
+  for (const prefix of prefixes) {
+    if ((await env.SUBSCRIBERS.list({ prefix, limit: 1 })).keys.length) { remaining = true; break; }
+  }
+  return json({ deleted, remaining });
 }
 
 export default {
@@ -403,12 +484,24 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/confirm' && request.method === 'GET') return handleConfirm(env, url);
     if (url.pathname === '/unsubscribe' && request.method === 'GET') return handleUnsubscribe(env, url);
+    if (url.pathname === LISTS.mailWaitlist.confirmPath && request.method === 'GET') {
+      return handleConfirm(env, url, LISTS.mailWaitlist);
+    }
+    if (url.pathname === LISTS.mailWaitlist.leavePath && request.method === 'GET') {
+      return handleUnsubscribe(env, url, LISTS.mailWaitlist);
+    }
 
     if (url.pathname === '/subscribe') {
       const cors = allowedCors(request);
       if (!cors) return json({ error: 'origin denied' }, 403);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
       if (request.method === 'POST') return handleSubscribe(request, env, cors);
+    }
+    if (url.pathname === '/mail-waitlist') {
+      const cors = allowedCors(request);
+      if (!cors) return json({ error: 'origin denied' }, 403);
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      if (request.method === 'POST') return handleSubscribe(request, env, cors, LISTS.mailWaitlist);
     }
     if (url.pathname === '/ambassador-apply') {
       const cors = allowedCors(request);
@@ -418,8 +511,18 @@ export default {
     }
     if (url.pathname === '/subscribers' || url.pathname === '/subscriber') {
       if (!authorized(request, env)) return new Response('unauthorized', { status: 401 });
-      if (request.method === 'GET' && url.pathname === '/subscribers') return listSubscribers(env);
+      if (request.method === 'GET' && url.pathname === '/subscribers') return listMembers(env);
       if (request.method === 'DELETE' && url.pathname === '/subscriber') return handleRemove(env, url);
+    }
+    if (url.pathname === '/mail-waitlist/members' || url.pathname === '/mail-waitlist/member') {
+      if (!authorized(request, env)) return new Response('unauthorized', { status: 401 });
+      if (request.method === 'GET' && url.pathname === '/mail-waitlist/members') {
+        return listMembers(env, LISTS.mailWaitlist);
+      }
+      if (request.method === 'DELETE' && url.pathname === '/mail-waitlist/members') return purgeWaitlist(env, url);
+      if (request.method === 'DELETE' && url.pathname === '/mail-waitlist/member') {
+        return handleRemove(env, url, LISTS.mailWaitlist);
+      }
     }
     return new Response('not found', { status: 404 });
   },
