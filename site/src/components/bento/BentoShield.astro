@@ -1,0 +1,11 @@
+---
+// The Blocker shield, turned continuously in 3D by horizon-shield.js (time
+// spin) on the ad-blocking tile and in its popover; the bronze artwork stays
+// upright when WebGL or motion is unavailable.
+---
+<div class="bento-shield" aria-hidden="true">
+  <div class="horizon-turn" data-shield-variant="blocker">
+    <!-- crossorigin matches three.js's TextureLoader request so the 3D view reuses this download. -->
+    <img class="horizon-fallback" src="/blocker-shield-bronze.webp" width="960" height="960" alt="" decoding="async" crossorigin="anonymous" />
+  </div>
+</div>

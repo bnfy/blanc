@@ -36,7 +36,7 @@ async function assertDisplayExport(master, exported) {
   assert.ok(colorError < 3.5, `export colors differ: mean visible RGB error ${colorError}`);
 }
 
-async function preview({ reduced = false, present = true, fail = false } = {}) {
+async function preview({ reduced = false, present = true, fail = false, spin } = {}) {
   const { initHorizonShield } = await load('site/src/scripts/horizon-shield.js');
   const styles = new Map(), events = new Map(), callbacks = new Map(), turns = [];
   let sequence = 0, observer, change, loads = 0;
@@ -54,7 +54,7 @@ async function preview({ reduced = false, present = true, fail = false } = {}) {
     IntersectionObserver: class { constructor(fn) { observer = fn; } observe() {} },
   };
   initHorizonShield(present ? study : null, {
-    view,
+    view, spin,
     loadRenderer: async () => {
       loads++;
       if (fail) throw new Error('WebGL unavailable');
@@ -65,7 +65,7 @@ async function preview({ reduced = false, present = true, fail = false } = {}) {
     styles, events, callbacks, bounds, turns,
     loads: () => loads,
     enter: visible => observer([{ isIntersecting: visible }]),
-    flush() { const pending = [...callbacks.values()]; callbacks.clear(); pending.forEach(fn => fn()); },
+    flush(time) { const pending = [...callbacks.values()]; callbacks.clear(); pending.forEach(fn => fn(time)); },
     ready: () => new Promise(resolve => setImmediate(resolve)),
     reduce(value) { preference.matches = value; change(); },
     angle: () => parseFloat(styles.get('--shield-turn') || '0'),
@@ -97,6 +97,31 @@ test('the solid shield completes one scroll-driven turn, reverses and clamps at 
   assert.equal(p.angle(), 0);
   p.events.get('scroll')();
   assert.equal(p.callbacks.size, 0, 'offscreen artwork schedules no scroll work');
+});
+
+test('time spin turns continuously while visible, ignores scrolling and resumes without jumping', async () => {
+  const p = await preview({ spin: 'time' });
+  assert.equal(p.events.has('scroll'), false, 'a time spin never listens to scrolling');
+  assert.equal(p.callbacks.size, 0, 'nothing runs before the artwork is visible');
+  p.enter(true); await p.ready();
+  p.flush(1000);
+  assert.equal(p.angle(), 0);
+  p.flush(1045);
+  const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} ≉ ${expected}`);
+  near(p.angle(), 45 / 9000 * 360);
+  assert.equal(p.callbacks.size, 1, 'each frame schedules the next');
+  p.flush(9000);
+  near(p.angle(), 95 / 9000 * 360); // a long gap advances at most one capped frame
+  p.enter(false); p.flush(9020);
+  assert.equal(p.callbacks.size, 0, 'offscreen artwork stops scheduling frames');
+  const paused = p.angle();
+  p.enter(true); p.flush(60_000);
+  assert.equal(p.angle(), paused, 'returning to view resumes from the paused angle');
+  p.flush(60_030);
+  assert.ok(p.angle() > paused);
+  p.reduce(true);
+  assert.equal(p.angle(), 0, 'reduced motion holds the shield upright');
+  assert.ok(p.turns.length > 0, 'the 3D view follows the turn');
 });
 
 test('reduced motion stays upright and does not eagerly load WebGL', async () => {

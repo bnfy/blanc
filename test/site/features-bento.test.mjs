@@ -177,14 +177,18 @@ test('each demo shows exactly its own step and rests on step 3 without motion', 
     await page.goto(`${baseURL}/features`);
     for (const id of ['commands', 'ad-blocking', 'quiet-tabs', 'reopen-closed-tabs', 'private-tabs']) {
       const stage = page.locator(`#pop-${id} .pop-stage`);
-      assert.ok(await stage.locator('.demo [data-at], .demo [data-dim]').count() >= 3, `${id}: per-step states`);
+      assert.ok(await stage.locator('.demo [data-at], .demo [data-dim], .demo [data-on]').count() >= 3, `${id}: per-step states`);
       await page.locator(`#${id}`).click();
       await page.waitForFunction(i => !document.getElementById(`pop-${i}`).hidden, id);
       assert.equal(await stage.getAttribute('data-step'), '3', `${id}: reduced motion rests on 3`);
       for (const step of ['1', '2', '3']) {
         await stage.evaluate((el, n) => { el.dataset.step = n; }, step);
-        const wrong = await stage.locator('[data-at]').evaluateAll((els, n) => els.filter(el =>
-          (getComputedStyle(el).display !== 'none') !== el.dataset.at.split(' ').includes(n)).length, step);
+        // A step is shown when displayed and visible (the shield demo stacks
+        // its steps in one cell and hides the others with visibility).
+        const wrong = await stage.locator('[data-at]').evaluateAll((els, n) => els.filter(el => {
+          const style = getComputedStyle(el);
+          return (style.display !== 'none' && style.visibility !== 'hidden') !== el.dataset.at.split(' ').includes(n);
+        }).length, step);
         assert.equal(wrong, 0, `${id} step ${step}`);
       }
       await page.keyboard.press('Escape');

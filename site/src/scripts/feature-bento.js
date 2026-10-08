@@ -4,6 +4,8 @@
    critically damped spring (damping 1.0, response 0.42 s) as a linear()
    easing; a close starts from the card's on-screen transform, so it can
    interrupt an opening. Reduced motion cross-fades instead. */
+import { initHorizonShield } from './horizon-shield.js';
+
 const dialog = document.getElementById('feature-pop');
 
 if (dialog && typeof dialog.showModal === 'function') {
@@ -186,3 +188,32 @@ const quietTile = document.querySelector('.bento-R1');
 if (quietTile && 'IntersectionObserver' in window) {
   new IntersectionObserver(([entry]) => { quietTile.toggleAttribute('data-in-view', entry.isIntersecting); }).observe(quietTile);
 }
+
+// The ad-blocking demo draws the native Island and shield popover. As in the
+// app, the popover's view starts at the shield chip's bottom edge, centred on
+// the chip unless that would leave the window (here, the stage), and its
+// pointer sits over the chip. Measure where things landed and pass them on as
+// ratios, which hold at any zoom.
+for (const demo of document.querySelectorAll('.native-shield-demo')) {
+  const root = demo.shadowRoot;
+  const stage = root?.querySelector('.native-stage');
+  if (!stage) continue;
+  const chip = root.querySelector('[id$="pillShield"]'), pill = root.querySelector('[id$="islandPill"]');
+  const view = root.querySelector('.native-shield-view');
+  const place = () => {
+    const s = stage.getBoundingClientRect(), c = chip.getBoundingClientRect(), p = pill.getBoundingClientRect();
+    const width = view.getBoundingClientRect().width;
+    if (!s.width) return;
+    const center = c.left + c.width / 2;
+    const left = Math.max(s.left, Math.min(center - width / 2, s.right - width));
+    demo.style.setProperty('--view-x', ((left - s.left) / s.width).toFixed(4));
+    demo.style.setProperty('--pointer-x', ((center - left) / width).toFixed(4));
+    demo.style.setProperty('--chip-dy', ((p.bottom - c.bottom) / s.width).toFixed(4));
+  };
+  new ResizeObserver(place).observe(demo);
+  document.fonts?.ready.then(place);
+}
+
+// The Blocker shield on the ad-blocking tile and in its popover turns on its
+// own while on screen.
+for (const shield of document.querySelectorAll('.bento-shield')) initHorizonShield(shield, { spin: 'time' });

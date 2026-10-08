@@ -123,6 +123,23 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
       const group = bento.evidenceGroups[key];
       assert.ok(group?.qualification && group.evidence.length, `${claim.id}: release evidence and qualifications`);
       for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${bento.publicRelease}:${evidence}`], { cwd: root });
+      // Observations of the installed public release: the shown value must be
+      // one that was measured, and it must appear in the page's demo and copy.
+      for (const measurement of group.measurements ?? []) {
+        const record = JSON.parse(read(measurement));
+        assert.equal(record.publicRelease, bento.publicRelease, measurement);
+        assert.equal(`v${record.installedVersion}`, bento.publicRelease, measurement);
+        assert.ok(record.runs.some(run => run.count === record.shown.count && new URL(run.finalUrl).hostname.endsWith(record.shown.host)), `${measurement}: shown value was measured`);
+        const demo = read('site/src/components/bento/demos/ShieldDemo.astro');
+        if (record.favicon) {
+          assert.equal(require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(root, record.favicon.file))).digest('hex'), record.favicon.sha256, `${measurement}: favicon bytes`);
+          assert.ok(demo.includes(record.favicon.file.replace('site/public', '')), `${measurement}: demo shows the recorded favicon`);
+        }
+        assert.ok(demo.includes(`host = '${record.shown.host}'`) && demo.includes(`count = ${record.shown.count};`), `${measurement}: demo shows the measured value`);
+        if (claim.exactWording.includes(' is what Blanc Blocker')) {
+          assert.ok(claim.exactWording.includes(`The ${record.shown.count} is what`) && claim.exactWording.includes(record.shown.host), `${measurement}: note names the measured value`);
+        }
+      }
     }
   }
   // Every text element above the unchanged Patron and download sections is a

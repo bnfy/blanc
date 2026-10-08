@@ -75,7 +75,26 @@
 .bento-pos-island { object-position: 50% 30%; }
 .bento-pos-dawn { object-position: 50% 30%; transform: scale(2.1); transform-origin: 50% 31%; }
 .bento-pos-sunrise { object-position: 50% 60%; }
-.bento-object { width: auto; height: 100%; max-width: 55%; object-fit: contain; }
+/* The Blocker shield (BentoShield.astro); in a tile its square fits the
+   visual's content box so no edge is ever clipped. */
+.bento-shield { position: relative; flex: none; width: min(100cqw, 100cqh); aspect-ratio: 1; }
+.pop-copy > .bento-shield { width: 104px; margin: 0 0 14px -6px; }
+/* Split popover (FeaturePop split): the visual fills the left column at the
+   card's full height and the copy sits beside it. The ad-blocking one holds
+   the native Island and shield popover (ShieldDemo.astro). */
+.pop-body--split:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); }
+.pop-body--split .pop-stage { height: auto; min-height: 100%; padding: 28px 24px 44px; }
+.pop-body--split .pop-copy { align-self: center; padding: 32px 36px 16px 32px; }
+.pop-body--split .pop-copy h2 { font-size: clamp(26px, 2.6vw, 34px); }
+.native-shield-demo { --native-width: 568px; zoom: .78; }
+/* All three steps share one grid cell, so the stage keeps the tallest
+   step's height; only the current step is visible. */
+.demo-shield-native { display: grid; }
+.demo.demo-shield-native > [data-at] { display: block; grid-area: 1 / 1; visibility: hidden; }
+.pop-stage[data-step="1"] .demo-shield-native > [data-at~="1"], .pop-stage[data-step="2"] .demo-shield-native > [data-at~="2"], .pop-stage[data-step="3"] .demo-shield-native > [data-at~="3"] { visibility: visible; }
+.bento-shield .horizon-turn { position: absolute; inset: 0; }
+.bento-shield .horizon-fallback, .bento-shield .horizon-canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.bento-shield .horizon-turn.is-3d .horizon-fallback { visibility: hidden; }
 
 .bento-title { font-size: calc(var(--bento-display) * 1.05) !important; font-weight: 600 !important; letter-spacing: -.025em !important; }
 .bento-mark { display: block; width: calc(var(--W) * .11); height: auto; margin: 0 auto; filter: drop-shadow(0 6px 18px rgba(120, 70, 20, .35)); }
@@ -184,6 +203,12 @@
   .bento-small { aspect-ratio: auto; min-height: 120px; gap: 18px; }
   .bento-icon--tile { width: 24px; }
   .pop-stage { height: 250px; padding: 20px; }
+  .pop-body--split:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+  /* Clear the card's close button. */
+  .pop-body--split .pop-stage { padding: 68px 20px 40px; }
+  .pop-body--split .pop-copy { padding: 24px 24px 8px; }
+  .pop-copy > .bento-shield { width: 72px; }
+  .native-shield-demo { --native-width: 420px; zoom: .74; }
   .pop-copy { padding: 22px 20px 6px; }
   .pop-nav { padding: 14px 20px 20px; }
     .bento-patron { grid-template-columns: 1fr; gap: 36px; }
@@ -218,26 +243,14 @@
 .demo-cmd { min-width: 84px; font-weight: 600; }
 .demo-later { float: right; }
 .demo-none { color: #999999; }
-.demo-shield, .demo-private { display: grid; gap: 14px; justify-items: center; width: 100%; }
+.demo-private { display: grid; gap: 14px; justify-items: center; width: 100%; }
 .demo-pill { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 15px; border-radius: 16px; background: #FFFFFF; color: #0E0E0E; font: 500 13px var(--font-ui); white-space: nowrap; }
 .demo-pill--private { border: 1.5px dashed #9A9A9A; background: #F4F2EE; }
 .demo-private-chip { padding: 1px 9px; border: 1px dashed #9A9A9A; border-radius: 99px; font-size: 11px; }
 .pop-stage[data-step="3"] .demo-private-chip { border-color: var(--bento-accent-a); }
-.demo-count { padding: 1px 8px; border-radius: 10px; background: #F3F1EC; font-variant-numeric: tabular-nums; }
-.demo-popover { display: grid; gap: 6px; width: 300px; padding: 14px 16px; border: 1px solid rgba(18, 16, 11, .08); border-radius: 16px; background: #FFFFFF; font-size: 13px; }
-.demo-pop-head { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #EEEEEE; }
-.demo-pop-head div { display: grid; }
-.demo-mark { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 50% 70%, #E9B85B 0 38%, transparent 40%), #F6E7C8; }
-.demo-small { color: #999999; font-size: 12px; }
-.demo-small b { color: #0E0E0E; }
-.demo-toggle { display: flex; align-items: center; justify-content: space-between; padding-top: 4px; }
-.demo-switch { position: relative; width: 34px; height: 20px; border-radius: 12px; background: #D9D5CE; transition: background .25s ease; }
-.demo-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .25s ease; }
-.pop-stage[data-step="1"] .demo-switch[data-on~="1"], .pop-stage[data-step="2"] .demo-switch[data-on~="2"], .pop-stage[data-step="3"] .demo-switch[data-on~="3"] { background: #111111; }
-.pop-stage[data-step="1"] .demo-switch[data-on~="1"]::after, .pop-stage[data-step="2"] .demo-switch[data-on~="2"]::after, .pop-stage[data-step="3"] .demo-switch[data-on~="3"]::after { transform: translateX(14px); }
 .pop-chips { width: min(320px, 80%); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) {
-  .demo .ui-row, .demo-switch, .demo-switch::after { transition: none; }
+  .demo .ui-row { transition: none; }
   .demo-caret { animation: none; }
 }
 

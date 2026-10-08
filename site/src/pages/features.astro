@@ -6,6 +6,7 @@ import BentoIcon from '../components/bento/BentoIcon.astro';
 import FeaturePop from '../components/bento/FeaturePop.astro';
 import SwitcherDemo from '../components/bento/demos/SwitcherDemo.astro';
 import ShieldDemo from '../components/bento/demos/ShieldDemo.astro';
+import BentoShield from '../components/bento/BentoShield.astro';
 import QuietDemo from '../components/bento/demos/QuietDemo.astro';
 import ReopenDemo from '../components/bento/demos/ReopenDemo.astro';
 import PrivateDemo from '../components/bento/demos/PrivateDemo.astro';
@@ -65,7 +66,7 @@ import '../styles/features-bento.css';
         <h3>A Start Page that follows the time of day</h3>
       </BentoTile>
       <BentoTile id="ad-blocking" href="/features/ad-blocking" feature="ad-blocking" area="L2">
-        <img slot="visual" class="bento-object" src="/blocker-shield-bronze.webp" width="960" height="960" alt="" />
+        <BentoShield slot="visual" />
         <h3>Ads and trackers blocked by default</h3>
       </BentoTile>
       <BentoTile id="mahjong" href="/features/start-page" feature="mahjong" area="L3" tone="felt" label="top">
@@ -177,12 +178,13 @@ import '../styles/features-bento.css';
           <p>Turn on time-of-day wallpaper in Settings → General, and the Start Page artwork moves through dawn, day, dusk and night with your computer’s clock.</p>
           <p class="pop-note">When Sync is on, the on/off choice follows you to your other devices; the artwork always follows each computer’s own clock.</p>
         </FeaturePop>
-        <FeaturePop id="ad-blocking" feature="ad-blocking" href="/features/ad-blocking" linkText="Read more about blocking" demo>
+        <FeaturePop id="ad-blocking" feature="ad-blocking" href="/features/ad-blocking" linkText="Read more about blocking" demo split>
           <ShieldDemo slot="visual" />
-          <p class="pop-eyebrow">Ad and tracker blocking</p>
-          <h2 id="pop-ad-blocking-title">Block ads and trackers from the first page, with a switch for each site.</h2>
-          <p>Blanc Blocker is built in and on by default, using EasyList and EasyPrivacy. Click the shield on the Island to see how many requests it blocked on this page and whether the connection uses HTTPS, or to turn blocking off for just this site.</p>
-          <p class="pop-note">Blocking reduces ads and known tracking; no blocker removes all of them. The count shown here is a sample. Prefer uBlock Origin? Choose it from the same shield on supported builds, then restart Blanc.</p>
+          <BentoShield />
+          <p class="pop-eyebrow">Site protection</p>
+          <h2 id="pop-ad-blocking-title">Ads and trackers blocked. Your choice of blocker.</h2>
+          <p>Blanc Blocker is on from the first page. Prefer uBlock Origin? Choose it from the shield on supported builds, then restart Blanc.</p>
+          <p class="pop-note">The 24 is what Blanc Blocker blocked in the first 10 seconds on nytimes.com in Blanc 1.30.1. Private tabs always use Blanc Blocker.</p>
         </FeaturePop>
         <FeaturePop id="mahjong" feature="mahjong" href="/features/start-page" linkText="Read more about the Start Page">
           <img slot="visual" class="pop-img" src="/feature-captures/mahjong-v1.21.0.webp" width="1440" height="900" alt="" loading="lazy" />

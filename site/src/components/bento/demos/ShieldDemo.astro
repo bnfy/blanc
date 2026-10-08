@@ -1,14 +1,69 @@
 ---
-// Resting Island → Site protection popover → site switched off.
-// Strings mirror v1.30.0 overlay.html and shield-model.js; 12 is a sample.
+// Site protection → Choose a blocker (Blanc Blocker active) → uBlock Origin
+// selected, drawn from the app's own Island and overlay markup and CSS
+// (site/src/lib/native-island-art.mjs), one shadow root per step. The host
+// and count are the ones measured in installed Blanc 1.30.1 and recorded in
+// docs/website-blocking-count-v1.30.1.json.
+import styles from '../../../../../src/renderer/styles.css?raw';
+import islandDocument from '../../../../../src/renderer/index.html?raw';
+import renderer from '../../../../../src/renderer/renderer.js?raw';
+import overlay from '../../../../../src/renderer/overlay.html?raw';
+import mark from '../../../../../src/renderer/sunrise-hero-mark.png?url';
+import nativeFont from '../../../../../src/renderer/pages/inter-latin.woff2?url';
+import { nativeIslandArt, nativeShieldPopoverArt, SHIELD_OPEN_SELECTORS } from '../../../lib/native-island-art.mjs';
+
+const host = 'nytimes.com', count = 24;
+const pill = nativeIslandArt({ styles, document: islandDocument, renderer, extraSelectors: SHIELD_OPEN_SELECTORS });
+const swap = (html: string, from: string | RegExp, to: string) => {
+  const next = html.replace(from, to);
+  if (next === html) throw new Error(`Shield demo: native pill changed near ${from}`);
+  return next;
+};
+// The resting Island with its shield popover open: one of three tabs active.
+let pillHtml = pill.html;
+pillHtml = swap(pillHtml, 'id="islandPill" class="no-drag"', 'id="islandPill" class="no-drag shield-open"');
+pillHtml = swap(pillHtml, /<div id="pillDots">[\s\S]*?<\/div>/, '<div id="pillDots"><button class="island-dot"></button><button class="island-dot active"></button><button class="island-dot"></button></div>');
+pillHtml = swap(pillHtml, 'style="background-image:url(/favicon.svg)"', 'style="background-image:url(/favicons/nytimes.com.ico)"');
+pillHtml = swap(pillHtml, '<span id="pillDomain">blancbrowser.com</span>', `<span id="pillDomain">${host}</span>`);
+pillHtml = swap(pillHtml, 'id="pillShield" class="shield" aria-expanded="false"', 'id="pillShield" class="shield" aria-expanded="true"');
+pillHtml = swap(pillHtml, '<span id="pillShieldCount">1</span>', `<span id="pillShieldCount">${count}</span>`);
+
+const presentation = `
+  :host {display:block; font-family:var(--font-ui); font-size:13px; color:var(--text);}
+  [hidden] {display:none!important;}
+  .native-stage {display:flex; flex-direction:column; align-items:center; width:var(--native-width, 520px);}
+  #islandPill {margin:0; flex:none; width:max-content; max-width:none;}
+  /* As chrome-layout.js calculateShieldBounds places it, the overlay view
+     starts at the chip's bottom edge, centred on the chip but kept inside the
+     window, with its pointer over the chip; feature-bento.js measures them. */
+  .native-view-row {align-self:stretch; margin-top:calc(var(--chip-dy, 0) * -100%);}
+  .native-shield-view {position:relative; width:404px; padding-top:10px; margin-left:calc(var(--view-x, 0) * 100%);}
+  #shieldPopPointer {left:calc(var(--pointer-x, .5) * 100%);}
+  #shieldPop {position:relative; inset:auto; margin:0 12px; max-height:none; overflow:visible;}
+`;
+const steps = [['1', 'summary', 'blanc'], ['2', 'chooser', 'blanc'], ['3', 'chooser', 'ublock-origin']].map(([at, step, draft]) => {
+  const pop = nativeShieldPopoverArt({ styles, overlay, mark, step, host, count, draft });
+  const raw = `<div class="native-stage"><div class="native-pill-row">${pillHtml}</div><div class="native-view-row"><div class="native-shield-view">${pop.html}</div></div></div>`;
+  // Namespace extracted IDs so the three instances stay distinct in the page source.
+  const ids = new Set([...raw.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
+  const prefix = `shield-demo-${at}-`;
+  const html = raw.replace(/\bid="([^"]+)"/g, (_, id) => `id="${prefix}${id}"`)
+    .replace(/\b(aria-labelledby|aria-describedby)="([^"]+)"/g, (_, name, list) =>
+      `${name}="${list.split(' ').map((id: string) => ids.has(id) ? prefix + id : id).join(' ')}"`);
+  const css = (pill.css + '\n' + pop.css + presentation).replace(/#([A-Za-z][\w-]*)/g, (selector, id) => ids.has(id) ? `#${prefix}${id}` : selector);
+  return { at, html, css };
+});
 ---
-<div class="demo demo-shield">
-  <span class="demo-pill"><span>‹ ›</span><span class="ui-fav ui-fav--b">L</span><span>louisiana.dk</span><span class="demo-count"><span data-at="1 2">12</span><span data-at="3">0</span></span><span>↻</span></span>
-  <div class="ui demo-popover" data-at="2 3">
-    <div class="demo-pop-head"><span class="demo-mark"></span><div><b>Site protection</b><span class="demo-small">louisiana.dk</span></div></div>
-    <span class="demo-small">Current blocker · <b>Blanc Blocker</b></span>
-    <div class="demo-toggle"><span>Ad &amp; tracker blocking <b data-at="2">on</b><b data-at="3">off</b></span><span class="demo-switch" data-on="1 2"></span></div>
-    <span class="demo-small"><span data-at="2">12 ads &amp; trackers blocked on this page</span><span data-at="3">Ads allowed on this site</span></span>
-    <span class="demo-small">Changing site protection reloads this page.</span>
-  </div>
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}`} />
+<div class="demo demo-shield-native">
+  {steps.map(({ at, html, css }) => (
+    <div class="demo-native-step" data-at={at}>
+      <blanc-shield-demo class="native-shield-demo" data-appearance="light" aria-hidden="true" inert>
+        <template shadowrootmode="open">
+          <style is:inline set:html={css} />
+          <Fragment set:html={html} />
+        </template>
+      </blanc-shield-demo>
+    </div>
+  ))}
 </div>
