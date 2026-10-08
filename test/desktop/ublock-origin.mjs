@@ -64,6 +64,10 @@ const fixture = `http://127.0.0.1:${server.address().port}/`;
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 void ignored;
 let electron;
+// Playwright disposes an ElectronApplication's connection once its process
+// exits, after which electron.process() throws. Keep the ChildProcess captured
+// at launch instead: it stays readable after exit, and kill() is then a no-op.
+let electronProcess;
 let errors = '';
 const uncaughtLog = path.join(dir, 'uncaught.txt');
 const started = Date.now();
@@ -77,22 +81,27 @@ let stage = 'cold launch';
 const SUITE_LIMIT_MS = 420000;
 const watchdog = setTimeout(() => {
   console.error(`uBO suite exceeded ${SUITE_LIMIT_MS / 1000} seconds at stage: ${stage}`);
-  // The handle can be stale mid-restart; fail fast rather than crash or hang.
-  try { electron?.process().kill('SIGKILL'); } catch { process.exit(1); }
+  // Mid-restart the recorded process has already exited and the replacement
+  // is not adopted yet; fail fast rather than wait on the launch.
+  if (!electronProcess?.kill('SIGKILL')) process.exit(1);
 }, SUITE_LIMIT_MS);
+function adoptElectron(app) {
+  electron = app;
+  electronProcess = app.process();
+  electronProcess.stderr.on('data', data => { errors = (errors + data).slice(-16000); });
+  console.log('uBO test Electron PID', electronProcess.pid);
+  electronProcess.once('exit', (code, signal) => console.log('uBO fixture process exit:', { stage, code, signal }));
+}
 try {
-  electron = await _electron.launch({
+  adoptElectron(await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
     // Keep fixture updates deterministic: external first-install lists use
     // their bundled cache, while the local subscription still updates over HTTP.
     args: [path.resolve('.'), `--user-data-dir=${dir}`, '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost'], chromiumSandbox: true,
     env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog }, timeout: 30000,
-  });
+  }));
   electron.context().setDefaultTimeout(10000);
   electron.context().setDefaultNavigationTimeout(15000);
-  electron.process().stderr.on('data', data => { errors = (errors + data).slice(-16000); });
-  console.log('uBO test Electron PID', electron.process().pid);
-  electron.process().once('exit', (code, signal) => console.log('uBO fixture process exit:', { stage, code, signal }));
   await electron.evaluate(({ app, BrowserWindow }) => {
     for (const event of ['before-quit', 'window-all-closed', 'will-quit']) app.on(event, () => console.log('uBO fixture app lifecycle:', event));
     const observe = win => { const id = win.id; win.on('closed', () => console.log('uBO fixture window closed:', id)); };
@@ -1017,13 +1026,16 @@ try {
   await call('activateTab', (await call('state')).tabs.find(tab => tab.webContentsId === awakeWC).id);
   stage = 'offline restart';
   const originalIdentity = await electron.evaluate(({ webContents }) => webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage').getURL().split('/')[2]);
-  const closeTimer = setTimeout(() => electron.process().kill('SIGKILL'), 5000);
+  const closingProcess = electronProcess;
+  const closeTimer = setTimeout(() => closingProcess.kill('SIGKILL'), 5000);
   try { await electron.close(); } finally { clearTimeout(closeTimer); }
-  electron = await _electron.launch({
+  // The closed handle is disposed; never let the failure path reuse it.
+  electron = undefined;
+  adoptElectron(await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
     args: [path.resolve('.'), `--user-data-dir=${dir}`, '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost'], chromiumSandbox: true,
     env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaughtLog }, timeout: 30000,
-  });
+  }));
   electron.context().setDefaultTimeout(10000);
   electron.context().setDefaultNavigationTimeout(15000);
   await electron.firstWindow();
@@ -1061,7 +1073,7 @@ try {
   console.log('uBO fixture performance:', JSON.stringify(timing));
 } catch (error) {
   if (fs.existsSync(uncaughtLog)) console.error(fs.readFileSync(uncaughtLog, 'utf8'));
-  console.error('uBO test failure:', { stage, processExitCode: electron?.process().exitCode, processSignal: electron?.process().signalCode }, error);
+  console.error('uBO test failure:', { stage, processExitCode: electronProcess?.exitCode, processSignal: electronProcess?.signalCode }, error);
   if (electron) console.error('Dashboard state:', await electron.evaluate(async ({ webContents }) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/dashboard.html'));
     return wc?.executeJavaScript(`({ hash: location.hash, ready: !document.body.classList.contains('notReady'), selected: document.querySelector('.tabButton.selected')?.dataset.pane, frame: document.querySelector('#iframe')?.contentWindow.location.pathname, unsavedPrompt: document.querySelector('#unsavedWarning')?.classList.contains('on'), unsaved: document.querySelector('#iframe')?.contentWindow.hasUnsavedData?.() })`);
@@ -1092,7 +1104,7 @@ try {
 } finally {
   clearTimeout(watchdog);
   if (electron) {
-    const timer = setTimeout(() => electron.process().kill('SIGKILL'), 5000);
+    const timer = setTimeout(() => electronProcess.kill('SIGKILL'), 5000);
     try { await electron.close(); } catch {} finally { clearTimeout(timer); }
   }
   server.close();
