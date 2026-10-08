@@ -777,55 +777,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 /* Breadcrumb links keep their 24px target but centre their text on the row. */
 .breadcrumb a { align-items: center; }
 .feature-hero { max-width: 780px; margin: 0 auto; text-align: center; }
-.feature-hero--hub { padding: 112px 0 88px; }
 .feature-hero--detail { padding: 84px 0 62px; }
 .feature-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(40px, 5.3vw, 68px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.02; text-wrap: balance; }
 .feature-hero > p:last-child { max-width: 54ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
-.feature-hub-list { border-top: 1px solid var(--site-border); }
-.feature-hub-row { display: grid; grid-template-columns: 64px minmax(260px, 0.98fr) minmax(250px, 0.78fr); gap: 32px; align-items: start; padding: 42px 0; border-bottom: 1px solid var(--site-border); scroll-margin-top: 82px; }
-.feature-hub-row--patron { background: var(--site-surface); margin: 0 -24px; padding-right: 24px; padding-left: 24px; }
-.feature-number, .feature-label { margin: 0; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--site-text-dim); }
-.feature-label { margin-bottom: 13px; }
-.feature-patron-badge { display: inline-flex; align-items: center; min-height: 20px; margin-left: 8px; padding: 0 7px; border: 1px solid var(--site-text); border-radius: 999px; color: var(--site-text); font-size: 9px; letter-spacing: 0.08em; vertical-align: 1px; }
-.feature-hub-row h2 { max-width: 16ch; margin: 0; font-size: clamp(25px, 3.1vw, 38px); font-weight: 500; letter-spacing: -0.032em; line-height: 1.08; text-wrap: balance; }
-.feature-row-end { padding-top: 26px; }
-.feature-row-end p { max-width: 38ch; margin: 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.65; }
-.feature-row-end .text-link { margin-top: 18px; }
-/* The hub reads as a two-column grid of cards: number in the corner,
-   label and title, then the summary with its link pinned to the foot. */
-.feature-hub-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-left: 1px solid var(--site-border); }
-.feature-hub-row { position: relative; display: flex; flex-direction: column; gap: 0; margin: 0; padding: 34px 40px 36px; border-right: 1px solid var(--site-border); }
-.feature-hub-row--patron { margin: 0; padding: 34px 40px 36px; }
-.feature-hub-row .feature-number { position: absolute; top: 36px; right: 40px; }
-.feature-hub-row .feature-label { padding-right: 48px; }
-.feature-hub-row h2 { max-width: 20ch; font-size: clamp(23px, 2.2vw, 29px); }
-.feature-hub-row .feature-row-end { display: flex; flex: 1; flex-direction: column; align-items: flex-start; padding-top: 16px; }
-.feature-hub-row .feature-row-end p { max-width: 46ch; }
-.feature-hub-row .feature-row-end > .text-link { margin-top: auto; padding-top: 20px; }
-/* The everyday details follow the grid at its full width, with room above. */
-.feature-hub-page .feature-copy-grid { max-width: none; margin-top: 96px; padding-bottom: 0; }
-@media (max-width: 1100px) {
-  .feature-hub-row, .feature-hub-row--patron { padding: 28px 28px 30px; }
-  .feature-hub-row .feature-number { top: 30px; right: 28px; }
-}
-@media (max-width: 760px) {
-  .feature-hub-page .feature-copy-grid { margin-top: 64px; }
-  .feature-hub-list { grid-template-columns: 1fr; border-left: 0; }
-  .feature-hub-row, .feature-hub-row--patron { padding: 28px 0 30px; border-right: 0; }
-  .feature-hub-row--patron { margin: 0 -18px; padding-right: 18px; padding-left: 18px; }
-  .feature-hub-row .feature-number { top: 30px; right: 0; }
-  .feature-hub-row--patron .feature-number { right: 18px; }
-}
-.feature-patron { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.55fr); gap: clamp(42px, 8vw, 110px); align-items: end; margin-top: 96px; padding: 64px; border: 1px solid var(--site-text); border-radius: 14px; }
-.feature-patron-copy h2 { max-width: 13ch; margin: 0; font-size: clamp(31px, 4vw, 49px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
-.feature-patron-copy > p:last-child { max-width: 54ch; margin: 22px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.65; }
-.feature-patron-offer { padding-left: 32px; border-left: 1px solid var(--site-border); }
-.feature-patron-price { margin: 0; letter-spacing: -0.035em; }
-.feature-patron-price strong { font-size: 38px; font-weight: 500; }
-.feature-patron-price span { color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0; }
-.feature-patron-offer > p:nth-child(2) { margin: 4px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 11px; }
-.feature-patron-offer .cta { width: 100%; margin-top: 24px; }
-.feature-patron-offer .text-link { margin-top: 16px; }
 .feature-close { margin: 96px 0 0; padding: 76px 24px; border: 1px solid var(--site-border); border-radius: 14px; background: var(--site-surface); text-align: center; }
 .feature-close h2 { max-width: 15ch; margin: 0 auto; font-size: clamp(30px, 4vw, 49px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.05; text-wrap: balance; }
 .feature-close .cta { margin-top: 28px; }
@@ -985,12 +939,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 760px) {
   .hero { padding-bottom: 40px; }
   .home-feature { padding: 28px 24px; }
-  /* The feature rows' desktop minimums add up to more than the available
-     content width here. Collapse before that math can create page overflow. */
-  .feature-hub-row { grid-template-columns: 1fr; gap: 16px; padding: 30px 0 34px; }
-  .feature-row-end { padding-top: 0; }
-  .feature-patron { grid-template-columns: 1fr; gap: 38px; }
-  .feature-patron-offer { padding: 30px 0 0; border-top: 1px solid var(--site-border); border-left: 0; }
 }
 
 /* Shared website footer. Keep this scope separate from quotation attribution
@@ -1062,11 +1010,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .download-footnote { grid-template-columns: 1fr; gap: 14px; }
   .feature-page { padding: 0 18px 72px; }
   .breadcrumb { padding-top: 24px; }
-  .feature-hero--hub { padding: 78px 0 58px; }
   .feature-hero--detail { padding: 66px 0 46px; }
-  .feature-hub-row { grid-template-columns: 1fr; gap: 16px; padding: 30px 0 34px; }
-  .feature-hub-row--patron { margin: 0 -18px; padding-right: 18px; padding-left: 18px; }
-  .feature-row-end { padding-top: 0; }
   .feature-close { margin-top: 72px; padding: 58px 20px; }
   .feature-capture { margin-bottom: 80px; }
   .feature-copy-grid { grid-template-columns: 1fr; gap: 36px; padding-bottom: 72px; }
@@ -1092,10 +1036,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .site-brand:is(:hover, :focus-visible) .site-brand-mark { opacity: 1; }
   .site-nav-cta { display: none; }
 
-  /* The Patron offer's 220px price column plus its generous card padding no
-     longer fits as a useful two-column composition at this width. */
-  .feature-patron { grid-template-columns: 1fr; gap: 38px; margin-top: 72px; padding: 46px 28px; }
-  .feature-patron-offer { padding: 30px 0 0; border-top: 1px solid var(--site-border); border-left: 0; }
 
   .hero {
     min-height: auto;
@@ -1113,10 +1053,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
     padding-bottom: 3px;
   }
   .home-feature > p,
-  .feature-row-end p,
   .feature-copy-list p { font-size: 14.5px; }
-  .home-feature .text-link,
-  .feature-row-end .text-link { margin-top: 14px; }
+  .home-feature .text-link { margin-top: 14px; }
 
 
   .consent {
@@ -1832,7 +1770,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
    it wins over the per-section size rules above; those keep their sizes and
    line heights. Body copy, labels, controls, the legal pages, the consent
    card, the demo's figure title, and every product replica stay in Inter. */
-.home-feature h2, .download-section-head h2, .release-body h2, .about-proof-row h2, .about-close h2, .feature-hub-row h2, .feature-patron-copy h2, .feature-close h2, .feature-copy-grid h2, .truth-note h2, .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2, .press-product-heading h2, .press-proof h2, .press-contact h2, .press-newsroom h2, .press-announcement h2, .memchart-heading h2 {
+.home-feature h2, .download-section-head h2, .release-body h2, .about-proof-row h2, .about-close h2, .feature-close h2, .feature-copy-grid h2, .truth-note h2, .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2, .press-product-heading h2, .press-proof h2, .press-contact h2, .press-newsroom h2, .press-announcement h2, .memchart-heading h2 {
   font-family: var(--site-font-display); font-weight: 400; letter-spacing: -0.015em; font-optical-sizing: auto;
 }
 .home-feature h2 { font-size: clamp(25px, 2.7vw, 34px); }
