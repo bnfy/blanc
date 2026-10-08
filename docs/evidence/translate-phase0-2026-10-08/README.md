@@ -101,6 +101,15 @@ readiness in 164–931 ms and showed no growth across cycles.
 - Translation quality on the article read as fluent English in spot checks;
   final judgement is the owner's.
 
+**Implication for the feature plan (owner correction, 2026-10-08):** these are
+four implementation concerns, not two: placeholder protection, spacing across
+element boundaries, structural changes in 11/40 real-world paragraphs, and a
+duplicated link. The feature must therefore preserve the live DOM and apply
+aligned changes to existing text nodes (and the allowlisted attributes) in
+place; engine-generated HTML must never replace page markup directly. This
+matches the spec's DOM mutation contract and is a hard requirement for the
+plan.
+
 ## Options (for the owner; none started)
 
 1. **Keep the engine out of a backgrounded renderer on macOS.** For example, run

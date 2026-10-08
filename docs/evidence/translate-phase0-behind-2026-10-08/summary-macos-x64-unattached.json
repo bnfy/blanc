@@ -1,0 +1,252 @@
+{
+  "host": {
+    "platform": "darwin",
+    "arch": "x64",
+    "cpuModel": "Intel(R) Core(TM) i7-8700B CPU @ 3.20GHz",
+    "cpuCount": 4,
+    "electron": "44.5.1"
+  },
+  "mode": "unattached",
+  "rendererBackgroundingDisabled": false,
+  "readyMs": 1179,
+  "viewportWords": 289,
+  "viewportMsSamples": {
+    "foreground": [
+      10234.399999999965,
+      8352.100000000035,
+      8674.799999999988,
+      8926.5,
+      7437.200000000012
+    ],
+    "after-tab-switch": [
+      3225.2999999999884,
+      2719.0999999999767,
+      4383
+    ],
+    "other-window": [
+      2207.399999999907,
+      2702.4000000000233,
+      2548.1999999999534
+    ],
+    "minimized": [
+      2330.6999999999534,
+      2135.5,
+      2532.9000000000233
+    ],
+    "restored": [
+      2400.20000000007,
+      2199.4000000000233,
+      2237.0999999999767
+    ]
+  },
+  "viewportPer250": {
+    "foreground": 7504,
+    "after-tab-switch": 2790,
+    "other-window": 2204,
+    "minimized": 2016,
+    "restored": 1935
+  },
+  "articleWords": 2062,
+  "fullColdMs": 35204,
+  "fullWarmMsSamples": [
+    28049,
+    31168,
+    20993,
+    17485,
+    16432
+  ],
+  "fullWarmMedianMs": 20993,
+  "fullPer2000": 20362,
+  "english": true,
+  "engineIdleCpuPct": 1.1,
+  "backgroundTab": {
+    "opsMedian": {
+      "noEngine": 1623,
+      "engineIdle": 370,
+      "translating": 620
+    },
+    "idleRatio": 0.228,
+    "translatingRatio": 0.382,
+    "intervalMedianMs": {
+      "noEngine": 2032.2999999999884,
+      "engineIdle": 2032.5,
+      "translating": 2015.2999999999884
+    }
+  },
+  "engineStates": {
+    "idle": {
+      "hasFocus": false,
+      "visibility": "visible"
+    },
+    "foreground": {
+      "hasFocus": false,
+      "visibility": "visible"
+    },
+    "after-tab-switch": {
+      "hasFocus": false,
+      "visibility": "visible"
+    },
+    "other-window": {
+      "hasFocus": false,
+      "visibility": "visible"
+    },
+    "minimized": {
+      "hasFocus": false,
+      "visibility": "visible"
+    },
+    "restored": {
+      "hasFocus": false,
+      "visibility": "visible"
+    },
+    "interaction": {
+      "hasFocus": false,
+      "visibility": "visible"
+    }
+  },
+  "structure": {
+    "order": [
+      "page"
+    ],
+    "engineBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "pageBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 772
+    }
+  },
+  "hidden": {
+    "pixels": "not-visible",
+    "input": "not-received",
+    "focus": "not-focused",
+    "accessibility": "not-exposed"
+  },
+  "diagnostics": {
+    "pixels": {
+      "tealPixels": 974351,
+      "magentaPixels": 0,
+      "total": 988160,
+      "error": null
+    },
+    "ax": {
+      "engineFound": false,
+      "pageFound": true,
+      "elements": 19,
+      "error": null
+    },
+    "interaction": {
+      "pageEvents": [
+        "focus",
+        "keydown",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "keydown",
+        "blur",
+        "blur",
+        "focus",
+        "focus",
+        "pointerdown",
+        "mousedown",
+        "blur",
+        "keydown"
+      ],
+      "engineEvents": [],
+      "engineFocused": false,
+      "nativeInputError": null
+    }
+  }
+}
