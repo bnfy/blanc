@@ -19,12 +19,13 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 |--------|------|----------|
 | Island / palette / slash | `island-and-commands.feature` | F1, F6, F7 |
 | Tabs & groups | `tabs-and-groups.feature` | F2, F3 |
+| Drag to reorder | `tab-drag.feature` | F3, F28 |
 | Private tabs | `private-tabs.feature` | F4 |
 | Navigation & context menu | `navigation-and-context-menu.feature` | F5, F19 |
 | Find / favorites / history | `find-favorites-history.feature` | F8, F9, F10 |
 | Downloads | `downloads.feature` | F11 |
 | Ad/tracker blocking | `ad-blocking.feature` | F12 |
-| Settings & theming | `settings-and-theming.feature` | F14, F15 |
+| Settings & theming | `settings-and-theming.feature` | F14, F15, F42 |
 | Permissions & auth | `permissions-and-auth.feature` | F13, F20 |
 | Internal pages | `internal-pages.feature` | F16 |
 | Supporter & session | `supporter-and-session.feature` | F17, F18 |
@@ -98,6 +99,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F14-4 | Search-suggestion opt-out stays device-local | — | ✅ | ⬜ | ⬜ |
 | F15-1 | Dark recolors chrome + page live | — | ✅ | ⬜ | ⬜ |
 | F15-2 | Private theme scope | — | ✅ | ⬜ | ⬜ |
+| F42-1 | Dark websites darkens a white page while Blanc is dark | — | ⬜ | ⬜ | ⬜ |
+| F42-2 | Dark websites leaves pages alone while off or Blanc is light | — | ⬜ | ⬜ | ⬜ |
+| F42-3 | /dark-site keeps one site in its own colors | — | ⬜ | ⬜ | ⬜ |
+| F42-4 | A private tab's /dark-site choice is not saved | — | ⬜ | ⬜ | ⬜ |
 | F16-1 | Newtab ledger contents | — | ✅ | ⬜ | ⬜ |
 | F16-2 | Internal nav stays in scheme | — | ✅ | ⬜ | ⬜ |
 | F16-3 | Privileged chrome rejects web navigation | D11 | ✅ | ➖ | ➖ |

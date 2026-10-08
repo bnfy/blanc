@@ -1,0 +1,37 @@
+---
+import routes from "../data/legacy-routes.json";
+export function getStaticPaths() {
+  return Object.entries(routes).map(([path, target]) => ({
+    params: { legacy: path.slice(1) },
+    props: { target },
+  }));
+}
+const { target } = Astro.props;
+const canonical = "https://blancbrowser.com" + target.split(/[?#]/)[0];
+---
+
+<!doctype html>
+<html lang="en">
+  <head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    /><title>Continue to Blanc</title><meta
+      name="robots"
+      content="noindex,follow"
+    /><meta http-equiv="refresh" content={`0;url=${target}`} /><link
+      rel="canonical"
+      href={canonical}
+    /></head
+  ><body
+    ><p>
+      This page has moved. <a id="destination" href={target}
+        >Continue to Blanc</a
+      >.
+    </p><script is:inline>
+      const destination = document.getElementById("destination");
+      const target = new URL(destination.href);
+      if (location.hash && !target.hash) target.hash = location.hash;
+      location.replace(target.href);
+    </script></body>
+</html>

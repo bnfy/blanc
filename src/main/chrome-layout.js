@@ -14,12 +14,14 @@ const FIND_OVERLAY_HEIGHT = 160;
 const FIND_CAPSULE_WIDTH = 480;
 const FIND_CAPSULE_HORIZONTAL_GUTTER = 24;
 
-// Shield popover (design: 2026-08-07-shield-popover-design.md). Fixed-size
-// region like the find capsule: slightly taller than the drawn popover, the
-// transparent remainder swallowing clicks is the same accepted trade-off as
-// find's 160px band.
-const SHIELD_POPOVER_WIDTH = 320;
-const SHIELD_POPOVER_HEIGHT = 232;
+// Blocker dialog and provider chooser. The 12px inset on each side leaves
+// a 380px card, with room below for the approved layout and its shadow.
+// Short windows clamp the view and let the card scroll within these bounds.
+const SHIELD_POPOVER_WIDTH = 404;
+// Allow status/restart guidance and the Dark website switch (with its
+// light-theme note) to fit without scrolling at ordinary window sizes.
+// The card itself keeps its natural content height inside this transparent view.
+const SHIELD_POPOVER_HEIGHT = 580;
 const SHIELD_POPOVER_MARGIN = 12;
 
 const TAB_LAYOUTS = new Set(['island', 'vertical']);
@@ -139,24 +141,32 @@ function calculateChromeLayout({
 }
 
 /**
- * Bounds for the 'shield' overlay mode: below the strip, right edge aligned
- * to the chip's right edge (window coordinates), clamped inside the window.
- * @param {{windowWidth: number, stripHeight: number, anchorRight?: number|null}} input
+ * Bounds for the 'shield' overlay mode: centered just below the measured
+ * trigger (window coordinates), clamped inside the window.
+ * Older callers without a measured center retain right-edge anchoring.
+ * @param {{windowWidth: number, stripHeight: number, windowHeight?: number, anchorRight?: number|null, anchorCenter?: number|null, anchorBottom?: number|null}} input
  */
-function calculateShieldBounds({ windowWidth, stripHeight, anchorRight }) {
+function calculateShieldBounds({ windowWidth, stripHeight, windowHeight, anchorRight, anchorCenter, anchorBottom }) {
   const winWidth = dimension(windowWidth);
   const width = Math.min(SHIELD_POPOVER_WIDTH, Math.max(0, winWidth - SHIELD_POPOVER_MARGIN * 2));
-  const right = Number.isFinite(anchorRight)
-    ? Math.round(anchorRight)
-    : Math.round((winWidth + width) / 2);
+  const right = Number.isFinite(anchorCenter) ? Math.round(anchorCenter + width / 2)
+    : Number.isFinite(anchorRight) ? Math.round(anchorRight) : Math.round((winWidth + width) / 2);
   const x = Math.max(
     SHIELD_POPOVER_MARGIN,
     Math.min(right - width, winWidth - width - SHIELD_POPOVER_MARGIN)
   );
-  return { x, y: dimension(stripHeight), width, height: SHIELD_POPOVER_HEIGHT };
+  // The card begins 10px inside this view; its small point reaches 4px up.
+  // Starting at the circle's bottom leaves a short ~10px circle-to-card join.
+  const y = Number.isFinite(anchorBottom)
+    ? Math.ceil(Math.max(0, Math.min(anchorBottom, dimension(stripHeight)))) : dimension(stripHeight);
+  const height = Number.isFinite(windowHeight)
+    ? Math.min(SHIELD_POPOVER_HEIGHT, Math.max(0, dimension(windowHeight) - y))
+    : SHIELD_POPOVER_HEIGHT;
+  return { x, y, width, height };
 }
 
-const CAPTURE_POPOVER_WIDTH = SHIELD_POPOVER_WIDTH;
+// Capture keeps its established size independently of the blocker dialog.
+const CAPTURE_POPOVER_WIDTH = 320;
 const CAPTURE_ROW_HEIGHT = 44;
 const CAPTURE_POPOVER_CHROME = 56; // header + card padding
 const CAPTURE_POPOVER_MAX_ROWS = 5;

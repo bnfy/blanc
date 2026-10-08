@@ -35,12 +35,16 @@ const HOST_ASSETS = new Map([
     ['/', 'index.html'],
     ['/renderer.js', 'renderer.js'],
     ['/vertical-tabs.js', 'vertical-tabs.js'],
-    ['/shield-horizon.png', 'shield-horizon.png'],
+    // Pure drag-to-reorder controller shared by the rail and the island so the
+    // two surfaces cannot disagree. No IPC of its own and no application data.
+    ['/tab-drag.js', 'tab-drag.js'],
   ])],
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
     ['/workspace-ui.js', 'workspace-ui.js'],
+    ['/tab-drag.js', 'tab-drag.js'],
+    ['/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
   ])],
   ['permission', new Map([
     ['/', 'permission.html'],

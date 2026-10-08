@@ -4,7 +4,7 @@ import MailNav from '../../components/MailNav.astro';
 import '../../styles/mail.css';
 ---
 <BaseLayout title="Privacy Policy for Blanc Mail" description="How Blanc Mail for macOS handles Gmail data, local storage, Private Push signals, license validation, and signed updates." path="/mail/privacy" header="legal" analytics={false}>
-  <main class="mail-page mail-prose">
+  <main id="main-content" class="mail-page mail-prose">
     <p class="mail-eyebrow">Blanc Mail · Pre-release policy</p><h1>Privacy.</h1><p class="mail-muted">Prepared September 22, 2026 · Effective when Blanc Mail launches.</p><MailNav />
     <h2>Your Gmail account</h2><p>Blanc Mail connects directly from your Mac to Google after you authorize it. It first requests access to read your mailbox and send messages you choose to send. Managing drafts, organizing mail, and using Gmail Settings request additional permissions when you first use those features. Google credentials remain in the macOS Keychain. Mail metadata, opened bodies, synchronization state, and recoverable drafts may be stored in your Mac's Application Support folder. Bananify does not receive your mail content or OAuth tokens.</p>
     <h2>Google Contacts and Calendar</h2><p>Contact photos are off by default. If you turn on <strong>Show contact photos</strong>, Mail requests read-only access to your Google Contacts. Contact addresses and photos are cached on your Mac for that account and deleted when you turn the setting off, disconnect or sign out, or switch accounts. Photos come from Google's CDN and are matched to senders on your Mac; Mail does not send sender addresses to an avatar service. A matching photo does not verify who sent a message.</p>

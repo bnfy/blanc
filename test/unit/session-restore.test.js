@@ -16,7 +16,7 @@ test('local file grants stay zipped while ungranted and missing files are droppe
   const file = path.join(dir, 'opened.html');
   try {
     fs.writeFileSync(file, '<title>Opened</title>');
-    const url = pathToFileURL(fs.realpathSync(file)).href;
+    const url = pathToFileURL(fs.realpathSync.native(file)).href;
     const saved = {
       urls: ['https://a.test/', url, 'file:///tmp/missing.html', url],
       groupIds: [null, 'g1', 'g2', 'g3'],

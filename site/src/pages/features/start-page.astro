@@ -13,7 +13,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Start Page","item":"https://blancbrowser.com/features/start-page"}]}
   </script>
-<main class="feature-page feature-detail-page">
+<main id="main-content" class="feature-page feature-detail-page">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">start page</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="start-page-title">
     <p class="section-kicker">start page</p>
@@ -21,7 +21,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <p>Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.</p>
   </section>
   <figure class="product-capture feature-capture released-capture">
-    <a href="/feature-captures/billboard-v1.21.0.png" aria-label="View full Start Page capture"><img src="/feature-captures/billboard-v1.21.0.png" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc’s Billboard start page with a large clock, local frequent sites, and named groups." /></a>
+    <a href="/feature-captures/billboard-v1.21.0.png" aria-label="View full Start Page capture"><img src="/feature-captures/billboard-v1.21.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Blanc’s Billboard start page with a large clock, local frequent sites, and named groups." /></a>
     <figcaption>Billboard puts frequently visited sites within reach. Sample browsing data shown.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="start-page-section-0">
@@ -51,11 +51,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </div>
   </section>
   <section class="layout-gallery" aria-label="Four start-page layouts and standalone Mahjong">
-    <figure><a href="/feature-captures/billboard-v1.21.0.png" aria-label="View full billboard capture"><img src="/feature-captures/billboard-v1.21.0.png" width="1440" height="900" loading="lazy" decoding="async" alt="The billboard layout in public Blanc v1.21.0." /></a><figcaption>Billboard</figcaption></figure>
-    <figure><a href="/feature-captures/ledger-v1.21.0.png" aria-label="View full ledger capture"><img src="/feature-captures/ledger-v1.21.0.png" width="1440" height="900" loading="lazy" decoding="async" alt="The ledger layout in public Blanc v1.21.0." /></a><figcaption>Ledger</figcaption></figure>
-    <figure><a href="/feature-captures/shelf-v1.21.0.png" aria-label="View full shelf capture"><img src="/feature-captures/shelf-v1.21.0.png" width="1440" height="900" loading="lazy" decoding="async" alt="The shelf layout in public Blanc v1.21.0." /></a><figcaption>Shelf</figcaption></figure>
-    <figure><a href="/feature-captures/tally-v1.21.0.png" aria-label="View full tally capture"><img src="/feature-captures/tally-v1.21.0.png" width="1440" height="900" loading="lazy" decoding="async" alt="The tally layout in public Blanc v1.21.0." /></a><figcaption>Tally</figcaption></figure>
-    <figure><a href="/feature-captures/mahjong-v1.21.0.png" aria-label="View full standalone Mahjong capture"><img src="/feature-captures/mahjong-v1.21.0.png" width="1440" height="900" loading="lazy" decoding="async" alt="Standalone Mahjong in public Blanc v1.21.0, showing the Bridge board in Burst mode." /></a><figcaption>Standalone Mahjong — Bridge / Burst</figcaption></figure>
+    <figure><a href="/feature-captures/billboard-v1.21.0.png" aria-label="View full billboard capture"><img src="/feature-captures/billboard-v1.21.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The billboard layout in public Blanc v1.21.0." /></a><figcaption>Billboard</figcaption></figure>
+    <figure><a href="/feature-captures/ledger-v1.21.0.png" aria-label="View full ledger capture"><img src="/feature-captures/ledger-v1.21.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The ledger layout in public Blanc v1.21.0." /></a><figcaption>Ledger</figcaption></figure>
+    <figure><a href="/feature-captures/shelf-v1.21.0.png" aria-label="View full shelf capture"><img src="/feature-captures/shelf-v1.21.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The shelf layout in public Blanc v1.21.0." /></a><figcaption>Shelf</figcaption></figure>
+    <figure><a href="/feature-captures/tally-v1.21.0.png" aria-label="View full tally capture"><img src="/feature-captures/tally-v1.21.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The tally layout in public Blanc v1.21.0." /></a><figcaption>Tally</figcaption></figure>
+    <figure><a href="/feature-captures/mahjong-v1.21.0.png" aria-label="View full standalone Mahjong capture"><img src="/feature-captures/mahjong-v1.21.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Standalone Mahjong in public Blanc v1.21.0, showing the Bridge board in Burst mode." /></a><figcaption>Standalone Mahjong — Bridge / Burst</figcaption></figure>
   </section>
   <aside class="truth-note" aria-labelledby="start-page-note-title">
     <p class="section-kicker">good to know</p><h2 id="start-page-note-title">Your game and frequent sites stay on this device.</h2>

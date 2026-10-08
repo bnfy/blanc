@@ -12,6 +12,17 @@ const MAX_SAVE_DELAY_MS = 5000;
 
 /** All live stores, so we can flush pending writes on quit. */
 const instances = [];
+/** Profiles deleted this launch: their entries are inert from now on. */
+const tombstoned = new Set();
+// profileId → the promise for that profile's in-flight writes, so a repeated
+// or overlapping discard waits for the same writes instead of finding no
+// entries and returning at once.
+const profileDrains = new Map();
+
+let tempSweepEnabled = false;
+/** Called once Blanc holds the single-instance lock (never in acceptance mode). */
+function enableTempSweep() { tempSweepEnabled = true; }
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Minimal JSON-file persistence. Device stores keep their one root file;
@@ -47,6 +58,18 @@ class JsonStore {
   }
 
   #load(file) {
+    if (tempSweepEnabled) {
+      // Best effort: only this store's exact orphan temps, never this
+      // process's own, and never promoted (spec: stale temp files).
+      try {
+        const pattern = new RegExp(`^${escapeRegExp(path.basename(file))}\\.(\\d+)(?:\\.\\d+)?\\.tmp$`);
+        for (const name of fs.readdirSync(path.dirname(file))) {
+          const match = pattern.exec(name);
+          if (!match || Number(match[1]) === process.pid) continue;
+          try { fs.unlinkSync(path.join(path.dirname(file), name)); } catch { /* best effort */ }
+        }
+      } catch { /* the directory may not exist yet */ }
+    }
     try {
       const loaded = { ...this.defaults, ...JSON.parse(fs.readFileSync(file, 'utf8')) };
       // Tighten legacy files on first read, not only after their next update.
@@ -61,6 +84,20 @@ class JsonStore {
 
   #entry() {
     const profileId = this.#profileId();
+    if (this.scope === 'profile' && tombstoned.has(profileId)) {
+      let inert = this.entries.get(profileId);
+      if (!inert?.inert) {
+        // A deleted profile: in-memory only, never loaded or written, so
+        // nothing can recreate its folder.
+        inert = {
+          file: this.#fileFor(profileId), data: structuredClone(this.defaults), saveTimer: null, pendingSince: null,
+          changeSeq: 0, committedChangeSeq: 0, writeSeq: 0, committedWriteSeq: 0,
+          inFlight: null, rewrite: false, discarded: true, inert: true, waiters: [],
+        };
+        this.entries.set(profileId, inert);
+      }
+      return inert;
+    }
     let entry = this.entries.get(profileId);
     if (!entry) {
       const file = this.#fileFor(profileId);
@@ -69,6 +106,17 @@ class JsonStore {
         data: this.#load(file),
         saveTimer: null,
         pendingSince: null,
+        // Routine saves run off main; one shared write sequence decides which
+        // write may replace the file (spec 2026-10-06-jsonstore-async-saves).
+        changeSeq: 0,
+        committedChangeSeq: 0,
+        writeSeq: 0,
+        committedWriteSeq: 0,
+        inFlight: null,
+        rewrite: false,
+        discarded: false,
+        inert: false,
+        waiters: [],
       };
       this.entries.set(profileId, entry);
     }
@@ -83,18 +131,24 @@ class JsonStore {
   update(fn) {
     const entry = this.#entry();
     fn(entry.data);
+    if (entry.inert) return;
+    entry.changeSeq++;
     this.#scheduleSave(entry);
   }
 
   /** Critical transition: rollback memory too if the synchronous write fails. */
   updateAndFlush(fn) {
     const entry = this.#entry();
+    if (entry.inert) return false;
     const previous = structuredClone(entry.data);
+    const previousChangeSeq = entry.changeSeq;
     const pendingSince = entry.pendingSince;
     const hadPendingSave = !!entry.saveTimer;
     fn(entry.data);
+    entry.changeSeq++;
     if (this.#flush(entry)) return true;
     entry.data = previous;
+    entry.changeSeq = previousChangeSeq;
     if (hadPendingSave) {
       entry.pendingSince = pendingSince;
       this.#scheduleSave(entry);
@@ -104,9 +158,107 @@ class JsonStore {
 
   #scheduleSave(entry) {
     entry.pendingSince ??= Date.now();
-    if (Date.now() - entry.pendingSince >= MAX_SAVE_DELAY_MS) return this.#flush(entry);
+    if (Date.now() - entry.pendingSince >= MAX_SAVE_DELAY_MS) return this.#routine(entry);
     clearTimeout(entry.saveTimer);
-    entry.saveTimer = setTimeout(() => this.#flush(entry), SAVE_DELAY_MS);
+    entry.saveTimer = setTimeout(() => this.#routine(entry), SAVE_DELAY_MS);
+  }
+
+  #dirtyEntry(entry) { return entry.changeSeq > entry.committedChangeSeq; }
+
+  #settleWaiters(entry, failedUpTo = -1) {
+    entry.waiters = entry.waiters.filter(waiter => {
+      if (entry.committedChangeSeq >= waiter.target) { waiter.resolve(true); return false; }
+      if (entry.discarded || waiter.target <= failedUpTo) { waiter.resolve(false); return false; }
+      return true;
+    });
+  }
+
+  /** The routine save: written and flushed to disk off main, committed by a
+   * sequence-checked rename on main. */
+  #routine(entry) {
+    clearTimeout(entry.saveTimer);
+    entry.saveTimer = null;
+    entry.pendingSince = null;
+    if (entry.discarded) return;
+    if (entry.inFlight) { entry.rewrite = true; return; }
+    if (!this.#dirtyEntry(entry)) { this.#settleWaiters(entry); return; }
+    const changeSeq = entry.changeSeq;
+    let json;
+    try {
+      json = JSON.stringify(entry.data, null, 2);
+    } catch (err) {
+      // Nothing was written: stay dirty (quit or a later save retries), fail
+      // the waiters this write covered, and never throw out of the timer.
+      if (!this.quietErrors) console.warn(`[store] could not serialize ${entry.file}:`, err.message);
+      this.#settleWaiters(entry, changeSeq);
+      return;
+    }
+    const writeSeq = ++entry.writeSeq;
+    const temp = `${entry.file}.${process.pid}.${writeSeq}.tmp`;
+    let ok = false;
+    const run = async () => {
+      let handle = null;
+      try {
+        await fs.promises.mkdir(path.dirname(entry.file), { recursive: true });
+        if (entry.discarded) return;
+        handle = await fs.promises.open(temp, 'w', 0o600);
+        await handle.writeFile(json, 'utf8');
+        await handle.chmod(0o600);
+        await handle.sync();
+        await handle.close();
+        handle = null;
+        // Commit in one synchronous step: nothing else runs on main between
+        // this check and the rename, so an older write cannot land last.
+        if (entry.discarded || writeSeq <= entry.committedWriteSeq) return;
+        fs.renameSync(temp, entry.file);
+        entry.committedWriteSeq = writeSeq;
+        entry.committedChangeSeq = Math.max(entry.committedChangeSeq, changeSeq);
+        ok = true;
+      } catch (err) {
+        if (!this.quietErrors) console.warn(`[store] could not write ${entry.file}:`, err.message);
+      } finally {
+        if (handle) { try { await handle.close(); } catch { /* best effort */ } }
+        if (!ok) { try { await fs.promises.rm(temp, { force: true }); } catch { /* best effort */ } }
+      }
+    };
+    entry.inFlight = run().then(() => {
+      entry.inFlight = null;
+      this.#settleWaiters(entry, ok ? -1 : changeSeq);
+      if (entry.rewrite && !entry.discarded) {
+        entry.rewrite = false;
+        if (this.#dirtyEntry(entry)) this.#routine(entry);
+      }
+    });
+  }
+
+  /** Whether the active entry has changes not yet committed to disk. */
+  get dirty() { return this.#dirtyEntry(this.#entry()); }
+
+  #waitFor(entry, target) {
+    return new Promise(resolve => { entry.waiters.push({ target, resolve }); this.#routine(entry); });
+  }
+
+  /** Apply a change and write it now, off the main thread (no rollback). */
+  updateAndCommit(fn) {
+    const entry = this.#entry();
+    if (entry.inert) return Promise.resolve(false);
+    fn(entry.data);
+    entry.changeSeq++;
+    return this.#waitFor(entry, entry.changeSeq);
+  }
+
+  /** Write already-applied changes now, off the main thread. */
+  commitPending() {
+    const entry = this.#entry();
+    if (entry.inert) return Promise.resolve(false);
+    if (!this.#dirtyEntry(entry)) return Promise.resolve(true);
+    return this.#waitFor(entry, entry.changeSeq);
+  }
+
+  /** Test support: resolves when the active entry has no routine write in flight. */
+  async settled() {
+    const entry = this.#entry();
+    while (entry.inFlight) await entry.inFlight;
   }
 
   /** @returns {boolean} whether the write actually reached disk — callers
@@ -118,7 +270,7 @@ class JsonStore {
 
   flushPending() {
     for (const entry of this.entries.values()) {
-      if (entry.saveTimer) this.#flush(entry);
+      if (this.#dirtyEntry(entry)) this.#flush(entry);
     }
   }
 
@@ -126,7 +278,10 @@ class JsonStore {
     clearTimeout(entry.saveTimer);
     entry.saveTimer = null;
     entry.pendingSince = null;
-    const tempFile = `${entry.file}.${process.pid}.tmp`;
+    if (entry.inert) return false;
+    const writeSeq = ++entry.writeSeq;
+    const changeSeq = entry.changeSeq;
+    const tempFile = `${entry.file}.${process.pid}.${writeSeq}.tmp`;
     let descriptor = null;
     try {
       fs.mkdirSync(path.dirname(entry.file), { recursive: true });
@@ -137,6 +292,9 @@ class JsonStore {
       fs.closeSync(descriptor);
       descriptor = null;
       fs.renameSync(tempFile, entry.file);
+      entry.committedWriteSeq = writeSeq;
+      entry.committedChangeSeq = Math.max(entry.committedChangeSeq, changeSeq);
+      this.#settleWaiters(entry);
       return true;
     } catch (err) {
       if (descriptor !== null) {
@@ -155,15 +313,30 @@ app.on('before-quit', () => {
   }
 });
 
-function discardProfileStoreEntries(profileId) {
+/** Tombstone a deleted profile and resolve once its in-flight writes have
+ * closed their files and removed their temp files. */
+async function discardProfileStoreEntries(profileId) {
   if (!validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) return false;
+  tombstoned.add(profileId);
+  const flights = profileDrains.has(profileId) ? [profileDrains.get(profileId)] : [];
   for (const store of instances) {
     if (store.scope !== 'profile') continue;
     const entry = store.entries.get(profileId);
-    if (entry?.saveTimer) clearTimeout(entry.saveTimer);
+    if (!entry || entry.inert) continue;
+    entry.discarded = true;
+    clearTimeout(entry.saveTimer);
+    entry.saveTimer = null;
+    for (const waiter of entry.waiters) waiter.resolve(false);
+    entry.waiters = [];
+    if (entry.inFlight) flights.push(entry.inFlight);
     store.entries.delete(profileId);
   }
+  const drain = Promise.allSettled(flights).then(() => {
+    if (profileDrains.get(profileId) === drain) profileDrains.delete(profileId);
+  });
+  profileDrains.set(profileId, drain);
+  await drain;
   return true;
 }
 
-module.exports = { JsonStore, discardProfileStoreEntries };
+module.exports = { JsonStore, discardProfileStoreEntries, enableTempSweep };

@@ -22,13 +22,34 @@
   const dismissBtn = document.getElementById('dismissBtn');
   const findBar = document.getElementById('findBar');
   const shieldPop = document.getElementById('shieldPop');
+  const shieldPopPointer = document.getElementById('shieldPopPointer');
+  let shieldConnected = false;
   const shieldPopHost = document.getElementById('shieldPopHost');
   const shieldPopOnOff = document.getElementById('shieldPopOnOff');
   const shieldPopToggle = document.getElementById('shieldPopToggle');
   const shieldPopConnection = document.getElementById('shieldPopConnection');
   const shieldPopCount = document.getElementById('shieldPopCount');
   const shieldPopNote = document.getElementById('shieldPopNote');
+  const shieldPopDark = document.getElementById('shieldPopDark');
+  const shieldPopDarkToggle = document.getElementById('shieldPopDarkToggle');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
+  const shieldPopLabel = document.getElementById('shieldPopLabel');
+  const shieldPopProvider = document.getElementById('shieldPopProvider');
+  const shieldPopProviderStatus = document.getElementById('shieldPopProviderStatus');
+  const shieldPopProviderScope = document.getElementById('shieldPopProviderScope');
+  const shieldPopAvailability = document.getElementById('shieldPopAvailability');
+  const shieldPopUblock = document.getElementById('shieldPopUblock');
+  const shieldPopTitle = document.getElementById('shieldPopTitle');
+  const shieldPopSummary = document.getElementById('shieldPopSummary');
+  const shieldPopChooser = document.getElementById('shieldPopChooser');
+  const shieldPopBack = document.getElementById('shieldPopBack');
+  const shieldPopChangeProvider = document.getElementById('shieldPopChangeProvider');
+  const shieldPopApply = document.getElementById('shieldPopApply');
+  const shieldPopChooserError = document.getElementById('shieldPopChooserError');
+  let shieldChoosing = false;
+  let shieldDraft = null;
+  let shieldSaving = false;
+  let shieldSaveGeneration = 0;
   const capturePop = document.getElementById('capturePop');
   const capturePopHead = document.getElementById('capturePopHead');
   const capturePopRows = document.getElementById('capturePopRows');
@@ -44,9 +65,9 @@
   let displayShareModel = null;
   let displayShareSelection = null;
   const CONNECTION_LABEL = {
-    https: 'Connection · Uses HTTPS',
-    http: 'Connection · Not encrypted',
-    local: 'Connection · Local',
+    https: 'Uses HTTPS',
+    http: 'Not encrypted',
+    local: 'Local',
   };
   const findInput = document.getElementById('findInput');
   const findCount = document.getElementById('findCount');
@@ -103,7 +124,8 @@
       pendingWorkspacesPayload = null;
       commitWorkspacesPayload(payload);
     }
-    if (!renderQueued) return;
+    // An active drag's own end flushes the queued render.
+    if (!renderQueued || islandDrag.isActive()) return;
     renderQueued = false;
     renderList();
   }
@@ -161,6 +183,67 @@
     trigger: footerWorkspace, label: footerWorkspaceLabel,
     feedback: document.getElementById('workspaceFeedback'),
     onOpenChange(open) { workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open); },
+  });
+
+  // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
+  const dragApi = window.blancTabDrag;
+  const islandDragLive = document.getElementById('islandDragLive');
+  function announceIsland(message) {
+    islandDragLive.textContent = '';
+    requestAnimationFrame(() => { islandDragLive.textContent = message; });
+  }
+  /** The resting list (pinned, groups, loose): the only list mode that can be dragged. */
+  function restingList() {
+    if (mode !== 'panel' && mode !== 'palette') return false;
+    if (siteInfoOpen || commandNotice) return false;
+    const value = addressInput.value;
+    return !(inputTouched && (value.startsWith('/') || value.trim()));
+  }
+  async function islandMove(intent) {
+    const message = dragApi.describeMove(state, intent);
+    let ok = false;
+    try {
+      ok = intent.kind === 'group'
+        ? await window.browserAPI.reorderGroup(intent.id, intent.beforeGroupId)
+        : await window.browserAPI.moveTab(intent.id, { groupId: intent.groupId, beforeId: intent.beforeId });
+    } catch (error) {
+      console.error('Island: move failed', error);
+    }
+    if (ok === true) announceIsland(message);
+    return ok === true;
+  }
+  const islandDrag = dragApi.attach({
+    list: islandList,
+    document,
+    window,
+    enabled: restingList,
+    onDrop: islandMove,
+    announce: announceIsland,
+    onActiveChange(active) {
+      window.browserAPI.setOverlayDragState(active);
+      if (!active && renderQueued && !pointerHeld) {
+        renderQueued = false;
+        renderList();
+      }
+    },
+  });
+  islandList.addEventListener('keydown', (event) => {
+    if (!event.altKey || !event.shiftKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
+    if (!restingList()) return;
+    const direction = event.key === 'ArrowUp' ? 'up' : 'down';
+    const header = event.target.closest?.('[data-drag-header]');
+    const row = event.target.closest?.('.island-row[data-tab-id]');
+    const result = header
+      ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction)
+      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
+    if (!result) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (result.stop) {
+      announceIsland(result.stop === 'top' ? 'Already at the top' : 'Already at the bottom');
+      return;
+    }
+    islandMove(result.intent);
   });
 
   const ICONS = {
@@ -452,7 +535,7 @@
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
     panelSiteInfo.className = `site-info-button ${siteInfo?.state ?? ''}`;
-    panelSiteInfo.innerHTML = siteInfo?.state === 'insecure' || siteInfo?.state === 'certificate-error'
+    panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
     panelSiteInfo.title = siteInfo?.title ?? 'Site information';
@@ -476,6 +559,10 @@
       (tab.id === state.activeTabId ? ' active' : '') +
       (tab.asleep ? ' quiet' : '');
     row.dataset.tabId = tab.id;
+    row.dataset.dragTab = '';
+    row.dataset.pinned = String(!!tab.pinned);
+    row.dataset.groupId = tab.groupId ?? '';
+    row.dataset.dragTitle = tab.title || 'New Tab';
     // A row contains multiple real buttons, so it is a labelled group—not an
     // option/button, whose children would become presentational.
     row.setAttribute('role', 'group');
@@ -526,6 +613,7 @@
 
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
+    pin.dataset.noDrag = '';
     pin.title = tab.pinned ? 'Unpin tab' : 'Pin tab';
     pin.setAttribute('aria-label', pin.title);
     pin.innerHTML = ICONS.pin;
@@ -538,6 +626,7 @@
     if (tab.audible || tab.muted) {
       const mute = document.createElement('button');
       mute.className = 'row-mute' + (tab.muted ? ' on' : '');
+      mute.dataset.noDrag = '';
       mute.title = tab.muted ? 'Unmute tab' : 'Mute tab';
       mute.setAttribute('aria-label', mute.title);
       mute.innerHTML = ICONS.mute;
@@ -552,6 +641,7 @@
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
+      glance.dataset.noDrag = '';
       glance.textContent = 'glance';
       glance.title = isGlance ? 'Close Glance' : 'Open this tab in Glance';
       glance.setAttribute('aria-label', `${glance.title}: ${label}`);
@@ -568,6 +658,7 @@
 
     const close = document.createElement('button');
     close.className = 'row-close';
+    close.dataset.noDrag = '';
     close.title = 'Close tab';
     close.setAttribute('aria-label', 'Close tab');
     close.innerHTML = ICONS.close;
@@ -596,11 +687,33 @@
 
   /** Named-group band: present --surface tint behind header + member tabs.
    * Only named groups get this — pinned / loose / furniture stay flat. */
-  function groupBand(nodes) {
+  function groupBand(group, nodes) {
     const band = document.createElement('div');
     band.className = 'island-group-band';
+    band.dataset.dragSection = 'group';
+    band.dataset.groupId = group.id;
+    band.dataset.collapsed = String(!!group.collapsed);
     band.append(...nodes);
     return band;
+  }
+
+  /** A drag section wrapper for the standalone pinned and loose rows, so the
+   * shared drag controller can measure them like group bands. */
+  function dragSection(kind, nodes) {
+    const section = document.createElement('div');
+    section.className = 'island-drag-section';
+    section.dataset.dragSection = kind;
+    section.append(...nodes);
+    return section;
+  }
+
+  /** Empty pinned/loose drop target; takes no space until a drag reveals it. */
+  function dragEmptyZone(kind) {
+    const zone = document.createElement('div');
+    zone.className = 'drag-empty-zone';
+    zone.dataset.dragSection = kind;
+    zone.setAttribute('aria-hidden', 'true');
+    return zone;
   }
 
   /** "pinned" section header for pins without a named group. */
@@ -626,7 +739,20 @@
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelector('.ghead-n').textContent = String(count);
     row.title = group.collapsed ? 'Unfold group' : 'Fold group';
+    row.dataset.dragHeader = '';
+    row.dataset.groupId = group.id;
+    row.dataset.dragTitle = group.name;
+    // Focusable so ⌥⇧↑/↓ can move the group from the keyboard.
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-expanded', String(!group.collapsed));
     row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        window.browserAPI.toggleGroupCollapsed(group.id);
+      }
+    });
     return row;
   }
 
@@ -791,6 +917,7 @@
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
+    { cmd: '/dark-site', hint: 'Darken this site, or leave it as drawn', run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },
     { cmd: '/1password', hint: 'Fill a login from 1Password',
       available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
       run: () => window.browserAPI.fillLoginFromOnePassword() },
@@ -824,10 +951,12 @@
     if (command.resultNotice) {
       Promise.resolve(result).then((value) => {
         if (resultGeneration !== commandResultGeneration) return;
+        islandDrag.cancel();
         commandNotice = command.resultNotice(value);
         renderList();
       }, () => {
         if (resultGeneration !== commandResultGeneration) return;
+        islandDrag.cancel();
         commandNotice = 'Could not quiet background tabs.';
         renderList();
       });
@@ -1190,6 +1319,8 @@
   // menu key / VoiceOver open the row menu from the focused row).
   function focusedRowAnchor() {
     const el = document.activeElement;
+    const header = el?.closest?.('[data-drag-header]');
+    if (header && islandList.contains(header)) return { groupId: header.dataset.groupId };
     const row = el && el.closest && el.closest('.island-row[data-tab-id]');
     if (!row || !islandList.contains(row)) return null;
     const control = ['row-primary', 'row-pin', 'row-mute', 'row-glance', 'row-close']
@@ -1198,6 +1329,10 @@
   }
   function restoreRowFocus(anchor) {
     if (!anchor) return;
+    if (anchor.groupId) {
+      islandList.querySelector(`[data-drag-header][data-group-id="${CSS.escape(anchor.groupId)}"]`)?.focus();
+      return;
+    }
     const row = islandList.querySelector(
       `.island-row[data-tab-id="${CSS.escape(anchor.tabId)}"]`);
     (row?.querySelector(`.${anchor.control}`) ?? row?.querySelector('.row-primary'))?.focus();
@@ -1275,16 +1410,31 @@
       window.browserAPI.closeOverlay();
       window.browserAPI.openPage('settings');
     });
-    footer.append(protection, settingsButton);
+    const footerActions = [protection];
+    if (info.state === 'certificate-exception') {
+      const stopButton = document.createElement('button');
+      stopButton.type = 'button';
+      stopButton.className = 'site-info-settings site-info-stop-allowing';
+      stopButton.textContent = 'Stop allowing';
+      stopButton.addEventListener('click', () => {
+        window.browserAPI.closeOverlay();
+        window.browserAPI.siteInfoForgetCertificateException();
+      });
+      footerActions.push(stopButton);
+    }
+    footerActions.push(settingsButton);
+    footer.append(...footerActions);
     card.append(footer);
     islandList.replaceChildren(card);
     islandHint.textContent = info.state === 'certificate-error'
-      ? 'Blanc did not offer a bypass'
-      : 'connection details are supplied by Chromium';
+      ? 'this certificate could not be verified'
+      : info.state === 'certificate-exception'
+        ? 'you continued past a certificate warning'
+        : 'connection details are supplied by Chromium';
   }
 
   function renderList() {
-    if (pointerHeld) {
+    if (pointerHeld || islandDrag.isActive()) {
       renderQueued = true;
       return;
     }
@@ -1346,10 +1496,9 @@
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
-      if (pinned.length) {
-        rows.push(pinnedHeaderRow(pinned.length));
-        rows.push(...pinned.map(tabRow));
-      }
+      rows.push(pinned.length
+        ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
+        : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
@@ -1364,11 +1513,12 @@
               bandNodes.push(row);
             }
           }
-          rows.push(groupBand(bandNodes));
+          rows.push(groupBand(group, bandNodes));
         } else {
-          rows.push(...gtabs.map(tabRow));
+          rows.push(dragSection('loose', gtabs.map(tabRow)));
         }
       }
+      if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
 
       const furniture = [];
       for (const device of remoteDevices) {
@@ -1546,7 +1696,9 @@
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
+    if (next !== 'shield' || !reshow) resetShieldChoice();
     shieldPop.hidden = next !== 'shield';
+    shieldPopPointer.hidden = next !== 'shield' || !shieldConnected;
     capturePop.hidden = next !== 'capture';
     displayShareBackdrop.hidden = next !== 'display-share';
     if (next !== 'display-share') displayShareModel = null;
@@ -1622,7 +1774,7 @@
       glancePickerInput.focus();
     } else if (next === 'shield') {
       renderShieldPop();
-      (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
+      (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
     } else if (next === 'display-share') {
       renderDisplayShare(purpose);
     } else if (next === 'capture') {
@@ -1730,8 +1882,40 @@
   function renderShieldPop() {
     const v = state.shieldPopover;
     if (!v) { window.browserAPI.closeOverlay(); return; }
-    shieldPopHost.textContent = v.host;
-    shieldPopOnOff.textContent = v.on ? 'on' : 'off';
+    if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
+    shieldPopHost.textContent = shieldChoosing ? 'For regular tabs on this device.' : v.host;
+    shieldPopTitle.textContent = shieldChoosing ? 'Choose a blocker' : 'Site protection';
+    shieldPopSummary.hidden = shieldChoosing;
+    shieldPopChooser.hidden = !shieldChoosing;
+    shieldPopBack.hidden = !shieldChoosing;
+    shieldPop.dataset.step = shieldChoosing ? 'chooser' : 'summary';
+    document.getElementById('shieldPopSiteControl').hidden = v.variant === 'ublock';
+    shieldPopLabel.textContent = 'Ad & tracker blocking';
+    shieldPopOnOff.textContent = v.variant === 'ublock' ? '' : v.on ? 'on' : 'off';
+    const controls = v.controls;
+    shieldPop.dataset.restartPending = String(controls.restartPending);
+    for (const input of shieldPopProvider.querySelectorAll('input')) input.checked = input.value === (shieldChoosing ? shieldDraft : controls.choice);
+    shieldPopProvider.disabled = controls.disabled || shieldSaving;
+    shieldPopChangeProvider.hidden = controls.hidden === true;
+    shieldPopChangeProvider.disabled = controls.disabled;
+    document.getElementById('shieldPopCurrentProvider').textContent = providerName(controls.active);
+    for (const badge of shieldPopProvider.querySelectorAll('.shield-provider-active')) {
+      badge.hidden = badge.dataset.provider !== controls.active;
+      badge.textContent = controls.activeLabel;
+    }
+    const needsRestart = shieldDraft !== controls.active;
+    shieldPopApply.disabled = shieldSaving || controls.disabled || (needsRestart && shieldDraft === 'ublock-origin' && !controls.ublockAvailable);
+    shieldPopApply.textContent = shieldSaving ? (needsRestart ? 'Restarting…' : 'Saving…') : needsRestart ? 'Restart Blanc' : 'Done';
+    document.getElementById('shieldPopRestartNote').textContent = needsRestart
+      ? 'Restart Blanc to use your selected blocker.' : 'Changes take effect after restarting Blanc.';
+    shieldPopProvider.querySelector('[value="ublock-origin"]').disabled = !controls.ublockAvailable;
+    if (shieldPopProviderStatus.textContent !== controls.detail) shieldPopProviderStatus.textContent = controls.detail;
+    shieldPopProviderScope.textContent = controls.scope;
+    shieldPopProviderScope.hidden = !controls.scope;
+    shieldPopAvailability.textContent = controls.availability;
+    shieldPopAvailability.hidden = !controls.availability;
+    shieldPopUblock.hidden = !controls.canOpenUblock;
     shieldPopToggle.hidden = v.variant !== 'site';
     shieldPopToggle.classList.toggle('on', v.on);
     shieldPopToggle.setAttribute('aria-checked', String(v.on));
@@ -1740,11 +1924,21 @@
     // connection (loading, or a url with no claim to make) hides the row
     // rather than leaving a stale statement on screen.
     const connectionLabel = CONNECTION_LABEL[v.connection] ?? null;
-    shieldPopConnection.textContent = connectionLabel ?? '';
+    document.getElementById('shieldPopConnectionValue').textContent = connectionLabel ?? '';
     shieldPopConnection.hidden = !connectionLabel;
     shieldPopConnection.classList.toggle('insecure', v.connection === 'http');
     shieldPopCount.textContent = v.countLine;
     shieldPopNote.hidden = v.variant !== 'site';
+    // Dark websites (F42): the same flip as /dark-site. `on` describes the
+    // site while Blanc is dark, so the switch keeps meaning while it's light.
+    const dark = v.darkSite;
+    shieldPopDark.hidden = !dark;
+    if (dark) {
+      document.getElementById('shieldPopDarkOnOff').textContent = dark.on ? 'on' : 'off';
+      shieldPopDarkToggle.classList.toggle('on', dark.on);
+      shieldPopDarkToggle.setAttribute('aria-checked', String(dark.on));
+      document.getElementById('shieldPopDarkNote').hidden = dark.appliesNow;
+    }
   }
 
   shieldPopToggle.addEventListener('click', () => {
@@ -1754,6 +1948,72 @@
     if (state.shieldPopover?.on) window.browserAPI.allowAdsOnActiveSite();
     else window.browserAPI.toggleAdblock();
   });
+  shieldPopDarkToggle.addEventListener('click', () => {
+    window.browserAPI.toggleDarkSiteOnActiveSite();
+  });
+  function providerName(provider) { return provider === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker'; }
+
+  function resetShieldChoice() {
+    shieldSaveGeneration += 1;
+    shieldChoosing = false;
+    shieldDraft = null;
+    shieldSaving = false;
+    shieldPopChooserError.textContent = '';
+    shieldPopChooserError.hidden = true;
+  }
+
+  function cancelShieldChoice() {
+    resetShieldChoice();
+    renderShieldPop();
+    (shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider).focus();
+  }
+
+  shieldPopChangeProvider.addEventListener('click', () => {
+    const controls = state.shieldPopover?.controls;
+    if (!controls || controls.disabled) return;
+    resetShieldChoice();
+    shieldChoosing = true;
+    shieldDraft = controls.choice;
+    renderShieldPop();
+    (shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopProvider.querySelector('input:not(:disabled)') || shieldPopBack).focus();
+  });
+  shieldPopBack.addEventListener('click', cancelShieldChoice);
+  shieldPopProvider.addEventListener('change', (event) => {
+    if (!shieldChoosing || shieldSaving || !['blanc', 'ublock-origin'].includes(event.target.value)) return;
+    shieldDraft = event.target.value;
+    shieldPopChooserError.hidden = true;
+    renderShieldPop();
+  });
+  shieldPopApply.addEventListener('click', async () => {
+    if (!shieldChoosing || shieldPopApply.disabled) return;
+    const generation = ++shieldSaveGeneration;
+    shieldSaving = true;
+    renderShieldPop();
+    try {
+      const needsRestart = shieldDraft !== state.shieldPopover.controls.active;
+      const accepted = await window.browserAPI.selectBlockingProvider(shieldDraft, needsRestart);
+      if (generation !== shieldSaveGeneration || mode !== 'shield') return;
+      if (!accepted) throw new Error('unavailable');
+      window.browserAPI.closeOverlay('escape');
+    } catch {
+      if (generation !== shieldSaveGeneration || mode !== 'shield') return;
+      shieldSaving = false;
+      renderShieldPop();
+      shieldPopChooserError.textContent = 'Could not complete the change. Your choice is shown above; try again when you’re ready.';
+      shieldPopChooserError.hidden = false;
+    }
+  });
+  shieldPop.addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const controls = [...shieldPop.querySelectorAll('button:not(:disabled), input:not(:disabled)')].filter(item => item.getClientRects().length);
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  });
+  shieldPopUblock.addEventListener('click', () => {
+    window.browserAPI.openBlockingPopup().catch(() => {});
+  });
+  document.getElementById('shieldPopClose').addEventListener('click', () => window.browserAPI.closeOverlay('escape'));
   shieldPopSettings.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
     window.browserAPI.openPage('settings', 'blocking');
@@ -1851,6 +2111,11 @@
   const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  window.browserAPI.onShieldAnchor(({ x, connected }) => {
+    shieldConnected = connected === true;
+    shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
+    if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
+  });
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
     // A quick close/reopen can arrive while the old retract timer is still
@@ -1864,6 +2129,11 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (mode === 'shield') {
+      if (shieldChoosing) cancelShieldChoice();
+      else window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (!handleWorkspaceEscape()) window.browserAPI.closeOverlay();
   });
   /* Closing: the panel shrinks back into the pill. Main holds the overlay view
@@ -1907,6 +2177,7 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    islandDrag.cancel();
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
@@ -1927,7 +2198,10 @@
       clearMorphStyles();
     }
     findBar.hidden = true;
+    resetShieldChoice();
     shieldPop.hidden = true;
+    shieldPopPointer.hidden = true;
+    shieldConnected = false;
     glancePickerEl.hidden = true;
     inputTouched = false;
     siteInfoOpen = false;
@@ -1973,6 +2247,12 @@
     // Prefer the IPC path (overlay:escape from main) — main's before-input
     // consumes Escape before this listener would see it. Kept as a fallback
     // for harnesses that inject keydown into the document directly.
+    if (mode === 'shield') {
+      e.preventDefault();
+      if (shieldChoosing) cancelShieldChoice();
+      else window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (handleWorkspaceEscape()) {
       e.preventDefault();
       e.stopPropagation();
@@ -2070,6 +2350,8 @@
     renderList();
   });
   addressInput.addEventListener('input', (e) => {
+    // Typing switches the list out of its resting mode: end any drag first.
+    islandDrag.cancel();
     siteInfoOpen = false;
     inputTouched = true;
     commandResultGeneration += 1;
@@ -2204,6 +2486,7 @@
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     state = payload;
+    islandDrag.notePayload(payload);
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {

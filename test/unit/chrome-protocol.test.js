@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
 const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
@@ -25,10 +26,6 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     path.join(renderer, 'vertical-tabs.js'),
   );
   assert.equal(
-    chromeResourcePath('blanc-chrome://index/shield-horizon.png'),
-    path.join(renderer, 'shield-horizon.png'),
-  );
-  assert.equal(
     chromeResourcePath('blanc-chrome://overlay/overlay.js'),
     path.join(renderer, 'overlay.js'),
   );
@@ -40,6 +37,37 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     chromeResourcePath('blanc-chrome://overlay/pages/sunrise-favicon-mark.png'),
     path.join(renderer, 'pages/sunrise-favicon-mark.png'),
   );
+});
+
+test('only the rail and island documents can load the shared tab-drag controller', () => {
+  const asset = path.join(renderer, 'tab-drag.js');
+  assert.equal(chromeResourcePath('blanc-chrome://index/tab-drag.js'), asset);
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/tab-drag.js'), asset);
+  for (const url of [
+    'blanc-chrome://permission/tab-drag.js',
+    'blanc-chrome://fill-status/tab-drag.js',
+    'blanc-chrome://display-capture-helper/tab-drag.js',
+    'blanc-chrome://overlay/tab-drag.js?v=1',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
+test('the blocker Sunrise is the canonical gold artwork and only the overlay can load it', () => {
+  const asset = path.join(renderer, 'sunrise-hero-mark.png');
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/sunrise-hero-mark.png'), asset);
+  assert.deepEqual(
+    fs.readFileSync(asset),
+    fs.readFileSync(path.resolve(__dirname, '../../site/public/sunrise-hero-mark.png')),
+  );
+  for (const url of [
+    'blanc-chrome://index/sunrise-hero-mark.png',
+    'blanc-chrome://permission/sunrise-hero-mark.png',
+    'blanc-chrome://fill-status/sunrise-hero-mark.png',
+    'blanc-chrome://display-capture-helper/sunrise-hero-mark.png',
+    'blanc-chrome://overlay/sunrise-hero-mark.png?cache=1',
+    'blanc-chrome://overlay/sunrise-hero-mark.png#mark',
+    'blanc-chrome://overlay/%73unrise-hero-mark.png',
+    'blanc-chrome://overlay/site/public/sunrise-hero-mark.png',
+  ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
 test('fill-status host serves its document, script, copy, and shared styles only', () => {
@@ -83,6 +111,8 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
   for (const url of [
     'blanc-chrome://index/overlay.js',
     'blanc-chrome://overlay/renderer.js',
+    // The Island now embeds a monochrome SVG; retired raster is not served.
+    'blanc-chrome://index/shield-horizon.png',
     'blanc-chrome://overlay/shield-horizon.png',
     'blanc-chrome://permission/shield-horizon.png',
     'blanc-chrome://index/shield-horizon.png?cache=1',

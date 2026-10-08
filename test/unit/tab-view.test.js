@@ -224,9 +224,9 @@ test('main.js initialises tab-view exactly once, at module scope', () => {
   );
 });
 
-const detachSource = mainSource.match(/function detachTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+const detachSource = mainSource.match(/function detachTabView\(tab, \{ retainManagedRoot = false \} = \{\}\) \{[\s\S]*?\n\}/)?.[0];
 
-function loadDetachTabView({ focused = true, dead = false, owned = true, current = true, windowLive = true } = {}) {
+function loadDetachTabView({ focused = true, dead = false, owned = true, current = true, windowLive = true, rooted = false } = {}) {
   const calls = [];
   const wc = {
     isDestroyed: () => dead,
@@ -244,6 +244,7 @@ function loadDetachTabView({ focused = true, dead = false, owned = true, current
     windowRuntimes: { runtimeForTab: () => owned ? runtime : {} },
     rt: () => runtime,
     hasLiveWindow: () => windowLive,
+    rootManagedExtensionView: () => rooted,
     setTabViewVisible: (target, visible) => {
       assert.equal(target, tab);
       assert.equal(visible, false);
@@ -252,7 +253,7 @@ function loadDetachTabView({ focused = true, dead = false, owned = true, current
   };
   assert.ok(detachSource, 'update the native detach test if its function moves');
   vm.runInNewContext(`${detachSource}\nthis.__detach = detachTabView;`, sandbox);
-  return { detach: () => sandbox.__detach(tab), calls };
+  return { detach: options => sandbox.__detach(tab, options), calls };
 }
 
 test('tab detachment releases native focus and hides the live guest before removing its parent', () => {
@@ -344,4 +345,83 @@ test('externally destroyed guest cleanup waits for its native destructor and mac
   dead.drain(); assert.deepEqual(dead.calls, ['detach']);
   const mac = loadPrepareClose({ platform: 'darwin' });
   mac.prepare(); assert.deepEqual(mac.calls, ['shutdown-detach']);
+});
+
+
+test('switching away keeps a managed Aura tool rooted, while an explicit detach still removes it', () => {
+  const h = loadDetachTabView({ rooted: true });
+  assert.equal(h.detach({ retainManagedRoot: true }), true);
+  assert.deepEqual(h.calls, ['focus-chrome', 'hide']);
+  h.calls.length = 0;
+  assert.equal(h.detach(), true);
+  assert.deepEqual(h.calls, ['focus-chrome', 'hide', 'detach']);
+});
+
+const rootManagedSource = mainSource.match(/function rootManagedExtensionView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+function loadManagedRoot({ platform = 'linux', managed = true, privateTab = false, owned = true, current = true, active = false, closing = false } = {}) {
+  const calls = [], deferred = [], handlers = [];
+  let dead = false;
+  const wc = { isDestroyed: () => dead, once: (event, fn) => { assert.equal(event, 'destroyed'); handlers.push(fn); } };
+  const tab = { id: 'tool', managedExtension: managed, private: privateTab, view: { webContents: wc } };
+  const newWindow = label => {
+    const result = { isDestroyed: () => false, contentView: { children: [] } };
+    result.contentView.addChildView = view => { calls.push(`attach-${label}`); result.contentView.children.push(view); };
+    result.contentView.removeChildView = view => { calls.push(`remove-${label}`); result.contentView.children.splice(result.contentView.children.indexOf(view), 1); };
+    return result;
+  };
+  let window = newWindow('first');
+  const runtime = { window, activeTabId: active ? tab.id : null, closing };
+  const { liveContents, liveViewContents } = loadLiveContents();
+  const sandbox = {
+    process: { platform }, isQuitting: false, managedExtensionRoots: new WeakMap(),
+    rt: () => runtime, hasLiveWindow: () => true, liveContents, liveViewContents,
+    tabs: new Map(current ? [[tab.id, tab]] : []), windowRuntimes: { runtimeForTab: () => owned ? runtime : {} },
+    setTabViewVisible: (target, visible) => { assert.equal(target, tab); assert.equal(visible, false); calls.push('hide'); },
+    setImmediate: fn => deferred.push(fn),
+  };
+  assert.ok(rootManagedSource);
+  vm.runInNewContext(`${rootManagedSource}\nthis.root = rootManagedExtensionView;`, sandbox);
+  return { root: () => sandbox.root(tab), calls, handlers, tab,
+    move: () => { window.contentView.children.length = 0; window = newWindow('second'); runtime.window = window; },
+    destroy: () => { dead = true; handlers.forEach(fn => fn()); },
+    drain: () => deferred.splice(0).forEach(fn => fn()),
+    replaceWindow: () => { runtime.window = newWindow('replacement'); },
+  };
+}
+
+test('managed Aura tool stays hidden and rooted through error URLs and removes its native view after destruction', () => {
+  const h = loadManagedRoot();
+  assert.equal(h.root(), true);
+  h.tab.url = 'blanc://error';
+  assert.equal(h.root(), true);
+  assert.deepEqual(h.calls, ['hide', 'attach-first', 'hide']);
+  assert.equal(h.handlers.length, 1, 'repeated switches must not accumulate destruction listeners');
+  h.destroy();
+  assert.equal(h.calls.at(-1), 'hide', 'native destruction must finish before removing the root');
+  h.replaceWindow(); h.drain();
+  assert.equal(h.calls.at(-1), 'remove-first', 'clean the actual root, never the replacement window');
+});
+
+test('managed tool root follows a moved view and never hides the active tab', () => {
+  const h = loadManagedRoot({ active: true });
+  h.root(); h.move(); h.root(); h.destroy(); h.drain();
+  assert.deepEqual(h.calls, ['attach-first', 'attach-second', 'remove-second']);
+  assert.equal(h.handlers.length, 1);
+});
+
+test('native tool rooting excludes websites, private tabs, macOS and stale ownership', () => {
+  for (const options of [{ managed: false }, { privateTab: true }, { platform: 'darwin' }, { owned: false }, { current: false }, { closing: true }]) {
+    const h = loadManagedRoot(options);
+    assert.equal(h.root(), false);
+    assert.deepEqual(h.calls, []);
+    assert.equal(h.handlers.length, 0);
+  }
+});
+
+test('certificate-error allows only through the exception store and never by default', () => {
+  const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
+  const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
+  assert.match(handler, /certificateExceptions\.matches\(wc\.session/);
+  assert.match(handler, /event\.preventDefault\(\);\s*return callback\(true\);/);
+  assert.equal((handler.match(/callback\(true\)/g) ?? []).length, 1);
 });

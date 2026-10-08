@@ -4,7 +4,7 @@ import MailNav from '../../components/MailNav.astro';
 import '../../styles/mail.css';
 ---
 <BaseLayout title="Support for Blanc Mail on macOS" description="Get help with Blanc Mail for macOS, Google sign-in, local data, licenses, and updates." path="/mail/support" header="solid" analytics={false}>
-  <main class="mail-page mail-prose">
+  <main id="main-content" class="mail-page mail-prose">
     <p class="mail-eyebrow">Blanc Mail</p><h1>Support.</h1><p class="mail-lead">For help with the Mac app or your license, email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p>
     <MailNav />
     <h2>Accounts and data</h2><p>Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app's access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.</p>

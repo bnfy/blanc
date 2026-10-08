@@ -23,6 +23,7 @@
         <a href="#group-sync" data-group="sync">Sync</a>
         <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
+        <a href="#group-trust" data-group="trust">About &amp; Trust</a>
         <a href="#group-diagnostics" data-group="diagnostics">Diagnostics</a>
         <a href="#group-patron" data-group="patron">Patron</a>
         <a href="#group-help" data-group="help">Help</a>
@@ -42,6 +43,32 @@
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
               </select>
+            </div>
+
+            <div class="setting" id="islandSiteColorsSetting">
+              <div class="label">
+                <span>Match site colors</span>
+                <span class="hint" id="islandSiteColorsHint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</span>
+              </div>
+              <label class="toggle"><input id="islandSiteColors" type="checkbox" aria-label="Match site colors" aria-describedby="islandSiteColorsHint" /><span class="track"></span></label>
+            </div>
+
+            <div class="setting" id="darkWebsitesSetting">
+              <div class="label">
+                <span>Dark websites</span>
+                <span class="hint" id="darkWebsitesHint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</span>
+              </div>
+              <label class="toggle"><input id="darkWebsites" type="checkbox" aria-label="Dark websites" aria-describedby="darkWebsitesHint" /><span class="track"></span></label>
+            </div>
+            <div id="darkWebsitesExceptionsBlock">
+              <p class="section-hint">
+                Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.
+              </p>
+              <div class="toolbar-row">
+                <input id="darkExceptionInput" type="text" placeholder="example.com" aria-label="Site to keep in its own colors" />
+                <button id="darkExceptionAdd">Add</button>
+              </div>
+              <div id="darkExceptionList" class="row-list"></div>
             </div>
 
             <div class="setting">
@@ -314,6 +341,27 @@
           <h2 class="group-title">Privacy &amp; Security</h2>
           <div class="settings-card settings-card--mixed">
             <h3 class="card-title">Blocking</h3>
+            <div class="setting" id="blockingProviderSetting">
+              <div class="label">
+                <span>Blocking provider</span>
+                <span class="hint">Changes take effect after restarting Blanc. uBlock Origin protects regular tabs. Blanc’s browser engine can load uBO only in saved sessions, so private sessions stay in memory and use Blanc Blocker. Each provider keeps separate site settings.</span>
+              </div>
+              <select id="adblockProvider">
+                <option value="blanc">Blanc Blocker</option>
+                <option value="ublock-origin">uBlock Origin</option>
+              </select>
+            </div>
+            <p class="section-hint" id="blockingProviderStatus" role="status" aria-live="polite"></p>
+            <div class="toolbar-row" id="ublockTools" hidden>
+              <button id="ublockDashboard">uBlock Origin settings</button>
+              <button id="ublockLogger">Logger</button>
+            </div>
+            <div class="toolbar-row" id="blockingRecovery" hidden>
+              <button id="ublockRetry" hidden>Retry</button>
+              <button id="ublockUseBlanc" hidden>Use Blanc Blocker after restart</button>
+              <button id="ublockContinue" hidden>Continue without blocking</button>
+            </div>
+            <p class="section-hint" id="ublockLimits" hidden>Filter lists update automatically. Executable resources update with Blanc releases; custom resource URLs and cloud storage are unavailable. Turning blocking off removes cosmetic CSS; reload a page to undo changes already made by scriptlets.</p>
             <div class="setting">
               <div class="label">
                 <span>Block ads &amp; trackers</span>
@@ -457,6 +505,16 @@
               <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
               <span id="clearBrowsingDataStatus" class="section-hint"></span>
             </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-trust">
+          <h2 class="group-title">About &amp; Trust</h2>
+          <div class="settings-card settings-card--content trust-receipt" aria-live="polite">
+            <p class="section-hint">Facts checked on this device. Opening this section makes no network request.</p>
+            <p class="section-hint" id="trustReceiptStatus">Checking the installed build…</p>
+            <dl class="trust-receipt-list" id="trustReceiptList" hidden></dl>
+            <div class="toolbar-row trust-receipt-links" id="trustReceiptLinks" hidden></div>
           </div>
         </section>
 

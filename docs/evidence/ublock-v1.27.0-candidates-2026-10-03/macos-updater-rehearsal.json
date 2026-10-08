@@ -1,0 +1,31 @@
+{
+  "kind": "isolated-signed-macos-updater-rehearsal",
+  "passed": true,
+  "fromVersion": "1.26.0",
+  "toVersion": "1.27.0",
+  "architecture": "arm64",
+  "fromPublicZipSha256": "d714c0b2bf743ce8456daad0b08a0a99a4cb82d8b930f44a9688bc0a2d421482",
+  "publicInputAuthentication": {
+    "pinnedIdentityVerified": true,
+    "pinnedIssuerVerified": true,
+    "manifestZipDigestVerified": true
+  },
+  "newExecutableSha256": "b45db48c869a5cefe1ec1337a8ba6b700316b82cf8cadc15f1992a790e76452c",
+  "newAsarSha256": "020c775450bb8d29890d780af4f3d373bf12901b0ea45d474900cae42f52d31b",
+  "newBytesMatchCandidate": true,
+  "observations": [
+    "Old packaged app discovers and downloads isolated staged metadata/assets.",
+    "Squirrel.Mac replaces the isolated app bundle.",
+    "New version and strict deep code signature stabilize.",
+    "Replacement relaunch reports 1.27.0."
+  ],
+  "installationTrigger": "BLANC_UPDATE_STAGING_AUTO_INSTALL=1; quitAndInstall(false, false)",
+  "ordinaryRestartNowPromptClicked": false,
+  "personalInstallationModified": false,
+  "publicFeedModified": false,
+  "temporaryRootOwnedUpdatedBundleRetained": true,
+  "limits": [
+    "This is an automated isolated rehearsal, not owner-installed-machine acceptance.",
+    "The ordinary Restart Now click and user configuration persistence still require their distinct checks."
+  ]
+}

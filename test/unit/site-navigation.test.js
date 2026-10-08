@@ -2,64 +2,76 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-
-const ROOT = path.resolve(__dirname, '..', '..');
-
-/* The masthead and feature catalogue are fed by
- * site/src/data/navigation.mjs. These checks keep that module honest: every
- * feature page is reachable, each description is the page's own headline, and
- * every href points at a page that exists. */
-
-// Reduces the page's <h1> markup to its text so the menu description can be
-// compared to it. Nested tags are removed until none remain, so the result
-// never depends on a single pass.
-const textOf = markup => {
-  let text = markup;
-  let previous;
-  do { previous = text; text = text.replace(/<[^>]*>/g, ''); } while (text !== previous);
-  return text.replace(/\s+/g, ' ').trim();
-};
-const pageHeadline = href => {
-  const source = fs.readFileSync(path.join(ROOT, `site/src/pages${href}.astro`), 'utf8');
-  return textOf(source.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1]);
-};
-
-test('every feature page is reachable from the features menu with its own headline', async () => {
-  const { menus } = await import(path.join(ROOT, 'site/src/data/navigation.mjs'));
-  const features = menus.find(menu => menu.key === 'features');
-  const links = features.groups.flatMap(group => group.links);
-  assert.equal(links.length, 16);
-  assert.deepEqual(features.groups.map(group => group.links.length), [6, 4, 6]);
-  assert.deepEqual(features.groups.map(group => group.links.map(link => link.href)), [
-    ['island', 'start-page', 'glance', 'vertical-tabs', 'tab-groups', 'quiet-tabs'],
-    ['1password', 'ad-blocking', 'private-tabs', 'security'],
-    ['command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'profiles', 'sync', 'workspaces'],
-  ].map(group => group.map(slug => `/features/${slug}`)));
-  const pages = fs.readdirSync(path.join(ROOT, 'site/src/pages/features')).filter(f => f.endsWith('.astro')).map(f => `/features/${f.replace('.astro', '')}`);
-  assert.deepEqual(links.map(l => l.href).sort(), pages.sort(), 'one link per feature page, no more');
-  for (const link of links) {
-    assert.equal(link.description, pageHeadline(link.href), `${link.href} description is the page headline`);
-  }
-  assert.equal(features.groups.map(g => g.title).join(','), 'Interface,Privacy and security,Workflow');
-  assert.equal(features.spotlight.image, '/feature-island.png');
-  assert.ok(fs.existsSync(path.join(ROOT, 'site/public/feature-island.png')), 'spotlight image is a stable public asset');
+const { execFileSync } = require('node:child_process');
+const { pathToFileURL } = require('node:url');
+const ROOT = path.resolve(__dirname, '../..');
+const read = name => fs.readFileSync(path.join(ROOT,name),'utf8');
+const topics = JSON.parse(read('site/src/data/guide-topics.json'));
+const routes = JSON.parse(read('site/src/data/legacy-routes.json'));
+test('all sixteen feature pages remain alongside the Support and Trust guides', () => {
+ assert.equal(topics.length,16);
+ assert.equal(new Set(topics.map(topic=>topic.id)).size,16);
+ for(const topic of topics){
+  assert.ok(read(`site/src/components/guides/${topic.id}.astro`).length>1000);
+  assert.equal(routes[`/features/${topic.id}`],undefined);
+  assert.ok(read(`site/src/pages/features/${topic.id}.astro`).includes(`path="/features/${topic.id}"`));
+  assert.ok(read(`site/src/pages/${topic.page}.astro`).includes(`<GuideTopics page="${topic.page}"`));
+ }
+ assert.equal(routes['/faq'],'/support');assert.equal(routes['/how-it-works'],'/trust');
+ assert.equal(routes['/private'],'/features/private-tabs');
+ assert.equal(routes['/features'],undefined);
+ assert.match(read('site/src/components/GuideTopics.astro'), /href=\{`\/features\/\$\{topic.id\}`\}/);
 });
-
-test('resources and direct links point at pages that exist', async () => {
-  const { menus, directLinks } = await import(path.join(ROOT, 'site/src/data/navigation.mjs'));
-  const exists = href => {
-    if (href.startsWith('http')) return true;
-    const [pathname] = href.split('#');
-    if (pathname === '/' || pathname === '') return true;
-    return fs.existsSync(path.join(ROOT, `site/src/pages${pathname}.astro`)) ||
-      fs.existsSync(path.join(ROOT, `site/src/pages${pathname}/index.astro`));
-  };
-  const resources = menus.find(menu => menu.key === 'company');
-  for (const link of [...resources.groups.flatMap(g => g.links), ...directLinks, { href: resources.spotlight.href }, { href: resources.foot.href }, { href: menus[0].foot.href }]) {
-    assert.ok(exists(link.href), `${link.href} exists`);
+test('retained feature pages preserve their search metadata, prose and anchors from the pre-revamp site', () => {
+ const revision = '358cc02df00f10d184b84dbfdae6f6bfdfa6a790';
+ const files = ['site/src/pages/features.astro', ...topics.map(topic => `site/src/pages/features/${topic.id}.astro`)];
+ const prose = source => [...source.matchAll(/<(?:h[1-6]|p|figcaption)\b[^>]*>([\s\S]*?)<\/(?:h[1-6]|p|figcaption)>/g)].map(match => match[1].replace(/<[^>]*(?:>|$)/g, '').replace(/\s+/g, ' ').trim());
+ for (const file of files) {
+  const before = execFileSync('git', ['show', `${revision}:${file}`], {cwd: ROOT, encoding: 'utf8'});
+  const approved = JSON.parse(read('docs/website-revamp-claims-v1.27.json')).retainedFeaturePages.reviewedCopyUpdates.find(update => update.source === file);
+  let reviewedBefore = before;
+  for (const {before: oldCopy, after: newCopy} of approved?.replacements || []) {
+   assert.ok(reviewedBefore.includes(oldCopy), `${file}: obsolete review exception`);
+   reviewedBefore = reviewedBefore.replace(oldCopy, newCopy);
   }
-  assert.deepEqual(directLinks.map(l => l.key), ['mail', 'features', 'how-it-works', 'security', 'faq', 'changelog'], 'Mail, the technical explanation, and security stay one click from everywhere');
-  const newsletter = resources.groups.flatMap(g => g.links).find(l => l.label === 'Newsletter');
-  const form = fs.readFileSync(path.join(ROOT, 'site/src/components/NewsletterForm.astro'), 'utf8');
-  assert.ok(form.includes(`id="${newsletter.href.replace('#', '')}"`), 'the newsletter link targets an id on the footer form');
+  const after = read(file);
+  for (const property of ['title', 'description', 'path']) {
+   // Search metadata changes only through a recorded, reviewed copy update.
+   const value = reviewedBefore.match(new RegExp(`\\b${property}=(\\{?"[^"]+"\\}?)`))[0];
+   assert.ok(after.includes(value), `${file}: changed ${property}`);
+  }
+  assert.deepEqual(prose(after), prose(reviewedBefore), `${file}: lost existing content outside reviewed copy corrections`);
+  for (const [, id] of before.matchAll(/\bid="([^"]+)"/g)) assert.ok(after.includes(`id="${id}"`), `${file}: lost #${id}`);
+  assert.match(after, /<main id="main-content"/);
+ }
+});
+test('every consolidated destination exists and every old route has a direct 301',()=>{
+ const redirects=read('site/public/_redirects');
+ for(const [from,to] of Object.entries(routes)){
+  const target=to.split(/[?#]/)[0];
+  assert.ok(fs.existsSync(path.join(ROOT,`site/src/pages/${target==='/'?'index':target.slice(1)}.astro`)));
+  assert.ok(redirects.includes(`${from} ${to} 301\n`));assert.ok(redirects.includes(`${from}/ ${to} 301\n`));
+  assert.ok(!routes[target],`${from} must not create a redirect chain`);
+ }
+});
+test('primary navigation and footer keep supporting pages and trust one click away',async()=>{
+ const {directLinks}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
+ assert.deepEqual(directLinks.map(link=>link.label),['Features','Privacy & Security','Patron','About','Support','Mail']);
+ const footer=read('site/src/components/Footer.astro');
+ for(const route of ['/mail','/features','/support','/trust','/about','/press','/ambassadors','/download','/changelog','/privacy','/terms'])assert.ok(footer.includes(`href="${route}"`),route);
+ assert.equal(directLinks.find(link=>link.key==='features').href,'/features');
+ assert.equal(directLinks.find(link=>link.key==='privacy').href,'/trust');
+ assert.ok(footer.includes('href="/features/security"'));
+ assert.match(footer, /Security guide/);
+ assert.match(footer, /Privacy &amp; Security/);
+ assert.match(footer,/data-consent-open/);assert.match(footer,/Bananify/);
+ assert.match(read('site/src/components/NewsletterForm.astro'),/Updates from Blanc\./);
+});
+test('immutable release note links resolve to current destinations without losing fragments',async()=>{
+ const {currentWebsiteLink}=await import(pathToFileURL(path.join(ROOT,'site/src/lib/website-routes.mjs')).href);
+ assert.equal(currentWebsiteLink('https://blancbrowser.com/features/security#security-audit-title'),'https://blancbrowser.com/features/security#security-audit-title');
+ assert.equal(currentWebsiteLink('/features/quiet-tabs'),'/features/quiet-tabs');
+ assert.equal(currentWebsiteLink('/faq#bookmark-import'),'/support#bookmark-import');
+ assert.equal(currentWebsiteLink('/private'),'/features/private-tabs');
+ assert.equal(currentWebsiteLink('https://github.com/bnfy/blanc/releases'),'https://github.com/bnfy/blanc/releases');
 });

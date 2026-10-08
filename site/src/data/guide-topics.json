@@ -1,0 +1,82 @@
+[
+  {
+    "id": "island",
+    "label": "The Island & commands",
+    "page": "support"
+  },
+  {
+    "id": "command-palette",
+    "label": "Keyboard shortcuts & commands",
+    "page": "support"
+  },
+  {
+    "id": "tab-groups",
+    "label": "Named Groups",
+    "page": "support"
+  },
+  {
+    "id": "vertical-tabs",
+    "label": "Vertical tabs",
+    "page": "support"
+  },
+  {
+    "id": "quiet-tabs",
+    "label": "Quiet Tabs",
+    "page": "support"
+  },
+  {
+    "id": "reopen-closed-tabs",
+    "label": "Recently Closed",
+    "page": "support"
+  },
+  {
+    "id": "profiles",
+    "label": "Profiles & Windows",
+    "page": "support"
+  },
+  {
+    "id": "workspaces",
+    "label": "Named Workspaces",
+    "page": "support"
+  },
+  {
+    "id": "sync",
+    "label": "Sync",
+    "page": "support"
+  },
+  {
+    "id": "start-page",
+    "label": "Start Page & Mahjong",
+    "page": "support"
+  },
+  {
+    "id": "glance",
+    "label": "Glance",
+    "page": "support"
+  },
+  {
+    "id": "mouse-gestures",
+    "label": "Mouse gestures",
+    "page": "support"
+  },
+  {
+    "id": "1password",
+    "label": "Set up 1Password",
+    "page": "support"
+  },
+  {
+    "id": "security",
+    "label": "Security & release evidence",
+    "page": "trust"
+  },
+  {
+    "id": "ad-blocking",
+    "label": "Ad & tracker blocking",
+    "page": "trust"
+  },
+  {
+    "id": "private-tabs",
+    "label": "Private tabs",
+    "page": "trust"
+  }
+]

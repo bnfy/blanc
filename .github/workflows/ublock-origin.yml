@@ -1,0 +1,198 @@
+name: Full uBlock Origin candidate
+on:
+  pull_request:
+    paths:
+      - 'src/main/**'
+      - 'src/renderer/renderer.js'
+      - 'src/renderer/overlay*'
+      - 'src/renderer/index.html'
+      - 'src/renderer/styles.css'
+      - 'src/renderer/pages/settings*'
+      - 'src/renderer/ublock-*'
+      - 'src/renderer/ublock-popup-icons/**'
+      - 'ublock/**'
+      - 'test/desktop/ublock*'
+      - 'test/desktop/shield-provider*'
+      - 'test/desktop/support/**'
+      - 'test/unit/ublock*'
+      - 'test/unit/blocking*'
+      - 'test/unit/shield*'
+      - 'scripts/*ublock*'
+      - 'scripts/*capture-preload*'
+      - 'scripts/verify-packaged-*'
+      - 'scripts/generate-compliance*'
+      - 'adblock/**'
+      - 'compliance/**'
+      - '.gitattributes'
+      - 'package*.json'
+      - '.github/workflows/ublock-origin.yml'
+  workflow_dispatch:
+    inputs:
+      installed_intel:
+        description: "Also exercise an unsigned installed Intel package (not signing acceptance)"
+        type: boolean
+        default: false
+      linux_native_diagnostics:
+        description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  ordinary-package:
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Build ordinary public payload with its production allowlist
+        run: npx electron-builder --linux --dir --publish never
+      - name: Verify ordinary payload and exclusion boundary
+        run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
+  desktop:
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Preserve verified bytes on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Unit evidence checks read immutable release tags and commits.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable native Linux renderer sandbox
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci --no-audit --no-fund
+      - run: npm run ublock:check
+      - run: npm run lint
+      - run: npm run test:unit
+      - name: Real blocking, original tools, isolation and lifecycle
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a npm run test:shield-provider:desktop
+            xvfb-run -a npm run test:ublock:desktop
+            xvfb-run -a npm run test:ublock-dashboard:desktop
+            xvfb-run -a npm run test:ublock-retirement:desktop
+            xvfb-run -a npm run test:ublock-unavailable:desktop
+            xvfb-run -a npm run test:ublock-noscript:desktop
+            xvfb-run -a npm run test:ublock-slow-install:desktop
+          else
+            npm run test:shield-provider:desktop
+            npm run test:ublock:desktop
+            npm run test:ublock-dashboard:desktop
+            npm run test:ublock-retirement:desktop
+            npm run test:ublock-unavailable:desktop
+            npm run test:ublock-noscript:desktop
+            npm run test:ublock-slow-install:desktop
+          fi
+
+  installed-intel:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_intel }}
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    env:
+      # Intel's default is still Xcode 16.4; Blanc's committed Icon Composer
+      # inputs require the already-installed Xcode 26 compiler.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: npm run ublock:check
+      # No signing credentials leave the owner Mac. This proves native Intel
+      # packaged behavior only, and never clears the signed-installed gate.
+      - name: Build unsigned private Intel fixture
+        env:
+          BLANC_UBLOCK_INTERNAL_BUILD: '1'
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          node <<'NODE'
+          const { build, Platform, Arch } = require('electron-builder');
+          build({ targets: Platform.MAC.createTarget(['dmg'], Arch.x64), publish: 'never',
+            config: { mac: { identity: null }, afterSign: null } })
+            .catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
+      - name: Install the actual DMG fixture
+        run: |
+          DMG="$PWD/dist/Blanc-$(node -p "require('./package.json').version").dmg"
+          MOUNT="$RUNNER_TEMP/blanc-intel-dmg"
+          mkdir -p "$MOUNT" "$RUNNER_TEMP/Applications"
+          hdiutil attach "$DMG" -mountpoint "$MOUNT" -readonly -nobrowse
+          ditto "$MOUNT/Blanc.app" "$RUNNER_TEMP/Applications/Blanc.app"
+          hdiutil detach "$MOUNT"
+          node scripts/verify-electron-fuses.mjs "$RUNNER_TEMP/Applications/Blanc.app/Contents/MacOS/Blanc"
+          node scripts/verify-packaged-ublock.js "$RUNNER_TEMP/Applications/Blanc.app/Contents/Resources/app.asar"
+      - name: Native Intel installed controls, persistence, restarts and Quit
+        env:
+          BLANC_PACKAGED_EXECUTABLE: ${{ runner.temp }}/Applications/Blanc.app/Contents/MacOS/Blanc
+          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/dist/ublock-installed-intel-unsigned.json
+        run: node test/desktop/support/installed-mac-native-quit.mjs
+      - name: Native Intel installed scripting policy
+        env:
+          BLANC_PACKAGED_EXECUTABLE: ${{ runner.temp }}/Applications/Blanc.app/Contents/MacOS/Blanc
+          BLANC_PACKAGED_ASAR: ${{ runner.temp }}/Applications/Blanc.app/Contents/Resources/app.asar
+          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/dist/ublock-noscript-intel-unsigned.json
+        run: npm run test:ublock-noscript:packaged
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: unsigned-native-intel-observations-${{ github.run_id }}
+          path: dist/ublock-*-intel-unsigned.json
+          retention-days: 14
+
+  linux-native-diagnostics:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.linux_native_diagnostics }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable native Linux renderer sandbox
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci --no-audit --no-fund
+      - name: Prepare official native debugger
+        run: |
+          command -v gdb || { sudo apt-get update; sudo apt-get install -y gdb; }
+          chmod +x test/desktop/support/electron-native-debug.sh
+      - name: Capture isolated browser-process native stacks
+        shell: bash
+        run: |
+          mkdir -p dist/native-diagnostics
+          export BLANC_UBLOCK_NATIVE_STACK_DIR="$PWD/dist/native-diagnostics"
+          export BLANC_UBLOCK_NATIVE_EXECUTABLE="$PWD/node_modules/electron/dist/electron"
+          export BLANC_UBLOCK_ELECTRON="$PWD/test/desktop/support/electron-native-debug.sh"
+          export BLANC_UBLOCK_RESTORE_STRESS=1
+          # Write directly: detached crash-handler children may retain the
+          # debugger's output handles after the browser has exited.
+          for attempt in 1 2 3; do
+            xvfb-run -a npm run test:ublock:desktop > "dist/native-diagnostics/restore-stress-$attempt.log" 2>&1
+            tail -n 40 "dist/native-diagnostics/restore-stress-$attempt.log"
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: linux-native-stacks-${{ github.run_id }}
+          path: dist/native-diagnostics/*
+          retention-days: 3

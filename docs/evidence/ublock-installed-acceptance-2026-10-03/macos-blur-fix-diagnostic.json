@@ -1,0 +1,33 @@
+{
+  "kind": "disposable-instrumented-ubo-restart-diagnostic",
+  "passed": true,
+  "os": "darwin",
+  "harnessArchitecture": "arm64",
+  "osRelease": "27.2.0",
+  "executableSha256": "6a2d1fb77d79d0489e0e1214ac7534c213431eefe59b51fcdc550c94236d88db",
+  "checks": {
+    "restart-ublock-origin": true,
+    "networkAndCosmetics": true,
+    "popupMarkAndMoreAndLogger": true,
+    "privateShieldAndLoggerIsolation": true,
+    "quietWakeControls": true,
+    "restart-blanc": true,
+    "filtersSurviveProviderRestarts": true,
+    "globalSwitch": true,
+    "macWindowCloseAndLaunchServicesReopen": true,
+    "nativeMacQuit": true
+  },
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required.",
+    "Ad-hoc signed diagnostic copy with bounded main-process instrumentation; not signed installed candidate acceptance."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "darwin",
+    "architecture": "arm64"
+  }
+}

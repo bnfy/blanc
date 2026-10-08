@@ -66,6 +66,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Footer workspace popover is open in the overlay — Escape must cancel
      * editors / close the menu before dismissing the island. */
     workspaceSwitcherOpen: false,
+    /** An island drag is active in this window's overlay (overlay-drag-state.js):
+     * Escape goes to the overlay and blur is not a dismissal. */
+    overlayDragging: false,
     /** Companion to overlayMode, replayed alongside it below if the
      * overlay's first load hadn't finished when showOverlay was called. */
     overlayPrefill: null,
@@ -74,6 +77,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Chip right edge (window coords) captured when the shield popover
      * opens; reused if bounds recompute (e.g. window resize) while it's up. */
     shieldAnchorRight: null,
+    shieldAnchorCenter: null,
+    shieldAnchorBottom: null,
     /** Same, for the capture popover's chip (its only trigger control). */
     captureAnchorRight: null,
     /** The site the open shield popover describes, captured at open time —

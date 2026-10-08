@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "artifact": "Blanc-Setup-1.27.0.exe",
+  "sha256": "5c87de2581ceb7c568ddb993338fbe753c523932a7eb1d5e5e5cc6f784335691",
+  "signed": true,
+  "status": "Valid",
+  "publisher": "CN=Bananify Creative, O=Bananify Creative, L=North Chili, S=New York, C=US",
+  "signerThumbprint": "BE60889FC85E8C70A70806DA7BBDDBE4BF014F57",
+  "timestampAuthority": "CN=Microsoft Public RSA Time Stamping Authority, OU=nShield TSS ESN:7800-05E0-D947, OU=Microsoft America Operations, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+}

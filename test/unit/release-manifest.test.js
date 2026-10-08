@@ -227,7 +227,7 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.doesNotMatch(allWorkflows, /uses:\s+[^\n]+@[vV]\d+(?:\s|$)/);
   assert.match(allWorkflows, /actions\/checkout@[0-9a-f]{40}/);
   assert.match(allWorkflows, /actions\/setup-node@[0-9a-f]{40}/);
-  assert.match(releaseScript, /cp compliance\/runtime-sbom\.cdx\.json "\$VERIFY_DIR\/Blanc-\$VERSION\.cdx\.json"/);
+  assert.match(releaseScript, /cp "dist\/\$NATIVE_MAC_DIR\/Blanc\.app\/Contents\/Resources\/runtime-sbom\.cdx\.json" "\$VERIFY_DIR\/Blanc-\$VERSION\.cdx\.json"/);
   assert.doesNotMatch(releaseScript, /npm sbom/);
   assert.match(releaseScript, /cosign sign-blob/);
   assert.match(releaseScript, /cosign verify-blob/);
@@ -243,8 +243,16 @@ test('published macOS smoke verifies the immutable DMG and pinned signing identi
   assert.ok(start >= 0, 'published smoke must include an independent macOS DMG job');
   const job = workflow.slice(start);
 
-  assert.match(job, /runs-on: macos-15/);
-  assert.match(job, /Blanc-\$VERSION-arm64\.dmg/);
+  // Apple Silicon is the default Mac build; Intel ships in every release, so
+  // each published DMG is verified and launched on its own native runner.
+  assert.match(job, /runs-on: \$\{\{ matrix\.runner \}\}/);
+  assert.match(job, /arch: arm64\s+runner: macos-15\s+artifact_suffix: '-arm64'\s+binary_arch: arm64/);
+  assert.match(job, /arch: x64\s+runner: macos-15-intel\s+artifact_suffix: ''\s+binary_arch: x86_64/);
+  assert.match(job, /--pattern "Blanc-\$VERSION\$ARTIFACT_SUFFIX\.dmg"/);
+  assert.match(job, /ARTIFACT="Blanc-\$VERSION\$ARTIFACT_SUFFIX\.dmg"/);
+  assert.match(job, /lipo -archs "\$EXECUTABLE"/);
+  assert.match(job, /\[ "\$ARCHS" = "\$BINARY_ARCH" \]/);
+  assert.match(job, /--user-data-dir="\$PROFILE_DIR"/);
   assert.match(job, /--pattern SHA256SUMS/);
   assert.match(job, /ACTUAL=\$\(shasum -a 256/);
   assert.match(job, /\[ "\$ACTUAL" = "\$EXPECTED" \]/);
@@ -256,6 +264,23 @@ test('published macOS smoke verifies the immutable DMG and pinned signing identi
   assert.match(job, /55283A84D3706D5A22386D5F002A0CD4845ECFD4/);
   assert.match(job, /xcrun stapler validate/);
   assert.match(job, /hdiutil detach/);
+});
+
+test('every release ships Apple Silicon and Intel Macs unless a reason is recorded', () => {
+  const releaseScript = fs.readFileSync(path.join(root, 'scripts/release.sh'), 'utf8');
+  const skill = fs.readFileSync(path.join(root, '.claude/skills/releasing-blanc/SKILL.md'), 'utf8');
+  const runbook = fs.readFileSync(path.join(root, 'docs/release-verification.md'), 'utf8');
+
+  assert.match(releaseScript, /MAC_ARCH_WAIVER="\$\{BLANC_MAC_ARCH_WAIVER:-\}"/);
+  assert.match(
+    releaseScript,
+    /if ! \{ \$HAS_MAC_ARM64 && \$HAS_MAC_X64; \} && \[ -z "\$MAC_ARCH_WAIVER" \]; then[\s\S]*?exit 1/
+  );
+  for (const doc of [skill, runbook]) {
+    assert.match(doc, /BLANC_MAC_ARCHES=arm64,x64/);
+    assert.doesNotMatch(doc, /BLANC_MAC_ARCHES=arm64(?!,x64)/);
+    assert.match(doc, /BLANC_MAC_ARCH_WAIVER/);
+  }
 });
 
 test('release authentication uses an explicit interactive operator, 1Password desktop auth, and Safari', () => {
@@ -290,13 +315,13 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.26.0}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.30.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
   assert.match(releaseScript, /scripts\/release-bin:\$PATH.*cosign sign-blob/);
   assert.match(safariOpener, /exec \/usr\/bin\/open -a Safari "\$@"/);
-  assert.notEqual(fs.statSync(safariOpenerPath).mode & 0o111, 0);
+  if (process.platform !== 'win32') assert.notEqual(fs.statSync(safariOpenerPath).mode & 0o111, 0);
 });
 
 test('Windows manifest requires a valid signed-artifact attestation', () => {

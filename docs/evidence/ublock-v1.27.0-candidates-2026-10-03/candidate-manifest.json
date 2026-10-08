@@ -1,0 +1,58 @@
+{
+  "version": "1.27.0",
+  "macBundleBuild": "1270",
+  "ublock": "1.75.0",
+  "electron": "44.5.1",
+  "scope": "Internal validation artifacts, not public release or owner-installed acceptance. SHA256 values are evidence; no Sigstore-authenticated public manifest is asserted.",
+  "artifacts": [
+    {
+      "artifact": "Blanc-1.27.0-mac.zip",
+      "size": 179808988,
+      "sha256": "987fda9364c7a893247e5509a17d885fb9d6080b461f333806cc6a27957d5340",
+      "metadataSha512Verified": true,
+      "sourceCommit": "2bbcbc844116b4de3e6599f1828ad3fa0986dc74",
+      "actionsRun": null
+    },
+    {
+      "artifact": "Blanc-1.27.0-arm64-mac.zip",
+      "size": 172848665,
+      "sha256": "37bc4f1ef4051268587e96bc972bd7924ec1267113e5e0f89176d8ce9c5bcfa9",
+      "metadataSha512Verified": true,
+      "sourceCommit": "2bbcbc844116b4de3e6599f1828ad3fa0986dc74",
+      "actionsRun": null
+    },
+    {
+      "artifact": "Blanc-1.27.0.dmg",
+      "size": 180332954,
+      "sha256": "e3961df099983dc1e2e1a5eb225614f14f1887dc475a312950a67e0acaaf8c5a",
+      "metadataSha512Verified": true,
+      "sourceCommit": "2bbcbc844116b4de3e6599f1828ad3fa0986dc74",
+      "actionsRun": null
+    },
+    {
+      "artifact": "Blanc-1.27.0-arm64.dmg",
+      "size": 173424519,
+      "sha256": "e3ed2c3d75d099296de6892877ee27d6af5d2d27ba8d9c406808cd02ef86b872",
+      "metadataSha512Verified": true,
+      "sourceCommit": "2bbcbc844116b4de3e6599f1828ad3fa0986dc74",
+      "actionsRun": null
+    },
+    {
+      "artifact": "Blanc-Setup-1.27.0.exe",
+      "size": 146768760,
+      "sha256": "5c87de2581ceb7c568ddb993338fbe753c523932a7eb1d5e5e5cc6f784335691",
+      "metadataSha512Verified": true,
+      "sourceCommit": "586cb47d60002fe2a7bc979b116e62fb7ca1c87c",
+      "actionsRun": 37153103797
+    },
+    {
+      "artifact": "Blanc-1.27.0.AppImage",
+      "size": 155333923,
+      "sha256": "1fff3eec0ed04f4b43002013117e0e2801564b4d9d4d5dddd710d8257ba36ea8",
+      "metadataSha512Verified": true,
+      "sourceCommit": "2bbcbc844116b4de3e6599f1828ad3fa0986dc74",
+      "actionsRun": 37152590931
+    }
+  ],
+  "stagingFeeds": "All metadata sha512 values and copied feed asset SHA256 values verified."
+}

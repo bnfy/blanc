@@ -71,7 +71,18 @@ function countPhrase(blocked) {
   return `${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'}`;
 }
 
-function shieldChipState({ url, blockedCount, excepted, adblockEnabled }) {
+const RESTARTING = 'uBlock Origin is restarting. New requests are paused.';
+
+function shieldChipState({ url, blockedCount, excepted, adblockEnabled, provider = 'blanc', readiness = 'ready' }) {
+  if (provider === 'ublock-origin') {
+    if (!blockableHostname(url)) return { mode: 'hidden', count: 0, title: '' };
+    // Requests are held while uBO restarts: neither protected nor off.
+    if (readiness === 'recovering' && adblockEnabled) return { mode: 'restarting', count: 0, title: RESTARTING };
+    if (readiness !== 'ready') return { mode: 'off', count: 0, title: 'uBlock Origin unavailable — open Settings for recovery' };
+    if (!adblockEnabled) return { mode: 'off', count: 0, title: 'uBlock Origin is off — click for controls' };
+    const count = blockedCount ?? 0;
+    return { mode: count ? 'count' : 'quiet', count, title: `uBlock Origin — ${count} ${count === 1 ? 'request' : 'requests'} blocked — click for controls` };
+  }
   if (!blockableHostname(url)) return { mode: 'hidden', count: 0, title: '' };
   if (excepted) {
     return { mode: 'off', count: 0, title: 'Blanc Blocker off for this site — click for site controls' };
@@ -93,9 +104,27 @@ function shieldChipState({ url, blockedCount, excepted, adblockEnabled }) {
 // `connection` arrives already derived (main.js does it once per broadcast) and
 // is only carried through. Re-deriving it here would reintroduce the second
 // source of truth this design exists to remove.
-function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, connection = null }) {
+function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, connection = null, provider = 'blanc', readiness = 'ready' }) {
   const host = blockableHostname(url);
   if (!host) return null;
+  if (provider === 'ublock-origin') {
+    const blocked = blockedCount ?? 0;
+    const countLine = !adblockEnabled ? 'Ad blocking is off everywhere'
+      : readiness === 'recovering' ? RESTARTING
+        : readiness !== 'ready' ? 'Blocking needs attention. Open blocking settings to recover.'
+          : `${blocked} ${blocked === 1 ? 'request' : 'requests'} blocked on this page`;
+    // uBO owns its exceptions. Never infer its site switch from Blanc's list
+    // or label a trusted uBO site as protected without querying its popup.
+    return { variant: 'ublock', host, on: adblockEnabled, countLine, connection };
+  }
+  if (readiness === 'failed' || readiness === 'unsupported') {
+    return {
+      variant: 'recovery', host, on: false, connection,
+      countLine: adblockEnabled
+        ? 'Blocking needs attention. Open blocking settings to recover.'
+        : 'Ad blocking is off everywhere',
+    };
+  }
   if (excepted) {
     return { variant: 'site', host, on: false, countLine: 'Ads allowed on this site', connection };
   }
@@ -109,9 +138,51 @@ function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, conne
   return { variant: 'site', host, on: true, countLine, connection };
 }
 
+function shieldProviderModel(status, privateTab = false) {
+  const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
+  const active = privateTab ? 'blanc' : status?.active ?? 'blanc';
+  const selected = privateTab ? 'blanc' : status?.selected ?? active;
+  let detail = 'Active';
+  if (privateTab) detail = status?.exposed === false ? 'Blanc Blocker protects this private tab.' : 'Blanc’s browser engine can’t load uBO in temporary private sessions. Blanc Blocker protects this tab.';
+  else {
+    const unavailable = status?.phase === 'failed' || status?.phase === 'unsupported';
+    const off = status?.enabled === false || status?.phase === 'disabled';
+    if (unavailable) detail = `${label(active)} is unavailable. ${off ? 'Blocking is off. ' : ''}Open blocking settings to recover.`;
+    else if (off) detail = 'Blocking is off.';
+    else if (status?.phase === 'recovering') detail = RESTARTING;
+    else if (status?.phase === 'initializing') detail = `${label(active)} is starting…`;
+    // A pending choice never establishes that the current provider is
+    // filtering. Preserve failure/disable/startup guidance alongside restart.
+    if (status?.fallback) {
+      const current = !unavailable && !off && status.phase === 'ready'
+        ? 'Blanc Blocker is protecting this tab.' : detail;
+      const reason = status.fallback === 'manifest-v2-retired'
+        ? 'This browser engine can’t run uBlock Origin.' : 'uBlock Origin isn’t available in this build.';
+      detail = `${reason} ${current} Your uBO settings are saved.`;
+    }
+    if (status?.restartPending) {
+      const current = !unavailable && !off && status.phase === 'ready'
+        ? `${label(active)} is still active.` : detail;
+      detail = `${label(selected)} selected. Restart Blanc to apply; ${current}`;
+    }
+  }
+  return {
+    active, selected, choice: status?.fallback && !privateTab ? active : selected,
+    restartPending: !privateTab && status?.restartPending === true, hidden: status?.exposed === false, disabled: privateTab || !status || status?.exposed === false,
+    activeLabel: status?.enabled === false ? 'Off' : privateTab || status?.phase === 'ready' ? 'Active' : status?.phase === 'initializing' ? 'Starting' : 'Unavailable',
+    ublockAvailable: !privateTab && status?.supported === true,
+    canOpenUblock: active === 'ublock-origin' && status?.phase === 'ready',
+    detail,
+    availability: !privateTab && status?.exposed !== false && status?.supported === false
+      ? status?.fallback ? '' : 'uBlock Origin is unavailable on this build.' : '',
+    scope: privateTab || status?.exposed === false ? '' : 'Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.\nEach blocker keeps its own site settings.',
+  };
+}
+
 module.exports = {
   shieldChipState,
   shieldPopoverModel,
+  shieldProviderModel,
   connectionState,
   connectionFor,
   committedUrlOf,

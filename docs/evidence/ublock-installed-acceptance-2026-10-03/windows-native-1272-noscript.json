@@ -1,0 +1,80 @@
+{
+  "alert": 77,
+  "kind": "packaged-cdp-probe",
+  "passed": true,
+  "package": {
+    "version": "1.27.0",
+    "ublock": "1.75.0",
+    "electron": "44.5.1",
+    "internalCandidate": true,
+    "executableSha256": "85d67d506eaa653292e5c97a8fd2ea340c7a1e773c6b211f3f01600e91f855aa",
+    "asarSha256": "63f29874669d0521538b75f0a4a2d607ff0c73956497d030c15cc31296a502ad"
+  },
+  "os": "win32",
+  "architecture": "x64",
+  "harnessArchitecture": "x64",
+  "osRelease": "10.0.26100",
+  "limits": [
+    "Signature, notarization, installed location and OS sandbox verification require separate evidence.",
+    "Meta refresh has no executable positive control; only non-execution is observed.",
+    "This tests the listed payloads, not every possible script or HTML construct."
+  ],
+  "runtimeInfo": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "win32",
+    "architecture": "x64"
+  },
+  "provider": {
+    "active": "ublock-origin",
+    "phase": "ready",
+    "electron": "44.5.1",
+    "ublock": "1.75.0"
+  },
+  "activeControl": {
+    "originalScriptRan": true,
+    "insertedScriptRan": true,
+    "externalScriptRan": true,
+    "eventRan": true,
+    "linkRan": true,
+    "metaRan": false,
+    "nodeAccess": "undefined",
+    "location": "/active-control",
+    "fallbackText": "Fallback rendered",
+    "noscriptCount": 0
+  },
+  "contentSecurityPolicy": null,
+  "protected": {
+    "originalScriptRan": false,
+    "insertedScriptRan": false,
+    "externalScriptRan": false,
+    "eventRan": false,
+    "linkRan": false,
+    "metaRan": false,
+    "nodeAccess": "undefined",
+    "location": "/probe",
+    "fallbackText": "Fallback rendered",
+    "noscriptCount": 0
+  },
+  "policyViolations": [
+    {
+      "policy": "script-src http: https:",
+      "directive": "script-src-elem",
+      "disposition": "enforce"
+    }
+  ],
+  "protectedExecutionRequests": [],
+  "offControl": {
+    "originalScriptRan": true,
+    "insertedScriptRan": false,
+    "externalScriptRan": false,
+    "eventRan": false,
+    "linkRan": false,
+    "metaRan": false,
+    "nodeAccess": "undefined",
+    "location": "/off-control",
+    "fallbackText": null,
+    "noscriptCount": 1
+  }
+}

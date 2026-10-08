@@ -120,7 +120,7 @@ test('no chrome surface ever says "asleep" to a user or a screen reader', () => 
 // ---------------------------------------------------------------------------
 
 const railRowSource = railSource.match(
-  /function tabRow\(tab, bucketTabs, activeTabId\) \{[\s\S]*?\n  \}/
+  /function tabRow\(tab, activeTabId\) \{[\s\S]*?\n  \}/
 )?.[0];
 
 test('the rail tabRow could be lifted from source', () => {
@@ -167,6 +167,7 @@ test('serializeTabs could be lifted from main.js', () => {
 
 function runSerializeTabs(tabList) {
   const sandbox = {
+    blockingProviders: null,
     settings: { getSettings: () => ({ adblockEnabled: true, adblockExceptions: [] }) },
     rt: () => ({ tabOrder: tabList.map((tab) => tab.id) }),
     tabs: new Map(tabList.map((tab) => [tab.id, tab])),

@@ -12,6 +12,89 @@ const RATE_LIMIT = 30;                             // GETs per accountId per min
 const IP_RATE_LIMIT = 120;                         // requests per client IP per minute — the anti-guessing throttle
 
 const blobKey = (a, s) => `blob:${a}:${s}`;
+
+// Activity marker (storage budget design 2026-10-05): any successful read or
+// write keeps the account alive; one untouched for a year expires, and the
+// daily cleanup then deletes its blobs. Refreshed at most every 30 days so a
+// busy account costs about one KV write a month. A separate key, because
+// extending an expiry on the blob itself would mean rewriting user data
+// during a GET, which can race with and undo a newer PUT.
+const SEEN_TTL_SECONDS = 365 * 24 * 60 * 60;
+const SEEN_REFRESH_MS = 30 * 24 * 60 * 60 * 1000;
+const seenKey = (a) => `seen:${a}`;
+const readMarker = (env, accountId) => env.SYNC.get(seenKey(accountId), { type: 'json' });
+
+async function touchAccount(env, accountId, marker, now = Date.now()) {
+  if (marker && now - marker.touchedAt < SEEN_REFRESH_MS) return;
+  await env.SYNC.put(seenKey(accountId), JSON.stringify({ touchedAt: now }), { expirationTtl: SEEN_TTL_SECONDS });
+}
+
+// Daily new-account budget (design 2026-10-05 §4.2). An account with no
+// marker is new; only new accounts are ever refused, so a flood can block
+// sign-ups for a day but never existing users. KV has no atomic increment,
+// so like bumpLimited this is an order-of-magnitude bound, not an exact one.
+const DEFAULT_NEW_ACCOUNT_DAILY_LIMIT = 100;
+const NEW_COUNTER_TTL_SECONDS = 2 * 24 * 60 * 60;
+const utcDay = (now) => new Date(now).toISOString().slice(0, 10);
+
+function limitFrom(value, fallback) {
+  const n = Number.parseInt(value ?? '', 10);
+  return Number.isSafeInteger(n) && n >= 0 ? n : fallback;
+}
+
+async function newAccountRefusal(env, now = Date.now()) {
+  const limit = limitFrom(env.NEW_ACCOUNT_DAILY_LIMIT, DEFAULT_NEW_ACCOUNT_DAILY_LIMIT);
+  const used = Number.parseInt((await env.SYNC.get(`new:${utcDay(now)}`)) ?? '0', 10);
+  if (used < limit) return null;
+  const midnight = new Date(now);
+  midnight.setUTCHours(24, 0, 0, 0);
+  return new Response(JSON.stringify({ error: 'busy' }), {
+    status: 503,
+    headers: {
+      'Content-Type': 'application/json',
+      'Retry-After': String(Math.max(1, Math.ceil((midnight.getTime() - now) / 1000))),
+    },
+  });
+}
+
+async function countNewAccount(env, now = Date.now()) {
+  const key = `new:${utcDay(now)}`;
+  const used = Number.parseInt((await env.SYNC.get(key)) ?? '0', 10);
+  await env.SYNC.put(key, String(used + 1), { expirationTtl: NEW_COUNTER_TTL_SECONDS });
+}
+
+// Daily cleanup (design 2026-10-05 §4.3). Deletes blobs whose account has no
+// live marker. Off unless CLEANUP_ENABLED is exactly "true", which is set only
+// after the backfill gives every existing account a marker. Bounded per run;
+// anything left is picked up the next day.
+const DEFAULT_CLEANUP_MAX_DELETES = 1000;
+
+async function listNames(env, prefix) {
+  const names = [];
+  let cursor;
+  do {
+    const page = await env.SYNC.list({ prefix, cursor });
+    for (const key of page.keys) names.push(key.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  return names;
+}
+
+async function cleanupInactive(env) {
+  if (env.CLEANUP_ENABLED !== 'true') return { skipped: true, deleted: 0 };
+  const max = limitFrom(env.CLEANUP_MAX_DELETES, DEFAULT_CLEANUP_MAX_DELETES);
+  const live = new Set((await listNames(env, 'seen:')).map((name) => name.slice('seen:'.length)));
+  let deleted = 0;
+  for (const name of await listNames(env, 'blob:')) {
+    if (deleted >= max) break;
+    if (live.has(name.split(':')[1])) continue;
+    await env.SYNC.delete(name);
+    deleted += 1;
+  }
+  console.log(JSON.stringify({ event: 'sync-cleanup', deleted, live: live.size }));
+  return { skipped: false, deleted };
+}
+
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
 
@@ -35,6 +118,7 @@ async function handleGet(env, accountId, store) {
   if (await rateLimited(env, accountId)) return json({ error: 'rate-limited' }, 429);
   const rec = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if (!rec) return new Response('not found', { status: 404 });
+  await touchAccount(env, accountId, await readMarker(env, accountId));
   return json({ version: rec.version, blob: rec.blob });
 }
 
@@ -45,15 +129,25 @@ async function handleGet(env, accountId, store) {
 async function handlePut(env, accountId, store, body) {
   if (!body || typeof body.blob !== 'object' || body.blob === null) return json({ error: 'bad blob' }, 400);
   if (new TextEncoder().encode(JSON.stringify(body.blob)).byteLength > MAX_BLOB_BYTES) return json({ error: 'too large' }, 413);
+  const marker = await readMarker(env, accountId);
+  if (!marker) {
+    const busy = await newAccountRefusal(env);
+    if (busy) return busy;
+  }
   const cur = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   const version = crypto.randomUUID();
   await env.SYNC.put(blobKey(accountId, store), JSON.stringify({ version, blob: body.blob }));
+  if (!marker) await countNewAccount(env);
+  await touchAccount(env, accountId, marker);
   return json({ version });
 }
 
 async function handleDelete(env, accountId) {
-  await Promise.all([...STORES].map((s) => env.SYNC.delete(blobKey(accountId, s))));
+  await Promise.all([
+    ...[...STORES].map((s) => env.SYNC.delete(blobKey(accountId, s))),
+    env.SYNC.delete(seenKey(accountId)),
+  ]);
   return new Response(null, { status: 204 });
 }
 
@@ -112,5 +206,8 @@ export default {
       return handlePut(env, accountId, store, parsed.body);
     }
     return new Response('method not allowed', { status: 405 });
+  },
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(cleanupInactive(env));
   },
 };

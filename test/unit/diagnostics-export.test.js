@@ -11,7 +11,7 @@ test('diagnostics export atomically writes owner-only JSON and removes its tempo
   const destination = path.join(directory, 'report.json');
   await writeDiagnosticsFile(destination, { schemaVersion: 1 }, { nonce: () => 'fixed' });
   assert.equal(JSON.parse(fs.readFileSync(destination, 'utf8')).schemaVersion, 1);
-  assert.equal(fs.statSync(destination).mode & 0o777, 0o600);
+  if (process.platform !== 'win32') assert.equal(fs.statSync(destination).mode & 0o777, 0o600);
   assert.equal(fs.existsSync(`${destination}.fixed.tmp`), false);
 });
 

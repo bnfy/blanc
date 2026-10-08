@@ -81,7 +81,10 @@ function install(refs) {
     groupTabByName,
     closeGroup,
     toggleGroupCollapsed,
-    reorderTabWithinBucket,
+    moveTabTo,
+    reorderGroupBefore,
+    getOverlayDragging,
+    selectTabAtIndex,
     reopenClosedTab,
     newTabUrl,
     setTabLayout,
@@ -409,6 +412,16 @@ function install(refs) {
   }
 
   globalThis.__blanc = {
+    blockingStatus() { return refs.blockingStatus(); },
+    blockingStatusInWindow(id) { return refs.runInWindowRuntime(id, () => refs.blockingStatus()); },
+    blockingMapping() { return refs.blockingMapping(); },
+    blockingOpen(tool) { return refs.blockingOpen(tool); },
+    blockingOpenInWindow(id, tool) { return refs.runInWindowRuntime(id, () => refs.blockingOpen(tool)); },
+    blockingRetry() { return refs.blockingRetry(); },
+    blockingExhaustRecovery() { return refs.blockingExhaustRecovery(); },
+    blockingStallAfterNextDecision(ms, options) { return refs.blockingStallAfterNextDecision(ms, options); },
+    blockingDecisionDeadline() { return refs.blockingDecisionDeadline(); },
+    blockingPopup() { return refs.blockingPopup({ right: 20 }); },
     workspaceAction(action, ...args) { return refs.workspaceTestAction(action, args); },
     workspaceActionInWindow(id, action, ...args) { return refs.runInWindowRuntime(id, () => refs.workspaceTestAction(action, args)); },
     workspacePatron() { settings.setPatron({ kind: 'founding', status: 'active' }); },
@@ -529,7 +542,11 @@ function install(refs) {
     },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
-    reorderWithinBucket(id, beforeId) { return reorderTabWithinBucket(id, beforeId); },
+    moveTab(id, target) { return moveTabTo(id, target); },
+    reorderGroup(id, beforeGroupId) { return reorderGroupBefore(id, beforeGroupId); },
+    overlayDragging() { return getOverlayDragging(); },
+    // The function the Cmd/Ctrl+1–9 menu items call.
+    selectTabAtIndex(index) { selectTabAtIndex(index); },
     setTabPresentation(id, patch = {}) {
       const tab = tabs.get(id);
       if (!tab) return false;
@@ -549,6 +566,31 @@ function install(refs) {
       if (!tab?.view?.webContents) return false;
       return refs.navigateTabToAddress(id, String(url));
     },
+    continueUnsafeInTab(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      return wc ? refs.continueUnsafeForSender(wc) : { ok: false, error: 'no-tab' };
+    },
+    forgetCertificateExceptionInTab(id) {
+      setActiveTab(id, { focusContent: false });
+      return refs.forgetActiveCertificateException();
+    },
+    forgetCertificateExceptionOnly(id) {
+      const tab = tabs.get(id);
+      const wc = tab?.view?.webContents;
+      const origin = tab?.documentCertificateException?.origin;
+      if (!wc || !origin) return false;
+      const forgotten = refs.certificateExceptions.forget(wc.session, origin);
+      return wc.session.closeAllConnections().then(() => forgotten);
+    },
+    setCertificateExceptionCap(n) { refs.certificateExceptions.setCapForTest(Number(n)); },
+    resetCertificateExceptionsForTest() {
+      for (const tab of tabs.values()) {
+        const wc = tab.view?.webContents;
+        if (wc) refs.certificateExceptions.clear(wc.session);
+      }
+      refs.certificateExceptions.setCapForTest(64);
+    },
+    tabWebContentsId(id) { return tabs.get(id)?.view?.webContents?.id ?? null; },
     executeTab(id, source) {
       const tab = tabs.get(id);
       if (!tab?.view?.webContents) return null;
@@ -712,12 +754,17 @@ function install(refs) {
     // the bare global toggle this whole change exists to fix.
     toggleAdblock() { return runBlockAdsCommand(); },
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
+    setHomePage(url) { settings.setSettings({ homePage: url }); },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
     setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
+    darkWebsitesSettings() {
+      const { darkWebsites, darkWebsitesExceptions } = settings.getSettings();
+      return { darkWebsites, darkWebsitesExceptions };
+    },
     setMouseGestures(enabled, mapping) {
       const partial = { mouseGesturesEnabled: !!enabled };
       if (mapping !== undefined) partial.mouseGestureMapping = mapping;
@@ -782,6 +829,95 @@ function install(refs) {
         };
       })()`);
     },
+    // F35-10/11/12/13: one read of the frame — collapsed checklist, active
+    // layout content, footer, Patron slot and empty hints — so scenarios can
+    // prove "nothing covers content" without per-layout selectors.
+    readStartFrameGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element) return null;
+          const style = getComputedStyle(element);
+          if (style.display === 'none' || style.visibility === 'hidden') return null;
+          const r = element.getBoundingClientRect();
+          if (!r.width || !r.height) return null;
+          return { top: r.top, right: r.right, bottom: r.bottom, left: r.left, width: r.width, height: r.height };
+        };
+        const layout = document.body.dataset.layout;
+        const name = layout.charAt(0).toUpperCase() + layout.slice(1);
+        const rootEl = document.getElementById('layout' + name);
+        const shellEl = document.getElementById('migrationChecklistShell');
+        const shell = shellEl && !shellEl.hidden ? rect(shellEl) : null;
+        const content = [...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
+          .map((element) => ({ selector: element.id ? '#' + element.id : element.className || element.tagName, rect: rect(element) }))
+          .filter((entry) => entry.rect);
+        const patron = rootEl.querySelector(':scope > .js-patron-callout');
+        const root = document.documentElement;
+        return {
+          layout,
+          private: document.documentElement.dataset.theme === 'private',
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          maxScrollY: Math.max(0, Math.max(root.scrollHeight, document.body.scrollHeight) - innerHeight),
+          shell,
+          compact: !!shellEl && getComputedStyle(document.getElementById('migrationChecklistCompact')).display !== 'none',
+          content,
+          footer: rect(document.getElementById('layoutFooter')),
+          patronLast: rootEl.lastElementChild === patron,
+          patronVisible: !!patron && !patron.hidden && !!rect(patron),
+          emptyHints: [...rootEl.querySelectorAll('.start-empty-hint')].filter((element) => rect(element)).length,
+        };
+      })()`);
+    },
+    readStartBlockedCard() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const card = document.getElementById('shBlocked')?.closest('.shelf-card');
+        return !!card && !card.hidden && getComputedStyle(card).display !== 'none';
+      })()`);
+    },
+    readShelfGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element || element.hidden || getComputedStyle(element).display === 'none') return null;
+          const r = element.getBoundingClientRect();
+          return { left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom) };
+        };
+        return {
+          columns: document.getElementById('layoutShelf').dataset.columns ?? null,
+          viewportWidth: innerWidth,
+          tiles: [...document.querySelectorAll('#shFavorites .shelf-tile')].map(rect).filter(Boolean),
+          groups: rect(document.querySelector('.shelf-card-groups')),
+          blocked: rect(document.querySelector('.shelf-card-blocked')),
+        };
+      })()`);
+    },
+    readTallyGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (element) => {
+          if (!element || element.hidden || getComputedStyle(element).display === 'none') return null;
+          const r = element.getBoundingClientRect();
+          return { left: Math.round(r.left), right: Math.round(r.right), top: Math.round(r.top), bottom: Math.round(r.bottom), width: Math.round(r.width) };
+        };
+        return {
+          viewportWidth: innerWidth,
+          private: document.documentElement.dataset.theme === 'private',
+          content: rect(document.getElementById('startContent')),
+          left: rect(document.querySelector('.tally-left')),
+          right: rect(document.querySelector('.tally-right')),
+        };
+      })()`);
+    },
     clickMigrationChecklist(action) {
       const tab = tabs.get(getActiveTabId());
       const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
@@ -840,7 +976,7 @@ function install(refs) {
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
-        const newsreaderSelector = '.bb-clock, .migration-checklist-heading h2, .ob-content h1';
+        const newsreaderSelector = '.bb-clock, .ledger-where, .migration-checklist-heading h2, .ob-content h1';
         const newsreader = [...document.querySelectorAll(newsreaderSelector)];
         const newsreaderElements = [...document.querySelectorAll('body, body *')]
           .filter((element) => getComputedStyle(element).fontFamily.includes('Newsreader'));
@@ -955,6 +1091,15 @@ function install(refs) {
           label: item.querySelector('.label')?.textContent ?? null,
           hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
           dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+          title: item.querySelector('.label')?.title ?? null,
+          ariaLabel: item.querySelector('.bb-fav')?.getAttribute('aria-label') ?? null,
+          top: Math.round(item.getBoundingClientRect().top),
+          visible: getComputedStyle(item).display !== 'none',
+          lines: (() => {
+            const label = item.querySelector('.label');
+            if (!label) return 0;
+            return Math.round(label.getBoundingClientRect().height / parseFloat(getComputedStyle(label).lineHeight));
+          })(),
         })),
         hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
       }))()`);
@@ -1429,11 +1574,48 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const button = document.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
+        const popover = document.getElementById('customizePopover');
+        const opener = document.getElementById('customizeButton');
+        if (!popover || !opener) return false;
+        if (!popover.matches(':popover-open')) { opener.focus(); opener.click(); }
+        if (!popover.matches(':popover-open')) return false;
+        const button = popover.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
         if (!button) return false;
         button.click();
         return true;
       })()`);
+    },
+    openStartCustomize() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        const opener = document.getElementById('customizeButton');
+        if (!popover || !opener) return false;
+        if (!popover.matches(':popover-open')) { opener.focus(); opener.click(); }
+        return popover.matches(':popover-open');
+      })()`);
+    },
+    readStartCustomize() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        open: document.getElementById('customizePopover')?.matches(':popover-open') ?? false,
+        expanded: document.getElementById('customizeButton')?.getAttribute('aria-expanded') ?? null,
+        focusedId: document.activeElement?.id ?? null,
+        pressed: [...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map((b) => b.dataset.layoutPick),
+      }))()`);
+    },
+    pressStartPageKey(keyCode) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: String(keyCode) });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: String(keyCode) });
+      return true;
     },
     readMahjongFooterLink() {
       const tab = tabs.get(getActiveTabId());
@@ -1743,7 +1925,7 @@ function install(refs) {
           host: document.getElementById('shieldPopHost').textContent,
           on: document.getElementById('shieldPopToggle').classList.contains('on'),
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
-          connection: row && !row.hidden ? row.textContent : null,
+          connection: row && !row.hidden ? 'Connection · ' + document.getElementById('shieldPopConnectionValue').textContent : null,
           header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
         };
       })()`);

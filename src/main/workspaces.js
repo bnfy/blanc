@@ -15,7 +15,7 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
   function state() {
     const profileId = activeLocalProfileId();
     if (profiles.has(profileId)) return profiles.get(profileId);
-    const current = { status: 'saved', pending: new Map(), timer: null, attempts: 0 };
+    const current = { status: 'saved', pending: new Map(), timer: null, attempts: 0, epoch: 0, draining: null, disposed: false };
     profiles.set(profileId, current);
     let bytes;
     try { bytes = io.readFileSync(store.file, 'utf8'); }
@@ -58,26 +58,33 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
     return store.data.workspaces.filter((w) => w.profileId === activeLocalProfileId());
   }
   const get = (id) => list().find((w) => w.id === id) ?? null;
-  function write(result) {
+  function write(result, capturedId = null) {
     const s = state();
     if (unavailable(s)) return { ok: false, error: s.status };
     if (result.error) return { ok: false, error: result.error };
     if (!result.file) return { ok: false, error: 'not-found' };
-    if (!result.unchanged && !store.updateAndFlush((data) => Object.assign(data, result.file))) {
+    // "Unchanged in memory" is not "saved": the async drain may have applied
+    // this capture without it reaching disk yet.
+    const persisted = result.unchanged
+      ? (!store.dirty || store.flush())
+      : store.updateAndFlush((data) => Object.assign(data, result.file));
+    s.epoch++; // any synchronous attempt supersedes an in-flight drain
+    if (!persisted) {
       s.status = 'storage-failed'; onStatus();
       return { ok: false, error: 'storage-failed' };
     }
+    // A checkpoint settles its own queued capture before the status is
+    // computed: a drain it superseded no longer reports `saved` afterwards.
+    if (capturedId != null) s.pending.delete(capturedId);
     s.status = s.pending.size ? 'pending' : 'saved'; s.attempts = 0; onStatus();
     return { ok: true, ...(result.workspace ? { workspace: result.workspace } : {}) };
   }
-  function mutate(operation) {
+  function mutate(operation, capturedId) {
     const s = state();
-    return unavailable(s) ? { ok: false, error: s.status } : write(operation(store.data));
+    return unavailable(s) ? { ok: false, error: s.status } : write(operation(store.data), capturedId);
   }
   function saveCapture(id, capture) {
-    const result = mutate((data) => { const changed = model.updateCapture(data, id, capture, clock()); return changed.workspace ? changed : { error: 'not-found' }; });
-    if (result.ok) state().pending.delete(id);
-    return result;
+    return mutate((data) => { const changed = model.updateCapture(data, id, capture, clock()); return changed.workspace ? changed : { error: 'not-found' }; }, id);
   }
   function flushPending() {
     const s = state();
@@ -93,11 +100,51 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
     return { ok: true };
   }
   function scheduleRetry(s) {
-    if (s.timer || unavailable(s)) return;
+    if (s.timer || s.disposed || unavailable(s)) return;
     const profileId = activeLocalProfileId();
     const delay = Math.min(30000, 250 * 2 ** Math.min(s.attempts++, 7));
-    s.timer = setTimeout(() => withLocalProfile(profileId, flushPending), delay);
+    s.timer = setTimeout(() => withLocalProfile(profileId, () => { drain(s); }), delay);
     s.timer.unref?.();
+  }
+  // The timer path: one asynchronous drain per profile. The pass starts a
+  // microtask later, so `draining` is always assigned before it runs and is
+  // cleared after it ends, even when the pass never awaits. A timer that fires
+  // during a drain starts nothing: the running pass rereads `pending`.
+  function drain(s) {
+    s.timer = null;
+    if (s.disposed || unavailable(s)) return Promise.resolve();
+    if (s.draining) return s.draining;
+    const current = Promise.resolve()
+      .then(() => drainPass(s))
+      .catch((error) => { console.warn('[workspaces] autosave failed:', error?.message); })
+      .then(() => {
+        if (s.draining === current) s.draining = null;
+        // A superseded or failed pass can leave captures queued with no timer
+        // (a checkpoint of one workspace while another waits): arm a fresh
+        // pass under the new epoch. scheduleRetry refuses disposed and
+        // unavailable profiles and an already armed timer.
+        if (s.pending.size) scheduleRetry(s);
+      });
+    s.draining = current;
+    return current;
+  }
+  // A completion acts only while it still owns the state: the same epoch, and
+  // the profile not disposed. An obsolete pass changes no status.
+  async function drainPass(s) {
+    const epoch = s.epoch;
+    const owns = () => !s.disposed && s.epoch === epoch;
+    while (owns() && s.pending.size) {
+      const [id, capture] = s.pending.entries().next().value;
+      const result = model.updateCapture(store.data, id, capture, clock());
+      if (!result.workspace) { s.pending.delete(id); continue; }
+      const ok = result.unchanged
+        ? await store.commitPending()
+        : await store.updateAndCommit((data) => Object.assign(data, result.file));
+      if (!owns()) return;
+      if (!ok) { s.status = 'storage-failed'; onStatus(); return; } // the end of drain() arms the backoff retry
+      if (s.pending.get(id) === capture) s.pending.delete(id);
+    }
+    if (owns()) { s.status = 'saved'; s.attempts = 0; onStatus(); }
   }
   function queueCapture(id, capture) {
     const s = state();
@@ -137,7 +184,15 @@ function createRepository({ store = new JsonStore('workspaces', model.EMPTY_FILE
     restore(id) { return mutate((data) => model.restoreWorkspace(data, id, clock())); },
     move(id, direction) { return mutate((data) => model.moveWorkspace(data, id, direction)); },
     forget(id) { return mutate((data) => data.deleted.some((d) => d.workspace.id === id) ? { file: { ...data, deleted: data.deleted.filter((d) => d.workspace.id !== id) } } : { error: 'not-found' }); },
-    disposeProfile(profileId) { clearTimeout(profiles.get(profileId)?.timer); profiles.delete(profileId); },
+    disposeProfile(profileId) {
+      const s = profiles.get(profileId);
+      if (s) { s.disposed = true; s.epoch++; clearTimeout(s.timer); s.timer = null; }
+      profiles.delete(profileId);
+    },
+    /** Test support: resolves when the active profile has no drain running. */
+    drained() { return state().draining ?? Promise.resolve(); },
+    /** Test support: whether a retry timer is armed for a profile. */
+    timerArmed(profileId = activeLocalProfileId()) { return !!profiles.get(profileId)?.timer; },
   };
 }
 const repository = createRepository();

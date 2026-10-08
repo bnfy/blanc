@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "mergedSource": "73291caff4946ba9256bf1cd775ef072865fb46c",
+  "testedHead": "b0462db0f10a12fc40f5edbbf1650cc5487a6cbf",
+  "runtimeSource": "95fbdfbee94505224c455c40c73509f572616374",
+  "finalDesktop": {
+    "run": 37168802136,
+    "allFourPassed": true,
+    "ordinaryPackagePassed": true
+  },
+  "finalInstalled": {
+    "run": 37168565413,
+    "windowsPassed": true,
+    "linuxPassed": true,
+    "ubuntu22SandboxPassed": true,
+    "ubuntu24SandboxPassed": true
+  },
+  "finalLinuxStress": {
+    "run": 37168566895,
+    "normalBrowserProcessExits": 6,
+    "launches": [
+      {
+        "launch": 1,
+        "completedRestores": 30,
+        "fullSuitePassed": true,
+        "delayedInspectorReplies": 2,
+        "nativeViews": {
+          "baselineChildren": 2,
+          "peakChildren": 3,
+          "retiredChildren": 0,
+          "restores": 30
+        },
+        "diagnosticTiming": {
+          "startupReadyMs": 10258,
+          "namedProfileReadyMs": 2146,
+          "rendererMemoryKiB": 2426300,
+          "allowedRequestMs": 29.599999999976717
+        }
+      },
+      {
+        "launch": 2,
+        "completedRestores": 30,
+        "fullSuitePassed": true,
+        "delayedInspectorReplies": 2,
+        "nativeViews": {
+          "baselineChildren": 2,
+          "peakChildren": 3,
+          "retiredChildren": 0,
+          "restores": 30
+        },
+        "diagnosticTiming": {
+          "startupReadyMs": 3292,
+          "namedProfileReadyMs": 2212,
+          "rendererMemoryKiB": 2423500,
+          "allowedRequestMs": 32.20000000001164
+        }
+      },
+      {
+        "launch": 3,
+        "completedRestores": 30,
+        "fullSuitePassed": true,
+        "delayedInspectorReplies": 2,
+        "nativeViews": {
+          "baselineChildren": 2,
+          "peakChildren": 3,
+          "retiredChildren": 0,
+          "restores": 30
+        },
+        "diagnosticTiming": {
+          "startupReadyMs": 3176,
+          "namedProfileReadyMs": 2482,
+          "rendererMemoryKiB": 2442468,
+          "allowedRequestMs": 31.300000000046566
+        }
+      }
+    ]
+  },
+  "retainedIntelFailure": {
+    "run": 37168547420,
+    "source": "95fbdfbee94505224c455c40c73509f572616374",
+    "stage": "named-profile startup",
+    "error": "ubo-startup-timeout",
+    "laterUnchangedRuntimePassedIn": 37168802136,
+    "laterNamedProfileReadyMs": 8458,
+    "deadlineChanged": false
+  },
+  "publicArtifacts": "pending",
+  "privacy": "Fresh isolated profiles and local fixtures; no personal browsing data."
+}

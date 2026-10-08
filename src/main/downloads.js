@@ -24,6 +24,11 @@ const privateFinishedByProfile = new Map();
  * the pill's contextual downloads button. Cleared by acknowledgeDownloads(). */
 const recentProfileIds = new Set();
 const deletedProfileIds = new Set();
+// Retry needs the session that owned the original download, and reuses the
+// file the user already chose so a retry doesn't ask where to save again.
+const sessionsByOwner = new Map();
+const retrySavePaths = new Map();
+const ownerKey = (profileId, isPrivate) => `${profileId}\0${isPrivate ? 'private' : 'normal'}`;
 // In-memory only, like hasRecent: a fresh launch must not replay the pulse for
 // a download that finished in a previous session.
 const lastCompletedAtByProfile = new Map();
@@ -58,6 +63,8 @@ function setupDownloads(
   { private: isPrivate = false, profileId = DEFAULT_PROFILE_ID } = {}
 ) {
   onChanged = notifyChanged;
+  const owner = ownerKey(profileId, isPrivate);
+  sessionsByOwner.set(owner, session);
 
   session.on('will-download', (_event, item, requestingWebContents) => withLocalProfile(profileId, () => {
     if (!downloadRequesterAllowed(requestingWebContents)) {
@@ -75,15 +82,23 @@ function setupDownloads(
       filename: item.getFilename(),
       savePath: '',
       state: 'progressing',
+      canResume: false,
       receivedBytes: 0,
       totalBytes: item.getTotalBytes(),
       startedAt: Date.now(),
       private: !!isPrivate,
     };
-    active.set(id, { record, item, profileId });
+    const entry = { record, item, profileId, replaced: false };
+    active.set(id, entry);
+    const retryKey = `${owner}\0${record.url}`;
+    if (retrySavePaths.has(retryKey)) {
+      item.setSavePath(retrySavePaths.get(retryKey));
+      retrySavePaths.delete(retryKey);
+    }
 
     item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'progressing' | 'interrupted'
+      record.canResume = state === 'interrupted' && item.canResume();
       record.savePath = item.getSavePath();
       record.receivedBytes = item.getReceivedBytes();
       record.totalBytes = item.getTotalBytes();
@@ -92,10 +107,17 @@ function setupDownloads(
 
     item.once('done', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'completed' | 'cancelled' | 'interrupted'
+      record.canResume = false;
       record.savePath = item.getSavePath();
       record.receivedBytes = item.getReceivedBytes();
       record.finishedAt = Date.now();
       active.delete(id);
+      // A retry cancels the stale item and starts a fresh one; the old row
+      // must not come back as a cancelled entry beside its replacement.
+      if (entry.replaced) {
+        broadcast();
+        return;
+      }
       // Cancelling in-flight items is part of profile deletion. Their delayed
       // done callbacks must not recreate profile-scoped files afterward.
       if (deletedProfileIds.has(profileId)) {
@@ -133,7 +155,7 @@ function listDownloads() {
   const profileId = activeLocalProfileId();
   const inFlight = Array.from(active.values())
     .filter((entry) => entry.profileId === profileId)
-    .map(({ record }) => record)
+    .map(({ record }) => ({ ...record, inFlight: true }))
     .reverse();
   return [
     ...inFlight,
@@ -150,6 +172,48 @@ function activeCount() {
 function cancelDownload(id) {
   const entry = active.get(id);
   if (entry?.profileId === activeLocalProfileId()) entry.item.cancel();
+}
+
+/** Continue an interrupted download in place, where Chromium still can. */
+function resumeDownload(id) {
+  const entry = active.get(id);
+  if (entry?.profileId !== activeLocalProfileId()) return;
+  if (entry.record.state === 'interrupted' && entry.item.canResume()) entry.item.resume();
+}
+
+/** Start an interrupted download over from its source URL, replacing its row. */
+function retryDownload(id) {
+  const profileId = activeLocalProfileId();
+  const entry = active.get(id);
+  if (entry && entry.profileId !== profileId) return;
+  const record = entry?.record ?? listDownloads().find((r) => r.id === id);
+  if (record?.state !== 'interrupted' || !isRetryableUrl(record.url)) return;
+  const owner = ownerKey(profileId, record.private);
+  const session = sessionsByOwner.get(owner);
+  if (!session) return;
+
+  if (entry) {
+    entry.replaced = true;
+    active.delete(id);
+    entry.item.cancel();
+  } else if (record.private) {
+    const finished = privateFinishedByProfile.get(profileId) ?? [];
+    privateFinishedByProfile.set(profileId, finished.filter((r) => r.id !== id));
+  } else {
+    ensureStore().update((d) => { d.items = d.items.filter((r) => r.id !== id); });
+  }
+  if (record.savePath) retrySavePaths.set(`${owner}\0${record.url}`, record.savePath);
+  session.downloadURL(record.url);
+  broadcast();
+}
+
+function isRetryableUrl(url) {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
 }
 
 function openDownload(id) {
@@ -177,6 +241,9 @@ function discardProfileDownloads(profileId) {
   recentProfileIds.delete(profileId);
   lastCompletedAtByProfile.delete(profileId);
   privateFinishedByProfile.delete(profileId);
+  for (const key of retrySavePaths.keys()) {
+    if (key.startsWith(`${profileId}\0`)) retrySavePaths.delete(key);
+  }
   for (const [id, entry] of active) {
     if (entry.profileId !== profileId) continue;
     active.delete(id);
@@ -213,6 +280,8 @@ module.exports = {
   acknowledgeDownloads,
   downloadsActivity,
   cancelDownload,
+  resumeDownload,
+  retryDownload,
   openDownload,
   showDownloadInFolder,
   clearFinishedDownloads,

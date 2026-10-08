@@ -1,0 +1,32 @@
+{
+  "kind": "installed-production-ubo-acceptance",
+  "passed": false,
+  "os": "darwin",
+  "harnessArchitecture": "arm64",
+  "osRelease": "27.2.0",
+  "executableSha256": "b45db48c869a5cefe1ec1337a8ba6b700316b82cf8cadc15f1992a790e76452c",
+  "checks": {
+    "restart-ublock-origin": true,
+    "networkAndCosmetics": true,
+    "popupMarkAndMoreAndLogger": true,
+    "privateShieldAndLoggerIsolation": true,
+    "quietWakeControls": true
+  },
+  "limits": [
+    "Isolated disposable profile, not personal browsing data.",
+    "Renderer CDP automation leaves production fuses and sandbox policy intact.",
+    "Separate signature / Linux process sandbox observations remain required.",
+    "Actual signed, notarized DMG-installed copy; native macOS arm64."
+  ],
+  "runtime": {
+    "blancVersion": "1.27.0",
+    "electronVersion": "44.5.1",
+    "chromiumVersion": "152.0.7977.130",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "failure": {
+    "stage": "provider round trip and filter persistence",
+    "name": "Error"
+  }
+}

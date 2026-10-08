@@ -32,9 +32,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   goForward: (id) => ipcRenderer.invoke('tabs:forward', id),
   reload: (id) => ipcRenderer.invoke('tabs:reload', id),
   stop: (id) => ipcRenderer.invoke('tabs:stop', id),
-  reorderTab: (id, toIndex) => ipcRenderer.invoke('tabs:reorder', id, toIndex),
-  reorderTabWithinBucket: (id, beforeId) =>
-    ipcRenderer.invoke('tabs:reorder-within-bucket', id, beforeId),
+  moveTab: (id, target) => ipcRenderer.invoke('tabs:move', id, target),
+  reorderGroup: (id, beforeGroupId) => ipcRenderer.invoke('groups:reorder', id, beforeGroupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
   openGlancePicker: () => ipcRenderer.invoke('tabs:open-glance-picker'),
@@ -64,6 +63,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
   reportIslandRect: (rect) => ipcRenderer.send('chrome:island-rect', rect),
+  onShieldAnchor: (callback) => {
+    const listener = (_event, anchor) => callback(anchor);
+    ipcRenderer.on('overlay:shield-anchor', listener);
+    return () => ipcRenderer.removeListener('overlay:shield-anchor', listener);
+  },
   onIslandProximity: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:island-proximity', listener);
@@ -97,6 +101,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openIslandTyping: (char) => ipcRenderer.send('chrome:open-island-typing', char),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
+  selectBlockingProvider: (provider, restart = false) => ipcRenderer.invoke('chrome:blocking-provider', provider, restart),
+  openBlockingPopup: () => ipcRenderer.invoke('chrome:blocking-popup'),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
@@ -107,6 +113,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   /** Keep main's Escape handler in sync with the footer workspace popover so
    * Esc can cancel an editor / close the menu without dismissing the island. */
   setWorkspaceSwitcherOpen: (open) => ipcRenderer.send('chrome:workspace-switcher', !!open),
+  setOverlayDragState: (active) => ipcRenderer.send('overlay:drag-state', !!active),
   onOverlayEscape: (callback) => {
     const listener = () => callback();
     ipcRenderer.on('overlay:escape', listener);
@@ -119,8 +126,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
-  // opts: { force?: true } — skips the scratch guard (a confirmed "discard
-  // and switch"). Omitted for a plain open/create attempt.
+  // opts: { decision?: string, newWindow?: true } — `decision` echoes the token
+  // from an unsaved-scratch result (a confirmed "discard and switch");
+  // `newWindow` opens elsewhere. Omitted for a plain open/create attempt.
   openWorkspace: (id, opts) => ipcRenderer.invoke('chrome:workspaces-open', id, opts),
   createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
   renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
@@ -142,6 +150,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
+  toggleDarkSiteOnActiveSite: () => ipcRenderer.invoke('chrome:dark-site-active'),
+  siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
   ...(ONE_PASSWORD_AVAILABLE ? {
     fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),

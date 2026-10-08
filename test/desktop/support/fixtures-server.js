@@ -26,6 +26,15 @@ function pageBody(req) {
       : loginVariant === 'invisible'
         ? '<form><input type="password" autocomplete="current-password" style="opacity:0"></form>'
         : '';
+  // Drag-out probe (F3-15): records anything a page could learn from a tab
+  // drag released over it. Read back with workspacePageScript.
+  const dragProbe = raw.includes('dragprobe=1')
+    ? '<script>window.__dragProbe={events:[],data:[]};' +
+      "for(const t of ['dragenter','dragover','drop','paste']){" +
+      'document.addEventListener(t,(e)=>{window.__dragProbe.events.push(t);' +
+      'const d=e.dataTransfer||e.clipboardData;if(d){for(const k of d.types)window.__dragProbe.data.push(d.getData(k));}},true);}' +
+      '</script>'
+    : '';
   return (
     `<!doctype html><html><head><meta charset="utf-8"><title>page</title></head>` +
     `<body><h1>page</h1><script>` +
@@ -33,11 +42,13 @@ function pageBody(req) {
     `document.title=fixtureName;document.querySelector('h1').textContent=fixtureName;` +
     `</script><p>widget widget widget</p>` +
     loginForm +
+    dragProbe +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +
     `<input id="acceptance-check" type="checkbox" aria-label="Unsaved checkbox">` +
     `<form id="acceptance-post" method="post"><button type="submit">Post</button></form>` +
     `<div id="acceptance-tall" style="height:5000px"></div>` +
     store +
+    (raw.includes('probe=1') ? `<script src="/asset/probe.js"></script>` : '') +
     `</body></html>`
   );
 }
@@ -170,13 +181,26 @@ function start() {
 function startSecure({ key, cert }) {
   const server = https.createServer({ key, cert }, (req, res) => {
     if (workspaceResponse(req, res)) return;
+    // Same-origin subresource for the F39 local-certificate scenarios: it
+    // must execute after Continue, proving subresources ride the exception.
+    if ((req.url || '').startsWith('/asset/probe.js')) {
+      res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
+      res.end('window.__subresourceLoaded = true;');
+      return;
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(pageBody(req));
   });
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => {
       const { port } = server.address();
-      resolve({ port, close: () => new Promise((r) => server.close(r)) });
+      resolve({
+        port,
+        // Swap the presented certificate and drop live sockets so the next
+        // request handshakes again (F39-3 / F39-7).
+        setCertificate: (next) => { server.setSecureContext(next); server.closeAllConnections(); },
+        close: () => new Promise((r) => server.close(r)),
+      });
     });
   });
 }

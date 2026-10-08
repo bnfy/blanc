@@ -28,7 +28,10 @@ async function createGlanceTabs(world) {
   await world.waitForState((state) => {
     const main = state.tabs.find((tab) => tab.id === world.glanceMainId);
     const reference = state.tabs.find((tab) => tab.id === world.glanceReferenceId);
-    return main?.title === 'glance-main' && reference?.title === 'glance-reference';
+    // A title can arrive while Chromium is still loading. Quieting correctly
+    // refuses a loading tab, so establish the fixture's eligibility first.
+    return main?.title === 'glance-main' && reference?.title === 'glance-reference'
+      && !main.isLoading && !reference.isLoading;
   });
 }
 

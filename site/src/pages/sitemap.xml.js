@@ -2,43 +2,11 @@
 // lastmod when it consistently reflects a significant page change, so this
 // sitemap deliberately publishes only canonical URLs rather than stamping
 // every page with the build date.
-const MANIFEST = [
-  '/',
-  '/download',
-  '/mail',
-  '/mail/pricing',
-  '/mail/download',
-  '/mail/support',
-  '/mail/privacy',
-  '/mail/terms',
-  '/how-it-works',
-  '/features',
-  '/features/ad-blocking',
-  '/features/1password',
-  '/features/island',
-  '/features/private-tabs',
-  '/features/command-palette',
-  '/features/mouse-gestures',
-  '/features/tab-groups',
-  '/features/vertical-tabs',
-  '/features/quiet-tabs',
-  '/features/sync',
-  '/features/security',
-  '/features/start-page',
-  '/features/glance',
-  '/features/workspaces',
-  '/features/profiles',
-  '/features/reopen-closed-tabs',
-  '/changelog',
-  '/about',
-  '/privacy',
-  '/terms',
-  '/press',
-  '/ambassadors',
-  '/faq',
-];
+import topics from '../data/guide-topics.json';
 
-const UNLISTED = new Set(['/404', '/import-tabs']);
+const MANIFEST = ['/', '/download', '/mail', '/mail/pricing', '/mail/download', '/mail/support', '/mail/privacy', '/mail/terms', '/support', '/trust', '/changelog', '/about', '/privacy', '/terms', '/press', '/ambassadors', '/arc-alternative', '/ublock-origin-after-chrome', '/features', ...topics.map(topic => `/features/${topic.id}`)];
+
+const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]']);
 
 const SITE = 'https://blancbrowser.com';
 

@@ -3,17 +3,23 @@
   "reviewedAt": "2026-10-02",
   "publicDesktopBaseline": "ff55d5948f5c71e802ba2ac464659ef96e055ca9",
   "implementationCommit": "90cdccebbf0ca2bd0d12c7d312c1be506183a527",
-  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed.",
+  "scope": "Source inventory, not proof of authorization correctness. Literal-channel extraction excludes dynamically composed channels and subscriptions; review trust predicates and registration code in context. capture-mainworld.js reexports inline instrumentation and is not separately registered. Help/Settings and page-tint boundary entries updated on the codex/blanc-trust-app source preview; implementationCommit remains the original inventory baseline, not a claim that this branch has completed an independent audit. The Linux sandbox refusal entries (linux-sandbox-launch.js and its main.js call site) were updated for setup-guide dialog buttons; no IPC channels changed. The feat/drag-reorder-tabs-groups branch updated only the drag-reorder channel deltas for main.js and preload.js (removed tabs:reorder and tabs:reorder-within-bucket; added tabs:move, groups:reorder and overlay:drag-state); their sha256 values and a broader reconciliation of older unlisted channels remain pending. Since October 7, 2026 every boundary entry's sha256 and literalChannels follow the current file, and scripts/audit-surface-inventory.mjs (npm run audit-inventory:check, also run by the unit suite) fails on drift; that script documents the extraction rule. A matching hash records which source an entry describes, not that it was reviewed: reviewedAt and implementationCommit still name the original review. The same change added the uBO bridge and popup preloads, the Dark websites preload and the three scoped capture wrappers that sessions actually register to preloads, plus scoped-session-preload.js, the main-process helper that verifies a wrapper against its pinned capture preload before registration; none of these new entries has been through the original review.",
   "preloads": [
     "src/main/badge-api-preload.js",
     "src/main/capture-preload-linux.js",
     "src/main/capture-preload-playout.js",
     "src/main/capture-preload.js",
     "src/main/chrome-compat-preload.js",
+    "src/main/dark-websites-preload.js",
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/preload.js",
+    "src/main/scoped-capture-preload-linux.js",
+    "src/main/scoped-capture-preload-playout.js",
+    "src/main/scoped-capture-preload.js",
     "src/main/tab-preload.js",
+    "src/main/ublock-bridge-preload.js",
+    "src/main/ublock-popup-preload.js",
     "src/main/webrtc-audio-buffer-preload.js"
   ],
   "boundaries": [
@@ -31,19 +37,19 @@
     },
     {
       "file": "cloudflare/ping-worker/src/first-seen.js",
-      "sha256": "a4fc301c374e1a617865064fa8779853a5f47937c4b940cfa3cabba95d6e57d2",
+      "sha256": "ee80dc1b1db7dc16737adc213fd845d175bd5860e62d01c3147e0a7348c1fae5",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "54d692942acccddc04fd3476a9145616d8b8ae3ae9cbd8676c3ad0ef80f97e6c",
+      "sha256": "055441dd4d5048c14dbc8bf1d29eb153a725d4b7938a980487a3b82fe88b5c94",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "85501797e0f7a387bb82fbb0f47df84afc6ea9b6328ae1b0cf6eb2e9fc6962ba",
+      "sha256": "d4ab9999e1b1e8495c358a10ac7cf4c421b5cd4415855cc27a50e135d2f24a6e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -61,7 +67,7 @@
     },
     {
       "file": "src/main/badge-api-preload.js",
-      "sha256": "c7e945d45071f52b221859f5ae7a789604b0928d47b107e85feaa7bf0878738f",
+      "sha256": "e7b067be4a461b0c4d8d65208409e4107b44bc331dba2b90fbc64b23928f75fb",
       "literalChannels": [],
       "role": "preload"
     },
@@ -69,11 +75,6 @@
       "file": "src/main/capture-preload-linux.js",
       "sha256": "4096ec7549f3954d281c0be3f64ef2d8ffe14d0ea267cdbe934ab03e62ef9000",
       "literalChannels": [
-        "AbortError",
-        "Receiver audio playback failed",
-        "Receiver audio playback timed out",
-        "Screen video did not become ready",
-        "Share ended",
         "capture:permission-changed",
         "capture:permission-query",
         "capture:report",
@@ -92,10 +93,6 @@
       "file": "src/main/capture-preload-playout.js",
       "sha256": "63b7ecc1eec07d5b6e1ee61fded120471d8e9f94f91501cb82a44821ac602e46",
       "literalChannels": [
-        "AbortError",
-        "Receiver audio playback failed",
-        "Receiver audio playback timed out",
-        "Share ended",
         "capture:permission-changed",
         "capture:permission-query",
         "capture:report",
@@ -114,11 +111,6 @@
       "file": "src/main/capture-preload.js",
       "sha256": "4096ec7549f3954d281c0be3f64ef2d8ffe14d0ea267cdbe934ab03e62ef9000",
       "literalChannels": [
-        "AbortError",
-        "Receiver audio playback failed",
-        "Receiver audio playback timed out",
-        "Screen video did not become ready",
-        "Share ended",
         "capture:permission-changed",
         "capture:permission-query",
         "capture:report",
@@ -135,19 +127,21 @@
     },
     {
       "file": "src/main/chrome-compat-preload.js",
-      "sha256": "4768dc7f57e729661aa990baebc155c75a1f11f20c5354ed18bc28390bccf713",
+      "sha256": "4d2b1d014f948bbb75bb32a634523d239e6cb2ae573b2fc8ca52ef676358c925",
       "literalChannels": [],
       "role": "preload"
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "24a19f1654c8c918e2b312e5315281d6bb918c02ec9d5abba9d29578fdbf2a2d",
-      "literalChannels": [],
+      "sha256": "3acf60f87ac2eef11195e4b743ede642e70541827812454ad1eafd821aa2e064",
+      "literalChannels": [
+        "blanc-chrome"
+      ],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "8984770617531270009b46732d54447be67df0d34535f73a1c60771db2441409",
+      "sha256": "c34cbc03fb9e5b759e4a1b27b23e933a9d25d45af1e6bc2969f82683120ad26e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -156,6 +150,16 @@
       "sha256": "ee66d05296580924f3c6ea86fd96d7622571a05aa4907e823942a3bfac111cfb",
       "literalChannels": [],
       "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/dark-websites-preload.js",
+      "sha256": "f7a5e70f7f7498a9fad46461b59ebdf44d4c6626cdd12804e46ea58d11ffcce6",
+      "literalChannels": [
+        "dark-websites:fetch-css",
+        "dark-websites:get",
+        "dark-websites:update"
+      ],
+      "role": "preload"
     },
     {
       "file": "src/main/display-capture-helper-preload.js",
@@ -170,7 +174,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "3ca524aaaf2edaf3e3d8ead149797ce2c288d861dce749cae071107631886f22",
+      "sha256": "cc2f638f21d50a0d1b00037949f125657ae62960376b53b3b993746bf1dfa074",
       "literalChannels": [
         "updated",
         "will-download"
@@ -179,7 +183,7 @@
     },
     {
       "file": "src/main/external-protocols.js",
-      "sha256": "91168bedafc92ac70f10bd7fe4312ecc5ca5f4f4f8e8ace06c7139d4fb7c93af",
+      "sha256": "f0b5700627610be1dc79086ebfed1aaafd14fad66f9c12ec8021662a7fad0689",
       "literalChannels": [
         "will-frame-navigate",
         "will-redirect"
@@ -188,7 +192,7 @@
     },
     {
       "file": "src/main/fill-status-preload.js",
-      "sha256": "09c9575c10860240a20b504d8064decdb9e2e9473c295b6fe09961260e28596f",
+      "sha256": "07a9c915ca170ae3acdc5f274cef7acdd088c2c67a241b7aae9b7b63630d4d35",
       "literalChannels": [
         "fill:hide",
         "fill:reply",
@@ -216,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "3185e5ce30059fd862c6d14f6e273bb548fd68bf669c60e9f9edbde50b56ba33",
+      "sha256": "e1f8e74eb67cdbd72118f46d1f8e58efad69eb0da5a53dc2ba9468f94f2c8e16",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -230,9 +234,12 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:blocking-popup",
+        "chrome:blocking-provider",
         "chrome:capture-focus",
         "chrome:capture-stop",
         "chrome:cycle-theme",
+        "chrome:dark-site-active",
         "chrome:downloads",
         "chrome:downloads-ack",
         "chrome:favorites-list",
@@ -261,16 +268,20 @@
         "chrome:search-suggestions",
         "chrome:set-tab-layout",
         "chrome:set-vertical-tabs-width",
+        "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
         "chrome:theme-appearance",
         "chrome:vertical-tabs-width",
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-forget",
         "chrome:workspaces-list",
+        "chrome:workspaces-move",
         "chrome:workspaces-open",
         "chrome:workspaces-remove",
         "chrome:workspaces-rename",
+        "chrome:workspaces-restore",
         "chrome:workspaces-save-as",
         "chrome:workspaces-updated",
         "close",
@@ -282,17 +293,21 @@
         "display-capture:picker-resolve",
         "fill:reply",
         "focus",
+        "groups:reorder",
         "input-event",
         "login",
         "open-file",
         "open-url",
         "overlay:close",
+        "overlay:drag-state",
         "overlay:escape",
         "overlay:hide",
+        "overlay:shield-anchor",
         "overlay:show",
         "overlay:toggle",
         "page-tint:changed",
         "page-title-updated",
+        "pages:blocking:status",
         "pages:settings:appearance",
         "pages:start:remote-tabs",
         "pages:start:status",
@@ -320,6 +335,7 @@
         "tabs:forward",
         "tabs:get-all",
         "tabs:group-by-name",
+        "tabs:move",
         "tabs:navigate",
         "tabs:open-glance-picker",
         "tabs:open-page",
@@ -327,8 +343,6 @@
         "tabs:reload",
         "tabs:reopen-closed",
         "tabs:reopen-entry",
-        "tabs:reorder",
-        "tabs:reorder-within-bucket",
         "tabs:save-favorite",
         "tabs:search",
         "tabs:set-glance",
@@ -340,11 +354,14 @@
         "tabs:toggle-muted",
         "tabs:toggle-pinned",
         "tabs:updated",
+        "ublock:popup",
+        "ublock:popup-state",
         "uncaughtException",
         "updated",
         "web-contents-created",
         "will-frame-navigate",
         "will-navigate",
+        "will-quit",
         "will-redirect",
         "window-all-closed",
         "window:close",
@@ -389,9 +406,93 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "320f99d1a69473d1d78f91fed387cc1f6ffeda4a425ac7213a35d68b9819cf72",
+      "sha256": "c963ff1c061cba0246954fa8ea5c1f0b3c202a85c98b0cfc8cc4d66f02bc7ffd",
       "literalChannels": [
-        "pages:settings:check-for-updates"
+        "blanc",
+        "pages:app-version",
+        "pages:blocking:open",
+        "pages:blocking:retry",
+        "pages:blocking:status",
+        "pages:bookmarks:browser-sources",
+        "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:import",
+        "pages:bookmarks:import-browser",
+        "pages:bookmarks:list",
+        "pages:bookmarks:remove",
+        "pages:bookmarks:remove-folder",
+        "pages:bookmarks:rename-folder",
+        "pages:bookmarks:set-folder",
+        "pages:clear-browsing-data",
+        "pages:default-browser:get",
+        "pages:default-browser:set",
+        "pages:diagnostics:clear",
+        "pages:diagnostics:export",
+        "pages:diagnostics:status",
+        "pages:downloads:cancel",
+        "pages:downloads:clear-finished",
+        "pages:downloads:list",
+        "pages:downloads:open",
+        "pages:downloads:resume",
+        "pages:downloads:retry",
+        "pages:downloads:show",
+        "pages:error:continue-unsafe",
+        "pages:history:clear",
+        "pages:history:list",
+        "pages:history:remove",
+        "pages:mahjong:played",
+        "pages:permissions:list",
+        "pages:permissions:remove",
+        "pages:profiles:create",
+        "pages:profiles:list",
+        "pages:profiles:open",
+        "pages:profiles:remove",
+        "pages:profiles:rename",
+        "pages:settings:check-for-updates",
+        "pages:settings:get",
+        "pages:settings:onepassword-status",
+        "pages:settings:onepassword-verify",
+        "pages:settings:open-onepassword-app",
+        "pages:settings:open-trust-link",
+        "pages:settings:set",
+        "pages:settings:supporter-activate",
+        "pages:settings:sync-disable",
+        "pages:settings:sync-enable",
+        "pages:settings:sync-get",
+        "pages:settings:sync-now",
+        "pages:settings:sync-preflight",
+        "pages:settings:sync-tabs-set",
+        "pages:settings:trust-receipt",
+        "pages:settings:welcome-tour",
+        "pages:shortcuts:list",
+        "pages:start:data",
+        "pages:start:focus-group",
+        "pages:start:layout-used",
+        "pages:start:migration-checklist-dismiss",
+        "pages:start:onboarding-set",
+        "pages:start:open-island",
+        "pages:start:open-mahjong",
+        "pages:start:open-settings",
+        "pages:start:privacy-complete",
+        "pages:start:recover-session",
+        "pages:start:set-dynamic-wallpaper",
+        "pages:start:set-layout",
+        "pages:start:startup-continue",
+        "pages:start:startup-retry",
+        "pages:start:top-sites",
+        "pages:surface:close",
+        "pages:surface:escape-arm",
+        "pages:tab-handoff:accept",
+        "pages:tab-handoff:cancel",
+        "pages:tab-handoff:get",
+        "pages:tab-import:apply",
+        "pages:tab-import:cancel",
+        "pages:tab-import:open-source",
+        "pages:tab-import:set-selection",
+        "pages:tab-import:sources",
+        "pages:tab-import:submit-embeddings",
+        "pages:tab-import:suggest-embed",
+        "pages:tab-import:suggest-source-groups",
+        "pages:telemetry:reset-install-id"
       ],
       "role": "privileged implementation or service"
     },
@@ -403,13 +504,16 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "670e182df280912a5c8b55ce45795c238044d4ce4350d902c3fc13e323756acd",
+      "sha256": "badda35b6c4e4a485336916b6961224d4bcc761bacdae7e37423aa66ed00af1b",
       "literalChannels": [
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:blocking-popup",
+        "chrome:blocking-provider",
         "chrome:capture-focus",
         "chrome:capture-stop",
         "chrome:cycle-theme",
+        "chrome:dark-site-active",
         "chrome:downloads",
         "chrome:downloads-ack",
         "chrome:favorites-list",
@@ -439,6 +543,7 @@
         "chrome:search-suggestions",
         "chrome:set-tab-layout",
         "chrome:set-vertical-tabs-width",
+        "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
         "chrome:theme-appearance",
         "chrome:vertical-tabs-width",
@@ -456,9 +561,12 @@
         "chrome:workspaces-updated",
         "display-capture:picker-resolve",
         "display-capture:stop",
+        "groups:reorder",
         "overlay:close",
+        "overlay:drag-state",
         "overlay:escape",
         "overlay:hide",
+        "overlay:shield-anchor",
         "overlay:show",
         "overlay:toggle",
         "permissions:prompt",
@@ -478,6 +586,7 @@
         "tabs:forward",
         "tabs:get-all",
         "tabs:group-by-name",
+        "tabs:move",
         "tabs:navigate",
         "tabs:open-glance-picker",
         "tabs:open-page",
@@ -485,8 +594,6 @@
         "tabs:reload",
         "tabs:reopen-closed",
         "tabs:reopen-entry",
-        "tabs:reorder",
-        "tabs:reorder-within-bucket",
         "tabs:save-favorite",
         "tabs:search",
         "tabs:set-glance",
@@ -517,6 +624,66 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/scoped-capture-preload-linux.js",
+      "sha256": "4c6ed2a7f53ed1a53d3f18ea62546dc77a0c28d6231f465421fb4eda8db09a02",
+      "literalChannels": [
+        "capture:permission-changed",
+        "capture:permission-query",
+        "capture:report",
+        "capture:stop",
+        "display-capture:abort",
+        "display-capture:page-diag",
+        "display-capture:request",
+        "display-capture:signal",
+        "display-capture:track-added",
+        "display-capture:track-ready",
+        "display-capture:track-stopped"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/scoped-capture-preload-playout.js",
+      "sha256": "f68f331a5a582824fd253dc6e0b6a25af0d558273ac2579e3de4288b0db071a7",
+      "literalChannels": [
+        "capture:permission-changed",
+        "capture:permission-query",
+        "capture:report",
+        "capture:stop",
+        "display-capture:abort",
+        "display-capture:page-diag",
+        "display-capture:request",
+        "display-capture:signal",
+        "display-capture:track-added",
+        "display-capture:track-ready",
+        "display-capture:track-stopped"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/scoped-capture-preload.js",
+      "sha256": "4c6ed2a7f53ed1a53d3f18ea62546dc77a0c28d6231f465421fb4eda8db09a02",
+      "literalChannels": [
+        "capture:permission-changed",
+        "capture:permission-query",
+        "capture:report",
+        "capture:stop",
+        "display-capture:abort",
+        "display-capture:page-diag",
+        "display-capture:request",
+        "display-capture:signal",
+        "display-capture:track-added",
+        "display-capture:track-ready",
+        "display-capture:track-stopped"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/scoped-session-preload.js",
+      "sha256": "880c90775ee36d8cc60ae46e166d0f7afe3e24d9821646dfa47f63590b7fba60",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "src/main/sync-crypto.js",
       "sha256": "5438ffffd4cd4b4895225116bb17ca1afe89fc825f00763b89f5a00b2be52749",
       "literalChannels": [],
@@ -530,7 +697,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "0def1f683c0a462ab7b1b6f7766f12f34b084a8e65ca7f1da7bb17b8d7cf58ba",
+      "sha256": "bfbd535c13e79ac75efa1b6fc64dee073118cadb9400d6927e90607cfe353472",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -542,10 +709,13 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "970f590d192d5dfa264d0aa8314244db025fbe48855056838e1bb116fc47c0ca",
+      "sha256": "150ec850b1cb5cda23ecb46807d45197408a6be3f374af126b5881a0a11680a0",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
+        "pages:blocking:open",
+        "pages:blocking:retry",
+        "pages:blocking:status",
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:import",
@@ -565,7 +735,10 @@
         "pages:downloads:clear-finished",
         "pages:downloads:list",
         "pages:downloads:open",
+        "pages:downloads:resume",
+        "pages:downloads:retry",
         "pages:downloads:show",
+        "pages:error:continue-unsafe",
         "pages:history:clear",
         "pages:history:list",
         "pages:history:remove",
@@ -583,6 +756,7 @@
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",
+        "pages:settings:open-trust-link",
         "pages:settings:set",
         "pages:settings:supporter-activate",
         "pages:settings:sync-disable",
@@ -591,6 +765,7 @@
         "pages:settings:sync-now",
         "pages:settings:sync-preflight",
         "pages:settings:sync-tabs-set",
+        "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
         "pages:shortcuts:list",
         "pages:start:data",
@@ -638,7 +813,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "654d8238f02ad7d1513eb5b420dbddfcb7f9543887e87ff0c9688c5d9ea0c6ad",
+      "sha256": "bac426f14e49441282b9775f3ddb18519b6ca49a5ea43284ee6229f3a56f4dff",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -668,6 +843,23 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/ublock-bridge-preload.js",
+      "sha256": "3ba5563d03cb615da9266b8440f60db360c29b8a33da3a1e4e73a9cc1ebc266a",
+      "literalChannels": [
+        "ublock:bridge"
+      ],
+      "role": "preload"
+    },
+    {
+      "file": "src/main/ublock-popup-preload.js",
+      "sha256": "9b00c6b57b611029e59c9c01332131c3febed05d009773ea4dcf887616c5b4d1",
+      "literalChannels": [
+        "ublock:popup",
+        "ublock:popup-state"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/update-restart.js",
       "sha256": "caf58874c80d945134aea4b41829b04e3b2f86dcc4327ea18dae60cb82e4b454",
       "literalChannels": [
@@ -683,7 +875,7 @@
     },
     {
       "file": "src/main/updater.js",
-      "sha256": "f83d77be6c794ef7c69149fbefe1be00f29184f5046605d9feaf6dc0f52fe8a2",
+      "sha256": "c5b0c2cd43642dd76a49f76a1b91796e7db854bf01e78205db319dfe1096b49d",
       "literalChannels": [
         "browser-window-focus",
         "checking-for-update",
@@ -705,8 +897,11 @@
     },
     {
       "file": "src/main/webrtc-audio-buffer-preload.js",
-      "sha256": "8cc173a2fbab3356f3767a39968e81ac1046e8e1ceb496d15ebe4c573d5c264f",
-      "literalChannels": [],
+      "sha256": "cedcabada378224580f879eacdf741a80ab054d6a38ad4cd6918c2e957811d94",
+      "literalChannels": [
+        "webrtc:audio-buffer:get",
+        "webrtc:audio-buffer:update"
+      ],
       "role": "preload"
     },
     {

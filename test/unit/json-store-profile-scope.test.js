@@ -64,14 +64,14 @@ test('device stores ignore profile context and critical failures roll memory bac
   assert.equal(device.data.theme, 'dark');
 });
 
-test('discarding a profile drops cached entries before directory removal', () => {
+test('discarding a profile drops cached entries before directory removal', async () => {
   const store = new JsonStore('downloads', { items: [] }, { scope: 'profile' });
   withLocalProfile('profile_temp', () => {
     store.update((data) => data.items.push('pending'));
   });
-  assert.equal(discardProfileStoreEntries('profile_temp'), true);
+  assert.equal(await discardProfileStoreEntries('profile_temp'), true);
   withLocalProfile('profile_temp', () => {
     assert.deepEqual(store.data.items, []);
   });
-  assert.equal(discardProfileStoreEntries('default'), false);
+  assert.equal(await discardProfileStoreEntries('default'), false);
 });

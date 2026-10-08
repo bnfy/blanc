@@ -35,14 +35,22 @@ if (process.env.BLANC_TEST === '1' && process.env.BLANC_TEST_UNCAUGHT_LOG) {
 installMacOSQuitVisibilityGate({ app, BrowserWindow });
 const {
   setupAdBlocker,
-  installBeforeRequestPolicy,
+  installRequestCoordinator,
   attachAdBlockerToSession,
   setAdBlockEnabled,
   onRequestBlocked,
+  coordinator: blockingCoordinator,
 } = require('./adblock');
+const { createBlockingProviders } = require('./blocking-providers');
+const { ublockTool } = require('./ublock-tool-url');
+const { createBlockingRecovery } = require('./blocking-recovery');
+const { createAppRestarter } = require('./app-restart');
+const { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
+const { outageReloadTarget } = require('./ublock-recovery');
 const islandProximity = require('./island-proximity');
 const {
   recordActivation,
@@ -50,7 +58,7 @@ const {
   previousActiveSurvivor,
 } = require('./tab-activation');
 const {
-  shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
+  shieldChipState, shieldPopoverModel, shieldProviderModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
 const {
   sanitizeCertificate,
@@ -58,6 +66,8 @@ const {
   buildSiteInfo,
   certificateErrorQuery,
 } = require('./site-security');
+const { createCertificateExceptions } = require('./certificate-exceptions');
+const { emptyEntryMarks } = require('./certificate-history');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   mergeDisabledFeatures,
@@ -156,7 +166,7 @@ const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const { siteKey: topSiteKey } = require('./top-sites');
-const { JsonStore, discardProfileStoreEntries } = require('./store');
+const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const {
   PRIMARY_WINDOW_ID,
@@ -195,6 +205,7 @@ const {
   tabImportClaimUrl,
   tabImportUrlsFromArgv,
 } = require('./tab-import-handoff');
+const { bananifyServiceAllowed } = require('./bananify-services');
 const { registerWindowsTabImportProtocol } = require('./tab-import-protocol');
 const {
   sleepCandidates,
@@ -225,7 +236,7 @@ const { setupWebAuthn } = require('./webauthn');
 const { classifyExternalNavigation, createExternalHandoff } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const {
-  applyDockAppIcon,
+  createDockIconApplier,
   setWindowsAppUserModelId,
   windowsDevelopmentIconPath,
 } = require('./app-icon');
@@ -243,7 +254,8 @@ const {
   calculateGlanceLayout,
   ratioForGlanceDivider,
 } = require('./glance-layout');
-const { reorderWithinBucket } = require('./tab-order');
+const { moveTab: resolveTabMove, reorderGroup: resolveGroupReorder } = require('./tab-order');
+const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const {
   installPlatformMainMenuShortcut,
   popupPlatformMainMenu,
@@ -302,9 +314,16 @@ const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
+// Session-only "continue anyway" choices for local certificate failures
+// (certificate spec §4.1). Eviction closes the session's pooled connections
+// so a connection cannot outlive its exception.
+const certificateExceptions = createCertificateExceptions({
+  onEvict: (browsingSession) => { browsingSession.closeAllConnections?.()?.catch?.(() => {}); },
+});
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+const ublockTestMode = acceptanceTestMode && process.env.BLANC_UBLOCK_TEST === '1';
 if (acceptanceTestMode) require('../../scripts/preflight-electron-runtime').verifyElectronRuntime({
   root: app.getAppPath(), runningVersion: process.versions.electron,
 });
@@ -327,6 +346,149 @@ const windowRuntimeContext = new AsyncLocalStorage();
 let primaryRuntime = null;
 let focusedRuntime = null;
 let profileSessionRegistry = null;
+let blockingProviders = null;
+let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
+let adblockStartupController = null;
+const ublockAuxiliaryTabs = new Map();
+const ublockPopups = new Map();
+function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
+  const popup = ublockPopups.get(runtimeId);
+  if (!popup) return;
+  ublockPopups.delete(runtimeId);
+  popup.dismissal?.dispose();
+  popup.runtime.window?.removeListener('closed', popup.onClosed);
+  popup.runtime.window?.removeListener('resize', popup.onResize);
+  if (!popup.runtime.window?.isDestroyed()) popup.runtime.window?.contentView.removeChildView(popup.view);
+  popup.view.webContents?.close();
+  if (popup.runtime.window && !popup.runtime.window.isDestroyed()) {
+    const mode = popup.runtime.overlayMode;
+    const restore = restoreFocus && !mode;
+    if (restore) popup.runtime.window.webContents.focus();
+    popup.runtime.window.webContents.send('chrome:island-state', {
+      mode, trigger: mode === 'shield' ? popup.runtime.shieldTrigger : null,
+      restoreTrigger: restore ? 'shield' : null,
+    });
+  }
+}
+function watchUblockPopupOutsideContents(tab) {
+  const popup = ublockPopups.get(tab.runtimeId);
+  const wc = liveContents(tab);
+  if (!popup || !wc) return;
+  popup.dismissal.watch(wc, () => tabs.get(tab.id) === tab
+    && tab.runtimeId === popup.runtime.id && liveContents(tab) === wc);
+}
+function restorableUblockTool(url, profileId = rt().profileId) {
+  const provider = blockingProviders?.forTab({ private: false, profileId });
+  return provider?.status().phase === 'ready' && !!ublockTool(url, provider.extensionId);
+}
+function openUblockTool(tool, requestedUrl = null) {
+  if (!['dashboard', 'logger'].includes(tool)) return false;
+  const provider = blockingProviders?.forTab({ private: false, profileId: rt().profileId });
+  if (!provider?.extensionId || provider.status().phase !== 'ready') return false;
+  const page = tool === 'logger' ? 'logger-ui.html' : 'dashboard.html';
+  let targetUrl = null;
+  if (requestedUrl !== null) {
+    if (ublockTool(requestedUrl, provider.extensionId) !== tool) return false;
+    const parsed = new URL(requestedUrl);
+    if (tool === 'logger') parsed.searchParams.delete('popup');
+    targetUrl = parsed.href;
+  }
+  const existing = [...tabs.values()].find(tab => !tab.private && tab.profileId === rt().profileId && ublockTool(tab.url, provider.extensionId) === tool);
+  if (existing) {
+    const owner = windowRuntimes.runtimeForTab(existing.id);
+    if (owner) {
+      withWindowRuntime(owner, () => {
+        createMainWindow(owner, { ensureStartTab: false });
+        if (targetUrl && existing.asleep) wakeTab(existing.id, { navigateTo: targetUrl }).catch(() => {});
+        else if (targetUrl && liveContents(existing)?.getURL() !== targetUrl) liveContents(existing)?.loadURL(targetUrl).catch(() => {});
+        setActiveTab(existing.id);
+        owner.window?.show(); owner.window?.focus();
+      });
+      return true;
+    }
+  }
+  const id = createTab(targetUrl || `chrome-extension://${provider.extensionId}/${page}`, { managedExtension: true });
+  if (!id) return false;
+  setActiveTab(id);
+  return true;
+}
+function layoutUblockPopup(popup) {
+  if (!popup.runtime.window || popup.runtime.window.isDestroyed() || !popup.view.webContents || popup.view.webContents.isDestroyed()) return;
+  const { bounds, state } = popupGeometry(popup.runtime, popup.anchor, popup.naturalHeight);
+  popup.view.setBounds(bounds);
+  popup.view.webContents.send('ublock:popup-state', state);
+}
+ipcMain.on('ublock:popup', (event, message) => {
+  if (!validPopupMessage(message)) return;
+  const popup = [...ublockPopups.values()].find(item => item.view.webContents === event.sender);
+  if (!popup || !validPopupSender(event, popup, profileSessionRegistry.normal(popup.runtime.profileId))) return;
+  if (message.action === 'layout') {
+    popup.naturalHeight = message.height; layoutUblockPopup(popup); return;
+  }
+  const { runtime, anchor, tabId } = popup;
+  closeUblockPopup(runtime.id, { restoreFocus: message.action === 'close' });
+  if (message.action === 'back') withWindowRuntime(runtime, () => {
+    const tab = tabs.get(tabId);
+    if (!tab || tab.private || !activeShieldPopover()) return;
+    setShieldAnchor(anchor); runtime.shieldTrigger = 'shield';
+    broadcastTabs(); showOverlay('shield');
+  });
+});
+async function openUblockPopup(anchor) {
+  const runtime = rt();
+  if (ublockPopups.has(runtime.id)) { closeUblockPopup(runtime.id); return; }
+  const tab = tabs.get(runtime.activeTabId);
+  const provider = blockingProviders?.forTab(tab);
+  if (!provider?.extensionId || provider.status().phase !== 'ready') { openInternalPage('blanc://settings/'); return; }
+  const generation = runtime.surfaceGeneration;
+  if (tab.asleep) await wakeTab(tab.id);
+  if (runtime.surfaceGeneration !== generation || runtime.activeTabId !== tab.id
+      || runtime.window?.isDestroyed() || !liveContents(tab)) return;
+  provider.refresh();
+  const tabId = provider.registry.idForTab(tab);
+  const view = new WebContentsView({ webPreferences: {
+    session: profileSessionRegistry.normal(runtime.profileId),
+    preload: path.join(__dirname, 'ublock-popup-preload.js'),
+    sandbox: true, contextIsolation: true, nodeIntegration: false,
+  } });
+  const wc = view.webContents;
+  view.setBackgroundColor('#00000000');
+  const popup = { runtime, tabId: tab.id, view, anchor: anchor || {}, naturalHeight: 490,
+    url: `chrome-extension://${provider.extensionId}/popup-fenix.html?tabId=${tabId}` };
+  popup.onResize = () => layoutUblockPopup(popup);
+  popup.onClosed = () => closeUblockPopup(runtime.id);
+  ublockPopups.set(runtime.id, popup);
+  layoutUblockPopup(popup);
+  wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  wc.on('will-navigate', event => event.preventDefault());
+  wc.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape') { event.preventDefault(); closeUblockPopup(runtime.id, { restoreFocus: true }); }
+  });
+  popup.dismissal = wirePopupDismissal({
+    window: runtime.window,
+    outsideContents: [runtime.window.webContents, runtime.overlayView?.webContents],
+    dismiss: () => { if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id); },
+  });
+  for (const item of tabs.values()) if (item.runtimeId === runtime.id) watchUblockPopupOutsideContents(item);
+  runtime.window.once('closed', popup.onClosed);
+  runtime.window.on('resize', popup.onResize);
+  runtime.window.contentView.addChildView(view);
+  try {
+    await wc.loadURL(popup.url);
+    if (ublockPopups.get(runtime.id) !== popup) return;
+    if (runtime.surfaceGeneration !== generation || runtime.activeTabId !== tab.id
+        || runtime.window?.isDestroyed() || wc.isDestroyed()) {
+      closeUblockPopup(runtime.id);
+      return;
+    }
+    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
+    popup.ready = true;
+    wc.focus();
+  }
+  catch {
+    if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id);
+  }
+}
 let installProfileSessionPolicies = () => {};
 
 /** Wrap a callback so it (and everything it schedules) resolves to `runtime`. */
@@ -655,14 +817,18 @@ function tabHandoffErrorMessage(code) {
   }
   if (code === 'unavailable') return 'This handoff has expired, was already used, or is unavailable.';
   if (code === 'offline') return 'Blanc could not reach the tab handoff service. Check your connection and try again.';
+  if (code === 'service-unavailable') return 'Tab handoff is available only in official Blanc builds.';
   return 'Blanc could not import these tabs.';
 }
 
 async function claimTabHandoff(parsed) {
+  // A renamed build may not use Bananify's relay (bananify-services.js).
+  const origin = tabImportRelayOrigin();
+  if (!bananifyServiceAllowed(origin)) throw new Error('service-unavailable');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
   try {
-    const response = await net.fetch(tabImportClaimUrl(parsed.id, tabImportRelayOrigin()), {
+    const response = await net.fetch(tabImportClaimUrl(parsed.id, origin), {
       method: 'POST',
       redirect: 'error',
       cache: 'no-store',
@@ -1189,6 +1355,8 @@ if (tabImportProtocolRegistration.attempted && !tabImportProtocolRegistration.re
 if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
   app.quit();
 } else {
+  // Blanc holds the user-data lock now, so no other instance owns orphan temps.
+  if (!acceptanceTestMode) enableTempSweep();
   diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
     const runtime = resolveExternalRuntime();
@@ -1201,23 +1369,40 @@ if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
     });
   });
 
-  // Chrome-extension support used to live here (electron-chrome-extensions
-  // + web store, plus crash-loop recovery for extension profile state). It
-  // was removed: the password managers it existed for are blocked from
-  // working in any non-allowlisted browser at the OS/vendor level, and the
-  // extension runtime was the app's main source of hard crashes. Leftover
-  // extension profile state from older versions is cleared below. (The
-  // profile's 'Service Worker' dir is left alone — it also holds ordinary
-  // websites' service workers, and with no extension runtime a stale
-  // extension worker registration in there is inert.) The separate opt-in
-  // 1Password SDK integration does not restore an extension runtime: its
-  // native bridge is isolated in one utility process and runs only on Fill.
+  // Migrate state left by the retired general extension/store integration.
+  // Preserve website Service Workers and all managed uBO state; the narrowly
+  // gated uBO provider is independent of the retired extension-store runtime.
+  // The opt-in 1Password SDK runs separately in its Plugin utility process.
   const staleExtensionState = [
     'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
   try {
-    for (const entry of staleExtensionState) {
-      fs.rmSync(path.join(app.getPath('userData'), entry), { recursive: true, force: true });
+    const userData = app.getPath('userData');
+    const migration = path.join(userData, 'legacy-extension-cleanup-v1');
+    if (!fs.existsSync(path.join(userData, 'managed-ublock'))) {
+      // Claim the one-time marker with a single exclusive create, never a
+      // separate existence check: an existing marker or symlink means the
+      // cleanup already ran (or another process owns it) and is left alone.
+      let marker = null;
+      try {
+        marker = fs.openSync(migration, 'wx', 0o600);
+      } catch (err) {
+        if (err.code !== 'EEXIST') throw err;
+      }
+      if (marker !== null) {
+        let completed = false;
+        try {
+          for (const entry of staleExtensionState) {
+            fs.rmSync(path.join(userData, entry), { recursive: true, force: true });
+          }
+          fs.writeFileSync(marker, '1\n');
+          completed = true;
+        } finally {
+          fs.closeSync(marker);
+          // Release the claim on failure so the next launch retries the cleanup.
+          if (!completed) fs.rmSync(migration, { force: true });
+        }
+      }
     }
   } catch (err) {
     console.warn('[cleanup] could not clear stale extension state:', err.message);
@@ -1253,50 +1438,61 @@ let activeTabHandoffRequest = null;
 // offline filter failure always has a usable recovery surface.
 let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
+const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
+  coordinator: blockingCoordinator, queued: startupQueuedNavigations,
+  resolveContents: id => {
+    const tab = tabs.get(tabIdByWebContentsId.get(id));
+    const wc = liveContents(tab);
+    return wc && wc.id === id ? { tab, wc } : null;
+  },
+  ready: profileId => blockingProviders?.status(profileId).phase === 'ready',
+  enabled: () => settings.getSettings().adblockEnabled,
+  startupActive: () => startupNavigationGateActive,
+});
 
 function installStartupNavigationGate(sessions) {
   startupNavigationGateActive = true;
-  const listener = (details, callback) => {
+  const listener = (details) => {
     if (
       !startupNavigationGateActive ||
       details.resourceType !== 'mainFrame' ||
       !/^https?:/i.test(details.url)
     ) {
-      callback({});
-      return;
+      return false;
     }
-    if (Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
+    if (details.method === 'GET' && Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
     }
-    callback({ cancel: true });
+    return true;
   };
   for (const browsingSession of sessions) {
-    browsingSession.webRequest.onBeforeRequest(
-      { urls: ['http://*/*', 'https://*/*'] },
-      listener
-    );
+    blockingCoordinator.setGate(browsingSession, listener);
   }
 }
 
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   startupNavigationGateActive = false;
+  for (const browsingSession of sessions) blockingCoordinator.setGate(browsingSession, null);
   // A successful blocker attachment has already replaced the temporary
   // listener with its composed network policy. If startup continues without
   // the blocker, replace the gate with the ordinary request policy instead of
   // leaving the session without an onBeforeRequest policy.
   if (!blockerAttached) {
     for (const browsingSession of sessions) {
-      installBeforeRequestPolicy(browsingSession);
+      installRequestCoordinator(browsingSession);
     }
   }
+
+  profileNavigationGates.reconcile();
 
   const deferredWakes = [...pendingWakes];
   pendingWakes.clear();
   for (const tabId of deferredWakes) wakeTab(tabId).catch(() => {});
 
   const queued = [...startupQueuedNavigations.entries()];
-  startupQueuedNavigations.clear();
   for (const [webContentsId, url] of queued) {
+    if (profileNavigationGates.owns(webContentsId)) continue;
+    startupQueuedNavigations.delete(webContentsId);
     // A throwing predicate does not skip an entry — it propagates out of find
     // and leaves every queued tab behind the startup gate. This two-step read
     // handles missing and already-destroyed views alike.
@@ -1613,11 +1809,16 @@ function handleNativeThemeUpdated() {
   // app theme changes already invalidated before assigning themeSource; doing
   // it again here is harmless and keeps this path self-contained.
   forEachWindowRuntime(refreshActivePageTintForThemeChange, { liveOnly: true });
+  // The shield popover's Dark website note depends on the appearance.
+  forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
 }
 
 // Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
-// into Blanc.exe by electron-builder.
-function applyAppIcon() {
+// into Blanc.exe by electron-builder. Every settings write and appearance
+// change calls this; the applier skips the slow reload unless the icon the
+// Dock would show changes.
+let applyDockIcon;
+function applyAppIcon({ force = false } = {}) {
   // getSettings() already falls back a stale retired icon id (hand-edited or
   // copied settings.json) to the default — nothing further to validate here.
   const { appIcon } = settings.getSettings();
@@ -1627,14 +1828,13 @@ function applyAppIcon() {
   const developmentDarkPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW
     ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW)
     : null;
-  applyDockAppIcon({
-    app,
-    nativeImage,
+  applyDockIcon ??= createDockIconApplier({ app, nativeImage });
+  applyDockIcon({
     appIcon,
     developmentPreviewPath,
     developmentDarkPreviewPath,
     darkAppearance: nativeTheme.shouldUseDarkColors,
-  });
+  }, { force });
 }
 
 function developmentPreviewPath(environmentKey) {
@@ -1646,6 +1846,36 @@ const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
+// Dark websites (dark-websites-service.js). Stylesheet fetches use their own
+// in-memory session so no cookies, cache or credentials are shared.
+const darkWebsites = createDarkWebsitesService({
+  ipcMain,
+  nativeTheme,
+  settings,
+  getFetchSession: () => session.fromPartition('dark-websites-stylesheets'),
+  forEachTabContents: (fn) => { for (const tab of tabs.values()) fn(liveContents(tab)); },
+  // Ask the tab's own blocker, as if the page had requested the stylesheet,
+  // so a blocked tracker stylesheet is not fetched for Dark Reader instead.
+  // No tab or no provider yet fails closed.
+  allowStylesheet: async (wc, url) => {
+    const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+    const provider = tab ? blockingProviders?.effectiveForTab(tab) : null;
+    if (!provider) return false;
+    const pageUrl = wc.getURL();
+    const decision = await provider.decide('onBeforeRequest', {
+      id: `dark-websites-${++darkWebsitesStylesheetSeq}`,
+      url,
+      method: 'GET',
+      resourceType: 'stylesheet',
+      webContentsId: wc.id,
+      frame: wc.mainFrame,
+      referrer: pageUrl,
+      timestamp: Date.now(),
+    });
+    return !(decision?.cancel || decision?.redirectURL);
+  },
+});
+let darkWebsitesStylesheetSeq = 0;
 /**
  * @typedef {object} SleepSnapshot
  * @property {import('electron').WebContentsView|null} view
@@ -2228,7 +2458,9 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     const view = retained ? retainedView : createTabView(tab);
     tab.view = view;
     if (!retained) wireTabView(tab, view, { owner, adopted: false });
+    rootManagedExtensionView(tab);
     wc = view.webContents;
+    watchUblockPopupOutsideContents(tab);
     tabIdByWebContentsId.set(wc.id, id);
     wc.setAudioMuted(effectiveTabMuted(tab));
     wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -2370,6 +2602,40 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+
+/** Stop allowing (certificate spec §4.5): forget the active tab's origin in
+ *  its session, drop pooled connections, and reload so the warning returns.
+ *  Other entries and tabs keep their marks until their documents change. */
+function forgetActiveCertificateException() {
+  const tab = tabs.get(rt().activeTabId);
+  const wc = liveContents(tab);
+  const origin = tab?.documentCertificateException?.origin;
+  if (!wc || !origin) return false;
+  const forgotten = certificateExceptions.forget(wc.session, origin);
+  Promise.resolve(wc.session.closeAllConnections?.())
+    .catch(() => {})
+    .then(() => { if (!wc.isDestroyed()) wc.reload(); });
+  return forgotten;
+}
+
+/** The warning page's Continue (certificate spec §4.4). Takes only the
+ *  sender: the URL, error and certificate come from the tab's own main-held
+ *  failure record, and eligibility is checked again here. */
+function continueUnsafeForSender(wc) {
+  const tabId = tabIdByWebContentsId.get(wc?.id);
+  const tab = tabId ? tabs.get(tabId) : null;
+  const failure = tab?.certificateError;
+  if (!tab || liveContents(tab) !== wc || !failure) return { ok: false, error: 'no-certificate-error' };
+  const input = { url: failure.url, error: failure.error, certificate: failure.certificate };
+  const verifiedThisRun = certificateObserver.wasVerifiedThisRun(wc.session, failure.url);
+  if (!certificateExceptions.isEligible({ ...input, verifiedThisRun })) return { ok: false, error: 'not-eligible' };
+  certificateExceptions.allow(wc.session, { ...input, now: Date.now() });
+  queueTabNavigation(wc, {
+    isCurrent: () => tabs.get(tabId) === tab && liveContents(tab) === wc,
+    run: (contents) => contents.loadURL(failure.url),
+  });
+  return { ok: true };
+}
 /** webContents id -> the HTTP method of its last main-frame request. The only
  * place a method is observable is onBeforeSendHeaders, and it is needed at
  * did-navigate time. Deliberately not on the tab record: that record is an
@@ -2651,7 +2917,10 @@ function overlayBounds() {
     return calculateShieldBounds({
       windowWidth: rt().window.getContentBounds().width,
       stripHeight: rt().chromeHeight,
+      windowHeight: rt().window.getContentBounds().height,
       anchorRight: rt().shieldAnchorRight,
+      anchorCenter: rt().shieldAnchorCenter,
+      anchorBottom: rt().shieldAnchorBottom,
     });
   }
   if (rt().overlayMode === 'capture') {
@@ -2663,6 +2932,25 @@ function overlayBounds() {
     });
   }
   return layout.panelBounds;
+}
+
+function setShieldAnchor(anchor) {
+  const width = rt().window?.getContentBounds().width ?? 0;
+  const valid = Number.isFinite(anchor?.center) && anchor.center >= 0 && anchor.center <= width
+    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= rt().chromeHeight;
+  rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+  rt().shieldAnchorCenter = valid ? anchor.center : null;
+  rt().shieldAnchorBottom = valid ? anchor.bottom : null;
+}
+
+function syncShieldAnchor() {
+  if (rt().overlayMode !== 'shield' || !rt().overlayView) return;
+  const bounds = overlayBounds();
+  rt().overlayView.setBounds(bounds);
+  rt().overlayView.webContents.send('overlay:shield-anchor', {
+    x: Math.max(32, Math.min(bounds.width - 32, (rt().shieldAnchorCenter ?? bounds.x + bounds.width / 2) - bounds.x)),
+    connected: rt().shieldAnchorCenter !== null,
+  });
 }
 
 // --- Floating permission prompt (bottom-center, own view) ------------------
@@ -2700,6 +2988,14 @@ function ensurePermissionView() {
       rt().permissionView = null;
       rt().permissionViewAttached = false;
     }
+    // On Linux a hidden prompt stays window-owned (hideOverlayView); drop the
+    // dead view once its native destruction has returned.
+    setImmediate(() => {
+      const window = owner.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
   }));
   view.setBackgroundColor('#00000000');
   // Electron focuses a brand-new view when it is first attached, which would
@@ -2737,7 +3033,11 @@ function attachPermissionView() {
   if (!hasLiveWindow()) return;
   const view = ensurePermissionView();
   view.setBounds(permissionViewBounds());
-  rt().window.contentView.addChildView(view);
+  // Never detached between prompts on Linux: Electron 44 / Wayland stops a
+  // re-attached renderer drawing, so a later prompt showed the previous
+  // question while Allow/Block answered the new one (see #594).
+  view.setVisible(true);
+  showOverlayView(rt().window, view);
   rt().permissionViewAttached = true;
   cancelAddressBarFocusReclaim();
   // Deliberately not focused: the site chooses when this appears, and a
@@ -2748,7 +3048,7 @@ function detachPermissionView() {
   if (!rt().permissionViewAttached) return;
   rt().permissionViewAttached = false;
   if (hasLiveWindow() && rt().permissionView) {
-    rt().window.contentView.removeChildView(rt().permissionView);
+    hideOverlayView(rt().window, rt().permissionView);
   }
 }
 
@@ -2869,8 +3169,10 @@ function createOverlay() {
   const overlayWcId = overlay.webContents.id;
   overlay.webContents.on('render-process-gone', bindWindowRuntime(owner, (_event, details) => {
     diagnostics.recordRendererCrash('overlay', details);
+    resetOverlayDragState(owner);
   }));
   overlay.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    resetOverlayDragState(owner);
     windowRuntimes.unregisterChromeSurface(overlayWcId);
     if (rt().overlayView === overlay) rt().overlayView = null;
   }));
@@ -2890,6 +3192,7 @@ function createOverlay() {
         prefill: rt().overlayPrefill,
         purpose: rt().overlayPurpose,
       });
+      syncShieldAnchor();
       rt().overlayView.webContents.focus();
     }
   }));
@@ -2899,9 +3202,11 @@ function createOverlay() {
   // popover (or one of its editors) is open, forward Esc to the overlay so
   // it can cancel/close the popover first — the island stays up.
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    // An island drag owns Escape: let it reach the overlay to cancel the drag.
+    if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if (rt().workspaceSwitcherOpen && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
         return;
       }
@@ -2913,19 +3218,28 @@ function createOverlay() {
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
   rt().overlayView.webContents.on('blur', bindWindowRuntime(owner, () => {
-    // A native address-bar context menu takes OS focus; that blur is not a
-    // dismissal — the popup's close callback owns what happens next.
-    if (rt().addressMenuTicket) return;
-    // Playwright's Electron main-process evaluate calls steal focus from the
-    // guest view while the acceptance harness inspects it. Keep the real blur
-    // policy in production; tests dismiss explicitly between edit sessions.
-    if (acceptanceTestMode) return;
-    if (!rt().overlayMode || rt().overlayMode === 'find' || rt().overlayMode === 'display-share') return;
-    // A freshly attached blank tab's view can momentarily grab focus while
-    // its address-focus reclaim is still pending — that's not a dismissal;
-    // the reclaim will re-assert overlay focus on the next tick.
-    if (rt().activeTabId && rt().tabsWantingAddressBarFocus.has(rt().activeTabId)) return;
-    hideOverlay({ refocusContent: false });
+    // Native view removal emits blur while Chromium still holds its child
+    // iteration lock. Detaching here can CHECK-crash the whole browser.
+    if (isQuitting || owner.closing) return;
+    const generation = owner.surfaceGeneration;
+    setImmediate(bindWindowRuntime(owner, () => {
+      if (isQuitting || owner.closing || !hasLiveWindow() || owner.surfaceGeneration !== generation) return;
+      // A native address-bar context menu takes OS focus; that blur is not a
+      // dismissal — the popup's close callback owns what happens next.
+      if (rt().addressMenuTicket) return;
+      // Pointer capture during an island drag can move OS focus; not a dismissal.
+      if (overlayDragActive(rt())) return;
+      // Playwright's Electron main-process evaluate calls steal focus from the
+      // guest view while the acceptance harness inspects it. Keep the real blur
+      // policy in production; tests dismiss explicitly between edit sessions.
+      if (acceptanceTestMode) return;
+      if (!rt().overlayMode || rt().overlayMode === 'find' || rt().overlayMode === 'display-share') return;
+      // A freshly attached blank tab's view can momentarily grab focus while
+      // its address-focus reclaim is still pending — that's not a dismissal;
+      // the reclaim will re-assert overlay focus on the next tick.
+      if (rt().activeTabId && rt().tabsWantingAddressBarFocus.has(rt().activeTabId)) return;
+      hideOverlay({ refocusContent: false });
+    }));
   }));
 
   // The address menu and the tab-row menu share the overlay webContents and the
@@ -3003,6 +3317,7 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  closeUblockPopup(rt().id);
   if (rt().overlayMode === 'display-share'
       && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
     hideOverlay({ refocusContent: false, reason: 'cancel' });
@@ -3053,6 +3368,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
       height: rt().islandRect.height,
     },
   });
+  syncShieldAnchor();
   rt().overlayView.webContents.focus();
   rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
@@ -3072,6 +3388,7 @@ function openIslandTyping(char) {
 const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
+  resetOverlayDragState(rt());
   cancelAddressBarFocusReclaim();
   if (!rt().overlayMode) return;
   bumpSurfaceGeneration();
@@ -3086,6 +3403,8 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   }
   rt().workspaceSwitcherOpen = false;
   rt().shieldAnchorRight = null;
+  rt().shieldAnchorCenter = null;
+  rt().shieldAnchorBottom = null;
   rt().captureAnchorRight = null;
   rt().shieldPopoverHost = null;
   rt().shieldTrigger = null;
@@ -3166,10 +3485,16 @@ function broadcastStartPageUtilitySheetVisibility(runtime, visible) {
 // requested destination run.
 const utilitySheetNavigations = new WeakMap();
 
+// The sheet is attached, visible and focused before its document commits, and
+// its background is transparent. A load that never settles would leave an
+// invisible layer over the page that swallows every click (#548), so a
+// destination that has not finished loading by this deadline is discarded.
+const UTILITY_SHEET_LOAD_DEADLINE_MS = 8000;
+
 function utilitySheetNavigationState(view) {
   let state = utilitySheetNavigations.get(view);
   if (!state) {
-    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve() };
+    state = { generation: 0, settledGeneration: 0, runningGeneration: 0, tail: Promise.resolve(), deadline: null };
     utilitySheetNavigations.set(view, state);
   }
   return state;
@@ -3180,11 +3505,20 @@ function cancelUtilitySheetNavigation(view) {
   if (!state) return;
   state.generation += 1;
   state.settledGeneration = state.generation;
+  clearTimeout(state.deadline);
 }
 
 function scheduleUtilitySheetNavigation(runtime, sheet, url) {
   const state = utilitySheetNavigationState(sheet.view);
   const generation = ++state.generation;
+  clearTimeout(state.deadline);
+  state.deadline = setTimeout(() => {
+    if (
+      state.generation === generation &&
+      runtime.utilitySheetView === sheet.view &&
+      runtime.utilitySheetUrl === url
+    ) discardFailedUtilitySheet(runtime, sheet);
+  }, UTILITY_SHEET_LOAD_DEADLINE_MS);
   const navigate = async () => {
     if (
       state.generation !== generation ||
@@ -3202,7 +3536,10 @@ function scheduleUtilitySheetNavigation(runtime, sheet, url) {
     }
   };
   state.tail = state.tail.then(navigate, navigate).finally(() => {
-    if (state.generation === generation) state.settledGeneration = generation;
+    if (state.generation === generation) {
+      state.settledGeneration = generation;
+      clearTimeout(state.deadline);
+    }
   });
   return state.tail;
 }
@@ -3222,7 +3559,22 @@ function discardFailedUtilitySheet(runtime, sheet) {
   bindWindowRuntime(runtime, () => hideUtilitySheet())();
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
+  retireUtilitySheetView(runtime, sheet.view);
   if (!sheet.wc.isDestroyed()) sheet.wc.close();
+}
+
+// On Linux a closed sheet stays window-owned (hideOverlayView), so a sheet
+// view that is being thrown away must also leave the view tree — after its
+// native destruction has returned, never against a detached Aura hierarchy.
+function retireUtilitySheetView(runtime, view) {
+  const window = runtime.window;
+  const remove = () => setImmediate(() => {
+    if (window && !window.isDestroyed() && !liveViewContents(view) &&
+        window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+  });
+  const wc = liveViewContents(view);
+  if (wc) wc.once('destroyed', remove);
+  else remove();
 }
 
 function createUtilitySheet() {
@@ -3256,6 +3608,7 @@ function createUtilitySheet() {
     diagnostics.recordRendererCrash('utility-sheet', details);
     if (runtime.utilitySheetView !== view) return;
     hideUtilitySheet();
+    retireUtilitySheetView(runtime, view);
     if (!wc.isDestroyed()) wc.close();
     if (runtime.utilitySheetView === view) {
       runtime.utilitySheetView = null;
@@ -3346,8 +3699,11 @@ function showUtilityPage(url) {
   scheduleUtilitySheetNavigation(runtime, sheet, url);
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
+  // On Linux the sheet is never detached between opens (#594): Electron 44 /
+  // Wayland leaves a re-attached renderer hidden while it still takes focus
+  // and clicks — the same failure overlay-view-lifecycle.js guards against.
   sheet.view.setVisible(true);
-  runtime.window.contentView.addChildView(sheet.view);
+  showOverlayView(runtime.window, sheet.view);
   // A pending permission prompt must stay above the sheet — a buried prompt
   // has no visible Allow/Block until the sheet happens to be dismissed.
   bindWindowRuntime(runtime, restackPermissionView)();
@@ -3384,7 +3740,7 @@ function hideUtilitySheet({ refocusContent = true, discardTabHandoff = true } = 
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
   const sheet = liveUtilitySheet(runtime);
   if (hasLiveWindow() && sheet) {
-    runtime.window.contentView.removeChildView(sheet.view);
+    hideOverlayView(runtime.window, sheet.view);
     sheet.view.setVisible(false);
   }
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
@@ -3683,7 +4039,9 @@ function isHostnameExcepted(url) {
 }
 
 function serializeTabs() {
-  const { adblockEnabled } = settings.getSettings();
+  // Settings → General → Match site colors. Off keeps the strip on the
+  // theme background by projecting no site color at all.
+  const { adblockEnabled, islandSiteColors } = settings.getSettings();
   // Keep this projection self-contained: unit tests lift it without the rest
   // of Electron. The full byte/dimension validator already ran at every tab,
   // session, bookmark, and sync ingress; this final guard ensures only PNG
@@ -3717,8 +4075,8 @@ function serializeTabs() {
         // actually reach the speakers.
         audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
         groupId: tab.groupId,
-        pageBg: tab.pageBg,
-        themeColor: tab.themeColor,
+        pageBg: islandSiteColors ? tab.pageBg : null,
+        themeColor: islandSiteColors ? tab.themeColor : null,
         // The sole Quiet Tabs field chrome may see. Operational sleep state
         // and snapshots remain main-process-only.
         asleep: tab.asleep,
@@ -3742,6 +4100,8 @@ function serializeTabs() {
         blockedCount: rest.blockedCount,
         excepted,
         adblockEnabled,
+        provider: !tab.private && blockingProviders?.active === 'ublock-origin' ? 'ublock-origin' : 'blanc',
+        readiness: !tab.private ? blockingProviders?.status(tab.profileId).phase : 'ready',
       });
       // Derived exactly once, here. A quiet tab has no view, but it reached
       // quiet only after committing, so its stored URL is honest in that one
@@ -3761,6 +4121,7 @@ function serializeTabs() {
       const siteInfo = buildSiteInfo(targetUrl, {
         certificateRecord,
         certificateError: tab.certificateError,
+        certificateException: tab.documentCertificateException,
         blockedCount: rest.blockedCount,
       });
       if (rest.private && rest.favicon) {
@@ -3809,19 +4170,13 @@ function adblockWeekStats() {
 
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
-app.on('before-quit', () => {
-  forEachWindowRuntime((runtime) => {
-    if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
-      const existing = namedWorkspaces.get(runtime.workspaceId);
-      if (existing) namedWorkspaces.saveCapture(existing.id, workspaceCapture(runtime, { previousActiveIndex: existing.activeIndex }));
-    }
-    namedWorkspaces.flushPending();
-  });
-  isQuitting = true;
+const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
+  isQuitting = false;
   for (const runtime of windowRuntimes.all()) {
-    forgetTabImportForRuntime(runtime.id, 'cancel');
+    if (runtime.window && !runtime.window.isDestroyed()) { runtime.closing = false; runtime.window.show(); }
   }
-  onePasswordBroker?.stop();
+} });
+app.on('will-quit', () => {
   for (const snapshot of [...sleepSnapshots.values()]) {
     const wc = snapshot.view?.webContents;
     if (wc && !wc.isDestroyed()) wc.close();
@@ -3834,6 +4189,22 @@ app.on('before-quit', () => {
       entry.expiryTimer = null;
     }
   }
+  blockingProviders?.stop();
+  onePasswordBroker?.stop();
+});
+app.on('before-quit', () => {
+  forEachWindowRuntime((runtime) => {
+    if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
+      const existing = namedWorkspaces.get(runtime.workspaceId);
+      if (existing) namedWorkspaces.saveCapture(existing.id, workspaceCapture(runtime, { previousActiveIndex: existing.activeIndex }));
+    }
+    namedWorkspaces.flushPending();
+  });
+  isQuitting = true;
+  for (const runtime of windowRuntimes.all()) {
+    forgetTabImportForRuntime(runtime.id, 'cancel');
+  }
+
 });
 
 /** Builds one window's persistable session entry — the exact shape
@@ -4095,7 +4466,10 @@ function captureRowCount() {
 function activeShieldPopover(serialized = serializeTabs()) {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
-  return shieldPopoverModel({
+  const status = blockingProviders?.status(tab.profileId);
+  const controls = shieldProviderModel(status, tab.private);
+  const model = shieldPopoverModel({
+    provider: controls.active, readiness: tab.private ? 'ready' : status?.phase,
     url: tab.url,
     blockedCount: tab.blockedCount,
     excepted: isHostnameExcepted(tab.url),
@@ -4104,6 +4478,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
     // the popover and the active tab row cannot disagree within a broadcast.
     connection: activeConnection(serialized, rt().activeTabId),
   });
+  return model ? { ...model, controls, darkSite: darkWebsites.siteState(tab) } : null;
 }
 
 function currentTabsPayload() {
@@ -4132,6 +4507,10 @@ function currentTabsPayload() {
 }
 
 function broadcastTabs() {
+  blockingProviders?.refresh();
+  for (const [id, popup] of ublockPopups) {
+    if (popup.runtime.activeTabId !== popup.tabId || popup.runtime.window?.isDestroyed()) closeUblockPopup(id);
+  }
   if (tabStateBroadcastSuppressionDepth > 0) return;
   if (acceptanceTestMode) acceptanceTabStateBroadcastCount += 1;
   persistSession();
@@ -4174,6 +4553,7 @@ function resizeActiveView() {
   if (liveContents(tab)) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
   if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(glance.glance);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+  syncShieldAnchor();
   if (rt().permissionViewAttached && rt().permissionView) {
     rt().permissionView.setBounds(permissionViewBounds());
   }
@@ -4445,6 +4825,7 @@ function dominantColor(image) {
 function activePageTintTarget(runtime) {
   const window = runtime.window;
   if (runtime.closing || !window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return null;
+  if (!settings.getSettings().islandSiteColors) return null;
   const tab = tabs.get(runtime.activeTabId);
   const wc = liveContents(tab);
   if (!shouldSamplePageTint(tab) || !wc || wc.isLoading() || tab.view?.getVisible() !== true) return null;
@@ -4468,6 +4849,9 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
       || tab.url !== url || tab.navEpoch !== epoch) return false;
     if (color && color !== tab.pageBg) {
       tab.pageBg = color;
+      // A capture already in flight when Match site colors was turned off
+      // still records the sample, but must not repaint the strip.
+      if (!settings.getSettings().islandSiteColors) return false;
       // Color-only updates avoid rebuilding tabs and menus during a fade.
       owner.window.webContents.send('chrome:page-tint', { id: tab.id, color });
       return true;
@@ -4970,6 +5354,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
+      managedExtension: restorableUblockTool(url),
     }));
     pruneEmptyGroups();
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
@@ -5036,6 +5421,7 @@ function duplicateTab(id) {
   const activeIndex = snapshot ? snapshot.index : (history?.getActiveIndex() ?? 0);
   const newId = createTab(source.url, {
     allowLocalFile: source.localFile === true,
+    managedExtension: /^chrome-extension:/i.test(source.url) && !source.private && restorableUblockTool(source.url, source.profileId),
     private: source.private,
     openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
@@ -5085,9 +5471,31 @@ function noteWakeSuppressed(tab) {
   return !!tab?.waking;
 }
 /** Count an unmanaged popup against its opener until its webContents dies. */
-function notePopupChild(openerTabId, childWindow) {
+function noteUblockCreatedTarget(sourceContentsId, targetContentsId, url) {
+  const source = tabs.get(tabIdByWebContentsId.get(sourceContentsId)) ?? ublockAuxiliaryTabs.get(sourceContentsId);
+  const provider = blockingProviders?.forTab(source);
+  if (!provider || provider.status().phase !== 'ready') return;
+  const sourceTab = provider.registry.idForTab(provider.registry.fromContents(sourceContentsId));
+  const targetTab = provider.registry.idForTab(provider.registry.fromContents(targetContentsId));
+  if (!sourceTab || !targetTab) return;
+  provider.emit('webNavigation.onCreatedNavigationTarget', {
+    sourceTabId: sourceTab, sourceFrameId: -1, tabId: targetTab,
+    url, timeStamp: Date.now(),
+  });
+}
+function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
   if (!openerTabId || !childWindow) return;
   const owner = windowRuntimes.runtimeForTab(openerTabId) ?? rt();
+  const opener = tabs.get(openerTabId);
+  const child = childWindow.webContents;
+  if (opener && !opener.private && child.session === profileSessionRegistry?.normal(owner.profileId)) {
+    const record = { id: `ubo-auxiliary-${child.id}`, profileId: owner.profileId, private: false,
+      runtimeId: `ubo-auxiliary-${childWindow.id}`, auxiliary: childWindow, blockedCount: 0 };
+    ublockAuxiliaryTabs.set(child.id, record);
+    child.once('destroyed', () => { ublockAuxiliaryTabs.delete(child.id); blockingProviders?.refresh(); });
+    blockingProviders?.refresh();
+    noteUblockCreatedTarget(sourceContentsId ?? liveContents(opener)?.id, child.id, targetUrl || child.getURL());
+  }
   popupChildCounts.set(openerTabId, (popupChildCounts.get(openerTabId) ?? 0) + 1);
   childWindow.webContents.once('destroyed', bindWindowRuntime(owner, () => {
     const next = (popupChildCounts.get(openerTabId) ?? 1) - 1;
@@ -5100,6 +5508,41 @@ function notePopupChild(openerTabId, childWindow) {
 // Function declarations below are hoisted; every const this reads is already
 // initialized before this module-scope call.
 initTabView({
+  claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
+  noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
+  allowManagedExtensionNavigation: (tab, wc, url, source, event) => {
+    const provider = blockingProviders?.forTab(tab);
+    if (!provider?.extensionId || tab.private) return false;
+    const prefix = `chrome-extension://${provider.extensionId}/`;
+    if (wc.session !== profileSessionRegistry.normal(tab.profileId)) return false;
+    if (wc.getURL().startsWith(prefix) && url.startsWith(prefix) && source.startsWith(prefix)) return true;
+    if (event?.isMainFrame && restorableUblockTool(tab.url, tab.profileId) && ublockTool(url, provider.extensionId)) return true;
+    // Upstream's picker and DOM inspector are native web-accessible tool frames.
+    // Chrome still enforces its per-launch WAR secret and manifest allowlist.
+    return event?.isMainFrame === false && provider.status().phase === 'ready'
+      && settings.getSettings().adblockEnabled
+      && ['epicker-ui.html', 'dom-inspector.html'].some(name => url.startsWith(`${prefix}web_accessible_resources/${name}?`));
+  },
+  extensionContextItems: (tab, params) => {
+    const provider = blockingProviders?.forTab(tab);
+    if (!provider || provider.status().phase !== 'ready') return [];
+    if (provider.registry.idForTab(tab) === undefined) return [];
+    const projected = provider.registry.project(tab);
+    const contents = liveContents(tab); const generation = tab.navEpoch; const menuFrame = params.frame || contents?.mainFrame;
+    return [...provider.menus.values()].filter(item => require('./ublock-host-policy').contextMenuMatches(item, params)).map(item => ({
+      id: item.id, label: String(item.title || '').slice(0, 200),
+      click: () => {
+        if (!contents || liveContents(tab) !== contents || tab.navEpoch !== generation || heldWebContents.has(contents.id)
+          || !menuFrame || menuFrame.isDestroyed() || menuFrame.detached || !contents.mainFrame.framesInSubtree.includes(menuFrame)) return;
+        provider.emit('contextMenus.onClicked', {
+          menuItemId: item.id, pageUrl: params.pageURL, frameUrl: params.frameURL,
+          frameId: params.frame?.parent ? params.frame.frameTreeNodeId : 0,
+          linkUrl: params.linkURL, srcUrl: params.srcURL, selectionText: params.selectionText,
+          mediaType: params.mediaType,
+        }, projected);
+      },
+    }));
+  },
   tabs,
   windowRuntimes,
   bindWindowRuntime,
@@ -5167,14 +5610,17 @@ initTabView({
   recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
   sanitizeCertificate,
   certificateErrorQuery,
-  isStartupGateActive: () => startupNavigationGateActive,
+  certificateExceptions,
+  certificateObserver,
+  isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
   onMainFrameCommit,
   noteWakeSuppressed,
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+  if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
@@ -5225,6 +5671,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
     localFile: admittedLocalFile,
+    // Main-owned tool lifetime survives its temporary error URL during uBO reload.
+    managedExtension: managedExtension === true && !isPrivate,
     // Trusted Electron inheritance, kept in main memory for view recreation.
     // Neither this nor the initial referrer comes from tabs:create IPC.
     openerSandboxFlags,
@@ -5259,6 +5707,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     navEpoch: 0,
     // In-memory only: bounded details for the rejected top-level TLS load.
     certificateError: null,
+    // In-memory only (certificate spec §4.5): the request allowed past a
+    // local certificate warning, the committed document it produced, and the
+    // per-history-entry marks that let Back/Forward keep the warning.
+    pendingCertificateException: null,
+    documentCertificateException: null,
+    certificateEntryMarks: emptyEntryMarks(),
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
     asleep: bornQuiet,        // renderer discarded; tab.view is null
@@ -5297,9 +5751,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
+  blockingProviders?.refresh();
   // Adoption: the caller (reopenEntry) already removed the held firewall's
   // recorded listeners; wireTabView below re-installs the tab set.
   wireTabView(tab, view, { owner, adopted });
+  rootManagedExtensionView(tab);
+  watchUblockPopupOutsideContents(tab);
+  if (openerTabId) noteUblockCreatedTarget(liveContents(tabs.get(openerTabId))?.id, wc.id, url);
 
   if (adopting) {
     // The document predates this record (§3.3): re-attach chrome's listener
@@ -5364,15 +5822,46 @@ function setTabViewVisible(tab, visible) {
   }
 }
 
+// Native Aura focus restoration can run after a tool navigation, including a
+// uBO restore that reloads its background and dashboard. Keep those hidden
+// guests rooted on Windows/Linux for their whole lifetime, not just close().
+// This does not retain renderers beyond normal Quiet Tabs/closed-tab policy.
+const managedExtensionRoots = new WeakMap();
+function rootManagedExtensionView(tab) {
+  const wc = liveContents(tab);
+  const owner = rt();
+  if (process.platform === 'darwin' || isQuitting || owner.closing || !hasLiveWindow()
+      || !wc || !tab.managedExtension || tab.private || tabs.get(tab.id) !== tab
+      || windowRuntimes.runtimeForTab(tab.id) !== owner) return false;
+  const view = tab.view;
+  let root = managedExtensionRoots.get(view);
+  if (!root) {
+    root = { window: owner.window };
+    managedExtensionRoots.set(view, root);
+    // Independent of tab listeners: quiet/held teardown deliberately unwires
+    // those before destroying the contents. Remove after the native stack ends.
+    wc.once('destroyed', () => setImmediate(() => {
+      const window = root.window;
+      if (!window.isDestroyed() && !liveViewContents(view)
+          && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+      managedExtensionRoots.delete(view);
+    }));
+  } else root.window = owner.window;
+  if (owner.activeTabId !== tab.id && owner.glanceTabId !== tab.id) setTabViewVisible(tab, false);
+  if (!owner.window.contentView.children.includes(view)) owner.window.contentView.addChildView(view);
+  return true;
+}
+
 // Release native focus while the guest still belongs to the live window.
 // Avoid restoring focus against a detached Aura hierarchy during native
 // WebContents destruction (Windows/Linux).
-function detachTabView(tab) {
+function detachTabView(tab, { retainManagedRoot = false } = {}) {
   const wc = liveContents(tab);
   if (!wc || tabs.get(tab.id) !== tab || windowRuntimes.runtimeForTab(tab.id) !== rt() ||
       !hasLiveWindow()) return false;
   if (wc.isFocused()) rt().window.webContents.focus();
   setTabViewVisible(tab, false);
+  if (retainManagedRoot && rootManagedExtensionView(tab)) return true;
   rt().window.contentView.removeChildView(tab.view);
   return true;
 }
@@ -5481,7 +5970,7 @@ function setActiveTab(id, {
   cancelAddressBarFocusReclaim();
   if (liveContents(prev) && prev.id !== rt().glanceTabId) {
     // Explicit hiding also stops a detached document's foreground timers.
-    detachTabView(prev);
+    detachTabView(prev, { retainManagedRoot: true });
   }
 
   rt().activeTabId = id;
@@ -5496,6 +5985,7 @@ function setActiveTab(id, {
   }
   if (shouldFocusAddress) setTabViewVisible(next, false);
   rt().window.contentView.addChildView(next.view);
+  rootManagedExtensionView(next);
   const glanceTab = activeGlanceTab();
   if (glanceTab?.view) {
     setTabViewVisible(glanceTab, true);
@@ -5557,7 +6047,7 @@ async function setGlanceTab(id) {
   hideUtilitySheet({ refocusContent: false });
   const previous = activeGlanceTab();
   if (previous?.view && previous.id !== id) {
-    detachTabView(previous);
+    detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
   }
 
@@ -5584,7 +6074,7 @@ function closeGlance({ focusContent = true } = {}) {
   bumpSurfaceGeneration();
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
-    detachTabView(tab);
+    detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
   }
   resizeActiveView();
@@ -5996,6 +6486,7 @@ function reopenEntry(entry) {
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId,
     openerSandboxFlags: entry.openerSandboxFlags,
+    managedExtension: restorableUblockTool(entry.url),
   };
 
   if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
@@ -6011,7 +6502,7 @@ function reopenEntry(entry) {
     if (id) {
       heldWebContents.delete(wcId);
       const tab = tabs.get(id);
-      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled
+      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled, navEpoch, documentCertificateException, certificateEntryMarks
       finishReopen(id, entry);
       return;
     }
@@ -6052,15 +6543,36 @@ function reorderTab(id, toIndex) {
   scheduleMenuRebuild();
 }
 
-function reorderTabWithinBucket(id, beforeId) {
+function moveTabTo(id, target) {
   if (windowRuntimes.runtimeForTab(id) !== rt()) return false;
-  if (beforeId != null && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
-  // Renderer input is only a proposal. Main re-resolves both ids against its
-  // live model and rejects a stale/cross-group/cross-pin target.
-  const next = reorderWithinBucket(rt().tabOrder, tabs, id, beforeId);
+  const beforeId = target?.beforeId;
+  if (typeof beforeId === 'string' && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
+  // Renderer input is only a proposal. Main re-resolves every id against its
+  // live model; a stale/cross-window/pin-crossing target is rejected.
+  const result = resolveTabMove(rt().tabOrder, tabs, rt().groups, id, target);
+  if (!result) return false;
+  const tab = tabs.get(id);
+  const groupChanged = (tab.groupId ?? null) !== result.groupId;
+  const orderChanged = result.order.some((tabId, index) => rt().tabOrder[index] !== tabId);
+  if (!groupChanged && !orderChanged) return true;
+  rt().tabOrder = result.order;
+  if (groupChanged) {
+    // Same effect as Move to Group (setTabGroup): a group whose last tab
+    // left dissolves; the target keeps its collapsed state.
+    tab.groupId = result.groupId;
+    pruneEmptyGroups();
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return true;
+}
+
+function reorderGroupBefore(id, beforeGroupId) {
+  // rt().groups is per-window, so another window's group id simply fails.
+  const next = resolveGroupReorder(rt().groups, id, beforeGroupId);
   if (!next) return false;
-  if (next.some((tabId, index) => rt().tabOrder[index] !== tabId)) {
-    rt().tabOrder = next;
+  if (next.some((group, index) => rt().groups[index] !== group)) {
+    rt().groups = next;
     broadcastTabs();
     scheduleMenuRebuild();
   }
@@ -6499,6 +7011,7 @@ function activeSiteHostname(tab) {
  * both callers already reload asynchronously from the renderer's point of view.
  */
 function reloadTabAfterSettingsFanout(tab) {
+  if (liveContents(tab) && lastMainFrameMethod.get(liveContents(tab).id) === 'POST') return;
   if (!tab?.view) return;
   setImmediate(() => {
     // Re-read webContents inside the deferred turn: closing the tab in that
@@ -6506,7 +7019,8 @@ function reloadTabAfterSettingsFanout(tab) {
     // undefined — dereferencing it here threw an uncaught TypeError that
     // killed the main process. closeTab (see its own `if (wc && ...)` guard)
     // already treats this as nullable; this path did not.
-    liveContents(tab)?.reload();
+    const wc = liveContents(tab);
+    if (wc && lastMainFrameMethod.get(wc.id) !== 'POST') wc.reload();
   });
 }
 
@@ -6517,9 +7031,24 @@ function reloadTabAfterSettingsFanout(tab) {
  * already made or markup already rendered — without it the command looks inert
  * until the user reloads by hand.
  */
-function runBlockAdsCommand() {
+async function runBlockAdsCommand() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const current = settings.getSettings();
+  const provider = blockingProviders?.forTab(tab);
+  if (provider) {
+    if (provider.status().phase !== 'ready') {
+      settings.setSettings({ adblockEnabled: !current.adblockEnabled });
+      broadcastTabs(); return { provider: 'ublock-origin' };
+    }
+    const id = provider.registry.idForTab(tab);
+    const state = await provider.siteState(id);
+    if (!state.enabled) {
+      settings.setSettings({ adblockEnabled: true });
+      await provider.setSite(id, tab.url, true);
+    } else settings.setSettings({ adblockEnabled: !current.adblockEnabled });
+    reloadTabAfterSettingsFanout(tab); broadcastTabs();
+    return { provider: 'ublock-origin' };
+  }
   const result = resolveBlockAdsCommand({
     hostname: activeSiteHostname(tab),
     exceptions: current.adblockExceptions,
@@ -6544,11 +7073,31 @@ function runBlockAdsCommand() {
  * one isExcepted will find (and internal pages, which have no ads to allow, are
  * skipped rather than filed by scheme).
  */
-function runAllowAdsCommand() {
+async function runAllowAdsCommand() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
-  const hostname = activeSiteHostname(tab);
+  const provider = blockingProviders?.forTab(tab);
+  // Recovery also works from the internal error document shown on a failed
+  // navigation, without storing an exception for that document.
+  if ((provider || (!tab.private && blockingProviders?.active === 'ublock-origin'))
+    && (!provider || provider.status().phase !== 'ready')) {
+    openSettingsSection('blocking');
+    return { error: 'blocking-not-ready' };
+  }
+  // Check the model URL before contacting uBO: internal pages must never
+  // become trusted-site entries, even while a previous page is unloading.
+  const hostname = blockableHostname(tab.url);
   if (!hostname) return null;
+  if (provider) {
+    try {
+      const id = provider.registry.idForTab(tab);
+      await provider.setSite(id, tab.url, false);
+    } catch {
+      openSettingsSection('blocking');
+      return { error: 'blocking-site-change-failed' };
+    }
+    reloadTabAfterSettingsFanout(tab); broadcastTabs(); return hostname;
+  }
   const { adblockExceptions } = settings.getSettings();
   settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
   reloadTabAfterSettingsFanout(tab);
@@ -6559,6 +7108,7 @@ function runAllowAdsCommand() {
 }
 
 function registerIpcHandlers() {
+  darkWebsites.install();
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
@@ -6583,7 +7133,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:reopen-entry', (_e, entryId) => {
     // Renderer input is a proposal: main re-resolves the id against its own
-    // list; a stale or forged id is a no-op (the reorderTabWithinBucket rule).
+    // list; a stale or forged id is a no-op (the moveTabTo rule).
     const list = rt().closedEntries ?? [];
     const at = list.findIndex((entry) => entry.id === String(entryId));
     if (at === -1) return;
@@ -6651,9 +7201,11 @@ function registerIpcHandlers() {
     return liveContents(tab)?.reload();
   });
   chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
-  chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
-  chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
-    reorderTabWithinBucket(id, beforeId));
+  chromeHandle('tabs:move', (_e, id, target) => moveTabTo(id, target));
+  chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
+  chromeOn('overlay:drag-state', (event, active) => {
+    acceptOverlayDragState(rt(), event.sender, active);
+  });
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
   chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
@@ -6687,9 +7239,18 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
-  chromeOn('chrome:island-rect', (_e, rect) => {
+  chromeOn('chrome:island-rect', (event, rect) => {
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
-    rt().islandRect = ok && rect.width > 0 ? rect : null;
+    rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+    const popup = ublockPopups.get(rt().id);
+    if (popup && event.sender === rt().window?.webContents && rect?.shieldAnchor?.trigger === 'shield') {
+      popup.anchor = rect.shieldAnchor; layoutUblockPopup(popup);
+    }
+    if (event.sender === rt().window?.webContents && rt().overlayMode === 'shield'
+        && rect?.shieldAnchor?.trigger === rt().shieldTrigger) {
+      setShieldAnchor(rect.shieldAnchor);
+      syncShieldAnchor();
+    }
   });
 
   chromeOn('chrome:layout', (_e, { height }) => {
@@ -6712,25 +7273,53 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
+    closeUblockPopup(rt().id);
     if (rt().overlayMode === 'shield') {
       // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
       // closing there would read as the second button being broken.
       if (trigger === rt().shieldTrigger) return hideOverlay({ refocusContent: false });
-      rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+      setShieldAnchor(anchor);
       rt().shieldTrigger = trigger;
       // The bounds must move NOW: updating stored state alone would pass a
       // state assertion while leaving the card visually where it was.
-      rt().overlayView.setBounds(overlayBounds());
+      syncShieldAnchor();
       rt().window.webContents.send('chrome:island-state', { mode: 'shield', trigger });
       return;
     }
     const popover = activeShieldPopover();
     if (!popover) return; // no blockable host — nothing to show
     rt().shieldPopoverHost = popover.host;
-    rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    setShieldAnchor(anchor);
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
+  });
+  chromeHandle('chrome:blocking-provider', async (_event, provider, restart = false) => {
+    const tab = tabs.get(rt().activeTabId);
+    const status = blockingProviders?.status(rt().profileId);
+    if (isQuitting || typeof restart !== 'boolean' || rt().overlayMode !== 'shield' || !tab || tab.private || !status) return false;
+    if (provider !== 'blanc' && provider !== 'ublock-origin') return false;
+    if (provider === 'ublock-origin' && !status.supported) return false;
+    const previous = settings.getSettings().adblockProvider;
+    settings.setSettings({ adblockProvider: provider });
+    if (!settings.flushSettings()) {
+      settings.setSettings({ adblockProvider: previous });
+      broadcastTabs();
+      return false;
+    }
+    broadcastTabs();
+    if (restart && provider !== status.active) return restartApp();
+    return true;
+  });
+  chromeHandle('chrome:blocking-popup', async () => {
+    const tab = tabs.get(rt().activeTabId);
+    if (rt().overlayMode !== 'shield' || !tab || tab.private) return false;
+    const provider = blockingProviders?.forTab(tab);
+    if (provider?.status().phase !== 'ready') return false;
+    const anchor = { right: rt().shieldAnchorRight, center: rt().shieldAnchorCenter, bottom: rt().shieldAnchorBottom };
+    hideOverlay({ refocusContent: false });
+    await openUblockPopup(anchor);
+    return true;
   });
   chromeOn('chrome:open-capture', (_e, anchor) => {
     if (rt().overlayMode === 'capture') return hideOverlay({ refocusContent: false }); // re-click toggles
@@ -6927,6 +7516,14 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
+  chromeHandle('chrome:dark-site-active', () => {
+    const result = darkWebsites.runDarkSiteCommand(rt().activeTabId ? tabs.get(rt().activeTabId) : null);
+    // A private tab's choice changes no setting, so refresh the shield
+    // popover's Dark website switch here.
+    if (result) broadcastTabs();
+    return result;
+  });
+  chromeHandle('chrome:site-info-forget-certificate-exception', () => forgetActiveCertificateException());
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -7108,6 +7705,7 @@ const SLASH_COMMANDS = [
   ['/find', 'Find in page'],
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
+  ['/dark-site', 'Darken this site, or leave it as drawn'],
   ['/1password', 'Fill a login from 1Password'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
@@ -7585,6 +8183,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   });
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    // The macOS primary runtime survives close for Dock reopen; the drag flag
+    // must not outlive the window it was set in.
+    resetOverlayDragState(runtime);
     runtime.pageTintController?.dispose();
     runtime.pageTintController = null;
     // macOS retains detached start pages for Dock reopen. Notify them after
@@ -7981,9 +8582,24 @@ async function destroyProfileWindow(runtime) {
   // destroyed". Settle visibility first, then perform the intentional forced
   // close that prevents a tab's beforeunload handler retaining deleted data.
   if (window.isVisible()) {
-    await new Promise((resolve) => {
-      window.once('hide', resolve);
+    await new Promise((resolve, reject) => {
+      let timer;
+      let settled = false;
+      const hidden = () => {
+        if (settled) return;
+        settled = true; clearTimeout(timer); window.removeListener('hide', hidden); setImmediate(resolve);
+      };
+      window.once('hide', hidden);
       window.hide();
+      // Official Electron can update native visibility without emitting hide
+      // for a window already occluded by another application/window.
+      // On macOS wait for the actual hide event: isVisible may flip before
+      // Electron's deferred visibility listener has consumed that event.
+      if (process.platform !== 'darwin' && !window.isVisible()) hidden();
+      else if (!settled) timer = setTimeout(() => {
+        window.removeListener('hide', hidden);
+        reject(new Error('Profile window could not be hidden safely.'));
+      }, 2000);
     });
   }
   if (window.isDestroyed()) return;
@@ -8000,6 +8616,16 @@ async function destroyProfileWindow(runtime) {
 
 async function clearNamedProfileSessions(profileId) {
   const owned = profileSessionRegistry.forProfile(profileId);
+  // OAuth children can outlive their opener and are absent from the normal
+  // runtime list. Close every remaining native window on these exact sessions
+  // before detaching filtering or erasing the deleted profile's cookie jar.
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed() && [owned.normal, owned.private].includes(window.webContents.session)) await destroyProfileWindow({ window });
+  }
+  profileNavigationGates.forget(profileId);
+  certificateExceptions.clear(owned.normal);
+  certificateExceptions.clear(owned.private);
+  await blockingProviders?.dispose(profileId, owned);
   await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
     browsingSession.clearStorageData(),
     browsingSession.clearCache(),
@@ -8058,7 +8684,9 @@ async function completeNamedProfileDeletion(profileId, {
   try {
     discardProfileDownloads(profileId);
     namedWorkspaces.disposeProfile(profileId);
-    discardProfileStoreEntries(profileId);
+    // Wait for in-flight routine saves to close their files first: an open
+    // temp file would make the recursive delete fail on Windows.
+    await discardProfileStoreEntries(profileId);
     fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
   } catch (error) {
     errors.push(error);
@@ -8275,6 +8903,9 @@ function broadcastWebrtcAudioBufferToBrowsingContents() {
 // every settings write, and clearing the cache mid-session isn't free.
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
+// Same idea for Match site colors: re-project strips only on a real change.
+let lastIslandSiteColors = null;
+let lastDarkWebsitesKey = null;
 let displayCaptureRegistry = null;
 let displayCaptureBroker = null;
 let displayCapturePicker = null;
@@ -8294,8 +8925,89 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
+  blockingProviders = createBlockingProviders({
+    settings,
+    hooks: {
+      startupStatus: () => adblockStartupState,
+      closePopup: (profileId) => {
+        for (const [runtimeId, popup] of ublockPopups) if (popup.runtime.profileId === profileId) closeUblockPopup(runtimeId);
+      },
+      listTabs: () => [...tabs.values(), ...ublockAuxiliaryTabs.values()],
+      listWindows: () => [...windowRuntimes.all(), ...[...ublockAuxiliaryTabs.values()].map(tab => ({
+        id: tab.runtimeId, profileId: tab.profileId, window: tab.auxiliary,
+        tabOrder: [tab.id], activeTabId: tab.id,
+      }))],
+      liveContents: tab => tab.auxiliary && !tab.auxiliary.isDestroyed() ? tab.auxiliary.webContents : liveContents(tab),
+      isHeld: (wc) => heldWebContents.has(wc.id)
+        || runtimeForPageWebContents(wc)?.resident === true,
+      methodFor: (wc) => lastMainFrameMethod.get(wc.id),
+      // Reload a page uBO's outage cancelled, revalidating right before the
+      // load and again when the queued navigation actually runs (spec §3).
+      reloadAfterOutage: ({ webContentsId, token }) => {
+        const wc = webContents.fromId(webContentsId);
+        const tab = wc && tabs.get(tabIdByWebContentsId.get(wc.id));
+        const target = () => (tab && !wc.isDestroyed() && !tab.private && !tab.sleeping
+          && !heldWebContents.has(wc.id) && liveContents(tab) === wc
+          ? outageReloadTarget(wc.getURL(), token) : null);
+        const url = target();
+        if (!url) return;
+        queueTabNavigation(wc, { isCurrent: () => target() === url, run: contents => contents.loadURL(url) });
+      },
+      createTab: async (runtime, url, options) => withWindowRuntime(runtime, () => {
+        const id = createTab(url, { managedExtension: /^chrome-extension:/.test(url) });
+        if (options.active !== false) setActiveTab(id);
+        return tabs.get(id);
+      }),
+      updateTab: async (tab, options) => withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), async () => {
+        if (tab.auxiliary) {
+          if (options.active) tab.auxiliary.focus();
+          if (typeof options.url === 'string') tab.auxiliary.webContents.loadURL(options.url).catch(() => {});
+          return;
+        }
+        if (typeof options.url === 'string' && tab.asleep) await wakeTab(tab.id, { navigateTo: options.url });
+        else if (typeof options.url === 'string') liveContents(tab)?.loadURL(options.url).catch(() => {});
+        if (options.active) setActiveTab(tab.id);
+      }),
+      closeTab: async (tab) => tab.auxiliary ? tab.auxiliary.close()
+        : withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => closeTab(tab.id)),
+      moveTab: async (tab, options) => withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), () => {
+        if (tab.auxiliary) throw new Error('ubo-move-auxiliary-unavailable');
+        const runtime = rt();
+        if (options.windowId !== undefined && options.windowId !== runtime.window?.id) throw new Error('ubo-move-window-unavailable');
+        const from = runtime.tabOrder.indexOf(tab.id);
+        runtime.tabOrder.splice(from, 1);
+        runtime.tabOrder.splice(Math.max(0, Math.min(options.index ?? from, runtime.tabOrder.length)), 0, tab.id);
+        broadcastTabs();
+      }),
+      openTool: async (profileId, url) => {
+        const provider = blockingProviders?.forTab({ private: false, profileId });
+        const tool = ublockTool(url, provider?.extensionId);
+        const owners = windowRuntimes.all().filter(runtime => runtime.profileId === profileId && runtime.window && !runtime.window.isDestroyed());
+        const owner = owners.find(runtime => runtime.window.isFocused()) ?? owners.at(-1);
+        if (!tool || !owner) return null;
+        const opened = withWindowRuntime(owner, () => openUblockTool(tool, url));
+        return opened ? [...tabs.values()].find(tab => !tab.private && tab.profileId === profileId && ublockTool(tab.url, provider.extensionId) === tool) : null;
+      },
+      createWindow: async (profileId) => {
+        openNewWindow({ profileId });
+        return windowRuntimes.all().filter(runtime => runtime.profileId === profileId).at(-1);
+      },
+    },
+    onStateChange: () => {
+      profileNavigationGates.reconcile();
+      forEachWindowRuntime(() => {
+        liveUtilitySheet(rt())?.wc.send('pages:blocking:status', blockingProviders?.status(rt().profileId));
+        if (rt().window && !rt().window.isDestroyed()) broadcastTabs();
+      }, { liveOnly: true });
+    },
+    onBlocked: (tab) => {
+      if (!tab || tab.private) return;
+      tab.blockedCount += 1;
+      if (!tab.auxiliary) withWindowRuntime(windowRuntimes.runtimeForTab(tab.id), scheduleBroadcastTabs);
+    },
+  });
   for (const browsingSession of browsingSessions) {
-    installBeforeRequestPolicy(browsingSession);
+    installRequestCoordinator(browsingSession);
     certificateObserver.observe(browsingSession);
   }
   const chromeSes = session.fromPartition(CHROME_PARTITION);
@@ -8319,6 +9031,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (sync.status().enabled && !settings.getSettings().syncMigrationCompleted) {
     settings.setSettings({ syncMigrationCompleted: true });
   }
+  // Baseline for the settings fan-out's Match site colors re-projection.
+  lastIslandSiteColors = settings.getSettings().islandSiteColors;
+  lastDarkWebsitesKey = JSON.stringify([
+    settings.getSettings().darkWebsites,
+    settings.getSettings().darkWebsitesExceptions,
+  ]);
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
   // including the private-browsing session, so private tabs inherit it by
@@ -8348,6 +9066,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // child depending on the relying site, so the Chrome compatibility surface
   // must cover both paths.
   const installSessionPreloads = (targetSessions) => {
+    const { scopedCapturePreload } = require('./scoped-session-preload');
+    const capturePath = `src/main/${CAPTURE_RUNTIME.preload}`;
+    const capturePreload = scopedCapturePreload({
+      sourceRoot: app.getAppPath(), relativePath: capturePath,
+      pin: require('./capture-runtime-lock.json').files[capturePath],
+    });
     for (const browsingSession of targetSessions) {
       browsingSession.registerPreloadScript({
         type: 'frame',
@@ -8357,12 +9081,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'webrtc-audio-buffer-preload.js'),
       });
+      // Generated by dark-reader/build.mjs; does nothing unless main says to
+      // darken the page (dark-websites-service.js).
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'dark-websites-preload.js'),
+      });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
       // stay unconfirmable and fail toward stuck-on, never silently-off.
       browsingSession.registerPreloadScript({
         type: 'frame',
-        filePath: path.join(__dirname, CAPTURE_RUNTIME.preload),
+        filePath: capturePreload,
       });
       installBadgeApiPolicy(
         browsingSession,
@@ -8398,7 +9128,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     installClientHintFallback = (targetSessions) => {
       for (const browsingSession of targetSessions) {
-        browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+        blockingCoordinator.setBeforeSendHeaders(browsingSession, (details) => {
         // Compose with the Client Hints handler rather than registering a
         // second listener: Electron allows one listener per webRequest event.
         // A POST result is not safely refetchable, so retain the method until
@@ -8419,7 +9149,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         setHeader(h, 'sec-ch-ua-model', '""');
         setHeader(h, 'sec-ch-ua-mobile', '?0');
         setHeader(h, 'sec-ch-ua-wow64', '?0');
-        callback({ requestHeaders: h });
+        return { requestHeaders: h };
         });
       }
     };
@@ -8433,7 +9163,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // native window is realized. Reapply Blanc's selected flat icon afterward
   // so the development Dock tile matches Settings from the first launch.
   if (process.platform === 'darwin' && !app.isPackaged) {
-    app.once('browser-window-created', applyAppIcon);
+    app.once('browser-window-created', () => applyAppIcon({ force: true }));
   }
   dockMenuHandle = installDockMenu({
     app, Menu, nativeImage,
@@ -8761,8 +9491,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     private: true,
     profileId: DEFAULT_PROFILE_ID,
   });
-  let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
-  let adblockStartupController = null;
+  const blockingRecovery = createBlockingRecovery({
+    startup: () => adblockStartupController, providers: () => blockingProviders,
+  });
   let adblockEngineReady = false;
   let releaseStartup = async () => {};
   let chooseSessionRecovery = async () => ({ ok: false, error: 'not-ready' });
@@ -8829,6 +9560,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    blocking: {
+      status: () => blockingProviders.status(rt().profileId),
+      retry: () => blockingRecovery.retry(),
+      open: (tool) => openUblockTool(tool),
+    },
     sessions: browsingSessions,
     developmentBrandMarkPath,
     developmentDockIconPath,
@@ -8861,13 +9597,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         rt().utilitySheetEscapeArmed = !!armed;
       },
     },
+    errorPage: { continueUnsafe: continueUnsafeForSender },
     pageSurfaces: {
       owns: (host, wc) => {
         const runtime = runtimeForPageWebContents(wc);
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab' && host !== 'mahjong') return false;
+          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });
@@ -9030,7 +9767,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
     for (const targetSession of targetSessions) {
-      installBeforeRequestPolicy(targetSession);
+      installRequestCoordinator(targetSession);
       certificateObserver.observe(targetSession);
     }
     pagesRegistration.addSessions(targetSessions);
@@ -9065,11 +9802,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
     });
     if (adblockEngineReady) {
-      for (const targetSession of targetSessions) {
-        attachAdBlockerToSession(targetSession, {
-          enabled: settings.getSettings().adblockEnabled,
-        });
-      }
+      if (blockingProviders.active === 'ublock-origin') profileNavigationGates.hold(owned.profileId, owned.normal);
+      blockingProviders.attach(owned.profileId, owned).then(() => profileNavigationGates.reconcile(), () => {});
     }
     configuredProfileSessions.add(owned.profileId);
     return owned;
@@ -9081,6 +9815,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      continueUnsafeForSender,
+      forgetActiveCertificateException,
+      certificateExceptions,
+      blockingStatus: () => blockingProviders.status(rt().profileId),
+      blockingMapping: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.registry.mapping() ?? [],
+      blockingOpen: openUblockTool,
+      blockingRetry: () => blockingProviders.retry(),
+      blockingExhaustRecovery: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.exhaustRecoveryForTest?.(),
+      blockingStallAfterNextDecision: (ms, options) => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.stallAfterNextDecisionForTest?.(ms, options),
+      blockingDecisionDeadline: () => blockingProviders.forTab({ private: false, profileId: rt().profileId })?.decisionDeadlineMs?.() ?? null,
+      blockingPopup: openUblockPopup,
       // Playwright calls globalThis.__blanc.* from OUTSIDE any ALS context
       // (electronApp.evaluate() reaches straight into the main process) —
       // test-hook.js wraps every installed method with this at install time.
@@ -9099,7 +9844,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, closeGroup, newTabUrl,
+      groupTabByName, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      closeGroup, newTabUrl,
+      getOverlayDragging: () => overlayDragActive(rt()),
+      selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
       workspaceTestAction(action, args = []) {
@@ -9109,7 +9857,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'create') return createBlankWorkspaceAndSwitch(rt(), args[0], args[1]);
         if (action === 'fail-session-commit') {
           const original = fs.renameSync; let writes = 0;
-          fs.renameSync = (from, to) => { if (String(to).endsWith('/session.json') && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
+          fs.renameSync = (from, to) => { if (path.basename(String(to)) === 'session.json' && ++writes === 2) throw Object.assign(new Error('fixture ENOSPC'), { code: 'ENOSPC' }); return original(from, to); };
           try { return createBlankWorkspaceAndSwitch(rt(), args[0]); }
           finally { fs.renameSync = original; }
         }
@@ -9364,11 +10112,30 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         }
       }
     }
-    setAdBlockEnabled(s.adblockEnabled);
+    blockingProviders.setEnabled(s.adblockEnabled);
+    blockingRecovery.continueIfDisabled(s.adblockEnabled).catch(() => {
+      console.warn('[blocking] startup continuation failed');
+    });
     applyTheme();
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
+    const nextDarkWebsitesKey = JSON.stringify([s.darkWebsites, s.darkWebsitesExceptions]);
+    if (nextDarkWebsitesKey !== lastDarkWebsitesKey) {
+      lastDarkWebsitesKey = nextDarkWebsitesKey;
+      darkWebsites.broadcast();
+      forEachWindowRuntime(() => broadcastTabs(), { liveOnly: true });
+    }
+    if (s.islandSiteColors !== lastIslandSiteColors) {
+      lastIslandSiteColors = s.islandSiteColors;
+      // Re-project every window's strip; turning colors back on resamples
+      // the active page because samples were skipped while it was off.
+      forEachWindowRuntime((runtime) => {
+        broadcastTabs();
+        const active = runtime.activeTabId != null ? tabs.get(runtime.activeTabId) : null;
+        if (s.islandSiteColors && active) scheduleSampleTint(active);
+      }, { liveOnly: true });
+    }
     // setPatron() uses this same fan-out after activation and each scheduled
     // subscription validation. Re-project the derived entitlement so an open
     // Workspaces popover hides or restores creation controls immediately;
@@ -9509,7 +10276,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
-    !acceptanceTestMode && settings.getSettings().adblockEnabled;
+    (!acceptanceTestMode || ublockTestMode) && settings.getSettings().adblockEnabled;
   const navigationGateRequested = blockingRequested || recoveryRequired;
   // Materialize every restored profile's session pair before the temporary
   // navigation gate is installed; a named workspace must never race startup
@@ -9711,6 +10478,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
           allowLocalFile: saved.localFiles?.[index] === true,
+          managedExtension: restorableUblockTool(url),
         }));
         pruneEmptyGroups();
         // This window's tabs now exist, so it's safe to check whether the
@@ -9804,16 +10572,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     });
   };
 
-  const attachAdblockToAllProfileSessions = () => {
+  const attachAdblockToAllProfileSessions = async () => {
     adblockEngineReady = true;
-    for (const browsingSession of profileSessionRegistry.all()) {
-      attachAdBlockerToSession(browsingSession, {
-        enabled: settings.getSettings().adblockEnabled,
-      });
-    }
+    await blockingProviders.attachAll(configuredProfileSessions, id => profileSessionRegistry.forProfile(id));
   };
 
-  if (acceptanceTestMode) {
+  if (acceptanceTestMode && !ublockTestMode) {
     adblockStartupState = { phase: 'skipped', attempt: 0, error: null };
     broadcastStartPageStatus();
     await releaseStartup({ blocking: false, preservePreference: true });
@@ -9823,9 +10587,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     await releaseStartup({ blocking: false, preservePreference: true });
     // Keep the engine warm so enabling the setting later in this run works,
     // but never hold browsing for a feature the user turned off.
-    setupAdBlocker(ses, { enabled: false }).then(() => {
-      attachAdblockToAllProfileSessions();
-      setAdBlockEnabled(settings.getSettings().adblockEnabled);
+    setupAdBlocker(privateSes, { enabled: false }).then(async () => {
+      await attachAdblockToAllProfileSessions();
+      blockingProviders.setEnabled(settings.getSettings().adblockEnabled);
     }).catch((err) => {
       console.warn('[adblock] background initialization failed:', err.message);
     });
@@ -9839,14 +10603,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           packagedAdblockInitializationFailuresRemaining -= 1;
           throw new Error('packaged smoke: simulated first initialization failure');
         }
-        await setupAdBlocker(ses, {
+        await setupAdBlocker(privateSes, {
           enabled: settings.getSettings().adblockEnabled,
         });
-        attachAdblockToAllProfileSessions();
+        await attachAdblockToAllProfileSessions();
       },
       onStateChange: (state) => {
         adblockStartupState = state;
         broadcastStartPageStatus();
+        blockingProviders.notify();
         if (state.phase === 'failed') {
           for (const runtime of startupRuntimes) {
             const startupTabId = startupTabIds.get(runtime.id);

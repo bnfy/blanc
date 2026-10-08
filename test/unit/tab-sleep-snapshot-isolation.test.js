@@ -15,6 +15,7 @@ test('serializeTabs is still liftable from main.js', () => {
 
 function serialize(tabList) {
   const sandbox = {
+    blockingProviders: null,
     settings: { getSettings: () => ({ adblockEnabled: true }) },
     rt: () => ({ tabOrder: tabList.map((tab) => tab.id) }),
     tabs: new Map(tabList.map((tab) => [tab.id, tab])),

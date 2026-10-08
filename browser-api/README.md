@@ -1,0 +1,354 @@
+# browserAPI contract (Phase 0 bridge contract)
+
+One source of truth for `window.browserAPI`, the bridge that Blanc's trusted
+chrome documents (the strip, the overlay and the permission prompt) use to talk
+to the main process. It is Phase 0 of the platform evaluation in
+[`docs/platform-migration-electron-to-chromium-2026-10-04.md`](../docs/platform-migration-electron-to-chromium-2026-10-04.md):
+the Island should depend on a Blanc-owned contract, not on Electron IPC details.
+It is useful on Electron today, whatever is decided about the migration, and it
+involves no fork work.
+
+## Files
+
+```
+browser-api/
+  contract.json      the source of truth — edit HERE
+  build.mjs          generator + drift checker
+  bridges.json       the source of truth for window.bowserPages and window.blancFillStatus
+  bridges.mjs        their checker and generator, run by build.mjs
+  vectors.mjs        test vector generator and replay
+  generated/
+    browser-api.d.ts   TypeScript declarations for window.browserAPI
+    browser-api.md     a reference table of every member
+    pages-api.d.ts     declarations for bowserPages (one interface per host) and blancFillStatus
+    pages-api.md       a reference table of both
+    vectors.json       test vectors for window.browserAPI (see below)
+```
+
+## Commands
+
+```bash
+npm run browser-api:build   # regenerate browser-api/generated/* from contract.json
+npm run browser-api:check   # verify the desktop matches the contract. Exit 1 on drift.
+```
+
+`browser-api:check` runs in `substrate:check` and in the Parity guards workflow.
+
+## What the check verifies
+
+Unlike the regex-based checkers in `tokens/`, `settings-schema/` and `copy/`,
+the preload is **executed** in a `vm` sandbox against a recording
+`ipcRenderer`, once per platform (`darwin`, `win32`, `linux`). For every member
+it confirms:
+
+- **Exposure:** the preload exposes exactly the contract's members, no more and
+  no fewer, and platform-limited members (`fillLoginFromOnePassword`) appear only
+  on their platforms.
+- **Trusted documents:** `browserAPI` is exposed to each listed surface and
+  withheld from other documents (`blanc-chrome://fill-status/`, `blanc://` pages,
+  web pages, a trusted URL with a query string).
+- **IPC shape:** each call uses the contract's kind (`invoke` or `send`) and
+  channel, and sends the contract's arguments, including object payloads such as
+  `{ id, allow }`, boolean coercion, and parameter defaults. `invoke` members
+  return the `ipcRenderer.invoke` promise.
+- **Events:** each subscription listens on its channel, forwards exactly the
+  payload (or nothing), and returns an unsubscribe that removes the same
+  listener.
+- **Main:** every channel still appears in `src/main` outside the preload. This
+  is a presence check, so it catches a deleted handler or sender, not a changed
+  signature.
+- **Renderers:** every `browserAPI.<name>` reference in `src/renderer/*.js` is a
+  contract member.
+- **Payloads:** event payloads and invoke results are pinned field by field
+  (see below).
+- **Parameters:** object parameters are checked from both ends: what the
+  renderers send and what main reads (see below).
+- **Generated files** are current.
+
+`test/unit/browser-api-contract.test.js` changes the preload and the contract in
+nine deliberate ways (renamed channel, reshaped payload, dropped coercion,
+changed default, extra trusted document, leaked platform gate, leaked listener,
+missing member, unknown type) and requires each to be reported. It also edits
+`main.js` payload literals (a new tab field, a dropped payload field, a changed
+capture row, an unknown spread, extra or missing event fields, an unreadable
+send argument, a void handler returning a value, a boolean handler that can
+fall through, a drifting returned object, a new workspace error code or
+protection reason, a drifting handler-table result, a try block that can fall
+through, a returned literal outside its union, a drifting returned local, a
+drifting or falling-through 1Password fill result) and narrows contract enums
+and list types, and requires those to be reported too. Renderer and main edits
+to object parameters (an extra or missing field sent, a field sent through a
+helper's call sites, an unreadable argument, an undeclared field read directly,
+nested or in a forwarded module, a type that drifts from Electron's options)
+must be reported as well.
+
+## Pinned payloads
+
+Structured types use `fields` instead of a `ts` string; the generator turns them
+into interfaces. `TabsUpdatedPayload` and `TabsSnapshot` are fully pinned, down
+to the tab entry (`TabEntry`) and everything nested in it. The check proves
+these shapes two ways, because the payload is assembled from two kinds of code:
+
+- **Pure helper modules** (`shield-model.js`, `site-security.js`,
+  `closed-tabs.js`, `display-capture-indicator.js`, `capture-state.js`) are
+  executed on about 700 fixtures covering every branch: all chip modes, popover
+  variants, provider labels and site-info states. Each result is validated
+  strictly against the contract: required fields present, no extra fields, and
+  literal values within their unions.
+- **Inline literals in `main.js`** (`serializeTabs`, `currentTabsPayload`, the
+  `tabs:get-all` handler and `captureBroadcastState`) are read from source and
+  their keys compared with the contract's fields, including known spreads. An
+  unrecognized spread fails the check, so a new one has to be taught to
+  `build.mjs` before it can pass.
+
+Field *values* produced inside `main.js` itself (titles, URLs, flags) are typed
+from the tab record's JSDoc and initial values; they are not executed.
+
+### Event send sites
+
+Every other event with a structured payload is checked where it is sent. For
+each `send('<channel>', …)` in `src/main` (outside the preload and the test
+hook), the payload's keys must be fields of the contract type, and every
+required field must be present. The payload may be an object literal, a local
+variable bound to one, or a call to a function that returns one. A replay of a
+stored `….payload` is accepted only when another send site for the channel was
+checked. Anything else fails, so a new send site has to be readable or the
+member marked:
+
+- `"payloadCheck": "fixtures"`: proven by executing a pure helper on fixtures
+  instead (`onGlanceLayout`, via `calculateGlanceLayout()`).
+- `"payloadCheck": "custom"`: proven by a dedicated check (`onTabsUpdated`).
+
+Events whose payload is a plain string, number or string union
+(`onGlanceStatus`, `onIslandProximity`, `onThemeAppearance`) are typed from the
+code but their values are not checked at the send site.
+
+### Invoke results
+
+Typed `invoke` results are checked against what their handler can return. The
+check reads the `chromeHandle('<channel>', …)` handler in `main.js`, follows a
+direct call to a local helper one level deep, and classifies each top-level
+`return` (nested functions are ignored): nothing (a bare `return` or falling off
+the end), a boolean, `null`, number or string literal, an object literal, or an
+opaque expression. Then:
+
+- a `void` result must never return a value;
+- a result whose type excludes `undefined` must not be able to fall through. A
+  trailing `try … catch … finally` falls through only if its try or catch
+  block can;
+- an object literal must match a structured type in the result, key for key,
+  and a plain literal value in it (`error: 'busy'`, `ok: false`) must be in
+  that field's type;
+- a returned local bound to an object literal (`const response = { … }`) is
+  read as that literal;
+- any other opaque expression (an identifier or call) is accepted unless the
+  type is `void`, because its value can't be read statically.
+
+Handlers registered through a table (`['<channel>', (…) => op(…)]` consumed by
+a loop that calls `chromeHandle(channel, …)`) are resolved to the loop's shared
+body. In a returned object, `...helper()` contributes the keys that helper
+returns; spreading an opaque value (`...result`) can't be read, so it only
+waives the required-field check.
+
+When a handler forwards a pure module's result unread, the module function is
+listed in `FORWARDED_RESULTS` and its own returns are checked the same way
+(`fillLoginFromOnePassword`, through `credential-fill-controller.js`).
+
+`"resultCheck": "none"` skips the check for a member whose handler forwards an
+Electron method's result (`stop`, `stopFindInPage`); the reason is in its doc.
+
+### Workspace action results
+
+All eight Named Workspace actions resolve to `WorkspaceActionResult`. Three more
+checks prove it:
+
+- **Controller fixtures:** `workspace-controller.js` is Electron-free, so its
+  `open` and `create` run against a stub adapter on 54 fixtures covering every
+  branch (swap, noop, focus elsewhere, not found, read errors, protected pages,
+  unsaved scratch and its confirmed decision, checkpoint and commit failures,
+  a thrown stage, not patron, invalid names, create failures and reentrant
+  `busy`). Each result is validated strictly.
+- **Code literals:** every `error:`, `action:` and protection `reason:` literal
+  in the workspace modules, the workspace functions in `main.js` and the
+  controller adapter must be in `WorkspaceErrorCode`, `WorkspaceAction` or
+  `WorkspaceProtectionReason`.
+- **Handler results:** the success objects the handlers build
+  (`{ ok: true, ...workspacesProjection() }`) are checked key by key.
+
+### Lists and commands
+
+The rest are proven by executing the code that builds them:
+
+- **History and Favorites:** `history.js` and `bookmarks.js` are loaded against
+  an in-memory stand-in for `JsonStore` (the real one needs Electron), driven
+  through visits, retitles, cached icons, toggles, saves, imports, folder
+  edits and a sync merge, and their lists validated. The module cache is left
+  as it was. Favorites saved by older versions may lack `favicon`, `updatedAt`
+  or `folder`, so those fields are optional.
+- **Remote tabs:** raw device entries go through the same sanitizers and
+  projections as sync (`tabsync-model.js`, `tabicons-model.js`). This proves
+  `listRemoteTabs` and the `onRemoteTabsUpdated` event (`"payloadCheck":
+  "fixtures"`).
+- **Block ads:** `resolveBlockAdsCommand()` runs on every hostname, state and
+  allow-list combination.
+- **Search suggestions:** `parseOpenSearchSuggestions()` runs per engine, and
+  `SearchEngineId` must list exactly the engines in
+  `settings-schema/schema.json`.
+
+## Parameter shapes
+
+A parameter whose type is a structured type (`ShieldAnchor`,
+`FindInPageOptions`, `DisplayPickerChoice`, …) is checked from both ends:
+
+- **Renderers:** every object passed for it in `src/renderer` (through
+  `browserAPI` or an alias passed as `api: window.browserAPI`) must fit the
+  type: no unknown fields and every required one present. The argument may be
+  an object literal (including `...(cond ? { a } : {})`), a ternary, a local
+  bound to one, a call to a function in the same file that returns one, or a
+  parameter of the enclosing named function. A parameter is followed to that
+  function's call sites and default. Anything else fails, so a new call site
+  has to be readable.
+- **Main:** every field its handler reads (`anchor.center`, `rect?.shieldAnchor?.trigger`,
+  `const { query } = opts`) must be in the type, nested types included. The
+  value is followed into local functions it is passed to and into the module
+  functions listed in `FORWARDED_PARAMS` (`popupPoint`,
+  `ratioForGlanceDivider`, `listHistory`, the screen-share picker's `resolve`).
+  The display-capture brokers' own picker listener is not checked because the
+  app disables it (`handlePickerIpc: false`).
+- **Electron:** `FindInPageOptions` goes to `webContents.findInPage` unchanged,
+  so it must name the same fields as Electron's interface in `electron.d.ts`.
+  That file comes with `node_modules`, so this part runs in the substrate CI job
+  and is skipped by the dependency-free parity step.
+
+Main reads are found by name, so a value copied into another variable or
+object (`popup.anchor = rect.shieldAnchor`) is not followed further.
+
+## Test vectors
+
+`generated/vectors.json` records what `window.browserAPI` does, as data any
+implementation can be tested against. It is Phase 0 groundwork for bridge step
+5 of the platform evaluation, "shared contract tests run against both
+builds". The Electron preload is the reference: the vectors are recorded from it.
+
+For every member, the file holds:
+
+- **Calls** (`invoke`, `send`): arguments, and the exact message the bridge
+  sends (kind, channel, arguments). There is a typical call, a variant for
+  each other union arm, literal or boolean value of each parameter, and a call
+  with trailing optional arguments left out.
+- **Replies** (`invoke`): example browser replies; the call must resolve to
+  each one unchanged.
+- **Deliveries** (events): example payloads and what the subscriber receives,
+  and the unsubscribe must remove the listener.
+- **Values and platforms:** per-platform values, and on which platforms each
+  member exists.
+- **Surfaces:** the documents that get the bridge and some that must not.
+
+Arguments, replies and payloads are deterministic samples of the contract's
+types: the minimal and the full form of each object, each union arm and each
+literal. `undefined` is written as `{"$undefined": true}`. The check validates
+every value against its type, replays the committed file against the preload,
+and fails if the file is stale.
+
+**Replaying against another implementation.** `replayVectors(vectors,
+adapter)` in `vectors.mjs` takes an adapter whose `load({ platform, href })`
+returns `{ api, takeSent(), setReply(value), emit(channel, payload),
+listenerCount(channel) }`: the bridge object a document sees, plus a stub for
+the browser side. `electronAdapter()` is the stub for today's preload. A
+Chromium build would provide one that stands in for its page handler, and can
+answer with promises. Replay resolves to a list of problems; empty means the
+implementation behaves as the reference did.
+
+The vectors cover the bridge only, the renderer-to-browser boundary. What the
+browser does with a call (opening the tab, the next `tabs:updated` payload) is
+checked by the payload checks above and by the desktop acceptance suite. Vectors
+use type-valid arguments, so the preload's handling of mistyped input (for
+example `!!` coercion) stays covered by the preload probe, not the vectors.
+
+## Changing the bridge
+
+Change `src/main/preload.js` and `contract.json` together, then run
+`npm run browser-api:build` and commit the regenerated files, including
+`vectors.json`. A changed vector is a changed bridge: review its diff. Argument shaping
+is described by `ipcArgs` when it differs from passing the parameters in order:
+`"$0"` is the first parameter, `"bool($0)"` coerces it, and an object maps
+fields to parameters.
+
+Adding, removing or renaming a field in `serializeTabs`, `currentTabsPayload`,
+the `tabs:get-all` handler or the capture rows needs the matching `fields` edit
+in `contract.json`. So does a new return value from one of the helper modules.
+
+## Coverage today
+
+The surface is complete (100 members: 1 value, 59 `invoke`, 22 `send`, 18
+events), and every member's IPC behaviour is checked. Every parameter, result
+and event payload is typed:
+
+| Area | Typed | Still `unknown` |
+| --- | --- | --- |
+| Parameters | 73 of 73 | none |
+| `invoke` results | 59 of 59 | none |
+| Event payloads | 16 of 16 | none |
+
+Navigation, find and search results are typed but only partly proven: they
+forward `wakeTab()` and Electron results, which the check can't read, so only
+their literal returns are checked.
+
+Types say `unknown` rather than guess. Overlay `purpose` stays `unknown` inside
+`OverlayShowPayload` because it is deliberately mode-specific.
+
+## Page bridges (`bridges.json`)
+
+Two smaller bridges sit beside `browserAPI` and are checked in the same run:
+
+- **`window.bowserPages`** (`src/main/tab-preload.js`): what each `blanc://`
+  page gets. The internal pages are slated to become WebUI with their own
+  handlers, so they need the same Blanc-owned contract as the Island. Each of the
+  88 members lists the hosts it is exposed on.
+- **`window.blancFillStatus`** (`src/main/fill-status-preload.js`): the
+  1Password fill-status capsule at `blanc-chrome://fill-status/`.
+
+What the check verifies:
+
+- **Exposure per host.** The preload is executed as the main frame of every
+  `blanc://` host, `blanc://error/` and plain web pages. Each host must get
+  exactly its contract members, and web pages and `error` must get no bridge.
+  Each member's IPC kind, channel and arguments are probed as for `browserAPI`
+  (`surface.armEscape` and `start.openMahjong` coerce to boolean, and
+  `openMahjong` defaults to `false`).
+- **Events.** Each one listens on its channel and forwards its payload
+  (`start.onUtilitySheetVisibility` forwards `payload === true`). Only
+  `surface.onEscape` returns an unsubscribe function. The others must return
+  nothing, so none of them can pass back `ipcRenderer.on`'s return value.
+- **Load-time IPC.** The only IPC a document may make at load is a declared
+  signal, with no arguments: `page-tint:changed`, from web pages and
+  `blanc://newtab/` only.
+- **Host authority in main.** Every `handle()`/`handleEvent()` registration in
+  `pages.js` is read with its host list (`'host'`, `['a', 'b']` or
+  `[...UTILITY_PAGES]`). For each channel, the hosts it allows must equal the
+  hosts the preload exposes it on. A handler with no member fails, and so does a
+  member with no handler. Each event channel must have a `.send('<channel>'`
+  site in `src/main`.
+- **Page scripts.** Every `bowserPages` reference in the scripts a
+  `<host>.html` loads (direct chains and `const x = window.bowserPages?.ns`
+  aliases) must be exposed on that host.
+- **Fill-status payloads.** `FillKind`, `FillMode` and `FillVerb` must equal
+  `FILL_KINDS`, `MODES` and the union of their verbs in `fill-status-kinds.js`.
+  The `fill:show` and `fill:hide` literals in `fill-status-surface.js`, the
+  renderer's `reply({ … })` literal and the `payload?.` fields main reads must
+  all match their types.
+
+`test/unit/browser-api-bridges.test.js` makes deliberate drifts on each side
+and requires each to be reported.
+
+**Not typed yet:** `bowserPages` parameters and results are `unknown`, except
+the two coerced booleans. The fill-status bridge is fully typed. Pinning the
+`pages:*` results against `pages.js` and the modules behind it is the next step,
+in the same way as `browserAPI`.
+
+## Not in scope
+
+No Mojo interface or Chromium code is generated, and there is no Chromium
+replay adapter. The owner declined the platform evaluation's Decision 1 on
+October 5, 2026, so Blanc stays on Electron; the contract and vectors guard the
+Electron bridge.

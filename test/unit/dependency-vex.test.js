@@ -9,6 +9,85 @@ const ROOT = path.resolve(__dirname, '../..');
 const readJson = (name) => JSON.parse(fs.readFileSync(path.join(ROOT, name), 'utf8'));
 const tooling = ['web-ext', '@devicefarmer/adbkit', 'node-forge'];
 
+test('http-cache-semantics VEX stays within the reviewed static site and build downloads', () => {
+  const statement = readJson('security/openvex.json').statements.find(
+    (entry) => entry.vulnerability.name === 'GHSA-ch52-4w7c-c8xp' && entry.status === 'not_affected'
+  );
+  if (!statement) return;
+
+  for (const [file, expectedParent, developmentOnly, version] of [
+    ['package-lock.json', 'node_modules/cacheable-request', true, '4.2.0'],
+    ['site/package-lock.json', 'node_modules/astro', false, '4.3.0'],
+  ]) {
+    const packages = readJson(file).packages;
+    const entries = Object.entries(packages).filter(([key]) => key.endsWith('node_modules/http-cache-semantics'));
+    assert.equal(entries.length, 1, `${file}: re-review additional copies`);
+    assert.equal(entries[0][1].version, version, `${file}: re-review the dependency source`);
+    assert.equal(entries[0][1].dev === true, developmentOnly, `${file}: scope changed`);
+    const parents = Object.entries(packages)
+      .filter(([, entry]) => [entry.dependencies, entry.optionalDependencies, entry.peerDependencies]
+        .some((dependencies) => dependencies && 'http-cache-semantics' in dependencies))
+      .map(([key]) => key);
+    assert.deepEqual(parents, [expectedParent], `${file}: a new consumer needs reachability review`);
+  }
+  for (const [file, reviewed] of [
+    ['package-lock.json', {
+      'node_modules/app-builder-lib': '26.15.3',
+      'node_modules/app-builder-lib/node_modules/@electron/get': '3.1.0',
+      'node_modules/got': '11.8.6',
+      'node_modules/cacheable-request': '7.0.4',
+    }],
+    ['site/package-lock.json', { 'node_modules/astro': '7.3.5' }],
+  ]) {
+    const packages = readJson(file).packages;
+    for (const [key, version] of Object.entries(reviewed)) {
+      assert.equal(packages[key]?.version, version, `${key}: re-review the consumer source`);
+      if (file === 'package-lock.json') assert.equal(packages[key].dev, true);
+    }
+  }
+  for (const file of [
+    'cloudflare/tab-import-worker/package-lock.json',
+    'extensions/blanc-tab-import/package-lock.json',
+  ]) {
+    assert.equal(Object.keys(readJson(file).packages).some((key) => key.endsWith('node_modules/http-cache-semantics')), false,
+      `${file}: the package entered another dependency graph`);
+  }
+  const config = fs.readFileSync(path.join(ROOT, 'site/astro.config.mjs'), 'utf8');
+  assert.match(config, /output:\s*['"]static['"]/);
+  assert.doesNotMatch(config, /\badapter\s*:/, 'server deployment requires a new reachability review');
+  assert.match(readJson('package.json').scripts['site:deploy'], /wrangler pages deploy site\/dist/);
+
+  // A new first-party consumer could bypass the reviewed transitive entrypoints.
+  const inspect = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (['node_modules', 'dist', '.wrangler'].includes(entry.name)) continue;
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) inspect(file);
+      else if (/\.(?:[cm]?js|ts|astro)$/.test(entry.name))
+        assert.doesNotMatch(fs.readFileSync(file, 'utf8'),
+          /(?:require\s*\(\s*|import\s*\(\s*|from\s+|import\s*)['"](?:http-cache-semantics|cacheable-request|got)['"]/,
+          `${path.relative(ROOT, file)}: direct cache consumer requires VEX re-review`);
+    }
+  };
+  for (const directory of ['src', 'site/src', 'cloudflare', 'scripts']) inspect(path.join(ROOT, directory));
+});
+
+const ublockFiles = new Set(['ublock/**/*', 'scripts/check-ublock-package.cjs', 'scripts/build-ublock-adaptation.cjs']);
+function assertReviewedDesktopFiles(desktop) {
+  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
+    if (ublockFiles.has(pattern)) continue;
+    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
+      'a broader desktop source allowlist requires VEX payload review');
+  }
+  if (!desktop.build.files.some(pattern => ublockFiles.has(pattern))) return;
+  // The reachability review covers the exact pinned payload and two scripts,
+  // never an arbitrary scripts/ or third-party source allowlist.
+  const { createHash } = require('node:crypto');
+  assert.equal(createHash('sha256').update(JSON.stringify(readJson('ublock/pinned.json'))).digest('hex'),
+    'ceaaeabacbe7eea2589dee3b84cda7f31a4eb3a2242c439e06fc89a3e725df91',
+    'changed uBO payload requires VEX reachability re-review');
+}
+
 test('node-forge VEX remains limited to the reviewed, unused Android tooling', () => {
   const statement = readJson('security/openvex.json').statements.find(
     (entry) => entry.vulnerability.name === 'GHSA-86w9-cpqp-85rv' && entry.status === 'not_affected'
@@ -52,10 +131,7 @@ test('node-forge VEX remains limited to the reviewed, unused Android tooling', (
   }, 'new companion commands require re-review of the VEX execution boundary');
 
   const desktop = readJson('package.json');
-  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
-    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
-      'a broader desktop source allowlist requires VEX payload review');
-  }
+  assertReviewedDesktopFiles(desktop);
 });
 
 test('http-cache-semantics VEX remains limited to the reviewed, cache-free build tooling', () => {
@@ -95,18 +171,15 @@ test('http-cache-semantics VEX remains limited to the reviewed, cache-free build
   const desktop = readJson('package.json');
   assert.equal(desktop.build.electronDownload, undefined,
     'build.electronDownload can pass a got cache option; re-review the VEX execution boundary');
-  for (const pattern of desktop.build.files.filter((entry) => !entry.startsWith('!'))) {
-    assert.match(pattern, /^(?:src\/|adblock\/sources\/|package\.json$|LICENSE$|THIRD-PARTY-NOTICES\.md$|ASSET-LICENSE\.md$)/,
-      'a broader desktop source allowlist requires VEX payload review');
-  }
+  assertReviewedDesktopFiles(desktop);
 
   // Website: astro's remote-image revalidation is the only consumer, and the static site uses no images through it.
   const siteLock = readJson('site/package-lock.json');
   assert.deepEqual(consumersOf(siteLock, 'http-cache-semantics'), ['node_modules/astro'],
     'site: a new http-cache-semantics consumer needs reachability review');
-  assert.equal(siteLock.packages['node_modules/astro']?.version, '7.3.2', 'site: re-review astro http-cache-semantics use');
+  assert.equal(siteLock.packages['node_modules/astro']?.version, '7.3.5', 'site: re-review astro http-cache-semantics use');
   const astroConfig = fs.readFileSync(path.join(ROOT, 'site/astro.config.mjs'), 'utf8');
-  assert.doesNotMatch(astroConfig, /\b(?:adapter|output|image)\s*:/,
+  assert.doesNotMatch(astroConfig, /\b(?:adapter|image)\s*:|\boutput\s*:\s*['"](?!static['"])/,
     'site: server output or image configuration requires VEX re-review');
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
@@ -117,5 +190,53 @@ test('http-cache-semantics VEX remains limited to the reviewed, cache-free build
   for (const file of sources) {
     assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /astro:assets|\bgetImage\b|<(?:Image|Picture)\b/,
       `${path.relative(ROOT, file)}: astro image processing requires VEX re-review`);
+  }
+});
+
+test('sprintf-js VEX remains limited to the reviewed, proxy-free build tooling', () => {
+  const statement = readJson('security/openvex.json').statements.find(
+    (entry) => entry.vulnerability.name === 'GHSA-hp3w-g68c-fv3c' && entry.status === 'not_affected'
+  );
+  if (!statement) return; // Without the exception, the ordinary audit owns this finding.
+
+  const entriesOf = (lock, name) => Object.entries(lock.packages).filter(([key]) => key.endsWith(`node_modules/${name}`));
+  const consumersOf = (lock, name) => Object.entries(lock.packages)
+    .filter(([, entry]) => [entry.dependencies, entry.optionalDependencies, entry.peerDependencies]
+      .some((dependencies) => dependencies && name in dependencies))
+    .map(([key]) => key);
+
+  for (const file of ['site/package-lock.json', 'cloudflare/tab-import-worker/package-lock.json', 'extensions/blanc-tab-import/package-lock.json']) {
+    assert.deepEqual(entriesOf(readJson(file), 'sprintf-js'), [],
+      `${file}: sprintf-js entered another dependency graph; re-review the VEX statement`);
+  }
+
+  // Desktop: development-only electron-builder download chain, pinned to the reviewed versions.
+  const desktopLock = readJson('package-lock.json');
+  for (const [key, version, consumer] of [
+    ['node_modules/sprintf-js', '1.1.3', 'node_modules/roarr'],
+    ['node_modules/roarr', '2.15.4', 'node_modules/global-agent'],
+    ['node_modules/global-agent', '3.0.0', 'node_modules/app-builder-lib/node_modules/@electron/get'],
+  ]) {
+    const name = key.slice('node_modules/'.length);
+    const entry = desktopLock.packages[key];
+    assert.equal(entry?.version, version, `${key}: re-review the dependency source`);
+    assert.equal(entry.dev, true, `${key}: build tooling must stay development-only`);
+    assert.deepEqual(entriesOf(desktopLock, name).map(([k]) => k), [key], `${name}: re-review the dependency chain`);
+    assert.deepEqual(consumersOf(desktopLock, name), [consumer], `${name}: a new consumer needs reachability review`);
+  }
+  assert.equal(desktopLock.packages['node_modules/app-builder-lib/node_modules/@electron/get']?.version, '3.1.0',
+    '@electron/get: re-review when global-agent is loaded');
+
+  // global-agent loads only when a proxy is requested; nothing in the repository requests one.
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+  });
+  const files = [...walk(path.join(ROOT, 'scripts')), ...walk(path.join(ROOT, '.github')), ...walk(path.join(ROOT, 'build')),
+    path.join(ROOT, 'package.json')].filter((file) => /\.(?:[cm]?js|sh|ya?ml|json|nsh)$/.test(file));
+  assert.ok(files.length > 10, 'proxy scan found too few files');
+  for (const file of files) {
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /ELECTRON_GET_USE_PROXY|GLOBAL_AGENT_/,
+      `${path.relative(ROOT, file)}: enabling global-agent requires VEX re-review`);
   }
 });

@@ -8,3 +8,6 @@ contact_links:
   - name: Support question
     url: mailto:support@blancbrowser.com
     about: Trouble with an install, a license key, or your account.
+  - name: Question or idea
+    url: mailto:support@blancbrowser.com
+    about: How do I…? Would it be nice if…? Ask by email. For a specific feature you want built, use Feature request above.
