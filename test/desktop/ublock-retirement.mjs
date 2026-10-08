@@ -60,13 +60,17 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 origin = `http://127.0.0.1:${server.address().port}`;
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
 let electron;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let electronProcess;
 let stderr = '';
 const call = (method, ...args) => hooks.callTestHook(electron, method, args);
-const watchdog = setTimeout(() => electron?.process().kill('SIGKILL'), 90000);
+const watchdog = setTimeout(() => electronProcess?.kill('SIGKILL'), 90000);
 try {
   electron = await _electron.launch({ args: [appDir, `--user-data-dir=${profile}`, '--host-resolver-rules=MAP pagead2.googlesyndication.com 127.0.0.1'], chromiumSandbox: true,
     env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1' } });
-  electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-6000); });
+  electronProcess = electron.process();
+  electronProcess.stderr.on('data', data => { stderr = (stderr + data).slice(-6000); });
   await electron.firstWindow();
   const state = await waitForValue(() => call('blockingStatus'), value => value.phase === 'ready', 'real Blanc fallback ready', 20000);
   await waitForValue(() => call('startupReady'), Boolean, 'startup navigation gate released', 20000);

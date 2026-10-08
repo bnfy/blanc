@@ -54,6 +54,9 @@ const clicks = [
   { label: 'Shift+middle-click', button: 'middle', modifiers: ['shift'], background: false },
 ];
 let app;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let appProcess;
 let caseCount = 0;
 let recoveryCount = 0;
 async function documentResult(id, label) {
@@ -66,6 +69,7 @@ try {
     args: [path.resolve('.'), `--user-data-dir=${profile}`],
     env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught },
   });
+  appProcess = app.process();
   await app.firstWindow();
   await waitForValue(() => callTestHook(app, 'startupReady'), Boolean, 'startup', 30_000);
   await callTestHook(app, 'groupActiveByName', ['Click source']);
@@ -181,7 +185,7 @@ try {
   }
   console.log(`modified-link-click OK on ${process.platform}: ${caseCount} click/sandbox/referrer cases, ${recoveryCount} restricted-tab recreations`);
 } finally {
-  if (app && app.process().exitCode === null) await app.close();
+  if (app && appProcess.exitCode === null) await app.close();
   await new Promise((resolve) => server.close(resolve));
   const error = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8') : '';
   fs.rmSync(root, { recursive: true, force: true });

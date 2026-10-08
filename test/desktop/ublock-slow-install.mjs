@@ -49,15 +49,19 @@ const server = http.createServer((_request, response) => { hits++; response.end(
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
 let electron;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let electronProcess;
 let stderr = '';
 let passed = false;
 let blockedMainProcess = false;
 const call = (method, ...args) => hooks.callTestHook(electron, method, args);
-const watchdog = setTimeout(() => { console.error('Slow-install suite deadline'); electron?.process().kill('SIGKILL'); }, 150000);
+const watchdog = setTimeout(() => { console.error('Slow-install suite deadline'); electronProcess?.kill('SIGKILL'); }, 150000);
 try {
   electron = await _electron.launch({ args: ['-r', slowDisk, root, `--user-data-dir=${profile}`], chromiumSandbox: true,
     env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1' } });
-  electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-6000); });
+  electronProcess = electron.process();
+  electronProcess.stderr.on('data', data => { stderr = (stderr + data).slice(-6000); });
   await electron.firstWindow();
   // A blocked main process answers again only after its install has finished.
   const installing = await waitForValue(() => call('blockingStatus'), state => state.stage === 'install' || state.timings?.install !== undefined || state.phase !== 'initializing', 'uBO install stage', 30000);
@@ -92,7 +96,7 @@ try {
   if (!control) console.error(stderr);
 } finally {
   clearTimeout(watchdog);
-  await electron?.close().catch(() => electron?.process().kill('SIGKILL'));
+  await electron?.close().catch(() => electronProcess?.kill('SIGKILL'));
   server.close();
   fs.rmSync(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
