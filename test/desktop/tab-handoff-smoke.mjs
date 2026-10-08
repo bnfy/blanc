@@ -20,8 +20,10 @@ const pageLoads = new Map();
 const delayedClaims = new Map();
 
 const server = http.createServer((request, response) => {
-  const origin = `http://127.0.0.1:${server.address().port}`;
-  const url = new URL(request.url, origin);
+  // Only the path matters here. The offline step closes the server, and a
+  // request still arriving on a kept-alive connection would find
+  // server.address() already null.
+  const url = new URL(request.url, 'http://127.0.0.1');
   const claim = url.pathname.match(/^\/v1\/handoffs\/([A-Za-z0-9_-]{22})\/claim$/);
   if (request.method === 'POST' && claim) {
     const id = claim[1];
