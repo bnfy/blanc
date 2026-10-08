@@ -69,9 +69,12 @@ const uncaughtLog = path.join(dir, 'uncaught.txt');
 const started = Date.now();
 const timing = {};
 let stage = 'cold launch';
-// Passing runs take ~25-100 s; the slower macOS Intel runner approached the
-// old 120 s ceiling and crossed it when a new profile took ~20 s to start.
-const SUITE_LIMIT_MS = 240000;
+// The suite roughly doubled after the restart and decision-deadline stages
+// (#593, #596, #599). On October 8 passing runs took ~100-140 s on Apple
+// Silicon and 126-225 s on the macOS Intel runner, which then crossed the old
+// 240 s limit twice at late stages. 420 s leaves ~1.9x the slowest pass and
+// keeps a hung run inside the job's 20-minute timeout (slowest job: 13 min).
+const SUITE_LIMIT_MS = 420000;
 const watchdog = setTimeout(() => {
   console.error(`uBO suite exceeded ${SUITE_LIMIT_MS / 1000} seconds at stage: ${stage}`);
   // The handle can be stale mid-restart; fail fast rather than crash or hang.
