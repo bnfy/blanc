@@ -14,6 +14,49 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    # Decides whether this change can affect the desktop app. Pull requests that
+    # touch only website and documentation paths skip the Electron jobs below;
+    # every other change, every push to main and any failure here runs them all.
+    # Gated jobs use `if:` (not workflow `paths`), so a required check that is
+    # skipped still reports, as "skipped", and never leaves the PR blocked.
+    # The unit suite, lint and drift guards in `substrate` always run: unit tests
+    # also guard the website's claims ledgers and read site/ and docs/ files.
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.classify.outputs.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 2 # The PR merge commit and its base parent.
+      - id: classify
+        name: Classify changed paths
+        run: |
+          app=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
+            # Old and new paths of every rename count, compared with the base.
+            git diff --name-only --no-renames HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"
+            app=false
+            [ -s "$RUNNER_TEMP/changed.txt" ] || app=true
+            while IFS= read -r f; do
+              case "$f" in
+                site/*|test/site/*|docs/*) ;;
+                # Packaged into app.asar and checked by the compliance gates.
+                THIRD-PARTY-NOTICES.md|ASSET-LICENSE.md) app=true; echo "app: $f" ;;
+                */*) app=true; echo "app: $f" ;;
+                *.md) ;;
+                *) app=true; echo "app: $f" ;;
+              esac
+            done < "$RUNNER_TEMP/changed.txt"
+          fi
+          echo "app=$app" >> "$GITHUB_OUTPUT"
+          if [ "$app" = true ]; then
+            echo "Desktop app jobs run for this change." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Website and documentation only: desktop app jobs are skipped on purpose." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   substrate:
     runs-on: ubuntu-latest
     env:
@@ -76,6 +119,9 @@ jobs:
         run: npm run test:acceptance:dry
 
   oauth-compatibility:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
     # A deterministic, two-origin OAuth fixture exercises the real Electron
     # popup/tab policies, trusted user activation, opener callback, Chrome
     # identity signals, and FedCM fallback. Cross-platform mapping branches run
@@ -100,6 +146,9 @@ jobs:
         run: xvfb-run -a npm run test:wallpaper:desktop
 
   modified-link-clicks:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
     # Electron can defer WebContents creation for Ctrl/Cmd-click and middle-click.
     # Exercise the native input path on both platforms reported in #468.
     strategy:
@@ -125,6 +174,9 @@ jobs:
         run: npm run test:modified-links:desktop
 
   tab-handoff:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
     # Separate from deployment/signing: use the real local Workers runtime,
     # synthetic tab metadata, and an isolated Electron profile. No credentials.
     runs-on: ubuntu-latest
@@ -161,6 +213,9 @@ jobs:
         run: xvfb-run -a npm run test:window-close-quit
 
   workspace-regressions:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
     strategy:
       fail-fast: false
       matrix:
@@ -184,6 +239,9 @@ jobs:
         run: npm run test:workspaces:desktop
 
   browser-shortcuts:
+    needs: changes
+    # Runs unless `changes` proved a website/docs-only PR (also runs if it failed).
+    if: ${{ !cancelled() && needs.changes.outputs.app != 'false' }}
     strategy:
       fail-fast: false
       matrix:
