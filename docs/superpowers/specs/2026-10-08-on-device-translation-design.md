@@ -1,6 +1,17 @@
 # On-device page translation (F43) — design
 
-Date: 2026-10-08. Status: design approved in conversation; revised after first written-spec review.
+Date: 2026-10-08. Status: **paused — no-go after Phase 0 (owner decision 2026-10-08).**
+On-device translation remains desirable, but this design is not to be built on
+the current Bergamot/Electron architecture. The engine is too slow on macOS
+because Chromium backgrounds the never-visible engine renderer, and the only
+tested workaround (an engine view attached beneath the page) took keyboard
+focus, appeared in the accessibility tree and starved background tabs while
+still missing the Intel gate. Resume only with a materially faster engine or
+build, a supported per-process priority mechanism that preserves renderer
+sandboxing, or a suitable Electron translation API. Evidence:
+`docs/evidence/translate-phase0-2026-10-08/` and
+`docs/evidence/translate-phase0-behind-2026-10-08/` on branch
+`spike/translate-phase0`.
 
 Numbering: F43 follows F42 (Dark websites). F41 is Named Workspaces
 (`spec/acceptance/F41-named-workspaces.feature`); its absence from

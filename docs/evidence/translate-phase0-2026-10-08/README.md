@@ -19,7 +19,7 @@ lowering disabled (diagnostic only, see below), the same Intel Mac took
 9,709 ms, and the owner's M5 went from 18,565 ms to 8,750 ms. Windows and the
 hosted Apple Silicon VM were not slowed by it.
 
-Owner decision required before any feature work (see "Options").
+Decision: no-go; see "Decision" at the end.
 
 ## Provenance
 
@@ -128,4 +128,27 @@ would remove the priority lowering for every background tab.
 
 ## Decision
 
-Pending owner review.
+**No-go, owner decision 2026-10-08.** On-device translation remains
+desirable, but F43 on the current Bergamot/Electron architecture is paused.
+The attached-beneath-page workaround fails too many independent requirements:
+the Intel Mac stays above the 10-second gate, the M5 gains nothing, the engine
+can take keyboard focus, it appears in the accessibility tree, foreground-
+priority translation materially starves background tabs, and fixing focus and
+accessibility would still leave performance marginal while relying on a fragile
+hidden-but-visible view.
+
+Resume only when at least one of these holds:
+
+1. a materially faster engine or build exists;
+2. a supported per-process priority mechanism exists that preserves renderer
+   sandboxing; or
+3. Electron exposes a suitable translation API.
+
+Not to be done without a new owner decision: another measurement round,
+testing `utilityProcess`, changing the product gate, or writing the feature
+plan. The spike branch `spike/translate-phase0` and this evidence are kept; the
+harness is not opened as a PR or merged into `main` unless the research tooling
+is later judged worth retaining.
+
+Round 2 (`docs/evidence/translate-phase0-behind-2026-10-08/`) tested option 1
+above (on-screen presence) and is the basis for this decision.

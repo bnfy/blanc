@@ -116,5 +116,24 @@ is in the summary files here.
 
 ## Decision
 
-Pending owner review. `utilityProcess` remains out of scope by owner
-instruction.
+**No-go, owner decision 2026-10-08.** On-device translation remains
+desirable, but F43 on the current Bergamot/Electron architecture is paused.
+The attached-beneath-page workaround fails too many independent requirements:
+the Intel Mac stays above the 10-second gate, the M5 gains nothing, the engine
+can take keyboard focus, it appears in the accessibility tree, foreground-
+priority translation materially starves background tabs, and fixing focus and
+accessibility would still leave performance marginal while relying on a fragile
+hidden-but-visible view.
+
+Resume only when at least one of these holds:
+
+1. a materially faster engine or build exists;
+2. a supported per-process priority mechanism exists that preserves renderer
+   sandboxing; or
+3. Electron exposes a suitable translation API.
+
+Not to be done without a new owner decision: another measurement round,
+testing `utilityProcess`, changing the product gate, or writing the feature
+plan. The spike branch `spike/translate-phase0` and this evidence are kept; the
+harness is not opened as a PR or merged into `main` unless the research tooling
+is later judged worth retaining.
