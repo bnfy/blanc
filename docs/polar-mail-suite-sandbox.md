@@ -24,17 +24,29 @@ Because Patron Monthly and Annual are separate benefits, a change of billing
 period still issues a new Browser key, as it already does for Patron alone, so
 plan changes should be offered within the same billing period.
 
-### Sandbox changes for the owner
+### Sandbox changes (applied October 8)
 
-1. On Suite Monthly, attach **Blanc Patron Monthly License** and the Mail
-   license benefit, then detach the Suite benefit `c5ebb27b-…`.
-2. On Suite Annual, attach **Blanc Patron Annual License** and the Mail
-   license benefit, then detach the Suite benefit.
-3. Archive the Suite benefit once no sandbox subscription holds it. Existing
-   sandbox Suite subscriptions are test fixtures only; check in the portal
-   whether they picked up the new benefits, and start fresh purchases for the
-   checklist below rather than relying on them.
-4. Allow plan changes only between products with the same billing period.
+Applied through the sandbox API with a short-lived organization token; the
+production catalog is unchanged.
+
+| Product | Before | After |
+| --- | --- | --- |
+| Blanc Suite — Monthly `286767b6-7f5c-45b7-94f6-89faa905879c` ($7/month) | Blanc Suite License `c5ebb27b-…` | Blanc Patron Monthly License `2f5e210c-7d63-4ba6-8818-45f3b7fc9b93` + Blanc Mail License `819e65da-…` |
+| Blanc Suite — Annual `578a6b00-20f5-4fce-bd72-f53805caa8b9` ($70/year) | Blanc Suite License `c5ebb27b-…` | Blanc Patron Annual License `27ecc7d8-f31e-4951-8235-22dda51327c4` + Blanc Mail License `819e65da-…` |
+
+Both products read back with exactly those two benefits. Polar then revoked
+both Suite-benefit grants (subscriptions `eda7e167-…` and `3155fa61-…`, at
+13:46:51Z), so no sandbox subscription holds the Suite benefit.
+Still to do in the dashboard:
+
+1. Delete the unused Blanc Suite License benefit `c5ebb27b-…`. No product
+   carries it and no grant is active; the API call was not made.
+2. Offer plan changes only within the same billing period. Products expose no
+   plan-change field, and the organization settings could not be read with the
+   token's scopes, so check the subscription and customer-portal settings in
+   the dashboard.
+3. Start fresh purchases for the checklist below rather than relying on the
+   older Suite fixtures.
 
 ### Acceptance checklist
 
