@@ -41,6 +41,10 @@ jobs:
         if: runner.os == 'Linux'
         run: bash scripts/ci-enable-linux-sandbox.sh
       - run: npm ci
+      - name: Generated brand assets match their sources
+        # Needs sharp from npm ci. PNGs within one channel level of the
+        # committed file count as current (macOS/Linux rasterizer rounding).
+        run: npm run brand:check
       - name: Dependency compliance artifacts match the lockfiles
         run: npm run compliance:check
       - name: Compatibility evidence and generated matrix match

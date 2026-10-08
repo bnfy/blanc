@@ -1,0 +1,17 @@
+---
+// One popover article. Server-rendered and hidden, so every explainer is in
+// the page HTML; feature-bento.js shows one at a time inside #feature-pop.
+// split: visual and copy side by side, for a visual too tall to sit above the copy.
+interface Props { id: string; feature: string; href?: string; linkText?: string; demo?: boolean; split?: boolean }
+const { id, feature, href, linkText, demo = false, split = false } = Astro.props;
+---
+<article class:list={['pop-body', split && 'pop-body--split']} id={`pop-${id}`} data-pop-body={id} aria-labelledby={`pop-${id}-title`} hidden>
+  <div class="pop-stage" data-step="3" aria-hidden="true">
+    <slot name="visual" />
+    {demo && <div class="pop-steps"><i></i><i></i><i></i></div>}
+  </div>
+  <div class="pop-copy">
+    <slot />
+    {href && <a class="pop-link" href={href} data-track="feature_cta_click" data-feature={feature} data-cta-position="feature-popover">{linkText} <span aria-hidden="true">→</span></a>}
+  </div>
+</article>

@@ -127,7 +127,7 @@ test('both lock SBOMs include every unique locked name/version with audited lice
   const generated = createComplianceArtifacts();
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
-  assert.equal(root.components.length, 462);
+  assert.equal(root.components.length, 461); // electron-builder 26.17 dedupes @noble/hashes to one version.
   assert.equal(site.components.length, 290); // Reviewed Astro 7 graph, Three.js, and no retired JetBrains Mono package.
   const onePassword = root.components.find((component) => component.name === '@1password/sdk');
   assert.deepEqual(onePassword.licenses, [{ license: { id: 'MIT' } }]);

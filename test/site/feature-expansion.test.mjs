@@ -96,13 +96,13 @@ test('new guides have unique metadata, keyboard-reachable captures, and the exis
   } finally { await context.close(); }
 });
 
-test('feature hub has fifteen ordered guides and Press captures download as real PNGs', async () => {
+test('feature hub reaches all sixteen guides and Press captures download as real PNGs', async () => {
   const context = await contextFor();
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/features`);
-    const hrefs = await page.locator('.feature-hub-row .text-link').evaluateAll(links => links.map(link => link.getAttribute('href')));
-    assert.deepEqual(hrefs, ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security'].map(route => `/features/${route}`));
+    const hrefs = new Set(await page.locator('a[href^="/features/"]').evaluateAll(links => links.map(link => link.getAttribute('href'))));
+    for (const route of ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security', '1password']) assert.ok(hrefs.has(`/features/${route}`), route);
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
     await page.goto(`${baseURL}/press`);
     const downloads = page.locator('.press-feature-gallery figcaption a[download]');
