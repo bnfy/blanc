@@ -312,8 +312,12 @@ test('the native shield popover meets its chip after an animated or a reduced-mo
       await page.locator('#ad-blocking').click();
       // Measure the settled card: a busy main thread (the shields' WebGL
       // starting up) can stretch the open spring past any fixed wait.
+      // Measure the settled card, once feature-bento.js has placed the demo (a
+      // reduced-motion open has no card animation to wait for, and placement
+      // lands on the next layout).
       await page.waitForFunction(() => document.getElementById('feature-pop').open
-        && document.querySelector('.pop-card').getAnimations().every(animation => animation.playState === 'finished'));
+        && document.querySelector('.pop-card').getAnimations().every(animation => animation.playState === 'finished')
+        && document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo').style.getPropertyValue('--view-x') !== '');
       placements.push(await page.evaluate(() => {
         const host = document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo'), root = host.shadowRoot;
         const rect = suffix => root.querySelector(`[id$="${suffix}"]`).getBoundingClientRect();

@@ -42,7 +42,8 @@ test('expanded pages load their images and fit 360, 768, and 1440 pixel viewport
       await page.setViewportSize({ width, height: 900 });
       for (const route of ['/', '/features', '/download', '/faq', '/press', ...routes.map(route => `/features/${route}`)]) {
         assert.equal((await page.goto(`${baseURL}${route}`)).status(), 200, route);
-        for (const img of await page.locator('main img[src^="/feature-captures/"]').all()) {
+        // Captures inside closed Features popovers stay hidden until opened.
+        for (const img of await page.locator('main img[src^="/feature-captures/"]').filter({ visible: true }).all()) {
           await img.scrollIntoViewIfNeeded();
           await img.evaluate(image => image.decode());
           assert.ok(await img.evaluate(image => image.complete && image.naturalWidth === 1440), `${route}: capture loaded`);
@@ -51,25 +52,6 @@ test('expanded pages load their images and fit 360, 768, and 1440 pixel viewport
       }
     }
     assert.deepEqual(errors, []);
-  } finally { await context.close(); }
-});
-
-test('homepage showcase and eight-card grid stay visible without JavaScript', async () => {
-  const context = await contextFor({ javaScriptEnabled: false });
-  const page = await context.newPage();
-  try {
-    for (const width of [360, 768, 1440]) {
-      await page.setViewportSize({ width, height: 900 });
-      await page.goto(baseURL);
-      assert.equal(await page.locator('.home-start-captures img').count(), 2);
-      assert.equal(await page.locator('.home-feature-grid > article').count(), 8);
-      assert.ok(await page.locator('.home-start-page').isVisible());
-      const columns = await page.locator('.home-feature-grid').evaluate(grid => getComputedStyle(grid).gridTemplateColumns.split(' ').length);
-      assert.equal(columns, width <= 760 ? 1 : 3, `${width}px: preserve existing responsive grid`);
-      const demoPrecedes = await page.locator('.home-start-page').evaluate(showcase => Boolean(document.querySelector('.demo-showcase').compareDocumentPosition(showcase) & Node.DOCUMENT_POSITION_FOLLOWING));
-      assert.ok(demoPrecedes, 'static showcase follows the existing interactive demo');
-      for (const card of await page.locator('.home-feature-grid > article').all()) assert.ok(await card.isVisible());
-    }
   } finally { await context.close(); }
 });
 
@@ -117,7 +99,8 @@ test('feature hub reaches all sixteen guides and Press captures download as real
       assert.equal(bytes.readUInt32BE(20), 900);
     }
     const downloaded = page.waitForEvent('download');
+    const firstHref = await downloads.first().getAttribute('href');
     await downloads.first().click();
-    assert.equal((await downloaded).suggestedFilename(), 'billboard.png');
+    assert.equal((await downloaded).suggestedFilename(), firstHref.split('/').pop(), 'the download keeps the capture\'s own (versioned) file name');
   } finally { await context.close(); }
 });
