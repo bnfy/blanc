@@ -52,6 +52,7 @@ the September 29 purchase below. So the customer's existing Browser key came bac
 rather than being replaced. The token could not read license keys (403), so
 the key value and activation state were not inspected; confirm in Browser that
 the original key validates.
+
 Still to do in the dashboard:
 
 1. Delete the unused Blanc Suite License benefit `c5ebb27b-…`. No product
