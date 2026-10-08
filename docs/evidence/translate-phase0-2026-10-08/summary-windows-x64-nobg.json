@@ -1,0 +1,318 @@
+{
+  "host": {
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+    "cpuCount": 4,
+    "totalMemMB": 16379,
+    "electron": "44.5.1",
+    "engineHost": "view",
+    "rendererBackgrounding": false
+  },
+  "sizes": {
+    "engine": {
+      "jsBytes": 92034,
+      "wasmBytes": 4962438,
+      "wasmGzBytes": 1880572
+    },
+    "model": {
+      "model": {
+        "bytes": 31561787,
+        "gzBytes": 23175075
+      },
+      "lex": {
+        "bytes": 4824120,
+        "gzBytes": 2649934
+      },
+      "vocab": {
+        "bytes": 814404,
+        "gzBytes": 409706
+      }
+    }
+  },
+  "timing": {
+    "inputTransferMs": 112,
+    "workerStartMs": 11,
+    "engineLoadMs": 18,
+    "modelLoadMs": 69,
+    "endToEndReadyMs": 218
+  },
+  "articleWords": 2062,
+  "coldMs": 7434,
+  "warmMsSamples": [
+    7109,
+    7044,
+    7079,
+    7056,
+    7033
+  ],
+  "warmMedianMs": 7056,
+  "warmMsPer2000": 6844,
+  "wordsPerSecWarm": 292,
+  "recreate": {
+    "endToEndReadyMs": 234,
+    "firstTranslateMs": 7246
+  },
+  "memory": {
+    "preMB": {
+      "main": 76,
+      "total": 214
+    },
+    "baselineMB": {
+      "main": 89,
+      "engine": 60,
+      "total": 239
+    },
+    "peakMB": {
+      "main": 131,
+      "engine": 400,
+      "total": 621
+    },
+    "settledMB": {
+      "engine": 365,
+      "total": 524
+    },
+    "afterWorkerTerminateMB": {
+      "engine": 130,
+      "total": 286
+    },
+    "afterDestroyMB": {
+      "main": 89,
+      "total": 154
+    },
+    "afterRecreateDestroyMB": {
+      "main": 89,
+      "total": 148
+    },
+    "hostWindowPeakMB": null,
+    "deltaMB": {
+      "enginePeak": 340,
+      "totalPeak": 382,
+      "totalSettled": 285,
+      "totalAfterDestroyVsPre": -60,
+      "totalAfterRecreateDestroyVsPre": -66
+    }
+  },
+  "markup": {
+    "cases": [
+      {
+        "id": "nested-emphasis",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Ce point est <b>très <i>important</i> pour</b> la suite du projet.",
+        "out": "This point is <b>very <i>important</i> for</b> the rest of the project."
+      },
+      {
+        "id": "link-attributes",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Lisez <a href=\"https://exemple.fr/guide?x=1&amp;y=2\" class=\"lien-externe\" data-id=\"42\" title=\"Le guide\" rel=\"noopener\">le guide complet</a> avant de commencer.",
+        "out": "Read <a href=\"https://exemple.fr/guide?x=1&amp;y=2\" class=\"lien-externe\" data-id=\"42\" title=\"Le guide\" rel=\"noopener\">the complete guide</a> before you start."
+      },
+      {
+        "id": "list",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "<ul><li>Achetez des pommes.</li><li>Lavez les <em>poires</em>.</li><li>Préparez la <a href=\"/recette\">recette</a>.</li></ul>",
+        "out": "<ul><li>Buy apples.</li><li>Wash the <em>pears</em>.</li><li>Prepare the <a href=\"/recette\">recipe</a>.</li></ul>"
+      },
+      {
+        "id": "inline-spans",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Le prix est de <span class=\"prix\">vingt euros</span> et la livraison est <span class=\"gratuit\">gratuite</span>.",
+        "out": "The price is <span class=\"prix\">twenty euros</span> and delivery is <span class=\"gratuit\">free</span>."
+      },
+      {
+        "id": "entities",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Le service R&amp;D annonce un prix &lt; 10&nbsp;€ pour l&#39;été.",
+        "out": "The R&amp;D service announces a price &lt; 10 € for summer."
+      },
+      {
+        "id": "placeholders",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [
+          "{{dossier}}"
+        ],
+        "src": "Vous avez {count} nouveaux messages de %s dans {{dossier}}.",
+        "out": "You have {count} new messages of %s in {{folder}}."
+      },
+      {
+        "id": "no-translate",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Envoyé par <span translate=\"no\">Jean-Pierre Dupont</span> depuis la gare de Lyon.",
+        "out": "Sent by <span translate=\"no\">Jean-Pierre Dupont</span> from Lyon station."
+      },
+      {
+        "id": "link-wrapping-strong",
+        "mode": "html",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Cliquez <a href=\"#aide\"><strong>ici</strong></a> ou appuyez sur <kbd>Ctrl</kbd>+<kbd>S</kbd> pour enregistrer.",
+        "out": "Click <a href=\"#aide\"><strong>here</strong></a> or press <kbd>Ctrl</kbd>+ <kbd>S</kbd>to save."
+      },
+      {
+        "id": "nested-emphasis",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Ce point est <b id=\"m0\">très <i id=\"m1\">important</i> pour</b> la suite du projet.",
+        "out": "This point is <b id=\"m0\">very <i id=\"m1\">important</i> for</b> the rest of the project."
+      },
+      {
+        "id": "link-attributes",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Lisez <a id=\"m0\">le guide complet</a> avant de commencer.",
+        "out": "Read <a id=\"m0\">the complete guide</a> before you start."
+      },
+      {
+        "id": "list",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "<ul id=\"m0\"><li id=\"m1\">Achetez des pommes.</li><li id=\"m2\">Lavez les <em id=\"m3\">poires</em>.</li><li id=\"m4\">Préparez la <a id=\"m5\">recette</a>.</li></ul>",
+        "out": "<ul id=\"m0\"><li id=\"m1\">Buy apples.</li><li id=\"m2\">Wash the <em id=\"m3\">pears</em>.</li><li id=\"m4\">Prepare the <a id=\"m5\">recipe</a>.</li></ul>"
+      },
+      {
+        "id": "inline-spans",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Le prix est de <span id=\"m0\">vingt euros</span> et la livraison est <span id=\"m1\">gratuite</span>.",
+        "out": "The price is <span id=\"m0\">twenty euros</span> and delivery is <span id=\"m1\">free</span>."
+      },
+      {
+        "id": "entities",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Le service R&amp;D annonce un prix &lt; 10 € pour l'été.",
+        "out": "The R&amp;D service announces a price &lt; € 10 for the summer."
+      },
+      {
+        "id": "placeholders",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [
+          "{{dossier}}"
+        ],
+        "src": "Vous avez {count} nouveaux messages de %s dans {{dossier}}.",
+        "out": "You have {count} new messages of %s in {{folder}}."
+      },
+      {
+        "id": "no-translate",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Envoyé par <span id=\"m0\"></span> depuis la gare de Lyon.",
+        "out": "Sent by <span id=\"m0\"></span>from Lyon station."
+      },
+      {
+        "id": "link-wrapping-strong",
+        "mode": "markers",
+        "structureKept": true,
+        "protectedMissing": [],
+        "src": "Cliquez <a id=\"m0\"><strong id=\"m1\">ici</strong></a> ou appuyez sur <kbd id=\"m2\">Ctrl</kbd>+<kbd id=\"m3\">S</kbd> pour enregistrer.",
+        "out": "Click <a id=\"m0\"><strong id=\"m1\">here</strong></a> or press <kbd id=\"m2\">Ctrl</kbd>+ <kbd id=\"m3\">S</kbd>to save."
+      }
+    ],
+    "wikipediaKept": [
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "counts": {
+      "html": {
+        "kept": 8,
+        "total": 8
+      },
+      "markers": {
+        "kept": 8,
+        "total": 8
+      },
+      "wikipedia": {
+        "kept": 29,
+        "total": 40
+      },
+      "protectedFailures": 2
+    }
+  },
+  "language": {
+    "words": 1940,
+    "englishRatio": 0.364,
+    "frenchRatio": 0.002,
+    "isEnglish": true
+  },
+  "provenance": {
+    "engine": {
+      "upstreamCommit": "69455acaecbe8650cdba988dbcf7c10ca20e7c48",
+      "wrap": "upstream",
+      "files": {
+        "bergamot-translator.js": {
+          "bytes": 92034,
+          "sha256": "bf408bd65b96c24ef97e7867e68471955ba4386456510a7edaf23cb50b6d851c"
+        },
+        "bergamot-translator.wasm": {
+          "bytes": 4962438,
+          "gzBytes": 1880572,
+          "sha256": "a39e50b3012239e80b1578418636ed1c015c122171da22ff03a4df05432f78f1"
+        }
+      }
+    },
+    "fixture": {
+      "revid": 240161358,
+      "sha256": "4680cf2e2bd1cb342f623a773390a6a5ce6d1c32474a43c5242ebdfe69c79507",
+      "bytes": 765654
+    },
+    "researchOnlySources": true
+  }
+}
