@@ -84,12 +84,22 @@ Required Worker secrets:
 
 The deployment process also requires `RESEND_DEPLOY_API_KEY` (a full-access
 Resend key capable of retrieving domain status) and `RESEND_DOMAIN_ID` in its
-local environment. Map both from 1Password for the `op run` invocation; do not
-put the key in a committed file or shell history. The full-access deploy key is
-local preflight authority only: never install it as a Worker secret. The Worker
-keeps the separate restricted `RESEND_API_KEY` for confirmation delivery.
+local environment. The full-access deploy key is local preflight authority only:
+never install it as a Worker secret. The Worker keeps the separate restricted
+`RESEND_API_KEY` for confirmation delivery.
 
-Run credentialed commands through the 1Password-backed Cloudflare environment:
+`.env.1password` in this directory supplies everything `npm run deploy` needs:
+the Cloudflare token (the same item as `../.env.1password`), the deploy key
+from the 1Password item **Resend Deploy API Key blancbrowser** (vault Dev,
+`credential` field), and the literal ID of the `updates.blancbrowser.com`
+Resend domain, which is not a secret on its own. The shared
+`../.env.1password` holds only the Cloudflare token, so it is enough for
+`wrangler secret put` but not for the deploy gate. Before the first deploy,
+create that 1Password item with a full-access key from Resend's API Keys page.
+
+The 1Password CLI must be connected to the desktop app: in 1Password, open
+Settings → Developer and turn on **Integrate with 1Password CLI**. If `op`
+instead offers to add an account manually, cancel and turn that setting on.
 
 ```sh
 cd cloudflare/newsletter-worker
@@ -97,7 +107,7 @@ cd cloudflare/newsletter-worker
 op run --env-file=../.env.1password -- npx wrangler secret put ADMIN_TOKEN
 op run --env-file=../.env.1password -- npx wrangler secret put NEWSLETTER_TOKEN_SECRET
 op run --env-file=../.env.1password -- npx wrangler secret put RESEND_API_KEY
-op run --env-file=../.env.1password -- npm run deploy
+op run --env-file=.env.1password -- npm run deploy
 ```
 
 After deploy, test from `https://blancbrowser.com`, confirm delivery, follow the
