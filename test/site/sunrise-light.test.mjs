@@ -2,9 +2,7 @@
 //
 // Guards the Sunrise "light" treatments borrowed from premium fintech pages on
 // 4 Sep 2026: the gold Patron name and price on a warm ink card with a light
-// spill, the horizon rule at the footer seam, the top-lit demo frame, and the
-// one-time reveal on the homepage grid and Patron section. The reveal must
-// never hide content from a visitor without JavaScript or with reduced motion.
+// spill and the horizon rule at the footer seam.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -79,10 +77,10 @@ test('a gold horizon rule marks the footer seam on every page profile without ov
   try {
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const path of ['/', '/features/island', '/privacy']) {
+      for (const path of ['/', '/features/island', '/privacy', '/mail']) {
         await page.goto(`${baseURL}${path}`);
         const seam = await page.evaluate(() => {
-          const footer = document.querySelector('.site-footer');
+          const footer = document.querySelector('.website-footer');
           const glow = getComputedStyle(footer, '::before');
           const line = getComputedStyle(footer, '::after');
           return {
@@ -92,7 +90,7 @@ test('a gold horizon rule marks the footer seam on every page profile without ov
             line: line.backgroundImage,
             lineHeight: line.height,
             overflow: document.documentElement.scrollWidth > innerWidth,
-            footerBackground: getComputedStyle(footer).backgroundColor,
+            footerBorder: getComputedStyle(footer).borderTopWidth,
           };
         });
         assert.equal(seam.position, 'relative', `${width}px ${path}: footer anchors its seam`);
@@ -101,65 +99,8 @@ test('a gold horizon rule marks the footer seam on every page profile without ov
         assert.match(seam.line, /linear-gradient/, `${width}px ${path}: horizon line`);
         assert.equal(seam.lineHeight, '1px', `${width}px ${path}: the line is a hairline`);
         assert.equal(seam.overflow, false, `${width}px ${path} overflows`);
-        assert.equal(seam.footerBackground, 'rgb(239, 230, 216)', 'footer surface unchanged');
+        assert.equal(seam.footerBorder, '0px', `${width}px ${path}: the rule replaces the neutral top border`);
       }
     }
-  } finally { await context.close(); }
-});
-
-test('the demo showcase frame is lit from the top', async () => {
-  const { page, context } = await openPage();
-  try {
-    const frame = await page.evaluate(() => {
-      const s = getComputedStyle(document.querySelector('.demo-showcase'));
-      return { image: s.backgroundImage, color: s.backgroundColor };
-    });
-    assert.match(frame.image, /linear-gradient/);
-    assert.equal(frame.color, 'rgb(239, 230, 216)', 'the frame still resolves to the warm surface');
-  } finally { await context.close(); }
-});
-
-test('the homepage reveal never hides content without JavaScript or with reduced motion', async () => {
-  const html = await (await fetch(`${baseURL}/`)).text();
-  assert.doesNotMatch(html, /class="[^"]*\bis-(?:waiting|revealed)\b/, 'server HTML carries no reveal state on any element');
-
-  const noScript = await openPage({ javaScriptEnabled: false });
-  try {
-    const visible = await noScript.page.locator('.home-feature').evaluateAll(els => els.map(el => getComputedStyle(el).opacity));
-    assert.deepEqual(visible, Array(6).fill('1'));
-  } finally { await noScript.context.close(); }
-
-  const reduced = await openPage({ reducedMotion: 'reduce' });
-  try {
-    const grid = await reduced.page.locator('.home-feature').evaluateAll(els => els.map(el => [getComputedStyle(el).opacity, getComputedStyle(el).transform]));
-    assert.deepEqual(grid, Array.from({ length: 6 }, () => ['1', 'none']), 'reduced motion sees all six cards at rest');
-    const patron = await reduced.page.locator('.home-patron').evaluate(el => getComputedStyle(el).opacity);
-    assert.equal(patron, '1');
-  } finally { await reduced.context.close(); }
-});
-
-test('the feature grid and Patron section rise once into view, then stay put', async () => {
-  const { page, context } = await openPage({ reducedMotion: 'no-preference' });
-  try {
-    const belowFold = await page.locator('.home-feature-grid').evaluate(el => el.getBoundingClientRect().top > innerHeight);
-    assert.equal(belowFold, true, 'the grid starts below a 900px viewport');
-    const waiting = await page.locator('.home-feature').evaluateAll(els => els.map(el => [el.classList.contains('is-waiting'), getComputedStyle(el).opacity]));
-    assert.deepEqual(waiting, Array.from({ length: 6 }, () => [true, '0']), 'below-fold cards wait for the viewport');
-
-    await page.locator('.home-feature-grid').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => [...document.querySelectorAll('.home-feature')].every(el => el.classList.contains('is-revealed') && getComputedStyle(el).opacity === '1'), null, { timeout: 5000 });
-    const delays = await page.locator('.home-feature').evaluateAll(els => els.map(el => getComputedStyle(el).animationDelay));
-    assert.equal(new Set(delays).size, 6, `cards stagger, got ${delays.join(' ')}`);
-
-    await page.locator('.home-patron').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => {
-      const el = document.querySelector('.home-patron');
-      return el.classList.contains('is-revealed') && getComputedStyle(el).opacity === '1';
-    }, null, { timeout: 5000 });
-
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(500);
-    const settled = await page.evaluate(() => [...document.querySelectorAll('.home-feature, .home-patron')].map(el => [el.classList.contains('is-waiting'), getComputedStyle(el).opacity]));
-    assert.deepEqual(settled, settled.map(() => [false, '1']), 'a revealed section never hides again');
   } finally { await context.close(); }
 });

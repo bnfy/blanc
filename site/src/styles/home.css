@@ -77,11 +77,6 @@
   color: var(--gold);
   margin-bottom: 16px;
 }
-.home-revamp .boards {
-  max-width: 1360px;
-  margin: auto;
-  padding: 0 40px;
-}
 .home-revamp .beat {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 270px;
@@ -119,12 +114,6 @@
   color: var(--gold);
   margin-bottom: 14px;
 }
-.home-revamp .frame-link {
-  display: inline-block;
-  margin-top: 22px;
-  color: var(--gold);
-  font-size: 13px;
-}
 .home-revamp .actions {
   display: flex;
   align-items: center;
@@ -157,12 +146,6 @@
   font-size: 13px;
   text-decoration: underline;
   text-underline-offset: 5px;
-}
-.home-revamp .shot {
-  margin-top: 32px;
-}
-.home-revamp .shot img {
-  border-radius: 4px;
 }
 .home-revamp .hero-copy {
   text-align: center;
@@ -234,36 +217,6 @@
   font-size: 13px;
   margin-top: 14px;
   color: var(--ink);
-}
-.home-revamp .primary-visual img {
-  width: 100%;
-  border-radius: 4px;
-}
-.home-revamp .side-story {
-  padding: 22px 0;
-  border-block: 1px solid var(--line);
-}
-.home-revamp .side-story p {
-  font-size: 13px;
-  color: var(--ink);
-  margin-top: 13px;
-}
-.home-revamp .side-story .mini-shot {
-  margin-top: 18px;
-}
-.home-revamp .reopen-crop {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 1.2;
-  background: #fff;
-  border-radius: 4px;
-}
-.home-revamp .reopen-crop img {
-  width: 160%;
-  max-width: none;
-  position: absolute;
-  left: -30%;
-  top: -2%;
 }
 .home-revamp .material-limit {
   font-size: 13px;
@@ -533,27 +486,10 @@
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-.home-revamp .detail-help {
-  margin-top: 35px;
-  border-top: 1px solid var(--line);
-  padding-top: 22px;
-}
-.home-revamp .detail-help h3 {
-  font-size: 24px;
-}
-.home-revamp .detail-help ul {
-  color: var(--dim);
-  font-size: 13px;
-  padding-left: 20px;
-  margin: 15px 0 0;
-}
 @media (max-width: 1000px) {
   .home-revamp .beat {
     grid-template-columns: minmax(0, 1fr) 225px;
     gap: 25px;
-  }
-  .home-revamp .boards {
-    padding: 0 24px;
   }
   .home-revamp .frame-inner {
     padding: 40px 30px;
@@ -570,9 +506,6 @@
   }
 }
 @media (max-width: 760px) {
-  .home-revamp .boards {
-    padding: 0 16px;
-  }
   .home-revamp .beat {
     display: block;
     margin-bottom: 45px;
@@ -615,9 +548,6 @@
   .home-revamp .tools-list {
     gap: 25px;
   }
-  .home-revamp .frame-link {
-    font-size: 12px;
-  }
   .home-revamp .start-frame figure {
     padding: 0 14px 20px;
   }
@@ -655,10 +585,6 @@
 }
 .home-revamp .beat::before {
   display: none !important;
-}
-.home-revamp .boards {
-  max-width: none;
-  padding: 0;
 }
 .home-revamp .beat {
   display: block;
@@ -764,8 +690,7 @@
 .home-revamp code,
 .home-revamp kbd,
 .home-revamp samp,
-.home-revamp pre,
-.home-revamp .mono {
+.home-revamp pre {
   font-family: var(--font-ui);
   font-variant-numeric: tabular-nums;
 }
@@ -837,10 +762,6 @@
   max-width: 1160px;
   padding-top: 10px;
 }
-.home-revamp .start-frame figure > .frame-link {
-  margin-left: 3%;
-  margin-right: 3%;
-}
 @media (max-width: 760px) {
   .home-revamp .hero-product {
     padding: 0 0 30px;
@@ -852,10 +773,6 @@
   }
   .home-revamp .device-desktop {
     width: 100%;
-  }
-  .home-revamp .start-frame figure > .frame-link {
-    margin-left: 0;
-    margin-right: 0;
   }
 }
 .home-revamp .gallery-indicator {
@@ -2208,15 +2125,6 @@
     align-items: center;
   }
 }
-
-.home-revamp .capture-note {
-  font: 400 11px/1.6 var(--font-ui);
-  color: var(--ink);
-  text-align: center;
-  margin: 10px 0 0;
-}
-
-.home-revamp .capture-note a{color:inherit;text-underline-offset:3px}
 
 /* Phones: drop the device frames (never downloaded — they are lazy and
    hidden) and show a readable detail of each capture instead. Offsets are
