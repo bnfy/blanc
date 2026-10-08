@@ -37,6 +37,21 @@ production catalog is unchanged.
 Both products read back with exactly those two benefits. Polar then revoked
 both Suite-benefit grants (subscriptions `eda7e167-…` and `3155fa61-…`, at
 13:46:51Z), so no sandbox subscription holds the Suite benefit.
+
+Polar granted the new benefits to both existing Suite Monthly subscriptions in
+the same second, which is the plan-change behaviour this model relies on:
+
+| Subscription | Patron Monthly grant (license key id) | Mail grant (license key id) |
+| --- | --- | --- |
+| `eda7e167-…` (the Patron → Suite upgrade) | `b73bd00b-…`, originally created September 29 (`650ab1a7-1717-4548-aa19-1b89d48f8e1f`) | `a9a48755-…`, new (`67e39021-…`) |
+| `3155fa61-…` (bought as Suite) | `c4127bba-…`, new (`cd4f0b14-…`) | `0910d0f9-…`, new (`aa9a55e8-…`) |
+
+The upgraded subscription's Patron grant is the original record, re-granted,
+and its license key id `650ab1a7-…` is the same Patron key id recorded for
+the September 29 purchase below. So the customer's existing Browser key came back
+rather than being replaced. The token could not read license keys (403), so
+the key value and activation state were not inspected; confirm in Browser that
+the original key validates.
 Still to do in the dashboard:
 
 1. Delete the unused Blanc Suite License benefit `c5ebb27b-…`. No product
