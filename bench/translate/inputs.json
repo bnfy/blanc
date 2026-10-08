@@ -41,6 +41,7 @@
   },
   "run": {
     "articleWords": 2000,
+    "viewportWords": 250,
     "wikipediaMarkupBlocks": 40,
     "warmRuns": 5,
     "batchSize": 64

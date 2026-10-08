@@ -1,0 +1,72 @@
+# F43 Phase 0, second round: engine WebContentsView attached beneath the
+# active page (behind) versus unattached, on Apple Silicon, Intel Mac and
+# Windows. Reuses the engine built by run 37845357888 (pinned commit, hashes in
+# its engine-manifest.json) instead of rebuilding it.
+# Spec: docs/superpowers/specs/2026-10-08-on-device-translation-design.md
+name: translate-phase0-behind
+
+on:
+  push:
+    branches: [spike/translate-phase0]
+    paths:
+      - .github/workflows/translate-phase0-behind.yml
+      - bench/translate/harness/behind-main.js
+      - bench/translate/harness/native.js
+      - bench/translate/harness/engine-cmd.*
+      - bench/translate/harness/page.*
+      - bench/translate/harness/bgtab*
+      - bench/translate/harness/preload-*.js
+      - bench/translate/lib/behind-report.js
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  measure:
+    strategy:
+      fail-fast: false
+      matrix:
+        label: [macos-arm64, macos-x64, windows-x64]
+        mode: [behind, unattached]
+        include:
+          - label: macos-arm64
+            runner: macos-15
+          - label: macos-x64
+            runner: macos-15-intel
+          - label: windows-x64
+            runner: windows-latest
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: translate-engine
+          path: bench/translate/.cache/engine
+          run-id: 37845357888
+          github-token: ${{ github.token }}
+      - name: Verify engine bytes match the first round
+        shell: bash
+        run: |
+          node -e "
+          const c=require('crypto'),fs=require('fs');
+          const sha=f=>c.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+          const w=sha('bench/translate/.cache/engine/bergamot-translator.wasm');
+          if (w!=='a39e50b3012239e80b1578418636ed1c015c122171da22ff03a4df05432f78f1') { console.error('engine wasm hash mismatch', w); process.exit(1); }
+          console.log('engine wasm verified', w);"
+      - run: node bench/translate/fetch-inputs.mjs
+      - run: npx electron bench/translate/harness/behind-main.js --mode=${{ matrix.mode }} --out=bench/translate/results/${{ matrix.label }}-${{ matrix.mode }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: translate-behind-${{ matrix.label }}-${{ matrix.mode }}
+          path: bench/translate/results/${{ matrix.label }}-${{ matrix.mode }}
+          retention-days: 14
+          if-no-files-found: warn

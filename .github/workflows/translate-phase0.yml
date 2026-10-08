@@ -7,6 +7,12 @@ name: translate-phase0
 on:
   push:
     branches: [spike/translate-phase0]
+    # Only the first-round harness; the behind-page round has its own workflow.
+    paths:
+      - bench/translate/harness/main.js
+      - bench/translate/harness/engine.js
+      - bench/translate/harness/preload.js
+      - bench/translate/wrap-engine.mjs
   workflow_dispatch:
 
 permissions:
