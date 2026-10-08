@@ -1,0 +1,48 @@
+{
+  "engine": {
+    "repo": "https://github.com/mozilla/translations",
+    "commit": "69455acaecbe8650cdba988dbcf7c10ca20e7c48",
+    "bergamotVersion": "v0.6.0",
+    "emsdk": "3.1.8",
+    "license": "MPL-2.0"
+  },
+  "model": {
+    "pair": "fr-en",
+    "architecture": "base-memory",
+    "license": "MPL-2.0",
+    "researchOnlySource": true,
+    "baseUrl": "https://storage.googleapis.com/moz-fx-translations-data--303e-prod-translations-data",
+    "files": {
+      "model": {
+        "path": "models/fr-en/retrain_hr_EFgIftH_RrCyzl5gjemVNg/exported/model.fren.intgemm.alphas.bin.gz",
+        "sha256": "15f997bc0d13808b0b0fbd0786e684a3c8a52adcd8071844b76123fdacbf2b90",
+        "size": 31561787
+      },
+      "lex": {
+        "path": "models/fr-en/retrain_hr_EFgIftH_RrCyzl5gjemVNg/exported/lex.50.50.fren.s2t.bin.gz",
+        "sha256": "87c6752ea908f5f0347c10ac0cf7d80d9c2f4f20c81c90168f3e8230b56d4440",
+        "size": 4824120
+      },
+      "vocab": {
+        "path": "models/fr-en/retrain_hr_EFgIftH_RrCyzl5gjemVNg/exported/vocab.fren.spm.gz",
+        "sha256": "783abf3abe075afdf8d85d233994bef2c3a064e935ab1bed946820aff6ac002a",
+        "size": 814404
+      }
+    }
+  },
+  "fixture": {
+    "title": "Tour Eiffel",
+    "revid": 240161358,
+    "license": "CC BY-SA 4.0",
+    "researchOnlySource": true,
+    "url": "https://fr.wikipedia.org/api/rest_v1/page/html/Tour_Eiffel/240161358",
+    "sha256": "4680cf2e2bd1cb342f623a773390a6a5ce6d1c32474a43c5242ebdfe69c79507",
+    "size": 765654
+  },
+  "run": {
+    "articleWords": 2000,
+    "wikipediaMarkupBlocks": 40,
+    "warmRuns": 5,
+    "batchSize": 64
+  }
+}

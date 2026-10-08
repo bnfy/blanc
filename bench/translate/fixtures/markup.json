@@ -1,0 +1,10 @@
+[
+  { "id": "nested-emphasis", "html": "Ce point est <b>très <i>important</i> pour</b> la suite du projet.", "protected": [], "noTranslate": [] },
+  { "id": "link-attributes", "html": "Lisez <a href=\"https://exemple.fr/guide?x=1&amp;y=2\" class=\"lien-externe\" data-id=\"42\" title=\"Le guide\" rel=\"noopener\">le guide complet</a> avant de commencer.", "protected": [], "noTranslate": [] },
+  { "id": "list", "html": "<ul><li>Achetez des pommes.</li><li>Lavez les <em>poires</em>.</li><li>Préparez la <a href=\"/recette\">recette</a>.</li></ul>", "protected": [], "noTranslate": [] },
+  { "id": "inline-spans", "html": "Le prix est de <span class=\"prix\">vingt euros</span> et la livraison est <span class=\"gratuit\">gratuite</span>.", "protected": [], "noTranslate": [] },
+  { "id": "entities", "html": "Le service R&amp;D annonce un prix &lt; 10&nbsp;€ pour l&#39;été.", "protected": ["R&amp;D"], "noTranslate": [] },
+  { "id": "placeholders", "html": "Vous avez {count} nouveaux messages de %s dans {{dossier}}.", "protected": ["{count}", "%s", "{{dossier}}"], "noTranslate": [] },
+  { "id": "no-translate", "html": "Envoyé par <span translate=\"no\">Jean-Pierre Dupont</span> depuis la gare de Lyon.", "protected": [], "noTranslate": ["Jean-Pierre Dupont"] },
+  { "id": "link-wrapping-strong", "html": "Cliquez <a href=\"#aide\"><strong>ici</strong></a> ou appuyez sur <kbd>Ctrl</kbd>+<kbd>S</kbd> pour enregistrer.", "protected": [], "noTranslate": [] }
+]

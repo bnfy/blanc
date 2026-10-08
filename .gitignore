@@ -22,6 +22,8 @@ docs/press-outreach-plan.md
 bench/memory/results/
 bench/tab-import/.hf-cache/
 bench/tab-import/results/
+bench/translate/.cache/
+bench/translate/results/
 .astro/
 site/.parity/
 site/.parity-shots/
