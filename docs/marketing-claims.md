@@ -80,7 +80,7 @@ its qualifications remain subject to the release-backed claim gate above.
 ## Current Blanc capability boundaries
 
 These boundaries describe public v1.30.1; its scope, publication evidence and
-pending adjacent public-feed updater handoffs are recorded in
+owner-confirmed adjacent public-feed updater handoffs are recorded in
 [the release report](release-incidents/2026-10-08-v1.30.1.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
