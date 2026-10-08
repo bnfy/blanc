@@ -135,11 +135,20 @@ test('gateVerdict fails on slow Intel median, too few warm runs, non-English out
   assert.deepEqual(gateVerdict([summary()]), { pass: false, reasons: ['No Intel Mac (darwin x64) result.'] });
 });
 
-test('renderMarkdownTable has one row per summary', () => {
-  const md = renderMarkdownTable([summary(), summary({}, host('x64', 'win32'))]);
-  assert.equal(md.trim().split('\n').length, 4);
+test('gateVerdict ignores diagnostic runs with renderer backgrounding disabled for the Intel speed gate', () => {
+  const diagnostic = { ...host('x64'), rendererBackgrounding: false };
+  const fastDiagnostic = summary({}, diagnostic);
+  assert.deepEqual(gateVerdict([fastDiagnostic]), { pass: false, reasons: ['No Intel Mac (darwin x64) result.'] });
+  const slowProduction = summary({ warmMs: [12000, 12500, 11800, 12100, 12200], articleWords: 2000 }, host('x64'));
+  assert.match(gateVerdict([slowProduction, fastDiagnostic]).reasons[0], /Intel Mac median warm 12100 ms/);
+});
+
+test('renderMarkdownTable has one row per summary and labels diagnostic runs', () => {
+  const md = renderMarkdownTable([summary(), summary({}, host('x64', 'win32')), summary({}, { ...host('x64'), rendererBackgrounding: false })]);
+  assert.equal(md.trim().split('\n').length, 5);
   assert.match(md, /darwin arm64 \(view\)/);
   assert.match(md, /win32 x64 \(view\)/);
+  assert.match(md, /darwin x64 \(view, backgrounding off — diagnostic\)/);
 });
 
 test('renderQualityReport escapes page and engine text and uses no inline styles', () => {

@@ -163,7 +163,9 @@ function gateVerdict(summaries) {
     if (s.warmMsSamples.length < MIN_WARM_SAMPLES) reasons.push(`${label(s)}: only ${s.warmMsSamples.length} warm samples (need ${MIN_WARM_SAMPLES}).`);
     if (!s.language.isEnglish) reasons.push(`${label(s)}: output failed the English check.`);
   }
-  const intel = summaries.filter((s) => s.host.platform === 'darwin' && s.host.arch === 'x64');
+  // Diagnostic runs (renderer backgrounding disabled app-wide) show the ceiling
+  // but are not production-shaped, so they never satisfy the speed gate.
+  const intel = summaries.filter((s) => s.host.platform === 'darwin' && s.host.arch === 'x64' && s.host.rendererBackgrounding !== false);
   if (!intel.length) reasons.push('No Intel Mac (darwin x64) result.');
   for (const s of intel) {
     if (s.warmMsPer2000 > GATE_MS_PER_2000_WORDS) {
@@ -179,7 +181,8 @@ function renderMarkdownTable(summaries) {
   const rows = summaries.map((s) => {
     const c = s.markup.counts;
     const d = s.memory.deltaMB;
-    return `| ${s.host.platform} ${s.host.arch} (${s.host.engineHost}) | ${s.host.cpuModel} ×${s.host.cpuCount} | ${s.timing.endToEndReadyMs} | ${s.coldMs} | ${s.warmMedianMs} (${s.warmMsSamples.length}) | ${s.warmMsPer2000} | ${s.wordsPerSecWarm} | ${s.recreate.endToEndReadyMs} | ${d.enginePeak} | ${d.totalPeak} | ${d.totalAfterDestroyVsPre} / ${d.totalAfterRecreateDestroyVsPre} | ${c.html.kept}/${c.html.total} / ${c.markers.kept}/${c.markers.total} / ${c.wikipedia.kept}/${c.wikipedia.total} | ${s.language.isEnglish ? 'yes' : 'NO'} |`;
+    const variant = s.host.rendererBackgrounding === false ? `${s.host.engineHost}, backgrounding off — diagnostic` : s.host.engineHost;
+    return `| ${s.host.platform} ${s.host.arch} (${variant}) | ${s.host.cpuModel} ×${s.host.cpuCount} | ${s.timing.endToEndReadyMs} | ${s.coldMs} | ${s.warmMedianMs} (${s.warmMsSamples.length}) | ${s.warmMsPer2000} | ${s.wordsPerSecWarm} | ${s.recreate.endToEndReadyMs} | ${d.enginePeak} | ${d.totalPeak} | ${d.totalAfterDestroyVsPre} / ${d.totalAfterRecreateDestroyVsPre} | ${c.html.kept}/${c.html.total} / ${c.markers.kept}/${c.markers.total} / ${c.wikipedia.kept}/${c.wikipedia.total} | ${s.language.isEnglish ? 'yes' : 'NO'} |`;
   });
   return [head, rule, ...rows].join('\n') + '\n';
 }
