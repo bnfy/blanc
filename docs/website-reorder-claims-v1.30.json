@@ -16,7 +16,7 @@
         "test/unit/tab-order.test.js",
         "test/desktop/steps/tab-drag.steps.js"
       ],
-      "qualification": "Public desktop v1.30.0 only. Drag and Alt/Option+Shift+Up/Down work in the expanded Island and in vertical tabs; the resting Island dots are not a drag surface. Ordering is entirely user-directed: no automatic or semantic sorting. Pinned state never changes, folded groups are skipped by keyboard moves, and releasing over the page does nothing. The owner hand-tested macOS and Windows; Linux has hosted automated pointer coverage only, so do not claim hands-on Linux verification."
+      "qualification": "Public desktop v1.30.0 only. Drag and Alt/Option+Shift+Up/Down work in the expanded Island and in vertical tabs. Ordering is entirely user-directed: no automatic or semantic sorting. Pinned state never changes, folded groups are skipped by keyboard moves, and releasing over the page does nothing. The owner hand-tested macOS and Windows; Linux has hosted automated pointer coverage only, so do not claim hands-on Linux verification."
     }
   },
   "claims": [

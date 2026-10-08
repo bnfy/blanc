@@ -95,6 +95,16 @@ test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => 
       for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${reorder.publicRelease}:${file}`], { cwd: root });
     }
   }
+  // Any sentence on these pages about dragging or keyboard-moving tabs, groups
+  // or headers must be a recorded claim here or in the v1.27 ledger.
+  const recorded = [...reorder.claims, ...ledger.claims].map(claim => claim.exactWording);
+  for (const file of new Set(reorder.claims.map(claim => claim.source))) {
+    const prose = [...read(file).matchAll(/<(h[1-6]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => normalize(match[2]));
+    for (const sentence of prose.flatMap(text => text.split(/(?<=[.!?])\s+/))) {
+      if (!/\bdrag\b.*\b(tabs?|groups?|header)\b|Shift\+Up/i.test(sentence)) continue;
+      assert.ok(recorded.some(wording => wording.includes(sentence)), `${file}: unrecorded reorder wording: ${sentence}`);
+    }
+  }
 });
 
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
