@@ -1,42 +1,35 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import sharp from 'sharp';
 import { launchPackagedOverCdp } from '../test/desktop/support/packaged-cdp.mjs';
+import { captureOutputDirectory, installedBlanc, poll, run, seedStartPageFixtures, settle, sha256, writeProfileJson } from '../test/desktop/support/installed-capture.mjs';
 
-// Captures the Settings → Profiles sheet and the Named Workspaces switcher
-// from the installed public Blanc in a disposable profile. Both surfaces are
-// separate views stacked over the page, so this takes a native macOS window
-// capture (screencapture -l) rather than a page screenshot. CDP only calls
-// shipped preload actions and clicks shipped controls; nothing is patched,
-// retouched, or forged (no Patron entitlement is granted).
+// Captures three states of the installed public Blanc for the Profiles and
+// Named Workspaces guides, in a disposable profile seeded with synthetic data:
+//   profiles        Settings sheet on the Profiles group (Personal + Studio)
+//   profile-window  the Studio profile in its own window, opened with the
+//                   profile row's shipped Open button
+//   workspaces      the Personal window's Island panel with the workspace
+//                   switcher open (no Patron entitlement is forged)
+// Settings, the panel and the switcher are separate views stacked over the
+// page, so each state is a native macOS window capture (screencapture -l),
+// resized to 1440x900 sRGB PNG with a .webp companion for inline use. CDP
+// only calls shipped preload actions and clicks shipped controls; nothing is
+// patched or retouched.
+//
+// Output goes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set
+// (captures carry a live clock, so a rerun never matches a ledger's hashes).
 
-if (process.platform !== 'darwin') throw new Error('The installed-public capture helper currently requires macOS.');
-
-const run = promisify(execFile);
-const executablePath = path.resolve(process.env.BLANC_PACKAGED_EXECUTABLE
-  || '/Applications/Blanc.app/Contents/MacOS/Blanc');
-const appPath = executablePath.slice(0, executablePath.lastIndexOf('.app/') + 4);
 const expectedVersion = process.env.BLANC_CAPTURE_VERSION || '1.30.1';
-const outputDirectory = path.resolve(process.env.BLANC_CAPTURE_OUTPUT_DIR
-  || 'site/public/feature-captures');
-
-assert.ok(fs.existsSync(executablePath) && appPath.endsWith('.app'), 'An installed Blanc.app executable is required.');
-const plist = path.join(appPath, 'Contents/Info.plist');
-const version = (await run('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleShortVersionString', plist])).stdout.trim();
-const build = (await run('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleVersion', plist])).stdout.trim();
-assert.equal(version, expectedVersion, `Installed Blanc must be ${expectedVersion}; found ${version}`);
-
+const { executablePath, version, build } = await installedBlanc(expectedVersion);
+const outputDirectory = captureOutputDirectory('profiles-workspaces');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-installed-profiles-'));
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-installed-profiles-raw-'));
-const writeJson = (name, value) => fs.writeFileSync(path.join(profile, `${name}.json`), JSON.stringify(value, null, 2));
+const writeJson = (name, value) => writeProfileJson(profile, name, value);
 const now = Date.now();
 
-// Synthetic fixtures only: public sites, no accounts, no real browsing.
 const favorites = [
   ['mdn', 'https://developer.mozilla.org/', 'MDN Web Docs'],
   ['github', 'https://github.com/', 'GitHub'],
@@ -82,44 +75,8 @@ writeJson('workspaces', {
   ],
   deleted: [],
 });
-writeJson('bookmarks', {
-  items: favorites.map(([id, url, title], index) => ({
-    id: `capture-${id}`, url, title, favicon: null, addedAt: now - (index + 1) * 60_000, updatedAt: now - (index + 1) * 60_000, folder: null,
-  })),
-  tombstones: [],
-});
-writeJson('history', {
-  entries: favorites.flatMap(([, url, title], siteIndex) => Array.from({ length: favorites.length - siteIndex }, (_, visitIndex) => ({
-    url, title, visitedAt: now - (siteIndex * 10 + visitIndex) * 60_000,
-  }))),
-  siteIcons: [],
-});
-const monday = new Date();
-monday.setHours(0, 0, 0, 0);
-monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-const days = [148, 180, 0, 0, 0, 0, 0];
-writeJson('adblock-stats', { weekStart: monday.getTime(), blocked: days.reduce((sum, value) => sum + value, 0), days });
+seedStartPageFixtures(profile, { favorites, now });
 writeJson('session', { version: 2, activeWindowId: sessionEntry.id, windows: [sessionEntry], urls, activeIndex: 0, groups, groupIds, pinned: sessionEntry.pinned });
-
-const poll = async (read, accept, label) => {
-  const deadline = Date.now() + 30_000;
-  let value;
-  while (Date.now() < deadline) {
-    value = await read();
-    if (accept(value)) return value;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  throw new Error(`${label}; last observation: ${String(value)}`);
-};
-// First open page matching an async predicate, polled until it appears.
-const findPage = (predicate, label) => poll(async () => {
-  for (const page of app.pages()) {
-    if (!page.isClosed() && await predicate(page).catch(() => false)) return page;
-  }
-  return null;
-}, Boolean, label);
-const settle = (ms = 700) => new Promise((resolve) => setTimeout(resolve, ms));
-const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
 // The isolated instance's main process is the one carrying this profile's
 // --user-data-dir without a --type= helper flag.
@@ -130,34 +87,34 @@ async function mainPid() {
   return Number(line.trim().split(/\s+/, 1)[0]);
 }
 
-const windowIdSource = `
+// The window list is ordered front to back, so the first normal window of
+// this process is the one just brought to the front.
+const windowIdScript = path.join(scratch, 'window-id.swift');
+fs.writeFileSync(windowIdScript, `
 import CoreGraphics
 let pid = Int32(CommandLine.arguments[1])!
 let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
-// The window list is ordered front to back, so the first normal window is
-// the one just brought to the front.
 let front = list.first { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
 print(front.map { "\\($0[kCGWindowNumber as String]!)" } ?? "")
-`;
-const windowIdScript = path.join(scratch, 'window-id.swift');
-fs.writeFileSync(windowIdScript, windowIdSource);
+`);
 
 async function captureWindow(name, page) {
   // Activate the window so its title-bar controls render in their active state.
   await page.bringToFront().catch(() => {});
   await settle(400);
-  const pid = await mainPid();
-  const windowId = (await run('/usr/bin/swift', [windowIdScript, String(pid)])).stdout.trim();
+  const windowId = (await run('/usr/bin/swift', [windowIdScript, String(await mainPid())])).stdout.trim();
   assert.match(windowId, /^\d+$/, 'Blanc window id not found');
   const raw = path.join(scratch, `${name}-raw.png`);
   await run('/usr/sbin/screencapture', ['-o', '-x', `-l${windowId}`, raw]);
   const { width, height } = await sharp(raw).metadata();
   assert.ok(width / height > 1.59 && width / height < 1.61, `unexpected window capture ${width}×${height}`);
-  const file = path.join(outputDirectory, `${name}-v${expectedVersion}.png`);
+  const png = path.join(outputDirectory, `${name}-v${expectedVersion}.png`);
   // sharp converts the Display P3 capture to sRGB and writes no profile,
   // matching the existing site captures.
-  await sharp(raw).resize(1440, 900, { kernel: 'lanczos3' }).png({ compressionLevel: 9 }).toFile(file);
-  process.stdout.write(`Captured ${name} from ${width}×${height} to ${file} (${sha256(file)})\n`);
+  await sharp(raw).resize(1440, 900, { kernel: 'lanczos3' }).png({ compressionLevel: 9 }).toFile(png);
+  const webp = png.replace(/\.png$/, '.webp');
+  await sharp(png).webp({ quality: 85 }).toFile(webp);
+  process.stdout.write(`Captured ${name} from ${width}×${height} to ${png} (${sha256(png)}) and ${path.basename(webp)}\n`);
 }
 
 let app;
@@ -169,44 +126,45 @@ try {
     launchViaOpen: true,
   });
   await settle(2_000);
+  // First open page matching an async predicate, polled until it appears.
+  const findPage = (predicate, label) => poll(async () => {
+    for (const page of app.pages()) {
+      if (!page.isClosed() && await predicate(page).catch(() => false)) return page;
+    }
+    return null;
+  }, Boolean, label);
+  const isStartPage = (page) => page.url().startsWith('blanc://newtab/');
   // The strip document is the one whose shipped preload exposes openPage.
   const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://')
     && await page.evaluate(() => typeof window.browserAPI?.openPage === 'function'), 'Blanc chrome document did not appear');
-  await findPage(async (page) => page.url().startsWith('blanc://newtab/'), 'Start Page did not restore');
-  fs.mkdirSync(outputDirectory, { recursive: true });
+  await findPage(async (page) => isStartPage(page), 'Start Page did not restore');
 
-  // 1. Settings → Profiles: open Settings through the shipped preload action.
+  // 1. Settings → Profiles: open Settings through the shipped preload action,
+  // then choose the Profiles group with the sheet's own navigation link.
   await chrome.evaluate(() => window.browserAPI.openPage('settings'));
   const settings = await findPage(async (page) => page.url().startsWith('blanc://settings/'), 'Settings sheet did not open');
-  // Choose the Profiles group with the sheet's own navigation link.
   await settings.locator('.settings-nav a[data-group="profiles"]').click();
   await settings.locator('#profilesList > *').first().waitFor({ state: 'visible' });
   await poll(async () => (await settings.locator('#profilesList').innerText()).includes('Studio'), Boolean, 'Studio profile not listed');
   await settle();
   await captureWindow('profiles', chrome);
 
-  // 2. The Studio profile in its own window, opened with the profile row's
-  // shipped Open button. A new profile window starts on its own Start Page.
-  const before = app.pages().filter((page) => page.url().startsWith('blanc://newtab/')).length;
+  // 2. The Studio profile in its own window. Its Start Page is the newtab
+  // page that did not exist before the click.
+  const existing = new Set(app.pages().filter(isStartPage));
   await settings.locator('#profilesList > *', { hasText: 'Studio' }).getByRole('button', { name: 'Open', exact: true }).click();
-  const studio = await poll(async () => {
-    const tabs = app.pages().filter((page) => !page.isClosed() && page.url().startsWith('blanc://newtab/'));
-    return tabs.length > before ? tabs.at(-1) : null;
-  }, Boolean, 'Studio profile window did not open');
+  const studio = await findPage(async (page) => isStartPage(page) && !existing.has(page), 'Studio profile window did not open');
   await studio.waitForLoadState('load');
   await settle(1_200);
   await captureWindow('profile-window', studio);
 
-  // 3. Named Workspaces, in the Personal window: open its Island panel and
-  // the workspace switcher from the panel footer. The Studio window stays
-  // open behind; only the Personal overlay shows its workspace control.
-  // Bring the Personal window forward first: the panel closes when its
-  // window loses focus. Summoning the Island also dismisses the utility
-  // sheet (its view is kept, so the page target does not disappear).
+  // 3. Named Workspaces, in the Personal window. Bring it forward first: the
+  // panel closes when its window loses focus. Window activation can swallow
+  // the first open, so ask again until an overlay reports panel mode (each
+  // window has its own overlay document). Summoning the Island also
+  // dismisses the utility sheet.
   await chrome.bringToFront();
   await settle(400);
-  // Window activation can swallow the first open, so ask again until the
-  // overlay reports panel mode (each window has its own overlay document).
   const panelOpen = async (page) => /overlay/.test(page.url())
     && await page.evaluate(() => document.body.dataset.mode === 'panel');
   let overlay = null;
@@ -221,13 +179,19 @@ try {
   await overlay.locator('#workspaceSwitcher').waitFor({ state: 'visible' });
   await poll(async () => (await overlay.locator('#workspaceSwitcherList').innerText()).includes('Weekend reading'), Boolean, 'workspaces not listed');
   // Opening the menu focuses its first row. A plain click on the menu's own
-  // padding moves focus off that row without closing the menu.
+  // padding moves focus off that row without closing the menu; confirm both,
+  // so a layout change cannot turn the click into an action.
   const menu = await overlay.locator('#workspaceSwitcher').boundingBox();
   await overlay.mouse.click(menu.x + 6, menu.y + menu.height - 6);
-  await overlay.locator('#workspaceSwitcher').waitFor({ state: 'visible' });
+  await settle(300);
+  const menuState = await overlay.evaluate(() => {
+    const switcher = document.getElementById('workspaceSwitcher');
+    return { open: !switcher.hidden, mode: document.body.dataset.mode, focusInMenu: switcher.contains(document.activeElement) && document.activeElement !== switcher };
+  });
+  assert.deepEqual(menuState, { open: true, mode: 'panel', focusInMenu: false }, 'workspace menu must stay open with no control focused');
   await settle();
   await captureWindow('workspaces', overlay);
-  process.stdout.write(`Captured installed Blanc ${version} (${build}) Profiles and Workspaces.\n`);
+  process.stdout.write(`Captured installed Blanc ${version} (${build}) Profiles and Workspaces set to ${outputDirectory}.\n`);
 } finally {
   await app?.close().catch(() => {});
   fs.rmSync(profile, { recursive: true, force: true });
