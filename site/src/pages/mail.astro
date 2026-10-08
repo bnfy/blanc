@@ -1,39 +1,110 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
 import MailIcon from '../components/MailIcon.astro';
 import MailNav from '../components/MailNav.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import '../styles/mail.css';
 ---
 <BaseLayout title="Blanc Mail — Email that minds its own business" description="Blanc Mail is a native Gmail client for macOS, coming soon from the makers of Blanc Browser." path="/mail" header="solid" ogImageAlt="The Blanc Sunrise mark on a warm ivory background">
-  <main id="main-content" class="mail-page">
-    <p class="mail-eyebrow">Blanc Mail · Coming soon for macOS</p>
-    <div class="mail-hero">
-      <div>
-        <h1>Email that minds<br />its own business.</h1>
-        <p class="mail-lead">Blanc Mail brings a careful, native Gmail experience to your Mac. Your mail stays between your Mac and Google.</p>
-        <MailWaitlistForm />
-        <div class="mail-actions">
-          <a href="/mail/pricing">See planned pricing</a>
-          <a href="/mail/download">Release status →</a>
-        </div>
-      </div>
-      <MailIcon />
-    </div>
-    <MailNav />
-    <section class="mail-section">
-      <p class="mail-eyebrow">Made for the Mac</p>
-      <h2>One place to read, reply, and move on.</h2>
-      <div class="mail-card-grid">
-        <div class="mail-card"><h3>A native window</h3><p>Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.</p></div>
-        <div class="mail-card"><h3>Gmail first</h3><p>Connect your Google account directly. Mail is stored locally for reading and draft recovery.</p></div>
-        <div class="mail-card"><h3>Privacy choices</h3><p>Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.</p></div>
+  <main id="main-content" class="mail-page mail-home">
+    <section class="mail-home-hero" aria-labelledby="mail-home-title">
+      <MailIcon class="mail-home-icon" />
+      <p class="mail-home-badge"><span class="mail-home-badge-dot" aria-hidden="true"></span>Coming soon for macOS</p>
+      <h1 id="mail-home-title">Email that minds<br />its own business.</h1>
+      <p class="mail-lead">Blanc Mail brings a careful, native Gmail experience to your Mac. Your mail stays between your Mac and Google.</p>
+      <MailWaitlistForm />
+      <div class="mail-actions">
+        <a href="/mail/pricing">See planned pricing <span aria-hidden="true">›</span></a>
+        <a href="/mail/download">Release status <span aria-hidden="true">›</span></a>
       </div>
     </section>
-    <section class="mail-section mail-prose">
-      <h2>One Blanc family.</h2>
-      <p>Blanc Browser is available on macOS, Windows, and Linux. Blanc Mail is a separate macOS app. At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
-      <p class="mail-muted">Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
+
+    <!-- A stylized wireframe of the three-pane window, not a screenshot: no
+         text, no data, nothing that reads as a shipped feature. -->
+    <div class="mail-home-stage" aria-hidden="true">
+      <div class="mail-home-window">
+        <span class="mail-home-lights"><i></i><i></i><i></i></span>
+        <div class="mail-home-sidebar">
+          <span class="mail-home-bar is-strong"></span>
+          <span class="mail-home-bar"></span>
+          <span class="mail-home-bar"></span>
+          <span class="mail-home-bar is-short"></span>
+        </div>
+        <div class="mail-home-list">
+          <!-- Placeholder for Blanc Browser's resting Island, which Mail's
+               window chrome will adopt; centered on the list column. -->
+          <span class="mail-home-island">
+            <i class="is-glyph"></i><i class="is-glyph"></i>
+            <span class="mail-home-island-pips"><i></i><i class="is-on"></i><i></i><i></i></span>
+            <b></b>
+            <i class="is-glyph"></i><i class="is-glyph"></i>
+          </span>
+          <span class="mail-home-row is-selected"><b></b><i></i><i class="is-short"></i></span>
+          <span class="mail-home-row"><b></b><i></i><i class="is-short"></i></span>
+          <span class="mail-home-row"><b></b><i></i><i class="is-short"></i></span>
+          <span class="mail-home-row"><b></b><i></i><i class="is-short"></i></span>
+          <span class="mail-home-row"><b></b><i></i><i class="is-short"></i></span>
+        </div>
+        <div class="mail-home-reader">
+          <span class="mail-home-bar is-title"></span>
+          <span class="mail-home-bar is-meta"></span>
+          <span class="mail-home-line"></span>
+          <span class="mail-home-line"></span>
+          <span class="mail-home-line is-short"></span>
+          <span class="mail-home-line"></span>
+          <span class="mail-home-line is-short"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mail-home-nav"><MailNav /></div>
+
+    <section class="mail-home-section" aria-labelledby="mail-home-mac">
+      <p class="mail-eyebrow">Made for the Mac</p>
+      <h2 id="mail-home-mac">One place to read, reply, and move on.</h2>
+      <div class="mail-home-tiles">
+        <article class="mail-home-tile">
+          <svg class="mail-home-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3" /><path d="M3 9h18M9 9v10.5" /></svg>
+          <h3>A native window</h3>
+          <p>Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.</p>
+        </article>
+        <article class="mail-home-tile">
+          <svg class="mail-home-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" /></svg>
+          <h3>Gmail first</h3>
+          <p>Connect your Google account directly. Mail is stored locally for reading and draft recovery.</p>
+        </article>
+        <article class="mail-home-tile">
+          <svg class="mail-home-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6v5.5c0 4.2 2.9 7.6 7 9 4.1-1.4 7-4.8 7-9V6l-7-2.5Z" /><path d="m9 12 2.2 2.2L15.5 10" /></svg>
+          <h3>Privacy choices</h3>
+          <p>Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="mail-home-section" aria-labelledby="mail-home-family">
+      <p class="mail-eyebrow">From the makers of Blanc Browser</p>
+      <h2 id="mail-home-family">One Blanc family.</h2>
+      <div class="mail-home-family">
+        <a class="mail-home-app" href="/download">
+          <span class="mail-home-app-icon is-browser"><BrandMark /></span>
+          <span class="mail-home-app-text">
+            <strong>Blanc Browser</strong>
+            <span>Available now on macOS, Windows, and Linux.</span>
+          </span>
+          <span class="mail-home-app-chevron" aria-hidden="true">›</span>
+        </a>
+        <a class="mail-home-app" href="/mail/download">
+          <MailIcon class="mail-home-app-icon" decorative />
+          <span class="mail-home-app-text">
+            <strong>Blanc Mail</strong>
+            <span>A separate macOS app, coming soon.</span>
+          </span>
+          <span class="mail-home-app-chevron" aria-hidden="true">›</span>
+        </a>
+      </div>
+      <p class="mail-home-suite">At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
+      <p class="mail-muted mail-home-suite">Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
     </section>
   </main>
 </BaseLayout>

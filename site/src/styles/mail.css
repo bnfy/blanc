@@ -8,40 +8,140 @@
 .mail-page .mail-lead{font-size:clamp(19px,2.3vw,25px);max-width:720px;color:#4f473d;line-height:1.45}
 .mail-page .mail-muted{color:#6b6257}
 .mail-page a{color:#67471b;text-decoration-thickness:1px;text-underline-offset:3px}
-.mail-page .mail-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,.8fr);gap:40px;align-items:center;min-height:430px}
 .mail-page .mail-icon{display:block;position:relative;width:min(100%,310px);aspect-ratio:1;margin:auto;background:#f7f0e5;border:1px solid #ddd2c2;border-radius:26%;box-shadow:0 25px 60px #35250e20}
 .mail-page .mail-icon img{display:block;width:100%;height:100%;object-fit:contain}
 .mail-page .mail-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:28px}
 .mail-page .mail-actions a{white-space:nowrap}
-.mail-page .mail-cta{display:inline-block;background:#12100b;color:#f7f0e5;padding:13px 20px;border-radius:7px;text-decoration:none;font-weight:600}
-.mail-page .mail-cta:hover{background:#44361e;color:#fff}
-.mail-page .mail-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
-.mail-page .mail-card,.mail-page .mail-plan{background:#fffcf7;border:1px solid #ddd2c2;border-radius:16px;padding:25px}
-.mail-page .mail-card p,.mail-page .mail-plan p{margin-bottom:0}
+.mail-page .mail-plan{background:#fffcf7;border:1px solid #ddd2c2;border-radius:16px;padding:25px}
+.mail-page .mail-plan p{margin-bottom:0}
 .mail-page .mail-section{padding-top:70px;border-top:1px solid #ddd2c2;margin-top:70px}
 .mail-page .mail-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:26px 0}
 .mail-page .mail-plan strong{font-family:var(--site-font-patron);font-size:36px;font-weight:400}
 .mail-page .mail-plan ul{padding-left:22px}
-.mail-page .mail-subnav{display:flex;flex-wrap:wrap;gap:12px 22px;margin:28px 0 0}
-.mail-page .mail-subnav a[aria-current=page]{font-weight:700;text-decoration-thickness:2px}
+.mail-page .mail-subnav{display:inline-flex;max-width:100%;overflow-x:auto;scrollbar-width:none;gap:2px;margin:28px 0 0;padding:3px;border-radius:999px;background:var(--site-surface,#efe6d8);box-shadow:inset 0 0 0 1px #ddd2c280}
+.mail-page .mail-subnav::-webkit-scrollbar{display:none}
+.mail-page .mail-subnav a{flex:none;padding:7px 15px;border-radius:999px;color:#4f473d;font-size:14px;font-weight:500;letter-spacing:.005em;text-decoration:none;transition:background-color 160ms ease,color 160ms ease,transform 100ms ease-out}
+.mail-page .mail-subnav a:hover{color:#12100b}
+.mail-page .mail-subnav a:active{transform:scale(.96)}
+.mail-page .mail-subnav a[aria-current=page]{background:#fffcf7;color:#12100b;font-weight:600;box-shadow:0 1px 2px #35250e1f,0 0 0 .5px #35250e14}
+.mail-page .mail-subnav a:focus-visible{outline:2px solid #805d28;outline-offset:1px}
 .mail-page .mail-note{background:#efe6d8;border-left:3px solid #805d28;padding:17px 20px;border-radius:0 8px 8px 0}
 .mail-page .mail-prose{max-width:780px}
 .mail-page .mail-prose h2{font-size:34px;margin:46px 0 12px}
 .mail-page.mail-prose{max-width:820px}
 .mail-page.mail-prose h2{font-size:34px;margin:46px 0 12px}
 .mail-page.mail-prose .mail-subnav{margin-bottom:42px}
-.mail-page .mail-waitlist{max-width:560px;margin-top:30px}
-.mail-page .mail-waitlist-label{display:block;font-weight:600;font-size:16px;margin-bottom:10px}
-.mail-page .mail-waitlist-controls{display:flex;gap:10px}
+.mail-page .mail-waitlist{max-width:520px;margin-top:30px}
+.mail-page .mail-waitlist-label{display:block;font-weight:600;font-size:15px;letter-spacing:-.005em;margin-bottom:10px}
+/* One capsule: the field and its button read as a single control. */
+.mail-page .mail-waitlist-controls{display:flex;align-items:center;gap:6px;padding:5px 5px 5px 6px;border:1px solid #c9bba6;border-radius:999px;background:#fffcf7;box-shadow:0 1px 2px #35250e0f,0 10px 30px -18px #35250e40;transition:border-color 160ms ease,box-shadow 160ms ease}
+.mail-page .mail-waitlist-controls:focus-within{border-color:#805d28;box-shadow:0 0 0 4px #805d2826,0 10px 30px -18px #35250e40}
 .mail-page .mail-waitlist-controls[hidden]{display:none}
-.mail-page .mail-waitlist input[type=email]{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border:1px solid #c9bba6;border-radius:7px;background:#fffcf7;color:#12100b}
-.mail-page .mail-waitlist input[type=email]:focus-visible{outline:2px solid #805d28;outline-offset:1px}
-.mail-page .mail-waitlist button{font:inherit;font-weight:600;font-size:16px;padding:12px 20px;border:0;border-radius:7px;background:#12100b;color:#f7f0e5;cursor:pointer;white-space:nowrap}
+.mail-page .mail-waitlist input[type=email]{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border:0;border-radius:999px;background:transparent;color:#12100b}
+.mail-page .mail-waitlist input[type=email]::placeholder{color:#8a7f70}
+.mail-page .mail-waitlist input[type=email]:focus-visible{outline:none}
+.mail-page .mail-waitlist button{font:inherit;font-weight:600;font-size:15px;padding:11px 20px;border:0;border-radius:999px;background:#12100b;color:#f7f0e5;cursor:pointer;white-space:nowrap;transition:background-color 160ms ease,transform 100ms ease-out}
 .mail-page .mail-waitlist button:hover{background:#44361e}
-.mail-page .mail-waitlist button:disabled{opacity:.6;cursor:progress}
+.mail-page .mail-waitlist button:active{transform:scale(.97)}
+.mail-page .mail-waitlist button:focus-visible{outline:2px solid #805d28;outline-offset:2px}
+.mail-page .mail-waitlist button:disabled{opacity:.6;cursor:progress;transform:none}
 .mail-page .mail-waitlist .mail-waitlist-hp{position:absolute;left:-9999px;width:1px;height:1px;padding:0;opacity:0}
-.mail-page .mail-waitlist .mail-waitlist-note{font-size:14px;line-height:1.5;color:#6b6257;margin:10px 0 0}
-.mail-page .mail-waitlist .mail-waitlist-status{font-size:16px;font-weight:600;margin:10px 0 0}
+.mail-page .mail-waitlist .mail-waitlist-note{font-size:13px;line-height:1.5;letter-spacing:.005em;color:#6b6257;margin:12px 0 0}
+.mail-page .mail-waitlist .mail-waitlist-status{font-size:16px;font-weight:600;margin:12px 0 0}
 .mail-page .mail-waitlist .mail-waitlist-status:empty{display:none}
-@media(max-width:480px){.mail-page .mail-waitlist-controls{flex-direction:column}}
-@media(max-width:700px){.mail-page .mail-hero,.mail-page .mail-plans{grid-template-columns:1fr}.mail-page .mail-hero .mail-icon{max-width:220px}.mail-page .mail-card-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.mail-page .mail-waitlist-controls{flex-direction:column;align-items:stretch;border-radius:22px;padding:6px}.mail-page .mail-waitlist button{padding:12px 20px}}
+@media(max-width:700px){.mail-page .mail-plans{grid-template-columns:1fr}}
+
+/* ---------- /mail overview ----------
+   Centered product page: the icon materializes, the copy rises in after it,
+   and the window wireframe tracks the scroll 1:1 where scroll timelines exist.
+   Motion is gated on prefers-reduced-motion; the sidebar's translucent
+   material falls back to a solid fill under prefers-reduced-transparency. */
+.mail-page.mail-home{padding-top:clamp(48px,8vw,104px)}
+.mail-home .mail-home-hero{display:flex;flex-direction:column;align-items:center;text-align:center}
+.mail-home .mail-home-icon{width:clamp(120px,15vw,168px);margin:0 0 28px;border-radius:23%;border-color:#ddd2c2b3;background:linear-gradient(180deg,#fffcf7,#f2e9da);box-shadow:inset 0 1px 0 #fff,0 1px 2px #35250e14,0 28px 56px -22px #35250e59}
+.mail-home .mail-home-badge{display:inline-flex;align-items:center;gap:8px;margin:0;padding:5px 12px 5px 10px;border:1px solid #ddd2c2;border-radius:999px;background:#fffcf7;color:#4f473d;font-size:13px;font-weight:600;letter-spacing:.01em;line-height:1.3}
+.mail-home .mail-home-badge-dot{width:7px;height:7px;border-radius:50%;background:#c08a3e;box-shadow:0 0 0 3px #c08a3e2e}
+.mail-home h1{font-size:clamp(44px,7.4vw,92px);line-height:1.02;letter-spacing:-.035em;font-optical-sizing:auto;text-wrap:balance;margin:22px 0 20px}
+.mail-home .mail-lead{max-width:620px;margin:0;color:#4f473d;font-size:clamp(18px,2vw,22px);line-height:1.45;letter-spacing:-.01em;text-wrap:pretty}
+.mail-home .mail-waitlist{width:100%;margin:36px auto 0}
+.mail-home .mail-actions{justify-content:center;gap:10px 28px;margin-top:22px}
+.mail-home .mail-actions a{font-size:15px;font-weight:500;text-decoration:none}
+.mail-home .mail-actions a:hover{text-decoration:underline}
+
+.mail-home .mail-home-stage{position:relative;margin-top:clamp(56px,8vw,96px);padding:clamp(18px,5vw,56px) clamp(14px,5vw,56px) 0;border-radius:32px;overflow:hidden;background:radial-gradient(120% 90% at 50% 112%,#f6c886 0%,#efcf9f 34%,transparent 70%),linear-gradient(180deg,#f3e9d9 0%,#ecd8b8 100%)}
+.mail-home .mail-home-window{position:relative;display:grid;grid-template-columns:minmax(150px,.75fr) minmax(220px,1.05fr) minmax(0,1.6fr);max-width:960px;height:clamp(300px,40vw,470px);margin:0 auto;border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 0 0 .5px #35250e40,0 40px 80px -30px #35250e73,inset 0 1px 0 #ffffffb3;transform-origin:50% 100%}
+.mail-home .mail-home-lights{position:absolute;z-index:2;top:20px;left:16px;display:flex;gap:8px}
+.mail-home .mail-home-lights i{width:11px;height:11px;border-radius:50%;background:#ff5f57;box-shadow:inset 0 0 0 .5px #0000001f}
+.mail-home .mail-home-lights i:nth-child(2){background:#febc2e}
+.mail-home .mail-home-lights i:nth-child(3){background:#28c840}
+/* The Island placeholder borrows the Browser's resting-island tokens from site.css. */
+.mail-home .mail-home-island{position:absolute;z-index:2;top:9px;left:50%;display:flex;align-items:center;gap:8px;width:min(300px,calc(100% - 24px));height:32px;padding:0 12px;transform:translateX(-50%);border:1px solid var(--border,#dedede);border-radius:13px;background:var(--island-resting-surface,#fffffff0);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--shadow-island-resting)}
+.mail-home .mail-home-island i.is-glyph{flex:none;width:8px;height:8px;border-radius:50%;background:#35250e2e}
+.mail-home .mail-home-island-pips{display:flex;align-items:center;gap:4px;flex:none;margin:0 2px}
+.mail-home .mail-home-island-pips i{width:5px;height:5px;border-radius:50%;background:#35250e2e}
+.mail-home .mail-home-island-pips i.is-on{background:#35250e80}
+.mail-home .mail-home-island b{flex:1;height:7px;border-radius:4px;background:#35250e24}
+.mail-home .mail-home-sidebar{display:flex;flex-direction:column;gap:12px;padding:52px 16px 16px;background:#f7f0e599;-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);border-right:.5px solid #35250e24}
+.mail-home .mail-home-bar{display:block;height:8px;width:72%;border-radius:4px;background:#35250e1f}
+.mail-home .mail-home-bar.is-short{width:46%}
+.mail-home .mail-home-sidebar .mail-home-bar.is-strong{height:26px;width:100%;margin:-4px 0 2px;border-radius:7px;background:#805d2833}
+.mail-home .mail-home-list{position:relative;display:flex;flex-direction:column;background:#fffcf7;border-right:.5px solid #35250e1f;padding-top:52px}
+.mail-home .mail-home-row{display:flex;flex-direction:column;gap:7px;margin:0 8px;padding:13px 12px;border-bottom:.5px solid #35250e17}
+.mail-home .mail-home-row.is-selected{border-radius:9px;border-bottom-color:transparent;background:#efe2cc}
+.mail-home .mail-home-row b{display:block;height:8px;width:48%;border-radius:4px;background:#35250e47}
+.mail-home .mail-home-row i,.mail-home .mail-home-line{display:block;height:6px;width:88%;border-radius:3px;background:#35250e1a}
+.mail-home .mail-home-row i.is-short,.mail-home .mail-home-line.is-short{width:58%}
+.mail-home .mail-home-reader{display:flex;flex-direction:column;gap:12px;padding:64px clamp(20px,4vw,44px) 24px;background:#fffdf9}
+.mail-home .mail-home-reader .mail-home-bar.is-title{height:16px;width:62%;border-radius:6px;background:#35250e33}
+.mail-home .mail-home-reader .mail-home-bar.is-meta{width:34%;margin-bottom:18px;background:#805d2840}
+
+.mail-home .mail-home-nav{display:flex;justify-content:center;margin-top:48px}
+.mail-home .mail-home-nav .mail-subnav{margin:0}
+
+.mail-home .mail-home-section{margin-top:clamp(84px,11vw,136px);text-align:center}
+.mail-home .mail-home-section h2{max-width:18ch;margin:10px auto 0;font-size:clamp(32px,4.6vw,56px);line-height:1.06;letter-spacing:-.03em;font-optical-sizing:auto;text-wrap:balance}
+.mail-home .mail-home-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:44px;text-align:left}
+.mail-home .mail-home-tile{padding:28px 28px 30px;border:1px solid #ddd2c2b3;border-radius:24px;background:#fffcf7;box-shadow:0 1px 2px #35250e0d}
+.mail-home .mail-home-glyph{display:block;width:44px;height:44px;padding:10px;border-radius:13px;background:#efe6d8;fill:none;stroke:#805d28;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.mail-home .mail-home-tile h3{margin:20px 0 8px;font-size:23px;line-height:1.2;letter-spacing:-.012em}
+.mail-home .mail-home-tile p{margin:0;color:#4f473d;font-size:16px;line-height:1.55}
+
+.mail-home .mail-home-family{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:820px;margin:44px auto 0;text-align:left}
+.mail-home a.mail-home-app{display:flex;align-items:center;gap:18px;padding:18px 20px;border:1px solid #ddd2c2b3;border-radius:24px;background:#fffcf7;color:inherit;text-decoration:none;box-shadow:0 1px 2px #35250e0d;transition:box-shadow 200ms ease,border-color 200ms ease,transform 100ms ease-out}
+.mail-home a.mail-home-app:hover{border-color:#c9bba6;box-shadow:0 1px 2px #35250e14,0 16px 32px -20px #35250e4d}
+.mail-home a.mail-home-app:active{transform:scale(.98)}
+.mail-home a.mail-home-app:focus-visible{outline:2px solid #805d28;outline-offset:3px}
+.mail-home .mail-home-app-icon{flex:none;width:56px;height:56px;margin:0;border-radius:23%;box-shadow:inset 0 1px 0 #fff,0 6px 14px -8px #35250e59}
+.mail-home .mail-home-app-icon.is-browser{display:grid;place-items:center;border:1px solid #ddd2c2;background:linear-gradient(180deg,#fffcf7,#f2e9da);color:#805d28}
+.mail-home .mail-home-app-icon.is-browser .blanc-mark{width:62%;height:62%}
+.mail-home .mail-home-app-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.mail-home .mail-home-app-text strong{font-size:17px;letter-spacing:-.01em}
+.mail-home .mail-home-app-text span{color:#6b6257;font-size:14px;line-height:1.4}
+.mail-home .mail-home-app-chevron{flex:none;color:#8a7f70;font-size:24px;line-height:1;transition:transform 200ms cubic-bezier(.2,.8,.2,1)}
+.mail-home a.mail-home-app:hover .mail-home-app-chevron{transform:translateX(3px)}
+.mail-home p.mail-home-suite{max-width:620px;margin:28px auto 0;color:#4f473d;font-size:16px;line-height:1.55;text-wrap:pretty}
+.mail-home p.mail-muted.mail-home-suite{margin-top:12px;color:#6b6257;font-size:14px}
+
+@media(max-width:860px){.mail-home .mail-home-window{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.mail-home .mail-home-sidebar{display:none}.mail-home .mail-home-island{width:calc(100% - 156px);gap:6px;padding:0 10px}.mail-home .mail-home-tiles{grid-template-columns:1fr;max-width:560px;margin-inline:auto}}
+@media(max-width:560px){.mail-home .mail-home-window{grid-template-columns:1fr;height:300px}.mail-home .mail-home-reader{display:none}.mail-home .mail-home-list{border-right:0}.mail-home .mail-home-family{grid-template-columns:1fr}.mail-home .mail-home-stage{border-radius:24px}.mail-home .mail-home-nav .mail-subnav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}.mail-home .mail-home-tile{padding:24px}}
+
+/* Entrance: the icon arrives as a material (scale + blur together), then the
+   copy rises a few pixels after it. Critically damped curve, no overshoot. */
+@media(prefers-reduced-motion:no-preference){
+  .mail-home .mail-home-icon{animation:mail-home-materialize 900ms cubic-bezier(.16,1,.3,1) both}
+  .mail-home .mail-home-hero>:not(.mail-home-icon){animation:mail-home-rise 700ms cubic-bezier(.16,1,.3,1) both}
+  .mail-home .mail-home-hero>.mail-home-badge{animation-delay:80ms}
+  .mail-home .mail-home-hero>h1{animation-delay:140ms}
+  .mail-home .mail-home-hero>.mail-lead{animation-delay:200ms}
+  .mail-home .mail-home-hero>.mail-waitlist{animation-delay:260ms}
+  .mail-home .mail-home-hero>.mail-actions{animation-delay:300ms}
+  @supports (animation-timeline:view()){
+    .mail-home .mail-home-window{animation:mail-home-window linear both;animation-timeline:view();animation-range:entry 0% cover 45%}
+  }
+}
+@keyframes mail-home-materialize{from{opacity:0;transform:scale(.86);filter:blur(14px)}to{opacity:1;transform:none;filter:none}}
+@keyframes mail-home-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes mail-home-window{from{opacity:.5;transform:translateY(56px) scale(.94)}to{opacity:1;transform:none}}
+@media(prefers-reduced-transparency:reduce){.mail-home .mail-home-island{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}.mail-home .mail-home-sidebar{background:#efe6d8;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media(prefers-contrast:more){.mail-page .mail-subnav{box-shadow:inset 0 0 0 1px #6b6257}.mail-page .mail-waitlist-controls,.mail-home .mail-home-tile,.mail-home a.mail-home-app,.mail-home .mail-home-badge{border-color:#6b6257}.mail-home .mail-lead,.mail-home .mail-home-tile p{color:#2b251d}}
