@@ -169,6 +169,36 @@
         "reorder"
       ],
       "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-016",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Drag tabs into order",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-017",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "In the Island panel or the vertical rail, drag a tab within its group, into another group or out of one, or drag a group header to move the whole group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-018",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Prefer the keyboard? Focus a tab and press Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
     }
   ]
 }
