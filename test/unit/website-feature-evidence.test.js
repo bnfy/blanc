@@ -107,6 +107,22 @@ test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => 
   }
 });
 
+test('feature guide pages show only ledger-recorded captures or same-size WebP companions of them', async () => {
+  const ledgers = fs.readdirSync(path.join(root, 'docs')).filter(name => /^website-.*captures?-.*\.json$/.test(name));
+  const recorded = new Set(ledgers.flatMap(name =>
+    [...read(`docs/${name}`).matchAll(/"file": "site\/public\/(feature-captures\/[^"]+)"/g)].map(match => match[1])));
+  const pagesDir = path.join(root, 'site/src/pages/features');
+  for (const page of fs.readdirSync(pagesDir).filter(name => name.endsWith('.astro'))) {
+    for (const [, file] of read(`site/src/pages/features/${page}`).matchAll(/\/(feature-captures\/[A-Za-z0-9._-]+)/g)) {
+      if (recorded.has(file)) continue;
+      const png = file.replace(/\.webp$/, '.png');
+      assert.ok(file.endsWith('.webp') && recorded.has(png), `${page}: ${file} is not recorded in a capture ledger`);
+      const [webpMeta, pngMeta] = await Promise.all([file, png].map(f => sharp(path.join(root, 'site/public', f)).metadata()));
+      assert.deepEqual([webpMeta.width, webpMeta.height], [pngMeta.width, pngMeta.height], `${page}: ${file} differs in size from ${png}`);
+    }
+  }
+});
+
 test('Features bento copy resolves to verified public v1.30.1 evidence, and every sentence on it is recorded', () => {
   const bento = JSON.parse(read('docs/website-features-bento-claims-v1.30.json'));
   const reorder = JSON.parse(read('docs/website-reorder-claims-v1.30.json'));
@@ -161,6 +177,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
     ['docs/website-captures-v1.21.json', previousLedger.publicRelease, previousLedger.sourceSha, 5],
+    ['docs/website-captures-v1.30.1.json', 'v1.30.1', '9e337ac583e81bae509cfc970b9d97a81f3287ba', 3],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));

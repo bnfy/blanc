@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.30.1",
+  "sourceSha": "9e337ac583e81bae509cfc970b9d97a81f3287ba",
+  "captureDate": "2026-10-08",
+  "timezone": "America/New_York",
+  "source": {
+    "artifact": "/Applications/Blanc.app",
+    "version": "1.30.1",
+    "bundleBuild": "1301",
+    "architecture": "arm64",
+    "executableSha256": "cf2a86d693e9c54cfe3ebd68fa16ef242111d9150b29c2557555058b697717ec",
+    "publisher": "Developer ID Application: Anthony Loria (XYGUCY4498)",
+    "teamId": "XYGUCY4498",
+    "verification": "Strict deep codesign verification passed and stapler validated the notarization ticket stapled to the installed app.",
+    "releaseEvidence": "docs/release-incidents/2026-10-08-v1.30.1.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": true,
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "sampleData": "Synthetic Favorites, visits, one named group, a named Studio profile, two saved workspaces and a blocked-request total only; no account, Patron entitlement, participant data, or real browsing content."
+  },
+  "method": "npm run capture:profiles-workspaces:installed launches the installed app in a disposable profile seeded only with the declared synthetic fixtures and writes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set (each capture carries a live clock and date, so a rerun never reproduces these hashes). Over Chromium’s debugging surface it calls the shipped browserAPI.openPage(\"settings\") and browserAPI.openIsland() actions, clicks the shipped Settings navigation, the Studio profile’s Open button, the workspace control and the menu padding, and brings each window forward so its title bar renders active; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The owner approved all three images on October 8, 2026.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/profiles-v1.30.1.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "9926e810b2380a5d390d0d8911a5edb25ed693a1f4efd49ba5761f92a29d0ed5",
+      "capturedAt": "2026-10-08T17:21:53Z",
+      "state": "Settings sheet on the Profiles group: the permanent Personal profile (Your original Blanc data · permanent) and a named Studio profile (Separate local browser data), the New profile name field and Create profile window. Blanc Blocker ready. Start Page behind the sheet with the v1.30.1 version string.",
+      "evidence": [
+        "v1.30.1:src/renderer/pages/settings.html",
+        "v1.30.1:src/renderer/pages/settings.js",
+        "v1.30.1:src/main/local-profiles.js",
+        "docs/release-incidents/2026-10-08-v1.30.1.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/profiles-v1.30.1.webp",
+        "sha256": "e97bde516b9f89bfa725f51d6623646be51c3d31c93dddba68c96987a58d00c9"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/profile-window-v1.30.1.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "8659a40ddffe2bf130799b85923edfe0ecd4ef9c689b7b774dd8b89cc44a749d",
+      "capturedAt": "2026-10-08T17:30:21Z",
+      "state": "The named Studio profile opened in its own window from the Settings profile row: its own Start Page with no Personal Favorites, groups or history, the shared device preferences and sample weekly block total, Upgrade to Blanc Patron, and the v1.30.1 version string.",
+      "evidence": [
+        "v1.30.1:src/renderer/pages/settings.js",
+        "v1.30.1:src/main/local-profiles.js",
+        "v1.30.1:src/main/profile-sessions.js",
+        "v1.30.1:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-08-v1.30.1.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/profile-window-v1.30.1.webp",
+        "sha256": "379dd18917ef9e6012f980bd4dfff38b0a8c9f45a36eb7a2441734ae6a15241b"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/workspaces-v1.30.1.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "c3bf3ac18e71b91828290f616d731f3d9bbb2a9255472a7552f5f5404044303a",
+      "capturedAt": "2026-10-08T17:21:56Z",
+      "state": "Island panel with the workspace switcher open: saved fixture workspaces Research desk and Weekend reading, two tabs each, and Patron settings. No Patron entitlement was forged, so creation and saving are unavailable and the Start Page offers Upgrade to Blanc Patron.",
+      "evidence": [
+        "v1.30.1:src/renderer/overlay.html",
+        "v1.30.1:src/renderer/workspace-ui.js",
+        "v1.30.1:src/main/workspaces.js",
+        "docs/release-incidents/2026-10-08-v1.30.1.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-v1.30.1.webp",
+        "sha256": "35474804541cd158b60dcaf80d3843234880d10e8dfb03cb756e05745ee5d5d8"
+      }
+    }
+  ]
+}
