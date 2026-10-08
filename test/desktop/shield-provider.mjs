@@ -47,6 +47,9 @@ fs.writeFileSync(path.join(appDir, 'shield-fixture.cjs'), `
   require(${JSON.stringify(path.join(root, 'src/main/main.js'))});
 `);
 let electron;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let electronProcess;
 let stage = 'launch';
 let stderr = '';
 const uiErrors = [];
@@ -66,7 +69,7 @@ function observePageErrors(page) {
 const COLD_START_MS = 100000;
 const watchdog = setTimeout(() => {
   console.error('Shield suite deadline at ' + stage);
-  electron?.process().kill('SIGKILL');
+  electronProcess?.kill('SIGKILL');
 }, 240000);
 const call = (method, ...args) => hooks.callTestHook(electron, method, args);
 const providerRadio = (overlay, provider) => overlay.locator(`[name="shieldProvider"][value="${provider}"]`);
@@ -96,10 +99,11 @@ async function launch(supported) {
     colorScheme: null,
     env: { ...env, BLANC_TEST: '1', ...(supported ? { BLANC_UBLOCK_TEST: '1' } : {}) },
   });
+  electronProcess = electron.process();
   electron.context().setDefaultTimeout(8000);
   electron.context().on('page', observePageErrors);
   for (const page of electron.context().pages()) observePageErrors(page);
-  electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-8000); });
+  electronProcess.stderr.on('data', data => { stderr = (stderr + data).slice(-8000); });
   await popupFocusTrace.install(electron);
   await electron.firstWindow();
   // Startup is released only once the provider settles, so wait on the

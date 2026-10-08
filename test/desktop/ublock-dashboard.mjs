@@ -31,15 +31,19 @@ const fixture = `http://127.0.0.1:${server.address().port}/`;
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 void ignored;
 let electron;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let electronProcess;
 let stage = 'startup';
 const errors = [];
-const watchdog = setTimeout(() => { console.error('Dashboard suite exceeded 240 seconds at ' + stage); electron?.process().kill('SIGKILL'); }, 240000);
+const watchdog = setTimeout(() => { console.error('Dashboard suite exceeded 240 seconds at ' + stage); electronProcess?.kill('SIGKILL'); }, 240000);
 async function launch({ settle = true } = {}) {
   electron = await _electron.launch({
     ...(process.env.BLANC_UBLOCK_ELECTRON ? { executablePath: process.env.BLANC_UBLOCK_ELECTRON } : {}),
     args: [path.resolve('.'), `--user-data-dir=${dir}`], chromiumSandbox: true, colorScheme: null,
     env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1' }, timeout: 30000,
   });
+  electronProcess = electron.process();
   electron.context().setDefaultTimeout(8000);
   electron.context().on('page', page => page.on('pageerror', error => errors.push(error.message)));
   await electron.firstWindow();
