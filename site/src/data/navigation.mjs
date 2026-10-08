@@ -5,6 +5,7 @@ export const directLinks = [
   { href: '/#patron', key: 'patron', label: 'Patron' },
   { href: '/about', key: 'about', label: 'About' },
   { href: '/support', key: 'support', label: 'Support' },
+  { href: '/mail', key: 'mail', label: 'Mail' },
 ];
 
 // Page path without extension or trailing slash. The build emits the homepage

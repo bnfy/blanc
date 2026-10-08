@@ -2,6 +2,9 @@
 import { directLinks, pagePath } from "../data/navigation.mjs";
 const { current = null } = Astro.props;
 const onHome = pagePath(Astro.url.pathname) === "/";
+const mailPath = pagePath(Astro.url.pathname);
+const onMail = mailPath === "/mail" || mailPath.startsWith("/mail/");
+const isCurrent = (link) => current === link.key || (link.key === "mail" && onMail);
 const hrefFor = (href) =>
   onHome && href.startsWith("/#") ? href.slice(1) : href;
 ---
@@ -24,13 +27,14 @@ const hrefFor = (href) =>
           class:list={[
             "revamp-nav-link",
             {
-              "nav-secondary": ["privacy", "patron", "about"].includes(
+              "nav-secondary": ["mail", "privacy", "patron", "about"].includes(
                 link.key,
               ),
+              "nav-mail": link.key === "mail",
             },
           ]}
           href={hrefFor(link.href)}
-          aria-current={current === link.key ? "page" : undefined}
+          aria-current={isCurrent(link) ? "page" : undefined}
         >
           {link.label}
         </a>
@@ -39,7 +43,17 @@ const hrefFor = (href) =>
     <a
       class="site-nav-cta"
       href={current === "download" ? "#download-options" : "/download"}
-      >Download</a
+      >{
+        onMail ? (
+          <>
+            <span class="cta-wide">Browser download</span><span class="cta-narrow"
+              >Download</span
+            >
+          </>
+        ) : (
+          "Download"
+        )
+      }</a
     >
     {
       onHome && (

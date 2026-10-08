@@ -96,6 +96,14 @@ no double opt-in yet and unsubscribe is manual (token-gated DELETE) until a
 sending provider is chosen. The privacy page's "Newsletter (optional)" section
 describes exactly this contract — change them together or not at all.
 
+**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
+`/mail/download`) posts `{email, website}` to the same Worker's
+`/mail-waitlist` route. It is a separate double opt-in list under its own
+`mailwait*` KV prefixes, never joins the newsletter, and is purged after the
+Mail launch announcement (runbook in the Worker README). The form copy, the
+Worker contract and the privacy page's `#mail-waitlist` section must change
+together.
+
 **Ambassador applications:** `src/pages/ambassadors.astro` posts the compact
 application form to `/ambassador-apply` on the same Worker. It sends name,
 email, one HTTPS creator-profile URL, a short introduction, and the hidden
