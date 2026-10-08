@@ -5,6 +5,7 @@
    easing; a close starts from the card's on-screen transform, so it can
    interrupt an opening. Reduced motion cross-fades instead. */
 import { initHorizonShield } from './horizon-shield.js';
+import { initDragFigure } from './drag-figure.js';
 
 const dialog = document.getElementById('feature-pop');
 
@@ -225,3 +226,7 @@ for (const demo of document.querySelectorAll('.native-shield-demo')) {
 // The Blocker shield on the ad-blocking tile and in its popover turns on its
 // own while on screen.
 for (const shield of document.querySelectorAll('.bento-shield')) initHorizonShield(shield, { spin: 'time' });
+
+// The drag-to-reorder popover reuses the tab groups guide's drag figure; its
+// CSS loop runs only while the popover shows it.
+for (const demo of document.querySelectorAll('.pop-drag .drag-demo')) initDragFigure(demo);

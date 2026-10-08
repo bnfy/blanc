@@ -7,6 +7,7 @@ import FeaturePop from '../components/bento/FeaturePop.astro';
 import SwitcherDemo from '../components/bento/demos/SwitcherDemo.astro';
 import ShieldDemo from '../components/bento/demos/ShieldDemo.astro';
 import BentoShield from '../components/bento/BentoShield.astro';
+import TabDragFigure from '../components/TabDragFigure.astro';
 import QuietDemo from '../components/bento/demos/QuietDemo.astro';
 import ReopenDemo from '../components/bento/demos/ReopenDemo.astro';
 import PrivateDemo from '../components/bento/demos/PrivateDemo.astro';
@@ -325,12 +326,12 @@ import '../styles/features-bento.css';
           <p>On a Mac, Blanc can create passkeys secured by Touch ID that stay on your device.</p>
           <p class="pop-note">Blanc passkeys do not read passkeys saved in other apps.</p>
         </FeaturePop>
-        <FeaturePop id="drag-to-reorder" feature="drag-to-reorder" href="/features/tab-groups" linkText="Read more about Named Groups">
-          <BentoIcon slot="visual" name="grip" size="pop" />
+        <FeaturePop id="drag-to-reorder" feature="drag-to-reorder" href="/features/tab-groups" linkText="Read more about Named Groups" split>
+          <div slot="visual" class="pop-drag"><TabDragFigure /></div>
           <p class="pop-eyebrow">Drag to reorder</p>
           <h2 id="pop-drag-to-reorder-title">Drag tabs and groups into the order you want.</h2>
           <p>In the Island panel or the vertical rail, drag a tab within its group, into another group or out of one, or drag a group header to move the whole group.</p>
-          <p class="pop-note">On a Mac, press Option+Shift+Up or Down; on Windows and Linux, Alt+Shift+Up or Down.</p>
+          <p class="pop-note">Prefer the keyboard? Focus a tab and press Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux.</p>
         </FeaturePop>
         <FeaturePop id="import" feature="import" href="/support#bookmark-import" linkText="How importing works">
           <BentoIcon slot="visual" name="import" size="pop" />

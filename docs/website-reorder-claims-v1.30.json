@@ -193,7 +193,7 @@
     {
       "id": "reorder-130-018",
       "source": "site/src/pages/features.astro",
-      "exactWording": "On a Mac, press Option+Shift+Up or Down; on Windows and Linux, Alt+Shift+Up or Down.",
+      "exactWording": "Prefer the keyboard? Focus a tab and press Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux.",
       "subject": "Blanc",
       "evidenceGroups": [
         "reorder"

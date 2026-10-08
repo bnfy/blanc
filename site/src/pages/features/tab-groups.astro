@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import TabDragFigure from '../../components/TabDragFigure.astro';
 ---
 <BaseLayout
   title={"Organize Browser Tabs with Named Tab Groups | Blanc"}
@@ -19,39 +20,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">tab groups</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="groups-title"><p class="section-kicker">a little order</p><h1 id="groups-title">Named tab groups: keep the tabs you need. Tuck away the rest.</h1><p>Name a group for the task in front of you. Blanc keeps that group on the island and leaves the rest close, not constantly visible.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure island-figure--panel island-figure--drag" role="img" aria-label="Blanc's island panel open, with tabs organized into named groups: pinned tabs, a 'social' group, and a 'watch' group holding YouTube and Netflix. Tabs and whole groups can be dragged into a new order.">
-      <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
-      <picture>
-        <source media="(max-width: 560px)" srcset="/shots/mobile/netflix.jpg">
-        <img class="demo-shot show" src="/shots/desktop/netflix.jpg" loading="lazy" alt="" aria-hidden="true">
-      </picture>
-      <div class="demo-island open" aria-hidden="true">
-        <div class="panel">
-          <div class="panel-row"><div class="field"><span class="typed"></span><span class="caret"></span></div></div>
-          <div class="list">
-            <div class="sec-head"><span>pinned</span><span class="count">2</span></div>
-            <div class="trow"><span class="fav fav--gmail"></span><span class="title">Gmail</span></div>
-            <div class="trow"><span class="fav fav--notion"></span><span class="title">Notion</span></div>
-            <div class="group-band">
-              <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>social</span><span class="count">1</span><span class="kbd">⌘2</span></div>
-              <div class="trow in-group"><span class="fav fav--threads"></span><span class="title">Threads</span></div>
-            </div>
-            <div class="group-band">
-              <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>watch</span><span class="count">2</span><span class="kbd">⌘3</span></div>
-              <div class="drag-demo">
-                <div class="trow hl in-group drag-row drag-row--first"><span class="fav fav--youtube"></span><span class="title">YouTube</span></div>
-                <div class="trow in-group drag-row drag-row--second"><span class="fav fav--netflix"></span><span class="title">Netflix</span></div>
-                <div class="trow in-group drag-ghost drag-ghost--second"><span class="fav fav--netflix"></span><span class="title">Netflix</span></div>
-                <div class="trow hl in-group drag-ghost drag-ghost--first"><span class="fav fav--youtube"></span><span class="title">YouTube</span></div>
-                <span class="drag-line"></span>
-                <span class="drag-cursor"><span class="demo-cursor-shape"></span></span>
-              </div>
-            </div>
-          </div>
-          <div class="foot">esc to dismiss · /group moves this tab · ⌘1–9 jumps groups</div>
-        </div>
-      </div>
-    </div>
+    <TabDragFigure />
     <figcaption>A group name stays with the active task, while the rest of the session can remain folded away.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="group-behavior-title">
