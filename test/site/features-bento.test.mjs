@@ -345,6 +345,22 @@ test('popover demos run only while their popover shows them', async () => {
   } finally { await context.close(); }
 });
 
+test('an open popover warms its neighbours, so arrow navigation lands on loaded images', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    // Deep-link to the feature just before drag-to-reorder; its tile is never hovered.
+    await page.goto(`${baseURL}/features#passkeys`);
+    await page.waitForFunction(() => document.getElementById('feature-pop').open);
+    const loading = selector => page.evaluate(s => document.querySelector(s).loading, selector);
+    assert.equal(await loading('#pop-drag-to-reorder .demo-shot'), 'eager', 'the next popover is warmed');
+    assert.equal(await loading('#pop-mahjong .pop-img'), 'lazy', 'a distant popover is left alone');
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => !document.getElementById('pop-drag-to-reorder').hidden);
+    await page.waitForFunction(() => document.querySelector('#pop-drag-to-reorder .demo-shot').complete);
+  } finally { await context.close(); }
+});
+
 test('narrow tiles fold their visual and centre the label; the Island stays framed', async () => {
   for (const [width, folded] of [[1280, false], [1000, true]]) {
     const context = await contextFor({ viewport: { width, height: 900 } });

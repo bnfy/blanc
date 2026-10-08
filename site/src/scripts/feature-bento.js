@@ -58,6 +58,11 @@ if (dialog && typeof dialog.showModal === 'function') {
     demoTimer = setInterval(() => { if (!document.hidden) set(step = step % 3 + 1); }, 2200);
   }
 
+  // Popover images stay lazy (their articles are hidden until opened). Start
+  // fetching them once a visitor reaches for a tile, and, while a popover is
+  // open, for its neighbours too, so arrow navigation also lands complete.
+  const warm = tile => bodies.get(tile.dataset.pop)?.querySelectorAll('img[loading="lazy"]').forEach(img => { img.loading = 'eager'; });
+
   function show(i) {
     index = wrap(i);
     const id = tiles[index].dataset.pop;
@@ -67,6 +72,7 @@ if (dialog && typeof dialog.showModal === 'function') {
     dialog.querySelector('[data-pop-next]').textContent = labelOf(tiles[wrap(index + 1)]);
     content.scrollTop = 0;
     startDemo(bodies.get(id));
+    for (const k of [index - 1, index, index + 1]) warm(tiles[wrap(k)]);
     history.replaceState(null, '', `#${id}`);
   }
 
@@ -148,10 +154,6 @@ if (dialog && typeof dialog.showModal === 'function') {
     };
   }
 
-  // Popover images stay lazy (their articles are hidden until opened). Start
-  // fetching them once a visitor reaches for a tile, so the card lands complete.
-  const warm = tile => bodies.get(tile.dataset.pop)?.querySelectorAll('img[loading="lazy"]').forEach(img => { img.loading = 'eager'; });
-
   tiles.forEach((tile, i) => {
     // Without script (or on a modified click) the tile is just a link, so
     // only announce a popup once this handler can open one.
@@ -188,7 +190,6 @@ if (dialog && typeof dialog.showModal === 'function') {
     try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
     const i = tiles.findIndex(tile => tile.dataset.pop === id);
     if (i < 0 || index >= 0) return;
-    warm(tiles[i]);
     tiles[i].scrollIntoView({ block: 'center' });
     open(i);
   };
