@@ -60,9 +60,9 @@ Top to bottom. Every element that must survive is listed under **Preserved contr
 
 Mini UIs mirror the v1.30.0 app's real strings and shapes (verified in
 `git show v1.30.0:src/renderer/overlay.html`), drawn in site CSS, not imported from the app.
-Sample sites reuse names and favicons already published on the site (`public/revamp/`,
-Wikipedia, Louisiana Museum, Visit Copenhagen); no new third-party logos. Numbers shown
-are labelled as sample values where a reader could take them as measurements.
+Sample sites are shown with neutral letter tiles instead of favicons, so no third-party
+logos appear. Numbers shown are labelled as sample values where a reader could take them
+as measurements.
 
 | Scene | Step 1 | Step 2 | Step 3 (rest state) |
 |---|---|---|---|
@@ -74,12 +74,12 @@ are labelled as sample values where a reader could take them as measurements.
 
 ## Scene playback
 
-- **Start.** A scene plays when about 40% of it is visible (IntersectionObserver), steps
+- **Start.** A scene plays when about 60% of its stage is visible (IntersectionObserver on the stage, so tall stacked bands on phones still trigger), steps
   about 2.5 s apart, once, then rests on step 3.
-- **Controls.** The three progress segments are `<button>`s with accessible names
-  ("Step 1 of 3: …"). Choosing one shows that step and stops autoplay for that scene.
-  Hover or keyboard focus inside a scene pauses it. A replay button appears after the
-  last step.
+- **Controls.** The three progress segments are `<button>`s labelled with their step
+  captions. Choosing one shows that step and stops autoplay for that scene. A replay
+  button appears after the last step. Autoplay runs once for about five seconds, so it
+  needs no hover pause (WCAG 2.2.2 applies only past five seconds).
 - **No scroll-jacking.** Nothing is sticky or tied to scroll position; scrolling is always native.
 - **No JavaScript, or reduced motion.** The server renders each stage at step 3 with every
   step caption visible as plain text. Motion state is added only when
@@ -123,7 +123,7 @@ are labelled as sample values where a reader could take them as measurements.
 
 - `title`, `description`, `ogDescription`, `path="/features"`, `page`, `current` unchanged;
   BreadcrumbList JSON-LD unchanged; `<main id="main-content">`.
-- Every existing id stays on the page: `features-title`, `island`, `1password`,
+- New ids `overview`, `more-features`, `more-features-title` and `details` are added. Every existing id stays on the page: `features-title`, `island`, `1password`,
   `start-page`, `glance`, `ad-blocking`, `private-tabs`, `commands`, `mouse-gestures`,
   `reopen-closed-tabs`, `tab-groups`, `workspaces`, `vertical-tabs`, `quiet-tabs`,
   `profiles`, `sync`, `security`, `small-details-title`, `feature-patron-title`,
@@ -158,9 +158,8 @@ Text marked *(kept)* is existing reviewed wording carried over unchanged.
 **2. Ad and tracker blocking** (evidence: `src/main/adblock.js`, `settings-schema/schema.json` default, `src/renderer/overlay.html` shield popover)
 - H2: "Block ads and trackers from the first page, with a switch for each site."
 - "Blanc Blocker is built in and on by default, using EasyList and EasyPrivacy. Click the shield on the Island to see how many requests it blocked on this page and whether the connection uses HTTPS, or to turn blocking off for just this site."
-- Qualification: "Blocking reduces ads and known tracking; no blocker removes all of them. Prefer uBlock Origin? Choose it from the same shield on supported builds, then restart Blanc."
+- Qualification: "Blocking reduces ads and known tracking; no blocker removes all of them. The count shown here is a sample. Prefer uBlock Origin? Choose it from the same shield on supported builds, then restart Blanc."
 - Steps: "The shield counts blocked requests." · "Click it for site protection." · "Turn it off for one site; the page reloads."
-- Stage note (figcaption): "Sample count for illustration."
 
 **3. Quiet Tabs** (evidence: `src/main/tab-sleep.js`, `settings-schema/schema.json`, `docs/marketing-claims.md` Quiet Tabs boundary)
 - H2: "Quiet Tabs free up memory without closing the tab."
@@ -182,15 +181,18 @@ Text marked *(kept)* is existing reviewed wording carried over unchanged.
 
 ### Index tiles
 
+Section heading (H2, `#more-features-title`): "More Blanc features."
+
+
 | Tile | H3 | Sentence |
 |---|---|---|
 | Island | "The Island puts tabs, search and page controls in one compact bar." | "It replaces the tab strip and toolbar with a slim band above the page. Open it to switch tabs, search or run a command." |
-| Named Groups | "Named Groups keep a task's tabs together." | "You name each group and choose its tabs. Fold the others away, and drag tabs and groups into the order you want." |
+| Named Groups | "Named Groups keep a task's tabs together." | "You name each group and choose its tabs, then fold the others away. Drag tabs and groups into the order you want." (second sentence is existing claim `reorder-130-013`) |
 | Start Page | "Choose your Start Page layout, then play Mahjong." | "Pick Ledger, Billboard, Shelf or Tally. Every Start Page footer opens Mahjong, with eight boards and a Daily deal." |
 | Named Workspaces (Patron) | "Named Workspaces save a whole window to return to by name." | "Active Patrons can save a window's tabs and groups, kept up to date as they browse. Saved workspaces stay usable if membership ends." |
 | Glance | "View two tabs side by side with Glance." | "Open another tab beside your page for a moment, then resize, swap or close it." |
 | Mouse gestures | "Navigate with mouse gestures." | "Turn them on in Settings, then hold the right button and draw, or use Alt/Option with a trackpad drag." |
-| Vertical tabs | "Show your tabs in an optional vertical list." | "A resizable rail on the left; the Island stays for search and commands." |
+| Vertical tabs | "Show your tabs in an optional vertical list." | "A resizable rail on the left, while the Island stays for search and commands. Drag tabs and groups in the rail to reorder them." (second sentence is existing claim `reorder-130-014`) |
 | Profiles | "Profiles keep work and personal browsing apart." | "Each has its own cookies, site data, Favorites and history." |
 | Sync | "Sync Favorites and settings across devices." | "Opt-in and end-to-end encrypted, from your Personal profile." |
 | Security | "See how Blanc protects the page you are on." | "Sandboxed pages, signed releases, explicit site permissions and Touch ID passkeys on Mac." |
