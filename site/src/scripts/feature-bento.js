@@ -107,6 +107,9 @@ if (dialog && typeof dialog.showModal === 'function') {
     stop(); // also cancels an in-flight go() swap, so it cannot run after this
     clearInterval(demoTimer);
     const done = () => { finish({ focus: true }); dialog.close(); };
+    // Show the tile again now, under the closing card, so the card hands
+    // over to it instead of landing as an empty panel.
+    source.classList.remove('is-source');
     if (reducedMotion.matches) {
       const fade = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: 'ease-in' });
       fade.onfinish = done;
@@ -116,6 +119,8 @@ if (dialog && typeof dialog.showModal === 'function') {
     const shrink = card.animate([{ transform: live }, { transform: toTile(source) }], SPRING);
     running = [
       shrink,
+      // The emptied card fades as it lands, crossfading into the tile.
+      card.animate([{ opacity: 1 }, { opacity: 1, offset: .15 }, { opacity: 0, offset: .65 }, { opacity: 0 }], { duration: SPRING.duration, fill: 'forwards' }),
       scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: 240, easing: 'ease-in', fill: 'forwards' }),
       content.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }),
     ];

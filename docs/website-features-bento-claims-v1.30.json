@@ -359,7 +359,7 @@
     {
       "id": "bento-130-010",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Mahjong on every Start Page",
+      "exactWording": "Take a break with a game of Mahjong",
       "subject": "Blanc",
       "evidenceGroups": [
         "mahjong"
