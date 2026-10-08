@@ -25,11 +25,11 @@ tvOS) and normalised to the board width **W** (max 1220px; `calc(100vw - 48px)` 
 | Gutter and outer margin | 0.9% W, equal | `calc(W * .009)` (11px at 1220) |
 | Corner radius | 2% W | `calc(W * .02)` (24px) |
 | Columns | 1 : 1 : 1.36 : 1.36 : 1 : 1 | identical |
-| Rows | 12-unit masonry; each column pair stacks its own heights (left 5+3+4, centre 4+4+2+2 / 4+4+4, right 4+5+3) | identical; board `aspect-ratio: 2000 / 1100` |
+| Rows | 12-unit masonry; each column pair stacks its own heights (left 5+3+4, centre 4+4+2+2 / 4+4+4, right 4+5+3) | same, except the right column is 4+4+4 so the two small right tiles fit two-line labels; board `aspect-ratio: 2000 / 1100` |
 | Label | one size for every tile, 1.25% W, weight 500, near-black, centred; bottom on white tiles, top (white) on full-bleed tiles | `max(15px, W * .0128)` / 500, `--site-text`; same placement rule |
 | Main visual | object or icon ≈ 50% of tile width, centred, generous air | same |
 | Display tiles | bold 700, 2.2% W, leading ≈ 1.0, one saturated accent; secondary lines fade in size and opacity | Inter 700 at `W * .022`, Sunrise accent gradient `#C2661C → #7A4512` |
-| Hero wordmark | ≈ 7% W | Newsreader 400 at `W * .072`, white over Sunrise art |
+| Hero mark | product name ≈ 7% W | the full-color Sunrise mark (`demo-assets/sunrise-mark.png`, verbatim) at `W * .11` over the Sunrise art, `alt="Blanc"` |
 | Colour budget | about one third full-bleed colour or photo tiles | 5 of 15 (Island, hero, Mahjong, Private, Named Workspaces) |
 | Dense grid | 6 columns, tile 307:162, gap 1.2% W, radius 1.5% W, icon 18% of tile width top-left, 2-line label bottom-left | identical proportions; label `max(13.5px, W * .0118)` / 500 |
 | Legibility | product UI crops shown at reading size; whole screens only where the device is the picture | mini UI never below 11.5px; whole captures only for Glance and the wallpaper |
@@ -53,15 +53,15 @@ enforced by `test/site/newsreader-reach.test.mjs`).
 | L4 (col 1, rows 9–12) | Private tabs | full-bleed ink, label top white | dashed private pill + "History stays untouched" |
 | L5 (col 2, rows 9–12) | Profiles | white, display text | people icon + display line |
 | C1 (cols 3–4, rows 1–4) | The Island | full-bleed photo, title bottom white | `revamp/island-roman-rest-800.webp`, cover |
-| C2 (cols 3–4, rows 5–8) | Blanc (hero) | full-bleed Sunrise art | `feature-hub/sunrise-hero.webp` + wordmark |
+| C2 (cols 3–4, rows 5–8) | Blanc (hero) | full-bleed Sunrise art | `feature-hub/sunrise-hero.webp` + full-color Sunrise mark |
 | C3 (col 3, rows 9–10) | Quick Switcher | white, gradient title + label | none |
 | C4 (col 3, rows 11–12) | Slash commands | full-bleed ink, label top white | command chips |
 | C5 (col 4, rows 9–12) | Start Page layouts | white, fading list | layout names around the display line |
 | R1 (col 5, rows 1–4) | Quiet Tabs | white | mini tab list whose background rows dim |
 | R2 (col 6, rows 1–4) | Time-of-day Start Page | photo, label bottom over cream fade | dawn wallpaper capture crop |
-| R3 (cols 5–6, rows 5–9) | Reopen Closed Tab | white | mini panel with "recently closed" |
-| R4 (col 5, rows 10–12) | Named Groups | white | group chips |
-| R5 (col 6, rows 10–12) | Named Workspaces (Patron) | gold gradient, dark label | workspace bubble |
+| R3 (cols 5–6, rows 5–8) | Reopen Closed Tab | white | mini panel with "recently closed" |
+| R4 (col 5, rows 9–12) | Named Groups | white | group chips |
+| R5 (col 6, rows 9–12) | Named Workspaces (Patron) | gold gradient, dark label | workspace bubble |
 
 Below 900px the board becomes a two-column flow (`grid-auto-rows: 200px`), with L1, C1, C2
 and R3 spanning both columns; the dense grid becomes two columns. Side gutters are 16px and
@@ -128,7 +128,6 @@ unexplained). Text marked *(kept)* is reviewed wording carried over unchanged.
 
 ### Page
 
-- Label: "A little less browser."
 - H1: "Everything in Blanc."
 - Lead: "Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you."
 - Board heading (visually hidden H2, Newsreader): "Blanc’s main features."
@@ -145,7 +144,7 @@ unexplained). Text marked *(kept)* is reviewed wording carried over unchanged.
 | `private-tabs` → private-tabs | Private tabs stay out of history · *History stays untouched* | Private tabs keep your visits out of Blanc’s history. | Press ⌘⇧N or type /private. Pages you visit are not saved to history, are not restored after a restart, and never appear in Recently Closed. The Island changes so you can see you are private, and its chip closes the tab when you are done. | On Windows and Linux, press Ctrl+Shift+N. Private does not mean anonymous: websites, your network or an employer can still see activity, and files you download stay on disk. |
 | `profiles` → profiles | Profiles keep work and personal apart | Profiles keep work and personal browsing apart. | Create named profiles, each with its own cookies, site data, Favorites, history, download list and remembered permissions, opening in its own windows. | Settings and Patron are shared by every profile on this device. |
 | `island` → island | The Island · *Tabs, search and page controls in one bar* | The Island puts tabs, search and page controls in one compact bar. | Blanc replaces the tab strip and toolbar with one Island in a slim band above the page. Open it to switch tabs, search or run a command, then close it to get back to the page. | The resting Island keeps its own band above the page; the panel opens over the page. |
-| `blanc` → /download | Blanc | A little less browser. | Blanc is a desktop browser for macOS, Windows and Linux that keeps its controls in one small Island, blocks ads and trackers by default, and stays out of the way of the page you came for. It is free and open source. | Built by Bananify, an independent studio. |
+| `blanc` → /download | (Sunrise mark, alt “Blanc”) | A little less browser. | Blanc is a desktop browser for macOS, Windows and Linux that keeps its controls in one small Island, blocks ads and trackers by default, and stays out of the way of the page you came for. It is free and open source. | Built by Bananify, an independent studio. |
 | `commands` → command-palette | Quick Switcher · *Press ⌘L to find any tab* | Press ⌘L to find any tab, or type / to run a command. | The Quick Switcher searches your open tabs, Favorites, history and Named Groups as you type, so you can jump to a page without hunting through a tab strip. | On Windows and Linux, press Ctrl+L. For search text, Enter opens the highlighted result; choose the result showing your exact text to search the web. |
 | `slash-commands` → command-palette | Type / to run commands | Type / to run a browser command. | In the Island, type / to see every command, then keep typing to narrow the list: /private opens a private tab, /group moves this tab into a group, /sleep quiets background tabs and /allow-ads lets one site through. | Commands act only when you choose them. |
 | `start-page` → start-page | Four Start Page layouts (Ledger, Billboard, Shelf, Tally fade around it) | Choose your Start Page layout. | Pick Ledger, Billboard, Shelf or Tally for new tabs. Billboard brings your frequent sites from local history, and Tally puts a big clock front and centre. | Your layout choice can follow you through Sync; history stays on this device. |

@@ -34,19 +34,22 @@
 .bento-L4 { grid-area: 9 / 1 / 13 / 2; } .bento-L5 { grid-area: 9 / 2 / 13 / 3; }
 .bento-C1 { grid-area: 1 / 3 / 5 / 5; } .bento-C2 { grid-area: 5 / 3 / 9 / 5; } .bento-C3 { grid-area: 9 / 3 / 11 / 4; }
 .bento-C4 { grid-area: 11 / 3 / 13 / 4; } .bento-C5 { grid-area: 9 / 4 / 13 / 5; }
-.bento-R1 { grid-area: 1 / 5 / 5 / 6; } .bento-R2 { grid-area: 1 / 6 / 5 / 7; } .bento-R3 { grid-area: 5 / 5 / 10 / 7; }
-.bento-R4 { grid-area: 10 / 5 / 13 / 6; } .bento-R5 { grid-area: 10 / 6 / 13 / 7; }
+/* Right column 4 + 4 + 4: the two small tiles carry two-line labels and need
+   the extra row more than the Reopen panel does. */
+.bento-R1 { grid-area: 1 / 5 / 5 / 6; } .bento-R2 { grid-area: 1 / 6 / 5 / 7; } .bento-R3 { grid-area: 5 / 5 / 9 / 7; }
+.bento-R4 { grid-area: 9 / 5 / 13 / 6; } .bento-R5 { grid-area: 9 / 6 / 13 / 7; }
 
 .bento-tile { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-radius: var(--bento-radius); background: #FFFFFF; color: var(--site-text); text-align: center; text-decoration: none; transition: transform .12s ease-out; }
 .bento-tile:active { transform: scale(.98); }
 .bento-tile:focus-visible, .bento-small:focus-visible { outline: 1px solid var(--bento-accent-a); outline-offset: 3px; }
 .bento-tile.is-source, .bento-small.is-source { visibility: hidden; }
-.bento-tile--label-bottom .bento-label { margin-top: auto; }
-.bento-tile--label-top .bento-label { order: -1; }
+.bento-tile--label-bottom .bento-label { margin-top: auto; padding-top: .7em; }
+.bento-tile--label-top .bento-label { order: -1; padding-bottom: .5em; }
 .bento-tile--label-center { justify-content: center; }
-.bento-visual { position: relative; display: grid; flex: 1; place-items: center; min-height: 0; padding: 8%; overflow: hidden; }
-.bento-tile--label-center .bento-visual { flex: none; padding: 0 0 .7em; }
-.bento-tile--photo .bento-visual, .bento-tile--daylight .bento-visual, .bento-tile--hero .bento-visual { position: absolute; inset: 0; padding: 0; }
+.bento-visual { position: relative; display: grid; flex: 1; place-items: center; min-height: 0; padding: 8% 8% 4%; overflow: hidden; container-type: size; }
+.bento-tile--label-center .bento-visual { flex: none; padding: 0 0 .7em; container-type: normal; }
+.bento-tile--photo .bento-visual, .bento-tile--hero .bento-visual { position: absolute; inset: 0; padding: 0; }
+.bento-tile--daylight .bento-visual { padding: 0; }
 .bento-label { position: relative; padding: 0 8% calc(var(--bento-label) * 1.15); }
 .bento-tile--label-top .bento-label { padding: calc(var(--bento-label) * 1.15) 8% 0; }
 .bento-tile--label-center .bento-label { padding: 0 8%; }
@@ -55,8 +58,11 @@
 .bento-tile--ink { background: radial-gradient(130% 100% at 50% 0%, #2B251A 0%, var(--bento-ink) 65%); }
 .bento-tile--ink, .bento-tile--photo { color: #FFFFFF; }
 .bento-tile--photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 8, 6, .62), transparent 48%); pointer-events: none; }
-.bento-tile--photo.bento-tile--label-top::after { background: linear-gradient(rgba(10, 30, 20, .66), transparent 46%); }
-.bento-tile--daylight::after { content: ""; position: absolute; inset: auto 0 0; height: 56%; background: linear-gradient(transparent, #FBEEDD 70%); pointer-events: none; }
+.bento-tile--daylight { background: #FBEEDD; }
+/* Mahjong: the label sits on the game's own felt green above the board,
+   rather than over the tiles. */
+.bento-tile--felt { background: #10271E; color: #FFFFFF; }
+.bento-tile--felt .bento-visual { padding: 0; }
 .bento-tile--gold { background: linear-gradient(160deg, #F6D9A4 0%, #D9A04E 55%, #A8692A 100%); color: #2E1F08; }
 .bento-tile--hero { background: #F3D9B6; }
 .bento-tile::after { z-index: 1; }
@@ -65,14 +71,14 @@
 .bento-img { width: 100%; height: 100%; }
 .bento-img--contain { object-fit: contain; }
 .bento-img--cover { position: absolute; inset: 0; object-fit: cover; }
-.bento-pos-mahjong { object-position: 50% 45%; }
+.bento-pos-mahjong { object-position: 50% 55%; }
 .bento-pos-island { object-position: 50% 30%; }
-.bento-pos-dawn { object-position: 50% 32%; transform: scale(1.6); transform-origin: 50% 30%; }
+.bento-pos-dawn { object-position: 50% 30%; transform: scale(2.1); transform-origin: 50% 31%; }
 .bento-pos-sunrise { object-position: 50% 60%; }
-.bento-object { width: 50%; height: auto; }
+.bento-object { width: auto; height: 100%; max-width: 55%; object-fit: contain; }
 
 .bento-title { font-size: calc(var(--bento-display) * 1.05) !important; font-weight: 600 !important; letter-spacing: -.025em !important; }
-.bento-word { font-family: var(--site-font-display) !important; font-size: calc(var(--W) * .072) !important; font-weight: 400 !important; line-height: 1 !important; letter-spacing: -.035em !important; color: rgba(255, 255, 255, .96); text-shadow: 0 2px 24px rgba(140, 80, 20, .35); }
+.bento-mark { display: block; width: calc(var(--W) * .11); height: auto; margin: 0 auto; filter: drop-shadow(0 6px 18px rgba(120, 70, 20, .35)); }
 .bento-display { font-size: var(--bento-display) !important; font-weight: 700 !important; letter-spacing: -.03em !important; line-height: 1.04 !important; }
 .bento-accent { background: linear-gradient(170deg, var(--bento-accent-a), var(--bento-accent-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .bento-accent-wide { background: linear-gradient(90deg, #D07A22, #B24A2C 55%, var(--bento-accent-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -82,8 +88,6 @@
 .bento-fade h3 { margin: .1em 0 !important; }
 .bento-chips { display: flex; flex-wrap: nowrap; justify-content: center; gap: .4em; padding: 0 8%; font: 600 calc(var(--bento-label) * .85) var(--font-ui); }
 .bento-chips span { padding: .3em .6em; border-radius: .6em; background: rgba(255, 255, 255, .1); color: var(--bento-on-ink); }
-.bento-bubble { display: inline-flex; align-items: center; gap: .5em; padding: .6em .9em; border-radius: .9em; background: #FFFFFF; color: var(--site-text); font: 600 calc(var(--bento-label) * .9)/1.15 var(--font-ui); text-align: left; }
-.bento-bubble b { display: grid; place-items: center; width: 1.9em; height: 1.9em; border-radius: .6em; background: var(--bento-ink); color: #F6D9A4; font-size: .8em; }
 
 /* Mini product UI in tiles, always at reading size */
 .ui { font: 500 var(--bento-ui)/1.3 var(--font-ui); color: #14120E; text-align: left; }
@@ -173,7 +177,7 @@
   .bento-board { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-rows: 200px; aspect-ratio: auto; }
   .bento-board > .bento-tile { grid-area: auto; }
   .bento-board > .bento-L1, .bento-board > .bento-C1, .bento-board > .bento-C2, .bento-board > .bento-R3 { grid-column: 1 / 3; }
-  .bento-word { font-size: 72px !important; }
+  .bento-mark { width: 96px; }
   .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bento-small { aspect-ratio: auto; min-height: 120px; gap: 18px; }
   .bento-icon--tile { width: 40px; }
@@ -241,3 +245,22 @@
 .pop-replica .ui-row b { font-weight: 600; }
 .pop-replica-input { flex: 1; padding: 6px 10px; border: 1px solid #E4DCCF; border-radius: 8px; color: #999999; }
 .pop-replica-button { padding: 6px 10px; border: 1px solid #E4DCCF; border-radius: 8px; white-space: nowrap; }
+
+/* Visuals scale with their tile so a narrower board never pushes them into
+   the label: mini UI, chips and the private pill size from the visual area. */
+.bento-visual .ui, .bento-visual .bento-chips, .bento-visual .ui-private-pill { font-size: clamp(9px, min(4.6cqw, 6.8cqh), 13px); }
+.ui-menu { width: 100%; }
+.ui-menu .ui-row { padding: .55em .9em; }
+.bento-label .bento-badge { display: inline-block; margin-top: .45em; padding: .1em .65em; border: 1px solid currentColor; border-radius: 99px; font-size: calc(var(--bento-label) * .72); letter-spacing: .04em; }
+/* When a narrow board leaves a short visual area, show fewer rows rather
+   than clipping them under the label. */
+/* Each visual marks its optional rows with .ui-extra. */
+@container (max-height: 140px) {
+  .ui-extra { display: none; }
+  .ui-chips .ui-chip:nth-child(n+3) { display: none; }
+}
+@container (max-height: 80px) {
+  .ui-menu .ui-row:nth-child(n+2) { display: none; }
+  .ui-chips .ui-chip:nth-child(n+2) { display: none; }
+  .ui-chip--1 { margin: 0; }
+}

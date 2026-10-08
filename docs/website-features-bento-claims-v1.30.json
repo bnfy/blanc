@@ -265,7 +265,7 @@
     {
       "id": "bento-130-001",
       "source": "site/src/pages/features.astro",
-      "exactWording": "A little less browser.",
+      "exactWording": "Everything in Blanc.",
       "subject": "Blanc",
       "evidenceGroups": [
         "overview"
@@ -275,7 +275,7 @@
     {
       "id": "bento-130-002",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Everything in Blanc.",
+      "exactWording": "Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you.",
       "subject": "Blanc",
       "evidenceGroups": [
         "overview"
@@ -285,7 +285,7 @@
     {
       "id": "bento-130-003",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you.",
+      "exactWording": "Blanc’s main features.",
       "subject": "Blanc",
       "evidenceGroups": [
         "overview"
@@ -295,16 +295,6 @@
     {
       "id": "bento-130-004",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Blanc’s main features.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "overview"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-005",
-      "source": "site/src/pages/features.astro",
       "exactWording": "View two tabs side by side with Glance",
       "subject": "Blanc",
       "evidenceGroups": [
@@ -313,7 +303,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-006",
+      "id": "bento-130-005",
       "source": "site/src/pages/features.astro",
       "exactWording": "The Island",
       "subject": "Blanc",
@@ -323,7 +313,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-007",
+      "id": "bento-130-006",
       "source": "site/src/pages/features.astro",
       "exactWording": "Tabs, search and page controls in one bar",
       "subject": "Blanc",
@@ -333,7 +323,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-008",
+      "id": "bento-130-007",
       "source": "site/src/pages/features.astro",
       "exactWording": "Quiet Tabs free up memory",
       "subject": "Blanc",
@@ -343,7 +333,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-009",
+      "id": "bento-130-008",
       "source": "site/src/pages/features.astro",
       "exactWording": "A Start Page that follows the time of day",
       "subject": "Blanc",
@@ -353,7 +343,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-010",
+      "id": "bento-130-009",
       "source": "site/src/pages/features.astro",
       "exactWording": "Ads and trackers blocked by default",
       "subject": "Blanc",
@@ -363,7 +353,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-011",
+      "id": "bento-130-010",
       "source": "site/src/pages/features.astro",
       "exactWording": "Mahjong on every Start Page",
       "subject": "Blanc",
@@ -373,17 +363,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-012",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Blanc",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "overview"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-013",
+      "id": "bento-130-011",
       "source": "site/src/pages/features.astro",
       "exactWording": "Reopen closed tabs, even whole groups",
       "subject": "Blanc",
@@ -393,7 +373,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-014",
+      "id": "bento-130-012",
       "source": "site/src/pages/features.astro",
       "exactWording": "Private tabs stay out of history",
       "subject": "Blanc",
@@ -403,7 +383,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-015",
+      "id": "bento-130-013",
       "source": "site/src/pages/features.astro",
       "exactWording": "Profiles keep work and personal apart",
       "subject": "Blanc",
@@ -413,7 +393,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-016",
+      "id": "bento-130-014",
       "source": "site/src/pages/features.astro",
       "exactWording": "Quick Switcher",
       "subject": "Blanc",
@@ -423,7 +403,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-017",
+      "id": "bento-130-015",
       "source": "site/src/pages/features.astro",
       "exactWording": "Press ⌘L to find any tab",
       "subject": "Blanc",
@@ -433,7 +413,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-018",
+      "id": "bento-130-016",
       "source": "site/src/pages/features.astro",
       "exactWording": "Type / to run commands",
       "subject": "Blanc",
@@ -443,7 +423,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-019",
+      "id": "bento-130-017",
       "source": "site/src/pages/features.astro",
       "exactWording": "Four Start Page layouts",
       "subject": "Blanc",
@@ -453,7 +433,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-020",
+      "id": "bento-130-018",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Groups keep tasks together",
       "subject": "Blanc",
@@ -463,7 +443,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-021",
+      "id": "bento-130-019",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Workspaces save whole windows",
       "subject": "Blanc",
@@ -473,7 +453,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-022",
+      "id": "bento-130-020",
       "source": "site/src/pages/features.astro",
       "exactWording": "Patron",
       "subject": "Blanc",
@@ -483,7 +463,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-023",
+      "id": "bento-130-021",
       "source": "site/src/pages/features.astro",
       "exactWording": "Encrypted sync across devices",
       "subject": "Blanc",
@@ -493,7 +473,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-024",
+      "id": "bento-130-022",
       "source": "site/src/pages/features.astro",
       "exactWording": "Optional vertical tab rail",
       "subject": "Blanc",
@@ -503,7 +483,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-025",
+      "id": "bento-130-023",
       "source": "site/src/pages/features.astro",
       "exactWording": "Mouse gestures",
       "subject": "Blanc",
@@ -513,7 +493,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-026",
+      "id": "bento-130-024",
       "source": "site/src/pages/features.astro",
       "exactWording": "1Password fill on Mac",
       "subject": "Blanc",
@@ -523,7 +503,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-027",
+      "id": "bento-130-025",
       "source": "site/src/pages/features.astro",
       "exactWording": "Full uBlock Origin, optional",
       "subject": "Blanc",
@@ -533,7 +513,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-028",
+      "id": "bento-130-026",
       "source": "site/src/pages/features.astro",
       "exactWording": "Dark websites",
       "subject": "Blanc",
@@ -543,7 +523,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-029",
+      "id": "bento-130-027",
       "source": "site/src/pages/features.astro",
       "exactWording": "Touch ID passkeys on Mac",
       "subject": "Blanc",
@@ -553,7 +533,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-030",
+      "id": "bento-130-028",
       "source": "site/src/pages/features.astro",
       "exactWording": "Import your bookmarks",
       "subject": "Blanc",
@@ -563,7 +543,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-031",
+      "id": "bento-130-029",
       "source": "site/src/pages/features.astro",
       "exactWording": "Camera and mic indicator",
       "subject": "Blanc",
@@ -573,7 +553,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-032",
+      "id": "bento-130-030",
       "source": "site/src/pages/features.astro",
       "exactWording": "Restore after a crash",
       "subject": "Blanc",
@@ -583,7 +563,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-033",
+      "id": "bento-130-031",
       "source": "site/src/pages/features.astro",
       "exactWording": "Resume downloads",
       "subject": "Blanc",
@@ -593,7 +573,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-034",
+      "id": "bento-130-032",
       "source": "site/src/pages/features.astro",
       "exactWording": "Choose your search engine",
       "subject": "Blanc",
@@ -603,7 +583,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-035",
+      "id": "bento-130-033",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pin and mute tabs",
       "subject": "Blanc",
@@ -613,7 +593,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-036",
+      "id": "bento-130-034",
       "source": "site/src/pages/features.astro",
       "exactWording": "Set Blanc as default browser",
       "subject": "Blanc",
@@ -623,7 +603,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-037",
+      "id": "bento-130-035",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sandboxed pages",
       "subject": "Blanc",
@@ -633,7 +613,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-038",
+      "id": "bento-130-036",
       "source": "site/src/pages/features.astro",
       "exactWording": "Signed, verifiable releases",
       "subject": "Blanc",
@@ -643,7 +623,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-039",
+      "id": "bento-130-037",
       "source": "site/src/pages/features.astro",
       "exactWording": "Light, dark or system",
       "subject": "Blanc",
@@ -653,7 +633,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-040",
+      "id": "bento-130-038",
       "source": "site/src/pages/features.astro",
       "exactWording": "Glance",
       "subject": "Blanc",
@@ -663,7 +643,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-041",
+      "id": "bento-130-039",
       "source": "site/src/pages/features.astro",
       "exactWording": "View two tabs side by side with Glance.",
       "subject": "Blanc",
@@ -673,7 +653,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-042",
+      "id": "bento-130-040",
       "source": "site/src/pages/features.astro",
       "exactWording": "Choose another tab from this window to open beside your page. Drag the divider to resize, swap the two sides, or close the reference when you are done.",
       "subject": "Blanc",
@@ -683,7 +663,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-043",
+      "id": "bento-130-041",
       "source": "site/src/pages/features.astro",
       "exactWording": "Glance is never restored after a restart or synced.",
       "subject": "Blanc",
@@ -693,7 +673,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-044",
+      "id": "bento-130-042",
       "source": "site/src/pages/features.astro",
       "exactWording": "The Island",
       "subject": "Blanc",
@@ -703,7 +683,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-045",
+      "id": "bento-130-043",
       "source": "site/src/pages/features.astro",
       "exactWording": "The Island puts tabs, search and page controls in one compact bar.",
       "subject": "Blanc",
@@ -713,7 +693,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-046",
+      "id": "bento-130-044",
       "source": "site/src/pages/features.astro",
       "exactWording": "Blanc replaces the tab strip and toolbar with one Island in a slim band above the page. Open it to switch tabs, search or run a command, then close it to get back to the page.",
       "subject": "Blanc",
@@ -723,7 +703,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-047",
+      "id": "bento-130-045",
       "source": "site/src/pages/features.astro",
       "exactWording": "The resting Island keeps its own band above the page; the panel opens over the page.",
       "subject": "Blanc",
@@ -733,7 +713,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-048",
+      "id": "bento-130-046",
       "source": "site/src/pages/features.astro",
       "exactWording": "Quiet Tabs",
       "subject": "Blanc",
@@ -743,7 +723,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-049",
+      "id": "bento-130-047",
       "source": "site/src/pages/features.astro",
       "exactWording": "Quiet Tabs free up memory without closing the tab.",
       "subject": "Blanc",
@@ -753,7 +733,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-050",
+      "id": "bento-130-048",
       "source": "site/src/pages/features.astro",
       "exactWording": "When a background tab has gone unused for an hour (the default), Blanc releases the memory its page was using and dims it in the Island. Open it again and the page reloads with its address, title and back button. Choose 30 minutes, 1 hour, 6 hours or Off in Settings.",
       "subject": "Blanc",
@@ -763,7 +743,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-051",
+      "id": "bento-130-049",
       "source": "site/src/pages/features.astro",
       "exactWording": "Tabs playing sound, pinned tabs and pages with a half-filled form stay loaded. A quiet tab reloads; it does not resume exactly where the page’s scripts left off.",
       "subject": "Blanc",
@@ -773,7 +753,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-052",
+      "id": "bento-130-050",
       "source": "site/src/pages/features.astro",
       "exactWording": "Time-of-day wallpaper",
       "subject": "Blanc",
@@ -783,7 +763,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-053",
+      "id": "bento-130-051",
       "source": "site/src/pages/features.astro",
       "exactWording": "A Start Page that follows the time of day.",
       "subject": "Blanc",
@@ -793,7 +773,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-054",
+      "id": "bento-130-052",
       "source": "site/src/pages/features.astro",
       "exactWording": "Turn on time-of-day wallpaper in Settings → General, and the Start Page artwork moves through dawn, day, dusk and night with your computer’s clock.",
       "subject": "Blanc",
@@ -803,7 +783,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-055",
+      "id": "bento-130-053",
       "source": "site/src/pages/features.astro",
       "exactWording": "When Sync is on, the on/off choice follows you to your other devices; the artwork always follows each computer’s own clock.",
       "subject": "Blanc",
@@ -813,7 +793,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-056",
+      "id": "bento-130-054",
       "source": "site/src/pages/features.astro",
       "exactWording": "Ad and tracker blocking",
       "subject": "Blanc",
@@ -823,7 +803,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-057",
+      "id": "bento-130-055",
       "source": "site/src/pages/features.astro",
       "exactWording": "Block ads and trackers from the first page, with a switch for each site.",
       "subject": "Blanc",
@@ -833,7 +813,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-058",
+      "id": "bento-130-056",
       "source": "site/src/pages/features.astro",
       "exactWording": "Blanc Blocker is built in and on by default, using EasyList and EasyPrivacy. Click the shield on the Island to see how many requests it blocked on this page and whether the connection uses HTTPS, or to turn blocking off for just this site.",
       "subject": "Blanc",
@@ -843,7 +823,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-059",
+      "id": "bento-130-057",
       "source": "site/src/pages/features.astro",
       "exactWording": "Blocking reduces ads and known tracking; no blocker removes all of them. The count shown here is a sample. Prefer uBlock Origin? Choose it from the same shield on supported builds, then restart Blanc.",
       "subject": "Blanc",
@@ -853,7 +833,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-060",
+      "id": "bento-130-058",
       "source": "site/src/pages/features.astro",
       "exactWording": "Mahjong",
       "subject": "Blanc",
@@ -863,7 +843,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-061",
+      "id": "bento-130-059",
       "source": "site/src/pages/features.astro",
       "exactWording": "Play Mahjong from any Start Page.",
       "subject": "Blanc",
@@ -873,7 +853,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-062",
+      "id": "bento-130-060",
       "source": "site/src/pages/features.astro",
       "exactWording": "Every Start Page footer opens Mahjong in its own tab, with eight boards, a Daily deal, hints, undo and records kept on this device.",
       "subject": "Blanc",
@@ -883,7 +863,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-063",
+      "id": "bento-130-061",
       "source": "site/src/pages/features.astro",
       "exactWording": "Mahjong is offline and single-player; nothing is synced.",
       "subject": "Blanc",
@@ -893,7 +873,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-064",
+      "id": "bento-130-062",
       "source": "site/src/pages/features.astro",
       "exactWording": "Blanc",
       "subject": "Blanc",
@@ -903,7 +883,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-065",
+      "id": "bento-130-063",
       "source": "site/src/pages/features.astro",
       "exactWording": "A little less browser.",
       "subject": "Blanc",
@@ -913,7 +893,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-066",
+      "id": "bento-130-064",
       "source": "site/src/pages/features.astro",
       "exactWording": "Blanc is a desktop browser for macOS, Windows and Linux that keeps its controls in one small Island, blocks ads and trackers by default, and stays out of the way of the page you came for. It is free and open source.",
       "subject": "Blanc",
@@ -923,7 +903,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-067",
+      "id": "bento-130-065",
       "source": "site/src/pages/features.astro",
       "exactWording": "Built by Bananify, an independent studio.",
       "subject": "Blanc",
@@ -933,7 +913,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-068",
+      "id": "bento-130-066",
       "source": "site/src/pages/features.astro",
       "exactWording": "Reopen Closed Tab",
       "subject": "Blanc",
@@ -943,7 +923,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-069",
+      "id": "bento-130-067",
       "source": "site/src/pages/features.astro",
       "exactWording": "Reopen a closed tab or a whole group, sometimes without a reload.",
       "subject": "Blanc",
@@ -953,7 +933,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-070",
+      "id": "bento-130-068",
       "source": "site/src/pages/features.astro",
       "exactWording": "Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.",
       "subject": "Blanc",
@@ -963,7 +943,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-071",
+      "id": "bento-130-069",
       "source": "site/src/pages/features.astro",
       "exactWording": "On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.",
       "subject": "Blanc",
@@ -973,7 +953,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-072",
+      "id": "bento-130-070",
       "source": "site/src/pages/features.astro",
       "exactWording": "Private tabs",
       "subject": "Blanc",
@@ -983,7 +963,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-073",
+      "id": "bento-130-071",
       "source": "site/src/pages/features.astro",
       "exactWording": "Private tabs keep your visits out of Blanc’s history.",
       "subject": "Blanc",
@@ -993,7 +973,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-074",
+      "id": "bento-130-072",
       "source": "site/src/pages/features.astro",
       "exactWording": "Press ⌘⇧N or type /private. Pages you visit are not saved to history, are not restored after a restart, and never appear in Recently Closed. The Island changes so you can see you are private, and its chip closes the tab when you are done.",
       "subject": "Blanc",
@@ -1003,7 +983,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-075",
+      "id": "bento-130-073",
       "source": "site/src/pages/features.astro",
       "exactWording": "On Windows and Linux, press Ctrl+Shift+N. Private does not mean anonymous: websites, your network or an employer can still see activity, and files you download stay on disk.",
       "subject": "Blanc",
@@ -1013,7 +993,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-076",
+      "id": "bento-130-074",
       "source": "site/src/pages/features.astro",
       "exactWording": "Profiles",
       "subject": "Blanc",
@@ -1023,7 +1003,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-077",
+      "id": "bento-130-075",
       "source": "site/src/pages/features.astro",
       "exactWording": "Profiles keep work and personal browsing apart.",
       "subject": "Blanc",
@@ -1033,7 +1013,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-078",
+      "id": "bento-130-076",
       "source": "site/src/pages/features.astro",
       "exactWording": "Create named profiles, each with its own cookies, site data, Favorites, history, download list and remembered permissions, opening in its own windows.",
       "subject": "Blanc",
@@ -1043,7 +1023,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-079",
+      "id": "bento-130-077",
       "source": "site/src/pages/features.astro",
       "exactWording": "Settings and Patron are shared by every profile on this device.",
       "subject": "Blanc",
@@ -1053,7 +1033,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-080",
+      "id": "bento-130-078",
       "source": "site/src/pages/features.astro",
       "exactWording": "Quick Switcher",
       "subject": "Blanc",
@@ -1063,7 +1043,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-081",
+      "id": "bento-130-079",
       "source": "site/src/pages/features.astro",
       "exactWording": "Press ⌘L to find any tab, or type / to run a command.",
       "subject": "Blanc",
@@ -1073,7 +1053,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-082",
+      "id": "bento-130-080",
       "source": "site/src/pages/features.astro",
       "exactWording": "The Quick Switcher searches your open tabs, Favorites, history and Named Groups as you type, so you can jump to a page without hunting through a tab strip.",
       "subject": "Blanc",
@@ -1083,7 +1063,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-083",
+      "id": "bento-130-081",
       "source": "site/src/pages/features.astro",
       "exactWording": "On Windows and Linux, press Ctrl+L. For search text, Enter opens the highlighted result; choose the result showing your exact text to search the web.",
       "subject": "Blanc",
@@ -1093,7 +1073,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-084",
+      "id": "bento-130-082",
       "source": "site/src/pages/features.astro",
       "exactWording": "Slash commands",
       "subject": "Blanc",
@@ -1103,7 +1083,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-085",
+      "id": "bento-130-083",
       "source": "site/src/pages/features.astro",
       "exactWording": "Type / to run a browser command.",
       "subject": "Blanc",
@@ -1113,7 +1093,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-086",
+      "id": "bento-130-084",
       "source": "site/src/pages/features.astro",
       "exactWording": "In the Island, type / to see every command, then keep typing to narrow the list: /private opens a private tab, /group moves this tab into a group, /sleep quiets background tabs and /allow-ads lets one site through.",
       "subject": "Blanc",
@@ -1123,7 +1103,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-087",
+      "id": "bento-130-085",
       "source": "site/src/pages/features.astro",
       "exactWording": "Commands act only when you choose them.",
       "subject": "Blanc",
@@ -1133,7 +1113,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-088",
+      "id": "bento-130-086",
       "source": "site/src/pages/features.astro",
       "exactWording": "Start Page",
       "subject": "Blanc",
@@ -1143,7 +1123,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-089",
+      "id": "bento-130-087",
       "source": "site/src/pages/features.astro",
       "exactWording": "Choose your Start Page layout.",
       "subject": "Blanc",
@@ -1153,7 +1133,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-090",
+      "id": "bento-130-088",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pick Ledger, Billboard, Shelf or Tally for new tabs. Billboard brings your frequent sites from local history, and Tally puts a big clock front and centre.",
       "subject": "Blanc",
@@ -1163,7 +1143,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-091",
+      "id": "bento-130-089",
       "source": "site/src/pages/features.astro",
       "exactWording": "Your layout choice can follow you through Sync; history stays on this device.",
       "subject": "Blanc",
@@ -1173,7 +1153,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-092",
+      "id": "bento-130-090",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Groups",
       "subject": "Blanc",
@@ -1183,7 +1163,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-093",
+      "id": "bento-130-091",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Groups keep a task’s tabs together.",
       "subject": "Blanc",
@@ -1193,7 +1173,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-094",
+      "id": "bento-130-092",
       "source": "site/src/pages/features.astro",
       "exactWording": "Create a group with /group and a name, or from a tab’s right-click menu. The Island shows the current group’s tabs as dots, and other groups fold away in the ⌘L panel. Drag tabs and groups into the order you want.",
       "subject": "Blanc",
@@ -1203,7 +1183,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-095",
+      "id": "bento-130-093",
       "source": "site/src/pages/features.astro",
       "exactWording": "You name and fill every group. Blanc never sorts or groups tabs for you.",
       "subject": "Blanc",
@@ -1213,7 +1193,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-096",
+      "id": "bento-130-094",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Workspaces · Patron",
       "subject": "Blanc",
@@ -1223,7 +1203,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-097",
+      "id": "bento-130-095",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Workspaces save a whole window to return to by name.",
       "subject": "Blanc",
@@ -1233,7 +1213,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-098",
+      "id": "bento-130-096",
       "source": "site/src/pages/features.astro",
       "exactWording": "Save a window’s tabs and groups as a Named Workspace and switch back to it later by name. A saved workspace keeps itself up to date as you browse.",
       "subject": "Blanc",
@@ -1243,7 +1223,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-099",
+      "id": "bento-130-097",
       "source": "site/src/pages/features.astro",
       "exactWording": "Creating and saving workspaces needs an active Patron membership. Saved workspaces stay usable if it ends.",
       "subject": "Blanc",
@@ -1253,7 +1233,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-100",
+      "id": "bento-130-098",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sync",
       "subject": "Blanc",
@@ -1263,7 +1243,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-101",
+      "id": "bento-130-099",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sync Favorites and settings across your devices.",
       "subject": "Blanc",
@@ -1273,7 +1253,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-102",
+      "id": "bento-130-100",
       "source": "site/src/pages/features.astro",
       "exactWording": "Turn on Sync from your Personal profile to carry Favorites and settings to your other devices, and optionally see what each device has open. It is end-to-end encrypted.",
       "subject": "Blanc",
@@ -1283,7 +1263,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-103",
+      "id": "bento-130-101",
       "source": "site/src/pages/features.astro",
       "exactWording": "History, cookies and private tabs are never synced.",
       "subject": "Blanc",
@@ -1293,7 +1273,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-104",
+      "id": "bento-130-102",
       "source": "site/src/pages/features.astro",
       "exactWording": "Vertical tabs",
       "subject": "Blanc",
@@ -1303,7 +1283,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-105",
+      "id": "bento-130-103",
       "source": "site/src/pages/features.astro",
       "exactWording": "Show your tabs in an optional vertical list.",
       "subject": "Blanc",
@@ -1313,7 +1293,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-106",
+      "id": "bento-130-104",
       "source": "site/src/pages/features.astro",
       "exactWording": "Turn on the vertical tab rail for a resizable overview on the left. Drag tabs and groups in the rail to reorder them. The Island stays for search and commands.",
       "subject": "Blanc",
@@ -1323,7 +1303,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-107",
+      "id": "bento-130-105",
       "source": "site/src/pages/features.astro",
       "exactWording": "The rail is optional; the Island is always there.",
       "subject": "Blanc",
@@ -1333,7 +1313,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-108",
+      "id": "bento-130-106",
       "source": "site/src/pages/features.astro",
       "exactWording": "Mouse gestures",
       "subject": "Blanc",
@@ -1343,7 +1323,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-109",
+      "id": "bento-130-107",
       "source": "site/src/pages/features.astro",
       "exactWording": "Navigate with mouse gestures.",
       "subject": "Blanc",
@@ -1353,7 +1333,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-110",
+      "id": "bento-130-108",
       "source": "site/src/pages/features.astro",
       "exactWording": "Turn them on in Settings, then hold the right mouse button and draw, or hold Alt/Option and drag with one finger on a trackpad. Assign your own patterns to Back, Forward, Reload and more.",
       "subject": "Blanc",
@@ -1363,7 +1343,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-111",
+      "id": "bento-130-109",
       "source": "site/src/pages/features.astro",
       "exactWording": "Gestures are off until you turn them on, and they stay on this device.",
       "subject": "Blanc",
@@ -1373,7 +1353,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-112",
+      "id": "bento-130-110",
       "source": "site/src/pages/features.astro",
       "exactWording": "1Password · macOS",
       "subject": "Blanc",
@@ -1383,7 +1363,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-113",
+      "id": "bento-130-111",
       "source": "site/src/pages/features.astro",
       "exactWording": "Fill logins from 1Password on macOS.",
       "subject": "Blanc",
@@ -1393,7 +1373,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-114",
+      "id": "bento-130-112",
       "source": "site/src/pages/features.astro",
       "exactWording": "Turn on the integration in Settings, then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app.",
       "subject": "Blanc",
@@ -1403,7 +1383,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-115",
+      "id": "bento-130-113",
       "source": "site/src/pages/features.astro",
       "exactWording": "macOS only. Blanc never fills anything automatically.",
       "subject": "Blanc",
@@ -1413,7 +1393,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-116",
+      "id": "bento-130-114",
       "source": "site/src/pages/features.astro",
       "exactWording": "uBlock Origin",
       "subject": "Blanc",
@@ -1423,7 +1403,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-117",
+      "id": "bento-130-115",
       "source": "site/src/pages/features.astro",
       "exactWording": "Prefer uBlock Origin? Choose it from the shield.",
       "subject": "Blanc",
@@ -1433,7 +1413,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-118",
+      "id": "bento-130-116",
       "source": "site/src/pages/features.astro",
       "exactWording": "Click the shield on the Island, choose uBlock Origin, then restart Blanc. You get its popup, dashboard, logger, element picker and filter lists for regular tabs.",
       "subject": "Blanc",
@@ -1443,7 +1423,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-119",
+      "id": "bento-130-117",
       "source": "site/src/pages/features.astro",
       "exactWording": "Private tabs always use Blanc Blocker. Available on supported Mac, Windows and Linux builds.",
       "subject": "Blanc",
@@ -1453,7 +1433,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-120",
+      "id": "bento-130-118",
       "source": "site/src/pages/features.astro",
       "exactWording": "Dark websites",
       "subject": "Blanc",
@@ -1463,7 +1443,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-121",
+      "id": "bento-130-119",
       "source": "site/src/pages/features.astro",
       "exactWording": "Darken websites that have no dark mode.",
       "subject": "Blanc",
@@ -1473,7 +1453,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-122",
+      "id": "bento-130-120",
       "source": "site/src/pages/features.astro",
       "exactWording": "Turn on Dark websites while Blanc is dark, and pages without their own dark mode are darkened as they load. Switch it per site from the shield.",
       "subject": "Blanc",
@@ -1483,7 +1463,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-123",
+      "id": "bento-130-121",
       "source": "site/src/pages/features.astro",
       "exactWording": "Off by default. Embedded frames keep their colors.",
       "subject": "Blanc",
@@ -1493,7 +1473,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-124",
+      "id": "bento-130-122",
       "source": "site/src/pages/features.astro",
       "exactWording": "Touch ID passkeys",
       "subject": "Blanc",
@@ -1503,7 +1483,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-125",
+      "id": "bento-130-123",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sign in with passkeys and Touch ID on a Mac.",
       "subject": "Blanc",
@@ -1513,7 +1493,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-126",
+      "id": "bento-130-124",
       "source": "site/src/pages/features.astro",
       "exactWording": "On a Mac, Blanc can create passkeys secured by Touch ID that stay on your device.",
       "subject": "Blanc",
@@ -1523,7 +1503,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-127",
+      "id": "bento-130-125",
       "source": "site/src/pages/features.astro",
       "exactWording": "Blanc passkeys do not read passkeys saved in other apps.",
       "subject": "Blanc",
@@ -1533,7 +1513,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-128",
+      "id": "bento-130-126",
       "source": "site/src/pages/features.astro",
       "exactWording": "Drag to reorder",
       "subject": "Blanc",
@@ -1543,7 +1523,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-129",
+      "id": "bento-130-127",
       "source": "site/src/pages/features.astro",
       "exactWording": "Import",
       "subject": "Blanc",
@@ -1553,7 +1533,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-130",
+      "id": "bento-130-128",
       "source": "site/src/pages/features.astro",
       "exactWording": "Bring your Favorites with you.",
       "subject": "Blanc",
@@ -1563,7 +1543,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-131",
+      "id": "bento-130-129",
       "source": "site/src/pages/features.astro",
       "exactWording": "Import bookmarks from a browser profile Blanc detects, or from an HTML file, in Favorites.",
       "subject": "Blanc",
@@ -1573,7 +1553,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-132",
+      "id": "bento-130-130",
       "source": "site/src/pages/features.astro",
       "exactWording": "Importing happens on your device.",
       "subject": "Blanc",
@@ -1583,7 +1563,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-133",
+      "id": "bento-130-131",
       "source": "site/src/pages/features.astro",
       "exactWording": "Camera and microphone",
       "subject": "Blanc",
@@ -1593,7 +1573,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-134",
+      "id": "bento-130-132",
       "source": "site/src/pages/features.astro",
       "exactWording": "See and stop camera and microphone use.",
       "subject": "Blanc",
@@ -1603,7 +1583,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-135",
+      "id": "bento-130-133",
       "source": "site/src/pages/features.astro",
       "exactWording": "The Island shows when a page is using your microphone or camera, and its popover can stop access.",
       "subject": "Blanc",
@@ -1613,7 +1593,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-136",
+      "id": "bento-130-134",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sites must ask before they can use either.",
       "subject": "Blanc",
@@ -1623,7 +1603,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-137",
+      "id": "bento-130-135",
       "source": "site/src/pages/features.astro",
       "exactWording": "Recovery",
       "subject": "Blanc",
@@ -1633,7 +1613,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-138",
+      "id": "bento-130-136",
       "source": "site/src/pages/features.astro",
       "exactWording": "Choose how to recover after a crash.",
       "subject": "Blanc",
@@ -1643,7 +1623,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-139",
+      "id": "bento-130-137",
       "source": "site/src/pages/features.astro",
       "exactWording": "After an unclean shutdown, choose whether to restore your tabs or start fresh.",
       "subject": "Blanc",
@@ -1653,7 +1633,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-140",
+      "id": "bento-130-138",
       "source": "site/src/pages/features.astro",
       "exactWording": "Settings can also export local diagnostics for you to review before sharing.",
       "subject": "Blanc",
@@ -1663,7 +1643,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-141",
+      "id": "bento-130-139",
       "source": "site/src/pages/features.astro",
       "exactWording": "Downloads",
       "subject": "Blanc",
@@ -1673,7 +1653,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-142",
+      "id": "bento-130-140",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pick up interrupted downloads.",
       "subject": "Blanc",
@@ -1683,7 +1663,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-143",
+      "id": "bento-130-141",
       "source": "site/src/pages/features.astro",
       "exactWording": "Interrupted downloads offer Resume when they can continue, and Retry when they need to start again.",
       "subject": "Blanc",
@@ -1693,7 +1673,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-144",
+      "id": "bento-130-142",
       "source": "site/src/pages/features.astro",
       "exactWording": "Not every interrupted download can be completed.",
       "subject": "Blanc",
@@ -1703,7 +1683,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-145",
+      "id": "bento-130-143",
       "source": "site/src/pages/features.astro",
       "exactWording": "Search",
       "subject": "Blanc",
@@ -1713,7 +1693,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-146",
+      "id": "bento-130-144",
       "source": "site/src/pages/features.astro",
       "exactWording": "Search with DuckDuckGo, Google, Bing or Brave.",
       "subject": "Blanc",
@@ -1723,7 +1703,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-147",
+      "id": "bento-130-145",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pick your search engine in Settings. Search suggestions can be turned off at any time.",
       "subject": "Blanc",
@@ -1733,7 +1713,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-148",
+      "id": "bento-130-146",
       "source": "site/src/pages/features.astro",
       "exactWording": "Suggestions are optional.",
       "subject": "Blanc",
@@ -1743,7 +1723,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-149",
+      "id": "bento-130-147",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pin and mute",
       "subject": "Blanc",
@@ -1753,7 +1733,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-150",
+      "id": "bento-130-148",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pin the tabs you keep and mute the ones that play.",
       "subject": "Blanc",
@@ -1763,7 +1743,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-151",
+      "id": "bento-130-149",
       "source": "site/src/pages/features.astro",
       "exactWording": "Type /pin to keep a tab first in its group, and /mute to silence a noisy one.",
       "subject": "Blanc",
@@ -1773,7 +1753,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-152",
+      "id": "bento-130-150",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pinned tabs stay loaded.",
       "subject": "Blanc",
@@ -1783,7 +1763,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-153",
+      "id": "bento-130-151",
       "source": "site/src/pages/features.astro",
       "exactWording": "Default browser",
       "subject": "Blanc",
@@ -1793,7 +1773,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-154",
+      "id": "bento-130-152",
       "source": "site/src/pages/features.astro",
       "exactWording": "Make Blanc your default browser.",
       "subject": "Blanc",
@@ -1803,7 +1783,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-155",
+      "id": "bento-130-153",
       "source": "site/src/pages/features.astro",
       "exactWording": "First-run setup helps you choose a default browser, and Settings has a Make default button at any time.",
       "subject": "Blanc",
@@ -1813,7 +1793,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-156",
+      "id": "bento-130-154",
       "source": "site/src/pages/features.astro",
       "exactWording": "On Windows, Blanc opens the system Default apps page for you to confirm.",
       "subject": "Blanc",
@@ -1823,7 +1803,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-157",
+      "id": "bento-130-155",
       "source": "site/src/pages/features.astro",
       "exactWording": "Sandboxed pages",
       "subject": "Blanc",
@@ -1833,7 +1813,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-158",
+      "id": "bento-130-156",
       "source": "site/src/pages/features.astro",
       "exactWording": "Every page runs in a sandbox.",
       "subject": "Blanc",
@@ -1843,7 +1823,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-159",
+      "id": "bento-130-157",
       "source": "site/src/pages/features.astro",
       "exactWording": "Pages run in Chromium’s sandbox, and sites must ask before using your camera, microphone, location or notifications.",
       "subject": "Blanc",
@@ -1853,7 +1833,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-160",
+      "id": "bento-130-158",
       "source": "site/src/pages/features.astro",
       "exactWording": "Read the security page for what each protection covers.",
       "subject": "Blanc",
@@ -1863,7 +1843,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-161",
+      "id": "bento-130-159",
       "source": "site/src/pages/features.astro",
       "exactWording": "Signed releases",
       "subject": "Blanc",
@@ -1873,7 +1853,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-162",
+      "id": "bento-130-160",
       "source": "site/src/pages/features.astro",
       "exactWording": "Check the download you got.",
       "subject": "Blanc",
@@ -1883,7 +1863,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-163",
+      "id": "bento-130-161",
       "source": "site/src/pages/features.astro",
       "exactWording": "Mac and Windows releases are signed, Mac builds are notarized, and every release ships a signed checksum manifest you can verify.",
       "subject": "Blanc",
@@ -1893,7 +1873,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-164",
+      "id": "bento-130-162",
       "source": "site/src/pages/features.astro",
       "exactWording": "The verification guide walks through each step.",
       "subject": "Blanc",
@@ -1903,7 +1883,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-165",
+      "id": "bento-130-163",
       "source": "site/src/pages/features.astro",
       "exactWording": "Appearance",
       "subject": "Blanc",
@@ -1913,7 +1893,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-166",
+      "id": "bento-130-164",
       "source": "site/src/pages/features.astro",
       "exactWording": "A look that follows your computer.",
       "subject": "Blanc",
@@ -1923,7 +1903,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-167",
+      "id": "bento-130-165",
       "source": "site/src/pages/features.astro",
       "exactWording": "Choose light, dark or system, and Blanc’s own pages change with it. Change it in Settings or with /theme.",
       "subject": "Blanc",
@@ -1933,7 +1913,7 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-168",
+      "id": "bento-130-166",
       "source": "site/src/pages/features.astro",
       "exactWording": "Websites that follow the system theme change too.",
       "subject": "Blanc",

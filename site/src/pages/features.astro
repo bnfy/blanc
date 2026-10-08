@@ -34,7 +34,6 @@ import '../styles/features-bento.css';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><span aria-current="page">features</span></nav>
 
   <header class="bento-head">
-    <p class="section-kicker">A little less browser.</p>
     <h1 id="features-title">Everything in Blanc.</h1>
     <p class="bento-lead">Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you.</p>
   </header>
@@ -56,7 +55,7 @@ import '../styles/features-bento.css';
           <div class="ui-sec">trip · 4 tabs</div>
           <div class="ui-row is-on"><span class="ui-fav ui-fav--a">W</span><span class="ui-t">Typography</span></div>
           <div class="ui-row ui-quiet"><span class="ui-fav ui-fav--e">V</span><span class="ui-t">Copenhagen</span></div>
-          <div class="ui-row"><span class="ui-fav ui-fav--c">R</span><span class="ui-t">Radio</span><span class="ui-m">♪</span></div>
+          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--c">R</span><span class="ui-t">Radio</span><span class="ui-m">♪</span></div>
           <div class="ui-row ui-quiet ui-quiet--2"><span class="ui-fav ui-fav--b">L</span><span class="ui-t">Louisiana</span></div>
         </div>
         <h3>Quiet Tabs free up memory</h3>
@@ -69,20 +68,20 @@ import '../styles/features-bento.css';
         <img slot="visual" class="bento-object" src="/blocker-shield-bronze.webp" width="960" height="960" alt="" />
         <h3>Ads and trackers blocked by default</h3>
       </BentoTile>
-      <BentoTile id="mahjong" href="/features/start-page" feature="mahjong" area="L3" tone="photo" label="top">
+      <BentoTile id="mahjong" href="/features/start-page" feature="mahjong" area="L3" tone="felt" label="top">
         <img slot="visual" class="bento-img bento-img--cover bento-pos-mahjong" src="/feature-captures/mahjong-v1.21.0.webp" width="1440" height="900" alt="" loading="lazy" />
         <h3>Mahjong on every Start Page</h3>
       </BentoTile>
       <BentoTile id="blanc" href="/download" feature="blanc" area="C2" tone="hero" label="center">
         <img slot="visual" class="bento-img bento-img--cover bento-pos-sunrise" src="/feature-hub/sunrise-hero.webp" width="1600" height="1001" alt="" />
-        <p class="bento-word">Blanc</p>
+        <img class="bento-mark" src="/demo-assets/sunrise-mark.png" width="680" height="680" alt="Blanc" />
       </BentoTile>
       <BentoTile id="reopen-closed-tabs" href="/features/reopen-closed-tabs" feature="reopen-closed-tabs" area="R3">
         <div slot="visual" class="ui ui-panel ui-panel--narrow">
           <div class="ui-sec">this window · 3 tabs</div>
           <div class="ui-row"><span class="ui-fav ui-fav--a">W</span><span class="ui-t">Typography — Wikipedia</span></div>
-          <div class="ui-row"><span class="ui-fav ui-fav--e">V</span><span class="ui-t">Visit Copenhagen — Guide</span></div>
-          <div class="ui-row"><span class="ui-fav ui-fav--c">F</span><span class="ui-t">Flight search</span></div>
+          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--e">V</span><span class="ui-t">Visit Copenhagen — Guide</span></div>
+          <div class="ui-row ui-extra"><span class="ui-fav ui-fav--c">F</span><span class="ui-t">Flight search</span></div>
           <div class="ui-sec">⌄ recently closed 2</div>
           <div class="ui-row is-on"><span class="ui-fav ui-fav--b">L</span><span class="ui-t">Louisiana Museum — Exhibitions</span><span class="ui-m">just now</span></div>
           <div class="ui-row"><span>▸</span><span class="ui-t">research · 4 tabs</span><span class="ui-m">2 min</span></div>
@@ -113,9 +112,9 @@ import '../styles/features-bento.css';
         <h3>Named Groups keep tasks together</h3>
       </BentoTile>
       <BentoTile id="workspaces" href="/features/workspaces" feature="named-workspaces" area="R5" tone="gold">
-        <span slot="visual" class="bento-bubble"><b>P</b>Thesis<br />6 tabs</span>
+        <div slot="visual" class="ui ui-panel ui-menu"><div class="ui-row is-on"><span class="ui-t">Research desk</span><span class="ui-m">2</span></div><div class="ui-row"><span class="ui-t">Weekend reading</span><span class="ui-m">2</span></div></div>
         <h3>Named Workspaces save whole windows</h3>
-        <p>Patron</p>
+        <p class="bento-badge">Patron</p>
       </BentoTile>
     </div>
 
