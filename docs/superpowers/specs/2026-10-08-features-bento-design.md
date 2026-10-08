@@ -129,7 +129,7 @@ unexplained). Text marked *(kept)* is reviewed wording carried over unchanged.
 ### Page
 
 - H1: "Everything in Blanc."
-- Lead: "Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you."
+- Lead: "Quiet on the screen, with a lot built in. Click any tile to see it at work." (Named Groups copy carries the user-directed grouping qualification.)
 - Board heading (visually hidden H2, Newsreader): "Blanc’s main features."
 - Dense-grid H2 (keeps `#small-details-title`): *(kept)* "Smaller details that matter."
 - Patron section and download close: *(kept)*.

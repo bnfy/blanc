@@ -21,7 +21,9 @@
 /* Header */
 .bento-head { max-width: 860px; margin: 0 auto; padding: 88px 0 48px; text-align: center; }
 .bento-head h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(44px, 6vw, 76px); font-weight: 400; letter-spacing: -0.02em; line-height: 1; }
-.bento-lead { max-width: 52ch; margin: 18px auto 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.6; }
+.bento-lead { max-width: 44ch; margin: 18px auto 0; color: var(--site-text-dim); font-size: clamp(18px, 1.5vw, 20px); font-weight: 600; letter-spacing: -.01em; line-height: 1.45; text-wrap: balance; }
+/* Wrap between the lede's two sentences, never inside one. */
+.bento-lead span { display: inline-block; }
 .bento-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; font-family: var(--site-font-display); font-weight: 400; }
 
 /* Band: full-bleed surface behind the board, no added scroll */
@@ -58,7 +60,7 @@
 .bento-tile--ink { background: radial-gradient(130% 100% at 50% 0%, #2B251A 0%, var(--bento-ink) 65%); }
 .bento-tile--ink, .bento-tile--photo { color: #FFFFFF; }
 .bento-tile--photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 8, 6, .62), transparent 48%); pointer-events: none; }
-.bento-tile--daylight { background: #FBEEDD; }
+.bento-tile--daylight { background: #F9EFE5; }
 /* Mahjong: the label sits on the game's own felt green above the board,
    rather than over the tiles. */
 .bento-tile--felt { background: #10271E; color: #FFFFFF; }
@@ -73,7 +75,29 @@
 .bento-img--cover { position: absolute; inset: 0; object-fit: cover; }
 .bento-pos-mahjong { object-position: 50% 55%; }
 .bento-pos-island { object-position: 50% 0; }
-.bento-pos-dawn { object-position: 50% 30%; transform: scale(2.1); transform-origin: 50% 31%; }
+.bento-pos-clock { object-position: 50% 30%; transform: scale(2.1); transform-origin: 50% 31%; }
+/* The wallpaper tile cycles through the Start Page's four dayparts, dawn →
+   day → dusk → night, each held 4 s and crossfading into the next (one
+   keyframe set, phase-shifted by negative delays so the loop is seamless from
+   the first frame). The tile's own colour follows, sampled from each capture
+   where it meets the label. Reduced motion stays on dawn. */
+.bento-dayparts { position: absolute; inset: 0; }
+.bento-daypart { opacity: 0; }
+.bento-daypart--dawn { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .bento-daypart { animation: bento-daypart 16s linear infinite; }
+  .bento-daypart--day { animation-delay: -12s; }
+  .bento-daypart--dusk { animation-delay: -8s; }
+  .bento-daypart--night { animation-delay: -4s; }
+  .bento-R2 { animation: bento-daypart-tone 16s linear infinite; }
+}
+@keyframes bento-daypart { 0%, 25% { opacity: 1; } 31.25%, 93.75% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes bento-daypart-tone {
+  0%, 18.75%, 100% { background-color: #F9EFE5; }
+  25%, 43.75% { background-color: #DAE8F3; }
+  50%, 68.75% { background-color: #EDDFD6; }
+  75%, 93.75% { background-color: #D7D5D3; }
+}
 .bento-pos-sunrise { object-position: 50% 60%; }
 /* The Blocker shield (BentoShield.astro); in a tile its square fits the
    visual's content box so no edge is ever clipped. */

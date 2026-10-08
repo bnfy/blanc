@@ -36,7 +36,7 @@ import '../styles/features-bento.css';
 
   <header class="bento-head">
     <h1 id="features-title">Everything in Blanc.</h1>
-    <p class="bento-lead">Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you.</p>
+    <p class="bento-lead"><span>Quiet on the screen, with a lot built in.</span> <span>Click any tile to see it at work.</span></p>
   </header>
 
   <section class="bento-band" aria-labelledby="bento-title">
@@ -62,7 +62,12 @@ import '../styles/features-bento.css';
         <h3>Quiet Tabs free up memory</h3>
       </BentoTile>
       <BentoTile id="wallpaper" href="/features/start-page" feature="time-of-day-wallpaper" area="R2" tone="daylight">
-        <img slot="visual" class="bento-img bento-img--cover bento-pos-dawn" src="/feature-captures/home-wallpaper-dawn-v1.25.0.webp" width="1440" height="900" alt="" />
+        <div slot="visual" class="bento-dayparts">
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dawn" src="/feature-captures/home-wallpaper-dawn-v1.25.0.webp" width="1440" height="900" alt="" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--day" src="/feature-captures/home-wallpaper-day-v1.25.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dusk" src="/feature-captures/home-wallpaper-dusk-v1.25.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--night" src="/feature-captures/home-wallpaper-night-v1.25.0.webp" width="1440" height="900" alt="" loading="lazy" />
+        </div>
         <h3>A Start Page that follows the time of day</h3>
       </BentoTile>
       <BentoTile id="ad-blocking" href="/features/ad-blocking" feature="ad-blocking" area="L2">

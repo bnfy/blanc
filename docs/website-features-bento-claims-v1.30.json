@@ -279,7 +279,7 @@
     {
       "id": "bento-130-002",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Click any feature to see it and read what it does. You decide which tabs belong together; Blanc does not sort or group them for you.",
+      "exactWording": "Quiet on the screen, with a lot built in. Click any tile to see it at work.",
       "subject": "Blanc",
       "evidenceGroups": [
         "overview"
