@@ -256,3 +256,22 @@ test('the site icon links carry a version query so cached favicons refetch after
   }
   assert.doesNotMatch(layout, /href="\/favicon[^"?]*"/, 'no unversioned favicon link remains');
 });
+
+test('brand checks treat one-level platform rounding as current but catch real pixel changes', async () => {
+  const { pngsEquivalent } = require('../../scripts/png-equivalence');
+  const png = (pixels, width = 2) => sharp(Buffer.from(pixels), {
+    raw: { width, height: pixels.length / (width * 4), channels: 4 },
+  }).png().toBuffer();
+  const base = await png([247, 240, 229, 255, 14, 14, 14, 255]);
+
+  assert.equal(await pngsEquivalent(base, await png([248, 239, 229, 255, 14, 14, 15, 255])), true,
+    'one level of macOS/Linux rasterizer rounding is not staleness');
+  assert.equal(await pngsEquivalent(base, await png([249, 240, 229, 255, 14, 14, 14, 255])), false,
+    'a two-level colour change is a real change');
+  assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 255, 14, 14, 14, 254])), true,
+    'alpha rounding gets the same one-level allowance');
+  assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 255], 1)), false,
+    'different dimensions never match');
+  assert.equal(await pngsEquivalent(Buffer.from('<svg/>'), Buffer.from('<svg/>')), false,
+    'non-PNG outputs keep the exact byte comparison');
+});
