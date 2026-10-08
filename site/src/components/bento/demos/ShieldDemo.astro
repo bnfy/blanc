@@ -10,7 +10,7 @@ import renderer from '../../../../../src/renderer/renderer.js?raw';
 import overlay from '../../../../../src/renderer/overlay.html?raw';
 import mark from '../../../../../src/renderer/sunrise-hero-mark.png?url';
 import nativeFont from '../../../../../src/renderer/pages/inter-latin.woff2?url';
-import { nativeIslandArt, nativeShieldPopoverArt, SHIELD_OPEN_SELECTORS } from '../../../lib/native-island-art.mjs';
+import { nativeIslandArt, nativeShieldPopoverArt, namespaceNativeArt, SHIELD_OPEN_SELECTORS } from '../../../lib/native-island-art.mjs';
 
 const host = 'nytimes.com', count = 24;
 const pill = nativeIslandArt({ styles, document: islandDocument, renderer, extraSelectors: SHIELD_OPEN_SELECTORS });
@@ -23,7 +23,7 @@ const swap = (html: string, from: string | RegExp, to: string) => {
 let pillHtml = pill.html;
 pillHtml = swap(pillHtml, 'id="islandPill" class="no-drag"', 'id="islandPill" class="no-drag shield-open"');
 pillHtml = swap(pillHtml, /<div id="pillDots">[\s\S]*?<\/div>/, '<div id="pillDots"><button class="island-dot"></button><button class="island-dot active"></button><button class="island-dot"></button></div>');
-pillHtml = swap(pillHtml, 'style="background-image:url(/favicon.svg)"', 'style="background-image:url(/favicons/nytimes.com.ico)"');
+pillHtml = swap(pillHtml, ' style="background-image:url(/favicon.svg)"', '');
 pillHtml = swap(pillHtml, '<span id="pillDomain">blancbrowser.com</span>', `<span id="pillDomain">${host}</span>`);
 pillHtml = swap(pillHtml, 'id="pillShield" class="shield" aria-expanded="false"', 'id="pillShield" class="shield" aria-expanded="true"');
 pillHtml = swap(pillHtml, '<span id="pillShieldCount">1</span>', `<span id="pillShieldCount">${count}</span>`);
@@ -33,24 +33,20 @@ const presentation = `
   [hidden] {display:none!important;}
   .native-stage {display:flex; flex-direction:column; align-items:center; width:var(--native-width, 520px);}
   #islandPill {margin:0; flex:none; width:max-content; max-width:none;}
+  #pillFavicon {background-image:url(/favicons/nytimes.com.ico);}
   /* As chrome-layout.js calculateShieldBounds places it, the overlay view
      starts at the chip's bottom edge, centred on the chip but kept inside the
      window, with its pointer over the chip; feature-bento.js measures them. */
-  .native-view-row {align-self:stretch; margin-top:calc(var(--chip-dy, 0) * -100%);}
-  .native-shield-view {position:relative; width:404px; padding-top:10px; margin-left:calc(var(--view-x, 0) * 100%);}
-  #shieldPopPointer {left:calc(var(--pointer-x, .5) * 100%);}
+  .native-view-row {align-self:stretch; margin-top:calc(-1 * var(--chip-dy, 0px));}
+  .native-shield-view {position:relative; width:404px; padding-top:10px; margin-left:var(--view-x, 0px);}
+  #shieldPopPointer {left:var(--pointer-x, 50%);}
   #shieldPop {position:relative; inset:auto; margin:0 12px; max-height:none; overflow:visible;}
 `;
 const steps = [['1', 'summary', 'blanc'], ['2', 'chooser', 'blanc'], ['3', 'chooser', 'ublock-origin']].map(([at, step, draft]) => {
   const pop = nativeShieldPopoverArt({ styles, overlay, mark, step, host, count, draft });
   const raw = `<div class="native-stage"><div class="native-pill-row">${pillHtml}</div><div class="native-view-row"><div class="native-shield-view">${pop.html}</div></div></div>`;
   // Namespace extracted IDs so the three instances stay distinct in the page source.
-  const ids = new Set([...raw.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
-  const prefix = `shield-demo-${at}-`;
-  const html = raw.replace(/\bid="([^"]+)"/g, (_, id) => `id="${prefix}${id}"`)
-    .replace(/\b(aria-labelledby|aria-describedby)="([^"]+)"/g, (_, name, list) =>
-      `${name}="${list.split(' ').map((id: string) => ids.has(id) ? prefix + id : id).join(' ')}"`);
-  const css = (pill.css + '\n' + pop.css + presentation).replace(/#([A-Za-z][\w-]*)/g, (selector, id) => ids.has(id) ? `#${prefix}${id}` : selector);
+  const { html, css } = namespaceNativeArt({ html: raw, css: pill.css + '\n' + pop.css + presentation }, `shield-demo-${at}-`);
   return { at, html, css };
 });
 ---

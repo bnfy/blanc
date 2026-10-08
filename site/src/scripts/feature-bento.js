@@ -192,8 +192,10 @@ if (quietTile && 'IntersectionObserver' in window) {
 // The ad-blocking demo draws the native Island and shield popover. As in the
 // app, the popover's view starts at the shield chip's bottom edge, centred on
 // the chip unless that would leave the window (here, the stage), and its
-// pointer sits over the chip. Measure where things landed and pass them on as
-// ratios, which hold at any zoom.
+// pointer sits over the chip. Measure where things landed and convert back to
+// the stage's own CSS pixels one axis at a time: the popover card opens with a
+// non-uniform scale, and zoom applies on top, so screen distances on x and y
+// are scaled differently while it runs.
 for (const demo of document.querySelectorAll('.native-shield-demo')) {
   const root = demo.shadowRoot;
   const stage = root?.querySelector('.native-stage');
@@ -202,13 +204,14 @@ for (const demo of document.querySelectorAll('.native-shield-demo')) {
   const view = root.querySelector('.native-shield-view');
   const place = () => {
     const s = stage.getBoundingClientRect(), c = chip.getBoundingClientRect(), p = pill.getBoundingClientRect();
-    const width = view.getBoundingClientRect().width;
-    if (!s.width) return;
+    const v = view.getBoundingClientRect(), local = getComputedStyle(stage);
+    if (!s.width || !s.height) return;
+    const scaleX = s.width / parseFloat(local.width), scaleY = s.height / parseFloat(local.height);
     const center = c.left + c.width / 2;
-    const left = Math.max(s.left, Math.min(center - width / 2, s.right - width));
-    demo.style.setProperty('--view-x', ((left - s.left) / s.width).toFixed(4));
-    demo.style.setProperty('--pointer-x', ((center - left) / width).toFixed(4));
-    demo.style.setProperty('--chip-dy', ((p.bottom - c.bottom) / s.width).toFixed(4));
+    const left = Math.max(s.left, Math.min(center - v.width / 2, s.right - v.width));
+    demo.style.setProperty('--view-x', `${((left - s.left) / scaleX).toFixed(2)}px`);
+    demo.style.setProperty('--pointer-x', `${((center - left) / v.width * 100).toFixed(2)}%`);
+    demo.style.setProperty('--chip-dy', `${((p.bottom - c.bottom) / scaleY).toFixed(2)}px`);
   };
   new ResizeObserver(place).observe(demo);
   document.fonts?.ready.then(place);

@@ -51,10 +51,15 @@ for (const url of urls) for (let run = 1; run <= 3; run++) {
     }, 'Blanc chrome document did not appear');
     const page = await poll(async () => app.pages().find(candidate => candidate.url().includes(new URL(url).hostname)) || null, `${url} did not open`);
     await wait(10_000);
-    const chip = await chrome.evaluate(() => {
+    const { text, title } = await chrome.evaluate(() => {
       const shield = document.getElementById('pillShield');
-      return { count: Number(document.getElementById('pillShieldCount').textContent.trim() || 0), title: shield.title || shield.getAttribute('aria-label') };
+      return { text: document.getElementById('pillShieldCount').textContent.trim(), title: shield.title || shield.getAttribute('aria-label') };
     });
+    // Record only a plain count that the chip's own title confirms; anything
+    // else (an empty, abbreviated or restarting chip) fails the run.
+    const count = Number(title.match(/— (\d+) (?:ads? & trackers?|ad or tracker|requests?) blocked/)?.[1]);
+    assert.ok(/^\d+$/.test(text) && Number(text) === count, `${url} run ${run}: unreadable shield count ${JSON.stringify({ text, title })}`);
+    const chip = { count, title };
     runs.push({ url, run, finalUrl: page.url(), ...chip });
     process.stdout.write(`${url} run ${run}: ${chip.count}\n`);
   } finally {

@@ -108,3 +108,15 @@ export function nativeShieldPopoverArt({ styles, overlay, mark, step, host, coun
   }
   return { css, html };
 }
+
+// Prefix every extracted id, and the CSS id selectors and aria references that
+// point at them, so several native instances stay distinct in one page.
+export function namespaceNativeArt({ html, css }, prefix) {
+  const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
+  const prefixed = id => ids.has(id) ? prefix + id : id;
+  return {
+    html: html.replace(/\bid="([^"]+)"/g, (_, id) => `id="${prefix}${id}"`)
+      .replace(/\b(aria-labelledby|aria-describedby)="([^"]+)"/g, (_, name, list) => `${name}="${list.split(' ').map(prefixed).join(' ')}"`),
+    css: css.replace(/#([A-Za-z][\w-]*)/g, (selector, id) => ids.has(id) ? `#${prefix}${id}` : selector),
+  };
+}

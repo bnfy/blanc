@@ -40,16 +40,20 @@ export function initHorizonShield(study, { view = window, loadRenderer = default
       failed = true;
     } finally { loading = false; }
   };
+  // A time spin stops for good once 3D fails (the artwork stays upright), and
+  // holds still while the study is visibility-hidden, as a Features tile is
+  // behind its own open popover.
+  const shown = () => study.checkVisibility?.({ visibilityProperty: true }) ?? true;
   const schedule = () => {
-    if (!frame && visible && !reducedMotion.matches) {
+    if (!frame && visible && !reducedMotion.matches && !(spin === 'time' && failed)) {
       frame = view.requestAnimationFrame(time => {
         frame = 0;
         if (spin === 'time') {
-          if (last) elapsed += Math.min(time - last, 50);
+          if (last && shown()) elapsed += Math.min(time - last, 50);
           last = time;
-        }
-        render();
-        if (spin === 'time') schedule();
+          if (shown()) render();
+          schedule();
+        } else render();
       });
     }
   };

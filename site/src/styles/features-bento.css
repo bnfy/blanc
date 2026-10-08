@@ -72,13 +72,29 @@
 .bento-img--contain { object-fit: contain; }
 .bento-img--cover { position: absolute; inset: 0; object-fit: cover; }
 .bento-pos-mahjong { object-position: 50% 55%; }
-.bento-pos-island { object-position: 50% 30%; }
+.bento-pos-island { object-position: 50% 0; }
 .bento-pos-dawn { object-position: 50% 30%; transform: scale(2.1); transform-origin: 50% 31%; }
 .bento-pos-sunrise { object-position: 50% 60%; }
 /* The Blocker shield (BentoShield.astro); in a tile its square fits the
    visual's content box so no edge is ever clipped. */
 .bento-shield { position: relative; flex: none; width: min(100cqw, 100cqh); aspect-ratio: 1; }
 .pop-copy > .bento-shield { width: 104px; margin: 0 0 14px -6px; }
+/* In the ad-blocking tile the label wraps to three or four lines once the
+   tile is narrow, leaving the shield too little room to read; drop it and
+   centre the label in the tile instead. */
+/* The Island tile shows the resting Island captured along the top of its
+   photo. If the tile gets too short for the Island and the label together,
+   frame the photo below the Island and centre the label instead. */
+.bento-C1 { container: island-tile / size; }
+@container island-tile (max-height: 150px) {
+  .bento-pos-island { object-position: 50% 50%; }
+  .bento-C1 .bento-label { margin-block: auto; padding: 0 8%; }
+}
+.bento-L2 { container: blocker-tile / inline-size; }
+@container blocker-tile (max-width: 160px) {
+  .bento-visual { display: none; }
+  .bento-L2 .bento-label { margin-block: auto; padding: 0 8%; }
+}
 /* Split popover (FeaturePop split): the visual fills the left column at the
    card's full height and the copy sits beside it. The ad-blocking one holds
    the native Island and shield popover (ShieldDemo.astro). */

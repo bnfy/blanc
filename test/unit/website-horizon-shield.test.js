@@ -42,7 +42,9 @@ async function preview({ reduced = false, present = true, fail = false, spin } =
   let sequence = 0, observer, change, loads = 0;
   const bounds = { top: 900, height: 400 };
   const preference = { matches: reduced, addEventListener: (_, fn) => { change = fn; } };
+  let shown = true;
   const study = {
+    checkVisibility: () => shown,
     getBoundingClientRect: () => bounds,
     querySelector: () => ({}),
     style: { setProperty: (name, value) => styles.set(name, value) },
@@ -68,6 +70,7 @@ async function preview({ reduced = false, present = true, fail = false, spin } =
     flush(time) { const pending = [...callbacks.values()]; callbacks.clear(); pending.forEach(fn => fn(time)); },
     ready: () => new Promise(resolve => setImmediate(resolve)),
     reduce(value) { preference.matches = value; change(); },
+    hide(value) { shown = !value; },
     angle: () => parseFloat(styles.get('--shield-turn') || '0'),
   };
 }
@@ -122,6 +125,27 @@ test('time spin turns continuously while visible, ignores scrolling and resumes 
   p.reduce(true);
   assert.equal(p.angle(), 0, 'reduced motion holds the shield upright');
   assert.ok(p.turns.length > 0, 'the 3D view follows the turn');
+});
+
+test('time spin stops for good when 3D fails and holds still while hidden', async () => {
+  const failed = await preview({ spin: 'time', fail: true });
+  failed.enter(true); await failed.ready();
+  failed.flush(1000);
+  assert.equal(failed.callbacks.size, 0, 'no frame loop once the artwork is left upright');
+  failed.enter(false); failed.enter(true);
+  assert.equal(failed.callbacks.size, 0, 'coming back into view does not restart it');
+
+  const p = await preview({ spin: 'time' });
+  p.enter(true); await p.ready();
+  p.flush(1000); p.flush(1030);
+  const angle = p.angle(), turns = p.turns.length;
+  p.hide(true);
+  p.flush(1060); p.flush(1090);
+  assert.equal(p.angle(), angle, 'a visibility-hidden study does not advance');
+  assert.equal(p.turns.length, turns, 'and draws nothing');
+  assert.equal(p.callbacks.size, 1, 'it keeps a frame waiting to resume');
+  p.hide(false); p.flush(1120);
+  assert.ok(p.angle() > angle, 'it resumes once shown again');
 });
 
 test('reduced motion stays upright and does not eagerly load WebGL', async () => {
