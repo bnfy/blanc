@@ -1,6 +1,31 @@
 # On-device page translation (F43) — design
 
-Date: 2026-10-08. Status: design approved in conversation, awaiting written-spec review.
+Date: 2026-10-08. Status: design approved in conversation; revised after first written-spec review.
+
+Numbering: F43 follows F42 (Dark websites). F41 is Named Workspaces
+(`spec/acceptance/F41-named-workspaces.feature`); its absence from
+`spec/features.md` and `spec/parity-matrix.md` is documentation drift, not a
+free number, and is out of scope here.
+
+## Phase 0 — feasibility gate (before any UI or cache work)
+
+Build the pinned WASM engine from the pinned `mozilla/translations` commit and
+run it in a throwaway Electron harness (hidden sandboxed view + worker, the
+section 1 placement) against a representative ~2,000-word French article and a
+markup-heavy French page, on Apple Silicon, an Intel Mac, and the Windows VM.
+Record per platform:
+
+- engine load time and model load time
+- cold (first article after load) and warm (second article) translation time
+- peak and settled resident memory of the engine view's processes
+- download size and decompressed size of the engine and fr→en model
+- translation quality on the markup-heavy page (links, emphasis, lists intact)
+
+Results are written to a dated evidence file under `docs/evidence/`. **Gate:**
+if fr→en of the 2,000-word article exceeds ~10 s warm on the Intel Mac, or
+quality on markup-heavy pages is unusable, stop and return to the owner before
+building the feature. Phase 0 code is throwaway; only the pinned build recipe
+and evidence carry forward.
 
 ## Goal
 
@@ -23,7 +48,7 @@ Firefox do — but entirely on the device. Page text never leaves the computer.
 - Engine: `mozilla/translations` `inference/`, MPL-2.0, vendored by Firefox at a pinned commit (`toolkit/components/translations/bergamot-translator/moz.yaml`). Firefox's Remote Settings `translations-wasm` records are ~4.96 MB. Build needs WASM SIMD128, no pthreads (so no SharedArrayBuffer / COOP/COEP), `ENVIRONMENT=web,worker`. The npm `@browsermt/bergamot-translator` (0.4.9, 2022) is stale — we build from the pinned `mozilla/translations` commit and pin our own artifact.
 - Firefox's fast integer GEMM uses Firefox-only `WebAssembly.mozIntGemm`; elsewhere the engine falls back to its embedded GEMM. *(Inference: Blanc runs slower than Firefox; Mozilla measured ~870 words/s en→de with optimized GEMM on a 2017 quad-core i7; expect several hundred words/s.)*
 - Models: README states model files are MPL-2.0. Index `storage.googleapis.com/moz-fx-translations-data--303e-prod-translations-data/db/models.json` lists per-file `uncompressedHash` (SHA-256). 113 released pairs, all xx→en or en→xx, 59 non-English languages. fr→en: `model.fren.intgemm.alphas.bin` 31.6 MB (23.2 MB gz), `lex.50.50.fren.s2t.bin` 2.6 MB gz, `vocab.fren.spm` 0.4 MB.
-- Language identification: Firefox uses CLD2 compiled to WASM (`cld-worker.js`). CLD2 is Apache-2.0 *(license to re-verify in implementation)*.
+- Language identification: Firefox uses CLD2 compiled to WASM (`cld-worker.js`). Upstream CLD2 is Apache-2.0 (github.com/CLD2Owners/cld2). The upstream project license does not by itself cover every mirrored byte: implementation includes a pinned-artifact audit of the exact CLD2 WASM wrapper/glue, the generated engine files, model provenance, and transitive notices.
 - No published terms permit third-party apps to fetch from Mozilla's CDNs; Blanc mirrors pinned files to its own hosting.
 - Memory *(inference, to be measured)*: ~60–150 MB resident per loaded pair.
 
@@ -37,7 +62,7 @@ Firefox do — but entirely on the device. Page text never leaves the computer.
 | `src/main/translate-policy.js` | Pure, unit-tested, no `require('electron')`: should-prompt, auto-translate, always/never/site rules, private-tab overlay. |
 | `src/main/translate-service.js` | Main-process coordinator: per-tab translation state, IPC handlers, capsule orchestration. |
 | `src/main/translate-preload.js` | Session preload; runs its logic in isolated world **1003** with its own CSP. Samples text for detection, extracts blocks, writes translations back, restores originals. |
-| `src/renderer/translate.html` / `translate.js` / preload | The prompt capsule, a `blanc-chrome://` document in the permission-prompt slot. |
+| `src/renderer/translate.html` / `translate.js` / preload | The translation capsule: a new per-window `blanc-chrome://` chrome surface (see "Capsule surface" below), separate from the permission and 1Password fill-status views. |
 | `src/renderer/translate-engine.html` / `.js` | The engine page: spawns the worker, runs detection and translation. |
 
 Flow:
@@ -49,14 +74,72 @@ Flow:
 
 Page text travels only page → main → engine view, in memory. It is never written to disk, logged, synced, or included in diagnostics/crash reports.
 
+### Generation and cancellation contract
+
+Every detection request, model download wait, batch, mutation-driven batch,
+and engine reply carries a binding key:
+
+`{ tabId, webContentsId, navigationGeneration, translationGeneration }`
+
+- `navigationGeneration` increments on every main-frame commit of the tab's
+  live `WebContents` (including same-tab reloads and Quiet Tabs wake).
+- `translationGeneration` increments on every Translate, Show original, and
+  re-translate in that document.
+- Main resolves the key against current state before applying anything, and
+  the preload re-checks it before writing to the DOM. A mismatch — after
+  navigation, tab close, the tab going quiet, Show original, a second
+  translation, or `liveContents(tab)` no longer returning the same
+  `WebContents` — discards the result silently.
+- Cancellation is active, not just ignore-on-arrival: on any of those events
+  main removes the tab's queued jobs and drops their text; an in-flight engine
+  call finishes but its reply is discarded.
+- Unit gates cover each invalidating event.
+
+### Engine scheduling
+
+One engine, one loaded model, one job at a time.
+
+- Jobs are serialized through a single main-process queue. Priority: the
+  active tab of the focused window's in-viewport batches → its near-viewport
+  batches → its idle/mutation batches → background tabs (in-viewport only,
+  until they become active).
+- Batches are small (≤64 blocks / ≤32 KB), so a switch of active tab
+  re-prioritizes within one batch.
+- A job for a different language waits until the current batch finishes,
+  then the model is swapped. The old model's buffers are released in the
+  worker and main drops its ArrayBuffer references; no model data is kept
+  beyond the loaded one.
+- Text is dropped from the queue on cancellation (see contract above).
+  Engine idle shutdown (5 min) happens only with an empty queue, and
+  destroying the engine view discards the worker heap, including any residual
+  text from private pages. Nothing queued survives a private tab's close or
+  navigation.
+
 ## 2. User-facing behaviour
 
-### Prompt capsule (bottom-centre, permission-prompt slot)
+### Capsule surface
+
+The translation capsule is a new per-window chrome surface: a transparent
+`WebContentsView` on the window runtime record (like `permissionView` and
+`fillStatusView`), attached bottom-centre only while it has something to show.
+
+- Stacking, bottom to top: `tab < translation capsule < existing chrome
+  overlays (island overlay, shield, utility sheet, fill-status) < permission
+  prompt`. Any code path that re-adds a lower view re-stacks the higher ones,
+  as `setActiveTab` already does for the overlay.
+- While a permission prompt is showing, the translation capsule is hidden
+  (not merely covered) and returns after the prompt resolves.
+- The capsule only ever displays the active tab's translation state in its
+  own window. Every capsule action carries the binding key of the tab it was
+  shown for; main rejects it if that tab is no longer the active tab of that
+  window or the key is stale. Switching tabs or windows hides/replaces the
+  capsule and can never answer another tab's prompt.
+
+### Prompt capsule
 
 > 文A **This page is in French.** Translate to English? **[Translate] [Not now] [⋯]**
 
-- ⋯ menu: **Always translate French** · **Never translate French** · **Never on lemonde.fr**.
-- A pending permission prompt has priority; the translate prompt queues behind it.
+- ⋯ menu: **Always translate French** · **Never translate French** · **Never on lemonde.fr** (the page's normalized hostname).
 - Download in progress (non-bundled languages): "Downloading French… 40%" + **Cancel**.
 - After translating, the capsule collapses to "Translated from French · **[Show original]** **[✕]**". ✕ hides it; `/translate` brings it back.
 - Failure (offline first download, hash mismatch, engine failure): "Couldn't translate this page." Never silent partial output without notice.
@@ -70,9 +153,20 @@ Page text travels only page → main → engine view, in memory. It is never wri
 
 ### Commands and settings
 
-- `/translate` toggles the current page between translated and original, even when no prompt appeared (reports the detected language). Added to `copy/slash-commands.json`, the overlay hint list, and the shortcuts page.
+- `/translate` toggles the current page between translated and original, even when no prompt appeared or a Never rule applies. Outcomes:
+  - confident, supported language → translates and names it;
+  - page is English → "This page is already in English.";
+  - low confidence → "Couldn't tell what language this page is in." (never names a low-confidence guess);
+  - confident but no released xx→en model → "Translating <language> isn't supported yet.";
+  - not an http(s) page → "This page can't be translated."
+- `/translate` is added to `copy/slash-commands.json`, the overlay hint list, and the shortcuts page.
 - Settings → General → **Translation**: "Offer to translate pages" (default on); lists of always/never languages and never sites with remove buttons; "Clear downloaded languages" with total size.
-- Settings keys (device-local, deliberately outside `SYNCED_KEYS`): `translateOffer` (bool, default true), `translateAlwaysLanguages`, `translateNeverLanguages`, `translateNeverSites` (bounded arrays). Added to `settings-schema/schema.json`.
+- Settings keys (device-local, deliberately outside `SYNCED_KEYS`), added to `settings-schema/schema.json`:
+  - `translateOffer`: bool, default `true`.
+  - `translateAlwaysLanguages`, `translateNeverLanguages`: arrays of lowercase BCP-47 primary language subtags (`fr`, `es`), restricted to languages present in `translate/pinned.json`; max 64 entries; deduplicated. Adding a language to one list removes it from the other.
+  - `translateNeverSites`: array of normalized hostnames (lowercased, IDNA/punycode ASCII form, trailing dot stripped, no port, no scheme; `www.` kept as-is). Exact hostname match only — no registrable-domain grouping, so no public-suffix dependency. Max 500 entries, max 253 chars each; deduplicated.
+  - Invalid entries are dropped on read and write (`setSettings`/`getSettings` both normalize).
+- Precedence, first match wins: **Never site → Never language → Always language → `translateOffer`**. `/translate` bypasses all four.
 
 ### Private tabs
 
@@ -91,7 +185,7 @@ Prompt and translation work. Always/never choices made from a private tab are me
 - Own CSP via `setIsolatedWorldInfo`; must not share world 999 (same rule as Dark websites' 1002).
 - Capabilities: `translate:detect`, `translate:batch`, `translate:state`. Main validates every call comes from a live tab's main frame on http(s); private/normal session derived from the sender, never trusted from the payload.
 - Caps: ≤64 blocks and ≤32 KB text per batch, per-tab rate limit, bounded in-flight batches.
-- Write-back uses `textContent` for text blocks; HTML-aligned blocks go through a strict allowlist sanitizer that permits only the inline tags/attributes present in the original block (re-attaching original attributes by alignment). Raw engine output is never assigned to `innerHTML`.
+- Write-back never reconstructs page elements and never assigns engine output to `innerHTML`; see "DOM mutation contract" in section 4.
 
 ### Downloads
 
@@ -116,7 +210,37 @@ MPL-2.0 engine and models and Apache-2.0 CLD2 recorded in `THIRD-PARTY-NOTICES.m
 
 - Units: block-level elements (`p`, `li`, `h1–h6`, `td`, `th`, `figcaption`, `blockquote`, `dt`, `dd`, `button`, `label`, `summary`, …) plus `document.title` and the `title`, `alt`, `placeholder`, `aria-label` attributes.
 - Skip: `script`, `style`, `noscript`, `code`, `pre`, `kbd`, `samp`, `textarea`, `[contenteditable]`, `svg`/`math`, `[translate="no"]`, `.notranslate`, and subtrees with an English `lang`.
-- Blocks with inline markup are sent as HTML for alignment; plain blocks as text.
+- Blocks with inline markup are sent to the engine as a placeholder-tagged string for alignment (each inline element replaced by an opaque numbered marker, no original attributes or URLs sent); plain blocks as text.
+
+### DOM mutation contract
+
+Translation changes text, never structure. The preload:
+
+- Updates **existing text nodes' `nodeValue`** and the allowlisted attributes
+  (`title`, `alt`, `placeholder`, `aria-label`) **in place**. Elements are
+  never created, removed, re-parented, or re-serialized.
+- Maps aligned engine output back to the block's original text nodes via the
+  numbered markers. Marker text from the engine is treated as plain data: an
+  unknown, duplicated, or missing marker means the alignment is rejected and
+  the block falls back to a single translated string written into the
+  block's first text node, with the other text nodes in that block emptied
+  (still in place).
+- Therefore preserves element identity, all other attributes, event
+  listeners, form control values and state, focus and selection (selection
+  ranges are re-clamped only if a node's length changed), and accessibility
+  relationships (`id`, `aria-*` references, `for`, `labelledby`).
+- Skips any text node that is focused-editable or inside a form control.
+
+### Show original — guarantee
+
+The preload records, per translated text node and attribute, the original
+value and the translated value it wrote. Show original restores each recorded
+node/attribute **whose current value still equals the value Blanc wrote** to
+its original value, and leaves alone anything the page has since changed or
+removed. Guarantee: after Show original, no text node or attribute contains
+text written by Blanc's translation; page-made changes after translation are
+kept. (Byte-for-byte document equality is not promised, because live pages
+mutate themselves.)
 
 ### Prioritisation
 
@@ -124,7 +248,7 @@ In-viewport blocks first; within one viewport height next; remainder at idle. Mu
 
 ### Show original
 
-The preload keeps each translated block's original nodes in memory and swaps them back. Per tab, discarded on navigation, never sent to main.
+The originals map lives only in the preload's isolated world, per document; it is discarded on navigation and never sent to main.
 
 ### Interactions
 
@@ -134,8 +258,8 @@ The preload keeps each translated block's original nodes in memory and swaps the
 
 ### Errors and limits
 
-- Engine crash/hang >30 s: restart once, then "Couldn't translate". The page keeps whatever was translated; nothing is half-written.
-- Low-confidence detection: no prompt; `/translate` still works and names the detected language.
+- Engine crash/hang >30 s: restart once and retry the failing batch. If it fails again: blocks already completed stay translated, the failing batch is never applied (each batch is applied atomically or not at all), remaining queued work for that tab is cancelled, and the capsule shows "Couldn't translate this page" with **Show original** available.
+- Low-confidence detection: no prompt; `/translate` reports the outcomes listed in section 2.
 - Pages over ~200 K words: translate viewport and near-viewport only.
 - One model loaded at a time; switching languages swaps it. Engine view closes after 5 min idle.
 
@@ -143,12 +267,16 @@ The preload keeps each translated block's original nodes in memory and swaps the
 
 ### Unit (`test/unit/`)
 
-- `translate-policy.js`: every always/never/site/private/not-now combination.
+- `translate-policy.js`: every always/never/site/private/not-now combination, the precedence order, and settings normalization (hostname/language normalization, caps, dedup, cross-list exclusivity).
+- Generation/cancellation: late detection, download, batch, mutation, and engine replies are discarded after navigation, tab close, quiet, Show original, and re-translate; queued text is removed on cancellation.
+- Scheduler: priority order, language-swap waits for the current batch, model buffers released on swap, idle shutdown only with an empty queue.
+- Capsule actions with a stale key or from a non-active tab are rejected.
 - `translate-models.js`: bundled/cached/downloaded resolution; hash mismatch deletes and fails; cancel.
 - Pinned manifest vs on-disk files.
 - IPC sender validation and batch caps.
-- Extraction and restore under vm/jsdom fixtures: markup preserved, skip rules honoured, Show original restores byte-for-byte.
-- Sanitizer allowlist.
+- Extraction and write-back under vm/jsdom fixtures: element identity, attributes, listeners, form values, selection, and ARIA references preserved; skip rules honoured; bad-marker fallback stays in place.
+- Show original guarantee: no Blanc-written text remains; page changes made after translation survive.
+- Failure path: a failing batch is never partially applied and later batches are cancelled.
 - Private-tab choices never reach `settings.json`.
 
 ### Guards
@@ -161,9 +289,9 @@ The preload keeps each translated block's original nodes in memory and swaps the
 
 New `spec/features.md` entry **F43 — On-device translation** and `spec/acceptance/` scenarios against local French and Spanish fixture pages: prompt appears; Translate changes visible text; Show original restores it; Never suppresses; a private-tab choice isn't persisted; an `en` page never prompts. Test mode replaces only the R2 download with a local fixture server; the real engine runs (positive control that translation actually happened).
 
-### Measurement gate
+### Measurement
 
-Words/second and resident memory on Apple Silicon, Intel Mac and the Windows VM. If fr→en of a 2,000-word article exceeds ~10 s on Intel, stop and return to the owner before release.
+The feasibility gate is Phase 0 (top of this document), run before any feature work. Before release, the same measurements are repeated on the packaged candidate and compared with the Phase 0 evidence.
 
 ### Claims
 
