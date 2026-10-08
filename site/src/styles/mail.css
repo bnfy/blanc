@@ -1,6 +1,6 @@
 .mail-page{max-width:1120px;margin:0 auto;padding:clamp(40px,7vw,100px) 24px 100px;color:var(--site-text,#111)}
 .mail-page .mail-eyebrow{color:#805d28;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-.mail-page h1,.mail-page h2,.mail-page h3{font-family:var(--site-font-patron,Newsreader,Georgia,serif);font-weight:400;line-height:1.08}
+.mail-page h1,.mail-page h2,.mail-page h3{font-family:var(--site-font-patron);font-weight:400;line-height:1.08}
 .mail-page h1{font-size:clamp(46px,7vw,88px);letter-spacing:-.04em;margin:14px 0 20px}
 .mail-page h2{font-size:clamp(31px,4vw,52px);letter-spacing:-.03em;margin:0 0 16px}
 .mail-page h3{font-size:29px;margin:0 0 12px}
@@ -20,7 +20,7 @@
 .mail-page .mail-card p,.mail-page .mail-plan p{margin-bottom:0}
 .mail-page .mail-section{padding-top:70px;border-top:1px solid #ddd2c2;margin-top:70px}
 .mail-page .mail-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:26px 0}
-.mail-page .mail-plan strong{font-family:var(--site-font-patron,Newsreader,Georgia,serif);font-size:36px;font-weight:400}
+.mail-page .mail-plan strong{font-family:var(--site-font-patron);font-size:36px;font-weight:400}
 .mail-page .mail-plan ul{padding-left:22px}
 .mail-page .mail-subnav{display:flex;flex-wrap:wrap;gap:12px 22px;margin:28px 0 0}
 .mail-page .mail-subnav a[aria-current=page]{font-weight:700;text-decoration-thickness:2px}
