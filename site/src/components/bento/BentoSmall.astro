@@ -5,13 +5,12 @@ interface Props {
   id: string;
   href: string;
   feature: string;
-  icon: 'lock' | 'rail' | 'gesture' | 'key' | 'shield' | 'moon' | 'finger' | 'grip' | 'import' | 'mic' | 'restore' | 'down' | 'search' | 'pin' | 'house' | 'box' | 'seal' | 'half' | 'people';
-  tone: 'amber' | 'ink' | 'sage' | 'slate' | 'clay' | 'sand';
+  icon: 'lock' | 'rail' | 'gesture' | 'key' | 'shield' | 'moon' | 'finger' | 'grip' | 'import' | 'mic' | 'restore' | 'down' | 'search' | 'pin' | 'globe' | 'box' | 'seal' | 'half' | 'people';
 }
-const { id, href, feature, icon, tone } = Astro.props;
+const { id, href, feature, icon } = Astro.props;
 ---
 <a class="bento-small" id={id} href={href} data-pop={id} data-track="feature_cta_click" data-feature={feature}
   data-cta-position="feature-hub">
-  <BentoIcon name={icon} tone={tone} />
+  <BentoIcon name={icon} />
   <slot />
 </a>

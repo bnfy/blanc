@@ -21,7 +21,7 @@ tvOS) and normalised to the board width **W** (max 1220px; `calc(100vw - 48px)` 
 
 | Property | Apple | Blanc |
 |---|---|---|
-| Canvas vs tile | `#EBEBEB` canvas, `#FFFFFF` tiles, ~1.2:1 luminance, **no shadows** | full-bleed `#EFE6D8` (`--site-surface`) band behind `#FFFFFF` tiles; no shadows |
+| Canvas vs tile | `#EBEBEB` canvas, `#FFFFFF` tiles, ~1.2:1 luminance, **no shadows** | the page background (`--site-bg`) directly behind `#FFFFFF` tiles, no separate band; no shadows |
 | Gutter and outer margin | 0.9% W, equal | `calc(W * .009)` (11px at 1220) |
 | Corner radius | 2% W | `calc(W * .02)` (24px) |
 | Columns | 1 : 1 : 1.36 : 1.36 : 1 : 1 | identical |
@@ -31,7 +31,7 @@ tvOS) and normalised to the board width **W** (max 1220px; `calc(100vw - 48px)` 
 | Display tiles | bold 700, 2.2% W, leading ≈ 1.0, one saturated accent; secondary lines fade in size and opacity | Inter 700 at `W * .022`, Sunrise accent gradient `#C2661C → #7A4512` |
 | Hero mark | product name ≈ 7% W | the full-color Sunrise mark (`demo-assets/sunrise-mark.png`, verbatim) at `W * .11` over the Sunrise art, `alt="Blanc"` |
 | Colour budget | about one third full-bleed colour or photo tiles | 5 of 15 (Island, hero, Mahjong, Private, Named Workspaces) |
-| Dense grid | 6 columns, tile 307:162, gap 1.2% W, radius 1.5% W, icon 18% of tile width top-left, 2-line label bottom-left | identical proportions; label `max(13.5px, W * .0118)` / 500 |
+| Dense grid | 6 columns, tile 307:162, gap 1.2% W, radius 1.5% W, colored icon box 18% of tile width top-left, 2-line label bottom-left | identical proportions, but a monochrome ink stroke icon (`max(22px, W * .02)`, no box) top-left; label `max(13.5px, W * .0118)` / 500 |
 | Legibility | product UI crops shown at reading size; whole screens only where the device is the picture | mini UI never below 11.5px; whole captures only for Glance and the wallpaper |
 
 Contrast: every label meets WCAG AA for its size against its own tile (dark text on the gold
@@ -156,26 +156,26 @@ unexplained). Text marked *(kept)* is reviewed wording carried over unchanged.
 
 ### Dense grid tiles and popovers
 
-| Tile id → guide | Icon / tone | Tile label | Popover H2 | Popover body | Note |
+| Tile id → guide | Icon | Tile label | Popover H2 | Popover body | Note |
 |---|---|---|---|---|---|
-| `sync` → sync | lock / ink | Encrypted sync across devices | Sync Favorites and settings across your devices. | Turn on Sync from your Personal profile to carry Favorites and settings to your other devices, and optionally see what each device has open. It is end-to-end encrypted. | History, cookies and private tabs are never synced. |
-| `vertical-tabs` → vertical-tabs | rail / slate | Optional vertical tab rail | Show your tabs in an optional vertical list. | Turn on the vertical tab rail for a resizable overview on the left. Drag tabs and groups in the rail to reorder them. The Island stays for search and commands. | The rail is optional; the Island is always there. |
-| `mouse-gestures` → mouse-gestures | arrow / amber | Mouse gestures | Navigate with mouse gestures. | Turn them on in Settings, then hold the right mouse button and draw, or hold Alt/Option and drag with one finger on a trackpad. Assign your own patterns to Back, Forward, Reload and more. | Gestures are off until you turn them on, and they stay on this device. |
-| `1password` → 1password | key / slate | 1Password fill on Mac | Fill logins from 1Password on macOS. | Turn on the integration in Settings, then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app. | macOS only. Blanc never fills anything automatically. |
-| `ublock-origin` → ad-blocking | shield / clay | Full uBlock Origin, optional | Prefer uBlock Origin? Choose it from the shield. | Click the shield on the Island, choose uBlock Origin, then restart Blanc. You get its popup, dashboard, logger, element picker and filter lists for regular tabs. | Private tabs always use Blanc Blocker. Available on supported Mac, Windows and Linux builds. |
-| `dark-websites` → ad-blocking | moon / ink | Dark websites | Darken websites that have no dark mode. | Turn on Dark websites while Blanc is dark, and pages without their own dark mode are darkened as they load. Switch it per site from the shield. | Off by default. Embedded frames keep their colors. |
-| `passkeys` → security | fingerprint / sage | Touch ID passkeys on Mac | Sign in with passkeys and Touch ID on a Mac. | On a Mac, Blanc can create passkeys secured by Touch ID that stay on your device. | Blanc passkeys do not read passkeys saved in other apps. |
-| `drag-to-reorder` → tab-groups | grip / sand | Drag tabs into order | Drag tabs and groups into the order you want. | In the Island panel or the vertical rail, drag a tab within its group, into another group or out of one, or drag a group header to move the whole group. | On a Mac, press Option+Shift+Up or Down; on Windows and Linux, Alt+Shift+Up or Down. |
-| `import` → (support#bookmark-import) | arrow-down / amber | Import your bookmarks | Bring your Favorites with you. | Import bookmarks from a browser profile Blanc detects, or from an HTML file, in Favorites. | Importing happens on your device. |
-| `capture` → security | mic / clay | Camera and mic indicator | See and stop camera and microphone use. | The Island shows when a page is using your microphone or camera, and its popover can stop access. | Sites must ask before they can use either. |
-| `recovery` → security | restore / sage | Restore after a crash | Choose how to recover after a crash. | After an unclean shutdown, choose whether to restore your tabs or start fresh. | Settings can also export local diagnostics for you to review before sharing. |
-| `downloads` → (none; tile links to /support) | arrow-down / slate | Resume downloads | Pick up interrupted downloads. | Interrupted downloads offer Resume when they can continue, and Retry when they need to start again. | Not every interrupted download can be completed. |
-| `search-engine` → command-palette | search / sand | Choose your search engine | Search with DuckDuckGo, Google, Bing or Brave. | Pick your search engine in Settings. Search suggestions can be turned off at any time. | Suggestions are optional. |
-| `pin-mute` → island | pin / ink | Pin and mute tabs | Pin the tabs you keep and mute the ones that play. | Type /pin to keep a tab first in its group, and /mute to silence a noisy one. | Pinned tabs stay loaded. |
-| `default-browser` → (download) | house / clay | Set Blanc as default browser | Make Blanc your default browser. | First-run setup helps you choose a default browser, and Settings has a Make default button at any time. | On Windows, Blanc opens the system Default apps page for you to confirm. |
-| `security` → security | dashed box / sage | Sandboxed pages | Every page runs in a sandbox. | Pages run in Chromium’s sandbox, and sites must ask before using your camera, microphone, location or notifications. | Read the security page for what each protection covers. |
-| `signed-releases` → security | seal / sand | Signed, verifiable releases | Check the download you got. | Mac and Windows releases are signed, Mac builds are notarized, and every release ships a signed checksum manifest you can verify. | The verification guide walks through each step. |
-| `themes` → island | half circle / slate | Light, dark or system | A look that follows your computer. | Choose light, dark or system, and Blanc’s own pages change with it. Change it in Settings or with /theme. | Websites that follow the system theme change too. |
+| `sync` → sync | lock | Encrypted sync across devices | Sync Favorites and settings across your devices. | Turn on Sync from your Personal profile to carry Favorites and settings to your other devices, and optionally see what each device has open. It is end-to-end encrypted. | History, cookies and private tabs are never synced. |
+| `vertical-tabs` → vertical-tabs | rail | Optional vertical tab rail | Show your tabs in an optional vertical list. | Turn on the vertical tab rail for a resizable overview on the left. Drag tabs and groups in the rail to reorder them. The Island stays for search and commands. | The rail is optional; the Island is always there. |
+| `mouse-gestures` → mouse-gestures | mouse | Mouse gestures | Navigate with mouse gestures. | Turn them on in Settings, then hold the right mouse button and draw, or hold Alt/Option and drag with one finger on a trackpad. Assign your own patterns to Back, Forward, Reload and more. | Gestures are off until you turn them on, and they stay on this device. |
+| `1password` → 1password | key | 1Password fill on Mac | Fill logins from 1Password on macOS. | Turn on the integration in Settings, then press ⌥⌘P on a login form to fill a matching login from your installed 1Password app. | macOS only. Blanc never fills anything automatically. |
+| `ublock-origin` → ad-blocking | shield | Full uBlock Origin, optional | Prefer uBlock Origin? Choose it from the shield. | Click the shield on the Island, choose uBlock Origin, then restart Blanc. You get its popup, dashboard, logger, element picker and filter lists for regular tabs. | Private tabs always use Blanc Blocker. Available on supported Mac, Windows and Linux builds. |
+| `dark-websites` → ad-blocking | moon | Dark websites | Darken websites that have no dark mode. | Turn on Dark websites while Blanc is dark, and pages without their own dark mode are darkened as they load. Switch it per site from the shield. | Off by default. Embedded frames keep their colors. |
+| `passkeys` → security | fingerprint | Touch ID passkeys on Mac | Sign in with passkeys and Touch ID on a Mac. | On a Mac, Blanc can create passkeys secured by Touch ID that stay on your device. | Blanc passkeys do not read passkeys saved in other apps. |
+| `drag-to-reorder` → tab-groups | up-down arrows | Drag tabs into order | Drag tabs and groups into the order you want. | In the Island panel or the vertical rail, drag a tab within its group, into another group or out of one, or drag a group header to move the whole group. | On a Mac, press Option+Shift+Up or Down; on Windows and Linux, Alt+Shift+Up or Down. |
+| `import` → (support#bookmark-import) | bookmark with arrow | Import your bookmarks | Bring your Favorites with you. | Import bookmarks from a browser profile Blanc detects, or from an HTML file, in Favorites. | Importing happens on your device. |
+| `capture` → security | mic | Camera and mic indicator | See and stop camera and microphone use. | The Island shows when a page is using your microphone or camera, and its popover can stop access. | Sites must ask before they can use either. |
+| `recovery` → security | restore | Restore after a crash | Choose how to recover after a crash. | After an unclean shutdown, choose whether to restore your tabs or start fresh. | Settings can also export local diagnostics for you to review before sharing. |
+| `downloads` → (none; tile links to /support) | download | Resume downloads | Pick up interrupted downloads. | Interrupted downloads offer Resume when they can continue, and Retry when they need to start again. | Not every interrupted download can be completed. |
+| `search-engine` → command-palette | search | Choose your search engine | Search with DuckDuckGo, Google, Bing or Brave. | Pick your search engine in Settings. Search suggestions can be turned off at any time. | Suggestions are optional. |
+| `pin-mute` → island | pin | Pin and mute tabs | Pin the tabs you keep and mute the ones that play. | Type /pin to keep a tab first in its group, and /mute to silence a noisy one. | Pinned tabs stay loaded. |
+| `default-browser` → (download) | globe | Set Blanc as default browser | Make Blanc your default browser. | First-run setup helps you choose a default browser, and Settings has a Make default button at any time. | On Windows, Blanc opens the system Default apps page for you to confirm. |
+| `security` → security | cube | Sandboxed pages | Every page runs in a sandbox. | Pages run in Chromium’s sandbox, and sites must ask before using your camera, microphone, location or notifications. | Read the security page for what each protection covers. |
+| `signed-releases` → security | check circle | Signed, verifiable releases | Check the download you got. | Mac and Windows releases are signed, Mac builds are notarized, and every release ships a signed checksum manifest you can verify. | The verification guide walks through each step. |
+| `themes` → island | half circle | Light, dark or system | A look that follows your computer. | Choose light, dark or system, and Blanc’s own pages change with it. Change it in Settings or with /theme. | Websites that follow the system theme change too. |
 
 Popover links: "Read more about <feature>" to the guide named in the table; tiles with
 "(none)" have no popover link; `import` links to `/support#bookmark-import`; `default-browser` links
@@ -214,7 +214,7 @@ is a separate task.
 | `site/src/pages/features.astro` | Page, all copy (tile text and popover articles as literal markup). |
 | `site/src/components/bento/BentoTile.astro` | Board tile: an `<a>` with area class, tone, label position; slots `visual` and default (label). |
 | `site/src/components/bento/BentoSmall.astro` | Dense-grid tile: `<a>` with icon and label. |
-| `site/src/components/bento/BentoIcon.astro` | The 19 stroke icons and six tones. |
+| `site/src/components/bento/BentoIcon.astro` | The 19 monochrome stroke icons (original geometry; Apple's Touch ID SF Symbol is not licensed for web use). Only the Profiles tile's mark sits on a dark tile. |
 | `site/src/components/bento/FeaturePop.astro` | One popover article: visual slot, label, H2, body slot, link. |
 | `site/src/components/bento/demos/*.astro` | Five demo stages (Switcher, Shield, Quiet, Reopen, Private) using `data-step` / `data-at` / `data-dim`. |
 | `site/src/styles/features-bento.css` | All page styles and tokens above; imported only by `features.astro`. |
