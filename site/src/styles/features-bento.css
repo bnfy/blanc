@@ -205,6 +205,11 @@
 .pop-stage .ui { font-size: 13px; }
 .pop-img { width: 100%; height: 100%; object-fit: contain; }
 .pop-img--cover { position: absolute; inset: 0; object-fit: cover; }
+/* The Blanc popover opens the hero tile: the sunrise framed on the sun and
+   hills (low in the photo), with the same full-colour Sunrise mark above. */
+.pop-pos-sunrise { object-position: 50% 92%; }
+.pop-hero { position: absolute; inset: 0; display: grid; place-items: center; }
+.pop-hero-mark { position: relative; width: 132px; height: auto; margin-bottom: 40px; filter: drop-shadow(0 6px 18px rgba(120, 70, 20, .35)); }
 .pop-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 86%; height: 100%; }
 .pop-pair img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
 .pop-copy { padding: 28px 40px 8px; }
@@ -230,6 +235,7 @@
   .bento-board > .bento-tile { grid-area: auto; }
   .bento-board > .bento-L1, .bento-board > .bento-C1, .bento-board > .bento-C2, .bento-board > .bento-R3 { grid-column: 1 / 3; }
   .bento-mark { width: 96px; }
+  .pop-hero-mark { width: 88px; margin-bottom: 28px; }
   .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bento-small { aspect-ratio: auto; min-height: 120px; gap: 18px; }
   .bento-icon--tile { width: 24px; }
