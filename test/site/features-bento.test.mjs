@@ -162,8 +162,17 @@ test('with motion allowed the card grows from the tile; with reduced motion it o
     const page = await context.newPage();
     try {
       await page.goto(`${baseURL}/features`);
+      // Record the card's animations as they start: a short spring can finish
+      // before a slow runner reads getAnimations() back after the click.
+      await page.evaluate(() => {
+        const card = document.querySelector('.pop-card');
+        window.__cardStarts = [];
+        const animate = card.animate.bind(card);
+        card.animate = (keyframes, options) => { window.__cardStarts.push(keyframes[0]?.transform ?? null); return animate(keyframes, options); };
+      });
       await page.locator('#island').click();
-      const transforms = await page.evaluate(() => document.querySelector('.pop-card').getAnimations().map(a => a.effect.getKeyframes()[0].transform ?? null));
+      await page.waitForFunction(() => document.getElementById('feature-pop').open);
+      const transforms = await page.evaluate(() => window.__cardStarts);
       if (reducedMotion === 'reduce') assert.deepEqual(transforms, []);
       else assert.match(transforms[0], /translate\(.+\) scale\(/);
     } finally { await context.close(); }
