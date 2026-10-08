@@ -214,7 +214,12 @@ import '../styles/features-bento.css';
           <p class="pop-note">On Windows and Linux, press Ctrl+Shift+N. Private does not mean anonymous: websites, your network or an employer can still see activity, and files you download stay on disk.</p>
         </FeaturePop>
         <FeaturePop id="profiles" feature="profiles" href="/features/profiles" linkText="Read more about profiles">
-          <img slot="visual" class="pop-img" src="/feature-captures/profiles.png" width="1440" height="900" alt="" loading="lazy" />
+          <div slot="visual" class="ui demo-panel pop-replica">
+            <div class="ui-sec">Profiles</div>
+            <div class="ui-row"><span class="ui-t"><b>Personal</b><br /><span class="ui-m">Your original Blanc data · permanent</span></span></div>
+            <div class="ui-row is-on"><span class="ui-t"><b>Studio</b><br /><span class="ui-m">Separate local browser data</span></span></div>
+            <div class="ui-row"><span class="pop-replica-input">New profile name</span><span class="pop-replica-button">Create profile window</span></div>
+          </div>
           <p class="pop-eyebrow">Profiles</p>
           <h2 id="pop-profiles-title">Profiles keep work and personal browsing apart.</h2>
           <p>Create named profiles, each with its own cookies, site data, Favorites, history, download list and remembered permissions, opening in its own windows.</p>
@@ -249,7 +254,13 @@ import '../styles/features-bento.css';
           <p class="pop-note">You name and fill every group. Blanc never sorts or groups tabs for you.</p>
         </FeaturePop>
         <FeaturePop id="workspaces" feature="named-workspaces" href="/features/workspaces" linkText="Read more about Named Workspaces">
-          <img slot="visual" class="pop-img" src="/feature-captures/workspaces.png" width="1440" height="900" alt="" loading="lazy" />
+          <div slot="visual" class="ui demo-panel pop-replica">
+            <div class="demo-in">/workspace<span class="demo-caret"></span></div>
+            <div class="ui-row is-on"><span class="demo-cmd">/workspace</span><span class="ui-t ui-m">Switch to a named workspace, or type a new name to save this window</span></div>
+            <div class="ui-sec">workspaces</div>
+            <div class="ui-row"><span class="ui-t">Thesis</span><span class="ui-m">6 tabs</span></div>
+            <div class="ui-row"><span class="ui-t">Weekend reading</span><span class="ui-m">2 tabs</span></div>
+          </div>
           <p class="pop-eyebrow">Named Workspaces · Patron</p>
           <h2 id="pop-workspaces-title">Named Workspaces save a whole window to return to by name.</h2>
           <p>Save a window’s tabs and groups as a Named Workspace and switch back to it later by name. A saved workspace keeps itself up to date as you browse.</p>

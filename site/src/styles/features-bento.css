@@ -234,3 +234,10 @@
   .demo .ui-row, .demo-switch, .demo-switch::after { transition: none; }
   .demo-caret { animation: none; }
 }
+
+/* Popover replicas for features whose published captures predate v1.30.0
+   (strings from v1.30.0 settings.html, settings.js and overlay.js) */
+.pop-replica { font-size: 13px; }
+.pop-replica .ui-row b { font-weight: 600; }
+.pop-replica-input { flex: 1; padding: 6px 10px; border: 1px solid #E4DCCF; border-radius: 8px; color: #999999; }
+.pop-replica-button { padding: 6px 10px; border: 1px solid #E4DCCF; border-radius: 8px; white-space: nowrap; }

@@ -186,8 +186,17 @@ quality 85). Framing is CSS-only: `object-fit: contain` for whole captures, `obj
 with a per-tile `object-position` class for full-bleed photos.
 Images below the first screen use `loading="lazy"` and carry `width`/`height`.
 
-Before merge, each reused capture is compared against the installed v1.30.0 app; any that now
-misrepresents the interface is replaced or removed rather than shipped.
+Before merge, each reused capture is compared against v1.30.0; any that now misrepresents the
+interface is replaced or removed rather than shipped.
+
+**Capture review (October 8, 2026).** Every reused image is already published on another live
+page (guides, press page or homepage). `glance.png` (v1.15.0) is kept: the Glance header it
+shows (Make main, Change, Close) is identical at v1.30.0, and the rest is website content.
+`profiles.png` and `workspaces.png` (v1.15.0) are not used in popovers: the first shows the
+pre-Sunrise Settings sheet, the second shows a v1.15.0 version string and the older Start Page.
+Their popovers use small replicas built from v1.30.0 strings instead (`settings.html`,
+`settings.js`, and the `/workspace` hint in `overlay.js`). Refreshing those guide-page captures
+is a separate task.
 
 ## Components and files
 
