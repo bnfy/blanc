@@ -45,7 +45,7 @@
         "src/renderer/pages/newtab-wallpaper.js",
         "src/main/settings.js"
       ],
-      "qualification": "Time-of-day wallpaper is a device-local Settings → General option following the computer clock through dawn, day, dusk and night."
+      "qualification": "Time-of-day wallpaper is a Settings → General option; the artwork follows the local computer clock through dawn, day, dusk and night. Its on/off choice (newtabDynamicWallpaper) is in SYNCED_KEYS, so it follows the user only when they turn on opt-in Sync."
     },
     "blocking": {
       "evidence": [
@@ -805,7 +805,7 @@
     {
       "id": "bento-130-055",
       "source": "site/src/pages/features.astro",
-      "exactWording": "The wallpaper setting stays on this device.",
+      "exactWording": "When Sync is on, the on/off choice follows you to your other devices; the artwork always follows each computer’s own clock.",
       "subject": "Blanc",
       "evidenceGroups": [
         "wallpaper"

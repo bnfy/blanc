@@ -107,7 +107,7 @@ if (dialog && typeof dialog.showModal === 'function') {
       running = [fade];
       return;
     }
-    const shrink = card.animate([{ transform: live === 'none' ? 'none' : live }, { transform: toTile(tile) }], SPRING);
+    const shrink = card.animate([{ transform: live }, { transform: toTile(tile) }], SPRING);
     running = [
       shrink,
       scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: 240, easing: 'ease-in', fill: 'forwards' }),
