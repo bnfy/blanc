@@ -69,6 +69,8 @@ test('the supplied B mark remains available as heritage source artwork', () => {
   assert.equal(pkg.scripts['brand:build'], 'node scripts/build-brand-assets.js');
   assert.equal(pkg.scripts['brand:check'], 'node scripts/build-brand-assets.js --check');
   assert.match(pkg.scripts['substrate:check'], /brand:check/);
+  assert.match(source('.github/workflows/parity-guards.yml'), /\n  substrate:[\s\S]*?run: npm ci[\s\S]*?run: npm run brand:check\n/,
+    'CI runs the brand check after installing sharp');
 });
 
 test('archived monogram vectors preserve their supplied geometry as transparent cutouts', () => {
