@@ -111,6 +111,13 @@ const poll = async (read, accept, label) => {
   }
   throw new Error(`${label}; last observation: ${String(value)}`);
 };
+// First open page matching an async predicate, polled until it appears.
+const findPage = (predicate, label) => poll(async () => {
+  for (const page of app.pages()) {
+    if (!page.isClosed() && await predicate(page).catch(() => false)) return page;
+  }
+  return null;
+}, Boolean, label);
 const settle = (ms = 700) => new Promise((resolve) => setTimeout(resolve, ms));
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
@@ -127,12 +134,10 @@ const windowIdSource = `
 import CoreGraphics
 let pid = Int32(CommandLine.arguments[1])!
 let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
-let windows = list.filter { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
-let largest = windows.max { a, b in
-  let ra = a[kCGWindowBounds as String] as! [String: Double], rb = b[kCGWindowBounds as String] as! [String: Double]
-  return ra["Width"]! * ra["Height"]! < rb["Width"]! * rb["Height"]!
-}
-print(largest.map { "\\($0[kCGWindowNumber as String]!)" } ?? "")
+// The window list is ordered front to back, so the first normal window is
+// the one just brought to the front.
+let front = list.first { ($0[kCGWindowOwnerPID as String] as? Int32) == pid && ($0[kCGWindowLayer as String] as? Int) == 0 }
+print(front.map { "\\($0[kCGWindowNumber as String]!)" } ?? "")
 `;
 const windowIdScript = path.join(scratch, 'window-id.swift');
 fs.writeFileSync(windowIdScript, windowIdSource);
@@ -165,19 +170,14 @@ try {
   });
   await settle(2_000);
   // The strip document is the one whose shipped preload exposes openPage.
-  const chrome = await poll(async () => {
-    for (const page of app.pages()) {
-      if (page.isClosed() || !page.url().startsWith('blanc-chrome://')) continue;
-      if (await page.evaluate(() => typeof window.browserAPI?.openPage === 'function').catch(() => false)) return page;
-    }
-    return null;
-  }, Boolean, 'Blanc chrome document did not appear');
-  await poll(async () => app.pages().find((page) => page.url().startsWith('blanc://newtab/')), Boolean, 'Start Page did not restore');
+  const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://')
+    && await page.evaluate(() => typeof window.browserAPI?.openPage === 'function'), 'Blanc chrome document did not appear');
+  await findPage(async (page) => page.url().startsWith('blanc://newtab/'), 'Start Page did not restore');
   fs.mkdirSync(outputDirectory, { recursive: true });
 
-  // 1. Settings → Profiles, opened through the shipped preload action.
-  await chrome.evaluate(() => window.browserAPI.openPage('settings', 'profiles'));
-  const settings = await poll(async () => app.pages().find((page) => page.url().startsWith('blanc://settings/')), Boolean, 'Settings sheet did not open');
+  // 1. Settings → Profiles: open Settings through the shipped preload action.
+  await chrome.evaluate(() => window.browserAPI.openPage('settings'));
+  const settings = await findPage(async (page) => page.url().startsWith('blanc://settings/'), 'Settings sheet did not open');
   // Choose the Profiles group with the sheet's own navigation link.
   await settings.locator('.settings-nav a[data-group="profiles"]').click();
   await settings.locator('#profilesList > *').first().waitFor({ state: 'visible' });
@@ -185,16 +185,37 @@ try {
   await settle();
   await captureWindow('profiles', chrome);
 
-  // 2. Named Workspaces: close the sheet, open the Island panel, open its
-  // workspace switcher from the panel footer.
-  // Summoning the Island dismisses the utility sheet (its view is kept, so
-  // the page target does not disappear).
-  await chrome.evaluate(() => window.browserAPI.openIsland());
-  const overlay = await poll(
-    async () => app.pages().find((page) => !page.isClosed() && /overlay/.test(page.url())) ?? app.pages().map((page) => page.url()).join(' | '),
-    (value) => typeof value === 'object',
-    'Island overlay not found',
-  );
+  // 2. The Studio profile in its own window, opened with the profile row's
+  // shipped Open button. A new profile window starts on its own Start Page.
+  const before = app.pages().filter((page) => page.url().startsWith('blanc://newtab/')).length;
+  await settings.locator('#profilesList > *', { hasText: 'Studio' }).getByRole('button', { name: 'Open', exact: true }).click();
+  const studio = await poll(async () => {
+    const tabs = app.pages().filter((page) => !page.isClosed() && page.url().startsWith('blanc://newtab/'));
+    return tabs.length > before ? tabs.at(-1) : null;
+  }, Boolean, 'Studio profile window did not open');
+  await studio.waitForLoadState('load');
+  await settle(1_200);
+  await captureWindow('profile-window', studio);
+
+  // 3. Named Workspaces, in the Personal window: open its Island panel and
+  // the workspace switcher from the panel footer. The Studio window stays
+  // open behind; only the Personal overlay shows its workspace control.
+  // Bring the Personal window forward first: the panel closes when its
+  // window loses focus. Summoning the Island also dismisses the utility
+  // sheet (its view is kept, so the page target does not disappear).
+  await chrome.bringToFront();
+  await settle(400);
+  // Window activation can swallow the first open, so ask again until the
+  // overlay reports panel mode (each window has its own overlay document).
+  const panelOpen = async (page) => /overlay/.test(page.url())
+    && await page.evaluate(() => document.body.dataset.mode === 'panel');
+  let overlay = null;
+  for (let attempt = 0; attempt < 5 && !overlay; attempt += 1) {
+    await chrome.evaluate(() => window.browserAPI.openIsland());
+    await settle(600);
+    for (const page of app.pages()) if (!page.isClosed() && await panelOpen(page).catch(() => false)) overlay = page;
+  }
+  assert.ok(overlay, 'Island panel did not open');
   await overlay.locator('#footerWorkspace').waitFor({ state: 'visible' });
   await overlay.locator('#footerWorkspace').click();
   await overlay.locator('#workspaceSwitcher').waitFor({ state: 'visible' });
@@ -205,7 +226,7 @@ try {
   await overlay.mouse.click(menu.x + 6, menu.y + menu.height - 6);
   await overlay.locator('#workspaceSwitcher').waitFor({ state: 'visible' });
   await settle();
-  await captureWindow('workspaces', chrome);
+  await captureWindow('workspaces', overlay);
   process.stdout.write(`Captured installed Blanc ${version} (${build}) Profiles and Workspaces.\n`);
 } finally {
   await app?.close().catch(() => {});
