@@ -107,6 +107,56 @@ test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => 
   }
 });
 
+test('Features bento copy resolves to verified public v1.30.1 evidence, and every sentence on it is recorded', () => {
+  const bento = JSON.parse(read('docs/website-features-bento-claims-v1.30.json'));
+  const reorder = JSON.parse(read('docs/website-reorder-claims-v1.30.json'));
+  const file = 'site/src/pages/features.astro';
+  assert.equal(bento.publicRelease, 'v1.30.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${bento.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), bento.sourceSha);
+  assert.ok(read(bento.releaseEvidence).includes(bento.sourceSha));
+  const page = read(file);
+  for (const claim of bento.claims) {
+    assert.equal(claim.source, file, claim.id);
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(page).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = bento.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: release evidence and qualifications`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${bento.publicRelease}:${evidence}`], { cwd: root });
+      // Observations of the installed public release: the shown value must be
+      // one that was measured, and it must appear in the page's demo and copy.
+      for (const measurement of group.measurements ?? []) {
+        const record = JSON.parse(read(measurement));
+        assert.equal(record.publicRelease, bento.publicRelease, measurement);
+        assert.equal(`v${record.installedVersion}`, bento.publicRelease, measurement);
+        assert.ok(record.runs.some(run => run.count === record.shown.count && new URL(run.finalUrl).hostname.endsWith(record.shown.host)), `${measurement}: shown value was measured`);
+        const demo = read('site/src/components/bento/demos/ShieldDemo.astro');
+        if (record.favicon) {
+          assert.equal(require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(root, record.favicon.file))).digest('hex'), record.favicon.sha256, `${measurement}: favicon bytes`);
+          assert.ok(demo.includes(record.favicon.file.replace('site/public', '')), `${measurement}: demo shows the recorded favicon`);
+        }
+        assert.ok(demo.includes(`host = '${record.shown.host}'`) && demo.includes(`count = ${record.shown.count};`), `${measurement}: demo shows the measured value`);
+        if (claim.exactWording.includes(record.shown.host)) {
+          assert.ok(claim.exactWording.includes(`The ${record.shown.count} shown was measured on ${record.shown.host}`), `${measurement}: note names the measured value`);
+        }
+      }
+    }
+  }
+  for (const measurement of Object.values(bento.evidenceGroups).flatMap(group => group.measurements ?? [])) {
+    const {shown} = JSON.parse(read(measurement));
+    assert.ok(bento.claims.some(claim => claim.exactWording.includes(shown.host)), `${measurement}: the page says where its count came from`);
+  }
+  // Every text element above the unchanged Patron and download sections is a
+  // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
+  for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    const wording = normalize(text);
+    // Glyph-only controls (the popover's ← and → buttons) carry no claim.
+    if (/\p{L}/u.test(wording)) assert.ok(recorded.includes(wording), `${file}: unrecorded copy: ${wording}`);
+  }
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],

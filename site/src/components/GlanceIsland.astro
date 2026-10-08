@@ -2,7 +2,7 @@
 import styles from '../../../src/renderer/styles.css?raw';
 import document from '../../../src/renderer/index.html?raw';
 import renderer from '../../../src/renderer/renderer.js?raw';
-import { nativeIslandArt } from '../lib/native-island-art.mjs';
+import { nativeIslandArt, namespaceNativeArt } from '../lib/native-island-art.mjs';
 
 interface Props { page: 'copenhagen' | 'louisiana'; }
 const { page } = Astro.props;
@@ -27,11 +27,7 @@ const presentation = `
   #islandPill, button, #pillDomain {transition:color var(--home-motion, 0ms), background-color var(--home-motion, 0ms), border-color var(--home-motion, 0ms);}
 `;
 // Namespace extracted IDs so source-level document checks can distinguish instances.
-const ids = new Set([...sampleHtml.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
-const prefix = `glance-${page}-`;
-const html = sampleHtml.replace(/\bid="([^"]+)"/g, (_, id) => `id="${prefix}${id}"`);
-const css = (art.css + presentation).replace(/#([A-Za-z][\w-]*)/g, (selector, id) =>
-  ids.has(id) ? `#${prefix}${id}` : selector);
+const { html, css } = namespaceNativeArt({ html: sampleHtml, css: art.css + presentation }, `glance-${page}-`);
 ---
 <blanc-glance-island class="glance-native-island" data-page={page} data-appearance="light" aria-hidden="true" inert>
   <template shadowrootmode="open">

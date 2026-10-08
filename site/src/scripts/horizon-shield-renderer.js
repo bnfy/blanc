@@ -62,7 +62,9 @@ export async function createShieldRenderer(mount) {
   let lost = false;
   const draw = () => { if (!lost) renderer.render(scene, camera); };
   const resize = () => {
-    const { width, height } = mount.getBoundingClientRect();
+    // Layout size, not the transformed box: a scale animation on an ancestor
+    // (the Features popover opening) must not shrink the drawing buffer.
+    const { clientWidth: width, clientHeight: height } = mount;
     if (width < 1 || height < 1) return;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;

@@ -15,6 +15,7 @@
     "release": "scripts/release.sh",
     "site:changelog": "node scripts/generate-site-changelog.mjs",
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
+    "site:features-ledger": "node scripts/build-features-bento-ledger.mjs",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm run brand:check && npm --prefix site run build",
     "site:deploy": "npm run site:build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",

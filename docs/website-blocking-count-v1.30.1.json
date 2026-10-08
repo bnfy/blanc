@@ -1,0 +1,69 @@
+{
+  "purpose": "Backs the blocked count shown in the Features page's ad-blocking popover demo and note (site/src/components/bento/demos/ShieldDemo.astro, site/src/pages/features.astro).",
+  "publicRelease": "v1.30.1",
+  "installedVersion": "1.30.1",
+  "installedBuild": "1301",
+  "script": "scripts/measure-installed-blocked-count.mjs",
+  "measuredAt": "2026-10-08T19:25:59.862Z",
+  "method": "Fresh disposable profile per run with the default Blanc Blocker; shield chip count read 10 s after the page target appears; no scrolling or interaction.",
+  "shown": {
+    "host": "nytimes.com",
+    "count": 24
+  },
+  "runs": [
+    {
+      "url": "https://www.nytimes.com/",
+      "run": 1,
+      "finalUrl": "https://www.nytimes.com/",
+      "count": 26,
+      "title": "Blanc Blocker — 26 ads & trackers blocked here — click for site controls"
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "run": 2,
+      "finalUrl": "https://www.nytimes.com/",
+      "count": 24,
+      "title": "Blanc Blocker — 24 ads & trackers blocked here — click for site controls"
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "run": 3,
+      "finalUrl": "https://www.nytimes.com/",
+      "count": 24,
+      "title": "Blanc Blocker — 24 ads & trackers blocked here — click for site controls"
+    }
+  ],
+  "selection": {
+    "note": "Earlier the same day, an exploratory run of the same method (scratch copy of the script) chose the site. cnn.com was rejected first: its count kept climbing because the page retries blocked requests (62,658, 48,499 and 21,363 after about 70 s). Counts 10 s after opening, three fresh-profile runs each:",
+    "counts": {
+      "nytimes.com": [
+        24,
+        24,
+        24
+      ],
+      "espn.com": [
+        18,
+        18,
+        18
+      ],
+      "weather.com": [
+        34,
+        35,
+        35
+      ],
+      "allrecipes.com": [
+        46,
+        44,
+        48
+      ]
+    },
+    "chosenBy": "owner, October 8, 2026: nytimes.com, the most recognizable with a stable count"
+  },
+  "favicon": {
+    "file": "site/public/favicons/nytimes.com.ico",
+    "sha256": "94de5ae7e9bcf74727f45bb30ae37f553db4594012e2704336da5fbbf3357c3e",
+    "source": "https://www.nytimes.com/favicon.ico",
+    "fetched": "2026-10-08",
+    "transform": "None: the site's own 48x48 PNG favicon, stored byte for byte. Shown only as the page favicon in the Island replica, as Blanc shows it; no endorsement claim."
+  }
+}
