@@ -39,8 +39,8 @@
 .bento-R1 { grid-area: 1 / 5 / 5 / 6; } .bento-R2 { grid-area: 1 / 6 / 5 / 7; } .bento-R3 { grid-area: 5 / 5 / 9 / 7; }
 .bento-R4 { grid-area: 9 / 5 / 13 / 6; } .bento-R5 { grid-area: 9 / 6 / 13 / 7; }
 
-.bento-tile { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-radius: var(--bento-radius); background: #FFFFFF; color: var(--site-text); text-align: center; text-decoration: none; transition: transform .12s ease-out; }
-.bento-tile:active { transform: scale(.98); }
+.bento-tile { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-radius: var(--bento-radius); background: #FFFFFF; color: var(--site-text); text-align: center; text-decoration: none; transition: scale .45s cubic-bezier(.2, .8, .2, 1); }
+.bento-tile:active { scale: .98; transition-duration: .12s; }
 .bento-tile:focus-visible, .bento-small:focus-visible { outline: 1px solid var(--bento-accent-a); outline-offset: 3px; }
 .bento-tile.is-source, .bento-small.is-source { visibility: hidden; }
 .bento-tile--label-bottom .bento-label { margin-top: auto; padding-top: .7em; }
@@ -155,8 +155,23 @@
 .bento-more { width: var(--W); margin: calc(var(--bento-gap) * 8) 0 0; margin-inline: calc(50% - var(--W) / 2); }
 .bento-more h2 { margin: 0 0 calc(var(--bento-gap) * 3); font-family: var(--site-font-display); font-size: clamp(30px, 3.4vw, 44px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; text-align: center; }
 .bento-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: calc(var(--W) * .012); }
-.bento-small { display: flex; flex-direction: column; justify-content: space-between; aspect-ratio: 307 / 162; padding: 7.5%; border-radius: calc(var(--W) * .015); background: #FFFFFF; color: var(--site-text); text-decoration: none; transition: transform .12s ease-out; }
-.bento-small:active { transform: scale(.97); }
+.bento-small { display: flex; flex-direction: column; justify-content: space-between; aspect-ratio: 307 / 162; padding: 7.5%; border-radius: calc(var(--W) * .015); background: #FFFFFF; color: var(--site-text); text-decoration: none; transition: scale .45s cubic-bezier(.2, .8, .2, 1); }
+.bento-small:active { scale: .97; transition-duration: .12s; }
+/* Hover, for pointers that can hover: tiles rise slightly on a settling
+   ease (no shadows, per the board's flat material), photos ease in a touch
+   inside their frame, and small tiles' icons take the accent. A press still
+   squeezes from wherever the hover left the tile. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .bento-tile:hover:not(:active) { scale: 1.02; }
+  .bento-small:hover:not(:active) { scale: 1.03; }
+  .bento-img--cover { transition: scale .6s cubic-bezier(.2, .8, .2, 1); }
+  .bento-tile:hover .bento-img--cover { scale: 1.05; }
+  .bento-pos-island { transform-origin: 50% 0; }
+}
+@media (hover: hover) {
+  .bento-small .bento-icon { transition: color .2s ease; }
+  .bento-small:hover .bento-icon { color: var(--bento-accent-a); }
+}
 .bento-small h3 { margin: 0; font: 500 max(13.5px, calc(var(--W) * .0118))/1.25 var(--font-ui); letter-spacing: -.01em; }
 .bento-icon { display: block; aspect-ratio: 1; color: var(--site-text); }
 .bento-icon--tile { width: max(22px, calc(var(--W) * .02)); }
