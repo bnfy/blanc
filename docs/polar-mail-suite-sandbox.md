@@ -52,8 +52,10 @@ plan changes should be offered within the same billing period.
 - [ ] Repeat one upgrade on the Annual products.
 - [ ] Cancel Suite at period end: both keys are revoked at the end of the
       period, not before.
-- [ ] Record the customer-facing amount shown before the upgrade is
-      confirmed (still an open gate; see below).
+- [ ] Record what Polar shows the customer before and after the upgrade.
+      Since October 8 the public copy no longer promises a confirmed
+      pre-change quote, only that Polar handles the price difference, so
+      this is evidence for support rather than a launch gate.
 
 The October 3 and earlier evidence below used the retired Suite benefit and
 is kept for history only.
