@@ -231,9 +231,8 @@ test('the site sizes the square mark everywhere the portrait B was sized', () =>
   const css = source('site/src/styles/site.css');
   assert.match(css, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(css, /\.site-brand-mark \{ width: 28px; height: 28px;/);
-  assert.match(css, /\.legal-home \.mark \{ width: 24px; height: 24px;/);
   assert.match(css, /\.press-brand-mark \{ display: block; width: 21px; height: 21px;/);
-  for (const selector of ['\\.site-brand-mark', '\\.legal-home \\.mark', '\\.press-brand-mark']) {
+  for (const selector of ['\\.site-brand-mark', '\\.press-brand-mark']) {
     const rules = [...css.matchAll(new RegExp(`${selector} \\{([^}]*)\\}`, 'g'))];
     assert.ok(rules.length > 0, `${selector} is styled`);
     for (const [, body] of rules) {

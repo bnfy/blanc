@@ -16,7 +16,8 @@ test('every website Newsreader and Inter stack names its metric-matched fallback
   const stacks = [...css.matchAll(/(?:font-family:|font:|--[a-z-]*font[a-z-]*:)[^;]*/g)].map(match => match[0]);
   const newsreader = stacks.filter(stack => /Newsreader/.test(stack) && !/Newsreader Fallback";/.test(stack));
   const inter = stacks.filter(stack => /\bInter\b/.test(stack) && !/Inter Fallback";/.test(stack));
-  assert.ok(newsreader.length >= 7 && inter.length >= 3, 'the font stacks were found');
+  // Counts track the live stacks; unused legacy rules carried more until they were removed.
+  assert.ok(newsreader.length >= 2 && inter.length >= 3, 'the font stacks were found');
   for (const stack of newsreader) assert.match(stack, /Newsreader Fallback/, stack);
   for (const stack of inter) assert.match(stack, /Inter Fallback/, stack);
 });

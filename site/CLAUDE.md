@@ -6,7 +6,7 @@ dependency tree is untouched). Pages live in `src/pages/` (`index`, `download`,
 `features/{island,ad-blocking,private-tabs,command-palette,tab-groups,sync,security}`),
 sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
 island (index: the masthead is solid from the start, hides while scrolling down and returns on scroll up, rich OG), standard (masthead raised from the start), legal
-(privacy/terms: `legal-top` header, **no** analytics/consent, **no**
+(privacy/terms: **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
 footer is one unified component on every page (flush-left stack: brand
 breadcrumb, full nav with the current page highlighted via `Astro.url`,
