@@ -75,3 +75,5 @@ echo 'export BLANC_1P_ACCOUNT="you@example.com"' >> ~/.zshrc
 - **Chrome/overlay changes need a relaunch, not ⌘R** — but the fill logic is main-process, so a normal `npm start` picks up any code change.
 - Matching is **exact-host only** (no subdomains/redirects/1Password per-item rules), field detection is **first visible password field**, injection is **main-world**, and there's **no save/TOTP/iframe** support. These are the known shortcuts (spec Non-goals) that the real engine addresses.
 - Credentials are handled **main-process only** — never persisted, logged, synced, or transmitted; only the selected item is decrypted.
+
+<!-- CI gate test on main; closed unmerged. -->
