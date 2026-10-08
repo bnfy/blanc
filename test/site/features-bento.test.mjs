@@ -263,17 +263,119 @@ test('tiles announce a popup only with script, and a popover open is tracked und
   } finally { await context.close(); }
 });
 
-test('the Quiet Tabs tile animates only while it is on screen', async () => {
+test('the Quiet Tabs and wallpaper tiles animate only while they are on screen', async () => {
   const context = await contextFor({ reducedMotion: 'no-preference', viewport: { width: 1268, height: 900 } });
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/features`);
-    const state = () => page.locator('#quiet-tabs .ui-quiet').first().evaluate(el => getComputedStyle(el).animationPlayState);
+    const states = () => page.evaluate(() => [
+      getComputedStyle(document.querySelector('#quiet-tabs .ui-quiet')).animationPlayState,
+      getComputedStyle(document.querySelector('#wallpaper')).animationPlayState,
+      ...[...document.querySelectorAll('#wallpaper .bento-daypart')].map(img => getComputedStyle(img).animationPlayState),
+    ]);
     await page.locator('#quiet-tabs').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => document.querySelector('.bento-R1').hasAttribute('data-in-view'));
-    assert.equal(await state(), 'running');
+    await page.waitForFunction(() => ['.bento-R1', '.bento-R2'].every(s => document.querySelector(s).hasAttribute('data-in-view')));
+    assert.deepEqual(await states(), Array(6).fill('running'));
     await page.locator('.bento-patron').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => !document.querySelector('.bento-R1').hasAttribute('data-in-view'));
-    assert.equal(await state(), 'paused');
+    await page.waitForFunction(() => ['.bento-R1', '.bento-R2'].every(s => !document.querySelector(s).hasAttribute('data-in-view')));
+    assert.deepEqual(await states(), Array(6).fill('paused'));
+  } finally { await context.close(); }
+});
+
+test('a closing popover hands back to a visible tile instead of an empty card', async () => {
+  const context = await contextFor({ reducedMotion: 'no-preference' });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    await page.locator('#quiet-tabs').click();
+    await page.waitForTimeout(900);
+    await page.keyboard.press('Escape');
+    const midClose = await page.evaluate(() => ({
+      open: document.getElementById('feature-pop').open,
+      tile: getComputedStyle(document.getElementById('quiet-tabs')).visibility,
+    }));
+    assert.deepEqual(midClose, { open: true, tile: 'visible' }, 'the tile shows under the card while it lands');
+    await page.waitForFunction(() => !document.getElementById('feature-pop').open);
+    await page.locator('#quiet-tabs').click();
+    await page.waitForTimeout(900);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.pop-card')).opacity), '1', 'the card is opaque again on the next open');
+  } finally { await context.close(); }
+});
+
+test('the native shield popover meets its chip after an animated or a reduced-motion open', async () => {
+  const placements = [];
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    const context = await contextFor({ reducedMotion, viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseURL}/features`);
+      await page.locator('#ad-blocking').click();
+      await page.waitForTimeout(1500);
+      placements.push(await page.evaluate(() => {
+        const host = document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo'), root = host.shadowRoot;
+        const rect = suffix => root.querySelector(`[id$="${suffix}"]`).getBoundingClientRect();
+        const chip = rect('pillShield'), card = rect('shieldPop'), pointer = rect('shieldPopPointer');
+        const zoom = parseFloat(getComputedStyle(host).zoom) || 1;
+        return {
+          gap: Math.round((card.top - chip.bottom) / zoom),
+          pointerOffset: Math.round((pointer.left + pointer.width / 2) - (chip.left + chip.width / 2)) || 0,
+        };
+      }));
+    } finally { await context.close(); }
+  }
+  // The app places the card 10px below the chip's bottom edge, its pointer centred on the chip.
+  for (const placement of placements) assert.deepEqual(placement, { gap: 10, pointerOffset: 0 });
+});
+
+test('popover demos run only while their popover shows them', async () => {
+  const context = await contextFor({ reducedMotion: 'no-preference' });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    const paused = () => page.evaluate(() => document.querySelector('.pop-drag .drag-demo').hasAttribute('data-paused'));
+    assert.equal(await paused(), true, 'closed: the drag figure is paused');
+    await page.locator('#drag-to-reorder').click();
+    await page.waitForFunction(() => !document.querySelector('.pop-drag .drag-demo').hasAttribute('data-paused'));
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.querySelector('.pop-drag .drag-demo').hasAttribute('data-paused'));
+    assert.equal(await page.evaluate(() => document.querySelector('#pop-drag-to-reorder .demo-shot').loading), 'eager', 'reaching for the tile started its image');
+  } finally { await context.close(); }
+});
+
+test('narrow tiles fold their visual and centre the label; the Island stays framed', async () => {
+  for (const [width, folded] of [[1280, false], [1000, true]]) {
+    const context = await contextFor({ viewport: { width, height: 900 } });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseURL}/features`);
+      const state = await page.evaluate(() => {
+        const tile = document.getElementById('ad-blocking'), box = tile.getBoundingClientRect(), range = document.createRange();
+        range.selectNodeContents(tile.querySelector('.bento-label'));
+        const text = range.getBoundingClientRect();
+        return {
+          shown: getComputedStyle(tile.querySelector('.bento-visual')).display !== 'none',
+          offCentre: Math.abs((text.top - box.top) - (box.bottom - text.bottom)),
+          island: getComputedStyle(document.querySelector('#island img')).objectPosition,
+        };
+      });
+      assert.equal(state.shown, !folded, `${width}px: shield ${folded ? 'folded' : 'shown'}`);
+      if (folded) assert.ok(state.offCentre <= 2, `${width}px: label centred (off by ${state.offCentre}px)`);
+      assert.equal(state.island, '50% 0px', `${width}px: the Island photo keeps the captured Island in frame`);
+    } finally { await context.close(); }
+  }
+});
+
+test('reduced motion holds the wallpaper on dawn and tiles never lift', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    await page.locator('#glance').hover();
+    const state = await page.evaluate(() => ({
+      dayparts: [...document.querySelectorAll('#wallpaper .bento-daypart')].map(img => getComputedStyle(img).opacity),
+      animations: document.getAnimations().filter(a => /bento-daypart/.test(a.animationName)).length,
+      lift: getComputedStyle(document.getElementById('glance')).scale,
+    }));
+    assert.deepEqual(state, { dayparts: ['1', '0', '0', '0'], animations: 0, lift: 'none' });
   } finally { await context.close(); }
 });

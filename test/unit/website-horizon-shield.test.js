@@ -36,7 +36,7 @@ async function assertDisplayExport(master, exported) {
   assert.ok(colorError < 3.5, `export colors differ: mean visible RGB error ${colorError}`);
 }
 
-async function preview({ reduced = false, present = true, fail = false, spin } = {}) {
+async function preview({ reduced = false, present = true, fail = false, spin, ready } = {}) {
   const { initHorizonShield } = await load('site/src/scripts/horizon-shield.js');
   const styles = new Map(), events = new Map(), callbacks = new Map(), turns = [];
   let sequence = 0, observer, change, loads = 0;
@@ -56,7 +56,7 @@ async function preview({ reduced = false, present = true, fail = false, spin } =
     IntersectionObserver: class { constructor(fn) { observer = fn; } observe() {} },
   };
   initHorizonShield(present ? study : null, {
-    view, spin,
+    view, spin, ...(ready && { ready }),
     loadRenderer: async () => {
       loads++;
       if (fail) throw new Error('WebGL unavailable');
@@ -146,6 +146,17 @@ test('time spin stops for good when 3D fails and holds still while hidden', asyn
   assert.equal(p.callbacks.size, 1, 'it keeps a frame waiting to resume');
   p.hide(false); p.flush(1120);
   assert.ok(p.angle() > angle, 'it resumes once shown again');
+});
+
+test('the WebGL renderer waits for its ready signal, and the time spin waits for the renderer', async () => {
+  let release;
+  const p = await preview({ spin: 'time', ready: new Promise(resolve => { release = resolve; }) });
+  p.enter(true); await p.ready();
+  assert.equal(p.loads(), 0, 'three.js stays unloaded until the page is ready for it');
+  assert.equal(p.callbacks.size, 0, 'no frame loop while there is nothing to draw');
+  release(); await p.ready(); await p.ready();
+  assert.equal(p.loads(), 1);
+  assert.equal(p.callbacks.size, 1, 'the spin starts once the renderer exists');
 });
 
 test('reduced motion stays upright and does not eagerly load WebGL', async () => {

@@ -2,7 +2,9 @@ const defaultLoader = () => import('./horizon-shield-renderer.js');
 
 // spin: 'scroll' ties one full turn to the artwork's passage through the
 // viewport; 'time' turns continuously, one turn per `period` ms, while visible.
-export function initHorizonShield(study, { view = window, loadRenderer = defaultLoader, spin = 'scroll', period = 9000 } = {}) {
+// ready: the WebGL renderer (three.js, the page's heaviest script) loads only
+// after it settles, e.g. once the page is idle; the artwork stays upright until then.
+export function initHorizonShield(study, { view = window, loadRenderer = defaultLoader, spin = 'scroll', period = 9000, ready = Promise.resolve() } = {}) {
   if (!study) return;
   const reducedMotion = view.matchMedia('(prefers-reduced-motion: reduce)');
   let frame = 0, visible = false, loading = false, failed = false, renderer;
@@ -30,9 +32,10 @@ export function initHorizonShield(study, { view = window, loadRenderer = default
     if (loading || renderer || failed || !visible || reducedMotion.matches) return;
     loading = true;
     try {
+      await ready;
       const { createShieldRenderer } = await loadRenderer();
       renderer = await createShieldRenderer(study.querySelector('.horizon-turn'));
-      render();
+      render(); restart();
     } catch (error) {
       console.warn('Shield renderer could not start:', error);
       // Unsupported WebGL, failed assets or context creation leave the original
@@ -40,12 +43,12 @@ export function initHorizonShield(study, { view = window, loadRenderer = default
       failed = true;
     } finally { loading = false; }
   };
-  // A time spin stops for good once 3D fails (the artwork stays upright), and
-  // holds still while the study is visibility-hidden, as a Features tile is
-  // behind its own open popover.
+  // A time spin runs only once its renderer exists, so it never loops while
+  // 3D is pending or failed (the artwork stays upright), and holds still while
+  // the study is visibility-hidden, as a Features tile is behind its popover.
   const shown = () => study.checkVisibility?.({ visibilityProperty: true }) ?? true;
   const schedule = () => {
-    if (!frame && visible && !reducedMotion.matches && !(spin === 'time' && failed)) {
+    if (!frame && visible && !reducedMotion.matches && (spin !== 'time' || renderer)) {
       frame = view.requestAnimationFrame(time => {
         frame = 0;
         if (spin === 'time') {

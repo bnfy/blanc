@@ -148,10 +148,16 @@ if (dialog && typeof dialog.showModal === 'function') {
     };
   }
 
+  // Popover images stay lazy (their articles are hidden until opened). Start
+  // fetching them once a visitor reaches for a tile, so the card lands complete.
+  const warm = tile => bodies.get(tile.dataset.pop)?.querySelectorAll('img[loading="lazy"]').forEach(img => { img.loading = 'eager'; });
+
   tiles.forEach((tile, i) => {
     // Without script (or on a modified click) the tile is just a link, so
     // only announce a popup once this handler can open one.
     tile.setAttribute('aria-haspopup', 'dialog');
+    tile.addEventListener('pointerenter', () => warm(tile), { once: true });
+    tile.addEventListener('focus', () => warm(tile), { once: true });
     tile.addEventListener('click', event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
@@ -182,6 +188,7 @@ if (dialog && typeof dialog.showModal === 'function') {
     try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
     const i = tiles.findIndex(tile => tile.dataset.pop === id);
     if (i < 0 || index >= 0) return;
+    warm(tiles[i]);
     tiles[i].scrollIntoView({ block: 'center' });
     open(i);
   };
@@ -189,10 +196,13 @@ if (dialog && typeof dialog.showModal === 'function') {
   if (location.hash) requestAnimationFrame(openFromHash);
 }
 
-// The Quiet Tabs tile's ambient dimming only runs while the tile is on screen.
-const quietTile = document.querySelector('.bento-R1');
-if (quietTile && 'IntersectionObserver' in window) {
-  new IntersectionObserver(([entry]) => { quietTile.toggleAttribute('data-in-view', entry.isIntersecting); }).observe(quietTile);
+// Ambient tile loops (Quiet Tabs dimming, the wallpaper's dayparts) only run
+// while their tile is on screen.
+if ('IntersectionObserver' in window) {
+  const inView = new IntersectionObserver(entries => {
+    for (const entry of entries) entry.target.toggleAttribute('data-in-view', entry.isIntersecting);
+  });
+  for (const tile of document.querySelectorAll('.bento-R1, .bento-R2')) inView.observe(tile);
 }
 
 // The ad-blocking demo draws the native Island and shield popover. As in the
@@ -224,8 +234,14 @@ for (const demo of document.querySelectorAll('.native-shield-demo')) {
 }
 
 // The Blocker shield on the ad-blocking tile and in its popover turns on its
-// own while on screen.
-for (const shield of document.querySelectorAll('.bento-shield')) initHorizonShield(shield, { spin: 'time' });
+// own while on screen. Its WebGL renderer is the page's heaviest script, so it
+// waits until the page has loaded and gone idle; the bronze artwork shows
+// upright until then.
+const idle = new Promise(resolve => {
+  const settle = () => (window.requestIdleCallback ? requestIdleCallback(() => resolve(), { timeout: 4000 }) : setTimeout(resolve, 1500));
+  if (document.readyState === 'complete') settle(); else addEventListener('load', settle, { once: true });
+});
+for (const shield of document.querySelectorAll('.bento-shield')) initHorizonShield(shield, { spin: 'time', ready: idle });
 
 // The drag-to-reorder popover reuses the tab groups guide's drag figure; its
 // CSS loop runs only while the popover shows it.

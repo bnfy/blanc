@@ -91,6 +91,8 @@
   .bento-daypart--night { animation-delay: -4s; }
   .bento-R2 { animation: bento-daypart-tone 16s linear infinite; }
 }
+/* Paused while the tile is off screen (feature-bento.js sets data-in-view). */
+.bento-R2:not([data-in-view]), .bento-R2:not([data-in-view]) .bento-daypart { animation-play-state: paused; }
 @keyframes bento-daypart { 0%, 25% { opacity: 1; } 31.25%, 93.75% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes bento-daypart-tone {
   0%, 18.75%, 100% { background-color: #F9EFE5; }
@@ -103,22 +105,20 @@
    visual's content box so no edge is ever clipped. */
 .bento-shield { position: relative; flex: none; width: min(100cqw, 100cqh); aspect-ratio: 1; }
 .pop-copy > .bento-shield { width: 104px; margin: 0 0 14px -6px; }
-/* In the ad-blocking tile the label wraps to three or four lines once the
-   tile is narrow, leaving the shield too little room to read; drop it and
-   centre the label in the tile instead. */
-/* The Island tile shows the resting Island captured along the top of its
-   photo. If the tile gets too short for the Island and the label together,
-   frame the photo below the Island and centre the label instead. */
-.bento-C1 { container: island-tile / size; }
-@container island-tile (max-height: 150px) {
+/* Every board tile is a size container. Narrow tiles whose visual cannot
+   survive a wrapped label opt in with BentoTile's `fold`: the visual goes
+   and the label centres in the tile. The Island photo instead frames out
+   the captured Island when its tile gets too short for both. */
+.bento-tile { container: bento-tile / size; }
+@container bento-tile (max-width: 160px) {
+  .bento-tile--fold .bento-visual { display: none; }
+  .bento-tile--fold .bento-label { margin-block: auto; padding: 0 8%; }
+}
+@container bento-tile (max-height: 150px) {
   .bento-pos-island { object-position: 50% 50%; }
   .bento-C1 .bento-label { margin-block: auto; padding: 0 8%; }
 }
-.bento-L2 { container: blocker-tile / inline-size; }
-@container blocker-tile (max-width: 160px) {
-  .bento-visual { display: none; }
-  .bento-L2 .bento-label { margin-block: auto; padding: 0 8%; }
-}
+
 /* Split popover (FeaturePop split): the visual fills the left column at the
    card's full height and the copy sits beside it. The ad-blocking one holds
    the native Island and shield popover (ShieldDemo.astro). */
