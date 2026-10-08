@@ -1,0 +1,174 @@
+{
+  "publicRelease": "v1.30.0",
+  "sourceSha": "5be79e58d08ca9bcf7cb99b3d8f84c21c654b1c7",
+  "releaseEvidence": "docs/release-incidents/2026-10-07-v1.30.0.md",
+  "scope": "Website copy for drag to reorder tabs and groups (October 8, 2026). Every evidence path is at the immutable publicRelease tag. Copy changes to retained feature pages are also recorded as reviewedCopyUpdates in docs/website-revamp-claims-v1.27.json.",
+  "evidenceGroups": {
+    "reorder": {
+      "evidence": [
+        "docs/press/release-notes/v1.30.0.md",
+        "spec/acceptance/tab-drag.feature",
+        "src/renderer/tab-drag.js",
+        "src/renderer/overlay.js",
+        "src/renderer/vertical-tabs.js",
+        "src/main/tab-order.js",
+        "test/unit/tab-drag.test.js",
+        "test/unit/tab-order.test.js",
+        "test/desktop/steps/tab-drag.steps.js"
+      ],
+      "qualification": "Public desktop v1.30.0 only. Drag and Alt/Option+Shift+Up/Down work in the expanded Island and in vertical tabs. Ordering is entirely user-directed: no automatic or semantic sorting. Pinned state never changes, folded groups are skipped by keyboard moves, and releasing over the page does nothing. The owner hand-tested macOS and Windows; Linux has hosted automated pointer coverage only, so do not claim hands-on Linux verification."
+    }
+  },
+  "claims": [
+    {
+      "id": "reorder-130-001",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Drag tabs and groups into order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-002",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group’s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-003",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Or move them from the keyboard.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-004",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Focus a tab or a group header and press Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux. Folded groups are skipped, and pinned tabs stay pinned.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-005",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Drag tabs and groups into order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-006",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group’s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-007",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Or move them from the keyboard.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-008",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Focus a tab or a group header and press Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux. Folded groups are skipped, and pinned tabs stay pinned.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-009",
+      "source": "site/src/pages/features/vertical-tabs.astro",
+      "exactWording": "Drag tabs into the order you want.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-010",
+      "source": "site/src/pages/features/vertical-tabs.astro",
+      "exactWording": "Drag a tab or a group header in the rail to reorder it, move a tab between groups, or move a whole group. On a focused row, Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux, does the same from the keyboard. The expanded Island uses the same moves.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-011",
+      "source": "site/src/components/guides/vertical-tabs.astro",
+      "exactWording": "Drag tabs into the order you want.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-012",
+      "source": "site/src/components/guides/vertical-tabs.astro",
+      "exactWording": "Drag a tab or a group header in the rail to reorder it, move a tab between groups, or move a whole group. On a focused row, Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux, does the same from the keyboard. The expanded Island uses the same moves.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-013",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Drag tabs and groups into the order you want.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-014",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Drag tabs and groups in the rail to reorder them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "reorder-130-015",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Drag tabs and groups to put them in order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}

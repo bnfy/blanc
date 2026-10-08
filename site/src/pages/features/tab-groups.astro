@@ -19,7 +19,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">tab groups</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="groups-title"><p class="section-kicker">a little order</p><h1 id="groups-title">Named tab groups: keep the tabs you need. Tuck away the rest.</h1><p>Name a group for the task in front of you. Blanc keeps that group on the island and leaves the rest close, not constantly visible.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure island-figure--panel" role="img" aria-label="Blanc's island panel open, with tabs organized into named groups: pinned tabs, a 'social' group, and a 'watch' group holding YouTube and Netflix.">
+    <div class="demo-stage island-figure island-figure--panel island-figure--drag" role="img" aria-label="Blanc's island panel open, with tabs organized into named groups: pinned tabs, a 'social' group, and a 'watch' group holding YouTube and Netflix. Tabs and whole groups can be dragged into a new order.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
       <picture>
         <source media="(max-width: 560px)" srcset="/shots/mobile/netflix.jpg">
@@ -29,14 +29,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="panel">
           <div class="panel-row"><div class="field"><span class="typed"></span><span class="caret"></span></div></div>
           <div class="list">
-            <div class="sec-head"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg><span>pinned</span><span class="rule"></span></div>
-            <div class="trow"><span class="fav" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="title">Gmail</span></div>
-            <div class="trow"><span class="fav" style="background-image:url('/favicons/notion.so.ico')"></span><span class="title">Notion</span></div>
-            <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>social</span><span class="rule"></span><span class="count">1</span></div>
-            <div class="trow"><span class="fav" style="background-image:url('/favicons/threads.net.ico')"></span><span class="title">Threads</span></div>
-            <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>watch</span><span class="rule"></span><span class="count">2</span></div>
-            <div class="trow hl"><span class="fav" style="background-image:url('/favicons/youtube.com.ico')"></span><span class="title">YouTube</span></div>
-            <div class="trow"><span class="fav" style="background-image:url('/favicons/netflix.com.ico')"></span><span class="title">Netflix</span></div>
+            <div class="sec-head"><span>pinned</span><span class="count">2</span></div>
+            <div class="trow"><span class="fav fav--gmail"></span><span class="title">Gmail</span></div>
+            <div class="trow"><span class="fav fav--notion"></span><span class="title">Notion</span></div>
+            <div class="group-band">
+              <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>social</span><span class="count">1</span><span class="kbd">⌘2</span></div>
+              <div class="trow in-group"><span class="fav fav--threads"></span><span class="title">Threads</span></div>
+            </div>
+            <div class="group-band">
+              <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>watch</span><span class="count">2</span><span class="kbd">⌘3</span></div>
+              <div class="drag-demo">
+                <div class="trow hl in-group drag-row drag-row--first"><span class="fav fav--youtube"></span><span class="title">YouTube</span></div>
+                <div class="trow in-group drag-row drag-row--second"><span class="fav fav--netflix"></span><span class="title">Netflix</span></div>
+                <div class="trow in-group drag-ghost drag-ghost--second"><span class="fav fav--netflix"></span><span class="title">Netflix</span></div>
+                <div class="trow hl in-group drag-ghost drag-ghost--first"><span class="fav fav--youtube"></span><span class="title">YouTube</span></div>
+                <span class="drag-line"></span>
+                <span class="drag-cursor"><span class="demo-cursor-shape"></span></span>
+              </div>
+            </div>
           </div>
           <div class="foot">esc to dismiss · /group moves this tab · ⌘1–9 jumps groups</div>
         </div>
@@ -56,6 +66,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div><p class="section-kicker">working with groups</p><h2 id="group-work-title">Group, jump, close, and bring it back.</h2></div>
     <div class="feature-copy-list">
       <article><h3>Right-click any tab.</h3><p>Choose Move to Group to start a new group, move the tab into one you already have, or remove it from its group.</p></article>
+      <article><h3>Drag tabs and groups into order.</h3><p>In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group&rsquo;s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.</p></article>
+      <article><h3>Or move them from the keyboard.</h3><p>Focus a tab or a group header and press Option+Shift+Up or Down on a Mac, or Alt+Shift+Up or Down on Windows and Linux. Folded groups are skipped, and pinned tabs stay pinned.</p></article>
       <article><h3>Jump straight to a group.</h3><p>When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.</p></article>
       <article><h3>Links join the group.</h3><p>A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.</p></article>
       <article><h3>Close a group, then bring it back.</h3><p>Type <code>/close-group</code> to close every tab in the group, and <a href="/features/reopen-closed-tabs">reopen the whole group</a> with ⌘⇧T on a Mac or Ctrl+Shift+T on Windows and Linux.</p></article>
@@ -64,4 +76,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <aside class="truth-note" aria-labelledby="groups-note-title"><p class="section-kicker">fewer things asking for attention</p><h2 id="groups-note-title">A group is a focus tool, not another layer of browser chrome.</h2><p>Blanc gives the active task a quiet place in the island while keeping the rest of your session nearby. Pinned tabs stay with their group, and a plain new tab starts ungrouped.</p><a class="text-link" href="/features/command-palette" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="related-feature">Use commands to move through groups <span aria-hidden="true">↗</span></a></aside>
   <section class="feature-close" aria-labelledby="groups-close-title"><p class="section-kicker">make room for the task</p><h2 id="groups-close-title">Keep the session. Lose the tab-strip noise.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="feature-close">download blanc</a></section>
 </main>
+<script>
+  import { initDragFigure } from "../../scripts/drag-figure.js";
+  initDragFigure(document.querySelector(".drag-demo"));
+</script>
 </BaseLayout>

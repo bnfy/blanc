@@ -81,6 +81,32 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   }
 });
 
+test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => {
+  const reorder = JSON.parse(read('docs/website-reorder-claims-v1.30.json'));
+  assert.equal(reorder.publicRelease, 'v1.30.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${reorder.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), reorder.sourceSha);
+  assert.ok(read(reorder.releaseEvidence).includes(reorder.sourceSha));
+  for (const claim of reorder.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = reorder.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: release evidence and qualifications`);
+      for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${reorder.publicRelease}:${file}`], { cwd: root });
+    }
+  }
+  // Any sentence on these pages about dragging or keyboard-moving tabs, groups
+  // or headers must be a recorded claim here or in the v1.27 ledger.
+  const recorded = [...reorder.claims, ...ledger.claims].map(claim => claim.exactWording);
+  for (const file of new Set(reorder.claims.map(claim => claim.source))) {
+    const prose = [...read(file).matchAll(/<(h[1-6]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => normalize(match[2]));
+    for (const sentence of prose.flatMap(text => text.split(/(?<=[.!?])\s+/))) {
+      if (!/\bdrag\b.*\b(tabs?|groups?|header)\b|Shift\+Up/i.test(sentence)) continue;
+      assert.ok(recorded.some(wording => wording.includes(sentence)), `${file}: unrecorded reorder wording: ${sentence}`);
+    }
+  }
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
