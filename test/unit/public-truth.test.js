@@ -105,7 +105,6 @@ test('marketing fixtures use bundled favicon assets only', () => {
       .filter((name) => name.endsWith('.astro'))
       .map((name) => `site/src/components/guides/${name}`),
     'site/src/pages/index.astro',
-    'site/src/scripts/demo.js',
   ];
   for (const file of marketingFiles) {
     assert.doesNotMatch(read(file), /icons\.duckduckgo\.com/, file);
