@@ -12,6 +12,9 @@ const BG_IDLE_MIN_RATIO = 0.9;
 const MIN_TEAL_PIXELS = 1000; // capture really contains the page
 const MAX_MAGENTA_PIXELS = 100; // tolerance for edge anti-aliasing
 const INPUT_KINDS = new Set(['mousedown', 'pointerdown', 'keydown', 'wheel']);
+// The harness also sends synthetic Tab keys to the page, so only a pointer
+// press proves the native OS click actually arrived.
+const NATIVE_PROOF_KINDS = new Set(['mousedown', 'pointerdown']);
 
 const round = (n, places = 0) => (n == null ? null : Math.round(n * 10 ** places) / 10 ** places);
 const per = (ms, words, target) => (ms == null ? null : Math.round((ms * target) / words));
@@ -30,7 +33,7 @@ function hiddenChecks({ pixels, interaction, ax, engineStates }) {
   }
   let input = 'not-measured';
   if (interaction.engineEvents.some((k) => INPUT_KINDS.has(k))) input = 'RECEIVED';
-  else if (interaction.pageEvents.some((k) => INPUT_KINDS.has(k))) input = 'not-received';
+  else if (interaction.pageEvents.some((k) => NATIVE_PROOF_KINDS.has(k))) input = 'not-received';
   const focused = interaction.engineFocused
     || interaction.engineEvents.includes('focus')
     || Object.values(engineStates).some((s) => s.hasFocus);

@@ -73,6 +73,13 @@ test('summarizeBehind marks unmeasurable checks instead of passing them', () => 
   assert.deepEqual(s.hidden, { pixels: 'not-measured', input: 'not-measured', focus: 'not-focused', accessibility: 'not-measured' });
 });
 
+test('synthetic Tab keydowns on the page do not count as native input delivery', () => {
+  const s = summarizeBehind(raw({
+    interaction: { pageEvents: ['focus', 'keydown', 'keydown'], engineEvents: [], engineFocused: false, nativeInputError: null },
+  }));
+  assert.equal(s.hidden.input, 'not-measured');
+});
+
 test('summarizeBehind reports exposure when the engine shows through', () => {
   const s = summarizeBehind(raw({
     pixels: { tealPixels: 40000, magentaPixels: 900, total: 100000, error: null },
