@@ -4,6 +4,11 @@ import BentoTile from '../components/bento/BentoTile.astro';
 import BentoSmall from '../components/bento/BentoSmall.astro';
 import BentoIcon from '../components/bento/BentoIcon.astro';
 import FeaturePop from '../components/bento/FeaturePop.astro';
+import SwitcherDemo from '../components/bento/demos/SwitcherDemo.astro';
+import ShieldDemo from '../components/bento/demos/ShieldDemo.astro';
+import QuietDemo from '../components/bento/demos/QuietDemo.astro';
+import ReopenDemo from '../components/bento/demos/ReopenDemo.astro';
+import PrivateDemo from '../components/bento/demos/PrivateDemo.astro';
 import '../styles/features-bento.css';
 ---
 <BaseLayout
@@ -160,7 +165,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">The resting Island keeps its own band above the page; the panel opens over the page.</p>
         </FeaturePop>
         <FeaturePop id="quiet-tabs" feature="quiet-tabs" href="/features/quiet-tabs" linkText="Read more about Quiet Tabs" demo>
-          <div slot="visual" class="demo-slot" data-demo="quiet"></div>
+          <QuietDemo slot="visual" />
           <p class="pop-eyebrow">Quiet Tabs</p>
           <h2 id="pop-quiet-tabs-title">Quiet Tabs free up memory without closing the tab.</h2>
           <p>When a background tab has gone unused for an hour (the default), Blanc releases the memory its page was using and dims it in the Island. Open it again and the page reloads with its address, title and back button. Choose 30 minutes, 1 hour, 6 hours or Off in Settings.</p>
@@ -174,7 +179,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">The wallpaper setting stays on this device.</p>
         </FeaturePop>
         <FeaturePop id="ad-blocking" feature="ad-blocking" href="/features/ad-blocking" linkText="Read more about blocking" demo>
-          <div slot="visual" class="demo-slot" data-demo="shield"></div>
+          <ShieldDemo slot="visual" />
           <p class="pop-eyebrow">Ad and tracker blocking</p>
           <h2 id="pop-ad-blocking-title">Block ads and trackers from the first page, with a switch for each site.</h2>
           <p>Blanc Blocker is built in and on by default, using EasyList and EasyPrivacy. Click the shield on the Island to see how many requests it blocked on this page and whether the connection uses HTTPS, or to turn blocking off for just this site.</p>
@@ -195,14 +200,14 @@ import '../styles/features-bento.css';
           <p class="pop-note">Built by Bananify, an independent studio.</p>
         </FeaturePop>
         <FeaturePop id="reopen-closed-tabs" feature="reopen-closed-tabs" href="/features/reopen-closed-tabs" linkText="Read more about reopening tabs" demo>
-          <div slot="visual" class="demo-slot" data-demo="reopen"></div>
+          <ReopenDemo slot="visual" />
           <p class="pop-eyebrow">Reopen Closed Tab</p>
           <h2 id="pop-reopen-closed-tabs-title">Reopen a closed tab or a whole group, sometimes without a reload.</h2>
           <p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>
           <p class="pop-note">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>
         </FeaturePop>
         <FeaturePop id="private-tabs" feature="private-tabs" href="/features/private-tabs" linkText="Read more about private tabs" demo>
-          <div slot="visual" class="demo-slot" data-demo="private"></div>
+          <PrivateDemo slot="visual" />
           <p class="pop-eyebrow">Private tabs</p>
           <h2 id="pop-private-tabs-title">Private tabs keep your visits out of Blanc’s history.</h2>
           <p>Press ⌘⇧N or type /private. Pages you visit are not saved to history, are not restored after a restart, and never appear in Recently Closed. The Island changes so you can see you are private, and its chip closes the tab when you are done.</p>
@@ -216,7 +221,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">Settings and Patron are shared by every profile on this device.</p>
         </FeaturePop>
         <FeaturePop id="commands" feature="command-palette" href="/features/command-palette" linkText="Read more about the Quick Switcher" demo>
-          <div slot="visual" class="demo-slot" data-demo="switcher"></div>
+          <SwitcherDemo slot="visual" />
           <p class="pop-eyebrow">Quick Switcher</p>
           <h2 id="pop-commands-title">Press ⌘L to find any tab, or type / to run a command.</h2>
           <p>The Quick Switcher searches your open tabs, Favorites, history and Named Groups as you type, so you can jump to a page without hunting through a tab strip.</p>

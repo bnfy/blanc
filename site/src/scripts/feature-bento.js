@@ -148,7 +148,14 @@ if (dialog && typeof dialog.showModal === 'function') {
     if (event.key === 'ArrowLeft') { event.preventDefault(); go(-1); }
   });
 
-  const id = decodeURIComponent(location.hash.slice(1));
-  const fromHash = tiles.findIndex(tile => tile.dataset.pop === id);
-  if (fromHash >= 0) requestAnimationFrame(() => { tiles[fromHash].scrollIntoView({ block: 'center' }); open(fromHash); });
+  // A /features#<id> link opens that feature, on load or when only the hash changes.
+  const openFromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const i = tiles.findIndex(tile => tile.dataset.pop === id);
+    if (i < 0 || index >= 0) return;
+    tiles[i].scrollIntoView({ block: 'center' });
+    open(i);
+  };
+  window.addEventListener('hashchange', openFromHash);
+  if (location.hash) requestAnimationFrame(openFromHash);
 }

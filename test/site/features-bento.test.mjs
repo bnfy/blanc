@@ -149,6 +149,10 @@ test('a hash link opens that popover', async () => {
   try {
     await page.goto(`${baseURL}/features#sync`);
     await page.waitForFunction(() => document.getElementById('feature-pop').open && !document.getElementById('pop-sync').hidden);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('feature-pop').open);
+    await page.evaluate(() => { location.hash = 'glance'; });
+    await page.waitForFunction(() => document.getElementById('feature-pop').open && !document.getElementById('pop-glance').hidden);
   } finally { await context.close(); }
 });
 
@@ -164,4 +168,27 @@ test('with motion allowed the card grows from the tile; with reduced motion it o
       else assert.match(transforms[0], /translate\(.+\) scale\(/);
     } finally { await context.close(); }
   }
+});
+
+test('each demo shows exactly its own step and rests on step 3 without motion', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    for (const id of ['commands', 'ad-blocking', 'quiet-tabs', 'reopen-closed-tabs', 'private-tabs']) {
+      const stage = page.locator(`#pop-${id} .pop-stage`);
+      assert.ok(await stage.locator('.demo [data-at], .demo [data-dim]').count() >= 3, `${id}: per-step states`);
+      await page.locator(`#${id}`).click();
+      await page.waitForFunction(i => !document.getElementById(`pop-${i}`).hidden, id);
+      assert.equal(await stage.getAttribute('data-step'), '3', `${id}: reduced motion rests on 3`);
+      for (const step of ['1', '2', '3']) {
+        await stage.evaluate((el, n) => { el.dataset.step = n; }, step);
+        const wrong = await stage.locator('[data-at]').evaluateAll((els, n) => els.filter(el =>
+          (getComputedStyle(el).display !== 'none') !== el.dataset.at.split(' ').includes(n)).length, step);
+        assert.equal(wrong, 0, `${id} step ${step}`);
+      }
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.getElementById('feature-pop').open);
+    }
+  } finally { await context.close(); }
 });
