@@ -22,12 +22,11 @@ serif, and the demo's single-sentence figure title deliberately stays Inter;
 this
 file is NOT under the root `tokens/` substrate guard).
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
-except legal) and `src/scripts/demo.js` (the self-playing Island demo, index
-only) and `src/scripts/reveal.js` (the one-time homepage rise for the
+except legal) and `src/scripts/reveal.js` (the one-time homepage rise for the
 feature grid and Patron card, index only; adds state only when motion is
 welcome) are Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
-`shots/**` (fetched at runtime by demo.js) — lives in `public/`; never hash or
+`shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
 
 **Homepage appearance:** only the homepage gets the header Dark mode toggle

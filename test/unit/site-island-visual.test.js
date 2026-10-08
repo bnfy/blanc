@@ -7,7 +7,6 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const styles = fs.readFileSync(path.join(ROOT, 'site/src/styles/site.css'), 'utf8');
-const demoScript = fs.readFileSync(path.join(ROOT, 'site/src/scripts/demo.js'), 'utf8');
 const pressScript = fs.readFileSync(path.join(ROOT, 'site/src/scripts/press-island.js'), 'utf8');
 const header = fs.readFileSync(path.join(ROOT, 'site/src/components/Header.astro'), 'utf8');
 const consent = fs.readFileSync(path.join(ROOT, 'site/src/components/Consent.astro'), 'utf8');
@@ -30,18 +29,11 @@ test('website Island replicas use the released resting material and geometry', (
   assert.doesNotMatch(styles, /\.demo-island \.pill \{[^}]*0 12px 28px/s);
 });
 
-test('website Island proximity and morph match the released interaction', () => {
-  assert.match(styles, /#demoStage \.demo-island\.proximity-active \.pill \{[^}]*translateY\(calc\(-2px \* var\(--island-k, 0\)\)\)[^}]*scale\(calc\(1 \+ 0\.02 \* var\(--island-k, 0\)\)\)/s);
-  assert.doesNotMatch(styles, /translateX\(calc\([^)]*--island-lean/);
-  assert.match(demoScript, /classList\.toggle\('proximity-active', k > 0\)/);
-  assert.doesNotMatch(demoScript, /--island-lean/);
-  assert.match(demoScript, /--island-resting-radius/);
-  assert.doesNotMatch(demoScript, /pill\.height \/ 2/);
+test('website Island figures keep the released command-bar geometry', () => {
+  // The self-playing homepage demo (and its cursor-proximity response) was
+  // retired with the homepage revamp; the remaining figures are static.
+  assert.doesNotMatch(styles, /--island-k|proximity-active|#demoStage/);
   assert.match(styles, /\.demo-island \.field \{[^}]*height: 36px;[^}]*border-radius: 14px/s);
-  assert.match(styles, /\.demo-stage\.glance-mode \.demo-island \.pill \{ max-width: 100%; \}/);
-  assert.match(demoScript, /demo\.style\.maxWidth = `\$\{Math\.max\(0, primaryWidth - 24\)\}px`/);
-  assert.match(demoScript, /demo\.style\.removeProperty\('max-width'\)/);
-  assert.match(styles, /#demoStage \.demo-island \{[^}]*max-width: calc\(100% - 24px\);/);
 });
 
 test('resting website figures show the quiet Plus shortcut in horizontal layouts', () => {
