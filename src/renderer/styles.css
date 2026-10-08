@@ -968,10 +968,13 @@ body > .tab-drag-ghost[aria-hidden="true"] {
      The entire island grows together: face, URL, dots, shield, and trailing
      controls. Keep the resting transform at `none` so the idle layer stays
      pixel-sharp; renderer.js adds `.proximity-active` only while the cursor is
-     near enough for the unified rise/grow response. */
+     near enough for the unified rise/grow response.
+
+     No transform transition: renderer.js eases --island-k itself once per
+     display frame. A transition here would restart on every value and bring
+     back the stop-start motion that easing removes. */
   transform-origin: 50% 0%;
   transform: none;
-  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #islandPill::after {
