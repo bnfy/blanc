@@ -136,11 +136,15 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
           assert.ok(demo.includes(record.favicon.file.replace('site/public', '')), `${measurement}: demo shows the recorded favicon`);
         }
         assert.ok(demo.includes(`host = '${record.shown.host}'`) && demo.includes(`count = ${record.shown.count};`), `${measurement}: demo shows the measured value`);
-        if (claim.exactWording.includes(' is what Blanc Blocker')) {
-          assert.ok(claim.exactWording.includes(`The ${record.shown.count} is what`) && claim.exactWording.includes(record.shown.host), `${measurement}: note names the measured value`);
+        if (claim.exactWording.includes(record.shown.host)) {
+          assert.ok(claim.exactWording.includes(`The ${record.shown.count} shown was measured on ${record.shown.host}`), `${measurement}: note names the measured value`);
         }
       }
     }
+  }
+  for (const measurement of Object.values(bento.evidenceGroups).flatMap(group => group.measurements ?? [])) {
+    const {shown} = JSON.parse(read(measurement));
+    assert.ok(bento.claims.some(claim => claim.exactWording.includes(shown.host)), `${measurement}: the page says where its count came from`);
   }
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.

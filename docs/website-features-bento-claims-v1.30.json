@@ -57,7 +57,7 @@
         "spec/acceptance/ad-blocking.feature",
         "adblock/sources/pinned.json"
       ],
-      "qualification": "Blanc Blocker on by default with bundled EasyList and EasyPrivacy; shield popover shows count, connection scheme and a per-site switch that reloads, and its Change button opens Choose a blocker (Blanc Blocker or uBlock Origin, applied after restart). No blocker removes every ad or tracker. uBlock Origin optional on supported builds; private tabs use Blanc Blocker. The nytimes.com count of 24 was measured in installed v1.30.1 (build 1301) 10 s after opening the page in fresh profiles on October 8, 2026 (24, 24, 24, then 24, 24, 26), recorded in docs/website-blocking-count-v1.30.1.json; counts vary by visit.",
+      "qualification": "Blanc Blocker on by default with bundled EasyList and EasyPrivacy; shield popover shows count, connection scheme and a per-site switch that reloads, and its Change button opens Choose a blocker (Blanc Blocker or uBlock Origin, applied after restart). Built in, so nothing to install. No blocker removes every ad or tracker. The optional uBlock Origin is the full, unmodified uBO 1.75.0 on supported builds (docs/ublock-origin-support-matrix-2026-10-03.md); private tabs use Blanc Blocker. The nytimes.com count of 24 was measured in installed v1.30.1 (build 1301) 10 s after opening the page in fresh profiles on October 8, 2026 (24, 24, 24, then 24, 24, 26), recorded in docs/website-blocking-count-v1.30.1.json; counts vary by visit.",
       "measurements": [
         "docs/website-blocking-count-v1.30.1.json"
       ]
@@ -819,7 +819,7 @@
     {
       "id": "bento-130-056",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Blanc Blocker is on from the first page. Prefer uBlock Origin? Choose it from the shield on supported builds, then restart Blanc.",
+      "exactWording": "Blanc Blocker works from the first page you open, with nothing to install. Want more control? Switch to the full uBlock Origin from the same shield.",
       "subject": "Blanc",
       "evidenceGroups": [
         "blocking"
@@ -829,7 +829,7 @@
     {
       "id": "bento-130-057",
       "source": "site/src/pages/features.astro",
-      "exactWording": "The 24 is what Blanc Blocker blocked in the first 10 seconds on nytimes.com in Blanc 1.30.1. Private tabs always use Blanc Blocker.",
+      "exactWording": "uBlock Origin is available on supported builds and applies after a restart. Private tabs always use Blanc Blocker. The 24 shown was measured on nytimes.com in Blanc 1.30.1.",
       "subject": "Blanc",
       "evidenceGroups": [
         "blocking"
