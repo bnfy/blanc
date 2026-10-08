@@ -157,3 +157,23 @@ reviewed payload. The JSON-serialized `ublock/pinned.json` SHA-256 is now
 `71f33634e9cb016e1386b625b1c55b7d2d1a7713613d9437c40694b6ac9010ad`.
 The dependency VEX test retains its exact-digest guard; this is not an extension
 of the exception to arbitrary future archives or executed source-build scripts.
+
+
+## October 8 resolution: exception withdrawn
+
+http-cache-semantics 4.3.0 is now outside the advisory's affected range in
+every committed lockfile, so this exception is no longer needed and its
+statement was removed from `security/openvex.json` (document version 5).
+
+- Desktop (`package-lock.json`): `npm audit fix` updated electron-builder,
+  app-builder-lib and dmg-builder from 26.15.3 to 26.17.0 within the existing
+  `^26.15.3` range, and http-cache-semantics from 4.2.0 to 4.3.0. The chain
+  through @electron/get 3.1.0, got 11.8.6 and cacheable-request 7.0.4 is
+  otherwise unchanged and still development-only.
+- Website (`site/package-lock.json`): already on 4.3.0 since the October 4
+  re-review; `npm audit` reports no findings.
+
+`npm run security:dependencies` passes without the statement, so the ordinary
+audit owns any future finding. The GHSA-hp3w-g68c-fv3c (sprintf-js) exception
+in `2026-10-06-sprintf-js.md` is unaffected: its reviewed chain (@electron/get
+3.1.0, global-agent 3.0.0, roarr 2.15.4, sprintf-js 1.1.3) did not change.
