@@ -1,0 +1,55 @@
+---
+// Blanc Mail waitlist signup. Posts to the blanc-newsletter Worker's
+// /mail-waitlist route (cloudflare/newsletter-worker/), which keeps the
+// waitlist under its own KV prefixes: joining never subscribes anyone to the
+// newsletter, an address counts only after its owner confirms it by email,
+// and the list is deleted after the launch announcement. The privacy page's
+// "Blanc Mail waitlist" section describes exactly this contract — change them
+// together. "website" is the same honeypot the newsletter form uses.
+// method="post" keeps an address out of the page URL if the script never runs.
+const { id = 'waitlist' } = Astro.props;
+---
+<form class="mail-waitlist" id={id} method="post" data-mail-waitlist>
+  <label class="mail-waitlist-label" for={`${id}Email`}>Get an email when Blanc Mail is ready</label>
+  <span class="mail-waitlist-controls">
+    <input id={`${id}Email`} name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email">
+    <input class="mail-waitlist-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button type="submit" data-track="mail_waitlist_join">Join the waitlist</button>
+  </span>
+  <p class="mail-waitlist-note">We’ll ask you to confirm by email. The waitlist is separate from the Blanc newsletter, and we delete it after the launch announcement. <a href="/privacy#mail-waitlist">How we handle it</a></p>
+  <p class="mail-waitlist-status" role="status" aria-live="polite"></p>
+</form>
+<script>
+  const WAITLIST_ENDPOINT = 'https://blanc-newsletter.bnfy-441.workers.dev/mail-waitlist';
+
+  document.querySelectorAll<HTMLFormElement>('form[data-mail-waitlist]').forEach((form) => {
+    const status = form.querySelector('.mail-waitlist-status')!;
+    const button = form.querySelector('button')!;
+    const email = form.elements.namedItem('email') as HTMLInputElement;
+    const website = form.elements.namedItem('website') as HTMLInputElement;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      button.disabled = true;
+      try {
+        const response = await fetch(WAITLIST_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.value.trim(), website: website.value }),
+        });
+        if (response.ok) {
+          form.querySelector<HTMLElement>('.mail-waitlist-controls')!.hidden = true;
+          status.textContent = 'Check your inbox to confirm your place. The link expires in 24 hours.';
+        } else if (response.status === 400) {
+          status.textContent = 'That address didn’t look right. Please check it and try again.';
+        } else {
+          status.textContent = 'We couldn’t add you just now. Please try again later.';
+        }
+      } catch {
+        status.textContent = 'We couldn’t add you just now. Please try again later.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+</script>

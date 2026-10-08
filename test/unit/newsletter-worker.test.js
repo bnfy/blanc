@@ -309,3 +309,116 @@ test('deploy gate requires the sender to be covered by a verified Resend domain'
     /outside verified/
   );
 });
+
+function waitlistRequest(body, headers = {}) {
+  return new Request('https://newsletter.test/mail-waitlist', {
+    method: 'POST',
+    headers: {
+      Origin: 'https://blancbrowser.com',
+      'CF-Connecting-IP': '203.0.113.20',
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+const admin = (pathname, method = 'GET', token = 'admin') => new Request(`https://newsletter.test${pathname}`, {
+  method,
+  headers: token ? { Authorization: `Bearer ${token}` } : {},
+});
+
+test('the Mail waitlist uses its own double opt-in and never joins the newsletter', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  let mail;
+  globalThis.fetch = async (_url, init) => {
+    mail = JSON.parse(init.body);
+    return new Response(JSON.stringify({ id: 'mail-1' }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  assert.equal((await worker.fetch(waitlistRequest({ email: 'a@example.com' }, { Origin: 'https://evil.example' }), env)).status, 403);
+  const pending = await worker.fetch(waitlistRequest({ email: ' Person@Example.com ', website: '' }), env);
+  assert.equal(pending.status, 202);
+  assert.match(mail.subject, /Blanc Mail waitlist/);
+  assert.match(mail.text, /does not subscribe you to the Blanc newsletter/);
+  assert.match(mail.text, /deleted after the launch announcement/);
+  assert.equal(await env.SUBSCRIBERS.get('mailwait:person@example.com'), null);
+
+  // A waitlist token never confirms a newsletter subscription.
+  const token = mail.text.match(/\/mail-waitlist\/confirm\?token=([A-Za-z0-9_-]{43})/)?.[1];
+  assert.ok(token);
+  assert.equal((await (await worker.fetch(new Request(`https://newsletter.test/confirm?token=${token}`), env)).text()).includes('invalid or expired'), true);
+
+  const confirmed = await worker.fetch(new Request(`https://newsletter.test/mail-waitlist/confirm?token=${token}`), env);
+  assert.match(await confirmed.text(), /on the waitlist/);
+  const record = await env.SUBSCRIBERS.get('mailwait:person@example.com', { type: 'json' });
+  assert.match(record.unsubscribeToken, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(await env.SUBSCRIBERS.get('sub:person@example.com'), null);
+
+  const newsletter = await (await worker.fetch(admin('/subscribers'), env)).json();
+  assert.equal(newsletter.count, 0);
+  const waitlist = await (await worker.fetch(admin('/mail-waitlist/members'), env)).json();
+  assert.deepEqual(waitlist.subscribers.map(({ email }) => email), ['person@example.com']);
+  assert.match(waitlist.subscribers[0].unsubscribeUrl, /\/mail-waitlist\/leave\?token=/);
+
+  const left = await worker.fetch(new Request(`https://newsletter.test/mail-waitlist/leave?token=${record.unsubscribeToken}`), env);
+  assert.match(await left.text(), /removed from the Blanc Mail waitlist/);
+  assert.equal(await env.SUBSCRIBERS.get('mailwait:person@example.com'), null);
+});
+
+test('waitlist honeypot quarantine stays separate from the newsletter quarantine', async (t) => {
+  const env = environment();
+  const originalFetch = globalThis.fetch;
+  let mailCalls = 0;
+  globalThis.fetch = async () => { mailCalls += 1; return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const trapped = await worker.fetch(waitlistRequest({ email: 'bot@example.com', website: 'x' }), env);
+  assert.equal(trapped.status, 202);
+  assert.equal(mailCalls, 0);
+  assert.ok(await env.SUBSCRIBERS.get('mailwait-hp:bot@example.com'));
+  assert.equal(await env.SUBSCRIBERS.get('hp:bot@example.com'), null);
+});
+
+test('waitlist admin endpoints fail closed and purge only waitlist records', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}');
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await env.SUBSCRIBERS.put('sub:reader@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('mailwait:a@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('mailwait-leave:hash', 'a@example.com');
+  await env.SUBSCRIBERS.put('mailwait-hp:b@example.com', JSON.stringify({ ts: 't' }));
+
+  assert.equal((await worker.fetch(admin('/mail-waitlist/members', 'GET', null), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/mail-waitlist/members', 'DELETE', 'wrong'), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/mail-waitlist/members', 'DELETE'), env)).status, 400);
+  assert.ok(await env.SUBSCRIBERS.get('mailwait:a@example.com'));
+
+  const purged = await worker.fetch(admin('/mail-waitlist/members?confirm=delete-all', 'DELETE'), env);
+  assert.deepEqual(await purged.json(), { deleted: 1 });
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()], ['sub:reader@example.com']);
+});
+
+test('the Mail waitlist form, CSP and privacy disclosure describe the Worker contract', () => {
+  const site = (name) => readFileSync(path.resolve(__dirname, '../../site', name), 'utf8');
+  const form = site('src/components/MailWaitlistForm.astro');
+  assert.match(form, /'https:\/\/blanc-newsletter\.bnfy-441\.workers\.dev\/mail-waitlist'/);
+  assert.match(form, /<form class="mail-waitlist"[^>]*method="post"/, 'an address never lands in the page URL');
+  assert.match(form, /name="website" tabindex="-1" autocomplete="off" aria-hidden="true"/);
+  assert.match(form, /separate from the Blanc newsletter/);
+  assert.match(form, /delete it after the launch announcement/);
+  assert.match(form, /href="\/privacy#mail-waitlist"/);
+  for (const page of ['src/pages/mail.astro', 'src/pages/mail/download.astro']) {
+    assert.match(site(page), /<MailWaitlistForm/, page);
+  }
+  const headers = readFileSync(SITE_HEADERS_PATH, 'utf8');
+  assert.match(headers, /connect-src [^;]*https:\/\/blanc-newsletter\.bnfy-441\.workers\.dev/);
+  const privacy = site('src/pages/privacy.astro');
+  assert.match(privacy, /<h3 id="mail-waitlist">Blanc Mail waitlist \(optional, double opt-in\)<\/h3>/);
+  assert.match(privacy, /does not subscribe you to the newsletter/);
+  assert.match(privacy, /we delete the whole waitlist/);
+});

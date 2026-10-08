@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import MailIcon from '../components/MailIcon.astro';
 import MailNav from '../components/MailNav.astro';
+import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import '../styles/mail.css';
 ---
 <BaseLayout title="Blanc Mail — Email that minds its own business" description="Blanc Mail is a native Gmail client for macOS, coming soon from the makers of Blanc Browser." path="/mail" header="solid" ogImageAlt="The Blanc Sunrise mark on a warm ivory background">
@@ -11,8 +12,9 @@ import '../styles/mail.css';
       <div>
         <h1>Email that minds<br />its own business.</h1>
         <p class="mail-lead">Blanc Mail brings a careful, native Gmail experience to your Mac. Your mail stays between your Mac and Google.</p>
+        <MailWaitlistForm />
         <div class="mail-actions">
-          <a class="mail-cta" href="/mail/pricing">See planned pricing</a>
+          <a href="/mail/pricing">See planned pricing</a>
           <a href="/mail/download">Release status →</a>
         </div>
       </div>
