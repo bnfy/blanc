@@ -359,7 +359,7 @@
     {
       "id": "bento-130-010",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Take a break with a game of Mahjong",
+      "exactWording": "Take a break to play Mahjong",
       "subject": "Blanc",
       "evidenceGroups": [
         "mahjong"
