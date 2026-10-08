@@ -1415,14 +1415,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40electron/rebuild@4.1.0",
+      "bom-ref": "pkg:npm/%40electron/rebuild@4.2.1",
       "name": "@electron/rebuild",
-      "version": "4.1.0",
+      "version": "4.2.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "185932fb525e3bc7e94aab590a1fb6c0544dfcc55b0219bbb5723633b040d4eb3bf4e47c2c4a3146d01b44fcb1be6296844305fe9d74acd2649203f5925235de"
+          "content": "212e291b7072b11ac22c9f314c07ef83e2100db894a00cdd272d927e37182a72c3cb90e909d8e73dd852e597f950c7eb901db8c6ed0a0be4ea70ec60f9e1beeb"
         }
       ],
       "licenses": [
@@ -1432,7 +1432,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40electron/rebuild@4.1.0",
+      "purl": "pkg:npm/%40electron/rebuild@4.2.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -1454,7 +1454,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@electron/rebuild/-/rebuild-4.1.0.tgz"
+          "url": "https://registry.npmjs.org/@electron/rebuild/-/rebuild-4.2.1.tgz"
         }
       ]
     },
@@ -4074,14 +4074,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40noble/hashes@1.4.0",
+      "bom-ref": "pkg:npm/%40noble/hashes@1.8.0",
       "name": "@noble/hashes",
-      "version": "1.4.0",
+      "version": "1.8.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "575249d564d152a1c7ace4a1e7dee151170ca9529518bfde6b792fd204a711db04674ffe5723e084cd6530d19cd34cfb088428ad2bdb2a9b89931bee1dbbdd6e"
+          "content": "8c2b3d95d77b370ce98170c87fa3f7f8dac787dfec0fa0907711f28d023e87feab0cda3cf32a41c71cf8e540ee647cfdaf7b4dcfb37f5489d256855db57108e0"
         }
       ],
       "licenses": [
@@ -4091,52 +4091,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40noble/hashes@1.4.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "true"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/pkijs/node_modules/@noble/hashes"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "root"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@noble/hashes/-/hashes-1.4.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40noble/hashes@2.2.0",
-      "name": "@noble/hashes",
-      "version": "2.2.0",
-      "scope": "optional",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "218a831a24d769be859e20209d2759c2059ba26c69cbd16d62f2cab3bc0252cd9af119084c6f831463b50ccf5cafe137fd18000d1a458eb295689d73eac8ed12"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%40noble/hashes@2.2.0",
+      "purl": "pkg:npm/%40noble/hashes@1.8.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -4158,20 +4113,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@noble/hashes/-/hashes-2.2.0.tgz"
+          "url": "https://registry.npmjs.org/@noble/hashes/-/hashes-1.8.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40peculiar/asn1-schema@2.8.0",
+      "bom-ref": "pkg:npm/%40peculiar/asn1-schema@2.10.0",
       "name": "@peculiar/asn1-schema",
-      "version": "2.8.0",
+      "version": "2.10.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ed84f453fcded2d17640e05b135e60299c32e6dbe01b22d18911cbce195b3a97fb053d37da805277485a66a5e7e56ea5dba58b96edddcb1ce333edbadfcff3d9"
+          "content": "1a1a240f8d65578810aeb2d89b7c029077c13a726b9e10cc82de1778c5bc8337c4d54749a88b92c2c13e8207fcd97063517449ca5726f8a2064056b8bad2152f"
         }
       ],
       "licenses": [
@@ -4181,7 +4136,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40peculiar/asn1-schema@2.8.0",
+      "purl": "pkg:npm/%40peculiar/asn1-schema@2.10.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -4203,7 +4158,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@peculiar/asn1-schema/-/asn1-schema-2.8.0.tgz"
+          "url": "https://registry.npmjs.org/@peculiar/asn1-schema/-/asn1-schema-2.10.0.tgz"
         }
       ]
     },
@@ -5739,14 +5694,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/app-builder-lib@26.15.3",
+      "bom-ref": "pkg:npm/app-builder-lib@26.17.0",
       "name": "app-builder-lib",
-      "version": "26.15.3",
+      "version": "26.17.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d959f25a4aac3f9bf95db0612f7b43e52cb1f2234f058b2853b918e12d9fcfbc20f118ff9f3b5628253318a685453bf45f07f7fc7d39f024752afb5dff7951a3"
+          "content": "c1f2fb121ba3b8e0c35b7b8c483f113dcaff30bce64f4766a557d6574c055165c8d2b21d6ae933009ec41544b21d73a9c6e059a9a206950b7a55e421b4785eb7"
         }
       ],
       "licenses": [
@@ -5756,7 +5711,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/app-builder-lib@26.15.3",
+      "purl": "pkg:npm/app-builder-lib@26.17.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -5778,7 +5733,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/app-builder-lib/-/app-builder-lib-26.15.3.tgz"
+          "url": "https://registry.npmjs.org/app-builder-lib/-/app-builder-lib-26.17.0.tgz"
         }
       ]
     },
@@ -6594,14 +6549,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/builder-util@26.15.3",
+      "bom-ref": "pkg:npm/builder-util@26.16.0",
       "name": "builder-util",
-      "version": "26.15.3",
+      "version": "26.16.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ab6867ecc6e8da714d9157a43e21c5c7a35fa37854466112ded7c19fe9393eac65d919263f7406a995211ffabd3dc87fe06d3935184f8c39558f53bcab84f1bf"
+          "content": "44bc89841ed28b7624cca47db9b42c956b975b7561b370867b58be49e8b1059d2a4ddd669375c19acb2f636d93941e824b96e5ca4a3c1aed49ce9624f1491802"
         }
       ],
       "licenses": [
@@ -6611,7 +6566,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/builder-util@26.15.3",
+      "purl": "pkg:npm/builder-util@26.16.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -6633,7 +6588,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/builder-util/-/builder-util-26.15.3.tgz"
+          "url": "https://registry.npmjs.org/builder-util/-/builder-util-26.16.0.tgz"
         }
       ]
     },
@@ -7428,8 +7383,8 @@
           "value": "true"
         },
         {
-          "name": "blanc:lockPath",
-          "value": "node_modules/commander"
+          "name": "blanc:lockPaths",
+          "value": "node_modules/@electron/universal/node_modules/commander,node_modules/app-builder-lib/node_modules/commander,node_modules/electron-winstaller/node_modules/commander"
         },
         {
           "name": "blanc:optional",
@@ -7474,7 +7429,7 @@
         },
         {
           "name": "blanc:lockPath",
-          "value": "node_modules/postject/node_modules/commander"
+          "value": "node_modules/commander"
         },
         {
           "name": "blanc:optional",
@@ -8214,14 +8169,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/dmg-builder@26.15.3",
+      "bom-ref": "pkg:npm/dmg-builder@26.17.0",
       "name": "dmg-builder",
-      "version": "26.15.3",
+      "version": "26.17.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3b7cc95055181c92a0ccfaa2a07c5fc730739520b5797092afbf6031204a04fe408238e99abc9d32c30ba2d120f5f009177eaf7549dc6fee27751371a0f76549"
+          "content": "100c357f68869080a652f01504e8e6eefe66c49741efff8e652c9c1c584a0629a24e4097b6f9020bac012b31e8ed94188b9f02d8c9b02257916e046744e94ad9"
         }
       ],
       "licenses": [
@@ -8231,7 +8186,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/dmg-builder@26.15.3",
+      "purl": "pkg:npm/dmg-builder@26.17.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -8253,7 +8208,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/dmg-builder/-/dmg-builder-26.15.3.tgz"
+          "url": "https://registry.npmjs.org/dmg-builder/-/dmg-builder-26.17.0.tgz"
         }
       ]
     },
@@ -8484,14 +8439,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron-builder-squirrel-windows@26.15.3",
+      "bom-ref": "pkg:npm/electron-builder-squirrel-windows@26.17.0",
       "name": "electron-builder-squirrel-windows",
-      "version": "26.15.3",
+      "version": "26.17.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "25cd7d5cf57dcbdfb66c07593e45ee54d18d204141abda681c2eb597c2afe8574aec3446dfe21cd2b7ab0b40d739a787373f325b47e0fc99c5f0641138e17930"
+          "content": "bb287e0fe0749b5daa091a7d73feddc018ab1d387b25cbc0ce3e5e4c46dbe1d5cf3c602160fc759e8cf36eed5f0ba01d50b7dab7a64daa05a18a94c5a5bf3695"
         }
       ],
       "licenses": [
@@ -8501,7 +8456,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron-builder-squirrel-windows@26.15.3",
+      "purl": "pkg:npm/electron-builder-squirrel-windows@26.17.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -8523,20 +8478,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron-builder-squirrel-windows/-/electron-builder-squirrel-windows-26.15.3.tgz"
+          "url": "https://registry.npmjs.org/electron-builder-squirrel-windows/-/electron-builder-squirrel-windows-26.17.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron-builder@26.15.3",
+      "bom-ref": "pkg:npm/electron-builder@26.17.0",
       "name": "electron-builder",
-      "version": "26.15.3",
+      "version": "26.17.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6b528ce617aa4b7810099ce2cd7108f118c9cb7415a2050b3dd792927b7beae2c3a41216fc70c6b0c83f5e03f4ae23fa3c8f423ac46f1484ca2860ea03c7c9c4"
+          "content": "8981c14626a04bdb0321b671d590f5d777f9ac4190beda6f4ef1dfef4a2f1ca27c991bf1c089165fb242c1f995426552e1e5fbdf9a7b4d99a8c479c13f0177bc"
         }
       ],
       "licenses": [
@@ -8546,7 +8501,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron-builder@26.15.3",
+      "purl": "pkg:npm/electron-builder@26.17.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -8568,20 +8523,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron-builder/-/electron-builder-26.15.3.tgz"
+          "url": "https://registry.npmjs.org/electron-builder/-/electron-builder-26.17.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron-publish@26.15.3",
+      "bom-ref": "pkg:npm/electron-publish@26.16.0",
       "name": "electron-publish",
-      "version": "26.15.3",
+      "version": "26.16.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "83fd9b9fc6136af63872e4b917e8ce4bbce665b5d7055f0a67cc8729f26314fa0ab7306aae909d34fc41777b6a741c0fec155dd251b37fb064dacd0a7ac599e1"
+          "content": "56ddcacd0222c3d0489af34e62d9dd83d323922fad978fb5b10882ffe1b98fc92159a10d389156a1d881fac525eb2c87c2d777edabde86c91db4fc3b7fccbff9"
         }
       ],
       "licenses": [
@@ -8591,7 +8546,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron-publish@26.15.3",
+      "purl": "pkg:npm/electron-publish@26.16.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -8613,7 +8568,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron-publish/-/electron-publish-26.15.3.tgz"
+          "url": "https://registry.npmjs.org/electron-publish/-/electron-publish-26.16.0.tgz"
         }
       ]
     },
@@ -10464,14 +10419,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/fs-extra@11.3.6",
+      "bom-ref": "pkg:npm/fs-extra@11.4.1",
       "name": "fs-extra",
-      "version": "11.3.6",
+      "version": "11.4.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c3c64d66bda628873ba9e35a43d0153d3d7e885688f80bdde31b9d54ebdd0c9f15cad4448b516de4887b85df638de86877cbc033918cb1f43f4e93dfe04ca810"
+          "content": "29801be1cf4125023a42a18ab6157af0e1ded1b69dced7572562a8d16b4103d22e0853d32af13965d5018253fcdf768c8e16923cd3b80398ff124cd9b4694a8c"
         }
       ],
       "licenses": [
@@ -10481,7 +10436,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/fs-extra@11.3.6",
+      "purl": "pkg:npm/fs-extra@11.4.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -10503,7 +10458,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/fs-extra/-/fs-extra-11.3.6.tgz"
+          "url": "https://registry.npmjs.org/fs-extra/-/fs-extra-11.4.1.tgz"
         }
       ]
     },
@@ -11859,14 +11814,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/http-cache-semantics@4.2.0",
+      "bom-ref": "pkg:npm/http-cache-semantics@4.3.0",
       "name": "http-cache-semantics",
-      "version": "4.2.0",
+      "version": "4.3.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "753c5cbcf5ea3ef5c1429ab9754afa9843095f8a08105bfa6f0a26dc50f02910ecb888e324600daa106ea009fd73545024874029abf7dc40fae44db2b3ef3b41"
+          "content": "339b792e52694b5507323bf045055d147bcf21219e2c0c4d72b5ae2647868742b1b2a0876753b7357654ffcc7b703d010dc196f246a9c4c293bf096aacd90790"
         }
       ],
       "licenses": [
@@ -11876,7 +11831,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/http-cache-semantics@4.2.0",
+      "purl": "pkg:npm/http-cache-semantics@4.3.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -11898,7 +11853,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.2.0.tgz"
+          "url": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.3.0.tgz"
         }
       ]
     },
@@ -14964,14 +14919,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/node-abi@4.33.0",
+      "bom-ref": "pkg:npm/node-abi@4.37.0",
       "name": "node-abi",
-      "version": "4.33.0",
+      "version": "4.37.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bcb05608a6feecb5ac5fe4db7f358e930d16f359b7efbb72c7784ec1e0538cee370976674464b5fc93d6b36d1faf43e06720d793a44e62bca5b04c9c2bcada0c"
+          "content": "3bd5d73172de44742dbe1e373426a1df2f4dd4aebdb5e70e9aef18e69d9acb8897beda5b42bd156aba0917d126455a77be47688f7aa7e0815f5fe658b42f787f"
         }
       ],
       "licenses": [
@@ -14981,7 +14936,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/node-abi@4.33.0",
+      "purl": "pkg:npm/node-abi@4.37.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -15003,7 +14958,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/node-abi/-/node-abi-4.33.0.tgz"
+          "url": "https://registry.npmjs.org/node-abi/-/node-abi-4.37.0.tgz"
         }
       ]
     },
@@ -15909,14 +15864,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/picomatch@4.0.5",
+      "bom-ref": "pkg:npm/picomatch@4.0.7",
       "name": "picomatch",
-      "version": "4.0.5",
+      "version": "4.0.7",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "46fc3072bb8d8c8d67713e7145a91ec92f4b7fc95c22dbf7e0a0fe6a27fe547f6476e0327d8062a46875db6ef8c6d7a720f675d7dfd1f4175305af200304a1d0"
+          "content": "a9c26ef3c436216a89b030f9dbd24a31dc069bf76f2275b81ef427470887f49b62849bf318eb1c0ed1c4df1d6904a794393cac43c91598b9c9da426eef285c18"
         }
       ],
       "licenses": [
@@ -15926,7 +15881,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/picomatch@4.0.5",
+      "purl": "pkg:npm/picomatch@4.0.7",
       "properties": [
         {
           "name": "blanc:development",
@@ -15948,20 +15903,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.5.tgz"
+          "url": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.7.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/pkijs@3.4.0",
+      "bom-ref": "pkg:npm/pkijs@3.4.1",
       "name": "pkijs",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7a611c2eea26b768f4defc43e78822541e12c538e7b2a914ebddb164e6571c3568632ca9126f9bde3a624dc73e09ffa6ca8a1cfbf2f2d33d358ea78d1d58091b"
+          "content": "3a8fcd65c49671cabc2b2a06ee02c4f5f9e5b601e7b3ea4d0a3080a7f5a68ec5324a2fac5fbcb8cf85eabb87d56f8d820c7cd13e5df77e3cd3d79575c2f73284"
         }
       ],
       "licenses": [
@@ -15971,7 +15926,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/pkijs@3.4.0",
+      "purl": "pkg:npm/pkijs@3.4.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -15993,7 +15948,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/pkijs/-/pkijs-3.4.0.tgz"
+          "url": "https://registry.npmjs.org/pkijs/-/pkijs-3.4.1.tgz"
         }
       ]
     },
@@ -16629,14 +16584,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/pvutils@1.1.5",
+      "bom-ref": "pkg:npm/pvutils@1.2.0",
       "name": "pvutils",
-      "version": "1.1.5",
+      "version": "1.2.0",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "293aa7c6c806890e99033642565247e5e3a34a7be5c84831d66f1b91125f3a198646a7e8e4a2ef98094009092b8c4b4e43807bc05f537522c8b3d3bdd0c5fdc4"
+          "content": "05bb9b7821324ee42354c6a4bc943f4b16dcf77176a7099bb3138d4ff651af053b51adfc77cba7613c17a5354b00a278043b87f481b3b428d071dfcdff7f43be"
         }
       ],
       "licenses": [
@@ -16646,7 +16601,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/pvutils@1.1.5",
+      "purl": "pkg:npm/pvutils@1.2.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -16668,7 +16623,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/pvutils/-/pvutils-1.1.5.tgz"
+          "url": "https://registry.npmjs.org/pvutils/-/pvutils-1.2.0.tgz"
         }
       ]
     },
@@ -20991,7 +20946,7 @@
         "pkg:npm/%40eslint/js@10.0.1",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/%40ghostery/adblocker@2.18.2",
-        "pkg:npm/electron-builder@26.15.3",
+        "pkg:npm/electron-builder@26.17.0",
         "pkg:npm/electron-updater@6.8.9",
         "pkg:npm/electron@44.5.1",
         "pkg:npm/eslint@10.12.0",
@@ -21242,11 +21197,11 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40electron/rebuild@4.1.0",
+      "ref": "pkg:npm/%40electron/rebuild@4.2.1",
       "dependsOn": [
         "pkg:npm/%40malept/cross-spawn-promise@2.0.0",
         "pkg:npm/debug@4.4.3",
-        "pkg:npm/node-abi@4.33.0",
+        "pkg:npm/node-abi@4.37.0",
         "pkg:npm/node-api-version@0.2.1",
         "pkg:npm/node-gyp@12.4.0",
         "pkg:npm/read-binary-file-arch@1.0.6"
@@ -21259,7 +21214,7 @@
         "pkg:npm/%40malept/cross-spawn-promise@2.0.0",
         "pkg:npm/debug@4.4.3",
         "pkg:npm/dir-compare@4.2.0",
-        "pkg:npm/fs-extra@11.3.6",
+        "pkg:npm/fs-extra@11.4.1",
         "pkg:npm/minimatch@9.0.9",
         "pkg:npm/plist@3.1.0"
       ]
@@ -21269,7 +21224,7 @@
       "dependsOn": [
         "pkg:npm/cross-dirname@0.1.0",
         "pkg:npm/debug@4.4.3",
-        "pkg:npm/fs-extra@11.3.6",
+        "pkg:npm/fs-extra@11.4.1",
         "pkg:npm/minimist@1.2.8",
         "pkg:npm/postject@1.0.0-alpha.6"
       ]
@@ -21560,15 +21515,11 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40noble/hashes@1.4.0",
+      "ref": "pkg:npm/%40noble/hashes@1.8.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40noble/hashes@2.2.0",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/%40peculiar/asn1-schema@2.8.0",
+      "ref": "pkg:npm/%40peculiar/asn1-schema@2.10.0",
       "dependsOn": [
         "pkg:npm/%40peculiar/utils@2.0.3",
         "pkg:npm/asn1js@3.0.10",
@@ -21590,7 +21541,7 @@
     {
       "ref": "pkg:npm/%40peculiar/webcrypto@1.7.1",
       "dependsOn": [
-        "pkg:npm/%40peculiar/asn1-schema@2.8.0",
+        "pkg:npm/%40peculiar/asn1-schema@2.10.0",
         "pkg:npm/%40peculiar/json-schema@1.1.12",
         "pkg:npm/%40peculiar/utils@2.0.3",
         "pkg:npm/tslib@2.8.1",
@@ -21756,31 +21707,31 @@
       ]
     },
     {
-      "ref": "pkg:npm/app-builder-lib@26.15.3",
+      "ref": "pkg:npm/app-builder-lib@26.17.0",
       "dependsOn": [
         "pkg:npm/%40electron/asar@3.4.1",
         "pkg:npm/%40electron/fuses@1.8.0",
         "pkg:npm/%40electron/get@3.1.0",
         "pkg:npm/%40electron/notarize@2.5.0",
         "pkg:npm/%40electron/osx-sign@1.3.3",
-        "pkg:npm/%40electron/rebuild@4.1.0",
+        "pkg:npm/%40electron/rebuild@4.2.1",
         "pkg:npm/%40electron/universal@2.0.3",
         "pkg:npm/%40malept/flatpak-bundler@0.4.0",
-        "pkg:npm/%40noble/hashes@2.2.0",
+        "pkg:npm/%40noble/hashes@1.8.0",
         "pkg:npm/%40peculiar/webcrypto@1.7.1",
         "pkg:npm/%40types/fs-extra@9.0.13",
         "pkg:npm/ajv@8.20.0",
         "pkg:npm/asn1js@3.0.10",
         "pkg:npm/async-exit-hook@2.0.1",
         "pkg:npm/builder-util-runtime@9.7.0",
-        "pkg:npm/builder-util@26.15.3",
+        "pkg:npm/builder-util@26.16.0",
         "pkg:npm/chromium-pickle-js@0.2.0",
         "pkg:npm/ci-info@4.3.1",
         "pkg:npm/debug@4.4.3",
         "pkg:npm/dotenv-expand@11.0.7",
         "pkg:npm/dotenv@16.6.1",
         "pkg:npm/ejs@3.1.10",
-        "pkg:npm/electron-publish@26.15.3",
+        "pkg:npm/electron-publish@26.16.0",
         "pkg:npm/fs-extra@10.1.0",
         "pkg:npm/hosted-git-info@4.1.0",
         "pkg:npm/isbinaryfile@5.0.7",
@@ -21789,7 +21740,7 @@
         "pkg:npm/json5@2.2.3",
         "pkg:npm/lazy-val@1.0.5",
         "pkg:npm/minimatch@10.2.5",
-        "pkg:npm/pkijs@3.4.0",
+        "pkg:npm/pkijs@3.4.1",
         "pkg:npm/plist@3.1.0",
         "pkg:npm/proper-lockfile@4.1.2",
         "pkg:npm/resedit@1.7.2",
@@ -21809,7 +21760,7 @@
       "ref": "pkg:npm/asn1js@3.0.10",
       "dependsOn": [
         "pkg:npm/pvtsutils@1.3.6",
-        "pkg:npm/pvutils@1.1.5",
+        "pkg:npm/pvutils@1.2.0",
         "pkg:npm/tslib@2.8.1"
       ]
     },
@@ -21892,7 +21843,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/builder-util@26.15.3",
+      "ref": "pkg:npm/builder-util@26.16.0",
       "dependsOn": [
         "pkg:npm/%40types/debug@4.1.13",
         "pkg:npm/builder-util-runtime@9.7.0",
@@ -21923,7 +21874,7 @@
       "dependsOn": [
         "pkg:npm/clone-response@1.0.3",
         "pkg:npm/get-stream@5.2.0",
-        "pkg:npm/http-cache-semantics@4.2.0",
+        "pkg:npm/http-cache-semantics@4.3.0",
         "pkg:npm/keyv@4.5.4",
         "pkg:npm/lowercase-keys@2.0.0",
         "pkg:npm/normalize-url@6.1.0",
@@ -22103,10 +22054,10 @@
       ]
     },
     {
-      "ref": "pkg:npm/dmg-builder@26.15.3",
+      "ref": "pkg:npm/dmg-builder@26.17.0",
       "dependsOn": [
-        "pkg:npm/app-builder-lib@26.15.3",
-        "pkg:npm/builder-util@26.15.3",
+        "pkg:npm/app-builder-lib@26.17.0",
+        "pkg:npm/builder-util@26.16.0",
         "pkg:npm/fs-extra@10.1.0",
         "pkg:npm/js-yaml@4.3.2"
       ]
@@ -22142,22 +22093,22 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron-builder-squirrel-windows@26.15.3",
+      "ref": "pkg:npm/electron-builder-squirrel-windows@26.17.0",
       "dependsOn": [
-        "pkg:npm/app-builder-lib@26.15.3",
-        "pkg:npm/builder-util@26.15.3",
+        "pkg:npm/app-builder-lib@26.17.0",
+        "pkg:npm/builder-util@26.16.0",
         "pkg:npm/electron-winstaller@5.4.0"
       ]
     },
     {
-      "ref": "pkg:npm/electron-builder@26.15.3",
+      "ref": "pkg:npm/electron-builder@26.17.0",
       "dependsOn": [
-        "pkg:npm/app-builder-lib@26.15.3",
+        "pkg:npm/app-builder-lib@26.17.0",
         "pkg:npm/builder-util-runtime@9.7.0",
-        "pkg:npm/builder-util@26.15.3",
+        "pkg:npm/builder-util@26.16.0",
         "pkg:npm/chalk@4.1.2",
         "pkg:npm/ci-info@4.4.0",
-        "pkg:npm/dmg-builder@26.15.3",
+        "pkg:npm/dmg-builder@26.17.0",
         "pkg:npm/fs-extra@10.1.0",
         "pkg:npm/lazy-val@1.0.5",
         "pkg:npm/simple-update-notifier@2.0.0",
@@ -22165,12 +22116,12 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron-publish@26.15.3",
+      "ref": "pkg:npm/electron-publish@26.16.0",
       "dependsOn": [
         "pkg:npm/%40types/fs-extra@9.0.13",
         "pkg:npm/aws4@1.13.2",
         "pkg:npm/builder-util-runtime@9.7.0",
-        "pkg:npm/builder-util@26.15.3",
+        "pkg:npm/builder-util@26.16.0",
         "pkg:npm/chalk@4.1.2",
         "pkg:npm/form-data@4.0.6",
         "pkg:npm/fs-extra@10.1.0",
@@ -22445,7 +22396,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/fs-extra@11.3.6",
+      "ref": "pkg:npm/fs-extra@11.4.1",
       "dependsOn": [
         "pkg:npm/graceful-fs@4.2.11",
         "pkg:npm/jsonfile@6.2.1",
@@ -22653,7 +22604,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/http-cache-semantics@4.2.0",
+      "ref": "pkg:npm/http-cache-semantics@4.3.0",
       "dependsOn": []
     },
     {
@@ -22986,7 +22937,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/node-abi@4.33.0",
+      "ref": "pkg:npm/node-abi@4.37.0",
       "dependsOn": [
         "pkg:npm/semver@7.8.5"
       ]
@@ -23113,17 +23064,17 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/picomatch@4.0.5",
+      "ref": "pkg:npm/picomatch@4.0.7",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/pkijs@3.4.0",
+      "ref": "pkg:npm/pkijs@3.4.1",
       "dependsOn": [
-        "pkg:npm/%40noble/hashes@1.4.0",
+        "pkg:npm/%40noble/hashes@1.8.0",
         "pkg:npm/asn1js@3.0.10",
         "pkg:npm/bytestreamjs@2.0.1",
         "pkg:npm/pvtsutils@1.3.6",
-        "pkg:npm/pvutils@1.1.5",
+        "pkg:npm/pvutils@1.2.0",
         "pkg:npm/tslib@2.8.1"
       ]
     },
@@ -23204,7 +23155,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/pvutils@1.1.5",
+      "ref": "pkg:npm/pvutils@1.2.0",
       "dependsOn": []
     },
     {
@@ -23540,7 +23491,7 @@
       "ref": "pkg:npm/tinyglobby@0.2.17",
       "dependsOn": [
         "pkg:npm/fdir@6.5.0",
-        "pkg:npm/picomatch@4.0.5"
+        "pkg:npm/picomatch@4.0.7"
       ]
     },
     {
@@ -23663,7 +23614,7 @@
     {
       "ref": "pkg:npm/webcrypto-core@1.9.2",
       "dependsOn": [
-        "pkg:npm/%40peculiar/asn1-schema@2.8.0",
+        "pkg:npm/%40peculiar/asn1-schema@2.10.0",
         "pkg:npm/%40peculiar/json-schema@1.1.12",
         "pkg:npm/%40peculiar/utils@2.0.3",
         "pkg:npm/asn1js@3.0.10",
