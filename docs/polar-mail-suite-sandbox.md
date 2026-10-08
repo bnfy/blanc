@@ -50,6 +50,10 @@ plan changes should be offered within the same billing period.
 - [ ] Mail Monthly → Suite Monthly and back: the Mail key is unchanged in both
       directions; a Browser key appears with Suite and is revoked after.
 - [ ] Repeat one upgrade on the Annual products.
+- [ ] Sign in with the purchase email in Mail (Enter License → "Or sign in
+      with your purchase email") on a Suite and a Mail-only customer: the code
+      arrives, and Mail enters that customer's granted Mail key. A Patron-only
+      customer is told no Mail license was found.
 - [ ] Cancel Suite at period end: both keys are revoked at the end of the
       period, not before.
 - [ ] Record what Polar shows the customer before and after the upgrade.
