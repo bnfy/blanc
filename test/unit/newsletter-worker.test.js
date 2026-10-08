@@ -18,17 +18,27 @@ test.before(async () => {
 });
 
 class FakeKV {
-  constructor() { this.values = new Map(); }
+  constructor() { this.values = new Map(); this.metadata = new Map(); this.gets = 0; this.deletes = 0; }
   async get(key, options) {
+    this.gets += 1;
     const value = this.values.get(key) ?? null;
     return options?.type === 'json' && value !== null ? JSON.parse(value) : value;
   }
-  async put(key, value) { this.values.set(key, String(value)); }
-  async delete(key) { this.values.delete(key); }
-  async list({ prefix = '' } = {}) {
+  async put(key, value, options) {
+    this.values.set(key, String(value));
+    if (options?.metadata) this.metadata.set(key, options.metadata); else this.metadata.delete(key);
+  }
+  async delete(key) { this.deletes += 1; this.values.delete(key); this.metadata.delete(key); }
+  // Pages of at most `limit` (KV's default 1000) keys, like Workers KV.
+  async list({ prefix = '', limit = 1000, cursor } = {}) {
+    const names = [...this.values.keys()].filter((name) => name.startsWith(prefix)).sort();
+    const start = cursor ? Number(cursor) : 0;
+    const page = names.slice(start, start + limit);
+    const end = start + page.length;
     return {
-      keys: [...this.values.keys()].filter((name) => name.startsWith(prefix)).map((name) => ({ name })),
-      list_complete: true,
+      keys: page.map((name) => (this.metadata.has(name) ? { name, metadata: this.metadata.get(name) } : { name })),
+      list_complete: end >= names.length,
+      cursor: end >= names.length ? undefined : String(end),
     };
   }
 }
@@ -399,7 +409,7 @@ test('waitlist admin endpoints fail closed and purge only waitlist records', asy
   assert.ok(await env.SUBSCRIBERS.get('mailwait:a@example.com'));
 
   const purged = await worker.fetch(admin('/mail-waitlist/members?confirm=delete-all', 'DELETE'), env);
-  assert.deepEqual(await purged.json(), { deleted: 1 });
+  assert.deepEqual(await purged.json(), { deleted: 1, remaining: false });
   assert.deepEqual([...env.SUBSCRIBERS.values.keys()], ['sub:reader@example.com']);
 });
 
@@ -409,11 +419,17 @@ test('the Mail waitlist form, CSP and privacy disclosure describe the Worker con
   assert.match(form, /'https:\/\/blanc-newsletter\.bnfy-441\.workers\.dev\/mail-waitlist'/);
   assert.match(form, /<form class="mail-waitlist"[^>]*method="post"/, 'an address never lands in the page URL');
   assert.match(form, /name="website" tabindex="-1" autocomplete="off" aria-hidden="true"/);
+  assert.match(form, /<button type="submit"[^>]*\bdisabled>/, 'no submission before the script is ready');
+  assert.match(form, /button\.disabled = false;\n/);
   assert.match(form, /separate from the Blanc newsletter/);
   assert.match(form, /delete it after the launch announcement/);
   assert.match(form, /href="\/privacy#mail-waitlist"/);
   for (const page of ['src/pages/mail.astro', 'src/pages/mail/download.astro']) {
     assert.match(site(page), /<MailWaitlistForm/, page);
+  }
+  // Legal pages carry no social-sharing metadata, like /privacy and /terms.
+  for (const page of ['src/pages/mail/privacy.astro', 'src/pages/mail/terms.astro']) {
+    assert.match(site(page), /header="legal" analytics=\{false\} social="none"/, page);
   }
   const headers = readFileSync(SITE_HEADERS_PATH, 'utf8');
   assert.match(headers, /connect-src [^;]*https:\/\/blanc-newsletter\.bnfy-441\.workers\.dev/);
@@ -421,4 +437,51 @@ test('the Mail waitlist form, CSP and privacy disclosure describe the Worker con
   assert.match(privacy, /<h3 id="mail-waitlist">Blanc Mail waitlist \(optional, double opt-in\)<\/h3>/);
   assert.match(privacy, /does not subscribe you to the newsletter/);
   assert.match(privacy, /we delete the whole waitlist/);
+});
+
+test('a large waitlist purges in bounded batches and exports from list metadata', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}');
+  t.after(() => { globalThis.fetch = originalFetch; });
+  for (let i = 0; i < 700; i += 1) {
+    const member = { ts: `2026-10-08T00:00:${String(i).padStart(4, '0')}Z`, unsubscribeToken: 'a'.repeat(43) };
+    await env.SUBSCRIBERS.put(`mailwait:m${i}@example.com`, JSON.stringify(member), { metadata: member });
+    await env.SUBSCRIBERS.put(`mailwait-leave:h${i}`, `m${i}@example.com`);
+  }
+  await env.SUBSCRIBERS.put('sub:reader@example.com', '{}');
+
+  env.SUBSCRIBERS.gets = 0;
+  const exported = await (await worker.fetch(admin('/mail-waitlist/members'), env)).json();
+  assert.equal(exported.count, 700);
+  assert.equal(env.SUBSCRIBERS.gets, 0, 'members come from list metadata, not one get each');
+
+  const first = await (await worker.fetch(admin('/mail-waitlist/members?confirm=delete-all', 'DELETE'), env)).json();
+  assert.equal(first.remaining, true);
+  assert.ok(env.SUBSCRIBERS.deletes <= 900, 'one request stays inside the per-invocation KV budget');
+  const second = await (await worker.fetch(admin('/mail-waitlist/members?confirm=delete-all', 'DELETE'), env)).json();
+  assert.equal(second.remaining, false);
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()], ['sub:reader@example.com']);
+});
+
+test('confirming twice leaves exactly one removal lookup for the address', async (t) => {
+  const env = environment();
+  const originalFetch = globalThis.fetch;
+  const tokens = [];
+  globalThis.fetch = async (_url, init) => {
+    tokens.push(JSON.parse(init.body).text.match(/confirm\?token=([A-Za-z0-9_-]{43})/)[1]);
+    return new Response('{}');
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await worker.fetch(waitlistRequest({ email: 'twice@example.com' }), env);
+  await env.SUBSCRIBERS.delete([...env.SUBSCRIBERS.values.keys()].find((k) => k.startsWith('mailwait-sent:')));
+  await worker.fetch(waitlistRequest({ email: 'twice@example.com' }), env);
+  for (const token of tokens) {
+    await worker.fetch(new Request(`https://newsletter.test/mail-waitlist/confirm?token=${token}`), env);
+  }
+  const leaveKeys = [...env.SUBSCRIBERS.values.keys()].filter((k) => k.startsWith('mailwait-leave:'));
+  assert.equal(leaveKeys.length, 1);
+  await worker.fetch(admin('/mail-waitlist/member?email=twice@example.com', 'DELETE'), { ...env, ADMIN_TOKEN: 'admin' });
+  assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('twice@example.com')), []);
 });

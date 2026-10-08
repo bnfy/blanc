@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import MailNav from '../../components/MailNav.astro';
 import '../../styles/mail.css';
 ---
-<BaseLayout title="Privacy Policy for Blanc Mail" description="How Blanc Mail for macOS handles Gmail data, local storage, Private Push signals, license validation, and signed updates." path="/mail/privacy" header="legal" analytics={false}>
+<BaseLayout title="Privacy Policy for Blanc Mail" description="How Blanc Mail for macOS handles Gmail data, local storage, Private Push signals, license validation, and signed updates." path="/mail/privacy" header="legal" analytics={false} social="none">
   <main id="main-content" class="mail-page mail-prose">
     <p class="mail-eyebrow">Blanc Mail · Pre-release policy</p><h1>Privacy.</h1><p class="mail-muted">Prepared September 22, 2026 · Effective when Blanc Mail launches.</p><MailNav />
     <h2>Your Gmail account</h2><p>Blanc Mail connects directly from your Mac to Google after you authorize it. It first requests access to read your mailbox and send messages you choose to send. Managing drafts, organizing mail, and using Gmail Settings request additional permissions when you first use those features. Google credentials remain in the macOS Keychain. Mail metadata, opened bodies, synchronization state, and recoverable drafts may be stored in your Mac's Application Support folder. Bananify does not receive your mail content or OAuth tokens.</p>

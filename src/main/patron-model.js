@@ -52,11 +52,25 @@ function resolveKind(benefitId, allowlist) {
   return KINDS.has(kind) ? kind : null;
 }
 
+// The license-key object readBenefitId reads from, so the benefit and its
+// activation limit always come from the same object.
+function readLicenseObject(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  for (const candidate of [payload, payload.license_key, payload.activation?.license_key]) {
+    if (candidate && typeof candidate === 'object' && candidate.benefit_id != null) return candidate;
+  }
+  return null;
+}
+
 function isUnactivatedSuiteLicense(payload, suiteBenefitIDs) {
-  if (!payload || typeof payload !== 'object' || !(suiteBenefitIDs instanceof Set)) return false;
-  const license = payload.license_key ?? payload;
-  // A configured activation limit must never be bypassed by /validate.
-  return license?.limit_activations === null && suiteBenefitIDs.has(readBenefitId(payload));
+  if (!(suiteBenefitIDs instanceof Set)) return false;
+  const license = readLicenseObject(payload);
+  // A configured activation limit must never be bypassed by /validate, so the
+  // limit has to be present and explicitly null, not merely absent.
+  return Boolean(license) &&
+    Object.prototype.hasOwnProperty.call(license, 'limit_activations') &&
+    license.limit_activations === null &&
+    suiteBenefitIDs.has(license.benefit_id);
 }
 
 function isRecordActive(record, now) {

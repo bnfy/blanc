@@ -22,6 +22,9 @@ const EMAIL_RETRY_TTL = 10 * 60;
 const CONFIRM_TTL = 24 * 60 * 60;
 const QUARANTINE_TTL = 30 * 24 * 60 * 60;
 const WORKER_ORIGIN = 'https://blanc-newsletter.bnfy-441.workers.dev';
+// Workers allow about 1000 KV operations per invocation. A purge deletes at
+// most this many keys per request and reports whether more remain.
+const PURGE_BATCH = 900;
 
 // Each list owns a disjoint set of KV prefixes; none of the waitlist prefixes
 // starts with a newsletter prefix, so a newsletter export or removal can
@@ -369,8 +372,17 @@ async function handleConfirm(env, url, list = LISTS.newsletter) {
   }
   const ts = new Date().toISOString();
   const unsubscribeHash = await sha256(pending.unsubscribeToken);
+  // A second confirmation replaces the member's removal token; drop the old
+  // lookup so it cannot keep the address after the record is removed.
+  const previous = await env.SUBSCRIBERS.get(`${list.member}${pending.email}`, { type: 'json' });
+  if (TOKEN_RE.test(previous?.unsubscribeToken ?? '') && previous.unsubscribeToken !== pending.unsubscribeToken) {
+    await env.SUBSCRIBERS.delete(`${list.leave}${await sha256(previous.unsubscribeToken)}`);
+  }
+  const member = { ts, unsubscribeToken: pending.unsubscribeToken };
   await Promise.all([
-    env.SUBSCRIBERS.put(`${list.member}${pending.email}`, JSON.stringify({ ts, unsubscribeToken: pending.unsubscribeToken })),
+    // The metadata copy lets an export read every member from list() pages
+    // instead of one get() per member.
+    env.SUBSCRIBERS.put(`${list.member}${pending.email}`, JSON.stringify(member), { metadata: member }),
     env.SUBSCRIBERS.put(`${list.leave}${unsubscribeHash}`, pending.email),
     env.SUBSCRIBERS.delete(pendingKey),
     env.SUBSCRIBERS.delete(`${list.quarantine}${pending.email}`),
@@ -391,21 +403,22 @@ async function handleUnsubscribe(env, url, list = LISTS.newsletter) {
 const authorized = (request, env) =>
   env.ADMIN_TOKEN && request.headers.get('Authorization') === `Bearer ${env.ADMIN_TOKEN}`;
 
-async function keysWithPrefix(env, prefix) {
-  const names = [];
+async function keysWithPrefix(env, prefix, limit = Infinity) {
+  const keys = [];
   let cursor;
   do {
     const result = await env.SUBSCRIBERS.list({ prefix, cursor });
-    names.push(...result.keys.map(({ name }) => name));
+    keys.push(...result.keys);
     cursor = result.list_complete ? undefined : result.cursor;
-  } while (cursor);
-  return names;
+  } while (cursor && keys.length < limit);
+  return keys;
 }
 
 async function listMembers(env, list = LISTS.newsletter) {
   const subscribers = [];
-  for (const name of await keysWithPrefix(env, list.member)) {
-    const record = await env.SUBSCRIBERS.get(name, { type: 'json' });
+  for (const { name, metadata } of await keysWithPrefix(env, list.member)) {
+    // Records confirmed before metadata was written still need one read.
+    const record = metadata?.ts ? metadata : await env.SUBSCRIBERS.get(name, { type: 'json' });
     const token = record?.unsubscribeToken;
     subscribers.push({
       email: name.slice(list.member.length),
@@ -418,7 +431,7 @@ async function listMembers(env, list = LISTS.newsletter) {
   subscribers.sort((a, b) => (a.ts < b.ts ? -1 : 1));
 
   const quarantined = [];
-  for (const name of await keysWithPrefix(env, list.quarantine)) {
+  for (const { name } of await keysWithPrefix(env, list.quarantine)) {
     const record = await env.SUBSCRIBERS.get(name, { type: 'json' });
     quarantined.push({ email: name.slice(list.quarantine.length), ts: record?.ts });
   }
@@ -442,22 +455,28 @@ async function handleRemove(env, url, list = LISTS.newsletter) {
 }
 
 // The waitlist promise is deletion after the launch announcement. Purging
-// takes an explicit confirmation value so a stray DELETE cannot empty it.
+// takes an explicit confirmation value so a stray DELETE cannot empty it, and
+// works in bounded batches: repeat the request until `remaining` is false.
 async function purgeWaitlist(env, url) {
   if (url.searchParams.get('confirm') !== 'delete-all') {
     return json({ error: 'confirm=delete-all required' }, 400);
   }
   const list = LISTS.mailWaitlist;
-  const members = await keysWithPrefix(env, list.member);
-  const names = [
-    ...members,
-    ...(await keysWithPrefix(env, list.leave)),
-    ...(await keysWithPrefix(env, list.quarantine)),
-    ...(await keysWithPrefix(env, list.pending)),
-    ...(await keysWithPrefix(env, list.sent)),
-  ];
-  for (const name of names) await env.SUBSCRIBERS.delete(name);
-  return json({ deleted: members.length });
+  const prefixes = [list.member, list.leave, list.quarantine, list.pending, list.sent];
+  let budget = PURGE_BATCH;
+  let deleted = 0;
+  for (const prefix of prefixes) {
+    const keys = (await keysWithPrefix(env, prefix, budget)).slice(0, budget);
+    for (const { name } of keys) await env.SUBSCRIBERS.delete(name);
+    if (prefix === list.member) deleted = keys.length;
+    budget -= keys.length;
+    if (budget <= 0) break;
+  }
+  let remaining = false;
+  for (const prefix of prefixes) {
+    if ((await env.SUBSCRIBERS.list({ prefix, limit: 1 })).keys.length) { remaining = true; break; }
+  }
+  return json({ deleted, remaining });
 }
 
 export default {

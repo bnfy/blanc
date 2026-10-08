@@ -102,3 +102,34 @@ test('network, rate-limit and server failures preserve existing Browser grace', 
     assert.equal(subject.record().lastValidatedAt, initial.lastValidatedAt);
   }
 });
+
+test('a 404 that is not Polar\'s ResourceNotFound keeps the outage grace', async () => {
+  for (const payload of [null, { message: 'Not Found' }, '<html>404</html>']) {
+    const subject = loadPatron({ initial: subscription(patronID), responses: [response(404, payload)] });
+    await subject.api.validateIfDue();
+    assert.equal(subject.record().lastStatus, 'granted', JSON.stringify(payload));
+    assert.equal(model.isRecordActive(subject.record(), Date.now()), true);
+  }
+});
+
+test('Polar rate limits and outages during activation report a retry, not a bad key', async () => {
+  for (const status of [429, 500, 503]) {
+    const subject = loadPatron({ responses: [response(status, {})] });
+    const result = await subject.api.activate('fixture');
+    assert.equal(result.ok, false);
+    assert.match(result.message, /not responding right now/);
+    assert.equal(subject.requests.length, 1, 'no fallback request after an outage');
+  }
+  const viaFallback = loadPatron({ responses: [response(403, {}), response(503, {})] });
+  assert.match((await viaFallback.api.activate('fixture')).message, /not responding right now/);
+});
+
+test('the Suite limit check reads the same license object as the benefit ID', () => {
+  const suite = new Set([suiteID]);
+  assert.equal(model.isUnactivatedSuiteLicense({ activation: { license_key: { benefit_id: suiteID, limit_activations: null } } }, suite), true);
+  assert.equal(model.isUnactivatedSuiteLicense({ license_key: { benefit_id: suiteID, limit_activations: null } }, suite), true);
+  // Top-level benefit with a limit, nested object without one: the limit wins.
+  assert.equal(model.isUnactivatedSuiteLicense({ benefit_id: suiteID, limit_activations: 2, license_key: { limit_activations: null } }, suite), false);
+  // A missing limit is not the same as an explicit null.
+  assert.equal(model.isUnactivatedSuiteLicense({ benefit_id: suiteID }, suite), false);
+});

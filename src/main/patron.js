@@ -34,6 +34,10 @@ for (const id of suiteBenefitIDs[app.isPackaged ? 'production' : 'sandbox']) {
 
 async function readJson(res) { try { return await res.json(); } catch { return null; } }
 
+const UNAVAILABLE = 'Polar is not responding right now. Try again in a few minutes.';
+// Rate limiting and server errors say nothing about the key itself.
+const isServiceFailure = res => res.status === 429 || res.status >= 500;
+
 async function activate(key) {
   const trimmed = String(key ?? '').trim();
   if (!trimmed) return { ok: false, message: 'Enter a license key.' };
@@ -50,6 +54,7 @@ async function activate(key) {
   if (res.ok) {
     payload = await readJson(res);
   } else {
+    if (isServiceFailure(res)) return { ok: false, message: UNAVAILABLE };
     if (suiteBenefitSet.size === 0) return { ok: false, message: 'That license key could not be activated.' };
     // Polar uses /validate directly for benefits without device activations.
     // Only an explicitly configured Suite benefit with limit_activations=null
@@ -61,6 +66,7 @@ async function activate(key) {
         body: JSON.stringify({ key: trimmed, organization_id: ORG_ID }),
       });
     } catch { return { ok: false, message: 'Could not reach Polar. Check your connection and try again.' }; }
+    if (isServiceFailure(validated)) return { ok: false, message: UNAVAILABLE };
     if (!validated.ok) return { ok: false, message: 'That license key could not be activated.' };
     payload = await readJson(validated);
     if (!model.isUnactivatedSuiteLicense(payload, suiteBenefitSet)) {
@@ -98,16 +104,20 @@ async function validateIfDue() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ organization_id: ORG_ID, key: p.key, activation_id: p.activationId }),
     });
-    const body = res.ok ? await readJson(res) : null;
+    const body = res.ok || res.status === 404 ? await readJson(res) : null;
     // Read status defensively (top-level or nested) so a validate response that
     // wraps the license key can't be misread as an unparseable body.
     const status = model.readLicenseStatus(body);
-    if (res.status === 404) {
+    if (!res.ok) {
       // Polar rejects missing, revoked, expired, or invalid activation keys
-      // with 404. This is an authoritative rejection, not a service outage.
-      outcome = { kind: 'rejected' };
+      // with a 404 whose JSON body says ResourceNotFound. That is authoritative.
+      // Any other failure, including a 404 from a moved route or an edge
+      // misroute, stays an outage and keeps the grace window.
+      outcome = res.status === 404 && body?.error === 'ResourceNotFound'
+        ? { kind: 'rejected' }
+        : { kind: 'unreachable' };
     } else if (!body || status === null) {
-      outcome = { kind: 'unreachable' };                 // other non-ok or malformed responses remain ambiguous
+      outcome = { kind: 'unreachable' };                 // malformed responses remain ambiguous
     } else {
       const benefitOk = model.resolveKind(model.readBenefitId(body), BENEFIT_ALLOWLIST) === 'subscription';
       outcome = { kind: 'ok', status, expiresAt: model.readExpiresAt(body), benefitOk };

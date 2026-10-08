@@ -6,7 +6,10 @@
 // and the list is deleted after the launch announcement. The privacy page's
 // "Blanc Mail waitlist" section describes exactly this contract — change them
 // together. "website" is the same honeypot the newsletter form uses.
-// method="post" keeps an address out of the page URL if the script never runs.
+// The button starts disabled and the script enables it, so the form cannot be
+// submitted before the script is ready (implicit submission also stops at a
+// disabled default button). method="post" is a second guard that keeps an
+// address out of the page URL.
 const { id = 'waitlist' } = Astro.props;
 ---
 <form class="mail-waitlist" id={id} method="post" data-mail-waitlist>
@@ -14,10 +17,11 @@ const { id = 'waitlist' } = Astro.props;
   <span class="mail-waitlist-controls">
     <input id={`${id}Email`} name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email">
     <input class="mail-waitlist-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <button type="submit" data-track="mail_waitlist_join">Join the waitlist</button>
+    <button type="submit" data-track="mail_waitlist_join" disabled>Join the waitlist</button>
   </span>
   <p class="mail-waitlist-note">We’ll ask you to confirm by email. The waitlist is separate from the Blanc newsletter, and we delete it after the launch announcement. <a href="/privacy#mail-waitlist">How we handle it</a></p>
   <p class="mail-waitlist-status" role="status" aria-live="polite"></p>
+  <noscript><p class="mail-waitlist-note">Turn on JavaScript to join the waitlist, or email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off-->.</p></noscript>
 </form>
 <script>
   const WAITLIST_ENDPOINT = 'https://blanc-newsletter.bnfy-441.workers.dev/mail-waitlist';
@@ -27,6 +31,7 @@ const { id = 'waitlist' } = Astro.props;
     const button = form.querySelector('button')!;
     const email = form.elements.namedItem('email') as HTMLInputElement;
     const website = form.elements.namedItem('website') as HTMLInputElement;
+    button.disabled = false;
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       status.textContent = '';
