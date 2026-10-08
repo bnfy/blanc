@@ -76,7 +76,7 @@
 .mail-home .mail-home-lights i:nth-child(2){background:#febc2e}
 .mail-home .mail-home-lights i:nth-child(3){background:#28c840}
 /* The Island placeholder borrows the Browser's resting-island tokens from site.css. */
-.mail-home .mail-home-island{position:absolute;z-index:2;top:9px;left:50%;display:flex;align-items:center;gap:8px;width:min(340px,58%);height:32px;padding:0 12px;transform:translateX(-50%);border:1px solid var(--border,#dedede);border-radius:13px;background:var(--island-resting-surface,#fffffff0);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--shadow-island-resting)}
+.mail-home .mail-home-island{position:absolute;z-index:2;top:9px;left:50%;display:flex;align-items:center;gap:8px;width:min(300px,calc(100% - 24px));height:32px;padding:0 12px;transform:translateX(-50%);border:1px solid var(--border,#dedede);border-radius:13px;background:var(--island-resting-surface,#fffffff0);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--shadow-island-resting)}
 .mail-home .mail-home-island i.is-glyph{flex:none;width:8px;height:8px;border-radius:50%;background:#35250e2e}
 .mail-home .mail-home-island-pips{display:flex;align-items:center;gap:4px;flex:none;margin:0 2px}
 .mail-home .mail-home-island-pips i{width:5px;height:5px;border-radius:50%;background:#35250e2e}
@@ -86,7 +86,7 @@
 .mail-home .mail-home-bar{display:block;height:8px;width:72%;border-radius:4px;background:#35250e1f}
 .mail-home .mail-home-bar.is-short{width:46%}
 .mail-home .mail-home-sidebar .mail-home-bar.is-strong{height:26px;width:100%;margin:-4px 0 2px;border-radius:7px;background:#805d2833}
-.mail-home .mail-home-list{display:flex;flex-direction:column;background:#fffcf7;border-right:.5px solid #35250e1f;padding-top:52px}
+.mail-home .mail-home-list{position:relative;display:flex;flex-direction:column;background:#fffcf7;border-right:.5px solid #35250e1f;padding-top:52px}
 .mail-home .mail-home-row{display:flex;flex-direction:column;gap:7px;margin:0 8px;padding:13px 12px;border-bottom:.5px solid #35250e17}
 .mail-home .mail-home-row.is-selected{border-radius:9px;border-bottom-color:transparent;background:#efe2cc}
 .mail-home .mail-home-row b{display:block;height:8px;width:48%;border-radius:4px;background:#35250e47}
@@ -123,8 +123,8 @@
 .mail-home p.mail-home-suite{max-width:620px;margin:28px auto 0;color:#4f473d;font-size:16px;line-height:1.55;text-wrap:pretty}
 .mail-home p.mail-muted.mail-home-suite{margin-top:12px;color:#6b6257;font-size:14px}
 
-@media(max-width:860px){.mail-home .mail-home-window{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr)}.mail-home .mail-home-sidebar{display:none}.mail-home .mail-home-tiles{grid-template-columns:1fr;max-width:560px;margin-inline:auto}}
-@media(max-width:560px){.mail-home .mail-home-window{grid-template-columns:1fr;height:300px}.mail-home .mail-home-island{width:calc(100% - 156px);gap:6px;padding:0 10px}.mail-home .mail-home-reader{display:none}.mail-home .mail-home-list{border-right:0}.mail-home .mail-home-family{grid-template-columns:1fr}.mail-home .mail-home-stage{border-radius:24px}.mail-home .mail-home-nav .mail-subnav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}.mail-home .mail-home-tile{padding:24px}}
+@media(max-width:860px){.mail-home .mail-home-window{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.mail-home .mail-home-sidebar{display:none}.mail-home .mail-home-island{width:calc(100% - 156px);gap:6px;padding:0 10px}.mail-home .mail-home-tiles{grid-template-columns:1fr;max-width:560px;margin-inline:auto}}
+@media(max-width:560px){.mail-home .mail-home-window{grid-template-columns:1fr;height:300px}.mail-home .mail-home-reader{display:none}.mail-home .mail-home-list{border-right:0}.mail-home .mail-home-family{grid-template-columns:1fr}.mail-home .mail-home-stage{border-radius:24px}.mail-home .mail-home-nav .mail-subnav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}.mail-home .mail-home-tile{padding:24px}}
 
 /* Entrance: the icon arrives as a material (scale + blur together), then the
    copy rises a few pixels after it. Critically damped curve, no overshoot. */
