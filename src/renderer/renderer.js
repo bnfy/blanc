@@ -1009,9 +1009,48 @@
   window.addEventListener('resize', reportIslandRect);
   requestAnimationFrame(reportIslandRect);
 
-  window.browserAPI.onIslandProximity(({ k }) => {
-    const next = Number(k) || 0;
+  // Main's value is a target, and it arrives on main's clock (at most ~60 a
+  // second, only while the cursor moves). Ease toward it once per DISPLAY
+  // frame instead. A CSS transition restarted on every message moved in
+  // stop-start steps on a 120 Hz screen (about one frame in five barely moved,
+  // then the pill lurched), and that gets worse as the refresh rate rises.
+  const ISLAND_EASE_MS = 60;    // time constant: ~95% of the way in 180 ms
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let islandTarget = 0;
+  let islandShown = 0;
+  let islandFrame = 0;
+  let islandFrameAt = 0;
+  const paintIslandK = (next) => {
     islandPill.style.setProperty('--island-k', String(next));
     islandPill.classList.toggle('proximity-active', next > 0);
+  };
+  const stepIslandK = (now) => {
+    const dt = Math.min(64, Math.max(0, now - islandFrameAt));
+    islandFrameAt = now;
+    islandShown += (islandTarget - islandShown) * (1 - Math.exp(-dt / ISLAND_EASE_MS));
+    // 0.01 of k is under 0.1 px of movement; settle there rather than restyle
+    // for another 200 ms of invisible steps.
+    if (Math.abs(islandTarget - islandShown) < 0.01) islandShown = islandTarget;
+    paintIslandK(Math.round(islandShown * 10000) / 10000);
+    islandFrame = islandShown === islandTarget ? 0 : requestAnimationFrame(stepIslandK);
+  };
+  window.browserAPI.onIslandProximity(({ k }) => {
+    islandTarget = Number(k) || 0;
+    if (reducedMotion.matches) {
+      // The effect is off entirely under reduced motion (styles.css forces the
+      // transform to none), so the value must say so too: reportIslandRect
+      // divides the scale for --island-k back out of the measured box.
+      cancelAnimationFrame(islandFrame);
+      islandFrame = 0;
+      islandShown = 0;
+      paintIslandK(0);
+      return;
+    }
+    if (!islandFrame) {
+      // Time the first step from the message, so the pace is the same at any
+      // refresh rate.
+      islandFrameAt = performance.now();
+      islandFrame = requestAnimationFrame(stepIslandK);
+    }
   });
 })();

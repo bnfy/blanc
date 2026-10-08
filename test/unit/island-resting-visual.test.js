@@ -52,6 +52,10 @@ test('resting island counter-scales fixed geometry and grows every element toget
   assert.match(renderer, /const ISLAND_SCALE = 0\.02/);
   assert.match(renderer, /const scale = 1 \+ ISLAND_SCALE \* k/);
   assert.match(renderer, /classList\.toggle\('proximity-active', next > 0\)/);
+  // Proximity is eased per display frame in the renderer (see
+  // island-proximity-easing.test.js); a CSS transform transition restarted by
+  // every IPC value made the motion stop-start, so the pill must not carry one.
+  assert.doesNotMatch(pill, /^\s*transition\s*:/m);
   assert.match(styles, /#islandPill,\s*#islandPill\.proximity-active\s*\{\s*transform:\s*none;\s*transition:\s*none;/);
 });
 
