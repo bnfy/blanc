@@ -4,9 +4,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const model = require('../../src/main/patron-model');
-const suiteIDs = require('../../src/main/patron-suite-benefits.json');
-
-const suiteID = suiteIDs.sandbox[0];
 const patronID = '2f5e210c-7d63-4ba6-8818-45f3b7fc9b93';
 const mailID = '819e65da-12b8-4cb4-a32d-329446b40811';
 
@@ -34,56 +31,20 @@ function loadPatron({ responses, initial = null, packaged = false }) {
       };
       if (name === './settings') return settings;
       if (name === './patron-model') return model;
-      if (name === './patron-suite-benefits.json') return suiteIDs;
       throw new Error(`Unexpected dependency: ${name}`);
     },
   });
   return { api: module.exports, requests, record: () => record };
 }
 
-function subscription(benefitId = suiteID) {
+function subscription(benefitId = patronID) {
   return { kind: 'subscription', key: 'sandbox-fixture', benefitId, activationId: null,
     activatedAt: Date.now() - 1000, lastValidatedAt: Date.now() - 1000,
     lastAttemptedAt: 0, lastStatus: 'granted' };
 }
 
-test('configured unlimited Suite activates through sandbox validation with no device identity', async () => {
-  const subject = loadPatron({ responses: [response(403, {}), response(200, {
-    benefit_id: suiteID, limit_activations: null, status: 'granted', expires_at: null,
-  })] });
-  assert.equal((await subject.api.activate(' suite-fixture ')).ok, true);
-  assert.equal(subject.record().kind, 'subscription');
-  assert.equal(subject.record().activationId, null);
-  assert.equal(subject.record().benefitId, suiteID);
-  assert.deepEqual(subject.requests.map(r => r.url), [
-    'https://sandbox-api.polar.sh/v1/customer-portal/license-keys/activate',
-    'https://sandbox-api.polar.sh/v1/customer-portal/license-keys/validate',
-  ]);
-  assert.deepEqual(subject.requests[1].body, {
-    key: 'suite-fixture', organization_id: 'a6ffc65a-8ba3-4973-8a2a-e057aa811f9f',
-  });
-});
-
-test('Mail, Patron and activation-limited Suite cannot use the direct Suite path', async () => {
-  for (const [benefit_id, limit_activations] of [[mailID, null], [patronID, null], [suiteID, 1]]) {
-    const subject = loadPatron({ responses: [response(403, {}), response(200, {
-      benefit_id, limit_activations, status: 'granted', expires_at: null,
-    })] });
-    assert.equal((await subject.api.activate('fixture')).ok, false);
-    assert.equal(subject.record(), null);
-  }
-});
-
-test('production has no Suite fallback while its benefits remain unconfigured', async () => {
-  assert.deepEqual(suiteIDs.production, []);
-  const subject = loadPatron({ packaged: true, responses: [response(403, {})] });
-  assert.equal((await subject.api.activate('fixture')).ok, false);
-  assert.equal(subject.requests.length, 1);
-  assert.match(subject.requests[0].url, /^https:\/\/api\.polar\.sh\//);
-});
-
-test('Polar HTTP 404 invalidates cached Suite and Patron instead of granting outage grace', async () => {
-  for (const benefitId of [suiteID, patronID]) {
+test('Polar HTTP 404 invalidates a cached Patron key instead of granting outage grace', async () => {
+  for (const benefitId of [patronID]) {
     const subject = loadPatron({ initial: subscription(benefitId), responses: [response(404, {
       error: 'ResourceNotFound', detail: 'License key is no longer active.',
     })] });
@@ -118,18 +79,25 @@ test('Polar rate limits and outages during activation report a retry, not a bad 
     const result = await subject.api.activate('fixture');
     assert.equal(result.ok, false);
     assert.match(result.message, /not responding right now/);
-    assert.equal(subject.requests.length, 1, 'no fallback request after an outage');
+    assert.equal(subject.requests.length, 1);
   }
-  const viaFallback = loadPatron({ responses: [response(403, {}), response(503, {})] });
-  assert.match((await viaFallback.api.activate('fixture')).message, /not responding right now/);
 });
 
-test('the Suite limit check reads the same license object as the benefit ID', () => {
-  const suite = new Set([suiteID]);
-  assert.equal(model.isUnactivatedSuiteLicense({ activation: { license_key: { benefit_id: suiteID, limit_activations: null } } }, suite), true);
-  assert.equal(model.isUnactivatedSuiteLicense({ license_key: { benefit_id: suiteID, limit_activations: null } }, suite), true);
-  // Top-level benefit with a limit, nested object without one: the limit wins.
-  assert.equal(model.isUnactivatedSuiteLicense({ benefit_id: suiteID, limit_activations: 2, license_key: { limit_activations: null } }, suite), false);
-  // A missing limit is not the same as an explicit null.
-  assert.equal(model.isUnactivatedSuiteLicense({ benefit_id: suiteID }, suite), false);
+test('activation accepts only Browser benefits: a Mail key is not recognized', async () => {
+  const mail = loadPatron({ responses: [response(200, { id: 'act_1', license_key: { benefit_id: mailID, status: 'granted' } })] });
+  assert.equal((await mail.api.activate('mail-key')).ok, false);
+  assert.equal(mail.record(), null);
+  const rejected = loadPatron({ responses: [response(403, {})] });
+  assert.match((await rejected.api.activate('fixture')).message, /could not be activated/);
+  assert.equal(rejected.requests.length, 1, 'a rejected activation makes no second request');
+});
+
+test('a Patron key keeps validating after its subscription moves to Suite', async () => {
+  // Suite carries the same Patron benefit, so Polar keeps the grant and key.
+  const subject = loadPatron({ initial: subscription(patronID), responses: [response(200, {
+    benefit_id: patronID, status: 'granted', expires_at: null,
+  })] });
+  await subject.api.validateIfDue();
+  assert.equal(subject.record().lastStatus, 'granted');
+  assert.equal(subject.record().key, 'sandbox-fixture');
 });

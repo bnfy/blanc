@@ -52,27 +52,6 @@ function resolveKind(benefitId, allowlist) {
   return KINDS.has(kind) ? kind : null;
 }
 
-// The license-key object readBenefitId reads from, so the benefit and its
-// activation limit always come from the same object.
-function readLicenseObject(payload) {
-  if (!payload || typeof payload !== 'object') return null;
-  for (const candidate of [payload, payload.license_key, payload.activation?.license_key]) {
-    if (candidate && typeof candidate === 'object' && candidate.benefit_id != null) return candidate;
-  }
-  return null;
-}
-
-function isUnactivatedSuiteLicense(payload, suiteBenefitIDs) {
-  if (!(suiteBenefitIDs instanceof Set)) return false;
-  const license = readLicenseObject(payload);
-  // A configured activation limit must never be bypassed by /validate, so the
-  // limit has to be present and explicitly null, not merely absent.
-  return Boolean(license) &&
-    Object.prototype.hasOwnProperty.call(license, 'limit_activations') &&
-    license.limit_activations === null &&
-    suiteBenefitIDs.has(license.benefit_id);
-}
-
 function isRecordActive(record, now) {
   if (!record) return false;
   if (record.kind === 'founding' || record.kind === 'lifetime') return true;
@@ -120,4 +99,4 @@ function downgradeMirror(patron) {
   return { key: patron.key, activationId: patron.activationId ?? null, activatedAt: patron.activatedAt };
 }
 
-module.exports = { readBenefitId, resolveKind, isUnactivatedSuiteLicense, parseExpiresAt, readLicenseStatus, readExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };
+module.exports = { readBenefitId, resolveKind, parseExpiresAt, readLicenseStatus, readExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };

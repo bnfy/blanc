@@ -1,4 +1,64 @@
-# Mail and Suite sandbox setup — updated October 3, 2026
+# Mail and Suite sandbox setup — updated October 8, 2026
+
+## October 8 decision: one license key per app
+
+The owner decided that changing between Patron, Mail, and Suite must never
+require entering a new key in an app the customer already uses. Polar keeps a
+benefit grant, and therefore its license key, when a subscription changes to a
+product that carries the same benefit; it revokes only benefits the new product
+lacks (`list_outdated_grants` filters on `benefit_id NOT IN` the new product's
+benefits). The separate Suite benefit is therefore retired. Suite carries the
+existing per-app benefits instead:
+
+| Product | Benefits it must carry |
+| --- | --- |
+| Patron Monthly | Blanc Patron Monthly License (unchanged) |
+| Patron Annual | Blanc Patron Annual License (unchanged) |
+| Mail Monthly, Mail Annual | Mail license `819e65da-…` (unchanged) |
+| Suite Monthly | Blanc Patron Monthly License + Mail license |
+| Suite Annual | Blanc Patron Annual License + Mail license |
+
+Browser accepts only its Patron and founding benefits; Mail accepts only the
+Mail benefit plus its legacy `PM1-` keys. Neither app has a Suite allowlist.
+Because Patron Monthly and Annual are separate benefits, a change of billing
+period still issues a new Browser key, as it already does for Patron alone, so
+plan changes should be offered within the same billing period.
+
+### Sandbox changes for the owner
+
+1. On Suite Monthly, attach **Blanc Patron Monthly License** and the Mail
+   license benefit, then detach the Suite benefit `c5ebb27b-…`.
+2. On Suite Annual, attach **Blanc Patron Annual License** and the Mail
+   license benefit, then detach the Suite benefit.
+3. Archive the Suite benefit once no sandbox subscription holds it. Existing
+   sandbox Suite subscriptions are test fixtures only; check in the portal
+   whether they picked up the new benefits, and start fresh purchases for the
+   checklist below rather than relying on them.
+4. Allow plan changes only between products with the same billing period.
+
+### Acceptance checklist
+
+- [ ] New Suite Monthly purchase: the receipt and portal show a Browser key
+      and a Mail key. The Browser key activates Patron in Browser; the Mail key
+      unlocks authoring in Mail; each app rejects the other's key.
+- [ ] Patron Monthly → Suite Monthly (prorate and charge now): the stored
+      Patron key's ID and value are unchanged, Browser stays Patron through its
+      next daily validation, and a Mail key is newly granted.
+- [ ] Suite Monthly → Patron Monthly: the Browser key is unchanged and still
+      valid; the Mail key is revoked and Mail closes authoring after its next
+      validation.
+- [ ] Mail Monthly → Suite Monthly and back: the Mail key is unchanged in both
+      directions; a Browser key appears with Suite and is revoked after.
+- [ ] Repeat one upgrade on the Annual products.
+- [ ] Cancel Suite at period end: both keys are revoked at the end of the
+      period, not before.
+- [ ] Record the customer-facing amount shown before the upgrade is
+      confirmed (still an open gate; see below).
+
+The October 3 and earlier evidence below used the retired Suite benefit and
+is kept for history only.
+
+## Previous Suite-benefit evidence (superseded)
 
 Suite sandbox benefit: `c5ebb27b-529f-43f4-946a-5fcde32d4ad0` in the existing
 Bananify Creative sandbox organization `a6ffc65a-8ba3-4973-8a2a-e057aa811f9f`.
