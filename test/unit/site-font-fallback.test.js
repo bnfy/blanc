@@ -20,6 +20,14 @@ test('every website Newsreader and Inter stack names its metric-matched fallback
   assert.ok(newsreader.length >= 2 && inter.length >= 3, 'the font stacks were found');
   for (const stack of newsreader) assert.match(stack, /Newsreader Fallback/, stack);
   for (const stack of inter) assert.match(stack, /Inter Fallback/, stack);
+  // Page stylesheets reuse the site.css stacks through their variables rather
+  // than restating a stack that could miss its fallback.
+  for (const file of ['site/src/styles/mail.css']) {
+    const pageStacks = [...read(file).matchAll(/(?:font-family:|font:)[^;}]*/g)].map(match => match[0]);
+    for (const stack of pageStacks.filter(stack => /Newsreader|\bInter\b/.test(stack))) {
+      assert.match(stack, /Newsreader Fallback|Inter Fallback/, `${file}: ${stack}`);
+    }
+  }
 });
 
 test('the page head preloads the Newsreader latin file the headings use', () => {
