@@ -666,7 +666,7 @@ import '../styles/features-bento.css';
           <p class="pop-eyebrow">Time-of-day wallpaper</p>
           <h2 id="pop-wallpaper-title">A Start Page that follows the time of day.</h2>
           <p>Turn on time-of-day wallpaper in Settings → General, and the Start Page artwork moves through dawn, day, dusk and night with your computer’s clock.</p>
-          <p class="pop-note">The wallpaper setting stays on this device.</p>
+          <p class="pop-note">When Sync is on, the on/off choice follows you to your other devices; the artwork always follows each computer’s own clock.</p>
         </FeaturePop>
         <FeaturePop id="ad-blocking" feature="ad-blocking" href="/features/ad-blocking" linkText="Read more about blocking" demo>
           <div slot="visual" class="demo-slot" data-demo="shield"></div>
@@ -1005,7 +1005,7 @@ const evidenceGroups = {
   glance: G(['src/main/glance-layout.js', 'src/main/main.js', 'spec/acceptance/glance.feature'], 'Another tab from the same window beside the main page; resizable, swappable, closable; never restored or synced.'),
   island: G(['src/renderer/index.html', 'src/renderer/renderer.js', 'src/renderer/styles.css', 'spec/acceptance/island-and-commands.feature'], 'The resting Island keeps a reserved band above the page and replaces the tab strip and toolbar; its panel overlays the page.'),
   quietTabs: G(['src/main/tab-sleep.js', 'settings-schema/schema.json', 'spec/acceptance/quiet-tabs.feature', 'test/unit/tab-sleep.test.js'], 'Eligible background tabs release renderer memory after the device-local delay (off, 30m, 1h default, 6h) and reload when revisited; audible, muted, pinned, capturing and dirty tabs stay awake. Claims name memory only.'),
-  wallpaper: G(['src/renderer/pages/newtab.js', 'src/renderer/pages/newtab-wallpaper.js', 'src/main/settings.js'], 'Time-of-day wallpaper is a device-local Settings → General option following the computer clock through dawn, day, dusk and night.'),
+  wallpaper: G(['src/renderer/pages/newtab.js', 'src/renderer/pages/newtab-wallpaper.js', 'src/main/settings.js'], 'Time-of-day wallpaper is a Settings → General option; the artwork follows the local computer clock through dawn, day, dusk and night. Its on/off choice (newtabDynamicWallpaper) is in SYNCED_KEYS, so it follows the user only when they turn on opt-in Sync.'),
   blocking: G(['src/main/adblock.js', 'src/main/shield-model.js', 'settings-schema/schema.json', 'src/renderer/overlay.html', 'spec/acceptance/ad-blocking.feature', 'adblock/sources/pinned.json'], 'Blanc Blocker on by default with bundled EasyList and EasyPrivacy; shield popover shows count, connection scheme and a per-site switch that reloads. No blocker removes every ad or tracker. uBlock Origin optional on supported builds after restart; private tabs use Blanc Blocker.'),
   mahjong: G(['src/renderer/pages/mahjong-engine.js', 'src/renderer/pages/mahjong-state.js', 'src/renderer/pages/mahjong.js'], 'Opens from every Start Page footer in its own tab; eight boards, Daily deal, hints, undo, device-local records; offline single-player, not synced.'),
   reopening: G(['src/main/closed-tabs.js', 'src/main/main.js', 'src/renderer/overlay.js', 'test/unit/closed-tabs.test.js'], 'Per-window Recently Closed, up to 25 entries for one hour, memory only; at most one eligible page per window keeps its live view for about 30 seconds; private tabs never recorded; no promise of exact recovery.'),
