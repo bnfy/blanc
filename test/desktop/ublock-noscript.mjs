@@ -38,16 +38,20 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
 let electron;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let electronProcess;
 let stderr = '';
 const call = (method, ...args) => hooks.callTestHook(electron, method, args);
-const watchdog = setTimeout(() => electron?.process().kill('SIGKILL'), 90000);
+const watchdog = setTimeout(() => electronProcess?.kill('SIGKILL'), 90000);
 try {
   electron = await _electron.launch({
     args: [path.resolve('.'), `--user-data-dir=${profile}`, '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost'],
     chromiumSandbox: true, env: { ...env, BLANC_TEST: '1', BLANC_UBLOCK_TEST: '1' }, timeout: 30000,
   });
+  electronProcess = electron.process();
   electron.context().setDefaultTimeout(10000);
-  electron.process().stderr.on('data', data => { stderr = (stderr + data).slice(-6000); });
+  electronProcess.stderr.on('data', data => { stderr = (stderr + data).slice(-6000); });
   await electron.firstWindow();
   await waitForValue(async () => {
     const value = await call('blockingStatus');
@@ -123,7 +127,7 @@ try {
 finally {
   clearTimeout(watchdog);
   if (electron) {
-    const kill = setTimeout(() => electron.process().kill('SIGKILL'), 5000);
+    const kill = setTimeout(() => electronProcess.kill('SIGKILL'), 5000);
     try { await electron.close(); } catch {} finally { clearTimeout(kill); }
   }
   await new Promise(resolve => server.close(resolve));

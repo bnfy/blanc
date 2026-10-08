@@ -27,6 +27,9 @@ let app;
 let steps = 0;
 let failed = false;
 let lastCommandDiagnostics = null;
+// app.process() throws once Playwright disposes an exited app, so keep the
+// ChildProcess captured at launch (see ublock-origin.mjs).
+let appProcess = null;
 let electronPid = null;
 let electronOutput = '';
 const crashDumps = path.join(root, 'crash-dumps');
@@ -71,7 +74,8 @@ const state = () => call(app, 'state');
 const sheetReady = () => wait(() => call(app, 'utilitySurface'), value => value?.ready && value.url.startsWith('blanc://settings/'), 'Settings ready');
 try {
   app = await _electron.launch({ args: [path.resolve('.'), `--user-data-dir=${userData}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught }, chromiumSandbox: true });
-  for (const stream of [app.process().stdout, app.process().stderr]) {
+  appProcess = app.process();
+  for (const stream of [appProcess.stdout, appProcess.stderr]) {
     stream?.on('data', data => { electronOutput = (electronOutput + data.toString()).slice(-128 * 1024); });
   }
   electronPid = await app.evaluate(({ app, crashReporter }, directory) => {
@@ -224,11 +228,11 @@ try {
   failed = true;
   console.error('Browser command regression failed:', error);
   console.error('Last recorded command diagnostics:', JSON.stringify(lastCommandDiagnostics));
-  if (app) {
+  if (appProcess) {
     // The debugger can disconnect before Node observes the native process
     // exit. Wait briefly before interpreting a null status as still running.
     await new Promise(resolve => {
-      const child = app.process();
+      const child = appProcess;
       let timer;
       const finish = () => { clearTimeout(timer); child.removeListener('exit', finish); resolve(); };
       child.once('exit', finish);
@@ -239,12 +243,12 @@ try {
     if (Number.isInteger(electronPid)) {
       try { process.kill(electronPid, 0); nativeProcessAlive = true; } catch {}
     }
-    console.error('Electron exit status:', app.process().exitCode, app.process().signalCode);
+    console.error('Electron exit status:', appProcess.exitCode, appProcess.signalCode);
     console.error('Native Electron process:', electronPid, { alive: nativeProcessAlive });
     console.error('Recent Electron output:', electronOutput);
     const evidence = path.resolve('dist/browser-command-diagnostics', `${process.platform}-${Date.now()}`);
     fs.mkdirSync(evidence, { recursive: true });
-    fs.writeFileSync(path.join(evidence, 'failure.json'), JSON.stringify({ error: String(error), steps, lastCommandDiagnostics, electronPid, nativeProcessAlive, exitCode: app.process().exitCode, signal: app.process().signalCode }, null, 2));
+    fs.writeFileSync(path.join(evidence, 'failure.json'), JSON.stringify({ error: String(error), steps, lastCommandDiagnostics, electronPid, nativeProcessAlive, exitCode: appProcess.exitCode, signal: appProcess.signalCode }, null, 2));
     fs.writeFileSync(path.join(evidence, 'electron-output.txt'), electronOutput);
     if (fs.existsSync(uncaught)) fs.copyFileSync(uncaught, path.join(evidence, 'uncaught.log'));
     fs.cpSync(crashDumps, path.join(evidence, 'crash-dumps'), { recursive: true });
