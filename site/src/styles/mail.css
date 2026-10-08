@@ -71,21 +71,28 @@
 
 .mail-home .mail-home-stage{position:relative;margin-top:clamp(56px,8vw,96px);padding:clamp(18px,5vw,56px) clamp(14px,5vw,56px) 0;border-radius:32px;overflow:hidden;background:radial-gradient(120% 90% at 50% 112%,#f6c886 0%,#efcf9f 34%,transparent 70%),linear-gradient(180deg,#f3e9d9 0%,#ecd8b8 100%)}
 .mail-home .mail-home-window{position:relative;display:grid;grid-template-columns:minmax(150px,.75fr) minmax(220px,1.05fr) minmax(0,1.6fr);max-width:960px;height:clamp(300px,40vw,470px);margin:0 auto;border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 0 0 .5px #35250e40,0 40px 80px -30px #35250e73,inset 0 1px 0 #ffffffb3;transform-origin:50% 100%}
-.mail-home .mail-home-lights{position:absolute;top:14px;left:16px;display:flex;gap:8px}
+.mail-home .mail-home-lights{position:absolute;z-index:2;top:20px;left:16px;display:flex;gap:8px}
 .mail-home .mail-home-lights i{width:11px;height:11px;border-radius:50%;background:#ff5f57;box-shadow:inset 0 0 0 .5px #0000001f}
 .mail-home .mail-home-lights i:nth-child(2){background:#febc2e}
 .mail-home .mail-home-lights i:nth-child(3){background:#28c840}
+/* The Island placeholder borrows the Browser's resting-island tokens from site.css. */
+.mail-home .mail-home-island{position:absolute;z-index:2;top:9px;left:50%;display:flex;align-items:center;gap:8px;width:min(340px,58%);height:32px;padding:0 12px;transform:translateX(-50%);border:1px solid var(--border,#dedede);border-radius:13px;background:var(--island-resting-surface,#fffffff0);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--shadow-island-resting)}
+.mail-home .mail-home-island i.is-glyph{flex:none;width:8px;height:8px;border-radius:50%;background:#35250e2e}
+.mail-home .mail-home-island-pips{display:flex;align-items:center;gap:4px;flex:none;margin:0 2px}
+.mail-home .mail-home-island-pips i{width:5px;height:5px;border-radius:50%;background:#35250e2e}
+.mail-home .mail-home-island-pips i.is-on{background:#35250e80}
+.mail-home .mail-home-island b{flex:1;height:7px;border-radius:4px;background:#35250e24}
 .mail-home .mail-home-sidebar{display:flex;flex-direction:column;gap:12px;padding:52px 16px 16px;background:#f7f0e599;-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);border-right:.5px solid #35250e24}
 .mail-home .mail-home-bar{display:block;height:8px;width:72%;border-radius:4px;background:#35250e1f}
 .mail-home .mail-home-bar.is-short{width:46%}
 .mail-home .mail-home-sidebar .mail-home-bar.is-strong{height:26px;width:100%;margin:-4px 0 2px;border-radius:7px;background:#805d2833}
-.mail-home .mail-home-list{display:flex;flex-direction:column;background:#fffcf7;border-right:.5px solid #35250e1f;padding-top:40px}
+.mail-home .mail-home-list{display:flex;flex-direction:column;background:#fffcf7;border-right:.5px solid #35250e1f;padding-top:52px}
 .mail-home .mail-home-row{display:flex;flex-direction:column;gap:7px;margin:0 8px;padding:13px 12px;border-bottom:.5px solid #35250e17}
 .mail-home .mail-home-row.is-selected{border-radius:9px;border-bottom-color:transparent;background:#efe2cc}
 .mail-home .mail-home-row b{display:block;height:8px;width:48%;border-radius:4px;background:#35250e47}
 .mail-home .mail-home-row i,.mail-home .mail-home-line{display:block;height:6px;width:88%;border-radius:3px;background:#35250e1a}
 .mail-home .mail-home-row i.is-short,.mail-home .mail-home-line.is-short{width:58%}
-.mail-home .mail-home-reader{display:flex;flex-direction:column;gap:12px;padding:56px clamp(20px,4vw,44px) 24px;background:#fffdf9}
+.mail-home .mail-home-reader{display:flex;flex-direction:column;gap:12px;padding:64px clamp(20px,4vw,44px) 24px;background:#fffdf9}
 .mail-home .mail-home-reader .mail-home-bar.is-title{height:16px;width:62%;border-radius:6px;background:#35250e33}
 .mail-home .mail-home-reader .mail-home-bar.is-meta{width:34%;margin-bottom:18px;background:#805d2840}
 
@@ -117,7 +124,7 @@
 .mail-home p.mail-muted.mail-home-suite{margin-top:12px;color:#6b6257;font-size:14px}
 
 @media(max-width:860px){.mail-home .mail-home-window{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr)}.mail-home .mail-home-sidebar{display:none}.mail-home .mail-home-tiles{grid-template-columns:1fr;max-width:560px;margin-inline:auto}}
-@media(max-width:560px){.mail-home .mail-home-window{grid-template-columns:1fr;height:300px}.mail-home .mail-home-reader{display:none}.mail-home .mail-home-list{border-right:0}.mail-home .mail-home-family{grid-template-columns:1fr}.mail-home .mail-home-stage{border-radius:24px}.mail-home .mail-home-nav .mail-subnav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}.mail-home .mail-home-tile{padding:24px}}
+@media(max-width:560px){.mail-home .mail-home-window{grid-template-columns:1fr;height:300px}.mail-home .mail-home-island{width:calc(100% - 156px);gap:6px;padding:0 10px}.mail-home .mail-home-reader{display:none}.mail-home .mail-home-list{border-right:0}.mail-home .mail-home-family{grid-template-columns:1fr}.mail-home .mail-home-stage{border-radius:24px}.mail-home .mail-home-nav .mail-subnav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}.mail-home .mail-home-tile{padding:24px}}
 
 /* Entrance: the icon arrives as a material (scale + blur together), then the
    copy rises a few pixels after it. Critically damped curve, no overshoot. */
@@ -136,5 +143,5 @@
 @keyframes mail-home-materialize{from{opacity:0;transform:scale(.86);filter:blur(14px)}to{opacity:1;transform:none;filter:none}}
 @keyframes mail-home-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes mail-home-window{from{opacity:.5;transform:translateY(56px) scale(.94)}to{opacity:1;transform:none}}
-@media(prefers-reduced-transparency:reduce){.mail-home .mail-home-sidebar{background:#efe6d8;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media(prefers-reduced-transparency:reduce){.mail-home .mail-home-island{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}.mail-home .mail-home-sidebar{background:#efe6d8;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media(prefers-contrast:more){.mail-page .mail-subnav{box-shadow:inset 0 0 0 1px #6b6257}.mail-page .mail-waitlist-controls,.mail-home .mail-home-tile,.mail-home a.mail-home-app,.mail-home .mail-home-badge{border-color:#6b6257}.mail-home .mail-lead,.mail-home .mail-home-tile p{color:#2b251d}}
