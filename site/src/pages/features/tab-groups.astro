@@ -19,7 +19,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">tab groups</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="groups-title"><p class="section-kicker">a little order</p><h1 id="groups-title">Named tab groups: keep the tabs you need. Tuck away the rest.</h1><p>Name a group for the task in front of you. Blanc keeps that group on the island and leaves the rest close, not constantly visible.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure island-figure--panel" role="img" aria-label="Blanc's island panel open, with tabs organized into named groups: pinned tabs, a 'social' group, and a 'watch' group holding YouTube and Netflix.">
+    <div class="demo-stage island-figure island-figure--panel island-figure--drag" role="img" aria-label="Blanc's island panel open, with tabs organized into named groups: pinned tabs, a 'social' group, and a 'watch' group holding YouTube and Netflix. An animation drags Netflix above YouTube, then drags YouTube back.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
       <picture>
         <source media="(max-width: 560px)" srcset="/shots/mobile/netflix.jpg">
@@ -29,14 +29,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="panel">
           <div class="panel-row"><div class="field"><span class="typed"></span><span class="caret"></span></div></div>
           <div class="list">
-            <div class="sec-head"><svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg><span>pinned</span><span class="rule"></span></div>
+            <div class="sec-head"><span>pinned</span><span class="count">2</span></div>
             <div class="trow"><span class="fav" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="title">Gmail</span></div>
             <div class="trow"><span class="fav" style="background-image:url('/favicons/notion.so.ico')"></span><span class="title">Notion</span></div>
-            <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>social</span><span class="rule"></span><span class="count">1</span></div>
-            <div class="trow"><span class="fav" style="background-image:url('/favicons/threads.net.ico')"></span><span class="title">Threads</span></div>
-            <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>watch</span><span class="rule"></span><span class="count">2</span></div>
-            <div class="trow hl"><span class="fav" style="background-image:url('/favicons/youtube.com.ico')"></span><span class="title">YouTube</span></div>
-            <div class="trow"><span class="fav" style="background-image:url('/favicons/netflix.com.ico')"></span><span class="title">Netflix</span></div>
+            <div class="group-band">
+              <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>social</span><span class="count">1</span><span class="kbd">⌘2</span></div>
+              <div class="trow in-group"><span class="fav" style="background-image:url('/favicons/threads.net.ico')"></span><span class="title">Threads</span></div>
+            </div>
+            <div class="group-band">
+              <div class="sec-head"><svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg><span>watch</span><span class="count">2</span><span class="kbd">⌘3</span></div>
+              <div class="drag-demo">
+                <div class="trow hl in-group drag-row drag-row--first"><span class="fav" style="background-image:url('/favicons/youtube.com.ico')"></span><span class="title">YouTube</span></div>
+                <div class="trow in-group drag-row drag-row--second"><span class="fav" style="background-image:url('/favicons/netflix.com.ico')"></span><span class="title">Netflix</span></div>
+                <div class="trow in-group drag-ghost drag-ghost--second"><span class="fav" style="background-image:url('/favicons/netflix.com.ico')"></span><span class="title">Netflix</span></div>
+                <div class="trow hl in-group drag-ghost drag-ghost--first"><span class="fav" style="background-image:url('/favicons/youtube.com.ico')"></span><span class="title">YouTube</span></div>
+                <span class="drag-line"></span>
+                <span class="drag-cursor"><span class="demo-cursor-shape"></span></span>
+              </div>
+            </div>
           </div>
           <div class="foot">esc to dismiss · /group moves this tab · ⌘1–9 jumps groups</div>
         </div>
