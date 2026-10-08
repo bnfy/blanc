@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.30.1",
+  "sourceSha": "9e337ac583e81bae509cfc970b9d97a81f3287ba",
+  "captureDate": "2026-10-08",
+  "timezone": "America/New_York",
+  "source": {
+    "artifact": "/Applications/Blanc.app",
+    "version": "1.30.1",
+    "bundleBuild": "1301",
+    "architecture": "arm64",
+    "executableSha256": "cf2a86d693e9c54cfe3ebd68fa16ef242111d9150b29c2557555058b697717ec",
+    "publisher": "Developer ID Application: Anthony Loria (XYGUCY4498)",
+    "teamId": "XYGUCY4498",
+    "verification": "Strict deep codesign verification passed and stapler validated the notarization ticket stapled to the installed app.",
+    "releaseEvidence": "docs/release-incidents/2026-10-08-v1.30.1.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": true,
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "sampleData": "Synthetic Favorites, visits, one named group, a named Studio profile, two saved workspaces and a blocked-request total only; no account, Patron entitlement, participant data, or real browsing content."
+  },
+  "method": "npm run capture:profiles-workspaces:installed launches the installed app in a disposable profile seeded only with the declared synthetic fixtures. Over Chromium’s debugging surface it calls the shipped browserAPI.openPage(\"settings\") and browserAPI.openIsland() actions and clicks the shipped Settings navigation, workspace control and menu padding; nothing is patched. Each state is captured natively with screencapture -o -x -l for the isolated window (2560×1600), then uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. The owner approved both images on October 8, 2026.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/profiles-v1.30.1.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "9926e810b2380a5d390d0d8911a5edb25ed693a1f4efd49ba5761f92a29d0ed5",
+      "capturedAt": "2026-10-08T17:21:53Z",
+      "state": "Settings sheet on the Profiles group: the permanent Personal profile (Your original Blanc data · permanent) and a named Studio profile (Separate local browser data), the New profile name field and Create profile window. Blanc Blocker ready. Start Page behind the sheet with the v1.30.1 version string.",
+      "evidence": [
+        "v1.30.1:src/renderer/pages/settings.html",
+        "v1.30.1:src/renderer/pages/settings.js",
+        "v1.30.1:src/main/local-profiles.js",
+        "docs/release-incidents/2026-10-08-v1.30.1.md"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "file": "site/public/feature-captures/workspaces-v1.30.1.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "c3bf3ac18e71b91828290f616d731f3d9bbb2a9255472a7552f5f5404044303a",
+      "capturedAt": "2026-10-08T17:21:56Z",
+      "state": "Island panel with the workspace switcher open: saved fixture workspaces Research desk and Weekend reading, two tabs each, and Patron settings. No Patron entitlement was forged, so creation and saving are unavailable and the Start Page offers Upgrade to Blanc Patron.",
+      "evidence": [
+        "v1.30.1:src/renderer/overlay.html",
+        "v1.30.1:src/renderer/workspace-ui.js",
+        "v1.30.1:src/main/workspaces.js",
+        "docs/release-incidents/2026-10-08-v1.30.1.md"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}
