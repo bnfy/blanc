@@ -310,7 +310,10 @@ test('the native shield popover meets its chip after an animated or a reduced-mo
     try {
       await page.goto(`${baseURL}/features`);
       await page.locator('#ad-blocking').click();
-      await page.waitForTimeout(1500);
+      // Measure the settled card: a busy main thread (the shields' WebGL
+      // starting up) can stretch the open spring past any fixed wait.
+      await page.waitForFunction(() => document.getElementById('feature-pop').open
+        && document.querySelector('.pop-card').getAnimations().every(animation => animation.playState === 'finished'));
       placements.push(await page.evaluate(() => {
         const host = document.querySelector('.demo-native-step[data-at="1"] .native-shield-demo'), root = host.shadowRoot;
         const rect = suffix => root.querySelector(`[id$="${suffix}"]`).getBoundingClientRect();
