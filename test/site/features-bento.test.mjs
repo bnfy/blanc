@@ -90,3 +90,78 @@ test('features page never scrolls sideways', { timeout: 60000 }, async () => {
     }
   } finally { await context.close(); }
 });
+
+test('clicking a tile opens its popover, Escape closes it and focus returns to the tile', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    await page.locator('#glance').click();
+    await page.waitForFunction(() => document.getElementById('feature-pop').open);
+    assert.equal(await page.locator('#pop-glance').isVisible(), true);
+    assert.equal(await page.locator('#pop-island').isVisible(), false);
+    assert.equal(await page.locator('#feature-pop').getAttribute('aria-labelledby'), 'pop-glance-title');
+    assert.equal(new URL(page.url()).hash, '#glance');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('feature-pop').open);
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'glance');
+    assert.equal(new URL(page.url()).hash, '');
+  } finally { await context.close(); }
+});
+
+test('arrow keys move between features and the source tile follows', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    const order = await page.locator('[data-pop]').evaluateAll(as => as.map(a => a.dataset.pop));
+    await page.locator('#glance').click();
+    await page.waitForFunction(() => document.getElementById('feature-pop').open);
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(id => !document.getElementById(`pop-${id}`).hidden, order[1]);
+    assert.equal(await page.locator(`#${order[1]}`).evaluate(el => el.classList.contains('is-source')), true);
+    assert.equal(await page.locator('#glance').evaluate(el => el.classList.contains('is-source')), false);
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(id => !document.getElementById(`pop-${id}`).hidden, order.at(-1));
+  } finally { await context.close(); }
+});
+
+test('a modified click is left to the browser', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    const opened = await page.evaluate(() => {
+      const tile = document.getElementById('glance');
+      // Registered after the page's own handler, so it only stops the test navigating away.
+      tile.addEventListener('click', e => e.preventDefault(), { once: true });
+      tile.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true, button: 0 }));
+      return document.getElementById('feature-pop').open;
+    });
+    assert.equal(opened, false, 'meta-click does not open the popover');
+  } finally { await context.close(); }
+});
+
+test('a hash link opens that popover', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features#sync`);
+    await page.waitForFunction(() => document.getElementById('feature-pop').open && !document.getElementById('pop-sync').hidden);
+  } finally { await context.close(); }
+});
+
+test('with motion allowed the card grows from the tile; with reduced motion it only fades', async () => {
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    const context = await contextFor({ reducedMotion });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseURL}/features`);
+      await page.locator('#island').click();
+      const transforms = await page.evaluate(() => document.querySelector('.pop-card').getAnimations().map(a => a.effect.getKeyframes()[0].transform ?? null));
+      if (reducedMotion === 'reduce') assert.deepEqual(transforms, []);
+      else assert.match(transforms[0], /translate\(.+\) scale\(/);
+    } finally { await context.close(); }
+  }
+});
