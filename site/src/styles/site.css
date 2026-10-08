@@ -1811,6 +1811,88 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
    mirror the disabled-arrow dimming with a class instead of :disabled. */
 .demo-island .pbtn.off { color: var(--border); }
 
+/* Tab groups figure: drag to reorder (shipped in v1.30.0). Netflix is dragged
+   above YouTube, then YouTube back above Netflix, so the loop ends where it
+   began. Mirrors the app's tab-drag styles: the source row dims to 0.45, a
+   lifted copy follows the pointer, and a 2px accent line marks the drop gap.
+   The pointer grabs near the row top and stops in the upper half of the row
+   above, where the app drops before it; the copy is opaque for legibility.
+   The line follows the app's nearest-slot rule: it opens on the gap between
+   the rows (the source's own slot) and moves to the top once the pointer
+   passes the upper row's midpoint, at 48% of each drag.
+   Without motion the ghost, line and cursor stay hidden: a still figure.
+   drag-figure.js sets data-paused while the figure is out of view. */
+.island-figure--drag .demo-island .list { overflow: visible; }
+.drag-demo { --drag-row: 30px; --drag-grab: 8px; --drag-lift: -26px; position: relative; display: flex; flex-direction: column; }
+/* Pin each row to --drag-row so every offset below holds whatever the font
+   metrics, text zoom or minimum font size. */
+.drag-demo > .trow { box-sizing: border-box; height: var(--drag-row); overflow: hidden; }
+.drag-demo[data-paused], .drag-demo[data-paused] * { animation-play-state: paused !important; }
+.fav--gmail { background-image: url('/favicons/gmail.com.ico'); }
+.fav--notion { background-image: url('/favicons/notion.so.ico'); }
+.fav--threads { background-image: url('/favicons/threads.net.ico'); }
+.fav--youtube { background-image: url('/favicons/youtube.com.ico'); }
+.fav--netflix { background-image: url('/favicons/netflix.com.ico'); }
+/* .demo-island scope outranks .demo-island .trow.hl, which clears row backgrounds. */
+.demo-island .drag-demo .drag-ghost { position: absolute; top: var(--drag-row); left: 0; right: 0; z-index: 2; opacity: 0; background: var(--surface-raised); border-radius: 8px; box-shadow: 0 0 0 1px var(--border), 0 8px 20px -8px rgba(14,14,14,.35); pointer-events: none; }
+.drag-demo .drag-line { position: absolute; top: -1px; left: 10px; right: 10px; z-index: 3; height: 2px; border-radius: 999px; background: var(--accent); opacity: 0; }
+.drag-demo .drag-cursor { position: absolute; top: 0; left: 96px; z-index: 4; width: 20px; height: 26px; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(14,14,14,0.28)); }
+/* Group bands make this list taller than other panel figures. On phones the
+   shared 316px panel cap would squeeze it and, with the list's overflow
+   visible, push the watch group over the footer, so this panel sizes to its
+   content (rows are fixed-height) and the figure leaves room for the footer
+   hint to wrap onto a third line at 320px. */
+@media (max-width: 640px) {
+  .island-figure--panel.island-figure--drag { height: 384px; }
+  .island-figure.island-figure--drag .demo-island .panel { max-height: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .drag-demo { --drag-loop: 7s; }
+  .drag-demo .drag-row--second { animation: drag-row-second var(--drag-loop) infinite; }
+  .drag-demo .drag-row--first { animation: drag-row-first var(--drag-loop) infinite; }
+  .drag-demo .drag-ghost { animation: drag-ghost var(--drag-loop) ease-in-out infinite; }
+  .drag-demo .drag-ghost--first { animation-delay: calc(var(--drag-loop) / -2); }
+  .drag-demo .drag-line { animation: drag-line calc(var(--drag-loop) / 2) infinite; }
+  .drag-demo .drag-cursor { animation: drag-cursor calc(var(--drag-loop) / 2) ease-in-out infinite; }
+  .drag-demo .drag-cursor .demo-cursor-shape { animation: drag-press calc(var(--drag-loop) / 2) infinite; }
+}
+@keyframes drag-row-second {
+  0%, 9% { opacity: 1; transform: translateY(0); }
+  10%, 31% { opacity: 0.45; transform: translateY(0); }
+  32%, 81% { opacity: 1; transform: translateY(calc(var(--drag-row) * -1)); }
+  82%, 100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes drag-row-first {
+  0%, 31% { opacity: 1; transform: translateY(0); }
+  32%, 59% { opacity: 1; transform: translateY(var(--drag-row)); }
+  60%, 81% { opacity: 0.45; transform: translateY(var(--drag-row)); }
+  82%, 100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes drag-ghost {
+  0%, 9% { opacity: 0; transform: translateY(0); }
+  10% { opacity: 1; transform: translateY(0); }
+  28%, 31% { opacity: 1; transform: translateY(var(--drag-lift)); }
+  32% { opacity: 0; transform: translateY(var(--drag-lift)); }
+  33%, 100% { opacity: 0; transform: translateY(0); }
+}
+@keyframes drag-line {
+  0%, 20% { opacity: 0; transform: translateY(var(--drag-row)); }
+  21%, 47% { opacity: 1; transform: translateY(var(--drag-row)); }
+  48%, 62% { opacity: 1; transform: translateY(0); }
+  63%, 100% { opacity: 0; transform: translateY(0); }
+}
+@keyframes drag-cursor {
+  0% { opacity: 0; transform: translateY(calc(var(--drag-row) + var(--drag-grab))); }
+  10%, 20% { opacity: 1; transform: translateY(calc(var(--drag-row) + var(--drag-grab))); }
+  56%, 66% { opacity: 1; transform: translateY(calc(var(--drag-row) + var(--drag-grab) + var(--drag-lift))); }
+  76%, 100% { opacity: 0; transform: translateY(calc(var(--drag-row) + var(--drag-grab) + var(--drag-lift))); }
+}
+@keyframes drag-press {
+  0%, 17% { transform: scale(1); }
+  19%, 61% { transform: scale(0.84); }
+  63%, 100% { transform: scale(1); }
+}
+
 /* ---------- resting-pill figures: model the real Blanc window ----------
    In the app the resting pill lives in a slim top strip and the web page
    begins BELOW it (page never sits behind the pill); the strip is color-
