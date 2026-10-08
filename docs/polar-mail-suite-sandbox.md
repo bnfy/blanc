@@ -53,15 +53,17 @@ rather than being replaced. The token could not read license keys (403), so
 the key value and activation state were not inspected; confirm in Browser that
 the original key validates.
 
+At the owner's direction the unused Blanc Suite License benefit
+`c5ebb27b-…` was then deleted (no grant was active; `DELETE` returned 204 and a
+later `GET` 404).
+
 Still to do in the dashboard:
 
-1. Delete the unused Blanc Suite License benefit `c5ebb27b-…`. No product
-   carries it and no grant is active; the API call was not made.
-2. Offer plan changes only within the same billing period. Products expose no
+1. Offer plan changes only within the same billing period. Products expose no
    plan-change field, and the organization settings could not be read with the
    token's scopes, so check the subscription and customer-portal settings in
    the dashboard.
-3. Start fresh purchases for the checklist below rather than relying on the
+2. Start fresh purchases for the checklist below rather than relying on the
    older Suite fixtures.
 
 ### Acceptance checklist
