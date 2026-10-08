@@ -24,8 +24,13 @@ Record per platform:
 Results are written to a dated evidence file under `docs/evidence/`. **Gate:**
 if fr→en of the 2,000-word article exceeds ~10 s warm on the Intel Mac, or
 quality on markup-heavy pages is unusable, stop and return to the owner before
-building the feature. Phase 0 code is throwaway; only the pinned build recipe
-and evidence carry forward.
+building the feature. Phase 0's engine harness is throwaway; the pinned build
+recipe, the measurement harness under `bench/translate/` (reused for the
+pre-release re-measurement), and the evidence carry forward.
+
+Plan: `docs/superpowers/plans/2026-10-08-translation-phase0-feasibility.md`.
+The feature implementation plan is written after the gate passes, from the
+measured engine behaviour.
 
 ## Goal
 
