@@ -107,11 +107,11 @@ test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => 
   }
 });
 
-test('Features bento copy resolves to verified public v1.30.0 evidence, and every sentence on it is recorded', () => {
+test('Features bento copy resolves to verified public v1.30.1 evidence, and every sentence on it is recorded', () => {
   const bento = JSON.parse(read('docs/website-features-bento-claims-v1.30.json'));
   const reorder = JSON.parse(read('docs/website-reorder-claims-v1.30.json'));
   const file = 'site/src/pages/features.astro';
-  assert.equal(bento.publicRelease, 'v1.30.0');
+  assert.equal(bento.publicRelease, 'v1.30.1');
   assert.equal(execFileSync('git', ['rev-parse', `${bento.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), bento.sourceSha);
   assert.ok(read(bento.releaseEvidence).includes(bento.sourceSha));
   const page = read(file);

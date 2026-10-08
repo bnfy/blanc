@@ -4,7 +4,7 @@
 **Page:** `site/src/pages/features.astro` → `https://blancbrowser.com/features`
 **Status:** direction approved from the interactive prototype (v3); spec awaiting owner review
 **Supersedes:** `2026-10-08-features-hub-redesign-design.md` (scenes direction, abandoned before merge)
-**Public release the copy describes:** v1.30.0 (`5be79e58d08ca9bcf7cb99b3d8f84c21c654b1c7`)
+**Public release the copy describes:** v1.30.1 (`9e337ac583e81bae509cfc970b9d97a81f3287ba`); first verified at v1.30.0, re-pinned after the fix-only v1.30.1 release
 
 ## Goal
 
@@ -104,15 +104,25 @@ tiles, so no-script anchors still scroll to the right place.
 loop (they rest on step 3), the Quiet Tabs tile does not pulse, and the caret does not blink.
 `prefers-reduced-transparency: reduce` removes the scrim blur and raises its opacity.
 
-**Analytics.** Tiles carry `data-track="feature_popover_open"`, `data-feature`, and
-`data-cta-position="feature-hub"`; the popover's link carries `data-track="feature_cta_click"`,
-`data-feature` and `data-cta-position="feature-popover"`. Patron and download links keep
-their existing attributes.
+**Analytics.** Tiles carry `data-track="feature_cta_click"`, `data-feature` and
+`data-cta-position="feature-hub"`, which is what a navigating click (no script, or a modified
+click) records. When the script opens the popover instead, it renames that click
+`feature_popover_open` for site.js and then restores the attribute. The popover's link carries
+`data-track="feature_cta_click"`, `data-feature` and `data-cta-position="feature-popover"`.
+Patron and download links keep their existing attributes.
+
+**Accessibility notes.** `aria-haspopup="dialog"` is added by the script, so tiles without
+script are announced as plain links. Focus rings are a 1px hairline. A dialog closed by the
+browser without a `cancel` event (Chrome's close watcher, e.g. after a deep link) runs the same
+cleanup as a normal close. The Quiet Tabs tile's ambient animation runs only while the tile is
+on screen.
 
 ## Copy
 
 Every sentence is recorded in `docs/website-features-bento-claims-v1.30.json` with evidence
-at the v1.30.0 tag before merge. Tile labels name the feature and its benefit (the October 4
+at the v1.30.1 tag. After any copy edit, rerun `npm run site:features-ledger`
+(`scripts/build-features-bento-ledger.mjs`), which rewrites that ledger and the reviewed copy
+update idempotently. Tile labels name the feature and its benefit (the October 4
 explicit-messaging rule overrides Apple's two-word labels where they would leave a coined name
 unexplained). Text marked *(kept)* is reviewed wording carried over unchanged.
 

@@ -13,7 +13,7 @@ interface Props {
 const { id, href, feature, area, tone = 'white', label = 'bottom' } = Astro.props;
 ---
 <a class:list={['bento-tile', `bento-${area}`, `bento-tile--${tone}`, `bento-tile--label-${label}`]} id={id} href={href}
-  data-pop={id} data-track="feature_popover_open" data-feature={feature} data-cta-position="feature-hub" aria-haspopup="dialog">
+  data-pop={id} data-track="feature_cta_click" data-feature={feature} data-cta-position="feature-hub">
   <div class="bento-visual" aria-hidden="true"><slot name="visual" /></div>
   <div class="bento-label"><slot /></div>
 </a>

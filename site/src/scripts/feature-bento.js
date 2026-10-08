@@ -85,29 +85,33 @@ if (dialog && typeof dialog.showModal === 'function') {
     ];
   }
 
+  // Shared by close() and a native dialog close: restore the tile, stop the
+  // demo and drop the hash.
+  function finish({ focus = false } = {}) {
+    clearInterval(demoTimer);
+    const tile = source;
+    tile?.classList.remove('is-source');
+    index = -1;
+    closing = false;
+    history.replaceState(null, '', location.pathname + location.search);
+    if (focus) tile?.focus({ preventScroll: true });
+  }
+
   function close() {
     if (index < 0 || closing) return;
     closing = true;
-    const tile = source;
     const live = getComputedStyle(card).transform;
     const scrimNow = getComputedStyle(scrim).opacity;
-    stop();
+    stop(); // also cancels an in-flight go() swap, so it cannot run after this
     clearInterval(demoTimer);
-    const done = () => {
-      dialog.close();
-      tile.classList.remove('is-source');
-      index = -1;
-      closing = false;
-      history.replaceState(null, '', location.pathname + location.search);
-      tile.focus({ preventScroll: true });
-    };
+    const done = () => { finish({ focus: true }); dialog.close(); };
     if (reducedMotion.matches) {
       const fade = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: 'ease-in' });
       fade.onfinish = done;
       running = [fade];
       return;
     }
-    const shrink = card.animate([{ transform: live }, { transform: toTile(tile) }], SPRING);
+    const shrink = card.animate([{ transform: live }, { transform: toTile(source) }], SPRING);
     running = [
       shrink,
       scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: 240, easing: 'ease-in', fill: 'forwards' }),
@@ -119,6 +123,7 @@ if (dialog && typeof dialog.showModal === 'function') {
   function go(direction) {
     if (index < 0 || closing) return;
     const swap = () => {
+      if (closing || index < 0) return;
       source.classList.remove('is-source');
       show(index + direction);
       source = tiles[index];
@@ -126,23 +131,38 @@ if (dialog && typeof dialog.showModal === 'function') {
       source.scrollIntoView({ block: 'nearest' });
     };
     if (reducedMotion.matches) { swap(); return; }
-    content.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-direction * 16}px)` }], { duration: 110, easing: 'ease-in' }).onfinish = () => {
+    // Tracked in `running` so a close() mid-swap cancels it (onfinish never fires).
+    const out = content.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-direction * 16}px)` }], { duration: 110, easing: 'ease-in' });
+    running.push(out);
+    out.onfinish = () => {
       swap();
-      content.animate([{ opacity: 0, transform: `translateX(${direction * 16}px)` }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+      running.push(content.animate([{ opacity: 0, transform: `translateX(${direction * 16}px)` }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.2, .8, .2, 1)' }));
     };
   }
 
-  tiles.forEach((tile, i) => tile.addEventListener('click', event => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    open(i);
-  }));
+  tiles.forEach((tile, i) => {
+    // Without script (or on a modified click) the tile is just a link, so
+    // only announce a popup once this handler can open one.
+    tile.setAttribute('aria-haspopup', 'dialog');
+    tile.addEventListener('click', event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      // site.js reads data-track when this click reaches the document: name
+      // the popover open, then restore the navigation event name.
+      tile.dataset.track = 'feature_popover_open';
+      setTimeout(() => { tile.dataset.track = 'feature_cta_click'; });
+      open(i);
+    });
+  });
   dialog.addEventListener('click', event => {
     if (event.target.closest('[data-pop-close]')) close();
     const nav = event.target.closest('[data-pop-nav]');
     if (nav) go(Number(nav.dataset.popNav));
   });
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
+  // Chrome can close a modal dialog on Escape without a cancel event (no
+  // user activation since it opened, e.g. after a deep link). Tidy up then.
+  dialog.addEventListener('close', () => { if (index >= 0) { stop(); finish(); } });
   dialog.addEventListener('keydown', event => {
     if (event.key === 'ArrowRight') { event.preventDefault(); go(1); }
     if (event.key === 'ArrowLeft') { event.preventDefault(); go(-1); }
@@ -150,7 +170,8 @@ if (dialog && typeof dialog.showModal === 'function') {
 
   // A /features#<id> link opens that feature, on load or when only the hash changes.
   const openFromHash = () => {
-    const id = decodeURIComponent(location.hash.slice(1));
+    let id;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
     const i = tiles.findIndex(tile => tile.dataset.pop === id);
     if (i < 0 || index >= 0) return;
     tiles[i].scrollIntoView({ block: 'center' });
@@ -158,4 +179,10 @@ if (dialog && typeof dialog.showModal === 'function') {
   };
   window.addEventListener('hashchange', openFromHash);
   if (location.hash) requestAnimationFrame(openFromHash);
+}
+
+// The Quiet Tabs tile's ambient dimming only runs while the tile is on screen.
+const quietTile = document.querySelector('.bento-R1');
+if (quietTile && 'IntersectionObserver' in window) {
+  new IntersectionObserver(([entry]) => { quietTile.toggleAttribute('data-in-view', entry.isIntersecting); }).observe(quietTile);
 }

@@ -32,7 +32,7 @@ test('board keeps every anchor, every tile is a tracked link, and all 16 guides 
     for (const t of tiles) {
       assert.equal(t.tag, 'A', t.id);
       assert.equal(t.pop, t.id);
-      assert.ok(t.href && t.track === 'feature_popover_open' && t.feature && t.position === 'feature-hub', t.id);
+      assert.ok(t.href && t.track === 'feature_cta_click' && t.feature && t.position === 'feature-hub', t.id);
     }
     const reachable = new Set(await page.locator('a[href^="/features/"]').evaluateAll(as => as.map(a => a.getAttribute('href'))));
     for (const guide of guides) assert.ok(reachable.has(`/features/${guide}`), guide);
@@ -190,5 +190,86 @@ test('each demo shows exactly its own step and rests on step 3 without motion', 
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.getElementById('feature-pop').open);
     }
+  } finally { await context.close(); }
+});
+
+test('a close during arrow navigation leaves no tile hidden and no demo running', async () => {
+  const context = await contextFor({ reducedMotion: 'no-preference' });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    await page.locator('#glance').click();
+    await page.waitForFunction(() => document.getElementById('feature-pop').open);
+    await page.waitForTimeout(700);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('feature-pop').open);
+    await page.waitForTimeout(400);
+    assert.equal(await page.locator('.is-source').count(), 0, 'no tile left hidden');
+    assert.equal(new URL(page.url()).hash, '');
+  } finally { await context.close(); }
+});
+
+test('a native dialog close still restores the tile, the hash and later deep links', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features#sync`);
+    await page.waitForFunction(() => document.getElementById('feature-pop').open);
+    await page.evaluate(() => document.getElementById('feature-pop').close());
+    await page.waitForFunction(() => !document.querySelector('.is-source'));
+    assert.equal(new URL(page.url()).hash, '');
+    await page.evaluate(() => { location.hash = 'glance'; });
+    await page.waitForFunction(() => document.getElementById('feature-pop').open && !document.getElementById('pop-glance').hidden);
+  } finally { await context.close(); }
+});
+
+test('a malformed hash is ignored without a page error', async () => {
+  const context = await contextFor();
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  try {
+    await page.goto(`${baseURL}/features#%E0%A4`);
+    await page.waitForTimeout(500);
+    assert.deepEqual(errors, []);
+    assert.equal(await page.locator('#feature-pop').evaluate(d => d.open), false);
+  } finally { await context.close(); }
+});
+
+test('tiles announce a popup only with script, and a popover open is tracked under its own name', async () => {
+  const noScript = await contextFor({ javaScriptEnabled: false });
+  try {
+    const page = await noScript.newPage();
+    await page.goto(`${baseURL}/features`);
+    assert.equal(await page.locator('[data-pop][aria-haspopup]').count(), 0);
+  } finally { await noScript.close(); }
+  const context = await contextFor();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    assert.equal(await page.locator('[data-pop][aria-haspopup="dialog"]').count(), 33);
+    const seen = await page.evaluate(() => new Promise(resolve => {
+      document.addEventListener('click', event => resolve(event.target.closest('[data-track]')?.dataset.track), { once: true });
+      document.getElementById('glance').click();
+    }));
+    assert.equal(seen, 'feature_popover_open');
+    await page.waitForTimeout(50);
+    assert.equal(await page.locator('#glance').getAttribute('data-track'), 'feature_cta_click');
+  } finally { await context.close(); }
+});
+
+test('the Quiet Tabs tile animates only while it is on screen', async () => {
+  const context = await contextFor({ reducedMotion: 'no-preference', viewport: { width: 1268, height: 900 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/features`);
+    const state = () => page.locator('#quiet-tabs .ui-quiet').first().evaluate(el => getComputedStyle(el).animationPlayState);
+    await page.locator('#quiet-tabs').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('.bento-R1').hasAttribute('data-in-view'));
+    assert.equal(await state(), 'running');
+    await page.locator('.bento-patron').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => !document.querySelector('.bento-R1').hasAttribute('data-in-view'));
+    assert.equal(await state(), 'paused');
   } finally { await context.close(); }
 });

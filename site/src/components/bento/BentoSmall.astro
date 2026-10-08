@@ -10,8 +10,8 @@ interface Props {
 }
 const { id, href, feature, icon, tone } = Astro.props;
 ---
-<a class="bento-small" id={id} href={href} data-pop={id} data-track="feature_popover_open" data-feature={feature}
-  data-cta-position="feature-hub" aria-haspopup="dialog">
+<a class="bento-small" id={id} href={href} data-pop={id} data-track="feature_cta_click" data-feature={feature}
+  data-cta-position="feature-hub">
   <BentoIcon name={icon} tone={tone} />
   <slot />
 </a>
