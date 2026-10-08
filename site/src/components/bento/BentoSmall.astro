@@ -1,0 +1,17 @@
+---
+// One dense-grid tile: icon top-left, two-line label bottom-left.
+import BentoIcon from './BentoIcon.astro';
+interface Props {
+  id: string;
+  href: string;
+  feature: string;
+  icon: 'lock' | 'rail' | 'gesture' | 'key' | 'shield' | 'moon' | 'finger' | 'grip' | 'import' | 'mic' | 'restore' | 'down' | 'search' | 'pin' | 'house' | 'box' | 'seal' | 'half' | 'people';
+  tone: 'amber' | 'ink' | 'sage' | 'slate' | 'clay' | 'sand';
+}
+const { id, href, feature, icon, tone } = Astro.props;
+---
+<a class="bento-small" id={id} href={href} data-pop={id} data-track="feature_popover_open" data-feature={feature}
+  data-cta-position="feature-hub" aria-haspopup="dialog">
+  <BentoIcon name={icon} tone={tone} />
+  <slot />
+</a>

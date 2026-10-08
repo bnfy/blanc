@@ -972,7 +972,8 @@ test('Features bento copy resolves to verified public v1.30.0 evidence, and ever
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
-    if (wording) assert.ok(recorded.includes(wording), `${file}: unrecorded copy: ${wording}`);
+    // Glyph-only controls (the popover's ← and → buttons) carry no claim.
+    if (/\p{L}/u.test(wording)) assert.ok(recorded.includes(wording), `${file}: unrecorded copy: ${wording}`);
   }
 });
 ```
@@ -1012,7 +1013,7 @@ const evidenceGroups = {
   profiles: G(['src/main/local-profiles.js', 'src/main/local-profile-model.js', 'src/main/profile-sessions.js', 'spec/acceptance/local-profiles.feature'], 'Named profiles separate cookies, site data, Favorites, history, download metadata and remembered permissions; settings and Patron are device-level.'),
   quickSwitcher: G(['src/renderer/overlay.html', 'src/renderer/overlay.js', 'copy/slash-commands.json', 'spec/acceptance/island-and-commands.feature', 'spec/acceptance/find-favorites-history.feature'], 'Command/Ctrl+L; matches tabs, Favorites, history and Named Groups; Enter opens the highlighted result, exact-text web search chosen explicitly; slash commands exist in copy/slash-commands.json.'),
   startPage: G(['src/main/settings.js', 'src/renderer/pages/newtab.js', 'settings-schema/schema.json'], 'Four layouts Ledger, Billboard, Shelf, Tally; Billboard uses local history; layout choice is synced; history is not.'),
-  namedGroups: G(['spec/acceptance/tabs-and-groups.feature', 'spec/acceptance/tab-drag.feature', 'src/renderer/overlay.js', 'src/renderer/tab-context-menu-model.js'], 'User-created and user-assigned via /group or the tab menu; Blanc never infers or sorts groups; drag ordering user-directed (v1.30.0).'),
+  namedGroups: G(['spec/acceptance/tabs-and-groups.feature', 'spec/acceptance/tab-drag.feature', 'src/renderer/overlay.js', 'src/main/tab-context-menu-model.js'], 'User-created and user-assigned via /group or the tab menu; Blanc never infers or sorts groups; drag ordering user-directed (v1.30.0).'),
   workspaces: G(['src/main/workspaces.js', 'src/main/main.js', 'spec/acceptance/F41-named-workspaces.feature'], 'Active Patrons create and save; a bound workspace saves tabs and groups as the user browses; existing workspaces stay usable after membership ends.'),
   sync: G(['src/main/sync.js', 'src/main/sync-crypto.js', 'spec/acceptance/sync.feature'], 'Opt-in, end-to-end encrypted, Personal profile only; Favorites, settings and optional open-tab snapshots; never history, cookies or private tabs.'),
   verticalTabs: G(['src/renderer/vertical-tabs.js', 'spec/acceptance/vertical-tabs.feature', 'spec/acceptance/tab-drag.feature'], 'Optional resizable left rail; Island remains the address and command surface; drag ordering user-directed.'),
@@ -1051,7 +1052,7 @@ const firstTile = starts[0][0];
 const claims = [];
 for (const match of main.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
   const exactWording = normalize(match[2]);
-  if (!exactWording || existing.has(exactWording)) continue;
+  if (!/\p{L}/u.test(exactWording) || existing.has(exactWording)) continue;
   const group = match.index < firstTile ? 'overview' : groupForId[ownerAt(match.index)];
   if (!group) throw new Error(`no evidence group for: ${exactWording}`);
   claims.push({ id: `bento-130-${String(claims.length + 1).padStart(3, '0')}`, source: file, exactWording, subject: 'Blanc', evidenceGroups: [group], verdict: 'qualified' });

@@ -1,0 +1,19 @@
+---
+// One board tile. It is a real link to the feature's guide; feature-bento.js
+// turns a plain click into the popover. Visual first, label per the
+// measured Apple rule (bottom on white, top on full-bleed tiles).
+interface Props {
+  id: string;
+  href: string;
+  feature: string;
+  area: 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | 'R1' | 'R2' | 'R3' | 'R4' | 'R5';
+  tone?: 'white' | 'ink' | 'photo' | 'daylight' | 'hero' | 'gold';
+  label?: 'bottom' | 'top' | 'center';
+}
+const { id, href, feature, area, tone = 'white', label = 'bottom' } = Astro.props;
+---
+<a class:list={['bento-tile', `bento-${area}`, `bento-tile--${tone}`, `bento-tile--label-${label}`]} id={id} href={href}
+  data-pop={id} data-track="feature_popover_open" data-feature={feature} data-cta-position="feature-hub" aria-haspopup="dialog">
+  <div class="bento-visual" aria-hidden="true"><slot name="visual" /></div>
+  <div class="bento-label"><slot /></div>
+</a>
