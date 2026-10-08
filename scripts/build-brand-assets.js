@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
 const { createIco } = require('./build-windows-icons');
+const { pngsEquivalent } = require('./png-equivalence');
 
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
@@ -138,6 +139,8 @@ async function emit(relativePath, contents) {
   const next = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
   const current = await fs.readFile(target).catch(() => null);
   if (current?.equals(next)) return;
+  // Platform rounding noise is not staleness: leave the committed PNG alone.
+  if (current && await pngsEquivalent(current, next)) return;
   if (check) {
     stale.push(relativePath);
     return;
