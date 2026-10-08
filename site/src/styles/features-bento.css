@@ -82,10 +82,13 @@
 .bento-display { font-size: var(--bento-display) !important; font-weight: 700 !important; letter-spacing: -.03em !important; line-height: 1.04 !important; }
 .bento-accent { background: linear-gradient(170deg, var(--bento-accent-a), var(--bento-accent-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .bento-accent-wide { background: linear-gradient(90deg, #D07A22, #B24A2C 55%, var(--bento-accent-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* Clipped gradients paint only inside the box; tight display leading puts
+   the last line's descenders below it, so extend the box without moving text. */
+.bento-accent, .bento-accent-wide { padding-bottom: .14em; margin-bottom: -.14em; }
 .bento-fade { display: grid; justify-items: center; gap: .35em; font-family: var(--font-ui); font-weight: 600; letter-spacing: -.01em; }
 .bento-fade span:nth-child(1), .bento-fade span:nth-child(5) { font-size: calc(var(--bento-label) * .8); color: #D5CCBD; }
 .bento-fade span:nth-child(2), .bento-fade span:nth-child(4) { font-size: var(--bento-label); color: #B3A894; }
-.bento-fade h3 { margin: .1em 0 !important; }
+.bento-fade h3 { margin: .1em 0 -.04em !important; }
 .bento-chips { display: flex; flex-wrap: nowrap; justify-content: center; gap: .4em; padding: 0 8%; font: 600 calc(var(--bento-label) * .85) var(--font-ui); }
 .bento-chips span { padding: .3em .6em; border-radius: .6em; background: rgba(255, 255, 255, .1); color: var(--bento-on-ink); }
 
