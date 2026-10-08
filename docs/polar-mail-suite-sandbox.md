@@ -24,17 +24,47 @@ Because Patron Monthly and Annual are separate benefits, a change of billing
 period still issues a new Browser key, as it already does for Patron alone, so
 plan changes should be offered within the same billing period.
 
-### Sandbox changes for the owner
+### Sandbox changes (applied October 8)
 
-1. On Suite Monthly, attach **Blanc Patron Monthly License** and the Mail
-   license benefit, then detach the Suite benefit `c5ebb27b-…`.
-2. On Suite Annual, attach **Blanc Patron Annual License** and the Mail
-   license benefit, then detach the Suite benefit.
-3. Archive the Suite benefit once no sandbox subscription holds it. Existing
-   sandbox Suite subscriptions are test fixtures only; check in the portal
-   whether they picked up the new benefits, and start fresh purchases for the
-   checklist below rather than relying on them.
-4. Allow plan changes only between products with the same billing period.
+Applied through the sandbox API with a short-lived organization token; the
+production catalog is unchanged.
+
+| Product | Before | After |
+| --- | --- | --- |
+| Blanc Suite — Monthly `286767b6-7f5c-45b7-94f6-89faa905879c` ($7/month) | Blanc Suite License `c5ebb27b-…` | Blanc Patron Monthly License `2f5e210c-7d63-4ba6-8818-45f3b7fc9b93` + Blanc Mail License `819e65da-…` |
+| Blanc Suite — Annual `578a6b00-20f5-4fce-bd72-f53805caa8b9` ($70/year) | Blanc Suite License `c5ebb27b-…` | Blanc Patron Annual License `27ecc7d8-f31e-4951-8235-22dda51327c4` + Blanc Mail License `819e65da-…` |
+
+Both products read back with exactly those two benefits. Polar then revoked
+both Suite-benefit grants (subscriptions `eda7e167-…` and `3155fa61-…`, at
+13:46:51Z), so no sandbox subscription holds the Suite benefit.
+
+Polar granted the new benefits to both existing Suite Monthly subscriptions in
+the same second, which is the plan-change behaviour this model relies on:
+
+| Subscription | Patron Monthly grant (license key id) | Mail grant (license key id) |
+| --- | --- | --- |
+| `eda7e167-…` (the Patron → Suite upgrade) | `b73bd00b-…`, originally created September 29 (`650ab1a7-1717-4548-aa19-1b89d48f8e1f`) | `a9a48755-…`, new (`67e39021-…`) |
+| `3155fa61-…` (bought as Suite) | `c4127bba-…`, new (`cd4f0b14-…`) | `0910d0f9-…`, new (`aa9a55e8-…`) |
+
+The upgraded subscription's Patron grant is the original record, re-granted,
+and its license key id `650ab1a7-…` is the same Patron key id recorded for
+the September 29 purchase below. So the customer's existing Browser key came back
+rather than being replaced. The token could not read license keys (403), so
+the key value and activation state were not inspected; confirm in Browser that
+the original key validates.
+
+At the owner's direction the unused Blanc Suite License benefit
+`c5ebb27b-…` was then deleted (no grant was active; `DELETE` returned 204 and a
+later `GET` 404).
+
+Still to do in the dashboard:
+
+1. Offer plan changes only within the same billing period. Products expose no
+   plan-change field, and the organization settings could not be read with the
+   token's scopes, so check the subscription and customer-portal settings in
+   the dashboard.
+2. Start fresh purchases for the checklist below rather than relying on the
+   older Suite fixtures.
 
 ### Acceptance checklist
 
