@@ -406,7 +406,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "059be6a488015b1843438cb440ba193d1fde073ff1a6120dbe55875edb92d6ed",
+      "sha256": "873360d83b74f68119c7f91378a3fb2d41ef8f53731f095556d5f3332a7ccc5f",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -449,6 +449,7 @@
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
         "pages:settings:get",
+        "pages:settings:language",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",
@@ -710,7 +711,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "5d68e7f8b98bbe1db6e8c790876c2107bc14f19dd8ef8a1db236321ddfb9a271",
+      "sha256": "e5665b54d4158567db4e5b2663821081994018b3d72102f882b1678eb31ae6c8",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -754,6 +755,7 @@
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
         "pages:settings:get",
+        "pages:settings:language",
         "pages:settings:onepassword-status",
         "pages:settings:onepassword-verify",
         "pages:settings:open-onepassword-app",

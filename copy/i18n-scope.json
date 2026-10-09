@@ -260,6 +260,10 @@
     "src/main/diagnostics.js": {
       "state": "pending",
       "allow": []
+    },
+    "src/renderer/pages/settings-language-model.js": {
+      "state": "pending",
+      "allow": []
     }
   }
 }

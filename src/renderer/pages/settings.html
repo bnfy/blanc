@@ -118,6 +118,15 @@
               </select>
             </div>
 
+            <div class="setting" id="uiLanguageSetting" hidden>
+              <div class="label">
+                <span data-i18n="settings.language.label">Language</span>
+                <span class="hint" data-i18n="settings.language.hint">Translations are machine-generated.</span>
+              </div>
+              <select id="uiLanguage" aria-label="Language" data-i18n-aria-label="settings.language.label"></select>
+              <button id="uiLanguageRelaunch" type="button" hidden data-i18n="settings.language.relaunch">Relaunch to apply</button>
+            </div>
+
             <div class="setting" id="mouseGesturesSetting">
               <div class="label">
                 <span>Mouse gestures</span>
@@ -608,6 +617,7 @@
   <script src="settings-verify-model.js"></script>
   <script src="settings-nav-model.js"></script>
   <script src="settings-sync-setup-model.js"></script>
+  <script src="settings-language-model.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

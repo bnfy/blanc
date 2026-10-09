@@ -67,6 +67,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `tabImport.cancel` | invoke | `pages:tab-import:cancel` | tab-import | Discard the import session. |
 | `settings.get` | invoke | `pages:settings:get` | settings | Current settings plus derived status for the Settings page. |
 | `settings.set` | invoke | `pages:settings:set` | settings | Write a partial settings update. |
+| `settings.language` | invoke | `pages:settings:language` | settings | Choose the interface language; optionally relaunch to apply it. |
 | `settings.blockingStatus` | invoke | `pages:blocking:status` | settings | Blocking provider status. |
 | `settings.blockingRetry` | invoke | `pages:blocking:retry` | settings | Retry a blocking provider that failed to start. |
 | `settings.blockingOpen` | invoke | `pages:blocking:open` | settings | Open a managed uBlock Origin tool view. |

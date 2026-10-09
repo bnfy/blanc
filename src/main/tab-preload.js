@@ -208,6 +208,7 @@ if (window.location.protocol === 'blanc:') {
         },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
+        language: (code, restart) => invoke('pages:settings:language', code, restart),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
         },

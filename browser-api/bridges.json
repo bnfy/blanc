@@ -935,6 +935,26 @@
         "doc": "Write a partial settings update."
       },
       {
+        "name": "settings.language",
+        "kind": "invoke",
+        "channel": "pages:settings:language",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "code",
+            "type": "unknown"
+          },
+          {
+            "name": "restart",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the interface language; optionally relaunch to apply it."
+      },
+      {
         "name": "settings.blockingStatus",
         "kind": "invoke",
         "channel": "pages:blocking:status",

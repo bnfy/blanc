@@ -354,6 +354,7 @@ function setupPages(hooks = {}) {
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
+    languages: hooks.i18n?.languagesInfo() ?? { active: 'en', system: 'en', options: [] },
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
   handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
@@ -371,6 +372,10 @@ function setupPages(hooks = {}) {
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
   });
+  // The only renderer write path for uiLanguage: sanitize() has no entry for
+  // it, so pages:settings:set drops it like any unknown key.
+  handle('pages:settings:language', 'settings', (code, restart) =>
+    hooks.i18n?.changeUiLanguage(code, { restart }) ?? false);
   handle('pages:settings:trust-receipt', 'settings', async () => {
     const current = settings.getSettings();
     const blocker = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'adblock/sources/pinned.json'), 'utf8'));
