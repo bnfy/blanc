@@ -94,6 +94,8 @@
     "settings:check": "node settings-schema/build.mjs --check",
     "copy:build": "node copy/build.mjs",
     "copy:check": "node copy/build.mjs --check",
+    "copy:status": "node copy/build.mjs --status",
+    "copy:ack": "node copy/build.mjs --ack",
     "browser-api:build": "node browser-api/build.mjs",
     "browser-api:check": "node browser-api/build.mjs --check",
     "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run browser-api:check && npm run adblock:check && npm run darkreader:check && npm run ublock:check && npm run compliance:check && npm run compatibility:check && npm run audit-inventory:check",

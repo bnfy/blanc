@@ -1,0 +1,20 @@
+[
+  {
+    "code": "en",
+    "endonym": "English",
+    "dir": "ltr",
+    "status": "selectable"
+  },
+  {
+    "code": "de",
+    "endonym": "Deutsch",
+    "dir": "ltr",
+    "status": "hidden"
+  },
+  {
+    "code": "en-XA",
+    "endonym": "Pseudo",
+    "dir": "ltr",
+    "status": "pseudo"
+  }
+]
