@@ -127,8 +127,14 @@ const {
   sendLaunchPing,
   sendMahjongPlay,
   sendNewtabLayoutUsed,
+  sendDayOneSignal,
+  installMeta,
+  markDayOneSent,
   productUsageAllowed,
 } = require('./telemetry');
+const { createDayOneSignals } = require('./day-one-signals');
+const { createDefaultBrowserStatus } = require('./default-browser-status');
+const { execFileSync } = require('node:child_process');
 const diagnostics = require('./diagnostics');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
@@ -1507,6 +1513,20 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 }
 
 let launchPingSent = false;
+const defaultBrowserStatus = createDefaultBrowserStatus({ app, platform: process.platform, execFileSync });
+// First-day retention signals (docs/superpowers/specs/2026-10-09-first-day-
+// retention-signals-design.md). Same consent rule as every other event, plus:
+// only after this process sent its launch report.
+const dayOneSignals = createDayOneSignals({
+  readMeta: () => installMeta(),
+  markSent: (signal) => markDayOneSent(signal),
+  send: (signal) => sendDayOneSignal(signal),
+  canSend: () => app.isPackaged
+    && settings.isFirstRunComplete()
+    && settings.getSettings().usagePing === true
+    && launchPingSent,
+  isDefaultBrowser: () => defaultBrowserStatus().isDefault,
+});
 function maybeSendLaunchPing() {
   if (
     launchPingSent ||
@@ -1515,6 +1535,7 @@ function maybeSendLaunchPing() {
   ) return;
   launchPingSent = true;
   sendLaunchPing();
+  dayOneSignals.start();
 }
 
 function maybeSendProductUsage(wc, report) {
@@ -5511,6 +5532,7 @@ function notePopupChild(openerTabId, childWindow, sourceContentsId, targetUrl) {
 initTabView({
   claimOutage: (tab, wc, url) => (tab.private ? null : blockingProviders?.forTab(tab)?.claimOutage?.(wc.id, url) ?? null),
   noteMainFrameCommitted: (tab, wc, url) => { if (!tab.private) blockingProviders?.forTab(tab)?.noteMainFrameCommitted?.(wc.id, url); },
+  noteWebPageLoaded: (url) => dayOneSignals.notePageLoaded(url),
   allowManagedExtensionNavigation: (tab, wc, url, source, event) => {
     const provider = blockingProviders?.forTab(tab);
     if (!provider?.extensionId || tab.private) return false;
@@ -9563,6 +9585,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    defaultBrowserChanged: () => dayOneSignals.checkDefault(),
     blocking: {
       status: () => blockingProviders.status(rt().profileId),
       retry: () => blockingRecovery.retry(),
