@@ -44,7 +44,7 @@ test('Newsreader is bundled for the Billboard clock, invitations, and sheet head
   assert.match(pages, /--font-display:\s*"Newsreader Condensed"[^;]*serif;/);
   assert.match(pages, /body\.sheet \.page h1\s*\{[^}]*font-family:\s*var\(--font-display\)/s);
   assert.match(pages, /body\.sheet \.group-title,\s*body\.sheet \.shortcut-section \.section-title\s*\{[^}]*font-family:\s*var\(--font-display\)/s);
-  assert.match(pages, /\.bb-clock\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*clamp\(80px, 12vw, 148px\)[^}]*font-weight:\s*650[^}]*font-optical-sizing:\s*auto/s);
+  assert.match(pages, /\.bb-clock\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*clamp\(80px, 12vw, 148px\)[^}]*font-weight:\s*500[^}]*font-optical-sizing:\s*auto/s);
   assert.match(pages, /\.migration-checklist-heading h2\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*28px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.05[^}]*letter-spacing:\s*-0\.04em[^}]*font-optical-sizing:\s*auto/s);
   assert.match(pages, /\.ob-content h1\s*\{[^}]*font-family:\s*var\(--font-display\)[^}]*font-size:\s*22px[^}]*font-weight:\s*400[^}]*line-height:\s*1\.15[^}]*letter-spacing:\s*-0\.035em[^}]*font-optical-sizing:\s*auto[^}]*text-wrap:\s*balance/s);
   assert.match(newtab, /id="startDate" class="start-brand-date"/);

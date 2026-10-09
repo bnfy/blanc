@@ -2832,7 +2832,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-clock {
   font-family: var(--font-display);
   font-size: clamp(80px, 12vw, 148px);
-  font-weight: 650;
+  font-weight: 500;
   font-variant-numeric: proportional-nums;
   letter-spacing: -0.03em;
   text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
