@@ -27,6 +27,8 @@ test('media-kit raster assets exist at their declared dimensions', () => {
   assert.deepEqual(pngSize('site/public/logo.png'), { width: 1024, height: 1024 });
   // The full-color mark is the enhanced Sunrise master, shipped byte for byte.
   assert.deepEqual(pngSize('site/public/press/blanc-sunrise-mark-4096.png'), { width: 4096, height: 4096 });
+  // The black mark is rendered from that master, so both share one canvas and crop.
+  assert.deepEqual(pngSize('site/public/press/blanc-sunrise-mark-black-4096.png'), { width: 4096, height: 4096 });
   assert.ok(fs.readFileSync(path.join(ROOT, 'site/public/press/blanc-sunrise-mark-4096.png')).equals(
     fs.readFileSync(path.join(ROOT, 'export/app-icons-1024-square/icon-sunrise-4096.png'))));
 });
@@ -62,11 +64,11 @@ test('the media page keeps its release links, indexability, and no-analytics bou
   assert.match(page, /import releaseData from '\.\.\/data\/releases\.json'/);
   assert.match(page, /\?\?\s*ALL_RELEASES\[0\]/);
   assert.match(page, /const RELEASE_VERSION = CURRENT_RELEASE\.tag\.replace/);
-  assert.match(page, /<dt>version<\/dt><dd>Blanc \{RELEASE_VERSION\}<\/dd>/);
+  assert.match(page, /<dt>version<\/dt><dd>Blanc \{RELEASE_VERSION\}<span class="media-fact-note">Released <time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.doesNotMatch(page, /<dd>Blanc \{VERSION\}<\/dd>/);
-  assert.match(page, /<dt>released<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.match(page, /<dt>date<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.doesNotMatch(page, /<dt>(?:released|date)<\/dt><dd>[A-Z][a-z]+ \d/);
+  assert.doesNotMatch(page, /Released [A-Z][a-z]+ \d/);
 
   // The captures are pinned to the release they were taken from, so the copy
   // that names that release must match the files rather than follow VERSION.
@@ -75,7 +77,7 @@ test('the media page keeps its release links, indexability, and no-analytics bou
   assert.doesNotMatch(page, /Native captures of public Blanc \{/);
   assert.match(page, /Make the island the lead image/);
   assert.match(page, /href="\/press\/blanc-sunrise-mark-4096\.png" download/);
-  assert.match(page, /href="\/logo\.png" download/);
+  assert.match(page, /href="\/press\/blanc-sunrise-mark-black-4096\.png" download/);
   // The version-free press card is the social preview; no launch card returns.
   assert.match(page, /ogImage="\/press\/blanc-press-card\.png"/);
   assert.match(page, /ogImageAlt="Blanc media kit: the browser in one small island\."/);

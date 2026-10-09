@@ -98,7 +98,7 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
       const bytes = await response.body();
       assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
       const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
-      assert.ok(['2560x1600', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
+      assert.ok(['2560x1600', '4096x4096'].includes(size), `${href}: ${size}`);
     }
     const downloaded = page.waitForEvent('download');
     const firstHref = await downloads.first().getAttribute('href');

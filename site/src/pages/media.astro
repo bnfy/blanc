@@ -103,7 +103,6 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
           <dl class="media-path-facts">
             <div><dt>current release</dt><dd>Blanc {RELEASE_VERSION}</dd></div>
             <div><dt>date</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
-            <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
           </dl>
           <span class="media-path-go" aria-hidden="true">↓</span>
         </a>
@@ -151,7 +150,7 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
       </a>
       <figcaption>
         <span><strong>The island at rest.</strong> Back, forward, the current group’s tabs as dots, and the page’s domain, in one pill above the page.</span>
-        <a href="/press/blanc-island-resting-v1.30.1.png" download>Download PNG · 2560 × 1600</a>
+        <a href="/press/blanc-island-resting-v1.30.1.png" download>Download PNG · 2560&nbsp;×&nbsp;1600</a>
       </figcaption>
     </figure>
 
@@ -162,7 +161,7 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
         </a>
         <figcaption>
           <span><strong>The island expanded.</strong> Search, tabs, and named groups in one panel.</span>
-          <a href="/press/blanc-island-expanded-v1.30.1.png" download>Download PNG · 2560 × 1600</a>
+          <a href="/press/blanc-island-expanded-v1.30.1.png" download>Download PNG · 2560&nbsp;×&nbsp;1600</a>
         </figcaption>
       </figure>
       <figure class="media-tile media-tile--mark">
@@ -171,16 +170,16 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
         </a>
         <figcaption>
           <span><strong>Sunrise mark, full color.</strong> Gold on ivory.</span>
-          <a href="/press/blanc-sunrise-mark-4096.png" download>Download PNG · 4096 × 4096</a>
+          <a href="/press/blanc-sunrise-mark-4096.png" download>Download PNG · 4096&nbsp;×&nbsp;4096</a>
         </figcaption>
       </figure>
       <figure class="media-tile media-tile--mark">
-        <a href="/logo.png" download>
-          <img src="/logo.png" width="1024" height="1024" loading="lazy" decoding="async" alt="The Sunrise mark in black on white." />
+        <a href="/press/blanc-sunrise-mark-black-4096.png" download>
+          <img src="/press/blanc-sunrise-mark-black-4096.webp" width="4096" height="4096" loading="lazy" decoding="async" alt="The Sunrise mark in black on white." />
         </a>
         <figcaption>
           <span><strong>Sunrise mark, black.</strong> On white.</span>
-          <a href="/logo.png" download>Download PNG · 1024 × 1024</a>
+          <a href="/press/blanc-sunrise-mark-black-4096.png" download>Download PNG · 4096&nbsp;×&nbsp;4096</a>
         </figcaption>
       </figure>
     </div>
@@ -227,17 +226,15 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
       <h2 id="media-facts-title">Blanc, at a glance.</h2>
       <p>Version and date follow the current public release.</p>
     </header>
+    <!-- Six tiles, two rows: the release and what it costs, then what Blanc
+         does by default. Values lead; notes qualify them. -->
     <dl class="media-fact-grid">
-      <div><dt>version</dt><dd>Blanc {RELEASE_VERSION}</dd></div>
-      <div><dt>released</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
-      <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
-      <div><dt>price</dt><dd>Free; all core browsing features included</dd></div>
-      <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; named workspaces on every platform</dd></div>
-      <div><dt>blocking</dt><dd>Built into the network layer; no extension required</dd></div>
+      <div><dt>version</dt><dd>Blanc {RELEASE_VERSION}<span class="media-fact-note">Released <time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></span></dd></div>
+      <div><dt>platforms</dt><dd>macOS · Windows · Linux<span class="media-fact-note">Chromium through Electron</span></dd></div>
+      <div><dt>price</dt><dd>Free<span class="media-fact-note">Optional Blanc Patron: US$30/year or $4/month, plus tax; adds named workspaces on every platform</span></dd></div>
+      <div><dt>blocking</dt><dd>Built in<span class="media-fact-note">At the network layer; no extension required</span></dd></div>
       <div><dt>account</dt><dd>Not required</dd></div>
       <div><dt>built-in AI agent</dt><dd>None</dd></div>
-      <div><dt>engine</dt><dd>Chromium through Electron</dd></div>
-      <div><dt>publisher</dt><dd>Bananify</dd></div>
     </dl>
   </section>
 
