@@ -23,7 +23,7 @@
     "sync": "not configured",
     "sampleData": "Synthetic Favorites, visits, one named group, a named Studio profile, two saved workspaces and a blocked-request total only; no account, Patron entitlement, participant data, or real browsing content."
   },
-  "method": "npm run capture:profiles-workspaces:installed launches the installed app in a disposable profile seeded only with the declared synthetic fixtures and writes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set (each capture carries a live clock and date, so a rerun never reproduces these hashes). Over Chromium’s debugging surface it calls the shipped browserAPI.openPage(\"settings\") and browserAPI.openIsland() actions, clicks the shipped Settings navigation, the Studio profile’s Open button, the workspace control and the menu padding, and brings each window forward so its title bar renders active; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The owner approved all three images on October 8, 2026.",
+  "method": "npm run capture:profiles-workspaces:installed launches the installed app in a disposable profile seeded only with the declared synthetic fixtures and writes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set (each capture carries a live clock and date, so a rerun never reproduces these hashes). Over Chromium’s debugging surface it calls the shipped browserAPI.openPage(\"settings\") and browserAPI.openIsland() actions, clicks the shipped Settings navigation, the Studio profile’s Open button, the workspace control and the menu padding, and brings each window forward so its title bar renders active; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), uniformly resized to 1440×900 and converted from Display P3 to sRGB with sharp. Native transparent corners are kept; no controls, text or states are retouched. Each PNG has a WebP companion (quality 85) encoded from it for inline display; the PNG stays the linked full-size file. The owner approved all three images on October 8, 2026. The Glance capture (approved by the owner on October 9, 2026) is made the same way by npm run capture:glance:installed, which calls the shipped browserAPI.createTab, closeTab, switchTab and setGlanceTab actions, closes each site’s own welcome panels and notices with that site’s own close controls, and scrolls the guide to its photo banner; its two pages are live third-party content at capture time, with theme light and Quiet Tabs off.",
   "captures": [
     {
       "file": "site/public/feature-captures/profiles-v1.30.1.png",
@@ -81,6 +81,24 @@
       "webp": {
         "file": "site/public/feature-captures/workspaces-v1.30.1.webp",
         "sha256": "35474804541cd158b60dcaf80d3843234880d10e8dfb03cb756e05745ee5d5d8"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/glance-v1.30.1.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "f5a9a071d9c7d2dc2fe09c3c3a8d9dbb9ea876a1c99af9a7166573653d165dcb",
+      "capturedAt": "2026-10-09",
+      "state": "Glance in one Personal window: OpenStreetMap centered on central Lisbon as the main page and the Wikivoyage Lisbon travel guide as the reference page, two ordinary tabs. Glance’s Make main, Change, Close and the divider are visible. Pages loaded live from openstreetmap.org and en.wikivoyage.org.",
+      "evidence": [
+        "v1.30.1:src/main/main.js",
+        "v1.30.1:src/main/preload.js",
+        "docs/release-incidents/2026-10-08-v1.30.1.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/glance-v1.30.1.webp",
+        "sha256": "291b1a0b71487c014d57dedf4ff00f50af2942fddaea29cd289c10a59d8a49b5"
       }
     }
   ]
