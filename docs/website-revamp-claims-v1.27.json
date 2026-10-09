@@ -294,110 +294,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-061",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "More of the browser, ready to show.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-062",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "The Start Page and standalone Mahjong captures come from signed public v1.21.0; the remaining interface captures come from signed public v1.15.0. Every capture uses an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "profiles",
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-063",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Choose a starting point. Open a new tab and try the four footer layouts. Then open standalone Mahjong from any footer, try a Daily board, and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-064",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Keep a reference in view. Open two ordinary tabs, press Cmd/Ctrl+Shift+G, and pick one for Glance. Resize the divider and try Make main.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-065",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Undo a close. Close an ordinary tab or named group, then pick it in Recently Closed or press Cmd/Ctrl+Shift+T. Recovery is bounded and may reload the page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening",
-        "security"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-066",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Separate identities and sets. Create a named local profile in Settings. With active Patron, save a tab/group set through /workspace and switch to another Named Workspace.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-067",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Choose Ledger, Billboard, Shelf, or Tally. Every footer opens standalone Mahjong with eight boards, rotating Daily deals, and device-local records.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-068",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Glance temporarily displays another tab from the current window beside the main page, with resize, swap, change, and close controls.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-069",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Local profiles and independent windows separate browsing contexts. Patron adds creation of device-local Named Workspaces for saved sets of tabs and groups.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-070",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Recently Closed is a bounded per-window undo history for ordinary tabs and groups. Eligible pages can briefly return without reloading; private tabs are excluded.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-074",
       "source": "site/src/components/guides/start-page.astro",
       "exactWording": "A different starting point, whenever you want.",
@@ -1475,116 +1371,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-229",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "A clock and frequent sites derived from local browsing history.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-231",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Two ordinary tabs sharing one window.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-232",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "The switcher with saved sets of tabs and groups.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-233",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Settings with Personal and a separate named profile.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-234",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "A recently closed tab and a group, ready to reopen.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-235",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Four layouts: Ledger, Billboard, Shelf, and Tally; Billboard frequent sites stay local",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-236",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Eight boards, rotating Daily deals, local records and streaks, cross-tab continuation, and undoable Shuffle",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-237",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "A temporary reference pane using tabs from the current window and profile",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-238",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Local browsing identities with independent windows; Sync is Personal-only",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-239",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Per-window recovery for ordinary tabs and groups; time-limited, memory-only, and may reload",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-240",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Patron creation of device-local, profile-scoped saved tab and group sets; existing sets remain usable after membership lapses",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-245",
       "source": "site/src/components/guides/sync.astro",
       "exactWording": "Favorites and settings. Open tabs if you choose.",
@@ -1670,16 +1456,6 @@
         "foundations"
       ],
       "verdict": "qualified"
-    },
-    {
-      "id": "website-115-260",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Bridge in Burst mode, opened in its own managed tab from the Start Page footer.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "verified"
     },
     {
       "id": "trust-125-235",
@@ -2928,50 +2704,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "navigation"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "messaging-125-010",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "No permanent tab row, no required account, and no AI assistant competing for attention. Browser controls stay together in a slim band above the page, with a panel that opens when you need more.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "messaging-125-011",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Open the panel when you need more controls.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "messaging-125-012",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Use this enlarged recreation to open the panel, search, switch tabs and choose a named group. Press Escape to return to the resting controls above the page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "messaging-125-013",
-      "source": "site/src/pages/press.astro",
-      "exactWording": "Navigation, tab switching, named groups and commands gather around one compact island. The resting controls stay in a slim band above the page; the expanded panel opens over it and closes when you are done.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "navigation",
-        "trust"
       ],
       "verdict": "qualified"
     },
@@ -13281,6 +13013,302 @@
       ],
       "verdict": "qualified",
       "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded."
+    }
+  ],
+  "retiredWithMediaPage": [
+    {
+      "id": "website-115-061",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "More of the browser, ready to show.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-062",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "The Start Page and standalone Mahjong captures come from signed public v1.21.0; the remaining interface captures come from signed public v1.15.0. Every capture uses an isolated sample profile. Sample browsing data illustrates the interface; totals are not benchmark results.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles",
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-063",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Choose a starting point. Open a new tab and try the four footer layouts. Then open standalone Mahjong from any footer, try a Daily board, and open Records; in Billboard, visit a few ordinary sites and return to see the local frequent-site row.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-064",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Keep a reference in view. Open two ordinary tabs, press Cmd/Ctrl+Shift+G, and pick one for Glance. Resize the divider and try Make main.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-065",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Undo a close. Close an ordinary tab or named group, then pick it in Recently Closed or press Cmd/Ctrl+Shift+T. Recovery is bounded and may reload the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening",
+        "security"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-066",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Separate identities and sets. Create a named local profile in Settings. With active Patron, save a tab/group set through /workspace and switch to another Named Workspace.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-067",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf, or Tally. Every footer opens standalone Mahjong with eight boards, rotating Daily deals, and device-local records.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-068",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Glance temporarily displays another tab from the current window beside the main page, with resize, swap, change, and close controls.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-069",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Local profiles and independent windows separate browsing contexts. Patron adds creation of device-local Named Workspaces for saved sets of tabs and groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-070",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Recently Closed is a bounded per-window undo history for ordinary tabs and groups. Eligible pages can briefly return without reloading; private tabs are excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-229",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "A clock and frequent sites derived from local browsing history.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-231",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Two ordinary tabs sharing one window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-232",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "The switcher with saved sets of tabs and groups.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-233",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Settings with Personal and a separate named profile.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-234",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "A recently closed tab and a group, ready to reopen.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-235",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Four layouts: Ledger, Billboard, Shelf, and Tally; Billboard frequent sites stay local",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-236",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Eight boards, rotating Daily deals, local records and streaks, cross-tab continuation, and undoable Shuffle",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-237",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "A temporary reference pane using tabs from the current window and profile",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-238",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Local browsing identities with independent windows; Sync is Personal-only",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-239",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Per-window recovery for ordinary tabs and groups; time-limited, memory-only, and may reload",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-240",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Patron creation of device-local, profile-scoped saved tab and group sets; existing sets remain usable after membership lapses",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "website-115-260",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Bridge in Burst mode, opened in its own managed tab from the Start Page footer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "verified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "messaging-125-010",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "No permanent tab row, no required account, and no AI assistant competing for attention. Browser controls stay together in a slim band above the page, with a panel that opens when you need more.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "messaging-125-011",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Open the panel when you need more controls.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "messaging-125-012",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Use this enlarged recreation to open the panel, search, switch tabs and choose a named group. Press Escape to return to the resting controls above the page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    },
+    {
+      "id": "messaging-125-013",
+      "source": "site/src/pages/press.astro",
+      "exactWording": "Navigation, tab switching, named groups and commands gather around one compact island. The resting controls stay in a slim band above the page; the expanded panel opens over it and closes when you are done.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "navigation",
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
     }
   ]
 }

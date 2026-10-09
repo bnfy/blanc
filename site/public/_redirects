@@ -1,7 +1,10 @@
-# Retired utility routes resolve to the relevant Support, Trust or feature guide.
+# Retired utility routes resolve to the relevant Support, Trust or feature guide;
+# the Press page was renamed Media (press images keep their /press/ URLs).
 /faq /support 301
 /faq/ /support 301
 /how-it-works /trust 301
 /how-it-works/ /trust 301
 /private /features/private-tabs 301
 /private/ /features/private-tabs 301
+/press /media 301
+/press/ /media 301

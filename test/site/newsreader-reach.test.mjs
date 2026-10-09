@@ -1,10 +1,10 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs
 //
 // Level B of the Newsreader reach decision (4 Sep 2026): every heading in
-// Newsreader regular, the press quote in italic, the demo's single-sentence
-// figure title and everything else in Inter. Since 8 Oct 2026 that Newsreader
-// is the website's condensed build (site/scripts/build-condensed-newsreader.py);
-// product replicas keep the app's own, uncondensed Newsreader.
+// Newsreader regular, the demo's single-sentence figure title and everything
+// else in Inter. Since 8 Oct 2026 that Newsreader is the website's condensed
+// build (site/scripts/build-condensed-newsreader.py). The press quote, the one
+// italic line, left with the Press page on 8 Oct 2026.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -54,7 +54,7 @@ test('the homepage headline and footer tagline are Newsreader regular, and the d
 // Since the website revamp (#491) legal pages set their headline in Newsreader
 // too, while their section headings stay Inter like the legal text.
 const legalRoutes = ['/privacy', '/terms'];
-const serifRoutes = ['/', '/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors', '/privacy', '/terms'];
+const serifRoutes = ['/', '/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/privacy', '/terms'];
 
 test('every page headline and section heading is Newsreader regular with tight tracking, and nothing overflows', { timeout: 120000 }, async () => {
   const { page, context } = await openPage('/');
@@ -106,24 +106,12 @@ test('every page headline and section heading is Newsreader regular with tight t
   } finally { await context.close(); }
 });
 
-test('the press announcement quote is the only Newsreader italic on the site', async () => {
-  const { page, context } = await openPage('/press');
-  try {
-    const quote = await page.evaluate(() => {
-      const p = getComputedStyle(document.querySelector('.press-announcement blockquote p'));
-      return { font: p.fontFamily, style: p.fontStyle, weight: p.fontWeight, loaded: document.fonts.check('italic 24px "Newsreader Condensed"') };
-    });
-    assert.match(quote.font, serif);
-    assert.equal(quote.style, 'italic');
-    assert.equal(quote.weight, '400');
-    assert.equal(quote.loaded, true, 'the italic file is loaded on the press page');
-    const clock = await page.evaluate(() => getComputedStyle(document.querySelector('.demo-bb-clock')).fontFamily);
-    assert.match(clock, /^"?Newsreader Variable"?/, 'the Start Page clock replica keeps the app\'s uncondensed Newsreader');
-  } finally { await context.close(); }
-
-  const home = await openPage('/');
-  try {
-    const italicDeclared = await home.page.evaluate(() => [...document.fonts].some(f => f.family === 'Newsreader Condensed' && f.style === 'italic'));
-    assert.equal(italicDeclared, false, 'the italic file is not declared on pages that do not use it');
-  } finally { await home.context.close(); }
+test('no page declares the Newsreader italic since the press quote was retired', async () => {
+  for (const route of ['/media', '/']) {
+    const { page, context } = await openPage(route);
+    try {
+      const italicDeclared = await page.evaluate(() => [...document.fonts].some(f => f.family === 'Newsreader Condensed' && f.style === 'italic'));
+      assert.equal(italicDeclared, false, `${route} does not declare the italic file`);
+    } finally { await context.close(); }
+  }
 });

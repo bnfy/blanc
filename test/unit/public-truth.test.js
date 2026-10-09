@@ -178,7 +178,7 @@ test('public Patron copy states the named-workspace boundary consistently', () =
     'site/src/pages/about.astro',
     'site/src/data/support-questions.json',
     'site/src/pages/index.astro',
-    'site/src/pages/press.astro',
+    'site/src/pages/media.astro',
     'site/src/pages/terms.astro',
   ];
   const detailedBoundaryFiles = [

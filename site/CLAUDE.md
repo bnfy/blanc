@@ -27,9 +27,8 @@ enforces it), by `scripts/build-condensed-newsreader.py` into `src/fonts/`
 `scripts/build-condensed-newsreader.requirements.txt`; the site workflow fails
 if the committed fonts are stale; Newsreader has no width axis, and a CSS
 `scaleX` would break wrapping and alignment) — loaded in
-`BaseLayout.astro` with its italic imported only by `press.astro`; product
-replicas (the press demo's Billboard clock) keep the app's uncondensed
-`"Newsreader Variable"` via `--site-font-replica-serif`; the
+`BaseLayout.astro`; its italic is built but imported by no page since the
+press quote left with the Press page (8 Oct 2026); the
 display-headings rule at the end of `site.css` is what makes every heading
 serif, and the demo's single-sentence figure title deliberately stays Inter;
 these files are NOT under the root `tokens/` substrate guard).
@@ -144,8 +143,8 @@ guards drift) from the Sunrise motifs — the mark is raster, painted as an ink
 silhouette through its alpha; the ≤16px favicons use the rays-only crop, the
 app's own small-size rule. Never hand-edit those outputs. `og-image.png`,
 `feature-*.png`, and `press/blanc-press-card.png` read `favicon.svg` when
-re-rendered via `site/scripts/render-og-cards.mjs` and
-`render-press-primary-capture.mjs` (after a build). The demo island shows no
+re-rendered via `site/scripts/render-og-cards.mjs` (after a build) and
+`render-press-card.mjs` (from the media kit's native expanded-island capture). The demo island shows no
 favicon on its blank tab because the app hides that slot on internal pages. Utility scripts in `site/scripts/`: `verify-parity.mjs` +
 `shoot-pages.mjs` (conversion-era comparators against the `site-pre-astro` git
 tag) and `compress-images.mjs` (re-runnable lossless image optimization —

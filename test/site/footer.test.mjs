@@ -32,7 +32,7 @@ async function openPage(width = 1440, path = '/', scale = 1) {
 const groups = {
   'Explore Blanc': [['Feature guides', '/features'], ['Download', '/download'], ['What’s new', '/changelog'], ['Blanc Patron', '/#patron'], ['Switching from Arc', '/arc-alternative'], ['Blanc Mail', '/mail']],
   'Blanc resources': [['Support', '/support'], ['Security guide', '/features/security'], ['Privacy & Security', '/trust'], ['Source code', 'https://github.com/bnfy/blanc'], ['Contact', 'mailto:support@blancbrowser.com']],
-  'About Blanc': [['About', '/about'], ['Press', '/press'], ['Ambassadors', '/ambassadors']],
+  'About Blanc': [['About', '/about'], ['Media', '/media'], ['Ambassadors', '/ambassadors']],
 };
 const social = [
   'https://blancbrowser.substack.com/', 'https://www.instagram.com/blancbrowser/', 'https://www.threads.net/@blancbrowser',
@@ -42,7 +42,7 @@ const social = [
 test('footer groups, legal links and conditional privacy choices render on every page', async () => {
   const page = await openPage();
   try {
-    for (const [path, privacy] of [['/', true], ['/features/island', true], ['/press', false], ['/privacy', false], ['/terms', false]]) {
+    for (const [path, privacy] of [['/', true], ['/features/island', true], ['/media', false], ['/privacy', false], ['/terms', false]]) {
       await page.goto(`${baseURL}${path}`);
       const footer = page.locator('#site-footer');
       assert.deepEqual(await footer.locator('h2').allTextContents(), ['Explore', 'Resources', 'Blanc'], path);
@@ -71,7 +71,7 @@ test('footer fits every page and width with its controls inside the viewport', {
   try {
     for (const width of [320, 390, 768, 900, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const path of ['/', '/features', '/features/island', '/press', '/privacy']) {
+      for (const path of ['/', '/features', '/features/island', '/media', '/privacy']) {
         await page.goto(`${baseURL}${path}`);
         await page.evaluate(() => document.fonts.ready);
         await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
