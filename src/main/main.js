@@ -45,6 +45,8 @@ const { createBlockingProviders } = require('./blocking-providers');
 const { ublockTool } = require('./ublock-tool-url');
 const { createBlockingRecovery } = require('./blocking-recovery');
 const { createAppRestarter } = require('./app-restart');
+const { createMainI18n, testOverrides: i18nTestOverrides } = require('./i18n');
+const I18N_LOCALES = require('./i18n-locales.json');
 const { popupGeometry, validPopupSender, validPopupMessage, wirePopupDismissal } = require('./ublock-popup-host');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { createDarkWebsitesService } = require('./dark-websites-service');
@@ -324,6 +326,20 @@ const certificateExceptions = createCertificateExceptions({
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+// Interface language: resolved once at whenReady (first statement) and frozen
+// for this process; a change applies on relaunch through changeUiLanguage().
+// Resolution only returns registry codes, so the dynamic paths are bounded.
+const mainI18n = createMainI18n({
+  locales: I18N_LOCALES,
+  settings,
+  getPreferredSystemLanguages: () => app.getPreferredSystemLanguages(),
+  getSystemLocale: () => app.getSystemLocale(),
+  restartApp: () => restartApp(),
+  overrides: i18nTestOverrides({ isPackaged: app.isPackaged, env: process.env }),
+  strict: acceptanceTestMode,
+  loadStrings: (code) => require(`../renderer/pages/strings.${code}.js`),
+  loadStringsSource: (code) => fs.readFileSync(path.join(__dirname, `../renderer/pages/strings.${code}.js`), 'utf8'),
+});
 const ublockTestMode = acceptanceTestMode && process.env.BLANC_UBLOCK_TEST === '1';
 if (acceptanceTestMode) require('../../scripts/preflight-electron-runtime').verifyElectronRuntime({
   root: app.getAppPath(), runningVersion: process.versions.electron,
@@ -8913,6 +8929,7 @@ let displayCapturePicker = null;
 let displayCaptureHelperWindow = null; // hidden BrowserWindow; released on the last visible close
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
+  mainI18n.init();
   // Remove a badge left by an older build and keep the app-global native badge
   // empty if a service worker writes it. Page scripts are neutralized before
   // they run by the frame-only preload installed below.
@@ -9015,7 +9032,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
   const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
   const developmentDarkDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_DARK_PREVIEW');
-  setupChromeProtocol({ session: chromeSes, net, developmentBrandMarkPath });
+  setupChromeProtocol({ session: chromeSes, net, developmentBrandMarkPath, stringsScript: () => mainI18n.stringsScript() });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
@@ -9563,6 +9580,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    stringsScript: () => mainI18n.stringsScript(),
+    i18n: mainI18n,
     blocking: {
       status: () => blockingProviders.status(rt().profileId),
       retry: () => blockingRecovery.retry(),
@@ -9822,6 +9841,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      i18nState: () => mainI18n.state(),
       continueUnsafeForSender,
       forgetActiveCertificateException,
       certificateExceptions,

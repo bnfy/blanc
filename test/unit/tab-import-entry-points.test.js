@@ -82,10 +82,11 @@ test('the shared start-page checklist promotes the local Bring Your Tabs flow', 
 test('/bring-tabs is catalogued and dispatches through the privileged page allowlist', () => {
   const catalog = JSON.parse(read('copy/slash-commands.json'));
   const entry = catalog.commands.find((candidate) => candidate.command === '/bring-tabs');
-  assert.deepEqual(entry, {
-    command: '/bring-tabs',
-    hint: 'Bring open tabs from another browser',
-  });
+  assert.deepEqual(entry, { command: '/bring-tabs' });
+  assert.equal(
+    JSON.parse(read('copy/messages/en.json'))['slash.bringTabs.hint'].message,
+    'Bring open tabs from another browser',
+  );
 
   const overlay = read('src/renderer/overlay.js');
   assert.match(
