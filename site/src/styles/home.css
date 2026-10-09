@@ -298,7 +298,7 @@
 }
 .home-revamp .patron-section .patron-title {
   font-size: clamp(44px, 5vw, 68px);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
   color: var(--site-gold-on-dark);
 }
 .home-revamp .patron-description {
@@ -631,7 +631,7 @@
 .home-revamp .download-close h2 {
   font-size: clamp(56px, 7vw, 96px);
   line-height: 1.02;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
 }
 .home-revamp .download-close .planned-action {
   border-radius: 999px;
@@ -1238,7 +1238,7 @@
 }
 .home-revamp .break-label {
   font: 400 25px/1.2 var(--site-font-display);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
 }
 .home-revamp .tile-pair {
   position: relative;
@@ -2187,7 +2187,7 @@
 .home-revamp #tools .gesture-heading h3 {
   font-size: 30px;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
 }
 .home-revamp #tools .gesture-heading p {
   max-width: 570px;

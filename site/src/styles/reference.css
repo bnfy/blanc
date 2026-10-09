@@ -93,7 +93,7 @@
 .answer-group > h2,
 .reference-section-title {
   font: 400 38px/1.1 var(--site-font-display);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   margin: 0 0 24px;
 }
 .answer-topic {
@@ -216,7 +216,7 @@
 }
 .reference-contact h2 {
   font: 400 38px/1.1 var(--site-font-display);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   margin: 0 0 18px;
 }
 .reference-contact p {
