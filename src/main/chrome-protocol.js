@@ -5,6 +5,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
 const { captureRuntimeForPlatform } = require('./capture-platform');
+const { stringsScriptFor } = require('./i18n');
 
 const CHROME_SCHEME = 'blanc-chrome';
 // No `persist:` prefix: privileged UI state lives in an in-memory session that
@@ -100,10 +101,9 @@ function chromeResourcePath(rawUrl, platform = process.platform) {
   return path.join(RENDERER_DIR, relative);
 }
 
-function englishStringsScript() {
-  const source = fs.readFileSync(ENGLISH_STRINGS_PATH, 'utf8');
-  return `${source}\nself.blancStrings.formatLocale="en";self.blancStrings.strict=false;\n`;
-}
+// Processes without the main-process language state (display-capture brokers) serve English.
+const englishStringsScript = () =>
+  stringsScriptFor({ source: fs.readFileSync(ENGLISH_STRINGS_PATH, 'utf8'), formatLocale: 'en', strict: false });
 
 function createChromeProtocolHandler({ net, developmentBrandMarkPath = null, stringsScript = englishStringsScript }) {
   return (request) => {
@@ -125,7 +125,7 @@ function setupChromeProtocol({ session, net, developmentBrandMarkPath = null, st
   session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({
     net,
     developmentBrandMarkPath,
-    ...(stringsScript ? { stringsScript } : {}),
+    stringsScript,
   }));
 }
 

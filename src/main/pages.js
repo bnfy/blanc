@@ -21,6 +21,7 @@ const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { resolvePagesAsset } = require('./pages-assets');
+const { stringsScriptFor } = require('./i18n');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
 const { ublockBrandResourcePath } = require('./ublock-brand-resource');
@@ -86,7 +87,7 @@ function setupPages(hooks = {}) {
   // The active language's catalog for the virtual strings.js; main supplies it.
   // Without the hook (isolated harnesses) pages get English.
   const stringsScript = hooks.stringsScript ?? (() =>
-    `${fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8')}\nself.blancStrings.formatLocale="en";self.blancStrings.strict=false;\n`);
+    stringsScriptFor({ source: fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8'), formatLocale: 'en', strict: false }));
 
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);

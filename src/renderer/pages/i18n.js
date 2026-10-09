@@ -92,7 +92,6 @@
 
     const nodes = parseNodes({ inPlural: false, tag: undefined });
     if (i < text.length) fail('Unexpected input');
-    if (/\{\s*\w+\s*,\s*(select|selectordinal|number|date|time)\b/.test(text)) fail('Unsupported argument type');
     return nodes;
   }
 

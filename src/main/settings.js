@@ -519,7 +519,6 @@ function setSupporter(record) {
  * a failed flush restores the previous value. */
 function setUiLanguage(code, selectable) {
   if (code !== 'system' && !(Array.isArray(selectable) && selectable.includes(code))) return false;
-  if (!isUiLanguageValue(code)) return false;
   const s = ensureStore();
   const previous = s.data.uiLanguage;
   s.update((data) => { data.uiLanguage = code; });
