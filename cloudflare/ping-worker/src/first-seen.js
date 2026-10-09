@@ -13,6 +13,27 @@ export async function markFirstSeen(kv, hashedId, day, bumpFn) {
   return true;
 }
 
+// First-day signals (docs/superpowers/specs/2026-10-09-first-day-retention-
+// signals-design.md): an install may report, on the UTC day it was first
+// seen, that Blanc is its default browser or that it browsed. Only that day
+// counts, so a late or replayed event stores nothing. The per-install marker
+// only has to outlive D+1 for the next-day join in markNextDayReturn, so it
+// expires after two days; the d1had:<signal>:<D> counter never expires
+// (growth history). Key families deliberately avoid the return:d1: prefix,
+// which /stats reads whole as day -> count.
+export const DAY_ONE_SIGNALS = Object.freeze(['default', 'browsed']);
+export const DAY_ONE_MARKER_TTL = 2 * 24 * 3600;
+
+export async function markDayOneSignal(kv, hashedId, signal, day, bumpFn) {
+  if (!DAY_ONE_SIGNALS.includes(signal)) return false;
+  if ((await kv.get(`first:${hashedId}`)) !== day) return false;
+  const markerKey = `d1sig:${signal}:${day}:${hashedId}`;
+  if ((await kv.get(markerKey)) !== null) return false;
+  await bumpFn(kv, `d1had:${signal}:${day}`);
+  await kv.put(markerKey, '1', { expirationTtl: DAY_ONE_MARKER_TTL });
+  return true;
+}
+
 // Next-day return: of the installs first seen on day D, how many launch again
 // on day D+1 (UTC). Counted on the install's first ping of D+1 — first:<id>
 // already records D, so only returners pay the extra marker write. The

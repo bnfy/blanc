@@ -37,13 +37,13 @@
     },
     {
       "file": "cloudflare/ping-worker/src/first-seen.js",
-      "sha256": "ee80dc1b1db7dc16737adc213fd845d175bd5860e62d01c3147e0a7348c1fae5",
+      "sha256": "578762d53c83f1f2d9c45702ebe5a2c1681fc591c97f11cd90d51f098b024d58",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "055441dd4d5048c14dbc8bf1d29eb153a725d4b7938a980487a3b82fe88b5c94",
+      "sha256": "cf34525f8e7df72b55b059aefdff1aba29cd2683070c184b2502e00f451538d8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

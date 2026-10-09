@@ -53,16 +53,17 @@ back the next day — versus those that didn't?"
 ### Install time
 
 `install.json` (the `JsonStore('install', …)` in `src/main/telemetry.js`)
-gains `createdAt` (epoch ms) and `day1` (`{default: false, browsed: false}`
-send flags).
+gains `createdAt` (epoch ms) and two send flags, `day1Default` and
+`day1Browsed` (both false). The fields are flat because `JsonStore` merges
+its defaults shallowly.
 
 - When `installId()` mints a new ID it also sets `createdAt = Date.now()` and
-  resets `day1`.
+  clears both flags.
 - An existing file that has an `id` but no `createdAt` gets
   `createdAt: 'legacy'` on first read and flushes it. Legacy installs never
   send either signal. This keeps every auto-updated install out of the data;
   only installs created on the shipping version contribute.
-- `resetInstallId()` sets a fresh `createdAt` and resets `day1`, matching
+- `resetInstallId()` sets a fresh `createdAt` and clears both flags, matching
   how the collector already treats a reset as a brand-new install.
 
 `createdAt` never leaves the device.
@@ -77,7 +78,10 @@ A signal may be sent only when all hold:
    the collector has already recorded `first:<hash>` before the signal
    arrives.
 4. `createdAt` is a number and `Date.now() - createdAt < 24 h`.
-5. The matching `day1` flag is still false.
+5. The matching send flag is still false.
+
+The first check runs 2 minutes after the launch report, so the collector has
+recorded the install before any signal arrives.
 
 On send, set the flag and flush `install.json` before posting, so a crash or
 restart can never resend. Fire-and-forget, no retry (same as every other
@@ -106,10 +110,12 @@ The first `isDefault === true` sends `day1_default`.
 
 ### Signal 2 — real browsing
 
-In `tab-view.js`'s per-tab listener set, on `did-finish-load` /
-`did-navigate` of the **main frame** only, for `http:`/`https:` URLs only,
-in non-private tabs only, increment a process-memory counter in `main.js`.
-On reaching 3, send `day1_browsed` and stop counting.
+In `tab-view.js`, at the top-level `did-navigate` commit that already records
+history (`historyEligible` and not wake-suppressed), for `http:`/`https:`
+URLs only, increment a process-memory counter. That excludes private tabs,
+responses of 400 or above, and quiet-tab wake reloads, and in-page
+navigations never reach it. On reaching 3 (three web pages open), send
+`day1_browsed` and stop counting.
 
 - Subframes, `blanc://` pages, `blanc-chrome://` documents, private tabs,
   quiet-tab wake reloads (the existing `wakeGeneration` suppression) and
@@ -149,7 +155,7 @@ and install-ID hashing.
    nothing. Late or replayed signals are expected from real clients and are
    not errors.
 3. Marker key `d1sig:<signal>:<day>:<hash>`, TTL 2 days. If absent: bump
-   `d1sig:<signal>:count:<day>` (never expires), then put the marker
+   `d1had:<signal>:<day>` (never expires), then put the marker
    (counter-before-marker, matching `markFirstSeen`'s documented ordering).
    If present, do nothing.
 4. Return 204.
@@ -163,9 +169,10 @@ neither code path is reachable from it.
 In `markNextDayReturn` (`src/first-seen.js`), after a return is counted for
 `prevDay`, read `d1sig:default:<prevDay>:<hash>` and
 `d1sig:browsed:<prevDay>:<hash>`. For each present marker, bump
-`return:d1:<signal>:<prevDay>`. This costs two KV reads, and only for people
-who return. `return:d1:<signal>:*` counters never expire, like
-`return:d1:*`.
+`d1ret:<signal>:<prevDay>`. This costs two KV reads, and only for people
+who return. `d1ret:<signal>:*` counters never expire, like `return:d1:*`.
+These keys avoid the `return:d1:` prefix because `/stats` reads that whole
+prefix as day → count.
 
 ### `/stats`
 
@@ -212,7 +219,7 @@ Add after the feature-use paragraph:
 > In Blanc X.Y and later, on the day Blanc is installed it may also send
 > each of two first-day events once per installation: `day1_default` if
 > Blanc is your default browser, and `day1_browsed` after three web pages
-> finish loading in regular tabs. They carry the same launch fields and
+> open in regular tabs. They carry the same launch fields and
 > nothing else. No address, page, or count is sent, and private tabs and
 > Blanc's own pages are never counted. Blanc keeps the installation time in
 > `install.json` on your device so it knows when the first day ends; that
@@ -267,7 +274,7 @@ Edits to existing sentences:
 - Signal stored only when `first:<hash>` is today; otherwise 204 with no
   KV writes.
 - A duplicate signal is a no-op.
-- Return join: a returner with the marker bumps `return:d1:<signal>:D`; a
+- Return join: a returner with the marker bumps `d1ret:<signal>:D`; a
   returner without it does not; a non-returner never does.
 - `/stats`: `signals` present from the first cohort with correct
   `had`/`returnedNextDay`; absent before it.

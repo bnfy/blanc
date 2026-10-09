@@ -30,7 +30,7 @@ import {
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
-import { markFirstSeen, markNextDayReturn } from './first-seen.js';
+import { markFirstSeen, markNextDayReturn, markDayOneSignal } from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
@@ -326,8 +326,27 @@ function usageEventFrom(body) {
   return null;
 }
 
+// The two first-day signals have their own path: no GA forward, no
+// productUsage metric, no per-session replay key (the install-day marker is
+// the dedup). See markDayOneSignal in first-seen.js.
+const DAY_ONE_EVENTS = Object.freeze({ day1_default: 'default', day1_browsed: 'browsed' });
+
+async function handleDayOneSignal(env, fields, signal, now) {
+  const hashedId = await hashInstallId(env, fields.installId);
+  if (hashedId) {
+    await markDayOneSignal(env.PINGS, hashedId, signal, dayBucket(now), bump)
+      .catch((err) => console.error('KV write failed:', err.message));
+  }
+  return new Response(null, { status: 204 });
+}
+
 async function handleUsageEvent(request, env, ctx, now) {
   const client = await readClientRequest(request);
+  // hasOwn: an event named '__proto__' or 'constructor' must not match.
+  const signal = client && Object.hasOwn(DAY_ONE_EVENTS, client.body.event)
+    ? DAY_ONE_EVENTS[client.body.event]
+    : undefined;
+  if (signal) return handleDayOneSignal(env, client.fields, signal, now);
   const usage = client ? usageEventFrom(client.body) : null;
   if (!client || !usage) {
     console.warn(JSON.stringify({ event: 'usage-rejected', reason: 'implausible-payload' }));

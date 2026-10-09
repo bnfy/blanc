@@ -398,3 +398,44 @@ test('/stats reports next-day return per new-install cohort from the first track
     assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
   }
 });
+
+test('a day-one signal counts once, only on the install day, and never reaches GA', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga' };
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  await ping(env, PING_BODY); // first seen 2027-01-10
+
+  const first = await usageEvent(env, { ...PING_BODY, event: 'day1_default' });
+  const repeat = await usageEvent(env, { ...PING_BODY, sessionId: 43, event: 'day1_default' });
+  const browsed = await usageEvent(env, { ...PING_BODY, event: 'day1_browsed' });
+  assert.equal(first.res.status, 204);
+  assert.equal(repeat.res.status, 204);
+  assert.equal(browsed.res.status, 204);
+  assert.equal(env.PINGS.map.get('d1had:default:2027-01-10'), '1');
+  assert.equal(env.PINGS.map.get('d1had:browsed:2027-01-10'), '1');
+  assert.equal(first.gaCalls.length + repeat.gaCalls.length + browsed.gaCalls.length, 0);
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('usage:')).length, 0,
+    'day-one signals never enter productUsage metrics');
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1sig:default:2027-01-10:')).length, 1);
+  for (const key of env.PINGS.map.keys()) {
+    assert.ok(!key.includes(RAW_ID), `raw id must not appear in any key: ${key}`);
+  }
+});
+
+test('a day-one signal after the install day, or for an unknown install, stores nothing', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  const unknown = await usageEvent(env, { ...PING_BODY, event: 'day1_browsed' });
+  assert.equal(unknown.res.status, 204);
+  await ping(env, PING_BODY);
+  t.mock.timers.setTime(Date.parse('2027-01-11T01:00:00Z'));
+  const late = await usageEvent(env, { ...PING_BODY, sessionId: 43, event: 'day1_browsed' });
+  assert.equal(late.res.status, 204);
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1')).length, 0);
+});
+
+test('a day-one signal without a hashing secret stores nothing', async () => {
+  const env = { PINGS: fakeKV() };
+  const { res } = await usageEvent(env, { ...PING_BODY, event: 'day1_default' });
+  assert.equal(res.status, 204);
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1')).length, 0);
+});
