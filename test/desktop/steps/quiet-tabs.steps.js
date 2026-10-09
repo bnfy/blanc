@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
-const { overlayPage, runSlashCommand } = require('../support/overlay');
+const { overlayPage, runSlashCommand, waitForPanelSettled } = require('../support/overlay');
 
 
 async function openQuietable(world, name, opts = {}) {
@@ -261,6 +261,8 @@ When('I show the vertical tab rail and panel', async function () {
   await this.call('setTabLayout', 'vertical');
   await this.call('openPanel');
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel', 'panel to open');
+  // Rows are read for opacity next; let the panel's fade-in finish first.
+  await waitForPanelSettled();
 });
 
 When('I click that quiet Island dot', async function () {

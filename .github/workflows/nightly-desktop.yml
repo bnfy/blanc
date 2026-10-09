@@ -1,0 +1,36 @@
+name: Nightly desktop acceptance
+
+# Runs the full runnable desktop acceptance suite on main every night. Pull
+# requests only run slices of it (island, workspace, shortcut and link jobs), so
+# until now the whole suite first ran inside the release gate, where one new
+# flake stopped the release (v1.31.0 was stopped by a quiet-tabs race from
+# #673). Running it nightly on the release platform surfaces those days
+# earlier. Not a pull-request check on purpose: it takes minutes and its value
+# is catching races that show up across many runs, not gating one change.
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-desktop
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Full runnable desktop acceptance suite
+        run: npm run test:acceptance:desktop
