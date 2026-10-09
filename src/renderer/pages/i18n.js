@@ -202,5 +202,72 @@
     return t;
   }
 
-  return { parseMessage, analyzeMessage, maxLiteralLength, stringifyMessage, createTranslator };
+  const ATTRIBUTES = [
+    ['i18nTitle', 'title'],
+    ['i18nAriaLabel', 'aria-label'],
+    ['i18nPlaceholder', 'placeholder'],
+    ['i18nAlt', 'alt'],
+    ['i18nTooltip', 'data-tooltip'],
+  ];
+  const SELECTOR_ALL = '[data-i18n],[data-i18n-title],[data-i18n-aria-label],[data-i18n-placeholder],[data-i18n-alt],[data-i18n-tooltip]';
+
+  function applyElement(el, t) {
+    const key = el.dataset.i18n;
+    if (key) {
+      const parts = t.parts(key);
+      if (!parts.some((part) => part.tag !== undefined)) {
+        el.textContent = parts.map((part) => part.text).join('');
+      } else {
+        const children = Array.from(el.children);
+        el.replaceChildren(...parts.map((part) => {
+          if (part.tag === undefined) return el.ownerDocument.createTextNode(part.text);
+          const child = children[part.tag];
+          if (!child) throw new Error(`data-i18n="${key}": tag <${part.tag}> has no child element`);
+          child.textContent = part.text;
+          return child;
+        }));
+      }
+    }
+    for (const [prop, attribute] of ATTRIBUTES) {
+      if (el.dataset[prop]) el.setAttribute(attribute, t(el.dataset[prop]));
+    }
+  }
+
+  function applyDocument(root, t) {
+    for (const el of root.querySelectorAll(SELECTOR_ALL)) applyElement(el, t);
+  }
+
+  const api = { parseMessage, analyzeMessage, maxLiteralLength, stringifyMessage, createTranslator, applyElement, applyDocument };
+
+  api.bootstrap = function bootstrap(scope) {
+    const data = scope.blancStrings;
+    const doc = scope.document;
+    const t = createTranslator({
+      locale: data.locale,
+      formatLocale: data.formatLocale ?? data.locale,
+      messages: data.messages,
+      fallback: data.fallback ?? {},
+      onMissing: (key) => {
+        if (data.strict) throw new Error(`missing interface string: ${key}`);
+        scope.console?.warn?.(`missing interface string: ${key}`);
+      },
+    });
+    api.t = t;
+    api.parts = t.parts;
+    api.formatLocale = () => data.formatLocale ?? data.locale;
+    doc.documentElement.lang = data.locale;
+    doc.documentElement.dir = data.dir ?? 'ltr';
+    // Hide a translated document until its static text is applied, so it never
+    // flashes English. CSSOM (not a style attribute) is allowed by style-src 'self'.
+    const hide = data.locale !== 'en';
+    const reveal = () => { if (hide) doc.documentElement.style.visibility = ''; };
+    if (hide) doc.documentElement.style.visibility = 'hidden';
+    scope.setTimeout?.(reveal, 1000);
+    const run = () => { try { applyDocument(doc, t); } finally { reveal(); } };
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', run, { once: true });
+    else run();
+    return t;
+  };
+
+  return api;
 });
