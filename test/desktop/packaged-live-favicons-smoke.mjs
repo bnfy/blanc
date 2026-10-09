@@ -128,6 +128,15 @@ const displayUrl = (url) => {
   }
 };
 
+const proofFor = (name, tab) => {
+  const bytes = Buffer.from(tab.favicon.split(',')[1], 'base64');
+  assert.equal(bytes.subarray(1, 4).toString('ascii'), 'PNG', name);
+  assert.equal(bytes.readUInt32BE(16), 32, `${name} width`);
+  assert.equal(bytes.readUInt32BE(20), 32, `${name} height`);
+  assert.ok(bytes.length > 100, `${name} favicon should contain real pixels`);
+  return { name, finalUrl: displayUrl(tab.url), pngBytes: bytes.length };
+};
+
 const BATCH_SIZE = 5;
 const BATCH_ATTEMPTS = 2;
 const batches = [];
@@ -191,11 +200,14 @@ const runBatch = async (batch, batchIndex) => {
         links,
       };
     }));
-    assert.deepEqual(
-      failures,
-      [],
-      `live favicon failures in batch ${batchIndex + 1}: ${JSON.stringify(failures)}`
-    );
+    if (failures.length) {
+      const error = new Error(`live favicon failures in batch ${batchIndex + 1}: ${JSON.stringify(failures)}`);
+      // Lets the caller retry only these sites, each on its own, and keep the
+      // proof of the sites that did pass in this attempt.
+      error.failedSites = batch.filter(({ name }) => !passedAt.has(name));
+      error.passed = [...passedAt.keys()].map((name) => proofFor(name, passedAt.get(name)));
+      throw error;
+    }
 
     // Let Chromium's audio-state notification settle after the last favicon,
     // then prove that no hidden live-site can make sound during the batch.
@@ -210,15 +222,7 @@ const runBatch = async (batch, batchIndex) => {
       `background tabs remained audible in batch ${batchIndex + 1}: ${JSON.stringify(hiddenAudible)}`
     );
 
-    return batch.map(({ name }) => {
-      const tab = passedAt.get(name);
-      const bytes = Buffer.from(tab.favicon.split(',')[1], 'base64');
-      assert.equal(bytes.subarray(1, 4).toString('ascii'), 'PNG', name);
-      assert.equal(bytes.readUInt32BE(16), 32, `${name} width`);
-      assert.equal(bytes.readUInt32BE(20), 32, `${name} height`);
-      assert.ok(bytes.length > 100, `${name} favicon should contain real pixels`);
-      return { name, finalUrl: displayUrl(tab.url), pngBytes: bytes.length };
-    });
+    return batch.map(({ name }) => proofFor(name, passedAt.get(name)));
   } finally {
     if (app) await app.close();
     fs.rmSync(userDataDir, { recursive: true, force: true });
@@ -301,6 +305,21 @@ for (const [batchIndex, batch] of batches.entries()) {
         );
       }
     }
+  }
+  if (failure && failure.failedSites) {
+    // A site that misses twice inside a batch of five cold sites, but loads
+    // its icon on its own, is live-site contention (rate limiting, bot checks,
+    // slow third-party assets), not a Blanc favicon bug: v1.31.0's release run
+    // stopped on Booking.com this way and it passed alone twice against the
+    // same signed build. Retry each failing site once, alone, in a fresh cold
+    // profile. A site that also fails alone still fails the gate.
+    result = [...failure.passed];
+    for (const site of failure.failedSites) {
+      console.warn(`Retrying ${site.name} alone after two failed batch attempts`);
+      const [solo] = await runBatch([site], batchIndex);
+      result.push({ ...solo, retriedAlone: true });
+    }
+    failure = null;
   }
   if (failure) throw failure;
   proof.push(...result);
