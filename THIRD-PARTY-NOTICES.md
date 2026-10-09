@@ -66,7 +66,12 @@ ship together inside packaged builds.
 
 The website uses Newsreader (variable, optical-size axis, regular weight) for
 its display typography, self-hosted through
-`@fontsource-variable/newsreader` 5.3.0. The desktop application bundles the
+`@fontsource-variable/newsreader` 5.3.0. Its headings use a Modified Version,
+"Newsreader Condensed" (`site/src/fonts/newsreader-condensed-*.woff2`), which
+`site/scripts/build-condensed-newsreader.py` derives from those pinned files by
+scaling every horizontal measurement to 88% and adding 0.02em of tracking; Newsreader declares no Reserved
+Font Name, and the Modified Version remains under the same licence. Product
+replicas on the website keep the unmodified build. The desktop application bundles the
 same pinned Latin optical-size upright build for its narrowly scoped invitation
 headings, as listed above. The font remains under the SIL Open Font License,
 Version 1.1; Blanc's MIT grant does not supersede it. The full website copyright

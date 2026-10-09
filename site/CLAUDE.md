@@ -18,8 +18,14 @@ of direct links fed by `src/data/navigation.mjs` and kept in step by
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
-Variable"`, the heading family is `"Newsreader Variable"` loaded in
-`BaseLayout.astro` with its italic imported only by `press.astro`; the
+Variable"`, the heading family is `"Newsreader Condensed"` — Newsreader
+condensed to 88%, with 0.02em tracking built in so CSS letter-spacing values
+keep their designed look, by `scripts/build-condensed-newsreader.py` into `src/fonts/`
+(rerun it after a fontsource bump; Newsreader has no width axis, and a CSS
+`scaleX` would break wrapping and alignment) — loaded in
+`BaseLayout.astro` with its italic imported only by `press.astro`; product
+replicas (the press demo's Billboard clock) keep the app's uncondensed
+`"Newsreader Variable"` via `--site-font-replica-serif`; the
 display-headings rule at the end of `site.css` is what makes every heading
 serif, and the demo's single-sentence figure title deliberately stays Inter;
 these files are NOT under the root `tokens/` substrate guard).
