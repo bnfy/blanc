@@ -253,40 +253,38 @@ later" so it is never wrong about older versions.
 
 ### `site/src/pages/privacy.astro` (Usage measurement)
 
-Add after the feature-use paragraph:
+Add one paragraph after the feature-use paragraph. The existing sentences
+stay word for word: they are recorded in the v1.27 website claims ledger,
+and each is still true as written.
 
-> In Blanc X.Y and later, on the day Blanc is installed it may also send
+> In Blanc 1.31.0 and later, on the day Blanc is installed it may also send
 > each of two first-day events once per installation: `day1_default` if
 > Blanc is your default browser, and `day1_browsed` after three web pages
-> open in regular tabs. They carry the same launch fields and
-> nothing else. No address, page, or count is sent, and private tabs and
-> Blanc's own pages are never counted. Blanc keeps the installation time in
-> `install.json` on your device so it knows when the first day ends; that
-> time is never sent. The collector keeps a per-installation record of these
-> events for about two days, only to count how many new installations return
-> the next day, then keeps only daily totals. These events are not sent to
-> the Google Analytics mirror.
-
-Edits to existing sentences:
-
-- "No usage event contains …" adds "browsing count".
-- The Google Analytics sentence becomes scoped to "the launch and
-  feature-use events".
-- The install-ID sentence adds that resetting the ID also restarts the
-  first-day window.
+> open in regular tabs. They carry the same launch fields and nothing else;
+> no address, page, or count is sent, and private tabs and Blanc's own pages
+> are never counted. Blanc keeps the installation time in `install.json` on
+> your device so it knows when the first day ends; that time is never sent,
+> and resetting the installation ID below restarts the first day. For a new
+> installation of Blanc 1.31.0 or later, the collector keeps a
+> per-installation record of its first launch and of these events for about
+> two days, only to count how many new installations return the next day,
+> then keeps only daily totals. These events are not sent to the Google
+> Analytics mirror.
 
 ### Elsewhere
 
-- `site/src/data/support-questions.json` — both telemetry answers gain one
-  plain clause naming the two first-day events and that they carry no
-  browsing data.
+- `site/src/data/support-questions.json` — a **new** entry,
+  `first-day-signals` ("What does Blanc report on its first day?"), right
+  after `privacy`. Existing answers must survive verbatim
+  (`website-revamp-trust.test.js` and the v1.27 claims ledger), so they are
+  not edited.
 - `spec/features.md` (F21) and `spec/parity-matrix.md` (F21 row).
-- `CLAUDE.md` and `AGENTS.md` Telemetry paragraph (the `/event` allowlist
-  sentence), kept identical.
-- A claims ledger for the release, following the existing
-  `docs/website-*-claims-*.json` pattern.
-- `docs/marketing-claims.md` is checked; no marketing copy may describe
-  these signals as anything beyond counting.
+- `CLAUDE.md` and `AGENTS.md` Telemetry paragraph, kept identical: the
+  collector change described the server side; the app change replaces "No
+  released desktop build sends them yet." with the client behaviour.
+- The release's website claims ledger records the new privacy paragraph and
+  FAQ entry during release prep.
+- `docs/marketing-claims.md` was checked and needs no change.
 
 ## Part 4 — Testing
 

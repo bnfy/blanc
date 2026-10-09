@@ -43,3 +43,29 @@ test('a rendered layout is reported, including the first post-consent render', (
   const layoutUsed = onboarding.indexOf('window.bowserPages.start.layoutUsed(document.body.dataset.layout)');
   assert.ok(privacySaved !== -1 && layoutUsed > privacySaved);
 });
+
+const tabView = source('src/main/tab-view.js');
+
+test('first-day signals start only after the launch report and require saved consent', () => {
+  assert.match(main, /launchPingSent = true;\s*sendLaunchPing\(\);\s*dayOneSignals\.start\(\);/);
+  assert.match(
+    main,
+    /canSend: \(\) => app\.isPackaged\s*&& settings\.isFirstRunComplete\(\)\s*&& settings\.getSettings\(\)\.usagePing === true\s*&& launchPingSent/,
+  );
+  assert.match(main, /defaultBrowserChanged: \(\) => dayOneSignals\.checkDefault\(\)/);
+  assert.match(main, /noteWebPageLoaded: \(url\) => dayOneSignals\.notePageLoaded\(url\)/);
+});
+
+test('only history-eligible, non-wake top-level commits count as browsing', () => {
+  assert.match(
+    tabView,
+    /if \(tab\.historyEligible && !noteWakeSuppressed\(tab\)\) \{\s*history\.addVisit\(url, wc\.getTitle\(\)\);\s*deps\.noteWebPageLoaded\?\.\(url\);\s*\}/,
+  );
+  assert.equal(tabView.match(/noteWebPageLoaded/g).length, 1, 'never from in-page or subframe navigation');
+});
+
+test('no renderer or internal-page path can send a first-day signal', () => {
+  for (const [label, text] of [['tab-preload', preload], ['pages', pages], ['newtab', newtab], ['onboarding', onboarding]]) {
+    assert.doesNotMatch(text, /day1_|sendDayOneSignal|markDayOneSent/, label);
+  }
+});

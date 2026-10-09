@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "3468ab63ef69824faaccee7401c63a5aa14b13290920518aa60c09bc119879d7",
+      "sha256": "49ecb81c014f500e402d1d832829ddc8782173ccbcf63c1e935a115602468a46",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -406,7 +406,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "1d22e93f85a7277c1201c689b802d5903eb5dc7acd02c5da527cc3bb4a56ba96",
+      "sha256": "6af935b83b1aae24babf129a9b5a7638551bebbd9d5e051e266900883f908691",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -817,7 +817,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "bac426f14e49441282b9775f3ddb18519b6ca49a5ea43284ee6229f3a56f4dff",
+      "sha256": "2f685b932f54612be40f121ee8458e48f0c4fdb975b0d1889f3fef855f7c7720",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

@@ -12,7 +12,7 @@ const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
-const { isWindowsDefaultBrowser } = require('./windows-default-browser');
+const { createDefaultBrowserStatus } = require('./default-browser-status');
 const supporter = require('./supporter');
 const patron = require('./patron');
 const sync = require('./sync');
@@ -576,17 +576,8 @@ function setupPages(hooks = {}) {
   handleEvent('pages:error:continue-unsafe', ['error'], (event) =>
     hooks.errorPage?.continueUnsafe?.(event.sender) ?? { ok: false, error: 'no-certificate-error' });
 
-  // Default-browser state lives in LaunchServices/the OS, not settings.json.
-  // canSet: a dev run must never register the bare Electron binary as a
-  // browser, and Linux has no default-protocol-client API in Electron.
-  // On Windows, isDefaultProtocolClient only echoes our own protocol write,
-  // so the answer comes from the real UserChoice key instead.
-  const defaultBrowserStatus = () => ({
-    isDefault: process.platform === 'win32'
-      ? isWindowsDefaultBrowser({ execFileSync })
-      : app.isDefaultProtocolClient('http'),
-    canSet: app.isPackaged && process.platform !== 'linux',
-  });
+  // Shared with the first-day default-browser signal (default-browser-status.js).
+  const defaultBrowserStatus = createDefaultBrowserStatus({ app, platform: process.platform, execFileSync });
   // newtab joined the allowlist for the onboarding dialog's first step; the
   // canSet guard is identical for both senders.
   handle('pages:default-browser:get', ['settings', 'newtab'], () => defaultBrowserStatus());
@@ -606,6 +597,7 @@ function setupPages(hooks = {}) {
         app.setAsDefaultProtocolClient('http');
       }
     }
+    hooks.defaultBrowserChanged?.();
     return defaultBrowserStatus();
   });
 

@@ -366,7 +366,14 @@ function wireTabView(tab, view, { owner, adopted }) {
     syncNavState();
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
     onMainFrameCommit(tab, { url, httpResponseCode });
-    if (tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
+    // A history visit also feeds the first-day browsing signal: same
+    // eligibility (no private tabs, no >= 400, no quiet-tab wake reloads);
+    // the scheme check is in day-one-signals.js. Optional so tests can wire
+    // tabs without it.
+    if (tab.historyEligible && !noteWakeSuppressed(tab)) {
+      history.addVisit(url, wc.getTitle());
+      deps.noteWebPageLoaded?.(url);
+    }
     broadcastTabs();
     scheduleMenuRebuild();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);

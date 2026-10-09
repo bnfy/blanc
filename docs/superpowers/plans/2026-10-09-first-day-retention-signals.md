@@ -1349,6 +1349,13 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ### Task 8: Public and internal copy, full checks, PR 2
 
+> **As executed (2026-10-09):** the published FAQ answers and the three
+> privacy-page sentences in Steps 2–3 are pinned word for word by
+> `website-revamp-trust.test.js` and `docs/website-revamp-claims-v1.27.json`
+> (claims trust-125-269, -308, -309, -310). They were left unchanged; the new
+> facts went into the new privacy paragraph (which also says a reset restarts
+> the first day) and a new FAQ entry `first-day-signals` after `privacy`.
+
 **Files:**
 - Modify: `site/src/pages/privacy.astro:49-53`
 - Modify: `site/src/data/support-questions.json:23`, `:111`

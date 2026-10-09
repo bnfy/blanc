@@ -26,6 +26,8 @@ function harness() {
     if (name === './settings') return settings;
     if (name === './pages-ipc-trust') return { isTrustedPagesEvent };
     if (name === './utility-pages') return { KNOWN_PAGES, UTILITY_PAGES };
+    // Built at setup time, so the real (Electron-free) module is needed.
+    if (name === './default-browser-status') return require('../../src/main/default-browser-status');
     if (name.startsWith('./')) return {};
     return require(name);
   };

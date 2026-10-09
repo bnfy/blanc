@@ -142,6 +142,9 @@ test('public claims describe explicit website consent, 1Password boundaries, bun
   assert.match(privacy, /<h3>Usage measurement<\/h3>/);
   assert.match(privacy, /<code>mahjong_play<\/code>/);
   assert.match(privacy, /<code>newtab_layout<\/code>/);
+  assert.match(privacy, /<code>day1_default<\/code>/);
+  assert.match(privacy, /<code>day1_browsed<\/code>/);
+  assert.match(privacy, /not sent to the Google Analytics mirror/);
   assert.match(privacy, /never sent from private tabs/i);
   assert.match(privacy, /Search suggestions \(optional\)/);
   assert.match(privacy, /both choices are presented on/i);
