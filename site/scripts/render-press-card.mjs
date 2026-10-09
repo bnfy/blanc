@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const CAPTURE = path.join(SITE_ROOT, 'public/press/blanc-island-expanded-v1.30.1.png');
+const CAPTURE = path.join(SITE_ROOT, 'public/press/blanc-island-expanded-v1.31.0.png');
 const OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-press-card.png');
 
 function dataUrl(file, mimeType) {

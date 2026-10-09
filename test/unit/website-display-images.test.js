@@ -48,11 +48,11 @@ test('pages use the light copies while full-size links keep the pinned captures'
   }
   // Pages never load the pinned lossless originals directly.
   assert.doesNotMatch(home + read('src/components/GestureDemo.astro'), /src="\/revamp\/(island-roman-[a-z]+|champagne-desktop-v2|space-black-laptop-v2)\.webp"/);
-  assert.match(home, /src="\/feature-captures\/ledger-v1\.21\.0\.webp"/);
-  assert.doesNotMatch(read('src/scripts/home.js'), /-v1\.21\.0\.png/);
+  assert.match(home, /src="\/feature-captures\/ledger-v1\.31\.0\.webp"/);
+  assert.doesNotMatch(read('src/scripts/home.js'), /-v1\.31\.0\.png/);
   const guide = read('src/pages/features/start-page.astro');
-  assert.doesNotMatch(guide, /<img src="\/feature-captures\/[a-z]+-v1\.21\.0\.png"/);
-  assert.match(guide, /href="\/feature-captures\/ledger-v1\.21\.0\.png"/);
+  assert.doesNotMatch(guide, /<img src="\/feature-captures\/[a-z]+-v1\.31\.0\.png"/);
+  assert.match(guide, /href="\/feature-captures\/ledger-v1\.31\.0\.png"/);
   // Lazy wallpaper scenes: only the first ships with src.
   assert.equal((home.match(/(?<!data-)src="\/feature-captures\/home-wallpaper-/g) || []).length, 1);
   assert.equal((home.match(/data-src="\/feature-captures\/home-wallpaper-/g) || []).length, 7);

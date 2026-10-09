@@ -4,7 +4,7 @@ import path from 'node:path';
 import { launchPackagedOverCdp } from '../test/desktop/support/packaged-cdp.mjs';
 import { captureOutputDirectory, installedBlanc, poll, seedStartPageFixtures, sha256, writeProfileJson } from '../test/desktop/support/installed-capture.mjs';
 
-const expectedVersion = process.env.BLANC_CAPTURE_VERSION || '1.21.0';
+const expectedVersion = process.env.BLANC_CAPTURE_VERSION || '1.31.0';
 const { executablePath, version, build } = await installedBlanc(expectedVersion);
 const outputDirectory = captureOutputDirectory('start-page');
 const layouts = ['ledger', 'billboard', 'shelf', 'tally'];
@@ -95,8 +95,22 @@ try {
   await startPage.locator('#bbFavorites .bb-site').first().waitFor({ state: 'visible' });
 
   for (const layout of layouts) {
+    // Since 1.31.0 the layout picker lives in the footer's Customize popover.
+    // Open it with its own button, pick, then close it with Escape so the
+    // popover is not in the capture.
+    const popover = startPage.locator('#customizePopover');
+    if (await popover.count() && !await popover.evaluate((el) => el.matches(':popover-open'))) {
+      await startPage.locator('#customizeButton').click();
+    }
     await startPage.locator(`[data-layout-pick="${layout}"]`).click();
     await startPage.waitForFunction((name) => document.body.dataset.layout === name, layout);
+    if (await popover.count() && await popover.evaluate((el) => el.matches(':popover-open'))) {
+      await startPage.keyboard.press('Escape');
+      await startPage.waitForFunction(() => !document.getElementById('customizePopover').matches(':popover-open'));
+      // Escape returns focus to Customize; a click on empty page moves it off
+      // so its focus ring is not in the capture.
+      await startPage.mouse.click(1420, 180);
+    }
     await startPage.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     const file = path.join(outputDirectory, `${layout}-v${expectedVersion}.png`);
     await startPage.screenshot({ path: file, animations: 'disabled' });

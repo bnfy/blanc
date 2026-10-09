@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "release": "v1.31.0",
+  "sourceSha": "5bb0e0da01e05d612382fa99a434524ed2c5b108",
+  "captureDate": "2026-10-09",
+  "timezone": "America/New_York",
+  "source": {
+    "artifact": "Blanc-1.31.0-arm64.dmg (public release asset)",
+    "app": "Unchanged signed Blanc.app from the public DMG, mounted read-only",
+    "version": "1.31.0",
+    "bundleBuild": "1310",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "The downloaded DMG matched SHA256SUMS; its Blanc.app passed Gatekeeper (Notarized Developer ID), strict deep codesign and stapler validation.",
+    "releaseEvidence": "docs/release-incidents/2026-10-09-v1.31.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "adblockEnabled": false,
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "sampleData": "Synthetic Favorites, visits, two named groups and a seeded weekly blocked total of 328 only; no account, Patron entitlement or real browsing content. Blocking was off, so the total is the seeded fixture, not a measurement."
+  },
+  "method": "npm run capture:start-page:installed with BLANC_PACKAGED_EXECUTABLE pointing at the mounted public app. Over Chromium’s debugging surface it opens the footer’s Customize popover with its own button, picks each layout, closes the popover with Escape and clicks empty page to clear focus; nothing is patched. Each layout is a 1440×900 page screenshot. WebP display copies come from site/scripts/build-display-images.mjs. The owner approved these images on October 9, 2026.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/ledger-v1.31.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "36729b25cc6139e521788178c65f643da2ed463aa2733d27abc3622ff88d4623",
+      "capturedAt": "2026-10-09",
+      "state": "Ledger Start Page at 1440×900 with six sample frequent sites, four Favorites, named groups research and reading, a seeded weekly blocked total of 328, the 1.31.0 footer (Upgrade to Blanc Patron pill, Customize, Mahjong, ⌘L hint) and the v1.31.0 version string.",
+      "evidence": [
+        "v1.31.0:src/renderer/pages/newtab.html",
+        "v1.31.0:src/renderer/pages/newtab.js",
+        "v1.31.0:src/renderer/pages/pages.css",
+        "docs/release-incidents/2026-10-09-v1.31.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/ledger-v1.31.0.webp",
+        "sha256": "e326ba8223314a62bbc16deb12250958e0376fa35570d684c3f123845d1fb24f"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/billboard-v1.31.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "913eee149d1413eb50d2c74579d8152ecec2d17b4dac2cfa584a97f630938477",
+      "capturedAt": "2026-10-09",
+      "state": "Billboard Start Page at 1440×900 with six sample frequent sites, four Favorites, named groups research and reading, a seeded weekly blocked total of 328, the 1.31.0 footer (Upgrade to Blanc Patron pill, Customize, Mahjong, ⌘L hint) and the v1.31.0 version string. The clock shows the live capture time without a day period.",
+      "evidence": [
+        "v1.31.0:src/renderer/pages/newtab.html",
+        "v1.31.0:src/renderer/pages/newtab.js",
+        "v1.31.0:src/renderer/pages/pages.css",
+        "docs/release-incidents/2026-10-09-v1.31.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-v1.31.0.webp",
+        "sha256": "d0ea7b76a271c1bdf7c04362bbbd6efc8b38f9a73911635a2a620f967d09226f"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/shelf-v1.31.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "33788de0f314413a9145c7605069253c88f8c18b7ac825c1e462085a38029960",
+      "capturedAt": "2026-10-09",
+      "state": "Shelf Start Page at 1440×900 with six sample frequent sites, four Favorites, named groups research and reading, a seeded weekly blocked total of 328, the 1.31.0 footer (Upgrade to Blanc Patron pill, Customize, Mahjong, ⌘L hint) and the v1.31.0 version string.",
+      "evidence": [
+        "v1.31.0:src/renderer/pages/newtab.html",
+        "v1.31.0:src/renderer/pages/newtab.js",
+        "v1.31.0:src/renderer/pages/pages.css",
+        "docs/release-incidents/2026-10-09-v1.31.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/shelf-v1.31.0.webp",
+        "sha256": "88c6fe5aab48dc767ef79e1b9791df7eb48da15d370d3c8db68e6245f7c4840c"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/tally-v1.31.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "0bdbe99d71cbd9e21e52815d7b8f91981d1a433bebbecc74a8efa2c548cddc6a",
+      "capturedAt": "2026-10-09",
+      "state": "Tally Start Page at 1440×900 with six sample frequent sites, four Favorites, named groups research and reading, a seeded weekly blocked total of 328, the 1.31.0 footer (Upgrade to Blanc Patron pill, Customize, Mahjong, ⌘L hint) and the v1.31.0 version string.",
+      "evidence": [
+        "v1.31.0:src/renderer/pages/newtab.html",
+        "v1.31.0:src/renderer/pages/newtab.js",
+        "v1.31.0:src/renderer/pages/pages.css",
+        "docs/release-incidents/2026-10-09-v1.31.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/tally-v1.31.0.webp",
+        "sha256": "a0e8036024c79a8510ccdaa0bd82f5651b746d12c279c12446f91b5ed85b1762"
+      }
+    }
+  ]
+}

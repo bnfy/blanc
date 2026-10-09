@@ -63,30 +63,30 @@
     "height": 1024
   },
   {
-    "source": "feature-captures/ledger-v1.21.0.png",
-    "sourceSha256": "65ba9b375627714384fa1a2deb21f257b5d0c5e9e7105c900317b590e73567d6",
-    "output": "feature-captures/ledger-v1.21.0.webp",
+    "source": "feature-captures/ledger-v1.31.0.png",
+    "sourceSha256": "36729b25cc6139e521788178c65f643da2ed463aa2733d27abc3622ff88d4623",
+    "output": "feature-captures/ledger-v1.31.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/billboard-v1.21.0.png",
-    "sourceSha256": "3e0107aa2317451e747122b05ad2979f0996a64a80a60e10a2feaad876575dbd",
-    "output": "feature-captures/billboard-v1.21.0.webp",
+    "source": "feature-captures/billboard-v1.31.0.png",
+    "sourceSha256": "913eee149d1413eb50d2c74579d8152ecec2d17b4dac2cfa584a97f630938477",
+    "output": "feature-captures/billboard-v1.31.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/shelf-v1.21.0.png",
-    "sourceSha256": "0b3872b8348f96b3d55a3d01d8f4c2f44ed5dbc13601a06626ca60f4f56dadeb",
-    "output": "feature-captures/shelf-v1.21.0.webp",
+    "source": "feature-captures/shelf-v1.31.0.png",
+    "sourceSha256": "33788de0f314413a9145c7605069253c88f8c18b7ac825c1e462085a38029960",
+    "output": "feature-captures/shelf-v1.31.0.webp",
     "width": 1440,
     "height": 900
   },
   {
-    "source": "feature-captures/tally-v1.21.0.png",
-    "sourceSha256": "85e70e93eb0258727889575a3921b0bcf15691967b0a56385931a8011847377e",
-    "output": "feature-captures/tally-v1.21.0.webp",
+    "source": "feature-captures/tally-v1.31.0.png",
+    "sourceSha256": "0bdbe99d71cbd9e21e52815d7b8f91981d1a433bebbecc74a8efa2c548cddc6a",
+    "output": "feature-captures/tally-v1.31.0.webp",
     "width": 1440,
     "height": 900
   },
