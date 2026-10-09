@@ -804,6 +804,7 @@ function install(refs) {
       if (!wc) return null;
       return wc.executeJavaScript(`(() => {
         const shell = document.getElementById('migrationChecklistShell');
+        const popover = document.getElementById('migrationChecklist');
         const sync = document.getElementById('migrationSyncTask');
         const tabs = document.getElementById('migrationTabsTask');
         const bounds = (element) => {
@@ -815,21 +816,25 @@ function install(refs) {
         return {
           count: shell ? 1 : 0,
           visible: !!shell && !shell.hidden && getComputedStyle(shell).display !== 'none',
-          detailsVisible: !!shell && !shell.hidden &&
-            getComputedStyle(document.getElementById('migrationChecklist')).display !== 'none',
+          open: !!popover && popover.matches(':popover-open'),
           progress: shell?.querySelector('.js-migration-progress')?.textContent ?? null,
+          label: document.getElementById('migrationChecklistLabel')?.textContent ?? null,
           title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
           syncComplete: sync?.classList.contains('is-complete') ?? false,
           tabsComplete: tabs?.classList.contains('is-complete') ?? false,
-          expanded: shell?.classList.contains('is-expanded') ?? false,
+          expanded: document.getElementById('migrationChecklistCompact')?.getAttribute('aria-expanded') === 'true',
           focused: document.hasFocus(),
+          focusedId: document.activeElement?.id ?? null,
           layout: document.body.dataset.layout ?? null,
           shellBounds: bounds(shell),
-          billboardSitesBounds: bounds(document.getElementById('bbFavorites')),
+          popoverBounds: popover?.matches(':popover-open') ? bounds(popover) : null,
+          footerBounds: bounds(document.getElementById('layoutFooter')),
+          customizeBounds: bounds(document.getElementById('customizeButton')),
+          pillFollowedByCustomize: shell?.nextElementSibling?.id === 'customizeButton',
         };
       })()`);
     },
-    // F35-10/11/12/13: one read of the frame — collapsed checklist, active
+    // F35-10/11/12/13: one read of the frame — footer checklist pill, active
     // layout content, footer, Patron slot and empty hints — so scenarios can
     // prove "nothing covers content" without per-layout selectors.
     readStartFrameGeometry() {
@@ -862,7 +867,6 @@ function install(refs) {
           viewportHeight: innerHeight,
           maxScrollY: Math.max(0, Math.max(root.scrollHeight, document.body.scrollHeight) - innerHeight),
           shell,
-          compact: !!shellEl && getComputedStyle(document.getElementById('migrationChecklistCompact')).display !== 'none',
           content,
           footer: rect(document.getElementById('layoutFooter')),
           patronLast: rootEl.lastElementChild === patron,
@@ -933,6 +937,7 @@ function install(refs) {
       return wc.executeJavaScript(`(() => {
         const btn = document.getElementById('${id}');
         if (!btn) return false;
+        btn.focus();
         btn.click();
         return true;
       })()`);

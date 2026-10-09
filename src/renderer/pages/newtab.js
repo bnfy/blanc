@@ -130,10 +130,13 @@ function renderPatronCallout(patronActive) {
 
 // Main owns durable checklist progress; this renderer only reflects that
 // projection. The one local exception is the 1.5 s final confirmation, which
-// lets an already-open page show 2/2 before the now-complete checklist retires.
+// lets an already-open page show 2/2 on the footer pill before the
+// now-complete checklist retires. The full list lives in the pill's popover.
 const migrationChecklistShell = document.getElementById('migrationChecklistShell');
 const migrationChecklistTitle = document.getElementById('migrationChecklistTitle');
 const migrationChecklistCompact = document.getElementById('migrationChecklistCompact');
+const migrationChecklistLabel = document.getElementById('migrationChecklistLabel');
+const migrationChecklist = document.getElementById('migrationChecklist');
 const migrationSyncTask = document.getElementById('migrationSyncTask');
 const migrationTabsTask = document.getElementById('migrationTabsTask');
 const migrationSyncAction = document.getElementById('migrationSyncAction');
@@ -155,6 +158,7 @@ function paintMigrationChecklist(checklist, { completing = false } = {}) {
     el.textContent = `${checklist.completedCount}/2`;
   }
   migrationChecklistTitle.textContent = completing ? 'all moved in' : 'ready to move in?';
+  migrationChecklistLabel.textContent = completing ? 'all moved in' : 'finish setup';
   setMigrationTask(migrationSyncTask, migrationSyncAction, checklist.syncComplete, 'Set up Sync');
   setMigrationTask(migrationTabsTask, migrationTabsAction, checklist.tabsComplete, 'Bring your tabs');
 }
@@ -163,9 +167,9 @@ function hideMigrationChecklist() {
   clearTimeout(migrationChecklistRetireTimer);
   migrationChecklistRetireTimer = null;
   migrationChecklistPendingCompletion = null;
+  if (migrationChecklist.matches(':popover-open')) migrationChecklist.hidePopover();
   migrationChecklistShell.hidden = true;
-  migrationChecklistShell.classList.remove('is-completing', 'is-expanded');
-  migrationChecklistCompact.setAttribute('aria-expanded', 'false');
+  migrationChecklistShell.classList.remove('is-completing');
 }
 
 function canPresentMigrationChecklistCompletion() {
@@ -182,11 +186,9 @@ function presentPendingMigrationChecklistCompletion() {
   migrationChecklistPendingCompletion = null;
   paintMigrationChecklist(checklist, { completing: true });
   migrationChecklistShell.hidden = false;
-  // Compact layouts normally keep the full list collapsed. Completion is the
-  // one exception: expose both checked rows and the final heading for the same
-  // dwell the full layout receives, rather than showing only a 2/2 ring.
-  migrationChecklistShell.classList.add('is-completing', 'is-expanded');
-  migrationChecklistCompact.setAttribute('aria-expanded', 'true');
+  // The pill confirms 2/2 itself and fades with its popover if that happens
+  // to be open; completion never opens the popover on its own.
+  migrationChecklistShell.classList.add('is-completing');
   clearTimeout(migrationChecklistRetireTimer);
   migrationChecklistRetireTimer = setTimeout(hideMigrationChecklist, 1500);
   return true;
@@ -238,9 +240,8 @@ migrationSyncAction.addEventListener('click', () => {
 migrationChecklistHide.addEventListener('click', () => {
   window.bowserPages?.start.dismissMigrationChecklist().catch(() => {});
 });
-migrationChecklistCompact.addEventListener('click', () => {
-  const expanded = migrationChecklistShell.classList.toggle('is-expanded');
-  migrationChecklistCompact.setAttribute('aria-expanded', String(expanded));
+migrationChecklist.addEventListener('toggle', (event) => {
+  migrationChecklistCompact.setAttribute('aria-expanded', String(event.newState === 'open'));
 });
 window.addEventListener('focus', presentPendingMigrationChecklistCompletion);
 document.addEventListener('visibilitychange', () => {
@@ -845,12 +846,6 @@ new ResizeObserver(observeUnderflow).observe(layoutFooter);
 // controls. `target === document.body` is that check: a keystroke aimed at
 // any control has that control as its target.
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && migrationChecklistShell.classList.contains('is-expanded')) {
-    migrationChecklistShell.classList.remove('is-expanded');
-    migrationChecklistCompact.setAttribute('aria-expanded', 'false');
-    migrationChecklistCompact.focus();
-    return;
-  }
   if (e.target !== document.body) return;
   // ...and not while a modal is up. The onboarding dialog focuses its own
   // Continue button when it opens, so target is that button and the check

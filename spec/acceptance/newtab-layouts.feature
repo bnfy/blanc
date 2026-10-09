@@ -79,13 +79,15 @@ Feature: Start page layouts
     Then the moving-in checklist appears in all four start-page layouts
 
   @F35-8 @desktop
-  Scenario: Billboard keeps the moving-in checklist clear of recent sites
+  Scenario: The moving-in checklist opens from the footer beside Customize
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
-    And local history contains repeated visits for the Billboard
-    And a profile whose start page layout is "billboard"
     When I open a new tab
-    Then the Billboard moving-in checklist stays above its recent sites
+    Then the moving-in checklist pill sits in the footer just before Customize
+    When I open the moving-in checklist
+    Then the moving-in checklist popover opens above its pill
+    When I press Escape on the start page
+    Then the moving-in checklist popover closes and its pill has focus
 
   @F35-10 @desktop
   Scenario: The checklist and the footer never cover start-page content

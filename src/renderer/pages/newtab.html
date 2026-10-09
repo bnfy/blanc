@@ -29,36 +29,6 @@
       <img class="start-brand-mark" src="sunrise-mark.png" alt="" />
       <span id="startDate" class="start-brand-date"></span>
     </div>
-    <div id="migrationChecklistShell" class="migration-checklist-shell" hidden>
-      <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" aria-controls="migrationChecklist" aria-expanded="false">
-        <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
-        <span class="migration-compact-label" aria-hidden="true">finish setup</span>
-        <span class="page-sr-only">Open moving-in checklist</span>
-      </button>
-      <aside id="migrationChecklist" class="migration-checklist" aria-labelledby="migrationChecklistTitle" aria-live="polite">
-        <div class="migration-checklist-heading">
-          <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
-          <h2 id="migrationChecklistTitle">ready to move in?</h2>
-        </div>
-        <ul class="migration-checklist-tasks">
-          <li id="migrationSyncTask">
-            <button id="migrationSyncAction" class="migration-task" type="button">
-              <span class="migration-task-check" aria-hidden="true"></span>
-              <span class="migration-task-label">Set up Sync</span>
-              <span class="page-sr-only migration-task-status">Not completed</span>
-            </button>
-          </li>
-          <li id="migrationTabsTask">
-            <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
-              <span class="migration-task-check" aria-hidden="true"></span>
-              <span class="migration-task-label">Bring your tabs</span>
-              <span class="page-sr-only migration-task-status">Not completed</span>
-            </a>
-          </li>
-        </ul>
-        <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
-      </aside>
-    </div>
   </header>
 
   <div class="start-content" id="startContent">
@@ -159,6 +129,36 @@
       <span id="version" class="ledger-version"></span>
     </span>
     <span class="footer-appearance">
+      <span id="migrationChecklistShell" class="migration-checklist-shell" hidden>
+        <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" popovertarget="migrationChecklist" aria-expanded="false">
+          <span class="migration-progress-ring"><span class="js-migration-progress">0/2</span></span>
+          <span id="migrationChecklistLabel" class="migration-compact-label" aria-hidden="true">finish setup</span>
+          <span class="page-sr-only">Open moving-in checklist</span>
+        </button>
+        <aside id="migrationChecklist" class="migration-checklist" popover role="dialog" aria-labelledby="migrationChecklistTitle" aria-live="polite">
+          <div class="migration-checklist-heading">
+            <span class="migration-progress-ring" aria-hidden="true"><span class="js-migration-progress">0/2</span></span>
+            <h2 id="migrationChecklistTitle">ready to move in?</h2>
+          </div>
+          <ul class="migration-checklist-tasks">
+            <li id="migrationSyncTask">
+              <button id="migrationSyncAction" class="migration-task" type="button">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label">Set up Sync</span>
+                <span class="page-sr-only migration-task-status">Not completed</span>
+              </button>
+            </li>
+            <li id="migrationTabsTask">
+              <a id="migrationTabsAction" class="migration-task" href="blanc://tab-import/">
+                <span class="migration-task-check" aria-hidden="true"></span>
+                <span class="migration-task-label">Bring your tabs</span>
+                <span class="page-sr-only migration-task-status">Not completed</span>
+              </a>
+            </li>
+          </ul>
+          <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">hide</button>
+        </aside>
+      </span>
       <button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize</button>
       <div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">
         <div id="customizeLayoutLabel" class="customize-label">Layout</div>

@@ -1279,7 +1279,8 @@ a.ledger-label:hover { color: var(--accent); }
 .tally-patron { margin-top: 28px; }
 
 /* A single moving-in checklist replaces the separate Sync and tab-import
-   promos. Its slot is the start page header's right cell (frame section). */
+   promos. It is a footer pill beside Customize whose popover holds the full
+   list (frame section). */
 .migration-checklist {
   color: var(--text);
   user-select: none;
@@ -1379,8 +1380,7 @@ a.ledger-label:hover { color: var(--accent); }
   font: 11.5px/1.3 var(--font-ui);
 }
 .migration-checklist-hide:hover { background: transparent; border-color: transparent; color: var(--text); }
-.migration-checklist-compact { display: none; }
-.migration-compact-label { display: none; }
+.migration-checklist-shell.is-completing .migration-checklist-compact,
 .migration-checklist-shell.is-completing .migration-checklist {
   animation: migration-checklist-retire 200ms 1.3s ease forwards;
 }
@@ -1396,6 +1396,7 @@ a.ledger-label:hover { color: var(--accent); }
   .patron-cta-arrow { transition: none; }
   .js-patron-callout a:hover .patron-cta-arrow { transform: none; }
   .migration-checklist { transition: none; }
+  .migration-checklist-shell.is-completing .migration-checklist-compact,
   .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
 }
 
@@ -2876,12 +2877,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* Migration checklist: editorial Newsreader title plus Inter controls. The
    former handwritten underline is intentionally gone. */
-.migration-checklist {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
 .migration-checklist-heading { gap: 14px; }
 .migration-checklist-heading h2 {
   font-size: 27px;
@@ -3099,74 +3094,49 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   .tally-right { order: -1; }
 }
 
-/* The checklist owns the header's right cell on every layout. Tight windows
-   keep it in that same corner as a ring that opens downward. */
-.migration-checklist-shell {
-  position: relative;
-  z-index: 8;
-  flex: 0 0 auto;
-  width: 286px;
+/* The moving-in checklist is a footer pill just before Customize, with the
+   same outline; its native popover opens upward on the same level-2
+   material. The pill fits every window size, so it has no compact variant. */
+.footer-appearance { gap: 8px; }
+.migration-checklist-shell { display: inline-flex; }
+.migration-checklist-shell[hidden] { display: none; }
+.migration-checklist-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 2px 12px 2px 2px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  cursor: pointer;
+  anchor-name: --start-checklist;
 }
-@media (max-width: 960px), (max-height: 640px) {
-  .migration-checklist-shell { width: 48px; }
-  .migration-checklist-compact {
-    display: grid;
-    width: 48px;
-    height: 48px;
-    min-width: 0;
-    padding: 0;
-    place-items: center;
-    border: 0;
-    border-radius: 50%;
-    background: var(--surface-raised);
-    box-shadow: var(--start-shadow-float);
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 48px;
-    height: 48px;
-    border-width: 3px;
-    font-size: 11px;
-  }
-  .migration-checklist {
-    position: absolute;
-    top: 58px;
-    right: 0;
-    bottom: auto;
-    display: none;
-    width: 276px;
-    padding: 16px 18px 14px;
-    border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
-    border-radius: 14px;
-    background: var(--start-float-fill);
-    box-shadow: var(--start-shadow-float);
-    backdrop-filter: blur(20px) saturate(140%);
-  }
-  .migration-checklist-shell.is-expanded .migration-checklist { display: block; }
+.migration-checklist-compact:hover,
+.migration-checklist-compact[aria-expanded="true"] { color: var(--text); border-color: var(--border); background: transparent; }
+.migration-checklist-compact .migration-progress-ring {
+  width: 22px;
+  height: 22px;
+  border-width: 2px;
+  font-size: 8.5px;
 }
-@media (max-width: 760px) {
-  .migration-checklist-shell { width: 136px; }
-  .migration-checklist-compact {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 136px;
-    height: 44px;
-    padding: 3px 10px 3px 3px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-  }
-  .migration-checklist-compact .migration-progress-ring {
-    width: 36px;
-    height: 36px;
-    border-width: 2px;
-    font-size: 10px;
-  }
-  .migration-compact-label {
-    display: inline;
-    color: var(--text);
-    font: 600 11px/1.1 var(--font-ui);
-    white-space: nowrap;
-  }
+.migration-compact-label { white-space: nowrap; }
+.migration-checklist {
+  position: fixed;
+  position-anchor: --start-checklist;
+  position-area: top center;
+  inset: auto;
+  margin: 0 0 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 16px 20px 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 14px;
+  background: var(--start-float-fill);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--start-shadow-float);
 }
 
 .start-empty-hint {
@@ -3391,6 +3361,8 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .group-chip,
   .start-customize,
   .start-customize-popover,
+  .migration-checklist-compact,
+  .migration-checklist,
   .layout-thumb,
   .js-patron-callout a { border-color: var(--text-dim); }
 }
@@ -3398,7 +3370,8 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
 /* Motion: settle without overshoot, grow from the source, leave the frame
    still. CSS transitions reverse from the current value when toggled
    mid-flight, which is all the interruptibility this page needs. */
-.start-customize-popover {
+.start-customize-popover,
+.migration-checklist {
   opacity: 0;
   transform: translateY(4px) scale(0.96);
   transform-origin: bottom center;
@@ -3408,22 +3381,15 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
     overlay 150ms allow-discrete,
     display 150ms allow-discrete;
 }
-.start-customize-popover:popover-open {
+.start-customize-popover:popover-open,
+.migration-checklist:popover-open {
   opacity: 1;
   transform: none;
   transition-duration: 200ms;
 }
 @starting-style {
-  .start-customize-popover:popover-open { opacity: 0; transform: translateY(4px) scale(0.96); }
-}
-@media (max-width: 960px), (max-height: 640px) {
-  .migration-checklist {
-    transform-origin: top right;
-    transition: opacity 200ms var(--start-ease), transform 200ms var(--start-ease), display 200ms allow-discrete;
-  }
-  @starting-style {
-    .migration-checklist-shell.is-expanded .migration-checklist { opacity: 0; transform: translateY(-4px) scale(0.96); }
-  }
+  .start-customize-popover:popover-open,
+  .migration-checklist:popover-open { opacity: 0; transform: translateY(4px) scale(0.96); }
 }
 
 /* A layout change fades in only the new content; never on first paint. */
@@ -3447,12 +3413,14 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
 .group-chip:active,
 .layout-preview:active,
 .start-customize:active,
+.migration-checklist-compact:active,
 .js-patron-callout a:active { transform: scale(0.98); transition-duration: 0ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .start-customize-popover,
   .start-customize-popover:popover-open,
-  .migration-checklist {
+  .migration-checklist,
+  .migration-checklist:popover-open {
     transform: none;
     transition: opacity 120ms linear, overlay 120ms allow-discrete, display 120ms allow-discrete;
   }
@@ -3464,12 +3432,14 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   .group-chip:active,
   .layout-preview:active,
   .start-customize:active,
+  .migration-checklist-compact:active,
   .js-patron-callout a:active { transform: none; }
   .ledger-footer::before { transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   @starting-style {
-    .start-customize-popover:popover-open { transform: none; }
+    .start-customize-popover:popover-open,
+    .migration-checklist:popover-open { transform: none; }
   }
 }
 

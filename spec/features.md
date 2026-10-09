@@ -805,14 +805,14 @@ From the desktop `DEFAULTS`:
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron upgrade and no blocked counts.
-- After first run, Personal non-private start pages show one corner
-  moving-in checklist on ledger, billboard, shelf, and tally. It sits in the
-  start page header's right corner on every layout, in normal flow, so it
-  never covers content. It tracks the
-  device-local, once-completed states of Sync and Bring Your Tabs, can be hidden
-  permanently, and retires after a brief 2/2 confirmation. The standalone game omits it.
-  Tight windows collapse it to a progress-ring trigger in that same corner,
-  opening downward.
+- After first run, Personal non-private start pages show one moving-in
+  checklist on ledger, billboard, shelf, and tally: a progress-ring pill in
+  the footer just before Customize, whose popover opens upward with the full
+  list. Living in the footer, it never covers content, at any window size. It
+  tracks the device-local, once-completed states of Sync and Bring Your Tabs,
+  can be hidden permanently from its popover, and retires after the pill
+  briefly shows a 2/2 "all moved in" confirmation, without opening the popover
+  on its own. The standalone game omits it.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies

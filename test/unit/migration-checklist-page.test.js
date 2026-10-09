@@ -16,7 +16,8 @@ test('start page carries one shared accessible migration checklist', () => {
   assert.match(html, /id="migrationSyncAction"[^>]*>[\s\S]*?Set up Sync/);
   assert.match(html, /id="migrationTabsAction"[^>]*href="blanc:\/\/tab-import\/"[\s\S]*?Bring your tabs/);
   assert.match(html, /aria-label="Hide moving-in checklist">hide<\/button>/);
-  assert.match(html, /id="migrationChecklistCompact"[^>]*aria-expanded="false"/);
+  assert.match(html, /id="migrationChecklistCompact"[^>]*popovertarget="migrationChecklist"[^>]*aria-expanded="false"/);
+  assert.match(html, /<aside id="migrationChecklist" class="migration-checklist" popover role="dialog"/);
   assert.doesNotMatch(html, /tab-import-promo|js-sync-nudge|syncNudge/);
   assert.doesNotMatch(html, /style="/);
 });
@@ -49,16 +50,19 @@ test('every start-page template names the Blanc Patron upgrade as an action', ()
   }
 });
 
-test('checklist occupies the corner, compacts at tight viewports, and avoids private tabs', () => {
+test('checklist is a footer pill beside Customize whose popover opens upward, and avoids private tabs', () => {
   const css = read('src/renderer/pages/pages.css');
   const html = read('src/renderer/pages/newtab.html');
 
-  assert.match(html, /<header class="start-header"[\s\S]*?<div id="migrationChecklistShell"[\s\S]*?<\/header>/,
-    'the checklist lives in the header row');
-  assert.match(css, /\/\* ---------- Start page frame \(2026-10-05 polish\) ----------[\s\S]*?\.migration-checklist-shell \{[^}]*position: relative;/);
-  assert.match(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[\s\S]{0,900}?\.migration-checklist-compact \{[\s\S]{0,300}?display: grid;/);
-  assert.match(css, /\.migration-checklist \{[\s\S]{0,340}?top: 58px;[\s\S]{0,340}?display: none;/,
-    'the compact checklist opens downward from its ring');
+  assert.doesNotMatch(html.match(/<header class="start-header"[\s\S]*?<\/header>/)[0], /migrationChecklist/,
+    'the header no longer carries the checklist');
+  assert.match(html, /<span class="footer-appearance">\s*<span id="migrationChecklistShell" class="migration-checklist-shell" hidden>[\s\S]*?<\/span>\s*<button id="customizeButton"/,
+    'the checklist pill sits just before Customize in the footer');
+  assert.match(css, /\.migration-checklist-compact \{[^}]*border-radius: 999px;[^}]*anchor-name: --start-checklist;/s);
+  assert.match(css, /\.migration-checklist \{[^}]*position: fixed;[^}]*position-anchor: --start-checklist;[^}]*position-area: top center;/s,
+    'the checklist popover opens above its pill, like Customize');
+  assert.doesNotMatch(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[^@]*migration-checklist/,
+    'no tight-window checklist variants remain');
   assert.doesNotMatch(css, /body\[data-layout="mahjong"\] \.migration-checklist-shell/);
   assert.match(css, /:root\[data-theme="private"\] \.migration-checklist-shell/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]{0,320}?animation: none;/);
@@ -96,8 +100,11 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
   assert.match(js, /!migrationChecklistUtilitySheetVisible/,
     'completion waits until main reports that the utility sheet is gone');
   assert.match(js, /onUtilitySheetVisibility\(\(visible\) =>/);
-  assert.match(js, /classList\.add\('is-completing', 'is-expanded'\)/,
-    'compact completion exposes the full checked checklist during its dwell');
+  assert.match(js, /migrationChecklistShell\.classList\.add\('is-completing'\)/);
+  assert.match(js, /migrationChecklistLabel\.textContent = completing \? 'all moved in' : 'finish setup'/,
+    'the footer pill itself confirms completion');
+  assert.doesNotMatch(js, /showPopover\(/, 'completion never opens the popover on its own');
+  assert.doesNotMatch(js, /is-expanded/);
   assert.match(js, /window\.addEventListener\('focus', presentPendingMigrationChecklistCompletion\)/);
   assert.match(js, /setTimeout\(hideMigrationChecklist, 1500\)/);
   assert.match(js, /migrationSyncAction\.addEventListener\('click'/);

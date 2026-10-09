@@ -16,11 +16,11 @@ const frameCss = () => {
   return css.slice(start, end);
 };
 
-test('the header row holds the brand and the checklist slot, in flow', () => {
+test('the header row holds the brand, in flow', () => {
   const html = read('src/renderer/pages/newtab.html');
   assert.match(
     html,
-    /<header class="start-header" aria-label="Blanc start page">\s*<div class="start-brand">[\s\S]*?id="startDate" class="start-brand-date"[\s\S]*?<\/div>\s*<div id="migrationChecklistShell"/,
+    /<header class="start-header" aria-label="Blanc start page">\s*<div class="start-brand">[\s\S]*?id="startDate" class="start-brand-date"><\/span>\s*<\/div>\s*<\/header>/,
   );
   const css = frameCss();
   assert.match(css, /\.start-header \{[^}]*display: flex;[^}]*justify-content: space-between;/s);
@@ -43,10 +43,12 @@ test('every layout renders inside one centered content area', () => {
   }
 });
 
-test('the checklist sits in the header and compacts to a top-right ring', () => {
+test('the checklist is a footer pill with an anchored popover', () => {
   const css = frameCss();
-  assert.match(css, /\.migration-checklist-shell \{[^}]*position: relative;[^}]*width: 286px;/s);
-  assert.match(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[\s\S]*?\.migration-checklist \{[^}]*position: absolute;[^}]*top: 58px;[^}]*right: 0;/);
+  assert.match(css, /\.footer-appearance \{[^}]*gap: 8px;/s);
+  assert.match(css, /\.migration-checklist-compact \{[^}]*display: inline-flex;[^}]*min-height: 28px;/s);
+  assert.match(css, /\.migration-checklist \{[^}]*background: var\(--start-float-fill\);[^}]*backdrop-filter: blur\(20px\) saturate\(140%\);/s,
+    'the popover uses the same floating material as Customize');
   assert.doesNotMatch(read('src/renderer/pages/pages.css'), /body\[data-layout="(billboard|tally)"\] \.migration-checklist-shell \{ top:/,
     'no per-layout checklist offsets remain');
 });
@@ -136,9 +138,9 @@ test('surfaces follow one weight ladder with accessibility fallbacks', () => {
 test('motion grows surfaces from their source and respects reduced motion', () => {
   const css = frameCss();
   const js = read('src/renderer/pages/newtab.js');
-  assert.match(css, /\.start-customize-popover \{[^}]*transform-origin: bottom center;[^}]*transition:[^;]*opacity 150ms var\(--start-ease\)/s);
-  assert.match(css, /\.start-customize-popover:popover-open \{[^}]*transition-duration: 200ms;/s);
-  assert.match(css, /@starting-style \{\s*\.start-customize-popover:popover-open \{[^}]*scale\(0\.96\)/);
+  assert.match(css, /\.start-customize-popover,\s*\.migration-checklist \{[^}]*transform-origin: bottom center;[^}]*transition:[^;]*opacity 150ms var\(--start-ease\)/s);
+  assert.match(css, /\.start-customize-popover:popover-open,\s*\.migration-checklist:popover-open \{[^}]*transition-duration: 200ms;/s);
+  assert.match(css, /@starting-style \{\s*\.start-customize-popover:popover-open,\s*\.migration-checklist:popover-open \{[^}]*scale\(0\.96\)/);
   assert.match(css, /body\.layout-ready \.start-content > main \{[^}]*transition: opacity 160ms var\(--start-ease\);/s);
   assert.match(css, /@starting-style \{\s*body\.layout-ready \.start-content > main \{ opacity: 0; \}/);
   assert.match(css, /:active \{[^}]*transform: scale\(0\.98\);/s);

@@ -562,9 +562,11 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
           `${layout} frame at ${size.width}x${size.height}`,
         );
         const context = `${layout} at ${size.width}x${size.height}`;
+        // The checklist is a pill inside the fixed footer, so the footer check
+        // below covers it; it must never spill outside that band.
+        assert.ok(frame.shell.top >= frame.footer.top - 1 && frame.shell.bottom <= frame.footer.bottom + 1,
+          `${context}: checklist ${JSON.stringify(frame.shell)} leaves the footer ${JSON.stringify(frame.footer)}`);
         for (const entry of frame.content) {
-          assert.ok(!intersects(frame.shell, entry.rect),
-            `${context}: checklist ${JSON.stringify(frame.shell)} covers ${entry.selector} ${JSON.stringify(entry.rect)}`);
           const atBottom = { ...entry.rect, top: entry.rect.top - frame.maxScrollY, bottom: entry.rect.bottom - frame.maxScrollY };
           assert.ok(!intersects(frame.footer, atBottom),
             `${context}: footer covers ${entry.selector} when scrolled to the end`);
