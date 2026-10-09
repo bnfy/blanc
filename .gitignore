@@ -25,3 +25,4 @@ bench/tab-import/results/
 .astro/
 site/.parity/
 site/.parity-shots/
+.fontenv/

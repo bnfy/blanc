@@ -30,8 +30,29 @@ test('every website Newsreader and Inter stack names its metric-matched fallback
   }
 });
 
-test('the page head preloads the Newsreader latin file the headings use', () => {
+test('the page head preloads the condensed Newsreader latin file the headings use', () => {
   const layout = read('site/src/layouts/BaseLayout.astro');
-  assert.match(layout, /import newsreaderLatin from '@fontsource-variable\/newsreader\/files\/newsreader-latin-opsz-normal\.woff2\?url';/);
+  assert.match(layout, /import newsreaderLatin from '\.\.\/fonts\/newsreader-condensed-latin-opsz-normal\.woff2\?url';/);
   assert.match(layout, /<link rel="preload" href=\{newsreaderLatin\} as="font" type="font\/woff2" crossorigin>/);
+});
+
+// The website's headings use Newsreader condensed to 88% (decision of 8 Oct
+// 2026) with 0.02em tracking built in, generated from the pinned fontsource
+// files. The display stack must not reach the wider upstream face, and the
+// Georgia fallback is matched to the condensed build's measured width.
+test('the display stack uses the condensed Newsreader build and a matching fallback', () => {
+  const css = read('site/src/styles/site.css');
+  const script = read('site/scripts/build-condensed-newsreader.py');
+  assert.match(script, /^WIDTH = 0\.88$/m);
+  assert.match(script, /^TRACKING = 0\.02 /m);
+  assert.match(css, /--site-font-patron: "Newsreader Condensed", "Newsreader Fallback",/);
+  assert.doesNotMatch(css.match(/--site-font-patron:[^;]*/)[0], /Newsreader Variable/);
+  assert.match(css, /font-family: "Newsreader Fallback"; src: local\("Georgia"\); font-weight: 400; size-adjust: 87\.7%;/);
+  for (const file of ['newsreader-condensed.css', 'newsreader-condensed-italic.css']) {
+    const faces = read(`site/src/styles/${file}`);
+    const urls = [...faces.matchAll(/url\(\.\.\/fonts\/(newsreader-condensed-[a-z-]+\.woff2)\)/g)].map(m => m[1]);
+    assert.equal(urls.length, 3, file);
+    for (const url of urls) assert.ok(fs.existsSync(path.join(ROOT, 'site/src/fonts', url)), url);
+    assert.doesNotMatch(faces, /Newsreader Variable/, file);
+  }
 });

@@ -2,7 +2,9 @@
 //
 // Level B of the Newsreader reach decision (4 Sep 2026): every heading in
 // Newsreader regular, the press quote in italic, the demo's single-sentence
-// figure title and everything else in Inter.
+// figure title and everything else in Inter. Since 8 Oct 2026 that Newsreader
+// is the website's condensed build (site/scripts/build-condensed-newsreader.py);
+// product replicas keep the app's own, uncondensed Newsreader.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -26,7 +28,7 @@ async function openPage(path = '/', width = 1440) {
   return { page, context };
 }
 
-const serif = /^"?Newsreader Variable"?/;
+const serif = /^"?Newsreader Condensed"?/;
 const sans = /^"?Inter/;
 
 test('the homepage headline and footer tagline are Newsreader regular, and the display face loads', async () => {
@@ -38,10 +40,10 @@ test('the homepage headline and footer tagline are Newsreader regular, and the d
         token: getComputedStyle(document.documentElement).getPropertyValue('--site-font-display').trim(),
         h1Font: h1.fontFamily, h1Weight: h1.fontWeight,
         tagFont: getComputedStyle(document.querySelector('#site-footer .website-footer-identity p')).fontFamily,
-        loaded: document.fonts.check('64px "Newsreader Variable"'),
+        loaded: document.fonts.check('64px "Newsreader Condensed"'),
       };
     });
-    assert.match(type.token, /Newsreader Variable/);
+    assert.match(type.token, /Newsreader Condensed/);
     assert.match(type.h1Font, serif, 'homepage h1 is Newsreader');
     assert.equal(type.h1Weight, '400');
     assert.match(type.tagFont, serif, 'the footer tagline is Newsreader');
@@ -98,17 +100,19 @@ test('the press announcement quote is the only Newsreader italic on the site', a
   try {
     const quote = await page.evaluate(() => {
       const p = getComputedStyle(document.querySelector('.press-announcement blockquote p'));
-      return { font: p.fontFamily, style: p.fontStyle, weight: p.fontWeight, loaded: document.fonts.check('italic 24px "Newsreader Variable"') };
+      return { font: p.fontFamily, style: p.fontStyle, weight: p.fontWeight, loaded: document.fonts.check('italic 24px "Newsreader Condensed"') };
     });
     assert.match(quote.font, serif);
     assert.equal(quote.style, 'italic');
     assert.equal(quote.weight, '400');
     assert.equal(quote.loaded, true, 'the italic file is loaded on the press page');
+    const clock = await page.evaluate(() => getComputedStyle(document.querySelector('.demo-bb-clock')).fontFamily);
+    assert.match(clock, /^"?Newsreader Variable"?/, 'the Start Page clock replica keeps the app\'s uncondensed Newsreader');
   } finally { await context.close(); }
 
   const home = await openPage('/');
   try {
-    const italicDeclared = await home.page.evaluate(() => [...document.fonts].some(f => f.family === 'Newsreader Variable' && f.style === 'italic'));
+    const italicDeclared = await home.page.evaluate(() => [...document.fonts].some(f => f.family === 'Newsreader Condensed' && f.style === 'italic'));
     assert.equal(italicDeclared, false, 'the italic file is not declared on pages that do not use it');
   } finally { await home.context.close(); }
 });

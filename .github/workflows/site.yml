@@ -45,6 +45,20 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm ci
         working-directory: site
+      # The condensed Newsreader headings are derived from the pinned fontsource
+      # files. Rebuild them with the hash-locked tools and fail if the committed
+      # fonts differ, so a fontsource bump can't ship without its rebuild.
+      - name: Check the condensed Newsreader fonts are current
+        run: |
+          python3 -m venv "$RUNNER_TEMP/fontenv"
+          "$RUNNER_TEMP/fontenv/bin/pip" install --disable-pip-version-check --require-hashes \
+            -r site/scripts/build-condensed-newsreader.requirements.txt
+          "$RUNNER_TEMP/fontenv/bin/python" site/scripts/build-condensed-newsreader.py
+          if [ -n "$(git status --porcelain -- site/src/fonts)" ]; then
+            git status --short -- site/src/fonts
+            echo "::error::site/src/fonts is stale. Run site/scripts/build-condensed-newsreader.py and commit the result."
+            exit 1
+          fi
       - run: npm run build
         working-directory: site
       - name: Run the site browser suites

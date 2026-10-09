@@ -1,11 +1,13 @@
 /* Metric-matched stand-ins shown until the web fonts load, so the swap does not
    reflow the page (measured 2026-10-05: the phone hero heading wrapped to two
    lines in Iowan Old Style, then shrank to one in Newsreader, shifting the hero
-   by 46px). size-adjust is Newsreader's width relative to Georgia at the phone
-   hero size (optical sizing narrows it further at larger sizes) and Inter's
+   by 46px). size-adjust is the condensed Newsreader's width relative to Georgia
+   at the phone hero size (measured 2026-10-08 on the 44px hero headline with
+   the build's 88% width and 0.02em tracking; optical sizing narrows it further
+   at larger sizes) and Inter's
    relative to Arial; the overrides are each web font's own vertical metrics
    divided by that scale. Re-measure if either web font changes. */
-@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); font-weight: 400; size-adjust: 95%; ascent-override: 77.37%; descent-override: 27.89%; line-gap-override: 0%; }
+@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); font-weight: 400; size-adjust: 87.7%; ascent-override: 83.81%; descent-override: 30.21%; line-gap-override: 0%; }
 @font-face { font-family: "Inter Fallback"; src: local("Arial"), local("ArialMT"); font-weight: 400; size-adjust: 106.69%; ascent-override: 90.8%; descent-override: 22.61%; line-gap-override: 0%; }
 @font-face { font-family: "Inter Fallback"; src: local("Arial Bold"), local("Arial-BoldMT"); font-weight: 700; size-adjust: 106.69%; ascent-override: 90.8%; descent-override: 22.61%; line-gap-override: 0%; }
 
@@ -37,11 +39,15 @@
   --pill-zoom: 1.15;
 
   /* Website presentation only. Ivory is sampled from the Sunrise source art. */
-  /* Newsreader's optical-size axis sharpens automatically at Patron display sizes. */
-  --site-font-patron: "Newsreader Variable", "Newsreader", "Newsreader Fallback", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  /* Newsreader, condensed to 88% (site/scripts/build-condensed-newsreader.py).
+     Its optical-size axis sharpens automatically at Patron display sizes. An
+     installed upstream Newsreader is deliberately skipped: it is wider. */
+  --site-font-patron: "Newsreader Condensed", "Newsreader Fallback", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   /* The one Newsreader line per page (page headlines, the press quote) shares
      the Patron stack. Everything scanned rather than read stays in Inter. */
   --site-font-display: var(--site-font-patron);
+  /* Product replicas show the app's own, uncondensed Newsreader. */
+  --site-font-replica-serif: "Newsreader Variable", "Newsreader Fallback", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --site-bg: #F7F0E5;
   --site-bg-rgb: 247, 240, 229;
   --site-surface: #EFE6D8;
@@ -278,7 +284,7 @@ a { color: inherit; }
 .demo-newtab[hidden] { display: none; }
 .demo-bb-date { font: 500 11px/1.2 var(--font-ui); color: var(--text-dim); letter-spacing: .08em; }
 .demo-bb-clock-row { display: flex; align-items: baseline; gap: 8px; }
-.demo-bb-clock { font-family: var(--site-font-display); font-size: 90px; font-weight: 650; letter-spacing: -.01em; line-height: 1; font-variant-numeric: proportional-nums; text-shadow: 0 2px 24px rgba(255,252,247,.34); }
+.demo-bb-clock { font-family: var(--site-font-replica-serif); font-size: 90px; font-weight: 650; letter-spacing: -.01em; line-height: 1; font-variant-numeric: proportional-nums; text-shadow: 0 2px 24px rgba(255,252,247,.34); }
 .demo-bb-meridiem { font-family: var(--font-ui); font-size: 18px; color: var(--text-dim); }
 .demo-bb-meridiem:empty { display: none; }
 .demo-bb-blocked { margin-top: 10px; font: 11.5px var(--font-ui); color: var(--text-dim); }
