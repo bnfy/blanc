@@ -7,7 +7,6 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const styles = fs.readFileSync(path.join(ROOT, 'site/src/styles/site.css'), 'utf8');
-const pressScript = fs.readFileSync(path.join(ROOT, 'site/src/scripts/press-island.js'), 'utf8');
 const header = fs.readFileSync(path.join(ROOT, 'site/src/components/Header.astro'), 'utf8');
 const consent = fs.readFileSync(path.join(ROOT, 'site/src/components/Consent.astro'), 'utf8');
 const footer = fs.readFileSync(path.join(ROOT, 'site/src/components/Footer.astro'), 'utf8');
@@ -37,17 +36,17 @@ test('website Island figures keep the released command-bar geometry', () => {
 });
 
 test('resting website figures show the quiet Plus shortcut in horizontal layouts', () => {
-  const restingFigures = ['site/src/components/PressIslandDemo.astro'];
+  // The interactive press demo was retired with the Media page; the Island
+  // guide's resting figure carries the same pill.
+  const restingFigures = ['site/src/pages/features/island.astro'];
   for (const file of restingFigures) {
-    assert.match(source(file), /class="pill-shortcut"|class="pill-shortcut" id="pressIslandPillNewTab"/, `${file} should show Plus`);
+    assert.match(source(file), /class="pill-shortcut"/, `${file} should show Plus`);
   }
 
   const verticalTabs = source('site/src/components/guides/vertical-tabs.astro');
   assert.doesNotMatch(verticalTabs, /pill-shortcut/, 'vertical-tabs figure should omit the redundant Plus');
   assert.match(styles, /\.pill-shortcuts \{[^}]*gap: calc\(4px \/ var\(--pill-zoom\)\)/s);
   assert.match(styles, /\.pill-slash,\s*\.demo-island \.pill-shortcut \{[^}]*width: 22px;[^}]*height: 22px/s);
-  assert.match(pressScript, /#pressIslandPillNewTab/);
-  assert.match(pressScript, /enterBlankTab\(\)/);
 });
 
 test('the masthead is a sticky top bar and the navigation hides on scroll down and returns on scroll up', () => {

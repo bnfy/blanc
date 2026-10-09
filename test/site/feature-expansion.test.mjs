@@ -40,7 +40,7 @@ test('expanded pages load their images and fit 360, 768, and 1440 pixel viewport
   try {
     for (const width of [360, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const route of ['/', '/features', '/download', '/faq', '/press', ...routes.map(route => `/features/${route}`)]) {
+      for (const route of ['/', '/features', '/download', '/faq', '/media', ...routes.map(route => `/features/${route}`)]) {
         assert.equal((await page.goto(`${baseURL}${route}`)).status(), 200, route);
         // Captures inside closed Features popovers stay hidden until opened.
         for (const img of await page.locator('main img[src^="/feature-captures/"]').filter({ visible: true }).all()) {
@@ -78,7 +78,7 @@ test('new guides have unique metadata, keyboard-reachable captures, and the exis
   } finally { await context.close(); }
 });
 
-test('feature hub reaches all sixteen guides and Press captures download as real PNGs', async () => {
+test('feature hub reaches all sixteen guides and Media kit downloads are real PNGs', async () => {
   const context = await contextFor();
   const page = await context.newPage();
   try {
@@ -86,17 +86,19 @@ test('feature hub reaches all sixteen guides and Press captures download as real
     const hrefs = new Set(await page.locator('a[href^="/features/"]').evaluateAll(links => links.map(link => link.getAttribute('href'))));
     for (const route of ['island', 'start-page', 'glance', 'ad-blocking', 'private-tabs', 'command-palette', 'mouse-gestures', 'reopen-closed-tabs', 'tab-groups', 'workspaces', 'vertical-tabs', 'quiet-tabs', 'profiles', 'sync', 'security', '1password']) assert.ok(hrefs.has(`/features/${route}`), route);
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
-    await page.goto(`${baseURL}/press`);
-    const downloads = page.locator('.press-feature-gallery figcaption a[download]');
-    assert.equal(await downloads.count(), 6);
+    await page.goto(`${baseURL}/media`);
+    // The media kit downloads are native 2x captures of one release, plus the
+    // Sunrise mark in full color and in black.
+    const downloads = page.locator('.media-kit figcaption a[download]');
+    assert.equal(await downloads.count(), 4);
     for (const link of await downloads.all()) {
       const href = await link.getAttribute('href');
       const response = await context.request.get(new URL(href, baseURL).href);
       assert.equal(response.status(), 200, href);
       const bytes = await response.body();
       assert.equal(bytes.subarray(1, 4).toString(), 'PNG');
-      assert.equal(bytes.readUInt32BE(16), 1440);
-      assert.equal(bytes.readUInt32BE(20), 900);
+      const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
+      assert.ok(['2560x1600', '4096x4096'].includes(size), `${href}: ${size}`);
     }
     const downloaded = page.waitForEvent('download');
     const firstHref = await downloads.first().getAttribute('href');

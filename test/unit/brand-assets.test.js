@@ -183,7 +183,7 @@ test('website identity, OpenGraph, press, and retained social outputs are all co
   }
 
   const ogRenderer = source('site/scripts/render-og-cards.mjs');
-  const pressRenderer = source('site/scripts/render-press-primary-capture.mjs');
+  const pressRenderer = source('site/scripts/render-press-card.mjs');
   assert.match(ogRenderer, /path\.join\(PUBLIC_ROOT, 'favicon\.svg'\)/);
   assert.match(pressRenderer, /path\.join\(SITE_ROOT, 'public\/favicon\.svg'\)/);
   assert.match(source('marketing/article-assets/ai-clean-browser/compose.py'), /src\/renderer\/pages\/icon-ink\.png/);
@@ -230,11 +230,11 @@ test('the launch cards carry the square Sunrise mark at the old placements', asy
 });
 
 test('the site sizes the square mark everywhere the portrait B was sized', () => {
-  const css = source('site/src/styles/site.css');
+  const css = source('site/src/styles/site.css') + source('site/src/styles/media.css');
   assert.match(css, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(css, /\.site-brand-mark \{ width: 28px; height: 28px;/);
-  assert.match(css, /\.press-brand-mark \{ display: block; width: 21px; height: 21px;/);
-  for (const selector of ['\\.site-brand-mark', '\\.press-brand-mark']) {
+  assert.match(css, /\.media-index-mark \{ display: block; width: 18px; height: 18px;/);
+  for (const selector of ['\\.site-brand-mark', '\\.media-index-mark']) {
     const rules = [...css.matchAll(new RegExp(`${selector} \\{([^}]*)\\}`, 'g'))];
     assert.ok(rules.length > 0, `${selector} is styled`);
     for (const [, body] of rules) {

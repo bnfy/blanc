@@ -78,7 +78,7 @@ test('the OG cards are generated, not hand-placed', () => {
 });
 
 test('the card generators set their titles in Newsreader, the site display face', () => {
-  for (const script of ['site/scripts/render-og-cards.mjs', 'site/scripts/render-press-primary-capture.mjs']) {
+  for (const script of ['site/scripts/render-og-cards.mjs', 'site/scripts/render-press-card.mjs']) {
     const source = fs.readFileSync(path.join(ROOT, script), 'utf8');
     assert.match(source, /newsreader-latin-opsz-normal\.woff2/, `${script} embeds the Newsreader file`);
     assert.match(source, /@font-face \{ font-family: Newsreader;/, `${script} declares the face`);
