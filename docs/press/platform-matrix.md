@@ -1,28 +1,31 @@
-# Press-build platform matrix
+# Platform matrix
 
-Last verified: July 27, 2026
+Last verified: October 8, 2026 (public Blanc 1.30.1)
 
-This is the fail-closed distribution matrix. A target moves to
-**release-eligible** only after the exact candidate package passes its native
-gate. `scripts/release.sh` requires the release operator to name both the
-selected platforms and selected Mac architectures explicitly.
+This is the fail-closed distribution matrix. A target is **released** only
+after the exact published package passes its native gate. `scripts/release.sh`
+requires the release operator to name the selected platforms and Mac
+architectures explicitly; every release ships both Apple Silicon and Intel Mac
+builds unless `BLANC_MAC_ARCH_WAIVER` records why one is missing.
 
-| Target | Current P0 evidence | Candidate status |
+| Target | Evidence for the exact public 1.30.1 package | Status |
 |---|---|---|
-| macOS Apple Silicon | Exact `v1.0.0-rc.2` app is Developer ID signed, notarized, stapled, Gatekeeper-accepted after copying from the mounted DMG, clean-launched from an empty profile, and same-profile migration tested from public Stable `v0.22.0` using both published DMGs; all five published assets fetch logged-out and match the published SHA-256 manifest | Release-eligible; distributed as the sole RC target |
-| macOS Intel | Build target and public v0.22.0 artifact exist; no native Intel test of this working tree was available | Not release-eligible |
-| Windows x64 | Workflow now refuses unsigned output and verifies both Authenticode validity and expected publisher. GitHub auth and Azure tenant/client/account/endpoint values are present, but the required certificate-profile/publisher values and a current Windows 11 install/SmartScreen test are absent | Not release-eligible |
-| Linux x86_64 | Native CI job and AppImage artifact checks are defined; current workflow dispatch and x86_64 launch were not available to verify locally | Not release-eligible |
+| macOS Apple Silicon | `Blanc-1.30.1-arm64.dmg`: the contained `Blanc.app` is accepted by Gatekeeper as a notarized Developer ID app, passes strict deep `codesign` verification, validates its stapled ticket, and reports 1.30.1 (1301). The exact-tag public run verified the published DMG on native `macos-15`. The owner confirmed the in-app update from public 1.30.0 | Released |
+| macOS Intel | `Blanc-1.30.1.dmg` (x86_64): the same Gatekeeper, `codesign`, stapled-ticket, and version checks pass. The exact-tag public run verified the published DMG on native `macos-15-intel`. Under Rosetta, Blanc uses Blanc Blocker; optional uBlock Origin needs a native Intel Mac | Released |
+| Windows x64 | `Blanc-Setup-1.30.1.exe`: `windows-signature.json` records a valid, timestamped signature for `CN=Bananify Creative` whose SHA-256 matches the downloaded installer. The native release run and the exact-tag DNS and window checks passed. The owner confirmed the in-app update from public 1.30.0; the close-and-relaunch check after it was not reported | Released |
+| Linux x64 | `Blanc-1.30.1.AppImage`: AppImages carry no OS-level publisher signature, so the authenticated release manifest is the publisher check. The exact-tag public run passed the AppImage launch and the DNS and window checks | Released |
 
-`v1.0.0-rc.2` is distributed only for macOS Apple Silicon. Other targets stay
-outside the 1.0 press claim unless a later immutable candidate and native gate
-explicitly add them.
+Every one of the 18 public assets, freshly downloaded, matched its
+`SHA256SUMS` entry; the complete manifest (17 artifacts, Mac arm64 and x64)
+validated; and `cosign verify-blob` passed against the pinned identity and
+issuer. Runs: [native release 37810291607](https://github.com/bnfy/blanc/actions/runs/37810291607)
+and [exact-tag public 37811371728](https://github.com/bnfy/blanc/actions/runs/37811371728).
+The full record is
+[`docs/release-incidents/2026-10-08-v1.30.1.md`](../release-incidents/2026-10-08-v1.30.1.md).
 
-## Nothing is carried forward from rc.1
+## History
 
-The matrix states only what the **exact** candidate has passed. `rc.1`'s
-results are not evidence for a different package, so the macOS row was held at
-one-gate-outstanding until same-profile migration ran against `rc.2` itself.
-That check ran on 2026-07-27 against both published DMGs and passed; the
-method and the twenty-one equality checks are recorded in
-`p0-evidence-2026-07-26-rc2.md`.
+The 1.0 release candidate, `v1.0.0-rc.2` (July 2026), shipped for macOS Apple
+Silicon only; Intel, Windows, and Linux were not yet release-eligible. Its
+evidence, including the same-profile migration check, is in
+[`p0-evidence-2026-07-26-rc2.md`](./p0-evidence-2026-07-26-rc2.md).
