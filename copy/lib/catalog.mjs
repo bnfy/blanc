@@ -76,6 +76,12 @@ export function checkTranslation({ key, enEntry, trEntry, glossary, locale }) {
   const a = analyzeMessage(enParsed.nodes);
   const b = analyzeMessage(trParsed.nodes);
   if (a.args.join() !== b.args.join()) problems.push(`${key}: placeholders differ (${a.args} vs ${b.args})`);
+  // args counts a plural's argument like a plain placeholder, so compare which
+  // arguments are plurals too: a translation may not drop, add or move one.
+  const pluralNames = (analysis) => Object.keys(analysis.plurals).sort().join();
+  if (pluralNames(a) !== pluralNames(b)) {
+    problems.push(`${key}: plural arguments differ (${pluralNames(a) || 'none'} vs ${pluralNames(b) || 'none'})`);
+  }
   problems.push(...pluralProblems(key, b.plurals, locale));
   if (a.tags.join() !== b.tags.join()) problems.push(`${key}: tags differ (${a.tags} vs ${b.tags})`);
   for (const term of glossary.fixed ?? []) {

@@ -56,6 +56,19 @@ test('English plurals must use exactly the English CLDR categories', () => {
   assert.match(lib.validateSource({ 'a.extra': en('{n, plural, one {# tab} few {# tabz} other {# tabs}}') }).join(), /few/);
 });
 
+test('a translation cannot turn a plural into a plain placeholder', () => {
+  assert.match(problemsFor(en('{count, plural, one {# tab} other {# tabs}}'), '{count} Tabs').join(), /plural arguments differ/);
+});
+
+test('a translation cannot turn a plain placeholder into a plural', () => {
+  assert.match(problemsFor(en('{count} tabs'), '{count, plural, one {# Tab} other {# Tabs}}').join(), /plural arguments differ/);
+});
+
+test('a translation cannot move the plural to a different argument', () => {
+  assert.match(problemsFor(en('{a} and {b, plural, one {# tab} other {# tabs}}'),
+    '{b} und {a, plural, one {# Tab} other {# Tabs}}').join(), /plural arguments differ/);
+});
+
 test('a translation that drops a category its language needs fails', () => {
   assert.match(problemsFor(en('{n, plural, one {# tab} other {# tabs}}'), '{n, plural, other {# Tabs}}').join(), /one/);
 });
