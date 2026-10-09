@@ -103,6 +103,14 @@ test.after(async () => {
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
+async function waitFor(predicate, label, timeoutMs = 10_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate()) {
+    if (Date.now() > deadline) throw new Error(`timed out waiting for ${label}`);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+}
+
 function readDevices(file) {
   return JSON.parse(fs.readFileSync(path.join(tmp, file), 'utf8')).devices;
 }
@@ -170,10 +178,14 @@ test('turning share-tabs off before restore still publishes retractions', async 
   // adblock startup would otherwise leave this device's tabs visible remotely.
   requests.length = 0;
   serveTabRemotes = true;
+  // Consent-off schedules its own prompt session + icons pass (scheduleTabs(1000)).
+  // Await that real pass rather than also calling syncNow(): a second, direct
+  // pass raced the 1 s timer on slow runners and PUT each store twice
+  // (Windows CI on #675). Exactly one retraction PUT per store is still required,
+  // so a genuine double publish stays a failure.
   sync.setSyncTabs(false);
-  // Drive the same stores scheduleTabs(1000) would invoke.
-  const result = await sync.syncNow(['session', 'icons']);
-  assert.equal(result.ok, true);
+  const putsSoFar = () => requests.filter(({ method }) => method === 'PUT');
+  await waitFor(() => putsSoFar().length >= 2, 'both retraction PUTs');
   // JsonStore saves are debounced and written off the main thread.
   await waitForJson(path.join(tmp, 'tab-sync.json'), (json) => json.devices?.[DEVICE_ID]?.retracted === true);
   await waitForJson(path.join(tmp, 'tab-icons.json'), (json) => json.devices?.[DEVICE_ID]?.retracted === true);
@@ -181,7 +193,7 @@ test('turning share-tabs off before restore still publishes retractions', async 
   assert.equal(readDevices('tab-sync.json')[DEVICE_ID].retracted, true);
   assert.equal(readDevices('tab-icons.json')[DEVICE_ID].retracted, true);
 
-  const puts = requests.filter(({ method }) => method === 'PUT');
+  const puts = putsSoFar();
   assert.deepEqual(
     puts.map(({ url }) => url.split('/').pop()).sort(),
     ['icons', 'session'],
