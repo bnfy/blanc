@@ -126,18 +126,23 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
 // push.
 const patronCalloutEl = document.getElementById('patronCallout');
 const patronCalloutHide = document.getElementById('patronCalloutHide');
-const patronCallout = { active: false, snoozed: false };
+const patronCallout = { active: false, snoozedUntil: 0 };
 function renderPatronCallout() {
-  const hide = patronCallout.active || patronCallout.snoozed || isPrivate;
+  const hide = patronCallout.active || Date.now() < patronCallout.snoozedUntil || isPrivate;
   patronCalloutEl.hidden = hide;
 }
 function applyPatronStatus(status) {
   if ('patronActive' in status) patronCallout.active = !!status.patronActive;
-  if ('patronCalloutSnoozed' in status) patronCallout.snoozed = !!status.patronCalloutSnoozed;
+  if ('patronCalloutSnoozedUntil' in status) patronCallout.snoozedUntil = Number(status.patronCalloutSnoozedUntil) || 0;
   renderPatronCallout();
 }
+// A page left open past the snooze's end shows the pill the next time it is
+// on screen; the 90-day span is too long for a single timer.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) renderPatronCallout();
+});
 patronCalloutHide.addEventListener('click', () => {
-  patronCallout.snoozed = true;
+  patronCallout.snoozedUntil = Infinity;
   renderPatronCallout();
   window.bowserPages?.start.dismissPatronCallout().catch(() => {});
 });
@@ -248,9 +253,16 @@ function renderMigrationChecklist(checklist) {
   migrationChecklistShell.hidden = false;
 }
 
+// Both tasks leave the start page (Settings, the tab-import sheet), so the
+// popover closes behind them instead of waiting there on return.
+const closeMigrationChecklistPopover = () => {
+  if (migrationChecklist.matches(':popover-open')) migrationChecklist.hidePopover();
+};
 migrationSyncAction.addEventListener('click', () => {
+  closeMigrationChecklistPopover();
   window.bowserPages?.start.openSettings('sync').catch(() => {});
 });
+migrationTabsAction.addEventListener('click', closeMigrationChecklistPopover);
 migrationChecklistHide.addEventListener('click', () => {
   window.bowserPages?.start.dismissMigrationChecklist().catch(() => {});
 });
@@ -852,18 +864,18 @@ function observeUnderflow() {
   }, { rootMargin: `0px 0px -${layoutFooter.offsetHeight}px 0px` });
   underflowObserver.observe(startContentEnd);
 }
-observeUnderflow();
-new ResizeObserver(observeUnderflow).observe(layoutFooter);
 
 // The fixed footer wraps to two rows in narrow windows and the brand row
 // changes with the viewport, so the stylesheet reads their real heights:
 // the body reserves exactly the footer, and Billboard centres its content
-// in the open area between the window top and the footer.
+// in the open area between the window top and the footer. One observer
+// watches both and also re-aims the footer-edge fade above.
 const startHeader = document.querySelector('.start-header');
 function publishFrameHeights() {
   const root = document.documentElement.style;
   root.setProperty('--start-header-h', `${startHeader.offsetHeight}px`);
   root.setProperty('--start-footer-h', `${layoutFooter.offsetHeight}px`);
+  observeUnderflow();
 }
 publishFrameHeights();
 const frameHeightObserver = new ResizeObserver(publishFrameHeights);

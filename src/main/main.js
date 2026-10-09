@@ -186,7 +186,7 @@ const {
   migrationChecklistState,
   migrationChecklistForTab,
 } = require('./migration-checklist');
-const { isPatronCalloutSnoozed } = require('./patron-callout');
+const { patronCalloutSnoozedUntil } = require('./patron-callout');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -9523,7 +9523,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
       // A closed Patron pill stays away for 90 days on this device.
-      patronCalloutSnoozed: isPatronCalloutSnoozed(current.patronCalloutDismissedAt, Date.now()),
+      patronCalloutSnoozedUntil: patronCalloutSnoozedUntil(current.patronCalloutDismissedAt, Date.now()),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.

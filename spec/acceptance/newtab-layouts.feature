@@ -97,6 +97,7 @@ Feature: Start page layouts
     And eight favorites fill the Start Page
     When I open a new tab
     Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840
+    And every start-page footer keeps its left group on one line with Customize centred from 1000 to 1320 wide
 
   @F35-11 @desktop
   Scenario: The Patron upgrade sits in the footer and closes for 90 days

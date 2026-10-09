@@ -1280,12 +1280,11 @@ a.ledger-label:hover { color: var(--accent); }
 }
 
 /* A single moving-in checklist replaces the separate Sync and tab-import
-   promos. It is a footer pill beside Customize whose popover holds the full
-   list (frame section). */
+   promos. It is a pill in the footer's left group whose popover holds the
+   full list (frame section, which also owns its motion). */
 .migration-checklist {
   color: var(--text);
   user-select: none;
-  transition: opacity 180ms ease, transform 180ms ease;
 }
 .migration-checklist-heading {
   display: flex;
@@ -1338,9 +1337,7 @@ a.ledger-label:hover { color: var(--accent); }
   cursor: pointer;
 }
 .migration-task:hover { background: transparent; border-color: transparent; color: var(--text); }
-.migration-task:focus-visible,
-.start-pill-close:focus-visible,
-.migration-checklist-compact:focus-visible {
+.migration-task:focus-visible {
   outline: 1px solid var(--text-dim);
   outline-offset: 3px;
 }
@@ -1384,7 +1381,6 @@ a.ledger-label:hover { color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   .js-patron-callout { transition: none; }
-  .migration-checklist { transition: none; }
   .migration-checklist-shell.is-completing,
   .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
 }
@@ -2466,7 +2462,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   justify-content: center;
   user-select: none;
 }
-.bb-clock-row { display: flex; align-items: baseline; gap: 14px; margin-top: 18px; }
+.bb-clock-row { display: flex; margin-top: 18px; }
 .bb-clock {
   font-family: var(--font-ui);
   font-size: 148px;
@@ -2700,7 +2696,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   text-overflow: ellipsis;
 }
 /* The clock is exactly 148px at any normal window; the clamp only bites in
-   windows too narrow to hold "12:58 pm" at full size. */
+   windows too narrow to hold "12:58" at full size. */
 .bb-clock { font-size: clamp(64px, 14vw, 148px); }
 /* Keep the appearance controls centered independently of the footer's
    differently sized status and shortcut columns. */
@@ -2813,7 +2809,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 
 /* Billboard: a centered clock and recents composition, set slightly above
    the horizon so the background remains legible rather than decorative noise. */
-.bb-clock-row { gap: 8px; margin-top: 0; }
+.bb-clock-row { margin-top: 0; }
 .bb-clock {
   font-family: var(--font-display);
   font-size: clamp(80px, 12vw, 148px);
@@ -2977,6 +2973,24 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .ledger-footer .footer-left { order: 2; }
   .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
   .ledger-footer .footer-right { order: 3; align-items: center; }
+}
+
+/* Ledger also carries the weekly blocked count on the footer's left, which
+   with the version, Finish setup and Patron pills outgrows its third of a
+   one-row footer below ~1220px (F35-10 sweeps 1000-1320px). Stack it the
+   same way, with Customize on its own centred row, before that happens. */
+@media (max-width: 1240px) {
+  body[data-layout="ledger"] .ledger-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 86px;
+    padding: 8px 20px 10px;
+    row-gap: 6px;
+  }
+  body[data-layout="ledger"] .ledger-footer .footer-left { order: 2; }
+  body[data-layout="ledger"] .ledger-footer .footer-appearance { order: 1; flex-basis: 100%; }
+  body[data-layout="ledger"] .ledger-footer .footer-right { order: 3; align-items: center; }
 }
 
 @media (max-height: 640px) {

@@ -7,6 +7,7 @@ const test = require('node:test');
 const {
   PATRON_CALLOUT_SNOOZE_MS,
   isPatronCalloutSnoozed,
+  patronCalloutSnoozedUntil,
 } = require('../../src/main/patron-callout');
 
 const root = path.join(__dirname, '../..');
@@ -19,6 +20,14 @@ test('closing the Patron upgrade snoozes it for 90 days', () => {
   assert.equal(isPatronCalloutSnoozed(closedAt, closedAt), true);
   assert.equal(isPatronCalloutSnoozed(closedAt, closedAt + 89 * DAY), true);
   assert.equal(isPatronCalloutSnoozed(closedAt, closedAt + 90 * DAY), false, 'it returns on day 90');
+});
+
+test('start pages learn when the snooze ends, so an open page can show the pill again', () => {
+  const closedAt = Date.UTC(2026, 9, 9);
+  assert.equal(patronCalloutSnoozedUntil(closedAt, closedAt + DAY), closedAt + 90 * DAY);
+  assert.equal(patronCalloutSnoozedUntil(closedAt, closedAt + 90 * DAY), 0, 'an ended snooze reports 0');
+  assert.equal(patronCalloutSnoozedUntil(0, closedAt), 0);
+  assert.equal(patronCalloutSnoozedUntil(closedAt + 400 * DAY, closedAt), 0, 'a corrupt future time never snoozes');
 });
 
 test('a never-closed or unreadable timestamp never snoozes', () => {
@@ -45,7 +54,7 @@ test('the dismissal is device-local, validated, and reaches every start page', (
   assert.match(settings, /patronCalloutDismissedAt: 0,/);
   assert.doesNotMatch(settings.match(/const SYNCED_KEYS = \[[^\]]*\]/)[0], /patronCallout/);
   assert.ok(schema.internalDefaults.includes('patronCalloutDismissedAt'));
-  assert.match(main, /patronCalloutSnoozed: isPatronCalloutSnoozed\(current\.patronCalloutDismissedAt, Date\.now\(\)\),/);
+  assert.match(main, /patronCalloutSnoozedUntil: patronCalloutSnoozedUntil\(current\.patronCalloutDismissedAt, Date\.now\(\)\),/);
   assert.match(main, /dismissPatronCallout: \(\) => \{\s*settings\.setSettings\(\{ patronCalloutDismissedAt: Date\.now\(\) \}\);\s*return true;/);
   assert.match(pages, /handle\('pages:start:patron-callout-dismiss', 'newtab', \(\) => hooks\.startPage\?\.dismissPatronCallout\?\.\(\) === true\)/);
   assert.match(preload, /dismissPatronCallout: \(\) => invoke\('pages:start:patron-callout-dismiss'\)/);

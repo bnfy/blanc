@@ -880,6 +880,37 @@ function install(refs) {
         };
       })()`);
     },
+    // F35-10: one read of the footer's three groups, with the blocked count
+    // forced to a long worst case, so a scenario can sweep widths.
+    readStartFooterLayout(blockedText) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        if (${JSON.stringify(blockedText ?? null)} !== null) {
+          document.getElementById('footerLeft').textContent = ${JSON.stringify(blockedText ?? '')};
+        }
+        const box = (selector) => {
+          const element = document.querySelector(selector);
+          if (!element || element.hidden || getComputedStyle(element).display === 'none') return null;
+          const r = element.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
+        };
+        const items = [...document.querySelectorAll('#layoutFooter .footer-left > *')]
+          .filter((element) => !element.hidden && getComputedStyle(element).display !== 'none' && element.getBoundingClientRect().width > 0)
+          .map((element) => element.getBoundingClientRect());
+        const centres = items.map((r) => Math.round((r.top + r.bottom) / 2));
+        return {
+          layout: document.body.dataset.layout,
+          viewportWidth: innerWidth,
+          leftOnOneLine: centres.every((centre) => Math.abs(centre - centres[0]) <= 4),
+          left: box('#layoutFooter .footer-left'),
+          customize: box('#customizeButton'),
+          right: box('#layoutFooter .footer-right'),
+          footer: box('#layoutFooter'),
+        };
+      })()`);
+    },
     // F35-18: the Billboard's visible content block against the open area
     // between the window top and the fixed footer.
     readBillboardVerticalBox() {
@@ -968,9 +999,20 @@ function install(refs) {
       };
       const id = ids[action];
       if (!id) return false;
+      // Tasks live in the pill's popover, so reach them the way a person
+      // does: open the popover from the pill, then click a task that is
+      // actually rendered. A popover that fails to open fails the step.
+      const inPopover = action === 'sync' || action === 'tabs';
       return wc.executeJavaScript(`(() => {
         const btn = document.getElementById('${id}');
         if (!btn) return false;
+        if (${inPopover}) {
+          const popover = document.getElementById('migrationChecklist');
+          if (!popover.matches(':popover-open')) document.getElementById('migrationChecklistCompact').click();
+          if (!popover.matches(':popover-open')) return false;
+          const box = btn.getBoundingClientRect();
+          if (!box.width || !box.height) return false;
+        }
         btn.focus();
         btn.click();
         return true;

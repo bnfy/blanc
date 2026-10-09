@@ -13,4 +13,11 @@ function isPatronCalloutSnoozed(dismissedAt, now) {
   return now - dismissedAt < PATRON_CALLOUT_SNOOZE_MS;
 }
 
-module.exports = { PATRON_CALLOUT_SNOOZE_MS, isPatronCalloutSnoozed };
+// When the current snooze ends (ms since the epoch), or 0 when the pill is
+// not snoozed. Start pages get this rather than a boolean, so a page left
+// open past the end shows the pill again without a reload.
+function patronCalloutSnoozedUntil(dismissedAt, now) {
+  return isPatronCalloutSnoozed(dismissedAt, now) ? dismissedAt + PATRON_CALLOUT_SNOOZE_MS : 0;
+}
+
+module.exports = { PATRON_CALLOUT_SNOOZE_MS, isPatronCalloutSnoozed, patronCalloutSnoozedUntil };

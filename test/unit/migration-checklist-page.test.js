@@ -117,7 +117,9 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
   assert.doesNotMatch(js, /is-expanded/);
   assert.match(js, /window\.addEventListener\('focus', presentPendingMigrationChecklistCompletion\)/);
   assert.match(js, /setTimeout\(hideMigrationChecklist, 1500\)/);
-  assert.match(js, /migrationSyncAction\.addEventListener\('click'/);
+  assert.match(js, /migrationSyncAction\.addEventListener\('click', \(\) => \{\s*closeMigrationChecklistPopover\(\);/,
+    'choosing a task closes the popover behind it');
+  assert.match(js, /migrationTabsAction\.addEventListener\('click', closeMigrationChecklistPopover\)/);
   assert.match(js, /start\.openSettings\('sync'\)/);
   assert.match(js, /start\.dismissMigrationChecklist\(\)/);
   assert.doesNotMatch(js, /migrationSyncAction\.disabled|migrationTabsAction\.disabled/);

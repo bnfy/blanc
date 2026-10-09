@@ -802,3 +802,37 @@ Then('the Billboard content is centered between the window top and the footer at
     await this.call('setWindowContentSize', original.width, original.height);
   }
 });
+
+Then('every start-page footer keeps its left group on one line with Customize centred from 1000 to 1320 wide', async function () {
+  const original = await this.call('windowContentBounds');
+  const originalLayout = await this.call('newtabLayout');
+  try {
+    for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+      assert.equal(await this.call('setNewtabLayout', layout), layout);
+      for (let width = 1000; width <= 1320; width += 20) {
+        await this.call('setWindowContentSize', width, 840);
+        let previous = null;
+        const foot = await waitForValue(
+          async () => {
+            // A six-figure weekly count is the widest Ledger text that ships.
+            const next = await this.call('readStartFooterLayout', '123,456 ads blocked this week');
+            const stable = previous && JSON.stringify(previous) === JSON.stringify(next);
+            previous = next;
+            return stable ? next : null;
+          },
+          (value) => value?.layout === layout && value.viewportWidth === width,
+          `${layout} footer at ${width}px`,
+        );
+        const context = `${layout} at ${width}px: ${JSON.stringify(foot)}`;
+        assert.equal(foot.leftOnOneLine, true, `left group wraps inside itself at ${context}`);
+        const centre = (foot.customize.left + foot.customize.right) / 2;
+        assert.ok(Math.abs(centre - width / 2) <= 1.5, `Customize is off centre at ${context}`);
+        const sameRow = Math.abs((foot.left.top + foot.left.bottom) / 2 - (foot.customize.top + foot.customize.bottom) / 2) <= 4;
+        if (sameRow) assert.ok(foot.left.right <= foot.customize.left - 8, `left group crowds Customize at ${context}`);
+      }
+    }
+  } finally {
+    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});

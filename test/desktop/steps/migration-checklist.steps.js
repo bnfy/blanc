@@ -25,7 +25,9 @@ When('I hide the moving-in checklist', async function () {
 });
 
 When('I choose Set up Sync from the moving-in checklist', async function () {
-  assert.equal(await this.call('clickMigrationChecklist', 'sync'), true);
+  assert.equal(await this.call('clickMigrationChecklist', 'sync'), true, 'Set up Sync is reachable from the open popover');
+  const dom = await this.call('readMigrationChecklistDom');
+  assert.equal(dom?.open, false, 'choosing a task closes the popover');
 });
 
 When('I mark Sync complete in the moving-in checklist', async function () {
