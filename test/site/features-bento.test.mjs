@@ -117,6 +117,11 @@ test('arrow keys move between features and the source tile follows', async () =>
     const order = await page.locator('[data-pop]').evaluateAll(as => as.map(a => a.dataset.pop));
     await page.locator('#glance').click();
     await page.waitForFunction(() => document.getElementById('feature-pop').open);
+    const labelOf = id => page.locator(`#pop-${id}`).getAttribute('data-pop-label');
+    const [prevLabel, nextLabel] = [await labelOf(order.at(-1)), await labelOf(order[1])];
+    assert.ok(prevLabel && nextLabel, 'every popover names itself for the previous/next buttons');
+    assert.equal((await page.locator('[data-pop-prev]').textContent()).trim(), prevLabel);
+    assert.equal((await page.locator('[data-pop-next]').textContent()).trim(), nextLabel);
     await page.keyboard.press('ArrowRight');
     await page.waitForFunction(id => !document.getElementById(`pop-${id}`).hidden, order[1]);
     assert.equal(await page.locator(`#${order[1]}`).evaluate(el => el.classList.contains('is-source')), true);

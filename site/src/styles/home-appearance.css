@@ -95,7 +95,7 @@ html[data-home-appearance="dark"] .consent { box-shadow: inset 0 1px 0 #ffffff0d
 html[data-home-appearance] :is(.website-footer, .consent, .skip-link, .revamp-nav a, .foot-news input, .foot-news button) {
   transition: color var(--home-motion) ease, background-color var(--home-motion) ease, border-color var(--home-motion) ease;
 }
-html[data-home-appearance] .home-revamp :is(h1, h2, h3, p, .eyebrow, .frame-link, #hero-daylight-play, .daylight-ticks span) {
+html[data-home-appearance] .home-revamp :is(h1, h2, h3, p, .frame-link, #hero-daylight-play, .daylight-ticks span) {
   transition: color var(--home-motion) ease;
 }
 html[data-home-appearance] .home-revamp :is(.gallery-controls, .mahjong-boards) { background: transparent; }

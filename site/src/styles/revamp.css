@@ -375,7 +375,7 @@ summary:focus-visible {
 .home-revamp {
   font-family: var(--font-ui);
 }
-main :is(.section-kicker, .eyebrow) {
+main .section-kicker {
   font-family: var(--font-ui);
   letter-spacing: 0.08em;
   font-size: 11px;

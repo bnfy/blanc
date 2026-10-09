@@ -17,7 +17,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 <main id="main-content" class="feature-page feature-detail-page">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">private tabs</span></nav>
-  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="private-title"><p class="section-kicker">a clean trail</p><h1 id="private-title">Private browsing tabs that stay out of the record.</h1><p>Pages opened in a private tab are not written to Blanc history and are not restored when you reopen the browser.</p></section>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="private-title"><h1 id="private-title">Private browsing tabs that stay out of the record.</h1><p>Pages opened in a private tab are not written to Blanc history and are not restored when you reopen the browser.</p></section>
   <figure class="product-capture feature-capture">
     <div class="demo-stage island-figure" data-theme="private" role="img" aria-label="A Blanc private tab: the island has a dashed outline and hollow tab dots with a 'private' quick-exit chip, in a slim band above Blanc's dark private page.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
@@ -32,7 +32,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <figcaption>A private tab visibly changes the island, and its quick-exit chip closes the tab when you are done.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="private-behavior-title">
-    <div><p class="section-kicker">what stays private</p><h2 id="private-behavior-title">Use a private tab, then leave no history behind.</h2></div>
+    <div><h2 id="private-behavior-title">Use a private tab, then leave no history behind.</h2></div>
     <div class="feature-copy-list">
       <article><h3>Not in history.</h3><p>Pages you visit in a private tab stay out of Blanc's browsing history, so they do not become part of the local record.</p></article>
       <article><h3>Not waiting after a restart.</h3><p>Private tabs are excluded from session restore and reopen-closed. They do not quietly return the next time you open Blanc.</p></article>
@@ -40,7 +40,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </div>
   </section>
   <section class="feature-copy-grid" aria-labelledby="private-use-title">
-    <div><p class="section-kicker">how private tabs work</p><h2 id="private-use-title">Open one in a keystroke. Leave nothing behind.</h2></div>
+    <div><h2 id="private-use-title">Open one in a keystroke. Leave nothing behind.</h2></div>
     <div class="feature-copy-list">
       <article><h3>One shortcut.</h3><p>Press ⌘⇧N on a Mac or Ctrl+Shift+N on Windows and Linux, or type <code>/private</code> in the island.</p></article>
       <article><h3>Links stay private.</h3><p>A link you open in a new tab from a private tab opens as a private tab too.</p></article>
@@ -49,7 +49,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>Blocking stays on.</h3><p>Private tabs use Blanc Blocker, even when you choose uBlock Origin for regular tabs.</p></article>
     </div>
   </section>
-  <aside class="truth-note" aria-labelledby="private-note-title"><p class="section-kicker">good to know</p><h2 id="private-note-title">Private does not mean anonymous.</h2><p>Private tabs share one separate in-memory browsing session with other private tabs opened during the same Blanc run; they do not share cookies or site storage with regular tabs, and the private session is discarded when Blanc quits. Websites, downloads, your network, or an employer may still observe activity, and files you explicitly save remain on disk.</p><a class="text-link" href="/privacy#what-stays-on-your-device" data-track="feature_cta_click" data-feature="private-tabs" data-cta-position="truth-note">Read the full privacy policy <span aria-hidden="true">↗</span></a></aside>
-  <section class="feature-close" aria-labelledby="private-close-title"><p class="section-kicker">ready when you need it</p><h2 id="private-close-title">Keep a private page out of the record.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="private-tabs" data-cta-position="feature-close">download blanc</a></section>
+  <aside class="truth-note" aria-labelledby="private-note-title"><h2 id="private-note-title">Private does not mean anonymous.</h2><p>Private tabs share one separate in-memory browsing session with other private tabs opened during the same Blanc run; they do not share cookies or site storage with regular tabs, and the private session is discarded when Blanc quits. Websites, downloads, your network, or an employer may still observe activity, and files you explicitly save remain on disk.</p><a class="text-link" href="/privacy#what-stays-on-your-device" data-track="feature_cta_click" data-feature="private-tabs" data-cta-position="truth-note">Read the full privacy policy <span aria-hidden="true">↗</span></a></aside>
+  <section class="feature-close" aria-labelledby="private-close-title"><h2 id="private-close-title">Keep a private page out of the record.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="private-tabs" data-cta-position="feature-close">download blanc</a></section>
 </main>
 </BaseLayout>

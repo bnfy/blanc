@@ -757,16 +757,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-050",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Time-of-day wallpaper",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-051",
       "source": "site/src/pages/features.astro",
       "exactWording": "A Start Page that follows the time of day.",
@@ -793,16 +783,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-054",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Site protection",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "blocking"
       ],
       "verdict": "qualified"
     },
@@ -913,16 +893,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "overview"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-066",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Reopen Closed Tab",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reopening"
       ],
       "verdict": "qualified"
     },
@@ -1077,16 +1047,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-082",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Slash commands",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "quickSwitcher"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-083",
       "source": "site/src/pages/features.astro",
       "exactWording": "Type / to run a browser command.",
@@ -1197,16 +1157,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-094",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Named Workspaces · Patron",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "workspaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-095",
       "source": "site/src/pages/features.astro",
       "exactWording": "Named Workspaces save a whole window to return to by name.",
@@ -1277,16 +1227,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-102",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Vertical tabs",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "verticalTabs"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-103",
       "source": "site/src/pages/features.astro",
       "exactWording": "Show your tabs in an optional vertical list.",
@@ -1353,16 +1293,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "gestures"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-110",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "1Password · macOS",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onepassword"
       ],
       "verdict": "qualified"
     },
@@ -1517,16 +1447,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-126",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Drag to reorder",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "reorder"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-127",
       "source": "site/src/pages/features.astro",
       "exactWording": "Import",
@@ -1567,16 +1487,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-131",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Camera and microphone",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "capture"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-132",
       "source": "site/src/pages/features.astro",
       "exactWording": "See and stop camera and microphone use.",
@@ -1607,16 +1517,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-135",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Recovery",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "recovery"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-136",
       "source": "site/src/pages/features.astro",
       "exactWording": "Choose how to recover after a crash.",
@@ -1643,16 +1543,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "recovery"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-139",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Downloads",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "downloads"
       ],
       "verdict": "qualified"
     },
@@ -1767,16 +1657,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-151",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Default browser",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "defaultBrowser"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-152",
       "source": "site/src/pages/features.astro",
       "exactWording": "Make Blanc your default browser.",
@@ -1847,16 +1727,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-159",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Signed releases",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "releases"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-160",
       "source": "site/src/pages/features.astro",
       "exactWording": "Check the download you got.",
@@ -1883,16 +1753,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "releases"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-163",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Appearance",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "themes"
       ],
       "verdict": "qualified"
     },
@@ -1925,6 +1785,162 @@
         "themes"
       ],
       "verdict": "qualified"
+    }
+  ],
+  "retiredWithEyebrows": [
+    {
+      "id": "bento-130-050",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Time-of-day wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-054",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Site protection",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-066",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Reopen Closed Tab",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reopening"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-082",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Slash commands",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "quickSwitcher"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-094",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Named Workspaces · Patron",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "workspaces"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-102",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Vertical tabs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "verticalTabs"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-110",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "1Password · macOS",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onepassword"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-126",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Drag to reorder",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "reorder"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-131",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Camera and microphone",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "capture"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-135",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Recovery",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "recovery"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-139",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Downloads",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "downloads"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-151",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Default browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "defaultBrowser"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-159",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Signed releases",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "releases"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
+    },
+    {
+      "id": "bento-130-163",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Appearance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "themes"
+      ],
+      "verdict": "qualified",
+      "reason": "Eyebrow removed on October 8, 2026 (docs/superpowers/specs/2026-10-08-site-eyebrow-reduction-design.md). The label made no claim beyond the headline and copy it sat above, which remain recorded. Where the label named a feature, that name remains only as the popover's data-pop-label, shown on the neighbouring popovers' previous/next buttons; the popover's own recorded headline makes the same claim."
     }
   ]
 }
