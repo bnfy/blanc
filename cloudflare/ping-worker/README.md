@@ -34,8 +34,7 @@ event. Mahjong is reported only after the first real free-tile move:
 ```
 
 A rendered start-page layout uses `"event": "newtab_layout"` and a `layout`
-value strictly allowlisted to `ledger`, `billboard`, `shelf`, `tally`, or
-`mahjong`. The desktop client attempts each product metric at most once per app
+value strictly allowlisted to `ledger`, `billboard`, `shelf`, or `tally`. The desktop client attempts each product metric at most once per app
 session and never sends a product event for a private tab.
 
 There are no URLs, searches, page content, game state, custom labels, names,
@@ -75,9 +74,23 @@ once D+1 has ended) starting from `NEXT_DAY_RETURN_FIRST_COHORT` in
 `src/index.js`, which must equal the UTC day the write path first deploys;
 earlier cohorts are omitted rather than shown as 0%.
 
+First-day signals: `{event:'day1_default'}` (Blanc is the default browser) and
+`{event:'day1_browsed'}` (three web pages opened in regular tabs) carry only the
+common launch fields. Desktop builds 1.31.0 and later send each at most once per
+installation, during its first 24 hours. The Worker counts one only when the
+installation's `first:<hash>` equals today's UTC day; otherwise it replies 204
+and stores nothing. It writes a keyed-hash marker `d1sig:<signal>:<D>:<hash>`
+that expires after two days and bumps `d1had:<signal>:<D>`. When that
+installation's next-day return is counted, each present marker also bumps
+`d1ret:<signal>:<D>`. These keys deliberately avoid the `return:d1:` prefix.
+`/stats` adds `nextDayReturn.byDay[D].signals.{default,browsed}.{had,returnedNextDay}`
+from `DAY_ONE_SIGNALS_FIRST_COHORT` in `src/index.js` (the UTC day after the
+deploy); earlier cohorts carry no `signals` key. First-day signals are never
+forwarded to GA4 and are not part of `productUsage`.
+
 `GET /stats` is protected by `STATS_TOKEN`. If `GA_API_SECRET` is configured,
-the Worker forwards the keyed installation hash and the same narrow event
-fields to GA4. The raw UUID never goes to Google. The response's `productUsage`
+the Worker forwards the keyed installation hash and the same narrow launch and
+product-event fields to GA4 (never the first-day signals). The raw UUID never goes to Google. The response's `productUsage`
 object exposes event totals/by-day and recent daily/weekly/monthly active-install
 counts for Mahjong and each start-page layout.
 

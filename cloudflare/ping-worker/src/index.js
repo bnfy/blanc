@@ -41,7 +41,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // forged body — both become 'unknown' rather than opening an unbounded key
 // space in KV.
 const OS_VERSION_RE = /^\d{1,4}$/;
-const NEWTAB_LAYOUTS = new Set(['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
+const NEWTAB_LAYOUTS = new Set(['ledger', 'billboard', 'shelf', 'tally']);
 const USAGE_METRICS = Object.freeze({
   mahjong: 'mahjong-play',
   newtabLayouts: Object.freeze({
@@ -49,7 +49,6 @@ const USAGE_METRICS = Object.freeze({
     billboard: 'newtab-layout-billboard',
     shelf: 'newtab-layout-shelf',
     tally: 'newtab-layout-tally',
-    mahjong: 'newtab-layout-mahjong',
   }),
 });
 const PING_RATE_LIMIT = 20; // per edge-observed IP per minute

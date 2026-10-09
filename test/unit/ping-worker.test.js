@@ -134,6 +134,7 @@ test('new-tab layouts use separate allowlisted counters and appear in stats', as
   assert.equal(stats.productUsage.newtabLayouts.shelf.events.total, 1);
   assert.equal(stats.productUsage.newtabLayouts.billboard.events.total, 0);
   assert.equal(Object.values(stats.productUsage.newtabLayouts.ledger.activeUsers.daily)[0], 1);
+  assert.deepEqual(Object.keys(stats.productUsage.newtabLayouts), ['ledger', 'billboard', 'shelf', 'tally']);
 });
 
 test('unknown usage events and layout values are rejected without usage writes', async () => {
@@ -144,6 +145,9 @@ test('unknown usage events and layout values are rejected without usage writes',
   })).res.status, 400);
   assert.equal((await usageEvent(env, {
     ...PING_BODY, sessionId: 44, event: 'newtab_layout',
+  })).res.status, 400);
+  assert.equal((await usageEvent(env, {
+    ...PING_BODY, sessionId: 45, event: 'newtab_layout', layout: 'mahjong',
   })).res.status, 400);
   assert.equal([...env.PINGS.map.keys()].filter((key) => key.startsWith('usage:')).length, 0);
 });
