@@ -51,6 +51,8 @@ const dateText = isPrivate
   : new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('startDate').textContent = dateText;
+// The same dashed capsule that marks private mode in the island.
+document.getElementById('startDate').classList.toggle('private', isPrivate);
 
 document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L to go anywhere`;
 document.getElementById('obIslandShortcut').textContent = isMac ? '⌘L' : 'Ctrl+L';
@@ -58,7 +60,7 @@ document.getElementById('obIslandShortcut').setAttribute('aria-label', isMac ? '
 
 if (isPrivate) {
   document.getElementById('footerLeft').textContent =
-    'not saved to history · site data stays in a private in-memory session · passkeys created here are lost on quit';
+    'not saved to history · site data and new passkeys clear when you quit';
 }
 
 const startupCard = document.getElementById('startupCard');

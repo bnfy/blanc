@@ -1285,17 +1285,30 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 #pillSourceChip {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  height: 16px;
   font-family: var(--font-ui);
   font-size: 10px;
+  line-height: 1;
   border-radius: 999px;
-  padding: 0 6px;
+  padding: 0 4px 0 7px;
   flex: 0 0 auto;
 }
+/* Same dashed ink as the island's own private outline, so the chip echoes the
+   frame instead of shouting over it. Hover fills and firms the edge: the chip
+   is the way out of private mode, and should read as pressable. */
 #pillPrivateChip {
-  color: var(--accent);
-  border: 1px dashed var(--accent);
+  color: var(--text);
+  border: 1px dashed var(--text-dim);
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
+#pillPrivateChip svg { color: var(--text-dim); transition: color 120ms ease; }
+#pillPrivateChip:hover {
+  background: var(--accent-dim);
+  border-color: var(--text);
+  border-style: solid;
+}
+#pillPrivateChip:hover svg { color: var(--text); }
 #pillSourceChip {
   color: var(--text-dim);
   border: 1px solid var(--border);
@@ -2481,13 +2494,19 @@ body[data-glance-purpose="change"] .glance-picker {
   stroke-linejoin: round;
 }
 
-/* "private" tag on private tabs in the switcher list. (Quiet is dim-only —
-   2026-08-18 spec.) */
+/* "private" tag on private tabs in the switcher list: dashed like every other
+   private marker, and placed just before the row's ✕ so it lands in the same
+   column on every row whether or not hover actions (glance) are present.
+   (Quiet is dim-only — 2026-08-18 spec.) */
 .island-row .row-private {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
   font-family: var(--font-ui);
   font-size: 10px;
+  line-height: 1;
   color: var(--text-dim);
-  border: 1px solid var(--border);
+  border: 1px dashed var(--text-dim);
   border-radius: 999px;
   padding: 0 6px;
   flex: 0 0 auto;
