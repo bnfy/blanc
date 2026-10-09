@@ -20,6 +20,7 @@ const telemetry = require('./telemetry');
 const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
+const { resolvePagesAsset } = require('./pages-assets');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
 const { ublockBrandResourcePath } = require('./ublock-brand-resource');
@@ -82,6 +83,11 @@ function setupPages(hooks = {}) {
     return signatureInspection;
   };
 
+  // The active language's catalog for the virtual strings.js; main supplies it.
+  // Without the hook (isolated harnesses) pages get English.
+  const stringsScript = hooks.stringsScript ?? (() =>
+    `${fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8')}\nself.blancStrings.formatLocale="en";self.blancStrings.strict=false;\n`);
+
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return net.fetch(pathToFileURL(branding).toString());
@@ -90,8 +96,12 @@ function setupPages(hooks = {}) {
 
     // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
-    const name = pathname === '/' ? `${host}.html` : path.basename(pathname);
-    if (!/^[\w.-]+$/.test(name)) return new Response('Bad request', { status: 400 });
+    const asset = resolvePagesAsset(host, pathname);
+    if (!asset) return new Response('Bad request', { status: 400 });
+    if (asset.kind === 'strings') {
+      return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
+    }
+    const name = asset.name;
     const defaultPath = path.join(PAGES_DIR, name);
     const resource = developmentBrandAssetPath({
       name,

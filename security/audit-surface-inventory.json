@@ -133,7 +133,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "3acf60f87ac2eef11195e4b743ede642e70541827812454ad1eafd821aa2e064",
+      "sha256": "c5cbe1851a91aa61116d767e8c5a030b2c68eb4bce4e60c80af823b292fff664",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -406,7 +406,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "ba9bd1395111b2c39465baf7a3593c84e5996479a85e15ad19dc61664ae6f1ec",
+      "sha256": "059be6a488015b1843438cb440ba193d1fde073ff1a6120dbe55875edb92d6ed",
       "literalChannels": [
         "blanc",
         "pages:app-version",

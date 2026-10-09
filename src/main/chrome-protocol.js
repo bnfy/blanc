@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
@@ -15,6 +16,15 @@ const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
 const CHROME_DISPLAY_CAPTURE_HELPER_URL = `${CHROME_SCHEME}://display-capture-helper/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
+// Interface strings: /strings.js is virtual — the handler answers it with the
+// active language's generated catalog plus the runtime formatting locale. This
+// path must never exist on disk; /i18n.js is the shared formatter.
+const STRINGS_VIRTUAL_PATH = path.join(RENDERER_DIR, 'pages', 'strings.js');
+const SHARED_ALIASES = new Map([
+  ['/strings.js', STRINGS_VIRTUAL_PATH],
+  ['/i18n.js', path.join(RENDERER_DIR, 'pages', 'i18n.js')],
+]);
+const ENGLISH_STRINGS_PATH = path.join(RENDERER_DIR, 'pages', 'strings.en.js');
 
 // Chrome is intentionally much smaller than the internal-pages surface. Each
 // host receives only its own document/script plus the exact shared assets the
@@ -79,6 +89,8 @@ function chromeResourcePath(rawUrl, platform = process.platform) {
 
   const hostAssets = HOST_ASSETS.get(parsed.hostname);
   if (!hostAssets) return null;
+  const alias = SHARED_ALIASES.get(parsed.pathname);
+  if (alias) return alias;
   const relative = hostAssets.get(parsed.pathname)
     ?? (SHARED_ASSETS.has(parsed.pathname) ? parsed.pathname.slice(1) : null);
   if (!relative) return null;
@@ -88,10 +100,18 @@ function chromeResourcePath(rawUrl, platform = process.platform) {
   return path.join(RENDERER_DIR, relative);
 }
 
-function createChromeProtocolHandler({ net, developmentBrandMarkPath = null }) {
+function englishStringsScript() {
+  const source = fs.readFileSync(ENGLISH_STRINGS_PATH, 'utf8');
+  return `${source}\nself.blancStrings.formatLocale="en";self.blancStrings.strict=false;\n`;
+}
+
+function createChromeProtocolHandler({ net, developmentBrandMarkPath = null, stringsScript = englishStringsScript }) {
   return (request) => {
     const defaultPath = chromeResourcePath(request.url);
     if (!defaultPath) return new Response('Not found', { status: 404 });
+    if (defaultPath === STRINGS_VIRTUAL_PATH) {
+      return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
+    }
     const resource = developmentBrandAssetPath({
       name: path.basename(defaultPath),
       defaultPath,
@@ -101,10 +121,11 @@ function createChromeProtocolHandler({ net, developmentBrandMarkPath = null }) {
   };
 }
 
-function setupChromeProtocol({ session, net, developmentBrandMarkPath = null }) {
+function setupChromeProtocol({ session, net, developmentBrandMarkPath = null, stringsScript }) {
   session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({
     net,
     developmentBrandMarkPath,
+    ...(stringsScript ? { stringsScript } : {}),
   }));
 }
 
@@ -116,6 +137,7 @@ module.exports = {
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
+  STRINGS_VIRTUAL_PATH,
   chromeResourcePath,
   createChromeProtocolHandler,
   setupChromeProtocol,
