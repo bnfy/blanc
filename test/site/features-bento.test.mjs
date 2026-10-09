@@ -348,6 +348,20 @@ test('the native shield popover meets its chip after an animated or a reduced-mo
   for (const placement of placements) assert.deepEqual(placement, { gap: 10, pointerOffset: 0 });
 });
 
+test('the blocking popover keeps its two columns down to 721px and stacks below', async () => {
+  for (const [width, columns] of [[1268, 2], [798, 2], [721, 2], [720, 1], [390, 1]]) {
+    const context = await contextFor({ viewport: { width, height: 900 } });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseURL}/features`);
+      await page.locator('#ad-blocking').click();
+      await page.waitForFunction(() => document.getElementById('feature-pop').open);
+      const tracks = await page.locator('#pop-ad-blocking').evaluate(body => getComputedStyle(body).gridTemplateColumns.split(' ').length);
+      assert.equal(tracks, columns, `${width}px`);
+    } finally { await context.close(); }
+  }
+});
+
 test('popover demos run only while their popover shows them', async () => {
   const context = await contextFor({ reducedMotion: 'no-preference' });
   const page = await context.newPage();
