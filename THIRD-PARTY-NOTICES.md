@@ -69,7 +69,7 @@ its display typography, self-hosted through
 `@fontsource-variable/newsreader` 5.3.0. Its headings use a Modified Version,
 "Newsreader Condensed" (`site/src/fonts/newsreader-condensed-*.woff2`), which
 `site/scripts/build-condensed-newsreader.py` derives from those pinned files by
-scaling every horizontal measurement to 88% and adding 0.02em of tracking; Newsreader declares no Reserved
+scaling every horizontal measurement to 92% and adding 0.02em of tracking; Newsreader declares no Reserved
 Font Name, and the Modified Version remains under the same licence. Product
 replicas on the website keep the unmodified build. The desktop application bundles the
 same pinned Latin optical-size upright build for its narrowly scoped invitation
