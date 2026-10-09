@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-103 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+105 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -69,6 +69,7 @@
 | `resolveDisplayPicker` | capture | send | `display-capture:picker-resolve` | `(choice: DisplayPickerChoice)` | all |
 | `openMainMenu` | window | invoke | `chrome:open-main-menu` | `(point: Point) => Promise<boolean>` | all |
 | `closeOverlay` | overlay | send | `overlay:close` | `(reason?: string)` | all |
+| `reportPanelDrawn` | overlay | send | `overlay:panel-drawn` | `()` | all |
 | `setWorkspaceSwitcherOpen` | workspaces | send | `chrome:workspace-switcher` | `(open: boolean)` | all |
 | `setOverlayDragState` | overlay | send | `overlay:drag-state` | `(active: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
@@ -108,6 +109,7 @@
 | `onOverlayHide` | overlay | event | `overlay:hide` | `(payload: OverlayHidePayload) => void` | all |
 | `onOverlayToggle` | overlay | event | `overlay:toggle` | `() => void` | all |
 | `onIslandState` | island | event | `chrome:island-state` | `(payload: IslandState) => void` | all |
+| `onIslandCovered` | island | event | `chrome:island-covered` | `() => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
 
 ## Types

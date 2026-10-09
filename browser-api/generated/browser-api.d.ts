@@ -913,6 +913,11 @@ export interface BlancBrowserAPI {
    */
   closeOverlay(reason?: string): void;
   /**
+   * The expanding panel has been drawn over the resting pill (overlay only).
+   * IPC: send `overlay:panel-drawn`.
+   */
+  reportPanelDrawn(): void;
+  /**
    * Tell main whether the workspace popover is open, so Escape closes it first.
    * IPC: send `chrome:workspace-switcher`.
    */
@@ -1108,6 +1113,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:island-state`.
    */
   onIslandState(callback: (payload: IslandState) => void): () => void;
+  /**
+   * The expanded panel now covers the resting pill, which may hide (strip only).
+   * IPC: event `chrome:island-covered`.
+   */
+  onIslandCovered(callback: () => void): () => void;
   /**
    * Find-in-page match counts changed.
    * IPC: event `chrome:find-result`.

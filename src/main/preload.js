@@ -110,6 +110,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   resolveDisplayPicker: (choice) => ipcRenderer.send('display-capture:picker-resolve', choice),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: (reason) => ipcRenderer.send('overlay:close', reason),
+  reportPanelDrawn: () => ipcRenderer.send('overlay:panel-drawn'),
   /** Keep main's Escape handler in sync with the footer workspace popover so
    * Esc can cancel an editor / close the menu without dismissing the island. */
   setWorkspaceSwitcherOpen: (open) => ipcRenderer.send('chrome:workspace-switcher', !!open),
@@ -202,6 +203,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:island-state', listener);
     return () => ipcRenderer.removeListener('chrome:island-state', listener);
+  },
+  onIslandCovered: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('chrome:island-covered', listener);
+    return () => ipcRenderer.removeListener('chrome:island-covered', listener);
   },
   onFindResult: (callback) => {
     const listener = (_e, payload) => callback(payload);

@@ -65,8 +65,14 @@ test('expanded input and morph use the selected compact geometry', () => {
   assert.match(input, /border-radius:\s*14px/);
   assert.match(input, /font-family:\s*var\(--font-ui\)/);
   assert.doesNotMatch(overlay, /pill(?:Rect)?\.height \/ 2/);
+  // Retract ends on the resting corner; the stepped expand starts on it and
+  // interpolates to the panel's own corner.
   assert.equal(
     overlay.match(/style\.borderRadius = 'var\(--island-resting-radius\)'/g)?.length,
-    2,
+    1,
+  );
+  assert.match(
+    overlay,
+    /calc\(var\(--island-resting-radius\) \* \$\{\(1 - p\)\.toFixed\(4\)\} \+ var\(--island-panel-radius\) \* \$\{p\.toFixed\(4\)\}\)/,
   );
 });
