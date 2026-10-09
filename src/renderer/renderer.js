@@ -124,33 +124,33 @@
     return b;
   }
 
-  const backBtn = pillButton('back', 'Back', () => state.activeTabId && window.browserAPI.goBack(state.activeTabId));
-  const forwardBtn = pillButton('forward', 'Forward', () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
+  const backBtn = pillButton('back', blancI18n.t('pill.back'), () => state.activeTabId && window.browserAPI.goBack(state.activeTabId));
+  const forwardBtn = pillButton('forward', blancI18n.t('pill.forward'), () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
   pillNav.append(backBtn, forwardBtn);
 
-  const newTabShortcut = window.browserAPI.platform === 'darwin' ? '⌘T' : 'Ctrl+T';
-  const newTabBtn = pillButton('plus', `New tab (${newTabShortcut})`, () => {
+  const newTabShortcut = window.browserAPI.platform === 'darwin' ? '⌘T' : `${blancI18n.t('key.ctrl')}+T`;
+  const newTabBtn = pillButton('plus', blancI18n.t('pill.newTab.title', { shortcut: newTabShortcut }), () => {
     window.browserAPI.createTab(null, { focusAddress: true });
   });
   newTabBtn.id = 'pillNewTab';
   newTabBtn.classList.add('pill-shortcut');
-  newTabBtn.setAttribute('aria-label', 'New tab');
+  newTabBtn.setAttribute('aria-label', blancI18n.t('tab.new'));
   pillSlash.after(newTabBtn);
-  const reloadBtn = pillButton('reload', 'Reload', () => {
+  const reloadBtn = pillButton('reload', blancI18n.t('pill.reload'), () => {
     const t = activeTab();
     if (!t) return;
     if (t.isLoading) window.browserAPI.stop(t.id);
     else window.browserAPI.reload(t.id);
   });
-  const favoriteBtn = pillButton('heart', 'Favorite this page', () => window.browserAPI.toggleBookmark());
-  const closeBtn = pillButton('close', 'Close tab', () => {
+  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());
+  const closeBtn = pillButton('close', blancI18n.t('pill.closeTab'), () => {
     if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
   });
   closeBtn.classList.add('pill-close');
   pillActions.append(reloadBtn, favoriteBtn, closeBtn);
 
   let downloadState = { active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0 };
-  const downloadsBtn = pillButton('download', 'Downloads', () => {
+  const downloadsBtn = pillButton('download', blancI18n.t('pill.downloads'), () => {
     window.browserAPI.openPage('downloads');
     window.browserAPI.acknowledgeDownloads();
   });
@@ -257,8 +257,8 @@
     downloadsBtn.style.setProperty('--dl-progress', String(pct));
 
     downloadsBtn.title = active > 0
-      ? `Downloading — ${active} active`
-      : heldFull ? 'Download complete — open Downloads' : 'Downloads';
+      ? blancI18n.t('pill.downloading', { count: active })
+      : heldFull ? blancI18n.t('pill.downloadDone') : blancI18n.t('pill.downloads');
   }
   renderDownloads();
 
@@ -288,9 +288,9 @@
       return b;
     };
     windowControls.append(
-      mk(ICONS.minimize, 'Minimize', () => window.browserAPI.minimizeWindow()),
-      mk(ICONS.maximize, 'Maximize / Restore', () => window.browserAPI.maximizeWindow()),
-      mk(ICONS.close, 'Close', () => window.browserAPI.closeWindow(), 'close-btn')
+      mk(ICONS.minimize, blancI18n.t('window.minimize'), () => window.browserAPI.minimizeWindow()),
+      mk(ICONS.maximize, blancI18n.t('window.maximize'), () => window.browserAPI.maximizeWindow()),
+      mk(ICONS.close, blancI18n.t('window.close'), () => window.browserAPI.closeWindow(), 'close-btn')
     );
   }
 
@@ -342,9 +342,11 @@
   // no-op, so the class does not churn either.
   function renderPillLabel(tab) {
     const next = pillLabelMode(tab);
-    pillDomain.textContent = next === 'loading' ? 'Loading…'
+    pillDomain.textContent = next === 'loading' ? blancI18n.t('tab.loading')
       : next === 'domain' ? tabDomain(tab)
-        : 'Search or type a URL';
+        : blancI18n.t('pill.placeholder');
+    // A host name is page data, not interface copy (pseudo-locale sweep).
+    pillDomain.toggleAttribute('data-i18n-ignore', next === 'domain');
     pillDomain.classList.toggle('dim', next === 'loading');
     pillDomain.classList.toggle('placeholder', next === 'placeholder');
     pillSlash.hidden = next !== 'placeholder';
@@ -405,7 +407,7 @@
     glanceDivider.style.height = `${divider.height}px`;
     glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
     glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
-    glanceDivider.setAttribute('aria-valuetext', `Main page ${Math.round(ratio * 100)} percent`);
+    glanceDivider.setAttribute('aria-valuetext', blancI18n.t('glance.dividerValue', { percent: Math.round(ratio * 100) }));
 
     glanceHeader.style.left = `${header.x}px`;
     glanceHeader.style.top = `${header.y}px`;
@@ -419,7 +421,7 @@
     // same rule as the picker rows: replacing useful identity with a generic
     // loading label makes the header useless on slow or long-lived loads.
     glanceTitle.textContent = tab.title || tabDomain(tab)
-      || (tab.isLoading ? 'Loading…' : tab.private ? 'Private tab' : 'New tab');
+      || (tab.isLoading ? blancI18n.t('tab.loading') : tab.private ? blancI18n.t('tab.privateLabel') : blancI18n.t('tab.new'));
     glanceHeader.title = tab.title || glanceTitle.textContent;
   }
 
@@ -570,7 +572,7 @@
       const more = document.createElement('button');
       more.className = 'pill-overflow';
       more.textContent = `+${hidden}`;
-      more.title = `${hidden} more ${hidden === 1 ? 'tab' : 'tabs'} — open the list`;
+      more.title = blancI18n.t('pill.moreTabs', { count: hidden });
       more.setAttribute('aria-label', more.title);
       more.addEventListener('click', (e) => { e.stopPropagation(); window.browserAPI.openIsland(); });
       nodes.push(more);
@@ -593,7 +595,7 @@
         active: t.id === state.activeTabId,
         loading: t.isLoading,
         private: t.private,
-        title: t.title || 'New Tab',
+        title: t.title || 'untitled',
         // While loading, setFavicon deliberately ignores both URL and favicon;
         // omit them here too so an irrelevant favicon event cannot churn the
         // row before the loading state changes.
@@ -618,10 +620,13 @@
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
       (t.private ? ' private' : '');
-    dot.title = t.title || 'New Tab';
+    const dotTitle = t.title || blancI18n.t('tab.untitled');
+    dot.title = dotTitle;
+    // A tab title is page data, not interface copy (pseudo-locale sweep).
+    if (t.title) dot.dataset.i18nIgnore = '';
     // A dot is a switch target, not a status field: quiet is carried by the
     // row-level dim on the panel row and rail, never on the dot.
-    dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}`);
+    dot.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: dotTitle }));
     // Hover/focus peek: the dot blooms into its tab's favicon so you can tell
     // which site it holds before switching. Reuses the pill favicon rendering
     // (has-icon / internal / loading / fallback); the native title tooltip
@@ -651,7 +656,7 @@
     if (reloadBtn.dataset.mode !== reloadMode) {
       reloadBtn.dataset.mode = reloadMode;
       reloadBtn.innerHTML = PILL_ICONS[reloadMode];
-      reloadBtn.title = reloadMode === 'stop' ? 'Stop' : 'Reload';
+      reloadBtn.title = reloadMode === 'stop' ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
     }
     // Nothing to close with no tabs. This has to ride the tab render pass:
     // renderDownloads() only runs on download broadcasts, so a session with
@@ -663,7 +668,7 @@
     const favoritable = /^https?:\/\//.test(tab?.url || '');
     favoriteBtn.disabled = !favoritable;
     favoriteBtn.classList.toggle('on', favoritable && !!tab?.bookmarked);
-    favoriteBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page';
+    favoriteBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
 
     // Only rebuild the dot row when the dots themselves change — not on every
     // blocked-count broadcast (see dotsSignature). Rebuilding tears down each
@@ -681,8 +686,8 @@
     // old page's security state can't linger under a "Loading…" domain).
     const securityWarning = ['insecure', 'certificate-error', 'certificate-exception'].includes(tab?.siteInfo?.state);
     pillInsecure.hidden = !securityWarning;
-    pillInsecure.title = tab?.siteInfo?.title ?? 'Connection is not secure';
-    pillInsecure.setAttribute('aria-label', `${pillInsecure.title}. Open site controls.`);
+    pillInsecure.title = tab?.siteInfo?.title ?? blancI18n.t('pill.insecure.fallback');
+    pillInsecure.setAttribute('aria-label', blancI18n.t('pill.insecure.open', { title: pillInsecure.title }));
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has
@@ -719,22 +724,21 @@
     // so the property form silently does nothing on these glyphs.
     pillCaptureMic.toggleAttribute('hidden', !cap.audio);
     pillCaptureCam.toggleAttribute('hidden', !cap.video);
-    const capTitle = cap.audio && cap.video ? 'camera & microphone in use'
-      : cap.video ? 'camera in use' : 'microphone in use';
-    pillCapture.title = `${capTitle} — open capture controls`;
-    pillCapture.setAttribute('aria-label', `${capTitle} — open capture controls`);
+    const capTitle = cap.audio && cap.video ? blancI18n.t('capture.both')
+      : cap.video ? blancI18n.t('capture.camera') : blancI18n.t('capture.microphone');
+    pillCapture.title = capTitle;
+    pillCapture.setAttribute('aria-label', capTitle);
 
     // Display-share chip: WINDOW-WIDE — pending picker or active share on
     // any tab in this window, including a backgrounded sharing tab.
     const shares = state.displayShares ?? [];
     pillDisplayShare.hidden = shares.length === 0;
-    const shareTitle = shares.length === 1
-      ? (shares[0].pending
-        ? 'Choosing what to share'
-        : `Sharing ${shares[0].surfaceLabel || 'this screen'}`)
-      : `${shares.length} screen shares`;
-    pillDisplayShare.title = `${shareTitle} — open share controls`;
-    pillDisplayShare.setAttribute('aria-label', `${shareTitle} — open share controls`);
+    const shareTitle = shares.length !== 1 ? blancI18n.t('share.count', { count: shares.length })
+      : shares[0].pending ? blancI18n.t('share.choosing')
+        : shares[0].surfaceLabel ? blancI18n.t('share.sharing', { surface: shares[0].surfaceLabel })
+          : blancI18n.t('share.sharingScreen');
+    pillDisplayShare.title = shareTitle;
+    pillDisplayShare.setAttribute('aria-label', shareTitle);
 
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';

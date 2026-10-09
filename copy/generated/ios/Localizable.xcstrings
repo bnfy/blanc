@@ -594,6 +594,1818 @@
           }
         }
       }
+    },
+    "key.ctrl": {
+      "comment": "Name of the Control key in shortcut hints on Windows and Linux (German keyboards print Strg).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ctrl"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strg"
+          }
+        }
+      }
+    },
+    "app.title": {
+      "comment": "Window title of the browser chrome.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc"
+          }
+        }
+      }
+    },
+    "menu.main.title": {
+      "comment": "Tooltip of the main-menu button on Windows and Linux; Alt+F is its shortcut.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main menu (Alt+F)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauptmenü (Alt+F)"
+          }
+        }
+      }
+    },
+    "menu.main.label": {
+      "comment": "Accessible name of the main-menu button on Windows and Linux.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main menu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauptmenü"
+          }
+        }
+      }
+    },
+    "pill.title": {
+      "comment": "Tooltip of the resting Island pill; Ctrl/Cmd+L opens it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search, tabs & commands (Ctrl/Cmd+L)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche, Tabs & Befehle (Strg/Cmd+L)"
+          }
+        }
+      }
+    },
+    "pill.insecure.title": {
+      "comment": "Default tooltip of the pill's not-secure badge.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not secure — this site uses an unencrypted connection (HTTP)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht sicher – diese Website nutzt eine unverschlüsselte Verbindung (HTTP)"
+          }
+        }
+      }
+    },
+    "pill.insecure.label": {
+      "comment": "Default accessible name of the pill's not-secure badge (a button that opens site controls).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not secure — this site uses an unencrypted connection. Open site controls."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht sicher – diese Website nutzt eine unverschlüsselte Verbindung. Website-Einstellungen öffnen."
+          }
+        }
+      }
+    },
+    "pill.insecure.fallback": {
+      "comment": "Not-secure badge tooltip when main sends no specific reason.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection is not secure"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung ist nicht sicher"
+          }
+        }
+      }
+    },
+    "pill.insecure.open": {
+      "comment": "Accessible name of the not-secure badge; {title} is the security warning shown as its tooltip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. Open site controls."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@. Website-Einstellungen öffnen."
+          }
+        }
+      }
+    },
+    "pill.domainDefault": {
+      "comment": "Initial lowercase label in the pill before the first tab state arrives.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuer Tab"
+          }
+        }
+      }
+    },
+    "pill.placeholder": {
+      "comment": "Pill label on a blank new tab, inviting the user to open the command bar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search or type a URL"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchen oder URL eingeben"
+          }
+        }
+      }
+    },
+    "pill.commands": {
+      "comment": "Tooltip and accessible name of the pill's slash button that opens commands.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commands (/)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befehle (/)"
+          }
+        }
+      }
+    },
+    "pill.private.chip": {
+      "comment": "Lowercase chip in the pill on a private tab; clicking it closes the tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privat"
+          }
+        }
+      }
+    },
+    "pill.private.title": {
+      "comment": "Tooltip of the private chip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave private mode — closes this tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privaten Modus verlassen – schließt diesen Tab"
+          }
+        }
+      }
+    },
+    "pill.source.chip": {
+      "comment": "Lowercase chip in the pill on a view-source tab; clicking it closes the tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "source"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "quelltext"
+          }
+        }
+      }
+    },
+    "pill.source.title": {
+      "comment": "Tooltip of the source chip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close this page source view"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelltextansicht dieser Seite schließen"
+          }
+        }
+      }
+    },
+    "pill.fillHint": {
+      "comment": "Tooltip and accessible name of the macOS-only 1Password fill chip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill login from 1Password (⌥⌘P)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldedaten aus 1Password ausfüllen (⌥⌘P)"
+          }
+        }
+      }
+    },
+    "pill.back": {
+      "comment": "Pill button: go back in this tab's history.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "pill.forward": {
+      "comment": "Pill button: go forward in this tab's history.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forward"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorwärts"
+          }
+        }
+      }
+    },
+    "pill.newTab.title": {
+      "comment": "Tooltip of the pill's new-tab button; {shortcut} is ⌘T or Ctrl+T.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tab (%1$@)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab (%1$@)"
+          }
+        }
+      }
+    },
+    "pill.reload": {
+      "comment": "Pill button: reload the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu laden"
+          }
+        }
+      }
+    },
+    "pill.stop": {
+      "comment": "Pill button while a page loads: stop loading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopp"
+          }
+        }
+      }
+    },
+    "pill.favorite": {
+      "comment": "Pill heart button when the page is not a favorite.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite this page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite zu den Favoriten hinzufügen"
+          }
+        }
+      }
+    },
+    "pill.unfavorite": {
+      "comment": "Pill heart button when the page is already a favorite.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove favorite"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus den Favoriten entfernen"
+          }
+        }
+      }
+    },
+    "pill.closeTab": {
+      "comment": "Pill button that closes the active tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab schließen"
+          }
+        }
+      }
+    },
+    "pill.downloads": {
+      "comment": "Pill downloads button; opens the Downloads sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads"
+          }
+        }
+      }
+    },
+    "pill.downloading": {
+      "comment": "Downloads button tooltip while downloads run; # is the number of active downloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Downloading — %1$lld active"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Downloading — %1$lld active"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Wird heruntergeladen – %1$lld aktiv"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Wird heruntergeladen – %1$lld aktiv"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "pill.downloadDone": {
+      "comment": "Downloads button tooltip right after a download finishes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download complete — open Downloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download abgeschlossen – Downloads öffnen"
+          }
+        }
+      }
+    },
+    "pill.moreTabs": {
+      "comment": "Tooltip of the +N overflow beside the pill's tab dots; opens the tab list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld more tab — open the list"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld more tabs — open the list"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld weiterer Tab – Liste öffnen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld weitere Tabs – Liste öffnen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dot.switchTo": {
+      "comment": "Accessible name of a tab dot or rail row; {title} is the tab's title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu %1$@ wechseln"
+          }
+        }
+      }
+    },
+    "capture.both": {
+      "comment": "Capture chip tooltip while a page uses camera and microphone.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "camera & microphone in use — open capture controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera & Mikrofon in Verwendung – Aufnahme-Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "capture.camera": {
+      "comment": "Capture chip tooltip while a page uses the camera.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "camera in use — open capture controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera in Verwendung – Aufnahme-Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "capture.microphone": {
+      "comment": "Capture chip tooltip while a page uses the microphone.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "microphone in use — open capture controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon in Verwendung – Aufnahme-Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "share.choosing": {
+      "comment": "Screen-share chip tooltip while the share picker is open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choosing what to share — open share controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswahl, was geteilt wird – Freigabe-Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "share.sharing": {
+      "comment": "Screen-share chip tooltip; {surface} names the shared window or screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing %1$@ — open share controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wird geteilt – Freigabe-Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "share.sharingScreen": {
+      "comment": "Screen-share chip tooltip when the shared surface has no name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharing this screen — open share controls"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Bildschirm wird geteilt – Freigabe-Steuerung öffnen"
+          }
+        }
+      }
+    },
+    "share.count": {
+      "comment": "Screen-share chip tooltip with several shares in this window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld screen share — open share controls"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld screen shares — open share controls"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Bildschirmfreigabe – Freigabe-Steuerung öffnen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Bildschirmfreigaben – Freigabe-Steuerung öffnen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "window.minimize": {
+      "comment": "Window control button on Windows and Linux.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimize"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimieren"
+          }
+        }
+      }
+    },
+    "window.maximize": {
+      "comment": "Window control button on Windows and Linux.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximize / Restore"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximieren / Wiederherstellen"
+          }
+        }
+      }
+    },
+    "window.close": {
+      "comment": "Window control button on Windows and Linux.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        }
+      }
+    },
+    "tab.loading": {
+      "comment": "Shown while a tab loads and has no title yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geladen…"
+          }
+        }
+      }
+    },
+    "tab.new": {
+      "comment": "Label for opening a new tab (rail button, accessible names).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab"
+          }
+        }
+      }
+    },
+    "tab.untitled": {
+      "comment": "Fallback title of a tab that has none yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab"
+          }
+        }
+      }
+    },
+    "tab.untitledPrivate": {
+      "comment": "Fallback title of a private tab that has none yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private Tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privater Tab"
+          }
+        }
+      }
+    },
+    "tab.privateLabel": {
+      "comment": "Glance header label for a private tab that has no title yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privater Tab"
+          }
+        }
+      }
+    },
+    "glance.eyebrow": {
+      "comment": "Uppercase eyebrow of the Glance reference-pane header. Glance is a fixed product name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GLANCE"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GLANCE"
+          }
+        }
+      }
+    },
+    "glance.promote": {
+      "comment": "Tooltip and accessible name of the button that swaps Glance with the main page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Glance the main page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance zur Hauptseite machen"
+          }
+        }
+      }
+    },
+    "glance.promoteShort": {
+      "comment": "Short visible label of that same button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make main"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauptseite"
+          }
+        }
+      }
+    },
+    "glance.change": {
+      "comment": "Button that picks a different tab for Glance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern"
+          }
+        }
+      }
+    },
+    "glance.change.title": {
+      "comment": "Tooltip of the Change button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a different tab for Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen anderen Tab für Glance wählen"
+          }
+        }
+      }
+    },
+    "glance.close": {
+      "comment": "Tooltip and accessible name of the Glance close button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance schließen"
+          }
+        }
+      }
+    },
+    "glance.resize": {
+      "comment": "Accessible name of the divider between the main page and Glance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance-Größe ändern"
+          }
+        }
+      }
+    },
+    "glance.dividerValue": {
+      "comment": "Screen-reader value of the Glance divider; {percent} is the main page's share of the width.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main page %1$@ percent"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauptseite %1$@ Prozent"
+          }
+        }
+      }
+    },
+    "resize.hint": {
+      "comment": "Tooltip of resize handles (Glance divider, vertical tabs edge).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag to resize; double-click to reset"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziehen zum Ändern der Größe; Doppelklick zum Zurücksetzen"
+          }
+        }
+      }
+    },
+    "rail.label": {
+      "comment": "Accessible name of the vertical tabs rail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertikale Tabs"
+          }
+        }
+      }
+    },
+    "rail.islandLayout": {
+      "comment": "Rail toolbar button that returns to the Island layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn vertical tabs off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertikale Tabs ausschalten"
+          }
+        }
+      }
+    },
+    "rail.list": {
+      "comment": "Accessible name of the rail's tab list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offene Tabs"
+          }
+        }
+      }
+    },
+    "rail.resize": {
+      "comment": "Accessible name of the rail's resize handle.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize vertical tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breite der vertikalen Tabs ändern"
+          }
+        }
+      }
+    },
+    "rail.widthValue": {
+      "comment": "Screen-reader value of the rail's resize handle; {width} is the rail width.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ pixels"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ Pixel"
+          }
+        }
+      }
+    },
+    "rail.widthAnnounce": {
+      "comment": "Announced after resizing the rail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical tabs width %1$@ pixels"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breite der vertikalen Tabs: %1$@ Pixel"
+          }
+        }
+      }
+    },
+    "rail.widthReset": {
+      "comment": "Announced after resetting the rail width.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical tabs width reset to %1$@ pixels"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breite der vertikalen Tabs auf %1$@ Pixel zurückgesetzt"
+          }
+        }
+      }
+    },
+    "rail.tab.current": {
+      "comment": "Accessible name of the rail row for the active tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current tab %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktueller Tab %1$@"
+          }
+        }
+      }
+    },
+    "rail.tab.withStates": {
+      "comment": "Rail row accessible name followed by its comma-separated states.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "rail.state.active": {
+      "comment": "Rail row state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "active"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aktiv"
+          }
+        }
+      }
+    },
+    "rail.state.private": {
+      "comment": "Rail row state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privat"
+          }
+        }
+      }
+    },
+    "rail.state.pinned": {
+      "comment": "Rail row state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pinned"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "angeheftet"
+          }
+        }
+      }
+    },
+    "rail.state.loading": {
+      "comment": "Rail row state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "loading"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "wird geladen"
+          }
+        }
+      }
+    },
+    "rail.state.quiet": {
+      "comment": "Rail row state read by screen readers (a Quiet Tab).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "quiet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ruhend"
+          }
+        }
+      }
+    },
+    "rail.state.muted": {
+      "comment": "Rail row state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "muted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "stummgeschaltet"
+          }
+        }
+      }
+    },
+    "rail.state.playingAudio": {
+      "comment": "Rail row state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "playing audio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "spielt Audio ab"
+          }
+        }
+      }
+    },
+    "rail.marker.pinned": {
+      "comment": "Tooltip of the rail row's pin marker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinned"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angeheftet"
+          }
+        }
+      }
+    },
+    "rail.marker.muted": {
+      "comment": "Tooltip of the rail row's muted marker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stummgeschaltet"
+          }
+        }
+      }
+    },
+    "rail.marker.playingAudio": {
+      "comment": "Tooltip of the rail row's audio marker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playing audio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spielt Audio ab"
+          }
+        }
+      }
+    },
+    "rail.close": {
+      "comment": "Tooltip and accessible name of a rail row's close button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ schließen"
+          }
+        }
+      }
+    },
+    "rail.group.containsCurrent": {
+      "comment": "Tooltip of the marker on a collapsed group holding the active tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contains current tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enthält den aktuellen Tab"
+          }
+        }
+      }
+    },
+    "rail.move.top": {
+      "comment": "Announced when a keyboard move cannot go further up.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already at the top"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereits ganz oben"
+          }
+        }
+      }
+    },
+    "rail.move.bottom": {
+      "comment": "Announced when a keyboard move cannot go further down.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already at the bottom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereits ganz unten"
+          }
+        }
+      }
+    },
+    "drag.movedGroup": {
+      "comment": "Announced after moving a tab group; {group} is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved group %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe %1$@ verschoben"
+          }
+        }
+      }
+    },
+    "drag.movedTab": {
+      "comment": "Announced after reordering a tab; {title} is its title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ verschoben"
+          }
+        }
+      }
+    },
+    "drag.movedTabUntitled": {
+      "comment": "Announced after reordering a tab that has no title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab verschoben"
+          }
+        }
+      }
+    },
+    "drag.movedTo": {
+      "comment": "Announced after moving a tab into a group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved to %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach %1$@ verschoben"
+          }
+        }
+      }
+    },
+    "drag.movedOutOf": {
+      "comment": "Announced after moving a tab out of a group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved out of %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus %1$@ verschoben"
+          }
+        }
+      }
+    },
+    "drag.movedToRemoved": {
+      "comment": "Announced when moving a tab into {group} empties and removes group {from}.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved to %1$@. Group %2$@ removed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach %1$@ verschoben. Gruppe %2$@ entfernt"
+          }
+        }
+      }
+    },
+    "drag.movedOutOfRemoved": {
+      "comment": "Announced when moving the last tab out of group {from} removes it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved out of %1$@. Group %1$@ removed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus %1$@ verschoben. Gruppe %1$@ entfernt"
+          }
+        }
+      }
+    },
+    "drag.failed": {
+      "comment": "Announced when a drag-and-drop move fails; {title} is the tab title or group name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't move %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ konnte nicht verschoben werden"
+          }
+        }
+      }
+    },
+    "drag.failedTab": {
+      "comment": "Announced when moving an untitled tab fails.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't move tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab konnte nicht verschoben werden"
+          }
+        }
+      }
+    },
+    "drag.failedGroup": {
+      "comment": "Announced when moving an unnamed group fails.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't move group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe konnte nicht verschoben werden"
+          }
+        }
+      }
+    },
+    "rail.group.label": {
+      "comment": "Accessible name of a rail group header; {name} is the group name, {state} is collapsed or expanded.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld tab, %3$@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld tabs, %3$@"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld Tab, %3$@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld Tabs, %3$@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "rail.group.labelWithCurrent": {
+      "comment": "Accessible name of a rail group header that holds the active tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld tab, %3$@, contains current tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld tabs, %3$@, contains current tab"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld Tab, %3$@, enthält den aktuellen Tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$@, %2$lld Tabs, %3$@, enthält den aktuellen Tab"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "rail.group.collapsed": {
+      "comment": "Rail group state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "collapsed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "eingeklappt"
+          }
+        }
+      }
+    },
+    "rail.group.expanded": {
+      "comment": "Rail group state read by screen readers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "expanded"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ausgeklappt"
+          }
+        }
+      }
+    },
+    "rail.private.marker": {
+      "comment": "Lowercase marker on a private tab's rail row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "private"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "privat"
+          }
+        }
+      }
+    },
+    "rail.section.pinned": {
+      "comment": "Lowercase heading of the rail section holding pinned tabs that are not in a group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pinned"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "angeheftet"
+          }
+        }
+      }
+    },
+    "rail.section.tabs": {
+      "comment": "Lowercase heading of the rail section holding ungrouped tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tabs"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

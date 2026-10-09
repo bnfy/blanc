@@ -17,7 +17,22 @@ const findPage = (app, prefix, label) =>
   waitForValue(async () => (await app.windows()).find((p) => p.url().startsWith(prefix)), Boolean, label);
 
 // Each extraction phase adds its surfaces here (Phase recipe, step 7).
+const CHROME_FILES = ['src/renderer/index.html', 'src/renderer/renderer.js', 'src/renderer/vertical-tabs.js', 'src/renderer/tab-drag.js'];
 const SURFACES = [
+  {
+    name: 'chrome strip',
+    files: CHROME_FILES,
+    open: ({ chrome }) => chrome,
+  },
+  {
+    name: 'vertical tabs rail',
+    files: CHROME_FILES,
+    open: async ({ chrome }) => {
+      await chrome.evaluate(() => window.browserAPI.setTabLayout('vertical'));
+      await chrome.waitForFunction(() => !document.getElementById('verticalTabsRail').hidden);
+      return chrome;
+    },
+  },
   {
     name: 'start page',
     files: ['src/renderer/pages/newtab.html', 'src/renderer/pages/newtab.js', 'src/renderer/pages/onboarding.js'],

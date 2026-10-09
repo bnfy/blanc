@@ -20,7 +20,11 @@ const COLLECT = String.raw`
   const out = [];
   const visible = (el) => el && el.checkVisibility?.({ checkOpacity: true, checkVisibilityCSS: true }) !== false
     && el.getClientRects().length > 0;
-  const ignored = (el) => !!el?.closest?.('[data-i18n-ignore], script, style, svg');
+  // data-i18n-ignore="" exempts an element and its subtree; a value lists only
+  // that element's own attributes to exempt (e.g. data-i18n-ignore="title").
+  const ignored = (el) => !!el?.closest?.('[data-i18n-ignore=""], script, style, svg');
+  const ignoredAttr = (el, attr) => ignored(el)
+    || (el.getAttribute('data-i18n-ignore') ?? '').split(/\s+/).includes(attr);
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const el = node.parentElement;
@@ -31,7 +35,7 @@ const COLLECT = String.raw`
     if (!visible(el)) continue;
     for (const attr of ['title', 'aria-label', 'placeholder', 'alt']) {
       const value = el.getAttribute(attr);
-      if (value) out.push({ text: value, ignored: ignored(el) });
+      if (value) out.push({ text: value, ignored: ignoredAttr(el, attr) });
     }
   }
   out.push({ text: document.title, ignored: false });

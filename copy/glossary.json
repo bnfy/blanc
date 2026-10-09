@@ -1,15 +1,63 @@
 {
-  "$note": "Fixed terms appear verbatim in every language. Translated terms pin one form per language, checked by stem. Changing this file changes every language: record why in the commit message.",
-  "style": { "de": "Informal du throughout; sentence case; typographic quotes „…“ and – dashes." },
-  "fixed": ["Blanc", "Blanc Blocker", "Blanc Patron", "Patron", "uBlock Origin", "1Password"],
-  "fixedPatterns": ["(?<![\\w/:])/[a-z][a-z0-9-]*", "⌘", "⌥", "⇧", "⌃"],
-  "terms": {
-    "Quiet Tabs": { "de": { "form": "Ruhende Tabs", "stem": "uhend" } },
-    "Favorites": { "de": { "form": "Favoriten", "stem": "Favorit" } },
-    "Profile Sync": { "de": { "form": "Profil-Synchronisierung", "stem": "Synchronisier" } },
-    "Named Workspaces": { "de": { "form": "Benannte Arbeitsbereiche", "stem": "Arbeitsbereich" } },
-    "Quick Switcher": { "de": { "form": "Schnellwechsler", "stem": "Schnellwechsl" } }
+  "$note": "Fixed terms appear verbatim in every language. Translated terms pin one form per language, checked by stem. Changing this file changes every language: record why in the commit message. Island and Glance are fixed product names (owner decision 2026-10-09).",
+  "style": {
+    "de": "Informal du throughout; sentence case; typographic quotes „…“ and – dashes."
   },
-  "pendingOwnerDecision": ["Island", "Glance"],
-  "sameAsSource": { "de": ["settings.language.system"] }
+  "fixed": [
+    "Blanc",
+    "Blanc Blocker",
+    "Blanc Patron",
+    "Patron",
+    "uBlock Origin",
+    "1Password",
+    "Island",
+    "Glance"
+  ],
+  "fixedPatterns": [
+    "(?<![\\w/:])/[a-z][a-z0-9-]*",
+    "⌘",
+    "⌥",
+    "⇧",
+    "⌃"
+  ],
+  "terms": {
+    "Quiet Tabs": {
+      "de": {
+        "form": "Ruhende Tabs",
+        "stem": "uhend"
+      }
+    },
+    "Favorites": {
+      "de": {
+        "form": "Favoriten",
+        "stem": "Favorit"
+      }
+    },
+    "Profile Sync": {
+      "de": {
+        "form": "Profil-Synchronisierung",
+        "stem": "Synchronisier"
+      }
+    },
+    "Named Workspaces": {
+      "de": {
+        "form": "Benannte Arbeitsbereiche",
+        "stem": "Arbeitsbereich"
+      }
+    },
+    "Quick Switcher": {
+      "de": {
+        "form": "Schnellwechsler",
+        "stem": "Schnellwechsl"
+      }
+    }
+  },
+  "sameAsSource": {
+    "de": [
+      "settings.language.system",
+      "glance.eyebrow",
+      "pill.downloads",
+      "rail.section.tabs"
+    ]
+  }
 }

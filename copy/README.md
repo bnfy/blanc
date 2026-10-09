@@ -76,7 +76,9 @@ message.
 - **HTML:** keep the English inline and add `data-i18n="key"` (or
   `data-i18n-title`, `-aria-label`, `-placeholder`, `-alt`, `-tooltip`).
   `copy:check` verifies the inline English equals `en.json`. Mark containers of
-  user or page data (titles, URLs, hostnames, names) with `data-i18n-ignore`.
+  user or page data (titles, URLs, hostnames, names) with `data-i18n-ignore`
+  (empty value: the element and its subtree; a value such as `"title"`: only
+  those attributes of that element).
 - **Renderer JS:** `el.textContent = blancI18n.t('key', { … })`. Format numbers
   and dates with `blancI18n.formatLocale()`. Never `innerHTML` a message.
 - **Main:** `mainI18n.t('key', { … })`, or a `t` passed into pure modules.

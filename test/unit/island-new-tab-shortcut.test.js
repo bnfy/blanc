@@ -29,11 +29,15 @@ test('Plus creates a regular blank tab and focuses the address input', () => {
     /const newTabBtn = pillButton\('plus',[\s\S]*?window\.browserAPI\.createTab\(null, \{ focusAddress: true \}\);[\s\S]*?\}\);/
   );
   assert.match(renderer, /newTabBtn\.id = 'pillNewTab'/);
-  assert.match(renderer, /newTabBtn\.setAttribute\('aria-label', 'New tab'\)/);
+  // Copy lives in the interface catalog (F44); the English is unchanged.
+  const catalog = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, '../../copy/messages/en.json'), 'utf8'));
+  assert.match(renderer, /newTabBtn\.setAttribute\('aria-label', blancI18n\.t\('tab\.new'\)\)/);
+  assert.equal(catalog['tab.new'].message, 'New tab');
   assert.match(
     renderer,
-    /window\.browserAPI\.platform === 'darwin' \? '⌘T' : 'Ctrl\+T'/
+    /window\.browserAPI\.platform === 'darwin' \? '⌘T' : `\$\{blancI18n\.t\('key\.ctrl'\)\}\+T`/
   );
+  assert.equal(catalog['key.ctrl'].message, 'Ctrl');
 });
 
 test('Plus uses the quiet slash-keycap treatment and hides with vertical tabs', () => {

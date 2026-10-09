@@ -172,7 +172,8 @@ export function runtimeCatalog({ locale, dir, en, tr }) {
   const messages = {};
   const fallback = {};
   for (const key of Object.keys(en).filter(isEntryKey)) {
-    if (tr && typeof tr[key]?.message === 'string' && tr[key].source) messages[key] = tr[key].message;
+    if (!tr) messages[key] = en[key].message; // English is the source itself
+    else if (typeof tr[key]?.message === 'string' && tr[key].source) messages[key] = tr[key].message;
     else fallback[key] = en[key].message;
   }
   return { locale, dir, messages, fallback };

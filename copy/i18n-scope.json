@@ -2,15 +2,15 @@
   "$note": "Every desktop file with user-visible strings. 'pending' files are not yet extracted; 'guarded' files fail copy:check on hard-coded English and unknown keys, and their surfaces join the pseudo-locale sweep (npm run test:i18n:desktop). German stays hidden until every file is guarded. 'allow' lists reviewed literals that are not user-facing English (symbols, brand-only text), each with a reason in the commit that adds it.",
   "files": {
     "src/renderer/index.html": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/renderer.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/vertical-tabs.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/workspace-ui.js": {
@@ -18,7 +18,7 @@
       "allow": []
     },
     "src/renderer/tab-drag.js": {
-      "state": "pending",
+      "state": "guarded",
       "allow": []
     },
     "src/renderer/overlay.html": {

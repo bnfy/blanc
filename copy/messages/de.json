@@ -136,5 +136,381 @@
   "settings.language.relaunch": {
     "message": "Zum Übernehmen neu starten",
     "source": "sha256:08c3210416025f2a7b33e50fa60fa9ff9528a86d14a948c002ecb3c34c67d746"
+  },
+  "key.ctrl": {
+    "message": "Strg",
+    "source": "sha256:1432a2fb2c17866c175da8e2374b4365b5b0bf4bb5b4229f5023b335f4b251cb"
+  },
+  "app.title": {
+    "message": "Blanc",
+    "source": "sha256:bc91344e663160b4f12b8af2a84cb46a480e13a33a4b9a539c712b07f2c9effc"
+  },
+  "menu.main.title": {
+    "message": "Hauptmenü (Alt+F)",
+    "source": "sha256:690e1bb319a7009b954ee629f107ac2f3c960b55a16edb6b74ae6b4ca933db57"
+  },
+  "menu.main.label": {
+    "message": "Hauptmenü",
+    "source": "sha256:7ae3eec000a0bc7e37020c38984191676d02407f8eb18d2374fed9710bcf8fa8"
+  },
+  "pill.title": {
+    "message": "Suche, Tabs & Befehle (Strg/Cmd+L)",
+    "source": "sha256:9f915c51e7ae9edcafaadaa8aa67ee0f3cc0a3135508d683b9124e097c3e7afb"
+  },
+  "pill.insecure.title": {
+    "message": "Nicht sicher – diese Website nutzt eine unverschlüsselte Verbindung (HTTP)",
+    "source": "sha256:2523525539c62691cc359677555481b0e13231882262adccaff9d50bfe752905"
+  },
+  "pill.insecure.label": {
+    "message": "Nicht sicher – diese Website nutzt eine unverschlüsselte Verbindung. Website-Einstellungen öffnen.",
+    "source": "sha256:4463a9956cbb10cebfb94516ed6ad832ef445022cb0bfbf6db651159e4be20b3"
+  },
+  "pill.insecure.fallback": {
+    "message": "Verbindung ist nicht sicher",
+    "source": "sha256:0848a95f8e2fc689138877ac461cbbd6b05930cea3f41f001aacea4f81946dc9"
+  },
+  "pill.insecure.open": {
+    "message": "{title}. Website-Einstellungen öffnen.",
+    "source": "sha256:4540186d21eb8afd7b3b0d0fce8c9e9e6bedf7fcef1cf2f28c15fec503286d29"
+  },
+  "pill.domainDefault": {
+    "message": "neuer Tab",
+    "source": "sha256:a3f02b33b0887358dd200d2d84fe426c12a5465515f9a7add2f71e64be271b20"
+  },
+  "pill.placeholder": {
+    "message": "Suchen oder URL eingeben",
+    "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
+  },
+  "pill.commands": {
+    "message": "Befehle (/)",
+    "source": "sha256:3298d0be254b7df3b28b6175fff28a11cde367811c884377bb9cad9e81a7964f"
+  },
+  "pill.private.chip": {
+    "message": "privat",
+    "source": "sha256:f142af345cb5cb5891f2e5f1db810c74762c828152fcf3fb5d2286eb93ea20c9"
+  },
+  "pill.private.title": {
+    "message": "Privaten Modus verlassen – schließt diesen Tab",
+    "source": "sha256:646b0a9f37d5e22ed8bb75e6f1bfc2d0cd978de65f69bc35d25e313edeeeb0e5"
+  },
+  "pill.source.chip": {
+    "message": "quelltext",
+    "source": "sha256:a7c4be550f6962650e0a576599bc5059389bd4a108c349412f05b94745672a4f"
+  },
+  "pill.source.title": {
+    "message": "Quelltextansicht dieser Seite schließen",
+    "source": "sha256:72fb1be2fcd039fbdb37fdbc153bf7487a1d9e91acc11dcbb61b537f5ea2e736"
+  },
+  "pill.fillHint": {
+    "message": "Anmeldedaten aus 1Password ausfüllen (⌥⌘P)",
+    "source": "sha256:faf22161d701e6b108cd4de8e2115bd82b820e06559be09c93ea277ac579ac54"
+  },
+  "pill.back": {
+    "message": "Zurück",
+    "source": "sha256:ea543fa97e7988a40ad01aa13013de06cfdbe809fa395759e8b2a21f315fcd77"
+  },
+  "pill.forward": {
+    "message": "Vorwärts",
+    "source": "sha256:4a1c50dacd19e3d10693e46860351b79491274abbb66947613a6170477d53185"
+  },
+  "pill.newTab.title": {
+    "message": "Neuer Tab ({shortcut})",
+    "source": "sha256:309c5d9cfd408ce58b53a1f91c221ecfc1d81a7e840b3141ade1b889fd35fdce"
+  },
+  "pill.reload": {
+    "message": "Neu laden",
+    "source": "sha256:f595278a2b07cb16d97fcd0edd18773ea6020dd2100f49e8a0f969474a223bca"
+  },
+  "pill.stop": {
+    "message": "Stopp",
+    "source": "sha256:88e4c70c4c9cfb3fd057fdc74bf39b5e7737c535bb47e4869ef1a17b60d7323f"
+  },
+  "pill.favorite": {
+    "message": "Diese Seite zu den Favoriten hinzufügen",
+    "source": "sha256:1a3312a6b5e1877313a2cc4dcb6d571219e67c1aeab5e3bfa59eb653507556ef"
+  },
+  "pill.unfavorite": {
+    "message": "Aus den Favoriten entfernen",
+    "source": "sha256:17a7f7b6d14b841ac35bdd1bd04faed4bf95591a26d0738b89e0476c92131b69"
+  },
+  "pill.closeTab": {
+    "message": "Tab schließen",
+    "source": "sha256:f569caf8ee18e5b8c5cb24ee6f37761c291d8b0970834c635de8a378bd3acb7d"
+  },
+  "pill.downloads": {
+    "message": "Downloads",
+    "source": "sha256:84dd84abdee658831f22acfd7a3977080c6bd6413892f09500444477c66b72db"
+  },
+  "pill.downloading": {
+    "message": "{count, plural, one {Wird heruntergeladen – # aktiv} other {Wird heruntergeladen – # aktiv}}",
+    "source": "sha256:2caf0584de8361d3ec224fd6f6019a7b9d6e334373d9862f24bc287d2779b1f0"
+  },
+  "pill.downloadDone": {
+    "message": "Download abgeschlossen – Downloads öffnen",
+    "source": "sha256:1cd713cd4d61325da8535d14d3f1ed4f5225b50f80336c1f056d1602ebe85836"
+  },
+  "pill.moreTabs": {
+    "message": "{count, plural, one {# weiterer Tab – Liste öffnen} other {# weitere Tabs – Liste öffnen}}",
+    "source": "sha256:223dbc55be62b11cf0ef0fffc65479abea129999eceefb446253155639ffb7d5"
+  },
+  "dot.switchTo": {
+    "message": "Zu {title} wechseln",
+    "source": "sha256:8cd93dcac1d354c4891b429c8dc0c19b1f9e08de34a4c3a68098f355d850300b"
+  },
+  "capture.both": {
+    "message": "Kamera & Mikrofon in Verwendung – Aufnahme-Steuerung öffnen",
+    "source": "sha256:250e4e3685b22e7106c2901a0cad32e5a3551aaa1bedac55c7c9adf1f6678106"
+  },
+  "capture.camera": {
+    "message": "Kamera in Verwendung – Aufnahme-Steuerung öffnen",
+    "source": "sha256:9f6630dc8390cbcb1504a7e9f7d2043a0059581884b7a76e749fd0fead00de6b"
+  },
+  "capture.microphone": {
+    "message": "Mikrofon in Verwendung – Aufnahme-Steuerung öffnen",
+    "source": "sha256:e40ea22ee47673417e426603bf23367255450429a1388ab97a9c5ef31335654c"
+  },
+  "share.choosing": {
+    "message": "Auswahl, was geteilt wird – Freigabe-Steuerung öffnen",
+    "source": "sha256:340311e05e17a9070e7026a64be3e898a2071da19d7849bf55ecce7463836290"
+  },
+  "share.sharing": {
+    "message": "{surface} wird geteilt – Freigabe-Steuerung öffnen",
+    "source": "sha256:f292cbd87ec43b0e3415d2c5bf3f3f0cb42d0178bb13315678446948268be5b4"
+  },
+  "share.sharingScreen": {
+    "message": "Dieser Bildschirm wird geteilt – Freigabe-Steuerung öffnen",
+    "source": "sha256:aa9f1022077987f6cc19457acd20b531b330f53b5fa4b70b7be22f659f5f956a"
+  },
+  "share.count": {
+    "message": "{count, plural, one {# Bildschirmfreigabe – Freigabe-Steuerung öffnen} other {# Bildschirmfreigaben – Freigabe-Steuerung öffnen}}",
+    "source": "sha256:18ec441e6cef1f67b60ce034aac6fae863329cb68a94b71483c5e02ec5c72e0d"
+  },
+  "window.minimize": {
+    "message": "Minimieren",
+    "source": "sha256:1df4634ecf6020756847fc8a790ae3cec8dba4e75d56b80e5d1db9de9542cb5a"
+  },
+  "window.maximize": {
+    "message": "Maximieren / Wiederherstellen",
+    "source": "sha256:f92a747fe4f3c627d2bb617f6eead082b32a0f94538954c56d51a2683fd448b8"
+  },
+  "window.close": {
+    "message": "Schließen",
+    "source": "sha256:3d9d2cd3fda424d37b08e583661ed0ac45f6c7cfe1de45a311728adf2eb31b88"
+  },
+  "tab.loading": {
+    "message": "Wird geladen…",
+    "source": "sha256:b5290e5dfc06cecfb4d75f152a9b47ddcf8fdf402c28cde3aed6b620edcaab2d"
+  },
+  "tab.new": {
+    "message": "Neuer Tab",
+    "source": "sha256:5a74a69ff9e69e22c287c93c77955b0b1746498da47d687b2a51614f9492cc9a"
+  },
+  "tab.untitled": {
+    "message": "Neuer Tab",
+    "source": "sha256:30b173376ac972a77cc090557d62964b1712a6eaa23b44e856101c3e2d9bb283"
+  },
+  "tab.untitledPrivate": {
+    "message": "Privater Tab",
+    "source": "sha256:176df5ebc787cf547d35204ac2c469b19c7554613c5ae0ac1ab5f56d87e839cb"
+  },
+  "tab.privateLabel": {
+    "message": "Privater Tab",
+    "source": "sha256:326c3c3c82150c829bded6df1cd2a31d3bf49ed4aead548e373dc32543075ac0"
+  },
+  "glance.eyebrow": {
+    "message": "GLANCE",
+    "source": "sha256:fcb19c0f9926b34ef991e7bebad4a2ea5e62f162474ce3ebd734ed7aa0a1fb61"
+  },
+  "glance.promote": {
+    "message": "Glance zur Hauptseite machen",
+    "source": "sha256:dccee10765f6396e0c58ad5bf247a277386195aff32695fe137d17da08a21441"
+  },
+  "glance.promoteShort": {
+    "message": "Hauptseite",
+    "source": "sha256:a7e42de240a757d798f520cbf37c73e9f731bbd0b6ab2fb3f353eaec2dc40c6b"
+  },
+  "glance.change": {
+    "message": "Ändern",
+    "source": "sha256:cd6459f87faebe36f9d245ef5af8bba9b1d69ea3fbdebd42670ab48f1e7ece47"
+  },
+  "glance.change.title": {
+    "message": "Einen anderen Tab für Glance wählen",
+    "source": "sha256:fa6686f3f843c2f35e57aa5a0a0b9938ae21e8752567978b540d32b9ec706527"
+  },
+  "glance.close": {
+    "message": "Glance schließen",
+    "source": "sha256:7d9da4291b72a86359f91c029c4ef7759bfabfe06b20affe464c96edcf7c9490"
+  },
+  "glance.resize": {
+    "message": "Glance-Größe ändern",
+    "source": "sha256:03ab2e38f02e3f30e60d7bf0a49fba22503b00d0a9d696f494ff979e6130a4f8"
+  },
+  "glance.dividerValue": {
+    "message": "Hauptseite {percent} Prozent",
+    "source": "sha256:6f112c08e28d8b3081d779d8cd2b7ab7f7bd2e4ba3f7cc21c969d268bbf6f580"
+  },
+  "resize.hint": {
+    "message": "Ziehen zum Ändern der Größe; Doppelklick zum Zurücksetzen",
+    "source": "sha256:0b3fd5d160f8174b723d0eae2d98104abf5fc42c4e1d9e4a9988de8d737689df"
+  },
+  "rail.label": {
+    "message": "Vertikale Tabs",
+    "source": "sha256:7cd3805476b7c4760fb93d335ef3367923eabd7a0783a76dc22816b8d92a74d1"
+  },
+  "rail.islandLayout": {
+    "message": "Vertikale Tabs ausschalten",
+    "source": "sha256:ddcfca459d58f3f64c409fb327625d76e0f1b72cb704e2cc24a73303c436cce1"
+  },
+  "rail.list": {
+    "message": "Offene Tabs",
+    "source": "sha256:4d0ae95789443450dc66977a93c6c9640c5c4c53fc324a69e63a9cd0501f2ea0"
+  },
+  "rail.resize": {
+    "message": "Breite der vertikalen Tabs ändern",
+    "source": "sha256:41201fdf3e507050d36b3ed5d7bbcfcd7e70fc3649a6f6eb8a1ee816e431f1ef"
+  },
+  "rail.widthValue": {
+    "message": "{width} Pixel",
+    "source": "sha256:fdb07df00979501dd0cf41809ae7b8c0dcfb4d980a58ee039f8f5f6e8b75d27d"
+  },
+  "rail.widthAnnounce": {
+    "message": "Breite der vertikalen Tabs: {width} Pixel",
+    "source": "sha256:676a4965da3e95ebd8f542c30b313bcee4d9c9043292eddabf5be2c956176426"
+  },
+  "rail.widthReset": {
+    "message": "Breite der vertikalen Tabs auf {width} Pixel zurückgesetzt",
+    "source": "sha256:47e7810e5655853f84f7a3e65a5a42a7820361a30678a6777061c803ae2850ea"
+  },
+  "rail.tab.current": {
+    "message": "Aktueller Tab {title}",
+    "source": "sha256:aa08fe8b9cba4ae3e1fb08f4958f8483c293637a77783e967a46f33754082d10"
+  },
+  "rail.tab.withStates": {
+    "message": "{label}, {states}",
+    "source": "sha256:c510b7d597fc786bfa88738c27a1f83199103d5faa100406cc4840602d7ea1cf"
+  },
+  "rail.state.active": {
+    "message": "aktiv",
+    "source": "sha256:17e06155ae63b8d3a3bf6e38911706b7bc4a90d663a1bfac189e0014ef1e07c9"
+  },
+  "rail.state.private": {
+    "message": "privat",
+    "source": "sha256:5f61ef136955f62f961f88552b2fb7fbff92736324719b878a0dd6deef21de98"
+  },
+  "rail.state.pinned": {
+    "message": "angeheftet",
+    "source": "sha256:fc24296065579cd2e1635448958ea0a8d77defa6668dbbc811e602162c88c878"
+  },
+  "rail.state.loading": {
+    "message": "wird geladen",
+    "source": "sha256:b4a580409fd6a6192e4c6823b5c6a1dd024541d79d856f1e1051cf48cbd11b07"
+  },
+  "rail.state.quiet": {
+    "message": "ruhend",
+    "source": "sha256:a71a10b5a06aa325dd16fd6af72859d8c68fe18a3e1ef6a719de54795075f791"
+  },
+  "rail.state.muted": {
+    "message": "stummgeschaltet",
+    "source": "sha256:f464f2a832cd8e041b6628d0890d743f51e2cbc539b687cb929ac2bd4a7bbe79"
+  },
+  "rail.state.playingAudio": {
+    "message": "spielt Audio ab",
+    "source": "sha256:279764c4b3eef2d60fb1032b933950e5c9aaf9db855efb674d7c121d2c277d76"
+  },
+  "rail.marker.pinned": {
+    "message": "Angeheftet",
+    "source": "sha256:9cae080d52c7851f1a25499157b68c3c39e1cbf12542569c20e702198e697a65"
+  },
+  "rail.marker.muted": {
+    "message": "Stummgeschaltet",
+    "source": "sha256:7ef2c08488eaba5ae6e11731d7c2124481ce5096dc2a1577e971381602895021"
+  },
+  "rail.marker.playingAudio": {
+    "message": "Spielt Audio ab",
+    "source": "sha256:ac30400d8497f3f2425fb3ce2e8eac74d02b2e69acc51380154428ac62c411b1"
+  },
+  "rail.close": {
+    "message": "{title} schließen",
+    "source": "sha256:7637626a54c4d3da70ab3c83a493c28d48527f72a611a616448da05f9ec2dc7e"
+  },
+  "rail.group.containsCurrent": {
+    "message": "Enthält den aktuellen Tab",
+    "source": "sha256:29f994b4f8a8fb9526c2c56aa77873989e29d3c9d11373b39f3c07b7649d3739"
+  },
+  "rail.move.top": {
+    "message": "Bereits ganz oben",
+    "source": "sha256:6c8eece1c6838aab5db7d7ccc3bf978efb4b753d98d621cb4317caee779c3e23"
+  },
+  "rail.move.bottom": {
+    "message": "Bereits ganz unten",
+    "source": "sha256:240ec824de6135db3bc224bd449a923c5f5a3d125adf94ee556fa310bd3ec85a"
+  },
+  "drag.movedGroup": {
+    "message": "Gruppe {group} verschoben",
+    "source": "sha256:19545591c1408872d02c5b5c51b87c2d911157160d36380d8f4cd9cd013264b0"
+  },
+  "drag.movedTab": {
+    "message": "{title} verschoben",
+    "source": "sha256:eb32cefa3da739d94eef246d4fedc83a37ef6706c8c38880556fb3207980cf73"
+  },
+  "drag.movedTabUntitled": {
+    "message": "Tab verschoben",
+    "source": "sha256:3548d808d0d4931b7f2d007368fe2cd007bbbd2c55341dda59022875cc8b7032"
+  },
+  "drag.movedTo": {
+    "message": "Nach {group} verschoben",
+    "source": "sha256:972de729355eb9dde3f9a351dbee9e79ace66cee5b757ea24ff911bc07e540a3"
+  },
+  "drag.movedOutOf": {
+    "message": "Aus {group} verschoben",
+    "source": "sha256:5d9d441782c72b55fbc43fc493bb441f5461babd6d8c74010d29d884f2027512"
+  },
+  "drag.movedToRemoved": {
+    "message": "Nach {group} verschoben. Gruppe {from} entfernt",
+    "source": "sha256:07c26cf9bae1d8763e3265130ec71c2e0e0420c98f11c7755f6196fbc3f4f56f"
+  },
+  "drag.movedOutOfRemoved": {
+    "message": "Aus {from} verschoben. Gruppe {from} entfernt",
+    "source": "sha256:fa6e6158baf2dfb42182a256966f7438e598b138016848980016211082f0b4da"
+  },
+  "drag.failed": {
+    "message": "{title} konnte nicht verschoben werden",
+    "source": "sha256:bcfb58a316f2202c9aec20b97dc4f337a0a3ded3711a74e906d1a95cd6cd5ad5"
+  },
+  "drag.failedTab": {
+    "message": "Tab konnte nicht verschoben werden",
+    "source": "sha256:158c5b1c23132d0f9aefd285bc4c99feb714b7024414deafa311e35f1659c534"
+  },
+  "drag.failedGroup": {
+    "message": "Gruppe konnte nicht verschoben werden",
+    "source": "sha256:660aca384188f950df836bee5f149fb3e6d71087aba84cafcb8f416e017f4cd5"
+  },
+  "rail.group.label": {
+    "message": "{name}, {count, plural, one {# Tab} other {# Tabs}}, {state}",
+    "source": "sha256:b04b67820e770fc468083fd5092d52dcf038d766f5428f6cc13fde87fdb91813"
+  },
+  "rail.group.labelWithCurrent": {
+    "message": "{name}, {count, plural, one {# Tab} other {# Tabs}}, {state}, enthält den aktuellen Tab",
+    "source": "sha256:fc133041398aa68b5f6f2aedab1f538f31a797ab27f01b875df11cd33c160fdd"
+  },
+  "rail.group.collapsed": {
+    "message": "eingeklappt",
+    "source": "sha256:9f5cf5ddb40b5df58a0b25bb804ac4e2a5be60b70761be1c0f4e7be6e049ba83"
+  },
+  "rail.group.expanded": {
+    "message": "ausgeklappt",
+    "source": "sha256:e7212a89cc03401aa92f8899f543dc8473f98916cd50a224de2f9f737e118b9e"
+  },
+  "rail.private.marker": {
+    "message": "privat",
+    "source": "sha256:1c851471076fb95bdb64a0f2b840b447e18f012ff9a8966e1a1af7bdd21d8fe5"
+  },
+  "rail.section.pinned": {
+    "message": "angeheftet",
+    "source": "sha256:9c9baf169aa2402bc3f8e019157d046ad4c8d263468127ba3e3624790d1898d0"
+  },
+  "rail.section.tabs": {
+    "message": "tabs",
+    "source": "sha256:704f23bf7936e2c4b698a4a7b81bf9f6055cc96b9c8fdf0c5730c3c053590139"
   }
 }

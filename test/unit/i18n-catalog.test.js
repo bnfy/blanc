@@ -162,3 +162,9 @@ test('runtimeCatalog uses current and stale translations, and falls back to Engl
   } });
   assert.deepEqual(runtime, { locale: 'de', dir: 'ltr', messages: { 'a.one': 'Eins' }, fallback: { 'a.two': 'Two' } });
 });
+
+test('runtimeCatalog for English puts every string in messages, with no fallback', () => {
+  const enCat = { $note: 'x', 'a.one': { message: 'One', note: 'n' } };
+  assert.deepEqual(lib.runtimeCatalog({ locale: 'en', dir: 'ltr', en: enCat, tr: null }),
+    { locale: 'en', dir: 'ltr', messages: { 'a.one': 'One' }, fallback: {} });
+});
