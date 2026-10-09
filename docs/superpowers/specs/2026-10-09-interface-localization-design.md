@@ -1,9 +1,11 @@
 # Interface localization (F44)
 
 **Date:** 2026-10-09
-**Status:** draft for owner review. Brainstormed with the owner on 2026-10-09;
-every decision below was approved in that session. No feature code has been
-written.
+**Status:** draft for owner review (revision 2). Brainstormed with the owner
+on 2026-10-09; every decision below was approved in that session. Revision 2
+applies the first review: only explicit acknowledgement advances translation
+hashes, a stored unavailable language renders English, `uiLanguage` has a
+single writer, and `maxLength` is a lint. No feature code has been written.
 **Amends:** the S3 copy substrate (`copy/`), `src/main/settings.js` +
 `settings-schema/schema.json` (new `uiLanguage`), the `blanc-chrome://` and
 `blanc://` protocol handlers (`src/main/chrome-protocol.js`,
@@ -115,9 +117,15 @@ copy/
   describe the slot, not the English text, so rewording English never renames
   a key.
 - **`note`** gives the translator context. It is required for every entry.
-- **`maxLength`** (optional) caps the rendered length of each plural branch
-  after placeholder substitution with a representative value. It is required
-  on keys that render into the pill, buttons, menu items and ⌘L row metadata.
+- **`maxLength`** (optional) is a translation-length **lint**, not a fit
+  guarantee. It caps the length of each branch's literal text, with
+  placeholders and `#` counted as zero, so it constrains only what the
+  translator controls. It is required on static or bounded slots (buttons,
+  menu items, Settings labels, the pill's fixed words). It cannot prove that a
+  message fits with an arbitrary count, hostname or title, so dynamic content
+  relies on runtime containment (ellipsis plus a full-text `title`, or
+  wrapping). The `en-XA` sweep and the phase 10 screenshots are the
+  authoritative fit checks.
 
 `de.json` mirrors the keys:
 
@@ -131,9 +139,16 @@ copy/
 }
 ```
 
-- **`source`** is a hash of the English `message` the translation was made from.
-  When English changes, the hash no longer matches and the entry is stale.
-  `copy:build` stamps the hash; nobody writes it by hand.
+- **`source`** is `sha256(message + "\u0000" + note)` of the English entry the
+  translation was made from. Hashing the note too means a change in meaning
+  context also flags the translation. When either changes, the hash no longer
+  matches and the entry is stale.
+- **Only an explicit acknowledgement advances `source`.** `npm run copy:ack --
+  de <key> [<key> …]` stamps the current English hash on exactly the named
+  entries, after their German has been written or confirmed. It has no
+  all-keys or all-stale mode. `copy:build` and `copy:check` read `source` but
+  never write it, so a routine build can never make an outdated translation
+  look current. An entry without `source` counts as missing.
 - **`$meta.status`** is `hidden` until the unhide gate passes, then
   `selectable`. Only `selectable` languages can be chosen or resolved.
 - **`$meta.dir`** is `ltr` or `rtl`. Only `ltr` languages ship in this project.
@@ -240,9 +255,20 @@ Mobile output (`copy/generated/`) becomes per-locale `Localizable.xcstrings`
 - `settings-schema/schema.json` gains a `uiLanguages` enum, generated from the
   catalog's selectable locales, with endonym labels plus the `uiLanguage`
   setting entry. `settings:check` keeps the two in lockstep.
-- `sanitize()` accepts `system` or a selectable locale. A stored value naming
-  a hidden or removed language is **kept on disk** but resolves to English, so
-  hiding a language never destroys a user's choice.
+- **One writer.** `uiLanguage` is **not** admitted by `sanitize()`, so the
+  generic `pages:settings:set` path (`pages.js:352`), and any other
+  `setSettings()` caller, cannot change it. It is written only by a dedicated
+  `settings.setUiLanguage(code)`, following the existing
+  `setSupporter()`/`setPatron()` pattern of fields kept outside the whitelist.
+  It accepts `system` or a currently selectable locale and persists with an
+  immediate flush. The language-transition service described under
+  [Settings picker and relaunch](#settings-picker-and-relaunch) is its only
+  caller.
+- **Stored values survive hiding.** Load-time normalization keeps any stored
+  value that is `system` or a well-formed language code (`^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$`),
+  even one naming a hidden or removed language, and resets only malformed
+  values to `system`. So hiding a language never destroys a user's choice; how
+  a stored hidden language renders is set by the resolver below.
 
 ### Resolving the active language
 
@@ -253,10 +279,20 @@ Electron import, so it is unit-testable; a thin wrapper reads Electron.
 resolveLocale({ setting, preferred, selectable }) → { locale, dir, source }
 ```
 
-- `setting` is a selectable locale → that locale (`source: "setting"`).
-- Otherwise (`"system"`, or a stored hidden language) → the first entry of
-  `app.getPreferredSystemLanguages()` whose primary subtag matches a
-  selectable locale (`de-AT` → `de`). If none matches → `en`.
+Three distinct branches, in order:
+
+1. `setting` is a selectable locale → that locale (`source: "setting"`).
+2. `setting` is `"system"` → the first entry of
+   `app.getPreferredSystemLanguages()` whose primary subtag matches a
+   selectable locale (`de-AT` → `de`). If none matches → `en`
+   (`source: "system"`).
+3. `setting` is any other stored value (a hidden or removed language) → `en`
+   (`source: "unavailable"`). It never falls through to System resolution:
+   the user pinned a specific language, so Blanc must not quietly substitute
+   a different non-English one. The stored value is untouched, so the choice
+   comes back if that language becomes selectable again. While it is in
+   effect, the picker shows **English** as the current value with no relaunch
+   prompt.
 - It runs once, at `ready`, before the first window is created. The result is
   frozen for the life of the process (`activeLocale()`). No code path
   re-resolves it. That is what makes relaunch-to-apply sound.
@@ -373,22 +409,34 @@ and is out of scope. If a future need arises, it gets its own privacy review.
   `chrome:blocking-provider` (`main.js:7297`). Page Leave/Stay prompts still
   win, and a cancelled relaunch leaves the setting saved for the next launch.
   Choosing the value that matches the current language shows nothing.
+- **One language-transition service** (`changeUiLanguage(code, { restart })`
+  in `src/main/i18n.js`, wired from `main.js`) owns the whole transition:
+  validate against the selectable set, `settings.setUiLanguage()`, confirm the
+  flush succeeded (restoring the previous value and returning `false` if not),
+  then call `restartApp()` when `restart` is true and the new value resolves
+  differently from this launch's language. Every entry point calls it; none
+  writes the setting directly.
 - `pages:settings:get` gains `uiLanguage`, the selectable list
-  (`{ code, endonym }`), and the resolved `activeLanguage`. Writes go through
-  a new settings-host-only `pages:settings:language` handler (`(code, restart)
-  → boolean`), mirroring `chrome:blocking-provider`. The preload,
-  `pages.js` handler and `browser-api/bridges.json` change together, then
-  `npm run browser-api:build` and `npm run audit-inventory:write`.
+  (`{ code, endonym }`), and the resolved `activeLanguage`. The only renderer
+  write path is a new settings-host-only `pages:settings:language` handler
+  (`(code, restart) → boolean`) that calls the transition service. Because
+  `sanitize()` does not admit `uiLanguage`, a `uiLanguage` field in a
+  `pages:settings:set` patch is silently dropped like any other unknown key.
+  The preload, `pages.js` handler and `browser-api/bridges.json` change
+  together, then `npm run browser-api:build` and
+  `npm run audit-inventory:write`.
 
 ### Layout and CSS
 
 - German overflow is fixed with existing patterns: ellipsis plus a full-text
-  `title`, wrapping where the surface allows, and `maxLength` on the tightest
-  slots. Type is never shrunk.
+  `title`, or wrapping where the surface allows. `maxLength` lints the static
+  slots; containment handles everything dynamic. Type is never shrunk.
 - `permissionViewBounds()` (`main.js:2963`) assumes a two-line prompt at a
-  fixed 84 px. It is re-measured against the longest German prompt and either
-  kept with a `maxLength` on the prompt keys or derived from the rendered
-  height.
+  fixed 84 px. The host name is dynamic, so a `maxLength` cannot make it fit.
+  The prompt must contain its text (the host truncated with an ellipsis, the
+  full host in `title`) or derive the view height from the rendered height.
+  The choice is made in phase 2 against the longest German prompt and a long
+  host.
 - CSS that an extraction PR touches moves to logical properties
   (`margin-inline-start`, `inset-inline-end`, `text-align: start`). There is no
   sweep over untouched CSS; that belongs to the future RTL project.
@@ -421,8 +469,10 @@ reviewer would otherwise make:
    languages it warns, so the extraction phases can land incrementally.
 2. **`npm run copy:status -- de`** lists missing and stale keys, with their
    English and `note`, as the agent's worklist.
-3. **`npm run copy:build`** stamps the `source` hashes and regenerates the
-   runtime and mobile files.
+3. **`npm run copy:ack -- de <keys…>`** acknowledges exactly the entries the
+   agent has just translated or confirmed, advancing their `source` hash.
+   **`npm run copy:build`** then regenerates the runtime and mobile files. It
+   never touches `source`.
 4. **Mechanical checks** (`copy:check`):
    - placeholder names and plural branches match English (`other` is always
      present)
@@ -431,7 +481,8 @@ reviewer would otherwise make:
      verbatim in the translation
    - for every glossary `terms` entry present in the English, the translation
      contains its `stem`
-   - `maxLength` holds for every branch
+   - `maxLength` holds for every branch's literal text (a lint; see the
+     catalog section)
    - no translation is identical to its English, except entries whose English
      consists only of fixed terms, symbols or placeholders, or that appear in a
      small `sameAsSource` allowlist
@@ -535,10 +586,25 @@ last.
 - **`resolveLocale`:**
   - an explicit setting
   - `system` with `de-AT`, `de-CH`, `fr-FR`, then `de`, and an empty list
-  - a stored hidden locale
+  - a stored hidden or removed locale resolves to `en` with `source:
+    "unavailable"` even when the preferred list contains a selectable locale
+    (stored `fr`, preferred `de-DE`, `de` selectable → `en`, not `de`)
   - the formatting-locale composition with and without a region
-- **Settings:** `sanitize` keeps a hidden stored value, rejects unknown values,
-  and `uiLanguage` is absent from `SYNCED_KEYS`.
+- **Settings:**
+  - `sanitize()` drops `uiLanguage`, so `setSettings({ uiLanguage: 'de' })` and
+    a `pages:settings:set` patch carrying it leave the stored value unchanged
+  - `setUiLanguage()` accepts `system` and selectable locales only, and flushes
+  - load-time normalization keeps a well-formed hidden value and resets a
+    malformed one to `system`
+  - `uiLanguage` is absent from `SYNCED_KEYS`
+- **Language-transition service:** a failed flush restores the previous value
+  and returns `false` without restarting; `restart: false` never restarts;
+  `restart: true` restarts only when the resolved language changes.
+- **`copy:ack` and staleness:**
+  - `copy:build` and `copy:check` leave every `source` byte-identical (run
+    build on a catalog with a stale entry and assert it is still stale)
+  - `copy:ack` advances only the named keys and refuses unknown keys
+  - changing only an English `note` makes the translation stale
 - **Protocol mapping:** `/strings.js` resolves to the active locale's file in
   both handlers; nothing else changes resolution; traversal and query
   attempts still 404.
@@ -564,8 +630,10 @@ covers the schema.
     "en"`, everything renders English.
   - **Picker relaunch:** choosing Deutsch shows Relaunch to apply. After a
     relaunch the UI is German and the setting persisted.
-  - **Hidden fallback:** a stored hidden locale renders English and keeps the
-    stored value.
+  - **Unavailable pinned language:** with system languages `de-DE`, German made
+    selectable by the test override, and a stored `uiLanguage` of `fr` (not in
+    the catalog), the UI renders **English**, not German, and the stored `fr`
+    is still in `settings.json` after quit.
   - **Websites unaffected:** `Accept-Language` sent to a local test server is
     unchanged by `uiLanguage`.
 
