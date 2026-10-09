@@ -3315,6 +3315,13 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   letter-spacing: 0;
   text-transform: none;
 }
+/* Private tabs: the date becomes a dashed "Private tab" capsule, matching the
+   island's private chip and outline. */
+.start-brand-date.private {
+  padding: 3px 10px;
+  border: 1px dashed currentColor;
+  border-radius: var(--radius-full);
+}
 .fav .name { font-size: 14px; line-height: 1.45; font-weight: 450; letter-spacing: 0; }
 .fav .host,
 .group-row .gcount,

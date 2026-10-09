@@ -591,7 +591,7 @@
     primary.className = 'row-primary';
     // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
     // The word a person hears is quiet; the field name stays internal.
-    const parts = [label, tabDomain(tab), tab.asleep ? 'quiet' : ''].filter(Boolean);
+    const parts = [label, tabDomain(tab), tab.asleep ? 'quiet' : '', tab.private ? 'private' : ''].filter(Boolean);
     primary.setAttribute('aria-label', `Switch to ${parts.join(', ')}`);
     primary.append(faviconWrap, title);
     primary.addEventListener('click', () => {
@@ -599,13 +599,6 @@
       window.browserAPI.closeOverlay();
     });
     row.append(primary);
-
-    if (tab.private) {
-      const tag = document.createElement('span');
-      tag.className = 'row-private';
-      tag.textContent = 'private';
-      row.append(tag);
-    }
 
     // Quiet is dim-only (the row's `quiet` class + the aria word above); no
     // per-row marker — see docs/superpowers/specs/2026-08-18-quiet-marker-
@@ -654,6 +647,16 @@
         if (changed) window.browserAPI.closeOverlay();
       });
       row.append(glance);
+    }
+
+    // The private tag sits beside ✕ (always present) so it holds one column
+    // across rows; ahead of the hover-only actions it would shift with them.
+    if (tab.private) {
+      const tag = document.createElement('span');
+      tag.className = 'row-private';
+      tag.textContent = 'private';
+      tag.setAttribute('aria-hidden', 'true');
+      row.append(tag);
     }
 
     const close = document.createElement('button');
