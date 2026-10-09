@@ -859,7 +859,8 @@ function install(refs) {
         const content = [...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
           .map((element) => ({ selector: element.id ? '#' + element.id : element.className || element.tagName, rect: rect(element) }))
           .filter((entry) => entry.rect);
-        const patron = rootEl.querySelector(':scope > .js-patron-callout');
+        const patron = document.getElementById('patronCallout');
+        const footerLeft = document.querySelector('#layoutFooter .footer-left');
         const root = document.documentElement;
         return {
           layout,
@@ -870,8 +871,10 @@ function install(refs) {
           shell,
           content,
           footer: rect(document.getElementById('layoutFooter')),
-          patronLast: rootEl.lastElementChild === patron,
+          patronInLayout: !!rootEl.querySelector('.js-patron-callout'),
+          patronInFooterLeft: !!patron && patron.parentElement === footerLeft,
           patronVisible: !!patron && !patron.hidden && !!rect(patron),
+          patron: patron && !patron.hidden ? rect(patron) : null,
           emptyHints: [...rootEl.querySelectorAll('.start-empty-hint')].filter((element) => rect(element)).length,
         };
       })()`);
@@ -956,6 +959,22 @@ function install(refs) {
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
       };
+    },
+    setPatronCalloutDismissedAt(ms) {
+      settings.setSettings({ patronCalloutDismissedAt: Number(ms) });
+      return settings.getSettings().patronCalloutDismissedAt;
+    },
+    patronCalloutDismissedAt() { return settings.getSettings().patronCalloutDismissedAt; },
+    clickPatronCalloutClose() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const btn = document.getElementById('patronCalloutHide');
+        if (!btn || btn.closest('[hidden]')) return false;
+        btn.click();
+        return document.getElementById('patronCallout').hidden;
+      })()`);
     },
     setMigrationChecklistProgress(syncComplete, tabsComplete) {
       settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });

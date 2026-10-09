@@ -1237,30 +1237,36 @@ a.ledger-label:hover { color: var(--accent); }
 .cluster i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
 
 
-/* Quiet Patron chip — the last item of every informational layout, hidden
-   for Patrons and in private tabs. Outlined in Sunrise gold with no fill, so
-   it never outweighs the layout's own content. */
-.js-patron-callout { margin: 0; font-family: var(--font-ui); font-size: 12px; }
-.js-patron-callout a {
+/* Quiet Patron pill on the footer's left, hidden for Patrons, in private
+   tabs, and for 90 days after it is closed. Outlined in Sunrise gold with no
+   fill, so it never outweighs the page; its × matches the checklist pill's. */
+.js-patron-callout {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 32px;
-  padding: 4px 12px 4px 8px;
+  min-height: 28px;
   border: 1px solid color-mix(in srgb, var(--patron-gold) 60%, transparent);
   border-radius: 999px;
   background: transparent;
-  color: var(--text);
   font-family: var(--font-ui);
-  font-weight: 600;
-  text-decoration: none;
   transition: border-color 120ms ease;
 }
-.js-patron-callout a:hover { color: var(--text); background: transparent; border-color: var(--patron-gold); }
+.js-patron-callout[hidden] { display: none; }
+.js-patron-callout:hover { border-color: var(--patron-gold); }
+.js-patron-callout a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 4px 3px 7px;
+  border-radius: 999px 0 0 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.js-patron-callout a:hover { color: var(--text); background: transparent; }
 .js-patron-callout a:focus-visible {
   outline: 1px solid var(--text-dim);
-  outline-offset: 4px;
-  border-radius: 999px;
+  outline-offset: 0;
 }
 .patron-cta-mark {
   width: 16px;
@@ -1268,15 +1274,6 @@ a.ledger-label:hover { color: var(--accent); }
   flex: 0 0 auto;
   object-fit: contain;
 }
-.patron-cta-arrow {
-  color: var(--patron-gold);
-  transition: transform 120ms ease;
-}
-.js-patron-callout a:hover .patron-cta-arrow { transform: translateX(2px); }
-.ledger-patron { margin-top: 50px; }
-.bb-patron { margin-top: 28px; text-align: center; }
-.shelf-patron { margin-top: 20px; }
-.tally-patron { margin-top: 28px; }
 
 /* A single moving-in checklist replaces the separate Sync and tab-import
    promos. It is a footer pill beside Customize whose popover holds the full
@@ -1338,7 +1335,7 @@ a.ledger-label:hover { color: var(--accent); }
 }
 .migration-task:hover { background: transparent; border-color: transparent; color: var(--text); }
 .migration-task:focus-visible,
-.migration-checklist-hide:focus-visible,
+.start-pill-close:focus-visible,
 .migration-checklist-compact:focus-visible {
   outline: 1px solid var(--text-dim);
   outline-offset: 3px;
@@ -1382,9 +1379,7 @@ a.ledger-label:hover { color: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .js-patron-callout a { transition: none; }
-  .patron-cta-arrow { transition: none; }
-  .js-patron-callout a:hover .patron-cta-arrow { transform: none; }
+  .js-patron-callout { transition: none; }
   .migration-checklist { transition: none; }
   .migration-checklist-shell.is-completing,
   .migration-checklist-shell.is-completing .migration-checklist { animation: none; }
@@ -2430,7 +2425,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   margin: 0;
   padding: 0;
 }
-.footer-left { display: inline-flex; align-items: baseline; gap: 8px; }
+.footer-left { display: inline-flex; align-items: center; gap: 8px; }
 .footer-right { display: inline-flex; align-items: baseline; gap: 16px; white-space: nowrap; }
 #mahjongLink { color: var(--text-dim); text-decoration: none; }
 #mahjongLink:hover { color: var(--text); text-decoration: underline; }
@@ -2810,7 +2805,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .group-row .gcount { color: var(--text-dim); }
 .group-row .gname { font-family: var(--font-ui); }
 .cluster i { background: var(--accent); }
-.ledger-patron { margin-top: 34px; }
 
 
 /* Billboard: a centered clock and recents composition, set slightly above
@@ -2835,7 +2829,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-fav .tile.has-icon { background-size: 26px; }
 .bb-fav .label { font-family: var(--font-ui); font-size: 11px; }
 .bb-groups { margin-top: 24px; }
-.bb-patron { margin-top: 20px; }
 
 /* Shelf: dense, modular cards with enough space on wide screens for the
    shared moving-in checklist at the right edge. */
@@ -2848,7 +2841,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf-tile .host { font-family: var(--font-ui); }
 .shelf-count { font-family: var(--font-ui); font-size: 32px; color: var(--accent); }
 .shelf-unit { font-family: var(--font-ui); }
-.shelf-patron { margin-top: 16px; }
 
 /* Tally: readable lists on the left, data on the right, and a reserved lower
    right zone for the migration checklist. */
@@ -3071,7 +3063,6 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 }
 .tally-left,
 .tally-right { position: static; width: auto; margin: 0; padding: 0; }
-.tally-patron { grid-column: 1 / -1; margin-top: 0; }
 @media (max-width: 900px) {
   #layoutTally { grid-template-columns: minmax(0, 1fr); }
   .tally-right { order: -1; }
@@ -3108,7 +3099,7 @@ body[data-layout="tally"] #layoutTally { display: grid; }
 .migration-checklist-compact:hover,
 .migration-checklist-compact[aria-expanded="true"] { color: var(--text); background: transparent; }
 .migration-compact-label { white-space: nowrap; }
-.migration-checklist-hide {
+.start-pill-close {
   display: inline-grid;
   place-items: center;
   width: 22px;
@@ -3121,20 +3112,20 @@ body[data-layout="tally"] #layoutTally { display: grid; }
   color: var(--text-dim);
   cursor: pointer;
 }
-.migration-checklist-hide:hover {
+.start-pill-close:hover {
   border-color: transparent;
   background: color-mix(in srgb, var(--text) 8%, transparent);
   color: var(--text);
 }
-.migration-checklist-hide svg {
+.start-pill-close svg {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
   stroke-linecap: round;
 }
-.migration-checklist-shell.is-completing .migration-checklist-hide { visibility: hidden; }
+.migration-checklist-shell.is-completing .start-pill-close { visibility: hidden; }
 .migration-checklist-compact:focus-visible,
-.migration-checklist-hide:focus-visible { outline-offset: 0; }
+.start-pill-close:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
 .migration-checklist {
   position: fixed;
   position-anchor: --start-checklist;
@@ -3376,7 +3367,7 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .migration-checklist-shell,
   .migration-checklist,
   .layout-thumb,
-  .js-patron-callout a { border-color: var(--text-dim); }
+  .js-patron-callout { border-color: var(--text-dim); }
 }
 
 /* Motion: settle without overshoot, grow from the source, leave the frame
@@ -3417,16 +3408,16 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
 .group-chip,
 .layout-preview,
 .start-customize,
-.js-patron-callout a { transition: transform 120ms var(--start-ease), border-color 120ms ease; }
+.js-patron-callout { transition: transform 120ms var(--start-ease), border-color 120ms ease; }
 .shelf-tile:hover { transform: translateY(-1px); }
+.js-patron-callout:has(> a:active),
+.migration-checklist-shell:has(> .migration-checklist-compact:active),
 .fav:active,
 .bb-fav:active,
 .shelf-tile:active,
 .group-chip:active,
 .layout-preview:active,
-.start-customize:active,
-.migration-checklist-shell:has(> .migration-checklist-compact:active),
-.js-patron-callout a:active { transform: scale(0.98); transition-duration: 0ms; }
+.start-customize:active { transform: scale(0.98); transition-duration: 0ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .start-customize-popover,
@@ -3445,7 +3436,7 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   .layout-preview:active,
   .start-customize:active,
   .migration-checklist-shell:has(> .migration-checklist-compact:active),
-  .js-patron-callout a:active { transform: none; }
+  .js-patron-callout:has(> a:active) { transform: none; }
   .ledger-footer::before { transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3485,7 +3476,6 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
 .ledger-spread:not(:has(.ledger-col-secondary > section:not([hidden]))) .ledger-col-secondary { display: none; }
 .ledger-col > .ledger-section:first-child,
 .ledger-col > .ledger-section[hidden] + .ledger-section { margin-top: 0; }
-.ledger-patron { margin-top: 34px; }
 .group-row .cluster { flex: 0 0 46px; width: 46px; justify-content: flex-end; }
 @media (max-width: 900px) {
   .ledger-spread { grid-template-columns: minmax(0, 1fr); }
@@ -3520,7 +3510,6 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 #layoutShelf[data-columns="3"] .shelf-card-groups { grid-column: span 2; }
 #layoutShelf[data-columns="4"] .shelf-card-groups { grid-column: span 3; }
 #layoutShelf:has(.shelf-card-blocked[hidden]) .shelf-card-groups { grid-column: 1 / -1; }
-.shelf-patron { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
 .shelf-tile { min-height: 92px; padding: 14px; gap: 12px; }
 .shelf-card { min-height: 0; padding: 14px; }
 @media (max-width: 760px) {

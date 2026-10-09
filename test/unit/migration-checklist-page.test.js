@@ -17,7 +17,7 @@ test('start page carries one shared accessible migration checklist', () => {
   assert.match(html, /id="migrationTabsAction"[^>]*href="blanc:\/\/tab-import\/"[\s\S]*?Bring your tabs/);
   assert.match(html, /id="migrationChecklistCompact"[^>]*popovertarget="migrationChecklist"[^>]*aria-expanded="false">\s*<span id="migrationChecklistLabel" class="migration-compact-label">Finish setup<\/span>\s*<\/button>/,
     'the pill is plain sentence-case text, with no progress ring');
-  assert.match(html, /<\/button>\s*<button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">\s*<svg [^>]*aria-hidden="true"/,
+  assert.match(html, /<\/button>\s*<button id="migrationChecklistHide" class="start-pill-close" type="button" aria-label="Hide moving-in checklist">\s*<svg [^>]*aria-hidden="true"/,
     'the pill ends in its own close button');
   const popover = html.match(/<aside id="migrationChecklist" class="migration-checklist" popover role="dialog"[\s\S]*?<\/aside>/)?.[0] ?? '';
   assert.ok(popover, 'the full checklist is a popover dialog');
@@ -26,26 +26,29 @@ test('start page carries one shared accessible migration checklist', () => {
   assert.doesNotMatch(html, /style="/);
 });
 
-test('every start-page template names the Blanc Patron upgrade as an action', () => {
+test('one footer Patron pill names the upgrade and can be closed', () => {
   const html = read('src/renderer/pages/newtab.html');
   const css = read('src/renderer/pages/pages.css');
   const tokens = JSON.parse(read('tokens/tokens.json'));
-  const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Upgrade to Blanc Patron<\/span><span class="patron-cta-arrow" aria-hidden="true">→<\/span><\/a>/g) ?? [];
+  const ctas = html.match(/<a href="blanc:\/\/settings\/#group-patron"><img class="patron-cta-mark" src="sunrise-mark\.png" alt="" \/><span>Upgrade to Blanc Patron<\/span><\/a>/g) ?? [];
 
-  assert.equal(ctas.length, 4, 'Ledger, Billboard, Shelf, and Tally share the explicit Patron CTA');
+  assert.equal(ctas.length, 1, 'one Patron upgrade serves every layout');
+  assert.doesNotMatch(html, /patron-cta-arrow|ledger-patron|bb-patron|shelf-patron|tally-patron/);
   assert.doesNotMatch(html, />Support Blanc</);
-  const chip = css.match(/\.js-patron-callout a \{([\s\S]*?)\n\}/)?.[1] ?? '';
+  const footer = html.match(/<footer id="layoutFooter"[\s\S]*?<\/footer>/)[0];
+  assert.match(footer, /<span class="footer-left">\s*<span id="footerLeft"><\/span>\s*<span id="version" class="ledger-version"><\/span>\s*<span id="patronCallout" class="patron-pill js-patron-callout" hidden>/,
+    'the pill follows the version on the footer\'s left');
+  assert.match(footer, /<\/a>\s*<button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days">/);
+  const chip = css.match(/\.js-patron-callout \{([\s\S]*?)\n\}/)?.[1] ?? '';
   assert.match(chip, /border: 1px solid color-mix\(in srgb, var\(--patron-gold\) 60%, transparent\);/,
-    'the upgrade is an outlined chip edged in Sunrise gold');
+    'the upgrade is an outlined pill edged in Sunrise gold');
   assert.match(chip, /border-radius: 999px;/);
-  assert.match(chip, /background: transparent;/, 'the chip carries no fill');
-  assert.match(chip, /color: var\(--text\);/);
+  assert.match(chip, /background: transparent;/, 'the pill carries no fill');
   assert.match(css, /\.patron-cta-mark \{[\s\S]{0,180}?width: 16px;[\s\S]{0,180}?height: 16px;/);
-  assert.match(css, /\.patron-cta-arrow \{[\s\S]{0,100}?color: var\(--patron-gold\);/);
-  const hover = css.match(/\.js-patron-callout a:hover \{([\s\S]*?)\}/)?.[1] ?? '';
+  const hover = css.match(/\.js-patron-callout:hover \{([\s\S]*?)\}/)?.[1] ?? '';
   assert.match(hover, /border-color: var\(--patron-gold\);/);
   assert.doesNotMatch(hover, /transform|padding|font-size|min-height|border-width/,
-    'hover cannot resize or move the chip');
+    'hover cannot resize or move the pill');
   assert.match(css, /--patron-gold: #d4ad66;/i);
   assert.equal(tokens.tokens.find((entry) => entry.name === 'patron-gold')?.consumers?.[0], 'pages');
   for (const name of ['patron-surface', 'patron-label', 'patron-halo']) {
@@ -88,8 +91,9 @@ test('moving-in checklist uses Newsreader and Inter without handwritten styling'
 test('checklist dismissal is a round close button at the pill\'s end', () => {
   const css = read('src/renderer/pages/pages.css');
 
-  assert.match(css, /\.migration-checklist-hide \{[^}]*width: 22px;[^}]*height: 22px;[^}]*border-radius: 50%;/s);
-  assert.match(css, /\.migration-checklist-shell\.is-completing \.migration-checklist-hide \{ visibility: hidden; \}/,
+  assert.match(css, /\.start-pill-close \{[^}]*width: 22px;[^}]*height: 22px;[^}]*border-radius: 50%;/s,
+    'the checklist and Patron pills share one round close button');
+  assert.match(css, /\.migration-checklist-shell\.is-completing \.start-pill-close \{ visibility: hidden; \}/,
     'the close button steps aside while the pill confirms completion');
   assert.doesNotMatch(css, /margin: 7px 0 0 87px/, 'the in-popover hide link is gone');
 });

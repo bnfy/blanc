@@ -54,19 +54,18 @@ test('the checklist is a footer pill with an anchored popover', () => {
     'no per-layout checklist offsets remain');
 });
 
-test('each layout ends with the Patron chip', () => {
+test('layouts no longer carry their own Patron chip', () => {
   const html = read('src/renderer/pages/newtab.html');
-  const mains = html.match(/<main [\s\S]*?<\/main>/g);
-  assert.equal(mains.length, 4);
-  for (const main of mains) {
-    assert.match(main, /<p [^>]*class="[^"]*js-patron-callout[^"]*" hidden>\s*<a [^>]*>[\s\S]*?<\/a>\s*<\/p>\s*<\/main>$/,
-      `${main.slice(0, 60)}… ends with its Patron chip`);
+  for (const main of html.match(/<main [\s\S]*?<\/main>/g)) {
+    assert.doesNotMatch(main, /js-patron-callout/, `${main.slice(0, 60)}… leaves the upgrade to the footer`);
   }
 });
 
 test('private tabs never show the Patron chip or blocked counts', () => {
   const js = read('src/renderer/pages/newtab.js');
-  assert.match(js, /function renderPatronCallout\(patronActive\) \{[\s\S]*?const hide = !!patronActive \|\| isPrivate;/);
+  assert.match(js, /function renderPatronCallout\(\) \{[\s\S]*?const hide = patronCallout\.active \|\| patronCallout\.snoozed \|\| isPrivate;/);
+  assert.match(js, /patronCalloutHide\.addEventListener\('click', \(\) => \{\s*patronCallout\.snoozed = true;\s*renderPatronCallout\(\);\s*window\.bowserPages\?\.start\.dismissPatronCallout\(\)/,
+    'closing hides the pill at once, then main records the 90-day snooze');
   assert.match(js, /document\.getElementById\('shBlocked'\)\.closest\('\.shelf-card'\)\.hidden = isPrivate;/);
   assert.match(js, /document\.querySelector\('\.tally-right'\)\.hidden = isPrivate;/);
 });

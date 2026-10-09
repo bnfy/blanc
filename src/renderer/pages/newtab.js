@@ -119,14 +119,28 @@ function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   }, state.onboarding);
 }
 
-// Quiet Patron chip — one per layout, always its layout's last item. Hidden
-// for Patrons and, whatever the Patron state, in private tabs: a private
-// window is never a place to sell. Driven from both the initial
-// pages:start:data load and every later pages:start:status push.
-function renderPatronCallout(patronActive) {
-  const hide = !!patronActive || isPrivate;
-  for (const el of document.querySelectorAll('.js-patron-callout')) el.hidden = hide;
+// Quiet Patron pill on the footer's left. Hidden for Patrons, for 90 days
+// after it is closed (main owns that clock), and, whatever the Patron state,
+// in private tabs: a private window is never a place to sell. Driven from
+// both the initial pages:start:data load and every later pages:start:status
+// push.
+const patronCalloutEl = document.getElementById('patronCallout');
+const patronCalloutHide = document.getElementById('patronCalloutHide');
+const patronCallout = { active: false, snoozed: false };
+function renderPatronCallout() {
+  const hide = patronCallout.active || patronCallout.snoozed || isPrivate;
+  patronCalloutEl.hidden = hide;
 }
+function applyPatronStatus(status) {
+  if ('patronActive' in status) patronCallout.active = !!status.patronActive;
+  if ('patronCalloutSnoozed' in status) patronCallout.snoozed = !!status.patronCalloutSnoozed;
+  renderPatronCallout();
+}
+patronCalloutHide.addEventListener('click', () => {
+  patronCallout.snoozed = true;
+  renderPatronCallout();
+  window.bowserPages?.start.dismissPatronCallout().catch(() => {});
+});
 
 // Main owns durable checklist progress; this renderer only reflects that
 // projection. The one local exception is the 1.5 s final confirmation, which
@@ -788,7 +802,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   topSitesOffset = state.topSites.length;
   topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
-  renderPatronCallout(data.patronActive);
+  applyPatronStatus(data);
   renderMigrationChecklist(data.migrationChecklist ?? null);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
@@ -813,7 +827,7 @@ window.bowserPages?.start.onStatus((status) => {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
-  if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
+  if (status) applyPatronStatus(status);
   if (status && 'migrationChecklist' in status) {
     renderMigrationChecklist(status.migrationChecklist ?? null);
   }

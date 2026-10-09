@@ -296,6 +296,7 @@ From the desktop `DEFAULTS`:
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `migrationChecklistDismissed` | `false` | desktop-only boolean set when the moving-in checklist is hidden; device-local, never synced |
+| `patronCalloutDismissedAt` | `0` | desktop-only time (ms) the start page's Patron pill was last closed; it stays hidden for 90 days; device-local, never synced |
 | `syncMigrationCompleted` | `false` | desktop-only boolean set once Sync credentials persist, including for already-enabled profiles; device-local, never synced |
 | `tabImportCompleted` | `false` | desktop-only boolean set after a Bring Your Tabs apply succeeds; device-local, never synced |
 | `usagePing` | `true` | boolean (F21) |
@@ -805,6 +806,9 @@ From the desktop `DEFAULTS`:
   Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron upgrade and no blocked counts.
+- Non-Patron, non-private start pages show one "Upgrade to Blanc Patron" pill
+  on the footer's left, after the version, on every layout. The × at its end
+  hides it on that device for 90 days, after which it returns.
 - After first run, Personal non-private start pages show one moving-in
   checklist on ledger, billboard, shelf, and tally: a "Finish setup" pill in
   the footer just before Customize, whose popover opens upward with the full

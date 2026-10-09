@@ -547,6 +547,8 @@ function setupPages(hooks = {}) {
   // the allowlist) and persist a one-time dismissal.
   handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
   handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
+  // Patron upgrade pill: closing it snoozes it for 90 days (main owns the clock).
+  handle('pages:start:patron-callout-dismiss', 'newtab', () => hooks.startPage?.dismissPatronCallout?.() === true);
 
   // Standalone games invoke from their exact top-level document.
   handleEvent('pages:mahjong:played', ['mahjong'], (event) =>

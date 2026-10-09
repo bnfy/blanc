@@ -579,17 +579,52 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
   }
 });
 
-Then('every start-page layout ends with a visible Patron upgrade', async function () {
+const PATRON_SNOOZE_MS = 90 * 24 * 60 * 60 * 1000;
+
+Given('the Patron upgrade has never been closed', async function () {
+  assert.equal(await this.call('setPatronCalloutDismissedAt', 0), 0);
+});
+
+Then('every start-page layout shows the Patron upgrade on the footer\'s left', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
     assert.equal(await this.call('setNewtabLayout', layout), layout);
     const frame = await waitForValue(
       () => this.call('readStartFrameGeometry'),
-      (value) => value?.layout === layout,
-      `${layout} frame`,
+      (value) => value?.layout === layout && value.patronVisible === true,
+      `${layout} frame with the Patron upgrade`,
     );
-    assert.equal(frame.patronLast, true, `${layout} ends with the Patron chip`);
-    assert.equal(frame.patronVisible, true, `${layout} shows the Patron chip`);
+    assert.equal(frame.patronInLayout, false, `${layout} carries no Patron chip of its own`);
+    assert.equal(frame.patronInFooterLeft, true, `${layout} shows the Patron upgrade on the footer's left`);
+    assert.ok(frame.patron.top >= frame.footer.top - 1 && frame.patron.bottom <= frame.footer.bottom + 1,
+      `${layout}: Patron pill ${JSON.stringify(frame.patron)} leaves the footer ${JSON.stringify(frame.footer)}`);
   }
+});
+
+When('I close the Patron upgrade', async function () {
+  const before = Date.now();
+  assert.equal(await this.call('clickPatronCalloutClose'), true, 'the pill hides as soon as it is closed');
+  const closedAt = await waitForValue(
+    () => this.call('patronCalloutDismissedAt'),
+    (value) => value >= before,
+    'the close time to be saved',
+  );
+  assert.ok(closedAt <= Date.now());
+});
+
+Then('the Patron upgrade stays hidden on a new tab', async function () {
+  await this.call('newTab');
+  const frame = await waitForValue(
+    () => this.call('readStartFrameGeometry'),
+    (value) => value?.layout && value.content.length > 0,
+    'a new start page',
+  );
+  assert.equal(frame.patronVisible, false);
+});
+
+When('{int} days pass since the Patron upgrade was closed', async function (days) {
+  assert.equal(days * 24 * 60 * 60 * 1000, PATRON_SNOOZE_MS, 'the scenario names the shipped snooze');
+  const longAgo = Date.now() - PATRON_SNOOZE_MS - 60_000;
+  assert.equal(await this.call('setPatronCalloutDismissedAt', longAgo), longAgo);
 });
 
 Then('no start-page layout shows the Patron upgrade or a blocked count', async function () {

@@ -56,10 +56,6 @@
           </section>
         </div>
       </div>
-
-      <p id="patron-callout" class="ledger-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
 
     <!-- The three alternative layouts (design system, "New tab v2" handoff).
@@ -75,9 +71,6 @@
       <div id="bbFavorites" class="bb-favs"></div>
       <div id="bbTopSitesStatus" class="page-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="bbGroups" class="bb-groups"></div>
-      <p class="bb-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
 
     <main class="shelf" id="layoutShelf">
@@ -96,9 +89,6 @@
           </div>
         </div>
       </div>
-      <p class="shelf-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
 
     <main class="tally" id="layoutTally">
@@ -116,9 +106,6 @@
         <div id="tlDays" class="tally-days"></div>
         <div id="tlCaption" class="tally-caption"></div>
       </div>
-      <p class="tally-patron js-patron-callout" hidden>
-        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span><span class="patron-cta-arrow" aria-hidden="true">→</span></a>
-      </p>
     </main>
     <div id="startContentEnd" class="start-content-end" aria-hidden="true"></div>
   </div>
@@ -127,13 +114,19 @@
     <span class="footer-left">
       <span id="footerLeft"></span>
       <span id="version" class="ledger-version"></span>
+      <span id="patronCallout" class="patron-pill js-patron-callout" hidden>
+        <a href="blanc://settings/#group-patron"><img class="patron-cta-mark" src="sunrise-mark.png" alt="" /><span>Upgrade to Blanc Patron</span></a>
+        <button id="patronCalloutHide" class="start-pill-close" type="button" aria-label="Hide the Blanc Patron upgrade for 90 days">
+          <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
+        </button>
+      </span>
     </span>
     <span class="footer-appearance">
       <span id="migrationChecklistShell" class="migration-checklist-shell" hidden>
         <button id="migrationChecklistCompact" class="migration-checklist-compact" type="button" popovertarget="migrationChecklist" aria-expanded="false">
           <span id="migrationChecklistLabel" class="migration-compact-label">Finish setup</span>
         </button>
-        <button id="migrationChecklistHide" class="migration-checklist-hide" type="button" aria-label="Hide moving-in checklist">
+        <button id="migrationChecklistHide" class="start-pill-close" type="button" aria-label="Hide moving-in checklist">
           <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6"></path></svg>
         </button>
         <aside id="migrationChecklist" class="migration-checklist" popover role="dialog" aria-labelledby="migrationChecklistTitle" aria-live="polite">

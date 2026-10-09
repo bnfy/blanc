@@ -99,10 +99,16 @@ Feature: Start page layouts
     Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840
 
   @F35-11 @desktop
-  Scenario: The Patron upgrade sits in the same slot on every layout
+  Scenario: The Patron upgrade sits in the footer and closes for 90 days
     Given a profile that completed first run
+    And the Patron upgrade has never been closed
     When I open a new tab
-    Then every start-page layout ends with a visible Patron upgrade
+    Then every start-page layout shows the Patron upgrade on the footer's left
+    When I close the Patron upgrade
+    Then the Patron upgrade stays hidden on a new tab
+    When 90 days pass since the Patron upgrade was closed
+    And I open a new tab
+    Then every start-page layout shows the Patron upgrade on the footer's left
 
   @F35-12 @desktop
   Scenario: Private start pages never offer Patron or blocked counts
