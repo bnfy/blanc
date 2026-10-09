@@ -142,8 +142,7 @@ section's top edge at no more than about a quarter strength, is the section's
 only gradient; the symbol sits below its brightest point and is never backed
 by it. Keep the pricing separate with a fine rule; retain a light keyboard
 focus outline and mobile touch target of at least 48px. Avoid decorative
-badges, additional gradients, and animated ornament. The section may rise
-once into view under the homepage reveal rules below.
+badges, additional gradients, and animated ornament.
 
 The font is self-hosted through the pinned `@fontsource-variable/newsreader`
 package and loaded on the homepage. Its SIL Open Font License is included at
@@ -276,28 +275,14 @@ legal/social row. Navigation and utility links may use gold for hover, focus,
 and current-page states. Social/contact icons retain their original geometry
 and use bronze (`--site-gold`) at rest, changing to ink on hover or focus.
 
-### Horizon rule and lit surfaces
+### Horizon rule
 
 The footer seam on every page carries the horizon rule: a 1px gold
 (`--site-gold-on-dark`) hairline that fades out toward both edges, with a
 soft gold glow rising about 160px into the page above it at no more than
 about 30% strength. It replaces the footer's neutral top border. It is a
 decorative seam, not a focus indicator, and no mark, badge, or lockup may sit
-on the glow; the footer symbol remains ink on the warm surface below the line.
-
-The homepage demo showcase frame is lit from its top edge with a raised-to-
-surface (`--site-surface-raised` to `--site-surface`) gradient. The product
-replica inside it keeps its released colors.
-
-### Homepage reveal motion
-
-The homepage feature grid and the Patron section may rise once into view: a
-14px rise with a fade over 360ms, the grid's cards staggered by 70ms. The
-reveal state is added only by script, only when motion is welcome, and only
-for sections that start below the viewport, so server HTML, visitors without
-JavaScript, and reduced-motion visitors always see every section at rest. A
-revealed section never hides again. The hero mark, navigation, and footer
-have no entrance animation.
+on the glow; the footer's Sunrise symbol sits below the line.
 
 ### Homepage Sunrise mark
 

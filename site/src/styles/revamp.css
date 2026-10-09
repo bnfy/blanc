@@ -1,7 +1,30 @@
 .website-footer {
+  position: relative;
   background: #fff;
-  border-top: 1px solid var(--line);
   color: var(--dim);
+}
+/* The horizon rule: a gold hairline at the footer seam with a soft glow rising
+   into the page above it. It replaces the footer's neutral top border. It is a
+   decorative seam, not a focus indicator, and it never sits behind a mark. */
+.website-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 160px;
+  pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(212, 173, 102, 0.30), rgba(212, 173, 102, 0.08) 55%, transparent 100%);
+}
+.website-footer::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--site-gold-on-dark) 18%, var(--site-gold-on-dark) 82%, transparent);
 }
 .website-footer-inner {
   max-width: 1120px;
@@ -37,14 +60,6 @@
   outline: 2px solid var(--gold);
   outline-offset: 4px;
   border-radius: 2px;
-}
-.website-footer .footer-newsletter {
-  font-size: 11px;
-  line-height: 1.65;
-  display: inline-block;
-}
-.footer-newsletter span {
-  color: var(--ink);
 }
 .website-footer-grid nav {
   display: flex;
@@ -293,18 +308,11 @@ summary:focus-visible {
   max-width: 240px;
   margin: 0;
 }
-.website-footer .foot-news-label {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  text-transform: none;
-  letter-spacing: 0;
-}
 .website-footer .foot-news-controls {
   display: flex;
   align-items: center;
   gap: 7px;
   border-bottom: 1px solid #bdb4a5;
-  margin-top: 8px;
 }
 .website-footer .foot-news-controls input {
   min-width: 0;

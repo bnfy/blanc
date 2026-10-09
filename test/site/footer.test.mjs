@@ -94,6 +94,54 @@ test('footer fits every page and width with its controls inside the viewport', {
   } finally { await page.close(); }
 });
 
+// docs/brand-usage.md → Horizon rule: a 1px gold hairline at the seam and a
+// soft glow rising into the page above, in place of a neutral top border.
+test('a gold horizon rule marks the footer seam on every page profile without overflow', async () => {
+  const page = await openPage();
+  try {
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const [path, appearance] of [['/'], ['/', 'dark'], ['/features/island'], ['/privacy'], ['/mail']]) {
+        await page.goto(`${baseURL}${path}`);
+        if (appearance) await page.evaluate(value => { document.documentElement.dataset.homeAppearance = value; }, appearance);
+        const seam = await page.locator('#site-footer').evaluate(footer => {
+          const glow = getComputedStyle(footer, '::before');
+          const line = getComputedStyle(footer, '::after');
+          return {
+            position: getComputedStyle(footer).position,
+            border: getComputedStyle(footer).borderTopWidth,
+            glow: glow.backgroundImage,
+            // bottom: 100% resolves to the footer's height: the glow ends at the seam.
+            glowEndsAtSeam: Math.abs(parseFloat(glow.bottom) - footer.clientHeight) < 1,
+            glowHeight: parseFloat(glow.height),
+            line: line.backgroundImage,
+            lineHeight: line.height,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+          };
+        });
+        const message = `${width}px ${path}${appearance ? ` ${appearance}` : ''}`;
+        assert.equal(seam.position, 'relative', `${message}: the footer anchors its seam`);
+        assert.equal(seam.border, '0px', `${message}: the rule replaces the neutral top border`);
+        assert.match(seam.glow, /radial-gradient/, `${message}: glow`);
+        assert.equal(seam.glowEndsAtSeam, true, `${message}: the glow rises above the seam`);
+        assert.ok(seam.glowHeight >= 96, `${message}: glow height ${seam.glowHeight}`);
+        assert.match(seam.line, /linear-gradient\(90deg, .*rgb\(212, 173, 102\) 18%/, `${message}: gold line`);
+        assert.equal(seam.lineHeight, '1px', `${message}: the line is a hairline`);
+        assert.equal(seam.overflow, false, `${message}: no sideways scroll`);
+      }
+    }
+  } finally { await page.close(); }
+});
+
+test('the newsletter field keeps its label for screen readers only', async () => {
+  const page = await openPage();
+  try {
+    const label = page.locator('label[for="newsletterEmail"]');
+    assert.equal(await label.evaluate(el => el.getBoundingClientRect().width <= 1 && getComputedStyle(el).clip !== 'auto'), true);
+    assert.equal(await page.getByRole('textbox', { name: 'Updates from Blanc. Email address' }).count(), 1);
+  } finally { await page.close(); }
+});
+
 test('footer links take keyboard focus with a visible ring and the footer survives 200% zoom', async () => {
   const page = await openPage();
   try {

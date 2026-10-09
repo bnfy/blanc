@@ -8,23 +8,23 @@ sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
 island (index: the masthead is solid from the start, hides while scrolling down and returns on scroll up, rich OG), standard (masthead raised from the start), legal
 (privacy/terms: **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
-footer is one unified component on every page (flush-left stack: brand
-breadcrumb, full nav with the current page highlighted via `Astro.url`,
-newsletter, legal block, social row — email/Threads/Instagram/TikTok/GitHub). The masthead and its two mega menus are
-`components/Header.astro` fed by `src/data/navigation.mjs`; menu descriptions are
-the feature pages' own headlines and `test/unit/site-navigation.test.js` keeps
-them in step. `src/styles/site.css` is the one stylesheet
+footer is one unified component on every page (`components/Footer.astro`,
+`.website-footer`: Sunrise mark, tagline and newsletter, three link columns,
+then a legal and social row). Its top edge is the horizon rule — a gold
+hairline with a soft glow rising into the page above (`revamp.css`; see
+`docs/brand-usage.md`). The masthead is `components/Header.astro`, a single bar
+of direct links fed by `src/data/navigation.mjs` and kept in step by
+`test/unit/site-navigation.test.js`. Site-wide styles are `src/styles/site.css`
+plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
+(`home.css`, `features-bento.css`, `mail.css` …)
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
 Variable"`, the heading family is `"Newsreader Variable"` loaded in
 `BaseLayout.astro` with its italic imported only by `press.astro`; the
-display-headings rule at the end of the file is what makes every heading
+display-headings rule at the end of `site.css` is what makes every heading
 serif, and the demo's single-sentence figure title deliberately stays Inter;
-this
-file is NOT under the root `tokens/` substrate guard).
+these files are NOT under the root `tokens/` substrate guard).
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
-except legal) and `src/scripts/reveal.js` (the one-time homepage rise for the
-feature grid and Patron card, index only; adds state only when motion is
-welcome) are Astro-processed. Anything needing a **stable URL** — favicons,
+except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
