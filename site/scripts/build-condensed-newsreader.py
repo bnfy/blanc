@@ -16,9 +16,12 @@ Newsreader is SIL OFL 1.1 with no Reserved Font Name; the derived files keep
 that licence (site/public/fonts/newsreader-OFL.txt) and carry their own family
 name so they are never mistaken for the upstream build.
 
-Run from the repository root after changing WIDTH or the fontsource pin:
-    python3 site/scripts/build-condensed-newsreader.py
-Requires fontTools and brotli (pip install fonttools brotli).
+Run from the repository root after changing WIDTH, TRACKING or the
+fontsource pin, with the exact tool versions the site workflow checks against:
+    python3 -m venv .fontenv
+    .fontenv/bin/pip install --require-hashes -r site/scripts/build-condensed-newsreader.requirements.txt
+    .fontenv/bin/python site/scripts/build-condensed-newsreader.py
+The output is byte-reproducible; CI fails if the committed fonts differ.
 """
 import sys
 from pathlib import Path

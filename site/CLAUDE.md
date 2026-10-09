@@ -21,7 +21,9 @@ plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 Variable"`, the heading family is `"Newsreader Condensed"` — Newsreader
 condensed to 88%, with 0.02em tracking built in so CSS letter-spacing values
 keep their designed look, by `scripts/build-condensed-newsreader.py` into `src/fonts/`
-(rerun it after a fontsource bump; Newsreader has no width axis, and a CSS
+(rerun it after a fontsource bump with the hash-locked tools in
+`scripts/build-condensed-newsreader.requirements.txt`; the site workflow fails
+if the committed fonts are stale; Newsreader has no width axis, and a CSS
 `scaleX` would break wrapping and alignment) — loaded in
 `BaseLayout.astro` with its italic imported only by `press.astro`; product
 replicas (the press demo's Billboard clock) keep the app's uncondensed
