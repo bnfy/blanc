@@ -27,6 +27,11 @@ const TAB_LAYOUTS = ['island', 'vertical'];
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
+// Interface language: 'system' or a BCP 47 language code. Device-local (never
+// in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
+// has no entry, so pages:settings:set cannot bypass the relaunch flow.
+const UI_LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+const isUiLanguageValue = (value) => value === 'system' || (typeof value === 'string' && UI_LANGUAGE_CODE.test(value));
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
 // plausible device clock. The bound also leaves ample safe-integer headroom
 // for the Lamport increment applied after a future-dated write is observed.
@@ -110,6 +115,9 @@ const DEFAULTS = {
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
+  // 'system' follows the OS; a stored code that is no longer selectable is kept
+  // and renders English (see src/main/i18n.js). Device-local, not Profile Synced.
+  uiLanguage: 'system',
   mouseGesturesEnabled: false,
   mouseGestureMapping: { ...DEFAULT_MAPPING },
   appIcon: 'sunrise',
@@ -318,6 +326,7 @@ function getSettings() {
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!isUiLanguageValue(data.uiLanguage)) data.uiLanguage = DEFAULTS.uiLanguage;
   if (!['blanc', 'ublock-origin'].includes(data.adblockProvider)) data.adblockProvider = DEFAULTS.adblockProvider;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
   data.mouseGestureMapping = mappingOrDefault(data.mouseGestureMapping);
@@ -505,6 +514,23 @@ function setSupporter(record) {
   for (const fn of listeners) fn(getSettings());
 }
 
+/** The language-transition service's private write path (src/main/i18n.js
+ * changeUiLanguage). Flushes synchronously so a relaunch reads the new value;
+ * a failed flush restores the previous value. */
+function setUiLanguage(code, selectable) {
+  if (code !== 'system' && !(Array.isArray(selectable) && selectable.includes(code))) return false;
+  if (!isUiLanguageValue(code)) return false;
+  const s = ensureStore();
+  const previous = s.data.uiLanguage;
+  s.update((data) => { data.uiLanguage = code; });
+  if (!s.flush()) {
+    s.data.uiLanguage = previous;
+    return false;
+  }
+  for (const fn of listeners) fn(getSettings());
+  return true;
+}
+
 function isDynamicWallpaperEnabled() {
   return getSettings().newtabDynamicWallpaper === true;
 }
@@ -621,6 +647,7 @@ module.exports = {
   isSupporterActive,
   isAppIconAllowed,
   setSupporter,
+  setUiLanguage,
   isPatronActive,
   isDynamicWallpaperEnabled,
   setPatron,
