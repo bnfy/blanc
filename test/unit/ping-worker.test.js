@@ -439,3 +439,35 @@ test('a day-one signal without a hashing secret stores nothing', async () => {
   assert.equal(res.status, 204);
   assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('d1')).length, 0);
 });
+
+test('/stats splits next-day return by day-one signal from the first signal cohort', async (t) => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', STATS_TOKEN: 't' };
+  const B = '11111111-2222-4333-8444-555555555555';
+  const C = '22222222-3333-4444-8555-666666666666';
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2027-01-10T15:00:00Z') });
+  for (const installId of [RAW_ID, B, C]) await ping(env, { ...PING_BODY, installId });
+  await usageEvent(env, { ...PING_BODY, event: 'day1_default' }); // A: default
+  await usageEvent(env, { ...PING_BODY, event: 'day1_browsed' }); // A: browsed
+  await usageEvent(env, { ...PING_BODY, installId: B, event: 'day1_browsed' }); // B: browsed
+  // An older cohort must carry no signals section at all.
+  await env.PINGS.put('new:day:2026-10-04', '3');
+
+  t.mock.timers.setTime(Date.parse('2027-01-11T09:00:00Z'));
+  await ping(env, { ...PING_BODY, sessionId: 50 }); // A returns
+  await ping(env, { ...PING_BODY, installId: C, sessionId: 51 }); // C returns, no signals
+
+  t.mock.timers.setTime(Date.parse('2027-01-12T09:00:00Z'));
+  const stats = await (await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} },
+  )).json();
+  assert.deepEqual(stats.nextDayReturn.byDay['2027-01-10'], {
+    newInstalls: 3, returnedNextDay: 2, rate: 0.6667, complete: true,
+    signals: {
+      default: { had: 1, returnedNextDay: 1 },
+      browsed: { had: 2, returnedNextDay: 1 },
+    },
+  });
+  assert.equal('signals' in stats.nextDayReturn.byDay['2026-10-04'], false);
+  assert.equal(env.PINGS.map.get('return:d1:2027-01-10'), '2', 'the overall counter is untouched');
+});

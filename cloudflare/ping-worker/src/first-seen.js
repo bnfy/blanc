@@ -49,5 +49,11 @@ export async function markNextDayReturn(kv, hashedId, day, prevDay, bumpFn) {
   if ((await kv.get(markerKey)) !== null) return false;
   await bumpFn(kv, `return:d1:${prevDay}`);
   await kv.put(markerKey, '1', { expirationTtl: NEXT_DAY_RETURN_MARKER_TTL });
+  // Split the return by install-day signal: two reads, paid only by returners.
+  await Promise.all(DAY_ONE_SIGNALS.map(async (signal) => {
+    if ((await kv.get(`d1sig:${signal}:${prevDay}:${hashedId}`)) !== null) {
+      await bumpFn(kv, `d1ret:${signal}:${prevDay}`);
+    }
+  }));
   return true;
 }

@@ -30,7 +30,7 @@ import {
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
-import { markFirstSeen, markNextDayReturn, markDayOneSignal } from './first-seen.js';
+import { markFirstSeen, markNextDayReturn, markDayOneSignal, DAY_ONE_SIGNALS } from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
@@ -74,6 +74,12 @@ const MONTH_SEEN_TTL = 400 * 24 * 3600; // ~13 months of monthly cohorts (retent
 // Earlier cohorts have no return counter and are omitted from /stats rather
 // than reported as 0%. Set to the UTC day the write path first deploys.
 const NEXT_DAY_RETURN_FIRST_COHORT = '2026-10-03';
+
+// First cohort whose day-one signal split is fully counted: the d1had/d1ret
+// write paths must be live for all of day D and D+1. Earlier cohorts carry no
+// `signals` section rather than zeros. Set to the UTC day AFTER the collector
+// deploy.
+const DAY_ONE_SIGNALS_FIRST_COHORT = '2026-10-12';
 
 // Keyed hash of the install id — the only form that ever touches storage or
 // GA. HMAC-SHA-256 under a worker secret, hex-encoded. Returns null (uniques
@@ -506,10 +512,26 @@ async function handlePurgeLegacy(request, env) {
   }
 }
 
+// 'default:2027-01-10' -> { '2027-01-10': { default: n } }
+function signalCountsByDay(flat) {
+  const byDay = {};
+  for (const [key, value] of Object.entries(flat)) {
+    const sep = key.indexOf(':');
+    const signal = key.slice(0, sep);
+    if (!DAY_ONE_SIGNALS.includes(signal)) continue;
+    const day = key.slice(sep + 1);
+    byDay[day] = { ...byDay[day], [signal]: value };
+  }
+  return byDay;
+}
+
 // Next-day return per new-install cohort day: installs first seen on D that
 // launched again on D+1 (UTC). `complete` is false while D+1 is still today
 // (or D is today), so a partial reading is never mistaken for a final rate.
-function nextDayReturnByCohort(newByDay, returnD1ByDay, today) {
+// From DAY_ONE_SIGNALS_FIRST_COHORT each day also carries `signals`: how many
+// of that day's new installs had each first-day signal, and how many of those
+// returned.
+function nextDayReturnByCohort(newByDay, returnD1ByDay, today, hadByDay = {}, returnedByDay = {}) {
   const byDay = {};
   for (const day of Object.keys(newByDay).sort().slice(-30)) {
     if (day < NEXT_DAY_RETURN_FIRST_COHORT) continue;
@@ -522,6 +544,12 @@ function nextDayReturnByCohort(newByDay, returnD1ByDay, today) {
       rate: newInstalls ? Number((returnedNextDay / newInstalls).toFixed(4)) : 0,
       complete: nextDay < today,
     };
+    if (day >= DAY_ONE_SIGNALS_FIRST_COHORT) {
+      byDay[day].signals = Object.fromEntries(DAY_ONE_SIGNALS.map((signal) => [signal, {
+        had: hadByDay[day]?.[signal] ?? 0,
+        returnedNextDay: returnedByDay[day]?.[signal] ?? 0,
+      }]));
+    }
   }
   return { firstCohort: NEXT_DAY_RETURN_FIRST_COHORT, byDay };
 }
@@ -535,7 +563,7 @@ async function handleStats(request, env, now) {
 
   const [
     total, byDay, byVersion, byPlatform, byOsVersion,
-    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, productUsage,
+    daily, weekly, monthly, dlFlat, newByDay, returnD1ByDay, dayOneHad, dayOneReturned, productUsage,
   ] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
@@ -551,6 +579,9 @@ async function handleStats(request, env, now) {
     // No other key family starts 'new:'.
     readMap(env.PINGS, 'new:day:'),
     readMap(env.PINGS, 'return:d1:'),
+    // No other key family starts 'd1had:' or 'd1ret:'.
+    readMap(env.PINGS, 'd1had:'),
+    readMap(env.PINGS, 'd1ret:'),
     readProductUsage(env.PINGS),
   ]);
 
@@ -593,7 +624,10 @@ async function handleStats(request, env, now) {
     newInstalls: {
       byDay: pickRecent(newByDay, 60),
     },
-    nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, dayBucket(now)),
+    nextDayReturn: nextDayReturnByCohort(
+      newByDay, returnD1ByDay, dayBucket(now),
+      signalCountsByDay(dayOneHad), signalCountsByDay(dayOneReturned),
+    ),
     productUsage,
   };
   return new Response(JSON.stringify(stats, null, 2), {
