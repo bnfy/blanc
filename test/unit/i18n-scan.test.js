@@ -21,6 +21,18 @@ test('HTML: untagged text node fails; tagged, ignored, svg and symbol-only text 
   assert.ok(good.scanned >= 4);
 });
 
+test('HTML: entities decode exactly once when comparing inline English', () => {
+  const amp = { 'a.lt': { message: 'Tom &lt; Jerry', note: 'n' } };
+  assert.deepEqual(scan.scanHtml('<p data-i18n="a.lt">Tom &amp;lt; Jerry</p>', { en: amp, allow: [] }).problems, []);
+  assert.match(scan.scanHtml('<p data-i18n="a.lt">Tom &lt; Jerry</p>', { en: amp, allow: [] }).problems.join(), /differs/);
+});
+
+test('HTML: inline English of rich text comes from its text, not from stripping markup', () => {
+  const rich = { 'a.rich': { message: 'Open <0>Settings</0> or <1>Help</1>', note: 'n' } };
+  const html = '<p data-i18n="a.rich">Open <a href="#"><b>Settings</b></a> or <a href="#">Help</a></p>';
+  assert.deepEqual(scan.scanHtml(html, { en: rich, allow: [] }).problems, []);
+});
+
 test('HTML: attribute without data-i18n counterpart fails', () => {
   const r = scan.scanHtml('<button aria-label="Close tab">✕</button>', { en, allow: [] });
   assert.match(r.problems.join(), /aria-label/);

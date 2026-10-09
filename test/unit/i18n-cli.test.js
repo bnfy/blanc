@@ -130,3 +130,10 @@ test('mobile output keeps every plural category as a full string', async () => {
   assert.equal(ios.one.stringUnit.value, 'Close %1$lld tab');
   assert.match(mobile.androidStrings({ en, messages }), /<item quantity="other">Close %1\$d tabs<\/item>/);
 });
+
+test('Android output escapes backslashes before quotes and apostrophes', async () => {
+  const mobile = await import('../../copy/lib/mobile.mjs');
+  const en = { 'a.path': { message: 'Saved to C:\\Downloads, "done" isn\'t it', note: 'n' } };
+  assert.match(mobile.androidStrings({ en, messages: { 'a.path': en['a.path'].message } }),
+    /<string name="a_path">Saved to C:\\\\Downloads, \\"done\\" isn\\'t it<\/string>/);
+});

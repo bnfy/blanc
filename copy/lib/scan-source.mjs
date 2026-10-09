@@ -9,8 +9,11 @@ const LETTER = /\p{L}/u;
 const ATTRS = { title: 'data-i18n-title', 'aria-label': 'data-i18n-aria-label', placeholder: 'data-i18n-placeholder', alt: 'data-i18n-alt', 'data-tooltip': 'data-i18n-tooltip' };
 const SKIP_CONTENT = new Set(['script', 'style', 'svg']);
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
-const decode = (s) => s.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'");
-const collapse = (s) => decode(s).replace(/\s+/g, ' ').trim();
+// One pass, so &amp;lt; decodes to the text "&lt;", never to "<".
+const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'" };
+const decode = (s) => s.replace(/&(nbsp|amp|lt|gt|quot|#39|apos);/g, (_, name) => ENTITIES[name]);
+const squash = (s) => s.replace(/\s+/g, ' ').trim();
+const collapse = (s) => squash(decode(s)); // HTML text; catalog messages are plain text and only squash
 
 function parseAttrs(source) {
   const attrs = {};
@@ -24,13 +27,16 @@ export function scanHtml(html, { en, allow = [] }) {
   const t = createTranslator({ locale: 'en', messages: Object.fromEntries(Object.entries(en).map(([k, v]) => [k, v.message])) });
   const problems = [];
   let scanned = 0;
-  const stack = []; // { tag, attrs, translated, ignored, skip, textStart }
+  const stack = []; // { tag, key, translated, ignored, skip, text }
   const tokens = /<!--[\s\S]*?-->|<![^>]*>|<\/?([a-zA-Z][\w-]*)([^>]*)>|([^<]+)/g;
   const translatedAncestor = () => stack.some((f) => f.translated || f.ignored || f.skip);
   let m;
   while ((m = tokens.exec(html))) {
     if (m[0].startsWith('<!')) continue;
     if (m[3] !== undefined) {
+      // A translated element's inline English is the text it contains, so the
+      // comparison never has to strip markup.
+      for (const frame of stack) if (frame.translated) frame.text += m[3];
       const text = collapse(m[3]);
       if (!text || !LETTER.test(text)) continue;
       scanned += 1;
@@ -44,9 +50,9 @@ export function scanHtml(html, { en, allow = [] }) {
       const frame = stack[index];
       stack.length = index;
       if (frame.translated && frame.key) {
-        const inline = collapse(html.slice(frame.textStart, m.index).replace(/<[^>]+>/g, ''));
+        const inline = collapse(frame.text);
         if (!t.has(frame.key)) problems.push(`data-i18n="${frame.key}": unknown key`);
-        else if (inline !== collapse(t(frame.key))) problems.push(`data-i18n="${frame.key}": inline "${inline}" differs from en.json "${t(frame.key)}"`);
+        else if (inline !== squash(t(frame.key))) problems.push(`data-i18n="${frame.key}": inline "${inline}" differs from en.json "${t(frame.key)}"`);
       }
       continue;
     }
@@ -67,7 +73,7 @@ export function scanHtml(html, { en, allow = [] }) {
       translated: attrs['data-i18n'] !== undefined,
       ignored: attrs['data-i18n-ignore'] !== undefined,
       skip: SKIP_CONTENT.has(tag),
-      textStart: m.index + m[0].length,
+      text: '',
     });
   }
   return { problems, scanned };
