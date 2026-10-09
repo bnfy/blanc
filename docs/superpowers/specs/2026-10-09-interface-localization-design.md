@@ -1,11 +1,15 @@
 # Interface localization (F44)
 
 **Date:** 2026-10-09
-**Status:** draft for owner review (revision 2). Brainstormed with the owner
-on 2026-10-09; every decision below was approved in that session. Revision 2
-applies the first review: only explicit acknowledgement advances translation
-hashes, a stored unavailable language renders English, `uiLanguage` has a
-single writer, and `maxLength` is a lint. No feature code has been written.
+**Status:** reviewed, no blocking findings (revision 3). Brainstormed with the
+owner on 2026-10-09; every decision below was approved in that session.
+Revision 2 applied the first review: only explicit acknowledgement advances
+translation hashes, a stored unavailable language renders English,
+`uiLanguage` has a single writer, and `maxLength` is a lint. Revision 3 folds
+in the plan-time amendments listed in
+[Plan-time amendments](#plan-time-amendments-revision-3). The implementation
+plan is `docs/superpowers/plans/2026-10-09-interface-localization.md`. No
+feature code has been written.
 **Amends:** the S3 copy substrate (`copy/`), `src/main/settings.js` +
 `settings-schema/schema.json` (new `uiLanguage`), the `blanc-chrome://` and
 `blanc://` protocol handlers (`src/main/chrome-protocol.js`,
@@ -243,8 +247,10 @@ are stale.
 
 Mobile output (`copy/generated/`) becomes per-locale `Localizable.xcstrings`
 (iOS: one file, all locales, plural variations) and per-locale
-`values[-de]/strings.xml` + `plurals` (Android). `SlashCommands.strings` and
-`slash_commands.xml` are retired in favor of these.
+`values[-de]/strings.xml` + `plurals` (Android). The legacy English
+`SlashCommands.strings` and `slash_commands.xml` stay generated from `en.json`,
+because `ios/Blanc/Blanc/SlashCommand.swift` reads them; retiring them is a
+mobile change outside this project.
 
 ### Language setting
 
@@ -252,9 +258,10 @@ Mobile output (`copy/generated/`) becomes per-locale `Localizable.xcstrings`
   `"system"`.
 - **Device-local:** not in `SYNCED_KEYS` (`settings.js:52`). A synced change
   would arrive on a running device that cannot apply it without a relaunch.
-- `settings-schema/schema.json` gains a `uiLanguages` enum, generated from the
-  catalog's selectable locales, with endonym labels plus the `uiLanguage`
-  setting entry. `settings:check` keeps the two in lockstep.
+- `uiLanguage` is listed in `settings-schema/schema.json` `internalDefaults`
+  (desktop-only): under D27 mobile has no in-app language setting to
+  generate. The selectable list, with endonyms, comes from the generated
+  `src/main/i18n-locales.json`.
 - **One writer.** `uiLanguage` is **not** admitted by `sanitize()`, so the
   generic `pages:settings:set` path (`pages.js:352`), and any other
   `setSettings()` caller, cannot change it. It is written only by a dedicated
@@ -311,9 +318,15 @@ Every `blanc-chrome://` document (`index`, `overlay`, `permission`,
 `<head>`, before any other script:
 
 ```html
-<script src="i18n.js"></script>
 <script src="strings.js"></script>
+<script src="i18n.js"></script>
 ```
+
+`strings.js` comes first because `i18n.js` bootstraps synchronously from
+`self.blancStrings`. Both handlers answer `strings.js` with the generated file
+plus one appended line carrying the runtime formatting locale
+(`self.blancStrings.formatLocale="de-AT";`), because the OS region is only
+known at runtime.
 
 - **`blanc-chrome://`:** `/i18n.js` and `/strings.js` join `SHARED_ASSETS` in
   `chrome-protocol.js`. `/strings.js` resolves to
@@ -343,12 +356,16 @@ Every `blanc-chrome://` document (`index`, `overlay`, `permission`,
   - maps the `<n>` tags of a rich message onto the element's existing child
     elements in order (setting their `textContent`), keeping the elements, so
     links and buttons keep their listeners and attributes
-- **No flash of English:** for a non-English locale, the head script adds
-  `html.i18n-pending`, which a one-line rule in the document's stylesheet
-  (`.i18n-pending body { visibility: hidden }`) hides until `applyDocument`
-  runs at `DOMContentLoaded` and removes the class. Chrome documents load once
-  per window, so this costs one frame at window creation. English documents
-  skip it entirely.
+- **No flash of English:** for a non-English locale, `i18n.js` sets
+  `document.documentElement.style.visibility = 'hidden'` through CSSOM (which
+  `style-src 'self'` allows, unlike a style attribute) and restores it after
+  `applyDocument` runs at `DOMContentLoaded`, with a 1 s safety timeout and a
+  `finally` so an error can never leave a document blank. Chrome documents
+  load once per window, so this costs one frame at window creation. English
+  documents skip it entirely. No stylesheet changes.
+- **`data-i18n-ignore`** marks containers of user or page data (tab titles,
+  URLs, hostnames, favorite names). The source scanner treats them as data
+  and the pseudo-locale sweep skips them.
 - JS-built strings call `t(key, params)` and assign the result with
   `textContent` or `setAttribute`.
 - Page `<title>`s are localized the same way. They become tab titles and
@@ -622,8 +639,12 @@ covers the schema.
 
 **Desktop:**
 
-- **New F44 Gherkin scenarios** in `spec/acceptance/` with desktop step
-  definitions:
+- **New F44 Gherkin scenarios** in `spec/acceptance/interface-language.feature`,
+  bound on desktop by the standalone `test/desktop/interface-language-smoke.mjs`
+  (each scenario needs a fresh launch with its own env and settings, which the
+  shared-app Cucumber harness cannot provide). Until phase 10, the rendered-text
+  assertions below are checked through `document.documentElement.lang` and the
+  test hook's resolved language; phase 10 extends them to rendered German:
   - **System resolves:** with system languages `de-DE`, the chrome, ⌘L panel,
     Settings and the app menu render German.
   - **Pinned English wins:** with system languages `de-DE` and `uiLanguage:
@@ -733,3 +754,21 @@ covers the schema.
   `BLANC_TEST_LOCALE_STATUS` are honored only behind the existing
   unpackaged-plus-`BLANC_TEST` gate, and a unit test asserts that packaged
   builds ignore them.
+
+## Plan-time amendments (revision 3)
+
+Found while writing the implementation plan against the code (2026-10-09):
+
+1. `uiLanguage` is a desktop-only internal default, not a schema enum (D27).
+2. Script order is `strings.js` then `i18n.js`; the handlers append the
+   formatting locale to `strings.js`.
+3. The no-flash hide uses CSSOM on `<html>`, not a stylesheet rule.
+4. `data-i18n-ignore` marks user and page data for the scanner and the sweep.
+5. The legacy English slash resources stay for the existing iOS consumer;
+   `copy/slash-commands.json` stays as the command registry while the hint text
+   moves to `en.json`.
+6. F44 scenarios are bound by a standalone desktop smoke.
+7. German uses the informal **du** form, recorded in `copy/glossary.json`;
+   the owner may reverse it before German unhides.
+8. The source scanner also fails a literal `t('key')` whose key is not in
+   `en.json`, since strict test runs throw on a missing key.
