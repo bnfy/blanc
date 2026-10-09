@@ -267,16 +267,23 @@
   .bento-small { aspect-ratio: auto; min-height: 120px; gap: 18px; }
   .bento-icon--tile { width: 24px; }
   .pop-stage { height: 250px; padding: 20px; }
-  .pop-body--split:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
-  /* Clear the card's close button. */
-  .pop-body--split .pop-stage { padding: 68px 20px 40px; }
-  .pop-body--split .pop-copy { padding: 24px 24px 8px; }
+  /* The split keeps its two columns down to 721px; the copy column holds the
+     card's close button, so it clears it. */
+  .pop-body--split .pop-stage { padding: 24px 16px 40px; }
+  .pop-body--split .pop-copy { padding: 56px 24px 16px 20px; }
   .pop-copy > .bento-shield { width: 72px; }
   .native-shield-demo { --native-width: 420px; zoom: .74; }
   .pop-copy { padding: 22px 20px 6px; }
   .pop-nav { padding: 14px 20px 20px; }
     .bento-patron { grid-template-columns: 1fr; gap: 36px; }
   .bento-patron-offer { padding: 28px 0 0; border-top: 1px solid #3A3427; border-left: 0; }
+}
+@media (max-width: 720px) {
+  /* Too narrow for two columns: the visual stacks above the copy. */
+  .pop-body--split:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+  /* Clear the card's close button. */
+  .pop-body--split .pop-stage { padding: 68px 20px 40px; }
+  .pop-body--split .pop-copy { padding: 24px 24px 8px; }
 }
 @media (max-width: 420px) {
   .bento-board { grid-template-columns: 1fr; grid-auto-rows: 220px; }
