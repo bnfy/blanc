@@ -804,6 +804,7 @@ function install(refs) {
       if (!wc) return null;
       return wc.executeJavaScript(`(() => {
         const shell = document.getElementById('migrationChecklistShell');
+        const popover = document.getElementById('migrationChecklist');
         const sync = document.getElementById('migrationSyncTask');
         const tabs = document.getElementById('migrationTabsTask');
         const bounds = (element) => {
@@ -815,21 +816,27 @@ function install(refs) {
         return {
           count: shell ? 1 : 0,
           visible: !!shell && !shell.hidden && getComputedStyle(shell).display !== 'none',
-          detailsVisible: !!shell && !shell.hidden &&
-            getComputedStyle(document.getElementById('migrationChecklist')).display !== 'none',
+          open: !!popover && popover.matches(':popover-open'),
           progress: shell?.querySelector('.js-migration-progress')?.textContent ?? null,
+          label: document.getElementById('migrationChecklistLabel')?.textContent ?? null,
           title: document.getElementById('migrationChecklistTitle')?.textContent ?? null,
           syncComplete: sync?.classList.contains('is-complete') ?? false,
           tabsComplete: tabs?.classList.contains('is-complete') ?? false,
-          expanded: shell?.classList.contains('is-expanded') ?? false,
+          expanded: document.getElementById('migrationChecklistCompact')?.getAttribute('aria-expanded') === 'true',
           focused: document.hasFocus(),
+          focusedId: document.activeElement?.id ?? null,
           layout: document.body.dataset.layout ?? null,
           shellBounds: bounds(shell),
-          billboardSitesBounds: bounds(document.getElementById('bbFavorites')),
+          popoverBounds: popover?.matches(':popover-open') ? bounds(popover) : null,
+          footerBounds: bounds(document.getElementById('layoutFooter')),
+          customizeBounds: bounds(document.getElementById('customizeButton')),
+          hideBounds: bounds(document.getElementById('migrationChecklistHide')),
+          pillInFooterLeft: !!shell?.closest('#layoutFooter .footer-left'),
+          viewportWidth: innerWidth,
         };
       })()`);
     },
-    // F35-10/11/12/13: one read of the frame — collapsed checklist, active
+    // F35-10/11/12/13: one read of the frame — footer checklist pill, active
     // layout content, footer, Patron slot and empty hints — so scenarios can
     // prove "nothing covers content" without per-layout selectors.
     readStartFrameGeometry() {
@@ -853,7 +860,8 @@ function install(refs) {
         const content = [...rootEl.querySelectorAll('a, button, h2, .ledger-label, .shelf-card, .tally-chart, .tally-caption, .bb-clock, .bb-blocked, .start-empty-hint')]
           .map((element) => ({ selector: element.id ? '#' + element.id : element.className || element.tagName, rect: rect(element) }))
           .filter((entry) => entry.rect);
-        const patron = rootEl.querySelector(':scope > .js-patron-callout');
+        const patron = document.getElementById('patronCallout');
+        const footerLeft = document.querySelector('#layoutFooter .footer-left');
         const root = document.documentElement;
         return {
           layout,
@@ -862,12 +870,73 @@ function install(refs) {
           viewportHeight: innerHeight,
           maxScrollY: Math.max(0, Math.max(root.scrollHeight, document.body.scrollHeight) - innerHeight),
           shell,
-          compact: !!shellEl && getComputedStyle(document.getElementById('migrationChecklistCompact')).display !== 'none',
           content,
           footer: rect(document.getElementById('layoutFooter')),
-          patronLast: rootEl.lastElementChild === patron,
+          patronInLayout: !!rootEl.querySelector('.js-patron-callout'),
+          patronInFooterLeft: !!patron && patron.parentElement === footerLeft,
           patronVisible: !!patron && !patron.hidden && !!rect(patron),
+          patron: patron && !patron.hidden ? rect(patron) : null,
           emptyHints: [...rootEl.querySelectorAll('.start-empty-hint')].filter((element) => rect(element)).length,
+        };
+      })()`);
+    },
+    // F35-10: one read of the footer's three groups, with the blocked count
+    // forced to a long worst case, so a scenario can sweep widths.
+    readStartFooterLayout(blockedText) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        if (${JSON.stringify(blockedText ?? null)} !== null) {
+          document.getElementById('footerLeft').textContent = ${JSON.stringify(blockedText ?? '')};
+        }
+        const box = (selector) => {
+          const element = document.querySelector(selector);
+          if (!element || element.hidden || getComputedStyle(element).display === 'none') return null;
+          const r = element.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
+        };
+        const items = [...document.querySelectorAll('#layoutFooter .footer-left > *')]
+          .filter((element) => !element.hidden && getComputedStyle(element).display !== 'none' && element.getBoundingClientRect().width > 0)
+          .map((element) => element.getBoundingClientRect());
+        const centres = items.map((r) => Math.round((r.top + r.bottom) / 2));
+        return {
+          layout: document.body.dataset.layout,
+          viewportWidth: innerWidth,
+          leftOnOneLine: centres.every((centre) => Math.abs(centre - centres[0]) <= 4),
+          left: box('#layoutFooter .footer-left'),
+          customize: box('#customizeButton'),
+          right: box('#layoutFooter .footer-right'),
+          footer: box('#layoutFooter'),
+        };
+      })()`);
+    },
+    // F35-18: the Billboard's visible content block against the open area
+    // between the window top and the fixed footer.
+    readBillboardVerticalBox() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const shown = [...document.getElementById('layoutBillboard').children].filter((element) => {
+          const style = getComputedStyle(element);
+          const box = element.getBoundingClientRect();
+          return !element.hidden && style.display !== 'none' && style.position !== 'absolute' && box.height > 1;
+        });
+        if (!shown.length) return null;
+        const top = Math.min(...shown.map((element) => element.getBoundingClientRect().top));
+        const bottom = Math.max(...shown.map((element) => element.getBoundingClientRect().bottom));
+        const footerTop = document.getElementById('layoutFooter').getBoundingClientRect().top;
+        const headerBottom = document.querySelector('.start-header').getBoundingClientRect().bottom;
+        const round = (value) => Math.round(value * 10) / 10;
+        return {
+          layout: document.body.dataset.layout,
+          viewportWidth: innerWidth,
+          headerBottom: round(headerBottom),
+          contentTop: round(top),
+          above: round(top),
+          below: round(footerTop - bottom),
+          parts: shown.map((element) => element.id || element.className),
         };
       })()`);
     },
@@ -930,9 +999,21 @@ function install(refs) {
       };
       const id = ids[action];
       if (!id) return false;
+      // Tasks live in the pill's popover, so reach them the way a person
+      // does: open the popover from the pill, then click a task that is
+      // actually rendered. A popover that fails to open fails the step.
+      const inPopover = action === 'sync' || action === 'tabs';
       return wc.executeJavaScript(`(() => {
         const btn = document.getElementById('${id}');
         if (!btn) return false;
+        if (${inPopover}) {
+          const popover = document.getElementById('migrationChecklist');
+          if (!popover.matches(':popover-open')) document.getElementById('migrationChecklistCompact').click();
+          if (!popover.matches(':popover-open')) return false;
+          const box = btn.getBoundingClientRect();
+          if (!box.width || !box.height) return false;
+        }
+        btn.focus();
         btn.click();
         return true;
       })()`);
@@ -950,6 +1031,22 @@ function install(refs) {
         syncComplete: current.syncMigrationCompleted,
         tabsComplete: current.tabImportCompleted,
       };
+    },
+    setPatronCalloutDismissedAt(ms) {
+      settings.setSettings({ patronCalloutDismissedAt: Number(ms) });
+      return settings.getSettings().patronCalloutDismissedAt;
+    },
+    patronCalloutDismissedAt() { return settings.getSettings().patronCalloutDismissedAt; },
+    clickPatronCalloutClose() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const btn = document.getElementById('patronCalloutHide');
+        if (!btn || btn.closest('[hidden]')) return false;
+        btn.click();
+        return document.getElementById('patronCallout').hidden;
+      })()`);
     },
     setMigrationChecklistProgress(syncComplete, tabsComplete) {
       settings.setSettings({ syncMigrationCompleted: !!syncComplete, tabImportCompleted: !!tabsComplete });
@@ -970,7 +1067,7 @@ function install(refs) {
       const page = await tab.view.webContents.executeJavaScript(`(async () => {
         await document.fonts.load('22px "Newsreader Condensed"');
         const selectors = [
-          '.start-brand-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
+          '.start-brand-date', '.ledger-label', '.bb-clock',
           '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
           '.tally-caption', '.ledger-footer', '.layout-switcher button',
           '.ob-step-label', '.ob-content p'

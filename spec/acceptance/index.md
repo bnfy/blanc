@@ -168,7 +168,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F35-5 | Billboard ranks local top sites and keeps dismissals local | — | ✅ | ➖ | ➖ |
 | F35-6 | Start-page templates replace mono UI text with Inter | — | ✅ | ➖ | ➖ |
 | F35-7 | Moving-in checklist appears on all four start-page layouts | — | ✅ | ➖ | ➖ |
-| F35-8 | Billboard keeps the moving-in checklist clear of recent sites | — | ✅ | ➖ | ➖ |
+| F35-8 | The moving-in checklist opens from the footer's left | — | ✅ | ➖ | ➖ |
 | F35-9 | Private footer opens Mahjong in a private managed tab | — | ✅ | ➖ | ➖ |
 | F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |

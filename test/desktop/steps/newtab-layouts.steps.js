@@ -138,7 +138,7 @@ Then('the Billboard backfills with {string}', async function (key) {
 Then('the start page uses Newsreader for the Billboard clock and invitation headings', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
-    (value) => value?.page?.samples?.length === 13,
+    (value) => value?.page?.samples?.length === 12,
     'the new-tab document to expose its computed fonts',
   );
   assert.deepEqual(usage.page.jetbrains, []);
@@ -562,9 +562,11 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
           `${layout} frame at ${size.width}x${size.height}`,
         );
         const context = `${layout} at ${size.width}x${size.height}`;
+        // The checklist is a pill inside the fixed footer, so the footer check
+        // below covers it; it must never spill outside that band.
+        assert.ok(frame.shell.top >= frame.footer.top - 1 && frame.shell.bottom <= frame.footer.bottom + 1,
+          `${context}: checklist ${JSON.stringify(frame.shell)} leaves the footer ${JSON.stringify(frame.footer)}`);
         for (const entry of frame.content) {
-          assert.ok(!intersects(frame.shell, entry.rect),
-            `${context}: checklist ${JSON.stringify(frame.shell)} covers ${entry.selector} ${JSON.stringify(entry.rect)}`);
           const atBottom = { ...entry.rect, top: entry.rect.top - frame.maxScrollY, bottom: entry.rect.bottom - frame.maxScrollY };
           assert.ok(!intersects(frame.footer, atBottom),
             `${context}: footer covers ${entry.selector} when scrolled to the end`);
@@ -577,17 +579,52 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
   }
 });
 
-Then('every start-page layout ends with a visible Patron upgrade', async function () {
+const PATRON_SNOOZE_MS = 90 * 24 * 60 * 60 * 1000;
+
+Given('the Patron upgrade has never been closed', async function () {
+  assert.equal(await this.call('setPatronCalloutDismissedAt', 0), 0);
+});
+
+Then('every start-page layout shows the Patron upgrade on the footer\'s left', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
     assert.equal(await this.call('setNewtabLayout', layout), layout);
     const frame = await waitForValue(
       () => this.call('readStartFrameGeometry'),
-      (value) => value?.layout === layout,
-      `${layout} frame`,
+      (value) => value?.layout === layout && value.patronVisible === true,
+      `${layout} frame with the Patron upgrade`,
     );
-    assert.equal(frame.patronLast, true, `${layout} ends with the Patron chip`);
-    assert.equal(frame.patronVisible, true, `${layout} shows the Patron chip`);
+    assert.equal(frame.patronInLayout, false, `${layout} carries no Patron chip of its own`);
+    assert.equal(frame.patronInFooterLeft, true, `${layout} shows the Patron upgrade on the footer's left`);
+    assert.ok(frame.patron.top >= frame.footer.top - 1 && frame.patron.bottom <= frame.footer.bottom + 1,
+      `${layout}: Patron pill ${JSON.stringify(frame.patron)} leaves the footer ${JSON.stringify(frame.footer)}`);
   }
+});
+
+When('I close the Patron upgrade', async function () {
+  const before = Date.now();
+  assert.equal(await this.call('clickPatronCalloutClose'), true, 'the pill hides as soon as it is closed');
+  const closedAt = await waitForValue(
+    () => this.call('patronCalloutDismissedAt'),
+    (value) => value >= before,
+    'the close time to be saved',
+  );
+  assert.ok(closedAt <= Date.now());
+});
+
+Then('the Patron upgrade stays hidden on a new tab', async function () {
+  await this.call('newTab');
+  const frame = await waitForValue(
+    () => this.call('readStartFrameGeometry'),
+    (value) => value?.layout && value.content.length > 0,
+    'a new start page',
+  );
+  assert.equal(frame.patronVisible, false);
+});
+
+When('{int} days pass since the Patron upgrade was closed', async function (days) {
+  assert.equal(days * 24 * 60 * 60 * 1000, PATRON_SNOOZE_MS, 'the scenario names the shipped snooze');
+  const longAgo = Date.now() - PATRON_SNOOZE_MS - 60_000;
+  assert.equal(await this.call('setPatronCalloutDismissedAt', longAgo), longAgo);
 });
 
 Then('no start-page layout shows the Patron upgrade or a blocked count', async function () {
@@ -733,5 +770,69 @@ Then('Tally stacks the data above the list at 820x840', async function () {
   } finally {
     const original = this.tallyOriginalBounds;
     if (original) await this.call('setWindowContentSize', original.width, original.height);
+  }
+});
+
+Then('the Billboard content is centered between the window top and the footer at 1280x800, 900x900, 700x1000 and 1440x600', async function () {
+  const original = await this.call('windowContentBounds');
+  try {
+    for (const [width, height] of [[1280, 800], [900, 900], [700, 1000], [1440, 600]]) {
+      await this.call('setWindowContentSize', width, height);
+      // Settle on the renderer's own viewport and on two equal reads, so a
+      // resize or font swap still in flight cannot pass or fail the check.
+      let previous = null;
+      const box = await waitForValue(
+        async () => {
+          const next = await this.call('readBillboardVerticalBox');
+          const stable = previous && JSON.stringify(previous) === JSON.stringify(next);
+          previous = next;
+          return stable ? next : null;
+        },
+        (value) => value?.layout === 'billboard' && value.viewportWidth === width,
+        `Billboard at ${width}x${height}`,
+      );
+      const context = `${width}x${height}: ${JSON.stringify(box)}`;
+      assert.ok(box.contentTop >= box.headerBottom, `content slid under the brand row at ${context}`);
+      if (box.contentTop > box.headerBottom + 1) {
+        assert.ok(Math.abs(box.above - box.below) <= 1,
+          `above ${box.above}px vs below ${box.below}px at ${context}`);
+      }
+    }
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});
+
+Then('every start-page footer keeps its left group on one line with Customize centred from 1000 to 1320 wide', async function () {
+  const original = await this.call('windowContentBounds');
+  const originalLayout = await this.call('newtabLayout');
+  try {
+    for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
+      assert.equal(await this.call('setNewtabLayout', layout), layout);
+      for (let width = 1000; width <= 1320; width += 20) {
+        await this.call('setWindowContentSize', width, 840);
+        let previous = null;
+        const foot = await waitForValue(
+          async () => {
+            // A six-figure weekly count is the widest Ledger text that ships.
+            const next = await this.call('readStartFooterLayout', '123,456 ads blocked this week');
+            const stable = previous && JSON.stringify(previous) === JSON.stringify(next);
+            previous = next;
+            return stable ? next : null;
+          },
+          (value) => value?.layout === layout && value.viewportWidth === width,
+          `${layout} footer at ${width}px`,
+        );
+        const context = `${layout} at ${width}px: ${JSON.stringify(foot)}`;
+        assert.equal(foot.leftOnOneLine, true, `left group wraps inside itself at ${context}`);
+        const centre = (foot.customize.left + foot.customize.right) / 2;
+        assert.ok(Math.abs(centre - width / 2) <= 1.5, `Customize is off centre at ${context}`);
+        const sameRow = Math.abs((foot.left.top + foot.left.bottom) / 2 - (foot.customize.top + foot.customize.bottom) / 2) <= 4;
+        if (sameRow) assert.ok(foot.left.right <= foot.customize.left - 8, `left group crowds Customize at ${context}`);
+      }
+    }
+  } finally {
+    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setWindowContentSize', original.width, original.height);
   }
 });

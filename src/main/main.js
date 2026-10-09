@@ -186,6 +186,7 @@ const {
   migrationChecklistState,
   migrationChecklistForTab,
 } = require('./migration-checklist');
+const { patronCalloutSnoozedUntil } = require('./patron-callout');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -9521,6 +9522,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // settings change (below), and setPatron() fires those listeners, so
       // an activation mid-session hides the callout without a reload.
       patronActive: settings.isPatronActive(),
+      // A closed Patron pill stays away for 90 days on this device.
+      patronCalloutSnoozedUntil: patronCalloutSnoozedUntil(current.patronCalloutDismissedAt, Date.now()),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
@@ -9692,6 +9695,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       dismissMigrationChecklist: () => {
         settings.setSettings({ migrationChecklistDismissed: true });
+        return true;
+      },
+      dismissPatronCallout: () => {
+        settings.setSettings({ patronCalloutDismissedAt: Date.now() });
         return true;
       },
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.

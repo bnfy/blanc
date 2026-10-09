@@ -148,6 +148,10 @@ const DEFAULTS = {
   migrationChecklistDismissed: false,
   syncMigrationCompleted: false,
   tabImportCompleted: false,
+  // When the start page's Patron upgrade pill was last closed (ms since the
+  // epoch; 0 = never). It stays hidden for 90 days (patron-callout.js).
+  // Device-local, never Profile Synced.
+  patronCalloutDismissedAt: 0,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -304,6 +308,9 @@ function getSettings() {
   for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
     if (typeof data[key] !== 'boolean') data[key] = DEFAULTS[key];
   }
+  if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
+    data.patronCalloutDismissedAt = DEFAULTS.patronCalloutDismissedAt;
+  }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
@@ -356,6 +363,9 @@ function sanitize(partial) {
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
   for (const key of ['migrationChecklistDismissed', 'syncMigrationCompleted', 'tabImportCompleted']) {
     if (typeof partial[key] === 'boolean') clean[key] = partial[key];
+  }
+  if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {
+    clean.patronCalloutDismissedAt = partial.patronCalloutDismissedAt;
   }
   if (typeof partial.homePage === 'string') {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);

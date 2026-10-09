@@ -451,6 +451,17 @@
         "doc": "Dismiss the migration checklist."
       },
       {
+        "name": "start.dismissPatronCallout",
+        "kind": "invoke",
+        "channel": "pages:start:patron-callout-dismiss",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Hide the start page's Patron upgrade pill for 90 days."
+      },
+      {
         "name": "start.defaultBrowser",
         "kind": "invoke",
         "channel": "pages:default-browser:get",

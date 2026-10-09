@@ -25,7 +25,9 @@ When('I hide the moving-in checklist', async function () {
 });
 
 When('I choose Set up Sync from the moving-in checklist', async function () {
-  assert.equal(await this.call('clickMigrationChecklist', 'sync'), true);
+  assert.equal(await this.call('clickMigrationChecklist', 'sync'), true, 'Set up Sync is reachable from the open popover');
+  const dom = await this.call('readMigrationChecklistDom');
+  assert.equal(dom?.open, false, 'choosing a task closes the popover');
 });
 
 When('I mark Sync complete in the moving-in checklist', async function () {
@@ -53,10 +55,11 @@ Then('the Sync task stays checked at {string}', async function (progress) {
 Then('the moving-in checklist briefly confirms completion', async function () {
   await waitForValue(
     () => this.call('readMigrationChecklistDom'),
-    (dom) => dom?.visible === true && dom.detailsVisible === true && dom.expanded === true &&
-      dom.progress === '2/2' && dom.title === 'all moved in',
-    'the moving-in checklist to confirm 2/2',
+    (dom) => dom?.visible === true && dom.progress === '2/2' && dom.label === 'All moved in',
+    'the moving-in checklist pill to confirm 2/2',
   );
+  const dom = await this.call('readMigrationChecklistDom');
+  assert.equal(dom.open, false, 'completion never opens the popover on its own');
 });
 
 Then('the moving-in completion waits behind Settings', async function () {
@@ -105,17 +108,51 @@ Then('the moving-in checklist appears in all four start-page layouts', async fun
   }
 });
 
-Then('the Billboard moving-in checklist stays above its recent sites', async function () {
+const inside = (inner, outer) => inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1 &&
+  inner.left >= outer.left - 1 && inner.right <= outer.right + 1;
+
+Then('the moving-in checklist pill sits on the footer\'s left with Customize centred', async function () {
   const dom = await waitForValue(
     () => this.call('readMigrationChecklistDom'),
-    (value) => value?.layout === 'billboard' && value.visible === true &&
-      value.shellBounds?.height > 0 && value.billboardSitesBounds?.height > 0,
-    'the Billboard checklist and recent-site row to render',
+    (value) => value?.visible === true && value.shellBounds?.height > 0 && value.customizeBounds?.height > 0,
+    'the checklist pill and Customize to render',
   );
-  assert.ok(
-    dom.shellBounds.bottom < dom.billboardSitesBounds.top,
-    `checklist ${JSON.stringify(dom.shellBounds)} overlaps recent sites ${JSON.stringify(dom.billboardSitesBounds)}`,
+  assert.equal(dom.pillInFooterLeft, true, 'the pill lives in the footer\'s left group');
+  assert.ok(Math.abs((dom.customizeBounds.left + dom.customizeBounds.right) / 2 - dom.viewportWidth / 2) <= 1,
+    `Customize ${JSON.stringify(dom.customizeBounds)} is centred in a ${dom.viewportWidth}px footer`);
+  assert.equal(dom.label, 'Finish setup');
+  assert.ok(dom.hideBounds && inside(dom.hideBounds, dom.shellBounds), 'the pill ends in its close button');
+  assert.ok(dom.hideBounds.left >= dom.shellBounds.right - dom.hideBounds.width - 4, 'the close button sits at the pill\'s right end');
+  assert.equal(dom.open, false);
+  assert.ok(inside(dom.shellBounds, dom.footerBounds),
+    `pill ${JSON.stringify(dom.shellBounds)} outside footer ${JSON.stringify(dom.footerBounds)}`);
+  assert.ok(dom.shellBounds.right <= dom.customizeBounds.left, 'the pill sits left of Customize');
+});
+
+When('I open the moving-in checklist', async function () {
+  assert.equal(await this.call('clickMigrationChecklist', 'compact'), true);
+});
+
+Then('the moving-in checklist popover opens above its pill', async function () {
+  const dom = await waitForValue(
+    () => this.call('readMigrationChecklistDom'),
+    (value) => value?.open === true && value.expanded === true && value.popoverBounds?.height > 0,
+    'the moving-in checklist popover to open',
   );
+  assert.equal(dom.title, 'ready to move in?');
+  assert.ok(dom.popoverBounds.bottom <= dom.shellBounds.top, 'the popover opens upward from the pill');
+  assert.ok(dom.popoverBounds.top >= 0, 'the popover stays on screen');
+  assert.ok(dom.popoverBounds.left >= 0 && dom.popoverBounds.right <= dom.viewportWidth, 'the popover stays inside the window');
+  assert.ok(Math.abs(dom.popoverBounds.left - dom.shellBounds.left) <= 1, 'the popover grows rightward from the pill\'s left edge');
+});
+
+Then('the moving-in checklist popover closes and its pill has focus', async function () {
+  const dom = await waitForValue(
+    () => this.call('readMigrationChecklistDom'),
+    (value) => value?.open === false && value.expanded === false,
+    'the moving-in checklist popover to close',
+  );
+  assert.equal(dom.focusedId, 'migrationChecklistCompact');
 });
 
 // `url` is the exact string main passed to showUtilityPage, fragment included.

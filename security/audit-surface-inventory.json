@@ -220,7 +220,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "e1f8e74eb67cdbd72118f46d1f8e58efad69eb0da5a53dc2ba9468f94f2c8e16",
+      "sha256": "951f743d57faba04d5dd2b1f1be28218512b784f89b9ca0ff111a591738bd367",
       "literalChannels": [
         "activate",
         "before-input-event",
@@ -406,7 +406,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "c963ff1c061cba0246954fa8ea5c1f0b3c202a85c98b0cfc8cc4d66f02bc7ffd",
+      "sha256": "ba9bd1395111b2c39465baf7a3593c84e5996479a85e15ad19dc61664ae6f1ec",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -472,6 +472,7 @@
         "pages:start:open-island",
         "pages:start:open-mahjong",
         "pages:start:open-settings",
+        "pages:start:patron-callout-dismiss",
         "pages:start:privacy-complete",
         "pages:start:recover-session",
         "pages:start:set-dynamic-wallpaper",
@@ -709,7 +710,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "150ec850b1cb5cda23ecb46807d45197408a6be3f374af126b5881a0a11680a0",
+      "sha256": "5d68e7f8b98bbe1db6e8c790876c2107bc14f19dd8ef8a1db236321ddfb9a271",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -776,6 +777,7 @@
         "pages:start:open-island",
         "pages:start:open-mahjong",
         "pages:start:open-settings",
+        "pages:start:patron-callout-dismiss",
         "pages:start:privacy-complete",
         "pages:start:recover-session",
         "pages:start:remote-tabs",

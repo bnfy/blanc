@@ -16,11 +16,27 @@ const frameCss = () => {
   return css.slice(start, end);
 };
 
-test('the header row holds the brand and the checklist slot, in flow', () => {
+test('Billboard centres its content between the window top and the measured footer', () => {
+  const css = read('src/renderer/pages/pages.css');
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(js, /root\.setProperty\('--start-header-h', `\$\{startHeader\.offsetHeight\}px`\);/);
+  assert.match(js, /root\.setProperty\('--start-footer-h', `\$\{layoutFooter\.offsetHeight\}px`\);/);
+  assert.match(js, /frameHeightObserver\.observe\(startHeader\);\s*frameHeightObserver\.observe\(layoutFooter\);/);
+  assert.match(css, /padding: 0 0 var\(--start-footer-h, 72px\);/, 'the body reserves exactly the footer');
+  assert.match(css, /body\[data-layout="billboard"\] \.start-content \{[^}]*justify-content: center;[^}]*margin-top: calc\(-1 \* var\(--start-header-h, 0px\)\);[^}]*padding-block: calc\(var\(--start-header-h, 0px\) \+ 16px\);/s);
+});
+
+test('the Billboard clock drops the day period in every locale', () => {
+  const js = read('src/renderer/pages/newtab.js');
+  assert.match(js, /\.formatToParts\(new Date\(\)\)\s*\.filter\(\(part\) => part\.type !== 'dayPeriod'\)/);
+  assert.doesNotMatch(js, /bbMeridiem|\[AP\]M/);
+});
+
+test('the header row holds the brand, in flow', () => {
   const html = read('src/renderer/pages/newtab.html');
   assert.match(
     html,
-    /<header class="start-header" aria-label="Blanc start page">\s*<div class="start-brand">[\s\S]*?id="startDate" class="start-brand-date"[\s\S]*?<\/div>\s*<div id="migrationChecklistShell"/,
+    /<header class="start-header" aria-label="Blanc start page">\s*<div class="start-brand">[\s\S]*?id="startDate" class="start-brand-date"><\/span>\s*<\/div>\s*<\/header>/,
   );
   const css = frameCss();
   assert.match(css, /\.start-header \{[^}]*display: flex;[^}]*justify-content: space-between;/s);
@@ -43,27 +59,32 @@ test('every layout renders inside one centered content area', () => {
   }
 });
 
-test('the checklist sits in the header and compacts to a top-right ring', () => {
+test('the checklist is a footer pill with an anchored popover', () => {
   const css = frameCss();
-  assert.match(css, /\.migration-checklist-shell \{[^}]*position: relative;[^}]*width: 286px;/s);
-  assert.match(css, /@media \(max-width: 960px\), \(max-height: 640px\) \{[\s\S]*?\.migration-checklist \{[^}]*position: absolute;[^}]*top: 58px;[^}]*right: 0;/);
+  assert.match(read('src/renderer/pages/pages.css'), /\.footer-left \{[^}]*flex-wrap: wrap;/s,
+    'the left group wraps rather than overflowing narrow windows');
+  assert.match(css, /\.migration-checklist-shell \{[^}]*display: inline-flex;[^}]*min-height: 28px;/s);
+  assert.doesNotMatch(css, /\.migration-checklist-compact \.migration-progress-ring/, 'the pill carries no ring');
+  assert.match(css, /\.migration-checklist \{[^}]*background: var\(--start-float-fill\);[^}]*backdrop-filter: blur\(20px\) saturate\(140%\);/s,
+    'the popover uses the same floating material as Customize');
   assert.doesNotMatch(read('src/renderer/pages/pages.css'), /body\[data-layout="(billboard|tally)"\] \.migration-checklist-shell \{ top:/,
     'no per-layout checklist offsets remain');
 });
 
-test('each layout ends with the Patron chip', () => {
+test('layouts no longer carry their own Patron chip', () => {
   const html = read('src/renderer/pages/newtab.html');
-  const mains = html.match(/<main [\s\S]*?<\/main>/g);
-  assert.equal(mains.length, 4);
-  for (const main of mains) {
-    assert.match(main, /<p [^>]*class="[^"]*js-patron-callout[^"]*" hidden>\s*<a [^>]*>[\s\S]*?<\/a>\s*<\/p>\s*<\/main>$/,
-      `${main.slice(0, 60)}… ends with its Patron chip`);
+  for (const main of html.match(/<main [\s\S]*?<\/main>/g)) {
+    assert.doesNotMatch(main, /js-patron-callout/, `${main.slice(0, 60)}… leaves the upgrade to the footer`);
   }
 });
 
 test('private tabs never show the Patron chip or blocked counts', () => {
   const js = read('src/renderer/pages/newtab.js');
-  assert.match(js, /function renderPatronCallout\(patronActive\) \{[\s\S]*?const hide = !!patronActive \|\| isPrivate;/);
+  assert.match(js, /function renderPatronCallout\(\) \{[\s\S]*?const hide = patronCallout\.active \|\| Date\.now\(\) < patronCallout\.snoozedUntil \|\| isPrivate;/);
+  assert.match(js, /patronCalloutHide\.addEventListener\('click', \(\) => \{\s*patronCallout\.snoozedUntil = Infinity;\s*renderPatronCallout\(\);\s*window\.bowserPages\?\.start\.dismissPatronCallout\(\)/,
+    'closing hides the pill at once, then main records the 90-day snooze');
+  assert.match(js, /document\.addEventListener\('visibilitychange', \(\) => \{\s*if \(!document\.hidden\) renderPatronCallout\(\);/,
+    'a start page shown again re-checks whether the snooze has ended');
   assert.match(js, /document\.getElementById\('shBlocked'\)\.closest\('\.shelf-card'\)\.hidden = isPrivate;/);
   assert.match(js, /document\.querySelector\('\.tally-right'\)\.hidden = isPrivate;/);
 });
@@ -136,9 +157,9 @@ test('surfaces follow one weight ladder with accessibility fallbacks', () => {
 test('motion grows surfaces from their source and respects reduced motion', () => {
   const css = frameCss();
   const js = read('src/renderer/pages/newtab.js');
-  assert.match(css, /\.start-customize-popover \{[^}]*transform-origin: bottom center;[^}]*transition:[^;]*opacity 150ms var\(--start-ease\)/s);
-  assert.match(css, /\.start-customize-popover:popover-open \{[^}]*transition-duration: 200ms;/s);
-  assert.match(css, /@starting-style \{\s*\.start-customize-popover:popover-open \{[^}]*scale\(0\.96\)/);
+  assert.match(css, /\.start-customize-popover,\s*\.migration-checklist \{[^}]*transform-origin: bottom center;[^}]*transition:[^;]*opacity 150ms var\(--start-ease\)/s);
+  assert.match(css, /\.start-customize-popover:popover-open,\s*\.migration-checklist:popover-open \{[^}]*transition-duration: 200ms;/s);
+  assert.match(css, /@starting-style \{\s*\.start-customize-popover:popover-open,\s*\.migration-checklist:popover-open \{[^}]*scale\(0\.96\)/);
   assert.match(css, /body\.layout-ready \.start-content > main \{[^}]*transition: opacity 160ms var\(--start-ease\);/s);
   assert.match(css, /@starting-style \{\s*body\.layout-ready \.start-content > main \{ opacity: 0; \}/);
   assert.match(css, /:active \{[^}]*transform: scale\(0\.98\);/s);
