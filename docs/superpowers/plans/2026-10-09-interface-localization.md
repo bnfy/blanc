@@ -3431,9 +3431,9 @@ Set `copy/messages/de.json` `$meta.status` to `"selectable"`, run `npm run copy:
 
 In a dev run with `uiLanguage: "de"` (no test overrides needed now), capture: resting pill, ⌘L panel with two groups, shield popover, a camera permission prompt with a long host, Settings (General and Privacy), the start page in all four layouts, a utility sheet (History), the app menu (macOS) and a context menu. Inspect each for truncation, overlap and clipping only. Fix and repeat. Attach all captures to the PR.
 
-- [ ] **Step 5: Spec status and release notes**
+- [ ] **Step 5: Keep F44 PLANNED; draft the release notes**
 
-`spec/parity-matrix.md` F44 desktop → SHIPPED (it ships with the next release; the release record confirms it). Draft `docs/press/release-notes/<next-tag>.md` lines: "Blanc's interface is available in German (machine-translated). If your system language is German, Blanc now follows it; choose English any time in Settings → General → Language." No marketing or site copy until that release is public (`docs/marketing-claims.md`).
+Leave `spec/parity-matrix.md` F44 desktop at **PLANNED** in this PR. Making German selectable on a branch, or merging this PR, does not ship it to users. Draft `docs/press/release-notes/<next-tag>.md` lines: "Blanc's interface is available in German (machine-translated). If your system language is German, Blanc now follows it; choose English any time in Settings → General → Language." No marketing or site copy until that release is public (`docs/marketing-claims.md`).
 
 - [ ] **Step 6: Full verification and commit**
 
@@ -3441,6 +3441,10 @@ Run: `npm run lint && npm run test:unit && npm run substrate:check && npm run te
 Expected: all PASS.
 
 ```bash
-git add copy src/renderer/pages/strings.*.js src/main/i18n-locales.json spec docs/press/release-notes
+git add copy src/renderer/pages/strings.*.js src/main/i18n-locales.json docs/press/release-notes
 git commit -m "Make German selectable: every interface string is translated and guarded"
 ```
+
+- [ ] **Step 7: After the public release — mark F44 SHIPPED**
+
+Only during that release's completion documentation update (the follow-up record PR the release runbook already requires, after the public artifacts and every release gate have passed): change `spec/parity-matrix.md` F44 desktop from PLANNED to SHIPPED, and say in the dated release incident that German shipped in that version. Until then the release notes stay a draft, and no site, marketing or press copy mentions languages (`docs/marketing-claims.md`).

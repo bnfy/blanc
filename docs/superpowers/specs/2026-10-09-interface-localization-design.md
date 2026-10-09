@@ -582,9 +582,12 @@ strings and moves its files from `pending` to `guarded`.
       groups, shield popover, a permission prompt, Settings, start page in
       all four layouts, a utility sheet, the app menu), inspected for **fit**
       (truncation, overlap, clipping), not translation quality
-    - `spec/` F44 desktop status moved to SHIPPED
+    - `spec/` F44 desktop status still **PLANNED**
 
-    German then reaches users in the next normal release.
+    German then reaches users in the next normal release. F44 desktop moves
+    to SHIPPED only in that release's completion documentation update, after
+    the public artifacts and every release gate pass; merging the unhide PR
+    does not ship it.
 
 The order of phases 2–9 can change. Only phase 1 must come first and phase 10
 last.
@@ -685,7 +688,8 @@ covers the schema.
     translation falls back to English text, never to a key; the user can use a
     supported language different from the OS language; web-facing language
     signals are unaffected by the UI language.
-  - **Status:** desktop PLANNED (SHIPPED at phase 10's release); iOS and
+  - **Status:** desktop PLANNED, moved to SHIPPED in the release-completion
+    record of the public release that first carries German; iOS and
     Android PLANNED.
 - **D27 Language picker location** (`divergence-register.md`, Features: F44).
   Desktop offers an in-app picker with relaunch-to-apply. iOS uses the system
