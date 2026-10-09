@@ -146,10 +146,10 @@ Then('the start page uses Newsreader for the Billboard clock and invitation head
   assert.equal(usage.page.newsreader.length, 9);
   assert.deepEqual(usage.page.newsreaderOutsideApproved, []);
   for (const sample of usage.page.newsreader) {
-    assert.match(sample.family, /Newsreader Variable/, `${sample.selector} resolved to ${sample.family}`);
+    assert.match(sample.family, /Newsreader Condensed/, `${sample.selector} resolved to ${sample.family}`);
   }
   for (const sample of usage.page.samples) {
-    const expected = sample.selector === '.bb-clock' ? /Newsreader Variable/ : /Inter/;
+    const expected = sample.selector === '.bb-clock' ? /Newsreader Condensed/ : /Inter/;
     assert.match(sample.family, expected, `${sample.selector} resolved to ${sample.family}`);
   }
 });

@@ -109,7 +109,7 @@ object BlancTokens {
     }
     const val patronGold: String = "#d4ad66"
     const val fontUi: String = "\"Inter\", -apple-system, \"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif"
-    const val fontDisplay: String = "\"Newsreader Variable\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
+    const val fontDisplay: String = "\"Newsreader Condensed\", \"Newsreader\", \"Iowan Old Style\", \"Palatino Linotype\", Palatino, serif"
     const val typeBodySize: String = "13px"
     const val typePageTitleSize: String = "24px"
     const val typePageTitleWeight: String = "650"

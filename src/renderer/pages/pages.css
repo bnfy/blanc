@@ -8,9 +8,13 @@
   font-weight: 100 900;
   font-display: swap;
 }
+/* The website's Newsreader Condensed (92% width, +0.02em built-in tracking),
+   built by site/scripts/build-condensed-newsreader.py. Each heading's
+   letter-spacing below is 0.02em tighter than its intended effect to cancel
+   the built-in tracking. */
 @font-face {
-  font-family: "Newsreader Variable";
-  src: url("newsreader-latin-opsz-normal.woff2") format("woff2-variations");
+  font-family: "Newsreader Condensed";
+  src: url("newsreader-condensed-latin-opsz-normal.woff2") format("woff2-variations");
   font-style: normal;
   font-weight: 200 800;
   font-display: swap;
@@ -55,7 +59,7 @@
   --sunrise-accent-dim: rgba(128, 93, 40, 0.16);
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --font-display: "Newsreader Condensed", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --type-body-size: 13px;
   --type-page-title-size: 24px;
   --type-page-title-weight: 650;
@@ -918,7 +922,7 @@ body.sheet .shortcut-section .section-title {
   font-size: var(--type-sheet-section-size);
   font-weight: 500;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   font-optical-sizing: auto;
   text-transform: none;
 }
@@ -1294,7 +1298,7 @@ a.ledger-label:hover { color: var(--accent); }
   font-size: 28px;
   font-weight: 400;
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   font-optical-sizing: auto;
 }
 .migration-progress-ring {
@@ -1730,7 +1734,7 @@ body.sheet .page h1 {
   font-size: var(--type-sheet-title-size);
   font-weight: 500;
   line-height: 1.1;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.045em;
   font-optical-sizing: auto;
 }
 body.sheet .page-nav {
@@ -2814,9 +2818,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-clock {
   font-family: var(--font-display);
   font-size: clamp(80px, 12vw, 148px);
-  font-weight: 650;
+  font-weight: 500;
   font-variant-numeric: proportional-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
   font-optical-sizing: auto;
 }
@@ -2863,7 +2867,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .migration-checklist-heading { gap: 14px; }
 .migration-checklist-heading h2 {
   font-size: 27px;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.045em;
 }
 .migration-progress-ring {
   width: 46px;
@@ -3472,7 +3476,7 @@ body[data-layout="ledger"] .ledger:not(:has(.ledger-col-secondary > section:not(
   font-size: 32px;
   font-weight: 400;
   line-height: 1.1;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.035em;
   font-optical-sizing: auto;
 }
 .ledger-spread {
@@ -3579,7 +3583,7 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   font-size: 22px;
   font-weight: 400;
   line-height: 1.15;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.035em;
   font-optical-sizing: auto;
   text-wrap: balance;
 }
